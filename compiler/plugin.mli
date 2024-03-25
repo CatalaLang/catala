@@ -21,7 +21,7 @@ type t = unit Cmdliner.Cmd.t
 
 val register :
   Cmdliner.Cmd.info ->
-  (Catala_utils.Cli.options -> unit) Cmdliner.Term.t ->
+  (Catala_utils.Global.options -> unit) Cmdliner.Term.t ->
   unit
 (** Plugins are registerd as [Cmdliner] commands, which must take at least the
     default global options as arguments (this is required for e.g.

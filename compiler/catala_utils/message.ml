@@ -39,8 +39,8 @@ let () = ignore (unstyle_formatter Format.str_formatter)
    below std_ppf / err_ppf *)
 
 let has_color oc =
-  match Cli.globals.color with
-  | Cli.Never -> false
+  match Global.options.color with
+  | Global.Never -> false
   | Always -> true
   | Auto -> Unix.(isatty (descr_of_out_channel oc))
 
@@ -78,8 +78,8 @@ type content_type = Error | Warning | Debug | Log | Result
 
 let get_ppf = function
   | Result -> Lazy.force std_ppf
-  | Debug when not Cli.globals.debug -> Lazy.force ignore_ppf
-  | Warning when Cli.globals.disable_warnings -> Lazy.force ignore_ppf
+  | Debug when not Global.options.debug -> Lazy.force ignore_ppf
+  | Warning when Global.options.disable_warnings -> Lazy.force ignore_ppf
   | Error | Log | Debug | Warning -> Lazy.force err_ppf
 
 (**{3 Markers}*)
@@ -150,8 +150,8 @@ module Content = struct
     [MainMessage (fun ppf -> Format.pp_print_string ppf s)]
 
   let emit (content : t) (target : content_type) : unit =
-    match Cli.globals.message_format with
-    | Cli.Human ->
+    match Global.options.message_format with
+    | Global.Human ->
       let ppf = get_ppf target in
       Format.fprintf ppf "@[<hv>%t%t%a@]@." (pp_marker target)
         (fun (ppf : Format.formatter) ->
@@ -174,7 +174,7 @@ module Content = struct
                 Suggestions.format ppf suggestions_list)
             ppf message_elements)
         content
-    | Cli.GNU ->
+    | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
          message everywhere there is not a more precise message. If we can't

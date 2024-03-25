@@ -180,7 +180,8 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:Cli.globals.max_prec_digits i)
+      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits
+         i)
   | LMoney e ->
     lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
@@ -771,7 +772,7 @@ end
 
 module ExprDebug = ExprGen (ExprDebugParam)
 
-let expr ?(debug = Cli.globals.debug) () ppf e =
+let expr ?(debug = Global.options.debug) () ppf e =
   if debug then ExprDebug.expr ppf e else ExprConcise.expr ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
@@ -958,15 +959,16 @@ module UserFacing = struct
   (* Refs:
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
      https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
-  let bigsep (lang : Cli.backend_lang) =
+  let bigsep (lang : Global.backend_lang) =
     match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
 
-  let decsep (lang : Cli.backend_lang) =
+  let decsep (lang : Global.backend_lang) =
     match lang with En -> "." | Fr -> "," | Pl -> "."
 
-  let unit (_lang : Cli.backend_lang) ppf () = Format.pp_print_string ppf "()"
+  let unit (_lang : Global.backend_lang) ppf () =
+    Format.pp_print_string ppf "()"
 
-  let bool (lang : Cli.backend_lang) ppf b =
+  let bool (lang : Global.backend_lang) ppf b =
     let s =
       match lang, b with
       | En, true -> "true"
@@ -978,7 +980,7 @@ module UserFacing = struct
     in
     Format.pp_print_string ppf s
 
-  let integer (lang : Cli.backend_lang) ppf n =
+  let integer (lang : Global.backend_lang) ppf n =
     let sep, nsep = bigsep lang in
     let nsep = Z.pow (Z.of_int 10) nsep in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
@@ -991,7 +993,7 @@ module UserFacing = struct
     in
     aux (Z.abs n)
 
-  let money (lang : Cli.backend_lang) ppf n =
+  let money (lang : Global.backend_lang) ppf n =
     let num = Z.abs n in
     let units, cents = Z.div_rem num (Z.of_int 100) in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
@@ -1004,7 +1006,7 @@ module UserFacing = struct
     | Fr -> Format.pp_print_string ppf " €"
     | Pl -> Format.pp_print_string ppf " PLN"
 
-  let decimal (lang : Cli.backend_lang) ppf r =
+  let decimal (lang : Global.backend_lang) ppf r =
     let den = Q.den r in
     let num = Z.abs (Q.num r) in
     let int_part, rem = Z.div_rem num den in
@@ -1021,7 +1023,7 @@ module UserFacing = struct
         | None ->
           if Z.equal n Z.zero then None, false
           else
-            let r = Cli.globals.max_prec_digits in
+            let r = Global.options.max_prec_digits in
             Some (r - 1), r <= 1
         | Some r -> Some (r - 1), r <= 1
       in
@@ -1037,19 +1039,19 @@ module UserFacing = struct
     in
     aux 0
       (if Z.equal int_part Z.zero then None
-       else Some (Cli.globals.max_prec_digits - ndigits int_part))
+       else Some (Global.options.max_prec_digits - ndigits int_part))
       rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %
      and some others not, adding confusion. *)
 
-  let date (lang : Cli.backend_lang) ppf d =
+  let date (lang : Global.backend_lang) ppf d =
     let y, m, d = Dates_calc.Dates.date_to_ymd d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
     | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
-  let duration (lang : Cli.backend_lang) ppf dr =
+  let duration (lang : Global.backend_lang) ppf dr =
     let y, m, d = Dates_calc.Dates.period_to_ymds dr in
     let rec filter0 = function
       | (0, _) :: (_ :: _ as r) -> filter0 r
@@ -1069,7 +1071,7 @@ module UserFacing = struct
          ppf;
     Format.pp_print_char ppf ']'
 
-  let lit_raw (lang : Cli.backend_lang) ppf lit : unit =
+  let lit_raw (lang : Global.backend_lang) ppf lit : unit =
     match lit with
     | LUnit -> unit lang ppf ()
     | LBool b -> bool lang ppf b
@@ -1079,20 +1081,20 @@ module UserFacing = struct
     | LDate d -> date lang ppf d
     | LDuration dr -> duration lang ppf dr
 
-  let lit_to_string (lang : Cli.backend_lang) lit =
+  let lit_to_string (lang : Global.backend_lang) lit =
     let buf = Buffer.create 32 in
     let ppf = Format.formatter_of_buffer buf in
     lit_raw lang ppf lit;
     Format.pp_print_flush ppf ();
     Buffer.contents buf
 
-  let lit (lang : Cli.backend_lang) ppf lit : unit =
+  let lit (lang : Global.backend_lang) ppf lit : unit =
     with_color (lit_raw lang) Ocolor_types.yellow ppf lit
 
   let rec value :
       type a.
       ?fallback:(Format.formatter -> (a, 't) gexpr -> unit) ->
-      Cli.backend_lang ->
+      Global.backend_lang ->
       Format.formatter ->
       (a, 't) gexpr ->
       unit =
@@ -1132,7 +1134,7 @@ module UserFacing = struct
       fallback ppf e
 
   let expr :
-      type a. Cli.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
+      type a. Global.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
    fun lang ->
     let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
      fun ppf e -> value ~fallback lang ppf e

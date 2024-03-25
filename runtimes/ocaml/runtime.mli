@@ -29,7 +29,11 @@ type integer = Z.t
 type decimal = Q.t
 type date = Dates_calc.Dates.date
 type duration = Dates_calc.Dates.period
-type date_rounding = Dates_calc.Dates.date_rounding
+
+type date_rounding = Dates_calc.Dates.date_rounding =
+  | RoundUp
+  | RoundDown
+  | AbortOnRound
 
 type source_position = {
   filename : string;

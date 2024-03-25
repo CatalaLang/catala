@@ -35,13 +35,13 @@ let indent_str = ref ""
 
 (** {1 Evaluation} *)
 let print_log lang entry infos pos e =
-  if Cli.globals.trace then
+  if Global.options.trace then
     match entry with
     | VarDef _ ->
       Message.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
         entry Print.uid_list infos
         (Message.unformat (fun ppf ->
-             (if Cli.globals.debug then Print.expr ~debug:true ()
+             (if Global.options.debug then Print.expr ~debug:true ()
               else Print.UserFacing.expr lang)
                ppf e))
     | PosRecordIfTrueBool -> (
@@ -609,7 +609,7 @@ and val_to_runtime :
 let rec evaluate_expr :
     type d e.
     decl_ctx ->
-    Cli.backend_lang ->
+    Global.backend_lang ->
     ((d, e, yes) interpr_kind, 't) gexpr ->
     ((d, e, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
@@ -817,7 +817,7 @@ let rec evaluate_expr :
 and partially_evaluate_expr_for_assertion_failure_message :
     type d e.
     decl_ctx ->
-    Cli.backend_lang ->
+    Global.backend_lang ->
     ((d, e, yes) interpr_kind, 't) gexpr ->
     ((d, e, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->

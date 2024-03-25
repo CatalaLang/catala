@@ -15,86 +15,29 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(* Types used by flags & options *)
+open Global
 
-type file = string
-type raw_file = file
-type backend_lang = En | Fr | Pl
-type when_enum = Auto | Always | Never
-type message_format_enum = Human | GNU
-type input_src = FileName of file | Contents of string * file | Stdin of file
+(* Manipulation of types used by flags & options *)
 
-(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
+(** Associates a {!type: Global.backend_lang} with its string represtation. *)
 let languages = ["en", En; "fr", Fr; "pl", Pl]
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let message_format_opt = ["human", Human; "gnu", GNU]
-
-type options = {
-  mutable input_src : input_src;
-  mutable language : backend_lang option;
-  mutable debug : bool;
-  mutable color : when_enum;
-  mutable message_format : message_format_enum;
-  mutable trace : bool;
-  mutable plugins_dirs : file list;
-  mutable disable_warnings : bool;
-  mutable max_prec_digits : int;
-  mutable path_rewrite : raw_file -> file;
-}
-
-(* Note: we force that the global options (ie options common to all commands)
-   and the options available through global refs are the same. While this is a
-   bit arbitrary, it makes some sense code-wise and provides some safeguard
-   against explosion of the number of global references. Reducing the number of
-   globals further would be nice though. *)
-let globals =
-  {
-    input_src = Stdin "-stdin-";
-    language = None;
-    debug = false;
-    color = Auto;
-    message_format = Human;
-    trace = false;
-    plugins_dirs = [];
-    disable_warnings = false;
-    max_prec_digits = 20;
-    path_rewrite = (fun _ -> assert false);
-  }
-
-let enforce_globals
-    ?input_src
-    ?language
-    ?debug
-    ?color
-    ?message_format
-    ?trace
-    ?plugins_dirs
-    ?disable_warnings
-    ?max_prec_digits
-    ?path_rewrite
-    () =
-  Option.iter (fun x -> globals.input_src <- x) input_src;
-  Option.iter (fun x -> globals.language <- x) language;
-  Option.iter (fun x -> globals.debug <- x) debug;
-  Option.iter (fun x -> globals.color <- x) color;
-  Option.iter (fun x -> globals.message_format <- x) message_format;
-  Option.iter (fun x -> globals.trace <- x) trace;
-  Option.iter (fun x -> globals.plugins_dirs <- x) plugins_dirs;
-  Option.iter (fun x -> globals.disable_warnings <- x) disable_warnings;
-  Option.iter (fun x -> globals.max_prec_digits <- x) max_prec_digits;
-  Option.iter (fun x -> globals.path_rewrite <- x) path_rewrite;
-  globals
 
 open Cmdliner
 
 (* Arg converters for our custom types *)
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
+
+let raw_file =
+  Arg.conv ~docv:"FILE"
+    ( (fun f -> Result.map raw_file (Arg.conv_parser Arg.string f)),
+      fun ppf f -> Format.pp_print_string ppf (f :> string) )
 
 (* Some helpers for catala sources *)
 
@@ -105,7 +48,7 @@ let file_lang filename =
   |> function
   | Some lang -> lang
   | None -> (
-    match globals.language with
+    match Global.options.language with
     | Some lang -> lang
     | None ->
       Format.kasprintf failwith
@@ -113,30 +56,14 @@ let file_lang filename =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
-  if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path"
-  else if not (Filename.is_relative f) then f
-  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
-  else
-    let rec aux acc rbase = function
-      | [] -> acc
-      | dir :: p -> (
-        if dir = Filename.parent_dir_name then
-          match rbase with
-          | base1 :: rbase -> aux (base1 :: acc) rbase p
-          | [] -> aux acc [] p
-        else
-          match acc with
-          | dir1 :: acc when dir1 = dir -> aux acc rbase p
-          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
-    in
-    let path_to_list path =
-      String.split_on_char Filename.dir_sep.[0] path
-      |> List.filter (function "" | "." -> false | _ -> true)
-    in
-    let rbase = List.rev (path_to_list from_dir) in
-    String.concat Filename.dir_sep
-      (aux (path_to_list f) rbase (path_to_list to_dir))
+let exec_dir =
+  let cmd = Sys.argv.(0) in
+  if String.contains cmd '/' then
+    (* Do not use Sys.executable_name, which may resolve symlinks: we want the
+       original path. (e.g. _build/install/default/bin/foo is a symlink) *)
+    Filename.dirname cmd
+  else (* searched in PATH *)
+    Filename.dirname Sys.executable_name
 
 (** CLI flags and options *)
 
@@ -151,11 +78,14 @@ module Flags = struct
       let converter =
         conv ~docv:"FILE"
           ( (fun s ->
-              if s = "-" then Ok (Stdin "-stdin-")
-              else Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
+              if s = "-" then Ok (Stdin (Global.raw_file "-stdin-"))
+              else
+                Result.map
+                  (fun f -> FileName (Global.raw_file f))
+                  (conv_parser non_dir_file s)),
             fun ppf -> function
               | Stdin _ -> Format.pp_print_string ppf "-"
-              | FileName f -> conv_printer non_dir_file ppf f
+              | FileName f -> conv_printer non_dir_file ppf (f :> file)
               | _ -> assert false )
       in
       required
@@ -225,7 +155,6 @@ module Flags = struct
       let env = Cmd.Env.info "CATALA_PLUGINS" in
       let default =
         let ( / ) = Filename.concat in
-        let exec_dir = Filename.(dirname Sys.argv.(0)) in
         let dev_plugin_dir = exec_dir / "plugins" in
         if Sys.file_exists dev_plugin_dir then
           (* When running tests in place, may need to lookup in _build/default
@@ -283,13 +212,16 @@ module Flags = struct
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
-          | None -> fun f -> f
+          | None -> fun (f : Global.raw_file) -> (f :> file)
           | Some to_dir -> (
-            function "-" -> "-" | f -> reverse_path ~to_dir f)
+            fun (f : Global.raw_file) ->
+              match (f :> file) with
+              | "-" -> "-"
+              | f -> File.reverse_path ~to_dir f)
         in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
-        enforce_globals ~language ~debug ~color ~message_format ~trace
+        Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite ()
       in
       Term.(
@@ -308,34 +240,33 @@ module Flags = struct
       let make input_src name directory options : options =
         (* Set some global refs for convenience *)
         let input_src =
-          match name with
-          | None -> input_src
-          | Some name -> (
-            match input_src with
-            | FileName f -> FileName f
-            | Contents (str, _) -> Contents (str, name)
-            | Stdin _ -> Stdin name)
-        in
-        let input_src =
+          let rename f =
+            match name with None -> f | Some n -> Global.raw_file n
+          in
           match input_src with
           | FileName f -> FileName (options.path_rewrite f)
-          | Contents (str, f) -> Contents (str, options.path_rewrite f)
-          | Stdin f -> Stdin (options.path_rewrite f)
+          | Contents (str, f) -> Contents (str, options.path_rewrite (rename f))
+          | Stdin f -> Stdin (options.path_rewrite (rename f))
         in
-        let plugins_dirs = List.map options.path_rewrite options.plugins_dirs in
         Option.iter Sys.chdir directory;
-        globals.input_src <- input_src;
-        globals.plugins_dirs <- plugins_dirs;
-        { options with input_src; plugins_dirs }
+        Global.enforce_options ~input_src ()
       in
       Term.(const make $ input_src $ name_flag $ directory $ flags)
   end
 
   let include_dirs =
-    value
-    & opt_all string []
-    & info ["I"; "include"] ~docv:"DIR"
-        ~doc:"Include directory to lookup for compiled module files."
+    let arg =
+      Arg.(
+        value
+        & opt_all (list ~sep:':' raw_file) []
+        & info ["I"; "include"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_INCLUDE")
+            ~doc:
+              "Make modules from the given directory available from \
+               everywhere. Several dirs can be specified by repeating the flag \
+               or separating them with '$(b,:)'.")
+    in
+    Term.(const List.flatten $ arg)
 
   let check_invariants =
     value
@@ -378,7 +309,7 @@ module Flags = struct
 
   let output =
     value
-    & opt (some string) None
+    & opt (some raw_file) None
     & info ["output"; "o"] ~docv:"OUTPUT"
         ~env:(Cmd.Env.info "CATALA_OUT")
         ~doc:
@@ -452,7 +383,7 @@ module Flags = struct
   let extra_files =
     value
     & pos_right 0 file []
-    & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
+    & Arg.info [] ~docv:"FILES" ~docs:Manpage.s_arguments
         ~doc:"Additional input files."
 
   let lcalc =
@@ -462,6 +393,20 @@ module Flags = struct
         ~doc:
           "Compile all the way to lcalc before interpreting (the default is to \
            interpret at dcalc stage). For debugging purposes."
+
+  let extension =
+    value
+    & opt_all string []
+    & info ["extension"; "e"] ~docv:"EXT"
+        ~doc:
+          "Replace the original file extensions with $(i,.EXT). If repeated, \
+           the file will be listed once which each supplied extension."
+
+  let prefix =
+    value
+    & opt (some string) None
+    & info ["prefix"] ~docv:"PATH"
+        ~doc:"Prepend the given path to each of the files in the returned list."
 end
 
 (* Retrieve current version from dune *)

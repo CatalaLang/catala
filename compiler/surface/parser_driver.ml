@@ -198,14 +198,15 @@ module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
+let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
+  function
   | En -> Parser_En.commands_or_includes
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
-let lines (file : File.t) (language : Cli.backend_lang) =
+let lines (file : File.t) (language : Global.backend_lang) =
   let lex_line =
     match language with
     | En -> Lexer_en.lex_line
@@ -387,12 +388,12 @@ let get_interface program =
 
 let with_sedlex_source source_file f =
   match source_file with
-  | Cli.FileName file -> with_sedlex_file file f
-  | Cli.Contents (str, file) ->
+  | Global.FileName file -> with_sedlex_file file f
+  | Global.Contents (str, file) ->
     let lexbuf = Sedlexing.Utf8.from_string str in
     Sedlexing.set_filename lexbuf file;
     f lexbuf
-  | Cli.Stdin file ->
+  | Global.Stdin file ->
     let lexbuf = Sedlexing.Utf8.from_channel stdin in
     Sedlexing.set_filename lexbuf file;
     f lexbuf
@@ -400,7 +401,7 @@ let with_sedlex_source source_file f =
 let check_modname program source_file =
   match program.Ast.program_module_name, source_file with
   | ( Some (mname, pos),
-      (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file) )
+      (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
     Message.raise_spanned_error pos
       "@[<hov>Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
@@ -412,18 +413,20 @@ let check_modname program source_file =
       File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
-let load_interface source_file =
+let load_interface ?default_module_name source_file =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
-    match program.Ast.program_module_name with
-    | Some mname -> mname
-    | None ->
+    match program.Ast.program_module_name, default_module_name with
+    | Some mname, _ -> mname
+    | None, Some n ->
+      n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
+    | None, None ->
       Message.raise_error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
         File.format
-        (Cli.input_src_file source_file)
+        (Global.input_src_file source_file)
         (match source_file with
         | FileName s ->
           String.capitalize_ascii Filename.(basename (remove_extension s))
@@ -436,7 +439,7 @@ let load_interface source_file =
     Ast.intf_submodules = used_modules;
   }
 
-let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
+let parse_top_level_file (source_file : File.t Global.input_src) : Ast.program =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   {

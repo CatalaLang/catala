@@ -127,7 +127,7 @@ jobs:
       - name: Build examples
         run: |
           cd ~/catala-examples
-          opam --cli=2.1 exec -- make build pass_all_tests install
+          opam --cli=2.1 exec -- make all testsuite install
       - name: Checkout french-law repo
         run: |
           git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
@@ -145,9 +145,9 @@ jobs:
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
           mv ~/.opam/catala/doc/catala-examples/tuto*/*.html artifacts/
-          tar czf "artifacts/french_law_ocaml.tar.gz" french-law/ocaml
-          tar czf "artifacts/french_law_js.tar.gz" french-law/js
-          tar czf "artifacts/french_law_python.tar.gz" french-law/python
+          tar cz -hf "artifacts/french-law_ocaml.tar.gz" -C french-law/_build/install/default/lib french-law
+          cp catala-examples/_build/french-law_npm.tar.gz artifacts/
+          cp catala-examples/_build/french_law_python.tar.gz artifacts/
       - name: Upload artifacts
         continue-on-error: true
         # Uploading artifacts works but then return failure with:

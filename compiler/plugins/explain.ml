@@ -23,7 +23,7 @@ type flags = {
   merge_level : int;
   format : [ `Dot | `Convert of string ];
   show : string option;
-  output : Cli.raw_file option;
+  output : Global.raw_file option;
   base_src_url : string;
 }
 
@@ -264,7 +264,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             e
           in
           let e =
-            Interpreter.evaluate_operator eval op m Cli.En
+            Interpreter.evaluate_operator eval op m Global.En
               (* Default language to English but this should not raise any error
                  messages so we don't care. *)
               args
@@ -989,7 +989,7 @@ let rec graph_cleanup options g base_vars =
 
 let expr_to_dot_label0 :
     type a.
-    Cli.backend_lang ->
+    Global.backend_lang ->
     decl_ctx ->
     Env.t ->
     Format.formatter ->
@@ -997,7 +997,7 @@ let expr_to_dot_label0 :
     unit =
  fun lang ctx env ->
   let xlang ~en ?(pl = en) ~fr () =
-    match lang with Cli.Fr -> fr | Cli.En -> en | Cli.Pl -> pl
+    match lang with Global.Fr -> fr | Global.En -> en | Global.Pl -> pl
   in
   let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
    fun ppf e -> Print.UserFacing.value ~fallback lang ppf e
@@ -1369,7 +1369,9 @@ let run includes optimize ex_scope explain_options global_options =
       graph_cleanup explain_options g base_vars
     else g
   in
-  let lang = Cli.file_lang (Cli.input_src_file global_options.Cli.input_src) in
+  let lang =
+    Cli.file_lang (Global.input_src_file global_options.Global.input_src)
+  in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url;
@@ -1386,7 +1388,7 @@ let run includes optimize ex_scope explain_options global_options =
       fun f ->
         f
           (Option.value ~default:"-"
-             (Option.map Cli.globals.path_rewrite output))
+             (Option.map Global.options.path_rewrite output))
   in
   with_dot_file
   @@ fun dotfile ->

@@ -139,7 +139,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
        Catala sources *)
     | TUnit -> ""
     | TInt -> Expr.to_string e
-    | TRat -> Arithmetic.Real.to_decimal_string e Cli.globals.max_prec_digits
+    | TRat -> Arithmetic.Real.to_decimal_string e Global.options.max_prec_digits
     (* TODO: Print the right money symbol according to language *)
     | TMoney ->
       let z3_str = Expr.to_string e in

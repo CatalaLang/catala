@@ -699,6 +699,6 @@ type decl_ctx = {
 type 'e program = {
   decl_ctx : decl_ctx;
   code_items : 'e code_item_list;
-  lang : Cli.backend_lang;
+  lang : Global.backend_lang;
   module_name : ModuleName.t option;
 }

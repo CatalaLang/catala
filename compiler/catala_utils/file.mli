@@ -44,7 +44,7 @@ val with_formatter_of_opt_file : t option -> (Format.formatter -> 'a) -> 'a
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
 
 val get_out_channel :
-  source_file:Cli.input_src ->
+  source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
   unit ->
@@ -54,7 +54,7 @@ val get_out_channel :
     equal to [Some "-"] returns a wrapper around [stdout]. *)
 
 val get_formatter_of_out_channel :
-  source_file:Cli.input_src ->
+  source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
   unit ->
@@ -85,6 +85,10 @@ val check_directory : t -> t option
 (** Checks if the given directory exists and returns it normalised (as per
     [Unix.realpath]). *)
 
+val ensure_dir : t -> unit
+(** Creates the directory (and parents recursively) if it doesn't exist already.
+    Errors out if the file exists but is not a directory *)
+
 val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
@@ -103,12 +107,28 @@ val ( / ) : t -> t -> t
 val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
 
+val parent : t -> t
+(** Similar to [dirname], except it strips the last **non-"." or ".."** element
+    in the supplied file name, if it exists *)
+
+val clean_path : t -> t
+(** Rewrites a path by removing intermediate relative lookups ("." and "..").
+    E.g. [../foo/./bar/../baz/] becomes [../foo/baz]. No disk lookup is made by
+    this function. *)
+
+val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
+(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
+    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
+    leading to [f] from [to_dir]. The results attempts to be relative to
+    [to_dir]. *)
+
 val ( /../ ) : t -> t -> t
-(** Sugar for [Filename.dirname "a" / b] *)
+(** Sugar for [parent a / b] *)
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
-    with the given one (which shouldn't contain a dot) *)
+    with the given one (which shouldn't contain a dot). No dot is appended if
+    the provided extension is empty. *)
 
 val path_to_list : t -> string list
 (** Empty elements or current-directory (".") are skipped in the resulting list *)

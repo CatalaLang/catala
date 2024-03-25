@@ -26,7 +26,7 @@ val evaluate_operator :
   ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
-  Cli.backend_lang ->
+  Global.backend_lang ->
   ('a, 'm) gexpr list ->
   ('a, 'm) gexpr
 (** Evaluates the result of applying the given operator to the given arguments,
@@ -36,7 +36,7 @@ val evaluate_operator :
 
 val evaluate_expr :
   decl_ctx ->
-  Cli.backend_lang ->
+  Global.backend_lang ->
   (('a, 'b, _) interpr_kind, 'm) gexpr ->
   (('a, 'b, yes) interpr_kind, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)

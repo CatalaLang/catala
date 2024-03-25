@@ -333,7 +333,7 @@ and program = {
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
   program_used_modules : module_use list;
-  program_lang : Cli.backend_lang; [@opaque]
+  program_lang : Global.backend_lang; [@opaque]
 }
 
 and source_file = law_structure list

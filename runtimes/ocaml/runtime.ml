@@ -21,7 +21,12 @@ type money = Z.t
 type integer = Z.t
 type decimal = Q.t
 type date = Dates_calc.Dates.date
-type date_rounding = Dates_calc.Dates.date_rounding
+
+type date_rounding = Dates_calc.Dates.date_rounding =
+  | RoundUp
+  | RoundDown
+  | AbortOnRound
+
 type duration = Dates_calc.Dates.period
 
 module Eoption = struct

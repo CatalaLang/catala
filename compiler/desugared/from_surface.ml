@@ -159,6 +159,17 @@ let rec disambiguate_constructor
     try Ident.Map.find (Mark.remove constructor) ctxt.local.constructor_idmap
     with Ident.Map.Not_found _ -> raise_error_cons_not_found ctxt constructor
   in
+  let possible_c_uids =
+    (* Eliminate candidates from other modules if there exists some from the
+       current one *)
+    let current_module =
+      EnumName.Map.filter
+        (fun struc _ -> EnumName.path struc = [])
+        possible_c_uids
+    in
+    if EnumName.Map.is_empty current_module then possible_c_uids
+    else current_module
+  in
   match path with
   | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
@@ -622,7 +633,17 @@ let rec translate_expr
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
       try
-        Ident.Map.find constructor ctxt.Name_resolution.local.constructor_idmap
+        let possible =
+          Ident.Map.find constructor
+            ctxt.Name_resolution.local.constructor_idmap
+        in
+        (* Eliminate candidates from other modules if there exists some from the
+           current one *)
+        let current_module =
+          EnumName.Map.filter (fun struc _ -> EnumName.path struc = []) possible
+        in
+        if EnumName.Map.is_empty current_module then possible
+        else current_module
       with Ident.Map.Not_found _ ->
         raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in

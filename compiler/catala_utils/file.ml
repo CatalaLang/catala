@@ -16,6 +16,8 @@
 
 type t = string
 
+let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
+
 (** Run finaliser [f] unconditionally after running [k ()], propagating any
     raised exception. *)
 let finally f k =
@@ -30,11 +32,80 @@ let finally f k =
 
 let temp_file pfx sfx =
   let f = Filename.temp_file pfx sfx in
-  if not Cli.globals.debug then
+  if not Global.options.debug then
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
+let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
+let dir_sep_char = Filename.dir_sep.[0]
+
+let rec parent f =
+  let base = Filename.basename f in
+  if base = Filename.parent_dir_name || base = Filename.current_dir_name then
+    parent (Filename.dirname f) / base
+  else Filename.dirname f
+
+let clean_path p =
+  let ( / ) a b = if b = "" then a else a / b in
+  let nup, p =
+    List.fold_right
+      (fun d (nup, acc) ->
+        if d = Filename.current_dir_name then nup, acc
+        else if d = Filename.parent_dir_name then nup + 1, acc
+        else if nup > 0 then nup - 1, acc
+        else nup, d / acc)
+      (String.split_on_char dir_sep_char p)
+      (0, "")
+  in
+  let p =
+    if nup = 0 then p
+    else
+      String.concat Filename.dir_sep
+        (List.init nup (fun _ -> Filename.parent_dir_name))
+      / p
+  in
+  if p = "" then "." else p
+
+let rec ensure_dir dir =
+  match Sys.is_directory dir with
+  | true -> ()
+  | false ->
+    Message.raise_error "Directory %a exists but is not a directory" format dir
+  | exception Sys_error _ ->
+    let pdir = parent dir in
+    if pdir <> dir then ensure_dir pdir;
+    Sys.mkdir dir
+      0o777 (* will be affected by umask, most likely restricted to 0o755 *)
+
+let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
+  clean_path
+  @@
+  if Filename.is_relative from_dir then invalid_arg "File.reverse_path"
+  else if not (Filename.is_relative f) then f
+  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
+  else
+    let rec aux acc rbase = function
+      | [] -> acc
+      | dir :: p -> (
+        if dir = Filename.parent_dir_name then
+          match rbase with
+          | base1 :: rbase -> aux (base1 :: acc) rbase p
+          | [] -> aux acc [] p
+        else
+          match acc with
+          | dir1 :: acc when dir1 = dir -> aux acc rbase p
+          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
+    in
+    let path_to_list path =
+      String.split_on_char Filename.dir_sep.[0] path
+      |> List.filter (function "" | "." -> false | _ -> true)
+    in
+    let rbase = List.rev (path_to_list from_dir) in
+    String.concat Filename.dir_sep
+      (aux (path_to_list f) rbase (path_to_list to_dir))
+
 let with_out_channel filename f =
+  ensure_dir (Filename.dirname filename);
   let oc = open_out filename in
   finally (fun () -> close_out oc) (fun () -> f oc)
 
@@ -59,7 +130,7 @@ let get_out_channel ~source_file ~output_file ?ext () =
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
-    let src = Cli.input_src_file source_file in
+    let src = Global.input_src_file source_file in
     let f = Filename.remove_extension src ^ ext in
     Some f, with_out_channel f
 
@@ -126,8 +197,6 @@ let get_command t =
        "/bin/sh"
        ["-c"; "command -v " ^ Filename.quote t]
 
-let dir_sep_char = Filename.dir_sep.[0]
-
 let check_exec t =
   try if String.contains t dir_sep_char then Unix.realpath t else get_command t
   with Unix.Unix_error _ | Sys_error _ ->
@@ -135,10 +204,12 @@ let check_exec t =
       "Could not find the @{<yellow>%s@} program, please fix your installation"
       (Filename.quote t)
 
-let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
 let dirname = Filename.dirname
-let ( /../ ) a b = dirname a / b
-let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
+let ( /../ ) a b = parent a / b
+
+let ( -.- ) file ext =
+  let base = Filename.chop_extension file in
+  match ext with "" -> base | ext -> base ^ "." ^ ext
 
 let path_to_list path =
   String.split_on_char dir_sep_char path
@@ -149,8 +220,6 @@ let equal a b =
 
 let compare a b =
   String.compare (String.lowercase_ascii a) (String.lowercase_ascii b)
-
-let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
 
 module Set = Set.Make (struct
   type nonrec t = t

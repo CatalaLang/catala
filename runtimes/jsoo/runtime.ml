@@ -44,10 +44,9 @@ class type duration = object
   method days : int Js.readonly_prop
 end
 
-let duration_of_jsoo d =
-  R_ocaml.duration_of_numbers d##.years d##.months d##.days
+let duration_of_js d = R_ocaml.duration_of_numbers d##.years d##.months d##.days
 
-let duration_to_jsoo d =
+let duration_to_js d =
   let years, months, days = R_ocaml.duration_to_years_months_days d in
   object%js
     val years = years
@@ -55,7 +54,7 @@ let duration_to_jsoo d =
     val days = days
   end
 
-let date_of_jsoo d =
+let date_of_js d =
   let d = Js.to_string d in
   let d =
     if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
@@ -65,27 +64,21 @@ let date_of_jsoo d =
   | [year; month; day] ->
     R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
       (int_of_string day)
-  | _ -> failwith "date_of_jsoo: invalid date"
+  | _ -> failwith "date_of_js: invalid date"
 
-let date_to_jsoo d = Js.string @@ R_ocaml.date_to_string d
+let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
 class type event_manager = object
-  method resetLog : (unit, unit) Js.meth_callback Js.meth
-
-  method retrieveEvents :
-    (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
-
-  method retrieveRawEvents :
-    (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  method resetLog : unit Js.meth
+  method retrieveEvents : event Js.t Js.js_array Js.t Js.meth
+  method retrieveRawEvents : raw_event Js.t Js.js_array Js.t Js.meth
 end
 
 let event_manager : event_manager Js.t =
-  object%js
-    method resetLog = Js.wrap_meth_callback R_ocaml.reset_log
+  object%js (_self)
+    method resetLog = R_ocaml.reset_log ()
 
     method retrieveEvents =
-      Js.wrap_meth_callback
-      @@ fun () ->
       R_ocaml.retrieve_log ()
       |> R_ocaml.EventParser.parse_raw_events
       |> List.map (fun event ->
@@ -150,8 +143,6 @@ let event_manager : event_manager Js.t =
             | _ -> Js.undefined
         end
       in
-      Js.wrap_meth_callback
-      @@ fun () ->
       R_ocaml.retrieve_log () |> List.map evt_to_js |> Array.of_list |> Js.array
   end
 
@@ -181,3 +172,9 @@ let execute_or_throw_error f =
       "A conflict happened between two rules giving a value to the variable" pos
   | R_ocaml.AssertionFailed pos ->
     throw_error "A failure happened in the assertion" pos
+
+let () =
+  Js.export_all
+    (object%js
+       val eventsManager = event_manager
+    end)

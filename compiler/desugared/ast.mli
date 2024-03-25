@@ -126,7 +126,7 @@ type program = {
   program_modules : modul ModuleName.Map.t;
       (** Contains all submodules of the program, in a flattened structure *)
   program_root : modul;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 (** {1 Helpers} *)
