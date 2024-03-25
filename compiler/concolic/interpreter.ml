@@ -2375,17 +2375,21 @@ let print_fields language (prefix : string) fields =
          else ""))
     ordered_fields
 
-let fields_to_json language fields =
+let fields_to_json _ fields =
   let ordered_fields =
     List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields
-  in
+  in 
   `Assoc
     (
     List.map
       (fun ((var, _), value) ->
          (Format.asprintf "%a" Scalc.To_python.format_name_cleaned var,
-          `String (Format.asprintf "%a" (Print.UserFacing.value language) value))
-          (* `String (Format.asprintf "%a" (Scalc.To_python.format_expression _) value) *)
+          (* `String (Format.asprintf "%a" (Print.UserFacing.value language) value *)
+          match Mark.remove value with
+          | ELit l ->
+            `String (Format.asprintf "%a" Scalc.To_python.format_lit (l, Expr.pos value))
+          | _ -> assert false)
+
       ) ordered_fields
   )
 
