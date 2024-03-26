@@ -25,6 +25,10 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
 # Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
 # should be enough once opam 2.2 is released (see opam#5185)
 
+# This is temporary, to avoid pulling in a dependency to Str, until it's merged
+# and release into dates_calc
+RUN opam --cli=2.1 pin dates_calc.0.0.5 git+https://github.com/AltGr/dates-calc#nostr
+
 #
 # STAGE 2: get the whole repo and build
 #
