@@ -135,8 +135,8 @@ jobs:
       - name: Build french-law
         run: |
           cd ~/french-law
-          opam --cli=2.1 exec -- make dependencies
-          opam --cli=2.1 exec -- make all
+          opam --cli=2.1 exec -- make dependencies-ocaml dependencies-js dependencies-python
+          opam --cli=2.1 exec -- make bench_ocaml bench_js bench_python
       - name: Gather all artifacts
         run: |
           cd
