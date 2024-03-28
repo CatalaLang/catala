@@ -35,6 +35,8 @@ type scope_context = {
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
+  scope_in_struct : StructName.t;
+  scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
@@ -139,7 +141,7 @@ let get_subscope_uid
     ((y, pos) : Ident.t Mark.pos) : ScopeVar.t =
   let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt y scope.var_idmap with
-  | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
+  | Some (SubScope (sub_uid, _sub_id, _)) -> sub_uid
   | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
 
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
@@ -161,32 +163,18 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
       | _ -> false)
     scope.var_idmap
 
-(** Retrieves the type of a scope definition from the context *)
-let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
+let get_var_def (def: Ast.ScopeDef.t) : ScopeVar.t =
   match def with
-  | Ast.ScopeDef.SubScopeVar (_, x, _)
-  (* we don't need to look at the subscope prefix because [x] is already the uid
-     referring back to the original subscope *)
-  | Ast.ScopeDef.Var (x, _) ->
-    get_var_typ ctxt x
+  | ((v, _), Ast.ScopeDef.Var _)
+  | (_, Ast.ScopeDef.SubScope { var_within_origin_scope = v; _ }) -> v
 
 (** Retrieves the type of a scope definition from the context *)
 let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
     (Uid.MarkedString.info * typ) list Mark.pos option =
-  match def with
-  | Ast.ScopeDef.SubScopeVar (_, x, _)
-  (* we don't need to look at the subscope prefix because [x] is already the uid
-     referring back to the original subscope *)
-  | Ast.ScopeDef.Var (x, _) ->
-    (ScopeVar.Map.find x ctxt.var_typs).var_sig_parameters
+  (ScopeVar.Map.find (get_var_def def) ctxt.var_typs).var_sig_parameters
 
 let is_def_cond (ctxt : context) (def : Ast.ScopeDef.t) : bool =
-  match def with
-  | Ast.ScopeDef.SubScopeVar (_, x, _)
-  (* we don't need to look at the subscope prefix because [x] is already the uid
-     referring back to the original subscope *)
-  | Ast.ScopeDef.Var (x, _) ->
-    is_var_cond ctxt x
+  is_var_cond ctxt (get_var_def def)
 
 let get_enum ctxt id =
   match Ident.Map.find (Mark.remove id) ctxt.local.typedefs with
@@ -267,6 +255,7 @@ let process_subscope_decl
     (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
+  let forward_output = decl.Surface.Ast.scope_decl_context_scope_attribute.scope_decl_context_io_output in
   let (path, subscope), s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = get_scope_context ctxt scope in
   match Ident.Map.find_opt (Mark.remove subscope) scope_ctxt.var_idmap with
@@ -274,7 +263,7 @@ let process_subscope_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _) -> ScopeVar.get_info ssc
+      | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
     in
     Message.raise_multispanned_error
       [Some "first use", Mark.get info; Some "second use", s_pos]
@@ -290,13 +279,26 @@ let process_subscope_decl
         scope_ctxt with
         var_idmap =
           Ident.Map.add name
-            (SubScope (sub_scope_uid, original_subscope_uid))
+            (SubScope (sub_scope_uid, original_subscope_uid, forward_output))
             scope_ctxt.var_idmap;
         sub_scopes =
           ScopeName.Set.add original_subscope_uid scope_ctxt.sub_scopes;
       }
     in
     { ctxt with scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes }
+      (* var_typs =
+       *   ScopeVar.Map.add uid
+       *     {
+       *       var_sig_typ = data_typ;
+       *       var_sig_is_condition = is_cond;
+       *       var_sig_parameters;
+       *       var_sig_io = decl.scope_decl_context_item_attribute;
+       *       var_sig_states_idmap = states_idmap;
+       *       var_sig_states_list = states_list;
+       *     }
+       *     ctxt.var_typs; *)
+
+
 
 let is_type_cond ((typ, _) : Surface.Ast.typ) =
   match typ with
@@ -377,7 +379,7 @@ let process_data_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _) -> ScopeVar.get_info ssc
+      | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
     in
     Message.raise_multispanned_error
       [Some "First use:", Mark.get info; Some "Second use:", pos]
@@ -673,6 +675,8 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
         {
           var_idmap = Ident.Map.empty;
           scope_defs_contexts = Ast.ScopeDef.Map.empty;
+          scope_in_struct = in_struct_name;
+          scope_out_struct = out_struct_name;
           sub_scopes = ScopeName.Set.empty;
         }
         ctxt.scopes
@@ -762,9 +766,9 @@ let get_def_key
   | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
     let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
+    (x_uid, pos),
     Ast.ScopeDef.Var
-      ( x_uid,
-        match state with
+      ( match state with
         | Some state -> (
           try
             Some
@@ -789,19 +793,20 @@ let get_def_key
               ScopeVar.format x_uid
           else None )
   | [y; x] ->
-    let (subscope_uid, subscope_real_uid) : ScopeVar.t * ScopeName.t =
+    let (subscope_var, name) : ScopeVar.t * ScopeName.t =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
-      | Some (SubScope (v, u)) -> v, u
+      | Some (SubScope (v, u, _)) -> v, u
       | Some _ ->
         Message.raise_spanned_error pos
-          "Invalid access to input variable, %a is not a subscope"
+          "Invalid definition, %a is not a subscope"
           Print.lit_style (Mark.remove y)
       | None ->
         Message.raise_spanned_error pos "No definition found for subscope %a"
           Print.lit_style (Mark.remove y)
     in
-    let x_uid = get_var_uid subscope_real_uid ctxt x in
-    Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
+    let var_within_origin_scope = get_var_uid name ctxt x in
+    (subscope_var, pos),
+    Ast.ScopeDef.SubScope { name; var_within_origin_scope }
   | _ ->
     Message.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \

@@ -17,6 +17,8 @@
 open Catala_utils
 open Shared_ast
 
+module S = Scopelang.Ast
+
 type scope_var_ctx = {
   scope_var_name : ScopeVar.t;
   scope_var_typ : naked_typ;
@@ -54,9 +56,9 @@ type 'm ctx = {
   toplevel_vars : ('m Ast.expr Var.t * naked_typ) TopdefName.Map.t;
   scope_vars :
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t;
-  subscope_vars :
-    ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t
-    ScopeVar.Map.t;
+  (* subscope_vars :
+   *   ('m Ast.expr Var.t * naked_typ * bool (\* reentrant *\)) ScopeVar.Map.t
+   *   ScopeVar.Map.t; *)
   date_rounding : date_rounding;
 }
 
@@ -151,10 +153,10 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (type m) (excepts : m Scopelang.Ast.expr list) :
-    m Scopelang.Ast.expr list =
+let collapse_similar_outcomes (type m) (excepts : m S.expr list) :
+    m S.expr list =
   let module ExprMap = Map.Make (struct
-    type t = m Scopelang.Ast.expr
+    type t = m S.expr
 
     let compare = Expr.compare
     let format = Expr.format
@@ -214,7 +216,7 @@ let thunk_scope_arg var_ctx e =
     Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
   | _ -> assert false
 
-let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
+let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) :
     'm Ast.expr boxed =
   let m = Mark.get e in
   match Mark.remove e with
@@ -483,8 +485,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         match loc with
         | ScopelangScopeVar { name = v, _; _ } ->
           [ScopeName.get_info sname; ScopeVar.get_info v]
-        | SubScopeVar { scope; var = v, _; _ } ->
-          [ScopeName.get_info scope; ScopeVar.get_info v]
         | ToplevelVar _ -> [])
       | _ -> []
     in
@@ -509,10 +509,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       match Mark.remove f with
       | ELocation (ScopelangScopeVar { name = var }) ->
         retrieve_out_typ_or_any var ctx.scope_vars
-      | ELocation (SubScopeVar { alias; var; _ }) ->
-        ctx.subscope_vars
-        |> ScopeVar.Map.find (Mark.remove alias)
-        |> retrieve_out_typ_or_any var
       | ELocation (ToplevelVar { name }) -> (
         let typ =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
@@ -568,26 +564,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   | ELocation (ScopelangScopeVar { name = a }) ->
     let v, _, _ = ScopeVar.Map.find (Mark.remove a) ctx.scope_vars in
     Expr.evar v m
-  | ELocation (SubScopeVar { alias = s; var = a; _ }) -> (
-    try
-      let v, _, _ =
-        ScopeVar.Map.find (Mark.remove a)
-          (ScopeVar.Map.find (Mark.remove s) ctx.subscope_vars)
-      in
-      Expr.evar v m
-    with ScopeVar.Map.Not_found _ | ScopeVar.Map.Not_found _ ->
-      Message.raise_multispanned_error
-        [
-          Some "Incriminated variable usage:", Expr.pos e;
-          ( Some "Incriminated subscope variable declaration:",
-            Mark.get (ScopeVar.get_info (Mark.remove a)) );
-          ( Some "Incriminated subscope declaration:",
-            Mark.get (ScopeVar.get_info (Mark.remove s)) );
-        ]
-        "The variable %a.%a cannot be used here, as it is not part of subscope \
-         %a's results. Maybe you forgot to qualify it as an output?"
-        ScopeVar.format (Mark.remove s) ScopeVar.format (Mark.remove a)
-        ScopeVar.format (Mark.remove s))
   | ELocation (ToplevelVar { name }) ->
     let path = TopdefName.path (Mark.remove name) in
     if path = [] then
@@ -602,29 +578,38 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     | EIfThenElse _ | EAppOp _ ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
-(** The result of a rule translation is a list of assignment, with variables and
+(** The result of a rule translation is a list of assignments, with variables and
     expressions. We also return the new translation context available after the
     assignment to use in later rule translations. The list is actually a
     continuation yielding a [Dcalc.scope_body_expr] by giving it what should
     come later in the chain of let-bindings. *)
 let translate_rule
     (ctx : 'm ctx)
-    (rule : 'm Scopelang.Ast.rule)
+    (rule : 'm S.rule)
     ((sigma_name, pos_sigma) : Uid.MarkedString.info) :
     ('m Ast.expr scope_body_expr Bindlib.box ->
     'm Ast.expr scope_body_expr Bindlib.box)
     * 'm ctx =
   match rule with
-  | Definition ((ScopelangScopeVar { name = a }, var_def_pos), tau, a_io, e) ->
+  | S.ScopeVarDefinition { var; typ; e; _ }
+  | S.SubScopeVarDefinition { var; typ; e } ->
     let pos_mark, _ = pos_mark_mk e in
-    let a_name = ScopeVar.get_info (Mark.remove a) in
+    let scope_let_kind, io = match rule with
+      | S.ScopeVarDefinition {io; _} -> ScopeVarDefinition, io
+      | S.SubScopeVarDefinition _ ->
+        let pos = Mark.get var in
+        SubScopeVarDefinition,
+        { io_input = (NoInput, pos); io_output = (false, pos) }
+      | S.Assertion _ -> assert false
+    in
+    let a_name = ScopeVar.get_info (Mark.remove var) in
     let a_var = Var.make (Mark.remove a_name) in
     let new_e = translate_expr ctx e in
-    let a_expr = Expr.make_var a_var (pos_mark var_def_pos) in
-    let is_func = match Mark.remove tau with TArrow _ -> true | _ -> false in
+    let a_expr = Expr.make_var a_var (pos_mark (Mark.get var)) in
+    let is_func = match Mark.remove typ with TArrow _ -> true | _ -> false in
     let merged_expr =
-      match Mark.remove a_io.io_input with
-      | OnlyInput -> failwith "should not happen"
+      match Mark.remove io.io_input with
+      | OnlyInput -> assert false
       (* scopelang should not contain any definitions of input only variables *)
       | Reentrant -> merge_defaults ~is_func a_expr new_e
       | NoInput -> new_e
@@ -633,9 +618,9 @@ let translate_rule
       tag_with_log_entry merged_expr
         (VarDef
            {
-             log_typ = Mark.remove tau;
-             log_io_output = Mark.remove a_io.io_output;
-             log_io_input = Mark.remove a_io.io_input;
+             log_typ = Mark.remove typ;
+             log_io_output = Mark.remove io.io_output;
+             log_io_input = Mark.remove io.io_input;
            })
         [sigma_name, pos_sigma; a_name]
     in
@@ -644,10 +629,10 @@ let translate_rule
           (fun next merged_expr ->
             Cons
               ( {
-                  scope_let_typ = tau;
+                  scope_let_typ = typ;
                   scope_let_expr = merged_expr;
-                  scope_let_kind = ScopeVarDefinition;
-                  scope_let_pos = Mark.get a;
+                  scope_let_kind;
+                  scope_let_pos = Mark.get var;
                 },
                 next ))
           (Bindlib.bind_var a_var next)
@@ -655,74 +640,70 @@ let translate_rule
       {
         ctx with
         scope_vars =
-          ScopeVar.Map.add (Mark.remove a)
-            (a_var, Mark.remove tau, a_io)
+          ScopeVar.Map.add (Mark.remove var)
+            (a_var, Mark.remove typ, io)
             ctx.scope_vars;
       } )
-  | Definition
-      ((SubScopeVar { alias = subs_index; var = subs_var; _ }, _), tau, a_io, e)
-    ->
-    let a_name =
-      Mark.map
-        (fun str ->
-          str ^ "." ^ Mark.remove (ScopeVar.get_info (Mark.remove subs_var)))
-        (ScopeVar.get_info (Mark.remove subs_index))
-    in
-    let a_var = Var.make (Mark.remove a_name) in
-    let new_e =
-      tag_with_log_entry (translate_expr ctx e)
-        (VarDef
-           {
-             log_typ = Mark.remove tau;
-             log_io_output = false;
-             log_io_input = Mark.remove a_io.Desugared.Ast.io_input;
-           })
-        [sigma_name, pos_sigma; a_name]
-    in
-    let thunked_or_nonempty_new_e =
-      match a_io.Desugared.Ast.io_input with
-      | Runtime.NoInput, _ -> assert false
-      | Runtime.OnlyInput, _ -> new_e
-      | Runtime.Reentrant, pos -> (
-        match Mark.remove tau with
-        | TArrow _ -> new_e
-        | _ -> Mark.map_mark (Expr.with_pos pos) (Expr.thunk_term new_e))
-    in
-    ( (fun next ->
-        Bindlib.box_apply2
-          (fun next thunked_or_nonempty_new_e ->
-            Cons
-              ( {
-                  scope_let_pos = Mark.get a_name;
-                  scope_let_typ = input_var_typ (Mark.remove tau) a_io;
-                  scope_let_expr = thunked_or_nonempty_new_e;
-                  scope_let_kind = SubScopeVarDefinition;
-                },
-                next ))
-          (Bindlib.bind_var a_var next)
-          (Expr.Box.lift thunked_or_nonempty_new_e)),
-      {
-        ctx with
-        subscope_vars =
-          ScopeVar.Map.update (Mark.remove subs_index)
-            (fun map ->
-              match map with
-              | Some map ->
-                Some
-                  (ScopeVar.Map.add (Mark.remove subs_var)
-                     (a_var, Mark.remove tau, a_io)
-                     map)
-              | None ->
-                Some
-                  (ScopeVar.Map.singleton (Mark.remove subs_var)
-                     (a_var, Mark.remove tau, a_io)))
-            ctx.subscope_vars;
-      } )
-  | Definition ((ToplevelVar _, _), _, _, _) ->
-    assert false
-    (* A global variable can't be defined locally. The [Definition] constructor
-       could be made more specific to avoid this case, but the added complexity
-       didn't seem worth it *)
+ (*  | S.SubScopeVarDefinition { var; origin_var; typ; scope; e } ->
+  *    let pos = Mark.get var in
+  *    let a_name = ScopeVar.get_info var in
+  *    let a_var = Var.make (Mark.remove a_name) in
+  *    let a_io =
+  *      { Desugared.Ast.io_input = NoInput, pos; io_output = false, pos }
+  *      (\* - "input subscopes" aren't allowed at the moment
+  *         - definitions are only for subscope *input* variables. Even if this is an "output subscope" and the variable was "input output", the output will be read from the output structure of the scope call, not from this variable.
+  * *\)
+  *    in
+  *    let new_e =
+  *      tag_with_log_entry (translate_expr ctx e)
+  *        (VarDef
+  *           {
+  *             log_typ = Mark.remove typ;
+  *             log_io_output = false;
+  *             log_io_input = Mark.remove a_io.Desugared.Ast.io_input;
+  *           })
+  *        [sigma_name, pos_sigma; a_name]
+  *    in
+  *    let thunked_or_nonempty_new_e =
+  *      match a_io.Desugared.Ast.io_input with
+  *      | Runtime.NoInput, _ -> assert false
+  *      | Runtime.OnlyInput, _ -> new_e
+  *      | Runtime.Reentrant, pos -> (
+  *        match Mark.remove typ with
+  *        | TArrow _ -> new_e
+  *        | _ -> Mark.map_mark (Expr.with_pos pos) (Expr.thunk_term new_e))
+  *    in
+  *    ( (fun next ->
+  *        Bindlib.box_apply2
+  *          (fun next thunked_or_nonempty_new_e ->
+  *            Cons
+  *              ( {
+  *                  scope_let_pos = Mark.get a_name;
+  *                  scope_let_typ = input_var_typ (Mark.remove typ) a_io;
+  *                  scope_let_expr = thunked_or_nonempty_new_e;
+  *                  scope_let_kind = SubScopeVarDefinition;
+  *                },
+  *                next ))
+  *          (Bindlib.bind_var a_var next)
+  *          (Expr.Box.lift thunked_or_nonempty_new_e)),
+  *      {
+  *        ctx with
+  *        subscope_vars =
+  *          ScopeVar.Map.update (Mark.remove alias)
+  *            (fun map ->
+  *              match map with
+  *              | Some map ->
+  *                Some
+  *                  (ScopeVar.Map.add (Mark.remove origin_var)
+  *                     (a_var, Mark.remove typ, a_io)
+  *                     map)
+  *              | None ->
+  *                Some
+  *                  (ScopeVar.Map.singleton (Mark.remove origin_var)
+  *                     (a_var, Mark.remove typ, a_io)))
+  *            ctx.subscope_vars;
+  *      } ) *)
+(*
   | Call (subname, subindex, m) ->
     let subscope_sig = ScopeName.Map.find subname ctx.scopes_parameters in
     let scope_sig_decl = ScopeName.Map.find subname ctx.decl_ctx.ctx_scopes in
@@ -885,6 +866,7 @@ let translate_rule
                ScopeVar.Map.empty all_subscope_output_vars_dcalc)
             ctx.subscope_vars;
       } )
+*)
   | Assertion e ->
     let new_e = translate_expr ctx e in
     let scope_let_pos = Expr.pos e in
@@ -910,7 +892,7 @@ let translate_rule
 let translate_rules
     (ctx : 'm ctx)
     (scope_name : ScopeName.t)
-    (rules : 'm Scopelang.Ast.rule list)
+    (rules : 'm S.rule list)
     ((sigma_name, pos_sigma) : Uid.MarkedString.info)
     (mark : 'm mark)
     (scope_sig : 'm scope_sig_ctx) :
@@ -953,7 +935,7 @@ let translate_rules
 let translate_scope_decl
     (ctx : 'm ctx)
     (scope_name : ScopeName.t)
-    (sigma : 'm Scopelang.Ast.scope_decl) =
+    (sigma : 'm S.scope_decl) =
   let sigma_info = ScopeName.get_info sigma.scope_decl_name in
   let scope_sig =
     ScopeName.Map.find sigma.scope_decl_name ctx.scopes_parameters
@@ -1007,8 +989,9 @@ let translate_scope_decl
          or not ? *)
       Message.raise_spanned_error pos_sigma "Scope %a has no content"
         ScopeName.format scope_name
-    | (Definition (_, _, _, (_, m)) | Assertion (_, m) | Call (_, _, m)) :: _ ->
-      m
+    | (S.ScopeVarDefinition { e; _ }
+      | S.SubScopeVarDefinition { e; _ }
+      | S.Assertion e) :: _ -> Mark.get e
   in
   let rules_with_return_expr, ctx =
     translate_rules ctx scope_name sigma.scope_decl_rules sigma_info scope_mark
@@ -1069,7 +1052,7 @@ let translate_scope_decl
     (Bindlib.bind_var scope_input_var
        (input_destructurings rules_with_return_expr))
 
-let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
+let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let defs_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
   Scopelang.Dependency.check_for_cycle_in_defs defs_dependencies;
   let defs_ordering =
@@ -1094,7 +1077,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
            as the return type of ScopeCalls) ; but input fields are used purely
            internally and need to be created here to implement the call
            convention for scopes. *)
-        let module S = Scopelang.Ast in
+        let module S = S in
         ScopeVar.Map.filter_map
           (fun dvar svar ->
             match Mark.remove svar.S.svar_io.Desugared.Ast.io_input with
@@ -1124,8 +1107,8 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
             (fun (scope_var, svar) ->
               {
                 scope_var_name = scope_var;
-                scope_var_typ = Mark.remove svar.Scopelang.Ast.svar_in_ty;
-                scope_var_io = svar.Scopelang.Ast.svar_io;
+                scope_var_typ = Mark.remove svar.S.svar_in_ty;
+                scope_var_io = svar.S.svar_io;
               })
             (ScopeVar.Map.bindings scope.scope_sig);
         scope_sig_scope_ref = scope_ref;
@@ -1142,8 +1125,8 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     in
     ModuleName.Map.fold
       (fun _ s -> ScopeName.Map.disjoint_union (process_scopes s))
-      prgm.Scopelang.Ast.program_modules
-      (process_scopes prgm.Scopelang.Ast.program_scopes)
+      prgm.S.program_modules
+      (process_scopes prgm.S.program_scopes)
   in
   let ctx_structs =
     ScopeName.Map.fold
@@ -1165,7 +1148,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     TopdefName.Map.mapi
       (fun name (_, ty) ->
         Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
-      prgm.Scopelang.Ast.program_topdefs
+      prgm.S.program_topdefs
   in
   let ctx =
     {
@@ -1173,7 +1156,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       scope_name = None;
       scopes_parameters;
       scope_vars = ScopeVar.Map.empty;
-      subscope_vars = ScopeVar.Map.empty;
+      (* subscope_vars = ScopeVar.Map.empty; *)
       toplevel_vars;
       date_rounding = AbortOnRound;
     }
@@ -1222,6 +1205,6 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
   {
     code_items = Bindlib.unbox items;
     decl_ctx;
-    module_name = prgm.Scopelang.Ast.program_module_name;
+    module_name = prgm.S.program_module_name;
     lang = prgm.program_lang;
   }

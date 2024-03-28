@@ -550,18 +550,12 @@ let compare_location
     if cmp = 0 then StateName.compare sx sy else cmp
   | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
-  | ( SubScopeVar { alias = xsubindex, _; var = xsubvar, _; _ },
-      SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
-    let c = ScopeVar.compare xsubindex ysubindex in
-    if c = 0 then ScopeVar.compare xsubvar ysubvar else c
   | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->
     TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
   | _, ScopelangScopeVar _ -> 1
-  | SubScopeVar _, _ -> -1
-  | _, SubScopeVar _ -> 1
   | ToplevelVar _, _ -> .
   | _, ToplevelVar _ -> .
 

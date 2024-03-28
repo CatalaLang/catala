@@ -74,9 +74,6 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
   | DesugaredScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
   | ScopelangScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
-  | SubScopeVar { alias = subindex; var = subvar; _ } ->
-    Format.fprintf fmt "%a.%a" ScopeVar.format (Mark.remove subindex)
-      ScopeVar.format (Mark.remove subvar)
   | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
 
 let external_ref fmt er =

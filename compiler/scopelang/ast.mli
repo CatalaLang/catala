@@ -32,9 +32,21 @@ type 'm expr = (scopelang, 'm) gexpr
 val locations_used : 'm expr -> LocationSet.t
 
 type 'm rule =
-  | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
+  | ScopeVarDefinition of {
+      var: ScopeVar.t Mark.pos;
+      typ: typ;
+      io: Desugared.Ast.io;
+      e: 'm expr
+    }
+  | SubScopeVarDefinition of {
+      var: ScopeVar.t Mark.pos; (** Variable within the current scope *)
+      (* scope: ScopeVar.t Mark.pos; (\** Variable pointing to the *\) *)
+      (* origin_var: ScopeVar.t Mark.pos;
+       * reentrant: bool; *)
+      typ: typ; (* non-thunked at this point for reentrant vars *)
+      e: 'm expr
+    }
   | Assertion of 'm expr
-  | Call of ScopeName.t * ScopeVar.t * 'm mark
 
 type scope_var_ty = {
   svar_in_ty : typ;

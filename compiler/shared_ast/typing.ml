@@ -406,10 +406,6 @@ module Env = struct
   let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
   let get_toplevel_var t v = A.TopdefName.Map.find_opt v t.toplevel_vars
 
-  let get_subscope_out_var t scope var =
-    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
-        A.ScopeVar.Map.find_opt var vmap)
-
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
 
@@ -503,8 +499,6 @@ and typecheck_expr_top_down :
       match loc with
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
-      | SubScopeVar { scope; var; _ } ->
-        Env.get_subscope_out_var env scope (Mark.remove var)
       | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
@@ -561,11 +555,11 @@ and typecheck_expr_top_down :
   | A.EDStructAccess { e = e_struct; name_opt; field } ->
     let t_struct =
       match name_opt with
-      | Some name -> TStruct name
-      | None -> TAny (Any.fresh ())
+      | Some name -> unionfind (TStruct name)
+      | None -> unionfind (TAny (Any.fresh ()))
     in
     let e_struct' =
-      typecheck_expr_top_down ctx env (unionfind t_struct) e_struct
+      typecheck_expr_top_down ctx env t_struct e_struct
     in
     let name =
       match UnionFind.get (ty e_struct') with
@@ -575,7 +569,7 @@ and typecheck_expr_top_down :
           "Disambiguation failed before reaching field %s" field
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
-          "This is not a structure, cannot access field %s (%a)" field
+          "This is not a structure, cannot access field %s (found type: %a)" field
           (format_typ ctx) (ty e_struct')
     in
     let str =

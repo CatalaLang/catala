@@ -189,67 +189,25 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   (* then add the edges *)
   let g =
+    let to_vertex (var, kind) = match kind with
+      | Ast.ScopeDef.Var st -> Vertex.Var (Mark.remove var, st)
+      | Ast.ScopeDef.SubScope _ -> Vertex.SubScope (Mark.remove var)
+    in
     Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
         let def = scope_def.Ast.scope_def_rules in
+        let v_defined = to_vertex def_key in
         let fv = Ast.free_variables def in
         Ast.ScopeDef.Map.fold
           (fun fv_def fv_def_pos g ->
-            match def_key, fv_def with
-            | ( Ast.ScopeDef.Var (v_defined, s_defined),
-                Ast.ScopeDef.Var (v_used, s_used) ) ->
-              (* simple case *)
-              if
-                ScopeVar.equal v_used v_defined
-                && Option.equal StateName.equal s_used s_defined
-              then
-                (* variable definitions cannot be recursive *)
+             let v_used = to_vertex fv_def in
+             if Vertex.equal v_used v_defined then
                 Message.raise_spanned_error fv_def_pos
                   "The variable %a is used in one of its definitions, but \
                    recursion is forbidden in Catala"
-                  Ast.ScopeDef.format def_key
-              else
-                let edge =
-                  ScopeDependencies.E.create
-                    (Vertex.Var (v_used, s_used))
-                    fv_def_pos
-                    (Vertex.Var (v_defined, s_defined))
-                in
-                ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.SubScopeVar (defined, _, _),
-                Ast.ScopeDef.Var (v_used, s_used) ) ->
-              (* here we are defining the input of a subscope using a var of the
-                 scope *)
-              let edge =
-                ScopeDependencies.E.create
-                  (Vertex.Var (v_used, s_used))
-                  fv_def_pos (Vertex.SubScope defined)
-              in
-              ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.SubScopeVar (defined, _, _),
-                Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
-              (* here we are defining the input of a scope with the output of
-                 another subscope *)
-              if ScopeVar.equal used defined then
-                (* subscopes are not recursive functions *)
-                Message.raise_spanned_error fv_def_pos
-                  "The subscope %a is used when defining one of its inputs, \
-                   but recursion is forbidden in Catala"
-                  ScopeVar.format defined
-              else
-                let edge =
-                  ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
-                    (Vertex.SubScope defined)
-                in
-                ScopeDependencies.add_edge_e g edge
-            | ( Ast.ScopeDef.Var (v_defined, s_defined),
-                Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
-              (* finally we define a scope var with the output of a subscope *)
-              let edge =
-                ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
-                  (Vertex.Var (v_defined, s_defined))
-              in
-              ScopeDependencies.add_edge_e g edge)
+                  Ast.ScopeDef.format def_key;
+             ScopeDependencies.add_edge_e g
+               (ScopeDependencies.E.create v_used fv_def_pos v_defined))
           fv g)
       scope.scope_defs g
   in
@@ -263,8 +221,6 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
               match Mark.remove used_var with
               | DesugaredScopeVar { name; state } ->
                 Some (Vertex.Var (Mark.remove name, state))
-              | SubScopeVar { alias; _ } ->
-                Some (Vertex.SubScope (Mark.remove alias))
               | ToplevelVar _ -> None
               (* we don't add this dependency because toplevel definitions are
                  outside the scope *)

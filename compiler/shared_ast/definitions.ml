@@ -97,7 +97,8 @@ module ScopeVar =
 
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of ScopeVar.t * ScopeName.t
+  | SubScope of ScopeVar.t * ScopeName.t * bool Mark.pos
+                (* The bool is true if the output of the subscope is to be forwarded *)
 
 module StateName =
   Uid.Gen
@@ -437,12 +438,6 @@ type 'a glocation =
       name : ScopeVar.t Mark.pos;
     }
       -> < scopeVarSimpl : yes ; .. > glocation
-  | SubScopeVar : {
-      scope : ScopeName.t;
-      alias : ScopeVar.t Mark.pos;
-      var : ScopeVar.t Mark.pos;
-    }
-      -> < explicitScopes : yes ; .. > glocation
   | ToplevelVar : {
       name : TopdefName.t Mark.pos;
     }

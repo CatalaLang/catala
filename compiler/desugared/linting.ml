@@ -25,7 +25,7 @@ let detect_empty_definitions (p : program) : unit =
       ScopeDef.Map.iter
         (fun scope_def_key scope_def ->
           if
-            (match scope_def_key with ScopeDef.Var _ -> true | _ -> false)
+            (match scope_def_key with _, ScopeDef.Var _ -> true | _ -> false)
             && RuleName.Map.is_empty scope_def.scope_def_rules
             && (not scope_def.scope_def_is_condition)
             &&
@@ -254,7 +254,7 @@ let detect_dead_code (p : program) : unit =
         | SubScope _ -> true
         | Var (var, state) ->
           let scope_def =
-            ScopeDef.Map.find (Var (var, state)) scope.scope_defs
+            ScopeDef.Map.find ((var, Pos.no_pos), ScopeDef.Var state) scope.scope_defs
           in
           Mark.remove scope_def.scope_def_io.io_output
         (* A variable is initially alive if it is an output*)
