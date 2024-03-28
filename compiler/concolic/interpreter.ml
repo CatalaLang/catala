@@ -2594,13 +2594,28 @@ let interpret_program_concolic
         Format.fprintf fmtt "i = TestIn(%a)@\n"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
              (fun fmt ((var, _), value) ->
-                match Mark.remove value with
-                | ELit l ->
-                  let lp = l, Expr.pos value in 
-                  Format.fprintf fmt "%a=%a"
-                    Scalc.To_python.format_name_cleaned var
-                    Scalc.To_python.format_lit lp
-                | _ -> assert false
+                let rec format_value fmt value =
+                  match Mark.remove value with
+                  | ELit l ->
+                    let lp = l, Expr.pos value in 
+                    Format.fprintf fmt "%a"
+                      Scalc.To_python.format_lit lp
+                  | EInj {name; e; cons} ->
+                    begin match Mark.remove e with
+                      | ELit _ ->
+                        Format.fprintf fmt "%a(%a_Code.%a,@ %a)" Scalc.To_python.format_enum_name name
+                          Scalc.To_python.format_enum_name name Scalc.To_python.format_enum_cons_name cons
+                          format_value e
+                      | _ -> assert false
+                    end 
+
+                  | _ ->
+                    Format.printf "%a@." (Print.UserFacing.value p.lang) value;
+                    assert false
+                in
+                Format.fprintf fmt "%a=%a"
+                  Scalc.To_python.format_name_cleaned var
+                  format_value value 
              )
           )
           inputs_list;
@@ -2711,9 +2726,9 @@ let interpret_program_concolic
 
     let stats = Stats.stop stats in
     if print_stats then
-      Message.emit_result "=== Concolic execution statistics ===\n%a"
-        Stats.print stats;
-
+      Message.emit_result "=== Concolic execution statistics ===\n%a\n{%d} tests\n======"
+        Stats.print stats
+        !total_tests;
     (* XXX BROKEN output *)
     []
   end
