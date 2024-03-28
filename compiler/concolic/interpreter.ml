@@ -2726,7 +2726,7 @@ let interpret_program_concolic
 
     let stats = Stats.stop stats in
     if print_stats then
-      Message.emit_result "=== Concolic execution statistics ===\n%a\n{%d} tests\n======"
+      Message.emit_result "=== Concolic execution statistics ===\n%a\n%d tests\n======"
         Stats.print stats
         !total_tests;
     (* XXX BROKEN output *)
