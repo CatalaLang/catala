@@ -25,8 +25,14 @@ module ScopeDef : sig
     | Var of StateName.t option
     | SubScope of { name: ScopeName.t; var_within_origin_scope: ScopeVar.t }
 
+  val equal_kind : kind -> kind -> bool
+  val compare_kind : kind -> kind -> int
+  val format_kind : Format.formatter -> kind -> unit
+  val hash_kind : kind -> int
+
   type t = ScopeVar.t Mark.pos * kind
 
+  val equal : t -> t -> bool
   val compare : t -> t -> int
   val get_position : t -> Pos.t
   val format : Format.formatter -> t -> unit

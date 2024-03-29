@@ -21,6 +21,7 @@ scope B:
   definition a equals 42
   definition b equals scopeA.b
   definition scopeA.a under condition a > 0 consequence equals scopeAbis.a_base
+  definition scopeA.a under condition a > 10 consequence equals 0
 ```
 
 

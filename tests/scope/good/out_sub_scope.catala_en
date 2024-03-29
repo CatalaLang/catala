@@ -7,6 +7,7 @@ declaration scope A:
 
 declaration scope B:
   output a scope A
+  output b content integer
 
 scope A:
   definition o equals i
@@ -14,10 +15,18 @@ scope A:
 scope B:
   definition a.i equals 99
   definition a.io equals 100
+  definition b equals a.o
 ```
 
 
 ```catala-test-inline
 $ catala test-scope B
-[RESULT] Computation successful!
+[ERROR]
+"a": unknown identifier for a local, scope-wide or global variable
+
+┌─⯈ tests/scope/good/out_sub_scope.catala_en:18.23-18.24:
+└──┐
+18 │   definition b equals a.o
+   │                       ‾
+#return code 123#
 ```

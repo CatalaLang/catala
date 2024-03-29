@@ -537,17 +537,11 @@ let compare_location
     (x : a glocation Mark.pos)
     (y : a glocation Mark.pos) =
   match Mark.remove x, Mark.remove y with
-  | ( DesugaredScopeVar { name = vx; state = None },
-      DesugaredScopeVar { name = vy; state = None } )
-  | ( DesugaredScopeVar { name = vx; state = Some _ },
-      DesugaredScopeVar { name = vy; state = None } )
-  | ( DesugaredScopeVar { name = vx; state = None },
-      DesugaredScopeVar { name = vy; state = Some _ } ) ->
-    ScopeVar.compare (Mark.remove vx) (Mark.remove vy)
-  | ( DesugaredScopeVar { name = x, _; state = Some sx },
-      DesugaredScopeVar { name = y, _; state = Some sy } ) ->
-    let cmp = ScopeVar.compare x y in
-    if cmp = 0 then StateName.compare sx sy else cmp
+  | ( DesugaredScopeVar { name = vx; state = sx },
+      DesugaredScopeVar { name = vy; state = sy } ) ->
+    (match Mark.compare ScopeVar.compare vx vy with
+     | 0 -> Option.compare StateName.compare sx sy
+     | n -> n)
   | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
   | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->

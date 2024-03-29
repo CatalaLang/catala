@@ -586,18 +586,35 @@ and typecheck_expr_top_down :
       let candidate_structs =
         try A.Ident.Map.find field ctx.ctx_struct_fields
         with A.Ident.Map.Not_found _ ->
-          Message.raise_spanned_error
-            (Expr.mark_pos context_mark)
-            "Field @{<yellow>\"%s\"@} does not belong to structure \
-             @{<yellow>\"%a\"@} (no structure defines it)"
-            field A.StructName.format name
+          match
+            A.ScopeName.Map.choose_opt @@
+            A.ScopeName.Map.filter
+              (fun _ { A.out_struct_name; _ } -> A.StructName.equal out_struct_name name)
+              ctx.ctx_scopes
+          with
+          | Some (scope_out, _) ->
+            Message.raise_multispanned_error_full
+              [None, Expr.mark_pos context_mark;
+               Some (fun ppf -> Format.fprintf ppf "Subscope %a is declared here" A.ScopeName.format scope_out),
+               Mark.get (A.StructName.get_info name)]
+              "Variable @{<yellow>\"%s\"@} is not a declared output of scope %a."
+              field A.ScopeName.format scope_out
+              ~suggestion:(List.map A.StructField.to_string (A.StructField.Map.keys str))
+          | None ->
+            Message.raise_multispanned_error
+              [None, Expr.mark_pos context_mark;
+               Some "Structure definition", Mark.get (A.StructName.get_info name)]
+              "Field @{<yellow>\"%s\"@} does not belong to structure \
+               @{<yellow>\"%a\"@}."
+              field A.StructName.format name
+              ~suggestion:(A.Ident.Map.keys ctx.ctx_struct_fields)
       in
       try A.StructName.Map.find name candidate_structs
       with A.StructName.Map.Not_found _ ->
         Message.raise_spanned_error
           (Expr.mark_pos context_mark)
           "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
-           @{<yellow>\"%a\"@},@ but to %a@]"
+           @{<yellow>\"%a\"@}@ (however, structure %a defines it)@]"
           field A.StructName.format name
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")

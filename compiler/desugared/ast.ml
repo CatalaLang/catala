@@ -31,6 +31,15 @@ module ScopeDef = struct
 
     type t = ScopeVar.t Mark.pos * kind
 
+    let equal_kind k1 k2 = match k1, k2 with
+      | Var s1, Var s2 -> Option.equal StateName.equal s1 s2
+      | SubScope { var_within_origin_scope = v1; _ }, SubScope { var_within_origin_scope = v2; _ } -> ScopeVar.equal v1 v2
+      | (Var _ | SubScope _), _ -> false
+
+    let equal (v1, k1) (v2, k2) =
+      ScopeVar.equal (Mark.remove v1) (Mark.remove v2) &&
+      equal_kind k1 k2
+
     let compare_kind k1 k2 = match k1, k2 with
     | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
     | SubScope { var_within_origin_scope = v1; _ }, SubScope { var_within_origin_scope = v2; _ } ->
@@ -45,20 +54,22 @@ module ScopeDef = struct
 
     let get_position (v, _) = Mark.get v
 
-    let format ppf (v, k) =
-      ScopeVar.format ppf (Mark.remove v);
-      match k with
+    let format_kind ppf = function
       | Var None -> ()
-      | Var (Some st) -> Format.fprintf ppf ".%a" StateName.format st
+      | Var (Some st) -> Format.fprintf ppf "@%a" StateName.format st
       | SubScope { var_within_origin_scope = v; _ } -> Format.fprintf ppf ".%a" ScopeVar.format v
 
+    let format ppf (v, k) =
+      ScopeVar.format ppf (Mark.remove v);
+      format_kind ppf k
+
+    let hash_kind = function
+      | Var (None) -> 0
+      | Var (Some st) -> StateName.hash st
+      | SubScope { var_within_origin_scope = v; _ } -> ScopeVar.hash v
+
     let hash (v, k) =
-      let h0 = ScopeVar.hash (Mark.remove v) in
-      match k with
-      | Var (None) -> h0
-      | Var (Some st) -> Int.logxor h0 (StateName.hash st)
-      | SubScope { var_within_origin_scope = v; _ } ->
-        Int.logxor h0 (ScopeVar.hash v)
+      Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
   end
 
   include Base
@@ -238,10 +249,8 @@ type program = {
 
 let rec locations_used e : LocationSet.t =
   match e with
-  | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
-  | EAbs { binder; _ }, _ ->
-    let _, body = Bindlib.unmbind binder in
-    locations_used body
+  | ELocation l, m ->
+    LocationSet.singleton (l, Expr.mark_pos m)
   | e ->
     Expr.shallow_fold
       (fun e -> LocationSet.union (locations_used e))

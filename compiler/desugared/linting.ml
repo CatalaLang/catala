@@ -252,7 +252,6 @@ let detect_dead_code (p : program) : unit =
       let is_alive (v : Dependency.ScopeDependencies.vertex) =
         match v with
         | Assertion _ -> true
-        | SubScope _ -> true
         | Var (var, state) ->
           let scope_def =
             ScopeDef.Map.find ((var, Pos.no_pos), ScopeDef.Var state) scope.scope_defs
@@ -261,25 +260,19 @@ let detect_dead_code (p : program) : unit =
         (* A variable is initially alive if it is an output*)
       in
       let is_alive = Reachability.analyze is_alive scope_dependencies in
-      ScopeVar.Map.iter
-        (fun var states ->
-          let emit_unused_warning () =
-            Message.emit_spanned_warning
-              (Mark.get (ScopeVar.get_info var))
-              "This variable is dead code; it does not contribute to computing \
-               any of scope \"%a\" outputs. Did you forget something?"
-              ScopeName.format scope_name
-          in
-          match states with
-          | WholeVar ->
-            if not (is_alive (Var (var, None))) then emit_unused_warning ()
-          | States states ->
-            List.iter
-              (fun state ->
-                if not (is_alive (Var (var, Some state))) then
-                  emit_unused_warning ())
-              states)
-        scope.scope_vars)
+      let emit_unused_warning vx =
+        Message.emit_spanned_warning
+          (Mark.get (Dependency.Vertex.info vx))
+          "Unused varible: %a does not contribute to computing \
+           any of scope %a outputs. Did you forget something?"
+          Dependency.Vertex.format vx
+          ScopeName.format scope_name
+      in
+      Dependency.ScopeDependencies.iter_vertex (fun vx ->
+          if not (is_alive vx) &&
+             Dependency.ScopeDependencies.succ scope_dependencies vx = []
+          then emit_unused_warning vx)
+        scope_dependencies)
     p.program_root.module_scopes
 
 let lint_program (p : program) : unit =

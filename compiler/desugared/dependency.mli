@@ -36,7 +36,6 @@ open Shared_ast
 module Vertex : sig
   type t =
     | Var of Shared_ast.ScopeVar.t * Shared_ast.StateName.t option
-    | SubScope of Shared_ast.ScopeVar.t
     | Assertion of Ast.AssertionName.t
 
   val format : Format.formatter -> t -> unit

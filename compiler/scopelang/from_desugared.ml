@@ -190,31 +190,8 @@ let def_to_exception_graph
   exc_graph
 
 let rule_to_exception_graph (scope : D.scope) = function
-  | Desugared.Dependency.Vertex.Var (var, state) -> (
-    let pos = Mark.get (ScopeVar.get_info var) in
-    let scope_def =
-      D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
-    in
-    let var_def = scope_def.D.scope_def_rules in
-    match Mark.remove scope_def.D.scope_def_io.io_input with
-    | OnlyInput when not (RuleName.Map.is_empty var_def) ->
-      (* If the variable is tagged as input, then it shall not be redefined. *)
-      Message.raise_multispanned_error
-        ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
-        :: List.map
-             (fun rule ->
-               ( Some "Incriminated variable definition:",
-                 Mark.get (RuleName.get_info rule) ))
-             (RuleName.Map.keys var_def))
-        "It is impossible to give a definition to a scope variable tagged as \
-         input."
-    | OnlyInput -> D.ScopeDef.Map.empty
-    (* we do not provide any definition for an input-only variable *)
-    | _ ->
-      D.ScopeDef.Map.singleton
-        ((var, pos), (D.ScopeDef.Var state))
-        (def_to_exception_graph ((var, pos), D.ScopeDef.Var state) var_def))
-  | Desugared.Dependency.Vertex.SubScope sub_scope_index ->
+  | Desugared.Dependency.Vertex.Var (var, None)
+    when ScopeVar.Map.mem var scope.scope_sub_scopes ->
     (* Before calling the sub_scope, we need to include all the re-definitions
        of subscope parameters*)
     D.ScopeDef.Map.fold
@@ -223,7 +200,7 @@ let rule_to_exception_graph (scope : D.scope) = function
          | D.ScopeDef.Var _ -> exc_graphs
          | D.ScopeDef.SubScope _
            when
-             not (ScopeVar.equal sub_scope_index (Mark.remove sscope))
+             not (ScopeVar.equal var (Mark.remove sscope))
              ||
              Mark.remove scope_def.D.scope_def_io.io_input = NoInput
              && RuleName.Map.is_empty scope_def.scope_def_rules
@@ -268,6 +245,30 @@ let rule_to_exception_graph (scope : D.scope) = function
            D.ScopeDef.Map.add def_key new_exc_graph exc_graphs)
       scope.scope_defs
       D.ScopeDef.Map.empty
+  | Desugared.Dependency.Vertex.Var (var, state) ->
+      (let pos = Mark.get (ScopeVar.get_info var) in
+       let scope_def =
+         D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
+       in
+       let var_def = scope_def.D.scope_def_rules in
+       match Mark.remove scope_def.D.scope_def_io.io_input with
+       | OnlyInput when not (RuleName.Map.is_empty var_def) ->
+         (* If the variable is tagged as input, then it shall not be redefined. *)
+         Message.raise_multispanned_error
+           ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
+            :: List.map
+              (fun rule ->
+                 ( Some "Incriminated variable definition:",
+                   Mark.get (RuleName.get_info rule) ))
+              (RuleName.Map.keys var_def))
+           "It is impossible to give a definition to a scope variable tagged as \
+            input."
+       | OnlyInput -> D.ScopeDef.Map.empty
+       (* we do not provide any definition for an input-only variable *)
+       | _ ->
+         D.ScopeDef.Map.singleton
+           ((var, pos), (D.ScopeDef.Var state))
+           (def_to_exception_graph ((var, pos), D.ScopeDef.Var state) var_def))
   | Assertion _ -> D.ScopeDef.Map.empty (* no exceptions for assertions *)
 
 let scope_to_exception_graphs (scope : D.scope) :
@@ -552,60 +553,57 @@ let translate_rule
     ctx
     (scope : D.scope)
     (exc_graphs :
-      Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t) = function
-  | Desugared.Dependency.Vertex.Var (var, state) -> (
-    if ScopeVar.Map.mem var scope.scope_sub_scopes then []
-      (* this case is handled below, the correct scopecall expression needs to be inserted after the definition of the subscope input vars *)
-    else
+      Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t)
+    = function
+  | Desugared.Dependency.Vertex.Var (var, state) ->
     let pos = Mark.get (ScopeVar.get_info var) in
     (* TODO: this may point to the place where the variable was declared instead of the binding in the definition being explored. Needs double-checking and maybe adding more position information *)
     let scope_def =
       D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
     in
-    let var_def = scope_def.D.scope_def_rules in
-    let var_params = scope_def.D.scope_def_parameters in
-    let var_typ = scope_def.D.scope_def_typ in
-    let is_cond = scope_def.D.scope_def_is_condition in
-    match Mark.remove scope_def.D.scope_def_io.io_input with
-    | OnlyInput when not (RuleName.Map.is_empty var_def) ->
-      assert false (* error already raised *)
-    | OnlyInput -> []
-    (* we do not provide any definition for an input-only variable *)
-    | _ ->
-      let scope_def_key = (var, pos), D.ScopeDef.Var state in
-      let expr_def =
-        translate_def ctx scope_def_key var_def var_params var_typ
-          scope_def.D.scope_def_io
-          (D.ScopeDef.Map.find scope_def_key exc_graphs)
-          ~is_cond ~is_subscope_var:false
-      in
-      let scope_var =
-        match ScopeVar.Map.find var ctx.scope_var_mapping, state with
-        | WholeVar v, None -> v
-        | States states, Some state -> List.assoc state states
-        | _ -> assert false
-      in
-      [
-        Ast.ScopeVarDefinition {
-          var = scope_var, pos;
-          typ = var_typ;
-          io = scope_def.D.scope_def_io;
-          e = Expr.unbox expr_def;
-        }
-      ])
-  | Desugared.Dependency.Vertex.SubScope subscope_var ->
+    (match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
+    | None ->
+      (let var_def = scope_def.D.scope_def_rules in
+      let var_params = scope_def.D.scope_def_parameters in
+      let var_typ = scope_def.D.scope_def_typ in
+      let is_cond = scope_def.D.scope_def_is_condition in
+      match Mark.remove scope_def.D.scope_def_io.io_input with
+      | OnlyInput when not (RuleName.Map.is_empty var_def) ->
+        assert false (* error already raised *)
+      | OnlyInput -> []
+      (* we do not provide any definition for an input-only variable *)
+      | _ ->
+        let scope_def_key = (var, pos), D.ScopeDef.Var state in
+        let expr_def =
+          translate_def ctx scope_def_key var_def var_params var_typ
+            scope_def.D.scope_def_io
+            (D.ScopeDef.Map.find scope_def_key exc_graphs)
+            ~is_cond ~is_subscope_var:false
+        in
+        let scope_var =
+          match ScopeVar.Map.find var ctx.scope_var_mapping, state with
+          | WholeVar v, None -> v
+          | States states, Some state -> List.assoc state states
+          | _ -> assert false
+        in
+        [
+          Ast.ScopeVarDefinition {
+            var = scope_var, pos;
+            typ = var_typ;
+            io = scope_def.D.scope_def_io;
+            e = Expr.unbox expr_def;
+          }
+        ])
+      | Some subscope ->
     (* Before calling the subscope, we need to include all the re-definitions
        of subscope parameters *)
-    let subscope =
-      ScopeVar.Map.find subscope_var scope.scope_sub_scopes
-    in
     let subscope_params =
       D.ScopeDef.Map.fold (fun def_key scope_def acc ->
           match def_key with
           | _, D.ScopeDef.Var _ -> acc
           | (v, _), D.ScopeDef.SubScope _
             when
-              not (ScopeVar.equal subscope_var v)
+              not (ScopeVar.equal var v)
               ||
               Mark.remove scope_def.D.scope_def_io.io_input = NoInput
               && RuleName.Map.is_empty scope_def.scope_def_rules
@@ -645,39 +643,34 @@ let translate_rule
         scope.scope_defs ScopeVar.Map.empty
     in
     let subscope_param_map =
-      ScopeVar.Map.map (fun (var, pos, _, _) -> Expr.evar var (Untyped {pos}))
+      ScopeVar.Map.map (fun (_, _, _, expr) -> expr)
         subscope_params
     in
-    let pos = Mark.get (ScopeVar.get_info subscope_var) in
-    (* TODO: see remark above about positions *)
     let subscope_call_expr =
       Expr.escopecall ~scope:subscope ~args:subscope_param_map (Untyped { pos })
     in
-    let subscope_expr =
-      ScopeVar.Map.fold (fun _ (var, pos, typ, expr) acc ->
-          Expr.make_let_in var typ expr acc pos)
-        subscope_params subscope_call_expr
-    in
-    let scope_def =
-      D.ScopeDef.Map.find ((subscope_var, pos), D.ScopeDef.Var None) scope.scope_defs
-    in
+    let subscope_expr = subscope_call_expr in
+    (*   ScopeVar.Map.fold (fun _ (var, pos, typ, expr) acc ->
+     *       Expr.make_let_in var typ expr acc pos)
+     *     subscope_params subscope_call_expr
+     * in *)
     assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
     (* The subscope will be defined by its inputs, it's not supposed to have direct rules yet *)
     let scope_info = ScopeName.Map.find subscope ctx.decl_ctx.ctx_scopes in
     let subscope_var_dcalc =
-      match ScopeVar.Map.find subscope_var ctx.scope_var_mapping with
+      match ScopeVar.Map.find var ctx.scope_var_mapping with
       | WholeVar v -> v
       | _ -> assert false
     in
     let subscope_def =
       Ast.ScopeVarDefinition {
         var = subscope_var_dcalc, pos;
-        typ = TStruct scope_info.out_struct_name, Mark.get (ScopeVar.get_info subscope_var);
+        typ = TStruct scope_info.out_struct_name, Mark.get (ScopeVar.get_info var);
         io = scope_def.D.scope_def_io;
         e = Expr.unbox_closed subscope_expr;
       }
     in
-    [ subscope_def ]
+    [ subscope_def ])
   | Assertion a_name ->
     let assertion_expr =
       D.AssertionName.Map.find a_name scope.scope_assertions

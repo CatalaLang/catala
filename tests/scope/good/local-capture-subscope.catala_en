@@ -1,0 +1,47 @@
+
+```catala
+declaration scope A:
+  output ao content integer
+
+declaration scope S:
+  a scope A
+  output so content integer
+
+scope A:
+  definition ao equals 99
+
+scope S:
+  definition so equals
+      let a equals A { -- ao: 42 } in
+      a.ao
+
+```
+
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT] so = 99
+```
+
+
+```catala
+declaration scope A2:
+  input output io content integer
+  output x content integer
+
+declaration scope S2:
+  a scope A2
+  b scope A2
+  output c1 content integer
+  output c2 content integer
+
+scope A2:
+  definition x equals 0
+
+scope S2:
+  definition a.io equals 1
+  definition b.io equals 2
+  definition c1 equals a.io
+  definition c2 equals b.io
+```
