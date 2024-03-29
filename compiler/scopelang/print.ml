@@ -84,7 +84,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
                   Format.pp_print_space fmt ()
                 | _ -> ())
              (Print.expr ?debug ()) e
-         | SubScopeVarDefinition { var; typ; e } ->
+         | SubScopeVarDefinition { var; typ; e; _ } ->
            Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]"
              Print.keyword "let"
              ScopeVar.format (Mark.remove var)

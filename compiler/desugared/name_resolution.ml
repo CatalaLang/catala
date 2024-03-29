@@ -580,6 +580,18 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
                 data.scope_decl_context_item_typ;
             }
           :: acc
+        | Surface.Ast.ContextScope {
+            scope_decl_context_scope_name = var;
+            scope_decl_context_scope_sub_scope = ((path, scope), pos);
+            scope_decl_context_scope_attribute = { scope_decl_context_io_output = true, _; _ };
+          } ->
+          Mark.add (Mark.get item)
+            {
+              Surface.Ast.struct_decl_field_name = var;
+              Surface.Ast.struct_decl_field_typ =
+                (Base (Data (Primitive (Named (path, scope))))), pos;
+            }
+          :: acc
         | _ -> acc)
       decl.scope_decl_context []
   in
@@ -607,8 +619,8 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
       Ident.Map.fold
         (fun id var svmap ->
           match var with
-          | SubScope _ -> svmap
-          | ScopeVar v -> (
+          | SubScope (_, _, (false, _)) -> svmap
+          | ScopeVar v | SubScope (v, _, (true, _)) -> (
             try
               let field =
                 StructName.Map.find str

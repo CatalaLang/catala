@@ -47,6 +47,7 @@ type 'm rule =
     }
   | SubScopeVarDefinition of {
       var: ScopeVar.t Mark.pos;
+      var_within_origin_scope: ScopeVar.t;
       typ: typ;
       e: 'm expr
     }

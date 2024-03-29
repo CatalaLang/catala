@@ -436,6 +436,8 @@ type 'a glocation =
       -> < scopeVarStates : yes ; .. > glocation
   | ScopelangScopeVar : {
       name : ScopeVar.t Mark.pos;
+      orig_from : (ScopeName.t * ScopeVar.t) option;
+      (** For variables defining subscope inputs *)
     }
       -> < scopeVarSimpl : yes ; .. > glocation
   | ToplevelVar : {

@@ -43,6 +43,7 @@ type 'm rule =
       (* scope: ScopeVar.t Mark.pos; (\** Variable pointing to the *\) *)
       (* origin_var: ScopeVar.t Mark.pos;
        * reentrant: bool; *)
+      var_within_origin_scope: ScopeVar.t;
       typ: typ; (* non-thunked at this point for reentrant vars *)
       e: 'm expr
     }

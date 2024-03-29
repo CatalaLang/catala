@@ -592,7 +592,7 @@ let translate_rule
     * 'm ctx =
   match rule with
   | S.ScopeVarDefinition { var; typ; e; _ }
-  | S.SubScopeVarDefinition { var; typ; e } ->
+  | S.SubScopeVarDefinition { var; typ; e; _ } ->
     let pos_mark, _ = pos_mark_mk e in
     let scope_let_kind, io = match rule with
       | S.ScopeVarDefinition {io; _} -> ScopeVarDefinition, io

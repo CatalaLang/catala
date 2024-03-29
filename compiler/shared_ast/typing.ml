@@ -27,10 +27,10 @@ module Any =
     (struct
       type info = unit
 
-      let to_string _ = "any"
+      let to_string () = "any"
       let format fmt () = Format.fprintf fmt "any"
-      let equal _ _ = true
-      let compare _ _ = 0
+      let equal () () = true
+      let compare () () = 0
     end)
     (struct
       let style = Ocolor_types.(Fg (C4 hi_magenta))
@@ -412,6 +412,10 @@ module Env = struct
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
+  let get_subscope_in_var t scope var =
+    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
+        A.ScopeVar.Map.find_opt var vmap)
+
   let add_scope scope_name ~vars ~in_vars t =
     {
       t with
@@ -497,8 +501,10 @@ and typecheck_expr_top_down :
   | A.ELocation loc ->
     let ty_opt =
       match loc with
-      | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
+      | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name; orig_from = None } ->
         Env.get_scope_var env (Mark.remove name)
+      | ScopelangScopeVar { orig_from = Some (scope, orig_var); _ } ->
+        Env.get_subscope_in_var env scope orig_var
       | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
