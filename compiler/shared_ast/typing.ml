@@ -501,10 +501,8 @@ and typecheck_expr_top_down :
   | A.ELocation loc ->
     let ty_opt =
       match loc with
-      | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name; orig_from = None } ->
+      | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
-      | ScopelangScopeVar { orig_from = Some (scope, orig_var); _ } ->
-        Env.get_subscope_in_var env scope orig_var
       | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
