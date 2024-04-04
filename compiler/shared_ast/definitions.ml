@@ -98,7 +98,7 @@ module ScopeVar =
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
   | SubScope of ScopeVar.t * ScopeName.t * bool Mark.pos
-                (* The bool is true if the output of the subscope is to be forwarded *)
+(* The bool is true if the output of the subscope is to be forwarded *)
 
 module StateName =
   Uid.Gen

@@ -72,26 +72,21 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
        (fun fmt rule ->
          match rule with
-         | ScopeVarDefinition { var; typ; io; e; } ->
-           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]"
-             Print.keyword "let"
-             ScopeVar.format (Mark.remove var)
-             Print.punctuation ":"
+         | ScopeVarDefinition { var; typ; io; e } ->
+           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword
+             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
              (Print.typ ctx) typ Print.punctuation "="
-             (fun fmt -> match Mark.remove io.io_input with
-                | Reentrant ->
-                  Print.op_style fmt "reentrant or by default";
-                  Format.pp_print_space fmt ()
-                | _ -> ())
+             (fun fmt ->
+               match Mark.remove io.io_input with
+               | Reentrant ->
+                 Print.op_style fmt "reentrant or by default";
+                 Format.pp_print_space fmt ()
+               | _ -> ())
              (Print.expr ?debug ()) e
          | SubScopeVarDefinition { var; typ; e; _ } ->
-           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]"
-             Print.keyword "let"
-             ScopeVar.format (Mark.remove var)
-             Print.punctuation ":"
-             (Print.typ ctx) typ
-             Print.punctuation "="
-             (Print.expr ?debug ()) e
+           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
+             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
+             (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
              (Print.expr ?debug ()) e))

@@ -40,16 +40,16 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
 
 type 'm rule =
   | ScopeVarDefinition of {
-      var: ScopeVar.t Mark.pos;
-      typ: typ;
-      io: Desugared.Ast.io;
-      e: 'm expr
+      var : ScopeVar.t Mark.pos;
+      typ : typ;
+      io : Desugared.Ast.io;
+      e : 'm expr;
     }
   | SubScopeVarDefinition of {
-      var: ScopeVar.t Mark.pos;
-      var_within_origin_scope: ScopeVar.t;
-      typ: typ;
-      e: 'm expr
+      var : ScopeVar.t Mark.pos;
+      var_within_origin_scope : ScopeVar.t;
+      typ : typ;
+      e : 'm expr;
     }
   | Assertion of 'm expr
 
@@ -78,7 +78,7 @@ type 'm program = {
 let type_rule decl_ctx env = function
   | ScopeVarDefinition ({ typ; e; _ } as def) ->
     let e = Typing.expr decl_ctx ~env ~typ e in
-    ScopeVarDefinition {def with e = Expr.unbox e}
+    ScopeVarDefinition { def with e = Expr.unbox e }
   | SubScopeVarDefinition ({ typ; e; _ } as def) ->
     let e = Typing.expr decl_ctx ~env ~typ e in
     SubScopeVarDefinition { def with e = Expr.unbox e }

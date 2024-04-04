@@ -179,7 +179,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   (* then add the edges *)
   let g =
-    let to_vertex (var, kind) = match kind with
+    let to_vertex (var, kind) =
+      match kind with
       | Ast.ScopeDef.Var st -> Vertex.Var (Mark.remove var, st)
       | Ast.ScopeDef.SubScope _ -> Vertex.Var (Mark.remove var, None)
     in
@@ -190,14 +191,14 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         let fv = Ast.free_variables def in
         Ast.ScopeDef.Map.fold
           (fun fv_def fv_def_pos g ->
-             let v_used = to_vertex fv_def in
-             if Vertex.equal v_used v_defined then
-                Message.raise_spanned_error fv_def_pos
-                  "The variable %a is used in one of its definitions, but \
-                   recursion is forbidden in Catala"
-                  Ast.ScopeDef.format def_key;
-             ScopeDependencies.add_edge_e g
-               (ScopeDependencies.E.create v_used fv_def_pos v_defined))
+            let v_used = to_vertex fv_def in
+            if Vertex.equal v_used v_defined then
+              Message.raise_spanned_error fv_def_pos
+                "The variable %a is used in one of its definitions, but \
+                 recursion is forbidden in Catala"
+                Ast.ScopeDef.format def_key;
+            ScopeDependencies.add_edge_e g
+              (ScopeDependencies.E.create v_used fv_def_pos v_defined))
           fv g)
       scope.scope_defs g
   in

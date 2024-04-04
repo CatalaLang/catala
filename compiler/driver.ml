@@ -339,7 +339,7 @@ module Commands = struct
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
       (scope_uid : ScopeName.t)
-      (variable : string): Desugared.Ast.ScopeDef.t =
+      (variable : string) : Desugared.Ast.ScopeDef.t =
     (* Sometimes the variable selected is of the form [a.b] *)
     let first_part, second_part =
       match String.index_opt variable '.' with
@@ -358,18 +358,19 @@ module Commands = struct
         variable ScopeName.format scope_uid
     | Some (ScopeVar v | SubScope (v, _, _)) ->
       let state =
-        second_part |> Option.map @@ fun id ->
-        let var_sig = ScopeVar.Map.find v ctxt.var_typs in
-        match Ident.Map.find_opt id var_sig.var_sig_states_idmap with
-        | Some state -> state
-        | None ->
-          Message.raise_error
-            "State @{<yellow>\"%s\"@} is not found for variable \
-             @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
-            id first_part ScopeName.format scope_uid
+        second_part
+        |> Option.map
+           @@ fun id ->
+           let var_sig = ScopeVar.Map.find v ctxt.var_typs in
+           match Ident.Map.find_opt id var_sig.var_sig_states_idmap with
+           | Some state -> state
+           | None ->
+             Message.raise_error
+               "State @{<yellow>\"%s\"@} is not found for variable \
+                @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
+               id first_part ScopeName.format scope_uid
       in
-      ( (v, Pos.no_pos),
-        Desugared.Ast.ScopeDef.Var state )
+      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in

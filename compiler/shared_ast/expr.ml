@@ -538,10 +538,10 @@ let compare_location
     (y : a glocation Mark.pos) =
   match Mark.remove x, Mark.remove y with
   | ( DesugaredScopeVar { name = vx; state = sx },
-      DesugaredScopeVar { name = vy; state = sy } ) ->
-    (match Mark.compare ScopeVar.compare vx vy with
-     | 0 -> Option.compare StateName.compare sx sy
-     | n -> n)
+      DesugaredScopeVar { name = vy; state = sy } ) -> (
+    match Mark.compare ScopeVar.compare vx vy with
+    | 0 -> Option.compare StateName.compare sx sy
+    | n -> n)
   | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
   | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->

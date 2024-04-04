@@ -84,10 +84,10 @@ let program prg =
         let vars =
           ScopeDef.Map.fold
             (fun (v, kind) def vars ->
-                 match kind with
-                 | ScopeDef.Var _ -> ScopeVar.Map.add (Mark.remove v) def.scope_def_typ vars
-                 | ScopeDef.SubScope _ -> vars
-            )
+              match kind with
+              | ScopeDef.Var _ ->
+                ScopeVar.Map.add (Mark.remove v) def.scope_def_typ vars
+              | ScopeDef.SubScope _ -> vars)
             scope.scope_defs ScopeVar.Map.empty
         in
         (* at this stage, rule resolution and the corresponding encapsulation

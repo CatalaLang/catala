@@ -27,25 +27,29 @@ module ScopeDef = struct
   module Base = struct
     type kind =
       | Var of StateName.t option
-      | SubScope of { name: ScopeName.t; var_within_origin_scope: ScopeVar.t }
+      | SubScope of { name : ScopeName.t; var_within_origin_scope : ScopeVar.t }
 
     type t = ScopeVar.t Mark.pos * kind
 
-    let equal_kind k1 k2 = match k1, k2 with
+    let equal_kind k1 k2 =
+      match k1, k2 with
       | Var s1, Var s2 -> Option.equal StateName.equal s1 s2
-      | SubScope { var_within_origin_scope = v1; _ }, SubScope { var_within_origin_scope = v2; _ } -> ScopeVar.equal v1 v2
+      | ( SubScope { var_within_origin_scope = v1; _ },
+          SubScope { var_within_origin_scope = v2; _ } ) ->
+        ScopeVar.equal v1 v2
       | (Var _ | SubScope _), _ -> false
 
     let equal (v1, k1) (v2, k2) =
-      ScopeVar.equal (Mark.remove v1) (Mark.remove v2) &&
-      equal_kind k1 k2
+      ScopeVar.equal (Mark.remove v1) (Mark.remove v2) && equal_kind k1 k2
 
-    let compare_kind k1 k2 = match k1, k2 with
-    | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
-    | SubScope { var_within_origin_scope = v1; _ }, SubScope { var_within_origin_scope = v2; _ } ->
-      ScopeVar.compare v1 v2
-    | Var _, SubScope _ -> -1
-    | SubScope _, Var _ -> 1
+    let compare_kind k1 k2 =
+      match k1, k2 with
+      | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
+      | ( SubScope { var_within_origin_scope = v1; _ },
+          SubScope { var_within_origin_scope = v2; _ } ) ->
+        ScopeVar.compare v1 v2
+      | Var _, SubScope _ -> -1
+      | SubScope _, Var _ -> 1
 
     let compare (v1, k1) (v2, k2) =
       match Mark.compare ScopeVar.compare v1 v2 with
@@ -57,19 +61,19 @@ module ScopeDef = struct
     let format_kind ppf = function
       | Var None -> ()
       | Var (Some st) -> Format.fprintf ppf "@%a" StateName.format st
-      | SubScope { var_within_origin_scope = v; _ } -> Format.fprintf ppf ".%a" ScopeVar.format v
+      | SubScope { var_within_origin_scope = v; _ } ->
+        Format.fprintf ppf ".%a" ScopeVar.format v
 
     let format ppf (v, k) =
       ScopeVar.format ppf (Mark.remove v);
       format_kind ppf k
 
     let hash_kind = function
-      | Var (None) -> 0
+      | Var None -> 0
       | Var (Some st) -> StateName.hash st
       | SubScope { var_within_origin_scope = v; _ } -> ScopeVar.hash v
 
-    let hash (v, k) =
-      Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
+    let hash (v, k) = Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
   end
 
   include Base
@@ -249,8 +253,7 @@ type program = {
 
 let rec locations_used e : LocationSet.t =
   match e with
-  | ELocation l, m ->
-    LocationSet.singleton (l, Expr.mark_pos m)
+  | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
   | e ->
     Expr.shallow_fold
       (fun e -> LocationSet.union (locations_used e))
@@ -263,8 +266,7 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar { name; state } ->
-            Some (name, ScopeDef.Var state)
+          | DesugaredScopeVar { name; state } -> Some (name, ScopeDef.Var state)
           | ToplevelVar _ -> None
         in
         match usage with

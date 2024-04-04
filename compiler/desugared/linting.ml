@@ -27,8 +27,11 @@ let detect_empty_definitions (p : program) : unit =
           if
             (match scope_def_key with _, ScopeDef.Var _ -> true | _ -> false)
             && RuleName.Map.is_empty scope_def.scope_def_rules
-            && not scope_def.scope_def_is_condition
-            && not (ScopeVar.Map.mem (Mark.remove (fst scope_def_key)) scope.scope_sub_scopes)
+            && (not scope_def.scope_def_is_condition)
+            && (not
+                  (ScopeVar.Map.mem
+                     (Mark.remove (fst scope_def_key))
+                     scope.scope_sub_scopes))
             &&
             match Mark.remove scope_def.scope_def_io.io_input with
             | NoInput -> true
@@ -254,7 +257,9 @@ let detect_dead_code (p : program) : unit =
         | Assertion _ -> true
         | Var (var, state) ->
           let scope_def =
-            ScopeDef.Map.find ((var, Pos.no_pos), ScopeDef.Var state) scope.scope_defs
+            ScopeDef.Map.find
+              ((var, Pos.no_pos), ScopeDef.Var state)
+              scope.scope_defs
           in
           Mark.remove scope_def.scope_def_io.io_output
         (* A variable is initially alive if it is an output*)
@@ -263,14 +268,15 @@ let detect_dead_code (p : program) : unit =
       let emit_unused_warning vx =
         Message.emit_spanned_warning
           (Mark.get (Dependency.Vertex.info vx))
-          "Unused varible: %a does not contribute to computing \
-           any of scope %a outputs. Did you forget something?"
-          Dependency.Vertex.format vx
-          ScopeName.format scope_name
+          "Unused varible: %a does not contribute to computing any of scope %a \
+           outputs. Did you forget something?"
+          Dependency.Vertex.format vx ScopeName.format scope_name
       in
-      Dependency.ScopeDependencies.iter_vertex (fun vx ->
-          if not (is_alive vx) &&
-             Dependency.ScopeDependencies.succ scope_dependencies vx = []
+      Dependency.ScopeDependencies.iter_vertex
+        (fun vx ->
+          if
+            (not (is_alive vx))
+            && Dependency.ScopeDependencies.succ scope_dependencies vx = []
           then emit_unused_warning vx)
         scope_dependencies)
     p.program_root.module_scopes

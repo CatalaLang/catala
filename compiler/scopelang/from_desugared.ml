@@ -195,80 +195,77 @@ let rule_to_exception_graph (scope : D.scope) = function
     (* Before calling the sub_scope, we need to include all the re-definitions
        of subscope parameters*)
     D.ScopeDef.Map.fold
-      (fun (sscope, kind as def_key) scope_def exc_graphs ->
-         match kind with
-         | D.ScopeDef.Var _ -> exc_graphs
-         | D.ScopeDef.SubScope _
-           when
-             not (ScopeVar.equal var (Mark.remove sscope))
-             ||
-             Mark.remove scope_def.D.scope_def_io.io_input = NoInput
-             && RuleName.Map.is_empty scope_def.scope_def_rules
-           ->
-           (* We exclude subscope variables that have 0 re-definitions and are
-              not visible in the input of the subscope *)
-           exc_graphs
-         | D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
-           (* This definition redefines a variable of the correct subscope. But
-              we have to check that this redefinition is allowed with respect
-              to the io parameters of that subscope variable. *)
-           let def = scope_def.D.scope_def_rules in
-           let is_cond = scope_def.scope_def_is_condition in
-           let () = match Mark.remove scope_def.D.scope_def_io.io_input with
-             | NoInput ->
-               Message.raise_multispanned_error
-                 (( Some "Incriminated subscope:",
-                    Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
-                  :: ( Some "Incriminated variable:",
-                       Mark.get (ScopeVar.get_info var_within_origin_scope) )
-                  :: List.map
-                    (fun rule ->
+      (fun ((sscope, kind) as def_key) scope_def exc_graphs ->
+        match kind with
+        | D.ScopeDef.Var _ -> exc_graphs
+        | D.ScopeDef.SubScope _
+          when (not (ScopeVar.equal var (Mark.remove sscope)))
+               || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
+                  && RuleName.Map.is_empty scope_def.scope_def_rules ->
+          (* We exclude subscope variables that have 0 re-definitions and are
+             not visible in the input of the subscope *)
+          exc_graphs
+        | D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
+          (* This definition redefines a variable of the correct subscope. But
+             we have to check that this redefinition is allowed with respect to
+             the io parameters of that subscope variable. *)
+          let def = scope_def.D.scope_def_rules in
+          let is_cond = scope_def.scope_def_is_condition in
+          let () =
+            match Mark.remove scope_def.D.scope_def_io.io_input with
+            | NoInput ->
+              Message.raise_multispanned_error
+                (( Some "Incriminated subscope:",
+                   Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
+                :: ( Some "Incriminated variable:",
+                     Mark.get (ScopeVar.get_info var_within_origin_scope) )
+                :: List.map
+                     (fun rule ->
                        ( Some "Incriminated subscope variable definition:",
                          Mark.get (RuleName.get_info rule) ))
-                    (RuleName.Map.keys def))
-                 "Invalid assignment to a subscope variable that is \
-                  not tagged as input or context."
-             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
-               (* If the subscope variable is tagged as input, then it shall be
-                  defined. *)
-               Message.raise_multispanned_error
-                 [
-                   ( Some "Incriminated subscope:",
-                     Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
-                   Some "Incriminated variable:", Mark.get sscope;
-                 ]
-                 "This subscope variable is a mandatory input but no definition \
-                  was provided."
-             | _ -> ()
-           in
-           let new_exc_graph = def_to_exception_graph def_key def in
-           D.ScopeDef.Map.add def_key new_exc_graph exc_graphs)
-      scope.scope_defs
-      D.ScopeDef.Map.empty
-  | Desugared.Dependency.Vertex.Var (var, state) ->
-      (let pos = Mark.get (ScopeVar.get_info var) in
-       let scope_def =
-         D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
-       in
-       let var_def = scope_def.D.scope_def_rules in
-       match Mark.remove scope_def.D.scope_def_io.io_input with
-       | OnlyInput when not (RuleName.Map.is_empty var_def) ->
-         (* If the variable is tagged as input, then it shall not be redefined. *)
-         Message.raise_multispanned_error
-           ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
-            :: List.map
-              (fun rule ->
-                 ( Some "Incriminated variable definition:",
-                   Mark.get (RuleName.get_info rule) ))
-              (RuleName.Map.keys var_def))
-           "It is impossible to give a definition to a scope variable tagged as \
-            input."
-       | OnlyInput -> D.ScopeDef.Map.empty
-       (* we do not provide any definition for an input-only variable *)
-       | _ ->
-         D.ScopeDef.Map.singleton
-           ((var, pos), (D.ScopeDef.Var state))
-           (def_to_exception_graph ((var, pos), D.ScopeDef.Var state) var_def))
+                     (RuleName.Map.keys def))
+                "Invalid assignment to a subscope variable that is not tagged \
+                 as input or context."
+            | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
+              (* If the subscope variable is tagged as input, then it shall be
+                 defined. *)
+              Message.raise_multispanned_error
+                [
+                  ( Some "Incriminated subscope:",
+                    Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
+                  Some "Incriminated variable:", Mark.get sscope;
+                ]
+                "This subscope variable is a mandatory input but no definition \
+                 was provided."
+            | _ -> ()
+          in
+          let new_exc_graph = def_to_exception_graph def_key def in
+          D.ScopeDef.Map.add def_key new_exc_graph exc_graphs)
+      scope.scope_defs D.ScopeDef.Map.empty
+  | Desugared.Dependency.Vertex.Var (var, state) -> (
+    let pos = Mark.get (ScopeVar.get_info var) in
+    let scope_def =
+      D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
+    in
+    let var_def = scope_def.D.scope_def_rules in
+    match Mark.remove scope_def.D.scope_def_io.io_input with
+    | OnlyInput when not (RuleName.Map.is_empty var_def) ->
+      (* If the variable is tagged as input, then it shall not be redefined. *)
+      Message.raise_multispanned_error
+        ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
+        :: List.map
+             (fun rule ->
+               ( Some "Incriminated variable definition:",
+                 Mark.get (RuleName.get_info rule) ))
+             (RuleName.Map.keys var_def))
+        "It is impossible to give a definition to a scope variable tagged as \
+         input."
+    | OnlyInput -> D.ScopeDef.Map.empty
+    (* we do not provide any definition for an input-only variable *)
+    | _ ->
+      D.ScopeDef.Map.singleton
+        ((var, pos), D.ScopeDef.Var state)
+        (def_to_exception_graph ((var, pos), D.ScopeDef.Var state) var_def))
   | Assertion _ -> D.ScopeDef.Map.empty (* no exceptions for assertions *)
 
 let scope_to_exception_graphs (scope : D.scope) :
@@ -553,17 +550,18 @@ let translate_rule
     ctx
     (scope : D.scope)
     (exc_graphs :
-      Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t)
-    = function
-  | Desugared.Dependency.Vertex.Var (var, state) ->
+      Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t) = function
+  | Desugared.Dependency.Vertex.Var (var, state) -> (
     let pos = Mark.get (ScopeVar.get_info var) in
-    (* TODO: this may point to the place where the variable was declared instead of the binding in the definition being explored. Needs double-checking and maybe adding more position information *)
+    (* TODO: this may point to the place where the variable was declared instead
+       of the binding in the definition being explored. Needs double-checking
+       and maybe adding more position information *)
     let scope_def =
       D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
     in
-    (match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
-    | None ->
-      (let var_def = scope_def.D.scope_def_rules in
+    match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
+    | None -> (
+      let var_def = scope_def.D.scope_def_rules in
       let var_params = scope_def.D.scope_def_parameters in
       let var_typ = scope_def.D.scope_def_typ in
       let is_cond = scope_def.D.scope_def_is_condition in
@@ -587,86 +585,98 @@ let translate_rule
           | _ -> assert false
         in
         [
-          Ast.ScopeVarDefinition {
-            var = scope_var, pos;
-            typ = var_typ;
-            io = scope_def.D.scope_def_io;
-            e = Expr.unbox expr_def;
-          }
+          Ast.ScopeVarDefinition
+            {
+              var = scope_var, pos;
+              typ = var_typ;
+              io = scope_def.D.scope_def_io;
+              e = Expr.unbox expr_def;
+            };
         ])
-      | Some subscope ->
-    (* Before calling the subscope, we need to include all the re-definitions
-       of subscope parameters *)
-    let subscope_params =
-      D.ScopeDef.Map.fold (fun def_key scope_def acc ->
-          match def_key with
-          | _, D.ScopeDef.Var _ -> acc
-          | (v, _), D.ScopeDef.SubScope _
-            when
-              not (ScopeVar.equal var v)
-              ||
-              Mark.remove scope_def.D.scope_def_io.io_input = NoInput
-              && RuleName.Map.is_empty scope_def.scope_def_rules
-            -> acc
-          | v, D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
-            let pos = Mark.get v in
-            let def = scope_def.D.scope_def_rules in
-            let def_typ = scope_def.scope_def_typ in
-            let is_cond = scope_def.scope_def_is_condition in
-            assert (* an error should have been already raised *)
-              (match scope_def.D.scope_def_io.io_input with
-               | NoInput, _ -> false
-               | OnlyInput, _ -> is_cond || not (RuleName.Map.is_empty def)
-               | _ -> true);
-            let var_within_origin_scope =
-              match ScopeVar.Map.find var_within_origin_scope ctx.scope_var_mapping with
-              | WholeVar v -> v
-              | States ((_, v) :: _) -> v
-              | States [] -> assert false
-            in
-            let def_var =
-              Var.make
-                (String.concat "."
-                   [Mark.remove (ScopeVar.get_info (Mark.remove v));
-                    Mark.remove (ScopeVar.get_info var_within_origin_scope)])
-            in
-            let typ =
-              Scope.input_type def_typ scope_def.D.scope_def_io.D.io_input
-            in
-            let expr_def =
-              translate_def ctx def_key def scope_def.D.scope_def_parameters
-                def_typ scope_def.D.scope_def_io
-                (D.ScopeDef.Map.find def_key exc_graphs)
-                ~is_cond ~is_subscope_var:true
-            in
-            ScopeVar.Map.add var_within_origin_scope (def_var, pos, typ, expr_def) acc)
-        scope.scope_defs ScopeVar.Map.empty
-    in
-    let subscope_param_map =
-      ScopeVar.Map.map (fun (_, _, _, expr) -> expr)
-        subscope_params
-    in
-    let subscope_call_expr =
-      Expr.escopecall ~scope:subscope ~args:subscope_param_map (Untyped { pos })
-    in
-    let subscope_expr = subscope_call_expr in
-    assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
-    (* The subscope will be defined by its inputs, it's not supposed to have direct rules yet *)
-    let scope_info = ScopeName.Map.find subscope ctx.decl_ctx.ctx_scopes in
-    let subscope_var_dcalc =
-      match ScopeVar.Map.find var ctx.scope_var_mapping with
-      | WholeVar v -> v
-      | _ -> assert false
-    in
-    let subscope_def =
-      Ast.ScopeVarDefinition {
-        var = subscope_var_dcalc, pos;
-        typ = TStruct scope_info.out_struct_name, Mark.get (ScopeVar.get_info var);
-        io = scope_def.D.scope_def_io;
-        e = Expr.unbox_closed subscope_expr;
-      }
-    in
-    [ subscope_def ])
+    | Some subscope ->
+      (* Before calling the subscope, we need to include all the re-definitions
+         of subscope parameters *)
+      let subscope_params =
+        D.ScopeDef.Map.fold
+          (fun def_key scope_def acc ->
+            match def_key with
+            | _, D.ScopeDef.Var _ -> acc
+            | (v, _), D.ScopeDef.SubScope _
+              when (not (ScopeVar.equal var v))
+                   || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
+                      && RuleName.Map.is_empty scope_def.scope_def_rules ->
+              acc
+            | v, D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
+              let pos = Mark.get v in
+              let def = scope_def.D.scope_def_rules in
+              let def_typ = scope_def.scope_def_typ in
+              let is_cond = scope_def.scope_def_is_condition in
+              assert (
+                (* an error should have been already raised *)
+                match scope_def.D.scope_def_io.io_input with
+                | NoInput, _ -> false
+                | OnlyInput, _ -> is_cond || not (RuleName.Map.is_empty def)
+                | _ -> true);
+              let var_within_origin_scope =
+                match
+                  ScopeVar.Map.find var_within_origin_scope
+                    ctx.scope_var_mapping
+                with
+                | WholeVar v -> v
+                | States ((_, v) :: _) -> v
+                | States [] -> assert false
+              in
+              let def_var =
+                Var.make
+                  (String.concat "."
+                     [
+                       Mark.remove (ScopeVar.get_info (Mark.remove v));
+                       Mark.remove (ScopeVar.get_info var_within_origin_scope);
+                     ])
+              in
+              let typ =
+                Scope.input_type def_typ scope_def.D.scope_def_io.D.io_input
+              in
+              let expr_def =
+                translate_def ctx def_key def scope_def.D.scope_def_parameters
+                  def_typ scope_def.D.scope_def_io
+                  (D.ScopeDef.Map.find def_key exc_graphs)
+                  ~is_cond ~is_subscope_var:true
+              in
+              ScopeVar.Map.add var_within_origin_scope
+                (def_var, pos, typ, expr_def)
+                acc)
+          scope.scope_defs ScopeVar.Map.empty
+      in
+      let subscope_param_map =
+        ScopeVar.Map.map (fun (_, _, _, expr) -> expr) subscope_params
+      in
+      let subscope_call_expr =
+        Expr.escopecall ~scope:subscope ~args:subscope_param_map
+          (Untyped { pos })
+      in
+      let subscope_expr = subscope_call_expr in
+      assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
+      (* The subscope will be defined by its inputs, it's not supposed to have
+         direct rules yet *)
+      let scope_info = ScopeName.Map.find subscope ctx.decl_ctx.ctx_scopes in
+      let subscope_var_dcalc =
+        match ScopeVar.Map.find var ctx.scope_var_mapping with
+        | WholeVar v -> v
+        | _ -> assert false
+      in
+      let subscope_def =
+        Ast.ScopeVarDefinition
+          {
+            var = subscope_var_dcalc, pos;
+            typ =
+              ( TStruct scope_info.out_struct_name,
+                Mark.get (ScopeVar.get_info var) );
+            io = scope_def.D.scope_def_io;
+            e = Expr.unbox_closed subscope_expr;
+          }
+      in
+      [subscope_def])
   | Assertion a_name ->
     let assertion_expr =
       D.AssertionName.Map.find a_name scope.scope_assertions
@@ -688,13 +698,16 @@ let translate_scope_interface ctx scope =
       svar_io = scope_def.scope_def_io;
     }
   in
-  let scope_sig = (* Add the definitions of standard scope vars *)
+  let scope_sig =
+    (* Add the definitions of standard scope vars *)
     ScopeVar.Map.fold
       (fun var (states : D.var_or_states) acc ->
         match states with
         | WholeVar ->
           let scope_def =
-            D.ScopeDef.Map.find ((var, Pos.no_pos), D.ScopeDef.Var None) scope.D.scope_defs
+            D.ScopeDef.Map.find
+              ((var, Pos.no_pos), D.ScopeDef.Var None)
+              scope.D.scope_defs
           in
           ScopeVar.Map.add
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
@@ -720,15 +733,20 @@ let translate_scope_interface ctx scope =
             acc states)
       scope.scope_vars ScopeVar.Map.empty
   in
-  let scope_sig = (* Add the definition of vars corresponding to subscope calls, and their parameters (subscope vars) *)
-    ScopeVar.Map.fold (fun var _scope_name acc ->
+  let scope_sig =
+    (* Add the definition of vars corresponding to subscope calls, and their
+       parameters (subscope vars) *)
+    ScopeVar.Map.fold
+      (fun var _scope_name acc ->
         let scope_def =
-          D.ScopeDef.Map.find ((var, Pos.no_pos), D.ScopeDef.Var None) scope.D.scope_defs
+          D.ScopeDef.Map.find
+            ((var, Pos.no_pos), D.ScopeDef.Var None)
+            scope.D.scope_defs
         in
         ScopeVar.Map.add
           (match ScopeVar.Map.find var ctx.scope_var_mapping with
-           | WholeVar v -> v
-           | States _ -> assert false)
+          | WholeVar v -> v
+          | States _ -> assert false)
           (get_svar scope_def) acc)
       scope.D.scope_sub_scopes scope_sig
   in
@@ -786,69 +804,71 @@ let translate_program
     let add_scope_mappings modul ctx =
       ScopeName.Map.fold
         (fun _ scdef ctx ->
-           let ctx =
-             (* Add normal scope vars to the env *)
-             ScopeVar.Map.fold
-               (fun scope_var (states : D.var_or_states) ctx ->
-                  let var_name, var_pos = ScopeVar.get_info scope_var in
-                  let new_var =
-                    match states with
-                    | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
-                    | States states ->
-                      let var_prefix = var_name ^ "_" in
-                      let state_var state =
-                        ScopeVar.fresh
-                          (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
-                      in
-                      States (List.map (fun state -> state, state_var state) states)
-                  in
-                  let reentrant =
-                    let state =
-                      match states with
-                      | D.WholeVar -> None
-                      | States (s :: _) -> Some s
-                      | States [] -> assert false
+          let ctx =
+            (* Add normal scope vars to the env *)
+            ScopeVar.Map.fold
+              (fun scope_var (states : D.var_or_states) ctx ->
+                let var_name, var_pos = ScopeVar.get_info scope_var in
+                let new_var =
+                  match states with
+                  | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
+                  | States states ->
+                    let var_prefix = var_name ^ "_" in
+                    let state_var state =
+                      ScopeVar.fresh
+                        (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
                     in
-                    match
-                      D.ScopeDef.Map.find_opt
-                        ((scope_var, Pos.no_pos), Var state)
-                        scdef.D.scope_defs
-                    with
-                    | Some
-                        {
-                          scope_def_io = { io_input = Runtime.Reentrant, _; _ };
-                          scope_def_typ;
-                          _;
-                        } ->
-                      Some scope_def_typ
-                    | _ -> None
+                    States
+                      (List.map (fun state -> state, state_var state) states)
+                in
+                let reentrant =
+                  let state =
+                    match states with
+                    | D.WholeVar -> None
+                    | States (s :: _) -> Some s
+                    | States [] -> assert false
                   in
-                  {
-                    ctx with
-                    scope_var_mapping =
-                      ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
-                    reentrant_vars =
-                      Option.fold reentrant
-                        ~some:(fun ty ->
-                            ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
-                        ~none:ctx.reentrant_vars;
-                  })
-               scdef.D.scope_vars ctx
-           in
-           let ctx =
-             (* Add scope vars pointing to subscope executions to the env
-                (their definitions are introduced during the processing of the rules above) *)
-             ScopeVar.Map.fold (fun var _ ctx ->
-                 let var_name, var_pos = ScopeVar.get_info var in
-                 let scope_var_mapping =
-                   let new_var = WholeVar (ScopeVar.fresh (var_name, var_pos)) in
-                   ScopeVar.Map.add var new_var ctx.scope_var_mapping
-                 in
-                 { ctx with scope_var_mapping }
-               )
-               scdef.D.scope_sub_scopes ctx
-           in
-           ctx)
+                  match
+                    D.ScopeDef.Map.find_opt
+                      ((scope_var, Pos.no_pos), Var state)
+                      scdef.D.scope_defs
+                  with
+                  | Some
+                      {
+                        scope_def_io = { io_input = Runtime.Reentrant, _; _ };
+                        scope_def_typ;
+                        _;
+                      } ->
+                    Some scope_def_typ
+                  | _ -> None
+                in
+                {
+                  ctx with
+                  scope_var_mapping =
+                    ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
+                  reentrant_vars =
+                    Option.fold reentrant
+                      ~some:(fun ty ->
+                        ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
+                      ~none:ctx.reentrant_vars;
+                })
+              scdef.D.scope_vars ctx
+          in
+          let ctx =
+            (* Add scope vars pointing to subscope executions to the env (their
+               definitions are introduced during the processing of the rules
+               above) *)
+            ScopeVar.Map.fold
+              (fun var _ ctx ->
+                let var_name, var_pos = ScopeVar.get_info var in
+                let scope_var_mapping =
+                  let new_var = WholeVar (ScopeVar.fresh (var_name, var_pos)) in
+                  ScopeVar.Map.add var new_var ctx.scope_var_mapping
+                in
+                { ctx with scope_var_mapping })
+              scdef.D.scope_sub_scopes ctx
+          in
+          ctx)
         modul.D.module_scopes ctx
     in
     (* Todo: since we rename all scope vars at this point, it would be better to

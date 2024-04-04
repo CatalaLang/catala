@@ -94,7 +94,9 @@ let rec expr_used_defs e =
   | e -> recurse_subterms e
 
 let rule_used_defs = function
-  | Ast.Assertion e | Ast.ScopeVarDefinition { e; _} | Ast.SubScopeVarDefinition { e; _ } ->
+  | Ast.Assertion e
+  | Ast.ScopeVarDefinition { e; _ }
+  | Ast.SubScopeVarDefinition { e; _ } ->
     (* TODO: maybe this info could be passed on from previous passes without
        walking through all exprs again *)
     expr_used_defs e

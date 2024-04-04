@@ -16,7 +16,6 @@
 
 open Catala_utils
 open Shared_ast
-
 module S = Scopelang.Ast
 
 type scope_var_ctx = {
@@ -150,8 +149,8 @@ let tag_with_log_entry
 
    NOTE: the choice of the exception that will be triggered and show in the
    trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (type m) (excepts : m S.expr list) :
-    m S.expr list =
+let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
+    =
   let module ExprMap = Map.Make (struct
     type t = m S.expr
 
@@ -213,8 +212,7 @@ let thunk_scope_arg var_ctx e =
     Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
   | _ -> assert false
 
-let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) :
-    'm Ast.expr boxed =
+let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   let m = Mark.get e in
   match Mark.remove e with
   | EMatch { e = e1; name; cases = e_cases } ->
@@ -575,9 +573,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) :
     | EIfThenElse _ | EAppOp _ ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
-(** The result of a rule translation is a list of assignments, with variables and
-    expressions. We also return the new translation context available after the
-    assignment to use in later rule translations. The list is actually a
+(** The result of a rule translation is a list of assignments, with variables
+    and expressions. We also return the new translation context available after
+    the assignment to use in later rule translations. The list is actually a
     continuation yielding a [Dcalc.scope_body_expr] by giving it what should
     come later in the chain of let-bindings. *)
 let translate_rule
@@ -591,12 +589,13 @@ let translate_rule
   | S.ScopeVarDefinition { var; typ; e; _ }
   | S.SubScopeVarDefinition { var; typ; e; _ } ->
     let pos_mark, _ = pos_mark_mk e in
-    let scope_let_kind, io = match rule with
-      | S.ScopeVarDefinition {io; _} -> ScopeVarDefinition, io
+    let scope_let_kind, io =
+      match rule with
+      | S.ScopeVarDefinition { io; _ } -> ScopeVarDefinition, io
       | S.SubScopeVarDefinition _ ->
         let pos = Mark.get var in
-        SubScopeVarDefinition,
-        { io_input = (NoInput, pos); io_output = (false, pos) }
+        ( SubScopeVarDefinition,
+          { io_input = NoInput, pos; io_output = false, pos } )
       | S.Assertion _ -> assert false
     in
     let a_name = ScopeVar.get_info (Mark.remove var) in
@@ -763,9 +762,11 @@ let translate_scope_decl
          or not ? *)
       Message.raise_spanned_error pos_sigma "Scope %a has no content"
         ScopeName.format scope_name
-    | (S.ScopeVarDefinition { e; _ }
+    | ( S.ScopeVarDefinition { e; _ }
       | S.SubScopeVarDefinition { e; _ }
-      | S.Assertion e) :: _ -> Mark.get e
+      | S.Assertion e )
+      :: _ ->
+      Mark.get e
   in
   let rules_with_return_expr, ctx =
     translate_rules ctx scope_name sigma.scope_decl_rules sigma_info scope_mark

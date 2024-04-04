@@ -482,8 +482,8 @@ let rec translate_expr
       | mod_id :: path ->
         get_str (Name_resolution.get_module_ctx ctxt mod_id) path
     in
-    Expr.edstructaccess ~e ~field:(Mark.remove x)
-      ~name_opt:(get_str ctxt path) emark
+    Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path)
+      emark
   | FunCall ((Builtin b, _), [arg]) ->
     let op, ty =
       match b with
@@ -1510,20 +1510,25 @@ let init_scope_defs
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =
-    let pos = match v with ScopeVar v | SubScope (v, _, _) -> Mark.get (ScopeVar.get_info v) in
-    let new_def v_sig io = {
-      Ast.scope_def_rules = RuleName.Map.empty;
-      Ast.scope_def_typ = v_sig.Name_resolution.var_sig_typ;
-      Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-      Ast.scope_def_parameters = v_sig.var_sig_parameters;
-      Ast.scope_def_io = io;
-    } in
+    let pos =
+      match v with
+      | ScopeVar v | SubScope (v, _, _) -> Mark.get (ScopeVar.get_info v)
+    in
+    let new_def v_sig io =
+      {
+        Ast.scope_def_rules = RuleName.Map.empty;
+        Ast.scope_def_typ = v_sig.Name_resolution.var_sig_typ;
+        Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+        Ast.scope_def_parameters = v_sig.var_sig_parameters;
+        Ast.scope_def_io = io;
+      }
+    in
     match v with
     | ScopeVar v -> (
       let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
-        let def_key = ((v, pos), Ast.ScopeDef.Var None) in
+        let def_key = (v, pos), Ast.ScopeDef.Var None in
         Ast.ScopeDef.Map.add def_key
           (new_def v_sig (attribute_to_io v_sig.var_sig_io))
           scope_def_map
@@ -1535,9 +1540,9 @@ let init_scope_defs
               let def_key = (v, pos), Ast.ScopeDef.Var (Some state) in
               let original_io = attribute_to_io v_sig.var_sig_io in
               (* The first state should have the input I/O of the original
-                 variable, and the last state should have the output I/O
-                 of the original variable. All intermediate states shall
-                 have "internal" I/O.*)
+                 variable, and the last state should have the output I/O of the
+                 original variable. All intermediate states shall have
+                 "internal" I/O.*)
               let io_input =
                 if i = 0 then original_io.io_input
                 else NoInput, Mark.get (StateName.get_info state)
@@ -1563,32 +1568,41 @@ let init_scope_defs
           ctxt
           (ScopeName.path subscope_uid)
       in
-      let var_def = {
-        Ast.scope_def_rules = RuleName.Map.empty;
-        Ast.scope_def_typ = TStruct sub_scope_def.scope_out_struct, Mark.get (ScopeVar.get_info v0);
-        Ast.scope_def_is_condition = false;
-        Ast.scope_def_parameters = None;
-        Ast.scope_def_io = { io_input = NoInput, Mark.get forward_out; io_output = forward_out };
-      } in
+      let var_def =
+        {
+          Ast.scope_def_rules = RuleName.Map.empty;
+          Ast.scope_def_typ =
+            ( TStruct sub_scope_def.scope_out_struct,
+              Mark.get (ScopeVar.get_info v0) );
+          Ast.scope_def_is_condition = false;
+          Ast.scope_def_parameters = None;
+          Ast.scope_def_io =
+            {
+              io_input = NoInput, Mark.get forward_out;
+              io_output = forward_out;
+            };
+        }
+      in
       let scope_def_map =
-        Ast.ScopeDef.Map.add ((v0, pos), Ast.ScopeDef.Var None) var_def scope_def_map
+        Ast.ScopeDef.Map.add
+          ((v0, pos), Ast.ScopeDef.Var None)
+          var_def scope_def_map
       in
       Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
           | SubScope _ ->
-            (* TODO: if we consider "input subscopes" at some point their inputs will need to be forwarded here *)
+            (* TODO: if we consider "input subscopes" at some point their inputs
+               will need to be forwarded here *)
             scope_def_map
           | ScopeVar v ->
             (* TODO: shouldn't we ignore internal variables too at this point
                ? *)
             let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
             let def_key =
-              (v0, Mark.get (ScopeVar.get_info v)),
-              Ast.ScopeDef.SubScope {
-                name = subscope_uid;
-                var_within_origin_scope = v;
-              }
+              ( (v0, Mark.get (ScopeVar.get_info v)),
+                Ast.ScopeDef.SubScope
+                  { name = subscope_uid; var_within_origin_scope = v } )
             in
             Ast.ScopeDef.Map.add def_key
               {

@@ -19,11 +19,12 @@
 open Catala_utils
 open Shared_ast
 
-(** Inside a scope, a definition can refer to a variable (possibly an intermediate state thereof) or an input of a subscope. *)
+(** Inside a scope, a definition can refer to a variable (possibly an
+    intermediate state thereof) or an input of a subscope. *)
 module ScopeDef : sig
   type kind =
     | Var of StateName.t option
-    | SubScope of { name: ScopeName.t; var_within_origin_scope: ScopeVar.t }
+    | SubScope of { name : ScopeName.t; var_within_origin_scope : ScopeVar.t }
 
   val equal_kind : kind -> kind -> bool
   val compare_kind : kind -> kind -> int

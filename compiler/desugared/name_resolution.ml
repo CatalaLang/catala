@@ -163,10 +163,11 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
       | _ -> false)
     scope.var_idmap
 
-let get_var_def (def: Ast.ScopeDef.t) : ScopeVar.t =
+let get_var_def (def : Ast.ScopeDef.t) : ScopeVar.t =
   match def with
-  | ((v, _), Ast.ScopeDef.Var _)
-  | (_, Ast.ScopeDef.SubScope { var_within_origin_scope = v; _ }) -> v
+  | (v, _), Ast.ScopeDef.Var _
+  | _, Ast.ScopeDef.SubScope { var_within_origin_scope = v; _ } ->
+    v
 
 (** Retrieves the type of a scope definition from the context *)
 let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
@@ -255,7 +256,10 @@ let process_subscope_decl
     (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
-  let forward_output = decl.Surface.Ast.scope_decl_context_scope_attribute.scope_decl_context_io_output in
+  let forward_output =
+    decl.Surface.Ast.scope_decl_context_scope_attribute
+      .scope_decl_context_io_output
+  in
   let (path, subscope), s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = get_scope_context ctxt scope in
   match Ident.Map.find_opt (Mark.remove subscope) scope_ctxt.var_idmap with
@@ -567,16 +571,18 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
                 data.scope_decl_context_item_typ;
             }
           :: acc
-        | Surface.Ast.ContextScope {
-            scope_decl_context_scope_name = var;
-            scope_decl_context_scope_sub_scope = ((path, scope), pos);
-            scope_decl_context_scope_attribute = { scope_decl_context_io_output = true, _; _ };
-          } ->
+        | Surface.Ast.ContextScope
+            {
+              scope_decl_context_scope_name = var;
+              scope_decl_context_scope_sub_scope = (path, scope), pos;
+              scope_decl_context_scope_attribute =
+                { scope_decl_context_io_output = true, _; _ };
+            } ->
           Mark.add (Mark.get item)
             {
               Surface.Ast.struct_decl_field_name = var;
               Surface.Ast.struct_decl_field_typ =
-                (Base (Data (Primitive (Named (path, scope))))), pos;
+                Base (Data (Primitive (Named (path, scope)))), pos;
             }
           :: acc
         | _ -> acc)
@@ -765,9 +771,9 @@ let get_def_key
   | [x] ->
     let x_uid = get_var_uid scope_uid ctxt x in
     let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
-    (x_uid, pos),
-    Ast.ScopeDef.Var
-      ( match state with
+    ( (x_uid, pos),
+      Ast.ScopeDef.Var
+        (match state with
         | Some state -> (
           try
             Some
@@ -790,22 +796,21 @@ let get_def_key
               "This definition does not indicate which state has to be \
                considered for variable %a."
               ScopeVar.format x_uid
-          else None )
+          else None) )
   | [y; x] ->
     let (subscope_var, name) : ScopeVar.t * ScopeName.t =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u, _)) -> v, u
       | Some _ ->
         Message.raise_spanned_error pos
-          "Invalid definition, %a is not a subscope"
-          Print.lit_style (Mark.remove y)
+          "Invalid definition, %a is not a subscope" Print.lit_style
+          (Mark.remove y)
       | None ->
         Message.raise_spanned_error pos "No definition found for subscope %a"
           Print.lit_style (Mark.remove y)
     in
     let var_within_origin_scope = get_var_uid name ctxt x in
-    (subscope_var, pos),
-    Ast.ScopeDef.SubScope { name; var_within_origin_scope }
+    (subscope_var, pos), Ast.ScopeDef.SubScope { name; var_within_origin_scope }
   | _ ->
     Message.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \

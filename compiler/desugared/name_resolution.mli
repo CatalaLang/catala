@@ -132,8 +132,7 @@ val get_scope_context : context -> ScopeName.t -> scope_context
 val get_var_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
-val get_subscope_uid :
-  ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
+val get_subscope_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the subscope uid inside the scope given in argument *)
 
 val is_subscope_uid : ScopeName.t -> context -> Ident.t -> bool
