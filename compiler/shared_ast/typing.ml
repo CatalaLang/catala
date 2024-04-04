@@ -412,10 +412,6 @@ module Env = struct
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
-  let get_subscope_in_var t scope var =
-    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
-        A.ScopeVar.Map.find_opt var vmap)
-
   let add_scope scope_name ~vars ~in_vars t =
     {
       t with
@@ -594,10 +590,11 @@ and typecheck_expr_top_down :
           with
           | Some (scope_out, _) ->
             Message.raise_multispanned_error_full
-              [None, Expr.mark_pos context_mark;
-               Some (fun ppf -> Format.fprintf ppf "Subscope %a is declared here" A.ScopeName.format scope_out),
+              [Some (fun ppf -> Format.fprintf ppf "@{<yellow>%s@} is used here as an output" field),
+               Expr.mark_pos context_mark;
+               Some (fun ppf -> Format.fprintf ppf "Scope %a is declared here" A.ScopeName.format scope_out),
                Mark.get (A.StructName.get_info name)]
-              "Variable @{<yellow>\"%s\"@} is not a declared output of scope %a."
+              "Variable @{<yellow>%s@} is not a declared output of scope %a."
               field A.ScopeName.format scope_out
               ~suggestion:(List.map A.StructField.to_string (A.StructField.Map.keys str))
           | None ->

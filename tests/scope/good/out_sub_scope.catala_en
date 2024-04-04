@@ -21,12 +21,7 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope B
-[ERROR]
-"a": unknown identifier for a local, scope-wide or global variable
-
-┌─⯈ tests/scope/good/out_sub_scope.catala_en:18.23-18.24:
-└──┐
-18 │   definition b equals a.o
-   │                       ‾
-#return code 123#
+[RESULT] Computation successful! Results:
+[RESULT] a = A { -- o: 99 -- io: 100 }
+[RESULT] b = 99
 ```

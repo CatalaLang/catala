@@ -286,19 +286,6 @@ let process_subscope_decl
       }
     in
     { ctxt with scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes }
-      (* var_typs =
-       *   ScopeVar.Map.add uid
-       *     {
-       *       var_sig_typ = data_typ;
-       *       var_sig_is_condition = is_cond;
-       *       var_sig_parameters;
-       *       var_sig_io = decl.scope_decl_context_item_attribute;
-       *       var_sig_states_idmap = states_idmap;
-       *       var_sig_states_list = states_list;
-       *     }
-       *     ctxt.var_typs; *)
-
-
 
 let is_type_cond ((typ, _) : Surface.Ast.typ) =
   match typ with

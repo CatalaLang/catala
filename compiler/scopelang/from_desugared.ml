@@ -650,10 +650,6 @@ let translate_rule
       Expr.escopecall ~scope:subscope ~args:subscope_param_map (Untyped { pos })
     in
     let subscope_expr = subscope_call_expr in
-    (*   ScopeVar.Map.fold (fun _ (var, pos, typ, expr) acc ->
-     *       Expr.make_let_in var typ expr acc pos)
-     *     subscope_params subscope_call_expr
-     * in *)
     assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
     (* The subscope will be defined by its inputs, it's not supposed to have direct rules yet *)
     let scope_info = ScopeName.Map.find subscope ctx.decl_ctx.ctx_scopes in
@@ -729,11 +725,6 @@ let translate_scope_interface ctx scope =
         let scope_def =
           D.ScopeDef.Map.find ((var, Pos.no_pos), D.ScopeDef.Var None) scope.D.scope_defs
         in
-        (* let acc =
-         *   Message.emit_debug "et %a>%a alors ?" ScopeName.format scope.D.scope_uid ScopeVar.format var;
-         * 
-         *  ScopeVar.Map.add var (get_svar scope_def) acc
-         * in *)
         ScopeVar.Map.add
           (match ScopeVar.Map.find var ctx.scope_var_mapping with
            | WholeVar v -> v

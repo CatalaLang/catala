@@ -19,20 +19,40 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
+[WARNING] Unused varible: a does not contribute to computing any of scope B outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
 [RESULT] All invariant checks passed
 [RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline
 $ catala Scopelang -s B
-let scope B (b: bool|input) =
-  let a.f : integer → ⟨integer⟩ = λ (x: integer) →
-    ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩;
-  call A[a]
+[WARNING] Unused varible: a does not contribute to computing any of scope B outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+let scope B (b: bool|input) (a: A {f: integer → integer}|internal) =
+  let a : A {f: integer → integer} =
+    A of {"f"= (λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩)}
 ```
 
 ```catala-test-inline
 $ catala Dcalc -s A
+[WARNING] Unused varible: a does not contribute to computing any of scope B outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
 let scope A
   (A_in: A_in {f_in: integer → ⟨integer⟩})
   : A {f: integer → integer}
@@ -48,13 +68,24 @@ let scope A
 
 ```catala-test-inline
 $ catala Dcalc -s B
+[WARNING] Unused varible: a does not contribute to computing any of scope B outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
 let scope B (B_in: B_in {b_in: bool}): B =
   let get b : bool = B_in.b_in in
-  let sub_set a.f : integer → ⟨integer⟩ =
-    λ (x: integer) →
-    ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩
+  let set a : A {f: integer → integer} =
+    let result : A =
+      A
+        { A_in
+          f_in = λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩;
+        }
+    in
+    let result1 : A = { A f = λ (param0: integer) → result.f param0; } in
+    if true then result1 else result1
   in
-  let call result : A {f: integer → integer} = A { A_in f_in = a.f; } in
-  let sub_get a.f : integer → integer = result.f in
   return {B}
 ```
