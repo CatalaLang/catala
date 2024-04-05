@@ -151,7 +151,7 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
-  let v_str = Mark.remove (VarName.get_info v) in
+  let v_str = clean_name (Mark.remove (VarName.get_info v)) in
   let hash = VarName.hash v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
@@ -170,8 +170,8 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   in
   if v_str = "_" then Format.fprintf fmt "_"
     (* special case for the unit pattern *)
-  else if local_id = 0 then format_name_cleaned fmt v_str
-  else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
+  else if local_id = 0 then Format.pp_print_string fmt v_str
+  else Format.fprintf fmt "%s_%d" v_str local_id
 
 let format_path ctx fmt p =
   match List.rev p with

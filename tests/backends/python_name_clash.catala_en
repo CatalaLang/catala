@@ -2,18 +2,18 @@ This test exposes a name clash between the scope function (`ScopeName,`
 rewritten to `scope_name`) and the scope variable `scope_name`.
 
 ```catala
-declaration scope SomeName:
+declaration scope SomeNâme:
   input i content integer
   output o content integer
 
-scope SomeName:
+scope SomeNâme:
   definition o equals i + 1
 
 declaration scope B:
-  output some_name scope SomeName
+  output some_nâme scope SomeNâme
 
 scope B:
-  definition some_name.i equals 1
+  definition some_nâme.i equals 1
 ```
 
 ```catala-test-inline
