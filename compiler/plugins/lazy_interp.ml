@@ -197,10 +197,8 @@ let rec lazy_eval :
       log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
-      Message.error
-        ~extra_pos:
-          ((None, Expr.mark_pos m)
-          :: List.map (fun (e, _) -> None, Expr.pos e) excs)
+      Message.error ~pos:(Expr.mark_pos m)
+        ~extra_pos:(List.map (fun (e, _) -> "", Expr.pos e) excs)
         "Conflicting exceptions")
   | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (

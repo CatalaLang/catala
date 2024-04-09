@@ -228,7 +228,7 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
-  let pos_msgs =
+  let fmt_pos =
     if e_pos = t1_pos then
       [
         ( (fun ppf ->
@@ -263,8 +263,7 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
           t2_pos );
       ]
   in
-  Message.error
-    ~fmt_pos:(List.map (fun (a, b) -> Some a, b) pos_msgs)
+  Message.error ~fmt_pos
     "@[<v>Error during typechecking, incompatible types:@,\
      @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
      @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
@@ -524,16 +523,15 @@ and typecheck_expr_top_down :
       let errs =
         List.map
           (fun (f, ty) ->
-            ( Some (Format.asprintf "Missing field %a" A.StructField.format f),
+            ( Format.asprintf "Missing field %a" A.StructField.format f,
               Mark.get ty ))
           (A.StructField.Map.bindings missing_fields)
         @ List.map
             (fun (f, ef) ->
               let dup = A.StructField.Map.mem f str in
-              ( Some
-                  (Format.asprintf "%s field %a"
-                     (if dup then "Duplicate" else "Unknown")
-                     A.StructField.format f),
+              ( Format.asprintf "%s field %a"
+                  (if dup then "Duplicate" else "Unknown")
+                  A.StructField.format f,
                 Expr.pos ef ))
             (A.StructField.Map.bindings extra_fields)
       in
@@ -589,15 +587,13 @@ and typecheck_expr_top_down :
             Message.error
               ~fmt_pos:
                 [
-                  ( Some
-                      (fun ppf ->
-                        Format.fprintf ppf
-                          "@{<yellow>%s@} is used here as an output" field),
+                  ( (fun ppf ->
+                      Format.fprintf ppf
+                        "@{<yellow>%s@} is used here as an output" field),
                     Expr.mark_pos context_mark );
-                  ( Some
-                      (fun ppf ->
-                        Format.fprintf ppf "Scope %a is declared here"
-                          A.ScopeName.format scope_out),
+                  ( (fun ppf ->
+                      Format.fprintf ppf "Scope %a is declared here"
+                        A.ScopeName.format scope_out),
                     Mark.get (A.StructName.get_info name) );
                 ]
               "Variable @{<yellow>%s@} is not a declared output of scope %a."
@@ -608,9 +604,8 @@ and typecheck_expr_top_down :
             Message.error
               ~extra_pos:
                 [
-                  None, Expr.mark_pos context_mark;
-                  ( Some "Structure definition",
-                    Mark.get (A.StructName.get_info name) );
+                  "", Expr.mark_pos context_mark;
+                  "Structure definition", Mark.get (A.StructName.get_info name);
                 ]
               "Field @{<yellow>\"%s\"@} does not belong to structure \
                @{<yellow>\"%a\"@}."
@@ -644,11 +639,12 @@ and typecheck_expr_top_down :
       in
       try A.StructField.Map.find field str
       with A.StructField.Map.Not_found _ ->
-        Message.error
-          ~extra_pos:
+        Message.error ~pos:pos_e
+          ~fmt_pos:
             [
-              None, pos_e;
-              ( Some "Structure %a declared here",
+              ( (fun ppf ->
+                  Format.fprintf ppf "Structure %a declared here"
+                    A.StructName.format name),
                 Mark.get (A.StructName.get_info name) );
             ]
           "Structure %a doesn't define a field %a" A.StructName.format name

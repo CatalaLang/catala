@@ -232,8 +232,8 @@ type ('a, 'b) emitter =
   ?internal:bool ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
-  ?extra_pos:(string option * Pos.t) list ->
-  ?fmt_pos:(Content.message option * Pos.t) list ->
+  ?extra_pos:(string * Pos.t) list ->
+  ?fmt_pos:(Content.message * Pos.t) list ->
   ?suggestion:string list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
@@ -264,7 +264,8 @@ let make
       List.fold_left
         (fun t (message, p) ->
           let message =
-            Option.map (fun m ppf -> Format.pp_print_text ppf m) message
+            if message = "" then None
+            else Some (fun ppf -> Format.pp_print_text ppf message)
           in
           add_position t ?message p)
         t pl
@@ -273,7 +274,11 @@ let make
   let t =
     match fmt_pos with
     | Some pl ->
-      List.fold_left (fun t (message, p) -> add_position t ?message p) t pl
+      List.fold_left
+        (fun t (message, p) ->
+          let message = if message == ignore then None else Some message in
+          add_position t ?message p)
+        t pl
     | None -> t
   in
   let t = match suggestion with Some s -> add_suggestion t s | None -> t in

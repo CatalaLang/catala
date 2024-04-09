@@ -129,7 +129,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
           (List.find (fun succ -> VSet.mem succ scc) succ)
     in
     let cycle = get_cycle [] VSet.empty v0 in
-    let spans =
+    let extra_pos =
       List.map2
         (fun v1 v2 ->
           let msg =
@@ -137,11 +137,11 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
               Vertex.format v1 Vertex.format v2
           in
           let _, edge_pos, _ = ScopeDependencies.find_edge g v1 v2 in
-          Some msg, edge_pos)
+          msg, edge_pos)
         cycle
         (List.tl cycle @ [List.hd cycle])
     in
-    Message.error ~extra_pos:spans
+    Message.error ~extra_pos
       "@[<hov 2>Cyclic dependency detected between the following variables of \
        scope %a:@ @[<hv>%a@]@]"
       ScopeName.format scope.scope_uid
@@ -412,15 +412,14 @@ let build_exceptions_graph
           List.iter
             (fun edge ->
               if LabelName.compare edge.label_to label_to <> 0 then
-                Message.error
+                Message.error ~pos:edge_pos
+                  ~pos_msg:(fun ppf ->
+                    Format.pp_print_text ppf
+                      "This definition contradicts other exception definitions:")
                   ~extra_pos:
-                    (( Some
-                         "This definition contradicts other exception \
-                          definitions:",
-                       edge_pos )
-                    :: List.map
-                         (fun pos -> Some "Other exception definition:", pos)
-                         edge.edge_positions)
+                    (List.map
+                       (fun pos -> "Other exception definition:", pos)
+                       edge.edge_positions)
                   "The definition of exceptions are inconsistent for variable \
                    %a."
                   Ast.ScopeDef.format def_info)
@@ -495,7 +494,7 @@ let check_for_exception_cycle
           let v, _ = RuleName.Map.choose vs.rules in
           let rule = RuleName.Map.find v def in
           let pos = Mark.get (RuleName.get_info rule.Ast.rule_id) in
-          None, pos)
+          "", pos)
         scc
     in
     let v, _ = RuleName.Map.choose (List.hd scc).rules in

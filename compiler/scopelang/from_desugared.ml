@@ -216,13 +216,13 @@ let rule_to_exception_graph (scope : D.scope) = function
             | NoInput ->
               Message.error
                 ~extra_pos:
-                  (( Some "Incriminated subscope:",
+                  (( "Incriminated subscope:",
                      Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
-                  :: ( Some "Incriminated variable:",
+                  :: ( "Incriminated variable:",
                        Mark.get (ScopeVar.get_info var_within_origin_scope) )
                   :: List.map
                        (fun rule ->
-                         ( Some "Incriminated subscope variable definition:",
+                         ( "Incriminated subscope variable definition:",
                            Mark.get (RuleName.get_info rule) ))
                        (RuleName.Map.keys def))
                 "Invalid assignment to a subscope variable that is not tagged \
@@ -233,9 +233,9 @@ let rule_to_exception_graph (scope : D.scope) = function
               Message.error
                 ~extra_pos:
                   [
-                    ( Some "Incriminated subscope:",
+                    ( "Incriminated subscope:",
                       Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
-                    Some "Incriminated variable:", Mark.get sscope;
+                    "Incriminated variable:", Mark.get sscope;
                   ]
                 "This subscope variable is a mandatory input but no definition \
                  was provided."
@@ -255,10 +255,10 @@ let rule_to_exception_graph (scope : D.scope) = function
       (* If the variable is tagged as input, then it shall not be redefined. *)
       Message.error
         ~extra_pos:
-          ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
+          (("Incriminated variable:", Mark.get (ScopeVar.get_info var))
           :: List.map
                (fun rule ->
-                 ( Some "Incriminated variable definition:",
+                 ( "Incriminated variable definition:",
                    Mark.get (RuleName.get_info rule) ))
                (RuleName.Map.keys var_def))
         "It is impossible to give a definition to a scope variable tagged as \

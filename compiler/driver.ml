@@ -42,7 +42,7 @@ let load_module_interfaces
     |> List.fold_left File.Tree.union File.Tree.empty
   in
   let err_req_pos chain =
-    List.map (fun mpos -> Some "Module required from", mpos) chain
+    List.map (fun mpos -> "Module required from", mpos) chain
   in
   let find_module req_chain (mname, mpos) =
     let required_from_file = Pos.get_file mpos in

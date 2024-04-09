@@ -187,7 +187,7 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
               SVertex.format v1 SVertex.format v2
           in
           let _, edge_pos, _ = SDependencies.find_edge g v1 v2 in
-          Some msg, edge_pos)
+          msg, edge_pos)
         cycle
         (List.tl cycle @ [List.hd cycle])
     in
@@ -338,11 +338,10 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
               in
               let succ_str = Format.asprintf "%a" TVertex.format succ in
               [
-                Some ("Cycle type " ^ var_str ^ ", declared:"), Mark.get var_info;
-                ( Some
-                    ("Used here in the definition of another cycle type "
-                    ^ succ_str
-                    ^ ":"),
+                "Cycle type " ^ var_str ^ ", declared:", Mark.get var_info;
+                ( "Used here in the definition of another cycle type "
+                  ^ succ_str
+                  ^ ":",
                   edge_pos );
               ])
             scc)

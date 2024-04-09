@@ -275,8 +275,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
             Message.error
               ~extra_pos:
                 [
-                  None, pos;
-                  ( Some "Declaration of the missing input variable",
+                  "", pos;
+                  ( "Declaration of the missing input variable",
                     Mark.get (StructField.get_info var_ctx.scope_input_name) );
                 ]
               "Definition of input variable '%a' missing in this scope call"
@@ -289,11 +289,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                    (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
               ~fmt_pos:
                 [
-                  None, Expr.pos e;
-                  ( Some
-                      (fun ppf ->
-                        Format.fprintf ppf "Declaration of scope %a"
-                          ScopeName.format scope),
+                  ignore, Expr.pos e;
+                  ( (fun ppf ->
+                      Format.fprintf ppf "Declaration of scope %a"
+                        ScopeName.format scope),
                     Mark.get (ScopeName.get_info scope) );
                 ]
               "Unknown input variable '%a' in scope call of '%a'"

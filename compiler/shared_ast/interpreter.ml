@@ -125,7 +125,7 @@ let rec evaluate_operator
   let protect f x y =
     let get_binop_args_pos = function
       | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
-        [None, Expr.pos arg0; None, Expr.pos arg1]
+        ["", Expr.pos arg0; "", Expr.pos arg1]
       | _ -> assert false
     in
     try f x y with
@@ -133,8 +133,8 @@ let rec evaluate_operator
       Message.error
         ~extra_pos:
           [
-            Some "The division operator:", pos;
-            Some "The null denominator:", Expr.pos (List.nth args 1);
+            "The division operator:", pos;
+            "The null denominator:", Expr.pos (List.nth args 1);
           ]
         "division by zero at runtime"
     | Runtime.UncomparableDurations ->
@@ -146,18 +146,16 @@ let rec evaluate_operator
     Message.error
       ~extra_pos:
         ([
-           ( Some
-               (Format.asprintf "Operator (value %a):"
-                  (Print.operator ~debug:true)
-                  op),
+           ( Format.asprintf "Operator (value %a):"
+               (Print.operator ~debug:true)
+               op,
              pos );
          ]
         @ List.mapi
             (fun i arg ->
-              ( Some
-                  (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                     (Print.UserFacing.expr lang)
-                     arg),
+              ( Format.asprintf "Argument n°%d, value %a" (i + 1)
+                  (Print.UserFacing.expr lang)
+                  arg,
                 Expr.pos arg ))
             args)
       "Operator %a applied to the wrong arguments\n\
@@ -699,7 +697,7 @@ let rec evaluate_expr :
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
         Message.error
-          ~extra_pos:[None, pos; None, Expr.pos e]
+          ~extra_pos:["", pos; "", Expr.pos e]
           "Error during struct access: not the same structs (should not happen \
            if the term was well-typed)";
       match StructField.Map.find_opt field es with
@@ -734,7 +732,7 @@ let rec evaluate_expr :
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
         Message.error
-          ~extra_pos:[None, Expr.pos e; None, Expr.pos e1]
+          ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
           "Error during match: two different enums found (should not happen if \
            the term was well-typed)";
       let es_n =
@@ -921,7 +919,7 @@ let interp_failure_message ~pos = function
     Message.error
       ~extra_pos:
         (List.map
-           (fun pos -> Some "This consequence has a valid justification:", pos)
+           (fun pos -> "This consequence has a valid justification:", pos)
            cpos)
       "There is a conflict between multiple valid consequences for assigning \
        the same variable."

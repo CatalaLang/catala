@@ -184,17 +184,14 @@ let get_enum ctxt id =
     Message.error
       ~extra_pos:
         [
-          None, Mark.get id;
-          Some "Structure defined at", Mark.get (StructName.get_info sid);
+          "", Mark.get id;
+          "Structure defined at", Mark.get (StructName.get_info sid);
         ]
       "Expecting an enum, but found a structure"
   | TScope (sid, _) ->
     Message.error
       ~extra_pos:
-        [
-          None, Mark.get id;
-          Some "Scope defined at", Mark.get (ScopeName.get_info sid);
-        ]
+        ["", Mark.get id; "Scope defined at", Mark.get (ScopeName.get_info sid)]
       "Expecting an enum, but found a scope"
   | exception Ident.Map.Not_found _ ->
     Message.error ~pos:(Mark.get id) "No enum named %s found" (Mark.remove id)
@@ -205,10 +202,7 @@ let get_struct ctxt id =
   | TEnum eid ->
     Message.error
       ~extra_pos:
-        [
-          None, Mark.get id;
-          Some "Enum defined at", Mark.get (EnumName.get_info eid);
-        ]
+        ["", Mark.get id; "Enum defined at", Mark.get (EnumName.get_info eid)]
       "Expecting a struct, but found an enum"
   | exception Ident.Map.Not_found _ ->
     Message.error ~pos:(Mark.get id) "No struct named %s found" (Mark.remove id)
@@ -219,17 +213,14 @@ let get_scope ctxt id =
   | TEnum eid ->
     Message.error
       ~extra_pos:
-        [
-          None, Mark.get id;
-          Some "Enum defined at", Mark.get (EnumName.get_info eid);
-        ]
+        ["", Mark.get id; "Enum defined at", Mark.get (EnumName.get_info eid)]
       "Expecting an scope, but found an enum"
   | TStruct sid ->
     Message.error
       ~extra_pos:
         [
-          None, Mark.get id;
-          Some "Structure defined at", Mark.get (StructName.get_info sid);
+          "", Mark.get id;
+          "Structure defined at", Mark.get (StructName.get_info sid);
         ]
       "Expecting an scope, but found a structure"
   | exception Ident.Map.Not_found _ ->
@@ -271,7 +262,7 @@ let process_subscope_decl
       | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
     in
     Message.error
-      ~extra_pos:[Some "first use", Mark.get info; Some "second use", s_pos]
+      ~extra_pos:["first use", Mark.get info; "second use", s_pos]
       "Subscope name @{<yellow>\"%s\"@} already used" (Mark.remove subscope)
   | None ->
     let sub_scope_uid = ScopeVar.fresh (name, name_pos) in
@@ -374,7 +365,7 @@ let process_data_decl
       | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
     in
     Message.error
-      ~extra_pos:[Some "First use:", Mark.get info; Some "Second use:", pos]
+      ~extra_pos:["First use:", Mark.get info; "Second use:", pos]
       "Variable name @{<yellow>\"%s\"@} already used" name
   | None ->
     let uid = ScopeVar.fresh (name, pos) in
@@ -392,17 +383,15 @@ let process_data_decl
             Message.error
               ~fmt_pos:
                 [
-                  ( Some
-                      (fun ppf ->
-                        Format.fprintf ppf
-                          "First instance of state @{<yellow>\"%s\"@}:"
-                          state_id_name),
+                  ( (fun ppf ->
+                      Format.fprintf ppf
+                        "First instance of state @{<yellow>\"%s\"@}:"
+                        state_id_name),
                     Mark.get state_id );
-                  ( Some
-                      (fun ppf ->
-                        Format.fprintf ppf
-                          "Second instance of state @{<yellow>\"%s\"@}:"
-                          state_id_name),
+                  ( (fun ppf ->
+                      Format.fprintf ppf
+                        "Second instance of state @{<yellow>\"%s\"@}:"
+                        state_id_name),
                     Mark.get
                       (Ident.Map.find state_id_name states_idmap
                       |> StateName.get_info) );
@@ -650,9 +639,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     Message.error
       ~fmt_pos:
         [
-          ( Some (fun ppf -> Format.pp_print_string ppf "First definition:"),
+          ( (fun ppf -> Format.pp_print_string ppf "First definition:"),
             Mark.get use );
-          Some (fun ppf -> Format.pp_print_string ppf "Second definition:"), pos;
+          (fun ppf -> Format.pp_print_string ppf "Second definition:"), pos;
         ]
       "%s name @{<yellow>\"%s\"@} already defined" msg name
   in
@@ -785,9 +774,8 @@ let get_def_key
             Message.error
               ~extra_pos:
                 [
-                  None, Mark.get state;
-                  ( Some "Variable declaration:",
-                    Mark.get (ScopeVar.get_info x_uid) );
+                  "", Mark.get state;
+                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
                 ]
               "This identifier is not a state declared for variable %a."
               ScopeVar.format x_uid)
@@ -796,9 +784,8 @@ let get_def_key
             Message.error
               ~extra_pos:
                 [
-                  None, Mark.get x;
-                  ( Some "Variable declaration:",
-                    Mark.get (ScopeVar.get_info x_uid) );
+                  "", Mark.get x;
+                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
                 ]
               "This definition does not indicate which state has to be \
                considered for variable %a."

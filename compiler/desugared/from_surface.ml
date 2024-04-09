@@ -211,7 +211,7 @@ let rec check_formula (op, pos_op) e =
          xor b xor c] is most likely an error since it's true for [a = b = c =
          true]) *)
       Message.error
-        ~extra_pos:[None, pos_op; None, pos_op1]
+        ~extra_pos:["", pos_op; "", pos_op1]
         "Please add parentheses to explicit which of these operators should be \
          applied first";
     check_formula (op1, pos_op1) e1;
@@ -432,9 +432,8 @@ let rec translate_expr
                 ~suggestion:(List.map StateName.to_string states)
                 ~extra_pos:
                   [
-                    None, Mark.get st;
-                    ( Some "Variable defined here",
-                      Mark.get (ScopeVar.get_info uid) );
+                    "", Mark.get st;
+                    "Variable defined here", Mark.get (ScopeVar.get_info uid);
                   ]
                 "Reference to unknown variable state"
             | some -> some)
@@ -526,10 +525,9 @@ let rec translate_expr
                 ~suggestion:(Ident.Map.keys scope_def.var_idmap)
                 ~extra_pos:
                   [
-                    None, Mark.get fld_id;
-                    ( Some
-                        (Format.asprintf "Scope %a declared here"
-                           ScopeName.format called_scope),
+                    "", Mark.get fld_id;
+                    ( Format.asprintf "Scope %a declared here" ScopeName.format
+                        called_scope,
                       Mark.get (ScopeName.get_info called_scope) );
                   ]
                 "Scope %a has no input variable %a" ScopeName.format
@@ -586,7 +584,7 @@ let rec translate_expr
           | None -> ()
           | Some e_field ->
             Message.error
-              ~extra_pos:[None, Mark.get f_e; None, Expr.pos e_field]
+              ~extra_pos:["", Mark.get f_e; "", Expr.pos e_field]
               "The field %a has been defined twice:" StructField.format f_uid);
           let f_e = rec_helper f_e in
           StructField.Map.add f_uid f_e s_fields)
@@ -973,8 +971,7 @@ and disambiguate_match_and_build_expression
       | None -> ()
       | Some e_case ->
         Message.error
-          ~extra_pos:
-            [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
+          ~extra_pos:["", Mark.get case.match_case_expr; "", Expr.pos e_case]
           "The constructor %a has been matched twice:" EnumConstructor.format
           c_uid);
       let local_vars, param_var =
@@ -995,8 +992,8 @@ and disambiguate_match_and_build_expression
         Message.error
           ~extra_pos:
             [
-              Some "Not ending wildcard:", case_pos;
-              ( Some "Next reachable case:",
+              "Not ending wildcard:", case_pos;
+              ( "Next reachable case:",
                 curr_index + 1 |> List.nth cases |> Mark.get );
             ]
           "Wildcard must be the last match case"
@@ -1082,26 +1079,20 @@ let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
   | [], [] -> ()
   | [], (arg, apos) :: _ ->
     Message.error
-      ~extra_pos:[Some "Declared here:", pos_decl; Some "Extra argument:", apos]
+      ~extra_pos:["Declared here:", pos_decl; "Extra argument:", apos]
       "This definition has an extra, undeclared argument '%a'" Print.lit_style
       arg
   | (arg, apos) :: _, [] ->
     Message.error
       ~extra_pos:
-        [
-          Some "Argument declared here:", apos;
-          Some "Mismatching definition:", pos_def;
-        ]
+        ["Argument declared here:", apos; "Mismatching definition:", pos_def]
       "This definition is missing argument '%a'" Print.lit_style arg
   | decl :: pdecl, def :: pdefs when Uid.MarkedString.equal decl def ->
     arglist_eq_check pos_decl pos_def pdecl pdefs
   | (decl_arg, decl_apos) :: _, (def_arg, def_apos) :: _ ->
     Message.error
       ~extra_pos:
-        [
-          Some "Argument declared here:", decl_apos;
-          Some "Defined here:", def_apos;
-        ]
+        ["Argument declared here:", decl_apos; "Defined here:", def_apos]
       "Function argument name mismatch between declaration ('%a') and \
        definition ('%a')"
       Print.lit_style decl_arg Print.lit_style def_arg
@@ -1120,17 +1111,16 @@ let process_rule_parameters
     Message.error
       ~extra_pos:
         [
-          Some "Declared here without arguments", decl_pos;
-          Some "Unexpected arguments appearing here", pos;
+          "Declared here without arguments", decl_pos;
+          "Unexpected arguments appearing here", pos;
         ]
       "Extra arguments in this definition of %a" Ast.ScopeDef.format decl_name
   | Some (_, pos), None ->
     Message.error
       ~extra_pos:
         [
-          Some "Arguments declared here", pos;
-          ( Some "Definition missing the arguments",
-            Mark.get def.S.definition_name );
+          "Arguments declared here", pos;
+          "Definition missing the arguments", Mark.get def.S.definition_name;
         ]
       "This definition for %a is missing the arguments" Ast.ScopeDef.format
       decl_name
@@ -1347,7 +1337,7 @@ let process_scope_use_item
       with
       | Some (_, old_pos) ->
         Message.error
-          ~extra_pos:[None, old_pos; None, Mark.get item]
+          ~extra_pos:["", old_pos; "", Mark.get item]
           "You cannot set multiple date rounding modes"
       | None ->
         {
@@ -1402,10 +1392,9 @@ let check_unlabeled_exception
         Message.error ~pos:(Mark.get item)
           "This exception does not have a corresponding definition"
       | Some (Ambiguous pos) ->
-        Message.error
-          ~extra_pos:
-            ([Some "Ambiguous exception", Mark.get item]
-            @ List.map (fun p -> Some "Candidate definition", p) pos)
+        Message.error ~pos:(Mark.get item)
+          ~pos_msg:(fun ppf -> Format.pp_print_text ppf "Ambiguous exception")
+          ~extra_pos:(List.map (fun p -> "Candidate definition", p) pos)
           "This exception can refer to several definitions. Try using labels \
            to disambiguate"
       | Some (Unique _) -> ()))
@@ -1485,8 +1474,8 @@ let process_topdef
             Message.error
               ~extra_pos:
                 [
-                  None, Mark.get (TopdefName.get_info id);
-                  None, Mark.get def.S.topdef_name;
+                  "", Mark.get (TopdefName.get_info id);
+                  "", Mark.get def.S.topdef_name;
                 ]
               (msg ^^ " for %a") TopdefName.format id
           in

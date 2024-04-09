@@ -86,8 +86,8 @@ type ('a, 'b) emitter =
   ?internal:bool ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
-  ?extra_pos:(string option * Pos.t) list ->
-  ?fmt_pos:(Content.message option * Pos.t) list ->
+  ?extra_pos:(string * Pos.t) list ->
+  ?fmt_pos:(Content.message * Pos.t) list ->
   ?suggestion:string list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a

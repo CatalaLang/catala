@@ -550,12 +550,11 @@ let resolve_overload ctx (op : overloaded t Mark.pos) (operands : typ list) :
   with Not_found ->
     Message.error
       ~extra_pos:
-        ((None, Mark.get op)
+        (("", Mark.get op)
         :: List.map
              (fun ty ->
-               ( Some
-                   (Format.asprintf "Type %a coming from expression:"
-                      (Print.typ ctx) ty),
+               ( Format.asprintf "Type %a coming from expression:"
+                   (Print.typ ctx) ty,
                  Mark.get ty ))
              operands)
       "I don't know how to apply operator %a on types %a"

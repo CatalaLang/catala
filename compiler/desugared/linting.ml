@@ -82,7 +82,7 @@ let detect_identical_rules (p : program) : unit =
                 RuleExpressionsMap.update rule
                   (fun l ->
                     let x =
-                      ( None,
+                      ( "",
                         Pos.overwrite_law_info
                           (snd (RuleName.get_info rule.rule_id))
                           (Pos.get_law_info (Expr.pos rule.rule_just)) )

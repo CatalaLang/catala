@@ -74,13 +74,13 @@ let raise_parser_error
     (msg : Format.formatter -> unit) : 'a =
   Message.error ?suggestion
     ~fmt_pos:
-      ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
+      (((fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
       ::
       (match last_good_loc with
       | None -> []
       | Some last_good_loc ->
         [
-          ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
+          ( (fun ppf -> Format.pp_print_string ppf "Last good token:"),
             last_good_loc );
         ]))
     "@[<v>Syntax error at token %a@,%t@]"
@@ -268,7 +268,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           | opt, None | None, opt -> opt
           | Some id1, Some id2 ->
             Message.error
-              ~extra_pos:[None, Mark.get id1; None, Mark.get id2]
+              ~extra_pos:["", Mark.get id1; "", Mark.get id2]
               "Multiple definitions of the module name"
         in
         match command with
@@ -299,8 +299,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
                Message.error
                  ~extra_pos:
                    [
-                     Some "File include", Mark.get inc_file;
-                     Some "Module declaration", Mark.get id;
+                     "File include", Mark.get inc_file;
+                     "Module declaration", Mark.get id;
                    ]
                  "A file that declares a module cannot be used through the raw \
                   '@{<yellow>> Include@}' directive. You should use it as a \
