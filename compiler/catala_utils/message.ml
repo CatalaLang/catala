@@ -74,7 +74,7 @@ let unformat (f : Format.formatter -> unit) : string =
 
 (**{2 Message types and output helpers *)
 
-type content_type = Error | Warning | Debug | Log | Result
+type level = Error | Warning | Debug | Log | Result
 
 let get_ppf = function
   | Result -> Lazy.force std_ppf
@@ -121,12 +121,12 @@ module Content = struct
     | MainMessage of message
     | Position of position
     | Suggestion of string list
-    | Result of message
+    | Outcome of message
 
   type t = message_element list
 
   let of_message (message : message) : t = [MainMessage message]
-  let of_result (message : message) : t = [Result message]
+  let of_result (message : message) : t = [Outcome message]
   let prepend_message (content : t) prefix : t = MainMessage prefix :: content
 
   let to_internal_error (content : t) : t =
@@ -142,14 +142,14 @@ module Content = struct
 
   let add_position
       (content : t)
-      ?(message : message option = None)
+      ?(message : message option)
       (position : Pos.t) =
     content @ [Position { pos = position; pos_message = message }]
 
   let of_string (s : string) : t =
-    [MainMessage (fun ppf -> Format.pp_print_string ppf s)]
+    [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let emit (content : t) (target : content_type) : unit =
+  let emit (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human ->
       let ppf = get_ppf target in
@@ -169,7 +169,7 @@ module Content = struct
                   pos.pos_message;
                 Pos.format_loc_text ppf pos.pos
               | MainMessage msg -> msg ppf
-              | Result msg -> msg ppf
+              | Outcome msg -> msg ppf
               | Suggestion suggestions_list ->
                 Suggestions.format ppf suggestions_list)
             ppf message_elements)
@@ -207,7 +207,7 @@ module Content = struct
                 match pos_message with Some m -> m | None -> fun _ -> ()
               in
               Some pos, message
-            | Result m -> None, m
+            | Outcome m -> None, m
             | Suggestion sl -> None, fun ppf -> Suggestions.format ppf sl
           in
           Option.iter
@@ -318,3 +318,47 @@ let emit_result format =
   Format.kdprintf
     (fun message -> Content.emit [MainMessage message] Result)
     format
+
+
+(** New concise interface *)
+
+type ('a, 'b) emitter =
+  ?header:Content.message ->
+  ?internal:bool ->
+  ?pos:Pos.t ->
+  ?pos_msg:Content.message ->
+  ?extra_pos:(string option * Pos.t) list ->
+  ?fmt_pos:(Content.message option * Pos.t) list ->
+  ?suggestion:string list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
+
+let make ?header ?(internal=false) ?pos ?pos_msg ?extra_pos ?fmt_pos ?suggestion ~cont ~level =
+  Format.kdprintf @@ fun message ->
+  let t = match level with Result -> of_result message | _ -> of_message message in
+  let t = match header with Some h -> prepend_message t h | None -> t in
+  let t = if internal then to_internal_error t else t in
+  let t = match pos with Some p -> add_position t ?message:pos_msg p | None -> t in
+  let t = match extra_pos with
+    | Some pl ->
+      List.fold_left (fun t (message, p) ->
+          let message = Option.map (fun m ppf -> Format.pp_print_text ppf m) message in
+          add_position t ?message p)
+        t
+        pl
+    | None -> t
+  in
+  let t = match fmt_pos with
+    | Some pl ->
+      List.fold_left (fun t (message, p) -> add_position t ?message p) t pl
+    | None -> t
+  in
+  let t = match suggestion with Some s -> add_suggestion t s | None -> t in
+  cont t level
+
+let debug = make ~level:Debug ~cont:emit
+let log = make ~level:Log ~cont:emit
+let result = make ~level:Result ~cont:emit
+let warning = make ~level:Warning ~cont:emit
+let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
+

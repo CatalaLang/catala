@@ -27,7 +27,7 @@
 
 (** {1 Message content} *)
 
-type content_type = Error | Warning | Debug | Log | Result
+type level = Error | Warning | Debug | Log | Result
 
 module Content : sig
   (** {2 Types}*)
@@ -50,11 +50,11 @@ module Content : sig
 
   val to_internal_error : t -> t
   val add_suggestion : t -> string list -> t
-  val add_position : t -> ?message:message option -> Pos.t -> t
+  val add_position : t -> ?message:message -> Pos.t -> t
 
   (** {2 Content emission}*)
 
-  val emit : t -> content_type -> unit
+  val emit : t -> level -> unit
 end
 
 (** This functions emits the message according to the emission type defined by
@@ -132,3 +132,22 @@ val formatter_of_out_channel : out_channel -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
     [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)
+
+(** {1 New concise interface using optional args} *)
+
+type ('a, 'b) emitter =
+  ?header:Content.message ->
+  ?internal:bool ->
+  ?pos:Pos.t ->
+  ?pos_msg:Content.message ->
+  ?extra_pos:(string option * Pos.t) list ->
+  ?fmt_pos:(Content.message option * Pos.t) list ->
+  ?suggestion:string list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
+
+val log: ('a, unit) emitter
+val debug: ('a, unit) emitter
+val result: ('a, unit) emitter
+val warning: ('a, unit) emitter
+val error: ('a, 'b) emitter
