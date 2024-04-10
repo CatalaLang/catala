@@ -124,7 +124,7 @@ scope Amount:
 ```catala-test-inline
 $ catala Proof --disable-counterexamples 
 [ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
+Invalid assignment to a subscope variable that is not tagged as input or context.
 
 Incriminated subscope:
 ┌─⯈ tests/proof/bad/prolala_motivating_example.catala_en:56.3-56.14:

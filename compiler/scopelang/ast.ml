@@ -39,9 +39,19 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
       e LocationSet.empty
 
 type 'm rule =
-  | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
+  | ScopeVarDefinition of {
+      var : ScopeVar.t Mark.pos;
+      typ : typ;
+      io : Desugared.Ast.io;
+      e : 'm expr;
+    }
+  | SubScopeVarDefinition of {
+      var : ScopeVar.t Mark.pos;
+      var_within_origin_scope : ScopeVar.t;
+      typ : typ;
+      e : 'm expr;
+    }
   | Assertion of 'm expr
-  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type scope_var_ty = {
   svar_in_ty : typ;
@@ -66,16 +76,16 @@ type 'm program = {
 }
 
 let type_rule decl_ctx env = function
-  | Definition (loc, typ, io, expr) ->
-    let expr' = Typing.expr decl_ctx ~env ~typ expr in
-    Definition (loc, typ, io, Expr.unbox expr')
-  | Assertion expr ->
-    let typ = Mark.add (Expr.pos expr) (TLit TBool) in
-    let expr' = Typing.expr decl_ctx ~env ~typ expr in
-    Assertion (Expr.unbox expr')
-  | Call (sc_name, ssc_name, m) ->
-    let pos = Expr.mark_pos m in
-    Call (sc_name, ssc_name, Typed { pos; ty = Mark.add pos TAny })
+  | ScopeVarDefinition ({ typ; e; _ } as def) ->
+    let e = Typing.expr decl_ctx ~env ~typ e in
+    ScopeVarDefinition { def with e = Expr.unbox e }
+  | SubScopeVarDefinition ({ typ; e; _ } as def) ->
+    let e = Typing.expr decl_ctx ~env ~typ e in
+    SubScopeVarDefinition { def with e = Expr.unbox e }
+  | Assertion e ->
+    let typ = Mark.add (Expr.pos e) (TLit TBool) in
+    let e = Typing.expr decl_ctx ~env ~typ e in
+    Assertion (Expr.unbox e)
 
 let type_program (type m) (prg : m program) : typed program =
   (* Caution: this environment building code is very similar to that in

@@ -27,10 +27,10 @@ module Any =
     (struct
       type info = unit
 
-      let to_string _ = "any"
+      let to_string () = "any"
       let format fmt () = Format.fprintf fmt "any"
-      let equal _ _ = true
-      let compare _ _ = 0
+      let equal () () = true
+      let compare () () = 0
     end)
     (struct
       let style = Ocolor_types.(Fg (C4 hi_magenta))
@@ -405,11 +405,6 @@ module Env = struct
   let get t v = Var.Map.find_opt v t.vars
   let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
   let get_toplevel_var t v = A.TopdefName.Map.find_opt v t.toplevel_vars
-
-  let get_subscope_out_var t scope var =
-    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
-        A.ScopeVar.Map.find_opt var vmap)
-
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
 
@@ -503,8 +498,6 @@ and typecheck_expr_top_down :
       match loc with
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
-      | SubScopeVar { scope; var; _ } ->
-        Env.get_subscope_out_var env scope (Mark.remove var)
       | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
@@ -561,12 +554,10 @@ and typecheck_expr_top_down :
   | A.EDStructAccess { e = e_struct; name_opt; field } ->
     let t_struct =
       match name_opt with
-      | Some name -> TStruct name
-      | None -> TAny (Any.fresh ())
+      | Some name -> unionfind (TStruct name)
+      | None -> unionfind (TAny (Any.fresh ()))
     in
-    let e_struct' =
-      typecheck_expr_top_down ctx env (unionfind t_struct) e_struct
-    in
+    let e_struct' = typecheck_expr_top_down ctx env t_struct e_struct in
     let name =
       match UnionFind.get (ty e_struct') with
       | TStruct name, _ -> name
@@ -575,8 +566,8 @@ and typecheck_expr_top_down :
           "Disambiguation failed before reaching field %s" field
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
-          "This is not a structure, cannot access field %s (%a)" field
-          (format_typ ctx) (ty e_struct')
+          "This is not a structure, cannot access field %s (found type: %a)"
+          field (format_typ ctx) (ty e_struct')
     in
     let str =
       try A.StructName.Map.find name env.structs
@@ -587,19 +578,50 @@ and typecheck_expr_top_down :
     let field =
       let candidate_structs =
         try A.Ident.Map.find field ctx.ctx_struct_fields
-        with A.Ident.Map.Not_found _ ->
-          Message.raise_spanned_error
-            (Expr.mark_pos context_mark)
-            "Field @{<yellow>\"%s\"@} does not belong to structure \
-             @{<yellow>\"%a\"@} (no structure defines it)"
-            field A.StructName.format name
+        with A.Ident.Map.Not_found _ -> (
+          match
+            A.ScopeName.Map.choose_opt
+            @@ A.ScopeName.Map.filter
+                 (fun _ { A.out_struct_name; _ } ->
+                   A.StructName.equal out_struct_name name)
+                 ctx.ctx_scopes
+          with
+          | Some (scope_out, _) ->
+            Message.raise_multispanned_error_full
+              [
+                ( Some
+                    (fun ppf ->
+                      Format.fprintf ppf
+                        "@{<yellow>%s@} is used here as an output" field),
+                  Expr.mark_pos context_mark );
+                ( Some
+                    (fun ppf ->
+                      Format.fprintf ppf "Scope %a is declared here"
+                        A.ScopeName.format scope_out),
+                  Mark.get (A.StructName.get_info name) );
+              ]
+              "Variable @{<yellow>%s@} is not a declared output of scope %a."
+              field A.ScopeName.format scope_out
+              ~suggestion:
+                (List.map A.StructField.to_string (A.StructField.Map.keys str))
+          | None ->
+            Message.raise_multispanned_error
+              [
+                None, Expr.mark_pos context_mark;
+                ( Some "Structure definition",
+                  Mark.get (A.StructName.get_info name) );
+              ]
+              "Field @{<yellow>\"%s\"@} does not belong to structure \
+               @{<yellow>\"%a\"@}."
+              field A.StructName.format name
+              ~suggestion:(A.Ident.Map.keys ctx.ctx_struct_fields))
       in
       try A.StructName.Map.find name candidate_structs
       with A.StructName.Map.Not_found _ ->
         Message.raise_spanned_error
           (Expr.mark_pos context_mark)
           "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
-           @{<yellow>\"%a\"@},@ but to %a@]"
+           @{<yellow>\"%a\"@}@ (however, structure %a defines it)@]"
           field A.StructName.format name
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")

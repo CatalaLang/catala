@@ -72,9 +72,9 @@ let scope Foo (y: integer|input) (x: integer|internal|output) =
         | true ⊢ ⟨ ⟨y = 2 ⊢ ⟨2⟩⟩, ⟨y = 3 ⊢ ⟨3⟩⟩ | false ⊢ ∅ ⟩ ⟩
       | true ⊢ ⟨ ⟨y = 0 ⊢ ⟨0⟩⟩, ⟨y = 1 ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩ ⟩
 
-let scope Test (x: integer|internal|output) =
-  let f.y : integer = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩;
-  call Foo[f];
+let scope Test (x: integer|internal|output) (f: Foo {x: integer}|internal) =
+  let f : Foo {x: integer} =
+    Foo of {"y"= error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩};
   let x : integer = error_empty ⟨ ⟨true ⊢ ⟨f.x⟩⟩ | false ⊢ ∅ ⟩
 ```
 

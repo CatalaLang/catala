@@ -395,7 +395,7 @@ let rec translate_expr
           | Some st, [], _ ->
             Message.raise_spanned_error (Mark.get st)
               "Variable %a does not define states" ScopeVar.format uid
-          | st, states, Some (Var (x'_uid, sx'), _)
+          | st, states, Some (((x'_uid, _), Ast.ScopeDef.Var sx'), _)
             when ScopeVar.equal uid x'_uid -> (
             if st <> None then
               (* TODO *)
@@ -443,9 +443,10 @@ let rec translate_expr
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = x_state })
           emark
-      | Some (SubScope _)
-      (* Note: allowing access to a global variable with the same name as a
-         subscope is disputable, but I see no good reason to forbid it either *)
+      | Some (SubScope (uid, _, _)) ->
+        Expr.elocation
+          (DesugaredScopeVar { name = uid, pos; state = None })
+          emark
       | None -> (
         match Ident.Map.find_opt x ctxt.local.topdefs with
         | Some v ->
@@ -472,39 +473,17 @@ let rec translate_expr
         emark
     | None ->
       Name_resolution.raise_unknown_identifier "for an external variable" name)
-  | Dotted (e, ((path, x), _ppos)) -> (
-    match path, Mark.remove e with
-    | [], Ident ([], (y, _), None)
-      when Option.fold scope ~none:false ~some:(fun s ->
-               Name_resolution.is_subscope_uid s ctxt y) ->
-      (* In this case, y.x is a subscope variable *)
-      let subscope_uid, subscope_real_uid =
-        match Ident.Map.find y scope_vars with
-        | SubScope (sub, sc) -> sub, sc
-        | ScopeVar _ -> assert false
-      in
-      let subscope_var_uid =
-        Name_resolution.get_var_uid subscope_real_uid ctxt x
-      in
-      Expr.elocation
-        (SubScopeVar
-           {
-             scope = subscope_real_uid;
-             alias = subscope_uid, pos;
-             var = subscope_var_uid, pos;
-           })
-        emark
-    | _ ->
-      (* In this case e.x is the struct field x access of expression e *)
-      let e = rec_helper e in
-      let rec get_str ctxt = function
-        | [] -> None
-        | [c] -> Some (Name_resolution.get_struct ctxt c)
-        | mod_id :: path ->
-          get_str (Name_resolution.get_module_ctx ctxt mod_id) path
-      in
-      Expr.edstructaccess ~e ~field:(Mark.remove x)
-        ~name_opt:(get_str ctxt path) emark)
+  | Dotted (e, ((path, x), _ppos)) ->
+    (* e.x is the struct field x access of expression e *)
+    let e = rec_helper e in
+    let rec get_str ctxt = function
+      | [] -> None
+      | [c] -> Some (Name_resolution.get_struct ctxt c)
+      | mod_id :: path ->
+        get_str (Name_resolution.get_module_ctx ctxt mod_id) path
+    in
+    Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path)
+      emark
   | FunCall ((Builtin b, _), [arg]) ->
     let op, ty =
       match b with
@@ -1526,59 +1505,58 @@ let attribute_to_io (attr : S.scope_decl_context_io) : Ast.io =
 
 let init_scope_defs
     (ctxt : Name_resolution.context)
-    (scope_idmap : scope_var_or_subscope Ident.Map.t) :
+    (scope_context : Name_resolution.scope_context) :
     Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =
+    let pos =
+      match v with
+      | ScopeVar v | SubScope (v, _, _) -> Mark.get (ScopeVar.get_info v)
+    in
+    let new_def v_sig io =
+      {
+        Ast.scope_def_rules = RuleName.Map.empty;
+        Ast.scope_def_typ = v_sig.Name_resolution.var_sig_typ;
+        Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+        Ast.scope_def_parameters = v_sig.var_sig_parameters;
+        Ast.scope_def_io = io;
+      }
+    in
     match v with
     | ScopeVar v -> (
       let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
-        let def_key = Ast.ScopeDef.Var (v, None) in
+        let def_key = (v, pos), Ast.ScopeDef.Var None in
         Ast.ScopeDef.Map.add def_key
-          {
-            Ast.scope_def_rules = RuleName.Map.empty;
-            Ast.scope_def_typ = v_sig.var_sig_typ;
-            Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-            Ast.scope_def_parameters = v_sig.var_sig_parameters;
-            Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
-          }
+          (new_def v_sig (attribute_to_io v_sig.var_sig_io))
           scope_def_map
       | states ->
+        let last_state = List.length states - 1 in
         let scope_def, _ =
           List.fold_left
             (fun (acc, i) state ->
-              let def_key = Ast.ScopeDef.Var (v, Some state) in
-              let def =
-                {
-                  Ast.scope_def_rules = RuleName.Map.empty;
-                  Ast.scope_def_typ = v_sig.var_sig_typ;
-                  Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                  Ast.scope_def_parameters = v_sig.var_sig_parameters;
-                  Ast.scope_def_io =
-                    (* The first state should have the input I/O of the original
-                       variable, and the last state should have the output I/O
-                       of the original variable. All intermediate states shall
-                       have "internal" I/O.*)
-                    (let original_io = attribute_to_io v_sig.var_sig_io in
-                     let io_input =
-                       if i = 0 then original_io.io_input
-                       else NoInput, Mark.get (StateName.get_info state)
-                     in
-                     let io_output =
-                       if i = List.length states - 1 then original_io.io_output
-                       else false, Mark.get (StateName.get_info state)
-                     in
-                     { io_input; io_output });
-                }
+              let def_key = (v, pos), Ast.ScopeDef.Var (Some state) in
+              let original_io = attribute_to_io v_sig.var_sig_io in
+              (* The first state should have the input I/O of the original
+                 variable, and the last state should have the output I/O of the
+                 original variable. All intermediate states shall have
+                 "internal" I/O.*)
+              let io_input =
+                if i = 0 then original_io.io_input
+                else NoInput, Mark.get (StateName.get_info state)
               in
+              let io_output =
+                if i = last_state then original_io.io_output
+                else false, Mark.get (StateName.get_info state)
+              in
+              let def = new_def v_sig { io_input; io_output } in
               Ast.ScopeDef.Map.add def_key def acc, i + 1)
             (scope_def_map, 0) states
         in
         scope_def)
-    | SubScope (v0, subscope_uid) ->
+    | SubScope (v0, subscope_uid, forward_out) ->
       let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
       let ctxt =
         List.fold_left
@@ -1590,16 +1568,41 @@ let init_scope_defs
           ctxt
           (ScopeName.path subscope_uid)
       in
+      let var_def =
+        {
+          Ast.scope_def_rules = RuleName.Map.empty;
+          Ast.scope_def_typ =
+            ( TStruct sub_scope_def.scope_out_struct,
+              Mark.get (ScopeVar.get_info v0) );
+          Ast.scope_def_is_condition = false;
+          Ast.scope_def_parameters = None;
+          Ast.scope_def_io =
+            {
+              io_input = NoInput, Mark.get forward_out;
+              io_output = forward_out;
+            };
+        }
+      in
+      let scope_def_map =
+        Ast.ScopeDef.Map.add
+          ((v0, pos), Ast.ScopeDef.Var None)
+          var_def scope_def_map
+      in
       Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
-          | SubScope _ -> scope_def_map
+          | SubScope _ ->
+            (* TODO: if we consider "input subscopes" at some point their inputs
+               will need to be forwarded here *)
+            scope_def_map
           | ScopeVar v ->
             (* TODO: shouldn't we ignore internal variables too at this point
                ? *)
             let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
             let def_key =
-              Ast.ScopeDef.SubScopeVar (v0, v, Mark.get (ScopeVar.get_info v))
+              ( (v0, Mark.get (ScopeVar.get_info v)),
+                Ast.ScopeDef.SubScopeInput
+                  { name = subscope_uid; var_within_origin_scope = v } )
             in
             Ast.ScopeDef.Map.add def_key
               {
@@ -1612,7 +1615,7 @@ let init_scope_defs
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  Ident.Map.fold add_def scope_idmap Ast.ScopeDef.Map.empty
+  Ident.Map.fold add_def scope_context.var_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
 let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
@@ -1636,14 +1639,14 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun _ v acc ->
           match v with
           | ScopeVar _ -> acc
-          | SubScope (sub_var, sub_scope) ->
-            SubScopeName.Map.add sub_var sub_scope acc)
-        s_context.Name_resolution.var_idmap SubScopeName.Map.empty
+          | SubScope (sub_var, sub_scope, _) ->
+            ScopeVar.Map.add sub_var sub_scope acc)
+        s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
     {
       Ast.scope_vars;
       scope_sub_scopes;
-      scope_defs = init_scope_defs ctxt s_context.var_idmap;
+      scope_defs = init_scope_defs ctxt s_context;
       scope_assertions = Ast.AssertionName.Map.empty;
       scope_meta_assertions = [];
       scope_options = [];

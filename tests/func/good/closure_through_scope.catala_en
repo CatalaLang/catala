@@ -28,15 +28,15 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala Lcalc -s T --avoid-exceptions -O --closure-conversion
 let scope T (T_in: T_in): T {y: integer} =
-  let sub_set s.x : bool = false in
-  let call result : S {f: ((closure_env, integer) → integer * closure_env)}
-      =
-    S { S_in x_in = s.x; }
+  let set s : S {f: ((closure_env, integer) → integer * closure_env)} =
+    { S f = (closure_s, to_closure_env ()); }
   in
-  let sub_get s.f : ((closure_env, integer) → integer * closure_env) =
-    result.f
+  let set y : integer =
+    let code_and_env : ((closure_env, integer) → integer * closure_env) =
+      s.f
+    in
+    code_and_env.0 code_and_env.1 2
   in
-  let set y : integer = s.f.0 s.f.1 2 in
   return { T y = y; }
 ```
 

@@ -20,7 +20,8 @@ scope A:
 ```catala-test-inline
 $ catala test-scope A
 [ERROR]
-Field "g" does not belong to structure "Foo", but to "Bar"
+Field "g" does not belong to structure "Foo"
+(however, structure "Bar" defines it)
 
 ┌─⯈ tests/struct/bad/wrong_qualified_field.catala_en:17.23-17.30:
 └──┐

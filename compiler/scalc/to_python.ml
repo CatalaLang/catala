@@ -134,12 +134,14 @@ module IntMap = Map.Make (struct
   let format ppf i = Format.pp_print_int ppf i
 end)
 
-let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
+let clean_name (s : string) : string =
   s
   |> String.to_snake_case
   |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
   |> avoid_keywords
-  |> Format.pp_print_string fmt
+
+let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
+  Format.pp_print_string fmt (clean_name s)
 
 (** For each `VarName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep
@@ -149,25 +151,17 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
-  let v_str = Mark.remove (VarName.get_info v) in
+  let v_str = clean_name (Mark.remove (VarName.get_info v)) in
   let hash = VarName.hash v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
     | Some ids -> (
       match IntMap.find_opt hash ids with
       | None ->
-        let max_id =
-          snd
-            (List.hd
-               (List.fast_sort
-                  (fun (_, x) (_, y) -> Int.compare y x)
-                  (IntMap.bindings ids)))
-        in
+        let id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
         string_counter_map :=
-          StringMap.add v_str
-            (IntMap.add hash (max_id + 1) ids)
-            !string_counter_map;
-        max_id + 1
+          StringMap.add v_str (IntMap.add hash id ids) !string_counter_map;
+        id
       | Some local_id -> local_id)
     | None ->
       string_counter_map :=
@@ -176,8 +170,8 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   in
   if v_str = "_" then Format.fprintf fmt "_"
     (* special case for the unit pattern *)
-  else if local_id = 0 then format_name_cleaned fmt v_str
-  else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
+  else if local_id = 0 then Format.pp_print_string fmt v_str
+  else Format.fprintf fmt "%s_%d" v_str local_id
 
 let format_path ctx fmt p =
   match List.rev p with
@@ -632,6 +626,16 @@ let format_ctx
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
     (type_ordering @ scope_structs)
 
+(* FIXME: this is an ugly (and partial) workaround, Python basically has one
+   namespace and we reserve the name to avoid clashes between func ids and
+   variable ids. *)
+let reserve_func_name = function
+  | SVar _ -> ()
+  | SFunc { var = v; _ } | SScope { scope_body_var = v; _ } ->
+    let v_str = clean_name (Mark.remove (FuncName.get_info v)) in
+    string_counter_map :=
+      StringMap.add v_str (IntMap.singleton (-1) 0) !string_counter_map
+
 let format_code_item ctx fmt = function
   | SVar { var; expr; typ = _ } ->
     Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
@@ -651,6 +655,7 @@ let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+  List.iter reserve_func_name p.code_items;
   Format.pp_open_vbox fmt 0;
   let header =
     [

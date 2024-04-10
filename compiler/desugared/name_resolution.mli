@@ -35,6 +35,8 @@ type scope_context = {
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
+  scope_in_struct : StructName.t;
+  scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
 }
@@ -130,8 +132,7 @@ val get_scope_context : context -> ScopeName.t -> scope_context
 val get_var_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
-val get_subscope_uid :
-  ScopeName.t -> context -> Ident.t Mark.pos -> SubScopeName.t
+val get_subscope_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the subscope uid inside the scope given in argument *)
 
 val is_subscope_uid : ScopeName.t -> context -> Ident.t -> bool
@@ -140,9 +141,6 @@ val is_subscope_uid : ScopeName.t -> context -> Ident.t -> bool
 
 val belongs_to : context -> ScopeVar.t -> ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
-
-val get_def_typ : context -> Ast.ScopeDef.t -> typ
-(** Retrieves the type of a scope definition from the context *)
 
 val get_params :
   context ->

@@ -691,7 +691,7 @@ let format_scope_exec_args
     Message.raise_error
       "No scopes that don't require input were found, executable can't be \
        generated";
-  Format.eprintf "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+  Message.emit_debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
     (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
          ScopeName.format ppf s))
     scopes_with_no_input;

@@ -31,7 +31,7 @@ $ catala Typecheck --check-invariants
 └──┐
 15 │   output a content decimal
    │          ‾
-[WARNING] This variable is dead code; it does not contribute to computing any of scope "S" outputs. Did you forget something?
+[WARNING] Unused varible: x does not contribute to computing any of scope S outputs. Did you forget something?
 
 ┌─⯈ tests/typing/good/common.catala_en:12.9-12.10:
 └──┐

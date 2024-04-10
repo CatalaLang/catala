@@ -31,10 +31,17 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala Dcalc -s B
 let scope B (B_in: B_in): B =
-  let sub_set a.a : unit → ⟨integer⟩ = λ () → ∅ in
-  let sub_set a.b : integer = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩ in
-  let call result : A {c: integer} = A { A_in a_in = a.a; b_in = a.b; } in
-  let sub_get a.c : integer = result.c in
+  let set a : A {c: integer} =
+    let result : A =
+      A
+        { A_in
+          a_in = λ () → ∅;
+          b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩;
+        }
+    in
+    let result1 : A = { A c = result.c; } in
+    if true then result1 else result1
+  in
   let assert _ : unit = assert ((a.c = 1)) in
   return {B}
 ```

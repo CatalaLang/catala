@@ -94,15 +94,12 @@ let rec expr_used_defs e =
   | e -> recurse_subterms e
 
 let rule_used_defs = function
-  | Ast.Assertion e | Ast.Definition (_, _, _, e) ->
+  | Ast.Assertion e
+  | Ast.ScopeVarDefinition { e; _ }
+  | Ast.SubScopeVarDefinition { e; _ } ->
     (* TODO: maybe this info could be passed on from previous passes without
        walking through all exprs again *)
     expr_used_defs e
-  | Ast.Call (subscope, subindex, _) ->
-    if ScopeName.path subscope = [] then
-      VMap.singleton (Scope subscope)
-        (Mark.get (SubScopeName.get_info subindex))
-    else VMap.empty
 
 let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   let g = SDependencies.empty in

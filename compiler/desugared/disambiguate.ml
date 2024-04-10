@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Shared_ast
 open Ast
 
@@ -82,10 +83,11 @@ let program prg =
         let scope = ScopeName.Map.find scope_name modul.module_scopes in
         let vars =
           ScopeDef.Map.fold
-            (fun var def vars ->
-              match var with
-              | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
-              | SubScopeVar _ -> vars)
+            (fun (v, kind) def vars ->
+              match kind with
+              | ScopeDef.Var _ ->
+                ScopeVar.Map.add (Mark.remove v) def.scope_def_typ vars
+              | ScopeDef.SubScopeInput _ -> vars)
             scope.scope_defs ScopeVar.Map.empty
         in
         (* at this stage, rule resolution and the corresponding encapsulation

@@ -339,7 +339,7 @@ module Commands = struct
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
       (scope_uid : ScopeName.t)
-      (variable : string) =
+      (variable : string) : Desugared.Ast.ScopeDef.t =
     (* Sometimes the variable selected is of the form [a.b] *)
     let first_part, second_part =
       match String.index_opt variable '.' with
@@ -356,50 +356,21 @@ module Commands = struct
       Message.raise_error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
-    | Some (SubScope (subscope_var_name, subscope_name)) -> (
-      match second_part with
-      | None ->
-        Message.raise_error
-          "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
-           selected by itself, please add \".<var>\" where <var> is a subscope \
-           variable."
-          SubScopeName.format subscope_var_name ScopeName.format scope_uid
-      | Some second_part -> (
-        match
-          let ctxt =
-            Desugared.Name_resolution.module_ctx ctxt
-              (List.map
-                 (fun m -> ModuleName.to_string m, Pos.no_pos)
-                 (ScopeName.path subscope_name))
-          in
-          Ident.Map.find_opt second_part
-            (ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
-        with
-        | Some (ScopeVar v) ->
-          Desugared.Ast.ScopeDef.SubScopeVar (subscope_var_name, v, Pos.no_pos)
-        | _ ->
-          Message.raise_error
-            "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
-             @{<yellow>\"%a\"@} does not exist, please check your command line \
-             arguments."
-            second_part SubScopeName.format subscope_var_name ScopeName.format
-            scope_uid))
-    | Some (ScopeVar v) ->
-      Desugared.Ast.ScopeDef.Var
-        ( v,
-          Option.map
-            (fun second_part ->
-              let var_sig = ScopeVar.Map.find v ctxt.var_typs in
-              match
-                Ident.Map.find_opt second_part var_sig.var_sig_states_idmap
-              with
-              | Some state -> state
-              | None ->
-                Message.raise_error
-                  "State @{<yellow>\"%s\"@} is not found for variable \
-                   @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
-                  second_part first_part ScopeName.format scope_uid)
-            second_part )
+    | Some (ScopeVar v | SubScope (v, _, _)) ->
+      let state =
+        second_part
+        |> Option.map
+           @@ fun id ->
+           let var_sig = ScopeVar.Map.find v ctxt.var_typs in
+           match Ident.Map.find_opt id var_sig.var_sig_states_idmap with
+           | Some state -> state
+           | None ->
+             Message.raise_error
+               "State @{<yellow>\"%s\"@} is not found for variable \
+                @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
+               id first_part ScopeName.format scope_uid
+      in
+      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in

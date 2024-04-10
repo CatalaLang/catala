@@ -53,6 +53,7 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
     let format ppf t =
       Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag S.style);
       X.format ppf t.info;
+      (* Format.pp_print_int ppf t.id; (* uncomment for precise uid debug *) *)
       Format.pp_close_stag ppf ()
   end
 

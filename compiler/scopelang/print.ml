@@ -72,31 +72,24 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
        (fun fmt rule ->
          match rule with
-         | Definition (loc, typ, _, e) ->
-           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
-             "let" Print.location (Mark.remove loc) Print.punctuation ":"
+         | ScopeVarDefinition { var; typ; io; e } ->
+           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword
+             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
              (Print.typ ctx) typ Print.punctuation "="
-             (fun fmt e ->
-               match Mark.remove loc with
-               | SubScopeVar _ | ToplevelVar _ -> Print.expr () fmt e
-               | ScopelangScopeVar { name = v } -> (
-                 match
-                   Mark.remove
-                     (ScopeVar.Map.find (Mark.remove v) decl.scope_sig).svar_io
-                       .io_input
-                 with
-                 | Reentrant ->
-                   Format.fprintf fmt "%a@ %a" Print.op_style
-                     "reentrant or by default" (Print.expr ?debug ()) e
-                 | _ -> Format.fprintf fmt "%a" (Print.expr ?debug ()) e))
-             e
+             (fun fmt ->
+               match Mark.remove io.io_input with
+               | Reentrant ->
+                 Print.op_style fmt "reentrant or by default";
+                 Format.pp_print_space fmt ()
+               | _ -> ())
+             (Print.expr ?debug ()) e
+         | SubScopeVarDefinition { var; typ; e; _ } ->
+           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
+             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
+             (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
-             (Print.expr ?debug ()) e
-         | Call (scope_name, subscope_name, _) ->
-           Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
-             ScopeName.format scope_name Print.punctuation "["
-             SubScopeName.format subscope_name Print.punctuation "]"))
+             (Print.expr ?debug ()) e))
     decl.scope_decl_rules
 
 let print_topdef ctx ppf name (e, ty) =

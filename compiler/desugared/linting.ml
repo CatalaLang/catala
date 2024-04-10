@@ -25,9 +25,13 @@ let detect_empty_definitions (p : program) : unit =
       ScopeDef.Map.iter
         (fun scope_def_key scope_def ->
           if
-            (match scope_def_key with ScopeDef.Var _ -> true | _ -> false)
+            (match scope_def_key with _, ScopeDef.Var _ -> true | _ -> false)
             && RuleName.Map.is_empty scope_def.scope_def_rules
             && (not scope_def.scope_def_is_condition)
+            && (not
+                  (ScopeVar.Map.mem
+                     (Mark.remove (fst scope_def_key))
+                     scope.scope_sub_scopes))
             &&
             match Mark.remove scope_def.scope_def_io.io_input with
             | NoInput -> true
@@ -251,34 +255,30 @@ let detect_dead_code (p : program) : unit =
       let is_alive (v : Dependency.ScopeDependencies.vertex) =
         match v with
         | Assertion _ -> true
-        | SubScope _ -> true
         | Var (var, state) ->
           let scope_def =
-            ScopeDef.Map.find (Var (var, state)) scope.scope_defs
+            ScopeDef.Map.find
+              ((var, Pos.no_pos), ScopeDef.Var state)
+              scope.scope_defs
           in
           Mark.remove scope_def.scope_def_io.io_output
         (* A variable is initially alive if it is an output*)
       in
       let is_alive = Reachability.analyze is_alive scope_dependencies in
-      ScopeVar.Map.iter
-        (fun var states ->
-          let emit_unused_warning () =
-            Message.emit_spanned_warning
-              (Mark.get (ScopeVar.get_info var))
-              "This variable is dead code; it does not contribute to computing \
-               any of scope \"%a\" outputs. Did you forget something?"
-              ScopeName.format scope_name
-          in
-          match states with
-          | WholeVar ->
-            if not (is_alive (Var (var, None))) then emit_unused_warning ()
-          | States states ->
-            List.iter
-              (fun state ->
-                if not (is_alive (Var (var, Some state))) then
-                  emit_unused_warning ())
-              states)
-        scope.scope_vars)
+      let emit_unused_warning vx =
+        Message.emit_spanned_warning
+          (Mark.get (Dependency.Vertex.info vx))
+          "Unused varible: %a does not contribute to computing any of scope %a \
+           outputs. Did you forget something?"
+          Dependency.Vertex.format vx ScopeName.format scope_name
+      in
+      Dependency.ScopeDependencies.iter_vertex
+        (fun vx ->
+          if
+            (not (is_alive vx))
+            && Dependency.ScopeDependencies.succ scope_dependencies vx = []
+          then emit_unused_warning vx)
+        scope_dependencies)
     p.program_root.module_scopes
 
 let lint_program (p : program) : unit =

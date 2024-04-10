@@ -17,7 +17,7 @@ scope B:
 ```catala-test-inline
 $ catala Typecheck 
 [ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
+Invalid assignment to a subscope variable that is not tagged as input or context.
 
 Incriminated subscope:
 ┌─⯈ tests/io/bad/inputing_to_not_input.catala_en:8.3-8.4:
