@@ -145,33 +145,41 @@ module Content = struct
     content @ [Position { pos = position; pos_message = message }]
 
   let of_string (s : string) : t =
-    [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
+    [
+      MainMessage
+        (fun ppf ->
+          Format.pp_open_hovbox ppf 0;
+          Format.pp_print_text ppf s;
+          Format.pp_close_box ppf ());
+    ]
 
   let emit (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human ->
       let ppf = get_ppf target in
-      Format.fprintf ppf "@[<hv>%t%t%a@]@." (pp_marker target)
-        (fun (ppf : Format.formatter) ->
-          match content, target with
-          | MainMessage _ :: _, (Result | Error) -> Format.pp_print_space ppf ()
-          | _ -> Format.pp_print_char ppf ' ')
-        (fun (ppf : Format.formatter) (message_elements : t) ->
-          Format.pp_print_list
-            ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
-            (fun ppf (elt : message_element) ->
-              match elt with
-              | Position pos ->
-                Option.iter
-                  (fun msg -> Format.fprintf ppf "%t@," msg)
-                  pos.pos_message;
-                Pos.format_loc_text ppf pos.pos
-              | MainMessage msg -> msg ppf
-              | Outcome msg -> msg ppf
-              | Suggestion suggestions_list ->
-                Suggestions.format ppf suggestions_list)
-            ppf message_elements)
-        content
+      Format.pp_open_hvbox ppf 0;
+      Format.pp_print_list
+        ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
+        (fun ppf -> function
+          | Position pos ->
+            Option.iter
+              (fun msg -> Format.fprintf ppf "@[<hov>%t@]@," msg)
+              pos.pos_message;
+            Pos.format_loc_text ppf pos.pos
+          | MainMessage msg ->
+            Format.fprintf ppf "%t%t%t" (pp_marker target)
+              (fun ppf ->
+                match target with
+                | Result | Error -> Format.pp_print_space ppf ()
+                | _ -> Format.pp_print_char ppf ' ')
+              msg
+          | Outcome msg ->
+            Format.fprintf ppf "@[<hv>%t@ %t@]" (pp_marker target) msg
+          | Suggestion suggestions_list ->
+            Suggestions.format ppf suggestions_list)
+        ppf content;
+      Format.pp_close_box ppf ();
+      Format.pp_print_newline ppf ()
     | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
@@ -245,7 +253,7 @@ let make
     ?pos_msg
     ?extra_pos
     ?fmt_pos
-    ?suggestion
+    ?(suggestion = [])
     ~cont
     ~level =
   Format.kdprintf
@@ -281,7 +289,7 @@ let make
         t pl
     | None -> t
   in
-  let t = match suggestion with Some s -> add_suggestion t s | None -> t in
+  let t = match suggestion with [] -> t | s -> add_suggestion t s in
   cont t level
 
 let debug = make ~level:Debug ~cont:emit
