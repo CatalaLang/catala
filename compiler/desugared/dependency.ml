@@ -182,7 +182,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
     let to_vertex (var, kind) =
       match kind with
       | Ast.ScopeDef.Var st -> Vertex.Var (Mark.remove var, st)
-      | Ast.ScopeDef.SubScope _ -> Vertex.Var (Mark.remove var, None)
+      | Ast.ScopeDef.SubScopeInput _ -> Vertex.Var (Mark.remove var, None)
     in
     Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
@@ -192,11 +192,20 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         Ast.ScopeDef.Map.fold
           (fun fv_def fv_def_pos g ->
             let v_used = to_vertex fv_def in
-            if Vertex.equal v_used v_defined then
-              Message.raise_spanned_error fv_def_pos
-                "The variable %a is used in one of its definitions, but \
-                 recursion is forbidden in Catala"
-                Ast.ScopeDef.format def_key;
+            let () =
+              if Vertex.equal v_used v_defined then
+                match def_key with
+                | _, Ast.ScopeDef.Var _ ->
+                  Message.raise_spanned_error fv_def_pos
+                    "The variable %a is used in one of its definitions, but \
+                     recursion is forbidden in Catala"
+                    Ast.ScopeDef.format def_key
+                | v, Ast.ScopeDef.SubScopeInput _ ->
+                  Message.raise_spanned_error fv_def_pos
+                    "The subscope %a is used in the definition of its own \
+                     input %a, but recursion is forbidden in Catala"
+                    ScopeVar.format (Mark.remove v) Ast.ScopeDef.format def_key
+            in
             ScopeDependencies.add_edge_e g
               (ScopeDependencies.E.create v_used fv_def_pos v_defined))
           fv g)

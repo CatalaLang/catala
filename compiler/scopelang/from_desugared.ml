@@ -198,14 +198,14 @@ let rule_to_exception_graph (scope : D.scope) = function
       (fun ((sscope, kind) as def_key) scope_def exc_graphs ->
         match kind with
         | D.ScopeDef.Var _ -> exc_graphs
-        | D.ScopeDef.SubScope _
+        | D.ScopeDef.SubScopeInput _
           when (not (ScopeVar.equal var (Mark.remove sscope)))
                || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
                   && RuleName.Map.is_empty scope_def.scope_def_rules ->
           (* We exclude subscope variables that have 0 re-definitions and are
              not visible in the input of the subscope *)
           exc_graphs
-        | D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
+        | D.ScopeDef.SubScopeInput { var_within_origin_scope; _ } ->
           (* This definition redefines a variable of the correct subscope. But
              we have to check that this redefinition is allowed with respect to
              the io parameters of that subscope variable. *)
@@ -601,12 +601,12 @@ let translate_rule
           (fun def_key scope_def acc ->
             match def_key with
             | _, D.ScopeDef.Var _ -> acc
-            | (v, _), D.ScopeDef.SubScope _
+            | (v, _), D.ScopeDef.SubScopeInput _
               when (not (ScopeVar.equal var v))
                    || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
                       && RuleName.Map.is_empty scope_def.scope_def_rules ->
               acc
-            | v, D.ScopeDef.SubScope { var_within_origin_scope; _ } ->
+            | v, D.ScopeDef.SubScopeInput { var_within_origin_scope; _ } ->
               let pos = Mark.get v in
               let def = scope_def.D.scope_def_rules in
               let def_typ = scope_def.scope_def_typ in
@@ -651,11 +651,10 @@ let translate_rule
       let subscope_param_map =
         ScopeVar.Map.map (fun (_, _, _, expr) -> expr) subscope_params
       in
-      let subscope_call_expr =
+      let subscope_expr =
         Expr.escopecall ~scope:subscope ~args:subscope_param_map
           (Untyped { pos })
       in
-      let subscope_expr = subscope_call_expr in
       assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
       (* The subscope will be defined by its inputs, it's not supposed to have
          direct rules yet *)

@@ -16,7 +16,7 @@ scope B:
 ```catala-test-inline
 $ catala test-scope A
 [ERROR]
-The variable a.y is used in one of its definitions, but recursion is forbidden in Catala
+The subscope a is used in the definition of its own input a.y, but recursion is forbidden in Catala
 
 ┌─⯈ tests/scope/bad/sub_vars_in_sub_var.catala_en:13.28-13.29:
 └──┐

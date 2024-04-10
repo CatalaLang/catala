@@ -24,7 +24,10 @@ open Shared_ast
 module ScopeDef : sig
   type kind =
     | Var of StateName.t option
-    | SubScope of { name : ScopeName.t; var_within_origin_scope : ScopeVar.t }
+    | SubScopeInput of {
+        name : ScopeName.t;
+        var_within_origin_scope : ScopeVar.t;
+      }
 
   val equal_kind : kind -> kind -> bool
   val compare_kind : kind -> kind -> int

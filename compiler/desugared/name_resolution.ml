@@ -166,7 +166,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
 let get_var_def (def : Ast.ScopeDef.t) : ScopeVar.t =
   match def with
   | (v, _), Ast.ScopeDef.Var _
-  | _, Ast.ScopeDef.SubScope { var_within_origin_scope = v; _ } ->
+  | _, Ast.ScopeDef.SubScopeInput { var_within_origin_scope = v; _ } ->
     v
 
 (** Retrieves the type of a scope definition from the context *)
@@ -810,7 +810,8 @@ let get_def_key
           Print.lit_style (Mark.remove y)
     in
     let var_within_origin_scope = get_var_uid name ctxt x in
-    (subscope_var, pos), Ast.ScopeDef.SubScope { name; var_within_origin_scope }
+    ( (subscope_var, pos),
+      Ast.ScopeDef.SubScopeInput { name; var_within_origin_scope } )
   | _ ->
     Message.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \

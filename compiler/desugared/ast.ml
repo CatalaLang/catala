@@ -27,17 +27,20 @@ module ScopeDef = struct
   module Base = struct
     type kind =
       | Var of StateName.t option
-      | SubScope of { name : ScopeName.t; var_within_origin_scope : ScopeVar.t }
+      | SubScopeInput of {
+          name : ScopeName.t;
+          var_within_origin_scope : ScopeVar.t;
+        }
 
     type t = ScopeVar.t Mark.pos * kind
 
     let equal_kind k1 k2 =
       match k1, k2 with
       | Var s1, Var s2 -> Option.equal StateName.equal s1 s2
-      | ( SubScope { var_within_origin_scope = v1; _ },
-          SubScope { var_within_origin_scope = v2; _ } ) ->
+      | ( SubScopeInput { var_within_origin_scope = v1; _ },
+          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
         ScopeVar.equal v1 v2
-      | (Var _ | SubScope _), _ -> false
+      | (Var _ | SubScopeInput _), _ -> false
 
     let equal (v1, k1) (v2, k2) =
       ScopeVar.equal (Mark.remove v1) (Mark.remove v2) && equal_kind k1 k2
@@ -45,11 +48,11 @@ module ScopeDef = struct
     let compare_kind k1 k2 =
       match k1, k2 with
       | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
-      | ( SubScope { var_within_origin_scope = v1; _ },
-          SubScope { var_within_origin_scope = v2; _ } ) ->
+      | ( SubScopeInput { var_within_origin_scope = v1; _ },
+          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
         ScopeVar.compare v1 v2
-      | Var _, SubScope _ -> -1
-      | SubScope _, Var _ -> 1
+      | Var _, SubScopeInput _ -> -1
+      | SubScopeInput _, Var _ -> 1
 
     let compare (v1, k1) (v2, k2) =
       match Mark.compare ScopeVar.compare v1 v2 with
@@ -61,7 +64,7 @@ module ScopeDef = struct
     let format_kind ppf = function
       | Var None -> ()
       | Var (Some st) -> Format.fprintf ppf "@%a" StateName.format st
-      | SubScope { var_within_origin_scope = v; _ } ->
+      | SubScopeInput { var_within_origin_scope = v; _ } ->
         Format.fprintf ppf ".%a" ScopeVar.format v
 
     let format ppf (v, k) =
@@ -71,7 +74,7 @@ module ScopeDef = struct
     let hash_kind = function
       | Var None -> 0
       | Var (Some st) -> StateName.hash st
-      | SubScope { var_within_origin_scope = v; _ } -> ScopeVar.hash v
+      | SubScopeInput { var_within_origin_scope = v; _ } -> ScopeVar.hash v
 
     let hash (v, k) = Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
   end

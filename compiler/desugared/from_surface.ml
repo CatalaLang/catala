@@ -1601,7 +1601,7 @@ let init_scope_defs
             let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
             let def_key =
               ( (v0, Mark.get (ScopeVar.get_info v)),
-                Ast.ScopeDef.SubScope
+                Ast.ScopeDef.SubScopeInput
                   { name = subscope_uid; var_within_origin_scope = v } )
             in
             Ast.ScopeDef.Map.add def_key
