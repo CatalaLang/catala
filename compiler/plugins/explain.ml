@@ -30,7 +30,7 @@ type flags = {
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
-let error e = Message.raise_spanned_error (Expr.pos e)
+let error e = Message.error ~pos:(Expr.pos e)
 let noassert = true
 
 module Env = struct
@@ -366,9 +366,10 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
       log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
-      Message.raise_multispanned_error
-        ((None, Expr.mark_pos m)
-        :: List.map (fun (e, _) -> None, Expr.pos e) excs)
+      Message.error
+        ~extra_pos:
+          ((None, Expr.mark_pos m)
+          :: List.map (fun (e, _) -> None, Expr.pos e) excs)
         "Conflicting exceptions")
   | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (
@@ -693,7 +694,7 @@ let program_to_graph
           in
           (G.add_edge g v child_v, var_vertices, env), v
         with Var.Map.Not_found _ ->
-          Message.emit_warning "VAR NOT FOUND: %a" Print.var var;
+          Message.warning "VAR NOT FOUND: %a" Print.var var;
           let v = G.V.create e in
           let g = G.add_vertex g v in
           (g, var_vertices, env), v))

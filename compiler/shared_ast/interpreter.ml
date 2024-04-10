@@ -38,8 +38,8 @@ let print_log lang entry infos pos e =
   if Global.options.trace then
     match entry with
     | VarDef _ ->
-      Message.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
-        entry Print.uid_list infos
+      Message.log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry entry
+        Print.uid_list infos
         (Message.unformat (fun ppf ->
              (if Global.options.debug then Print.expr ~debug:true ()
               else Print.UserFacing.expr lang)
@@ -47,17 +47,17 @@ let print_log lang entry infos pos e =
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
-        Message.emit_log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]"
-          !indent_str Print.log_entry entry Pos.format_loc_text pos
+        Message.log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
+          Print.log_entry entry Pos.format_loc_text pos
       | _ -> ())
     | BeginCall ->
-      Message.emit_log "%s%a %a" !indent_str Print.log_entry entry
-        Print.uid_list infos;
+      Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
+        infos;
       indent_str := !indent_str ^ "  "
     | EndCall ->
       indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
-      Message.emit_log "%s%a %a" !indent_str Print.log_entry entry
-        Print.uid_list infos
+      Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
+        infos
 
 exception CatalaException of except * Pos.t
 
@@ -130,34 +130,36 @@ let rec evaluate_operator
     in
     try f x y with
     | Division_by_zero ->
-      Message.raise_multispanned_error
-        [
-          Some "The division operator:", pos;
-          Some "The null denominator:", Expr.pos (List.nth args 1);
-        ]
+      Message.error
+        ~extra_pos:
+          [
+            Some "The division operator:", pos;
+            Some "The null denominator:", Expr.pos (List.nth args 1);
+          ]
         "division by zero at runtime"
     | Runtime.UncomparableDurations ->
-      Message.raise_multispanned_error (get_binop_args_pos args)
+      Message.error ~extra_pos:(get_binop_args_pos args)
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
   in
   let err () =
-    Message.raise_multispanned_error
-      ([
-         ( Some
-             (Format.asprintf "Operator (value %a):"
-                (Print.operator ~debug:true)
-                op),
-           pos );
-       ]
-      @ List.mapi
-          (fun i arg ->
-            ( Some
-                (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Print.UserFacing.expr lang)
-                   arg),
-              Expr.pos arg ))
-          args)
+    Message.error
+      ~extra_pos:
+        ([
+           ( Some
+               (Format.asprintf "Operator (value %a):"
+                  (Print.operator ~debug:true)
+                  op),
+             pos );
+         ]
+        @ List.mapi
+            (fun i arg ->
+              ( Some
+                  (Format.asprintf "Argument n°%d, value %a" (i + 1)
+                     (Print.UserFacing.expr lang)
+                     arg),
+                Expr.pos arg ))
+            args)
       "Operator %a applied to the wrong arguments\n\
        (should not happen if the term was well-typed)%a"
       (Print.operator ~debug:true)
@@ -234,8 +236,8 @@ let rec evaluate_operator
            with
            | ELit (LBool b), _ -> b
            | _ ->
-             Message.raise_spanned_error
-               (Expr.pos (List.nth args 0))
+             Message.error
+               ~pos:(Expr.pos (List.nth args 0))
                "This predicate evaluated to something else than a boolean \
                 (should not happen if the term was well-typed)")
          es)
@@ -391,7 +393,7 @@ let rec evaluate_operator
           (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
       | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
       | _ ->
-        Message.raise_spanned_error pos
+        Message.error ~pos
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed@\n\
            %a@."
@@ -602,7 +604,7 @@ and val_to_runtime :
     curry [] targs
   | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
   | _ ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "Could not convert value of type %a to runtime: %a" (Print.typ ctx) ty
       Expr.format v
 
@@ -617,7 +619,7 @@ let rec evaluate_expr :
   let pos = Expr.mark_pos m in
   match Mark.remove e with
   | EVar _ ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
@@ -637,7 +639,7 @@ let rec evaluate_expr :
                 (TStruct scope_info.out_struct_name, pos) ),
             pos )
       with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
-        Message.raise_spanned_error pos "Reference to %a could not be resolved"
+        Message.error ~pos "Reference to %a could not be resolved"
           Print.external_ref name
     in
     let runtime_path =
@@ -659,8 +661,7 @@ let rec evaluate_expr :
         evaluate_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
-        Message.raise_spanned_error pos
-          "wrong function call, expected %d arguments, got %d"
+        Message.error ~pos "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
     | ECustom { obj; targs; tret } ->
@@ -674,7 +675,7 @@ let rec evaluate_expr :
       |> fun o ->
       runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
-      Message.raise_spanned_error pos
+      Message.error ~pos
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAppOp { op; args; _ } ->
@@ -697,19 +698,19 @@ let rec evaluate_expr :
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
-        Message.raise_multispanned_error
-          [None, pos; None, Expr.pos e]
+        Message.error
+          ~extra_pos:[None, pos; None, Expr.pos e]
           "Error during struct access: not the same structs (should not happen \
            if the term was well-typed)";
       match StructField.Map.find_opt field es with
       | Some e' -> e'
       | None ->
-        Message.raise_spanned_error (Expr.pos e)
+        Message.error ~pos:(Expr.pos e)
           "Invalid field access %a in struct %a (should not happen if the term \
            was well-typed)"
           StructField.format field StructName.format s)
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
         (Print.UserFacing.expr lang)
@@ -719,7 +720,7 @@ let rec evaluate_expr :
     match evaluate_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "The expression %a was expected to be a tuple of size %d (should not \
          happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
@@ -732,15 +733,15 @@ let rec evaluate_expr :
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
-        Message.raise_multispanned_error
-          [None, Expr.pos e; None, Expr.pos e1]
+        Message.error
+          ~extra_pos:[None, Expr.pos e; None, Expr.pos e1]
           "Error during match: two different enums found (should not happen if \
            the term was well-typed)";
       let es_n =
         match EnumConstructor.Map.find_opt cons cases with
         | Some es_n -> es_n
         | None ->
-          Message.raise_spanned_error (Expr.pos e)
+          Message.error ~pos:(Expr.pos e)
             "sum type index error (should not happen if the term was \
              well-typed)"
       in
@@ -750,7 +751,7 @@ let rec evaluate_expr :
       let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
       evaluate_expr ctx lang new_e
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
@@ -759,7 +760,7 @@ let rec evaluate_expr :
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
     | _ ->
-      Message.raise_spanned_error (Expr.pos cond)
+      Message.error ~pos:(Expr.pos cond)
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
@@ -770,18 +771,18 @@ let rec evaluate_expr :
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
-      Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
+      Message.error ~pos:(Expr.pos e') "Assertion failed:@\n%a"
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'))
     | _ ->
-      Message.raise_spanned_error (Expr.pos e')
+      Message.error ~pos:(Expr.pos e')
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
-      Message.raise_spanned_error (Expr.pos e')
+      Message.error ~pos:(Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
     | e -> e)
@@ -795,7 +796,7 @@ let rec evaluate_expr :
       | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
-        Message.raise_spanned_error (Expr.pos e)
+        Message.error ~pos:(Expr.pos e)
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
@@ -913,21 +914,22 @@ let delcustom e =
 
 let interp_failure_message ~pos = function
   | NoValueProvided ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "This variable evaluated to an empty term (no rule that defined it \
        applied in this situation)"
   | ConflictError cpos ->
-    Message.raise_multispanned_error
-      (List.map
-         (fun pos -> Some "This consequence has a valid justification:", pos)
-         cpos)
+    Message.error
+      ~extra_pos:
+        (List.map
+           (fun pos -> Some "This consequence has a valid justification:", pos)
+           cpos)
       "There is a conflict between multiple valid consequences for assigning \
        the same variable."
   | Crash ->
     (* This constructor seems to be never used *)
-    Message.raise_spanned_error pos "Internal error, the interpreter crashed"
+    Message.error ~pos "Internal error, the interpreter crashed"
   | EmptyError ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "Internal error, a variable without valid definition escaped"
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
@@ -980,7 +982,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               ]
               mark_e
           | _ ->
-            Message.raise_spanned_error (Mark.get ty)
+            Message.error ~pos:(Mark.get ty)
               "This scope needs an input argument of type %a to be executed. \
                But the Catala built-in interpreter does not have a way to \
                retrieve input values from the command line, so it cannot \
@@ -1006,12 +1008,12 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     | exception CatalaException (except, pos) ->
       interp_failure_message ~pos except
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
-    Message.raise_spanned_error (Expr.pos e)
+    Message.error ~pos:(Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
@@ -1038,7 +1040,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | _ ->
-            Message.raise_spanned_error (Mark.get ty)
+            Message.error ~pos:(Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
@@ -1063,12 +1065,12 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     | exception CatalaException (except, pos) ->
       interp_failure_message ~pos except
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
-    Message.raise_spanned_error (Expr.pos e)
+    Message.error ~pos:(Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
@@ -1088,23 +1090,22 @@ let load_runtime_modules prg =
           ^ ".cmo")
     in
     if not (Sys.file_exists obj_file) then
-      Message.raise_spanned_error
-        ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-        (Mark.get (ModuleName.get_info m))
+      Message.error
+        ~pos_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
+        ~pos:(Mark.get (ModuleName.get_info m))
         "Compiled OCaml object %a not found. Make sure it has been suitably \
          compiled."
         File.format obj_file
     else
       try Dynlink.loadfile obj_file
       with Dynlink.Error dl_err ->
-        Message.raise_error
-          "Error loading compiled module from %a:@;<1 2>@[<hov>%a@]" File.format
-          obj_file Format.pp_print_text
+        Message.error "Error loading compiled module from %a:@;<1 2>@[<hov>%a@]"
+          File.format obj_file Format.pp_print_text
           (Dynlink.error_message dl_err)
   in
   let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then
-    Message.emit_debug "Loading shared modules... %a"
+    Message.debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)
       modules_list_topo;
   List.iter load modules_list_topo

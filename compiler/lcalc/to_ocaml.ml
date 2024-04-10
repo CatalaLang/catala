@@ -654,7 +654,7 @@ let format_scope_exec
     StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs
   in
   if not (StructField.Map.is_empty scope_input) then
-    Message.raise_error
+    Message.error
       "The scope @{<bold>%s@} defines input variables.@ This is not supported \
        for a main scope at the moment."
       scope_name_str;
@@ -688,10 +688,10 @@ let format_scope_exec_args
     |> List.rev
   in
   if scopes_with_no_input = [] then
-    Message.raise_error
+    Message.error
       "No scopes that don't require input were found, executable can't be \
        generated";
-  Message.emit_debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+  Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
     (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
          ScopeName.format ppf s))
     scopes_with_no_input;
@@ -793,7 +793,7 @@ let format_program
       format_scope_exec p.decl_ctx fmt bnd scope_name scope_body
     | None, None -> if exec_args then format_scope_exec_args p.decl_ctx fmt bnd
     | Some _, Some _ ->
-      Message.raise_error
+      Message.error
         "OCaml generation: both module registration and top-level scope \
          execution where required at the same time."
   in

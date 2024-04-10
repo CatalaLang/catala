@@ -224,7 +224,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
           let case_e =
             try EnumConstructor.Map.find constructor e_cases
             with EnumConstructor.Map.Not_found _ ->
-              Message.raise_spanned_error (Expr.pos e)
+              Message.error ~pos:(Expr.pos e)
                 "The constructor %a of enum %a is missing from this pattern \
                  matching"
                 EnumConstructor.format constructor EnumName.format name
@@ -236,7 +236,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         (EnumConstructor.Map.empty, e_cases)
     in
     if not (EnumConstructor.Map.is_empty remaining_e_cases) then
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "Pattern matching is incomplete for enum %a: missing cases %a"
         EnumName.format name
         (EnumConstructor.Map.format_keys ~pp_sep:(fun fmt () ->
@@ -272,28 +272,30 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
               ( var_ctx.scope_input_name,
                 thunk_scope_arg var_ctx (translate_expr ctx e) )
           | Some var_ctx, None ->
-            Message.raise_multispanned_error
-              [
-                None, pos;
-                ( Some "Declaration of the missing input variable",
-                  Mark.get (StructField.get_info var_ctx.scope_input_name) );
-              ]
+            Message.error
+              ~extra_pos:
+                [
+                  None, pos;
+                  ( Some "Declaration of the missing input variable",
+                    Mark.get (StructField.get_info var_ctx.scope_input_name) );
+                ]
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format var_name
           | None, Some e ->
-            Message.raise_multispanned_error_full
+            Message.error
               ~suggestion:
                 (List.map
                    (fun v -> Mark.remove (ScopeVar.get_info v))
                    (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
-              [
-                None, Expr.pos e;
-                ( Some
-                    (fun ppf ->
-                      Format.fprintf ppf "Declaration of scope %a"
-                        ScopeName.format scope),
-                  Mark.get (ScopeName.get_info scope) );
-              ]
+              ~fmt_pos:
+                [
+                  None, Expr.pos e;
+                  ( Some
+                      (fun ppf ->
+                        Format.fprintf ppf "Declaration of scope %a"
+                          ScopeName.format scope),
+                    Mark.get (ScopeName.get_info scope) );
+                ]
               "Unknown input variable '%a' in scope call of '%a'"
               ScopeVar.format var_name ScopeName.format scope)
         sc_sig.scope_sig_in_fields args
@@ -511,13 +513,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         match Mark.remove typ with
         | TArrow (_, (tout, _)) -> tout
         | _ ->
-          Message.raise_spanned_error (Expr.pos e)
+          Message.error ~pos:(Expr.pos e)
             "Application of non-function toplevel variable")
       | _ -> TAny
     in
-    (* Message.emit_debug "new_args %d, input_typs: %d, input_typs %a"
-       (List.length new_args) (List.length input_typs) (Format.pp_print_list
-       Print.typ_debug) (List.map (Mark.add Pos.no_pos) input_typs); *)
+    (* Message.debug "new_args %d, input_typs: %d, input_typs %a" (List.length
+       new_args) (List.length input_typs) (Format.pp_print_list Print.typ_debug)
+       (List.map (Mark.add Pos.no_pos) input_typs); *)
     let new_args =
       ListLabels.mapi (List.combine new_args input_typs)
         ~f:(fun i (new_arg, input_typ) ->
@@ -760,8 +762,8 @@ let translate_scope_decl
       (* Todo: are we sure this can't happen in normal code ? E.g. is calling a
          scope which only defines input variables already an error at this stage
          or not ? *)
-      Message.raise_spanned_error pos_sigma "Scope %a has no content"
-        ScopeName.format scope_name
+      Message.error ~pos:pos_sigma "Scope %a has no content" ScopeName.format
+        scope_name
     | ( S.ScopeVarDefinition { e; _ }
       | S.SubScopeVarDefinition { e; _ }
       | S.Assertion e )

@@ -318,7 +318,7 @@ module Poll = struct
            match File.(check_directory (exec_dir /../ "lib")) with
            | Some d -> d
            | None ->
-             Message.raise_error
+             Message.error
                "Could not locate the OCaml library directory, make sure OCaml \
                 or opam is installed")))
 
@@ -348,11 +348,10 @@ module Poll = struct
        in
        match File.check_directory d with
        | Some dir ->
-         Message.emit_debug "Catala runtime libraries found at @{<bold>%s@}."
-           dir;
+         Message.debug "Catala runtime libraries found at @{<bold>%s@}." dir;
          dir
        | None ->
-         Message.raise_error
+         Message.error
            "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
             sure that either catala is correctly installed,@ or you are \
             running from the root of a compiled source tree.@]"
@@ -366,7 +365,7 @@ module Poll = struct
            (fun lib ->
              match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
              | None ->
-               Message.raise_error
+               Message.error
                  "Required OCaml library not found at %a.@ Try `opam install \
                   %s'"
                  File.format
@@ -903,7 +902,7 @@ let ninja_init
     | None -> File.with_temp_file "clerk_build_" ".ninja" k
   in
   fun ~extra ~test_flags k ->
-    Message.emit_debug "building ninja rules...";
+    Message.debug "building ninja rules...";
     with_ninja_output
     @@ fun nin_file ->
     File.with_formatter_of_file nin_file (fun nin_ppf ->
@@ -946,7 +945,7 @@ let build_cmd =
         targets
     in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Message.debug "executing '%s'..." ninja_cmd;
     Sys.command ninja_cmd
   in
   let doc =
@@ -986,7 +985,7 @@ let test_cmd =
     ninja_init ~extra ~test_flags
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Message.debug "executing '%s'..." ninja_cmd;
     Sys.command ninja_cmd
   in
   let doc =
@@ -1020,7 +1019,7 @@ let run_cmd =
     ninja_init ~extra ~test_flags:[]
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file [] in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Message.debug "executing '%s'..." ninja_cmd;
     Sys.command ninja_cmd
   in
   let doc =

@@ -158,7 +158,7 @@ let rec format_typ
       (List.mapi (fun x y -> y, x) ts)
   | TStruct s -> Format.fprintf fmt "%a %t" format_struct_name s element_name
   | TOption _ ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "All option types should have been monomorphized before compilation to C."
   | TDefault t -> format_typ decl_ctx element_name fmt t
   | TEnum e -> Format.fprintf fmt "%a %t" format_enum_name e element_name
@@ -384,7 +384,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | ETuple _ | ETupleAccess _ ->
-    Message.raise_internal_error "Tuple compilation to C unimplemented!"
+    Message.error ~internal:true "Tuple compilation to C unimplemented!"
   | EExternal _ -> failwith "TODO"
 
 let typ_is_array (ctx : decl_ctx) (typ : typ) =
@@ -402,7 +402,7 @@ let rec format_statement
     (s : stmt Mark.pos) : unit =
   match Mark.remove s with
   | SInnerFuncDef _ ->
-    Message.raise_spanned_error (Mark.get s)
+    Message.error ~pos:(Mark.get s)
       "Internal error: this inner functions should have been hoisted in Scalc"
   | SLocalDecl { name = v; typ = ty } ->
     Format.fprintf fmt "@[<hov 2>%a@];"

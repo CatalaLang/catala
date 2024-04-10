@@ -140,10 +140,8 @@ module Content = struct
   let add_suggestion (content : t) (suggestion : string list) =
     content @ [Suggestion suggestion]
 
-  let add_position
-      (content : t)
-      ?(message : message option)
-      (position : Pos.t) =
+  let add_position (content : t) ?(message : message option) (position : Pos.t)
+      =
     content @ [Position { pos = position; pos_message = message }]
 
   let of_string (s : string) : t =
@@ -319,7 +317,6 @@ let emit_result format =
     (fun message -> Content.emit [MainMessage message] Result)
     format
 
-
 (** New concise interface *)
 
 type ('a, 'b) emitter =
@@ -333,22 +330,40 @@ type ('a, 'b) emitter =
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
-let make ?header ?(internal=false) ?pos ?pos_msg ?extra_pos ?fmt_pos ?suggestion ~cont ~level =
-  Format.kdprintf @@ fun message ->
-  let t = match level with Result -> of_result message | _ -> of_message message in
+let make
+    ?header
+    ?(internal = false)
+    ?pos
+    ?pos_msg
+    ?extra_pos
+    ?fmt_pos
+    ?suggestion
+    ~cont
+    ~level =
+  Format.kdprintf
+  @@ fun message ->
+  let t =
+    match level with Result -> of_result message | _ -> of_message message
+  in
   let t = match header with Some h -> prepend_message t h | None -> t in
   let t = if internal then to_internal_error t else t in
-  let t = match pos with Some p -> add_position t ?message:pos_msg p | None -> t in
-  let t = match extra_pos with
+  let t =
+    match pos with Some p -> add_position t ?message:pos_msg p | None -> t
+  in
+  let t =
+    match extra_pos with
     | Some pl ->
-      List.fold_left (fun t (message, p) ->
-          let message = Option.map (fun m ppf -> Format.pp_print_text ppf m) message in
+      List.fold_left
+        (fun t (message, p) ->
+          let message =
+            Option.map (fun m ppf -> Format.pp_print_text ppf m) message
+          in
           add_position t ?message p)
-        t
-        pl
+        t pl
     | None -> t
   in
-  let t = match fmt_pos with
+  let t =
+    match fmt_pos with
     | Some pl ->
       List.fold_left (fun t (message, p) -> add_position t ?message p) t pl
     | None -> t
@@ -361,4 +376,3 @@ let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 let warning = make ~level:Warning ~cont:emit
 let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
-

@@ -89,12 +89,12 @@ module Box = struct
     match fv b with
     | [] -> ()
     | [h] ->
-      Message.raise_internal_error
+      Message.error ~internal:true
         "The boxed term is not closed the variable %s is free in the global \
          context"
         h
     | l ->
-      Message.raise_internal_error
+      Message.error ~internal:true
         "The boxed term is not closed the variables %a is free in the global \
          context"
         (Format.pp_print_list
@@ -935,10 +935,10 @@ let make_tupleaccess e index size pos =
         | TTuple tl, _ -> (
           try List.nth tl index
           with Failure _ ->
-            Message.raise_internal_error "Trying to build invalid tuple access")
+            Message.error ~internal:true "Trying to build invalid tuple access")
         | TAny, pos -> TAny, pos
         | ty ->
-          Message.raise_internal_error "Unexpected non-tuple type annotation %a"
+          Message.error ~internal:true "Unexpected non-tuple type annotation %a"
             Print.typ_debug ty)
       (Mark.get e)
   in
@@ -957,7 +957,7 @@ let make_app f args tys pos =
             tr
           | TAny -> fty.ty
           | _ ->
-            Message.raise_internal_error
+            Message.error ~internal:true
               "wrong type: found %a while expecting either an Arrow or Any"
               Print.typ_debug fty.ty))
       (List.map Mark.get (f :: args))
@@ -972,7 +972,7 @@ let make_erroronempty e =
         | TDefault ty, _ -> ty
         | TAny, pos -> TAny, pos
         | ty ->
-          Message.raise_internal_error
+          Message.error ~internal:true
             "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
             Print.typ_debug ty format (unbox e))
       (Mark.get e)

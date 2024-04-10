@@ -845,7 +845,7 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
        let id = Re.Group.get (Re.exec line_test_id_re str) 1 in
        Some (str, LINE_TEST id)
      with Not_found ->
-       Message.emit_spanned_warning (Pos.from_lpos (lexing_positions lexbuf))
+       Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
          "Ignored invalid test section, must have an explicit \
           `{ id = \"name\" }` specification";
        Some (str, LINE_ANY))

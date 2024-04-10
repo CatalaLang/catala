@@ -146,8 +146,8 @@ type ('a, 'b) emitter =
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
-val log: ('a, unit) emitter
-val debug: ('a, unit) emitter
-val result: ('a, unit) emitter
-val warning: ('a, unit) emitter
-val error: ('a, 'b) emitter
+val log : ('a, unit) emitter
+val debug : ('a, unit) emitter
+val result : ('a, unit) emitter
+val warning : ('a, unit) emitter
+val error : ('a, 'b) emitter

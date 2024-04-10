@@ -226,7 +226,7 @@ let run
   with_output
   @@ fun fmt ->
   let scope_uid = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
-  Message.emit_debug
+  Message.debug
     "Writing JSON schema corresponding to the scope '%a' to the file %s..."
     ScopeName.format scope_uid
     (Option.value ~default:"stdout" output_file);

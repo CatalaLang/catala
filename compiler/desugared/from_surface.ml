@@ -77,7 +77,7 @@ let translate_binop :
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TRat]
       | S.KDate ->
-        Message.raise_spanned_error op_pos
+        Message.error ~pos:op_pos
           "This operator doesn't exist, dates can't be multiplied"
       | S.KDuration -> [TLit TDuration; TLit TInt])
   | S.Div k ->
@@ -88,7 +88,7 @@ let translate_binop :
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
       | S.KDate ->
-        Message.raise_spanned_error op_pos
+        Message.error ~pos:op_pos
           "This operator doesn't exist, dates can't be divided"
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Lt k | S.Lte k | S.Gt k | S.Gte k ->
@@ -126,7 +126,7 @@ let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
       | S.KDec -> TLit TRat
       | S.KMoney -> TLit TMoney
       | S.KDate ->
-        Message.raise_spanned_error op_pos
+        Message.error ~pos:op_pos
           "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
@@ -138,9 +138,9 @@ let raise_error_cons_not_found
     Suggestions.suggestion_minimum_levenshtein_distance_association constructors
       (Mark.remove constructor)
   in
-  Message.raise_spanned_error
-    ~span_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")
-    ~suggestion:closest_constructors (Mark.get constructor)
+  Message.error
+    ~pos_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")
+    ~pos:(Mark.get constructor) ~suggestion:closest_constructors
     "The name of this constructor has not been defined before@ (it's probably \
      a typographical error)."
 
@@ -152,7 +152,7 @@ let rec disambiguate_constructor
     match constructor0 with
     | [c] -> Mark.remove c
     | _ ->
-      Message.raise_spanned_error pos
+      Message.error ~pos
         "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
@@ -173,7 +173,7 @@ let rec disambiguate_constructor
   match path with
   | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
-      Message.raise_spanned_error (Mark.get constructor)
+      Message.error ~pos:(Mark.get constructor)
         "This constructor name is ambiguous, it can belong to %a. Disambiguate \
          it by prefixing it with the enum name."
         (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
@@ -187,8 +187,8 @@ let rec disambiguate_constructor
       let c_uid = EnumName.Map.find e_uid possible_c_uids in
       e_uid, c_uid
     with EnumName.Map.Not_found _ ->
-      Message.raise_spanned_error pos "Enum %s does not contain case %s"
-        (Mark.remove enum) (Mark.remove constructor))
+      Message.error ~pos "Enum %s does not contain case %s" (Mark.remove enum)
+        (Mark.remove constructor))
   | mod_id :: path ->
     let constructor =
       List.map (Mark.map (fun (_, c) -> path, c)) constructor0
@@ -210,8 +210,8 @@ let rec check_formula (op, pos_op) e =
       (* Xor is mathematically associative, but without a useful semantics ([a
          xor b xor c] is most likely an error since it's true for [a = b = c =
          true]) *)
-      Message.raise_multispanned_error
-        [None, pos_op; None, pos_op1]
+      Message.error
+        ~extra_pos:[None, pos_op; None, pos_op1]
         "Please add parentheses to explicit which of these operators should be \
          applied first";
     check_formula (op1, pos_op1) e1;
@@ -352,21 +352,21 @@ let rec translate_expr
       | LNumber ((Int i, _), Some (Day, _)) ->
         LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
       | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-        Message.raise_spanned_error pos
+        Message.error ~pos
           "Impossible to specify decimal amounts of days, months or years"
       | LDate date ->
         if date.literal_date_month > 12 then
-          Message.raise_spanned_error pos
+          Message.error ~pos
             "There is an error in this date: the month number is bigger than 12";
         if date.literal_date_day > 31 then
-          Message.raise_spanned_error pos
+          Message.error ~pos
             "There is an error in this date: the day number is bigger than 31";
         LDate
           (try
              Runtime.date_of_numbers date.literal_date_year
                date.literal_date_month date.literal_date_day
            with Runtime.ImpossibleDate ->
-             Message.raise_spanned_error pos
+             Message.error ~pos
                "There is an error in this date, it does not correspond to a \
                 correct calendar day")
     in
@@ -379,7 +379,7 @@ let rec translate_expr
       Expr.make_var uid emark
       (* the whole box thing is to accomodate for this case *)
     | Some uid, Some state ->
-      Message.raise_spanned_error (Mark.get state)
+      Message.error ~pos:(Mark.get state)
         "%a is a local variable, it has no states" Print.var uid
     | None, state -> (
       match Ident.Map.find_opt x scope_vars with
@@ -393,14 +393,14 @@ let rec translate_expr
           match state, x_sig.var_sig_states_list, inside_definition_of with
           | None, [], _ -> None
           | Some st, [], _ ->
-            Message.raise_spanned_error (Mark.get st)
+            Message.error ~pos:(Mark.get st)
               "Variable %a does not define states" ScopeVar.format uid
           | st, states, Some (((x'_uid, _), Ast.ScopeDef.Var sx'), _)
             when ScopeVar.equal uid x'_uid -> (
             if st <> None then
               (* TODO *)
-              Message.raise_spanned_error
-                (Mark.get (Option.get st))
+              Message.error
+                ~pos:(Mark.get (Option.get st))
                 "Referring to a previous state of the variable being defined \
                  is not supported at the moment.";
             match sx' with
@@ -410,7 +410,7 @@ let rec translate_expr
                  state but variable has states"
             | Some inside_def_state ->
               if StateName.compare inside_def_state (List.hd states) = 0 then
-                Message.raise_spanned_error pos
+                Message.error ~pos
                   "It is impossible to refer to the variable you are defining \
                    when defining its first state."
               else
@@ -428,12 +428,14 @@ let rec translate_expr
               Ident.Map.find_opt (Mark.remove st) x_sig.var_sig_states_idmap
             with
             | None ->
-              Message.raise_multispanned_error
+              Message.error
                 ~suggestion:(List.map StateName.to_string states)
-                [
-                  None, Mark.get st;
-                  Some "Variable defined here", Mark.get (ScopeVar.get_info uid);
-                ]
+                ~extra_pos:
+                  [
+                    None, Mark.get st;
+                    ( Some "Variable defined here",
+                      Mark.get (ScopeVar.get_info uid) );
+                  ]
                 "Reference to unknown variable state"
             | some -> some)
           | _, states, _ ->
@@ -451,7 +453,7 @@ let rec translate_expr
         match Ident.Map.find_opt x ctxt.local.topdefs with
         | Some v ->
           if state <> None then
-            Message.raise_spanned_error pos
+            Message.error ~pos
               "Access to intermediate states is only allowed for variables of \
                the current scope";
           Expr.elocation
@@ -461,7 +463,7 @@ let rec translate_expr
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
   | Ident (_ :: _, (_, pos), Some _) ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "Access to intermediate states is only allowed for variables of the \
        current scope"
   | Ident (path, name, None) -> (
@@ -499,14 +501,13 @@ let rec translate_expr
     in
     Expr.eappop ~op ~tys:[ty, pos] ~args:[rec_helper arg] emark
   | S.Builtin _ ->
-    Message.raise_spanned_error pos "Invalid use of built-in: needs one operand"
+    Message.error ~pos "Invalid use of built-in: needs one operand"
   | FunCall (f, args) ->
     let args = List.map rec_helper args in
     Expr.eapp ~f:(rec_helper f) ~args ~tys:[] emark
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
-      Message.raise_spanned_error pos
-        "Scope calls are not allowed outside of a scope";
+      Message.error ~pos "Scope calls are not allowed outside of a scope";
     let called_scope, scope_def =
       let ctxt = Name_resolution.module_ctx ctxt path in
       let uid = Name_resolution.get_scope ctxt id in
@@ -521,15 +522,16 @@ let rec translate_expr
             with
             | Some (ScopeVar v) -> v
             | Some (SubScope _) | None ->
-              Message.raise_multispanned_error
+              Message.error
                 ~suggestion:(Ident.Map.keys scope_def.var_idmap)
-                [
-                  None, Mark.get fld_id;
-                  ( Some
-                      (Format.asprintf "Scope %a declared here" ScopeName.format
-                         called_scope),
-                    Mark.get (ScopeName.get_info called_scope) );
-                ]
+                ~extra_pos:
+                  [
+                    None, Mark.get fld_id;
+                    ( Some
+                        (Format.asprintf "Scope %a declared here"
+                           ScopeName.format called_scope),
+                      Mark.get (ScopeName.get_info called_scope) );
+                  ]
                 "Scope %a has no input variable %a" ScopeName.format
                 called_scope Print.lit_style (Mark.remove fld_id)
           in
@@ -537,7 +539,7 @@ let rec translate_expr
             (function
               | None -> Some (rec_helper e)
               | Some _ ->
-                Message.raise_spanned_error (Mark.get fld_id)
+                Message.error ~pos:(Mark.get fld_id)
                   "Duplicate definition of scope input variable '%a'"
                   ScopeVar.format var)
             acc)
@@ -565,7 +567,7 @@ let rec translate_expr
       | Some (Name_resolution.TScope (_, { out_struct_name = s_uid; _ })) ->
         s_uid
       | _ ->
-        Message.raise_spanned_error (Mark.get s_name)
+        Message.error ~pos:(Mark.get s_name)
           "This identifier should refer to a struct name"
     in
     let s_fields =
@@ -576,15 +578,15 @@ let rec translate_expr
               StructName.Map.find s_uid
                 (Ident.Map.find (Mark.remove f_name) ctxt.local.field_idmap)
             with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
-              Message.raise_spanned_error (Mark.get f_name)
+              Message.error ~pos:(Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
                 (Mark.remove s_name)
           in
           (match StructField.Map.find_opt f_uid s_fields with
           | None -> ()
           | Some e_field ->
-            Message.raise_multispanned_error
-              [None, Mark.get f_e; None, Expr.pos e_field]
+            Message.error
+              ~extra_pos:[None, Mark.get f_e; None, Expr.pos e_field]
               "The field %a has been defined twice:" StructField.format f_uid);
           let f_e = rec_helper f_e in
           StructField.Map.add f_uid f_e s_fields)
@@ -596,7 +598,7 @@ let rec translate_expr
         (fun expected_f _ -> not (StructField.Map.mem expected_f s_fields))
         expected_s_fields
     then
-      Message.raise_spanned_error pos "Missing field(s) for structure %a:@\n%a"
+      Message.error ~pos "Missing field(s) for structure %a:@\n%a"
         StructName.format s_uid
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -634,7 +636,7 @@ let rec translate_expr
         (* No enum name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1
       then
-        Message.raise_spanned_error pos_constructor
+        Message.error ~pos:pos_constructor
           "This constructor name is ambiguous, it can belong to %a. \
            Desambiguate it by prefixing it with the enum name."
           (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
@@ -669,8 +671,8 @@ let rec translate_expr
             | None -> Expr.elit LUnit mark_constructor)
           ~cons:c_uid ~name:e_uid emark
       with EnumName.Map.Not_found _ ->
-        Message.raise_spanned_error pos "Enum %s does not contain case %s"
-          (Mark.remove enum) constructor))
+        Message.error ~pos "Enum %s does not contain case %s" (Mark.remove enum)
+          constructor))
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = rec_helper e1 in
     let cases_d, e_uid =
@@ -682,7 +684,7 @@ let rec translate_expr
     (match snd (Mark.remove pattern) with
     | None -> ()
     | Some binding ->
-      Message.emit_spanned_warning (Mark.get binding)
+      Message.warning ~pos:(Mark.get binding)
         "This binding will be ignored (remove it to suppress warning)");
     let enum_uid, c_uid =
       disambiguate_constructor ctxt
@@ -872,8 +874,7 @@ let rec translate_expr
       | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
       | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
       | t ->
-        Message.raise_spanned_error pos
-          "It is impossible to sum values of type %a together"
+        Message.error ~pos "It is impossible to sum values of type %a together"
           SurfacePrint.format_primitive_typ t
     in
     let op_f =
@@ -962,8 +963,8 @@ and disambiguate_match_and_build_expression
         | Some e_uid ->
           if e_uid = e_uid' then e_uid
           else
-            Message.raise_spanned_error
-              (Mark.get case.S.match_case_pattern)
+            Message.error
+              ~pos:(Mark.get case.S.match_case_pattern)
               "This case matches a constructor of enumeration %a but previous \
                case were matching constructors of enumeration %a"
               EnumName.format e_uid EnumName.format e_uid'
@@ -971,8 +972,9 @@ and disambiguate_match_and_build_expression
       (match EnumConstructor.Map.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
-        Message.raise_multispanned_error
-          [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
+        Message.error
+          ~extra_pos:
+            [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
           "The constructor %a has been matched twice:" EnumConstructor.format
           c_uid);
       let local_vars, param_var =
@@ -990,18 +992,19 @@ and disambiguate_match_and_build_expression
     | S.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
-        Message.raise_multispanned_error
-          [
-            Some "Not ending wildcard:", case_pos;
-            ( Some "Next reachable case:",
-              curr_index + 1 |> List.nth cases |> Mark.get );
-          ]
+        Message.error
+          ~extra_pos:
+            [
+              Some "Not ending wildcard:", case_pos;
+              ( Some "Next reachable case:",
+                curr_index + 1 |> List.nth cases |> Mark.get );
+            ]
           "Wildcard must be the last match case"
       in
       match e_uid with
       | None ->
         if 1 = nb_cases then
-          Message.raise_spanned_error case_pos
+          Message.error ~pos:case_pos
             "Couldn't infer the enumeration name from lonely wildcard \
              (wildcard cannot be used as single match case)"
         else raise_wildcard_not_last_case_err ()
@@ -1015,7 +1018,7 @@ and disambiguate_match_and_build_expression
                  | None -> Some c_uid)
         in
         if EnumConstructor.Map.is_empty missing_constructors then
-          Message.emit_spanned_warning case_pos
+          Message.warning ~pos:case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
             EnumName.format e_uid;
@@ -1078,24 +1081,27 @@ let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
   match pdecl, pdefs with
   | [], [] -> ()
   | [], (arg, apos) :: _ ->
-    Message.raise_multispanned_error
-      [Some "Declared here:", pos_decl; Some "Extra argument:", apos]
+    Message.error
+      ~extra_pos:[Some "Declared here:", pos_decl; Some "Extra argument:", apos]
       "This definition has an extra, undeclared argument '%a'" Print.lit_style
       arg
   | (arg, apos) :: _, [] ->
-    Message.raise_multispanned_error
-      [
-        Some "Argument declared here:", apos;
-        Some "Mismatching definition:", pos_def;
-      ]
+    Message.error
+      ~extra_pos:
+        [
+          Some "Argument declared here:", apos;
+          Some "Mismatching definition:", pos_def;
+        ]
       "This definition is missing argument '%a'" Print.lit_style arg
   | decl :: pdecl, def :: pdefs when Uid.MarkedString.equal decl def ->
     arglist_eq_check pos_decl pos_def pdecl pdefs
   | (decl_arg, decl_apos) :: _, (def_arg, def_apos) :: _ ->
-    Message.raise_multispanned_error
-      [
-        Some "Argument declared here:", decl_apos; Some "Defined here:", def_apos;
-      ]
+    Message.error
+      ~extra_pos:
+        [
+          Some "Argument declared here:", decl_apos;
+          Some "Defined here:", def_apos;
+        ]
       "Function argument name mismatch between declaration ('%a') and \
        definition ('%a')"
       Print.lit_style decl_arg Print.lit_style def_arg
@@ -1111,18 +1117,21 @@ let process_rule_parameters
   match declared_params, def.S.definition_parameter with
   | None, None -> Ident.Map.empty, None
   | None, Some (_, pos) ->
-    Message.raise_multispanned_error
-      [
-        Some "Declared here without arguments", decl_pos;
-        Some "Unexpected arguments appearing here", pos;
-      ]
+    Message.error
+      ~extra_pos:
+        [
+          Some "Declared here without arguments", decl_pos;
+          Some "Unexpected arguments appearing here", pos;
+        ]
       "Extra arguments in this definition of %a" Ast.ScopeDef.format decl_name
   | Some (_, pos), None ->
-    Message.raise_multispanned_error
-      [
-        Some "Arguments declared here", pos;
-        Some "Definition missing the arguments", Mark.get def.S.definition_name;
-      ]
+    Message.error
+      ~extra_pos:
+        [
+          Some "Arguments declared here", pos;
+          ( Some "Definition missing the arguments",
+            Mark.get def.S.definition_name );
+        ]
       "This definition for %a is missing the arguments" Ast.ScopeDef.format
       decl_name
   | Some (pdecl, pos_decl), Some (pdefs, pos_def) ->
@@ -1222,7 +1231,7 @@ let process_def
           in
           ExceptionToLabel (label_id, Mark.get label_str)
         with Ident.Map.Not_found _ ->
-          Message.raise_spanned_error (Mark.get label_str)
+          Message.error ~pos:(Mark.get label_str)
             "Unknown label for the scope variable %a: \"%s\""
             Ast.ScopeDef.format def_key (Mark.remove label_str))
     in
@@ -1337,8 +1346,8 @@ let process_scope_use_item
           scope.scope_options
       with
       | Some (_, old_pos) ->
-        Message.raise_multispanned_error
-          [None, old_pos; None, Mark.get item]
+        Message.error
+          ~extra_pos:[None, old_pos; None, Mark.get item]
           "You cannot set multiple date rounding modes"
       | None ->
         {
@@ -1390,12 +1399,13 @@ let check_unlabeled_exception
     | S.UnlabeledException -> (
       match scope_def_ctxt.default_exception_rulename with
       | None ->
-        Message.raise_spanned_error (Mark.get item)
+        Message.error ~pos:(Mark.get item)
           "This exception does not have a corresponding definition"
       | Some (Ambiguous pos) ->
-        Message.raise_multispanned_error
-          ([Some "Ambiguous exception", Mark.get item]
-          @ List.map (fun p -> Some "Candidate definition", p) pos)
+        Message.error
+          ~extra_pos:
+            ([Some "Ambiguous exception", Mark.get item]
+            @ List.map (fun p -> Some "Candidate definition", p) pos)
           "This exception can refer to several definitions. Try using labels \
            to disambiguate"
       | Some (Unique _) -> ()))
@@ -1451,7 +1461,7 @@ let process_topdef
       let () =
         match tys with
         | [(Data (S.TTuple _), pos)] ->
-          Message.raise_spanned_error pos
+          Message.error ~pos
             "Defining arguments of a function as a tuple is not supported, \
              please name the individual arguments"
         | _ -> ()
@@ -1472,11 +1482,12 @@ let process_topdef
         | None, eopt -> Some (eopt, typ)
         | Some (eopt0, ty0), eopt -> (
           let err msg =
-            Message.raise_multispanned_error
-              [
-                None, Mark.get (TopdefName.get_info id);
-                None, Mark.get def.S.topdef_name;
-              ]
+            Message.error
+              ~extra_pos:
+                [
+                  None, Mark.get (TopdefName.get_info id);
+                  None, Mark.get def.S.topdef_name;
+                ]
               (msg ^^ " for %a") TopdefName.format id
           in
           if not (Type.equal ty0 typ) then err "Conflicting type definitions"

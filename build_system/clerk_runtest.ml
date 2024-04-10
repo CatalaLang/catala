@@ -77,7 +77,7 @@ let run_inline_tests catala_exe catala_opts test_flags filename =
     match Clerk_scan.get_lang filename with
     | Some l -> l
     | None ->
-      Message.raise_error "Can't infer catala dialect from file extension of %a"
+      Message.error "Can't infer catala dialect from file extension of %a"
         File.format filename
   in
   let lines = Surface.Parser_driver.lines filename lang in

@@ -86,19 +86,19 @@ let print_exceptions_graph
     (scope : ScopeName.t)
     (var : Ast.ScopeDef.t)
     (g : Dependency.ExceptionsDependencies.t) =
-  Message.emit_result
+  Message.result
     "Printing the tree of exceptions for the definitions of variable \"%a\" of \
      scope \"%a\"."
     Ast.ScopeDef.format var ScopeName.format scope;
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Message.emit_result "@[<v>Definitions with label \"%a\":@,%a@]"
+      Message.result "@[<v>Definitions with label \"%a\":@,%a@]"
         LabelName.format ex.Dependency.ExceptionVertex.label
         (RuleName.Map.format_values Pos.format_loc_text)
         ex.Dependency.ExceptionVertex.rules)
     g;
   let tree = build_exception_tree g in
-  Message.emit_result "@[<v>The exception tree structure is as follows:@,@,%a@]"
+  Message.result "@[<v>The exception tree structure is as follows:@,@,%a@]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
        (fun fmt tree -> format_exception_tree fmt tree))

@@ -141,7 +141,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
         cycle
         (List.tl cycle @ [List.hd cycle])
     in
-    Message.raise_multispanned_error spans
+    Message.error ~extra_pos:spans
       "@[<hov 2>Cyclic dependency detected between the following variables of \
        scope %a:@ @[<hv>%a@]@]"
       ScopeName.format scope.scope_uid
@@ -196,12 +196,12 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
               if Vertex.equal v_used v_defined then
                 match def_key with
                 | _, Ast.ScopeDef.Var _ ->
-                  Message.raise_spanned_error fv_def_pos
+                  Message.error ~pos:fv_def_pos
                     "The variable %a is used in one of its definitions, but \
                      recursion is forbidden in Catala"
                     Ast.ScopeDef.format def_key
                 | v, Ast.ScopeDef.SubScopeInput _ ->
-                  Message.raise_spanned_error fv_def_pos
+                  Message.error ~pos:fv_def_pos
                     "The subscope %a is used in the definition of its own \
                      input %a, but recursion is forbidden in Catala"
                     ScopeVar.format (Mark.remove v) Ast.ScopeDef.format def_key
@@ -407,19 +407,20 @@ let build_exceptions_graph
           in
           (* We check the consistency*)
           if LabelName.compare label_from label_to = 0 then
-            Message.raise_spanned_error edge_pos
+            Message.error ~pos:edge_pos
               "Cannot define rule as an exception to itself";
           List.iter
             (fun edge ->
               if LabelName.compare edge.label_to label_to <> 0 then
-                Message.raise_multispanned_error
-                  (( Some
-                       "This definition contradicts other exception \
-                        definitions:",
-                     edge_pos )
-                  :: List.map
-                       (fun pos -> Some "Other exception definition:", pos)
-                       edge.edge_positions)
+                Message.error
+                  ~extra_pos:
+                    (( Some
+                         "This definition contradicts other exception \
+                          definitions:",
+                       edge_pos )
+                    :: List.map
+                         (fun pos -> Some "Other exception definition:", pos)
+                         edge.edge_positions)
                   "The definition of exceptions are inconsistent for variable \
                    %a."
                   Ast.ScopeDef.format def_info)
@@ -498,7 +499,7 @@ let check_for_exception_cycle
         scc
     in
     let v, _ = RuleName.Map.choose (List.hd scc).rules in
-    Message.raise_multispanned_error spans
+    Message.error ~extra_pos:spans
       "Exception cycle detected when defining %a: each of these %d exceptions \
        applies over the previous one, and the first applies over the last"
       RuleName.format v (List.length scc)

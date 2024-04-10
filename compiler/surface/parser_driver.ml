@@ -72,16 +72,17 @@ let raise_parser_error
     (last_good_loc : Pos.t option)
     (token : string)
     (msg : Format.formatter -> unit) : 'a =
-  Message.raise_multispanned_error_full ?suggestion
-    ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
-    ::
-    (match last_good_loc with
-    | None -> []
-    | Some last_good_loc ->
-      [
-        ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
-          last_good_loc );
-      ]))
+  Message.error ?suggestion
+    ~fmt_pos:
+      ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
+      ::
+      (match last_good_loc with
+      | None -> []
+      | Some last_good_loc ->
+        [
+          ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
+            last_good_loc );
+        ]))
     "@[<v>Syntax error at token %a@,%t@]"
     (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
     token msg
@@ -244,7 +245,7 @@ let with_sedlex_file file f =
 (** Parses a single source file *)
 let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
   let source_file_name = lexbuf_file lexbuf in
-  Message.emit_debug "Parsing %a" File.format source_file_name;
+  Message.debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
   let commands = localised_parser language lexbuf in
   let program = expand_includes source_file_name commands in
@@ -266,8 +267,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           match acc.Ast.program_module_name, name_opt with
           | opt, None | None, opt -> opt
           | Some id1, Some id2 ->
-            Message.raise_multispanned_error
-              [None, Mark.get id1; None, Mark.get id2]
+            Message.error
+              ~extra_pos:[None, Mark.get id1; None, Mark.get id2]
               "Multiple definitions of the module name"
         in
         match command with
@@ -295,11 +296,12 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             includ_program.Ast.program_module_name
             |> Option.iter
                @@ fun id ->
-               Message.raise_multispanned_error
-                 [
-                   Some "File include", Mark.get inc_file;
-                   Some "Module declaration", Mark.get id;
-                 ]
+               Message.error
+                 ~extra_pos:
+                   [
+                     Some "File include", Mark.get inc_file;
+                     Some "Module declaration", Mark.get id;
+                   ]
                  "A file that declares a module cannot be used through the raw \
                   '@{<yellow>> Include@}' directive. You should use it as a \
                   module with '@{<yellow>> Use @{<blue>%s@}@}' instead."
@@ -403,7 +405,7 @@ let check_modname program source_file =
   | ( Some (mname, pos),
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "@[<hov>Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
        file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ \
        %a.@]"
@@ -422,7 +424,7 @@ let load_interface ?default_module_name source_file =
     | None, Some n ->
       n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
     | None, None ->
-      Message.raise_error
+      Message.error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
         File.format

@@ -214,27 +214,29 @@ let rule_to_exception_graph (scope : D.scope) = function
           let () =
             match Mark.remove scope_def.D.scope_def_io.io_input with
             | NoInput ->
-              Message.raise_multispanned_error
-                (( Some "Incriminated subscope:",
-                   Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
-                :: ( Some "Incriminated variable:",
-                     Mark.get (ScopeVar.get_info var_within_origin_scope) )
-                :: List.map
-                     (fun rule ->
-                       ( Some "Incriminated subscope variable definition:",
-                         Mark.get (RuleName.get_info rule) ))
-                     (RuleName.Map.keys def))
+              Message.error
+                ~extra_pos:
+                  (( Some "Incriminated subscope:",
+                     Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
+                  :: ( Some "Incriminated variable:",
+                       Mark.get (ScopeVar.get_info var_within_origin_scope) )
+                  :: List.map
+                       (fun rule ->
+                         ( Some "Incriminated subscope variable definition:",
+                           Mark.get (RuleName.get_info rule) ))
+                       (RuleName.Map.keys def))
                 "Invalid assignment to a subscope variable that is not tagged \
                  as input or context."
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
               (* If the subscope variable is tagged as input, then it shall be
                  defined. *)
-              Message.raise_multispanned_error
-                [
-                  ( Some "Incriminated subscope:",
-                    Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
-                  Some "Incriminated variable:", Mark.get sscope;
-                ]
+              Message.error
+                ~extra_pos:
+                  [
+                    ( Some "Incriminated subscope:",
+                      Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
+                    Some "Incriminated variable:", Mark.get sscope;
+                  ]
                 "This subscope variable is a mandatory input but no definition \
                  was provided."
             | _ -> ()
@@ -251,13 +253,14 @@ let rule_to_exception_graph (scope : D.scope) = function
     match Mark.remove scope_def.D.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       (* If the variable is tagged as input, then it shall not be redefined. *)
-      Message.raise_multispanned_error
-        ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
-        :: List.map
-             (fun rule ->
-               ( Some "Incriminated variable definition:",
-                 Mark.get (RuleName.get_info rule) ))
-             (RuleName.Map.keys var_def))
+      Message.error
+        ~extra_pos:
+          ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
+          :: List.map
+               (fun rule ->
+                 ( Some "Incriminated variable definition:",
+                   Mark.get (RuleName.get_info rule) ))
+               (RuleName.Map.keys var_def))
         "It is impossible to give a definition to a scope variable tagged as \
          input."
     | OnlyInput -> D.ScopeDef.Map.empty
@@ -909,8 +912,7 @@ let translate_program
       (fun id -> function
         | Some e, ty -> Expr.unbox (translate_expr ctx e), ty
         | None, (_, pos) ->
-          Message.raise_spanned_error pos "No definition found for %a"
-            TopdefName.format id)
+          Message.error ~pos "No definition found for %a" TopdefName.format id)
       desugared.program_root.module_topdefs
   in
   let program_scopes =

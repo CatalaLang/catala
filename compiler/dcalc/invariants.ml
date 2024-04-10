@@ -31,14 +31,14 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
           match inv p.decl_ctx e with
           | Ignore -> result, total, ok
           | Fail ->
-            Message.raise_spanned_error (Expr.pos e)
+            Message.error ~pos:(Expr.pos e)
               "@[<v 2>Invariant @{<magenta>%s@} failed.@,%a@]" name
               (Print.expr ()) e
           | Pass -> result, total + 1, ok + 1
         in
         f e acc)
   in
-  Message.emit_debug "Invariant %s checked.@ result: [%d/%d]" name ok total;
+  Message.debug "Invariant %s checked.@ result: [%d/%d]" name ok total;
   result
 
 (* Structural invariant: no default can have as type A -> B *)
@@ -143,11 +143,11 @@ let rec check_typ_no_default ctx ty =
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
   | TAny ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "Some Dcalc invariants are invalid: TAny was found whereas it should be \
        fully resolved."
   | TClosureEnv ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "Some Dcalc invariants are invalid: TClosureEnv was found whereas it \
        should only appear later in the compilation process."
 
@@ -192,7 +192,7 @@ let invariant_typing_defaults () : string * invariant_expr =
     fun ctx e ->
       if check_type_root ctx (Expr.ty e) then Pass
       else (
-        Message.emit_warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
+        Message.warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
         Fail) )
 
 let check_all_invariants prgm =
