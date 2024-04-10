@@ -19,8 +19,8 @@ Note: ideally this could use test-scope but some positions are lost during trans
 
 ```catala-test-inline
 $ catala interpret -s A
-[ERROR]
-There is a conflict between multiple valid consequences for assigning the same variable.
+[ERROR] There is a conflict between multiple valid consequences for assigning
+  the same variable.
 
 This consequence has a valid justification:
 ┌─⯈ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:

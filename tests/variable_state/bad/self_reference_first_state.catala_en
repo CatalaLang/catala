@@ -14,8 +14,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR]
-It is impossible to refer to the variable you are defining when defining its first state.
+[ERROR] The definition of the initial state of this variable refers to
+  itself.
 
 ┌─⯈ tests/variable_state/bad/self_reference_first_state.catala_en:10.35-10.38:
 └──┐

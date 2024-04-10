@@ -20,10 +20,9 @@ definition y equals x with pattern Case3
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-Error during typechecking, incompatible types:
-┌─⯈ E
-└─⯈ F
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ E
+  └─⯈ F
 
 While typechecking the following expression:
 ┌─⯈ tests/enum/bad/quick_pattern_3.catala_en:18.21-18.22:

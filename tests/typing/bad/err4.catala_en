@@ -16,22 +16,23 @@ $ catala ocaml
 └─┐
 7 │ declaration structure Structure:
   │                       ‾‾‾‾‾‾‾‾‾
-[WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
+[WARNING] The constructor "Dec" of enumeration "Enum" is never used;
+  maybe it's unnecessary?
 
 ┌─⯈ tests/typing/bad/common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
-[WARNING] The constructor "Dat" of enumeration "Enum" is never used; maybe it's unnecessary?
+[WARNING] The constructor "Dat" of enumeration "Enum" is never used;
+  maybe it's unnecessary?
 
 ┌─⯈ tests/typing/bad/common.catala_en:5.6-5.9:
 └─┐
 5 │   -- Dat content date
   │      ‾‾‾
-[ERROR]
-Error during typechecking, incompatible types:
-┌─⯈ Enum
-└─⯈ Structure
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ Enum
+  └─⯈ Structure
 
 This expression has type Enum:
 ┌─⯈ tests/typing/bad/err4.catala_en:5.25-5.38:

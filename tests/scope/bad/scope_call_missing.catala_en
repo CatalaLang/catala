@@ -16,8 +16,7 @@ scope Titi:
 
 ```catala-test-inline
 $ catala dcalc -s Titi
-[ERROR]
-Definition of input variable 'baz' missing in this scope call
+[ERROR] Definition of input variable 'baz' missing in this scope call
 
 ┌─⯈ tests/scope/bad/scope_call_missing.catala_en:14.26-14.57:
 └──┐

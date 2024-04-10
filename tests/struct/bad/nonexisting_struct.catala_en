@@ -15,8 +15,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-No struct named Fo found
+[ERROR] No struct named Fo found
 
 ┌─⯈ tests/struct/bad/nonexisting_struct.catala_en:13.25-13.27:
 └──┐

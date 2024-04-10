@@ -15,7 +15,8 @@ declaration scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] In scope "A", the variable "x" is declared but never defined; did you forget something?
+[WARNING] In scope "A", the variable "x" is declared but never defined;
+  did you forget something?
 
 ┌─⯈ tests/struct/bad/nested2.catala_en:13.10-13.11:
 └──┐
@@ -36,8 +37,7 @@ $ catala test-scope A
 8 │ declaration enumeration E:
   │                         ‾
   └─ Article
-[ERROR]
-Cyclic dependency detected between types!
+[ERROR] Cyclic dependency detected between types!
 
 Cycle type S, declared:
 ┌─⯈ tests/struct/bad/nested2.catala_en:4.23-4.24:

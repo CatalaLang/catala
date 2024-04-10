@@ -264,9 +264,9 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
       ]
   in
   Message.error ~fmt_pos
-    "@[<v>Error during typechecking, incompatible types:@,\
+    "Error during typechecking, incompatible types:@\n\
      @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
-     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
+     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
     (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
@@ -607,7 +607,7 @@ and typecheck_expr_top_down :
                   "", Expr.mark_pos context_mark;
                   "Structure definition", Mark.get (A.StructName.get_info name);
                 ]
-              "Field @{<yellow>\"%s\"@} does not belong to structure \
+              "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
                @{<yellow>\"%a\"@}."
               field A.StructName.format name
               ~suggestion:(A.Ident.Map.keys ctx.ctx_struct_fields))
@@ -616,8 +616,8 @@ and typecheck_expr_top_down :
       with A.StructName.Map.Not_found _ ->
         Message.error
           ~pos:(Expr.mark_pos context_mark)
-          "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
-           @{<yellow>\"%a\"@}@ (however, structure %a defines it)@]"
+          "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
+           @{<yellow>\"%a\"@}@ (however, structure@ %a@ defines@ it)@]"
           field A.StructName.format name
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")

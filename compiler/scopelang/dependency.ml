@@ -120,8 +120,9 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
         if VMap.mem (Topdef glo_name) used_defs then
           Message.error
             ~pos:(Mark.get (TopdefName.get_info glo_name))
-            "The Topdef %a has a definition that refers to itself, which is \
-             forbidden since Catala does not provide recursion"
+            "The toplevel declaration@ %a@ has@ a@ definition@ that@ refers@ \
+             to@ itself,@ which@ is@ not@ supported@ (Catala does not provide \
+             recursion)"
             TopdefName.format glo_name;
         VMap.fold
           (fun def pos g ->
@@ -138,8 +139,8 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
           if VMap.mem (Scope scope_name) used_defs then
             Message.error
               ~pos:(Mark.get (ScopeName.get_info scope.Ast.scope_decl_name))
-              "The scope %a is calling into itself as a subscope, which is \
-               forbidden since Catala does not provide recursion"
+              "The scope@ %a@ is@ calling@ into@ itself@ as@ a@ subscope,@ \
+               which@ is@ not@ supported@ (Catala does not provide recursion)"
               ScopeName.format scope.Ast.scope_decl_name;
           VMap.fold
             (fun used_def pos g ->
@@ -192,8 +193,7 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
         (List.tl cycle @ [List.hd cycle])
     in
     Message.error ~extra_pos:spans
-      "@[<hov 2>Cyclic dependency detected between the following scopes:@ \
-       @[<hv>%a@]@]"
+      "Cyclic dependency detected between the following scopes:@ @[<hv>%a@]"
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
          SVertex.format)
@@ -283,8 +283,8 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
               (fun used g ->
                 if TVertex.equal used def then
                   Message.error ~pos:(Mark.get typ)
-                    "The type %a is defined using itself, which is forbidden \
-                     since Catala does not provide recursive types"
+                    "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
+                     not@ supported@ (Catala does not allow recursive types)"
                     TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
@@ -305,8 +305,8 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
               (fun used g ->
                 if TVertex.equal used def then
                   Message.error ~pos:(Mark.get typ)
-                    "The type %a is defined using itself, which is forbidden \
-                     since Catala does not provide recursive types"
+                    "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
+                     not@ supported@ (Catala does not allow recursive types)"
                     TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in

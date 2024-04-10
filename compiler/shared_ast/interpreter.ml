@@ -138,7 +138,8 @@ let rec evaluate_operator
           ]
         "division by zero at runtime"
     | Runtime.UncomparableDurations ->
-      Message.error ~extra_pos:(get_binop_args_pos args)
+      Message.error ~extra_pos:(get_binop_args_pos args) "%a"
+        Format.pp_print_text
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
   in
@@ -158,11 +159,10 @@ let rec evaluate_operator
                   arg,
                 Expr.pos arg ))
             args)
-      "Operator %a applied to the wrong arguments\n\
-       (should not happen if the term was well-typed)%a"
+      "Operator %a applied to the wrong@ arguments@ (should not happen if the \
+       term was well-typed)"
       (Print.operator ~debug:true)
-      op Expr.format
-      (EAppOp { op; tys = []; args }, m)
+      op
   in
   let open Runtime.Oper in
   Mark.add m
@@ -236,6 +236,7 @@ let rec evaluate_operator
            | _ ->
              Message.error
                ~pos:(Expr.pos (List.nth args 0))
+               "%a" Format.pp_print_text
                "This predicate evaluated to something else than a boolean \
                 (should not happen if the term was well-typed)")
          es)
@@ -392,8 +393,8 @@ let rec evaluate_operator
       | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
       | _ ->
         Message.error ~pos
-          "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed@\n\
+          "Default justification has not been reduced to a boolean at@ \
+           evaluation@ (should not happen if the term was well-typed@\n\
            %a@."
           Expr.format just)
     | [e] -> Mark.remove e
@@ -603,7 +604,7 @@ and val_to_runtime :
   | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
   | _ ->
     Message.error ~internal:true
-      "Could not convert value of type %a to runtime: %a" (Print.typ ctx) ty
+      "Could not convert value of type %a@ to@ runtime:@ %a" (Print.typ ctx) ty
       Expr.format v
 
 let rec evaluate_expr :
@@ -617,7 +618,7 @@ let rec evaluate_expr :
   let pos = Expr.mark_pos m in
   match Mark.remove e with
   | EVar _ ->
-    Message.error ~pos
+    Message.error ~pos "%a" Format.pp_print_text
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
@@ -637,7 +638,7 @@ let rec evaluate_expr :
                 (TStruct scope_info.out_struct_name, pos) ),
             pos )
       with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
-        Message.error ~pos "Reference to %a could not be resolved"
+        Message.error ~pos "Reference to %a@ could@ not@ be@ resolved"
           Print.external_ref name
     in
     let runtime_path =
@@ -673,7 +674,7 @@ let rec evaluate_expr :
       |> fun o ->
       runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
-      Message.error ~pos
+      Message.error ~pos "%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAppOp { op; args; _ } ->
@@ -698,19 +699,20 @@ let rec evaluate_expr :
       if not (StructName.equal s name) then
         Message.error
           ~extra_pos:["", pos; "", Expr.pos e]
+          "%a" Format.pp_print_text
           "Error during struct access: not the same structs (should not happen \
            if the term was well-typed)";
       match StructField.Map.find_opt field es with
       | Some e' -> e'
       | None ->
         Message.error ~pos:(Expr.pos e)
-          "Invalid field access %a in struct %a (should not happen if the term \
-           was well-typed)"
+          "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
+           term was well-typed)"
           StructField.format field StructName.format s)
     | _ ->
       Message.error ~pos:(Expr.pos e)
-        "The expression %a should be a struct %a but is not (should not happen \
-         if the term was well-typed)"
+        "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \
+         not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e StructName.format s)
   | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
@@ -719,8 +721,8 @@ let rec evaluate_expr :
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
       Message.error ~pos:(Expr.pos e)
-        "The expression %a was expected to be a tuple of size %d (should not \
-         happen if the term was well-typed)"
+        "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d@ \
+         (should not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
@@ -733,13 +735,14 @@ let rec evaluate_expr :
       if not (EnumName.equal name name') then
         Message.error
           ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
+          "%a" Format.pp_print_text
           "Error during match: two different enums found (should not happen if \
            the term was well-typed)";
       let es_n =
         match EnumConstructor.Map.find_opt cons cases with
         | Some es_n -> es_n
         | None ->
-          Message.error ~pos:(Expr.pos e)
+          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "sum type index error (should not happen if the term was \
              well-typed)"
       in
@@ -758,7 +761,7 @@ let rec evaluate_expr :
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
     | _ ->
-      Message.error ~pos:(Expr.pos cond)
+      Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
@@ -774,13 +777,13 @@ let rec evaluate_expr :
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'))
     | _ ->
-      Message.error ~pos:(Expr.pos e')
+      Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
-      Message.error ~pos:(Expr.pos e')
+      Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
     | e -> e)
@@ -794,7 +797,7 @@ let rec evaluate_expr :
       | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
-        Message.error ~pos:(Expr.pos e)
+        Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
@@ -912,7 +915,7 @@ let delcustom e =
 
 let interp_failure_message ~pos = function
   | NoValueProvided ->
-    Message.error ~pos
+    Message.error ~pos "%a" Format.pp_print_text
       "This variable evaluated to an empty term (no rule that defined it \
        applied in this situation)"
   | ConflictError cpos ->
@@ -921,14 +924,15 @@ let interp_failure_message ~pos = function
         (List.map
            (fun pos -> "This consequence has a valid justification:", pos)
            cpos)
+      "%a" Format.pp_print_text
       "There is a conflict between multiple valid consequences for assigning \
        the same variable."
   | Crash ->
     (* This constructor seems to be never used *)
-    Message.error ~pos "Internal error, the interpreter crashed"
+    Message.error ~pos ~internal:true "The interpreter crashed"
   | EmptyError ->
-    Message.error ~pos
-      "Internal error, a variable without valid definition escaped"
+    Message.error ~pos ~internal:true
+      "A variable without valid definition escaped"
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
@@ -981,12 +985,13 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               mark_e
           | _ ->
             Message.error ~pos:(Mark.get ty)
-              "This scope needs an input argument of type %a to be executed. \
-               But the Catala built-in interpreter does not have a way to \
-               retrieve input values from the command line, so it cannot \
-               execute this scope. Please create another scope that provides \
-               the input arguments to this one and execute it instead."
-              Print.typ_debug ty)
+              "This scope needs an input argument of type@ %a@ %a"
+              Print.typ_debug ty Format.pp_print_text
+              "to be executed. But the Catala built-in interpreter does not \
+               have a way to retrieve input values from the command line, so \
+               it cannot execute this scope. Please create another scope that \
+               provides the input arguments to this one and execute it \
+               instead.")
         taus
     in
     let to_interpret =
@@ -1006,12 +1011,12 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     | exception CatalaException (except, pos) ->
       interp_failure_message ~pos except
     | _ ->
-      Message.error ~pos:(Expr.pos e)
+      Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
-    Message.error ~pos:(Expr.pos e)
+    Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
@@ -1038,7 +1043,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | _ ->
-            Message.error ~pos:(Mark.get ty)
+            Message.error ~pos:(Mark.get ty) "%a" Format.pp_print_text
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
@@ -1063,12 +1068,12 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     | exception CatalaException (except, pos) ->
       interp_failure_message ~pos except
     | _ ->
-      Message.error ~pos:(Expr.pos e)
+      Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
-    Message.error ~pos:(Expr.pos e)
+    Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
@@ -1091,7 +1096,7 @@ let load_runtime_modules prg =
       Message.error
         ~pos_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
         ~pos:(Mark.get (ModuleName.get_info m))
-        "Compiled OCaml object %a not found. Make sure it has been suitably \
+        "Compiled OCaml object %a@ not@ found.@ Make sure it has been suitably \
          compiled."
         File.format obj_file
     else

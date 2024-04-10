@@ -9,8 +9,8 @@ declaration scope Bar:
 
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR]
-The enum Foo does not have any cases; give it some for Catala to be able to accept it.
+[ERROR] The enum Foo does not have any cases;
+  give it some for Catala to be able to accept it.
 
 ┌─⯈ tests/enum/bad/empty.catala_en:4.25-4.28:
 └─┐

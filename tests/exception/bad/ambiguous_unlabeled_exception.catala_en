@@ -15,8 +15,8 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-This exception can refer to several definitions. Try using labels to disambiguate
+[ERROR] This exception can refer to several definitions. Try using labels to
+  disambiguate
 
 Ambiguous exception
 ┌─⯈ tests/exception/bad/ambiguous_unlabeled_exception.catala_en:12.3-13.15:

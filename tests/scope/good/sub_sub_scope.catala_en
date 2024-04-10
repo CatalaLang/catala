@@ -34,14 +34,16 @@ scope C:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] Unused varible: a does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: a does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:14.3-14.4:
 └──┐
 14 │   a scope A
    │   ‾
    └─ Article
-[WARNING] Unused varible: b does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: b does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:15.3-15.4:
 └──┐
@@ -54,14 +56,16 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] Unused varible: a does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: a does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:14.3-14.4:
 └──┐
 14 │   a scope A
    │   ‾
    └─ Article
-[WARNING] Unused varible: b does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: b does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:15.3-15.4:
 └──┐
@@ -75,14 +79,16 @@ $ catala test-scope A
 
 ```catala-test-inline
 $ catala test-scope B
-[WARNING] Unused varible: a does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: a does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:14.3-14.4:
 └──┐
 14 │   a scope A
    │   ‾
    └─ Article
-[WARNING] Unused varible: b does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: b does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:15.3-15.4:
 └──┐
@@ -95,14 +101,16 @@ $ catala test-scope B
 
 ```catala-test-inline
 $ catala test-scope C
-[WARNING] Unused varible: a does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: a does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:14.3-14.4:
 └──┐
 14 │   a scope A
    │   ‾
    └─ Article
-[WARNING] Unused varible: b does not contribute to computing any of scope C outputs. Did you forget something?
+[WARNING] Unused varible: b does not contribute to computing any of scope C
+  outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/sub_sub_scope.catala_en:15.3-15.4:
 └──┐

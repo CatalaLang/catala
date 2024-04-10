@@ -142,8 +142,8 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
         (List.tl cycle @ [List.hd cycle])
     in
     Message.error ~extra_pos
-      "@[<hov 2>Cyclic dependency detected between the following variables of \
-       scope %a:@ @[<hv>%a@]@]"
+      "Cyclic dependency detected between the following variables of scope \
+       %a:@ @[<hv>%a@]"
       ScopeName.format scope.scope_uid
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
@@ -197,13 +197,13 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 match def_key with
                 | _, Ast.ScopeDef.Var _ ->
                   Message.error ~pos:fv_def_pos
-                    "The variable %a is used in one of its definitions, but \
-                     recursion is forbidden in Catala"
+                    "The variable@ %a@ is@ used@ in@ one@ of@ its@ \
+                     definitions@ (Catala doesn't support recursion)"
                     Ast.ScopeDef.format def_key
                 | v, Ast.ScopeDef.SubScopeInput _ ->
                   Message.error ~pos:fv_def_pos
-                    "The subscope %a is used in the definition of its own \
-                     input %a, but recursion is forbidden in Catala"
+                    "The subscope@ %a@ is@ used@ in@ the@ definition@ of@ its@ \
+                     own@ input@ %a@ (Catala doesn't support recursion)"
                     ScopeVar.format (Mark.remove v) Ast.ScopeDef.format def_key
             in
             ScopeDependencies.add_edge_e g
@@ -499,6 +499,7 @@ let check_for_exception_cycle
     in
     let v, _ = RuleName.Map.choose (List.hd scc).rules in
     Message.error ~extra_pos:spans
-      "Exception cycle detected when defining %a: each of these %d exceptions \
-       applies over the previous one, and the first applies over the last"
+      "Exception cycle detected when defining@ %a:@ each of these %d \
+       exceptions applies over the previous one,@ and@ the@ first@ applies@ \
+       over@ the@ last"
       RuleName.format v (List.length scc)

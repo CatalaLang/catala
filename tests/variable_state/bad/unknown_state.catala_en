@@ -14,8 +14,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR]
-This identifier is not a state declared for variable foo.
+[ERROR] This identifier is not a state declared for variable foo.
 
 ┌─⯈ tests/variable_state/bad/unknown_state.catala_en:12.24-12.28:
 └──┐

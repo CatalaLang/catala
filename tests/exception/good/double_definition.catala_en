@@ -14,7 +14,8 @@ scope Foo:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+[WARNING] These definitions have identical justifications and consequences;
+  is it a mistake?
 
 ┌─⯈ tests/exception/good/double_definition.catala_en:9.3-9.15:
 └─┐
@@ -33,7 +34,8 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Scopelang -s Foo
-[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+[WARNING] These definitions have identical justifications and consequences;
+  is it a mistake?
 
 ┌─⯈ tests/exception/good/double_definition.catala_en:9.3-9.15:
 └─┐
@@ -58,7 +60,8 @@ Dcalc translation below.
 
 ```catala-test-inline
 $ catala Dcalc -s Foo
-[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+[WARNING] These definitions have identical justifications and consequences;
+  is it a mistake?
 
 ┌─⯈ tests/exception/good/double_definition.catala_en:9.3-9.15:
 └─┐

@@ -22,7 +22,8 @@ scope Titi:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] Unused varible: toto does not contribute to computing any of scope Titi outputs. Did you forget something?
+[WARNING] Unused varible: toto does not contribute to computing any of scope
+  Titi outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/scope_call2.catala_en:13.3-13.7:
 └──┐
@@ -34,7 +35,8 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope Titi
-[WARNING] Unused varible: toto does not contribute to computing any of scope Titi outputs. Did you forget something?
+[WARNING] Unused varible: toto does not contribute to computing any of scope
+  Titi outputs. Did you forget something?
 
 ┌─⯈ tests/scope/good/scope_call2.catala_en:13.3-13.7:
 └──┐

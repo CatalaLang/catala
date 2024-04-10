@@ -33,8 +33,7 @@ scope Money:
 
 ```catala-test-inline
 $ catala Interpret -s Dec
-[ERROR]
-division by zero at runtime
+[ERROR] division by zero at runtime
 
 The division operator:
 ┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
@@ -58,8 +57,7 @@ The null denominator:
 Fixme: the following should give the same result as above, but the optimisation pass propagates the position surrounding the `ErrorOnEmpty` and loses the position of the actual division expression which was in the `cons` of the default term. Unfortunately this is non-trivial due to the bindlib boxing tricks.
 ```catala-test-inline
 $ catala Interpret -O -s Dec
-[ERROR]
-division by zero at runtime
+[ERROR] division by zero at runtime
 
 The division operator:
 ┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:17.10-17.11:
@@ -81,8 +79,7 @@ The null denominator:
 
 ```catala-test-inline
 $ catala interpret -s Int
-[ERROR]
-division by zero at runtime
+[ERROR] division by zero at runtime
 
 The division operator:
 ┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
@@ -104,8 +101,7 @@ The null denominator:
 
 ```catala-test-inline
 $ catala Interpret -s Money
-[ERROR]
-division by zero at runtime
+[ERROR] division by zero at runtime
 
 The division operator:
 ┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:30.23-30.35:

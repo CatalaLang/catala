@@ -174,8 +174,8 @@ let rec disambiguate_constructor
   | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
       Message.error ~pos:(Mark.get constructor)
-        "This constructor name is ambiguous, it can belong to %a. Disambiguate \
-         it by prefixing it with the enum name."
+        "This constructor name is ambiguous, it can belong to@ %a.@ \
+         Disambiguate it by prefixing it with the enum name."
         (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
              Format.pp_print_string fmt " or "))
         possible_c_uids;
@@ -187,8 +187,8 @@ let rec disambiguate_constructor
       let c_uid = EnumName.Map.find e_uid possible_c_uids in
       e_uid, c_uid
     with EnumName.Map.Not_found _ ->
-      Message.error ~pos "Enum %s does not contain case %s" (Mark.remove enum)
-        (Mark.remove constructor))
+      Message.error ~pos "Enum %s@ does@ not@ contain@ case@ %s"
+        (Mark.remove enum) (Mark.remove constructor))
   | mod_id :: path ->
     let constructor =
       List.map (Mark.map (fun (_, c) -> path, c)) constructor0
@@ -212,6 +212,7 @@ let rec check_formula (op, pos_op) e =
          true]) *)
       Message.error
         ~extra_pos:["", pos_op; "", pos_op1]
+        "%a" Format.pp_print_text
         "Please add parentheses to explicit which of these operators should be \
          applied first";
     check_formula (op1, pos_op1) e1;
@@ -401,18 +402,19 @@ let rec translate_expr
               (* TODO *)
               Message.error
                 ~pos:(Mark.get (Option.get st))
+                "%a" Format.pp_print_text
                 "Referring to a previous state of the variable being defined \
                  is not supported at the moment.";
             match sx' with
             | None ->
-              failwith
+              Message.error ~internal:true
                 "inconsistent state: inside a definition of a variable with no \
                  state but variable has states"
             | Some inside_def_state ->
               if StateName.compare inside_def_state (List.hd states) = 0 then
-                Message.error ~pos
-                  "It is impossible to refer to the variable you are defining \
-                   when defining its first state."
+                Message.error ~pos "%a" Format.pp_print_text
+                  "The definition of the initial state of this variable refers \
+                   to itself."
               else
                 (* Tricky: we have to retrieve in the list the previous state
                    with respect to the state that we are defining. *)
@@ -635,8 +637,8 @@ let rec translate_expr
         EnumName.Map.cardinal possible_c_uids > 1
       then
         Message.error ~pos:pos_constructor
-          "This constructor name is ambiguous, it can belong to %a. \
-           Desambiguate it by prefixing it with the enum name."
+          "This constructor name is ambiguous, it can belong to@ %a.@ \
+           Disambiguate it by prefixing it with the enum name."
           (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
                Format.fprintf fmt " or "))
           possible_c_uids
@@ -963,8 +965,9 @@ and disambiguate_match_and_build_expression
           else
             Message.error
               ~pos:(Mark.get case.S.match_case_pattern)
-              "This case matches a constructor of enumeration %a but previous \
-               case were matching constructors of enumeration %a"
+              "This case matches a constructor of enumeration@ %a@ but@ \
+               previous@ cases@ were@ matching@ constructors@ of@ enumeration@ \
+               %a"
               EnumName.format e_uid EnumName.format e_uid'
       in
       (match EnumConstructor.Map.find_opt c_uid cases_d with
@@ -972,8 +975,8 @@ and disambiguate_match_and_build_expression
       | Some e_case ->
         Message.error
           ~extra_pos:["", Mark.get case.match_case_expr; "", Expr.pos e_case]
-          "The constructor %a has been matched twice:" EnumConstructor.format
-          c_uid);
+          "The constructor %a@ has@ been@ matched@ twice:"
+          EnumConstructor.format c_uid);
       let local_vars, param_var =
         create_var local_vars (Option.map Mark.remove binding)
       in
@@ -1001,7 +1004,7 @@ and disambiguate_match_and_build_expression
       match e_uid with
       | None ->
         if 1 = nb_cases then
-          Message.error ~pos:case_pos
+          Message.error ~pos:case_pos "%a" Format.pp_print_text
             "Couldn't infer the enumeration name from lonely wildcard \
              (wildcard cannot be used as single match case)"
         else raise_wildcard_not_last_case_err ()
@@ -1016,8 +1019,8 @@ and disambiguate_match_and_build_expression
         in
         if EnumConstructor.Map.is_empty missing_constructors then
           Message.warning ~pos:case_pos
-            "Unreachable match case, all constructors of the enumeration %a \
-             are already specified"
+            "Unreachable match case, all constructors of the enumeration@ %a@ \
+             are@ already@ specified"
             EnumName.format e_uid;
         (* The current used strategy is to replace the wildcard branch:
                match foo with
@@ -1093,8 +1096,8 @@ let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
     Message.error
       ~extra_pos:
         ["Argument declared here:", decl_apos; "Defined here:", def_apos]
-      "Function argument name mismatch between declaration ('%a') and \
-       definition ('%a')"
+      "Function argument name mismatch between declaration@ ('%a')@ and@ \
+       definition@ ('%a')"
       Print.lit_style decl_arg Print.lit_style def_arg
 
 let process_rule_parameters
@@ -1114,7 +1117,7 @@ let process_rule_parameters
           "Declared here without arguments", decl_pos;
           "Unexpected arguments appearing here", pos;
         ]
-      "Extra arguments in this definition of %a" Ast.ScopeDef.format decl_name
+      "Extra arguments in this definition of@ %a" Ast.ScopeDef.format decl_name
   | Some (_, pos), None ->
     Message.error
       ~extra_pos:
@@ -1395,6 +1398,7 @@ let check_unlabeled_exception
         Message.error ~pos:(Mark.get item)
           ~pos_msg:(fun ppf -> Format.pp_print_text ppf "Ambiguous exception")
           ~extra_pos:(List.map (fun p -> "Candidate definition", p) pos)
+          "%a" Format.pp_print_text
           "This exception can refer to several definitions. Try using labels \
            to disambiguate"
       | Some (Unique _) -> ()))
