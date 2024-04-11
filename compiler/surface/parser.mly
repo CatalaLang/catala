@@ -37,7 +37,7 @@ end>
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
-%right apply OF CONTAINS FOR SUCH WITH
+%right apply OF CONTAINS FOR SUCH WITH BUT_REPLACE
 %right COMMA
 %right unop_expr
 %right CONTENT
@@ -217,6 +217,13 @@ let naked_expression ==
 | e = expression ;
   WITH ; c = constructor_binding ; {
   TestMatchCase (e, (c, Pos.from_lpos $sloc))
+}
+| e = expression ;
+  BUT_REPLACE ;
+  LBRACE ;
+  fields = nonempty_list(preceded (ALT, struct_content_field)) ;
+  RBRACE ; {
+  StructReplace (e, fields)
 }
 | e1 = expression ;
   CONTAINS ;

@@ -83,7 +83,50 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
          })
       m
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
-  | EDStructAccess _ ->
+  | EDStructAmend { name_opt = Some name; e; fields } ->
+    let str_fields = StructName.Map.find name ctx.decl_ctx.ctx_structs in
+    let fields =
+      Ident.Map.fold
+        (fun id e ->
+          match
+            StructName.Map.find name
+              (Ident.Map.find id ctx.decl_ctx.ctx_struct_fields)
+          with
+          | field -> StructField.Map.add field (translate_expr ctx e)
+          | exception (Ident.Map.Not_found _ | StructName.Map.Not_found _) ->
+            Message.error ~pos:(Expr.pos e)
+              ~fmt_pos:
+                [
+                  ( (fun ppf ->
+                      Format.fprintf ppf "Declaration of structure %a"
+                        StructName.format name),
+                    Mark.get (StructName.get_info name) );
+                ]
+              "Field %a@ does@ not@ belong@ to@ structure@ %a" Ident.format id
+              StructName.format name)
+        fields StructField.Map.empty
+    in
+    if StructField.Map.cardinal fields = StructField.Map.cardinal str_fields
+    then
+      Message.warning ~pos:(Expr.mark_pos m)
+        "All fields of@ %a@ are@ rewritten@ in@ this@ replacement."
+        StructName.format name;
+    let orig_var = Var.make "orig" in
+    let orig_e = Expr.evar orig_var (Mark.get e) in
+    let fields =
+      StructField.Map.mapi
+        (fun field _ty ->
+          match StructField.Map.find_opt field fields with
+          | Some e -> e
+          | None -> Expr.estructaccess ~name ~field ~e:orig_e m)
+        str_fields
+    in
+    Expr.make_let_in orig_var
+      (TStruct name, Expr.pos e)
+      (translate_expr ctx e)
+      (Expr.estruct ~name ~fields m)
+      (Expr.mark_pos m)
+  | EDStructAmend { name_opt = None; _ } | EDStructAccess _ ->
     assert false (* This shouldn't appear in desugared after disambiguation *)
   | EScopeCall { scope; args } ->
     Expr.escopecall ~scope

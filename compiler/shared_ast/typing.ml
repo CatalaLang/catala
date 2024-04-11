@@ -548,6 +548,25 @@ and typecheck_expr_top_down :
         fields
     in
     Expr.estruct ~name ~fields mark
+  | A.EDStructAmend { name_opt = _; e; fields } ->
+    let e = typecheck_expr_top_down ctx env tau e in
+    let name =
+      match UnionFind.get (ty e) with
+      | TStruct name, _ -> name
+      | TAny _, _ -> failwith "Disambiguation failure"
+      | _ ->
+        Message.error ~pos:(Expr.pos e)
+          "This expression has type %a, where a structure was expected"
+          (format_typ ctx) (ty e)
+    in
+    let fields = A.Ident.Map.map (typecheck_expr_bottom_up ctx env) fields in
+    (* Note: here we identify the structure name, and type the fields
+       individually, but without enforcing any consistency constraint between
+       the two. This is fine because this construction only appears in
+       Desugared, where it is used for disambiguation. In later passes this is
+       rewritten into a struct literal, so no need to anticipate name resolution
+       and duplicate the checks here. *)
+    Expr.edstructamend ~name_opt:(Some name) ~e ~fields context_mark
   | A.EDStructAccess { e = e_struct; name_opt; field } ->
     let t_struct =
       match name_opt with

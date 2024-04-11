@@ -423,6 +423,7 @@ module Precedence = struct
     | ETupleAccess _ -> Dot
     | ELocation _ -> Contained
     | EScopeCall _ -> App
+    | EDStructAmend _ -> App
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EDefault _ -> Contained
@@ -681,6 +682,14 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
           "." punctuation "\"" Ident.format field punctuation "\""
+      | EDStructAmend { e; fields; _ } ->
+        Format.fprintf fmt "@[<hv 2>@[<hov>%a %a@ with@]@ %a@;<1 -2>%a@]"
+          punctuation "{" (lhs exprc) e
+          (Ident.Map.format_bindings ~pp_sep:Format.pp_print_space
+             (fun fmt pp_field_name field_expr ->
+               Format.fprintf fmt "@[<hv 2>%t %a@ %a%a@]" pp_field_name
+                 punctuation "=" (lhs exprc) field_expr punctuation ";"))
+          fields punctuation "}"
       | EStruct { name; fields } ->
         if StructField.Map.is_empty fields then (
           punctuation fmt "{";
@@ -1127,7 +1136,7 @@ module UserFacing = struct
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
     | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
-    | EDStructAccess _ | ECustom _ ->
+    | EDStructAmend _ | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
   let expr :

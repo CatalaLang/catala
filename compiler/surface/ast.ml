@@ -187,6 +187,7 @@ and naked_expression =
   | EnumInject of (path * uident Mark.pos) Mark.pos * expression option
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
+  | StructReplace of expression * (lident Mark.pos * expression) list
   | ArrayLit of expression list
   | Tuple of expression list
   | Ident of path * lident Mark.pos * lident Mark.pos option

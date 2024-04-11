@@ -83,6 +83,8 @@
 #define MS_IS "is"
 #define MS_LIST_EMPTY "list empty"
 #define MR_LIST_EMPTY "list", space_plus, "empty"
+#define MS_BUT_REPLACE "but replace"
+#define MR_BUT_REPLACE "but", space_plus, "replace"
 #define MS_CARDINAL "number"
 #define MS_YEAR "year"
 #define MS_MONTH "month"

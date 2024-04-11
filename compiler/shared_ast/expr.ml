@@ -56,6 +56,10 @@ module Box = struct
   let lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
    fun em -> B.box_apply (fun e -> Mark.add (Mark.get em) e) (Mark.remove em)
 
+  module LiftIdentMap = Bindlib.Lift (Ident.Map)
+
+  let lift_identmap = LiftIdentMap.lift_box
+
   module LiftStruct = Bindlib.Lift (StructField.Map)
 
   let lift_struct = LiftStruct.lift_box
@@ -155,6 +159,14 @@ let estruct ~name ~(fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
   @@ Bindlib.box_apply
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
+
+let edstructamend ~name_opt ~e ~(fields : ('a, 't) boxed_gexpr Ident.Map.t) mark
+    =
+  Mark.add mark
+  @@ Bindlib.box_apply2
+       (fun e fields -> EDStructAmend { name_opt; e; fields })
+       (Box.lift e)
+       (Box.lift_identmap (Ident.Map.map Box.lift fields))
 
 let edstructaccess ~name_opt ~field ~e =
   Box.app1 e @@ fun e -> EDStructAccess { name_opt; field; e }
@@ -305,6 +317,9 @@ let map
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
     estruct ~name ~fields m
+  | EDStructAmend { name_opt; e; fields } ->
+    let fields = Ident.Map.map f fields in
+    edstructamend ~name_opt ~e:(f e) ~fields m
   | EDStructAccess { name_opt; field; e } ->
     edstructaccess ~name_opt ~field ~e:(f e) m
   | EStructAccess { name; field; e } -> estructaccess ~name ~field ~e:(f e) m
@@ -345,6 +360,8 @@ let shallow_fold
   | EErrorOnEmpty e -> acc |> f e
   | ECatch { body; handler; _ } -> acc |> f body |> f handler
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
+  | EDStructAmend { e; fields; _ } ->
+    acc |> f e |> Ident.Map.fold (fun _ -> f) fields
   | EDStructAccess { e; _ } -> acc |> f e
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
@@ -434,6 +451,16 @@ let map_gather
         (acc, StructField.Map.empty)
     in
     acc, estruct ~name ~fields m
+  | EDStructAmend { name_opt; e; fields } ->
+    let acc, e = f e in
+    let acc, fields =
+      Ident.Map.fold
+        (fun cons e (acc, fields) ->
+          let acc1, e = f e in
+          join acc acc1, Ident.Map.add cons e fields)
+        fields (acc, Ident.Map.empty)
+    in
+    acc, edstructamend ~name_opt ~e ~fields m
   | EDStructAccess { name_opt; field; e } ->
     let acc, e = f e in
     acc, edstructaccess ~name_opt ~field ~e m
@@ -618,6 +645,11 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
+  | ( EDStructAmend { name_opt = s1; e = e1; fields = fields1 },
+      EDStructAmend { name_opt = s2; e = e2; fields = fields2 } ) ->
+    Option.equal StructName.equal s1 s2
+    && equal e1 e2
+    && Ident.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
     Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
@@ -641,8 +673,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EDefault _ | EPureDefault _
       | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _
-      | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _
-      | EMatch _ | EScopeCall _ | ECustom _ ),
+      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
+      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -685,6 +717,11 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     EStruct {name=name2; fields=field_map2 } ->
     StructName.compare name1 name2 @@< fun () ->
     StructField.Map.compare compare field_map1 field_map2
+  | EDStructAmend {name_opt=n1; e=e1; fields=field_map1},
+    EDStructAmend {name_opt=n2; e=e2; fields=field_map2} ->
+    compare e1 e2 @@< fun () ->
+    Ident.Map.compare compare field_map1 field_map2 @@< fun () ->
+    Option.compare StructName.compare n1 n2
   | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
     EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
@@ -748,6 +785,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EIfThenElse _, _ -> -1 | _, EIfThenElse _ -> 1
   | ELocation _, _ -> -1 | _, ELocation _ -> 1
   | EStruct _, _ -> -1 | _, EStruct _ -> 1
+  | EDStructAmend _, _ -> -1 | _, EDStructAmend _ -> 1
   | EDStructAccess _, _ -> -1 | _, EDStructAccess _ -> 1
   | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
   | EMatch _, _ -> -1 | _, EMatch _ -> 1
@@ -895,6 +933,8 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ELocation _ -> 1
   | EStruct { fields; _ } ->
     StructField.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
+  | EDStructAmend { e; fields; _ } ->
+    1 + size e + Ident.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
   | EDStructAccess { e; _ } -> 1 + size e
   | EStructAccess { e; _ } -> 1 + size e
   | EMatch { e; cases; _ } ->
