@@ -70,7 +70,7 @@ ace.define(
           {
             token: "keyword.control",
             regex:
-              "\\b(selon|sous\\s+forme|fix\u00e9|par|d\u00e9croissante|croissante|varie|avec|on\\s+a|soit|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b",
+              "\\b(selon|sous\\s+forme|mais\\s+en\\s+rempla\u00e7ant|fix\u00e9|par|d\u00e9croissant|croissant|varie|avec|on\\s+a|soit|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b",
           },
           {
             token: "keyword.other",

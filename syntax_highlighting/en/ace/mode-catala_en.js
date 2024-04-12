@@ -70,7 +70,7 @@ ace.define(
           {
             token: "keyword.control",
             regex:
-              "\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|let|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b",
+              "\\b(match|with\\s+pattern|but\\s+replace|fixed|by|decreasing|increasing|varies|with|we\\s+have|let|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b",
           },
           {
             token: "keyword.other",

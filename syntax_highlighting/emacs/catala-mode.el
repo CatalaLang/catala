@@ -23,7 +23,7 @@
   '("#")
   '("contexte" "entrée" "résultat" "interne"
     "champ d'application" "si et seulement si" "dépend de" "déclaration" "inclus" "liste de" "contenu" "optionnel" "structure" "énumération" "contexte" "entrée" "résultat" "interne" "règle" "sous condition" "condition" "donnée" "conséquence" "rempli" "égal à" "assertion" "définition" "état" "étiquette" "exception" "soit" "liste vide")
-  '(("\\<\\(selon\\|sous\s+forme\\|fixé\\|par\\|décroissante\\|croissante\\|varie\\|avec\\|on\s+a\\|soit\\|dans\\|tel\s+que\\|existe\\|pour\\|tout\\|de\\|si\\|alors\\|sinon\\|initial\\)\\>" . font-lock-builtin-face)
+  '(("\\<\\(selon\\|sous\s+forme\\|mais\s+en\s+remplaçant\\|fixé\\|par\\|décroissant\\|croissant\\|varie\\|avec\\|on\s+a\\|soit\\|dans\\|tel\s+que\\|existe\\|pour\\|tout\\|de\\|si\\|alors\\|sinon\\|initial\\)\\>" . font-lock-builtin-face)
     ("\\<\\(vrai\\|faux\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9 ]*\\(,[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)
     ("\\(->\\|+.\\|+@\\|+^\\|+€\\|+\\|-.\\|-@\\|-^\\|-€\\|-\\|*.\\|*@\\|*^\\|*€\\|*\\|/.\\|/@\\|/€\\|/\\|!\\|>.\\|>=.\\|<=.\\|<.\\|>@\\|>=@\\|<=@\\|<@\\|>€\\|>=€\\|<=€\\|<€\\|>^\\|>=^\\|<=^\\|<^\\|>\\|>=\\|<=\\|<\\|=\\)" . font-lock-keyword-face)
@@ -42,7 +42,7 @@
   '("#")
   '("context" "input" "output" "internal"
     "scope" "depends on" "declaration" "includes" "list of" "content" "optional" "structure" "enumeration" "context" "input" "output" "internal" "rule" "under condition" "condition" "data" "consequence" "fulfilled" "equals" "assertion" "definition" "state" "label" "exception" "let" "list empty")
-  '(("\\<\\(match\\|with\s+pattern\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\)\\>" . font-lock-builtin-face)
+  '(("\\<\\(match\\|with\s+pattern\\|but\s+replace\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\)\\>" . font-lock-builtin-face)
     ("|[0-9]\\+-[0-9]\\+-[0-9]\\+|" . font-lock-constant-face)
     ("\\<\\(true\\|false\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9,]*\\(\\.[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)
