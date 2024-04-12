@@ -12,10 +12,9 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck
-[ERROR]
-Error during typechecking, incompatible types:
-┌─⯈ decimal
-└─⯈ integer
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ decimal
+  └─⯈ integer
 
 This expression has type decimal:
 ┌─⯈ tests/typing/bad/err1.catala_en:7.23-7.26:

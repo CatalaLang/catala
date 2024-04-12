@@ -16,8 +16,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-Cyclic dependency detected between the following variables of scope A:
+[ERROR] Cyclic dependency detected between the following variables of scope A:
   z → x → y → z
 
 z is used here in the definition of x:

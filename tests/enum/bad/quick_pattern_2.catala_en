@@ -30,10 +30,9 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-Error during typechecking, incompatible types:
-┌─⯈ E
-└─⯈ F
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ E
+  └─⯈ F
 
 While typechecking the following expression:
 ┌─⯈ tests/enum/bad/quick_pattern_2.catala_en:28.23-28.24:

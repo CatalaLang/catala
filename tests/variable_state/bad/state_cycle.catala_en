@@ -21,8 +21,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR]
-Cyclic dependency detected between the following variables of scope A:
+[ERROR] Cyclic dependency detected between the following variables of scope A:
   foofoo@bar → foofoo@baz → foo@bar → foo@baz → foofoo@bar
 
 foofoo@bar is used here in the definition of foofoo@baz:

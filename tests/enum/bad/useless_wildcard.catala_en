@@ -19,7 +19,8 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] Unreachable match case, all constructors of the enumeration E are already specified
+[WARNING] Unreachable match case, all constructors of the enumeration E are
+  already specified
 
 ┌─⯈ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
 └──┐

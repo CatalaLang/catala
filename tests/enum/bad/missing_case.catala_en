@@ -18,15 +18,15 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] The constructor "Case3" of enumeration "E" is never used; maybe it's unnecessary?
+[WARNING] The constructor "Case3" of enumeration "E" is never used;
+  maybe it's unnecessary?
 
 ┌─⯈ tests/enum/bad/missing_case.catala_en:7.6-7.11:
 └─┐
 7 │   -- Case3
   │      ‾‾‾‾‾
   └─ Article
-[ERROR]
-The constructor Case3 of enum E is missing from this pattern matching
+[ERROR] The constructor Case3 of enum E is missing from this pattern matching
 
 ┌─⯈ tests/enum/bad/missing_case.catala_en:14.25-16.22:
 └──┐

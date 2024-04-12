@@ -55,7 +55,8 @@ scope S2:
 
 ```catala-test-inline
 $ catala test-scope S2
-[WARNING] Unused varible: x does not contribute to computing any of scope S2 outputs. Did you forget something?
+[WARNING] Unused varible: x does not contribute to computing any of scope S2
+  outputs. Did you forget something?
 
 ┌─⯈ tests/name_resolution/good/let_in.catala_en:47.4-47.5:
 └──┐

@@ -18,8 +18,8 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-Cyclic dependency detected between the following scopes: B → A → B
+[ERROR] Cyclic dependency detected between the following scopes:
+  B → A → B
 
 B is used here in the definition of A:
 ┌─⯈ tests/scope/bad/cyclic_scopes.catala_en:5.3-5.4:

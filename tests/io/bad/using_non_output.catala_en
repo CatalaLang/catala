@@ -15,8 +15,7 @@ scope B:
 ```
 ```catala-test-inline
 $ catala Typecheck
-[ERROR]
-Variable a is not a declared output of scope A.
+[ERROR] Variable a is not a declared output of scope A.
 
 a is used here as an output
 ┌─⯈ tests/io/bad/using_non_output.catala_en:14.13-14.16:

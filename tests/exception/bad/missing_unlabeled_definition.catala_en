@@ -11,8 +11,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-This exception does not have a corresponding definition
+[ERROR] This exception does not have a corresponding definition
 
 ┌─⯈ tests/exception/bad/missing_unlabeled_definition.catala_en:8.3-9.15:
 └─┐

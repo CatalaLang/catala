@@ -73,17 +73,13 @@ let raise_parser_error
     (token : string)
     (msg : Format.formatter -> unit) : 'a =
   Message.error ?suggestion
-    ~fmt_pos:
-      (((fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
-      ::
-      (match last_good_loc with
-      | None -> []
-      | Some last_good_loc ->
-        [
-          ( (fun ppf -> Format.pp_print_string ppf "Last good token:"),
-            last_good_loc );
-        ]))
-    "@[<v>Syntax error at token %a@,%t@]"
+    ~extra_pos:
+      [
+        (match last_good_loc with
+        | None -> "Error token", error_loc
+        | Some last_good_loc -> "Last good token", last_good_loc);
+      ]
+    "Syntax error at %a@\n%t"
     (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
     token msg
 
@@ -133,18 +129,15 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
       (match Parser_errors.message (state env) with
-      | exception Not_found ->
-        Format.fprintf ppf "Message: @{<yellow>unexpected token@}@,%t"
+      | exception Not_found -> Format.fprintf ppf "@{<yellow>unexpected token@}"
       | msg ->
-        Format.fprintf ppf "Message: @{<yellow>%s@}@,%t"
-          (String.trim (String.uncapitalize_ascii msg)))
-        (fun (ppf : Format.formatter) ->
-          Format.fprintf ppf "You could have written : ";
-          Format.pp_print_list
-            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
-            (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-            ppf
-            (List.map (fun (s, _) -> s) acceptable_tokens))
+        Format.fprintf ppf "@{<yellow>@<1>»@} @[<hov>%a@]" Format.pp_print_text
+          (String.trim (String.uncapitalize_ascii msg)));
+      Format.fprintf ppf "@,@[<hov>Those are valid at this point:@ %a@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
+        (List.map (fun (s, _) -> s) acceptable_tokens)
     in
     raise_parser_error ~suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))
@@ -303,8 +296,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
                      "Module declaration", Mark.get id;
                    ]
                  "A file that declares a module cannot be used through the raw \
-                  '@{<yellow>> Include@}' directive. You should use it as a \
-                  module with '@{<yellow>> Use @{<blue>%s@}@}' instead."
+                  '@{<yellow>> Include@}'@ directive.@ You should use it as a \
+                  module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ instead."
                  (Mark.remove id)
           in
           {
@@ -406,9 +399,8 @@ let check_modname program source_file =
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
     Message.error ~pos
-      "@[<hov>Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
-       file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ \
-       %a.@]"
+      "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ file@ \
+       name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ %a."
       mname File.format file
       (String.capitalize_ascii Filename.(remove_extension (basename file)))
       File.format

@@ -10,10 +10,9 @@ scope TestXorWithInt:
 
 ```catala-test-inline
 $ catala Typecheck
-[ERROR]
-Error during typechecking, incompatible types:
-┌─⯈ integer
-└─⯈ bool
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ integer
+  └─⯈ bool
 
 This expression has type integer:
 ┌─⯈ tests/bool/bad/test_xor_with_int.catala_en:8.30-8.32:

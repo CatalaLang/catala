@@ -225,6 +225,7 @@ let rule_to_exception_graph (scope : D.scope) = function
                          ( "Incriminated subscope variable definition:",
                            Mark.get (RuleName.get_info rule) ))
                        (RuleName.Map.keys def))
+                "%a" Format.pp_print_text
                 "Invalid assignment to a subscope variable that is not tagged \
                  as input or context."
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
@@ -237,6 +238,7 @@ let rule_to_exception_graph (scope : D.scope) = function
                       Mark.get (ScopeVar.get_info (Mark.remove sscope)) );
                     "Incriminated variable:", Mark.get sscope;
                   ]
+                "%a" Format.pp_print_text
                 "This subscope variable is a mandatory input but no definition \
                  was provided."
             | _ -> ()
@@ -261,8 +263,8 @@ let rule_to_exception_graph (scope : D.scope) = function
                  ( "Incriminated variable definition:",
                    Mark.get (RuleName.get_info rule) ))
                (RuleName.Map.keys var_def))
-        "It is impossible to give a definition to a scope variable tagged as \
-         input."
+        "%a" Format.pp_print_text
+        "There cannot be a definition for a scope variable tagged as input."
     | OnlyInput -> D.ScopeDef.Map.empty
     (* we do not provide any definition for an input-only variable *)
     | _ ->

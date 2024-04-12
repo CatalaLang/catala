@@ -21,7 +21,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable-counterexamples
-[WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
+[WARNING] The constructor "C" of enumeration "T" is never used;
+  maybe it's unnecessary?
 
 ┌─⯈ tests/proof/bad/enums-nonbool-empty.catala_en:5.7-5.8:
 └─┐

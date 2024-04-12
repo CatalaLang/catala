@@ -16,8 +16,8 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-This constructor name is ambiguous, it can belong to E or F. Desambiguate it by prefixing it with the enum name.
+[ERROR] This constructor name is ambiguous, it can belong to E or F.
+  Disambiguate it by prefixing it with the enum name.
 
 ┌─⯈ tests/enum/bad/ambiguous_cases.catala_en:14.23-14.28:
 └──┐

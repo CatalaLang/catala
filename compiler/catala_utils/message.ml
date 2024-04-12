@@ -145,19 +145,13 @@ module Content = struct
     content @ [Position { pos = position; pos_message = message }]
 
   let of_string (s : string) : t =
-    [
-      MainMessage
-        (fun ppf ->
-          Format.pp_open_hovbox ppf 0;
-          Format.pp_print_text ppf s;
-          Format.pp_close_box ppf ());
-    ]
+    [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
   let emit (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human ->
       let ppf = get_ppf target in
-      Format.pp_open_hvbox ppf 0;
+      Format.pp_open_vbox ppf 0;
       Format.pp_print_list
         ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
         (fun ppf -> function
@@ -167,14 +161,9 @@ module Content = struct
               pos.pos_message;
             Pos.format_loc_text ppf pos.pos
           | MainMessage msg ->
-            Format.fprintf ppf "%t%t%t" (pp_marker target)
-              (fun ppf ->
-                match target with
-                | Result | Error -> Format.pp_print_space ppf ()
-                | _ -> Format.pp_print_char ppf ' ')
-              msg
+            Format.fprintf ppf "@[<hov 2>%t %t@]" (pp_marker target) msg
           | Outcome msg ->
-            Format.fprintf ppf "@[<hv>%t@ %t@]" (pp_marker target) msg
+            Format.fprintf ppf "@[<hov>%t@ %t@]" (pp_marker target) msg
           | Suggestion suggestions_list ->
             Suggestions.format ppf suggestions_list)
         ppf content;

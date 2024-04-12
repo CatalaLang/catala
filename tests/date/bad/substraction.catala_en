@@ -8,9 +8,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR]
-I don't know how to apply operator <= on types date and
-duration
+[ERROR] I don't know how to apply operator <= on types date and duration
 
 ┌─⯈ tests/date/bad/substraction.catala_en:6.23-6.52:
 └─┐

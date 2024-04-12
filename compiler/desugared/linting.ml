@@ -39,8 +39,8 @@ let detect_empty_definitions (p : program) : unit =
           then
             Message.warning
               ~pos:(ScopeDef.get_position scope_def_key)
-              "In scope \"%a\", the variable \"%a\" is declared but never \
-               defined; did you forget something?"
+              "In scope \"%a\",@ the@ variable@ \"%a\"@ is@ declared@ but@ \
+               never@ defined;@ did you forget something?"
               ScopeName.format scope_name Ast.ScopeDef.format scope_def_key)
         scope.scope_defs)
     p.program_root.module_scopes
@@ -95,8 +95,8 @@ let detect_identical_rules (p : program) : unit =
             (fun _ pos ->
               if List.length pos > 1 then
                 Message.warning ~extra_pos:pos
-                  "These %s have identical justifications and consequences; is \
-                   it a mistake?"
+                  "These %s have identical justifications@ and@ consequences;@ \
+                   is it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
                    else "definitions"))
             rules_seen)
@@ -155,7 +155,7 @@ let detect_unused_struct_fields (p : program) : unit =
         then
           Message.warning
             ~pos:(snd (StructName.get_info s_name))
-            "The structure \"%a\" is never used; maybe it's unnecessary?"
+            "The structure@ \"%a\"@ is@ never@ used;@ maybe it's unnecessary?"
             StructName.format s_name
         else
           StructField.Map.iter
@@ -166,8 +166,8 @@ let detect_unused_struct_fields (p : program) : unit =
               then
                 Message.warning
                   ~pos:(snd (StructField.get_info field))
-                  "The field \"%a\" of struct @{<yellow>\"%a\"@} is never \
-                   used; maybe it's unnecessary?"
+                  "The field@ \"%a\"@ of@ struct@ @{<yellow>\"%a\"@}@ is@ \
+                   never@ used;@ maybe it's unnecessary?"
                   StructField.format field StructName.format s_name)
             fields)
       p.program_ctx.ctx_structs
@@ -213,7 +213,7 @@ let detect_unused_enum_constructors (p : program) : unit =
         then
           Message.warning
             ~pos:(snd (EnumName.get_info e_name))
-            "The enumeration \"%a\" is never used; maybe it's unnecessary?"
+            "The enumeration@ \"%a\"@ is@ never@ used;@ maybe it's unnecessary?"
             EnumName.format e_name
         else
           EnumConstructor.Map.iter
@@ -223,8 +223,8 @@ let detect_unused_enum_constructors (p : program) : unit =
               then
                 Message.warning
                   ~pos:(snd (EnumConstructor.get_info constructor))
-                  "The constructor \"%a\" of enumeration \"%a\" is never used; \
-                   maybe it's unnecessary?"
+                  "The constructor@ \"%a\"@ of@ enumeration@ \"%a\"@ is@ \
+                   never@ used;@ maybe it's unnecessary?"
                   EnumConstructor.format constructor EnumName.format e_name)
             constructors)
       p.program_ctx.ctx_enums
@@ -268,8 +268,8 @@ let detect_dead_code (p : program) : unit =
       let emit_unused_warning vx =
         Message.warning
           ~pos:(Mark.get (Dependency.Vertex.info vx))
-          "Unused varible: %a does not contribute to computing any of scope %a \
-           outputs. Did you forget something?"
+          "Unused varible:@ %a@ does@ not@ contribute@ to@ computing@ any@ of@ \
+           scope@ %a@ outputs.@ Did you forget something?"
           Dependency.Vertex.format vx ScopeName.format scope_name
       in
       Dependency.ScopeDependencies.iter_vertex

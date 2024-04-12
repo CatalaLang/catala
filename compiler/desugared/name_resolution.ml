@@ -396,6 +396,7 @@ let process_data_decl
                       (Ident.Map.find state_id_name states_idmap
                       |> StateName.get_info) );
                 ]
+              "%a" Format.pp_print_text
               "There are two states with the same name for the same variable: \
                this is ambiguous. Please change the name of either states.";
           let state_uid = StateName.fresh state_id in
@@ -431,8 +432,8 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
   if sdecl.struct_decl_fields = [] then
     Message.error
       ~pos:(Mark.get sdecl.struct_decl_name)
-      "The struct %s does not have any fields; give it some for Catala to be \
-       able to accept it."
+      "The struct@ %s@ does@ not@ have@ any@ fields;@ give it some for Catala \
+       to be able to accept it."
       (Mark.remove sdecl.struct_decl_name);
   List.fold_left
     (fun ctxt (fdecl, _) ->
@@ -476,8 +477,8 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
   if List.length edecl.enum_decl_cases = 0 then
     Message.error
       ~pos:(Mark.get edecl.enum_decl_name)
-      "The enum %s does not have any cases; give it some for Catala to be able \
-       to accept it."
+      "The enum@ %s@ does@ not@ have@ any@ cases;@ give it some for Catala to \
+       be able to accept it."
       (Mark.remove edecl.enum_decl_name);
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
@@ -777,7 +778,7 @@ let get_def_key
                   "", Mark.get state;
                   "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
                 ]
-              "This identifier is not a state declared for variable %a."
+              "This identifier is not a state declared for variable@ %a."
               ScopeVar.format x_uid)
         | None ->
           if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
@@ -787,8 +788,8 @@ let get_def_key
                   "", Mark.get x;
                   "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
                 ]
-              "This definition does not indicate which state has to be \
-               considered for variable %a."
+              "This definition does not indicate which state has to@ be@ \
+               considered@ for@ variable@ %a."
               ScopeVar.format x_uid
           else None) )
   | [y; x] ->
@@ -796,17 +797,17 @@ let get_def_key
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u, _)) -> v, u
       | Some _ ->
-        Message.error ~pos "Invalid definition, %a is not a subscope"
+        Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
           Print.lit_style (Mark.remove y)
       | None ->
-        Message.error ~pos "No definition found for subscope %a" Print.lit_style
-          (Mark.remove y)
+        Message.error ~pos "No definition found for subscope@ %a"
+          Print.lit_style (Mark.remove y)
     in
     let var_within_origin_scope = get_var_uid name ctxt x in
     ( (subscope_var, pos),
       Ast.ScopeDef.SubScopeInput { name; var_within_origin_scope } )
   | _ ->
-    Message.error ~pos
+    Message.error ~pos "%a" Format.pp_print_text
       "This line is defining a quantity that is neither a scope variable nor a \
        subscope variable. In particular, it is not possible to define struct \
        fields individually in Catala."

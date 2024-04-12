@@ -13,9 +13,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck
-[ERROR]
-The name of this constructor has not been defined before
-(it's probably a typographical error).
+[ERROR] The name of this constructor has not been defined before
+  (it's probably a typographical error).
 
 Here is your code :
 ┌─⯈ tests/enum/bad/wrong_cons.catala_en:11.23-11.28:
