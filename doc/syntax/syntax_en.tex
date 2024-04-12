@@ -123,7 +123,8 @@
 \renewcommand{\baselinestretch}{0.9}
 
 % Set up the interline space in tables
-\renewcommand{\arraystretch}{0.0}
+\renewcommand{\arraystretch}{0}
+\linespread{0.85}
 
 % https://github.com/gpoore/minted/issues/82
 \makeatletter
@@ -137,9 +138,13 @@
 \setlength{\columnsep}{12pt}
 \setlength{\columnseprule}{.1pt}
 
+%
+% NOTE: all examples should be kept in sync with the `syntax_en.catala_en` file
+%
+
 \begin{document}
 
-\makeheader{\MakeUppercase{The Catala Syntax} \hspace{2em}\small english version}{v0.8.0}{1}
+\makeheader{\MakeUppercase{The Catala Syntax} \hspace{2em}\small english version}{v0.10.0}{1}
 % warning: this is repeated for p.2
 % \begin{center}
 %   2022-12-15
@@ -169,16 +174,20 @@
   Heading
   \\
   \begin{catala}
-    ```catala
-    ```
+    ```catala      ```catala-metadata
+    ```            ```
   \end{catala}
-  & Code block
+  & Code / metadata block
   \\
   \begin{catala}
-    ```catala-metadata
-    ```
+    > Module Mdl
   \end{catala}
-  & Metadata block
+  & Module declaration
+  \\
+  \begin{catala}
+    > Using Mdl as M
+  \end{catala}
+  & Module import w/ alias
   \\
   \begin{catala}
     > Include: foo.catala_en
@@ -207,7 +216,7 @@
   \\
   \begin{catala}
     ```catala
-    65536
+    65,536
     ```
   \end{catala}
   & \begin{catala}
@@ -237,12 +246,10 @@
     money
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
-    |2021-01-31|
+    |2024-04-01|
     ```
   \end{catala}
   & \begin{catala}
@@ -250,12 +257,10 @@
     date
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
-    254 day 4 month 1 year
+    254 day      4 month      1 year
     ```
   \end{catala}
   & \begin{catala}
@@ -263,9 +268,7 @@
     duration
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
     [ 12; 24; 36 ]
@@ -276,9 +279,18 @@
     list of integer
     ```
   \end{catala}
-
   \\
-  
+  \begin{catala}
+    ```catala
+    (|2024-04-01|, $30, 1%)
+    ```
+  \end{catala}
+  & \begin{catala}
+    ```catala
+    (date,money,decimal)
+    ```
+  \end{catala}
+  \\
   \begin{catala}
     ```catala
     f of x, y equals
@@ -321,70 +333,64 @@
   \\
 \end{tabular}
 
-\section{Expressions}
+\section{Operators and built-ins}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    let x equals 36 - 5 in ...
+    not a        a and b
+    a or b       # "or otherwise"
+    a xor b      # exclusive or
     ```
   \end{catala}
-  & Local definition
+  & Logical operators
   \\
   \begin{catala}
     ```catala
-    match expr with pattern
-    -- Case1 of x : ...
-    -- Case2 : ...
-    -- anything : ...
+    - a          a + b        a - b
+    a * b        a / b
     ```
   \end{catala}
-  & Pattern matching
+  & Arithmetic
   \\
   \begin{catala}
     ```catala
-    expr with pattern Case1
-    expr with pattern Case1 of x
-         and x >= 2
+    a = b        a < b        a <= b
+    a != b       a > b        a >= b
     ```
   \end{catala}
-  & Pattern test\newline and optional binding
+  & Comparison
   \\
   \begin{catala}
     ```catala
-    struc1.fld2
+    decimal of 44
+    money of 23.15
     ```
   \end{catala}
-  & Field access
+  & Conversions
   \\
   \begin{catala}
     ```catala
-    f of $44.50, 1/3
+    round of $9.99
     ```
   \end{catala}
-  & Function call
+  & Rounding
   \\
   \begin{catala}
     ```catala
-    sub1.var0
+    get_day of ...    get_month of ...
+    get_year of ...
     ```
   \end{catala}
-  & Subscope variable
+  & Date parts
   \\
   \begin{catala}
     ```catala
-    output of Scope1 with
-      { -- fld1: 9 -- fld2: 15% }
+    a +! b   a +. b   a +$ b   a +^ b
+    # int.   decimal  money    duration
     ```
   \end{catala}
-  & Direct scope call
-  \\
-  \begin{catala}
-    ```catala
-    if ... then ... else ...
-    ```
-  \end{catala}
-  & Conditional
+  & Explicitly typed operators
   \\
 \end{tabular}
 
@@ -392,7 +398,6 @@
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
 
-  
   \begin{catala}
     ```catala
     declaration structure Struct1:
@@ -428,6 +433,7 @@
       input output var5 content ...
       context var6 content ...
       context output var7 content ...
+      output sub2 scope Scope0
     ```
   \end{catala}
   & Input-output qualifiers
@@ -440,14 +446,6 @@
     ```
   \end{catala}
   & State transitions declaration
-  \\
-  \begin{catala}
-    ```catala
-      date round increasing
-            # or decreasing
-    ```
-  \end{catala}
-  & Define date rounding mode
   \\
   \begin{catala}
     ```catala
@@ -468,69 +466,78 @@
   \\
 \end{tabular}
 
-\section{Operators and built-ins}
+\section{Expressions}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    not a        a and b
-    a or b       # "or otherwise"
-    a xor b      # exclusive or
+    let x equals 36 - 5 in ...
     ```
   \end{catala}
-  & Logical operators
+  & Local definition
   \\
   \begin{catala}
     ```catala
-    - a          a + b        a - b
-    a * b        a / b
+    match expr with pattern
+    -- Case1 of x : ...
+    -- Case2 : ...
+    -- anything : ...
     ```
   \end{catala}
-  & Arithmetic
-  \\
-  
-  \begin{catala}
-    ```catala
-    a = b        a != b
-    a > b        a < b
-    a >= b       a <= b
-    ```
-  \end{catala}
-  & Comparison
+  & Pattern matching
   \\
   \begin{catala}
     ```catala
-    decimal of 44
-    money of 23.15
+    expr with pattern Case1
+    expr with pattern Case1 of x
+         and x >= 2
     ```
   \end{catala}
-  & Conversions
+  & Pattern test\newline and optional binding
   \\
   \begin{catala}
     ```catala
-    round of $9.99
+    struc1 but replace { -- fld2: 8% }
     ```
   \end{catala}
-  & Rounding
+  & Field replacement
   \\
   \begin{catala}
     ```catala
-    get_day of ...
-    get_month of ...
-    get_year of ...
+    struc1.fld2         tuple1.2
+    sub1.var0
     ```
   \end{catala}
-  & Date parts
+  & Field, tuple element, subscope variable
   \\
   \begin{catala}
     ```catala
-    a +! b    # integer
-    a +. b    # decimal
-    a +$ b    # money
-    a +^ b    # duration
+    f of $44.50, 1/3
     ```
   \end{catala}
-  & Explicitly typed operators
+  & Function call
+  \\
+  \begin{catala}
+    ```catala
+    output of Scope1 with
+      { -- fld1: 9 -- fld2: 15% }
+    ```
+  \end{catala}
+  & Direct scope call
+  \\
+  \begin{catala}
+    ```catala
+    if ... then ... else ...
+    ```
+  \end{catala}
+  & Conditional
+  \\
+  \begin{catala}
+    ```catala
+    var1 state before
+    ```
+  \end{catala}
+  & Variable state access
   \\
 \end{tabular}
 
@@ -630,85 +637,94 @@
   \end{catala}
   & Assertion
   \\
+  \begin{catala}
+    ```catala
+    date round decreasing
+    ```
+  \end{catala}
+  & Date rounding mode
+  \\
 \end{tabular}
+
+\vfill
 
 \section{List operations}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    coll contains 3
+    lst contains 3
     ```
   \end{catala}
   & Presence test
   \\
   \begin{catala}
     ```catala
-    number of coll
-    ```
-  \end{catala}
-  & Cardinal
-  \\
-  \begin{catala}
-    ```catala
-    exists x among coll such that x >= 2
+    exists x among lst such that x > 2
     ```
   \end{catala}
   & Existence test
   \\
   \begin{catala}
     ```catala
-    for all x among coll we have x >= 2
+    for all x among lst we have x > 2
     ```
   \end{catala}
   & For all test
   \\
   \begin{catala}
     ```catala
-    (x + 2) for x among coll
+    x + 2 for x among lst
     ```
   \end{catala}
   & Mapping
   \\
   \begin{catala}
     ```catala
-    x among coll such that x >= 2
+    list of x among lst such that x > 2
     ```
   \end{catala}
   & Filter
   \\
   \begin{catala}
     ```catala
-    (x - 2) for x among coll
-            such that x >= 2
+    x - 2 for x among lst
+      such that x > 2
     ```
   \end{catala}
   & Filter + map
   \\
   \begin{catala}
     ```catala
-    coll1 ++ coll2
+    x + y for (x, y) among (lst1, lst2)
+    ```
+  \end{catala}
+  & Multiple mapping
+  \\
+  \begin{catala}
+    ```catala
+    lst1 ++ lst2
     ```
   \end{catala}
   & Merge
   \\
   \begin{catala}
     ```catala
-    sum integer coll
+    sum integer of lst
     ```
   \end{catala}
   & Aggregation
   \\
   \begin{catala}
     ```catala
-    number of coll
+    number of lst
     ```
   \end{catala}
   & Count
   \\
   \begin{catala}
     ```catala
-    maximum of coll
+    maximum of lst
       or if list empty then -1
     ```
   \end{catala}
@@ -716,7 +732,7 @@
   \\
   \begin{catala}
     ```catala
-    x among coll
+    content of x among lst
       such that (x * x) is minimum
       or if list empty then -1
     ```
