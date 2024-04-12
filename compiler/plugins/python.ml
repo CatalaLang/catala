@@ -39,9 +39,8 @@ let run
   in
 
   let output_file, with_output = get_output_format options ~ext:".py" output in
-  Message.emit_debug "Compiling program into Python...";
-  Message.emit_debug "Writing to %s..."
-    (Option.value ~default:"stdout" output_file);
+  Message.debug "Compiling program into Python...";
+  Message.debug "Writing to %s..." (Option.value ~default:"stdout" output_file);
   with_output @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
 
 let term =

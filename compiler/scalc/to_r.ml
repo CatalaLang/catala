@@ -339,7 +339,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
   | EAppOp { op = HandleDefaultOpt; _ } ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "R compilation does not currently support the avoiding of exceptions"
   | EAppOp { op = HandleDefault as op; args; _ } ->
     let pos = Mark.get e in

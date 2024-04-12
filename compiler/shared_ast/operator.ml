@@ -548,15 +548,15 @@ let resolve_overload ctx (op : overloaded t Mark.pos) (operands : typ list) :
     in
     resolve_overload_aux (Mark.remove op) operands
   with Not_found ->
-    Message.raise_multispanned_error
-      ((None, Mark.get op)
-      :: List.map
-           (fun ty ->
-             ( Some
-                 (Format.asprintf "Type %a coming from expression:"
-                    (Print.typ ctx) ty),
-               Mark.get ty ))
-           operands)
+    Message.error
+      ~extra_pos:
+        (("", Mark.get op)
+        :: List.map
+             (fun ty ->
+               ( Format.asprintf "Type %a coming from expression:"
+                   (Print.typ ctx) ty,
+                 Mark.get ty ))
+             operands)
       "I don't know how to apply operator %a on types %a"
       (Print.operator ~debug:true)
       (Mark.remove op)

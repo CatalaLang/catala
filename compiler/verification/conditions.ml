@@ -115,7 +115,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     match Mark.remove body with
     | EErrorOnEmpty e -> e
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "Internal error: this expression does not have the structure expected \
          by the VC generator:\n\
          %a"
@@ -300,7 +300,7 @@ let rec generate_verification_conditions_scope_body_expr
           let e = match_and_ignore_outer_reentrant_default ctx e in
           ctx, [], [e]
         | _ ->
-          Message.raise_spanned_error (Expr.pos e)
+          Message.error ~pos:(Expr.pos e)
             "Internal error: this assertion does not have the structure \
              expected by the VC generator:\n\
              %a"

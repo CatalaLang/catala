@@ -16,7 +16,7 @@ let () =
          let language =
            try List.assoc (String.lowercase_ascii language) Cli.languages
            with Not_found ->
-             Message.raise_error "Unrecognised input locale %S" language
+             Message.error "Unrecognised input locale %S" language
          in
          let options =
            Global.enforce_options

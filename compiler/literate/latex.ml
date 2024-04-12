@@ -339,5 +339,4 @@ let ast_to_latex
       Format.pp_print_cut fmt ())
     program.program_items;
   Format.pp_close_box fmt ();
-  Message.emit_debug "Lines of Catala inside literate source code: %d"
-    !lines_of_code
+  Message.debug "Lines of Catala inside literate source code: %d" !lines_of_code

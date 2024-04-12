@@ -118,8 +118,8 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
       (fun glo_name (expr, _) g ->
         let used_defs = expr_used_defs expr in
         if VMap.mem (Topdef glo_name) used_defs then
-          Message.raise_spanned_error
-            (Mark.get (TopdefName.get_info glo_name))
+          Message.error
+            ~pos:(Mark.get (TopdefName.get_info glo_name))
             "The Topdef %a has a definition that refers to itself, which is \
              forbidden since Catala does not provide recursion"
             TopdefName.format glo_name;
@@ -136,8 +136,8 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
         (fun g rule ->
           let used_defs = rule_used_defs rule in
           if VMap.mem (Scope scope_name) used_defs then
-            Message.raise_spanned_error
-              (Mark.get (ScopeName.get_info scope.Ast.scope_decl_name))
+            Message.error
+              ~pos:(Mark.get (ScopeName.get_info scope.Ast.scope_decl_name))
               "The scope %a is calling into itself as a subscope, which is \
                forbidden since Catala does not provide recursion"
               ScopeName.format scope.Ast.scope_decl_name;
@@ -187,11 +187,11 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
               SVertex.format v1 SVertex.format v2
           in
           let _, edge_pos, _ = SDependencies.find_edge g v1 v2 in
-          Some msg, edge_pos)
+          msg, edge_pos)
         cycle
         (List.tl cycle @ [List.hd cycle])
     in
-    Message.raise_multispanned_error spans
+    Message.error ~extra_pos:spans
       "@[<hov 2>Cyclic dependency detected between the following scopes:@ \
        @[<hv>%a@]@]"
       (Format.pp_print_list
@@ -282,7 +282,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Message.raise_spanned_error (Mark.get typ)
+                  Message.error ~pos:(Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format used
@@ -304,7 +304,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Message.raise_spanned_error (Mark.get typ)
+                  Message.error ~pos:(Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format used
@@ -338,15 +338,13 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
               in
               let succ_str = Format.asprintf "%a" TVertex.format succ in
               [
-                Some ("Cycle type " ^ var_str ^ ", declared:"), Mark.get var_info;
-                ( Some
-                    ("Used here in the definition of another cycle type "
-                    ^ succ_str
-                    ^ ":"),
+                "Cycle type " ^ var_str ^ ", declared:", Mark.get var_info;
+                ( "Used here in the definition of another cycle type "
+                  ^ succ_str
+                  ^ ":",
                   edge_pos );
               ])
             scc)
      in
-     Message.raise_multispanned_error spans
-       "Cyclic dependency detected between types!");
+     Message.error ~extra_pos:spans "Cyclic dependency detected between types!");
   List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])

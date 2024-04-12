@@ -38,11 +38,11 @@ let rec translate_typ (tau : typ) : typ =
       | TStruct s -> TStruct s
       | TEnum en -> TEnum en
       | TOption _ ->
-        Message.raise_internal_error
+        Message.error ~internal:true
           "The types option should not appear before the dcalc -> lcalc \
            translation step."
       | TClosureEnv ->
-        Message.raise_internal_error
+        Message.error ~internal:true
           "The types closure_env should not appear before the dcalc -> lcalc \
            translation step."
       | TAny -> TAny

@@ -70,7 +70,7 @@ let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
   | false ->
-    Message.raise_error "Directory %a exists but is not a directory" format dir
+    Message.error "Directory %a exists but is not a directory" format dir
   | exception Sys_error _ ->
     let pdir = parent dir in
     if pdir <> dir then ensure_dir pdir;
@@ -200,7 +200,7 @@ let get_command t =
 let check_exec t =
   try if String.contains t dir_sep_char then Unix.realpath t else get_command t
   with Unix.Unix_error _ | Sys_error _ ->
-    Message.raise_error
+    Message.error
       "Could not find the @{<yellow>%s@} program, please fix your installation"
       (Filename.quote t)
 
@@ -238,7 +238,7 @@ let scan_tree f t =
   let is_dir t =
     try Sys.is_directory t
     with Sys_error _ ->
-      Message.emit_debug "Cannot read %s, skipping" t;
+      Message.debug "Cannot read %s, skipping" t;
       false
   in
   let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in

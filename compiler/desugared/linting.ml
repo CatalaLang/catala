@@ -37,8 +37,8 @@ let detect_empty_definitions (p : program) : unit =
             | NoInput -> true
             | _ -> false
           then
-            Message.emit_spanned_warning
-              (ScopeDef.get_position scope_def_key)
+            Message.warning
+              ~pos:(ScopeDef.get_position scope_def_key)
               "In scope \"%a\", the variable \"%a\" is declared but never \
                defined; did you forget something?"
               ScopeName.format scope_name Ast.ScopeDef.format scope_def_key)
@@ -82,7 +82,7 @@ let detect_identical_rules (p : program) : unit =
                 RuleExpressionsMap.update rule
                   (fun l ->
                     let x =
-                      ( None,
+                      ( "",
                         Pos.overwrite_law_info
                           (snd (RuleName.get_info rule.rule_id))
                           (Pos.get_law_info (Expr.pos rule.rule_just)) )
@@ -94,7 +94,7 @@ let detect_identical_rules (p : program) : unit =
           RuleExpressionsMap.iter
             (fun _ pos ->
               if List.length pos > 1 then
-                Message.emit_multispanned_warning pos
+                Message.warning ~extra_pos:pos
                   "These %s have identical justifications and consequences; is \
                    it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
@@ -153,8 +153,8 @@ let detect_unused_struct_fields (p : program) : unit =
                  && not (StructField.Set.mem field scope_out_structs_fields))
                fields
         then
-          Message.emit_spanned_warning
-            (snd (StructName.get_info s_name))
+          Message.warning
+            ~pos:(snd (StructName.get_info s_name))
             "The structure \"%a\" is never used; maybe it's unnecessary?"
             StructName.format s_name
         else
@@ -164,8 +164,8 @@ let detect_unused_struct_fields (p : program) : unit =
                 (not (StructField.Set.mem field struct_fields_used))
                 && not (StructField.Set.mem field scope_out_structs_fields)
               then
-                Message.emit_spanned_warning
-                  (snd (StructField.get_info field))
+                Message.warning
+                  ~pos:(snd (StructField.get_info field))
                   "The field \"%a\" of struct @{<yellow>\"%a\"@} is never \
                    used; maybe it's unnecessary?"
                   StructField.format field StructName.format s_name)
@@ -211,8 +211,8 @@ let detect_unused_enum_constructors (p : program) : unit =
               not (EnumConstructor.Set.mem cons enum_constructors_used))
             constructors
         then
-          Message.emit_spanned_warning
-            (snd (EnumName.get_info e_name))
+          Message.warning
+            ~pos:(snd (EnumName.get_info e_name))
             "The enumeration \"%a\" is never used; maybe it's unnecessary?"
             EnumName.format e_name
         else
@@ -221,8 +221,8 @@ let detect_unused_enum_constructors (p : program) : unit =
               if
                 not (EnumConstructor.Set.mem constructor enum_constructors_used)
               then
-                Message.emit_spanned_warning
-                  (snd (EnumConstructor.get_info constructor))
+                Message.warning
+                  ~pos:(snd (EnumConstructor.get_info constructor))
                   "The constructor \"%a\" of enumeration \"%a\" is never used; \
                    maybe it's unnecessary?"
                   EnumConstructor.format constructor EnumName.format e_name)
@@ -266,8 +266,8 @@ let detect_dead_code (p : program) : unit =
       in
       let is_alive = Reachability.analyze is_alive scope_dependencies in
       let emit_unused_warning vx =
-        Message.emit_spanned_warning
-          (Mark.get (Dependency.Vertex.info vx))
+        Message.warning
+          ~pos:(Mark.get (Dependency.Vertex.info vx))
           "Unused varible: %a does not contribute to computing any of scope %a \
            outputs. Did you forget something?"
           Dependency.Vertex.format vx ScopeName.format scope_name

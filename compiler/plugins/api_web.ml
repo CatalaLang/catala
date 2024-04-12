@@ -308,7 +308,7 @@ module To_jsoo = struct
              (fun fmt (cname, typ) ->
                match Mark.remove typ with
                | TTuple _ ->
-                 Message.raise_spanned_error (Mark.get typ)
+                 Message.error ~pos:(Mark.get typ)
                    "Tuples aren't yet supported in the conversion to JS..."
                | TLit TUnit ->
                  Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
@@ -485,7 +485,7 @@ let run
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output
   in
   with_formatter (fun fmt ->
-      Message.emit_debug "Writing JSOO API code to %s..."
+      Message.debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
       let modname =
         match prg.module_name with

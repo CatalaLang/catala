@@ -74,7 +74,7 @@ let unformat (f : Format.formatter -> unit) : string =
 
 (**{2 Message types and output helpers *)
 
-type content_type = Error | Warning | Debug | Log | Result
+type level = Error | Warning | Debug | Log | Result
 
 let get_ppf = function
   | Result -> Lazy.force std_ppf
@@ -121,12 +121,12 @@ module Content = struct
     | MainMessage of message
     | Position of position
     | Suggestion of string list
-    | Result of message
+    | Outcome of message
 
   type t = message_element list
 
   let of_message (message : message) : t = [MainMessage message]
-  let of_result (message : message) : t = [Result message]
+  let of_result (message : message) : t = [Outcome message]
   let prepend_message (content : t) prefix : t = MainMessage prefix :: content
 
   let to_internal_error (content : t) : t =
@@ -140,40 +140,46 @@ module Content = struct
   let add_suggestion (content : t) (suggestion : string list) =
     content @ [Suggestion suggestion]
 
-  let add_position
-      (content : t)
-      ?(message : message option = None)
-      (position : Pos.t) =
+  let add_position (content : t) ?(message : message option) (position : Pos.t)
+      =
     content @ [Position { pos = position; pos_message = message }]
 
   let of_string (s : string) : t =
-    [MainMessage (fun ppf -> Format.pp_print_string ppf s)]
+    [
+      MainMessage
+        (fun ppf ->
+          Format.pp_open_hovbox ppf 0;
+          Format.pp_print_text ppf s;
+          Format.pp_close_box ppf ());
+    ]
 
-  let emit (content : t) (target : content_type) : unit =
+  let emit (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human ->
       let ppf = get_ppf target in
-      Format.fprintf ppf "@[<hv>%t%t%a@]@." (pp_marker target)
-        (fun (ppf : Format.formatter) ->
-          match content, target with
-          | MainMessage _ :: _, (Result | Error) -> Format.pp_print_space ppf ()
-          | _ -> Format.pp_print_char ppf ' ')
-        (fun (ppf : Format.formatter) (message_elements : t) ->
-          Format.pp_print_list
-            ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
-            (fun ppf (elt : message_element) ->
-              match elt with
-              | Position pos ->
-                Option.iter
-                  (fun msg -> Format.fprintf ppf "%t@," msg)
-                  pos.pos_message;
-                Pos.format_loc_text ppf pos.pos
-              | MainMessage msg -> msg ppf
-              | Result msg -> msg ppf
-              | Suggestion suggestions_list ->
-                Suggestions.format ppf suggestions_list)
-            ppf message_elements)
-        content
+      Format.pp_open_hvbox ppf 0;
+      Format.pp_print_list
+        ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
+        (fun ppf -> function
+          | Position pos ->
+            Option.iter
+              (fun msg -> Format.fprintf ppf "@[<hov>%t@]@," msg)
+              pos.pos_message;
+            Pos.format_loc_text ppf pos.pos
+          | MainMessage msg ->
+            Format.fprintf ppf "%t%t%t" (pp_marker target)
+              (fun ppf ->
+                match target with
+                | Result | Error -> Format.pp_print_space ppf ()
+                | _ -> Format.pp_print_char ppf ' ')
+              msg
+          | Outcome msg ->
+            Format.fprintf ppf "@[<hv>%t@ %t@]" (pp_marker target) msg
+          | Suggestion suggestions_list ->
+            Suggestions.format ppf suggestions_list)
+        ppf content;
+      Format.pp_close_box ppf ();
+      Format.pp_print_newline ppf ()
     | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
@@ -207,7 +213,7 @@ module Content = struct
                 match pos_message with Some m -> m | None -> fun _ -> ()
               in
               Some pos, message
-            | Result m -> None, m
+            | Outcome m -> None, m
             | Suggestion sl -> None, fun ppf -> Suggestions.format ppf sl
           in
           Option.iter
@@ -229,92 +235,65 @@ exception CompilerError of Content.t
 
 (** {1 Error printing} *)
 
-let raise_spanned_error
-    ?(span_msg : Content.message option)
-    ?(suggestion = ([] : string list))
-    (span : Pos.t)
-    format =
-  let continuation (message : Format.formatter -> unit) =
-    raise
-      (CompilerError
-         ([MainMessage message; Position { pos_message = span_msg; pos = span }]
-         @ match suggestion with [] -> [] | sugg -> [Suggestion sugg]))
+type ('a, 'b) emitter =
+  ?header:Content.message ->
+  ?internal:bool ->
+  ?pos:Pos.t ->
+  ?pos_msg:Content.message ->
+  ?extra_pos:(string * Pos.t) list ->
+  ?fmt_pos:(Content.message * Pos.t) list ->
+  ?suggestion:string list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
+
+let make
+    ?header
+    ?(internal = false)
+    ?pos
+    ?pos_msg
+    ?extra_pos
+    ?fmt_pos
+    ?(suggestion = [])
+    ~cont
+    ~level =
+  Format.kdprintf
+  @@ fun message ->
+  let t =
+    match level with Result -> of_result message | _ -> of_message message
   in
-  Format.kdprintf continuation format
+  let t = match header with Some h -> prepend_message t h | None -> t in
+  let t = if internal then to_internal_error t else t in
+  let t =
+    match pos with Some p -> add_position t ?message:pos_msg p | None -> t
+  in
+  let t =
+    match extra_pos with
+    | Some pl ->
+      List.fold_left
+        (fun t (message, p) ->
+          let message =
+            if message = "" then None
+            else Some (fun ppf -> Format.pp_print_text ppf message)
+          in
+          add_position t ?message p)
+        t pl
+    | None -> t
+  in
+  let t =
+    match fmt_pos with
+    | Some pl ->
+      List.fold_left
+        (fun t (message, p) ->
+          let message = if message == ignore then None else Some message in
+          add_position t ?message p)
+        t pl
+    | None -> t
+  in
+  let t = match suggestion with [] -> t | s -> add_suggestion t s in
+  cont t level
 
-let raise_multispanned_error_full
-    ?(suggestion = ([] : string list))
-    (spans : (Content.message option * Pos.t) list)
-    format =
-  Format.kdprintf
-    (fun message ->
-      raise
-        (CompilerError
-           (MainMessage message
-            :: List.map
-                 (fun (pos_message, pos) -> Position { pos_message; pos })
-                 spans
-           @ match suggestion with [] -> [] | sugg -> [Suggestion sugg])))
-    format
-
-let raise_multispanned_error
-    ?(suggestion = ([] : string list))
-    (spans : (string option * Pos.t) list)
-    format =
-  raise_multispanned_error_full ~suggestion
-    (List.map
-       (fun (msg, pos) ->
-         Option.map (fun s ppf -> Format.pp_print_string ppf s) msg, pos)
-       spans)
-    format
-
-let raise_error format =
-  Format.kdprintf
-    (fun message -> raise (CompilerError [MainMessage message]))
-    format
-
-let raise_internal_error format =
-  Format.kdprintf
-    (fun message ->
-      raise (CompilerError (Content.to_internal_error [MainMessage message])))
-    format
-
-(** {1 Warning printing}*)
-
-let assert_internal_error condition fmt =
-  if condition then raise_internal_error ("assertion failed: " ^^ fmt)
-  else Format.ifprintf (Format.formatter_of_out_channel stdout) fmt
-
-let emit_multispanned_warning
-    (pos : (Content.message option * Pos.t) list)
-    format =
-  Format.kdprintf
-    (fun message ->
-      Content.emit
-        (MainMessage message
-        :: List.map
-             (fun (pos_message, pos) -> Position { pos_message; pos })
-             pos)
-        Warning)
-    format
-
-let emit_spanned_warning
-    ?(span_msg : Content.message option)
-    (span : Pos.t)
-    format =
-  emit_multispanned_warning [span_msg, span] format
-
-let emit_warning format = emit_multispanned_warning [] format
-
-let emit_log format =
-  Format.kdprintf (fun message -> Content.emit [MainMessage message] Log) format
-
-let emit_debug format =
-  Format.kdprintf
-    (fun message -> Content.emit [MainMessage message] Debug)
-    format
-
-let emit_result format =
-  Format.kdprintf
-    (fun message -> Content.emit [MainMessage message] Result)
-    format
+let debug = make ~level:Debug ~cont:emit
+let log = make ~level:Log ~cont:emit
+let result = make ~level:Result ~cont:emit
+let warning = make ~level:Warning ~cont:emit
+let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))

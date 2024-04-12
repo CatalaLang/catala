@@ -136,7 +136,7 @@ let lident :=
 | i = LIDENT ; {
   match Localisation.lex_builtin i with
   | Some _ ->
-      Message.raise_spanned_error
+      Message.error ~pos:
         (Pos.from_lpos $sloc)
         "Reserved builtin name"
   | None ->
@@ -173,7 +173,7 @@ let naked_expression ==
   match Localisation.lex_builtin (Mark.remove id), state with
   | Some b, None -> Builtin b
   | Some _, Some _ ->
-      Message.raise_spanned_error
+      Message.error ~pos:
         (Pos.from_lpos $loc(id))
         "Invalid use of built-in @{<bold>%s@}" (Mark.remove id)
   | None, state -> Ident ([], id, state)
@@ -524,7 +524,7 @@ let scope_item :=
     | Some Round ->
        DateRounding(v), Mark.get v
     | _ ->
-         Message.raise_spanned_error
+         Message.error ~pos:
            (Pos.from_lpos $loc(i))
            "Expected the form 'date round increasing' or 'date round decreasing'"
   }
@@ -563,7 +563,7 @@ let scope_decl_item_attribute ==
   i = lident ; {
   match input, output with
   | (Some Internal, _), (true, pos) ->
-    Message.raise_spanned_error pos
+    Message.error ~pos
       "A variable cannot be declared both 'internal' and 'output'."
   | input, output -> input, output, i
 }
@@ -573,7 +573,7 @@ let scope_decl_item_attribute_mandatory ==
   let in_attr_opt, out_attr, i = attr in
   let in_attr = match in_attr_opt, out_attr with
     | (None, _), (false, _) ->
-      Message.raise_spanned_error (Pos.from_lpos $loc(attr))
+      Message.error ~pos:(Pos.from_lpos $loc(attr))
         "Variable declaration requires input qualification ('internal', \
          'input' or 'context')"
     | (None, pos), (true, _) -> Internal, pos
@@ -612,7 +612,7 @@ let scope_decl_item :=
         scope_decl_context_io_output = out;
       };
     | (Some _, pos), _ ->
-        Message.raise_spanned_error pos
+        Message.error ~pos
           "Scope declaration does not support input qualifiers ('internal', \
            'input' or 'context')"
   in

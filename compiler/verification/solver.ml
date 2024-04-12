@@ -48,5 +48,4 @@ let solve_vc
         else false)
       true z3_vcs
   in
-  if all_proven then
-    Message.emit_result "No errors found during the proof mode run."
+  if all_proven then Message.result "No errors found during the proof mode run."
