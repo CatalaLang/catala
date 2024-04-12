@@ -117,7 +117,7 @@ let eexternal ~name mark = Mark.add mark (Bindlib.box (EExternal { name }))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess ~e ~index ~size =
-  assert (index < size);
+  assert (size = 0 || index < size);
   Box.app1 e @@ fun e -> ETupleAccess { e; index; size }
 
 let earray args = Box.appn args @@ fun args -> EArray args

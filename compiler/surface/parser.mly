@@ -191,6 +191,13 @@ let naked_expression ==
 }
 | e = expression ;
   DOT ; i = addpos(qlident) ; <Dotted>
+| e = expression ; DOT ; arg = addpos(INT_LITERAL) ; {
+  let n_str, pos_n = arg in
+  let n = int_of_string n_str in
+  if n <= 0 then
+    Message.error ~pos:pos_n "Tuple indices must be >= 1";
+  TupleAccess (e, (n, pos_n))
+}
 | CARDINAL ; {
   Builtin Cardinal
 }

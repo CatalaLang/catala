@@ -70,6 +70,9 @@ val expr :
     - disambiguation of constructors: [EDStructAccess] nodes are translated into
       [EStructAccess] with the suitable structure and field idents (this only
       concerns [desugared] expressions).
+    - disambiguation of structure names in [EDStructAmend] nodes ([desugared] as
+      well)
+    - resolution of tuple size (when equal to 0) on [ETupleAccess] nodes
     - resolution of operator types, which are stored (monomorphised) back in the
       [EAppOp] nodes
     - resolution of function application input types on the [EApp] nodes, when

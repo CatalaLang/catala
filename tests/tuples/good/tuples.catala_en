@@ -16,7 +16,7 @@ declaration f2 content decimal
   equals
   match en with pattern
   -- One of str1:
-     let (a, w) equals str.x1 in
+     let a equals str.x1.1 in
      let (b, w) equals str1.x1 in
      a / b
   -- Two of z:
