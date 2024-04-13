@@ -129,7 +129,7 @@ let rec evaluate_operator
       | _ -> assert false
     in
     try f x y with
-    | Division_by_zero ->
+    | Runtime.Division_by_zero ->
       Message.error
         ~extra_pos:
           [
