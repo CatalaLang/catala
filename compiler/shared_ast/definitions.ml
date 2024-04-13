@@ -527,6 +527,12 @@ and ('a, 'b, 'm) base_gexpr =
       args : ('a, 'm) gexpr ScopeVar.Map.t;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
+  | EDStructAmend : {
+      name_opt : StructName.t option;
+      e : ('a, 'm) gexpr;
+      fields : ('a, 'm) gexpr Ident.Map.t;
+    }
+      -> ('a, < syntacticNames : yes ; .. >, 'm) base_gexpr
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;

@@ -559,6 +559,18 @@ let rec translate_expr
       Expr.make_abs (Array.of_list vs) (rec_helper ~local_vars e2) taus pos
     in
     Expr.eapp ~f ~args:[rec_helper e1] ~tys:[] emark
+  | StructReplace (e, fields) ->
+    let fields =
+      List.fold_left
+        (fun acc (field_id, field_expr) ->
+          if Ident.Map.mem (Mark.remove field_id) acc then
+            Message.error ~pos:(Mark.get field_expr)
+              "Duplicate redefinition of field@ %a" Ident.format
+              (Mark.remove field_id);
+          Ident.Map.add (Mark.remove field_id) (rec_helper field_expr) acc)
+        Ident.Map.empty fields
+    in
+    Expr.edstructamend ~fields ~e:(rec_helper e) ~name_opt:None emark
   | StructLit (((path, s_name), _), fields) ->
     let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
