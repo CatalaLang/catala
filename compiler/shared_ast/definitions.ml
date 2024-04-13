@@ -382,7 +382,7 @@ type except =
   | ConflictError of Pos.t list
   | EmptyError
   | NoValueProvided
-  | Crash
+  | Crash of string
 
 (** {2 Markings} *)
 

@@ -350,7 +350,7 @@ let except (fmt : Format.formatter) (exn : except) : unit =
     (match exn with
     | EmptyError -> "EmptyError"
     | ConflictError _ -> "ConflictError"
-    | Crash -> "Crash"
+    | Crash s -> Printf.sprintf "Crash %S" s
     | NoValueProvided -> "NoValueProvided")
 
 let var_debug fmt v =
