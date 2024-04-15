@@ -1090,10 +1090,7 @@ let load_runtime_modules prg =
   let load m =
     let obj_file =
       Dynlink.adapt_filename
-        File.(
-          Pos.get_file (Mark.get (ModuleName.get_info m))
-          /../ ModuleName.to_string m
-          ^ ".cmo")
+        File.(Pos.get_file (Mark.get (ModuleName.get_info m)) -.- "cmo")
     in
     if not (Sys.file_exists obj_file) then
       Message.error
