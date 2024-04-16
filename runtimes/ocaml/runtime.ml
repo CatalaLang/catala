@@ -53,9 +53,34 @@ exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 exception NotSameLength
+exception Division_by_zero (* Shadows the stdlib definition *)
 
-(* TODO: register exception printers for the above
-   (Printexc.register_printer) *)
+(* Register exceptions printers *)
+let () =
+  let pos () p =
+    Printf.sprintf "%s:%d.%d-%d.%d" p.filename p.start_line p.start_column
+      p.end_line p.end_column
+  in
+  let pr fmt = Printf.ksprintf (fun s -> Some s) fmt in
+  Printexc.register_printer
+  @@ function
+  | EmptyError -> pr "A variable couldn't be resolved"
+  | AssertionFailed p -> pr "At %a: Assertion failed" pos p
+  | ConflictError p -> pr "At %a: Conflicting exceptions" pos p
+  | UncomparableDurations -> pr "Ambiguous comparison between durations"
+  | IndivisibleDurations -> pr "Ambiguous division between durations"
+  | ImpossibleDate -> pr "Invalid date"
+  | NoValueProvided p ->
+    pr "At %a: No definition applied to this variable" pos p
+  | NotSameLength -> pr "Attempt to traverse lists of different lengths"
+  | Division_by_zero -> pr "Division by zero"
+  | _ -> None
+
+let () =
+  Printexc.set_uncaught_exception_handler
+  @@ fun exc bt ->
+  Printf.eprintf "[ERROR] %s\n%!" (Printexc.to_string exc);
+  if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt
 
 let round (q : Q.t) : Z.t =
   (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].

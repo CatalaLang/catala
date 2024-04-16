@@ -607,16 +607,16 @@ let[@ocamlformat "disable"] static_base_rules =
 
 let gen_build_statements
     (include_dirs : string list)
-    (same_dir_modules : string list)
+    (same_dir_modules : (string * File.t) list)
     (item : Scan.item) : Nj.ninja =
   let open File in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
   let modules = List.rev item.used_modules in
   let modfile ext modname =
-    if List.mem modname same_dir_modules then
-      (!Var.builddir / src /../ modname) ^ ext
-    else modname ^ ext
+    match List.assoc_opt modname same_dir_modules with
+    | Some f -> (!Var.builddir / Filename.remove_extension f) ^ ext
+    | None -> modname ^ ext
   in
   let inc x = !Var.builddir / x in
   let modd x = modfile "@module" x in
@@ -627,23 +627,14 @@ let gen_build_statements
       ~implicit_in:(List.map inc item.included_files @ List.map modd modules)
       ~outputs:[inc srcv]
   in
+  let target_file ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
   let module_deps =
     Option.map
       (fun m ->
         Nj.build "phony"
-          ~inputs:
-            [
-              inc srcv;
-              (!Var.builddir / src /../ m) ^ ".cmi";
-              (!Var.builddir / src /../ m) ^ ".cmxs";
-            ]
+          ~inputs:[inc srcv; target_file "cmi"; target_file "cmxs"]
           ~outputs:[modd m])
       item.module_def
-  in
-  let target_file ext =
-    match item.module_def with
-    | Some m -> (!Var.builddir / src /../ m) ^ "." ^ ext
-    | None -> (!Var.builddir / !Var.src) ^ "." ^ ext
   in
   let ml_file = target_file "ml" in
   let py_file = target_file "py" in
@@ -667,15 +658,9 @@ let gen_build_statements
   in
   let ocamlopt =
     let obj =
-      let m =
-        match item.module_def with
-        | Some m -> m
-        | None -> Filename.(basename (remove_extension src))
-      in
-      let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-object" ~inputs:[ml_file]
         ~implicit_in:(!Var.catala_exe :: List.map modd modules)
-        ~outputs:(List.map target ["mli"; "cmi"; "cmo"; "cmx"; "cmt"; "o"])
+        ~outputs:(List.map target_file ["mli"; "cmi"; "cmo"; "cmx"; "cmt"; "o"])
         ~vars:
           [
             ( Var.ocaml_flags,
@@ -715,9 +700,9 @@ let gen_build_statements
     !Var.catala_exe
     :: List.map
          (fun m ->
-           if List.mem m same_dir_modules then
-             (!Var.builddir / src /../ m) ^ ".cmxs"
-           else m ^ "@module")
+           match List.assoc_opt m same_dir_modules with
+           | Some f -> (!Var.builddir / Filename.remove_extension f) ^ ".cmxs"
+           | None -> m ^ "@module")
          modules
   in
   let interpret =
@@ -819,7 +804,10 @@ let gen_build_statements_dir
     (include_dirs : string list)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
-    List.filter_map (fun item -> item.Scan.module_def) items
+    List.filter_map
+      (fun item ->
+        Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
+      items
   in
   Seq.flat_map
     (gen_build_statements include_dirs same_dir_modules)

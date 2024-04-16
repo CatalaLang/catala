@@ -259,7 +259,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
   | EmptyError -> Format.fprintf fmt "EmptyError"
-  | Crash -> Format.fprintf fmt "Crash"
+  | Crash _ -> Format.fprintf fmt "Crash"
   | NoValueProvided ->
     Format.fprintf fmt
       "NoValueProvided(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \

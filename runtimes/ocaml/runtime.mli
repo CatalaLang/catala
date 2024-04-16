@@ -76,6 +76,7 @@ exception UncomparableDurations
 exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
+exception Division_by_zero (* Shadows the stdlib definition *)
 
 (** {1 Value Embedding} *)
 

@@ -129,7 +129,7 @@ let rec evaluate_operator
       | _ -> assert false
     in
     try f x y with
-    | Division_by_zero ->
+    | Runtime.Division_by_zero ->
       Message.error
         ~extra_pos:
           [
@@ -663,16 +663,21 @@ let rec evaluate_expr :
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | ECustom { obj; targs; tret } ->
+    | ECustom { obj; targs; tret } -> (
       (* Applies the arguments one by one to the curried form *)
-      List.fold_left2
-        (fun fobj targ arg ->
-          (Obj.obj fobj : Obj.t -> Obj.t)
-            (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
-        obj targs args
-      |> Obj.obj
-      |> fun o ->
-      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
+      match
+        List.fold_left2
+          (fun fobj targ arg ->
+            (Obj.obj fobj : Obj.t -> Obj.t)
+              (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
+          obj targs args
+      with
+      | exception e ->
+        Format.ksprintf
+          (fun s -> raise (CatalaException (Crash s, pos)))
+          "@[<hv 2>This call to code from a module failed with:@ %s@]"
+          (Printexc.to_string e)
+      | o -> runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o)
     | _ ->
       Message.error ~pos "%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
@@ -927,9 +932,7 @@ let interp_failure_message ~pos = function
       "%a" Format.pp_print_text
       "There is a conflict between multiple valid consequences for assigning \
        the same variable."
-  | Crash ->
-    (* This constructor seems to be never used *)
-    Message.error ~pos ~internal:true "The interpreter crashed"
+  | Crash s -> Message.error ~pos "%s" s
   | EmptyError ->
     Message.error ~pos ~internal:true
       "A variable without valid definition escaped"
@@ -1087,10 +1090,7 @@ let load_runtime_modules prg =
   let load m =
     let obj_file =
       Dynlink.adapt_filename
-        File.(
-          Pos.get_file (Mark.get (ModuleName.get_info m))
-          /../ ModuleName.to_string m
-          ^ ".cmo")
+        File.(Pos.get_file (Mark.get (ModuleName.get_info m)) -.- "cmo")
     in
     if not (Sys.file_exists obj_file) then
       Message.error

@@ -455,7 +455,7 @@ let rec format_statement
       | ConflictError _ -> "catala_conflict"
       | EmptyError -> "catala_empty"
       | NoValueProvided -> "catala_no_value_provided"
-      | Crash -> "catala_crash")
+      | Crash _ -> "catala_crash")
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
