@@ -133,11 +133,12 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       | msg ->
         Format.fprintf ppf "@{<yellow>@<1>»@} @[<hov>%a@]" Format.pp_print_text
           (String.trim (String.uncapitalize_ascii msg)));
-      Format.fprintf ppf "@,@[<hov>Those are valid at this point:@ %a@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
-        (List.map (fun (s, _) -> s) acceptable_tokens)
+      if acceptable_tokens <> [] then
+        Format.fprintf ppf "@,@[<hov>Those are valid at this point:@ %a@]"
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+             (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
+          (List.map (fun (s, _) -> s) acceptable_tokens)
     in
     raise_parser_error ~suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))

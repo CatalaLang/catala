@@ -799,16 +799,36 @@ and typecheck_expr_top_down :
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
     Expr.etuple es' mark
   | A.ETupleAccess { e = e1; index; size } ->
-    if index >= size then
-      Message.error ~pos:(Expr.pos e) "Tuple access out of bounds (%d/%d)" index
-        size;
-    let tuple_ty =
-      TTuple
-        (List.init size (fun n ->
-             if n = index then tau else unionfind ~pos:e1 (TAny (Any.fresh ()))))
+    let out_of_bounds size =
+      Message.error ~pos:pos_e "Tuple access out of bounds (%d/%d)" index size
     in
-    let e1' = typecheck_expr_top_down ctx env (unionfind ~pos:e1 tuple_ty) e1 in
-    Expr.etupleaccess ~e:e1' ~index ~size context_mark
+    let tuple_ty =
+      if size = 0 then (* Unset yet, we resolve it now *)
+        TAny (Any.fresh ())
+      else if index >= size then out_of_bounds size
+      else
+        TTuple
+          (List.init size (fun n ->
+               if n = index then tau
+               else unionfind ~pos:e1 (TAny (Any.fresh ()))))
+    in
+    let tuple_ty = unionfind ~pos:e1 tuple_ty in
+    let e1' = typecheck_expr_top_down ctx env tuple_ty e1 in
+    let size, mark =
+      if size <> 0 then size, context_mark
+      else
+        match typ_to_ast ~flags tuple_ty with
+        | TTuple l, _ -> (
+          match List.nth_opt l index with
+          | None -> out_of_bounds (List.length l)
+          | Some ty -> List.length l, mark_with_tau_and_unify (ast_to_typ ty))
+        | TAny, _ -> failwith "Disambiguation failure"
+        | ty ->
+          Message.error ~pos:(Expr.pos e1)
+            "This expression has type@ %a,@ while a tuple was expected"
+            (Print.typ ctx) ty
+    in
+    Expr.etupleaccess ~e:e1' ~index ~size mark
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~pos:(Expr.pos e)

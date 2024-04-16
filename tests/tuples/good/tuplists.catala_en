@@ -37,8 +37,7 @@ scope S:
   definition r5 equals (x * y, y / z) for (x, y, z) among (lis1, lis2, lis3)
   definition r6 equals
     let lis12 equals (x, y) for (x, y) among (lis1, lis2) in
-    (let (x, y) equals xy in (x * y, y / z))
-      for (xy, z) among (lis12, lis3)
+    (xy.1 * xy.2, xy.2 / z) for (xy, z) among (lis12, lis3)
 
 ```
 
