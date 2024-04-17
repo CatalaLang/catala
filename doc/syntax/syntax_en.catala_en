@@ -1,0 +1,264 @@
+Checking that all examples in the cheat-sheet are correct.
+
+This file should match syntax_en.tex as closely as possible.
+It is also useful for checking syntax highlighting.
+
+# Literate programming
+
+(we don't go to the full extent of creating dummy modules just to test these 3
+cases)
+
+```
+# > Module ModuleBar
+# > Using ModuleFoo
+# > Include: foo.catala_en
+```
+
+
+# Litterals and types
+
+```catala
+declaration x content boolean equals true
+declaration x content boolean equals false
+declaration x content integer equals 65536
+declaration x content decimal equals 65536.262144
+declaration x content decimal equals 37%
+declaration x content money equals $1,234,567.89
+declaration x content date equals |2024-04-01|
+declaration x content duration equals 254 day + 4 month + 1 year
+declaration x content list of integer equals [ 12; 24; 36 ]
+declaration x content (date,money,decimal) equals (|2024-04-01|, $30, 1%)
+declaration scope S:
+  output f content decimal depends on
+    x content money,
+    y content decimal
+scope S:
+  definition f of x, y equals x * y / $12.0
+
+declaration x content Struct1 equals Struct1 { -- fld1: 9 -- fld2: 7% }
+declaration x content Enum1 equals Case1 content 12
+declaration x content Enum1 equals Case2
+```
+
+# Operators and built-ins
+
+```catala
+declaration x content integer equals
+  let x equals (
+    not a,        a and b,
+    a or b,       # "or otherwise"
+    a xor b       # exclusive or
+  ) in
+  let x equals (
+    - a,          a + b,        a - b,
+    a * b,        a / b
+  ) in
+  let x equals (
+    a = b,        a < b,        a <= b,
+    a != b,       a > b,        a >= b
+  ) in
+  let x equals (
+    decimal of 44,
+    money of 23.15
+  ) in
+  let x equals (
+    round of $9.99
+  ) in
+  let x equals (
+    get_day of 0,
+    get_month of 0,
+    get_year of 0
+  ) in
+  let x equals (
+    a +! b,    # integer
+    a +. b,    # decimal
+    a +$ b,    # money
+    a +^ b     # duration
+  ) in
+  0
+```
+
+# Metadata declaration
+
+```catala
+declaration structure Struct1:
+  data fld1 content integer
+  data fld2 content decimal
+
+declaration enumeration Enum1:
+  -- Case1 content integer
+  -- Case2
+
+declaration scope Scope1:
+  internal var1 content integer
+  internal var2 condition
+  sub1 scope Scope0
+
+  internal var1 content integer
+  output var3 content integer
+  input var4 content integer
+  input output var5 content integer
+  context var6 content integer
+  context output var7 content integer
+  output sub2 scope Scope0
+
+  internal var1 content integer
+    state before
+    state after
+
+declaration const content decimal
+  equals 17.1
+
+declaration square content decimal
+  depends on x content decimal
+  equals x * x
+```
+
+# Expressions
+
+```catala
+declaration x content integer equals
+  let x equals let x equals 36 - 5 in 0
+  in
+  let x equals
+    match expr with pattern
+       -- Case1 of x : 0
+       -- Case2 : 0
+       -- anything : 0
+  in
+  let x equals
+    expr with pattern Case1
+  in
+  let x equals
+    expr with pattern Case1 of x
+    and x >= 2
+  in
+  let x equals
+    struc1 but replace { -- fld2: 8% }
+  in
+  let x equals
+    struc1.fld2
+  in
+  let x equals
+    tuple1.2
+  in
+  let x equals
+    sub1.var0
+  in
+  let x equals
+    f of $44.50, 1/3
+  in
+  let x equals
+    output of Scope1 with
+      { -- fld1: 9 -- fld2: 15% }
+  in
+  let x equals
+    if 0 then 0 else 0
+  in
+  let x equals
+    var1 state before
+  in
+  0
+```
+
+# Scope definition
+
+```catala
+scope Scope1:
+  definition x equals 0
+
+scope Scope1
+  under condition var1 >= 2:
+
+  definition var1 equals 0
+
+  definition var1
+    under condition 0
+    consequence equals 0
+
+  rule var2
+    under condition var1 >= 2
+    consequence fulfilled
+
+  rule var2 under condition false
+    consequence not fulfilled
+
+  definition f of x, y equals 0
+
+  label lbl1 definition var1 equals 0
+
+  exception lbl1 definition var1 equals 0
+
+  exception definition var1 equals 0
+
+  definition var1
+    state before
+    equals 0
+
+  assertion 0
+
+  date round decreasing
+```
+
+# List operations
+
+```catala
+declaration x content integer equals
+  let x equals
+    lst contains 3
+  in
+  let x equals
+    exists x among lst such that x > 2
+  in
+  let x equals
+    for all x among lst we have x > 2
+  in
+  let x equals
+    x + 2 for x among lst
+  in
+  let x equals
+    list of x among lst such that x > 2
+  in
+  let x equals
+    x - 2 for x among lst
+      such that x > 2
+  in
+  let x equals
+    x + y for (x, y) among (lst1, lst2)
+  in
+  let x equals
+    lst1 ++ lst2
+  in
+  let x equals
+    sum integer of lst
+  in
+  let x equals
+    number of lst
+  in
+  let x equals
+    maximum of lst
+      or if list empty then -1
+  in
+  let x equals
+    content of x among lst
+      such that (x * x) is minimum
+      or if list empty then -1
+  in
+  0
+```
+
+
+It's normal that the test below returns a resolution or type error, we just want
+to ensure that the *syntax* is correct.
+
+```catala-test-inline
+$ catala typecheck
+[ERROR] No scope named Scope0 found
+
+┌─⯈ doc/syntax/syntax_en.catala_en:95.14-95.20:
+└──┐
+95 │   sub1 scope Scope0
+   │              ‾‾‾‾‾‾
+   └─ Metadata declaration
+#return code 123#
+```

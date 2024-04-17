@@ -26,7 +26,7 @@ class CustomLexer(RegexLexer):
             (u'(^```$)', bygroups(String), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
             (u'(contexte|entr\xe9e|r\xe9sultat|interne)(\\s*)(|r\xe9sultat)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, String, Keyword.Declaration, String, Name.Variable)),
-            (u'\\b(selon|sous\\s+forme|fix\xe9|par|d\xe9croissante|croissante|varie|avec|on\\s+a|soit|dans|champ\\s+d\'application|d\xe9pend\\s+de|d\xe9claration|inclusion|contenu|r\xe8gle|sous\\s+condition|condition|donn\xe9e|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition|\xe9tat|\xe9tiquette|exception)\\b', bygroups(Keyword.Reserved)),
+            (u'\\b(selon|sous\\s+forme|mais\\s+en\\s+rempla\xe7ant|fix\xe9|par|d\xe9croissant|croissant|varie|avec|on\\s+a|soit|dans|champ\\s+d\'application|d\xe9pend\\s+de|d\xe9claration|inclusion|contenu|r\xe8gle|sous\\s+condition|condition|donn\xe9e|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition|\xe9tat|\xe9tiquette|exception)\\b', bygroups(Keyword.Reserved)),
             (u'\\b(contient|nombre|somme|tel\\s+que|existe|pour|tout|de|si|alors|sinon|est|liste\\s+vide|parmi|maximum|minimum|arrondi)\\b', bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(vrai|faux)\\b', bygroups(Keyword.Constant)),

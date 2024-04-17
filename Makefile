@@ -211,7 +211,7 @@ unit-tests: .FORCE
 
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
-	$(CLERK_TEST) tests
+	$(CLERK_TEST) tests doc
 
 tests: test
 

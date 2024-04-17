@@ -194,7 +194,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|soit|dans|tel\s+que|existe|pour|parmi|tout|de|si|alors|sinon|initial)\b</string>
+          <string>\b(selon|sous\s+forme|mais\s+en\s+remplaçant|fixé|par|décroissant|croissant|varie|avec|on\s+a|soit|dans|tel\s+que|existe|pour|parmi|tout|de|si|alors|sinon|initial)\b</string>
           <key>name</key>
           <string>keyword.control.catala_fr</string>
         </dict>
