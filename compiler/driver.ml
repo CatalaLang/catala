@@ -244,19 +244,19 @@ module Passes = struct
     let avoid_exceptions = avoid_exceptions || closure_conversion in
     (* --closure-conversion implies --avoid-exceptions *)
     let prg =
-      match avoid_exceptions, options.trace, typed with
-      | true, true, _ ->
-        Message.error
-          "Option --avoid-exceptions is not compatible with option --trace"
-      | true, _, Untyped _ ->
+      if avoid_exceptions && options.trace then
+        Message.warning
+          "It is discouraged to use option @{<yellow>--avoid-exceptions@} if you@ also@ need@ @{<yellow>--trace@},@ the@ resulting@ trace@ may@ be@ unreliable@ at@ the@ moment.";
+      match avoid_exceptions, typed with
+      | true, Untyped _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | true, _, Typed _ ->
+      | true, Typed _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | false, _, Typed _ ->
+      | false, Typed _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | false, _, Untyped _ ->
+      | false, Untyped _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
+      | _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
       if optimize then begin

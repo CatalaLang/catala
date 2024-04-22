@@ -74,8 +74,7 @@ module To_jsoo = struct
       (* Tuples are encoded as an javascript polymorphic array. *)
       Format.fprintf fmt "Js.Unsafe.any_js_array Js.t "
     | TOption t ->
-      Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
-        format_enum_name Expr.option_enum
+      Format.fprintf fmt "@[<hov 2>(%a)@] Js.opt" format_typ_with_parens t
     | TDefault t -> format_typ fmt t
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
@@ -116,7 +115,8 @@ module To_jsoo = struct
         elts
     | TOption t ->
       Format.fprintf fmt
-        "(function Eoption.ENone -> Js.null | Eoption.ESome x -> %a x)"
+        "(function Eoption.ENone () -> Js.null | Eoption.ESome x -> Js.some \
+         (%a x))"
         format_to_js t
     | TAny -> Format.fprintf fmt "Js.Unsafe.inject"
     | TArrow _ | TClosureEnv -> ()
