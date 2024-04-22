@@ -246,14 +246,15 @@ module Passes = struct
     let prg =
       if avoid_exceptions && options.trace then
         Message.warning
-          "It is discouraged to use option @{<yellow>--avoid-exceptions@} if you@ also@ need@ @{<yellow>--trace@},@ the@ resulting@ trace@ may@ be@ unreliable@ at@ the@ moment.";
+          "It is discouraged to use option @{<yellow>--avoid-exceptions@} if \
+           you@ also@ need@ @{<yellow>--trace@},@ the@ resulting@ trace@ may@ \
+           be@ unreliable@ at@ the@ moment.";
       match avoid_exceptions, typed with
       | true, Untyped _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
       | true, Typed _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | false, Typed _ ->
-        Lcalc.From_dcalc.translate_program_with_exceptions prg
+      | false, Typed _ -> Lcalc.From_dcalc.translate_program_with_exceptions prg
       | false, Untyped _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions prg
       | _, Custom _ -> invalid_arg "Driver.Passes.lcalc"

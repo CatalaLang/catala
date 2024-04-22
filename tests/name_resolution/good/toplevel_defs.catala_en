@@ -119,21 +119,21 @@ let glob2_9 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 let S2_6 (S2_in_10: S2_in) =
   decl temp_a_12 : decimal;
   try:
-    decl temp_a_21 : unit → decimal;
-    let func temp_a_21 (__22 : unit) =
-      raise EmptyError;
-    decl temp_a_19 : unit → bool;
-    let func temp_a_19 (__20 : unit) =
-      return false;
     decl temp_a_13 : unit → decimal;
     let func temp_a_13 (__14 : unit) =
-      decl temp_a_17 : unit → decimal;
-      let func temp_a_17 (__18 : unit) =
-        return glob3_3 ¤44.00 + 100.;
       decl temp_a_15 : unit → bool;
       let func temp_a_15 (__16 : unit) =
         return true;
+      decl temp_a_17 : unit → decimal;
+      let func temp_a_17 (__18 : unit) =
+        return glob3_3 ¤44.00 + 100.;
       return handle_default [] temp_a_15 temp_a_17;
+    decl temp_a_19 : unit → bool;
+    let func temp_a_19 (__20 : unit) =
+      return false;
+    decl temp_a_21 : unit → decimal;
+    let func temp_a_21 (__22 : unit) =
+      raise EmptyError;
     temp_a_12 = handle_default [temp_a_13] temp_a_19 temp_a_21
   with EmptyError:
     raise NoValueProvided;
@@ -144,21 +144,21 @@ let S2_6 (S2_in_10: S2_in) =
 let S3_7 (S3_in_23: S3_in) =
   decl temp_a_25 : decimal;
   try:
-    decl temp_a_34 : unit → decimal;
-    let func temp_a_34 (__35 : unit) =
-      raise EmptyError;
-    decl temp_a_32 : unit → bool;
-    let func temp_a_32 (__33 : unit) =
-      return false;
     decl temp_a_26 : unit → decimal;
     let func temp_a_26 (__27 : unit) =
-      decl temp_a_30 : unit → decimal;
-      let func temp_a_30 (__31 : unit) =
-        return 50. + glob4_4 ¤44.00 55.;
       decl temp_a_28 : unit → bool;
       let func temp_a_28 (__29 : unit) =
         return true;
+      decl temp_a_30 : unit → decimal;
+      let func temp_a_30 (__31 : unit) =
+        return 50. + glob4_4 ¤44.00 55.;
       return handle_default [] temp_a_28 temp_a_30;
+    decl temp_a_32 : unit → bool;
+    let func temp_a_32 (__33 : unit) =
+      return false;
+    decl temp_a_34 : unit → decimal;
+    let func temp_a_34 (__35 : unit) =
+      raise EmptyError;
     temp_a_25 = handle_default [temp_a_26] temp_a_32 temp_a_34
   with EmptyError:
     raise NoValueProvided;
@@ -169,21 +169,21 @@ let S3_7 (S3_in_23: S3_in) =
 let S4_8 (S4_in_36: S4_in) =
   decl temp_a_38 : decimal;
   try:
-    decl temp_a_47 : unit → decimal;
-    let func temp_a_47 (__48 : unit) =
-      raise EmptyError;
-    decl temp_a_45 : unit → bool;
-    let func temp_a_45 (__46 : unit) =
-      return false;
     decl temp_a_39 : unit → decimal;
     let func temp_a_39 (__40 : unit) =
-      decl temp_a_43 : unit → decimal;
-      let func temp_a_43 (__44 : unit) =
-        return glob5_6 + 1.;
       decl temp_a_41 : unit → bool;
       let func temp_a_41 (__42 : unit) =
         return true;
+      decl temp_a_43 : unit → decimal;
+      let func temp_a_43 (__44 : unit) =
+        return glob5_6 + 1.;
       return handle_default [] temp_a_41 temp_a_43;
+    decl temp_a_45 : unit → bool;
+    let func temp_a_45 (__46 : unit) =
+      return false;
+    decl temp_a_47 : unit → decimal;
+    let func temp_a_47 (__48 : unit) =
+      raise EmptyError;
     temp_a_38 = handle_default [temp_a_39] temp_a_45 temp_a_47
   with EmptyError:
     raise NoValueProvided;
@@ -194,21 +194,21 @@ let S4_8 (S4_in_36: S4_in) =
 let S_9 (S_in_49: S_in) =
   decl temp_a_63 : decimal;
   try:
-    decl temp_a_72 : unit → decimal;
-    let func temp_a_72 (__73 : unit) =
-      raise EmptyError;
-    decl temp_a_70 : unit → bool;
-    let func temp_a_70 (__71 : unit) =
-      return false;
     decl temp_a_64 : unit → decimal;
     let func temp_a_64 (__65 : unit) =
-      decl temp_a_68 : unit → decimal;
-      let func temp_a_68 (__69 : unit) =
-        return glob1_2 * glob1_2;
       decl temp_a_66 : unit → bool;
       let func temp_a_66 (__67 : unit) =
         return true;
+      decl temp_a_68 : unit → decimal;
+      let func temp_a_68 (__69 : unit) =
+        return glob1_2 * glob1_2;
       return handle_default [] temp_a_66 temp_a_68;
+    decl temp_a_70 : unit → bool;
+    let func temp_a_70 (__71 : unit) =
+      return false;
+    decl temp_a_72 : unit → decimal;
+    let func temp_a_72 (__73 : unit) =
+      raise EmptyError;
     temp_a_63 = handle_default [temp_a_64] temp_a_70 temp_a_72
   with EmptyError:
     raise NoValueProvided;
@@ -216,21 +216,21 @@ let S_9 (S_in_49: S_in) =
   a_50 = temp_a_63;
   decl temp_b_52 : A {y: bool; z: decimal};
   try:
-    decl temp_b_61 : unit → A {y: bool; z: decimal};
-    let func temp_b_61 (__62 : unit) =
-      raise EmptyError;
-    decl temp_b_59 : unit → bool;
-    let func temp_b_59 (__60 : unit) =
-      return false;
     decl temp_b_53 : unit → A {y: bool; z: decimal};
     let func temp_b_53 (__54 : unit) =
-      decl temp_b_57 : unit → A {y: bool; z: decimal};
-      let func temp_b_57 (__58 : unit) =
-        return glob2_9;
       decl temp_b_55 : unit → bool;
       let func temp_b_55 (__56 : unit) =
         return true;
+      decl temp_b_57 : unit → A {y: bool; z: decimal};
+      let func temp_b_57 (__58 : unit) =
+        return glob2_9;
       return handle_default [] temp_b_55 temp_b_57;
+    decl temp_b_59 : unit → bool;
+    let func temp_b_59 (__60 : unit) =
+      return false;
+    decl temp_b_61 : unit → A {y: bool; z: decimal};
+    let func temp_b_61 (__62 : unit) =
+      raise EmptyError;
     temp_b_52 = handle_default [temp_b_53] temp_b_59 temp_b_61
   with EmptyError:
     raise NoValueProvided;
@@ -420,25 +420,25 @@ glob2 = (
 def s2(s2_in:S2In):
     try:
         def temp_a(_:Unit):
-            raise EmptyError
-        def temp_a_1(_:Unit):
-            return False
-        def temp_a_2(_:Unit):
-            def temp_a_3(_:Unit):
+            def temp_a_1(_:Unit):
+                return True
+            def temp_a_2(_:Unit):
                 return (glob3(money_of_cents_string("4400")) +
                     decimal_of_string("100."))
-            def temp_a_4(_:Unit):
-                return True
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=45, start_column=10,
                                   end_line=45, end_column=11,
                                   law_headings=["Test toplevel function defs"]), [],
-                                  temp_a_4, temp_a_3)
+                                  temp_a_1, temp_a_2)
+        def temp_a_3(_:Unit):
+            return False
+        def temp_a_4(_:Unit):
+            raise EmptyError
         temp_a_5 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=45, start_column=10,
                                   end_line=45, end_column=11,
-                                  law_headings=["Test toplevel function defs"]), [temp_a_2],
-                                  temp_a_1, temp_a)
+                                  law_headings=["Test toplevel function defs"]), [temp_a],
+                                  temp_a_3, temp_a_4)
     except EmptyError:
         temp_a_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -451,26 +451,26 @@ def s2(s2_in:S2In):
 def s3(s3_in:S3In):
     try:
         def temp_a_6(_:Unit):
-            raise EmptyError
-        def temp_a_7(_:Unit):
-            return False
-        def temp_a_8(_:Unit):
-            def temp_a_9(_:Unit):
+            def temp_a_7(_:Unit):
+                return True
+            def temp_a_8(_:Unit):
                 return (decimal_of_string("50.") +
                     glob4(money_of_cents_string("4400"),
                           decimal_of_string("55.")))
-            def temp_a_10(_:Unit):
-                return True
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=65, start_column=10,
                                   end_line=65, end_column=11,
                                   law_headings=["Test function def with two args"]), [],
-                                  temp_a_10, temp_a_9)
+                                  temp_a_7, temp_a_8)
+        def temp_a_9(_:Unit):
+            return False
+        def temp_a_10(_:Unit):
+            raise EmptyError
         temp_a_11 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                    start_line=65, start_column=10,
                                    end_line=65, end_column=11,
-                                   law_headings=["Test function def with two args"]), [temp_a_8],
-                                   temp_a_7, temp_a_6)
+                                   law_headings=["Test function def with two args"]), [temp_a_6],
+                                   temp_a_9, temp_a_10)
     except EmptyError:
         temp_a_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -483,24 +483,24 @@ def s3(s3_in:S3In):
 def s4(s4_in:S4In):
     try:
         def temp_a_12(_:Unit):
-            raise EmptyError
-        def temp_a_13(_:Unit):
-            return False
-        def temp_a_14(_:Unit):
-            def temp_a_15(_:Unit):
-                return (glob5 + decimal_of_string("1."))
-            def temp_a_16(_:Unit):
+            def temp_a_13(_:Unit):
                 return True
+            def temp_a_14(_:Unit):
+                return (glob5 + decimal_of_string("1."))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=88, start_column=10,
                                   end_line=88, end_column=11,
                                   law_headings=["Test inline defs in toplevel defs"]), [],
-                                  temp_a_16, temp_a_15)
+                                  temp_a_13, temp_a_14)
+        def temp_a_15(_:Unit):
+            return False
+        def temp_a_16(_:Unit):
+            raise EmptyError
         temp_a_17 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                    start_line=88, start_column=10,
                                    end_line=88, end_column=11,
-                                   law_headings=["Test inline defs in toplevel defs"]), [temp_a_14],
-                                   temp_a_13, temp_a_12)
+                                   law_headings=["Test inline defs in toplevel defs"]), [temp_a_12],
+                                   temp_a_15, temp_a_16)
     except EmptyError:
         temp_a_17 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -513,24 +513,24 @@ def s4(s4_in:S4In):
 def s(s_in:SIn):
     try:
         def temp_a_18(_:Unit):
-            raise EmptyError
-        def temp_a_19(_:Unit):
-            return False
-        def temp_a_20(_:Unit):
-            def temp_a_21(_:Unit):
-                return (glob1 * glob1)
-            def temp_a_22(_:Unit):
+            def temp_a_19(_:Unit):
                 return True
+            def temp_a_20(_:Unit):
+                return (glob1 * glob1)
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=7, start_column=10,
                                   end_line=7, end_column=11,
                                   law_headings=["Test basic toplevel values defs"]), [],
-                                  temp_a_22, temp_a_21)
+                                  temp_a_19, temp_a_20)
+        def temp_a_21(_:Unit):
+            return False
+        def temp_a_22(_:Unit):
+            raise EmptyError
         temp_a_23 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                    start_line=7, start_column=10,
                                    end_line=7, end_column=11,
-                                   law_headings=["Test basic toplevel values defs"]), [temp_a_20],
-                                   temp_a_19, temp_a_18)
+                                   law_headings=["Test basic toplevel values defs"]), [temp_a_18],
+                                   temp_a_21, temp_a_22)
     except EmptyError:
         temp_a_23 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -540,24 +540,24 @@ def s(s_in:SIn):
     a_3 = temp_a_23
     try:
         def temp_b(_:Unit):
-            raise EmptyError
-        def temp_b_1(_:Unit):
-            return False
-        def temp_b_2(_:Unit):
-            def temp_b_3(_:Unit):
-                return glob2
-            def temp_b_4(_:Unit):
+            def temp_b_1(_:Unit):
                 return True
+            def temp_b_2(_:Unit):
+                return glob2
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=8, start_column=10,
                                   end_line=8, end_column=11,
                                   law_headings=["Test basic toplevel values defs"]), [],
-                                  temp_b_4, temp_b_3)
+                                  temp_b_1, temp_b_2)
+        def temp_b_3(_:Unit):
+            return False
+        def temp_b_4(_:Unit):
+            raise EmptyError
         temp_b_5 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
                                   start_line=8, start_column=10,
                                   end_line=8, end_column=11,
-                                  law_headings=["Test basic toplevel values defs"]), [temp_b_2],
-                                  temp_b_1, temp_b)
+                                  law_headings=["Test basic toplevel values defs"]), [temp_b],
+                                  temp_b_3, temp_b_4)
     except EmptyError:
         temp_b_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
