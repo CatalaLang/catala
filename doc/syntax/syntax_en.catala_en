@@ -241,7 +241,7 @@ declaration x content integer equals
   in
   let x equals
     content of x among lst
-      such that (x * x) is minimum
+      such that x * x is minimum
       or if list empty then -1
   in
   0

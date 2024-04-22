@@ -239,7 +239,7 @@ déclaration x contenu entier égal à
   dans
   soit x égal à
     contenu de x parmi lst
-      tel que (x * x) est minimum
+      tel que x * x est minimum
       ou si liste vide alors -1
   dans
   0
