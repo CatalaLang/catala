@@ -49,7 +49,40 @@ exception NotAnExpr of { needs_a_local_decl : bool }
 (** Contains the LocalDecl of the temporary variable that will be defined by the
     next block is it's here *)
 
-let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
+(** Blocks are constructed as reverse ordered lists. This module abstracts this
+    and avoids confusion in ordering of statements (also opening the opportunity
+    for more optimisations) *)
+module RevBlock : sig
+  type t = private A.block
+
+  val empty : t
+  val append : t -> A.stmt Mark.pos -> t
+  val make : A.block -> t
+  val seq : t -> t -> t
+  val rebuild : t -> tail:A.block -> A.block
+end = struct
+  type t = A.block
+
+  let empty = []
+  let append t st = st :: t
+  let make st = List.rev st
+  let seq t1 t2 = t2 @ t1
+  let rebuild t ~tail = List.rev_append t tail
+end
+
+let ( ++ ) = RevBlock.seq
+
+let rec translate_expr_list ctxt args =
+  let stmts, args =
+    List.fold_left
+      (fun (args_stmts, new_args) arg ->
+        let arg_stmts, new_arg = translate_expr ctxt arg in
+        args_stmts ++ arg_stmts, new_arg :: new_args)
+      (RevBlock.empty, []) args
+  in
+  stmts, List.rev args
+
+and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
   try
     match Mark.remove expr with
     | EVar v ->
@@ -65,7 +98,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
                    Print.var_debug ppf v))
               (Var.Map.keys ctxt.var_dict))
       in
-      [], (local_var, Expr.pos expr)
+      RevBlock.empty, (local_var, Expr.pos expr)
     | EStruct { fields; name } ->
       if ctxt.config.no_struct_literals then
         (* In C89, struct literates have to be initialized at variable
@@ -75,11 +108,10 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
         StructField.Map.fold
           (fun field arg (args_stmts, new_args) ->
             let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, StructField.Map.add field new_arg new_args)
+            args_stmts ++ arg_stmts, StructField.Map.add field new_arg new_args)
           fields
-          ([], StructField.Map.empty)
+          (RevBlock.empty, StructField.Map.empty)
       in
-      let args_stmts = List.rev args_stmts in
       args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
     | EInj { e = e1; cons; name } ->
       if ctxt.config.no_struct_literals then
@@ -97,14 +129,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
             },
           Expr.pos expr ) )
     | ETuple args ->
-      let args_stmts, new_args =
-        List.fold_left
-          (fun (args_stmts, new_args) arg ->
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, new_arg :: new_args)
-          ([], []) args
-      in
-      let new_args = List.rev new_args in
+      let args_stmts, new_args = translate_expr_list ctxt args in
       args_stmts, (A.ETuple new_args, Expr.pos expr)
     | EStructAccess { e = e1; field; name } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
@@ -123,15 +148,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       (* This should be translated as a statement *)
       raise (NotAnExpr { needs_a_local_decl = true })
     | EAppOp { op; args; tys = _ } ->
-      let args_stmts, new_args =
-        List.fold_left
-          (fun (args_stmts, new_args) arg ->
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, new_arg :: new_args)
-          ([], []) args
-      in
+      let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
-      let new_args = List.rev new_args in
       args_stmts, (A.EAppOp { op; args = new_args }, Expr.pos expr)
     | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
       (* This defines multiple local variables at the time *)
@@ -151,12 +169,13 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
         }
       in
       let local_decls =
-        List.map
-          (fun (x, tau) ->
-            ( A.SLocalDecl
-                { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
-              binder_pos ))
-          vars_tau
+        List.fold_left
+          (fun acc (x, tau) ->
+            RevBlock.append acc
+              ( A.SLocalDecl
+                  { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
+                binder_pos ))
+          RevBlock.empty vars_tau
       in
       let vars_args =
         List.map2
@@ -165,8 +184,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           vars_tau args
       in
       let def_blocks =
-        List.map
-          (fun (x, _tau, arg) ->
+        List.fold_left
+          (fun acc (x, _tau, arg) ->
             let ctxt =
               {
                 ctxt with
@@ -175,44 +194,28 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
               }
             in
             let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts
-            @ [
-                ( A.SLocalDef
-                    {
-                      name = x;
-                      expr = new_arg;
-                      typ = Expr.maybe_ty (Mark.get arg);
-                    },
-                  binder_pos );
-              ])
-          vars_args
+            RevBlock.append (acc ++ arg_stmts)
+              ( A.SLocalDef
+                  {
+                    name = x;
+                    expr = new_arg;
+                    typ = Expr.maybe_ty (Mark.get arg);
+                  },
+                binder_pos ))
+          RevBlock.empty vars_args
       in
       let rest_of_expr_stmts, rest_of_expr = translate_expr ctxt body in
-      local_decls @ List.flatten def_blocks @ rest_of_expr_stmts, rest_of_expr
+      local_decls ++ def_blocks ++ rest_of_expr_stmts, rest_of_expr
     | EApp { f; args; tys = _ } ->
       let f_stmts, new_f = translate_expr ctxt f in
-      let args_stmts, new_args =
-        List.fold_left
-          (fun (args_stmts, new_args) arg ->
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, new_arg :: new_args)
-          ([], []) args
-      in
+      let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
-      let new_args = List.rev new_args in
-      ( f_stmts @ args_stmts,
+      ( f_stmts ++ args_stmts,
         (A.EApp { f = new_f; args = new_args }, Expr.pos expr) )
     | EArray args ->
-      let args_stmts, new_args =
-        List.fold_left
-          (fun (args_stmts, new_args) arg ->
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, new_arg :: new_args)
-          ([], []) args
-      in
-      let new_args = List.rev new_args in
+      let args_stmts, new_args = translate_expr_list ctxt args in
       args_stmts, (A.EArray new_args, Expr.pos expr)
-    | ELit l -> [], (A.ELit l, Expr.pos expr)
+    | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr)
     | EExternal { name } ->
       let path, name =
         match Mark.remove name with
@@ -223,7 +226,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
         ( ModuleName.Map.find (List.hd (List.rev path)) ctxt.program_ctx.modules,
           Expr.pos expr )
       in
-      [], (EExternal { modname; name }, Expr.pos expr)
+      RevBlock.empty, (EExternal { modname; name }, Expr.pos expr)
     | ECatch _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | ERaise _ ->
       raise (NotAnExpr { needs_a_local_decl = true })
     | _ -> .
@@ -250,16 +253,15 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     in
     let tmp_stmts = translate_statements ctxt expr in
     ( (if needs_a_local_decl then
-         [
-           ( A.SLocalDecl
-               {
-                 name = tmp_var, Expr.pos expr;
-                 typ = Expr.maybe_ty (Mark.get expr);
-               },
-             Expr.pos expr );
-         ]
-       else [])
-      @ tmp_stmts,
+         RevBlock.make
+           (( A.SLocalDecl
+                {
+                  name = tmp_var, Expr.pos expr;
+                  typ = Expr.maybe_ty (Mark.get expr);
+                },
+              Expr.pos expr )
+           :: tmp_stmts)
+       else RevBlock.make tmp_stmts),
       (A.EVar tmp_var, Expr.pos expr) )
 
 and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
@@ -267,7 +269,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
-    e_stmts @ [A.SAssert (Mark.remove new_e), Expr.pos block_expr]
+    RevBlock.rebuild
+      ~tail:[A.SAssert (Mark.remove new_e), Expr.pos block_expr]
+      e_stmts
   | EAppOp
       { op = Op.HandleDefaultOpt; tys = _; args = [exceptions; just; cons] }
     when ctxt.config.keep_special_ops ->
@@ -288,40 +292,40 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let just = unthunk just in
     let cons = unthunk cons in
     let exceptions_stmts, new_exceptions =
-      List.fold_left
-        (fun (exceptions_stmts, new_exceptions) except ->
-          let except_stmts, new_except = translate_expr ctxt except in
-          except_stmts @ exceptions_stmts, new_except :: new_exceptions)
-        ([], []) exceptions
+      translate_expr_list ctxt exceptions
     in
     let just_stmts, new_just = translate_expr ctxt just in
     let cons_stmts, new_cons = translate_expr ctxt cons in
-    exceptions_stmts
-    @ just_stmts
-    @ [
-        ( A.SSpecialOp
-            (OHandleDefaultOpt
-               {
-                 exceptions = new_exceptions;
-                 just = new_just;
-                 cons =
-                   cons_stmts
-                   @ [
-                       ( (match ctxt.inside_definition_of with
-                         | None -> A.SReturn (Mark.remove new_cons)
-                         | Some x ->
-                           A.SLocalDef
-                             {
-                               name = Mark.copy new_cons x;
-                               expr = new_cons;
-                               typ = Expr.maybe_ty (Mark.get block_expr);
-                             }),
-                         Expr.pos block_expr );
-                     ];
-                 return_typ = Expr.maybe_ty (Mark.get block_expr);
-               }),
-          Expr.pos block_expr );
-      ]
+    RevBlock.rebuild exceptions_stmts
+      ~tail:
+        (RevBlock.rebuild just_stmts
+           ~tail:
+             [
+               ( A.SSpecialOp
+                   (OHandleDefaultOpt
+                      {
+                        exceptions = new_exceptions;
+                        just = new_just;
+                        cons =
+                          RevBlock.rebuild cons_stmts
+                            ~tail:
+                              [
+                                ( (match ctxt.inside_definition_of with
+                                  | None -> A.SReturn (Mark.remove new_cons)
+                                  | Some x ->
+                                    A.SLocalDef
+                                      {
+                                        name = Mark.copy new_cons x;
+                                        expr = new_cons;
+                                        typ =
+                                          Expr.maybe_ty (Mark.get block_expr);
+                                      }),
+                                  Expr.pos block_expr );
+                              ];
+                        return_typ = Expr.maybe_ty (Mark.get block_expr);
+                      }),
+                 Expr.pos block_expr );
+             ])
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
@@ -364,16 +368,17 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts
-          @ [
-              ( A.SLocalDef
-                  {
-                    name = x;
-                    expr = new_arg;
-                    typ = Expr.maybe_ty (Mark.get arg);
-                  },
-                binder_pos );
-            ])
+          RevBlock.rebuild arg_stmts
+            ~tail:
+              [
+                ( A.SLocalDef
+                    {
+                      name = x;
+                      expr = new_arg;
+                      typ = Expr.maybe_ty (Mark.get arg);
+                    },
+                  binder_pos );
+              ])
         vars_args
     in
     let rest_of_block = translate_statements ctxt body in
@@ -417,7 +422,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                   (match Expr.maybe_ty (Mark.get block_expr) with
                   | TArrow (_, t2), _ -> t2
                   | TAny, pos_any -> TAny, pos_any
-                  | _ -> failwith "should not happen");
+                  | _ -> assert false);
               };
           },
         binder_pos );
@@ -445,32 +450,37 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               payload_var_typ = List.hd tys;
             }
             :: new_args
-          | _ -> assert false
-          (* should not happen *))
+          | _ -> assert false)
         cases []
     in
     let new_args = List.rev new_cases in
-    e1_stmts
-    @ [
-        ( A.SSwitch
-            {
-              switch_expr = new_e1;
-              switch_expr_typ = Expr.maybe_ty (Mark.get e1);
-              enum_name = name;
-              switch_cases = new_args;
-            },
-          Expr.pos block_expr );
-      ]
+    RevBlock.rebuild e1_stmts
+      ~tail:
+        [
+          ( A.SSwitch
+              {
+                switch_expr = new_e1;
+                switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+                enum_name = name;
+                switch_cases = new_args;
+              },
+            Expr.pos block_expr );
+        ]
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt etrue in
     let s_e_false = translate_statements ctxt efalse in
-    cond_stmts
-    @ [
-        ( A.SIfThenElse
-            { if_expr = s_cond; then_block = s_e_true; else_block = s_e_false },
-          Expr.pos block_expr );
-      ]
+    RevBlock.rebuild cond_stmts
+      ~tail:
+        [
+          ( A.SIfThenElse
+              {
+                if_expr = s_cond;
+                then_block = s_e_true;
+                else_block = s_e_false;
+              },
+            Expr.pos block_expr );
+        ]
   | ECatch { body; exn; handler } ->
     let s_e_try = translate_statements ctxt body in
     let s_e_catch = translate_statements ctxt handler in
@@ -514,28 +524,28 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           },
         Expr.pos block_expr )
     in
-    e1_stmts
-    @ [
-        ( A.SLocalInit
-            {
-              name = tmp_struct_var_name;
-              expr = inj_expr;
-              typ =
-                ( Mark.remove (Expr.maybe_ty (Mark.get block_expr)),
-                  Expr.pos block_expr );
-            },
-          Expr.pos block_expr );
-      ]
+    RevBlock.rebuild e1_stmts
+      ~tail:
+        [
+          ( A.SLocalInit
+              {
+                name = tmp_struct_var_name;
+                expr = inj_expr;
+                typ =
+                  ( Mark.remove (Expr.maybe_ty (Mark.get block_expr)),
+                    Expr.pos block_expr );
+              },
+            Expr.pos block_expr );
+        ]
   | EStruct { fields; name } when ctxt.config.no_struct_literals ->
     let args_stmts, new_args =
       StructField.Map.fold
         (fun field arg (args_stmts, new_args) ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, StructField.Map.add field new_arg new_args)
+          args_stmts ++ arg_stmts, StructField.Map.add field new_arg new_args)
         fields
-        ([], StructField.Map.empty)
+        (RevBlock.empty, StructField.Map.empty)
     in
-    let args_stmts = List.rev args_stmts in
     let struct_expr =
       A.EStruct { fields = new_args; name }, Expr.pos block_expr
     in
@@ -546,40 +556,42 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         (* [translate_expr] should create this [inside_definition_of]*)
       | Some x -> x, Expr.pos block_expr
     in
-    args_stmts
-    @ [
-        ( A.SLocalInit
-            {
-              name = tmp_struct_var_name;
-              expr = struct_expr;
-              typ = TStruct name, Expr.pos block_expr;
-            },
-          Expr.pos block_expr );
-      ]
-  | ELit _ | EAppOp _ | EArray _ | EVar _ | EStruct _ | EInj _ | ETuple _
-  | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ -> (
-    let e_stmts, new_e = translate_expr ctxt block_expr in
-    e_stmts
-    @
-    match e_stmts with
-    | (A.SRaise _, _) :: _ ->
-      (* if the last statement raises an exception, then we don't need to return
-         or to define the current variable since this code will be
-         unreachable *)
-      []
-    | _ ->
-      [
-        ( (match ctxt.inside_definition_of with
-          | None -> A.SReturn (Mark.remove new_e)
-          | Some x ->
-            A.SLocalDef
+    RevBlock.rebuild args_stmts
+      ~tail:
+        [
+          ( A.SLocalInit
               {
-                name = Mark.copy new_e x;
-                expr = new_e;
-                typ = Expr.maybe_ty (Mark.get block_expr);
-              }),
-          Expr.pos block_expr );
-      ])
+                name = tmp_struct_var_name;
+                expr = struct_expr;
+                typ = TStruct name, Expr.pos block_expr;
+              },
+            Expr.pos block_expr );
+        ]
+  | ELit _ | EAppOp _ | EArray _ | EVar _ | EStruct _ | EInj _ | ETuple _
+  | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ ->
+    let e_stmts, new_e = translate_expr ctxt block_expr in
+    let tail =
+      match (e_stmts :> (A.stmt * Pos.t) list) with
+      | (A.SRaise _, _) :: _ ->
+        (* if the last statement raises an exception, then we don't need to
+           return or to define the current variable since this code will be
+           unreachable *)
+        []
+      | _ ->
+        [
+          ( (match ctxt.inside_definition_of with
+            | None -> A.SReturn (Mark.remove new_e)
+            | Some x ->
+              A.SLocalDef
+                {
+                  name = Mark.copy new_e x;
+                  expr = new_e;
+                  typ = Expr.maybe_ty (Mark.get block_expr);
+                }),
+            Expr.pos block_expr );
+        ]
+    in
+    RevBlock.rebuild e_stmts ~tail
   | _ -> .
 
 let rec translate_scope_body_expr
@@ -602,42 +614,45 @@ let rec translate_scope_body_expr
   match scope_expr with
   | Last e ->
     let block, new_e = translate_expr ctx e in
-    block @ [A.SReturn (Mark.remove new_e), Mark.get new_e]
-  | Cons (scope_let, next_bnd) ->
+    RevBlock.rebuild block ~tail:[A.SReturn (Mark.remove new_e), Mark.get new_e]
+  | Cons (scope_let, next_bnd) -> (
     let let_var, scope_let_next = Bindlib.unbind next_bnd in
     let let_var_id =
       A.VarName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
     in
     let new_var_dict = Var.Map.add let_var let_var_id var_dict in
-    (match scope_let.scope_let_kind with
+    let next =
+      translate_scope_body_expr ~config scope_name program_ctx new_var_dict
+        func_dict scope_let_next
+    in
+    match scope_let.scope_let_kind with
     | Assertion ->
       translate_statements
         { ctx with inside_definition_of = Some let_var_id }
         scope_let.scope_let_expr
+      @ next
     | _ ->
       let let_expr_stmts, new_let_expr =
         translate_expr
           { ctx with inside_definition_of = Some let_var_id }
           scope_let.scope_let_expr
       in
-      let_expr_stmts
-      @ [
-          ( A.SLocalDecl
-              {
-                name = let_var_id, scope_let.scope_let_pos;
-                typ = scope_let.scope_let_typ;
-              },
-            scope_let.scope_let_pos );
-          ( A.SLocalDef
-              {
-                name = let_var_id, scope_let.scope_let_pos;
-                expr = new_let_expr;
-                typ = scope_let.scope_let_typ;
-              },
-            scope_let.scope_let_pos );
-        ])
-    @ translate_scope_body_expr ~config scope_name program_ctx new_var_dict
-        func_dict scope_let_next
+      RevBlock.rebuild let_expr_stmts
+        ~tail:
+          (( A.SLocalDecl
+               {
+                 name = let_var_id, scope_let.scope_let_pos;
+                 typ = scope_let.scope_let_typ;
+               },
+             scope_let.scope_let_pos )
+          :: ( A.SLocalDef
+                 {
+                   name = let_var_id, scope_let.scope_let_pos;
+                   expr = new_let_expr;
+                   typ = scope_let.scope_let_typ;
+                 },
+               scope_let.scope_let_pos )
+          :: next))
 
 let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
@@ -723,7 +738,8 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             translate_expr ctxt expr
           in
           let body_block =
-            block @ [A.SReturn (Mark.remove expr), Mark.get expr]
+            RevBlock.rebuild block
+              ~tail:[A.SReturn (Mark.remove expr), Mark.get expr]
           in
           ( Var.Map.add var func_id func_dict,
             var_dict,
@@ -761,9 +777,9 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           (* If the evaluation of the toplevel expr requires preliminary
              statements, we lift its computation into an auxiliary function *)
           let rev_items =
-            match block with
-            | [] -> A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items
-            | block ->
+            if (block :> (A.stmt * Pos.t) list) = [] then
+              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items
+            else
               let pos = Mark.get expr in
               let func_id =
                 A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
@@ -783,7 +799,8 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                        {
                          A.func_params = [];
                          A.func_body =
-                           block @ [A.SReturn (Mark.remove expr), Mark.get expr];
+                           RevBlock.rebuild block
+                             ~tail:[A.SReturn (Mark.remove expr), Mark.get expr];
                          A.func_return_typ = topdef_ty;
                        };
                    }

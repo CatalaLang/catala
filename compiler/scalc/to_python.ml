@@ -447,16 +447,12 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
-    Format.fprintf fmt
-      "%a = %a@\n\
-       @[<hov 4>if %a is None:@\n\
-       %a@]@\n\
-       @[<hov 4>else:@\n\
-       %a = %a@\n\
-       %a@]"
-      format_var tmp_var (format_expression ctx) e1 format_var tmp_var
-      (format_block ctx) case_none format_var case_some_var format_var tmp_var
-      (format_block ctx) case_some
+    Format.fprintf fmt "%a = %a@\n" format_var tmp_var (format_expression ctx)
+      e1;
+    Format.fprintf fmt "@[<v 4>if %a is None:@\n%a@]@\n" format_var tmp_var
+      (format_block ctx) case_none;
+    Format.fprintf fmt "@[<v 4>else:@\n%a = %a@\n%a@]" format_var case_some_var
+      format_var tmp_var (format_block ctx) case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let cases =
