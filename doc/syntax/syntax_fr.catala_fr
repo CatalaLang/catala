@@ -63,9 +63,8 @@ déclaration x contenu entier égal à
     arrondi de 9,99€
   ) dans
   soit x égal à (
-    accès_jour de 0 ,
-    accès_mois de 0 ,
-    accès_année de 0
+    accès_année de |2003-01-02|,
+    premier_jour_du_mois de |2003-01-02|
   ) dans
   soit x égal à (
     a +! b,    # entier
@@ -212,17 +211,17 @@ déclaration x contenu entier égal à
     pour tout x parmi lst on a x >= 2
   dans
   soit x égal à
-    x + 2 pour x parmi lst
+    (x + 2) pour x parmi lst
   dans
   soit x égal à
     liste de x parmi lst tel que x > 2
   dans
   soit x égal à
-    x - 2 pour x parmi lst
+    (x - 2) pour x parmi lst
       tel que x > 2
   dans
   soit x égal à
-    x + y pour (x, y) parmi (lst1, lst2)
+    (x + y) pour (x, y) parmi (lst1, lst2)
   dans
   soit x égal à
     lst1 ++ lst2
