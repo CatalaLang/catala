@@ -2502,6 +2502,7 @@ end
 let interpret_program_concolic
     (type m)
     (print_stats : bool)
+    (output_name, out_fmt : string * Format.formatter)
     (optims : Optimizations.flag list)
     (p : (dcalc, m) gexpr program)
     s : (Uid.MarkedString.info * conc_expr) list =
@@ -2531,11 +2532,13 @@ let interpret_program_concolic
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
     let total_tests = ref 0 in
-    let tests_file =  Filename.temp_file ~temp_dir:"." "test_" ".py" in
-    let t = open_out tests_file in
-    let fmtt = Format.formatter_of_out_channel t in
+    (* TODO R: add Cmd option for testcase generation *)
+    let fmtt = out_fmt in 
     (* FIXME filename *)
-    Format.fprintf fmtt "from catala.runtime import *@.from simple_nochild_noassert import test, TestIn@.@.";
+    let scopename = ScopeName.to_string s in
+    let scope_py = (String.lowercase_ascii scopename) in
+    let scope_in_py = scopename ^ "In" in
+    Format.fprintf fmtt "from catala.runtime import *@.from %s import %s, %s@.@." output_name scope_py scope_in_py;
 
     let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
         : Stats.t =
@@ -2591,7 +2594,7 @@ let interpret_program_concolic
         Message.emit_result "Output of scope after evaluation:";
 
         Format.fprintf fmtt "@[<hov 4>def test_%d():@\n" !total_tests;
-        Format.fprintf fmtt "i = TestIn(%a)@\n"
+        Format.fprintf fmtt "i = %s(%a)@\n" scope_in_py
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
              (fun fmt ((var, _), value) ->
                 let rec format_value fmt value =
@@ -2630,7 +2633,7 @@ let interpret_program_concolic
             in
             print_fields p.lang ". " outputs_list;
 
-            Format.fprintf fmtt "r = test(i)@\n";
+            Format.fprintf fmtt "r = %s(i)@\n" scope_py;
             Format.fprintf fmtt "%a@]@\n@."
               (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
                  (fun fmt ((var, _), value) ->
@@ -2660,7 +2663,7 @@ let interpret_program_concolic
               with Not_found -> false
             in
             if str_contains "AssertionError" s then 
-              Format.fprintf fmtt "try: r = test(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@."
+              Format.fprintf fmtt "try: r = %s(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@." scope_py
             else
               assert false 
             
@@ -2720,9 +2723,8 @@ let interpret_program_concolic
       Format.fprintf fmtt "test_%d()@\n" i
     done;
     Format.fprintf fmtt "@]@.";
-    close_out t;
 
-    Message.emit_result "Concolic interpreter done, all %d JSON tests are available in %s" !total_tests tests_file;
+    Message.emit_result "Concolic interpreter done";
 
     let stats = Stats.stop stats in
     if print_stats then

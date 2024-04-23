@@ -700,56 +700,6 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.ex_scope)
 
-  let interpret_concolic
-      typed
-      options
-      stats
-      conc_optims
-      includes
-      optimize
-      check_invariants
-      ex_scope =
-    let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
-    in
-    Interpreter.load_runtime_modules prg;
-    print_interpretation_results options
-      (Concolic.Interpreter.interpret_program_concolic stats conc_optims)
-      prg
-      (get_scope_uid prg.decl_ctx ex_scope)
-
-  let concolic_cmd =
-    let f no_typing =
-      if no_typing then interpret_concolic Expr.untyped
-      else interpret_concolic Expr.typed
-    in
-    let stats =
-      let open Cmdliner.Arg in
-      value
-      & flag
-      & info ["stats"] ~doc:"Prints statistics for the concolic execution."
-    in
-    let open Concolic.Interpreter.Optimizations in
-    let conc_optims =
-      let open Cmdliner.Arg in
-      value
-      & opt_all (enum optim_list) []
-      & info ["conc-optim"] ~doc:"Concolic execution optimizations"
-      (* FIXME add information on optims *)
-    in
-
-    Cmd.v
-      (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
-      Term.(
-        const f
-        $ Cli.Flags.no_typing
-        $ Cli.Flags.Global.options
-        $ stats
-        $ conc_optims
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope)
 
   let lcalc
       typed
@@ -997,6 +947,70 @@ module Commands = struct
             (* Not really a catala command, this is handled preemptively at
                startup *))
         $ Cli.Flags.Global.options)
+
+  let interpret_concolic
+      typed
+      output
+      options
+      stats
+      conc_optims
+      includes
+      optimize
+      check_invariants
+      ex_scope =
+    let out_file, _ = get_output_format options ~ext:"" output in 
+    let test_file, with_output = get_output_format options ~ext:"_test.py"  output in 
+
+    let prg, _ =
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
+    in
+    with_output (fun out_fmt ->
+        Interpreter.load_runtime_modules prg;
+        print_interpretation_results options
+          (Concolic.Interpreter.interpret_program_concolic stats (Filename.basename @@ Option.get out_file, out_fmt) conc_optims)
+          prg
+          (get_scope_uid prg.decl_ctx ex_scope)
+      );
+    Message.emit_result "Wrote test file to %s"
+      (Option.get test_file);
+    if not @@ Sys.file_exists (Option.get out_file ^ ".py") then
+      let () = Message.emit_result "Python backend file does not exist, generating it with the same options (not using avoid_exceptions nor close_conversion)" in
+      python options includes output optimize check_invariants false false  
+
+  let concolic_cmd =
+    let f no_typing =
+      if no_typing then interpret_concolic Expr.untyped
+      else interpret_concolic Expr.typed
+    in
+    let stats =
+      let open Cmdliner.Arg in
+      value
+      & flag
+      & info ["stats"] ~doc:"Prints statistics for the concolic execution."
+    in
+    let open Concolic.Interpreter.Optimizations in
+    let conc_optims =
+      let open Cmdliner.Arg in
+      value
+      & opt_all (enum optim_list) []
+      & info ["conc-optim"] ~doc:"Concolic execution optimizations"
+      (* FIXME add information on optims *)
+    in
+
+    Cmd.v
+      (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
+      Term.(
+        const f
+        $ Cli.Flags.no_typing
+        $ Cli.Flags.output
+        $ Cli.Flags.Global.options
+        $ stats
+        $ conc_optims
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.ex_scope)
+
 
   let commands =
     [
