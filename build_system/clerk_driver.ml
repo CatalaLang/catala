@@ -357,11 +357,11 @@ module Poll = struct
             running from the root of a compiled source tree.@]"
            d)
 
-  let ocaml_link_flags : string list Lazy.t =
+  let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
     lazy
       (let link_libs = ["zarith"; "dates_calc"] in
-       let link_libs_flags =
-         List.concat_map
+       let includes_libs =
+         List.map
            (fun lib ->
              match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
              | None ->
@@ -372,15 +372,19 @@ module Poll = struct
                  File.(Lazy.force ocaml_libdir / lib)
                  lib
              | Some d ->
-               [
-                 "-I";
-                 d;
-                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa";
-               ])
+               ( ["-I"; d],
+                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
            link_libs
        in
-       let runtime_dir = Lazy.force ocaml_runtime_dir in
-       link_libs_flags @ [File.(runtime_dir / "runtime_ocaml.cmxa")])
+       let includes, libs = List.split includes_libs in
+       ( List.concat includes @ ["-I"; Lazy.force ocaml_runtime_dir],
+         libs @ [File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa")] ))
+
+  let ocaml_include_flags : string list Lazy.t =
+    lazy (fst (Lazy.force ocaml_include_and_lib_flags))
+
+  let ocaml_link_flags : string list Lazy.t =
+    lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 
   let has_command cmd =
     let check_cmd = Printf.sprintf "type %s >/dev/null 2>&1" cmd in
@@ -471,7 +475,7 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
         | _ -> false)
       test_flags
   in
-  let ocaml_flags = ["-I"; Lazy.force Poll.ocaml_runtime_dir] in
+  let ocaml_flags = Lazy.force Poll.ocaml_include_flags in
   [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
@@ -528,7 +532,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "ocaml-exec"
       ~command: [
-        !ocamlopt_exe; !runtime_ocaml_libs; !ocaml_flags;
+        !ocamlopt_exe; !ocaml_flags; !runtime_ocaml_libs;
         shellout [!catala_exe; "depends";
                   "--prefix="^ !builddir; "--extension=cmx";
                   !catala_flags; !orig_src];
