@@ -50,7 +50,10 @@ let run_catala_test test_flags catala_exe catala_opts file program args oc =
   let env =
     Unix.environment ()
     |> Array.to_seq
-    |> Seq.filter (fun s -> not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
+    |> Seq.filter (fun s ->
+           not
+             (String.starts_with ~prefix:"OCAMLRUNPARAM=" s
+             || String.starts_with ~prefix:"CATALA_" s))
     |> Seq.cons "CATALA_OUT=-"
     (* |> Seq.cons "CATALA_COLOR=never" *)
     |> Seq.cons "CATALA_PLUGINS="

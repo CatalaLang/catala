@@ -208,7 +208,7 @@ module Cli = struct
     in
     let makeflags_to_ninja_flags (makeflags : string option) =
       match makeflags with
-      | None -> ""
+      | None -> ["-k0"]
       | Some makeflags ->
         let ignore_rex = Re.(compile @@ word (char 'i')) in
         let has_ignore = Re.execp ignore_rex makeflags in
@@ -217,7 +217,7 @@ module Cli = struct
           try ["-j" ^ Re.Group.get (Re.exec jobs_rex makeflags) 1]
           with _ -> []
         in
-        String.concat " " ((if has_ignore then ["-k0"] else []) @ number_of_jobs)
+        (if has_ignore then ["-k0"] else []) @ number_of_jobs
     in
     Term.(const makeflags_to_ninja_flags $ makeflags)
 
@@ -907,21 +907,36 @@ let ninja_init
         Nj.format nin_ppf ninja_contents);
     k nin_file
 
+let cleaned_up_env () =
+  let passthrough_vars =
+    ["CATALA_BIN="; "CATALA_INCLUDE="; "CATALA_TEST_FLAGS="]
+  in
+  Unix.environment ()
+  |> Array.to_seq
+  |> Seq.filter (fun s ->
+         (not (String.starts_with ~prefix:"CATALA_" s))
+         || List.exists
+              (fun prefix -> String.starts_with ~prefix s)
+              passthrough_vars
+         ||
+         (Message.warning "Ignoring environment variable %s" s;
+          false))
+  |> Array.of_seq
+
 let ninja_cmdline ninja_flags nin_file targets =
-  String.concat " "
-    ("ninja"
-     :: "-k"
-     :: "0"
-     :: "-f"
-     :: nin_file
-     :: (if ninja_flags = "" then [] else [ninja_flags])
-    @ (if Catala_utils.Global.options.debug then ["-v"] else [])
-    @ targets)
+  ("ninja" :: "-f" :: nin_file :: ninja_flags)
+  @ (if Catala_utils.Global.options.debug then ["-v"] else [])
+  @ targets
+
+let run_ninja ~clean_up_env cmdline =
+  let cmd = List.hd cmdline in
+  let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
+  Unix.execvpe cmd (Array.of_list cmdline) env
 
 open Cmdliner
 
 let build_cmd =
-  let run ninja_init (targets : string list) (ninja_flags : string) =
+  let run ninja_init (targets : string list) (ninja_flags : string list) =
     ninja_init ~extra:Seq.empty ~test_flags:[]
     @@ fun nin_file ->
     let targets =
@@ -933,8 +948,8 @@ let build_cmd =
         targets
     in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:false ninja_cmd
   in
   let doc =
     "Low-level build command: can be used to forward build targets or options \
@@ -950,7 +965,7 @@ let test_cmd =
       (files_or_folders : string list)
       (reset_test_outputs : bool)
       (test_flags : string list)
-      (ninja_flags : string) =
+      (ninja_flags : string list) =
     let targets =
       let fs = if files_or_folders = [] then ["."] else files_or_folders in
       List.map (fun f -> fix_path f ^ "@test") fs
@@ -973,8 +988,8 @@ let test_cmd =
     ninja_init ~extra ~test_flags
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:true ninja_cmd
   in
   let doc =
     "Scan the given files or directories for catala tests, build their \
@@ -996,7 +1011,7 @@ let run_cmd =
       ninja_init
       (files_or_folders : string list)
       (scope : string)
-      (ninja_flags : string) =
+      (ninja_flags : string list) =
     let extra =
       Seq.cons
         (Nj.binding Var.scope [scope])
@@ -1007,8 +1022,8 @@ let run_cmd =
     ninja_init ~extra ~test_flags:[]
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file [] in
-    Message.debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:false ninja_cmd
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \

@@ -146,6 +146,7 @@ module Flags = struct
       value
       & flag
       & info ["trace"; "t"]
+          ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
              logging instructions in translate programs."
@@ -318,12 +319,17 @@ module Flags = struct
            the chosen backend. Use $(b,-o -) for stdout."
 
   let optimize =
-    value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations."
+    value
+    & flag
+    & info ["optimize"; "O"]
+        ~env:(Cmd.Env.info "CATALA_OPTIMIZE")
+        ~doc:"Run compiler optimizations."
 
   let avoid_exceptions =
     value
     & flag
     & info ["avoid-exceptions"]
+        ~env:(Cmd.Env.info "CATALA_AVOID_EXCEPTIONS")
         ~doc:"Compiles the default calculus without exceptions."
 
   let keep_special_ops =
