@@ -25,7 +25,6 @@ module Concrete = Shared_ast.Interpreter
 open Z3_utils
 open Symb_expr
 open Path_constraint
-open Yojson.Basic
 module Optimizations = Concolic_optimizations
 
 type s_expr = SymbExpr.z3_expr
@@ -2363,23 +2362,23 @@ let print_fields language (prefix : string) fields =
          else ""))
     ordered_fields
 
-let fields_to_json _ fields =
-  let ordered_fields =
-    List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields
-  in 
-  `Assoc
-    (
-    List.map
-      (fun ((var, _), value) ->
-         (Format.asprintf "%a" Scalc.To_python.format_name_cleaned var,
-          (* `String (Format.asprintf "%a" (Print.UserFacing.value language) value *)
-          match Mark.remove value with
-          | ELit l ->
-            `String (Format.asprintf "%a" Scalc.To_python.format_lit (l, Expr.pos value))
-          | _ -> assert false)
+(* let fields_to_json _ fields = *)
+(*   let ordered_fields = *)
+(*     List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields *)
+(*   in  *)
+(*   `Assoc *)
+(*     ( *)
+(*     List.map *)
+(*       (fun ((var, _), value) -> *)
+(*          (Format.asprintf "%a" Scalc.To_python.format_name_cleaned var, *)
+(*           (\* `String (Format.asprintf "%a" (Print.UserFacing.value language) value *\) *)
+(*           match Mark.remove value with *)
+(*           | ELit l -> *)
+(*             `String (Format.asprintf "%a" Scalc.To_python.format_lit (l, Expr.pos value)) *)
+(*           | _ -> assert false) *)
 
-      ) ordered_fields
-  )
+(*       ) ordered_fields *)
+(*   ) *)
 
 
 
@@ -2451,10 +2450,10 @@ module Stats = struct
   module Print = struct
     open Format
 
-    let ms (fmt : formatter) (t : time) =
-      let milli : int = int_of_float (t *. 1000.) in
-      pp_print_int fmt milli;
-      pp_print_string fmt " ms"
+    (* let ms (fmt : formatter) (t : time) = *)
+    (*   let milli : int = int_of_float (t *. 1000.) in *)
+    (*   pp_print_int fmt milli; *)
+    (*   pp_print_string fmt " ms" *)
 
     let sec (fmt : formatter) (t : time) =
       fprintf fmt "%.3f" t;
