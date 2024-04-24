@@ -41,7 +41,6 @@ $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . dur_in = [10 days]
-[ERROR]
-Unexpected error: Failure("[DateEncoding] Duration literals containing years or months not supported")
-#return code 125#
+[ERROR] [DateEncoding] Duration literals containing years or months not supported
+#return code 123#
 ```

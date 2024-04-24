@@ -31,7 +31,7 @@ let scope A
          ⊢ ⟨match x with
             | E1 i → if i < 0 then 0 else 1
             | E2 b → if b then 2 else 3
-            | E3 _ → 4⟩⟩
+            | E3 → 4⟩⟩
       | false ⊢ ∅ ⟩
   in
   return { A o = o; }

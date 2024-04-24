@@ -284,7 +284,7 @@ module DateEncoding = struct
   let encode_duration ctx (dur : Runtime.duration) : s_expr =
     let y, m, d = Runtime.duration_to_years_months_days dur in
     if y <> 0 || m <> 0 then
-      failwith
+      Message.error
         "[DateEncoding] Duration literals containing years or months not \
          supported";
     z3_int_of_bigint ctx.ctx_z3 (Z.of_int d)
@@ -2497,6 +2497,7 @@ let interpret_program_concolic
   Message.debug "=== Start concolic interpretation... ===";
   (* let python_tests = o_out <> None in  *)
   (* output_name, out_fmt : string * Format.formatter) *)
+
   let stats = Stats.init () in
 
   let s_context_creation = Stats.start_step "create context" in

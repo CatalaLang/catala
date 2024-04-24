@@ -44,8 +44,8 @@ let scope A
     error_empty
       ⟨ ⟨true ⊢ ⟨match x with
                  | Case1 _ → 31
-                 | Case2 _ → 42
-                 | Case3 _ → 31⟩⟩
+                 | Case2 → 42
+                 | Case3 → 31⟩⟩
       | false ⊢ ∅ ⟩
   in
   return { A o = o; }
@@ -84,8 +84,8 @@ let scope B
     error_empty
       ⟨ ⟨true ⊢ ⟨match x with
                  | Case1 i → i
-                 | Case2 _ → 42
-                 | Case3 _ → 31⟩⟩
+                 | Case2 → 42
+                 | Case3 → 31⟩⟩
       | false ⊢ ∅ ⟩
   in
   return { B o = o; }

@@ -45,8 +45,8 @@ Maybe this warrants a concolic interpreter warning?
 
 ```catala-test-inline
 $ catala Interpret -s TestA
-[ERROR]
-Cannot compare together durations that cannot be converted to a precise number of days
+[ERROR] Cannot compare together durations that cannot be converted to a
+  precise number of days
 
 ┌─⯈ tests/test_concolic/bad/duration_compare_month.catala_en:13.25-13.26:
 └──┐

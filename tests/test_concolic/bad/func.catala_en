@@ -98,8 +98,7 @@ variables, and refuses to procede:
 
 ```catala-test-inline
 $ catala Concolic -s A
-[ERROR]
-This input of the scope is a function. This case is not handled by the concolic interpreter for now. You may want to call this scope from an other scope and provide a specific function as argument.
+[ERROR] This input of the scope is a function. This case is not handled by the concolic interpreter for now. You may want to call this scope from an other scope and provide a specific function as argument.
 
 ┌─⯈ tests/test_concolic/bad/func.catala_en:9.11-9.12:
 └─┐

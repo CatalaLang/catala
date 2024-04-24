@@ -49,26 +49,26 @@ let scope A
   let set o : integer =
     error_empty
       ⟨ ⟨ ⟨match e with
-           | E1 _ → true
-           | E2 _ → false
-           | E3 _ → false
-           | E4 _ → false
-           | E5 _ → false
-           | E6 _ → false
-           | E7 _ → false
-           | E8 _ → false
-           | E9 _ → true
+           | E1 → true
+           | E2 → false
+           | E3 → false
+           | E4 → false
+           | E5 → false
+           | E6 → false
+           | E7 → false
+           | E8 → false
+           | E9 → true
            ⊢ ⟨1⟩⟩,
           ⟨match e with
-           | E1 _ → true
-           | E2 _ → true
-           | E3 _ → false
-           | E4 _ → false
-           | E5 _ → false
-           | E6 _ → false
-           | E7 _ → false
-           | E8 _ → false
-           | E9 _ → false
+           | E1 → true
+           | E2 → true
+           | E3 → false
+           | E4 → false
+           | E5 → false
+           | E6 → false
+           | E7 → false
+           | E8 → false
+           | E9 → false
            ⊢ ⟨2⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩

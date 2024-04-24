@@ -27,10 +27,10 @@ let scope A (A_in: A_in {x_in: E[E1: integer | E2: unit]}): A {o: integer} =
     error_empty
       ⟨ ⟨ ⟨match x with
            | E1 i → (i >= 3)
-           | E2 _ → false ⊢ ⟨1⟩⟩,
+           | E2 → false ⊢ ⟨1⟩⟩,
           ⟨match x with
            | E1 _ → false
-           | E2 _ → true ⊢ ⟨2⟩⟩
+           | E2 → true ⊢ ⟨2⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
