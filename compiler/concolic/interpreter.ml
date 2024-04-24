@@ -813,20 +813,21 @@ let propagate_generic_error_list l other_constraints f =
   in
   aux [] other_constraints l
 
-(* NOTE We have to rewrite EmptyError propagation functions from [Concrete]
-   because they don't allow for [f] have a different input and output type *)
-let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) :
-    conc_result =
-  match e with (EEmptyError, _) as e -> e | _ -> f e
+(* TODO QU RAPHAEL: these empty errors have been removed from the standard interpreter *)
+(* (\* NOTE We have to rewrite EmptyError propagation functions from [Concrete] *)
+(*    because they don't allow for [f] have a different input and output type *\) *)
+(* let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) : *)
+(*     conc_result = *)
+(*   match e with (EEmptyError, _) as e -> e | _ -> f e *)
 
-let propagate_empty_error_list
-    (elist : conc_expr list)
-    (f : conc_expr list -> conc_result) : conc_result =
-  let rec aux acc = function
-    | [] -> f (List.rev acc)
-    | e :: r -> propagate_empty_error e (fun e -> aux (e :: acc) r)
-  in
-  aux [] elist
+(* let propagate_empty_error_list *)
+(*     (elist : conc_expr list) *)
+(*     (f : conc_expr list -> conc_result) : conc_result = *)
+(*   let rec aux acc = function *)
+(*     | [] -> f (List.rev acc) *)
+(*     | e :: r -> propagate_empty_error e (fun e -> aux (e :: acc) r) *)
+(*   in *)
+(*   aux [] elist *)
 
 let handle_eq evaluate_operator pos lang e1 e2 =
   let open Runtime.Oper in
@@ -963,36 +964,34 @@ let rec evaluate_operator
       | _ -> assert false
     in
     try f x y
-    with Runtime.UncomparableDurations ->
+    with
+    (* TODO QU RAPHAEL: the standard interpreter also has a case for division by zero, is it absent here because it is handled somewhere else? *)
+      Runtime.UncomparableDurations ->
       Message.error ~extra_pos:(get_binop_args_pos args)
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
   in
   let err () =
     Message.error
-      ~extra_pos:([
-         ( 
-             (Format.asprintf "Operator (value %a):"
-                (Print.operator ~debug:true)
-                op),
-           pos );
-       ]
-      @ List.mapi
-          (fun i arg ->
-            (
-                (Format.asprintf "Argument n°%d, value %a" (i + 1)
+      ~extra_pos:
+        ([
+          ( Format.asprintf "Operator (value %a):"
+              (Print.operator ~debug:true)
+              op,
+            pos );
+        ]
+          @ List.mapi
+            (fun i arg ->
+               ( Format.asprintf "Argument n°%d, value %a" (i + 1)
                    (Print.UserFacing.expr lang)
-                   arg),
-              Expr.pos arg ))
-          args)
-      "Operator %a applied to the wrong arguments\n\
-       (should not happen if the term was well-typed)%a"
+                   arg,
+                 Expr.pos arg ))
+            args)
+      "Operator %a applied to the wrong@ arguments@ (should not happen if the \
+       term was well-typed)"
       (Print.operator ~debug:true)
-      op (Print.expr ())
-      (EAppOp { op; tys = []; args }, m)
+      op
   in
-  propagate_empty_error_list args
-  @@ fun args ->
   let open Runtime.Oper in
   (* trick to have this function type correctly *)
   let z3_round _ = z3_round ctx in
@@ -1371,8 +1370,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       propagate_generic_error_list args f_constraints
       @@ fun args ->
       let args_constraints = gather_constraints args in
-      propagate_empty_error e1
-      @@ fun e1 ->
       match Mark.remove e1 with
       | EAbs { binder; _ } ->
         (* TODO make this discussion into a doc? should constraints from the
@@ -1468,6 +1465,7 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       Message.debug "... it's an EAbs";
       Expr.unbox (Expr.eabs (Bindlib.box binder) tys m) |> make_ok
       (* TODO simplify this once issue #540 is resolved *)
+      (* TODO QU Raphaël: 540 has been resolved? *)
     | ELit l as e ->
       Message.debug "... it's an ELit";
       let symb_expr = symb_of_lit ctx l in
@@ -1490,8 +1488,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       (* gather all constraints from sub-expressions *)
       let constraints = gather_constraints es in
 
-      propagate_empty_error_list es
-      @@ fun es ->
       add_conc_info_m m symb_expr ~constraints
         (EStruct
            {
@@ -1504,8 +1500,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
     | EStructAccess { e; name = s; field } -> (
       Message.debug "... it's an EStructAccess";
       propagate_generic_error (evaluate_expr ctx lang e) []
-      @@ fun e ->
-      propagate_empty_error e
       @@ fun e ->
       match Mark.remove e with
       | EStruct { fields = es; name } ->
@@ -1547,8 +1541,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       Message.debug "... it's an EInj";
       propagate_generic_error (evaluate_expr ctx lang e) []
       @@ fun e ->
-      propagate_empty_error e
-      @@ fun e ->
       let concrete = EInj { name; e; cons } in
 
       let e_symb = get_symb_expr e in
@@ -1563,8 +1555,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
          example. TODO issue #130 asks for this feature ; use it once it is
          added. *)
       propagate_generic_error (evaluate_expr ctx lang e) []
-      @@ fun e ->
-      propagate_empty_error e
       @@ fun e ->
       match Mark.remove e with
       | EInj { e = e1; cons; name = name' } ->
@@ -1642,8 +1632,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       Message.debug "... it's an EIfThenElse";
       propagate_generic_error (evaluate_expr ctx lang cond) []
       @@ fun cond ->
-      propagate_empty_error cond
-      @@ fun cond ->
       let c_symb = get_symb_expr cond in
       let c_constraints = get_constraints cond in
       match Mark.remove cond with
@@ -1705,8 +1693,6 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
     | EAssert e' ->
       (* TODO CONC REU *)
       propagate_generic_error (evaluate_expr ctx lang e') []
-      @@ fun e' ->
-      propagate_empty_error e'
       @@ fun e ->
       begin
         let e_symb = get_symb_expr e in
@@ -1933,6 +1919,7 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
     let constraints = exc_constraints in
     add_conc_info_e r_symb ~constraints r |> make_ok
   | _ ->
+    (* TODO QU Raphaël: discrepancy with standard interpreter? *)
     make_error_conflicterror m exc_constraints
       (List.map
          (fun except ->
