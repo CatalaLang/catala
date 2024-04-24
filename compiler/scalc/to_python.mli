@@ -24,16 +24,7 @@ val format_program :
   Format.formatter -> Ast.program -> Scopelang.Dependency.TVertex.t list -> unit
 (** Usage [format_program fmt p type_dependencies_ordering] *)
 
-
-val format_name_cleaned :
-  Format.formatter -> string -> unit 
-
-val format_lit :
-  Format.formatter -> lit Mark.pos -> unit
-
-val format_enum_name :
-  ctx -> Format.formatter -> EnumName.t -> unit
-
-val format_enum_cons_name :
-  Format.formatter -> EnumConstructor.t -> unit
-
+val format_name_cleaned : Format.formatter -> string -> unit
+val format_lit : Format.formatter -> lit Mark.pos -> unit
+val format_enum_name : ctx -> Format.formatter -> EnumName.t -> unit
+val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit

@@ -678,8 +678,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EDefault _ | EPureDefault _
-      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | EGenericError | ERaise _ | ECatch _
-      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
+      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | EGenericError | ERaise _
+      | ECatch _ | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
       | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false

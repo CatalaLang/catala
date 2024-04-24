@@ -812,9 +812,12 @@ let propagate_generic_error_list l other_constraints f =
   in
   aux [] other_constraints l
 
-(* TODO QU RAPHAEL: these empty errors have been removed from the standard interpreter *)
-(* (\* NOTE We have to rewrite EmptyError propagation functions from [Concrete] *)
-(*    because they don't allow for [f] have a different input and output type *\) *)
+(* TODO QU RAPHAEL: these empty errors have been removed from the standard
+   interpreter *)
+(* (\* NOTE We have to rewrite EmptyError propagation functions from
+   [Concrete] *)
+(* because they don't allow for [f] have a different input and output type
+   *\) *)
 (* let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) : *)
 (*     conc_result = *)
 (*   match e with (EEmptyError, _) as e -> e | _ -> f e *)
@@ -935,7 +938,7 @@ let handle_division
        evaluated expressions, and their constraints are handled by [EAppOp]. *)
     let constraints = [den_not_zero_pc] in
     add_conc_info_m m symb_expr ~constraints concrete
-  with Runtime.Division_by_zero -> 
+  with Runtime.Division_by_zero ->
     let den_zero_pc = PathConstraint.mk_z3 den_zero (Expr.pos e2) true in
     make_error_divisionbyzeroerror m [den_zero_pc]
       [
@@ -964,8 +967,9 @@ let rec evaluate_operator
     in
     try f x y
     with
-    (* TODO QU RAPHAEL: the standard interpreter also has a case for division by zero, is it absent here because it is handled somewhere else? *)
-      Runtime.UncomparableDurations ->
+    (* TODO QU RAPHAEL: the standard interpreter also has a case for division by
+       zero, is it absent here because it is handled somewhere else? *)
+    | Runtime.UncomparableDurations ->
       Message.error ~extra_pos:(get_binop_args_pos args)
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
@@ -974,17 +978,17 @@ let rec evaluate_operator
     Message.error
       ~extra_pos:
         ([
-          ( Format.asprintf "Operator (value %a):"
-              (Print.operator ~debug:true)
-              op,
-            pos );
-        ]
-          @ List.mapi
+           ( Format.asprintf "Operator (value %a):"
+               (Print.operator ~debug:true)
+               op,
+             pos );
+         ]
+        @ List.mapi
             (fun i arg ->
-               ( Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Print.UserFacing.expr lang)
-                   arg,
-                 Expr.pos arg ))
+              ( Format.asprintf "Argument n°%d, value %a" (i + 1)
+                  (Print.UserFacing.expr lang)
+                  arg,
+                Expr.pos arg ))
             args)
       "Operator %a applied to the wrong@ arguments@ (should not happen if the \
        term was well-typed)"
@@ -1342,11 +1346,11 @@ let rec evaluate_operator
       _ ) ->
     err ()
 
-let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_result
-    =
+let rec evaluate_expr :
+    context -> Global.backend_lang -> conc_expr -> conc_result =
  fun ctx lang e ->
-  (* Message.debug "eval %a\nsymbolic: %a" (Print.expr ()) e
-     SymbExpr.formatter (get_symb_expr e); *)
+  (* Message.debug "eval %a\nsymbolic: %a" (Print.expr ()) e SymbExpr.formatter
+     (get_symb_expr e); *)
   Message.debug "eval symbolic: %a" SymbExpr.formatter (get_symb_expr e);
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
@@ -1558,7 +1562,7 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
       match Mark.remove e with
       | EInj { e = e1; cons; name = name' } ->
         if not (EnumName.equal name name') then
-          Message.error 
+          Message.error
             ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
             "Error during match: two different enums found (should not happen \
              if the term was well-typed)";
@@ -1824,8 +1828,7 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
 
       let excepts = List.map (evaluate_expr ctx lang) excepts in
       let nonempty_count, excepts = count_nonempty excepts in
-      Message.debug "EDefault found %n non-empty exceptions!"
-        nonempty_count;
+      Message.debug "EDefault found %n non-empty exceptions!" nonempty_count;
       handle_default ctx lang m (Expr.pos e) nonempty_count excepts just cons
     | EPureDefault e ->
       Message.debug "... it's an EPureDefault";
@@ -1834,8 +1837,7 @@ let rec evaluate_expr : context -> Global.backend_lang -> conc_expr -> conc_resu
   in
   (* Message.debug "\teval returns %a | %a" (Print.expr ()) ret
      SymbExpr.formatter (get_symb_expr_r ret); *)
-  Message.debug "\teval returns %a" SymbExpr.formatter
-    (get_symb_expr_r ret);
+  Message.debug "\teval returns %a" SymbExpr.formatter (get_symb_expr_r ret);
   ret
 
 and handle_default ctx lang m pos nonempty_count excepts just cons =
@@ -1861,8 +1863,8 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
       let constraints = j_constraints @ exc_constraints in
       add_conc_info_m m SymbExpr.none ~constraints EEmptyError
     | ELit (LBool true) ->
-      Message.debug "EDefault>true adding %a to constraints"
-        SymbExpr.formatter j_symb;
+      Message.debug "EDefault>true adding %a to constraints" SymbExpr.formatter
+        j_symb;
       let j_symb = SymbExpr.simplify j_symb in
       (* TODO catch error... should not happen *)
       (* TODO factorize the simplifications? *)
@@ -1893,8 +1895,8 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
       let not_j_path_constraint =
         PathConstraint.mk_z3 not_j_symb (Expr.pos just) false
       in
-      Message.debug "EDefault>false adding %a to constraints"
-        SymbExpr.formatter not_j_symb;
+      Message.debug "EDefault>false adding %a to constraints" SymbExpr.formatter
+        not_j_symb;
       (* the constraints generated by the default when [just] is false are :
        * - those generated by the evaluation of the excepts
        * - those generated by the evaluation of [just]
@@ -2322,8 +2324,8 @@ module Solver = struct
           failwith "[inputs_of_model] input mark should not be an error"
       in
       let (Custom { custom; _ }) = Mark.get t in
-      Message.debug "[inputs_of_model] input has symb? %a"
-        SymbExpr.formatter custom.symb_expr;
+      Message.debug "[inputs_of_model] input has symb? %a" SymbExpr.formatter
+        custom.symb_expr;
       t
     in
     StructField.Map.mapi f input_marks
@@ -2364,23 +2366,23 @@ let print_fields language (prefix : string) fields =
 
 (* let fields_to_json _ fields = *)
 (*   let ordered_fields = *)
-(*     List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields *)
+(* List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields *)
 (*   in  *)
 (*   `Assoc *)
 (*     ( *)
 (*     List.map *)
 (*       (fun ((var, _), value) -> *)
 (*          (Format.asprintf "%a" Scalc.To_python.format_name_cleaned var, *)
-(*           (\* `String (Format.asprintf "%a" (Print.UserFacing.value language) value *\) *)
+(* (\* `String (Format.asprintf "%a" (Print.UserFacing.value language) value
+   *\) *)
 (*           match Mark.remove value with *)
 (*           | ELit l -> *)
-(*             `String (Format.asprintf "%a" Scalc.To_python.format_lit (l, Expr.pos value)) *)
-(*           | _ -> assert false) *)
+(* `String (Format.asprintf "%a" Scalc.To_python.format_lit (l, Expr.pos
+   value)) *)
+(* | _ -> assert false) *)
 
 (*       ) ordered_fields *)
 (*   ) *)
-
-
 
 module Stats = struct
   type time = float
@@ -2494,9 +2496,9 @@ let interpret_program_concolic
     (p : (dcalc, m) gexpr program)
     s : (Uid.MarkedString.info * conc_expr) list =
   Message.debug "=== Start concolic interpretation... ===";
+
   (* let python_tests = o_out <> None in  *)
   (* output_name, out_fmt : string * Format.formatter) *)
-
   let stats = Stats.init () in
 
   let s_context_creation = Stats.start_step "create context" in
@@ -2522,16 +2524,18 @@ let interpret_program_concolic
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
     let total_tests = ref 0 in
+
     (* TODO R: add Cmd option for testcase generation *)
     (* FIXME filename *)
-
     begin
       match o_out with
-      | Some (output_name, out_fmt) -> 
+      | Some (output_name, out_fmt) ->
         let scopename = ScopeName.to_string s in
-        let scope_py = (String.lowercase_ascii scopename) in
+        let scope_py = String.lowercase_ascii scopename in
         let scope_in_py = scopename ^ "In" in
-        Format.fprintf out_fmt "from catala.runtime import *@.from %s import %s, %s@.@." output_name scope_py scope_in_py
+        Format.fprintf out_fmt
+          "from catala.runtime import *@.from %s import %s, %s@.@." output_name
+          scope_py scope_in_py
       | None -> ()
     end;
 
@@ -2588,40 +2592,46 @@ let interpret_program_concolic
 
         Message.result "Output of scope after evaluation:";
 
-        begin match o_out with
+        begin
+          match o_out with
           | None -> ()
-          | Some (_, out_fmt) -> 
+          | Some (_, out_fmt) ->
             let scopename = ScopeName.to_string s in
             let scope_in_py = scopename ^ "In" in
             Format.fprintf out_fmt "@[<hov 4>def test_%d():@\n" !total_tests;
             Format.fprintf out_fmt "i = %s(%a)@\n" scope_in_py
-              (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+              (Format.pp_print_list
+                 ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
                  (fun fmt ((var, _), value) ->
-                    let rec format_value fmt value =
-                      match Mark.remove value with
-                      | ELit l ->
-                        let lp = l, Expr.pos value in 
-                        Format.fprintf fmt "%a"
-                          Scalc.To_python.format_lit lp
-                      | EInj {name; e; cons} ->
-                        begin match Mark.remove e with
-                          | ELit _ ->
-                            Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name
-                              (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name Scalc.To_python.format_enum_cons_name cons
-                              format_value e
-                          | _ -> assert false
-                        end 
-
-                      | _ ->
-                        Format.printf "%a@." (Print.UserFacing.value p.lang) value;
-                        Message.warning "unsupported value %a" (Print.UserFacing.value p.lang) value;
-                    in
-                    Format.fprintf fmt "%a=%a"
-                      Scalc.To_python.format_name_cleaned var
-                      format_value value 
-                 )
-              )
-              inputs_list;
+                   let rec format_value fmt value =
+                     match Mark.remove value with
+                     | ELit l ->
+                       let lp = l, Expr.pos value in
+                       Format.fprintf fmt "%a" Scalc.To_python.format_lit lp
+                     | EInj { name; e; cons } -> begin
+                       match Mark.remove e with
+                       | ELit _ ->
+                         Format.fprintf fmt "%a(%a_Code.%a,@ %a)"
+                           (Scalc.To_python.format_enum_name
+                              { decl_ctx; modules = ModuleName.Map.empty })
+                           name
+                           (Scalc.To_python.format_enum_name
+                              { decl_ctx; modules = ModuleName.Map.empty })
+                           name Scalc.To_python.format_enum_cons_name cons
+                           format_value e
+                       | _ -> assert false
+                     end
+                     | _ ->
+                       Format.printf "%a@."
+                         (Print.UserFacing.value p.lang)
+                         value;
+                       Message.warning "unsupported value %a"
+                         (Print.UserFacing.value p.lang)
+                         value
+                   in
+                   Format.fprintf fmt "%a=%a"
+                     Scalc.To_python.format_name_cleaned var format_value value))
+              inputs_list
         end;
 
         begin
@@ -2634,28 +2644,26 @@ let interpret_program_concolic
             in
             print_fields p.lang ". " outputs_list;
 
-            begin match o_out with
+            begin
+              match o_out with
               | None -> ()
-              | Some (_, out_fmt) -> 
+              | Some (_, out_fmt) ->
                 let scopename = ScopeName.to_string s in
-                let scope_py = (String.lowercase_ascii scopename) in
+                let scope_py = String.lowercase_ascii scopename in
                 Format.fprintf out_fmt "r = %s(i)@\n" scope_py;
                 Format.fprintf out_fmt "%a@]@\n@."
-                  (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+                  (Format.pp_print_list
+                     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
                      (fun fmt ((var, _), value) ->
-                        match Mark.remove value with
-                        | ELit l ->
-                          let lp = l, Expr.pos value in 
-                          Format.fprintf fmt "assert(r.%a == %a)"
-                            Scalc.To_python.format_name_cleaned var
-                            Scalc.To_python.format_lit lp
-                        | _ -> assert false
-                     )
-                  )
+                       match Mark.remove value with
+                       | ELit l ->
+                         let lp = l, Expr.pos value in
+                         Format.fprintf fmt "assert(r.%a == %a)"
+                           Scalc.To_python.format_name_cleaned var
+                           Scalc.To_python.format_lit lp
+                       | _ -> assert false))
                   outputs_list
-            end ;
-
-
+            end
           | EGenericError ->
             (* TODO better error messages *)
             (* TODO test the different cases *)
@@ -2664,22 +2672,32 @@ let interpret_program_concolic
               (Pos.to_string_short (Expr.pos res));
 
             (* TODO FIXME UGLY *)
-            begin match o_out with
+            begin
+              match o_out with
               | None -> ()
-              | Some (_, out_fmt) -> 
+              | Some (_, out_fmt) ->
                 let scopename = ScopeName.to_string s in
-                let scope_py = (String.lowercase_ascii scopename) in
-                let s = Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res) in
-                let str_contains searched = fun s ->
-                  try ignore (Str.search_forward (Str.regexp_string searched) s 0); true
+                let scope_py = String.lowercase_ascii scopename in
+                let s =
+                  Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res)
+                in
+                let str_contains searched s =
+                  try
+                    ignore (Str.search_forward (Str.regexp_string searched) s 0);
+                    true
                   with Not_found -> false
                 in
-                if str_contains "AssertionError" s then 
-                  Format.fprintf out_fmt "try: r = %s(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@." scope_py
+                if str_contains "AssertionError" s then
+                  Format.fprintf out_fmt
+                    "try: r = %s(i)@\n\
+                     except AssertionFailure: pass@\n\
+                     else: assert(False)@]@\n\
+                     @."
+                    scope_py
                 else
-                  Message.warning "error %s has not been added to Python testcase" s
-            end;
-
+                  Message.warning
+                    "error %s has not been added to Python testcase" s
+            end
           | _ ->
             Message.error ~pos:(Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
@@ -2731,23 +2749,24 @@ let interpret_program_concolic
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.result "";
 
-    begin match o_out with
+    begin
+      match o_out with
       | None -> ()
-      | Some (_, out_fmt) -> 
+      | Some (_, out_fmt) ->
         Format.fprintf out_fmt "@[<hov 4>if __name__ == '__main__':@\n";
         for i = 0 to !total_tests - 1 do
           Format.fprintf out_fmt "test_%d()@\n" i
         done;
-        Format.fprintf out_fmt "@]@.";
+        Format.fprintf out_fmt "@]@."
     end;
 
     Message.result "Concolic interpreter done";
 
     let stats = Stats.stop stats in
     if print_stats then
-      Message.result "=== Concolic execution statistics ===\n%a\n%d tests\n======"
-        Stats.print stats
-        !total_tests;
+      Message.result
+        "=== Concolic execution statistics ===\n%a\n%d tests\n======"
+        Stats.print stats !total_tests;
     (* XXX BROKEN output *)
     []
   end
