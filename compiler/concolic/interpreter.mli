@@ -55,7 +55,7 @@ type conc_expr = (conc_src_kind, conc_info) gexpr
 
 val interpret_program_concolic :
   bool ->
-  (string * Format.formatter) ->
+  (string * Format.formatter) option ->
   Optimizations.flag list ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->

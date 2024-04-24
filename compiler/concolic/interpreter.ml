@@ -2490,11 +2490,13 @@ end
 let interpret_program_concolic
     (type m)
     (print_stats : bool)
-    (output_name, out_fmt : string * Format.formatter)
+    (o_out : (string * Format.formatter) option)
     (optims : Optimizations.flag list)
     (p : (dcalc, m) gexpr program)
     s : (Uid.MarkedString.info * conc_expr) list =
   Message.debug "=== Start concolic interpretation... ===";
+  (* let python_tests = o_out <> None in  *)
+  (* output_name, out_fmt : string * Format.formatter) *)
   let stats = Stats.init () in
 
   let s_context_creation = Stats.start_step "create context" in
@@ -2521,12 +2523,17 @@ let interpret_program_concolic
 
     let total_tests = ref 0 in
     (* TODO R: add Cmd option for testcase generation *)
-    let fmtt = out_fmt in 
     (* FIXME filename *)
-    let scopename = ScopeName.to_string s in
-    let scope_py = (String.lowercase_ascii scopename) in
-    let scope_in_py = scopename ^ "In" in
-    Format.fprintf fmtt "from catala.runtime import *@.from %s import %s, %s@.@." output_name scope_py scope_in_py;
+
+    begin
+      match o_out with
+      | Some (output_name, out_fmt) -> 
+        let scopename = ScopeName.to_string s in
+        let scope_py = (String.lowercase_ascii scopename) in
+        let scope_in_py = scopename ^ "In" in
+        Format.fprintf out_fmt "from catala.runtime import *@.from %s import %s, %s@.@." output_name scope_py scope_in_py
+      | None -> ()
+    end;
 
     let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
         : Stats.t =
@@ -2581,35 +2588,41 @@ let interpret_program_concolic
 
         Message.result "Output of scope after evaluation:";
 
-        Format.fprintf fmtt "@[<hov 4>def test_%d():@\n" !total_tests;
-        Format.fprintf fmtt "i = %s(%a)@\n" scope_in_py
-          (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-             (fun fmt ((var, _), value) ->
-                let rec format_value fmt value =
-                  match Mark.remove value with
-                  | ELit l ->
-                    let lp = l, Expr.pos value in 
-                    Format.fprintf fmt "%a"
-                      Scalc.To_python.format_lit lp
-                  | EInj {name; e; cons} ->
-                    begin match Mark.remove e with
-                      | ELit _ ->
-                        Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name
-                          (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name Scalc.To_python.format_enum_cons_name cons
-                          format_value e
-                      | _ -> assert false
-                    end 
+        begin match o_out with
+          | None -> ()
+          | Some (_, out_fmt) -> 
+            let scopename = ScopeName.to_string s in
+            let scope_in_py = scopename ^ "In" in
+            Format.fprintf out_fmt "@[<hov 4>def test_%d():@\n" !total_tests;
+            Format.fprintf out_fmt "i = %s(%a)@\n" scope_in_py
+              (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+                 (fun fmt ((var, _), value) ->
+                    let rec format_value fmt value =
+                      match Mark.remove value with
+                      | ELit l ->
+                        let lp = l, Expr.pos value in 
+                        Format.fprintf fmt "%a"
+                          Scalc.To_python.format_lit lp
+                      | EInj {name; e; cons} ->
+                        begin match Mark.remove e with
+                          | ELit _ ->
+                            Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name
+                              (Scalc.To_python.format_enum_name {decl_ctx; modules = ModuleName.Map.empty}) name Scalc.To_python.format_enum_cons_name cons
+                              format_value e
+                          | _ -> assert false
+                        end 
 
-                  | _ ->
-                    Format.printf "%a@." (Print.UserFacing.value p.lang) value;
-                    assert false
-                in
-                Format.fprintf fmt "%a=%a"
-                  Scalc.To_python.format_name_cleaned var
-                  format_value value 
-             )
-          )
-          inputs_list;
+                      | _ ->
+                        Format.printf "%a@." (Print.UserFacing.value p.lang) value;
+                        Message.warning "unsupported value %a" (Print.UserFacing.value p.lang) value;
+                    in
+                    Format.fprintf fmt "%a=%a"
+                      Scalc.To_python.format_name_cleaned var
+                      format_value value 
+                 )
+              )
+              inputs_list;
+        end;
 
         begin
           match Mark.remove res with
@@ -2621,21 +2634,27 @@ let interpret_program_concolic
             in
             print_fields p.lang ". " outputs_list;
 
-            Format.fprintf fmtt "r = %s(i)@\n" scope_py;
-            Format.fprintf fmtt "%a@]@\n@."
-              (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-                 (fun fmt ((var, _), value) ->
-                    match Mark.remove value with
-                    | ELit l ->
-                      let lp = l, Expr.pos value in 
-                      Format.fprintf fmt "assert(r.%a == %a)"
-                        Scalc.To_python.format_name_cleaned var
-                        Scalc.To_python.format_lit lp
-                    | _ -> assert false
-                 )
-              )
-              outputs_list;
-     
+            begin match o_out with
+              | None -> ()
+              | Some (_, out_fmt) -> 
+                let scopename = ScopeName.to_string s in
+                let scope_py = (String.lowercase_ascii scopename) in
+                Format.fprintf out_fmt "r = %s(i)@\n" scope_py;
+                Format.fprintf out_fmt "%a@]@\n@."
+                  (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+                     (fun fmt ((var, _), value) ->
+                        match Mark.remove value with
+                        | ELit l ->
+                          let lp = l, Expr.pos value in 
+                          Format.fprintf fmt "assert(r.%a == %a)"
+                            Scalc.To_python.format_name_cleaned var
+                            Scalc.To_python.format_lit lp
+                        | _ -> assert false
+                     )
+                  )
+                  outputs_list
+            end ;
+
 
           | EGenericError ->
             (* TODO better error messages *)
@@ -2645,16 +2664,22 @@ let interpret_program_concolic
               (Pos.to_string_short (Expr.pos res));
 
             (* TODO FIXME UGLY *)
-            let s = Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res) in
-            let str_contains searched = fun s ->
-              try ignore (Str.search_forward (Str.regexp_string searched) s 0); true
-              with Not_found -> false
-            in
-            if str_contains "AssertionError" s then 
-              Format.fprintf fmtt "try: r = %s(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@." scope_py
-            else
-              assert false 
-            
+            begin match o_out with
+              | None -> ()
+              | Some (_, out_fmt) -> 
+                let scopename = ScopeName.to_string s in
+                let scope_py = (String.lowercase_ascii scopename) in
+                let s = Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res) in
+                let str_contains searched = fun s ->
+                  try ignore (Str.search_forward (Str.regexp_string searched) s 0); true
+                  with Not_found -> false
+                in
+                if str_contains "AssertionError" s then 
+                  Format.fprintf out_fmt "try: r = %s(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@." scope_py
+                else
+                  Message.warning "error %s has not been added to Python testcase" s
+            end;
+
           | _ ->
             Message.error ~pos:(Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
@@ -2706,11 +2731,15 @@ let interpret_program_concolic
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.result "";
 
-    Format.fprintf fmtt "@[<hov 4>if __name__ == '__main__':@\n";
-    for i = 0 to !total_tests - 1 do
-      Format.fprintf fmtt "test_%d()@\n" i
-    done;
-    Format.fprintf fmtt "@]@.";
+    begin match o_out with
+      | None -> ()
+      | Some (_, out_fmt) -> 
+        Format.fprintf out_fmt "@[<hov 4>if __name__ == '__main__':@\n";
+        for i = 0 to !total_tests - 1 do
+          Format.fprintf out_fmt "test_%d()@\n" i
+        done;
+        Format.fprintf out_fmt "@]@.";
+    end;
 
     Message.result "Concolic interpreter done";
 

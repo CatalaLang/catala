@@ -1073,23 +1073,35 @@ module Commands = struct
       includes
       optimize
       check_invariants
-      ex_scope =
-    let out_file, _ = get_output_format options ~ext:"" output in 
-    let test_file, with_output = get_output_format options ~ext:"_test.py"  output in 
-
+      ex_scope
+      python_tests 
+    =
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
+    in
+
+    let out_file, _ = get_output_format options ~ext:"" output in
+    let test_file, with_output =
+      if python_tests then 
+        get_output_format options ~ext:"_test.py" output
+      else
+        Some "/dev/null", File.with_formatter_of_file "/dev/null"
     in
     with_output (fun out_fmt ->
         Interpreter.load_runtime_modules prg;
         print_interpretation_results options
-          (Concolic.Interpreter.interpret_program_concolic stats (Filename.basename @@ Option.get out_file, out_fmt) conc_optims)
+          (Concolic.Interpreter.interpret_program_concolic stats
+             (if python_tests then Some (Filename.basename @@ Option.value ~default:"out.py" out_file, out_fmt)
+              else None)
+             conc_optims)
           prg
           (get_scope_uid prg.decl_ctx ex_scope)
       );
-    Message.result "Wrote test file to %s"
-      (Option.get test_file);
-    if not @@ Sys.file_exists (Option.get out_file ^ ".py") then
+
+    if python_tests then
+      Message.result "Wrote test file to %s"
+      (Option.value ~default:"test.py" test_file);
+    if python_tests && not @@ Sys.file_exists (Option.value ~default:"out" out_file ^ ".py") then
       let () = Message.result "Python backend file does not exist, generating it with the same options (not using avoid_exceptions nor close_conversion)" in
       python options includes output optimize check_invariants false false  
 
@@ -1112,7 +1124,12 @@ module Commands = struct
       & info ["conc-optim"] ~doc:"Concolic execution optimizations"
       (* FIXME add information on optims *)
     in
-
+    let python_tests =
+      let open Cmdliner.Arg in
+      value
+      & flag
+      & info ["python_tests"] ~doc:"Output testcases compatible with the Python backend."
+    in 
     Cmd.v
       (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
       Term.(
@@ -1125,7 +1142,8 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope)
+        $ Cli.Flags.ex_scope
+        $ python_tests)
 
 
   let commands =
