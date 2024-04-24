@@ -1,0 +1,32 @@
+## Test
+
+```catala
+declaration structure T:
+   data c content boolean
+   data d content integer
+
+declaration structure S:
+    data a content integer
+    data b content T
+
+declaration scope A:
+  output x content integer
+  internal y content S
+
+scope A:
+  definition y equals S { -- a : 0 -- b : T { -- c : false -- d: 0}}
+  definition x under condition (y.a = 0) and y.b.c consequence equals 0
+  definition x under condition not (y.a = 0) or not y.b.c consequence equals 1
+```
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

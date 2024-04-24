@@ -1,0 +1,45 @@
+## Article
+
+```catala
+declaration scope A:
+   output x content list of integer
+
+scope A:
+   definition x equals [0; 4+5; 8*8]
+
+declaration scope B:
+   a scope A
+   output v content integer
+   output w content boolean
+   output y content boolean
+   output z content boolean
+
+scope B:
+   definition v equals number of a.x
+   definition w equals a.x contains 64
+   definition y equals exists m among a.x such that m = 9
+   definition z equals for all m among a.x we have m > 0
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = [0; 9; 64]
+```
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful! Results:
+[RESULT] v = 3
+[RESULT] w = true
+[RESULT] y = true
+[RESULT] z = false
+```

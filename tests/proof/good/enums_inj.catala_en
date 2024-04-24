@@ -1,0 +1,29 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- C1
+  -- C2
+
+declaration scope A:
+  internal x content E
+  output y content integer
+
+scope A:
+  definition x equals C1
+  definition y under condition x = C1 consequence equals 1
+  definition y under condition x = C2 consequence equals 2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

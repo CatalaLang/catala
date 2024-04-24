@@ -1,0 +1,42 @@
+# Test
+
+```catala
+declaration scope A:
+  input x condition
+  output y content integer
+
+declaration scope B:
+  a scope A
+
+scope A:
+  definition y equals if x then 0 else 1
+
+scope B:
+  assertion a.y = 1
+```
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Dcalc -s B
+let scope B (B_in: B_in): B =
+  let set a : A {y: integer} =
+    let result : A =
+      A { A_in x_in = error_empty ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩; }
+    in
+    let result1 : A = { A y = result.y; } in
+    if true then result1 else result1
+  in
+  let assert _ : unit = assert ((a.y = 1)) in
+  return {B}
+```
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful!
+```

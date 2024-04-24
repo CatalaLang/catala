@@ -1,0 +1,45 @@
+# Test modules + inclusions 1
+
+> Module Mod_def
+
+```catala-metadata
+declaration enumeration Enum1:
+  -- Yes
+  -- No
+  -- Maybe
+
+declaration structure Str1:
+  data fld1 content Enum1
+  data fld2 content integer
+
+declaration scope S:
+  output sr content money
+  output e1 content Enum1
+
+declaration half content decimal
+  depends on x content integer
+  equals x / 2
+```
+
+```catala
+scope S:
+  definition sr equals $1,000
+  definition e1 equals Maybe
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala typecheck --disable-warnings
+[RESULT] Typechecking successful!
+```
+
+```catala-test { id="ml" }
+$ catala ocaml --disable-warnings
+```

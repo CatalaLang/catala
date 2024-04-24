@@ -74,9 +74,6 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
   | DesugaredScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
   | ScopelangScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
-  | SubScopeVar { alias = subindex; var = subvar; _ } ->
-    Format.fprintf fmt "%a.%a" SubScopeName.format (Mark.remove subindex)
-      ScopeVar.format (Mark.remove subvar)
   | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
 
 let external_ref fmt er =
@@ -180,7 +177,8 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:Cli.globals.max_prec_digits i)
+      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits
+         i)
   | LMoney e ->
     lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
@@ -222,6 +220,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Xor -> "xor"
   | Eq -> "="
   | Map -> "map"
+  | Map2 -> "map2"
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
@@ -306,6 +305,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Xor -> "xor"
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
   | Map -> "map"
+  | Map2 -> "map2"
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
@@ -349,8 +349,8 @@ let except (fmt : Format.formatter) (exn : except) : unit =
   op_style fmt
     (match exn with
     | EmptyError -> "EmptyError"
-    | ConflictError -> "ConflictError"
-    | Crash -> "Crash"
+    | ConflictError _ -> "ConflictError"
+    | Crash s -> Printf.sprintf "Crash %S" s
     | NoValueProvided -> "NoValueProvided")
 
 let var_debug fmt v =
@@ -407,8 +407,8 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | HandleDefault | HandleDefaultOpt | Map | Concat | Filter | Reduce | Fold
-      | ToClosureEnv | FromClosureEnv ->
+      | HandleDefault | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce
+      | Fold | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
     | EArray _ -> Contained
@@ -423,6 +423,7 @@ module Precedence = struct
     | ETupleAccess _ -> Dot
     | ELocation _ -> Contained
     | EScopeCall _ -> App
+    | EDStructAmend _ -> App
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EDefault _ -> Contained
@@ -473,13 +474,20 @@ end
 
 module ExprGen (C : EXPR_PARAM) = struct
   let rec expr_aux :
-      type a.
+      type a t.
       Bindlib.ctxt ->
       Ocolor_types.color4 list ->
       Format.formatter ->
-      (a, 't) gexpr ->
+      (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
+    (* (* Uncomment for type annotations everywhere *)
+     * (fun f ->
+     *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
+     *      f e
+     *      typ_debug
+     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
+     * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
     let expr e = exprc colors e in
@@ -554,14 +562,19 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space
              (fun fmt (x, tau) ->
-               punctuation fmt "(";
-               Format.pp_open_hvbox fmt 2;
-               var fmt x;
-               punctuation fmt ":";
-               Format.pp_print_space fmt ();
-               typ_gen None ~colors fmt tau;
-               Format.pp_close_box fmt ();
-               punctuation fmt ")"))
+               match tau with
+               | TLit TUnit, _ ->
+                 punctuation fmt "(";
+                 punctuation fmt ")"
+               | _ ->
+                 punctuation fmt "(";
+                 Format.pp_open_hvbox fmt 2;
+                 var fmt x;
+                 punctuation fmt ":";
+                 Format.pp_print_space fmt ();
+                 typ_gen None ~colors fmt tau;
+                 Format.pp_close_box fmt ();
+                 punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
       | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
@@ -671,6 +684,14 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
           "." punctuation "\"" Ident.format field punctuation "\""
+      | EDStructAmend { e; fields; _ } ->
+        Format.fprintf fmt "@[<hv 2>@[<hov>%a %a@ with@]@ %a@;<1 -2>%a@]"
+          punctuation "{" (lhs exprc) e
+          (Ident.Map.format_bindings ~pp_sep:Format.pp_print_space
+             (fun fmt pp_field_name field_expr ->
+               Format.fprintf fmt "@[<hv 2>%t %a@ %a%a@]" pp_field_name
+                 punctuation "=" (lhs exprc) field_expr punctuation ";"))
+          fields punctuation "}"
       | EStruct { name; fields } ->
         if StructField.Map.is_empty fields then (
           punctuation fmt "{";
@@ -697,13 +718,19 @@ module ExprGen (C : EXPR_PARAM) = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt pp_cons_name case_expr ->
                match case_expr with
-               | EAbs { binder; _ }, _ ->
+               | EAbs { binder; tys; _ }, _ ->
                  let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
                  let expr = exprb bnd_ctx in
-                 Format.fprintf fmt "@[<hov 2>%a %t@ %a@ %a@ %a@]" punctuation
-                   "|" pp_cons_name
-                   (Format.pp_print_seq ~pp_sep:Format.pp_print_space var)
-                   (Array.to_seq xs) punctuation "→" (rhs expr) body
+                 let pp_args fmt =
+                   match tys with
+                   | [(TLit TUnit, _)] -> ()
+                   | _ ->
+                     Format.pp_print_seq ~pp_sep:Format.pp_print_space var fmt
+                       (Array.to_seq xs);
+                     Format.pp_print_space fmt ()
+                 in
+                 Format.fprintf fmt "@[<hov 2>%a %t@ %t%a@ %a@]" punctuation "|"
+                   pp_cons_name pp_args punctuation "→" (rhs expr) body
                | e ->
                  Format.fprintf fmt "@[<hov 2>%a %t@ %a@ %a@]" punctuation "|"
                    pp_cons_name punctuation "→" (rhs exprc) e))
@@ -753,7 +780,7 @@ end
 
 module ExprDebug = ExprGen (ExprDebugParam)
 
-let expr ?(debug = Cli.globals.debug) () ppf e =
+let expr ?(debug = Global.options.debug) () ppf e =
   if debug then ExprDebug.expr ppf e else ExprConcise.expr ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
@@ -765,30 +792,22 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   | DestructuringSubScopeResults -> keyword fmt "sub_get"
   | Assertion -> keyword fmt "assert"
 
-let[@ocamlformat "disable"] rec
+let[@ocamlformat "disable"]
   scope_body_expr ?(debug = false) ctx fmt b : unit =
-  match b with
-  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) e
-  | ScopeLet
-      {
-        scope_let_kind = kind;
-        scope_let_typ;
-        scope_let_expr;
-        scope_let_next;
-        _;
-      } ->
-    let x, next = Bindlib.unbind scope_let_next in
+  let print_scope_let x sl =
     Format.fprintf fmt
-      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,%a"
+      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,"
       keyword "let"
-      (scope_let_kind ~debug ctx) kind
+      (scope_let_kind ~debug ctx) sl.scope_let_kind
       (if debug then var_debug else var) x
       punctuation ":"
-      (typ ctx) scope_let_typ
+      (typ ctx) sl.scope_let_typ
       punctuation "="
-      (expr ~debug ()) scope_let_expr
+      (expr ~debug ()) sl.scope_let_expr
       keyword "in"
-      (scope_body_expr ~debug ctx) next
+  in
+  let last = BoundList.iter ~f:print_scope_let b in
+  Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) last
 
 let scope_body ?(debug = false) ctx fmt (n, l) : unit =
   let {
@@ -869,7 +888,7 @@ let struct_
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ StructField.Map.t) =
-  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]@," keyword "type"
+  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]" keyword "type"
     pp_name punctuation "=" punctuation "{"
     (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
@@ -881,10 +900,14 @@ let struct_
 let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
     : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
-  Format.fprintf fmt "@[<v>%a@;@;%a@] @;"
-    (EnumName.Map.format_bindings (enum ~debug decl_ctx))
+  Format.fprintf fmt "%a@.%a@.@."
+    (EnumName.Map.format_bindings
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
+       (enum ~debug decl_ctx))
     ctx_enums
-    (StructName.Map.format_bindings (struct_ ~debug decl_ctx))
+    (StructName.Map.format_bindings
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
+       (struct_ ~debug decl_ctx))
     ctx_structs
 
 let scope
@@ -915,16 +938,12 @@ let code_item ?(debug = false) ?name decl_ctx fmt c =
       "let topval" TopdefName.format n op_style ":" (typ decl_ctx) ty op_style
       "=" (expr ~debug ()) e
 
-let rec code_item_list ?(debug = false) decl_ctx fmt c =
-  match c with
-  | Nil -> ()
-  | Cons (c, b) ->
-    let x, cl = Bindlib.unbind b in
-    Format.fprintf fmt "%a @.%a"
-      (code_item ~debug ~name:(Format.asprintf "%a" var_debug x) decl_ctx)
-      c
-      (code_item_list ~debug decl_ctx)
-      cl
+let code_item_list ?(debug = false) decl_ctx fmt c =
+  BoundList.iter c ~f:(fun x item ->
+      code_item ~debug
+        ~name:(Format.asprintf "%a" var_debug x)
+        decl_ctx fmt item;
+      Format.pp_print_newline fmt ())
 
 let program ?(debug = false) fmt p =
   decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
@@ -948,15 +967,16 @@ module UserFacing = struct
   (* Refs:
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
      https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
-  let bigsep (lang : Cli.backend_lang) =
+  let bigsep (lang : Global.backend_lang) =
     match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
 
-  let decsep (lang : Cli.backend_lang) =
+  let decsep (lang : Global.backend_lang) =
     match lang with En -> "." | Fr -> "," | Pl -> "."
 
-  let unit (_lang : Cli.backend_lang) ppf () = Format.pp_print_string ppf "()"
+  let unit (_lang : Global.backend_lang) ppf () =
+    Format.pp_print_string ppf "()"
 
-  let bool (lang : Cli.backend_lang) ppf b =
+  let bool (lang : Global.backend_lang) ppf b =
     let s =
       match lang, b with
       | En, true -> "true"
@@ -968,7 +988,7 @@ module UserFacing = struct
     in
     Format.pp_print_string ppf s
 
-  let integer (lang : Cli.backend_lang) ppf n =
+  let integer (lang : Global.backend_lang) ppf n =
     let sep, nsep = bigsep lang in
     let nsep = Z.pow (Z.of_int 10) nsep in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
@@ -981,7 +1001,7 @@ module UserFacing = struct
     in
     aux (Z.abs n)
 
-  let money (lang : Cli.backend_lang) ppf n =
+  let money (lang : Global.backend_lang) ppf n =
     let num = Z.abs n in
     let units, cents = Z.div_rem num (Z.of_int 100) in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
@@ -994,7 +1014,7 @@ module UserFacing = struct
     | Fr -> Format.pp_print_string ppf " €"
     | Pl -> Format.pp_print_string ppf " PLN"
 
-  let decimal (lang : Cli.backend_lang) ppf r =
+  let decimal (lang : Global.backend_lang) ppf r =
     let den = Q.den r in
     let num = Z.abs (Q.num r) in
     let int_part, rem = Z.div_rem num den in
@@ -1011,7 +1031,7 @@ module UserFacing = struct
         | None ->
           if Z.equal n Z.zero then None, false
           else
-            let r = Cli.globals.max_prec_digits in
+            let r = Global.options.max_prec_digits in
             Some (r - 1), r <= 1
         | Some r -> Some (r - 1), r <= 1
       in
@@ -1027,19 +1047,19 @@ module UserFacing = struct
     in
     aux 0
       (if Z.equal int_part Z.zero then None
-       else Some (Cli.globals.max_prec_digits - ndigits int_part))
+       else Some (Global.options.max_prec_digits - ndigits int_part))
       rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %
      and some others not, adding confusion. *)
 
-  let date (lang : Cli.backend_lang) ppf d =
+  let date (lang : Global.backend_lang) ppf d =
     let y, m, d = Dates_calc.Dates.date_to_ymd d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
     | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
-  let duration (lang : Cli.backend_lang) ppf dr =
+  let duration (lang : Global.backend_lang) ppf dr =
     let y, m, d = Dates_calc.Dates.period_to_ymds dr in
     let rec filter0 = function
       | (0, _) :: (_ :: _ as r) -> filter0 r
@@ -1059,7 +1079,7 @@ module UserFacing = struct
          ppf;
     Format.pp_print_char ppf ']'
 
-  let lit_raw (lang : Cli.backend_lang) ppf lit : unit =
+  let lit_raw (lang : Global.backend_lang) ppf lit : unit =
     match lit with
     | LUnit -> unit lang ppf ()
     | LBool b -> bool lang ppf b
@@ -1069,20 +1089,20 @@ module UserFacing = struct
     | LDate d -> date lang ppf d
     | LDuration dr -> duration lang ppf dr
 
-  let lit_to_string (lang : Cli.backend_lang) lit =
+  let lit_to_string (lang : Global.backend_lang) lit =
     let buf = Buffer.create 32 in
     let ppf = Format.formatter_of_buffer buf in
     lit_raw lang ppf lit;
     Format.pp_print_flush ppf ();
     Buffer.contents buf
 
-  let lit (lang : Cli.backend_lang) ppf lit : unit =
+  let lit (lang : Global.backend_lang) ppf lit : unit =
     with_color (lit_raw lang) Ocolor_types.yellow ppf lit
 
   let rec value :
       type a.
       ?fallback:(Format.formatter -> (a, 't) gexpr -> unit) ->
-      Cli.backend_lang ->
+      Global.backend_lang ->
       Format.formatter ->
       (a, 't) gexpr ->
       unit =
@@ -1090,10 +1110,16 @@ module UserFacing = struct
        ppf e ->
     match Mark.remove e with
     | ELit l -> lit lang ppf l
-    | EArray l | ETuple l ->
+    | EArray l ->
       Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           (value ~fallback lang))
+        l
+    | ETuple l ->
+      Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            (value ~fallback lang))
         l
     | EStruct { name; fields } ->
@@ -1113,11 +1139,11 @@ module UserFacing = struct
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
     | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
-    | EDStructAccess _ | ECustom _ ->
+    | EDStructAmend _ | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
   let expr :
-      type a. Cli.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
+      type a. Global.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
    fun lang ->
     let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
      fun ppf e -> value ~fallback lang ppf e

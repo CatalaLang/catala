@@ -17,13 +17,7 @@
 open Catala_utils
 open Definitions
 
-type ('a, 'b, 'm) optimizations_ctx = {
-  var_values :
-    ( (('a, 'b) dcalc_lcalc, 'm) gexpr,
-      (('a, 'b) dcalc_lcalc, 'm) gexpr )
-    Var.Map.t;
-  decl_ctx : decl_ctx;
-}
+type ('a, 'b, 'm) optimizations_ctx = { decl_ctx : decl_ctx }
 
 let all_match_cases_are_id_fun cases n =
   EnumConstructor.Map.for_all
@@ -107,9 +101,12 @@ let rec optimize_expr :
     ((a, b) dcalc_lcalc, 'm) boxed_gexpr =
  fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
-  let e = Expr.map ~f:(optimize_expr ctx) e in
+  let e = Expr.map ~f:(optimize_expr ctx) ~op:Fun.id e in
   let mark = Mark.get e in
-  (* Then reduce the parent node *)
+  (* Fixme: when removing enclosing expressions, it would be better if we were
+     able to keep the inner position (see the division_by_zero test) *)
+  (* Then reduce the parent node (this is applied through Box.apply, therefore
+     delayed to unbinding time: no need to be concerned about reboxing) *)
   let reduce (e : ((a, b) dcalc_lcalc, 'm) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
@@ -146,10 +143,7 @@ let rec optimize_expr :
           cases = cases2;
           name = n2;
         }
-      when false
-           (* TODO: this case is buggy because of the box/unbox manipulation, it
-              should be fixed before removing this [false] value*)
-           && EnumName.equal n1 n2
+      when EnumName.equal n1 n2
            && all_match_cases_map_to_same_constructor cases1 n1 ->
       (* iota-reduction when the matched expression is itself a match of the
          same enum mapping all constructors to themselves *)
@@ -167,7 +161,7 @@ let rec optimize_expr :
                   Some
                     (Expr.unbox
                        (Expr.make_abs [| v1 |]
-                          (Expr.box
+                          (Expr.rebox
                              (Bindlib.msubst b2
                                 ([e1] |> List.map fst |> Array.of_list)))
                           tys (Expr.pos e2)))
@@ -217,35 +211,16 @@ let rec optimize_expr :
       |> Mark.remove
     | EApp { f = EAbs { binder; _ }, _; args; _ }
       when binder_vars_used_at_most_once binder
-           || List.for_all (function EVar _, _ -> true | _ -> false) args ->
-      (* beta reduction when variables not used, and for variable aliases *)
+           || List.for_all
+                (function (EVar _ | ELit _), _ -> true | _ -> false)
+                args ->
+      (* beta reduction when variables not used, and for variable aliases and
+         literal *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
-    | EErrorOnEmpty
-        ( EDefault
-            {
-              excepts = [];
-              just = ELit (LBool true), _;
-              cons = EPureDefault e, _;
-            },
-          _ ) ->
-      (* No exceptions, always true *)
-      Mark.remove e
-    | EErrorOnEmpty
-        ( EDefault
-            {
-              excepts =
-                [
-                  ( EDefault { excepts = []; just = ELit (LBool true), _; cons },
-                    _ );
-                ];
-              _;
-            },
-          _ ) ->
-      (* Single, always true exception *)
-      Mark.remove cons
+    | EErrorOnEmpty (EPureDefault (e, _), _) -> e
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
@@ -262,7 +237,7 @@ let rec optimize_expr :
            feed the expression to the interpreter that will print the beautiful
            right error message *)
         let (_ : _ gexpr) =
-          Interpreter.evaluate_expr ctx.decl_ctx Cli.En
+          Interpreter.evaluate_expr ctx.decl_ctx Global.En
             (* Default language to English, no errors should be raised normally
                so we don't care *)
             e
@@ -270,19 +245,22 @@ let rec optimize_expr :
         assert false
       else
         match excepts, just with
-        | ( [
-              ( (EDefault { excepts = []; just = ELit (LBool true), _; _ } as dft),
-                _ );
-            ],
-            _ ) ->
-          (* Single exception with condition [true] *)
-          dft
+        | [(EDefault { excepts = []; just = ELit (LBool true), _; cons }, _)], _
+          ->
+          (* No exceptions with condition [true] *)
+          Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
               | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* No exceptions and condition false *)
           EEmptyError
+        | ( [except],
+            ( ( ELit (LBool false)
+              | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
+              _ ) ) ->
+          (* Single exception and condition false *)
+          Mark.remove except
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {
@@ -327,12 +305,117 @@ let rec optimize_expr :
       Mark.remove init
     | EAppOp
         {
+          op = Map;
+          args =
+            [
+              f1;
+              ( EAppOp
+                  {
+                    op = Map;
+                    args = [f2; ls];
+                    tys = [_; ((TArray xty, _) as lsty)];
+                  },
+                m2 );
+            ];
+          tys = [_; (TArray yty, _)];
+        } ->
+      (* map f (map g l) => map (f o g) l *)
+      let fg =
+        let v =
+          Var.make
+            (match f2 with
+            | EAbs { binder; _ }, _ -> (Bindlib.mbinder_names binder).(0)
+            | _ -> "x")
+        in
+        let mty m =
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+        in
+        let x = Expr.evar v (mty (Mark.get ls)) in
+        Expr.make_abs [| v |]
+          (Expr.eapp ~f:(Expr.box f1)
+             ~args:[Expr.eapp ~f:(Expr.box f2) ~args:[x] ~tys:[xty] (mty m2)]
+             ~tys:[yty] (mty mark))
+          [xty] (Expr.pos e)
+      in
+      let fg = optimize_expr ctx (Expr.unbox fg) in
+      let mapl =
+        Expr.eappop ~op:Map
+          ~args:[fg; Expr.box ls]
+          ~tys:[Expr.maybe_ty (Mark.get fg); lsty]
+          mark
+      in
+      Mark.remove (Expr.unbox mapl)
+    | EAppOp
+        {
+          op = Map;
+          args =
+            [
+              f1;
+              ( EAppOp
+                  {
+                    op = Map2;
+                    args = [f2; ls1; ls2];
+                    tys =
+                      [
+                        _;
+                        ((TArray x1ty, _) as ls1ty);
+                        ((TArray x2ty, _) as ls2ty);
+                      ];
+                  },
+                m2 );
+            ];
+          tys = [_; (TArray yty, _)];
+        } ->
+      (* map f (map2 g l1 l2) => map2 (f o g) l1 l2 *)
+      let fg =
+        let v1, v2 =
+          match f2 with
+          | EAbs { binder; _ }, _ ->
+            let names = Bindlib.mbinder_names binder in
+            Var.make names.(0), Var.make names.(1)
+          | _ -> Var.make "x", Var.make "y"
+        in
+        let mty m =
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+        in
+        let x1 = Expr.evar v1 (mty (Mark.get ls1)) in
+        let x2 = Expr.evar v2 (mty (Mark.get ls2)) in
+        Expr.make_abs [| v1; v2 |]
+          (Expr.eapp ~f:(Expr.box f1)
+             ~args:
+               [
+                 Expr.eapp ~f:(Expr.box f2) ~args:[x1; x2] ~tys:[x1ty; x2ty]
+                   (mty m2);
+               ]
+             ~tys:[yty] (mty mark))
+          [x1ty; x2ty] (Expr.pos e)
+      in
+      let fg = optimize_expr ctx (Expr.unbox fg) in
+      let mapl =
+        Expr.eappop ~op:Map2
+          ~args:[fg; Expr.box ls1; Expr.box ls2]
+          ~tys:[Expr.maybe_ty (Mark.get fg); ls1ty; ls2ty]
+          mark
+      in
+      Mark.remove (Expr.unbox mapl)
+    | EAppOp
+        {
           op = Op.Fold;
           args = [f; init; (EArray [e'], _)];
           tys = [_; tinit; (TArray tx, _)];
         } ->
       (* reduces a fold with one element *)
       EApp { f; args = [init; e']; tys = [tinit; tx] }
+    | ETuple ((ETupleAccess { e; index = 0; _ }, _) :: el)
+      when List.for_all Fun.id
+             (List.mapi
+                (fun i -> function
+                  | ETupleAccess { e = en; index; _ }, _ ->
+                    index = i + 1 && Expr.equal en e
+                  | _ -> false)
+                el) ->
+      (* identity tuple reconstruction *)
+      Mark.remove e
     | ECatch { body; exn; handler } -> (
       (* peephole exception catching reductions *)
       match Mark.remove body, Mark.remove handler with
@@ -350,11 +433,10 @@ let optimize_expr :
       (('a, 'b) dcalc_lcalc, 'm) gexpr ->
       (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr =
  fun (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) ->
-  optimize_expr { var_values = Var.Map.empty; decl_ctx } e
+  optimize_expr { decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
-  Bindlib.unbox
-    (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)
+  Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p
 
 let test_iota_reduction_1 () =
   let x = Var.make "x" in
@@ -377,12 +459,12 @@ let test_iota_reduction_1 () =
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
   Alcotest.(check string)
     "same string"
-    "before=match (A x)\n\
-    \       with\n\
-    \       | A → (λ (x: any) → C x)\n\
-    \       | B → (λ (x: any) → D x)\n\
-     after=C\n\
-     x"
+    begin[@ocamlformat "disable"]
+      "before=match (A x) with\n\
+      \       | A x → C x\n\
+      \       | B x → D x\n\
+       after=C x"
+    end
     (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
        Expr.format
        (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))
@@ -435,18 +517,16 @@ let test_iota_reduction_2 () =
   in
   Alcotest.(check string)
     "same string "
-    "before=match\n\
-    \         (match 1\n\
-    \          with\n\
-    \          | A → (λ (x: any) → A 20)\n\
-    \          | B → (λ (x: any) → B B x))\n\
-    \       with\n\
-    \       | A → (λ (x: any) → C x)\n\
-    \       | B → (λ (x: any) → D x)\n\
-     after=match 1\n\
-    \      with\n\
-    \      | A → (λ (x: any) → C 20)\n\
-    \      | B → (λ (x: any) → D B x)\n"
+    begin[@ocamlformat "disable"]
+      "before=match (match 1 with\n\
+      \              | A x → A 20\n\
+      \              | B x → B (B x)) with\n\
+      \       | A x → C x\n\
+      \       | B x → D x\n\
+       after=match 1 with\n\
+      \      | A x → C 20\n\
+      \      | B x → D (B x)\n"
+    end
     (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format (Expr.unbox matchA)
        Expr.format
        (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))

@@ -33,13 +33,14 @@ let run
   let open Driver.Commands in
   let prg, type_ordering =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
-      ~avoid_exceptions ~closure_conversion
+      ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
+      ~dead_value_assignment:true ~no_struct_literals:false
+      ~monomorphize_types:false
   in
 
   let output_file, with_output = get_output_format options ~ext:".py" output in
-  Message.emit_debug "Compiling program into Python...";
-  Message.emit_debug "Writing to %s..."
-    (Option.value ~default:"stdout" output_file);
+  Message.debug "Compiling program into Python...";
+  Message.debug "Writing to %s..." (Option.value ~default:"stdout" output_file);
   with_output @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
 
 let term =

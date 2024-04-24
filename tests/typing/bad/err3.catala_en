@@ -1,0 +1,67 @@
+> Include: common.catala_en
+
+```catala
+scope S:
+  definition z equals [
+    Structure { -- i: 3 -- e: Int content x };
+    Structure { -- i: 4 -- e: y };
+    Structure { -- i: 5 -- e: Dat content |1970-01-01| }
+  ]
+  definition a equals number of (z ++ z) * 2
+```
+
+```catala-test-inline
+$ catala Typecheck
+[WARNING] The constructor "Dec" of enumeration "Enum" is never used;
+  maybe it's unnecessary?
+
+┌─⯈ tests/typing/bad/common.catala_en:4.6-4.9:
+└─┐
+4 │   -- Dec content decimal
+  │      ‾‾‾
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ integer
+  └─⯈ decimal
+
+This expression has type integer:
+┌─⯈ tests/typing/bad/err3.catala_en:10.23-10.45:
+└──┐
+10 │   definition a equals number of (z ++ z) * 2
+   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Expected type decimal coming from expression:
+┌─⯈ tests/typing/bad/common.catala_en:15.20-15.27:
+└──┐
+15 │   output a content decimal
+   │                    ‾‾‾‾‾‾‾
+#return code 123#
+```
+
+Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subcommands output the same type error consistently (bug pointed out and fixed in 498429e).
+
+```catala-test-inline
+$ catala ocaml
+[WARNING] The constructor "Dec" of enumeration "Enum" is never used;
+  maybe it's unnecessary?
+
+┌─⯈ tests/typing/bad/common.catala_en:4.6-4.9:
+└─┐
+4 │   -- Dec content decimal
+  │      ‾‾‾
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ integer
+  └─⯈ decimal
+
+This expression has type integer:
+┌─⯈ tests/typing/bad/err3.catala_en:10.23-10.45:
+└──┐
+10 │   definition a equals number of (z ++ z) * 2
+   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Expected type decimal coming from expression:
+┌─⯈ tests/typing/bad/common.catala_en:15.20-15.27:
+└──┐
+15 │   output a content decimal
+   │                    ‾‾‾‾‾‾‾
+#return code 123#
+```

@@ -1,0 +1,47 @@
+## Article
+
+```catala
+declaration scope S:
+  output f content integer depends on y content integer
+  input x content boolean
+
+declaration scope T:
+  s scope S
+  output y content integer
+
+scope S:
+  definition f of y equals if x then y else - y
+
+scope T:
+  definition s.x equals false
+  definition y equals s.f of 2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Lcalc -s T --avoid-exceptions -O --closure-conversion
+let scope T (T_in: T_in): T {y: integer} =
+  let set s : S {f: ((closure_env, integer) → integer * closure_env)} =
+    { S f = (closure_s, to_closure_env ()); }
+  in
+  let set y : integer =
+    let code_and_env : ((closure_env, integer) → integer * closure_env) =
+      s.f
+    in
+    code_and_env.0 code_and_env.1 2
+  in
+  return { T y = y; }
+```
+
+```catala-test-inline
+$ catala Interpret --lcalc -s T --avoid-exceptions -O --closure-conversion
+[RESULT] Computation successful! Results:
+[RESULT] y = -2
+```

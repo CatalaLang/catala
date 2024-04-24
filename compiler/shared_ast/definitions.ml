@@ -95,16 +95,10 @@ module ScopeVar =
     end)
     ()
 
-module SubScopeName =
-  Uid.Gen
-    (struct
-      let style = Ocolor_types.(Fg (C4 hi_magenta))
-    end)
-    ()
-
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * ScopeName.t
+  | SubScope of ScopeVar.t * ScopeName.t * bool Mark.pos
+(* The bool is true if the output of the subscope is to be forwarded *)
 
 module StateName =
   Uid.Gen
@@ -319,6 +313,7 @@ module Op = struct
     (* * polymorphic *)
     | Eq : < polymorphic ; .. > t
     | Map : < polymorphic ; .. > t
+    | Map2 : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
     | Filter : < polymorphic ; .. > t
     (* * overloaded *)
@@ -387,7 +382,12 @@ module Op = struct
 end
 
 type 'a operator = 'a Op.t
-type except = ConflictError | EmptyError | NoValueProvided | Crash
+
+type except =
+  | ConflictError of Pos.t list
+  | EmptyError
+  | NoValueProvided
+  | Crash of string
 
 (** {2 Markings} *)
 
@@ -443,12 +443,6 @@ type 'a glocation =
       name : ScopeVar.t Mark.pos;
     }
       -> < scopeVarSimpl : yes ; .. > glocation
-  | SubScopeVar : {
-      scope : ScopeName.t;
-      alias : SubScopeName.t Mark.pos;
-      var : ScopeVar.t Mark.pos;
-    }
-      -> < explicitScopes : yes ; .. > glocation
   | ToplevelVar : {
       name : TopdefName.t Mark.pos;
     }
@@ -489,11 +483,11 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EAppOp : {
-      op : 'b operator;
+      op : 'a operator;
       args : ('a, 'm) gexpr list;
       tys : typ list;
     }
-      -> ('a, (< .. > as 'b), 'm) base_gexpr
+      -> ('a, < .. >, 'm) base_gexpr
   | EArray : ('a, 'm) gexpr list -> ('a, < .. >, 'm) base_gexpr
   | EVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, _, 'm) base_gexpr
   | EAbs : {
@@ -538,6 +532,12 @@ and ('a, 'b, 'm) base_gexpr =
       args : ('a, 'm) gexpr ScopeVar.Map.t;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
+  | EDStructAmend : {
+      name_opt : StructName.t option;
+      e : ('a, 'm) gexpr;
+      fields : ('a, 'm) gexpr Ident.Map.t;
+    }
+      -> ('a, < syntacticNames : yes ; .. >, 'm) base_gexpr
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
@@ -623,6 +623,12 @@ type ('e, 'b) mbinder = (('a, 'm) naked_gexpr, 'b) Bindlib.mbinder
     Note that this structure is at the moment only relevant for [dcalc] and
     [lcalc], as [scopelang] has its own scope structure, as the name implies. *)
 
+(** A linked list, but with a binder for each element into the next:
+    [x := let a = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
+type ('e, 'elt, 'last) bound_list =
+  | Last of 'last
+  | Cons of 'elt * ('e, ('e, 'elt, 'last) bound_list) binder
+
 (** This kind annotation signals that the let-binding respects a structural
     invariant. These invariants concern the shape of the expression in the
     let-binding, and are documented below. *)
@@ -640,21 +646,17 @@ type 'e scope_let = {
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ;
   scope_let_expr : 'e;
-  scope_let_next : ('e, 'e scope_body_expr) binder;
-  (* todo ? Factorise the code_item _list type below and use it here *)
   scope_let_pos : Pos.t;
 }
   constraint 'e = ('a any, _) gexpr
 (** This type is parametrized by the expression type so it can be reused in
     later intermediate representations. *)
 
+type 'e scope_body_expr = ('e, 'e scope_let, 'e) bound_list
+  constraint 'e = ('a any, _) gexpr
 (** A scope let-binding has all the information necessary to make a proper
     let-binding expression, plus an annotation for the kind of the let-binding
     that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
-and 'e scope_body_expr =
-  | Result of 'e
-  | ScopeLet of 'e scope_let
-  constraint 'e = ('a any, _) gexpr
 
 type 'e scope_body = {
   scope_body_input_struct : StructName.t;
@@ -671,13 +673,7 @@ type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
   | Topdef of TopdefName.t * typ * 'e
 
-(** A chained list, but with a binder for each element into the next:
-    [x := let a
-    = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
-type 'e code_item_list =
-  | Nil
-  | Cons of 'e code_item * ('e, 'e code_item_list) binder
-
+type 'e code_item_list = ('e, 'e code_item, unit) bound_list
 type struct_ctx = typ StructField.Map.t StructName.Map.t
 type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
 
@@ -706,6 +702,6 @@ type decl_ctx = {
 type 'e program = {
   decl_ctx : decl_ctx;
   code_items : 'e code_item_list;
-  lang : Cli.backend_lang;
+  lang : Global.backend_lang;
   module_name : ModuleName.t option;
 }

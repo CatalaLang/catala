@@ -21,7 +21,7 @@
 open Catala_utils
 open Literate_common
 module A = Surface.Ast
-module C = Cli
+module C = Global
 
 (** {1 Helpers} *)
 
@@ -34,7 +34,7 @@ let update_lines_of_code c =
     - Pos.get_start_line (Mark.get c)
     - 1
 
-(** Espaces various LaTeX-sensitive characters *)
+(** Escapes various LaTeX-sensitive characters *)
 let pre_latexify (s : string) : string =
   (* Then we send to pandoc, to ensure the markdown features used in the
      original document are correctly printed! *)
@@ -62,10 +62,8 @@ let wrap_latex
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
-\usepackage{framed}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
-\usepackage[hidelinks]{hyperref}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}
 \usepackage[many]{tcolorbox}
@@ -272,10 +270,33 @@ let rec law_structure_to_latex
       (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.ModuleDef _ | A.ModuleUse _ -> () (* TODO: show somehow ? *)
+  | A.ModuleDef (id, extern) ->
+    (match language with
+    | Fr ->
+      Format.fprintf fmt "\n\\textbf{Ceci définit le module %s \\texttt{%s}}"
+        (if extern then "externe" else "catala")
+    | _ ->
+      Format.fprintf fmt "\n\\textbf{This defines the %s module \\texttt{%s}}"
+        (if extern then "external" else "catala"))
+      (pre_latexify (Mark.remove id))
+  | A.ModuleUse (id, alias) -> (
+    (match language with
+    | Fr ->
+      Format.fprintf fmt "\n\\textbf{Ce qui suit utilise le module \\texttt{%s}"
+    | _ ->
+      Format.fprintf fmt
+        "\n\\textbf{The following makes use of the module \\texttt{%s}")
+      (pre_latexify (Mark.remove id));
+    match alias with
+    | None -> Format.fprintf fmt "}"
+    | Some al ->
+      (match language with
+      | Fr -> Format.fprintf fmt " sous le nom \\texttt{%s}}"
+      | _ -> Format.fprintf fmt " under the name \\texttt{%s}}")
+        (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
-    let start_line = Pos.get_start_line (Mark.get c) - 1 in
+    let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
@@ -311,9 +332,11 @@ let ast_to_latex
     ~(print_only_law : bool)
     (fmt : Format.formatter)
     (program : A.program) : unit =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (law_structure_to_latex language print_only_law)
-    fmt program.program_items;
-  Message.emit_debug "Lines of Catala inside literate source code: %d"
-    !lines_of_code
+  Format.pp_open_vbox fmt 0;
+  List.iter
+    (fun item ->
+      law_structure_to_latex language print_only_law fmt item;
+      Format.pp_print_cut fmt ())
+    program.program_items;
+  Format.pp_close_box fmt ();
+  Message.debug "Lines of Catala inside literate source code: %d" !lines_of_code

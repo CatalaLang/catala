@@ -23,7 +23,7 @@ open Literate_common
 module A = Surface.Ast
 module P = Printf
 module R = Re.Pcre
-module C = Cli
+module C = Global
 
 (** {1 Helpers} *)
 
@@ -47,7 +47,7 @@ let remove_cb_last_lines : string -> string =
     Prints an HTML complete page structure around the [wrapped] content. *)
 let wrap_html
     (source_files : string list)
-    (language : Cli.backend_lang)
+    (language : Global.backend_lang)
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) : unit =
   let css_as_string =
@@ -100,7 +100,7 @@ let wrap_html
 (** Performs syntax highlighting on a piece of code by using Pygments and the
     special Catala lexer. *)
 let pygmentize_code (c : string Mark.pos) (lang : C.backend_lang) : string =
-  Message.emit_debug "Pygmenting the code chunk %s" (Pos.to_string (Mark.get c));
+  Message.debug "Pygmenting the code chunk %s" (Pos.to_string (Mark.get c));
   let output =
     File.with_temp_file "catala_html_pygments" "in" ~contents:(Mark.remove c)
     @@ fun temp_file_in ->
@@ -140,7 +140,7 @@ let rec law_structure_to_html
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
   | A.CodeBlock (_, c, metadata) when not print_only_law ->
-    let start_line = Pos.get_start_line (Mark.get c) - 1 in
+    let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;

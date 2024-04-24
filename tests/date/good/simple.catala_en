@@ -1,0 +1,29 @@
+## Article
+
+```catala
+declaration scope A:
+  context output x content date
+  context output y content date
+  context output z content duration
+
+scope A:
+  definition x equals |2019-01-01|
+  definition y equals |2002-09-30|
+  definition z equals x - y
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = 2019-01-01
+[RESULT] y = 2002-09-30
+[RESULT] z = [5937 days]
+```

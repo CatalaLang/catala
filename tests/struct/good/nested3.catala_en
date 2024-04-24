@@ -1,0 +1,58 @@
+## Article
+
+```catala
+declaration structure S:
+  data x content integer
+  data y content boolean
+
+declaration structure T:
+  data a content S
+  data b content S
+
+declaration scope A:
+  context output t content T
+
+declaration scope B:
+  context output t content T
+  a scope A
+  context output out content integer
+
+scope A:
+  definition t equals T {
+    -- a : S {
+      -- x : 0
+      -- y : false
+    }
+    -- b : S {
+      -- x : 1
+      -- y : true
+    }
+  }
+
+scope B:
+  definition t equals a.t
+  definition out equals if t.a.y then t.a.x else (if t.b.y then t.b.x else 42)
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT]
+t = T { -- a: S { -- x: 0 -- y: false } -- b: S { -- x: 1 -- y: true } }
+```
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful! Results:
+[RESULT] out = 1
+[RESULT]
+t = T { -- a: S { -- x: 0 -- y: false } -- b: S { -- x: 1 -- y: true } }
+```

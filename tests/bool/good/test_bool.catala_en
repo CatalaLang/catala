@@ -1,0 +1,64 @@
+## Article
+
+```catala
+declaration scope TestBool:
+  context output foo content boolean
+  context output bar content integer
+
+scope TestBool:
+  definition bar equals 1
+  definition foo under condition bar >= 0 consequence equals true
+  definition foo under condition bar < 0 consequence equals false
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Dcalc 
+let TestBool : TestBool_in → TestBool =
+  λ (TestBool_in: TestBool_in) →
+  let foo : unit → ⟨bool⟩ = TestBool_in.foo_in in
+  let bar : unit → ⟨integer⟩ = TestBool_in.bar_in in
+  let bar1 : integer =
+    error_empty
+      ⟨ bar () | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+  in
+  let foo1 : bool =
+    error_empty
+      ⟨ foo ()
+      | true
+        ⊢ ⟨error_empty
+             ⟨ ⟨bar1 >= 0 ⊢ ⟨true⟩⟩, ⟨bar1 < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+  in
+  { TestBool foo = foo1; bar = bar1; }
+in
+TestBool
+```
+
+```catala-test-inline
+$ catala test-scope TestBool
+[RESULT] Computation successful! Results:
+[RESULT] bar = 1
+[RESULT] foo = true
+```
+
+```catala-test-inline
+$ catala Scopelang 
+struct TestBool = {
+  foo: bool
+  bar: integer
+}
+
+let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
+  output) =
+  let bar : integer = reentrant or by default
+    error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo : bool = reentrant or by default
+    error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
+```

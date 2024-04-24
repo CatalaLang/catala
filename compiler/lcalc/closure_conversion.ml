@@ -20,7 +20,6 @@ open Ast
 module D = Dcalc.Ast
 
 type 'm ctx = {
-  decl_ctx : decl_ctx;
   name_context : string;
   globally_bound_vars : ('m expr, typ) Var.Map.t;
 }
@@ -125,7 +124,7 @@ let rec transform_closures_expr :
         ~args:new_args ~tys m )
   | EAbs { binder; tys } ->
     (* λ x.t *)
-    let binder_mark = m in
+    let binder_mark = Expr.with_ty m (TAny, Expr.mark_pos m) in
     let binder_pos = Expr.mark_pos binder_mark in
     (* Converting the closure. *)
     let vars, body = Bindlib.unmbind binder in
@@ -154,11 +153,11 @@ let rec transform_closures_expr :
            (List.map (fun _ -> any_ty) extra_vars_list)
            (List.mapi
               (fun i _ ->
-                Expr.etupleaccess
-                  ~e:(Expr.evar closure_env_var binder_mark)
-                  ~index:i
-                  ~size:(List.length extra_vars_list)
-                  binder_mark)
+                Expr.make_tupleaccess
+                  (Expr.evar closure_env_var binder_mark)
+                  i
+                  (List.length extra_vars_list)
+                  binder_pos)
               extra_vars_list)
            new_body binder_pos)
         binder_pos
@@ -175,7 +174,7 @@ let rec transform_closures_expr :
       Expr.make_let_in code_var
         (TAny, Expr.pos e)
         new_closure
-        (Expr.etuple
+        (Expr.make_tuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
                 Expr.eappop ~op:Operator.ToClosureEnv
@@ -244,6 +243,18 @@ let rec transform_closures_expr :
   | EApp { f = e1; args; tys } ->
     let free_vars, new_e1 = (transform_closures_expr ctx) e1 in
     let code_env_var = Var.make "code_and_env" in
+    let code_env_expr =
+      let pos = Expr.pos e1 in
+      Expr.evar code_env_var
+        (Expr.with_ty (Mark.get e1)
+           ( TTuple
+               [
+                 ( TArrow ((TClosureEnv, pos) :: tys, (TAny, Expr.pos e)),
+                   Expr.pos e );
+                 TClosureEnv, pos;
+               ],
+             pos ))
+    in
     let env_var = Var.make "env" in
     let code_var = Var.make "code" in
     let free_vars, new_args =
@@ -255,16 +266,13 @@ let rec transform_closures_expr :
     in
     let call_expr =
       let m1 = Mark.get e1 in
+      let pos = Expr.mark_pos m in
       let env_arg_ty = TClosureEnv, Expr.pos e1 in
-      Expr.make_multiple_let_in [| code_var; env_var |]
-        [TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e; env_arg_ty]
+      let fun_ty = TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e in
+      Expr.make_multiple_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
         [
-          Expr.etupleaccess
-            ~e:(Bindlib.box_var code_env_var, m1)
-            ~index:0 ~size:2 m;
-          Expr.etupleaccess
-            ~e:(Bindlib.box_var code_env_var, m1)
-            ~index:1 ~size:2 m;
+          Expr.make_tupleaccess code_env_expr 0 2 pos;
+          Expr.make_tupleaccess code_env_expr 1 2 pos;
         ]
         (Expr.eapp
            ~f:(Bindlib.box_var code_var, m1)
@@ -278,40 +286,34 @@ let rec transform_closures_expr :
         new_e1 call_expr (Expr.pos e) )
   | _ -> .
 
-(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
-   type *)
 let transform_closures_scope_let ctx scope_body_expr =
-  Scope.fold_right_lets
-    ~f:(fun scope_let var_next acc ->
+  BoundList.map
+    ~f:(fun var_next scope_let ->
       let _free_vars, new_scope_let_expr =
         (transform_closures_expr
            { ctx with name_context = Bindlib.name_of var_next })
           scope_let.scope_let_expr
       in
-      Bindlib.box_apply2
-        (fun scope_let_next scope_let_expr ->
-          ScopeLet
+      ( var_next,
+        Bindlib.box_apply
+          (fun scope_let_expr ->
             {
               scope_let with
-              scope_let_next;
               scope_let_expr;
               scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
             })
-        (Bindlib.bind_var var_next acc)
-        (Expr.Box.lift new_scope_let_expr))
-    ~init:(fun res ->
+          (Expr.Box.lift new_scope_let_expr) ))
+    ~last:(fun res ->
       let _free_vars, new_scope_let_expr = (transform_closures_expr ctx) res in
       (* INVARIANT here: the result expr of a scope is simply a struct
          containing all output variables so nothing should be converted here, so
          no need to take into account free variables. *)
-      Bindlib.box_apply
-        (fun res -> Result res)
-        (Expr.Box.lift new_scope_let_expr))
+      Expr.Box.lift new_scope_let_expr)
     scope_body_expr
 
 let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
-  let _, new_code_items =
-    Scope.fold_map
+  let (), new_code_items =
+    BoundList.fold_map
       ~f:(fun toplevel_vars var code_item ->
         match code_item with
         | ScopeDef (name, body) ->
@@ -320,7 +322,6 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           in
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (ScopeName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
@@ -339,6 +340,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
               pos )
           in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun scope_body_expr ->
                 ScopeDef (name, { body with scope_body_expr }))
@@ -347,7 +349,6 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let v, expr = Bindlib.unmbind binder in
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (TopdefName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
@@ -355,24 +356,25 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let _free_vars, new_expr = transform_closures_expr ctx expr in
           let new_binder = Expr.bind v new_expr in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun e -> Topdef (name, ty, e))
               (Expr.Box.lift (Expr.eabs new_binder tys m)) )
         | Topdef (name, ty, expr) ->
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (TopdefName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
           in
           let _free_vars, new_expr = transform_closures_expr ctx expr in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun e -> Topdef (name, (TAny, Mark.get ty), e))
               (Expr.Box.lift new_expr) ))
-      ~varf:(fun v -> v)
-      Var.Map.empty p.code_items
+      ~last:(fun _ () -> (), Bindlib.box ())
+      ~init:Var.Map.empty p.code_items
   in
   (* Now we need to further tweak [decl_ctx] because some of the user-defined
      types can have closures in them and these closured might have changed type.
@@ -388,25 +390,23 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
      capture footprint. See
      [tests/tests_func/good/scope_call_func_struct_closure.catala_en]. *)
   let new_decl_ctx =
-    let rec type_contains_arrow t =
+    let rec replace_fun_typs t =
       match Mark.remove t with
-      | TArrow _ -> true
-      | TAny -> true
-      | TDefault t' | TOption t' -> type_contains_arrow t'
-      | TClosureEnv | TLit _ -> false
-      | TArray ts -> type_contains_arrow ts
-      | TTuple ts -> List.exists type_contains_arrow ts
-      | TEnum e ->
-        EnumConstructor.Map.exists
-          (fun _ t' -> type_contains_arrow t')
-          (EnumName.Map.find e p.decl_ctx.ctx_enums)
-      | TStruct s ->
-        StructField.Map.exists
-          (fun _ t' -> type_contains_arrow t')
-          (StructName.Map.find s p.decl_ctx.ctx_structs)
-    in
-    let replace_fun_typs t =
-      if type_contains_arrow t then Mark.copy t TAny else t
+      | TArrow (t1, t2) ->
+        ( TTuple
+            [
+              ( TArrow
+                  ( (TClosureEnv, Pos.no_pos) :: List.map replace_fun_typs t1,
+                    replace_fun_typs t2 ),
+                Pos.no_pos );
+              TClosureEnv, Pos.no_pos;
+            ],
+          Mark.get t )
+      | TDefault t' -> TDefault (replace_fun_typs t'), Mark.get t
+      | TOption t' -> TOption (replace_fun_typs t'), Mark.get t
+      | TAny | TClosureEnv | TLit _ | TEnum _ | TStruct _ -> t
+      | TArray ts -> TArray (replace_fun_typs ts), Mark.get t
+      | TTuple ts -> TTuple (List.map replace_fun_typs ts), Mark.get t
     in
     {
       p.decl_ctx with
@@ -544,10 +544,8 @@ let rec hoist_closures_expr :
   | EExternal _ -> failwith "unimplemented"
   | _ -> .
 
-(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
-   type *)
 let hoist_closures_scope_let name_context scope_body_expr =
-  Scope.fold_right_lets
+  BoundList.fold_right
     ~f:(fun scope_let var_next (hoisted_closures, next_scope_lets) ->
       let new_hoisted_closures, new_scope_let_expr =
         (hoist_closures_expr (Bindlib.name_of var_next))
@@ -556,7 +554,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
       ( new_hoisted_closures @ hoisted_closures,
         Bindlib.box_apply2
           (fun scope_let_next scope_let_expr ->
-            ScopeLet { scope_let with scope_let_next; scope_let_expr })
+            Cons ({ scope_let with scope_let_expr }, scope_let_next))
           (Bindlib.bind_var var_next next_scope_lets)
           (Expr.Box.lift new_scope_let_expr) ))
     ~init:(fun res ->
@@ -568,7 +566,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
          no need to take into account free variables. *)
       ( hoisted_closures,
         Bindlib.box_apply
-          (fun res -> Result res)
+          (fun res -> Last res)
           (Expr.Box.lift new_scope_let_expr) ))
     scope_body_expr
 
@@ -576,7 +574,7 @@ let rec hoist_closures_code_item_list
     (code_items : (lcalc, 'm) gexpr code_item_list) :
     (lcalc, 'm) gexpr code_item_list Bindlib.box =
   match code_items with
-  | Nil -> Bindlib.box Nil
+  | Last () -> Bindlib.box (Last ())
   | Cons (code_item, next_code_items) ->
     let code_item_var, next_code_items = Bindlib.unbind next_code_items in
     let hoisted_closures, new_code_item =
@@ -659,6 +657,9 @@ let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
 
 (** {1 Closure conversion}*)
 
-let closure_conversion (p : 'm program) : 'm program Bindlib.box =
+let closure_conversion (p : 'm program) : untyped program =
   let new_p = transform_closures_program p in
-  hoist_closures_program (Bindlib.unbox new_p)
+  let new_p = hoist_closures_program (Bindlib.unbox new_p) in
+  (* FIXME: either fix the types of the marks, or remove the types annotations
+     during the main processing (rather than requiring a new traversal) *)
+  Program.untype (Bindlib.unbox new_p)

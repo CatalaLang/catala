@@ -124,6 +124,7 @@
 
 % Set up the interline space in tables
 \renewcommand{\arraystretch}{0.0}
+\linespread{0.85}
 
 % https://github.com/gpoore/minted/issues/82
 \makeatletter
@@ -139,7 +140,7 @@
 
 \begin{document}
 
-\makeheader{\MakeUppercase{La syntaxe de Catala} \hspace{2em}\small version française}{v0.8.0}{1}
+\makeheader{\MakeUppercase{La syntaxe de Catala} \hspace{2em}\small version française}{v0.10.0}{1}
 % warning: this is repeated for p.2
 % \begin{center}
 %   2022-12-15
@@ -170,7 +171,7 @@
   \begin{catala}
     # Article 1 | JORFARTI000012345678
     # Article 2 | LEGIARTI000012345678
-    # Décision 3 | CETATEXT000012345678 
+    # Décision 3 | CETATEXT000012345678
   \end{catala}
   & Référence au journal officiel
   \\
@@ -181,9 +182,19 @@
   & Bloc de code / métadonnées
   \\
   \begin{catala}
+    > Module Mdl
+  \end{catala}
+  & Déclaration de mod.
+  \\
+  \begin{catala}
+    > Usage de Mdl en tant que M
+  \end{catala}
+  & Import de module
+  \\
+  \begin{catala}
     > Inclusion: foo.catala_en
   \end{catala}
-  & Inclusion de fichier
+  & Inclusion textuelle
   \\
 \end{tabular}
 
@@ -237,12 +248,10 @@
     argent
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
-    |2021-01-31|
+    |2024-04-01|
     ```
   \end{catala}
   & \begin{catala}
@@ -250,12 +259,10 @@
     date
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
-    254 jour 4 mois 1 an
+    254 jour     4 mois      1 an
     ```
   \end{catala}
   & \begin{catala}
@@ -263,9 +270,7 @@
     durée
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
     [ 12; 24; 36 ]
@@ -276,9 +281,18 @@
     liste de entier
     ```
   \end{catala}
-
   \\
-  
+  \begin{catala}
+    ```catala
+    (|2024-04-01|, 30€, 1%)
+    ```
+  \end{catala}
+  & \begin{catala}
+    ```catala
+    (date,argent,décimal)
+    ```
+  \end{catala}
+  \\
   \begin{catala}
     ```catala
     f de x, y égal à
@@ -321,6 +335,141 @@
   \\
 \end{tabular}
 
+\section{Opérations}
+
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
+    ```catala
+    non a         a et b
+    a ou b        # "ou à défaut"
+    a ou bien b   # ou exclusif
+    ```
+  \end{catala}
+  & Opérateurs logiques
+  \\
+  \begin{catala}
+    ```catala
+    - a          a + b        a - b
+    a * b        a / b
+    ```
+  \end{catala}
+  & Arithmétique
+  \\
+  \begin{catala}
+    ```catala
+    a = b        a < b        a <= b
+    a != b       a > b        a >= b
+    ```
+  \end{catala}
+  & Comparaisons
+  \\
+  \begin{catala}
+    ```catala
+    décimal de 44
+    argent de 23,15
+    ```
+  \end{catala}
+  & Conversions
+  \\
+  \begin{catala}
+    ```catala
+    arrondi de 9,99€
+    ```
+  \end{catala}
+  & Arrondis
+  \\
+  \begin{catala}
+    ```catala
+    accès_jour de ...  accès_mois de ...
+    accès_année de ...
+    ```
+  \end{catala}
+  & Éléments de dates
+  \\
+  \begin{catala}
+    ```catala
+    a +! b   a +. b   a +€ b   a +^ b
+    # entier décimal  argent   durée
+    ```
+  \end{catala}
+  & Opérateurs à types explicites
+  \\
+\end{tabular}
+
+\section{Déclaration des métadonnées}
+
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+
+  
+  \begin{catala}
+    ```catala
+    déclaration structure Struct1:
+      donnée chp1 contenu entier
+      donnée chp2 contenu décimal
+    ```
+  \end{catala}
+  & Déclaration de structure
+  \\
+  \begin{catala}
+    ```catala
+    déclaration énumération Énum1:
+      -- Cas1 contenu entier
+      -- Cas2
+    ```
+  \end{catala}
+  & Déclaration d'énumération
+  \\
+  \begin{catala}
+    ```catala
+    déclaration champ d'application Chp1:
+      interne var1 contenu entier
+      interne var2 condition
+      sub1 champ d'application Chp0
+    ```
+  \end{catala}
+  & Déclaration de champ d'application
+  \\
+  \begin{catala}
+    ```catala
+      interne var1 contenu ...
+      résultat var3 contenu ...
+      entrée var4 contenu ...
+      entrée résultat var5 contenu ...
+      contexte var6 contenu ...
+      contexte résultat var7 contenu ...
+      résultat sub2 scope Scope0
+    ```
+  \end{catala}
+  & Qualificateurs d'entrée-sortie
+  \\
+  \begin{catala}
+    ```catala
+      interne var1 contenu ...
+        état avant
+        état après
+    ```
+  \end{catala}
+  & Transitions d'état
+  \\
+  \begin{catala}
+    ```catala
+    déclaration const contenu décimal
+      égal à 17,1
+    ```
+  \end{catala}
+  & Définition globale
+  \\
+  \begin{catala}
+    ```catala
+    déclaration carré contenu décimal
+      dépend de x contenu décimal
+      égal à x * x
+    ```
+  \end{catala}
+  & Définition de fonction globale
+  \\
+\end{tabular}
+
 \section{Expressions}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
@@ -352,10 +501,19 @@
   \\
   \begin{catala}
     ```catala
-    struc1.chp2
+    struc1 mais en remplaçant
+      { -- fld2: 8% }
     ```
   \end{catala}
-  & Champ de structure
+  & Remplacement de champs
+  \\
+  \begin{catala}
+    ```catala
+    struc1.chp2         tuple1.2
+    sub1.var0
+    ```
+  \end{catala}
+  & Champ, élément de n-uplet, var. de s/s-champ
   \\
   \begin{catala}
     ```catala
@@ -363,13 +521,6 @@
     ```
   \end{catala}
   & Appel de fonction
-  \\
-  \begin{catala}
-    ```catala
-    ss_ch1.var0
-    ```
-  \end{catala}
-  & Var. de s/s-ch. d'app.
   \\
   \begin{catala}
     ```catala
@@ -386,150 +537,12 @@
   \end{catala}
   & Branchement
   \\
-\end{tabular}
-
-\section{Déclaration des métadonnées}
-
-\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
-
-  
   \begin{catala}
     ```catala
-    déclaration structure Struct1:
-      donnée chp1 contenu entier
-      donnée chp2 contenu décimal
-  \end{catala}
-  & Déclaration de structure
-  \\
-  \begin{catala}
-    ```catala
-    déclaration énumération Énum1:
-      -- Cas1 contenu entier
-      -- Cas2
+    var1 état avant
     ```
   \end{catala}
-  & Déclaration d'énumération
-  \\
-  \begin{catala}
-    ```catala
-    déclaration champ d'application Chp1:
-      interne var1 contenu entier
-      interne var2 condition
-      ss_ch1 champ d'application Chp0
-    ```
-  \end{catala}
-  & Déclaration de champ d'application
-  \\
-  \begin{catala}
-    ```catala
-      interne var1 contenu ...
-      résultat var3 contenu ...
-      entrée var4 contenu ...
-      entrée résultat var5 contenu ...
-      contexte var6 contenu ...
-    ```
-  \end{catala}
-  & Qualificateurs d'entrée-sortie
-  \\
-  \begin{catala}
-    ```catala
-      interne var1 contenu ...
-        état avant
-        état après
-    ```
-  \end{catala}
-  & Transitions d'état
-  \\
-  \begin{catala}
-    ```catala
-      date arrondi croissant
-            # ou décroissant
-    ```
-  \end{catala}
-  & Mode arrondi dates
-  \\
-  \begin{catala}
-    ```catala
-    déclaration const contenu décimal
-      égal à 17.1
-    ```
-  \end{catala}
-  & Définition globale
-  \\
-  \begin{catala}
-    ```catala
-    déclaration carré contenu décimal
-      dépend de x contenu décimal
-      égal à x * x
-    ```
-  \end{catala}
-  & Définition de fonction globale
-  \\
-\end{tabular}
-
-\section{Opérations}
-
-\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
-  \begin{catala}
-    ```catala
-    non a         a et b
-    a ou b        # "ou à défaut"
-    a ou bien b   # ou exclusif
-    ```
-  \end{catala}
-  & Opérateurs logiques
-  \\
-  \begin{catala}
-    ```catala
-    - a          a + b        a - b
-    a * b        a / b
-    ```
-  \end{catala}
-  & Arithmétique
-  \\
-  
-  \begin{catala}
-    ```catala
-    a = b        a != b
-    a > b        a < b
-    a >= b       a <= b
-    ```
-  \end{catala}
-  & Comparaisons
-  \\
-  \begin{catala}
-    ```catala
-    décimal de 44
-    argent de 23,15
-    ```
-  \end{catala}
-  & Conversions
-  \\
-  \begin{catala}
-    ```catala
-    arrondi de 9,99€
-    ```
-  \end{catala}
-  & Arrondis
-  \\
-  \begin{catala}
-    ```catala
-    accès_jour de ...
-    accès_mois de ...
-    accès_année de ...
-    ```
-  \end{catala}
-  & Éléments de dates
-  \\
-  \begin{catala}
-    ```catala
-    a +! b    # entier
-    a +. b    # décimal
-    a +€ b    # argent
-    a +^ b    # durée
-    ```
-  \end{catala}
-  & Opérateurs à types explicites
+  & Accès à un état
   \\
 \end{tabular}
 
@@ -587,7 +600,7 @@
   \\
   \begin{catala}
     ```catala
-    définition f de x égal à ...
+    définition f de x, y égal à ...
     ```
   \end{catala}
   & Déf./règle fonction
@@ -629,85 +642,94 @@
   \end{catala}
   & Assertion
   \\
+  \begin{catala}
+    ```catala
+    date arrondi décroissant
+    ```
+  \end{catala}
+  & Mode arrondi dates
+  \\
 \end{tabular}
+
+\vfill
 
 \section{Opérations sur les listes}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    coll contient 3
+    lst contient 3
     ```
   \end{catala}
   & Test de présence
   \\
   \begin{catala}
     ```catala
-    nombre de coll
-    ```
-  \end{catala}
-  & Cardinal
-  \\
-  \begin{catala}
-    ```catala
-    existe x parmi coll tel que x >= 2
+    existe x parmi lst tel que x > 2
     ```
   \end{catala}
   & Test d'existence
   \\
   \begin{catala}
     ```catala
-    pour tout x parmi coll on a x >= 2
+    pour tout x parmi lst on a x > 2
     ```
   \end{catala}
   & Test pour tout
   \\
   \begin{catala}
     ```catala
-    (x + 2) pour x parmi coll
+    x + 2 pour x parmi lst
     ```
   \end{catala}
   & Application un-à-un
   \\
   \begin{catala}
     ```catala
-    x parmi coll tel que x >= 2
+    liste de x parmi lst tel que x > 2
     ```
   \end{catala}
   & Filtrage
   \\
   \begin{catala}
     ```catala
-    (x - 2) pour x parmi coll
-            tel que x >= 2
+    x - 2 pour x parmi lst
+      tel que x > 2
     ```
   \end{catala}
   & Filtrage + application
   \\
   \begin{catala}
     ```catala
-    coll1 ++ coll2
+    x + y pour (x, y) parmi (lst1, lst2)
+    ```
+  \end{catala}
+  & Multiple mapping
+  \\
+  \begin{catala}
+    ```catala
+    lst1 ++ lst2
     ```
   \end{catala}
   & Réunion
   \\
   \begin{catala}
     ```catala
-    somme entier de coll
+    somme entier de lst
     ```
   \end{catala}
   & Agrégation
   \\
   \begin{catala}
     ```catala
-    nombre de coll
+    nombre de lst
     ```
   \end{catala}
   & Comptage
   \\
   \begin{catala}
     ```catala
-    maximum de coll
+    maximum de lst
       ou si liste vide alors -1
     ```
   \end{catala}
@@ -715,8 +737,8 @@
   \\
   \begin{catala}
     ```catala
-    x parmi coll
-      tel que (x * x) est minimum
+    contenu de x parmi lst
+      tel que x * x est minimum
       ou si liste vide alors -1
     ```
   \end{catala}

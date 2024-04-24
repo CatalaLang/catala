@@ -1,0 +1,23 @@
+## Article
+
+```catala
+declaration scope TestBool:
+  context output foo content boolean
+
+scope TestBool:
+  definition foo equals true and not false and false = false
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope TestBool
+[RESULT] Computation successful! Results:
+[RESULT] foo = true
+```

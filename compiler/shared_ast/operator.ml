@@ -45,6 +45,7 @@ let name : type a. a t -> string = function
   | Xor -> "o_xor"
   | Eq -> "o_eq"
   | Map -> "o_map"
+  | Map2 -> "o_map2"
   | Concat -> "o_concat"
   | Filter -> "o_filter"
   | Reduce -> "o_reduce"
@@ -174,6 +175,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Xor, Xor
   | Eq, Eq
   | Map, Map
+  | Map2, Map2
   | Concat, Concat
   | Filter, Filter
   | Reduce, Reduce
@@ -259,6 +261,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Xor, _ -> -1 | _, Xor -> 1
   | Eq, _ -> -1 | _, Eq -> 1
   | Map, _ -> -1 | _, Map -> 1
+  | Map2, _ -> -1 | _, Map2 -> 1
   | Concat, _ -> -1 | _, Concat -> 1
   | Filter, _ -> -1 | _, Filter -> 1
   | Reduce, _ -> -1 | _, Reduce -> 1
@@ -339,7 +342,7 @@ let kind_dispatch :
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
     | Or | Xor ) as op ->
     monomorphic op
-  | ( Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold
+  | ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
     | HandleDefault | HandleDefaultOpt | FromClosureEnv | ToClosureEnv ) as op
     ->
     polymorphic op
@@ -372,7 +375,7 @@ let translate (t : 'a no_overloads t) : 'b no_overloads t =
   match t with
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
     | Or | Xor | HandleDefault | HandleDefaultOpt | Log _ | Length | Eq | Map
-    | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
+    | Map2 | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
     | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat | Round_mon
     | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
     | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
@@ -545,15 +548,15 @@ let resolve_overload ctx (op : overloaded t Mark.pos) (operands : typ list) :
     in
     resolve_overload_aux (Mark.remove op) operands
   with Not_found ->
-    Message.raise_multispanned_error
-      ((None, Mark.get op)
-      :: List.map
-           (fun ty ->
-             ( Some
-                 (Format.asprintf "Type %a coming from expression:"
-                    (Print.typ ctx) ty),
-               Mark.get ty ))
-           operands)
+    Message.error
+      ~extra_pos:
+        (("", Mark.get op)
+        :: List.map
+             (fun ty ->
+               ( Format.asprintf "Type %a coming from expression:"
+                   (Print.typ ctx) ty,
+                 Mark.get ty ))
+             operands)
       "I don't know how to apply operator %a on types %a"
       (Print.operator ~debug:true)
       (Mark.remove op)

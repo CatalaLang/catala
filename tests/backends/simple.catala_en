@@ -1,0 +1,33 @@
+```catala
+declaration structure Foo:
+  data x content boolean
+  data y content decimal
+
+declaration enumeration Bar:
+  -- No
+  -- Yes content Foo
+
+declaration scope Baz:
+  context a content Bar
+  output b content decimal
+  output c content list of decimal
+
+scope Baz:
+  definition a equals No
+
+  definition b equals
+    match a with pattern
+    -- No: 0.0
+    -- Yes of foo: foo.y + if foo.x then 1.0 else 0.0
+
+  exception definition b under condition
+    a with pattern No
+  consequence equals 42.0
+
+  definition c equals [b;b]
+```
+
+
+```catala-test { id = "c" }
+$ catala c
+```

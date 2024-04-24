@@ -1,0 +1,41 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2 content boolean
+  -- Case3
+
+declaration scope A:
+  input e content E
+  output out content boolean
+
+scope A:
+  definition out equals match e with pattern
+    -- Case1 of i : i = 0
+    -- Case2 of b : b
+```
+
+```catala-test-inline
+$ catala test-scope A
+[WARNING] The constructor "Case3" of enumeration "E" is never used;
+  maybe it's unnecessary?
+
+┌─⯈ tests/enum/bad/missing_case.catala_en:7.6-7.11:
+└─┐
+7 │   -- Case3
+  │      ‾‾‾‾‾
+  └─ Article
+[ERROR] The constructor Case3 of enum E is missing from this pattern matching
+
+┌─⯈ tests/enum/bad/missing_case.catala_en:14.25-16.22:
+└──┐
+14 │   definition out equals match e with pattern
+   │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+15 │     -- Case1 of i : i = 0
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+16 │     -- Case2 of b : b
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Article
+#return code 123#
+```

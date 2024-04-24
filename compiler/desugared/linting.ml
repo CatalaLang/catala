@@ -25,18 +25,22 @@ let detect_empty_definitions (p : program) : unit =
       ScopeDef.Map.iter
         (fun scope_def_key scope_def ->
           if
-            (match scope_def_key with ScopeDef.Var _ -> true | _ -> false)
+            (match scope_def_key with _, ScopeDef.Var _ -> true | _ -> false)
             && RuleName.Map.is_empty scope_def.scope_def_rules
             && (not scope_def.scope_def_is_condition)
+            && (not
+                  (ScopeVar.Map.mem
+                     (Mark.remove (fst scope_def_key))
+                     scope.scope_sub_scopes))
             &&
             match Mark.remove scope_def.scope_def_io.io_input with
             | NoInput -> true
             | _ -> false
           then
-            Message.emit_spanned_warning
-              (ScopeDef.get_position scope_def_key)
-              "In scope \"%a\", the variable \"%a\" is declared but never \
-               defined; did you forget something?"
+            Message.warning
+              ~pos:(ScopeDef.get_position scope_def_key)
+              "In scope \"%a\",@ the@ variable@ \"%a\"@ is@ declared@ but@ \
+               never@ defined;@ did you forget something?"
               ScopeName.format scope_name Ast.ScopeDef.format scope_def_key)
         scope.scope_defs)
     p.program_root.module_scopes
@@ -78,7 +82,7 @@ let detect_identical_rules (p : program) : unit =
                 RuleExpressionsMap.update rule
                   (fun l ->
                     let x =
-                      ( None,
+                      ( "",
                         Pos.overwrite_law_info
                           (snd (RuleName.get_info rule.rule_id))
                           (Pos.get_law_info (Expr.pos rule.rule_just)) )
@@ -90,9 +94,9 @@ let detect_identical_rules (p : program) : unit =
           RuleExpressionsMap.iter
             (fun _ pos ->
               if List.length pos > 1 then
-                Message.emit_multispanned_warning pos
-                  "These %s have identical justifications and consequences; is \
-                   it a mistake?"
+                Message.warning ~extra_pos:pos
+                  "These %s have identical justifications@ and@ consequences;@ \
+                   is it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
                    else "definitions"))
             rules_seen)
@@ -149,9 +153,9 @@ let detect_unused_struct_fields (p : program) : unit =
                  && not (StructField.Set.mem field scope_out_structs_fields))
                fields
         then
-          Message.emit_spanned_warning
-            (snd (StructName.get_info s_name))
-            "The structure \"%a\" is never used; maybe it's unnecessary?"
+          Message.warning
+            ~pos:(snd (StructName.get_info s_name))
+            "The structure@ \"%a\"@ is@ never@ used;@ maybe it's unnecessary?"
             StructName.format s_name
         else
           StructField.Map.iter
@@ -160,10 +164,10 @@ let detect_unused_struct_fields (p : program) : unit =
                 (not (StructField.Set.mem field struct_fields_used))
                 && not (StructField.Set.mem field scope_out_structs_fields)
               then
-                Message.emit_spanned_warning
-                  (snd (StructField.get_info field))
-                  "The field \"%a\" of struct @{<yellow>\"%a\"@} is never \
-                   used; maybe it's unnecessary?"
+                Message.warning
+                  ~pos:(snd (StructField.get_info field))
+                  "The field@ \"%a\"@ of@ struct@ @{<yellow>\"%a\"@}@ is@ \
+                   never@ used;@ maybe it's unnecessary?"
                   StructField.format field StructName.format s_name)
             fields)
       p.program_ctx.ctx_structs
@@ -207,9 +211,9 @@ let detect_unused_enum_constructors (p : program) : unit =
               not (EnumConstructor.Set.mem cons enum_constructors_used))
             constructors
         then
-          Message.emit_spanned_warning
-            (snd (EnumName.get_info e_name))
-            "The enumeration \"%a\" is never used; maybe it's unnecessary?"
+          Message.warning
+            ~pos:(snd (EnumName.get_info e_name))
+            "The enumeration@ \"%a\"@ is@ never@ used;@ maybe it's unnecessary?"
             EnumName.format e_name
         else
           EnumConstructor.Map.iter
@@ -217,10 +221,10 @@ let detect_unused_enum_constructors (p : program) : unit =
               if
                 not (EnumConstructor.Set.mem constructor enum_constructors_used)
               then
-                Message.emit_spanned_warning
-                  (snd (EnumConstructor.get_info constructor))
-                  "The constructor \"%a\" of enumeration \"%a\" is never used; \
-                   maybe it's unnecessary?"
+                Message.warning
+                  ~pos:(snd (EnumConstructor.get_info constructor))
+                  "The constructor@ \"%a\"@ of@ enumeration@ \"%a\"@ is@ \
+                   never@ used;@ maybe it's unnecessary?"
                   EnumConstructor.format constructor EnumName.format e_name)
             constructors)
       p.program_ctx.ctx_enums
@@ -251,34 +255,30 @@ let detect_dead_code (p : program) : unit =
       let is_alive (v : Dependency.ScopeDependencies.vertex) =
         match v with
         | Assertion _ -> true
-        | SubScope _ -> true
         | Var (var, state) ->
           let scope_def =
-            ScopeDef.Map.find (Var (var, state)) scope.scope_defs
+            ScopeDef.Map.find
+              ((var, Pos.no_pos), ScopeDef.Var state)
+              scope.scope_defs
           in
           Mark.remove scope_def.scope_def_io.io_output
         (* A variable is initially alive if it is an output*)
       in
       let is_alive = Reachability.analyze is_alive scope_dependencies in
-      ScopeVar.Map.iter
-        (fun var states ->
-          let emit_unused_warning () =
-            Message.emit_spanned_warning
-              (Mark.get (ScopeVar.get_info var))
-              "This variable is dead code; it does not contribute to computing \
-               any of scope \"%a\" outputs. Did you forget something?"
-              ScopeName.format scope_name
-          in
-          match states with
-          | WholeVar ->
-            if not (is_alive (Var (var, None))) then emit_unused_warning ()
-          | States states ->
-            List.iter
-              (fun state ->
-                if not (is_alive (Var (var, Some state))) then
-                  emit_unused_warning ())
-              states)
-        scope.scope_vars)
+      let emit_unused_warning vx =
+        Message.warning
+          ~pos:(Mark.get (Dependency.Vertex.info vx))
+          "Unused varible:@ %a@ does@ not@ contribute@ to@ computing@ any@ of@ \
+           scope@ %a@ outputs.@ Did you forget something?"
+          Dependency.Vertex.format vx ScopeName.format scope_name
+      in
+      Dependency.ScopeDependencies.iter_vertex
+        (fun vx ->
+          if
+            (not (is_alive vx))
+            && Dependency.ScopeDependencies.succ scope_dependencies vx = []
+          then emit_unused_warning vx)
+        scope_dependencies)
     p.program_root.module_scopes
 
 let lint_program (p : program) : unit =

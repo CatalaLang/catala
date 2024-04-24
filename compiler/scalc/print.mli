@@ -21,5 +21,4 @@ val format_item :
   Ast.code_item ->
   unit
 
-val format_program :
-  Shared_ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.program -> unit
+val format_program : ?debug:bool -> Format.formatter -> Ast.program -> unit

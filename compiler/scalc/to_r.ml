@@ -99,6 +99,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
     Format.pp_print_string fmt "=="
   | Map -> Format.pp_print_string fmt "catala_list_map"
+  | Map2 -> Format.pp_print_string fmt "catala_list_map2"
   | Reduce -> Format.pp_print_string fmt "catala_list_reduce"
   | Filter -> Format.pp_print_string fmt "catala_list_filter"
   | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
@@ -155,7 +156,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     (avoid_keywords
        (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
 
-let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
+let rec format_typ ~inside_comment (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ = format_typ in
   match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "\"catala_unit\""
@@ -166,23 +167,30 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TLit TDuration -> Format.fprintf fmt "\"catala_duration\""
   | TLit TBool -> Format.fprintf fmt "\"logical\""
   | TTuple ts ->
-    Format.fprintf fmt "\"list\"@ # tuple(%a)@\n"
+    Format.fprintf fmt "\"list\"@ # tuple(%a)%t"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
-         format_typ)
+         (format_typ ~inside_comment:true))
       ts
+      (fun fmt -> if inside_comment then () else Format.pp_force_newline fmt ())
   | TStruct s -> Format.fprintf fmt "\"catala_struct_%a\"" format_struct_name s
   | TOption some_typ | TDefault some_typ ->
     (* We loose track of optional value as they're crammed into NULL *)
-    format_typ fmt some_typ
+    format_typ ~inside_comment:false fmt some_typ
   | TEnum e -> Format.fprintf fmt "\"catala_enum_%a\"" format_enum_name e
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "\"function\" # %a -> %a@\n"
+    Format.fprintf fmt "\"function\" # %a -> %a%t"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         format_typ)
-      t1 format_typ t2
-  | TArray t1 -> Format.fprintf fmt "\"list\" # array(%a)@\n" format_typ t1
+         (format_typ ~inside_comment:true))
+      t1
+      (format_typ ~inside_comment:true)
+      t2
+      (fun fmt -> if inside_comment then () else Format.pp_force_newline fmt ())
+  | TArray t1 ->
+    Format.fprintf fmt "\"list\" # array(%a)%t"
+      (format_typ ~inside_comment:true) t1 (fun fmt ->
+        if inside_comment then () else Format.pp_force_newline fmt ())
   | TAny -> Format.fprintf fmt "\"ANY\""
   | TClosureEnv -> failwith "unimplemented!"
 
@@ -248,7 +256,7 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   let pos = Mark.get exc in
   match Mark.remove exc with
-  | ConflictError ->
+  | ConflictError _ ->
     Format.fprintf fmt
       "catala_conflict_error(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
@@ -257,7 +265,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
   | EmptyError -> Format.fprintf fmt "catala_empty_error()"
-  | Crash -> Format.fprintf fmt "catala_crash()"
+  | Crash _ -> Format.fprintf fmt "catala_crash()"
   | NoValueProvided ->
     Format.fprintf fmt
       "catala_no_value_provided_error(@[<hov 0>catala_position(@[<hov \
@@ -269,9 +277,9 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
 
 let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
   match exc with
-  | ConflictError -> Format.fprintf fmt "catala_conflict_error"
+  | ConflictError _ -> Format.fprintf fmt "catala_conflict_error"
   | EmptyError -> Format.fprintf fmt "catala_empty_error"
-  | Crash -> Format.fprintf fmt "catala_crash"
+  | Crash _ -> Format.fprintf fmt "catala_crash"
   | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"
 
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
@@ -279,29 +287,28 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   match Mark.remove e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
-  | EStruct (es, s) ->
+  | EStruct { fields = es; name = s } ->
     Format.fprintf fmt "new(\"catala_struct_%a\",@ %a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (e, (struct_field, _)) ->
+         (fun fmt (struct_field, e) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
-      (List.combine es
-         (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs)))
-  | EStructFieldAccess (e1, field, _) ->
+      (StructField.Map.bindings es)
+  | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a@%a" (format_expression ctx) e1
       format_struct_field_name field
-  | EInj (_, cons, e_name)
+  | EInj { cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
     (* We translate the option type with an overloading by R's [NULL] *)
     Format.fprintf fmt "NULL"
-  | EInj (e, cons, e_name)
+  | EInj { e1 = e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
     (* We translate the option type with an overloading by R's [NULL] *)
     format_expression ctx fmt e
-  | EInj (e, cons, enum_name) ->
+  | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "new(\"catala_enum_%a\", code = \"%a\",@ value = %a)"
       format_enum_name enum_name format_enum_cons_name cons
       (format_expression ctx) e
@@ -312,25 +319,29 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp (((Map | Filter) as op), [arg1; arg2]) ->
+  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
-  | EAppOp (op, [arg1; arg2]) ->
+  | EAppOp { op; args = [arg1; arg2] } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
-  | EAppOp (Not, [arg1]) ->
+  | EAppOp { op = Not; args = [arg1] } ->
     Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
       (format_expression ctx) arg1
-  | EAppOp (((Minus_int | Minus_rat | Minus_mon | Minus_dur) as op), [arg1]) ->
+  | EAppOp
+      {
+        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
+        args = [arg1];
+      } ->
     Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EAppOp (op, [arg1]) ->
+  | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EAppOp (HandleDefaultOpt, _) ->
-    Message.raise_internal_error
+  | EAppOp { op = HandleDefaultOpt; _ } ->
+    Message.error ~internal:true
       "R compilation does not currently support the avoiding of exceptions"
-  | EAppOp ((HandleDefault as op), args) ->
+  | EAppOp { op = HandleDefault as op; args; _ } ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
@@ -342,7 +353,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EApp ((EFunc x, pos), args)
+  | EApp { f = EFunc x, pos; args }
     when Ast.FuncName.compare x Ast.handle_default = 0
          || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
     Format.fprintf fmt
@@ -355,39 +366,50 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EApp (f, args) ->
+  | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EAppOp (op, args) ->
+  | EAppOp { op; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
+  | ETuple args ->
+    Format.fprintf fmt "list(@[<hov 0>%a)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
+  | ETupleAccess { e1; index } ->
+    Format.fprintf fmt "(%a)[%d]" (format_expression ctx) e1 index
+  | EExternal _ -> failwith "TODO"
 
 let rec format_statement
     (ctx : decl_ctx)
     (fmt : Format.formatter)
     (s : stmt Mark.pos) : unit =
   match Mark.remove s with
-  | SInnerFuncDef (name, { func_params; func_body }) ->
+  | SInnerFuncDef { name; func = { func_params; func_body; _ } } ->
     Format.fprintf fmt "@[<hov 2>%a <- function(@\n%a) {@\n%a@]@\n}" format_var
       (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
-             format_typ typ))
+             (format_typ ~inside_comment:true)
+             typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
-  | SLocalDef (v, e) ->
+  | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
+    ->
     Format.fprintf fmt "@[<hov 2>%a <- %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept (try_b, except, catch_b) ->
+  | STryExcept { try_block = try_b; except; with_block = catch_b } ->
     Format.fprintf fmt
       (* TODO escape dummy__arg*)
       "@[<hov 2>tryCatch(@[<hov 2>{@;\
@@ -401,11 +423,21 @@ let rec format_statement
   | SRaise except ->
     Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_exception
       (except, Mark.get s)
-  | SIfThenElse (cond, b1, b2) ->
+  | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
       "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
-  | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
+  | SSwitch
+      {
+        switch_expr = e1;
+        enum_name = e_name;
+        switch_cases =
+          [
+            { case_block = case_none; _ };
+            { case_block = case_some; payload_var_name = case_some_var; _ };
+          ];
+        _;
+      }
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
@@ -420,10 +452,10 @@ let rec format_statement
       format_var tmp_var (format_expression ctx) e1 format_var tmp_var
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
-  | SSwitch (e1, e_name, cases) ->
+  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
       List.map2
-        (fun (x, y) (cons, _) -> x, y, cons)
+        (fun x (cons, _) -> x, cons)
         cases
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
@@ -432,10 +464,10 @@ let rec format_statement
       tmp_var (format_expression ctx) e1
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
-         (fun fmt (case_block, payload_var, cons_name) ->
+         (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "(%a@code == \"%a\") {@\n%a <- %a@value@\n%a"
              format_var tmp_var format_enum_cons_name cons_name format_var
-             payload_var format_var tmp_var (format_block ctx) case_block))
+             payload_var_name format_var tmp_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 2>return(%a)@]" (format_expression ctx)
@@ -453,6 +485,7 @@ let rec format_statement
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
+  | SSpecialOp _ -> failwith "should not happen"
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
@@ -478,7 +511,8 @@ let format_ctx
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
          (fun fmt (struct_field, typ) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
-             format_typ typ))
+             (format_typ ~inside_comment:false)
+             typ))
       fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
@@ -497,7 +531,8 @@ let format_ctx
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (enum_cons, enum_cons_type) ->
              Format.fprintf fmt "\"%a\" (%a)" format_enum_cons_name enum_cons
-               format_typ enum_cons_type))
+               (format_typ ~inside_comment:false)
+               enum_cons_type))
         (EnumConstructor.Map.bindings enum_cons)
         format_enum_name enum_name
   in
@@ -544,21 +579,24 @@ let format_program
      @[<v>%a@]@,\
      @,\
      %a@]@?"
-    (format_ctx type_ordering) p.decl_ctx
+    (format_ctx type_ordering) p.ctx.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
-       | SVar { var; expr } ->
+       | SVar { var; expr; typ = _ } ->
          Format.fprintf fmt "@[<hv 2>%a <- (@,%a@,@])@," format_var var
-           (format_expression p.decl_ctx)
+           (format_expression p.ctx.decl_ctx)
            expr
        | SFunc { var; func }
        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
-         let { Ast.func_params; Ast.func_body } = func in
+         let { Ast.func_params; Ast.func_body; _ } = func in
          Format.fprintf fmt "@[<hv 2>%a <- function(@\n%a) {@\n%a@]@\n}@,"
            format_func_name var
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
               (fun fmt (var, typ) ->
                 Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
-                  format_typ typ))
-           func_params (format_block p.decl_ctx) func_body))
+                  (format_typ ~inside_comment:true)
+                  typ))
+           func_params
+           (format_block p.ctx.decl_ctx)
+           func_body))
     p.code_items

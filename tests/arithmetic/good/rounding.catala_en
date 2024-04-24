@@ -1,0 +1,51 @@
+```catala
+declaration scope A:
+  output o condition
+
+scope A:
+  assertion (money of -0.015 = -$$0.02)
+  assertion (money of -0.011 = -$$0.01)
+  assertion (money of -0.005 = -$$0.01)
+  assertion (money of -0.001 = $0.00)
+  assertion (money of 0.000 = $0.00)
+  assertion (money of 0.001 = $0.00)
+  assertion (money of 0.005 = $0.01)
+  assertion (money of 0.011 = $0.01)
+  assertion (money of 0.015 = $0.02)
+
+  assertion (-0.015 * $1 = -$$0.02)
+  assertion (-0.011 * $1 = -$$0.01)
+  assertion (-0.005 * $1 = -$$0.01)
+  assertion (-0.001 * $1 = $0.00)
+  assertion (0.000 * $1 = $0.00)
+  assertion (0.001 * $1 = $0.00)
+  assertion (0.005 * $1 = $0.01)
+  assertion (0.011 * $1 = $0.01)
+  assertion (0.015 * $1 = $0.02)
+
+  assertion (round of (-$$1.5) = -$$2)
+  assertion (round of (-$$1.1) = -$$1)
+  assertion (round of (-$$0.5) = -$$1)
+  assertion (round of (-$$0.1) = $0)
+  assertion (round of $0.0 = $0)
+  assertion (round of $0.1 = $0)
+  assertion (round of $0.5 = $1)
+  assertion (round of $1.1 = $1)
+  assertion (round of $1.5 = $2)
+
+  assertion (round of (-1.5) = -2.)
+  assertion (round of (-1.1) = -1.)
+  assertion (round of (-0.5) = -1.)
+  assertion (round of (-0.1) = 0.)
+  assertion (round of 0.0 = 0.)
+  assertion (round of 0.1 = 0.)
+  assertion (round of 0.5 = 1.)
+  assertion (round of 1.1 = 1.)
+  assertion (round of 1.5 = 2.)
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] o = false
+```

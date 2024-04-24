@@ -1,0 +1,31 @@
+## 'xor' should be a boolean operator
+
+```catala
+declaration scope TestXorWithInt:
+  context test_var content integer
+
+scope TestXorWithInt:
+  definition test_var equals 10 xor 20
+```
+
+```catala-test-inline
+$ catala Typecheck
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ integer
+  └─⯈ bool
+
+This expression has type integer:
+┌─⯈ tests/bool/bad/test_xor_with_int.catala_en:8.30-8.32:
+└─┐
+8 │   definition test_var equals 10 xor 20
+  │                              ‾‾
+  └─ 'xor' should be a boolean operator
+
+Expected type bool coming from expression:
+┌─⯈ tests/bool/bad/test_xor_with_int.catala_en:8.33-8.36:
+└─┐
+8 │   definition test_var equals 10 xor 20
+  │                                 ‾‾‾
+  └─ 'xor' should be a boolean operator
+#return code 123#
+```

@@ -1,0 +1,26 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content integer
+  context y content integer
+
+scope A:
+  label base_y
+  definition y equals 0
+
+  exception base_y
+  definition x equals 1
+```
+
+```catala-test-inline
+$ catala test-scope A
+[ERROR] Unknown label for the scope variable x: "base_y"
+
+┌─⯈ tests/exception/bad/dangling_exception.catala_en:12.13-12.19:
+└──┐
+12 │   exception base_y
+   │             ‾‾‾‾‾‾
+   └─ Test
+#return code 123#
+```

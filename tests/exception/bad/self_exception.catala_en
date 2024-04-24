@@ -1,0 +1,23 @@
+## Test
+
+```catala
+declaration scope A:
+  output y content integer
+
+scope A:
+  label base_y
+  exception base_y
+  definition y equals 0
+```
+
+```catala-test-inline
+$ catala test-scope A
+[ERROR] Cannot define rule as an exception to itself
+
+┌─⯈ tests/exception/bad/self_exception.catala_en:9.13-9.19:
+└─┐
+9 │   exception base_y
+  │             ‾‾‾‾‾‾
+  └─ Test
+#return code 123#
+```

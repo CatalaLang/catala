@@ -1,0 +1,33 @@
+## Article
+
+```catala
+declaration structure S:
+  data x content integer
+  data y content integer
+
+declaration scope A:
+  context output s content S
+  context output z content integer
+
+scope A:
+  definition s equals S {
+    -- x : 1
+    -- y : 2
+  }
+  definition z equals s.x + s.y
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] s = S { -- x: 1 -- y: 2 }
+[RESULT] z = 3
+```

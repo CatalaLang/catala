@@ -23,14 +23,14 @@ type flags = {
   merge_level : int;
   format : [ `Dot | `Convert of string ];
   show : string option;
-  output : Cli.raw_file option;
+  output : Global.raw_file option;
   base_src_url : string;
 }
 
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
-let error e = Message.raise_spanned_error (Expr.pos e)
+let error e = Message.error ~pos:(Expr.pos e)
 let noassert = true
 
 module Env = struct
@@ -264,7 +264,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             e
           in
           let e =
-            Interpreter.evaluate_operator eval op m Cli.En
+            Interpreter.evaluate_operator eval op m Global.En
               (* Default language to English but this should not raise any error
                  messages so we don't care. *)
               args
@@ -366,9 +366,8 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
       log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
-      Message.raise_multispanned_error
-        ((None, Expr.mark_pos m)
-        :: List.map (fun (e, _) -> None, Expr.pos e) excs)
+      Message.error ~pos:(Expr.mark_pos m)
+        ~extra_pos:(List.map (fun (e, _) -> "", Expr.pos e) excs)
         "Conflicting exceptions")
   | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (
@@ -415,12 +414,12 @@ let result_level base_vars =
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * Env.t =
   let ctx = prg.decl_ctx in
-  let all_env, scopes =
-    Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
+  let (all_env, scopes), () =
+    BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
+          let e = Scope.to_expr ctx body in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
@@ -589,12 +588,12 @@ let program_to_graph
     Expr.map_marks ~f:(fun m ->
         Custom { pos = Expr.mark_pos m; custom = { conditions = [] } })
   in
-  let all_env, scopes =
-    Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
+  let (all_env, scopes), () =
+    BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
+          let e = Scope.to_expr ctx body in
           let e = customize (Expr.unbox e) in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           let e = Expr.rename_vars (Expr.unbox e) in
@@ -693,7 +692,7 @@ let program_to_graph
           in
           (G.add_edge g v child_v, var_vertices, env), v
         with Var.Map.Not_found _ ->
-          Message.emit_warning "VAR NOT FOUND: %a" Print.var var;
+          Message.warning "VAR NOT FOUND: %a" Print.var var;
           let v = G.V.create e in
           let g = G.add_vertex g v in
           (g, var_vertices, env), v))
@@ -794,7 +793,7 @@ let reverse_graph g =
 let subst_by v1 e2 e =
   let rec f = function
     | EVar v, m when Var.equal v v1 -> Expr.box e2
-    | e -> Expr.map ~f e
+    | e -> Expr.map ~f ~op:Fun.id e
   in
   Expr.unbox (f e)
 
@@ -989,7 +988,7 @@ let rec graph_cleanup options g base_vars =
 
 let expr_to_dot_label0 :
     type a.
-    Cli.backend_lang ->
+    Global.backend_lang ->
     decl_ctx ->
     Env.t ->
     Format.formatter ->
@@ -997,7 +996,7 @@ let expr_to_dot_label0 :
     unit =
  fun lang ctx env ->
   let xlang ~en ?(pl = en) ~fr () =
-    match lang with Cli.Fr -> fr | Cli.En -> en | Cli.Pl -> pl
+    match lang with Global.Fr -> fr | Global.En -> en | Global.Pl -> pl
   in
   let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
    fun ppf e -> Print.UserFacing.value ~fallback lang ppf e
@@ -1057,6 +1056,7 @@ let expr_to_dot_label0 :
           | Or -> xlang () ~en:"or" ~fr:"ou"
           | Xor -> xlang () ~en:"xor" ~fr:"ou bien"
           | Map -> xlang () ~en:"on_every" ~fr:"pour_chaque"
+          | Map2 -> xlang () ~en:"on_every_2" ~fr:"pour_chaque_2"
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
           | Fold -> xlang () ~en:"fold" ~fr:"pliage"
@@ -1368,7 +1368,9 @@ let run includes optimize ex_scope explain_options global_options =
       graph_cleanup explain_options g base_vars
     else g
   in
-  let lang = Cli.file_lang (Cli.input_src_file global_options.Cli.input_src) in
+  let lang =
+    Cli.file_lang (Global.input_src_file global_options.Global.input_src)
+  in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url;
@@ -1385,7 +1387,7 @@ let run includes optimize ex_scope explain_options global_options =
       fun f ->
         f
           (Option.value ~default:"-"
-             (Option.map Cli.globals.path_rewrite output))
+             (Option.map Global.options.path_rewrite output))
   in
   with_dot_file
   @@ fun dotfile ->

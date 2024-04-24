@@ -1,0 +1,35 @@
+```catala
+declaration scope SubFoo:
+  input x content integer
+  input y content integer
+  output z1 content integer
+  output z2 content integer
+
+declaration scope Foo:
+  output example content integer
+
+scope SubFoo:
+  definition z1 equals x + y
+  definition z2 equals x - y
+
+scope Foo:
+  definition example equals
+    if true or false then
+      let results_foo equals output of SubFoo with { -- x: 1 -- y: 2 } in
+      results_foo.z1 + 1 * (output of SubFoo with { -- x: 10 -- y: 20 }).z2
+    else 0
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope Foo
+[RESULT] Computation successful! Results:
+[RESULT] example = -7
+```

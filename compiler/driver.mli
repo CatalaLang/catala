@@ -25,43 +25,48 @@ val main : unit -> unit
     Each pass takes only its cli options, then calls upon its dependent passes
     (forwarding their options as needed) *)
 module Passes : sig
-  val surface : Cli.options -> Surface.Ast.program
+  val surface : Global.options -> Surface.Ast.program
 
   val desugared :
-    Cli.options ->
-    includes:Cli.raw_file list ->
+    Global.options ->
+    includes:Global.raw_file list ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
-    Cli.options ->
-    includes:Cli.raw_file list ->
+    Global.options ->
+    includes:Global.raw_file list ->
     Shared_ast.untyped Scopelang.Ast.program
 
   val dcalc :
-    Cli.options ->
-    includes:Cli.raw_file list ->
+    Global.options ->
+    includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     typed:'m Shared_ast.mark ->
     'm Dcalc.Ast.program * Scopelang.Dependency.TVertex.t list
 
   val lcalc :
-    Cli.options ->
-    includes:Cli.raw_file list ->
+    Global.options ->
+    includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     typed:'m Shared_ast.mark ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
-    Shared_ast.untyped Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
+    monomorphize_types:bool ->
+    Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
 
   val scalc :
-    Cli.options ->
-    includes:Cli.raw_file list ->
+    Global.options ->
+    includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
+    keep_special_ops:bool ->
+    dead_value_assignment:bool ->
+    no_struct_literals:bool ->
+    monomorphize_types:bool ->
     Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
 end
 
@@ -70,15 +75,15 @@ module Commands : sig
 
   val get_output :
     ?ext:string ->
-    Cli.options ->
-    Cli.raw_file option ->
+    Global.options ->
+    Global.raw_file option ->
     string option * ((out_channel -> 'a) -> 'a)
   (** bounded open of the expected output file *)
 
   val get_output_format :
     ?ext:string ->
-    Cli.options ->
-    Cli.raw_file option ->
+    Global.options ->
+    Global.raw_file option ->
     string option * ((Format.formatter -> 'a) -> 'a)
 
   val get_scope_uid : Shared_ast.decl_ctx -> string -> Shared_ast.ScopeName.t
@@ -105,6 +110,6 @@ module Plugin : sig
     string ->
     ?man:Cmdliner.Manpage.block list ->
     ?doc:string ->
-    (Cli.options -> unit) Cmdliner.Term.t ->
+    (Global.options -> unit) Cmdliner.Term.t ->
     unit
 end

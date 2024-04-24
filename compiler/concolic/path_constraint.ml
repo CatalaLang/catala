@@ -36,7 +36,7 @@ module PathConstraint = struct
            engine, and its evaluation should not generate a path constraint. *)
         None
       | _ ->
-        Message.raise_spanned_error pos
+        Message.error ~pos
           "[PathConstraint.mk_reentrant] expects reentrant symbolic expression \
            or dummy const but got %a"
           SymbExpr.formatter expr
@@ -129,7 +129,7 @@ module PathConstraint = struct
           (Mark.remove (StructField.get_info name))
 
     let pc_debug_info (fmt : formatter) (pc : naked_pc) : unit =
-      if Cli.globals.debug then
+      if Global.options.debug then
         fprintf fmt "@%s {%B}" (Pos.to_string_short pc.pos) pc.branch
 
     let naked_pc (fmt : formatter) (pc : naked_pc) : unit =

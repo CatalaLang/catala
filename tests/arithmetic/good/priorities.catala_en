@@ -1,0 +1,30 @@
+```catala
+declaration scope A:
+  output w content integer
+  output x content integer
+  output y content integer
+  output z content decimal
+
+scope A:
+  definition w equals 4 - 2 - 2
+  definition x equals 4 - (2 - 2)
+  definition y equals 4 - 2 - -2
+  definition z equals 200 / 2 * 4. - 50. / - (5. - 20 / 2)
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] w = 0
+[RESULT] x = 4
+[RESULT] y = 4
+[RESULT] z = 390.0
+```

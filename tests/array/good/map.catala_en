@@ -1,0 +1,26 @@
+## Article
+
+```catala
+declaration scope B:
+   output x content list of money
+   output z content list of boolean
+
+scope B:
+   definition x equals [$4; $8 ]
+   definition z equals (m >= $4.95) for m among x
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful! Results:
+[RESULT] x = [$4.00; $8.00]
+[RESULT] z = [false; true]
+```

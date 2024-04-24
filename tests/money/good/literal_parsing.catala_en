@@ -1,0 +1,27 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content money
+  output y content money
+
+scope A:
+  definition x equals $0.15 * 2.0
+  definition y equals - $0.3
+  assertion x = - y
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = $0.30
+[RESULT] y = -$0.30
+```

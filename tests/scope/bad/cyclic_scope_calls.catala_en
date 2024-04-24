@@ -1,0 +1,52 @@
+```catala
+declaration scope S1:
+  output o content integer
+
+declaration scope S2:
+  output o content integer
+
+declaration scope S3:
+  output o content integer
+
+declaration scope S4:
+  output o content integer
+
+scope S1:
+  definition o equals (output of S2).o
+
+scope S2:
+  definition o equals (output of S1).o + (output of S3).o
+
+scope S3:
+  definition o equals (output of S4).o
+
+scope S4:
+  definition o equals (output of S2).o
+
+# Note: there are two cycles in the same SCC here, either may be reported
+```
+
+```catala-test-inline
+$ catala typecheck
+[ERROR] Cyclic dependency detected between the following scopes:
+  S4 → S3 → S2 → S4
+
+S4 is used here in the definition of S3:
+┌─⯈ tests/scope/bad/cyclic_scope_calls.catala_en:21.24-21.36:
+└──┐
+21 │   definition o equals (output of S4).o
+   │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+
+S3 is used here in the definition of S2:
+┌─⯈ tests/scope/bad/cyclic_scope_calls.catala_en:18.43-18.55:
+└──┐
+18 │   definition o equals (output of S1).o + (output of S3).o
+   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾
+
+S2 is used here in the definition of S4:
+┌─⯈ tests/scope/bad/cyclic_scope_calls.catala_en:24.24-24.36:
+└──┐
+24 │   definition o equals (output of S2).o
+   │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+#return code 123#
+```

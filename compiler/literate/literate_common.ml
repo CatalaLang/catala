@@ -15,7 +15,7 @@
    the License. *)
 
 open Catala_utils
-open Cli
+open Global
 
 let literal_title = function
   | En -> "Legislative text implementation"
@@ -64,7 +64,7 @@ let get_language_extension = function
   | Pl -> "catala_pl"
 
 let raise_failed_pandoc (command : string) (error_code : int) : 'a =
-  Message.raise_error
+  Message.error
     "Weaving failed: pandoc command \"%s\" returned with error code %d" command
     error_code
 
@@ -80,6 +80,7 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
       "-f";
       "markdown+multiline_tables+tex_math_dollars";
       "--mathjax";
+      "--no-highlight";
       "-t";
       (match backend with `Html -> "html" | `Latex -> "latex");
       "-o";
@@ -112,13 +113,11 @@ let check_exceeding_lines
            Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s
          in
          if len_s > max_len then
-           Message.emit_warning
-             "@[<v>The line @{<bold;yellow>%d@} in @{<bold;magenta>%s@} is \
-              exceeding @{<bold;red}%d@} characters:@,\
-              %s@{<red>%s@}@]"
-             (start_line + i + 1)
-             filename max_len (String.sub s 0 max_len)
-             (String.sub s max_len (len_s - max_len)))
+           Message.warning
+             ~pos:
+               (Pos.from_info filename (start_line + i) (max_len + 1)
+                  (start_line + i) (len_s + 1))
+             "This line is exceeding @{<bold;red>%d@} characters" max_len)
 
 let with_pygmentize_lexer lang f =
   let lexer_py =
@@ -134,7 +133,7 @@ let call_pygmentize ?lang args =
   let cmd = "pygmentize" in
   let check_exit n =
     if n <> 0 then
-      Message.raise_error
+      Message.error
         "Weaving failed: pygmentize command %S returned with error code %d"
         (String.concat " " (cmd :: args))
         n

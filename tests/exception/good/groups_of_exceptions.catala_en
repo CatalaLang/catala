@@ -1,0 +1,125 @@
+## Test
+
+```catala
+declaration scope Foo:
+  input y content integer
+  output x content integer
+
+scope Foo:
+  label base definition x under condition
+    y = 0
+  consequence equals 0
+
+  label base definition x under condition
+    y = 1
+  consequence equals 1
+
+  label intermediate exception base definition x under condition
+    y = 2
+  consequence equals 2
+
+  label intermediate exception base definition x under condition
+    y = 3
+  consequence equals 3
+
+  exception intermediate definition x under condition
+    y = 4
+  consequence equals 4
+
+  exception intermediate definition x under condition
+    y = 5
+  consequence equals 5
+
+declaration scope Test:
+  f scope Foo
+  output x content integer
+
+scope Test:
+  definition f.y equals 2
+  definition x equals f.x
+```
+
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope Test
+[RESULT] Computation successful! Results:
+[RESULT] x = 2
+```
+
+
+```catala-test-inline
+$ catala Scopelang
+struct Foo = {
+  x: integer
+}
+
+struct Test = {
+  x: integer
+}
+
+let scope Foo (y: integer|input) (x: integer|internal|output) =
+  let x : integer =
+    error_empty
+      ⟨ ⟨ ⟨ ⟨y = 4 ⊢ ⟨4⟩⟩, ⟨y = 5 ⊢ ⟨5⟩⟩ | false ⊢ ∅ ⟩
+        | true ⊢ ⟨ ⟨y = 2 ⊢ ⟨2⟩⟩, ⟨y = 3 ⊢ ⟨3⟩⟩ | false ⊢ ∅ ⟩ ⟩
+      | true ⊢ ⟨ ⟨y = 0 ⊢ ⟨0⟩⟩, ⟨y = 1 ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩ ⟩
+
+let scope Test (x: integer|internal|output) (f: Foo {x: integer}|internal) =
+  let f : Foo {x: integer} =
+    Foo of {"y"= error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩};
+  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨f.x⟩⟩ | false ⊢ ∅ ⟩
+```
+
+```catala-test-inline
+$ catala Exceptions -s Foo -v x
+[RESULT]
+Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
+[RESULT]
+Definitions with label "base":
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:9.3-9.26:
+└─┐
+9 │   label base definition x under condition
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Test
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:13.3-13.26:
+└──┐
+13 │   label base definition x under condition
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+[RESULT]
+Definitions with label "intermediate":
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:17.3-17.49:
+└──┐
+17 │   label intermediate exception base definition x under condition
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:21.3-21.49:
+└──┐
+21 │   label intermediate exception base definition x under condition
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+[RESULT]
+Definitions with label "exception_to_intermediate":
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:25.3-25.38:
+└──┐
+25 │   exception intermediate definition x under condition
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+┌─⯈ tests/exception/good/groups_of_exceptions.catala_en:29.3-29.38:
+└──┐
+29 │   exception intermediate definition x under condition
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+[RESULT]
+The exception tree structure is as follows:
+
+"base"───"intermediate"───"exception_to_intermediate"
+```

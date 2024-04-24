@@ -28,19 +28,29 @@ let register info term =
 
 let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
 let names () = Hashtbl.to_seq_keys backend_plugins |> List.of_seq
+let load_failures = Hashtbl.create 17
+
+let print_failures () =
+  if Hashtbl.length load_failures > 0 then
+    Message.warning "Some plugins could not be loaded:@,%a"
+      (Format.pp_print_seq (fun ppf -> Format.fprintf ppf "  - %s"))
+      (Hashtbl.to_seq_values load_failures)
 
 let load_file f =
   try
     Dynlink.loadfile f;
-    Message.emit_debug "Plugin %S loaded" f
+    Message.debug "Plugin %S loaded" f
   with
   | Dynlink.Error (Dynlink.Module_already_loaded s) ->
-    Message.emit_debug "Plugin %S (%s) was already loaded, skipping" f s
-  | e ->
-    Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
+    Message.debug "Plugin %S (%s) was already loaded, skipping" f s
+  | Dynlink.Error err ->
+    let msg = Dynlink.error_message err in
+    Message.debug "Could not load plugin %S: %s" f msg;
+    Hashtbl.add load_failures f msg
+  | e -> Message.warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 
 let load_dir d =
-  Message.emit_debug "Loading plugins from %s" d;
+  Message.debug "Loading plugins from %s" d;
   let dynlink_exts =
     if Dynlink.is_native then [".cmxs"] else [".cmo"; ".cma"]
   in

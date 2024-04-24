@@ -1,0 +1,41 @@
+# Test modules + inclusions 2
+
+> Using Mod_def
+
+```catala
+declaration scope T2:
+  t1 scope Mod_def.S
+#  input i content Enum1
+  output o1 content Mod_def.Enum1
+  output o2 content Mod_def.Enum1
+  output o3 content money
+  output o4 content decimal
+
+scope T2:
+  definition o1 equals No
+  definition o2 equals t1.e1
+  definition o3 equals t1.sr
+  definition o4 equals Mod_def.half of 10
+  assertion (Mod_def.Str1 { -- fld1: No -- fld2: 1 }).fld1 = No
+  assertion o1 = Mod_def.Enum1.No
+  assertion o2 = Maybe
+  assertion o3 = $1000
+  assertion o4 = 5.0
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope T2
+[RESULT] Computation successful! Results:
+[RESULT] o1 = No ()
+[RESULT] o2 = Maybe ()
+[RESULT] o3 = $1,000.00
+[RESULT] o4 = 5.0
+```

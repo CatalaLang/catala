@@ -22,7 +22,17 @@ open Definitions
 module Env : sig
   type 'e t
 
-  val empty : decl_ctx -> 'e t
+  val empty : ?fail_on_any:bool -> ?assume_op_types:bool -> decl_ctx -> 'e t
+  (** The [~fail_on_any] labeled parameter controls the behavior of the typer in
+      the case where polymorphic expressions are still found after typing: if
+      [false], it allows them (giving them [TAny] and losing typing
+      information); if set to [true] (the default), it aborts.
+
+      The [~assume_op_types] flag (default false) ignores the expected built-in
+      types of polymorphic operators, and will assume correct the type
+      information included in [EAppOp] nodes. This is useful after
+      monomorphisation, which changes the expected types for these operators. *)
+
   val add_var : 'e Var.t -> typ -> 'e t -> 'e t
   val add_toplevel_var : TopdefName.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
@@ -40,13 +50,7 @@ module Env : sig
   (** For debug purposes *)
 end
 
-(** In the following functions, the [~leave_unresolved] labeled parameter
-    controls the behavior of the typer in the case where polymorphic expressions
-    are still found after typing: if set to [true], it allows them (giving them
-    [TAny] and losing typing information), if set to [false], it aborts. *)
-
 val expr :
-  leave_unresolved:bool ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -66,6 +70,9 @@ val expr :
     - disambiguation of constructors: [EDStructAccess] nodes are translated into
       [EStructAccess] with the suitable structure and field idents (this only
       concerns [desugared] expressions).
+    - disambiguation of structure names in [EDStructAmend] nodes ([desugared] as
+      well)
+    - resolution of tuple size (when equal to 0) on [ETupleAccess] nodes
     - resolution of operator types, which are stored (monomorphised) back in the
       [EAppOp] nodes
     - resolution of function application input types on the [EApp] nodes, when
@@ -73,11 +80,10 @@ val expr :
       application, taking de-tuplification into account.
     - [TAny] appearing within nodes are refined to more precise types, e.g. on
       `EAbs` nodes (but be careful with this, it may only work for specific
-      structures of generated code ; [~leave_unresolved:false] checks that it
-      didn't cause problems) *)
+      structures of generated code ; having [~fail_on_any:true] set in the
+      environment (this is the default) checks that it didn't cause problems) *)
 
 val check_expr :
-  leave_unresolved:bool ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -89,7 +95,10 @@ val check_expr :
     information, e.g. any [TAny] appearing in the AST is replaced) *)
 
 val program :
-  leave_unresolved:bool -> ('a, 'm) gexpr program -> ('a, typed) gexpr program
+  ?fail_on_any:bool ->
+  ?assume_op_types:bool ->
+  ('a, 'm) gexpr program ->
+  ('a, typed) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
     later dcalc/lcalc stages.
 

@@ -1,0 +1,32 @@
+## Test all 'xor' combinations
+
+```catala
+declaration scope TestXor:
+  context output t_xor_t content boolean
+  context output t_xor_f content boolean
+  context output f_xor_t content boolean
+  context output f_xor_f content boolean
+
+scope TestXor:
+  definition t_xor_t equals true xor true
+  definition f_xor_t equals false xor true
+  definition t_xor_f equals true xor false
+  definition f_xor_f equals false xor false
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope TestXor
+[RESULT] Computation successful! Results:
+[RESULT] f_xor_f = false
+[RESULT] f_xor_t = true
+[RESULT] t_xor_f = true
+[RESULT] t_xor_t = false
+```

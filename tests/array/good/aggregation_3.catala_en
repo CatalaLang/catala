@@ -1,0 +1,95 @@
+```catala
+declaration scope S:
+  output x content integer
+
+scope S:
+    definition x equals 0
+
+# Map
+    assertion (i + 2) for i among [1; 2; 3] = [3; 4; 5]
+
+# Filter
+    assertion (list of i among [1; 2; 3] such that i >= 2) = [2; 3]
+    assertion ((i + 2) for i among [1; 2; 3] such that i > 2) = [5]
+
+# Sum
+    assertion sum integer of [1; 2; 3] = 6
+    assertion sum integer of (i + 2) for i among [1; 2; 3] = 12
+
+# Count
+    assertion number of [1; 2; 3] = 3
+    assertion (number of list of i among [1; 2; 3] such that i >= 2) = 2
+
+# Extremum
+    assertion maximum of [1; 2; 3] or if list empty then 10 = 3
+    assertion maximum of (decimal of i) for i among [1; 2; 3] or if list empty then 10. = 3.
+
+# Arg extremum
+    assertion (content of i among [1; 2; 3]
+                 such that decimal of ((2 - i) * (2 - i)) is minimum
+                 or if list empty then 42)
+              = 2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala scopelang -s S
+let scope S (x: integer|internal|output) =
+  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩;
+  assert (map (λ (i: integer) → i + 2) [1; 2; 3]) = [3; 4; 5];
+  assert (filter (λ (i: integer) → i >= 2) [1; 2; 3]) = [2; 3];
+  assert (map (λ (i: integer) → i + 2)
+            filter (λ (i: integer) → i > 2) [1; 2; 3])
+         = [5];
+  assert (reduce
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            0
+            [1; 2; 3])
+         = 6;
+  assert (reduce
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            0
+            map (λ (i: integer) → i + 2) [1; 2; 3])
+         = 12;
+  assert (length [1; 2; 3]) = 3;
+  assert (length filter (λ (i: integer) → i >= 2) [1; 2; 3]) = 2;
+  assert (reduce
+            (λ (max1: integer) (max2: integer) →
+             if max1 > max2 then max1 else max2)
+            10
+            [1; 2; 3])
+         = 3;
+  assert (reduce
+            (λ (max1: decimal) (max2: decimal) →
+             if max1 > max2 then max1 else max2)
+            10.
+            map (λ (i: integer) → to_rat i) [1; 2; 3])
+         = 3.;
+  assert (let weights : list of (integer * decimal) =
+            map (λ (i: integer) →
+                 (i, let i1 : integer = i in
+                     to_rat ((2 - i1) * (2 - i1))))
+              [1; 2; 3]
+          in
+          reduce
+            (λ (x1: (integer * decimal)) (x2: (integer * decimal)) →
+             if x1.1 < x2.1 then x1 else x2)
+            let i : integer = 42 in
+            (i, let i1 : integer = i in
+                to_rat ((2 - i1) * (2 - i1)))
+            weights).0
+         = 2
+```
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT] x = 0
+```

@@ -21,7 +21,7 @@ type t = unit Cmdliner.Cmd.t
 
 val register :
   Cmdliner.Cmd.info ->
-  (Catala_utils.Cli.options -> unit) Cmdliner.Term.t ->
+  (Catala_utils.Global.options -> unit) Cmdliner.Term.t ->
   unit
 (** Plugins are registerd as [Cmdliner] commands, which must take at least the
     default global options as arguments (this is required for e.g.
@@ -41,3 +41,7 @@ val load_file : string -> unit
 
 val load_dir : string -> unit
 (** Load all plugins found in the given directory *)
+
+val print_failures : unit -> unit
+(** Dynlink errors may be silenced at startup time if not in --debug mode, this
+    prints them as warnings *)

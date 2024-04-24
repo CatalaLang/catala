@@ -1,0 +1,31 @@
+> Include: common.catala_en
+
+```catala
+scope S:
+  definition z equals [
+    Structure { -- i: 3 -- e: Int content x };
+    Structure { -- i: 4 -- e: y };
+    Structure { -- i: 5 -- e: Dat content |1970-01-01| }
+  ]
+  definition a equals number of (z ++ 1.1) / 2
+```
+
+```catala-test-inline
+$ catala Typecheck
+[ERROR] Error during typechecking, incompatible types:
+  ┌─⯈ decimal
+  └─⯈ list
+
+This expression has type decimal:
+┌─⯈ tests/typing/bad/err2.catala_en:10.39-10.42:
+└──┐
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                       ‾‾‾
+
+Expected type list coming from expression:
+┌─⯈ tests/typing/bad/err2.catala_en:10.36-10.38:
+└──┐
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                    ‾‾
+#return code 123#
+```

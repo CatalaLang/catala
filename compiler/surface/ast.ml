@@ -145,10 +145,10 @@ and literal =
   | LDate of literal_date
 
 and collection_op =
-  | Exists of { predicate : lident Mark.pos * expression }
-  | Forall of { predicate : lident Mark.pos * expression }
-  | Map of { f : lident Mark.pos * expression }
-  | Filter of { f : lident Mark.pos * expression }
+  | Exists of { predicate : lident Mark.pos list * expression }
+  | Forall of { predicate : lident Mark.pos list * expression }
+  | Map of { f : lident Mark.pos list * expression }
+  | Filter of { f : lident Mark.pos list * expression }
   | AggregateSum of { typ : primitive_typ }
   (* it would be nice to remove the need for specifying the and here like for
      extremums, but we need an additionl overload for "neutral element for
@@ -157,7 +157,7 @@ and collection_op =
   | AggregateArgExtremum of {
       max : bool;
       default : expression;
-      f : lident Mark.pos * expression;
+      f : lident Mark.pos list * expression;
     }
 
 and explicit_match_case = {
@@ -187,11 +187,14 @@ and naked_expression =
   | EnumInject of (path * uident Mark.pos) Mark.pos * expression option
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
+  | StructReplace of expression * (lident Mark.pos * expression) list
   | ArrayLit of expression list
   | Tuple of expression list
-  | Ident of path * lident Mark.pos
+  | Ident of path * lident Mark.pos * lident Mark.pos option
+  (* path, ident, state *)
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
+  | TupleAccess of expression * int Mark.pos
 
 and exception_to =
   | NotAnException
@@ -332,7 +335,7 @@ and program = {
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
   program_used_modules : module_use list;
-  program_lang : Cli.backend_lang; [@opaque]
+  program_lang : Global.backend_lang; [@opaque]
 }
 
 and source_file = law_structure list

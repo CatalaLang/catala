@@ -1,0 +1,52 @@
+## Test
+
+```catala
+declaration scope A:
+  context a content integer
+  input b content integer
+  output c content integer
+  internal d content integer
+
+declaration scope B:
+  a scope A
+
+scope A:
+  definition a equals 0
+  definition c equals b + d
+  definition d equals 1 + a
+
+scope B:
+  definition a.b equals 2
+  assertion a.c = 1
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Dcalc -s B
+let scope B (B_in: B_in): B =
+  let set a : A {c: integer} =
+    let result : A =
+      A
+        { A_in
+          a_in = λ () → ∅;
+          b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩;
+        }
+    in
+    let result1 : A = { A c = result.c; } in
+    if true then result1 else result1
+  in
+  let assert _ : unit = assert ((a.c = 1)) in
+  return {B}
+```
+
+```catala-test-inline
+$ catala Typecheck
+[RESULT] Typechecking successful!
+```

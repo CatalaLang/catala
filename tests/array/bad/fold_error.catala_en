@@ -1,0 +1,37 @@
+## Article
+
+```catala
+declaration scope A:
+  context list content list of integer
+  context list_high_count content integer
+
+scope A:
+  definition list equals [0; 5; 6; 7; 1; 64; 12]
+  definition list_high_count equals number of list of m among list such that m >= $7
+```
+
+```catala-test-inline
+$ catala test-scope A
+[ERROR] I don't know how to apply operator >= on types integer and money
+
+┌─⯈ tests/array/bad/fold_error.catala_en:10.78-10.85:
+└──┐
+10 │   definition list_high_count equals number of list of m among list such that m >= $7
+   │                                                                              ‾‾‾‾‾‾‾
+   └─ Article
+
+Type integer coming from expression:
+┌─⯈ tests/array/bad/fold_error.catala_en:5.32-5.39:
+└─┐
+5 │   context list content list of integer
+  │                                ‾‾‾‾‾‾‾
+  └─ Article
+
+Type money coming from expression:
+┌─⯈ tests/array/bad/fold_error.catala_en:10.83-10.85:
+└──┐
+10 │   definition list_high_count equals number of list of m among list such that m >= $7
+   │                                                                                   ‾‾
+   └─ Article
+#return code 123#
+```

@@ -135,6 +135,13 @@ val estruct :
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
+val edstructamend :
+  name_opt:StructName.t option ->
+  e:('a, 'm) boxed_gexpr ->
+  fields:('a, 'm) boxed_gexpr Ident.Map.t ->
+  'm mark ->
+  ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
+
 val edstructaccess :
   name_opt:StructName.t option ->
   field:Ident.t ->
@@ -177,6 +184,8 @@ val ecustom :
   (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
 val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
+(** The type of the mark, if typed, is assumed to correspond to the argument
+    type, not the function type *)
 
 (** {2 Manipulation of marks} *)
 
@@ -234,6 +243,8 @@ val untype : ('a, 'm) gexpr -> ('a, untyped) boxed_gexpr
 (** {2 Traversal functions} *)
 
 val map :
+  ?typ:(typ -> typ) ->
+  ?op:('a operator -> 'b operator) ->
   f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
   (('a, 'b, 'm1) base_gexpr, 'm2) marked ->
   ('b, 'm2) boxed_gexpr
@@ -266,7 +277,12 @@ val map :
     The [e] parameter passed to [map] here needs to have only the common cases
     in its shallow type, but can still contain any node from the starting AST
     deeper inside: this is where the second type parameter to [base_gexpr]
-    becomes useful. *)
+    becomes useful.
+
+    The [typ] argument, if specified, will apply a transformation both on type
+    annotations, if present, and on types appearing within the AST nodes.
+
+    The [op] argument must be specified for the [EAppOp] case to be handled. *)
 
 val map_top_down :
   f:(('a, 'm1) gexpr -> (('a, 'm1) naked_gexpr, 'm2) marked) ->
@@ -345,7 +361,7 @@ val make_erroronempty :
 val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 
-val thunk_term : ('a any, 'b) boxed_gexpr -> 'b mark -> ('a, 'b) boxed_gexpr
+val thunk_term : ('a any, 'b) boxed_gexpr -> ('a, 'b) boxed_gexpr
 val unthunk_term_nobox : ('a any, 'm) gexpr -> 'm mark -> ('a, 'm) gexpr
 
 val make_let_in :
@@ -368,6 +384,9 @@ val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
+
+val make_tupleaccess :
+  ('a any, 'm) boxed_gexpr -> int -> int -> Pos.t -> ('a, 'm) boxed_gexpr
 
 (** {2 Transformations} *)
 

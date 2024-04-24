@@ -56,6 +56,10 @@ module Box = struct
   let lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
    fun em -> B.box_apply (fun e -> Mark.add (Mark.get em) e) (Mark.remove em)
 
+  module LiftIdentMap = Bindlib.Lift (Ident.Map)
+
+  let lift_identmap = LiftIdentMap.lift_box
+
   module LiftStruct = Bindlib.Lift (StructField.Map)
 
   let lift_struct = LiftStruct.lift_box
@@ -89,12 +93,12 @@ module Box = struct
     match fv b with
     | [] -> ()
     | [h] ->
-      Message.raise_internal_error
+      Message.error ~internal:true
         "The boxed term is not closed the variable %s is free in the global \
          context"
         h
     | l ->
-      Message.raise_internal_error
+      Message.error ~internal:true
         "The boxed term is not closed the variables %a is free in the global \
          context"
         (Format.pp_print_list
@@ -113,7 +117,7 @@ let eexternal ~name mark = Mark.add mark (Bindlib.box (EExternal { name }))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess ~e ~index ~size =
-  assert (index < size);
+  assert (size = 0 || index < size);
   Box.app1 e @@ fun e -> ETupleAccess { e; index; size }
 
 let earray args = Box.appn args @@ fun args -> EArray args
@@ -157,6 +161,14 @@ let estruct ~name ~(fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
 
+let edstructamend ~name_opt ~e ~(fields : ('a, 't) boxed_gexpr Ident.Map.t) mark
+    =
+  Mark.add mark
+  @@ Bindlib.box_apply2
+       (fun e fields -> EDStructAmend { name_opt; e; fields })
+       (Box.lift e)
+       (Box.lift_identmap (Ident.Map.map Box.lift fields))
+
 let edstructaccess ~name_opt ~field ~e =
   Box.app1 e @@ fun e -> EDStructAccess { name_opt; field; e }
 
@@ -189,11 +201,6 @@ let mark_pos (type m) (m : m mark) : Pos.t =
   match m with Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
-
-let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
-  let x = Var.make var_name in
-  eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
-
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
 let set_ty (type m) (ty : typ) (x : ('a, m) marked) : ('a, typed) marked =
@@ -259,6 +266,9 @@ let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
 (* - Predefined types (option) - *)
 
 let option_enum = EnumName.fresh [] ("Eoption", Pos.no_pos)
+
+(* Warning: order of these definitions is important, binary injection assumes
+   that None is first *)
 let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
@@ -271,13 +281,17 @@ let option_enum_config =
 (* shallow map *)
 let map
     (type a b)
+    ?(typ : typ -> typ = Fun.id)
+    ?op:(fop = (fun _ -> invalid_arg "Expr.map" : a Operator.t -> b Operator.t))
     ~(f : (a, 'm1) gexpr -> (b, 'm2) boxed_gexpr)
     (e : ((a, b, 'm1) base_gexpr, 'm2) marked) : (b, 'm2) boxed_gexpr =
-  let m = Mark.get e in
+  let m = map_ty typ (Mark.get e) in
   match Mark.remove e with
   | ELit l -> elit l m
-  | EApp { f = e1; args; tys } -> eapp ~f:(f e1) ~args:(List.map f args) ~tys m
-  | EAppOp { op; tys; args } -> eappop ~op ~tys ~args:(List.map f args) m
+  | EApp { f = e1; args; tys } ->
+    eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
+  | EAppOp { op; tys; args } ->
+    eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
   | EExternal { name } -> eexternal ~name m
@@ -285,6 +299,7 @@ let map
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
     let binder = bind (Array.map Var.translate vars) body in
+    let tys = List.map typ tys in
     eabs binder tys m
   | EIfThenElse { cond; etrue; efalse } ->
     eifthenelse (f cond) (f etrue) (f efalse) m
@@ -304,6 +319,9 @@ let map
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
     estruct ~name ~fields m
+  | EDStructAmend { name_opt; e; fields } ->
+    let fields = Ident.Map.map f fields in
+    edstructamend ~name_opt ~e:(f e) ~fields m
   | EDStructAccess { name_opt; field; e } ->
     edstructaccess ~name_opt ~field ~e:(f e) m
   | EStructAccess { name; field; e } -> estructaccess ~name ~field ~e:(f e) m
@@ -313,9 +331,10 @@ let map
   | EScopeCall { scope; args } ->
     let args = ScopeVar.Map.map f args in
     escopecall ~scope ~args m
-  | ECustom { obj; targs; tret } -> ecustom obj targs tret m
+  | ECustom { obj; targs; tret } ->
+    ecustom obj (List.map typ targs) (typ tret) m
 
-let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
+let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
 
 (* Folds the given function on the direct children of the given expression. *)
@@ -345,6 +364,8 @@ let shallow_fold
   | EErrorOnEmpty e -> acc |> f e
   | ECatch { body; handler; _ } -> acc |> f body |> f handler
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
+  | EDStructAmend { e; fields; _ } ->
+    acc |> f e |> Ident.Map.fold (fun _ -> f) fields
   | EDStructAccess { e; _ } -> acc |> f e
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
@@ -435,6 +456,16 @@ let map_gather
         (acc, StructField.Map.empty)
     in
     acc, estruct ~name ~fields m
+  | EDStructAmend { name_opt; e; fields } ->
+    let acc, e = f e in
+    let acc, fields =
+      Ident.Map.fold
+        (fun cons e (acc, fields) ->
+          let acc1, e = f e in
+          join acc acc1, Ident.Map.add cons e fields)
+        fields (acc, Ident.Map.empty)
+    in
+    acc, edstructamend ~name_opt ~e ~fields m
   | EDStructAccess { name_opt; field; e } ->
     let acc, e = f e in
     acc, edstructaccess ~name_opt ~field ~e m
@@ -466,7 +497,7 @@ let map_gather
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox e
+let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox ~op:Fun.id e
 
 let box e = Mark.map Bindlib.box e
 let unbox (e, m) = Bindlib.unbox e, m
@@ -538,31 +569,19 @@ let compare_location
     (x : a glocation Mark.pos)
     (y : a glocation Mark.pos) =
   match Mark.remove x, Mark.remove y with
-  | ( DesugaredScopeVar { name = vx; state = None },
-      DesugaredScopeVar { name = vy; state = None } )
-  | ( DesugaredScopeVar { name = vx; state = Some _ },
-      DesugaredScopeVar { name = vy; state = None } )
-  | ( DesugaredScopeVar { name = vx; state = None },
-      DesugaredScopeVar { name = vy; state = Some _ } ) ->
-    ScopeVar.compare (Mark.remove vx) (Mark.remove vy)
-  | ( DesugaredScopeVar { name = x, _; state = Some sx },
-      DesugaredScopeVar { name = y, _; state = Some sy } ) ->
-    let cmp = ScopeVar.compare x y in
-    if cmp = 0 then StateName.compare sx sy else cmp
+  | ( DesugaredScopeVar { name = vx; state = sx },
+      DesugaredScopeVar { name = vy; state = sy } ) -> (
+    match Mark.compare ScopeVar.compare vx vy with
+    | 0 -> Option.compare StateName.compare sx sy
+    | n -> n)
   | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
-  | ( SubScopeVar { alias = xsubindex, _; var = xsubvar, _; _ },
-      SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
-    let c = SubScopeName.compare xsubindex ysubindex in
-    if c = 0 then ScopeVar.compare xsubvar ysubvar else c
   | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->
     TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
   | _, ScopelangScopeVar _ -> 1
-  | SubScopeVar _, _ -> -1
-  | _, SubScopeVar _ -> 1
   | ToplevelVar _, _ -> .
   | _, ToplevelVar _ -> .
 
@@ -632,6 +651,11 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
+  | ( EDStructAmend { name_opt = s1; e = e1; fields = fields1 },
+      EDStructAmend { name_opt = s2; e = e2; fields = fields2 } ) ->
+    Option.equal StructName.equal s1 s2
+    && equal e1 e2
+    && Ident.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
     Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
@@ -654,9 +678,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EDefault _ | EPureDefault _
-      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | EGenericError | ERaise _
-      | ECatch _ | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _
-      | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
+      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | EGenericError | ERaise _ | ECatch _
+      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
+      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -699,6 +723,11 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     EStruct {name=name2; fields=field_map2 } ->
     StructName.compare name1 name2 @@< fun () ->
     StructField.Map.compare compare field_map1 field_map2
+  | EDStructAmend {name_opt=n1; e=e1; fields=field_map1},
+    EDStructAmend {name_opt=n2; e=e2; fields=field_map2} ->
+    compare e1 e2 @@< fun () ->
+    Ident.Map.compare compare field_map1 field_map2 @@< fun () ->
+    Option.compare StructName.compare n1 n2
   | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
     EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
@@ -762,6 +791,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EIfThenElse _, _ -> -1 | _, EIfThenElse _ -> 1
   | ELocation _, _ -> -1 | _, ELocation _ -> 1
   | EStruct _, _ -> -1 | _, EStruct _ -> 1
+  | EDStructAmend _, _ -> -1 | _, EDStructAmend _ -> 1
   | EDStructAccess _, _ -> -1 | _, EDStructAccess _ -> 1
   | EStructAccess _, _ -> -1 | _, EStructAccess _ -> 1
   | EMatch _, _ -> -1 | _, EMatch _ -> 1
@@ -784,13 +814,15 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
     let vs, body = Bindlib.unmbind binder in
     Array.fold_right Var.Set.remove vs (free_vars body)
   | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
+(* Could also be done with [rebox] followed by [Bindlib.free_vars], if that
+   returned more than a context *)
 
 (* This function is first defined in [Print], only for dependency reasons *)
 let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers
 
 let remove_logging_calls e =
   let rec f e =
-    let e, m = map ~f e in
+    let e, m = map ~f ~op:Fun.id e in
     ( Bindlib.box_apply
         (function EAppOp { op = Log _; args = [(arg, _)]; _ } -> arg | e -> e)
         e,
@@ -868,7 +900,7 @@ let rename_vars
       let body = aux ctx body in
       let binder = bind vars body in
       eabs binder tys m
-    | e -> map ~f:(aux ctx) e
+    | e -> map ~f:(aux ctx) ~op:Fun.id e
   in
   let ctx =
     List.fold_left
@@ -908,6 +940,8 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ELocation _ -> 1
   | EStruct { fields; _ } ->
     StructField.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
+  | EDStructAmend { e; fields; _ } ->
+    1 + size e + Ident.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
   | EDStructAccess { e; _ } -> 1 + size e
   | EStructAccess { e; _ } -> 1 + size e
   | EMatch { e; cases; _ } ->
@@ -940,6 +974,23 @@ let make_tuple el m0 =
     in
     etuple el m
 
+let make_tupleaccess e index size pos =
+  let m =
+    map_mark
+      (fun _ -> pos)
+      (function
+        | TTuple tl, _ -> (
+          try List.nth tl index
+          with Failure _ ->
+            Message.error ~internal:true "Trying to build invalid tuple access")
+        | TAny, pos -> TAny, pos
+        | ty ->
+          Message.error ~internal:true "Unexpected non-tuple type annotation %a"
+            Print.typ_debug ty)
+      (Mark.get e)
+  in
+  etupleaccess ~e ~index ~size m
+
 let make_app f args tys pos =
   let mark =
     fold_marks
@@ -953,7 +1004,7 @@ let make_app f args tys pos =
             tr
           | TAny -> fty.ty
           | _ ->
-            Message.raise_internal_error
+            Message.error ~internal:true
               "wrong type: found %a while expecting either an Arrow or Any"
               Print.typ_debug fty.ty))
       (List.map Mark.get (f :: args))
@@ -968,19 +1019,19 @@ let make_erroronempty e =
         | TDefault ty, _ -> ty
         | TAny, pos -> TAny, pos
         | ty ->
-          Message.raise_internal_error
+          Message.error ~internal:true
             "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
             Print.typ_debug ty format (unbox e))
       (Mark.get e)
   in
   eerroronempty e mark
 
-let thunk_term term mark =
+let thunk_term term =
   let silent = Var.make "_" in
-  let pos = mark_pos mark in
+  let pos = mark_pos (Mark.get term) in
   make_abs [| silent |] term [TLit TUnit, pos] pos
 
-let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
+let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark)
 
 let unthunk_term_nobox term mark =
   Mark.add mark
@@ -1002,3 +1053,7 @@ let make_puredefault e =
     map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
   epuredefault e mark
+
+let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
+  let x = Var.make var_name in
+  make_abs [| x |] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)

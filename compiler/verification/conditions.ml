@@ -115,7 +115,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     match Mark.remove body with
     | EErrorOnEmpty e -> e
     | _ ->
-      Message.raise_spanned_error (Expr.pos e)
+      Message.error ~pos:(Expr.pos e)
         "Internal error: this expression does not have the structure expected \
          by the VC generator:\n\
          %a"
@@ -286,11 +286,9 @@ let rec generate_verification_conditions_scope_body_expr
     (scope_body_expr : 'm expr scope_body_expr) :
     ctx * verification_condition list * typed expr list =
   match scope_body_expr with
-  | Result _ -> ctx, [], []
-  | ScopeLet scope_let ->
-    let scope_let_var, scope_let_next =
-      Bindlib.unbind scope_let.scope_let_next
-    in
+  | Last _ -> ctx, [], []
+  | Cons (scope_let, scope_let_next) ->
+    let scope_let_var, scope_let_next = Bindlib.unbind scope_let_next in
     let new_ctx, vc_list, assert_list =
       match scope_let.scope_let_kind with
       | Assertion -> (
@@ -302,7 +300,7 @@ let rec generate_verification_conditions_scope_body_expr
           let e = match_and_ignore_outer_reentrant_default ctx e in
           ctx, [], [e]
         | _ ->
-          Message.raise_spanned_error (Expr.pos e)
+          Message.error ~pos:(Expr.pos e)
             "Internal error: this assertion does not have the structure \
              expected by the VC generator:\n\
              %a"
@@ -378,49 +376,53 @@ let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
     (code_items : 'm expr code_item_list)
     (s : ScopeName.t option) : verification_condition list =
-  Scope.fold_left
-    ~f:(fun vcs item _ ->
-      match item with
-      | Topdef _ -> []
-      | ScopeDef (name, body) ->
-        let is_selected_scope =
-          match s with
-          | Some s when ScopeName.equal s name -> true
-          | None -> true
-          | _ -> false
-        in
-        let new_vcs =
-          if is_selected_scope then
-            let _scope_input_var, scope_body_expr =
-              Bindlib.unbind body.scope_body_expr
-            in
-            let ctx =
-              {
-                current_scope_name = name;
-                decl = decl_ctx;
-                input_vars = [];
-                scope_variables_typs =
-                  Var.Map.empty
-                  (* We don't need to add the typ of the scope input var here
-                     because it will never appear in an expression for which we
-                     generate a verification conditions (the big struct is
-                     destructured with a series of let bindings just after. )*);
-              }
-            in
-            let _, vcs, asserts =
-              generate_verification_conditions_scope_body_expr ctx
-                scope_body_expr
-            in
-            let combined_assert =
-              conjunction_exprs asserts
-                (Typed
-                   { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
-            in
-            List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
-          else []
-        in
-        new_vcs @ vcs)
-    ~init:[] code_items
+  let conditions, () =
+    BoundList.fold_left
+      ~f:(fun vcs item _ ->
+        match item with
+        | Topdef _ -> []
+        | ScopeDef (name, body) ->
+          let is_selected_scope =
+            match s with
+            | Some s when ScopeName.equal s name -> true
+            | None -> true
+            | _ -> false
+          in
+          let new_vcs =
+            if is_selected_scope then
+              let _scope_input_var, scope_body_expr =
+                Bindlib.unbind body.scope_body_expr
+              in
+              let ctx =
+                {
+                  current_scope_name = name;
+                  decl = decl_ctx;
+                  input_vars = [];
+                  scope_variables_typs =
+                    Var.Map.empty
+                    (* We don't need to add the typ of the scope input var here
+                       because it will never appear in an expression for which
+                       we generate a verification conditions (the big struct is
+                       destructured with a series of let bindings just
+                       after.) *);
+                }
+              in
+              let _, vcs, asserts =
+                generate_verification_conditions_scope_body_expr ctx
+                  scope_body_expr
+              in
+              let combined_assert =
+                conjunction_exprs asserts
+                  (Typed
+                     { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
+              in
+              List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
+            else []
+          in
+          new_vcs @ vcs)
+      ~init:[] code_items
+  in
+  conditions
 
 let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
     verification_condition list =

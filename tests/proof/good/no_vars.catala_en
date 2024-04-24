@@ -1,0 +1,22 @@
+## Test
+
+```catala
+declaration scope A:
+  output x content integer
+
+scope A:
+  definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54.))
+  consequence equals 0
+```
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

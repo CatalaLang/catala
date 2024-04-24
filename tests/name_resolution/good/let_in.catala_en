@@ -1,0 +1,68 @@
+## Article
+
+```catala
+declaration scope S:
+  context output a content A
+  context output b content B
+
+declaration structure A:
+   data x content decimal
+   data y content B
+
+declaration structure B:
+   data y content boolean
+   data z content decimal
+
+scope S:
+   definition b equals let b equals 42 in B { -- y: true -- z: decimal of b}
+   definition a equals
+     let b equals
+       if b.y
+       then B { -- y: false -- z: -1. }
+       else B { -- y: true  -- z: -2. }
+     in
+     let a equals 2. * b.z in
+     A { -- x: a -- y : b }
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT] a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
+[RESULT] b = B { -- y: true -- z: 42.0 }
+```
+
+## Check scope of let-in vs scope variable
+
+```catala
+declaration scope S2:
+   x scope S
+   output y content integer
+
+scope S2:
+  definition y equals
+    let x equals 0 in
+    x + 1
+```
+
+```catala-test-inline
+$ catala test-scope S2
+[WARNING] Unused varible: x does not contribute to computing any of scope S2
+  outputs. Did you forget something?
+
+┌─⯈ tests/name_resolution/good/let_in.catala_en:47.4-47.5:
+└──┐
+47 │    x scope S
+   │    ‾
+   └─ Check scope of let-in vs scope variable
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
+```

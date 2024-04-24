@@ -32,12 +32,12 @@ end>
 (* Precedence of expression constructions *)
 %right top_expr
 %right ALT
-%right let_expr IS
+%right let_expr
 %right AND OR XOR (* Desugaring enforces proper parens later on *)
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
-%right apply OF CONTAINS FOR SUCH WITH
+%right apply OF CONTAINS FOR SUCH WITH BUT_REPLACE
 %right COMMA
 %right unop_expr
 %right CONTENT
@@ -84,9 +84,10 @@ end>
 %type<Ast.scope_use_item Mark.pos> scope_item
 %type<Ast.lident Mark.pos * Ast.base_typ Mark.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
-%type<Ast.io_input> scope_decl_item_attribute_input
+%type<Ast.io_input option> scope_decl_item_attribute_input
 %type<bool> scope_decl_item_attribute_output
-%type<Ast.scope_decl_context_io> scope_decl_item_attribute
+%type<Ast.io_input option Mark.pos * bool Mark.pos * Ast.lident Mark.pos> scope_decl_item_attribute
+%type<Ast.scope_decl_context_io * Ast.lident Mark.pos> scope_decl_item_attribute_mandatory
 %type<Ast.scope_decl_context_item> scope_decl_item
 %type<Ast.enum_decl_case> enum_decl_line
 %type<Ast.code_item> code_item
@@ -135,7 +136,7 @@ let lident :=
 | i = LIDENT ; {
   match Localisation.lex_builtin i with
   | Some _ ->
-      Message.raise_spanned_error
+      Message.error ~pos:
         (Pos.from_lpos $sloc)
         "Reserved builtin name"
   | None ->
@@ -157,17 +158,28 @@ let qlident :=
 }
 | id = lident ; { [], id }
 
+let mbinder ==
+| id = lident ; { [id] }
+| LPAREN ; ids = separated_nonempty_list(COMMA,lident) ; RPAREN ; <>
+
 let expression :=
 | e = addpos(naked_expression) ; <>
 
+let state_qualifier ==
+| STATE ; state = addpos(LIDENT); <>
+
 let naked_expression ==
-| id = addpos(LIDENT) ; {
-  match Localisation.lex_builtin (Mark.remove id) with
-  | Some b -> Builtin b
-  | None -> Ident ([], id)
+| id = addpos(LIDENT) ; state = option(state_qualifier) ; {
+  match Localisation.lex_builtin (Mark.remove id), state with
+  | Some b, None -> Builtin b
+  | Some _, Some _ ->
+      Message.error ~pos:
+        (Pos.from_lpos $loc(id))
+        "Invalid use of built-in @{<bold>%s@}" (Mark.remove id)
+  | None, state -> Ident ([], id, state)
 }
 | uid = uident ; DOT ; qlid = qlident ; {
-  let path, lid = qlid in Ident (uid :: path, lid)
+  let path, lid = qlid in Ident (uid :: path, lid, None)
 }
 | l = literal ; {
   Literal l
@@ -179,6 +191,13 @@ let naked_expression ==
 }
 | e = expression ;
   DOT ; i = addpos(qlident) ; <Dotted>
+| e = expression ; DOT ; arg = addpos(INT_LITERAL) ; {
+  let n_str, pos_n = arg in
+  let n = int_of_string n_str in
+  if n <= 0 then
+    Message.error ~pos:pos_n "Tuple indices must be >= 1";
+  TupleAccess (e, (n, pos_n))
+}
 | CARDINAL ; {
   Builtin Cardinal
 }
@@ -206,6 +225,13 @@ let naked_expression ==
   WITH ; c = constructor_binding ; {
   TestMatchCase (e, (c, Pos.from_lpos $sloc))
 }
+| e = expression ;
+  BUT_REPLACE ;
+  LBRACE ;
+  fields = nonempty_list(preceded (ALT, struct_content_field)) ;
+  RBRACE ; {
+  StructReplace (e, fields)
+}
 | e1 = expression ;
   CONTAINS ;
   e2 = expression ; {
@@ -216,7 +242,7 @@ let naked_expression ==
   CollectionOp (AggregateSum { typ = Mark.remove typ }, coll)
 } %prec apply
 | f = expression ;
-  FOR ; i = lident ;
+  FOR ; i = mbinder ;
   AMONG ; coll = expression ; {
   CollectionOp (Map {f = i, f}, coll)
 } %prec apply
@@ -234,12 +260,12 @@ let naked_expression ==
   e2 = expression ; {
   Binop (binop, e1, e2)
 }
-| EXISTS ; i = lident ;
+| EXISTS ; i = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; predicate = expression ; {
   CollectionOp (Exists {predicate = i, predicate}, coll)
 } %prec let_expr
-| FOR ; ALL ; i = lident ;
+| FOR ; ALL ; i = mbinder ;
   AMONG ; coll = expression ;
   WE_HAVE ; predicate = expression ; {
   CollectionOp (Forall {predicate = i, predicate}, coll)
@@ -254,28 +280,28 @@ let naked_expression ==
   ELSE ; e3 = expression ; {
   IfThenElse (e1, e2, e3)
 } %prec let_expr
-| LET ; ids = separated_nonempty_list(COMMA,lident) ;
+| LET ; ids = mbinder ;
   DEFINED_AS ; e1 = expression ;
   IN ; e2 = expression ; {
   LetIn (ids, e1, e2)
 } %prec let_expr
-| i = lident ;
+| LIST; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
-  CollectionOp (Filter {f = i, f}, coll)
+  CollectionOp (Filter {f = ids, f}, coll)
 } %prec top_expr
 | fmap = expression ;
-  FOR ; i = lident ;
+  FOR ; i = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; ffilt = expression ; {
   CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
 } %prec top_expr
-| i = lident ;
+| CONTENT; OF; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
   OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
-  CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll)
+  CollectionOp (AggregateArgExtremum { max; default; f = ids, f }, coll)
 } %prec top_expr
 
 
@@ -512,7 +538,7 @@ let scope_item :=
     | Some Round ->
        DateRounding(v), Mark.get v
     | _ ->
-         Message.raise_spanned_error
+         Message.error ~pos:
            (Pos.from_lpos $loc(i))
            "Expected the form 'date round increasing' or 'date round decreasing'"
   }
@@ -535,42 +561,50 @@ let struct_scope :=
   }
 }
 
-let scope_decl_item_attribute_input :=
-| CONTEXT ; { Context }
-| INPUT ; { Input }
+let scope_decl_item_attribute_input ==
+| CONTEXT ; { Some Context }
+| INPUT ; { Some Input }
+| INTERNAL ; { Some Internal }
+| { None }
 
-let scope_decl_item_attribute_output :=
+let scope_decl_item_attribute_output ==
 | OUTPUT ; { true }
 | { false }
 
-let scope_decl_item_attribute :=
+let scope_decl_item_attribute ==
 | input = addpos(scope_decl_item_attribute_input) ;
-  output = addpos(scope_decl_item_attribute_output) ; {
-    {
-      scope_decl_context_io_input = input;
-      scope_decl_context_io_output = output
-    }
-  }
-| INTERNAL ; {
-    {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
-    }
-  }
-| OUTPUT ; {
-    {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
-    }
-  }
+  output = addpos(scope_decl_item_attribute_output) ;
+  i = lident ; {
+  match input, output with
+  | (Some Internal, _), (true, pos) ->
+    Message.error ~pos
+      "A variable cannot be declared both 'internal' and 'output'."
+  | input, output -> input, output, i
+}
 
+let scope_decl_item_attribute_mandatory ==
+| attr = scope_decl_item_attribute ; {
+  let in_attr_opt, out_attr, i = attr in
+  let in_attr = match in_attr_opt, out_attr with
+    | (None, _), (false, _) ->
+      Message.error ~pos:(Pos.from_lpos $loc(attr))
+        "Variable declaration requires input qualification ('internal', \
+         'input' or 'context')"
+    | (None, pos), (true, _) -> Internal, pos
+    | (Some i, pos), _ -> i, pos
+  in
+  {
+    scope_decl_context_io_input = in_attr;
+    scope_decl_context_io_output = out_attr;
+  }, i
+}
 
 let scope_decl_item :=
-| attr = scope_decl_item_attribute ;
-  i = lident ;
+| attr_i = scope_decl_item_attribute_mandatory ;
   CONTENT ; t = addpos(typ) ;
   args_typ = depends_stance ;
   states = list(state) ; {
+  let attr, i = attr_i in
   ContextData {
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
@@ -583,21 +617,30 @@ let scope_decl_item :=
   scope_decl_context_item_states = states;
   }
 }
-| i = lident ; SCOPE ; c = addpos(quident) ; {
+| attr = scope_decl_item_attribute ;
+  SCOPE ; c = addpos(quident) ; {
+  let in_attr_opt, out_attr, i = attr in
+  let attr = match in_attr_opt, out_attr with
+    | (None, pos), out -> {
+        scope_decl_context_io_input = (Internal, pos);
+        scope_decl_context_io_output = out;
+      };
+    | (Some _, pos), _ ->
+        Message.error ~pos
+          "Scope declaration does not support input qualifiers ('internal', \
+           'input' or 'context')"
+  in
   ContextScope{
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
-    scope_decl_context_scope_attribute = {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (false, Pos.from_lpos $sloc);
-    };
+    scope_decl_context_scope_attribute = attr;
   }
 }
-| attr = scope_decl_item_attribute ;
-  i = lident ;
+| attr_i = scope_decl_item_attribute_mandatory ;
   pos_condition = pos(CONDITION) ;
   args = depends_stance ;
   states = list(state) ; {
+  let attr, i = attr_i in
   ContextData {
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;

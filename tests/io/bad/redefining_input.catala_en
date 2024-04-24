@@ -1,0 +1,27 @@
+# Test
+
+```catala
+declaration scope A:
+  input output a content integer
+
+scope A:
+  definition a equals 0
+```
+```catala-test-inline
+$ catala Typecheck 
+[ERROR] There cannot be a definition for a scope variable tagged as input.
+
+Incriminated variable:
+┌─⯈ tests/io/bad/redefining_input.catala_en:5.16-5.17:
+└─┐
+5 │   input output a content integer
+  │                ‾
+  └─ Test
+
+Incriminated variable definition:
+┌─⯈ tests/io/bad/redefining_input.catala_en:8.3-8.15:
+└─┐
+8 │   definition a equals 0
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+#return code 123#
+```

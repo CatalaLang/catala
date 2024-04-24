@@ -14,14 +14,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Shared_ast
-
 val translate_program_with_exceptions : 'm Dcalc.Ast.program -> 'm Ast.program
 (** Translation from the default calculus to the lambda calculus. This
     translation uses exceptions to handle empty default terms. *)
 
 val translate_program_without_exceptions :
-  typed Dcalc.Ast.program -> untyped Ast.program
+  'm Dcalc.Ast.program -> 'm Ast.program
 (** Translation from the default calculus to the lambda calculus. This
     translation uses an option monad to handle empty defaults terms. This
     transformation is one piece to permit to compile toward legacy languages

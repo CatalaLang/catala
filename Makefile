@@ -88,8 +88,7 @@ build: parser-messages format build_dev
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala.bc.js
-	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js
+	dune build $(COMPILER_DIR)/catala.bc.js $(COMPILER_DIR)/catala_web_interpreter.bc.js
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
@@ -108,6 +107,13 @@ install: prepare-install
 # `dune install` would work, but does a dirty install to the opam prefix without
 # registering with opam.
 # --assume-built is broken in 2.1.5
+
+inst: prepare-install
+	@opam custom-install \
+	  catala.$$(_build/install/default/bin/catala --version) \
+	  --solver=builtin-mccs+glpk -- \
+	dune install catala
+# This is better, but 'opam custom-install' is still an experimental plugin
 
 #> runtimes				: Builds the OCaml and js_of_ocaml runtimes
 runtimes:
@@ -180,6 +186,7 @@ vscode: vscode_fr vscode_en
 # Extra documentation
 ##########################################
 
+#> syntax					: Buils syntax sheet (requires latexmk and dejavu fonts)
 syntax:
 	$(MAKE) -C doc/syntax
 
@@ -187,40 +194,84 @@ syntax:
 # High-level test and benchmarks commands
 ##########################################
 
-CATALA_OPTS?=
-CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
+CATALA_OPTS ?=
+CLERK_OPTS ?=
 
 CATALA_BIN=_build/default/$(COMPILER_DIR)/catala.exe
 CLERK_BIN=_build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
 
-CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
+CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
 
 
 .FORCE:
 
-#> tests					: Run interpreter tests
-tests: .FORCE prepare-install
-	@$(MAKE) -C tests pass_all_tests
+unit-tests: .FORCE
+	dune build @for-tests @runtest
+
+#> test					: Run interpreter tests
+test: .FORCE unit-tests
+	$(CLERK_TEST) tests doc
+
+tests: test
+
+TEST_FLAGS_LIST = ""\
+-O \
+--lcalc \
+--lcalc,--avoid-exceptions,-O
+
+# Does not include running dune (to avoid duplication when run among bigger rules)
+testsuite-base: .FORCE
+	@for F in $(TEST_FLAGS_LIST); do \
+	  echo >&2; \
+	  [ -z "$$F" ] || echo ">> RE-RUNNING TESTS WITH FLAGS: $$F" >&2; \
+	  $(CLERK_TEST) tests --test-flags="$$F" || break; \
+	done
+
+#> testsuite				: Run interpreter tests over a selection of configurations
+testsuite: unit-tests
+	$(MAKE) testsuite-base
+
+#> reset-tests				: Update the expected test results from current run
+reset-tests: .FORCE $(CLERK_BIN)
+	$(CLERK_TEST) tests --reset
 
 tests/%: .FORCE
-	@$(MAKE) -C tests $*
+	$(CLERK_TEST) test $@
 
 ##########################################
 # Website assets
 ##########################################
 
+# Note: these are already built by the @doc dune alias
+# (and therefore the doc target here)
 WEBSITE_ASSETS = grammar.html catala.html clerk.html
 
-$(addprefix _build/default/,$(WEBSITE_ASSETS)):
-	dune build $@
+WEBSITE_ASSETS_EXAMPLES = \
+  tutorial_en/tutorial_en.html \
+  tutoriel_fr/tutoriel_fr.html \
+  us_tax_code/us_tax_code.html \
+  allocations_familiales/Allocations_familiales.html \
+  allocations_familiales/Allocations_familiales_schema.json \
+  aides_logement/Aides_logement.html \
+  aides_logement/Aides_logement_schema.json
+
+WEBSITE_ASSETS_ALL = $(WEBSITE_ASSETS) $(addprefix catala-examples.tmp/,$(WEBSITE_ASSETS_EXAMPLES))
 
 website-assets-base: build
-	dune build $(WEBSITE_ASSETS)
+	$(call local_tmp_clone,catala-examples) && \
+	$(MAKE) -C catala-examples.tmp \
+	  CATALA=../$(CATALA_BIN) \
+	  CLERK=../$(CLERK_BIN) \
+	  BUILD=../_build/default \
+	  $(addprefix ../_build/default/,$(WEBSITE_ASSETS_EXAMPLES))
+	dune build $(addprefix _build/default/,$(WEBSITE_ASSETS_ALL)) $(WEBSITE_ASSETS)
+
+website-assets.tar: website-assets-base
+	tar cf $@ $(foreach file,$(WEBSITE_ASSETS_ALL),-C $(CURDIR)/$(dir _build/default/$(file)) $(notdir $(file)))
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets:
-	$(MAKE) DUNE_PROFILE=release website-assets-base
+website-assets: website-assets.tar
 
 ##########################################
 # Miscellaneous
@@ -231,21 +282,62 @@ all: \
 	build js_build doc \
 	tests \
 	runtimes \
-	plugins \
-	website-assets-base
+	plugins
 
+BRANCH = $(shell git branch --show-current 2>/dev/null || echo master)
+
+# Attempt a clone of the named CatalaLang repo into <name>.tmp, using local git
+# objects in ../<name> if available, the branch with the same name as the
+# current branch if it exists (master otherwise), and falling back to a local
+# clone of ../<name> if the network is not available. The temp dir is removed
+# when the shell terminates, so this must be run in the same "Makefile line" as
+# its usage.
+local_tmp_clone = { \
+  rm -rf $1.tmp && \
+  trap "rm -rf $1.tmp" EXIT && \
+  git clone https://github.com/CatalaLang/$1 \
+    --depth 1 --reference-if-able ../$1 \
+    $1.tmp -b $(BRANCH) || \
+  git clone https://github.com/CatalaLang/$1 \
+    --depth 1 --reference-if-able ../$1 \
+    $1.tmp || \
+  git clone -s ../$1 $1.tmp -b $(BRANCH) || \
+  git clone -s ../$1 $1.tmp -b master; \
+}
+
+test_title = printf "\n\#             \e[33m===========  \e[1m%-30s  \e[2m===========\e[m             \n"
+
+#> alltest					: Runs more extensive tests, including the examples and french-law. Use before push!
+alltest: dependencies-python
+	@export DUNE_PROFILE=check OCAMLPATH=$(CURDIR)/_build/install/default/lib && \
+	$(test_title) "Local build and unit tests" && \
+	dune build @update-parser-messages @install @runtest && \
+	$(test_title) "Local testsuite" && \
+	$(MAKE) testsuite && \
+	$(test_title) "Running catala-examples" && \
+	$(call local_tmp_clone,catala-examples) && \
+	$(MAKE) -C catala-examples.tmp \
+	  CATALA=$(CURDIR)/_build/install/default/bin/catala \
+	  CLERK=$(CURDIR)/_build/install/default/bin/clerk \
+	  BUILD=../_build/default \
+	  all testsuite local-install && \
+	$(test_title) "Running french-law tests" && \
+	$(call local_tmp_clone,french-law) && \
+	touch french-law.tmp/dune-workspace && \
+	$(MAKE) -C french-law.tmp \
+	  OCAMLPATH=$(CURDIR)/_build/install/default/lib \
+	  PY_VENV_DIR=$(ROOT_DIR)/_python_venv \
+	  dependencies \
+	  bench_ocaml \
+	  bench_js \
+	  bench_python && \
+	printf "\n#             \e[42;30m[ ALL TESTS PASSED ]\e[m             \e[32m☺\e[m\n" || \
+	{ printf "\n#             \e[41;30m[   TESTS FAILED   ]\e[m             \e[31m☹\e[m\n" ; exit 1; }
 
 #> clean					: Clean build artifacts
 clean:
 	dune clean
 	rm -rf artifacts
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) clean
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
-	$(MAKE) -C $(US_TAX_CODE_DIR) clean
-	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
-	$(MAKE) -C $(TUTORIAL_EN_DIR) clean
-	$(MAKE) -C $(POLISH_TAXES_DIR) clean
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading
@@ -261,7 +353,6 @@ help_catala:
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all english allocations_familiales	\
-	pygments install build_dev build doc format dependencies		\
-	dependencies-ocaml catala.html help parser-messages plugins		\
-	website-assets website-assets-base
+.PHONY: inspect clean all english alltest pygments install build_dev build doc	\
+	format dependencies dependencies-ocaml catala.html help parser-messages	\
+	plugins website-assets.tar website-assets-base

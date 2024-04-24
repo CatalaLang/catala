@@ -1,0 +1,31 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content integer
+  output y content boolean
+
+scope A:
+  definition x equals 1
+```
+
+```catala-test-inline
+$ catala test-scope A
+[WARNING] In scope "A", the variable "y" is declared but never defined;
+  did you forget something?
+
+┌─⯈ tests/default/bad/empty.catala_en:6.10-6.11:
+└─┐
+6 │   output y content boolean
+  │          ‾
+  └─ Article
+[ERROR] This variable evaluated to an empty term (no rule that defined it
+  applied in this situation)
+
+┌─⯈ tests/default/bad/empty.catala_en:6.10-6.11:
+└─┐
+6 │   output y content boolean
+  │          ‾
+  └─ Article
+#return code 123#
+```

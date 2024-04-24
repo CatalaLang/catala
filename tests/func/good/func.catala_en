@@ -1,0 +1,36 @@
+## Article
+
+```catala
+declaration scope S:
+  context f content integer depends on x content integer
+  context b content boolean
+  context output out content integer
+
+declaration scope R:
+  s scope S
+  context output r content integer
+
+scope S:
+  definition f of x under condition (x >= x) consequence equals x + x
+  definition f of x under condition not b consequence equals x * x
+  definition b equals false
+  definition out equals f of 5
+
+scope R:
+  definition s.f of x equals x + x * x
+  definition r equals s.out
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope R
+[RESULT] Computation successful! Results:
+[RESULT] r = 30
+```

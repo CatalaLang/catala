@@ -20,7 +20,7 @@ open Shared_ast
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
-let error e = Message.raise_spanned_error (Expr.pos e)
+let error e = Message.error ~pos:(Expr.pos e)
 let noassert = true
 
 type laziness_level = {
@@ -112,7 +112,7 @@ let rec lazy_eval :
           renv := env;
           e
         in
-        ( Interpreter.evaluate_operator eval op m Cli.En
+        ( Interpreter.evaluate_operator eval op m Global.En
             (* Default language to English but this should not raise any error
                messages so we don't care. *)
             args,
@@ -197,9 +197,8 @@ let rec lazy_eval :
       log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
-      Message.raise_multispanned_error
-        ((None, Expr.mark_pos m)
-        :: List.map (fun (e, _) -> None, Expr.pos e) excs)
+      Message.error ~pos:(Expr.mark_pos m)
+        ~extra_pos:(List.map (fun (e, _) -> "", Expr.pos e) excs)
         "Conflicting exceptions")
   | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (
@@ -227,12 +226,12 @@ let rec lazy_eval :
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * 'm Env.t =
   let ctx = prg.decl_ctx in
-  let all_env, scopes =
-    Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
+  let (all_env, scopes), () =
+    BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
+          let e = Scope.to_expr ctx body in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
         | Topdef (_, _, e) -> Env.add v e env env, scopes)

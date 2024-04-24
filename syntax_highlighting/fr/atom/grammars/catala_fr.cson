@@ -121,7 +121,7 @@
         }
       }
       {
-        'match' : '\\b(selon|sous\\s+forme|fixé|par|décroissante|croissante|varie|avec|on\\s+a|soit|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b'
+        'match' : '\\b(selon|sous\\s+forme|mais\\s+en\\s+rempla\\x{00e7}ant|fixé|par|décroissant|croissant|varie|avec|on\\s+a|soit|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b'
         'name' : 'keyword.control.catala_fr'
       }
       {

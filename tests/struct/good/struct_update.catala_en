@@ -1,0 +1,47 @@
+
+```catala
+declaration structure Str:
+  data fld1 content integer
+  data fld2 content money
+  data fld3 content date
+
+declaration scope S:
+  internal s0 content Str
+  output s1 content Str
+  output s2 content Str
+  output s3 content Str
+  output s4 content Str
+  output s5 content Str
+
+scope S:
+  definition s0 equals Str {
+    -- fld1: 0
+    -- fld2: $1
+    -- fld3: |2003-01-01|
+  }
+  definition s1 equals s0 but replace { -- fld1: 99 }
+  definition s2 equals s0 but replace { -- fld2: $99 }
+  definition s3 equals s2 but replace { -- fld1: 99 -- fld3: |2099-01-01| }
+  definition s4 equals s3 but replace { -- fld1: 100 -- fld2: $100 -- fld3: |2100-01-01| }
+  definition s5 equals s0
+    but replace { -- fld1: 99 }
+    but replace { -- fld2: $99 }
+    but replace { -- fld1: 100 -- fld3 : |2100-01-01| }
+```
+
+
+```catala-test-inline
+$ catala test-scope S
+[WARNING] All fields of Str are rewritten in this replacement.
+
+┌─⯈ tests/struct/good/struct_update.catala_en:25.24-25.91:
+└──┐
+25 │   definition s4 equals s3 but replace { -- fld1: 100 -- fld2: $100 -- fld3: |2100-01-01| }
+   │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+[RESULT] Computation successful! Results:
+[RESULT] s1 = Str { -- fld1: 99 -- fld2: $1.00 -- fld3: 2003-01-01 }
+[RESULT] s2 = Str { -- fld1: 0 -- fld2: $99.00 -- fld3: 2003-01-01 }
+[RESULT] s3 = Str { -- fld1: 99 -- fld2: $99.00 -- fld3: 2099-01-01 }
+[RESULT] s4 = Str { -- fld1: 100 -- fld2: $100.00 -- fld3: 2100-01-01 }
+[RESULT] s5 = Str { -- fld1: 100 -- fld2: $99.00 -- fld3: 2100-01-01 }
+```

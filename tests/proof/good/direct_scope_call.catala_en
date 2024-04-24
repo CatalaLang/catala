@@ -1,0 +1,28 @@
+```catala
+declaration scope SubFoo:
+  input x content integer
+  output y content integer
+
+declaration scope Foo:
+  output z content integer
+
+scope SubFoo:
+  definition y equals x + x
+
+scope Foo:
+  definition z equals
+     (output of SubFoo with { -- x: 1 }).y
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof -s Foo
+[RESULT] No errors found during the proof mode run.
+```

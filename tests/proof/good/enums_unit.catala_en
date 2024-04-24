@@ -1,0 +1,33 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+
+declaration scope A:
+  internal x content E
+  output y content integer
+
+scope A:
+  definition x equals Case1 content 2
+  definition y under condition match x with pattern
+    -- Case1 of i : true
+    -- Case2 : false consequence equals 2
+  definition y under condition match x with pattern
+    -- Case1 of i : false
+    -- Case2 : true consequence equals 2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

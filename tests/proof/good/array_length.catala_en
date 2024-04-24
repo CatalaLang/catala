@@ -1,0 +1,25 @@
+## Test
+
+```catala
+declaration scope A:
+  internal x content list of integer
+  output y content boolean
+
+scope A:
+  definition x equals [0; 5]
+  definition y under condition (number of x) > 0 consequence equals true
+  definition y under condition (number of x) = 0 consequence equals false
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

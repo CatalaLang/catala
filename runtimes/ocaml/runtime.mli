@@ -29,7 +29,11 @@ type integer = Z.t
 type decimal = Q.t
 type date = Dates_calc.Dates.date
 type duration = Dates_calc.Dates.period
-type date_rounding = Dates_calc.Dates.date_rounding
+
+type date_rounding = Dates_calc.Dates.date_rounding =
+  | RoundUp
+  | RoundDown
+  | AbortOnRound
 
 type source_position = {
   filename : string;
@@ -57,13 +61,11 @@ type io_input =
   | Reentrant
       (** For variables defined in the scope that can also be redefined by the
           caller as they appear in the input. *)
-[@@deriving yojson_of]
 
 type io_log = {
   io_input : io_input;
   io_output : bool;  (** [true] if the variable is an output *)
 }
-[@@deriving yojson_of]
 
 (** {1 Exceptions} *)
 
@@ -74,6 +76,7 @@ exception UncomparableDurations
 exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
+exception Division_by_zero (* Shadows the stdlib definition *)
 
 (** {1 Value Embedding} *)
 
@@ -85,11 +88,10 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string list * (string * runtime_value)
-  | Struct of string list * (string * runtime_value) list
+  | Enum of string * (string * runtime_value)
+  | Struct of string * (string * runtime_value) list
   | Array of runtime_value Array.t
   | Unembeddable
-[@@deriving yojson_of]
 
 val unembeddable : 'a -> runtime_value
 val embed_unit : unit -> runtime_value
@@ -115,7 +117,7 @@ val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {2 Data structures} *)
 
-type information = string list [@@deriving yojson_of]
+type information = string list
 (** Represents information about a name in the code -- i.e. variable name,
     subscope name, etc...
 
@@ -188,7 +190,6 @@ type event =
       inputs : var_def list;
       body : event list;
     }
-[@@deriving yojson_of]
 
 and var_def = {
   pos : source_position option;
@@ -229,6 +230,16 @@ val log_variable_definition :
 val log_decision_taken : source_position -> bool -> bool
 
 (** {3 Pretty printers} *)
+
+(** {4 Conversions to JSON} *)
+module Json : sig
+  (* val io_input: io_input -> string *)
+  val io_log : io_log -> string
+  val runtime_value : runtime_value -> string
+
+  (* val information: information -> string *)
+  val event : event -> string
+end
 
 val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
 (** [pp_events ~is_first_call ppf events] pretty prints in [ppf] the string
@@ -353,6 +364,10 @@ module Oper : sig
   val o_xor : bool -> bool -> bool
   val o_eq : 'a -> 'a -> bool
   val o_map : ('a -> 'b) -> 'a array -> 'b array
+
+  val o_map2 : ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
+  (** @raise [NotSameLength] *)
+
   val o_reduce : ('a -> 'a -> 'a) -> 'a -> 'a array -> 'a
   val o_concat : 'a array -> 'a array -> 'a array
   val o_filter : ('a -> bool) -> 'a array -> 'a array

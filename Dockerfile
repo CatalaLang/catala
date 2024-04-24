@@ -25,16 +25,23 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
 # Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
 # should be enough once opam 2.2 is released (see opam#5185)
 
+# This is temporary, to avoid pulling in a dependency to Str, until it's merged
+# and release into dates_calc
+RUN opam --cli=2.1 pin dates_calc.0.0.5 git+https://github.com/AltGr/dates-calc#nostr
+
 #
-# STAGE 2: get the whole repo, run checks and builds
+# STAGE 2: get the whole repo and build
 #
 FROM dev-build-context
 
+# Prepare extra local dependencies (doing this first allows caching)
+ADD --chown=ocaml:ocaml runtimes/python/pyproject.toml runtimes/python/pyproject.toml
+ADD --chown=ocaml:ocaml Makefile .
+ADD --chown=ocaml:ocaml syntax_highlighting syntax_highlighting
+RUN opam exec -- make dependencies-python pygments
+
 # Get the full repo
 ADD --chown=ocaml:ocaml . .
-
-# Prepare extra local dependencies
-RUN opam exec -- make dependencies-python pygments
 
 # OCaml backtraces may be useful on failure
 ENV OCAMLRUNPARAM=b
@@ -42,18 +49,10 @@ ENV OCAMLRUNPARAM=b
 # defined in ./dune)
 ENV DUNE_PROFILE=check
 
-# Check promoted files (but delay failure)
-RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
+ARG CATALA_VERSION
 
 # Check the build
-RUN opam exec -- make build
+RUN opam exec -- make build js_build
 
-# Check tests & all alt targets
-RUN OCAMLRUNPARAM=b opam exec -- make all -B
-
-# Forward results of promotion check
-RUN if [ -e bad-promote ]; then \
-  echo "[ERROR] Some promoted files were not up-to-date"; \
-  cat promotion.out; \
-  exit 1; \
-fi
+# Install to prefix
+RUN opam exec -- make install && opam clean

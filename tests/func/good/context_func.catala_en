@@ -1,0 +1,95 @@
+## Test
+
+```catala
+declaration scope A:
+  context output f content integer depends on x content integer
+
+declaration scope B:
+  input b content boolean
+  a scope A
+
+scope A:
+  definition f of x equals x + 1
+
+scope B:
+  definition a.f of x under condition b and x > 0 consequence equals x - 1
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[WARNING] Unused varible: a does not contribute to computing any of scope B
+  outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Scopelang -s B
+[WARNING] Unused varible: a does not contribute to computing any of scope B
+  outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+let scope B (b: bool|input) (a: A {f: integer → integer}|internal) =
+  let a : A {f: integer → integer} =
+    A of {"f"= (λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩)}
+```
+
+```catala-test-inline
+$ catala Dcalc -s A
+[WARNING] Unused varible: a does not contribute to computing any of scope B
+  outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+let scope A
+  (A_in: A_in {f_in: integer → ⟨integer⟩})
+  : A {f: integer → integer}
+  =
+  let get f : integer → ⟨integer⟩ = A_in.f_in in
+  let set f : integer → integer =
+    λ (x: integer) →
+    error_empty
+      ⟨ f x | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨x + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+  in
+  return { A f = f; }
+```
+
+```catala-test-inline
+$ catala Dcalc -s B
+[WARNING] Unused varible: a does not contribute to computing any of scope B
+  outputs. Did you forget something?
+
+┌─⯈ tests/func/good/context_func.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+let scope B (B_in: B_in {b_in: bool}): B =
+  let get b : bool = B_in.b_in in
+  let set a : A {f: integer → integer} =
+    let result : A =
+      A
+        { A_in
+          f_in = λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩;
+        }
+    in
+    let result1 : A = { A f = λ (param0: integer) → result.f param0; } in
+    if true then result1 else result1
+  in
+  return {B}
+```

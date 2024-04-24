@@ -1,0 +1,162 @@
+
+```catala
+
+declaration lis1 content list of decimal equals
+  [ 12.; 13.; 14.; 15.; 16.; 17. ]
+
+declaration lis2 content list of money equals
+  [ $10; $1; $100; $42; $17; $10 ]
+
+declaration lis3 content list of money equals
+  [ $20; $200; $10; $23; $25; $12 ]
+
+declaration tlist content list of (decimal, money, money) equals
+  (a, b, c) for (a, b, c) among (lis1, lis2, lis3)
+
+declaration grok
+  content (money, decimal)
+  depends on dec content decimal,
+             mon1 content money,
+             mon2 content money
+  equals
+  (mon1 * dec, mon1 / mon2)
+
+declaration scope S:
+  output r1 content list of (money, decimal)
+  output r2 content list of (money, decimal)
+  output r3 content list of (money, decimal)
+  output r4 content list of (money, decimal)
+  output r5 content list of (money, decimal)
+  output r6 content list of (money, decimal)
+
+scope S:
+  definition r1 equals (grok of x) for x among tlist
+  definition r2 equals (grok of x) for x among (lis1, lis2, lis3)
+  definition r3 equals (grok of (x, y, z)) for (x, y, z) among (lis1, lis2, lis3)
+  definition r4 equals (x * y, y / z) for (x, y, z) among tlist
+  definition r5 equals (x * y, y / z) for (x, y, z) among (lis1, lis2, lis3)
+  definition r6 equals
+    let lis12 equals (x, y) for (x, y) among (lis1, lis2) in
+    (xy.1 * xy.2, xy.2 / z) for (xy, z) among (lis12, lis3)
+
+```
+
+```catala-test-inline
+$ catala typecheck
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT]
+r1 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r2 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r3 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r4 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r5 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r6 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+```
+
+```catala-test-inline
+$ catala dcalc -O
+let lis1 : list of decimal = [12.; 13.; 14.; 15.; 16.; 17.] in
+let lis2 : list of money =
+  [¤10.00; ¤1.00; ¤100.00; ¤42.00; ¤17.00; ¤10.00]
+in
+let lis3 : list of money =
+  [¤20.00; ¤200.00; ¤10.00; ¤23.00; ¤25.00; ¤12.00]
+in
+let grok : (decimal, money, money) → (money * decimal) =
+  λ (dec: decimal) (mon1: money) (mon2: money) →
+  (mon1 * dec, mon1 / mon2)
+in
+let tlist : list of (decimal * money * money) =
+  map2
+    (λ (a: decimal) (b_c: (money * money)) → (a, b_c.0, b_c.1))
+    lis1
+    map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
+in
+let S : S_in → S =
+  λ (S_in: S_in) →
+  let r1 : list of (money * decimal) =
+    map (λ (x: (decimal * money * money)) → grok x.0 x.1 x.2) tlist
+  in
+  let r2 : list of (money * decimal) =
+    map2
+      (λ (x: decimal) (zip: (money * money)) →
+       let x1 : (decimal * money * money) = (x, zip.0, zip.1) in
+       grok x1.0 x1.1 x1.2)
+      lis1
+      map2 (λ (x: money) (zip: money) → (x, zip)) lis2 lis3
+  in
+  let r3 : list of (money * decimal) =
+    map2
+      (λ (x: decimal) (y_z: (money * money)) →
+       let x_y_z : (decimal * money * money) = (x, y_z.0, y_z.1) in
+       grok x_y_z.0 x_y_z.1 x_y_z.2)
+      lis1
+      map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
+  in
+  let r4 : list of (money * decimal) =
+    map (λ (x_y_z: (decimal * money * money)) →
+         (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
+      tlist
+  in
+  let r5 : list of (money * decimal) =
+    map2
+      (λ (x: decimal) (y_z: (money * money)) →
+       let x_y_z : (decimal * money * money) = (x, y_z.0, y_z.1) in
+       (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
+      lis1
+      map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
+  in
+  let r6 : list of (money * decimal) =
+    map2
+      (λ (xy: (decimal * money)) (z: money) →
+       let xy_z : ((decimal * money) * money) = (xy, z) in
+       let xy1 : (decimal * money) = xy_z.0 in
+       let z1 : money = xy_z.1 in
+       (xy1.1 * xy1.0, xy1.1 / z1))
+      map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2
+      lis3
+  in
+  { S r1 = r1; r2 = r2; r3 = r3; r4 = r4; r5 = r5; r6 = r6; }
+in
+S
+```

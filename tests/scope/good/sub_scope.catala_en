@@ -1,0 +1,47 @@
+## Article
+
+```catala
+declaration scope A:
+  context output a content integer
+  context output b content boolean
+  context output a_base content integer
+
+declaration scope B:
+  context output a content integer
+  context output b content boolean
+  scopeA scope A
+  scopeAbis scope A
+
+scope A:
+  definition a_base equals 1
+  definition a equals -1
+  definition b equals a > 0
+
+scope B:
+  definition a equals 42
+  definition b equals scopeA.b
+  definition scopeA.a under condition a > 0 consequence equals scopeAbis.a_base
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] a = -1
+[RESULT] a_base = 1
+[RESULT] b = false
+```
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful! Results:
+[RESULT] a = 42
+[RESULT] b = true
+```

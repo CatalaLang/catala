@@ -51,12 +51,34 @@ module Cli = struct
              to '_build'.")
 
   let include_dirs =
+    let arg =
+      Arg.(
+        value
+        & opt_all (list ~sep:':' string) []
+        & info ["I"; "include"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_INCLUDE")
+            ~doc:
+              "Make modules from the given directory available from \
+               everywhere. Several dirs can be specified by repeating the flag \
+               or separating them with '$(b,:)'.")
+    in
+    Term.(const List.flatten $ arg)
+
+  let test_flags =
     Arg.(
       value
-      & opt_all string []
-      & info ["I"; "include"] ~docv:"DIR"
+      & opt (list string) []
+      & info ["test-flags"] ~docv:"FLAGS"
+          ~env:(Cmd.Env.info "CATALA_TEST_FLAGS")
           ~doc:
-            "Make modules from the given directory available from everywhere.")
+            "Flags to pass to the catala interpreter on $(b,catala test-scope) \
+             tests. Comma-separated list. A subset may also be applied to the \
+             compilation of modules, as needed.\n\
+             WARNING: flag shortcuts are not allowed here (i.e. don't use \
+             non-ambiguous prefixes such as $(b,--avoid-ex) for \
+             $(b,--avoid-exceptions))\n\
+             NOTE: if this is set, all inline tests that are $(i,not) \
+             $(b,catala test-scope) are skipped to avoid redundant testing.")
 
   module Global : sig
     val term :
@@ -65,7 +87,7 @@ module Cli = struct
       catala_opts:string list ->
       build_dir:File.t option ->
       include_dirs:string list ->
-      color:Cli.when_enum ->
+      color:Global.when_enum ->
       debug:bool ->
       ninja_output:File.t option ->
       'a) ->
@@ -81,7 +103,7 @@ module Cli = struct
     let color =
       Arg.(
         value
-        & opt ~vopt:Cli.Always Cli.when_opt Auto
+        & opt ~vopt:Global.Always Cli.when_opt Auto
         & info ["color"]
             ~env:(Cmd.Env.info "CATALA_COLOR")
             ~doc:
@@ -186,7 +208,7 @@ module Cli = struct
     in
     let makeflags_to_ninja_flags (makeflags : string option) =
       match makeflags with
-      | None -> ""
+      | None -> ["-k0"]
       | Some makeflags ->
         let ignore_rex = Re.(compile @@ word (char 'i')) in
         let has_ignore = Re.execp ignore_rex makeflags in
@@ -195,7 +217,7 @@ module Cli = struct
           try ["-j" ^ Re.Group.get (Re.exec jobs_rex makeflags) 1]
           with _ -> []
         in
-        String.concat " " ((if has_ignore then ["-k0"] else []) @ number_of_jobs)
+        (if has_ignore then ["-k0"] else []) @ number_of_jobs
     in
     Term.(const makeflags_to_ninja_flags $ makeflags)
 
@@ -256,14 +278,13 @@ module Poll = struct
   let catala_project_root : File.t option Lazy.t =
     lazy
       (match Lazy.force project_root with
-      | Some root when Sys.file_exists File.(root / "catala.opam") -> Some root
+      | Some root
+        when Sys.file_exists File.(root / "catala.opam")
+             && Sys.file_exists File.(root / "dune-project") ->
+        Some root
       | _ -> None)
 
-  let exec_dir : File.t =
-    (* Do not use Sys.executable_name, which may resolve symlinks: we want the
-       original path. (e.g. _build/install/default/bin/foo is a symlink) *)
-    Filename.dirname Sys.argv.(0)
-
+  let exec_dir : File.t = Catala_utils.Cli.exec_dir
   let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
 
   let catala_exe : File.t Lazy.t =
@@ -279,14 +300,9 @@ module Poll = struct
 
   let build_dir : ?dir:File.t -> unit -> File.t =
    fun ?(dir = "_build") () ->
-    match Sys.is_directory dir with
-    | exception Sys_error _ ->
-      Sys.mkdir dir 0o770;
-      dir
-    | true -> dir
-    | false ->
-      Message.raise_error "Build directory %a exists but is not a directory"
-        File.format dir
+    let d = File.clean_path dir in
+    File.ensure_dir d;
+    d
   (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
      default, but Ninja treats relative and absolute paths separately so that
      you wouldn't then be able to build target _build/foo.ml but would have to
@@ -302,7 +318,7 @@ module Poll = struct
            match File.(check_directory (exec_dir /../ "lib")) with
            | Some d -> d
            | None ->
-             Message.raise_error
+             Message.error
                "Could not locate the OCaml library directory, make sure OCaml \
                 or opam is installed")))
 
@@ -332,41 +348,43 @@ module Poll = struct
        in
        match File.check_directory d with
        | Some dir ->
-         Message.emit_debug "Catala runtime libraries found at @{<bold>%s@}."
-           dir;
+         Message.debug "Catala runtime libraries found at @{<bold>%s@}." dir;
          dir
        | None ->
-         Message.raise_error
-           "@[<hov>Could not locate the Catala runtime library.@ Make sure \
-            that either catala is correctly installed,@ or you are running \
-            from the root of a compiled source tree.@]")
+         Message.error
+           "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
+            sure that either catala is correctly installed,@ or you are \
+            running from the root of a compiled source tree.@]"
+           d)
 
-  let ocaml_link_flags : string list Lazy.t =
+  let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
     lazy
-      (let link_libs =
-         ["yojson"; "ppx_yojson_conv_lib"; "zarith"; "dates_calc"]
-       in
-       let link_libs_flags =
-         List.concat_map
+      (let link_libs = ["zarith"; "dates_calc"] in
+       let includes_libs =
+         List.map
            (fun lib ->
              match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
              | None ->
-               Message.raise_error
+               Message.error
                  "Required OCaml library not found at %a.@ Try `opam install \
                   %s'"
                  File.format
                  File.(Lazy.force ocaml_libdir / lib)
                  lib
              | Some d ->
-               [
-                 "-I";
-                 d;
-                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa";
-               ])
+               ( ["-I"; d],
+                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
            link_libs
        in
-       let runtime_dir = Lazy.force ocaml_runtime_dir in
-       link_libs_flags @ [File.(runtime_dir / "runtime_ocaml.cmxa")])
+       let includes, libs = List.split includes_libs in
+       ( List.concat includes @ ["-I"; Lazy.force ocaml_runtime_dir],
+         libs @ [File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa")] ))
+
+  let ocaml_include_flags : string list Lazy.t =
+    lazy (fst (Lazy.force ocaml_include_and_lib_flags))
+
+  let ocaml_link_flags : string list Lazy.t =
+    lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 
   let has_command cmd =
     let check_cmd = Printf.sprintf "type %s >/dev/null 2>&1" cmd in
@@ -395,9 +413,7 @@ let fix_path =
   let from_dir = Sys.getcwd () in
   fun d ->
     let to_dir = Lazy.force Poll.project_root_relative in
-    match Catala_utils.Cli.reverse_path ~from_dir ~to_dir d with
-    | "" -> "."
-    | f -> f
+    Catala_utils.File.reverse_path ~from_dir ~to_dir d
 
 (**{1 Building rules}*)
 
@@ -412,9 +428,12 @@ module Var = struct
   let clerk_exe = make "CLERK_EXE"
   let catala_exe = make "CATALA_EXE"
   let catala_flags = make "CATALA_FLAGS"
+  let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
+  let catala_flags_python = make "CATALA_FLAGS_PYTHON"
   let clerk_flags = make "CLERK_FLAGS"
+  let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
-  let ocamlopt_flags = make "OCAMLOPT_FLAGS"
+  let ocaml_flags = make "OCAML_FLAGS"
   let runtime_ocaml_libs = make "RUNTIME_OCAML_LIBS"
   let diff = make "DIFF"
   let post_test = make "POST_TEST"
@@ -425,13 +444,14 @@ module Var = struct
   let output = make "out"
   let pool = make "pool"
   let src = make "src"
+  let orig_src = make "orig-src"
   let scope = make "scope"
   let test_id = make "test-id"
   let test_command = make "test-command"
   let ( ! ) = Var.v
 end
 
-let base_bindings catala_exe catala_flags build_dir include_dirs =
+let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
   let includes =
     List.fold_right
       (fun dir flags ->
@@ -441,7 +461,21 @@ let base_bindings catala_exe catala_flags build_dir include_dirs =
       include_dirs []
   in
   let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags in
-  let ocamlopt_flags = ["-I"; Lazy.force Poll.ocaml_runtime_dir] in
+  let catala_flags_ocaml =
+    List.filter
+      (function
+        | "--avoid-exceptions" | "-O" | "--optimize" -> true | _ -> false)
+      test_flags
+  in
+  let catala_flags_python =
+    List.filter
+      (function
+        | "--avoid-exceptions" | "-O" | "--optimize" | "--closure-conversion" ->
+          true
+        | _ -> false)
+      test_flags
+  in
+  let ocaml_flags = Lazy.force Poll.ocaml_include_flags in
   [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
@@ -454,14 +488,17 @@ let base_bindings catala_exe catala_flags build_dir include_dirs =
         | None -> Lazy.force Poll.catala_exe);
       ];
     Nj.binding Var.catala_flags (catala_flags @ includes);
+    Nj.binding Var.catala_flags_ocaml catala_flags_ocaml;
+    Nj.binding Var.catala_flags_python catala_flags_python;
     Nj.binding Var.clerk_flags
       ("-e"
        :: Var.(!catala_exe)
-       :: ("--build-dir=" ^ Var.(!builddir))
+       :: ("--test-flags=" ^ String.concat "," test_flags)
        :: includes
       @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
+    Nj.binding Var.ocamlc_exe ["ocamlc"];
     Nj.binding Var.ocamlopt_exe ["ocamlopt"];
-    Nj.binding Var.ocamlopt_flags (ocamlopt_flags @ includes);
+    Nj.binding Var.ocaml_flags (ocaml_flags @ includes);
     Nj.binding Var.runtime_ocaml_libs (Lazy.force Poll.ocaml_link_flags);
     Nj.binding Var.diff (Lazy.force Poll.diff_command);
     Nj.binding Var.post_test [Var.(!diff)];
@@ -470,32 +507,48 @@ let base_bindings catala_exe catala_flags build_dir include_dirs =
 let[@ocamlformat "disable"] static_base_rules =
   let open Var in
   let color = Message.has_color stdout in
+  let shellout l = Format.sprintf "$$(%s)" (String.concat " " l) in
   [
     Nj.rule "copy"
       ~command:["cp"; "-f"; !input; !output]
       ~description:["<copy>"; !input];
 
     Nj.rule "catala-ocaml"
-      ~command:[!catala_exe; "ocaml"; !catala_flags; !input; "-o"; !output]
+      ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
+                !input; "-o"; !output]
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
+
+    Nj.rule "ocaml-object"
+      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !input; ">"; !input^"i"; "&&";
+                !ocamlc_exe; "-opaque"; !ocaml_flags; !input^"i"; "&&";
+                !ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
+                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !input]
+      ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-module"
       ~command:
-        [!ocamlopt_exe; "-shared"; !ocamlopt_flags; !input; "-o"; !output]
+        [!ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-exec"
       ~command: [
-        !ocamlopt_exe; !runtime_ocaml_libs; !ocamlopt_flags;
-        !input;
+        !ocamlopt_exe; !ocaml_flags; !runtime_ocaml_libs;
+        shellout [!catala_exe; "depends";
+                  "--prefix="^ !builddir; "--extension=cmx";
+                  !catala_flags; !orig_src];
         "-o"; !output;
       ]
       ~description:["<ocaml>"; "⇒"; !output];
 
+    Nj.rule "python"
+      ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
+                !input; "-o"; !output]
+      ~description:["<catala>"; "python"; "⇒"; !output];
+
     Nj.rule "out-test"
       ~command: [
-        !catala_exe; !test_command; !catala_flags; !input;
-        ">"; !output; "2>&1";
+        !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags;
+        !input; ">"; !output; "2>&1";
         "||"; "true";
       ]
       ~description:
@@ -503,7 +556,8 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "inline-tests"
       ~command:
-        [!clerk_exe; "runtest"; !clerk_flags; !input; ">"; !output; "2>&1"; "||"; "true"]
+        [!clerk_exe; "runtest"; !clerk_flags; !input; ">"; !output; "2>&1";
+         "||"; "true"]
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
 
     Nj.rule "post-test"
@@ -511,7 +565,7 @@ let[@ocamlformat "disable"] static_base_rules =
         !post_test; !input; ";";
         "echo"; "-n"; "$$?"; ">"; !output;
       ]
-      ~description:["<test>"; !output];
+      ~description:["<test>"; !test_id];
 
     Nj.rule "interpret"
       ~command:
@@ -521,7 +575,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "dir-tests"
       ~command:["cat"; !input; ">"; !output; ";"]
-      ~description:["<test>"; !output];
+      ~description:["<test>"; !test_id];
 
     Nj.rule "test-results"
       ~command:[
@@ -557,16 +611,16 @@ let[@ocamlformat "disable"] static_base_rules =
 
 let gen_build_statements
     (include_dirs : string list)
-    (same_dir_modules : string list)
+    (same_dir_modules : (string * File.t) list)
     (item : Scan.item) : Nj.ninja =
   let open File in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
   let modules = List.rev item.used_modules in
   let modfile ext modname =
-    if List.mem modname same_dir_modules then
-      (!Var.builddir / src /../ modname) ^ ext
-    else modname ^ ext
+    match List.assoc_opt modname same_dir_modules with
+    | Some f -> (!Var.builddir / Filename.remove_extension f) ^ ext
+    | None -> modname ^ ext
   in
   let inc x = !Var.builddir / x in
   let modd x = modfile "@module" x in
@@ -577,48 +631,44 @@ let gen_build_statements
       ~implicit_in:(List.map inc item.included_files @ List.map modd modules)
       ~outputs:[inc srcv]
   in
+  let target_file ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
   let module_deps =
     Option.map
       (fun m ->
         Nj.build "phony"
-          ~inputs:
-            [
-              inc srcv;
-              (!Var.builddir / src /../ m) ^ ".cmi";
-              (!Var.builddir / src /../ m) ^ ".cmxs";
-            ]
+          ~inputs:[inc srcv; target_file "cmi"; target_file "cmxs"]
           ~outputs:[modd m])
       item.module_def
   in
-  let ml_file =
-    match item.module_def with
-    | Some m -> (!Var.builddir / src /../ m) ^ ".ml"
-    | None -> (!Var.builddir / !Var.src) ^ ".ml"
-  in
-  let ocaml =
+  let ml_file = target_file "ml" in
+  let py_file = target_file "py" in
+  let ocaml, python =
     if item.extrnal then
-      Nj.build "copy"
-        ~implicit_in:[inc srcv]
-        ~inputs:[src -.- "ml"]
-        ~outputs:[ml_file]
+      ( Nj.build "copy"
+          ~implicit_in:[inc srcv]
+          ~inputs:[src -.- "ml"]
+          ~outputs:[ml_file],
+        Nj.build "copy"
+          ~implicit_in:[inc srcv]
+          ~inputs:[src -.- "py"]
+          ~outputs:[py_file] )
     else
-      Nj.build "catala-ocaml"
-        ~inputs:[inc srcv]
-        ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
+      ( Nj.build "catala-ocaml"
+          ~inputs:[inc srcv]
+          ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file],
+        Nj.build "python"
+          ~inputs:[inc srcv]
+          ~implicit_in:[!Var.catala_exe] ~outputs:[py_file] )
   in
   let ocamlopt =
-    let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
-    match item.module_def with
-    | Some m ->
-      let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
-      Nj.build "ocaml-module" ~inputs:[ml_file]
-        ~implicit_in:(List.map modd modules)
-        ~outputs:[target "cmxs"]
-        ~implicit_out:(List.map target implicit_out_exts)
+    let obj =
+      Nj.build "ocaml-object" ~inputs:[ml_file]
+        ~implicit_in:(!Var.catala_exe :: List.map modd modules)
+        ~outputs:(List.map target_file ["mli"; "cmi"; "cmo"; "cmx"; "cmt"; "o"])
         ~vars:
           [
-            ( Var.ocamlopt_flags,
-              !Var.ocamlopt_flags
+            ( Var.ocaml_flags,
+              !Var.ocaml_flags
               :: "-I"
               :: (!Var.builddir / src /../ "")
               :: List.concat_map
@@ -629,44 +679,20 @@ let gen_build_statements
                      ])
                    include_dirs );
           ]
-    | None ->
-      let target ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
-      let inputs, modules =
-        List.partition_map
-          (fun m ->
-            if List.mem m same_dir_modules then
-              Left ((!Var.builddir / src /../ m) ^ ".cmx")
-            else Right m)
-          modules
-      in
-      let inputs = inputs @ [ml_file] in
-      (* Note: this rule is incomplete in that it only provide the direct module
-         dependencies, and ocamlopt needs the transitive closure of dependencies
-         for linking, which we can't provide here ; catala does that work for
-         the interpret case, so we should probably add a [catala link] (or
-         [clerk link]) command that gathers these dependencies and wraps
-         [ocamlopt]. *)
-      Nj.build "ocaml-exec" ~inputs
-        ~implicit_in:(List.map (fun m -> m ^ "@module") modules)
-        ~outputs:[target "exe"]
-        ~implicit_out:(List.map target implicit_out_exts)
-        ~vars:
-          [
-            ( Var.ocamlopt_flags,
-              !Var.ocamlopt_flags
-              :: "-I"
-              :: (!Var.builddir / src /../ "")
-              :: List.concat_map
-                   (fun d ->
-                     [
-                       "-I";
-                       (if Filename.is_relative d then !Var.builddir / d else d);
-                     ])
-                   include_dirs
-              @ List.map (fun m -> m ^ ".cmx") modules );
-            (* FIXME: This doesn't work for module used through file
-               inclusion *)
-          ]
+    in
+    let modexec =
+      match item.module_def with
+      | Some _ ->
+        Nj.build "ocaml-module"
+          ~inputs:[target_file "cmx"]
+          ~outputs:[target_file "cmxs"]
+      | None ->
+        Nj.build "ocaml-exec"
+          ~inputs:[target_file "cmx"]
+          ~outputs:[target_file "exe"]
+          ~vars:[Var.orig_src, [inc srcv]]
+    in
+    [obj; modexec]
   in
   let expose_module =
     match item.module_def with
@@ -678,9 +704,9 @@ let gen_build_statements
     !Var.catala_exe
     :: List.map
          (fun m ->
-           if List.mem m same_dir_modules then
-             (!Var.builddir / src /../ m) ^ ".cmxs"
-           else m ^ "@module")
+           match List.assoc_opt m same_dir_modules with
+           | Some f -> (!Var.builddir / Filename.remove_extension f) ^ ".cmxs"
+           | None -> m ^ "@module")
          modules
   in
   let interpret =
@@ -712,7 +738,8 @@ let gen_build_statements
                 reset but that shouldn't cause trouble. *)
              Nj.build "post-test" ~inputs:[reference; test_out]
                ~implicit_in:["always"]
-               ~outputs:[reference ^ "@post"]
+               ~outputs:[(!Var.builddir / reference) ^ "@post"]
+               ~vars:[Var.test_id, [reference]]
           :: acc)
         [] item.legacy_tests
     in
@@ -732,30 +759,33 @@ let gen_build_statements
           ~outputs:[srcv ^ "@test"]
           ~inputs:[inc (srcv ^ "@test")]
       in
-      if item.has_inline_tests then
-        [
-          Nj.build "post-test"
-            ~outputs:[inc (srcv ^ "@test")]
-            ~inputs:[srcv; inc (srcv ^ "@out")]
-            ~implicit_in:
-              ("always"
-              :: List.map
-                   (fun test -> legacy_test_reference test ^ "@post")
-                   item.legacy_tests);
-          results;
-        ]
-      else if item.legacy_tests <> [] then
-        [
-          Nj.build "phony"
-            ~outputs:[inc (srcv ^ "@test")]
-            ~implicit_out:[srcv ^ "@test"]
-            ~inputs:
-              (List.map
-                 (fun test -> legacy_test_reference test ^ "@post")
-                 item.legacy_tests);
-          results;
-        ]
-      else []
+      let inline_test label =
+        Nj.build "post-test"
+          ~outputs:[inc (srcv ^ label)]
+          ~inputs:[srcv; inc (srcv ^ "@out")]
+          ~implicit_in:["always"]
+          ~vars:[Var.test_id, [srcv]]
+      in
+      match item.legacy_tests with
+      | [] ->
+        if item.has_inline_tests then [inline_test "@test"; results] else []
+      | legacy ->
+        let inline =
+          if item.has_inline_tests then [inline_test "@inline"] else []
+        in
+        inline
+        @ [
+            Nj.build "dir-tests"
+              ~outputs:[inc (srcv ^ "@test")]
+              ~inputs:
+                ((if item.has_inline_tests then [inc (srcv ^ "@inline")] else [])
+                @ List.map
+                    (fun test ->
+                      (!Var.builddir / legacy_test_reference test) ^ "@post")
+                    legacy)
+              ~vars:[Var.test_id, [srcv]];
+            results;
+          ]
     in
     legacy_tests @ inline_tests @ tests
   in
@@ -768,7 +798,8 @@ let gen_build_statements
          Option.to_seq module_deps;
          Option.to_seq expose_module;
          Seq.return ocaml;
-         Seq.return ocamlopt;
+         List.to_seq ocamlopt;
+         Seq.return python;
          List.to_seq tests;
          Seq.return interpret;
        ]
@@ -777,7 +808,10 @@ let gen_build_statements_dir
     (include_dirs : string list)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
-    List.filter_map (fun item -> item.Scan.module_def) items
+    List.filter_map
+      (fun item ->
+        Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
+      items
   in
   Seq.flat_map
     (gen_build_statements include_dirs same_dir_modules)
@@ -798,7 +832,10 @@ let dir_test_rules dir subdirs items =
   List.to_seq
     [
       Nj.Comment "";
-      Nj.build "dir-tests" ~outputs:[(Var.(!builddir) / dir) ^ "@test"] ~inputs;
+      Nj.build "dir-tests"
+        ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
+        ~inputs
+        ~vars:[Var.test_id, [dir]];
       Nj.build "test-results"
         ~outputs:[dir ^ "@test"]
         ~inputs:[(Var.(!builddir) / dir) ^ "@test"];
@@ -812,12 +849,19 @@ let build_statements include_dirs dir =
        (gen_build_statements_dir include_dirs items)
        (dir_test_rules dir subdirs items)
 
-let gen_ninja_file catala_exe catala_flags build_dir include_dirs dir =
+let gen_ninja_file catala_exe catala_flags build_dir include_dirs test_flags dir
+    =
+  let build_dir =
+    match test_flags with
+    | [] -> build_dir
+    | flags -> File.((build_dir / "test") ^ String.concat "" flags)
+  in
   let ( @+ ) = Seq.append in
   Seq.return
     (Nj.Comment (Printf.sprintf "File generated by Clerk v.%s\n" version))
   @+ Seq.return (Nj.Comment "- Global variables - #\n")
-  @+ List.to_seq (base_bindings catala_exe catala_flags build_dir include_dirs)
+  @+ List.to_seq
+       (base_bindings catala_exe catala_flags build_dir include_dirs test_flags)
   @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
   @+ List.to_seq static_base_rules
   @+ Seq.return (Nj.build "phony" ~outputs:["always"])
@@ -835,8 +879,9 @@ let ninja_init
     ~include_dirs
     ~color
     ~debug
-    ~ninja_output : extra:def Seq.t -> (File.t -> 'a) -> 'a =
-  let _options = Catala_utils.Cli.enforce_globals ~debug ~color () in
+    ~ninja_output :
+    extra:def Seq.t -> test_flags:string list -> (File.t -> 'a) -> 'a =
+  let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let chdir =
     match chdir with None -> Lazy.force Poll.project_root | some -> some
   in
@@ -848,8 +893,8 @@ let ninja_init
     | None when debug -> k File.(build_dir / "clerk.ninja")
     | None -> File.with_temp_file "clerk_build_" ".ninja" k
   in
-  fun ~extra k ->
-    Message.emit_debug "building ninja rules...";
+  fun ~extra ~test_flags k ->
+    Message.debug "building ninja rules...";
     with_ninja_output
     @@ fun nin_file ->
     File.with_formatter_of_file nin_file (fun nin_ppf ->
@@ -857,7 +902,8 @@ let ninja_init
           Seq.concat
           @@ List.to_seq
                [
-                 gen_ninja_file catala_exe catala_opts build_dir include_dirs ".";
+                 gen_ninja_file catala_exe catala_opts build_dir include_dirs
+                   test_flags ".";
                  Seq.return (Nj.comment "\n - Command-specific targets - #");
                  extra;
                ]
@@ -865,22 +911,37 @@ let ninja_init
         Nj.format nin_ppf ninja_contents);
     k nin_file
 
+let cleaned_up_env () =
+  let passthrough_vars =
+    ["CATALA_BIN="; "CATALA_INCLUDE="; "CATALA_TEST_FLAGS="]
+  in
+  Unix.environment ()
+  |> Array.to_seq
+  |> Seq.filter (fun s ->
+         (not (String.starts_with ~prefix:"CATALA_" s))
+         || List.exists
+              (fun prefix -> String.starts_with ~prefix s)
+              passthrough_vars
+         ||
+         (Message.warning "Ignoring environment variable %s" s;
+          false))
+  |> Array.of_seq
+
 let ninja_cmdline ninja_flags nin_file targets =
-  String.concat " "
-    ("ninja"
-     :: "-k"
-     :: "0"
-     :: "-f"
-     :: nin_file
-     :: (if ninja_flags = "" then [] else [ninja_flags])
-    @ (if Catala_utils.Cli.globals.debug then ["-v"] else [])
-    @ targets)
+  ("ninja" :: "-f" :: nin_file :: ninja_flags)
+  @ (if Catala_utils.Global.options.debug then ["-v"] else [])
+  @ targets
+
+let run_ninja ~clean_up_env cmdline =
+  let cmd = List.hd cmdline in
+  let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
+  Unix.execvpe cmd (Array.of_list cmdline) env
 
 open Cmdliner
 
 let build_cmd =
-  let run ninja_init (targets : string list) (ninja_flags : string) =
-    ninja_init ~extra:Seq.empty
+  let run ninja_init (targets : string list) (ninja_flags : string list) =
+    ninja_init ~extra:Seq.empty ~test_flags:[]
     @@ fun nin_file ->
     let targets =
       List.map
@@ -891,8 +952,8 @@ let build_cmd =
         targets
     in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:false ninja_cmd
   in
   let doc =
     "Low-level build command: can be used to forward build targets or options \
@@ -907,7 +968,8 @@ let test_cmd =
       ninja_init
       (files_or_folders : string list)
       (reset_test_outputs : bool)
-      (ninja_flags : string) =
+      (test_flags : string list)
+      (ninja_flags : string list) =
     let targets =
       let fs = if files_or_folders = [] then ["."] else files_or_folders in
       List.map (fun f -> fix_path f ^ "@test") fs
@@ -927,11 +989,11 @@ let test_cmd =
           else [])
         @ [Nj.default targets])
     in
-    ninja_init ~extra
+    ninja_init ~extra ~test_flags
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:true ninja_cmd
   in
   let doc =
     "Scan the given files or directories for catala tests, build their \
@@ -945,6 +1007,7 @@ let test_cmd =
       $ Cli.Global.term ninja_init
       $ Cli.files_or_folders
       $ Cli.reset_test_outputs
+      $ Cli.test_flags
       $ Cli.ninja_flags)
 
 let run_cmd =
@@ -952,7 +1015,7 @@ let run_cmd =
       ninja_init
       (files_or_folders : string list)
       (scope : string)
-      (ninja_flags : string) =
+      (ninja_flags : string list) =
     let extra =
       Seq.cons
         (Nj.binding Var.scope [scope])
@@ -960,11 +1023,11 @@ let run_cmd =
            (Nj.default
               (List.map (fun file -> file ^ "@interpret") files_or_folders)))
     in
-    ninja_init ~extra
+    ninja_init ~extra ~test_flags:[]
     @@ fun nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file [] in
-    Message.emit_debug "executing '%s'..." ninja_cmd;
-    Sys.command ninja_cmd
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    run_ninja ~clean_up_env:false ninja_cmd
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -980,16 +1043,15 @@ let run_cmd =
       $ Cli.ninja_flags)
 
 let runtest_cmd =
-  let run catala_exe catala_opts build_dir include_dirs file =
+  let run catala_exe catala_opts include_dirs test_flags file =
     let catala_opts =
       List.fold_left
         (fun opts dir -> "-I" :: dir :: opts)
         catala_opts include_dirs
     in
-    let build_dir = Poll.build_dir ?dir:build_dir () in
     Clerk_runtest.run_inline_tests
       (Option.value ~default:"catala" catala_exe)
-      catala_opts build_dir file;
+      catala_opts test_flags file;
     0
   in
   let doc =
@@ -1001,8 +1063,8 @@ let runtest_cmd =
       const run
       $ Cli.catala_exe
       $ Cli.catala_opts
-      $ Cli.build_dir
       $ Cli.include_dirs
+      $ Cli.test_flags
       $ Cli.single_file)
 
 let main_cmd = Cmd.group Cli.info [build_cmd; test_cmd; run_cmd; runtest_cmd]
@@ -1013,7 +1075,7 @@ let main () =
   | Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit content Error;
-    if Catala_utils.Cli.globals.debug then
+    if Catala_utils.Global.options.debug then
       Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | Sys_error msg ->

@@ -1,0 +1,262 @@
+Vérification que les exemples du cheat-sheet son corrects.
+
+Ce fichier doit correspondre à syntax_fr.tex et suivre ses mises à jour.
+Utile aussi pour vérifier la coloration syntaxique.
+
+# Programmation littéraire
+
+(On ne va pas jusqu'à définir de faux modules juste pour tester ces 3 cas)
+
+```
+# > Module Mdl
+# > Usage de Mdl en tant que M
+# > Inclusion: foo.catala_en
+```
+
+# Littéraux et types
+
+```catala
+déclaration x contenu booléen égal à vrai
+déclaration x contenu booléen égal à faux
+déclaration x contenu entier égal à 65536
+déclaration x contenu décimal égal à 65536,262144
+déclaration x contenu décimal égal à 37%
+déclaration x contenu argent égal à 1 234 567,89€
+déclaration x contenu date égal à |2024-04-01|
+déclaration x contenu durée égal à 254 jour + 4 mois + 1 an
+déclaration x contenu liste de entier égal à [ 12; 24; 36 ]
+déclaration x contenu (date,argent,décimal) égal à (|2024-04-01|, 30€, 1%)
+déclaration champ d'application S:
+  résultat f contenu décimal dépend de
+    x contenu argent,
+    y contenu décimal
+champ d'application S:
+  définition f de x, y égal à x * y / 12,0€
+
+déclaration x contenu Struct1 égal à Struct1 { -- chp1: 9 -- chp2: 7% }
+déclaration x contenu Énum1 égal à Case1 contenu 12
+déclaration x contenu Énum1 égal à Case2
+```
+
+# Opérations
+
+```catala
+déclaration x contenu entier égal à
+  soit x égal à (
+    non a,        a et b,
+    a ou b,       # "ou à défaut"
+    a ou bien b   # ou exclusif
+  ) dans
+  soit x égal à (
+    - a,          a + b,        a - b,
+    a * b,        a / b
+  ) dans
+  soit x égal à (
+    a = b,        a < b,        a <= b,
+    a != b,       a > b,        a >= b
+  ) dans
+  soit x égal à (
+    décimal de 44 ,
+    argent de 23,15
+  ) dans
+  soit x égal à (
+    arrondi de 9,99€
+  ) dans
+  soit x égal à (
+    accès_jour de 0 ,
+    accès_mois de 0 ,
+    accès_année de 0
+  ) dans
+  soit x égal à (
+    a +! b,    # entier
+    a +. b,    # décimal
+    a +€ b,    # argent
+    a +^ b     # durée
+  ) dans
+  0
+```
+
+# Déclaration des métadonnées
+
+```catala
+déclaration structure Struct1:
+  donnée chp1 contenu entier
+  donnée chp2 contenu décimal
+
+déclaration énumération Énum1:
+  -- Cas1 contenu entier
+  -- Cas2
+
+déclaration champ d'application Scope1:
+  interne var1 contenu entier
+  interne var2 condition
+  sub1 champ d'application Scope0
+
+  interne var1 contenu entier
+  résultat var3 contenu entier
+  entrée var4 contenu entier
+  entrée résultat var5 contenu entier
+  contexte var6 contenu entier
+  contexte résultat var7 contenu entier
+  résultat sub2 champ d'application Scope0
+
+  interne var1 contenu entier
+    état avant
+    état après
+
+déclaration const contenu décimal
+  égal à 17,1
+
+déclaration square contenu décimal
+  dépend de x contenu décimal
+  égal à x * x
+```
+
+# Expressions
+
+```catala
+déclaration x contenu entier égal à
+  soit x égal à soit x égal à 36 - 5 dans 0
+  dans
+  soit x égal à
+    selon expr sous forme
+    -- Cas1 de x : 0
+    -- Cas2 : 0
+    -- n'importe quel : 0
+  dans
+  soit x égal à
+    expr sous forme Cas1
+  dans
+  soit x égal à
+    expr sous forme Cas1 de x
+         et x >= 2
+  dans
+  soit x égal à
+    struc1 mais en remplaçant { -- chp2: 8% }
+  dans
+  soit x égal à
+    struc1.chp2
+  dans
+  soit x égal à
+    tuple1.2
+  dans
+  soit x égal à
+    sub1.var0
+  dans
+  soit x égal à
+    f de 44,50€, 1/3
+  dans
+  soit x égal à
+    résultat de Scope1
+      avec { -- chp1: 9 -- chp2: 15% }
+  dans
+  soit x égal à
+    si 0 alors 0 sinon 0
+  dans
+  soit x égal à
+    var1 état avant
+  dans
+  0
+```
+
+# Définition de champ d'application
+
+```catala
+champ d'application Chp1:
+  définition x égal à 0
+
+champ d'application Chp1
+  sous condition var1 >= 2:
+
+  définition var1 égal à 0
+
+  définition var1
+    sous condition 0
+    conséquence égal à 0
+
+  règle var2
+    sous condition var1 >= 2
+    conséquence rempli
+
+  règle var2 sous condition faux
+    conséquence non rempli
+
+  définition f de x, y égal à 0
+
+  étiquette étq1 définition var1 égal à 0
+
+  exception étq1 définition var1 égal à 0
+
+  exception définition var1 égal à 0
+
+  définition var1
+    état avant
+    égal à 0
+
+  assertion 0
+
+  date arrondi décroissant
+```
+
+# Opérations sur les listes
+
+```catala
+déclaration x contenu entier égal à
+  soit x égal à
+    lst contient 3
+  dans
+  soit x égal à
+    existe x parmi lst tel que x >= 2
+  dans
+  soit x égal à
+    pour tout x parmi lst on a x >= 2
+  dans
+  soit x égal à
+    x + 2 pour x parmi lst
+  dans
+  soit x égal à
+    liste de x parmi lst tel que x > 2
+  dans
+  soit x égal à
+    x - 2 pour x parmi lst
+      tel que x > 2
+  dans
+  soit x égal à
+    x + y pour (x, y) parmi (lst1, lst2)
+  dans
+  soit x égal à
+    lst1 ++ lst2
+  dans
+  soit x égal à
+    somme entier de lst
+  dans
+  soit x égal à
+    nombre de lst
+  dans
+  soit x égal à
+    maximum de lst
+      ou si liste vide alors -1
+  dans
+  soit x égal à
+    contenu de x parmi lst
+      tel que x * x est minimum
+      ou si liste vide alors -1
+  dans
+  0
+```
+
+
+It's normal that the test below returns a resolution or type error, we just want
+to ensure that the *syntax* is correct.
+
+```catala-test-inline
+$ catala typecheck
+[ERROR] No scope named Scope0 found
+
+┌─⯈ doc/syntax/syntax_fr.catala_fr:93.28-93.34:
+└──┐
+93 │   sub1 champ d'application Scope0
+   │                            ‾‾‾‾‾‾
+   └─ Déclaration des métadonnées
+#return code 123#
+```

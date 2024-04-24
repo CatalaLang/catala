@@ -44,10 +44,9 @@ class type duration = object
   method days : int Js.readonly_prop
 end
 
-let duration_of_jsoo d =
-  R_ocaml.duration_of_numbers d##.years d##.months d##.days
+let duration_of_js d = R_ocaml.duration_of_numbers d##.years d##.months d##.days
 
-let duration_to_jsoo d =
+let duration_to_js d =
   let years, months, days = R_ocaml.duration_to_years_months_days d in
   object%js
     val years = years
@@ -55,7 +54,7 @@ let duration_to_jsoo d =
     val days = days
   end
 
-let date_of_jsoo d =
+let date_of_js d =
   let d = Js.to_string d in
   let d =
     if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
@@ -65,102 +64,86 @@ let date_of_jsoo d =
   | [year; month; day] ->
     R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
       (int_of_string day)
-  | _ -> failwith "date_of_jsoo: invalid date"
+  | _ -> failwith "date_of_js: invalid date"
 
-let date_to_jsoo d = Js.string @@ R_ocaml.date_to_string d
+let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
 class type event_manager = object
-  method resetLog : (unit, unit) Js.meth_callback Js.meth
-
-  method retrieveEvents :
-    (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
-
-  method retrieveRawEvents :
-    (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  method resetLog : unit Js.meth
+  method retrieveEvents : event Js.t Js.js_array Js.t Js.meth
+  method retrieveRawEvents : raw_event Js.t Js.js_array Js.t Js.meth
 end
 
 let event_manager : event_manager Js.t =
-  object%js
-    method resetLog = Js.wrap_meth_callback R_ocaml.reset_log
+  object%js (_self)
+    method resetLog = R_ocaml.reset_log ()
 
     method retrieveEvents =
-      Js.wrap_meth_callback (fun () ->
-          Js.array
-            (Array.of_list
-               (R_ocaml.retrieve_log ()
-               |> R_ocaml.EventParser.parse_raw_events
-               |> List.map (fun event ->
-                      object%js
-                        val mutable data =
-                          event
-                          |> R_ocaml.yojson_of_event
-                          |> Yojson.Safe.to_string
-                          |> Js.string
-                      end))))
+      R_ocaml.retrieve_log ()
+      |> R_ocaml.EventParser.parse_raw_events
+      |> List.map (fun event ->
+             object%js
+               val mutable data = event |> R_ocaml.Json.event |> Js.string
+             end)
+      |> Array.of_list
+      |> Js.array
 
     method retrieveRawEvents =
-      Js.wrap_meth_callback (fun () ->
-          Js.array
-            (Array.of_list
-               (List.map
-                  (fun evt ->
-                    object%js
-                      val mutable eventType =
-                        Js.string
-                          (match evt with
-                          | R_ocaml.BeginCall _ -> "Begin call"
-                          | EndCall _ -> "End call"
-                          | VariableDefinition _ -> "Variable definition"
-                          | DecisionTaken _ -> "Decision taken")
+      let evt_to_js evt =
+        (* FIXME: ideally this could be just a Json.parse (R_ocaml.Json.event
+           foo) ? *)
+        object%js
+          val mutable eventType =
+            (match evt with
+            | R_ocaml.BeginCall _ -> "Begin call"
+            | EndCall _ -> "End call"
+            | VariableDefinition _ -> "Variable definition"
+            | DecisionTaken _ -> "Decision taken")
+            |> Js.string
 
-                      val mutable information =
-                        Js.array
-                          (Array.of_list
-                             (match evt with
-                             | BeginCall info
-                             | EndCall info
-                             | VariableDefinition (info, _, _) ->
-                               List.map Js.string info
-                             | DecisionTaken _ -> []))
+          val mutable information =
+            (match evt with
+            | BeginCall info | EndCall info | VariableDefinition (info, _, _) ->
+              List.map Js.string info
+            | DecisionTaken _ -> [])
+            |> Array.of_list
+            |> Js.array
 
-                      val mutable loggedIOJson =
-                        match evt with
-                        | VariableDefinition (_, io, _) ->
-                          io
-                          |> R_ocaml.yojson_of_io_log
-                          |> Yojson.Safe.to_string
-                          |> Js.string
-                        | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                          "unavailable" |> Js.string
+          val mutable loggedIOJson =
+            match evt with
+            | VariableDefinition (_, io, _) ->
+              io |> R_ocaml.Json.io_log |> Js.string
+            | EndCall _ | BeginCall _ | DecisionTaken _ ->
+              "unavailable" |> Js.string
 
-                      val mutable loggedValueJson =
-                        (match evt with
-                        | VariableDefinition (_, _, v) -> v
-                        | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                          R_ocaml.unembeddable ())
-                        |> R_ocaml.yojson_of_runtime_value
-                        |> Yojson.Safe.to_string
-                        |> Js.string
+          val mutable loggedValueJson =
+            (match evt with
+            | VariableDefinition (_, _, v) -> v
+            | EndCall _ | BeginCall _ | DecisionTaken _ ->
+              R_ocaml.unembeddable ())
+            |> R_ocaml.Json.runtime_value
+            |> Js.string
 
-                      val mutable sourcePosition =
-                        match evt with
-                        | DecisionTaken pos ->
-                          Js.def
-                            (object%js
-                               val mutable fileName = Js.string pos.filename
-                               val mutable startLine = pos.start_line
-                               val mutable endLine = pos.end_line
-                               val mutable startColumn = pos.start_column
-                               val mutable endColumn = pos.end_column
+          val mutable sourcePosition =
+            match evt with
+            | DecisionTaken pos ->
+              Js.def
+                (object%js
+                   val mutable fileName = Js.string pos.filename
+                   val mutable startLine = pos.start_line
+                   val mutable endLine = pos.end_line
+                   val mutable startColumn = pos.start_column
+                   val mutable endColumn = pos.end_column
 
-                               val mutable lawHeadings =
-                                 Js.array
-                                   (Array.of_list
-                                      (List.map Js.string pos.law_headings))
-                            end)
-                        | _ -> Js.undefined
-                    end)
-                  (R_ocaml.retrieve_log ()))))
+                   val mutable lawHeadings =
+                     List.map Js.string pos.law_headings
+                     |> Array.of_list
+                     |> Js.array
+                end)
+            | _ -> Js.undefined
+        end
+      in
+      R_ocaml.retrieve_log () |> List.map evt_to_js |> Array.of_list |> Js.array
   end
 
 let execute_or_throw_error f =
@@ -189,3 +172,9 @@ let execute_or_throw_error f =
       "A conflict happened between two rules giving a value to the variable" pos
   | R_ocaml.AssertionFailed pos ->
     throw_error "A failure happened in the assertion" pos
+
+let () =
+  Js.export_all
+    (object%js
+       val eventsManager = event_manager
+    end)

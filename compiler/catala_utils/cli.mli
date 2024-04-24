@@ -15,33 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type file = string
-(** File names ; equal to [File.t] but let's avoid cyclic dependencies *)
-
-type raw_file
-(** A file name that has not yet been resolved, [options.path_rewrite] must be
-    called on it *)
-
-type backend_lang = En | Fr | Pl
-
-(** The usual auto/always/never option argument *)
-type when_enum = Auto | Always | Never
-
-val when_opt : when_enum Cmdliner.Arg.conv
-
-type message_format_enum =
-  | Human
-  | GNU  (** Format of error and warning messages output by the compiler. *)
-
-(** Sources for program input *)
-type input_src =
-  | FileName of file  (** A file path to read from disk *)
-  | Contents of string * file
-      (** A raw string containing the code, and the corresponding (fake)
-          filename *)
-  | Stdin of file
-      (** Read from stdin; the specified filename will be used for file lookups,
-          error reportings, etc. *)
+open Global
 
 val languages : (string * backend_lang) list
 
@@ -49,58 +23,12 @@ val language_code : backend_lang -> string
 (** Returns the lowercase two-letter language code *)
 
 val file_lang : file -> backend_lang
-(** Associates a file extension with its corresponding {!type: Cli.backend_lang}
-    string representation. *)
-
-val input_src_file : input_src -> file
-
-val reverse_path : ?from_dir:file -> to_dir:file -> file -> file
-(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
-    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
-    leading to [f] from [to_dir]. The results attempts to be relative to
-    [to_dir]. *)
-
-(** {2 Configuration globals} *)
-
-type options = private {
-  mutable input_src : input_src;
-  mutable language : backend_lang option;
-  mutable debug : bool;
-  mutable color : when_enum;
-  mutable message_format : message_format_enum;
-  mutable trace : bool;
-  mutable plugins_dirs : string list;
-  mutable disable_warnings : bool;
-  mutable max_prec_digits : int;
-  mutable path_rewrite : raw_file -> file;
-}
-(** Global options, common to all subcommands (note: the fields are internally
-    mutable only for purposes of the [globals] toplevel value defined below) *)
-
-val globals : options
-(** A global definition to the global options is provided for convenience, e.g.
-    choosing the proper output in formatting functions. Prefer the use of the
-    options returned by the command-line parsing whenever possible. *)
-
-val enforce_globals :
-  ?input_src:input_src ->
-  ?language:backend_lang option ->
-  ?debug:bool ->
-  ?color:when_enum ->
-  ?message_format:message_format_enum ->
-  ?trace:bool ->
-  ?plugins_dirs:string list ->
-  ?disable_warnings:bool ->
-  ?max_prec_digits:int ->
-  ?path_rewrite:(file -> file) ->
-  unit ->
-  options
-(** Sets up the global options (side-effect); for specific use-cases only, this
-    should never be called from the compiler or when going through normal
-    command-line parsing. Proper uses include setting up the compiler library
-    when using it directly through a specific front-end. *)
+(** Associates a file extension with its corresponding
+    {!type: Global.backend_lang} string representation. *)
 
 (** {2 CLI flags and options} *)
+
+val when_opt : when_enum Cmdliner.Arg.conv
 
 module Flags : sig
   open Cmdliner
@@ -129,8 +57,24 @@ module Flags : sig
   val optimize : bool Term.t
   val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
+  val keep_special_ops : bool Term.t
+  val monomorphize_types : bool Term.t
+  val dead_value_assignment : bool Term.t
+  val no_struct_literals : bool Term.t
   val include_dirs : raw_file list Term.t
   val disable_counterexamples : bool Term.t
+
+  val extra_files : file list Term.t
+  (** for the 'latex' command *)
+
+  val lcalc : bool Term.t
+  (** for the 'interpret' command *)
+
+  val extension : string list Term.t
+  (** for the 'depends' command *)
+
+  val prefix : string option Term.t
+  (** for the 'depends' command *)
 end
 
 (** {2 Command-line application} *)
@@ -144,3 +88,8 @@ val s_plugins : string
 exception Exit_with of int
 (** Exit with a specific exit code (but less brutally than [Sys.exit] which
     would bypass all finalisers) *)
+
+(** {2 Other helpers} *)
+
+val exec_dir : file
+(** Returns the directory of the currently running executable *)

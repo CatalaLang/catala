@@ -1,0 +1,32 @@
+```catala
+declaration scope Toto:
+  internal bar content integer
+  input output baz content decimal
+  output foo content integer
+
+scope Toto:
+  definition bar equals 1
+  definition foo equals 1212 + bar
+
+declaration scope Titi:
+  output fizz content Toto
+scope Titi:
+  definition fizz equals output of Toto with {--bar: 1 }
+```
+
+```catala-test-inline
+$ catala dcalc -s Titi
+[ERROR] Definition of input variable 'baz' missing in this scope call
+
+┌─⯈ tests/scope/bad/scope_call_missing.catala_en:14.26-14.57:
+└──┐
+14 │   definition fizz equals output of Toto with {--bar: 1 }
+   │                          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Declaration of the missing input variable
+┌─⯈ tests/scope/bad/scope_call_missing.catala_en:4.16-4.19:
+└─┐
+4 │   input output baz content decimal
+  │                ‾‾‾
+#return code 123#
+```

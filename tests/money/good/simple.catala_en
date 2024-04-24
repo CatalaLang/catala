@@ -1,0 +1,29 @@
+## Article
+
+```catala
+declaration scope A:
+  context output x content money
+  context output y content money
+  context output z content money
+
+scope A:
+  definition x equals $123.54
+  definition y equals $8548,650.96
+  definition z equals $250,000,000 * ((x / y) * 0.2 %)
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = $123.54
+[RESULT] y = $8,548,650.96
+[RESULT] z = $7.23
+```

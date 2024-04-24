@@ -130,7 +130,7 @@ let format_loc_text ppf (pos : t) =
       let eline = get_end_line pos in
       let ic, input_line_opt =
         let from_contents =
-          match Cli.globals.input_src with
+          match Global.options.input_src with
           | Contents (str, _) when str = filename -> Some str
           | _ -> None
         in

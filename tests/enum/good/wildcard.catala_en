@@ -1,0 +1,59 @@
+## Unit testing for wildcard in patterns
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+  -- Case3
+```
+
+### Simple case
+
+```catala
+declaration scope Simple_case:
+  context output x content E
+  context output y content integer
+
+scope Simple_case:
+  definition x equals Case1 content 2
+  definition y equals match x with pattern
+    -- Case2 : 42
+    -- anything : 31
+```
+
+### Simple case 2
+
+```catala
+declaration scope Simple_case_2:
+  context output x content E
+  context output y content integer
+
+scope Simple_case_2:
+  definition x equals Case3
+  definition y equals match x with pattern
+    -- Case2 : 42
+    -- Case1 of i : i
+    -- anything : 31
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope Simple_case_2
+[RESULT] Computation successful! Results:
+[RESULT] x = Case3 ()
+[RESULT] y = 31
+```
+
+```catala-test-inline
+$ catala test-scope Simple_case
+[RESULT] Computation successful! Results:
+[RESULT] x = Case1 2
+[RESULT] y = 31
+```

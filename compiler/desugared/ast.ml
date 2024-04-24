@@ -25,45 +25,58 @@ open Shared_ast
     def *)
 module ScopeDef = struct
   module Base = struct
-    type t =
-      | Var of ScopeVar.t * StateName.t option
-      | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
-          (** In this case, the [ScopeVar.t] lives inside the context of the
-              subscope's original declaration *)
+    type kind =
+      | Var of StateName.t option
+      | SubScopeInput of {
+          name : ScopeName.t;
+          var_within_origin_scope : ScopeVar.t;
+        }
 
-    let compare x y =
-      match x, y with
-      | Var (x, stx), Var (y, sty) -> (
-        match ScopeVar.compare x y with
-        | 0 -> Option.compare StateName.compare stx sty
-        | n -> n)
-      | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
-        match SubScopeName.compare x' y' with
-        | 0 -> ScopeVar.compare x y
-        | n -> n)
-      | Var _, _ -> -1
-      | _, Var _ -> 1
+    type t = ScopeVar.t Mark.pos * kind
 
-    let get_position x =
-      match x with
-      | Var (x, None) -> Mark.get (ScopeVar.get_info x)
-      | Var (_, Some sx) -> Mark.get (StateName.get_info sx)
-      | SubScopeVar (_, _, pos) -> pos
+    let equal_kind k1 k2 =
+      match k1, k2 with
+      | Var s1, Var s2 -> Option.equal StateName.equal s1 s2
+      | ( SubScopeInput { var_within_origin_scope = v1; _ },
+          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
+        ScopeVar.equal v1 v2
+      | (Var _ | SubScopeInput _), _ -> false
 
-    let format fmt x =
-      match x with
-      | Var (v, None) -> ScopeVar.format fmt v
-      | Var (v, Some sv) ->
-        Format.fprintf fmt "%a.%a" ScopeVar.format v StateName.format sv
-      | SubScopeVar (s, v, _) ->
-        Format.fprintf fmt "%a.%a" SubScopeName.format s ScopeVar.format v
+    let equal (v1, k1) (v2, k2) =
+      ScopeVar.equal (Mark.remove v1) (Mark.remove v2) && equal_kind k1 k2
 
-    let hash x =
-      match x with
-      | Var (v, None) -> ScopeVar.hash v
-      | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
-      | SubScopeVar (w, v, _) ->
-        Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
+    let compare_kind k1 k2 =
+      match k1, k2 with
+      | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
+      | ( SubScopeInput { var_within_origin_scope = v1; _ },
+          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
+        ScopeVar.compare v1 v2
+      | Var _, SubScopeInput _ -> -1
+      | SubScopeInput _, Var _ -> 1
+
+    let compare (v1, k1) (v2, k2) =
+      match Mark.compare ScopeVar.compare v1 v2 with
+      | 0 -> compare_kind k1 k2
+      | n -> n
+
+    let get_position (v, _) = Mark.get v
+
+    let format_kind ppf = function
+      | Var None -> ()
+      | Var (Some st) -> Format.fprintf ppf "@%a" StateName.format st
+      | SubScopeInput { var_within_origin_scope = v; _ } ->
+        Format.fprintf ppf ".%a" ScopeVar.format v
+
+    let format ppf (v, k) =
+      ScopeVar.format ppf (Mark.remove v);
+      format_kind ppf k
+
+    let hash_kind = function
+      | Var None -> 0
+      | Var (Some st) -> StateName.hash st
+      | SubScopeInput { var_within_origin_scope = v; _ } -> ScopeVar.hash v
+
+    let hash (v, k) = Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
   end
 
   include Base
@@ -220,7 +233,7 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
-  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
+  scope_sub_scopes : ScopeName.t ScopeVar.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
@@ -238,15 +251,12 @@ type program = {
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
   program_root : modul;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 let rec locations_used e : LocationSet.t =
   match e with
   | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
-  | EAbs { binder; _ }, _ ->
-    let _, body = Bindlib.unmbind binder in
-    locations_used body
   | e ->
     Expr.shallow_fold
       (fun e -> LocationSet.union (locations_used e))
@@ -259,12 +269,7 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar { name; state } ->
-            Some (ScopeDef.Var (Mark.remove name, state))
-          | SubScopeVar { alias; var; _ } ->
-            Some
-              (ScopeDef.SubScopeVar
-                 (Mark.remove alias, Mark.remove var, Mark.get alias))
+          | DesugaredScopeVar { name; state } -> Some (name, ScopeDef.Var state)
           | ToplevelVar _ -> None
         in
         match usage with

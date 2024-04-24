@@ -20,28 +20,15 @@
 open Catala_utils
 open Definitions
 
-exception CatalaException of except
+exception CatalaException of except * Pos.t
 
 val is_empty_error : ('a, 'm) gexpr -> bool
-
-val propagate_empty_error :
-  ('a, 'm) gexpr -> (('a, 'm) gexpr -> ('a, 'm) gexpr) -> ('a, 'm) gexpr
-(** [e' = propagate_empty_error e f] return [EEmptyError] if [e] is
-    [EEmptyError], else it apply [f] on not-empty term [e]. *)
-
-val propagate_empty_error_list :
-  (('a, 'a, 'b) base_gexpr * 'b mark) list ->
-  ((('a, 'a, 'b) base_gexpr * 'b mark) list ->
-  ('a, 'a, 'b) base_gexpr * 'b mark) ->
-  ('a, 'a, 'b) base_gexpr * 'b mark
-(** [e' = propagate_empty_error_list elist f] return [EEmptyError] if one lement
-    of [es] is [EEmptyError], else it apply [f] on not-empty term list [elist]. *)
 
 val evaluate_operator :
   ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
-  Cli.backend_lang ->
+  Global.backend_lang ->
   ('a, 'm) gexpr list ->
   ('a, 'm) gexpr
 (** Evaluates the result of applying the given operator to the given arguments,
@@ -51,7 +38,7 @@ val evaluate_operator :
 
 val evaluate_expr :
   decl_ctx ->
-  Cli.backend_lang ->
+  Global.backend_lang ->
   (('a, 'b, _) interpr_kind, 'm) gexpr ->
   (('a, 'b, yes) interpr_kind, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)

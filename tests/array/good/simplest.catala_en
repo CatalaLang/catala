@@ -1,0 +1,23 @@
+## Article
+
+```catala
+declaration scope A:
+   output x content list of integer
+
+scope A:
+   definition x equals [0; 4; 8]
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = [0; 4; 8]
+```

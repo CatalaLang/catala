@@ -1,0 +1,31 @@
+```catala
+declaration scope S:
+  input cond content boolean
+  internal f1 content decimal depends on x content integer
+  output out content decimal
+
+scope S:
+  definition f1 of x equals decimal of (x * 2)
+  exception definition f1 of y under condition not cond
+    consequence equals y / 2
+  definition out equals f1 of 10
+```
+
+```catala-test-inline
+$ catala typecheck
+[ERROR] Function argument name mismatch between declaration ('x') and
+  definition ('y')
+
+Argument declared here:
+┌─⯈ tests/func/bad/param_inconsistency3.catala_en:4.42-4.43:
+└─┐
+4 │   internal f1 content decimal depends on x content integer
+  │                                          ‾
+
+Defined here:
+┌─⯈ tests/func/bad/param_inconsistency3.catala_en:9.30-9.31:
+└─┐
+9 │   exception definition f1 of y under condition not cond
+  │                              ‾
+#return code 123#
+```

@@ -1,0 +1,27 @@
+## Test
+
+```catala
+declaration scope A:
+  context output x content integer
+
+scope A:
+  label base_x
+  definition x equals 0
+
+  exception base_x
+  definition x equals 1
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = 1
+```

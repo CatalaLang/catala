@@ -1,0 +1,34 @@
+## Article
+
+```catala
+declaration scope S:
+  context output a content A
+  context output b content B
+
+declaration structure A:
+   data x content integer
+   data y content B
+
+declaration structure B:
+   data y content boolean
+   data z content decimal
+
+scope S:
+   definition b equals B { -- y: true -- z: 0.0}
+   definition a equals A { -- x: 0 -- y : b }
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT] a = A { -- x: 0 -- y: B { -- y: true -- z: 0.0 } }
+[RESULT] b = B { -- y: true -- z: 0.0 }
+```

@@ -216,7 +216,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(match|with\s+pattern|fixed|by|decreasing|increasing|varies|with|we\s+have|let|in|scope|depends\s+on|declaration|includes|content|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|state|label|exception)\b
+    regex \= \b(match|with\s+pattern|but\s+replacefixed|by|decreasing|increasing|varies|with|we\s+have|let|in|scope|depends\s+on|declaration|includes|content|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|state|label|exception)\b
     styles [] = .keyword_expression ;
   }
 

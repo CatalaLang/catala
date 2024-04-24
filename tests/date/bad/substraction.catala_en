@@ -1,0 +1,30 @@
+```catala
+declaration scope A:
+  output o content boolean
+
+scope A:
+  definition o equals |2024-01-16| - 0 day <= 0 day
+```
+
+```catala-test-inline
+$ catala test-scope A
+[ERROR] I don't know how to apply operator <= on types date and duration
+
+┌─⯈ tests/date/bad/substraction.catala_en:6.23-6.52:
+└─┐
+6 │   definition o equals |2024-01-16| - 0 day <= 0 day
+  │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Type date coming from expression:
+┌─⯈ tests/date/bad/substraction.catala_en:6.23-6.43:
+└─┐
+6 │   definition o equals |2024-01-16| - 0 day <= 0 day
+  │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Type duration coming from expression:
+┌─⯈ tests/date/bad/substraction.catala_en:6.47-6.52:
+└─┐
+6 │   definition o equals |2024-01-16| - 0 day <= 0 day
+  │                                               ‾‾‾‾‾
+#return code 123#
+```

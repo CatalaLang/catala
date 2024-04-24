@@ -1,0 +1,32 @@
+## Article
+
+```catala
+declaration scope Callee:
+  context input_v content integer depends on b content boolean
+  context output output_v content integer
+
+declaration scope Caller:
+  sub scope Callee
+  context output y content integer
+
+scope Callee:
+  definition input_v of b equals if b then 0 else 1
+  definition output_v equals input_v of true + 1
+
+scope Caller:
+  definition y equals sub.output_v
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope Caller
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
+```

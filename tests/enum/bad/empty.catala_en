@@ -1,0 +1,21 @@
+## Test
+
+```catala
+declaration enumeration Foo:
+
+declaration scope Bar:
+  internal foo content Foo
+```
+
+```catala-test-inline
+$ catala Typecheck 
+[ERROR] The enum Foo does not have any cases;
+  give it some for Catala to be able to accept it.
+
+┌─⯈ tests/enum/bad/empty.catala_en:4.25-4.28:
+└─┐
+4 │ declaration enumeration Foo:
+  │                         ‾‾‾
+  └─ Test
+#return code 123#
+```

@@ -1,0 +1,37 @@
+```catala
+
+déclaration champ d'application VérificationÂgeInférieurOuÉgalÀ:
+  entrée date_naissance contenu date
+  entrée date_courante contenu date
+  entrée années contenu durée
+  résultat r contenu booléen
+
+champ d'application VérificationÂgeInférieurOuÉgalÀ:
+  définition r égal à date_naissance + années <= date_courante
+  date arrondi croissant
+
+déclaration champ d'application Test:
+  résultat r contenu booléen
+
+champ d'application Test:
+  définition r égal à (résultat de VérificationÂgeInférieurOuÉgalÀ avec
+                      { -- date_naissance: |2000-02-29|
+                        -- date_courante: |2018-03-01|
+                        -- années: 18 an}).r
+  assertion r
+
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope Test
+[RESULT] Computation successful! Results:
+[RESULT] r = vrai
+```

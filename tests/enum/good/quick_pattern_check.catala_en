@@ -1,0 +1,33 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+
+declaration scope A:
+  context output x content E
+  context output y content boolean
+  context output z content boolean
+
+scope A:
+  definition x equals Case1 content 2
+  definition y equals x with pattern Case1
+  definition z equals x with pattern Case2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] x = Case1 2
+[RESULT] y = true
+[RESULT] z = false
+```

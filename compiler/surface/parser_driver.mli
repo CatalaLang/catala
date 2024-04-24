@@ -20,16 +20,17 @@
 open Catala_utils
 
 val lines :
-  File.t -> Cli.backend_lang -> (string * Lexer_common.line_token) Seq.t
+  File.t -> Global.backend_lang -> (string * Lexer_common.line_token) Seq.t
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
-val load_interface : Cli.input_src -> Ast.interface
+val load_interface :
+  ?default_module_name:string -> File.t Global.input_src -> Ast.interface
 (** Reads only declarations in metadata in the supplied input file, and only
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
-val parse_top_level_file : Cli.input_src -> Ast.program
+val parse_top_level_file : File.t Global.input_src -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
     fill them. *)

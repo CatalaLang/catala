@@ -1,0 +1,109 @@
+> Module Test_grave_char_en
+
+## Law text should be able to contain grave accent '`'.
+
+This is a block of law text containing `.
+This allows to:
+
+* use `Markdown` code block inside `Catala` files,
+
+* _escape_ special characters such as `#` or `>`,
+
+* use Fenced Code Blocks:
+
+```ocaml
+let () = print_endline "Hello world!"
+```
+
+```catala
+declaration scope A:
+  context output literate_parsing_is_ok content boolean
+
+scope A:
+  definition literate_parsing_is_ok equals true
+```
+
+Even after `Catala` code block:
+
+```c
+int main(void) { return 0; }
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] literate_parsing_is_ok = true
+```
+
+```catala-test-inline
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] literate_parsing_is_ok = true
+```
+
+```catala-test-inline
+$ catala latex
+
+\textbf{This defines the catala module \texttt{Test\_grave\_char\_en}}
+
+\subsection{Law text should be able to contain grave accent ``'.}
+
+This is a block of law text containing `. This allows to:
+
+\begin{itemize}
+\item
+  use \texttt{Markdown} code block inside \texttt{Catala} files,
+\item
+  \emph{escape} special characters such as \texttt{\#} or
+  \texttt{\textgreater{}},
+\item
+  use Fenced Code Blocks:
+\end{itemize}
+
+\begin{verbatim}
+let () = print_endline "Hello world!"
+\end{verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}}]
+\PY{l+s}{```catala}
+\PY{k+kr}{declaration}\PY{l+s}{ }\PY{k+kr}{scope}\PY{l+s}{ }\PY{n+nc}{A}\PY{o}{:}
+\PY{l+s}{ }\PY{l+s}{ }\PY{k+kd}{context}\PY{l+s}{ }\PY{k+kd}{output}\PY{l+s}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok}\PY{l+s}{ }\PY{k+kr}{content}\PY{l+s}{ }\PY{k+kt}{boolean}
+
+\PY{k+kr}{scope}\PY{l+s}{ }\PY{n+nc}{A}\PY{o}{:}
+\PY{l+s}{ }\PY{l+s}{ }\PY{k+kr}{definition}\PY{l+s}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok}\PY{l+s}{ }\PY{k+kr}{equals}\PY{l+s}{ }\PY{k+kc}{true}
+\PY{l+s}{```}
+\end{Verbatim}
+
+
+Even after \texttt{Catala} code block:
+
+\begin{verbatim}
+int main(void) { return 0; }
+\end{verbatim}
+
+\begin{verbatim}
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+\end{verbatim}
+
+\begin{verbatim}
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] literate_parsing_is_ok = true
+\end{verbatim}
+
+\begin{verbatim}
+$ catala test-scope A
+[RESULT] Computation successful! Results:
+[RESULT] literate_parsing_is_ok = true
+\end{verbatim}
+```

@@ -1,0 +1,41 @@
+## Test
+
+x is not defined if B? y
+
+```catala
+declaration enumeration T:
+   -- C content boolean
+   -- D content integer
+
+declaration enumeration S:
+    -- A content integer
+    -- B content T
+
+declaration scope A:
+  output x content integer
+  internal y content S
+
+scope A:
+  definition y equals B content (D content 1)
+  definition x under condition match y with pattern -- A of a: true -- B of b: false consequence equals 0
+  definition x under condition match y with pattern -- A of a: false -- B of b: false consequence equals 1
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[WARNING] The constructor "C" of enumeration "T" is never used;
+  maybe it's unnecessary?
+
+┌─⯈ tests/proof/bad/enums-empty.catala_en:7.7-7.8:
+└─┐
+7 │    -- C content boolean
+  │       ‾
+  └─ Test
+[WARNING] [A.x] This variable might return an empty error:
+┌─⯈ tests/proof/bad/enums-empty.catala_en:15.10-15.11:
+└──┐
+15 │   output x content integer
+   │          ‾
+   └─ Test
+Counterexample generation is disabled so none was generated.
+```

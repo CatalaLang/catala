@@ -23,30 +23,26 @@ let begins_with_uppercase (s : string) : bool =
   "" <> s && is_uppercase_ascii (get (to_ascii s) 0)
 
 let to_snake_case (s : string) : string =
-  let out = ref "" in
-  to_ascii s
+  let out = Buffer.create (2 * length s) in
+  s
+  |> to_ascii
   |> iteri (fun i c ->
-         out :=
-           !out
-           ^ (if is_uppercase_ascii c && 0 <> i then "_" else "")
-           ^ lowercase_ascii (make 1 c));
-  !out
+         if is_uppercase_ascii c && 0 <> i then Buffer.add_char out '_';
+         Buffer.add_char out (Char.lowercase_ascii c));
+  Buffer.contents out
 
 let to_camel_case (s : string) : string =
-  let last_was_underscore = ref false in
-  let out = ref "" in
-  to_ascii s
-  |> iteri (fun i c ->
-         let is_underscore = c = '_' in
-         let c_string = make 1 c in
-         out :=
-           !out
-           ^
-           if is_underscore then ""
-           else if !last_was_underscore || 0 = i then uppercase_ascii c_string
-           else c_string;
-         last_was_underscore := is_underscore);
-  !out
+  let last_was_underscore = ref true in
+  let out = Buffer.create (length s) in
+  s
+  |> to_ascii
+  |> iter (function
+       | '_' -> last_was_underscore := true
+       | c ->
+         Buffer.add_char out
+           (if !last_was_underscore then Char.uppercase_ascii c else c);
+         last_was_underscore := false);
+  Buffer.contents out
 
 let remove_prefix ~prefix s =
   if starts_with ~prefix s then
@@ -72,7 +68,39 @@ module Arg = struct
   include Stdlib.String
 
   let format = format
+
+  let compare s1 s2 =
+    let len1 = length s1 in
+    let len2 = length s2 in
+    let int c = int_of_char c - int_of_char '0' in
+    let rec readnum acc s i =
+      if i >= length s then acc, i
+      else
+        match get s i with
+        | '0' .. '9' as c -> readnum ((acc * 10) + int c) s (i + 1)
+        | _ -> acc, i
+    in
+    let rec aux i1 i2 =
+      if i1 >= len1 then if i2 >= len2 then 0 else -1
+      else if i2 >= len2 then 1
+      else
+        match get s1 i1, get s2 i2 with
+        | ('0' .. '9' as c1), ('0' .. '9' as c2) -> (
+          let x1, i1' = readnum (int c1) s1 (i1 + 1) in
+          let x2, i2' = readnum (int c2) s2 (i2 + 1) in
+          match Int.compare x1 x2 with
+          | 0 -> (
+            match Int.compare (i1' - i1) (i2' - i2) with
+            | 0 -> aux i1' i2'
+            | n -> n)
+          | n -> n)
+        | c1, c2 -> (
+          match Char.compare c1 c2 with 0 -> aux (i1 + 1) (i2 + 1) | n -> n)
+    in
+    aux 0 0
 end
+
+let compare = Arg.compare
 
 module Set = Set.Make (Arg)
 module Map = Map.Make (Arg)

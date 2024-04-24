@@ -22,38 +22,24 @@ type invariant_status = Fail | Pass | Ignore
 type invariant_expr = decl_ctx -> typed expr -> invariant_status
 
 let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
-  (* TODO: add a Program.fold_left_map_exprs to get rid of the mutable
-     reference *)
-  let result = ref true in
   let name, inv = inv in
-  let total = ref 0 in
-  let ok = ref 0 in
-  let p' =
-    Program.map_exprs p ~varf:Fun.id ~f:(fun e ->
+  let result, total, ok =
+    Program.fold_exprs p ~init:(true, 0, 0) ~f:(fun acc e _ty ->
         (* let currente = e in *)
-        let rec f e =
-          let r =
-            match inv p.decl_ctx e with
-            | Ignore -> true
-            | Fail ->
-              Message.raise_spanned_error (Expr.pos e)
-                "@[<v 2>Invariant @{<magenta>%s@} failed.@,%a@]" name
-                (Print.expr ()) e
-            | Pass ->
-              incr ok;
-              incr total;
-              true
-          in
-          Expr.map_gather e ~acc:r ~join:( && ) ~f
+        let rec f e (result, total, ok) =
+          let result, total, ok = Expr.shallow_fold f e (result, total, ok) in
+          match inv p.decl_ctx e with
+          | Ignore -> result, total, ok
+          | Fail ->
+            Message.error ~pos:(Expr.pos e)
+              "@[<v 2>Invariant @{<magenta>%s@} failed.@,%a@]" name
+              (Print.expr ()) e
+          | Pass -> result, total + 1, ok + 1
         in
-
-        let res, e' = f e in
-        result := res && !result;
-        e')
+        f e acc)
   in
-  assert (Bindlib.free_vars p' = Bindlib.empty_ctxt);
-  Message.emit_result "Invariant %s checked.@ result: [%d/%d]" name !ok !total;
-  !result
+  Message.debug "Invariant %s checked.@ result: [%d/%d]" name ok total;
+  result
 
 (* Structural invariant: no default can have as type A -> B *)
 let invariant_default_no_arrow () : string * invariant_expr =
@@ -157,11 +143,11 @@ let rec check_typ_no_default ctx ty =
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
   | TAny ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "Some Dcalc invariants are invalid: TAny was found whereas it should be \
        fully resolved."
   | TClosureEnv ->
-    Message.raise_internal_error
+    Message.error ~internal:true
       "Some Dcalc invariants are invalid: TClosureEnv was found whereas it \
        should only appear later in the compilation process."
 
@@ -206,7 +192,7 @@ let invariant_typing_defaults () : string * invariant_expr =
     fun ctx e ->
       if check_type_root ctx (Expr.ty e) then Pass
       else (
-        Message.emit_warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
+        Message.warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
         Fail) )
 
 let check_all_invariants prgm =

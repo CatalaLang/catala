@@ -1,0 +1,49 @@
+# Test the refactored metatdata markup
+
+```catala-metadata
+declaration enumeration E:
+  -- A
+  -- B
+
+declaration scope S:
+  context output a content E
+```
+
+Some law text...
+
+```catala-metadata
+declaration scope S2:
+  context output b content E
+```
+
+## PROGRAM
+
+```catala
+scope S:
+  definition a equals A
+```
+
+```catala
+scope S2:
+  definition b equals B
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala test-scope S2
+[RESULT] Computation successful! Results:
+[RESULT] b = B ()
+```
+
+```catala-test-inline
+$ catala test-scope S
+[RESULT] Computation successful! Results:
+[RESULT] a = A ()
+```

@@ -139,7 +139,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
        Catala sources *)
     | TUnit -> ""
     | TInt -> Expr.to_string e
-    | TRat -> Arithmetic.Real.to_decimal_string e Cli.globals.max_prec_digits
+    | TRat -> Arithmetic.Real.to_decimal_string e Global.options.max_prec_digits
     (* TODO: Print the right money symbol according to language *)
     | TMoney ->
       let z3_str = Expr.to_string e in
@@ -804,8 +804,7 @@ module Backend = struct
     let ctx, vc = translate_expr ctx e in
     add_z3constraint vc ctx
 
-  let init_backend () =
-    Message.emit_debug "Running Z3 version %s" Version.to_string
+  let init_backend () = Message.debug "Running Z3 version %s" Version.to_string
 
   let make_context (decl_ctx : decl_ctx) : backend_context =
     let cfg =

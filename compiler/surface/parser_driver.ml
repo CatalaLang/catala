@@ -72,17 +72,14 @@ let raise_parser_error
     (last_good_loc : Pos.t option)
     (token : string)
     (msg : Format.formatter -> unit) : 'a =
-  Message.raise_multispanned_error_full ?suggestion
-    ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
-    ::
-    (match last_good_loc with
-    | None -> []
-    | Some last_good_loc ->
+  Message.error ?suggestion
+    ~extra_pos:
       [
-        ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
-          last_good_loc );
-      ]))
-    "@[<v>Syntax error at token %a@,%t@]"
+        (match last_good_loc with
+        | None -> "Error token", error_loc
+        | Some last_good_loc -> "Last good token", last_good_loc);
+      ]
+    "Syntax error at %a@\n%t"
     (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
     token msg
 
@@ -132,18 +129,16 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
       (match Parser_errors.message (state env) with
-      | exception Not_found ->
-        Format.fprintf ppf "Message: @{<yellow>unexpected token@}@,%t"
+      | exception Not_found -> Format.fprintf ppf "@{<yellow>unexpected token@}"
       | msg ->
-        Format.fprintf ppf "Message: @{<yellow>%s@}@,%t"
-          (String.trim (String.uncapitalize_ascii msg)))
-        (fun (ppf : Format.formatter) ->
-          Format.fprintf ppf "You could have written : ";
-          Format.pp_print_list
-            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
-            (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-            ppf
-            (List.map (fun (s, _) -> s) acceptable_tokens))
+        Format.fprintf ppf "@{<yellow>@<1>»@} @[<hov>%a@]" Format.pp_print_text
+          (String.trim (String.uncapitalize_ascii msg)));
+      if acceptable_tokens <> [] then
+        Format.fprintf ppf "@,@[<hov>Those are valid at this point:@ %a@]"
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+             (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
+          (List.map (fun (s, _) -> s) acceptable_tokens)
     in
     raise_parser_error ~suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))
@@ -198,14 +193,15 @@ module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
+let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
+  function
   | En -> Parser_En.commands_or_includes
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
-let lines (file : File.t) (language : Cli.backend_lang) =
+let lines (file : File.t) (language : Global.backend_lang) =
   let lex_line =
     match language with
     | En -> Lexer_en.lex_line
@@ -243,7 +239,7 @@ let with_sedlex_file file f =
 (** Parses a single source file *)
 let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
   let source_file_name = lexbuf_file lexbuf in
-  Message.emit_debug "Parsing %a" File.format source_file_name;
+  Message.debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
   let commands = localised_parser language lexbuf in
   let program = expand_includes source_file_name commands in
@@ -265,8 +261,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           match acc.Ast.program_module_name, name_opt with
           | opt, None | None, opt -> opt
           | Some id1, Some id2 ->
-            Message.raise_multispanned_error
-              [None, Mark.get id1; None, Mark.get id2]
+            Message.error
+              ~extra_pos:["", Mark.get id1; "", Mark.get id2]
               "Multiple definitions of the module name"
         in
         match command with
@@ -294,14 +290,15 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             includ_program.Ast.program_module_name
             |> Option.iter
                @@ fun id ->
-               Message.raise_multispanned_error
-                 [
-                   Some "File include", Mark.get inc_file;
-                   Some "Module declaration", Mark.get id;
-                 ]
+               Message.error
+                 ~extra_pos:
+                   [
+                     "File include", Mark.get inc_file;
+                     "Module declaration", Mark.get id;
+                   ]
                  "A file that declares a module cannot be used through the raw \
-                  '@{<yellow>> Include@}' directive. You should use it as a \
-                  module with '@{<yellow>> Use @{<blue>%s@}@}' instead."
+                  '@{<yellow>> Include@}'@ directive.@ You should use it as a \
+                  module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ instead."
                  (Mark.remove id)
           in
           {
@@ -387,12 +384,12 @@ let get_interface program =
 
 let with_sedlex_source source_file f =
   match source_file with
-  | Cli.FileName file -> with_sedlex_file file f
-  | Cli.Contents (str, file) ->
+  | Global.FileName file -> with_sedlex_file file f
+  | Global.Contents (str, file) ->
     let lexbuf = Sedlexing.Utf8.from_string str in
     Sedlexing.set_filename lexbuf file;
     f lexbuf
-  | Cli.Stdin file ->
+  | Global.Stdin file ->
     let lexbuf = Sedlexing.Utf8.from_channel stdin in
     Sedlexing.set_filename lexbuf file;
     f lexbuf
@@ -400,30 +397,31 @@ let with_sedlex_source source_file f =
 let check_modname program source_file =
   match program.Ast.program_module_name, source_file with
   | ( Some (mname, pos),
-      (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file) )
+      (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
-    Message.raise_spanned_error pos
-      "@[<hov>Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
-       file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ \
-       %a.@]"
+    Message.error ~pos
+      "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ file@ \
+       name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ %a."
       mname File.format file
       (String.capitalize_ascii Filename.(remove_extension (basename file)))
       File.format
       File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
-let load_interface source_file =
+let load_interface ?default_module_name source_file =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
-    match program.Ast.program_module_name with
-    | Some mname -> mname
-    | None ->
-      Message.raise_error
+    match program.Ast.program_module_name, default_module_name with
+    | Some mname, _ -> mname
+    | None, Some n ->
+      n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
+    | None, None ->
+      Message.error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
         File.format
-        (Cli.input_src_file source_file)
+        (Global.input_src_file source_file)
         (match source_file with
         | FileName s ->
           String.capitalize_ascii Filename.(basename (remove_extension s))
@@ -436,7 +434,7 @@ let load_interface source_file =
     Ast.intf_submodules = used_modules;
   }
 
-let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
+let parse_top_level_file (source_file : File.t Global.input_src) : Ast.program =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   {

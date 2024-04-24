@@ -1,0 +1,31 @@
+## Test
+
+```catala
+declaration scope Foo:
+  output bar content integer
+
+scope Foo:
+  definition bar equals 0
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Lcalc -s Foo
+let scope Foo (Foo_in: Foo_in): Foo {bar: integer} =
+  let set bar : integer =
+    try
+      handle_default
+        [λ () → handle_default [] (λ () → true) (λ () → 0)]
+        (λ () → false)
+        (λ () → raise EmptyError)
+    with EmptyError -> raise NoValueProvided
+  in
+  return { Foo bar = bar; }
+```

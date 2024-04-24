@@ -1,0 +1,26 @@
+## Test
+
+```catala
+declaration scope A:
+  internal x content integer depends on y content boolean
+  output z content integer
+
+scope A:
+  definition x of y under condition y consequence equals 0
+  definition x of y under condition not y consequence equals 1
+  definition z under condition x of true = 0 consequence equals 0
+  definition z under condition x of true < 0 consequence equals -1
+  definition z under condition x of true > 0 consequence equals 1
+```
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[RESULT] No errors found during the proof mode run.
+```

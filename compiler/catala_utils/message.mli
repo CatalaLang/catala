@@ -27,7 +27,7 @@
 
 (** {1 Message content} *)
 
-type content_type = Error | Warning | Debug | Log | Result
+type level = Error | Warning | Debug | Log | Result
 
 module Content : sig
   (** {2 Types}*)
@@ -50,10 +50,11 @@ module Content : sig
 
   val to_internal_error : t -> t
   val add_suggestion : t -> string list -> t
+  val add_position : t -> ?message:message -> Pos.t -> t
 
   (** {2 Content emission}*)
 
-  val emit : t -> content_type -> unit
+  val emit : t -> level -> unit
 end
 
 (** This functions emits the message according to the emission type defined by
@@ -62,60 +63,6 @@ end
 (** {1 Error exception} *)
 
 exception CompilerError of Content.t
-
-(** {1 Common error raising} *)
-
-val raise_spanned_error :
-  ?span_msg:Content.message ->
-  ?suggestion:string list ->
-  Pos.t ->
-  ('a, Format.formatter, unit, 'b) format4 ->
-  'a
-
-val raise_multispanned_error_full :
-  ?suggestion:string list ->
-  (Content.message option * Pos.t) list ->
-  ('a, Format.formatter, unit, 'b) format4 ->
-  'a
-
-val raise_multispanned_error :
-  ?suggestion:string list ->
-  (string option * Pos.t) list ->
-  ('a, Format.formatter, unit, 'b) format4 ->
-  'a
-
-val raise_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
-val raise_internal_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
-
-val assert_internal_error :
-  bool -> ('a, Format.formatter, unit, unit, unit, unit) format6 -> 'a
-
-(** {1 Common warning emission}*)
-
-val emit_multispanned_warning :
-  (Content.message option * Pos.t) list ->
-  ('a, Format.formatter, unit) format ->
-  'a
-
-val emit_spanned_warning :
-  ?span_msg:Content.message ->
-  Pos.t ->
-  ('a, Format.formatter, unit) format ->
-  'a
-
-val emit_warning : ('a, Format.formatter, unit) format -> 'a
-
-(** {1 Common log emission}*)
-
-val emit_log : ('a, Format.formatter, unit) format -> 'a
-
-(** {1 Common debug emission}*)
-
-val emit_debug : ('a, Format.formatter, unit) format -> 'a
-
-(** {1 Common result emission}*)
-
-val emit_result : ('a, Format.formatter, unit) format -> 'a
 
 (** {1 Some formatting helpers}*)
 
@@ -131,3 +78,22 @@ val formatter_of_out_channel : out_channel -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
     [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)
+
+(** {1 Simple interface for various message emission} *)
+
+type ('a, 'b) emitter =
+  ?header:Content.message ->
+  ?internal:bool ->
+  ?pos:Pos.t ->
+  ?pos_msg:Content.message ->
+  ?extra_pos:(string * Pos.t) list ->
+  ?fmt_pos:(Content.message * Pos.t) list ->
+  ?suggestion:string list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
+
+val log : ('a, unit) emitter
+val debug : ('a, unit) emitter
+val result : ('a, unit) emitter
+val warning : ('a, unit) emitter
+val error : ('a, 'b) emitter

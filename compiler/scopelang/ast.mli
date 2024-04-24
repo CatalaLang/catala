@@ -32,9 +32,22 @@ type 'm expr = (scopelang, 'm) gexpr
 val locations_used : 'm expr -> LocationSet.t
 
 type 'm rule =
-  | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
+  | ScopeVarDefinition of {
+      var : ScopeVar.t Mark.pos;
+      typ : typ;
+      io : Desugared.Ast.io;
+      e : 'm expr;
+    }
+  | SubScopeVarDefinition of {
+      var : ScopeVar.t Mark.pos;  (** Variable within the current scope *)
+      (* scope: ScopeVar.t Mark.pos; (\** Variable pointing to the *\) *)
+      (* origin_var: ScopeVar.t Mark.pos;
+       * reentrant: bool; *)
+      var_within_origin_scope : ScopeVar.t;
+      typ : typ; (* non-thunked at this point for reentrant vars *)
+      e : 'm expr;
+    }
   | Assertion of 'm expr
-  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type scope_var_ty = {
   svar_in_ty : typ;
@@ -58,7 +71,7 @@ type 'm program = {
      the scope signatures needed to respect the call convention *)
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 val type_program : 'm program -> typed program
