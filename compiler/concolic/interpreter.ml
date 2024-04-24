@@ -936,7 +936,7 @@ let handle_division
        evaluated expressions, and their constraints are handled by [EAppOp]. *)
     let constraints = [den_not_zero_pc] in
     add_conc_info_m m symb_expr ~constraints concrete
-  with Division_by_zero ->
+  with Runtime.Division_by_zero -> 
     let den_zero_pc = PathConstraint.mk_z3 den_zero (Expr.pos e2) true in
     make_error_divisionbyzeroerror m [den_zero_pc]
       [
