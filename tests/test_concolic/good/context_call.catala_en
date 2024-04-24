@@ -76,13 +76,13 @@ $ catala Concolic -s A
 $ catala DCalc -s B
 let scope B (B_in: B_in {x_in: integer}): B {o: integer} =
   let get x : integer = B_in.x_in in
-  let sub_set a.x : unit → ⟨integer⟩ =
-    λ (_: unit) →
-    ⟨ ⟨true ⊢ ⟨x⟩⟩ | false ⊢ ∅ ⟩
+  let set a : A {x: integer; o: integer} =
+    let result : A =
+      A { A_in x_in = λ () → ⟨ ⟨true ⊢ ⟨x⟩⟩ | false ⊢ ∅ ⟩; }
+    in
+    let result1 : A = { A x = result.x; o = result.o; } in
+    if true then result1 else result1
   in
-  let call result : A {x: integer; o: integer} = A { A_in x_in = a.x; } in
-  let sub_get a.x : integer = result.x in
-  let sub_get a.o : integer = result.o in
   let set o : integer = error_empty ⟨ ⟨true ⊢ ⟨a.o⟩⟩ | false ⊢ ∅ ⟩ in
   return { B o = o; }
 ```

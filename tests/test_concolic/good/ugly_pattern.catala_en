@@ -96,7 +96,7 @@ let scope A
     error_empty
       ⟨ ⟨ ⟨e = E1 () || e = E9 () ⊢ ⟨1⟩⟩, ⟨e = E1 () || e = E2 () ⊢ ⟨2⟩⟩
         | false ⊢ ∅ ⟩
-      | true ⊢ ⟨true ⊢ ⟨0⟩⟩ ⟩
+      | true ⊢ ⟨0⟩ ⟩
   in
   return { A o = o; }
 ```
