@@ -453,7 +453,7 @@ let rec format_statement
        longjmp(catala_fatal_error_jump_buffer, 0);"
       (match e with
       | ConflictError _ -> "catala_conflict"
-      | EmptyError -> "catala_empty"
+      | Empty -> "catala_empty"
       | NoValueProvided -> "catala_no_value_provided"
       | Crash _ -> "catala_crash")
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)

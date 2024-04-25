@@ -71,12 +71,10 @@ let rec translate_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   match e with
-  | EEmptyError, m -> Expr.eraise EmptyError (translate_mark m)
+  | EEmptyError, m -> Expr.eraise Empty (translate_mark m)
   | EErrorOnEmpty arg, m ->
     let m = translate_mark m in
-    Expr.ecatch (translate_expr arg) EmptyError
-      (Expr.eraise NoValueProvided m)
-      m
+    Expr.ecatch (translate_expr arg) Empty (Expr.eraise NoValueProvided m) m
   | EDefault { excepts; just; cons }, m ->
     translate_default excepts just cons (translate_mark m)
   | EPureDefault e, _ -> translate_expr e

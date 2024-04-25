@@ -264,7 +264,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "catala_empty_error()"
+  | Empty -> Format.fprintf fmt "catala_empty_error()"
   | Crash _ -> Format.fprintf fmt "catala_crash()"
   | NoValueProvided ->
     Format.fprintf fmt
@@ -278,7 +278,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
 let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
   match exc with
   | ConflictError _ -> Format.fprintf fmt "catala_conflict_error"
-  | EmptyError -> Format.fprintf fmt "catala_empty_error"
+  | Empty -> Format.fprintf fmt "catala_empty"
   | Crash _ -> Format.fprintf fmt "catala_crash"
   | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"
 

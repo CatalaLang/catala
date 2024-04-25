@@ -269,7 +269,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "EmptyError"
+  | Empty -> Format.fprintf fmt "Empty"
   | Crash s -> Format.fprintf fmt "(Crash %S)" s
   | NoValueProvided ->
     let pos = Mark.get exc in

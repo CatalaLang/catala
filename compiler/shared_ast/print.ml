@@ -348,7 +348,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
 let except (fmt : Format.formatter) (exn : except) : unit =
   op_style fmt
     (match exn with
-    | EmptyError -> "EmptyError"
+    | Empty -> "Empty"
     | ConflictError _ -> "ConflictError"
     | Crash s -> Printf.sprintf "Crash %S" s
     | NoValueProvided -> "NoValueProvided")

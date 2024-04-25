@@ -380,7 +380,7 @@ type 'a operator = 'a Op.t
 
 type except =
   | ConflictError of Pos.t list
-  | EmptyError
+  | Empty
   | NoValueProvided
   | Crash of string
 

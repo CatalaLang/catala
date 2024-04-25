@@ -381,7 +381,7 @@ let rec evaluate_operator
       List.filter_map
         (fun e ->
           try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
-          with CatalaException (EmptyError, _) -> None)
+          with CatalaException (Empty, _) -> None)
         excepts
     with
     | [] -> (
@@ -390,7 +390,7 @@ let rec evaluate_operator
       | ELit (LBool true) ->
         Mark.remove
           (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
-      | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
+      | ELit (LBool false) -> raise (CatalaException (Empty, pos))
       | _ ->
         Message.error ~pos
           "Default justification has not been reduced to a boolean at@ \
@@ -595,7 +595,7 @@ and val_to_runtime :
         let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
           (try eval_expr ctx (EApp { f = v; args; tys }, m)
-           with CatalaException (EmptyError, _) -> raise Runtime.EmptyError)
+           with CatalaException (Empty, _) -> raise Runtime.EmptyError)
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -933,7 +933,7 @@ let interp_failure_message ~pos = function
       "There is a conflict between multiple valid consequences for assigning \
        the same variable."
   | Crash s -> Message.error ~pos "%s" s
-  | EmptyError ->
+  | Empty ->
     Message.error ~pos ~internal:true
       "A variable without valid definition escaped"
 
@@ -969,7 +969,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                tell with just this info. *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
+              (Expr.eraise Empty (Expr.with_ty mark_e ty_out))
               ty_in (Expr.mark_pos mark_e)
           | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
             (* ... or a closure if closure conversion is enabled *)
