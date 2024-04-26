@@ -234,7 +234,7 @@ testsuite: unit-tests
 
 #> reset-tests				: Update the expected test results from current run
 reset-tests: .FORCE $(CLERK_BIN)
-	$(CLERK_TEST) tests --reset
+	$(CLERK_TEST) tests doc --reset
 
 tests/%: .FORCE
 	$(CLERK_TEST) test $@

@@ -34,22 +34,39 @@ let unstyle_formatter ppf =
    [Format.sprintf] etc. functions (ignoring them) *)
 let () = ignore (unstyle_formatter Format.str_formatter)
 
+let terminal_columns, set_terminal_width_function =
+  let get_cols = ref (fun () -> 80) in
+  (fun () -> !get_cols ()), fun f -> get_cols := f
+
 (* Note: we could do the same for std_formatter, err_formatter... but we'd
    rather promote the use of the formatting functions of this module and the
    below std_ppf / err_ppf *)
 
-let has_color oc =
+let has_color_raw ~(tty : bool Lazy.t) =
   match Global.options.color with
   | Global.Never -> false
   | Always -> true
-  | Auto -> Unix.(isatty (descr_of_out_channel oc))
+  | Auto -> Lazy.force tty
+
+let has_color oc =
+  has_color_raw ~tty:(lazy Unix.(isatty (descr_of_out_channel oc)))
 
 (* Here we create new formatters to stderr/stdout that remain separate from the
    ones used by [Format.printf] / [Format.eprintf] (which remain unchanged) *)
 
 let formatter_of_out_channel oc =
+  let tty = lazy Unix.(isatty (descr_of_out_channel oc)) in
   let ppf = Format.formatter_of_out_channel oc in
-  if has_color oc then color_formatter ppf else unstyle_formatter ppf
+  let ppf =
+    if has_color_raw ~tty then color_formatter ppf else unstyle_formatter ppf
+  in
+  let out, flush = Format.pp_get_formatter_output_functions ppf () in
+  let flush () =
+    if Lazy.force tty then Format.pp_set_margin ppf (terminal_columns ());
+    flush ()
+  in
+  Format.pp_set_formatter_output_functions ppf out flush;
+  ppf
 
 let std_ppf = lazy (formatter_of_out_channel stdout)
 let err_ppf = lazy (formatter_of_out_channel stderr)

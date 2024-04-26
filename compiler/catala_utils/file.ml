@@ -180,6 +180,42 @@ let process_out ?check_exit cmd args =
     assert false
   with End_of_file -> Buffer.contents buf
 
+(* SIDE EFFECT AT MODULE LOAD: sets up a signal handler on SIGWINCH (window
+   resize) *)
+let () =
+  let default = 80 in
+  let get_terminal_cols () =
+    let count =
+      try (* terminfo *)
+          process_out "tput" ["cols"] |> int_of_string
+      with Failure _ -> (
+        try
+          (* stty *)
+          process_out "stty" ["size"]
+          |> fun s ->
+          let i = String.rindex s ' ' + 1 in
+          String.sub s (i + 1) (String.length s - i) |> int_of_string
+        with Failure _ | Not_found | Invalid_argument _ -> (
+          try int_of_string (Sys.getenv "COLUMNS")
+          with Not_found | Failure _ -> 0))
+    in
+    if count > 0 then count else default
+  in
+  let width = ref None in
+  let () =
+    try
+      Sys.set_signal 28 (* SIGWINCH *)
+        (Sys.Signal_handle (fun _ -> width := None))
+    with Invalid_argument _ -> ()
+  in
+  Message.set_terminal_width_function (fun () ->
+      match !width with
+      | Some n -> n
+      | None ->
+        let r = get_terminal_cols () in
+        width := Some r;
+        r)
+
 let check_directory d =
   try
     let d = Unix.realpath d in
