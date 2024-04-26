@@ -19,7 +19,7 @@ open Shared_ast
 open Dcalc
 open Ast
 open Z3
-module StringMap : Map.S with type key = String.t = Map.Make (String)
+module StringMap = String.Map
 module Runtime = Runtime_ocaml.Runtime
 
 type context = {
@@ -746,6 +746,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
   | EAssert e -> translate_expr ctx e
+  | EFatalError _ -> failwith "[Z3 encoding] EFatalError unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
@@ -756,7 +757,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctx, z3_then = translate_expr ctx e_then in
     let ctx, z3_else = translate_expr ctx e_else in
     ctx, Boolean.mk_ite ctx.ctx_z3 z3_if z3_then z3_else
-  | EEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
+  | EEmpty -> failwith "[Z3 encoding] 'Empty' literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
   | _ -> .
 

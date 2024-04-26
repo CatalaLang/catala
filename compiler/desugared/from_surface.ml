@@ -330,12 +330,18 @@ let rec translate_expr
       match l with
       | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
       | LNumber ((Int i, _), Some (Percent, _)) ->
-        LRat Runtime.(Oper.o_div_rat_rat (decimal_of_string i) rat100)
+        LRat
+          Runtime.(
+            Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
+              rat100)
       | LNumber ((Dec (i, f), _), None) ->
         LRat Runtime.(decimal_of_string (i ^ "." ^ f))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
         LRat
-          Runtime.(Oper.o_div_rat_rat (decimal_of_string (i ^ "." ^ f)) rat100)
+          Runtime.(
+            Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
+              (decimal_of_string (i ^ "." ^ f))
+              rat100)
       | LBool b -> LBool b
       | LMoneyAmount i ->
         LMoney
@@ -366,7 +372,7 @@ let rec translate_expr
           (try
              Runtime.date_of_numbers date.literal_date_year
                date.literal_date_month date.literal_date_day
-           with Runtime.ImpossibleDate ->
+           with Dates_calc.Dates.InvalidDate ->
              Message.error ~pos
                "There is an error in this date, it does not correspond to a \
                 correct calendar day")

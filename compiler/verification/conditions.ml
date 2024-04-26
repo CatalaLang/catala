@@ -171,7 +171,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
             (Mark.get e);
         ])
       (Mark.get e)
-  | EEmptyError -> Mark.copy e (ELit (LBool false))
+  | EEmpty -> Mark.copy e (ELit (LBool false))
   | EVar _
   (* Per default calculus semantics, you cannot call a function with an argument
      that evaluates to the empty error. Thus, all variable evaluate to
@@ -202,7 +202,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                            can be ignored *)
                         let _vars, body = Bindlib.unmbind binder in
                         match Mark.remove body with
-                        | EEmptyError -> Mark.copy field (ELit (LBool true))
+                        | EEmpty -> Mark.copy field (ELit (LBool true))
                         | _ ->
                           (* same as basic [EAbs case]*)
                           generate_vc_must_not_return_empty ctx field)

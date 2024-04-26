@@ -207,8 +207,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
         | op, `Reversed ->
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
   | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
-    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
-    | EEmptyError | EErrorOnEmpty _ ) as e ->
+    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EFatalError _
+    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)
@@ -462,7 +462,7 @@ let rec rule_tree_to_expr
            (translate_and_unbox_list base_cons_list)
            [])
       ~just:(Expr.elit (LBool false) emark)
-      ~cons:(Expr.eemptyerror emark) emark
+      ~cons:(Expr.eempty emark) emark
   in
   let exceptions =
     List.map
@@ -561,15 +561,15 @@ let translate_def
        caller. *)
   then
     let m = Untyped { pos = D.ScopeDef.get_position def_info } in
-    let empty_error = Expr.eemptyerror m in
+    let empty = Expr.eempty m in
     match params with
     | Some (ps, _) ->
       let labels, tys = List.split ps in
       Expr.make_abs
         (Array.of_list
            (List.map (fun lbl -> Var.make (Mark.remove lbl)) labels))
-        empty_error tys (Expr.mark_pos m)
-    | _ -> empty_error
+        empty tys (Expr.mark_pos m)
+    | _ -> empty
   else
     rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant
       ~subscope:is_subscope_var ctx

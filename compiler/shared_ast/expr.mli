@@ -82,6 +82,8 @@ val eassert :
   'm mark ->
   ((< assertions : yes ; .. > as 'a), 'm) boxed_gexpr
 
+val efatalerror : Runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
+
 val eappop :
   op:'a operator ->
   args:('a, 'm) boxed_gexpr list ->
@@ -108,22 +110,20 @@ val eifthenelse :
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
-val eemptyerror :
-  'm mark -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+val eempty : 'm mark -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val eerroronempty :
   ('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val ecatch :
+val ecatchempty :
   ('a, 'm) boxed_gexpr ->
-  except ->
   ('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< exceptions : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val eraise : except -> 'm mark -> (< exceptions : yes ; .. >, 'm) boxed_gexpr
+val eraiseempty : 'm mark -> (< exceptions : yes ; .. >, 'm) boxed_gexpr
 val elocation : 'a glocation -> 'm mark -> ((< .. > as 'a), 'm) boxed_gexpr
 
 val estruct :
@@ -229,6 +229,8 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
+val pos_to_runtime : Pos.t -> Runtime.source_position
+val runtime_to_pos : Runtime.source_position -> Pos.t
 
 (** Manipulation of marked expressions *)
 

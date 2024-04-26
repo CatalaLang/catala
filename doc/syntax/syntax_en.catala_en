@@ -254,9 +254,9 @@ to ensure that the *syntax* is correct.
 $ catala typecheck
 [ERROR] No scope named Scope0 found
 
-┌─⯈ doc/syntax/syntax_en.catala_en:95.14-95.20:
+┌─⯈ doc/syntax/syntax_en.catala_en:94.14-94.20:
 └──┐
-95 │   sub1 scope Scope0
+94 │   sub1 scope Scope0
    │              ‾‾‾‾‾‾
    └─ Metadata declaration
 #return code 123#

@@ -180,7 +180,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
       option_1_enum match_arg = temp_a_3;
       if (match_arg.code == option_1_enum_none_1_cons) {
         void* /* unit */ dummy_var = match_arg.payload.none_1_cons;
-        catala_fatal_error_raised.code = catala_no_value_provided;
+        catala_fatal_error_raised.code = catala_no_value;
         catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
         catala_fatal_error_raised.position.start_line = 11;
         catala_fatal_error_raised.position.start_column = 11;
@@ -202,7 +202,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_1_enum match_arg_1 = temp_a_1;
   if (match_arg_1.code == option_1_enum_none_1_cons) {
     void* /* unit */ dummy_var = match_arg_1.payload.none_1_cons;
-    catala_fatal_error_raised.code = catala_no_value_provided;
+    catala_fatal_error_raised.code = catala_no_value;
     catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
     catala_fatal_error_raised.position.start_line = 11;
     catala_fatal_error_raised.position.start_column = 11;
@@ -360,7 +360,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_2_enum match_arg_4 = temp_b_1;
   if (match_arg_4.code == option_2_enum_none_2_cons) {
     void* /* unit */ dummy_var = match_arg_4.payload.none_2_cons;
-    catala_fatal_error_raised.code = catala_no_value_provided;
+    catala_fatal_error_raised.code = catala_no_value;
     catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
     catala_fatal_error_raised.position.start_line = 12;
     catala_fatal_error_raised.position.start_column = 10;
@@ -424,7 +424,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_3_enum match_arg_5 = temp_c_1;
   if (match_arg_5.code == option_3_enum_none_3_cons) {
     void* /* unit */ dummy_var = match_arg_5.payload.none_3_cons;
-    catala_fatal_error_raised.code = catala_no_value_provided;
+    catala_fatal_error_raised.code = catala_no_value;
     catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
     catala_fatal_error_raised.position.start_line = 13;
     catala_fatal_error_raised.position.start_column = 10;

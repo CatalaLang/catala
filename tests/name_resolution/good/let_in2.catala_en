@@ -51,38 +51,40 @@ let s (s_in: S_in.t) : S.t =
   let a_: bool =
     try
       (handle_default
-         {filename = "tests/name_resolution/good/let_in2.catala_en";
-           start_line=7; start_column=18; end_line=7; end_column=19;
-           law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
+         {filename="tests/name_resolution/good/let_in2.catala_en";
+          start_line=7; start_column=18; end_line=7; end_column=19;
+          law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
          (fun (_: unit) -> true)
          (fun (_: unit) ->
             try
               (handle_default
-                 {filename = "tests/name_resolution/good/let_in2.catala_en";
-                   start_line=7; start_column=18; end_line=7; end_column=19;
-                   law_headings=["Article"]}
+                 {filename="tests/name_resolution/good/let_in2.catala_en";
+                  start_line=7; start_column=18; end_line=7; end_column=19;
+                  law_headings=["Article"]}
                  ([|(fun (_: unit) ->
                        handle_default
-                         {filename = "tests/name_resolution/good/let_in2.catala_en";
-                           start_line=7; start_column=18;
-                           end_line=7; end_column=19;
-                           law_headings=["Article"]} ([||])
+                         {filename="tests/name_resolution/good/let_in2.catala_en";
+                          start_line=7; start_column=18;
+                          end_line=7; end_column=19;
+                          law_headings=["Article"]} ([||])
                          (fun (_: unit) -> true)
                          (fun (_: unit) -> (let a_ : bool = false
                             in
                             (let a_ : bool = (o_or a_ true) in
                             a_))))|]) (fun (_: unit) -> false)
-                 (fun (_: unit) -> raise EmptyError))
+                 (fun (_: unit) -> raise Empty))
             with
-            EmptyError -> (raise (NoValueProvided
-              {filename = "tests/name_resolution/good/let_in2.catala_en";
-                start_line=7; start_column=18; end_line=7; end_column=19;
-                law_headings=["Article"]}))))
+            Empty -> (raise
+              (Runtime_ocaml.Runtime.Error (NoValue, {filename="tests/name_resolution/good/let_in2.catala_en";
+                                                      start_line=7; start_column=18;
+                                                      end_line=7; end_column=19;
+                                                      law_headings=["Article"]})))))
     with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "tests/name_resolution/good/let_in2.catala_en";
-        start_line=7; start_column=18; end_line=7; end_column=19;
-        law_headings=["Article"]})) in
+    Empty -> (raise
+      (Runtime_ocaml.Runtime.Error (NoValue, {filename="tests/name_resolution/good/let_in2.catala_en";
+                                              start_line=7; start_column=18;
+                                              end_line=7; end_column=19;
+                                              law_headings=["Article"]}))) in
   {S.a = a_}
 
 let () =

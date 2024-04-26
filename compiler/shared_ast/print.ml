@@ -345,6 +345,9 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
     op_style fmt
       (if debug then operator_to_string op else operator_to_shorter_string op)
 
+let runtime_error ppf err =
+  Format.fprintf ppf "@{<red>%s@}" (Runtime.error_to_string err)
+
 let except (fmt : Format.formatter) (exn : except) : unit =
   op_style fmt
     (match exn with
@@ -426,12 +429,13 @@ module Precedence = struct
     | EDStructAmend _ -> App
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
+    | EFatalError _ -> App
     | EDefault _ -> Contained
     | EPureDefault _ -> Contained
-    | EEmptyError -> Contained
+    | EEmpty -> Contained
     | EErrorOnEmpty _ -> App
-    | ERaise _ -> App
-    | ECatch _ -> App
+    | ERaiseEmpty -> App
+    | ECatchEmpty _ -> App
     | ECustom _ -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
@@ -665,19 +669,22 @@ module ExprGen (C : EXPR_PARAM) = struct
           "⟨" expr e
           (default_punct (List.hd colors))
           "⟩"
-      | EEmptyError -> lit_style fmt "∅"
+      | EEmpty -> lit_style fmt "∅"
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
           (rhs exprc) e'
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
           "(" (rhs exprc) e' punctuation ")"
-      | ECatch { body; exn; handler } ->
+      | EFatalError err ->
+        Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
+          (Runtime.error_to_string err)
+      | ECatchEmpty { body; handler } ->
         Format.fprintf fmt
           "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]" keyword "try"
-          expr body keyword "with" except exn (rhs exprc) handler
-      | ERaise exn ->
-        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
+          expr body keyword "with" except Empty (rhs exprc) handler
+      | ERaiseEmpty ->
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except Empty
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -1130,12 +1137,12 @@ module UserFacing = struct
     | EInj { name = _; cons; e } ->
       Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
         (value ~fallback lang) e
-    | EEmptyError -> Format.pp_print_string ppf "ø"
+    | EEmpty -> Format.pp_print_string ppf "ø"
     | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
+    | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
+    | EErrorOnEmpty _ | ERaiseEmpty | ECatchEmpty _ | ELocation _ | EScopeCall _
     | EDStructAmend _ | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
@@ -1150,7 +1157,7 @@ module UserFacing = struct
         let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
          fun ppf e ->
           match Mark.remove e with
-          | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmptyError | EAbs _
+          | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
           | EExternal _ ->
             aux_value ppf e;
             true

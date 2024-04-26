@@ -83,7 +83,7 @@ let rec translate_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   match e with
-  | EEmptyError, m ->
+  | EEmpty, m ->
     let m = translate_mark m in
     let pos = Expr.mark_pos m in
     Expr.einj
@@ -97,10 +97,8 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
         [
           ( Expr.none_constr,
             let x = Var.make "_" in
-            Expr.make_abs [| x |]
-              (Expr.eraise NoValueProvided m)
-              [TAny, pos]
-              pos );
+            Expr.make_abs [| x |] (Expr.efatalerror NoValue m) [TAny, pos] pos
+          );
           (* | None x -> raise NoValueProvided *)
           Expr.some_constr, Expr.fun_id ~var_name:"arg" m (* | Some x -> x *);
         ]
@@ -118,7 +116,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       (translate_mark m)
   | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
       | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
-      | EStruct _ | EStructAccess _ | EMatch _ ),
+      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ ),
       _ ) as e ->
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .

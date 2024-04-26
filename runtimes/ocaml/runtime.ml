@@ -45,35 +45,49 @@ type source_position = {
   law_headings : string list;
 }
 
-exception EmptyError
-exception AssertionFailed of source_position
-exception ConflictError of source_position
-exception UncomparableDurations
-exception IndivisibleDurations
-exception ImpossibleDate
-exception NoValueProvided of source_position
-exception NotSameLength
-exception Division_by_zero (* Shadows the stdlib definition *)
+type error =
+  | AssertionFailed
+  | NoValue
+  | Conflict
+  | DivisionByZero
+  | NotSameLength
+  | UncomparableDurations
+  | IndivisibleDurations
 
-(* Register exceptions printers *)
+let error_to_string = function
+  | AssertionFailed -> "AssertionFailed"
+  | NoValue -> "NoValue"
+  | Conflict -> "Conflict"
+  | DivisionByZero -> "DivisionByZero"
+  | NotSameLength -> "NotSameLength"
+  | UncomparableDurations -> "UncomparableDurations"
+  | IndivisibleDurations -> "IndivisibleDurations"
+
+let error_message = function
+  | AssertionFailed -> "this assertion doesn't hold"
+  | NoValue -> "no computation with valid conditions found"
+  | Conflict -> "two or more concurring valid computations"
+  | DivisionByZero -> "division by zero"
+  | NotSameLength -> "traversing multiple lists of different lengths"
+  | UncomparableDurations ->
+    "comparing durations in different units (e.g. months vs. days)"
+  | IndivisibleDurations -> "dividing durations that are not in days"
+
+exception Error of error * source_position
+exception Empty
+
+let error err pos = raise (Error (err, pos))
+
+(* Register (fallback) exception printers *)
 let () =
-  let pos () p =
+  let ppos () p =
     Printf.sprintf "%s:%d.%d-%d.%d" p.filename p.start_line p.start_column
       p.end_line p.end_column
   in
-  let pr fmt = Printf.ksprintf (fun s -> Some s) fmt in
   Printexc.register_printer
   @@ function
-  | EmptyError -> pr "A variable couldn't be resolved"
-  | AssertionFailed p -> pr "At %a: Assertion failed" pos p
-  | ConflictError p -> pr "At %a: Conflicting exceptions" pos p
-  | UncomparableDurations -> pr "Ambiguous comparison between durations"
-  | IndivisibleDurations -> pr "Ambiguous division between durations"
-  | ImpossibleDate -> pr "Invalid date"
-  | NoValueProvided p ->
-    pr "At %a: No definition applied to this variable" pos p
-  | NotSameLength -> pr "Attempt to traverse lists of different lengths"
-  | Division_by_zero -> pr "Division by zero"
+  | Error (err, pos) ->
+    Some (Printf.sprintf "At %a: %s" ppos pos (error_message err))
   | _ -> None
 
 let () =
@@ -81,6 +95,9 @@ let () =
   @@ fun exc bt ->
   Printf.eprintf "[ERROR] %s\n%!" (Printexc.to_string exc);
   if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt
+(* TODO: the backtrace will point to the OCaml code; but we could make it point
+   to the Catala code if we add #line directives everywhere in the generated
+   code. *)
 
 let round (q : Q.t) : Z.t =
   (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].
@@ -185,9 +202,10 @@ let day_of_month_of_date (d : date) : integer =
   let _, _, d = Dates_calc.Dates.date_to_ymd d in
   Z.of_int d
 
+(* This could fail, but is expected to only be called with known, already
+   validated arguments by the generated code *)
 let date_of_numbers (year : int) (month : int) (day : int) : date =
-  try Dates_calc.Dates.make_date ~year ~month ~day
-  with _ -> raise ImpossibleDate
+  Dates_calc.Dates.make_date ~year ~month ~day
 
 let date_to_string (d : date) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_date d
@@ -712,16 +730,16 @@ let handle_default :
   let except =
     Array.fold_left
       (fun acc except ->
-        let new_val = try Some (except ()) with EmptyError -> None in
+        let new_val = try Some (except ()) with Empty -> None in
         match acc, new_val with
         | None, _ -> new_val
         | Some _, None -> acc
-        | Some _, Some _ -> raise (ConflictError pos))
+        | Some _, Some _ -> error Conflict pos)
       None exceptions
   in
   match except with
   | Some x -> x
-  | None -> if just () then cons () else raise EmptyError
+  | None -> if just () then cons () else raise Empty
 
 let handle_default_opt
     (pos : source_position)
@@ -734,30 +752,30 @@ let handle_default_opt
         match acc, except with
         | Eoption.ENone _, _ -> except
         | Eoption.ESome _, Eoption.ENone _ -> acc
-        | Eoption.ESome _, Eoption.ESome _ -> raise (ConflictError pos))
+        | Eoption.ESome _, Eoption.ESome _ -> error Conflict pos)
       (Eoption.ENone ()) exceptions
   in
   match except with
   | Eoption.ESome _ -> except
   | Eoption.ENone _ -> if just () then cons () else Eoption.ENone ()
 
-let no_input : unit -> 'a = fun _ -> raise EmptyError
-
 (* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
    [3 months, 4 months] *)
-let compare_periods (p1 : duration) (p2 : duration) : int =
+let compare_periods pos (p1 : duration) (p2 : duration) : int =
   try
     let p1_days = Dates_calc.Dates.period_to_days p1 in
     let p2_days = Dates_calc.Dates.period_to_days p2 in
     compare p1_days p2_days
-  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
+  with Dates_calc.Dates.AmbiguousComputation ->
+    error UncomparableDurations pos
 
 (* TODO: same here, although it was tweaked to never fail on equal dates.
    Comparing the difference to duration_0 is not a good idea because we still
    want to fail on [1 month, 30 days] rather than return [false] *)
-let equal_periods (p1 : duration) (p2 : duration) : bool =
+let equal_periods pos (p1 : duration) (p2 : duration) : bool =
   try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
-  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
+  with Dates_calc.Dates.AmbiguousComputation ->
+    error UncomparableDurations pos
 
 module Oper = struct
   let o_not = Stdlib.not
@@ -782,8 +800,8 @@ module Oper = struct
   let o_eq = ( = )
   let o_map = Array.map
 
-  let o_map2 f a b =
-    try Array.map2 f a b with Invalid_argument _ -> raise NotSameLength
+  let o_map2 pos f a b =
+    try Array.map2 f a b with Invalid_argument _ -> error NotSameLength pos
 
   let o_reduce f dft a =
     let len = Array.length a in
@@ -818,54 +836,56 @@ module Oper = struct
 
   let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
 
-  let o_div_int_int i1 i2 =
+  let o_div_int_int pos i1 i2 =
     (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
-    if Z.zero = i2 then raise Division_by_zero
+    if Z.zero = i2 then error DivisionByZero pos
     else Q.div (Q.of_bigint i1) (Q.of_bigint i2)
 
-  let o_div_rat_rat i1 i2 =
-    if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
+  let o_div_rat_rat pos i1 i2 =
+    if Q.zero = i2 then error DivisionByZero pos else Q.div i1 i2
 
-  let o_div_mon_mon m1 m2 =
-    if Z.zero = m2 then raise Division_by_zero
+  let o_div_mon_mon pos m1 m2 =
+    if Z.zero = m2 then error DivisionByZero pos
     else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
 
-  let o_div_mon_rat m1 r1 =
-    if Q.zero = r1 then raise Division_by_zero else o_mult_mon_rat m1 (Q.inv r1)
+  let o_div_mon_rat pos m1 r1 =
+    if Q.zero = r1 then error DivisionByZero pos
+    else o_mult_mon_rat m1 (Q.inv r1)
 
-  let o_div_dur_dur d1 d2 =
+  let o_div_dur_dur pos d1 d2 =
     let i1, i2 =
       try
         ( integer_of_int (Dates_calc.Dates.period_to_days d1),
           integer_of_int (Dates_calc.Dates.period_to_days d2) )
-      with Dates_calc.Dates.AmbiguousComputation -> raise IndivisibleDurations
+      with Dates_calc.Dates.AmbiguousComputation ->
+        error IndivisibleDurations pos
     in
-    o_div_int_int i1 i2
+    o_div_int_int pos i1 i2
 
   let o_lt_int_int i1 i2 = Z.compare i1 i2 < 0
   let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0
   let o_lt_mon_mon m1 m2 = Z.compare m1 m2 < 0
-  let o_lt_dur_dur d1 d2 = compare_periods d1 d2 < 0
+  let o_lt_dur_dur pos d1 d2 = compare_periods pos d1 d2 < 0
   let o_lt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 < 0
   let o_lte_int_int i1 i2 = Z.compare i1 i2 <= 0
   let o_lte_rat_rat i1 i2 = Q.compare i1 i2 <= 0
   let o_lte_mon_mon m1 m2 = Z.compare m1 m2 <= 0
-  let o_lte_dur_dur d1 d2 = compare_periods d1 d2 <= 0
+  let o_lte_dur_dur pos d1 d2 = compare_periods pos d1 d2 <= 0
   let o_lte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 <= 0
   let o_gt_int_int i1 i2 = Z.compare i1 i2 > 0
   let o_gt_rat_rat i1 i2 = Q.compare i1 i2 > 0
   let o_gt_mon_mon m1 m2 = Z.compare m1 m2 > 0
-  let o_gt_dur_dur d1 d2 = compare_periods d1 d2 > 0
+  let o_gt_dur_dur pos d1 d2 = compare_periods pos d1 d2 > 0
   let o_gt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 > 0
   let o_gte_int_int i1 i2 = Z.compare i1 i2 >= 0
   let o_gte_rat_rat i1 i2 = Q.compare i1 i2 >= 0
   let o_gte_mon_mon m1 m2 = Z.compare m1 m2 >= 0
-  let o_gte_dur_dur d1 d2 = compare_periods d1 d2 >= 0
+  let o_gte_dur_dur pos d1 d2 = compare_periods pos d1 d2 >= 0
   let o_gte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 >= 0
   let o_eq_int_int i1 i2 = Z.equal i1 i2
   let o_eq_rat_rat i1 i2 = Q.equal i1 i2
   let o_eq_mon_mon m1 m2 = Z.equal m1 m2
-  let o_eq_dur_dur d1 d2 = equal_periods d1 d2
+  let o_eq_dur_dur pos d1 d2 = equal_periods pos d1 d2
   let o_eq_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 = 0
   let o_fold = Array.fold_left
 end

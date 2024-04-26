@@ -294,7 +294,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         log "@]}";
         e, env
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
-  | (EAbs _ | ELit _ | EEmptyError), _ -> e0, env (* these are values *)
+  | (EAbs _ | ELit _ | EEmpty), _ -> e0, env (* these are values *)
   | (EStruct _ | ETuple _ | EInj _ | EArray _), _ ->
     if not llevel.eval_struct then e0, env
     else
@@ -348,7 +348,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
       List.filter_map
         (fun e ->
           match eval_to_value env e ~eval_default:false with
-          | (EEmptyError, _), _ -> None
+          | (EEmpty, _), _ -> None
           | e -> Some e)
         excepts
     in
@@ -359,7 +359,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         let condition = just, env in
         let e, env = lazy_eval ctx env llevel cons in
         add_condition ~condition e, env
-      | (ELit (LBool false), _), _ -> (EEmptyError, m), env
+      | (ELit (LBool false), _), _ -> (EEmpty, m), env
       (* Note: conditions for empty are skipped *)
       | e, _ -> error e "Invalid exception justification %a" Expr.format e)
     | [(e, env)] ->
@@ -387,7 +387,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     | e, _ -> error e "Invalid condition %a" Expr.format e)
   | EErrorOnEmpty e, _ -> (
     match eval_to_value env e ~eval_default:false with
-    | ((EEmptyError, _) as e'), _ ->
+    | ((EEmpty, _) as e'), _ ->
       (* This does _not_ match the eager semantics ! *)
       error e' "This value is undefined %a" Expr.format e
     | e, env -> lazy_eval ctx env llevel e)
@@ -400,6 +400,8 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         error e "Assert failure (%a)" Expr.format e error e
           "Assert failure (%a)" Expr.format e
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
+  | EFatalError err, _ ->
+    error e0 "%a" Format.pp_print_text (Runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
   | _ -> .
 
@@ -1072,8 +1074,8 @@ let expr_to_dot_label0 :
       let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
        fun ppf e ->
         match Mark.remove e with
-        | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmptyError
-        | EAbs _ | EExternal _ ->
+        | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
+        | EExternal _ ->
           aux_value ppf e;
           true
         | EMatch { e; cases; _ } ->

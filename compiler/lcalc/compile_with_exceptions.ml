@@ -71,10 +71,10 @@ let rec translate_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   match e with
-  | EEmptyError, m -> Expr.eraise Empty (translate_mark m)
+  | EEmpty, m -> Expr.eraiseempty (translate_mark m)
   | EErrorOnEmpty arg, m ->
     let m = translate_mark m in
-    Expr.ecatch (translate_expr arg) Empty (Expr.eraise NoValueProvided m) m
+    Expr.ecatchempty (translate_expr arg) (Expr.efatalerror Runtime.NoValue m) m
   | EDefault { excepts; just; cons }, m ->
     translate_default excepts just cons (translate_mark m)
   | EPureDefault e, _ -> translate_expr e
@@ -85,7 +85,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       (translate_mark m)
   | ( ( ELit _ | EArray _ | EVar _ | EAbs _ | EApp _ | EExternal _
       | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
-      | EStruct _ | EStructAccess _ | EMatch _ ),
+      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ ),
       _ ) as e ->
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .

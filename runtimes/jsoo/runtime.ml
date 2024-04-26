@@ -147,13 +147,9 @@ let event_manager : event_manager Js.t =
   end
 
 let execute_or_throw_error f =
-  let throw_error (descr : string) (pos : R_ocaml.source_position) =
-    let msg =
-      Js.string
-        (Format.asprintf "%s in file %s, position %d:%d--%d:%d." descr
-           pos.filename pos.start_line pos.start_column pos.end_line
-           pos.end_column)
-    in
+  try f ()
+  with R_ocaml.Error _ as exc ->
+    let msg = Js.string (Printexc.to_string exc) in
     Js.Js_error.raise_
       (Js.Js_error.of_error
          (object%js
@@ -162,16 +158,6 @@ let execute_or_throw_error f =
             val mutable stack = Js.Optdef.empty
             method toString = msg
          end))
-  in
-  try f () with
-  | R_ocaml.NoValueProvided pos ->
-    throw_error
-      "No rule applies in the given context to give a value to the variable" pos
-  | R_ocaml.ConflictError pos ->
-    throw_error
-      "A conflict happened between two rules giving a value to the variable" pos
-  | R_ocaml.AssertionFailed pos ->
-    throw_error "A failure happened in the assertion" pos
 
 let () =
   Js.export_all

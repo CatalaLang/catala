@@ -754,11 +754,11 @@ and typecheck_expr_top_down :
         args
     in
     Expr.escopecall ~scope ~args:args' mark
-  | A.ERaise ex -> Expr.eraise ex context_mark
-  | A.ECatch { body; exn; handler } ->
+  | A.ERaiseEmpty -> Expr.eraiseempty context_mark
+  | A.ECatchEmpty { body; handler } ->
     let body' = typecheck_expr_top_down ctx env tau body in
     let handler' = typecheck_expr_top_down ctx env tau handler in
-    Expr.ecatch body' exn handler' context_mark
+    Expr.ecatchempty body' handler' context_mark
   | A.EVar v ->
     let tau' =
       match Env.get env v with
@@ -949,8 +949,9 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ctx env (unionfind ~pos:e1 (TLit TBool)) e1
     in
     Expr.eassert e1' mark
-  | A.EEmptyError ->
-    Expr.eemptyerror (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
+  | A.EFatalError err -> Expr.efatalerror err context_mark
+  | A.EEmpty ->
+    Expr.eempty (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
   | A.EErrorOnEmpty e1 ->
     let tau' = unionfind (TDefault tau) in
     let e1' = typecheck_expr_top_down ctx env tau' e1 in

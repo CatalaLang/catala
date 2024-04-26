@@ -171,7 +171,7 @@ let rec optimize_expr :
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
-        List.filter (fun except -> Mark.remove except <> EEmptyError) excepts
+        List.filter (fun except -> Mark.remove except <> EEmpty) excepts
         (* we can discard the exceptions that are always empty error *)
       in
       let value_except_count =
@@ -201,7 +201,7 @@ let rec optimize_expr :
               | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* No exceptions and condition false *)
-          EEmptyError
+          EEmpty
         | ( [except],
             ( ( ELit (LBool false)
               | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
@@ -363,13 +363,12 @@ let rec optimize_expr :
                 el) ->
       (* identity tuple reconstruction *)
       Mark.remove e
-    | ECatch { body; exn; handler } -> (
+    | ECatchEmpty { body; handler } -> (
       (* peephole exception catching reductions *)
       match Mark.remove body, Mark.remove handler with
-      | ERaise exn', ERaise exn'' when exn' = exn && exn = exn'' -> ERaise exn
-      | ERaise exn', _ when exn' = exn -> Mark.remove handler
-      | _, ERaise exn' when exn' = exn -> Mark.remove body
-      | _ -> ECatch { body; exn; handler })
+      | ERaiseEmpty, _ -> Mark.remove handler
+      | _, ERaiseEmpty -> Mark.remove body
+      | _ -> ECatchEmpty { body; handler })
     | e -> e
   in
   Expr.Box.app1 e reduce mark

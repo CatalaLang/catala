@@ -4,12 +4,14 @@
 
 typedef enum catala_fatal_error_code
 {
-    catala_no_value_provided,
-    catala_conflict,
-    catala_crash,
-    catala_empty,
-    catala_assertion_failure,
-    catala_malloc_error,
+  catala_assertion_failed,
+  catala_no_value,
+  catala_conflict,
+  catala_division_by_zero,
+  catala_not_same_length,
+  catala_uncomparable_durations,
+  catala_indivisible_durations,
+  catala_malloc_error,
 } catala_fatal_error_code;
 
 typedef struct catala_code_position

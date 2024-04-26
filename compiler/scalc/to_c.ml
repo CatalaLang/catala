@@ -402,8 +402,8 @@ let rec format_statement
     (s : stmt Mark.pos) : unit =
   match Mark.remove s with
   | SInnerFuncDef _ ->
-    Message.error ~pos:(Mark.get s)
-      "Internal error: this inner functions should have been hoisted in Scalc"
+    Message.error ~pos:(Mark.get s) ~internal:true
+      "This inner functions should have been hoisted in Scalc"
   | SLocalDecl { name = v; typ = ty } ->
     Format.fprintf fmt "@[<hov 2>%a@];"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
@@ -440,22 +440,18 @@ let rec format_statement
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept _ -> failwith "should not happen"
-  | SRaise e ->
+  | SRaiseEmpty | STryWEmpty _ -> assert false
+  | SFatalError err ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "catala_fatal_error_raised.code = %s;@,\
+      "catala_fatal_error_raised.code = catala_%s;@,\
        catala_fatal_error_raised.position.filename = \"%s\";@,\
        catala_fatal_error_raised.position.start_line = %d;@,\
        catala_fatal_error_raised.position.start_column = %d;@,\
        catala_fatal_error_raised.position.end_line = %d;@,\
        catala_fatal_error_raised.position.end_column = %d;@,\
        longjmp(catala_fatal_error_jump_buffer, 0);"
-      (match e with
-      | ConflictError _ -> "catala_conflict"
-      | Empty -> "catala_empty"
-      | NoValueProvided -> "catala_no_value_provided"
-      | Crash _ -> "catala_crash")
+      (String.to_snake_case (Runtime.error_to_string err))
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->

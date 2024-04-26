@@ -252,9 +252,9 @@ to ensure that the *syntax* is correct.
 $ catala typecheck
 [ERROR] No scope named Scope0 found
 
-┌─⯈ doc/syntax/syntax_fr.catala_fr:93.28-93.34:
+┌─⯈ doc/syntax/syntax_fr.catala_fr:92.28-92.34:
 └──┐
-93 │   sub1 champ d'application Scope0
+92 │   sub1 champ d'application Scope0
    │                            ‾‾‾‾‾‾
    └─ Déclaration des métadonnées
 #return code 123#

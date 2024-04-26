@@ -124,7 +124,7 @@ let scope Foo
     match
       (handle_default_opt [b.0 b.1 ()] (λ () → true) (λ () → ESome true))
     with
-    | ENone → raise NoValueProvided
+    | ENone → error NoValue
     | ESome arg → arg
   in
   let set r :

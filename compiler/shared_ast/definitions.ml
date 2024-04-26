@@ -553,6 +553,7 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
+  | EFatalError : Runtime.error -> ('a, < .. >, 'm) base_gexpr
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 'm) gexpr list;
@@ -564,15 +565,14 @@ and ('a, 'b, 'm) base_gexpr =
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
       (** "return" of a pure term, so that it can be typed as [default] *)
-  | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  | EEmpty : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   (* Lambda calculus with exceptions *)
-  | ERaise : except -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
-  | ECatch : {
+  | ERaiseEmpty : ('a, < exceptions : yes ; .. >, 'm) base_gexpr
+  | ECatchEmpty : {
       body : ('a, 'm) gexpr;
-      exn : except;
       handler : ('a, 'm) gexpr;
     }
       -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr

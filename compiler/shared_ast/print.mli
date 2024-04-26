@@ -48,6 +48,7 @@ val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
 val except : Format.formatter -> except -> unit
+val runtime_error : Format.formatter -> Runtime.error -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 

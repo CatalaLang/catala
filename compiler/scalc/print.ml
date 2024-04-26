@@ -137,16 +137,19 @@ let rec format_statement
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | STryExcept { try_block = b_try; except; with_block = b_with } ->
+  | STryWEmpty { try_block = b_try; with_block = b_with } ->
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"
       (format_block decl_ctx ~debug)
-      b_try Print.keyword "with" Print.except except Print.punctuation ":"
+      b_try Print.keyword "with" Print.except Empty Print.punctuation ":"
       (format_block decl_ctx ~debug)
       b_with
-  | SRaise except ->
+  | SRaiseEmpty ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.except
-      except
+      Empty
+  | SFatalError err ->
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
+      Print.runtime_error err
   | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
     Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
       Print.keyword "if"

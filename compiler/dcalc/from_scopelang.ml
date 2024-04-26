@@ -264,7 +264,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
               ( var_ctx.scope_input_name,
                 Expr.make_abs
                   [| Var.make "_" |]
-                  (Expr.eemptyerror (Expr.with_ty m ty0))
+                  (Expr.eempty (Expr.with_ty m ty0))
                   [TAny, iopos]
                   pos )
           | Some var_ctx, Some e ->
@@ -569,8 +569,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
-    | ETupleAccess _ | EInj _ | EEmptyError | EErrorOnEmpty _ | EArray _
-    | EIfThenElse _ | EAppOp _ ) as e ->
+    | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
+    | EArray _ | EIfThenElse _ | EAppOp _ ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables
