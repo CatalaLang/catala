@@ -378,12 +378,6 @@ end
 
 type 'a operator = 'a Op.t
 
-type except =
-  | ConflictError of Pos.t list
-  | Empty
-  | NoValueProvided
-  | Crash of string
-
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@caml.unboxed]

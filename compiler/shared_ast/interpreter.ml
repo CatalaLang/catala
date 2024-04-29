@@ -59,16 +59,6 @@ let print_log lang entry infos pos e =
       Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
         infos
 
-exception CatalaException of except * Pos.t
-
-let () =
-  Printexc.register_printer (function
-    | CatalaException (e, _pos) ->
-      Some
-        (Format.asprintf "uncaught exception %a raised during interpretation"
-           Print.except e)
-    | _ -> None)
-
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
@@ -362,7 +352,7 @@ let rec evaluate_operator
       List.filter_map
         (fun e ->
           try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
-          with CatalaException (Empty, _) -> None)
+          with Runtime.Empty -> None)
         excepts
     with
     | [] -> (
@@ -371,7 +361,7 @@ let rec evaluate_operator
       | ELit (LBool true) ->
         Mark.remove
           (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
-      | ELit (LBool false) -> raise (CatalaException (Empty, pos))
+      | ELit (LBool false) -> raise Runtime.Empty
       | _ ->
         Message.error ~pos
           "Default justification has not been reduced to a boolean at@ \
@@ -379,7 +369,14 @@ let rec evaluate_operator
            %a@."
           Expr.format just)
     | [e] -> Mark.remove e
-    | es -> raise (CatalaException (ConflictError (List.map Expr.pos es), pos)))
+    | es ->
+      (* FIXME REGRESSION: extra positions are lost *)
+      raise
+        Runtime.(
+          Error
+            ( Conflict,
+              List.hd (List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es)
+            )))
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -416,7 +413,12 @@ let rec evaluate_operator
       e
     | [_] -> err ()
     | excs ->
-      raise (CatalaException (ConflictError (List.map Expr.pos excs), pos)))
+      (* FIXME REGRESSION *)
+      raise
+        Runtime.(
+          Error
+            ( Conflict,
+              List.hd (List.map Expr.(fun e -> pos_to_runtime (pos e)) excs) )))
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -575,8 +577,7 @@ and val_to_runtime :
         let args = List.rev acc in
         let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
-          (try eval_expr ctx (EApp { f = v; args; tys }, m)
-           with CatalaException (Empty, _) -> raise Runtime.Empty)
+          (eval_expr ctx (EApp { f = v; args; tys }, m))
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -644,23 +645,18 @@ let rec evaluate_expr :
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | ECustom { obj; targs; tret } -> (
+    | ECustom { obj; targs; tret } ->
       (* Applies the arguments one by one to the curried form *)
-      match
+      let o =
         List.fold_left2
           (fun fobj targ arg ->
             (Obj.obj fobj : Obj.t -> Obj.t)
               (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
           obj targs args
-      with
-      | exception e ->
-        Format.ksprintf
-          (fun s -> raise (CatalaException (Crash s, pos)))
-          "@[<hv 2>This call to code from a module failed with:@ %s@]"
-          (Printexc.to_string e)
-      | o -> runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o)
+      in
+      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
-      Message.error ~pos "%a" Format.pp_print_text
+      Message.error ~pos ~internal:true "%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAppOp { op; args; _ } ->
@@ -758,10 +754,11 @@ let rec evaluate_expr :
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
-      Message.error ~pos:(Expr.pos e') "Assertion failed:@\n%a"
+      Message.result ~pos:(Expr.pos e') "Assertion failed:@\n%a"
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
-           (Expr.skip_wrappers e'))
+           (Expr.skip_wrappers e'));
+      raise Runtime.(Error (AssertionFailed, Expr.pos_to_runtime pos))
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
@@ -769,10 +766,9 @@ let rec evaluate_expr :
   | EFatalError err -> raise (Runtime.Error (err, Expr.pos_to_runtime pos))
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
-    | EEmpty, _ ->
-      Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
-        "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
+    | EEmpty, _ -> raise Runtime.(Error (NoValue, Expr.pos_to_runtime pos))
+    | exception Runtime.Empty ->
+      raise Runtime.(Error (NoValue, Expr.pos_to_runtime pos))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -789,17 +785,18 @@ let rec evaluate_expr :
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
-      let poslist =
+      let _poslist =
         List.filter_map
           (fun ex -> if is_empty_error ex then None else Some (Expr.pos ex))
           excepts
       in
-      raise (CatalaException (ConflictError poslist, pos)))
+      (* FIXME REGRESSION *)
+      raise Runtime.(Error (Conflict, Expr.pos_to_runtime pos)))
   | EPureDefault e -> evaluate_expr ctx lang e
-  | ERaiseEmpty -> raise (CatalaException (Empty, pos))
+  | ERaiseEmpty -> raise Runtime.Empty
   | ECatchEmpty { body; handler } -> (
     try evaluate_expr ctx lang body
-    with CatalaException (Empty, _) -> evaluate_expr ctx lang handler)
+    with Runtime.Empty -> evaluate_expr ctx lang handler)
   | _ -> .
 
 and partially_evaluate_expr_for_assertion_failure_message :
@@ -912,25 +909,6 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
-let interp_failure_message ~pos = function
-  | NoValueProvided ->
-    Message.error ~pos "%a" Format.pp_print_text
-      "This variable evaluated to an empty term (no rule that defined it \
-       applied in this situation)"
-  | ConflictError cpos ->
-    Message.error
-      ~extra_pos:
-        (List.map
-           (fun pos -> "This consequence has a valid justification:", pos)
-           cpos)
-      "%a" Format.pp_print_text
-      "There is a conflict between multiple valid consequences for assigning \
-       the same variable."
-  | Crash s -> Message.error ~pos "%s" s
-  | Empty ->
-    Message.error ~pos ~internal:true
-      "A variable without valid definition escaped"
-
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
@@ -1007,11 +985,12 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
-    | exception CatalaException (except, pos) ->
-      interp_failure_message ~pos except
+    | exception Runtime.Error (err, pos) ->
+      Message.error ~pos:(Expr.runtime_to_pos pos) "%a" Format.pp_print_text
+        (Runtime.error_message err)
     | _ ->
-      Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-        "The interpretation of a program should always yield a struct \
+      Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+        "The interpretation of the program doesn't yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
@@ -1066,8 +1045,6 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
-    | exception CatalaException (except, pos) ->
-      interp_failure_message ~pos except
     | _ ->
       Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \

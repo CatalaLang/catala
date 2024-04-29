@@ -606,8 +606,6 @@ let compare_location
   | _, ToplevelVar _ -> .
 
 let equal_location a b = compare_location a b = 0
-let equal_except ex1 ex2 = ex1 = ex2
-let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
 let equal_error er1 er2 = er1 = er2
 let compare_error er1 er2 = Stdlib.compare er1 er2
 

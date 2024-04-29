@@ -348,14 +348,6 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
 let runtime_error ppf err =
   Format.fprintf ppf "@{<red>%s@}" (Runtime.error_to_string err)
 
-let except (fmt : Format.formatter) (exn : except) : unit =
-  op_style fmt
-    (match exn with
-    | Empty -> "Empty"
-    | ConflictError _ -> "ConflictError"
-    | Crash s -> Printf.sprintf "Crash %S" s
-    | NoValueProvided -> "NoValueProvided")
-
 let var_debug fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
@@ -682,9 +674,9 @@ module ExprGen (C : EXPR_PARAM) = struct
       | ECatchEmpty { body; handler } ->
         Format.fprintf fmt
           "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]" keyword "try"
-          expr body keyword "with" except Empty (rhs exprc) handler
+          expr body keyword "with" op_style "Empty" (rhs exprc) handler
       | ERaiseEmpty ->
-        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except Empty
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" op_style "Empty"
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation

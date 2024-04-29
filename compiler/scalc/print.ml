@@ -141,12 +141,12 @@ let rec format_statement
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"
       (format_block decl_ctx ~debug)
-      b_try Print.keyword "with" Print.except Empty Print.punctuation ":"
+      b_try Print.keyword "with" Print.op_style "Empty" Print.punctuation ":"
       (format_block decl_ctx ~debug)
       b_with
   | SRaiseEmpty ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.except
-      Empty
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.op_style
+      "Empty"
   | SFatalError err ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
       Print.runtime_error err

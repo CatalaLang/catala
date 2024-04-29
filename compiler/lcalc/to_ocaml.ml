@@ -266,15 +266,6 @@ let needs_parens (e : 'm expr) : bool =
     false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
-  match Mark.remove exc with
-  | ConflictError _ ->
-    Format.fprintf fmt "(ConflictError@ %a)" format_pos (Mark.get exc)
-  | Empty -> Format.fprintf fmt "Empty"
-  | Crash s -> Format.fprintf fmt "(Crash %S)" s
-  | NoValueProvided ->
-    Format.fprintf fmt "(NoValueProvided@ %a)" format_pos (Mark.get exc)
-
 let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     unit =
   let format_expr = format_expr ctx in
@@ -458,13 +449,10 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EFatalError er ->
     Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, %a))"
       Print.runtime_error er format_pos (Expr.pos e)
-  | ERaiseEmpty ->
-    Format.fprintf fmt "raise@ %a" format_exception (Empty, Expr.pos e)
+  | ERaiseEmpty -> Format.fprintf fmt "raise Empty"
   | ECatchEmpty { body; handler } ->
-    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
-      format_with_parens body format_exception
-      (Empty, Expr.pos e)
-      format_with_parens handler
+    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with Empty ->@]@ @[%a@]"
+      format_with_parens body format_with_parens handler
   | _ -> .
 
 let format_struct_embedding

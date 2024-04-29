@@ -418,8 +418,6 @@ val equal_lit : lit -> lit -> bool
 val compare_lit : lit -> lit -> int
 val equal_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> bool
 val compare_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> int
-val equal_except : except -> except -> bool
-val compare_except : except -> except -> int
 
 val equal : ('a, 'm) gexpr -> ('a, 'm) gexpr -> bool
 (** Determines if two expressions are equal, omitting their position information *)
