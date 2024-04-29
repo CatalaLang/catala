@@ -85,7 +85,7 @@ val error_to_string : error -> string
 val error_message : error -> string
 (** Returns a short explanation message about the error *)
 
-exception Error of error * source_position
+exception Error of error * source_position list
 exception Empty
 
 (** {1 Value Embedding} *)
@@ -333,17 +333,21 @@ val duration_to_string : duration -> string
 (**{1 Defaults} *)
 
 val handle_default :
-  source_position -> (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
-(** @raise EmptyError
-    @raise ConflictError *)
+  source_position array ->
+  (unit -> 'a) array ->
+  (unit -> bool) ->
+  (unit -> 'a) ->
+  'a
+(** @raise Empty
+    @raise Error Conflict *)
 
 val handle_default_opt :
-  source_position ->
+  source_position array ->
   'a Eoption.t array ->
   (unit -> bool) ->
   (unit -> 'a Eoption.t) ->
   'a Eoption.t
-(** @raise ConflictError *)
+(** @raise Error Conflict *)
 
 (**{1 Operators} *)
 

@@ -19,17 +19,14 @@ Note: ideally this could use test-scope but some positions are lost during trans
 
 ```catala-test-inline
 $ catala interpret -s A
-[ERROR] There is a conflict between multiple valid consequences for assigning
-  the same variable.
+[ERROR] Error during evaluation: two or more concurring valid computations.
 
-This consequence has a valid justification:
 ┌─⯈ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:
 └──┐
 12 │   definition x equals 1
    │                       ‾
    └─ Test
 
-This consequence has a valid justification:
 ┌─⯈ tests/exception/bad/two_exceptions.catala_en:15.23-15.24:
 └──┐
 15 │   definition x equals 2

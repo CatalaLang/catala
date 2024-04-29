@@ -370,13 +370,11 @@ let rec evaluate_operator
           Expr.format just)
     | [e] -> Mark.remove e
     | es ->
-      (* FIXME REGRESSION: extra positions are lost *)
       raise
         Runtime.(
           Error
-            ( Conflict,
-              List.hd (List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es)
-            )))
+            (Conflict, List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es))
+    )
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -413,12 +411,10 @@ let rec evaluate_operator
       e
     | [_] -> err ()
     | excs ->
-      (* FIXME REGRESSION *)
       raise
         Runtime.(
-          Error
-            ( Conflict,
-              List.hd (List.map Expr.(fun e -> pos_to_runtime (pos e)) excs) )))
+          Error (Conflict, List.map Expr.(fun e -> pos_to_runtime (pos e)) excs))
+    )
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -754,21 +750,21 @@ let rec evaluate_expr :
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
-      Message.result ~pos:(Expr.pos e') "Assertion failed:@\n%a"
+      Message.warning "Assertion failed:@ %a"
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'));
-      raise Runtime.(Error (AssertionFailed, Expr.pos_to_runtime pos))
+      raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
-  | EFatalError err -> raise (Runtime.Error (err, Expr.pos_to_runtime pos))
+  | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
-    | EEmpty, _ -> raise Runtime.(Error (NoValue, Expr.pos_to_runtime pos))
+    | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | exception Runtime.Empty ->
-      raise Runtime.(Error (NoValue, Expr.pos_to_runtime pos))
+      raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -785,13 +781,14 @@ let rec evaluate_expr :
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
-      let _poslist =
+      let poslist =
         List.filter_map
-          (fun ex -> if is_empty_error ex then None else Some (Expr.pos ex))
+          (fun ex ->
+            if is_empty_error ex then None
+            else Some Expr.(pos_to_runtime (pos ex)))
           excepts
       in
-      (* FIXME REGRESSION *)
-      raise Runtime.(Error (Conflict, Expr.pos_to_runtime pos)))
+      raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
   | ERaiseEmpty -> raise Runtime.Empty
   | ECatchEmpty { body; handler } -> (
@@ -846,8 +843,9 @@ let evaluate_expr_safe :
  fun ctx lang e ->
   try evaluate_expr ctx lang e
   with Runtime.Error (err, rpos) ->
-    Message.error ~pos:(Expr.runtime_to_pos rpos) "Error during evaluation: %a."
-      Format.pp_print_text
+    Message.error
+      ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+      "Error during evaluation: %a." Format.pp_print_text
       (Runtime.error_message err)
 
 (* Typing shenanigan to add custom terms to the AST type. *)
@@ -985,8 +983,10 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
-    | exception Runtime.Error (err, pos) ->
-      Message.error ~pos:(Expr.runtime_to_pos pos) "%a" Format.pp_print_text
+    | exception Runtime.Error (err, rpos) ->
+      Message.error
+        ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+        "%a" Format.pp_print_text
         (Runtime.error_message err)
     | _ ->
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text

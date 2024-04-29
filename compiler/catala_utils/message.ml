@@ -213,22 +213,21 @@ module Content = struct
                     content
                 | some -> some
               in
-              pos, m
-            | Position { pos_message; pos } ->
-              let message =
-                match pos_message with Some m -> m | None -> fun _ -> ()
-              in
-              Some pos, message
-            | Outcome m -> None, m
-            | Suggestion sl -> None, fun ppf -> Suggestions.format ppf sl
+              pos, Some m
+            | Position { pos_message; pos } -> Some pos, pos_message
+            | Outcome m -> None, Some m
+            | Suggestion sl -> None, Some (fun ppf -> Suggestions.format ppf sl)
           in
           Option.iter
             (fun pos ->
               Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
             pos;
           pp_marker target ppf;
-          Format.pp_print_char ppf ' ';
-          Format.pp_print_string ppf (unformat message))
+          match message with
+          | Some message ->
+            Format.pp_print_char ppf ' ';
+            Format.pp_print_string ppf (unformat message)
+          | None -> ())
         ppf content;
       Format.pp_print_newline ppf ()
 end

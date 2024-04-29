@@ -408,14 +408,20 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       format_with_parens arg1
   | EAppOp { op = Log _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp { op = (HandleDefault | HandleDefaultOpt) as op; args; _ } ->
-    let pos = Expr.pos e in
-    Format.fprintf fmt "@[<hov 2>%s@ %a@ %a@]"
+  | EAppOp
+      {
+        op = (HandleDefault | HandleDefaultOpt) as op;
+        args = (EArray excs, _) :: _ as args;
+        _;
+      } ->
+    let pos = List.map Expr.pos excs in
+    Format.fprintf fmt "@[<hov 2>%s@ [|%a|]@ %a@]"
       (Print.operator_to_string op)
-      format_pos pos
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         format_with_parens)
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+         format_pos)
+      pos
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
       args
   | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
@@ -442,12 +448,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       args
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (Error (%s, %a))@]"
+      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (Error (%s, [%a]))@]"
       format_with_parens e'
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
   | EFatalError er ->
-    Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, %a))"
+    Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, [%a]))"
       Print.runtime_error er format_pos (Expr.pos e)
   | ERaiseEmpty -> Format.fprintf fmt "raise Empty"
   | ECatchEmpty { body; handler } ->

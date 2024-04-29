@@ -73,7 +73,7 @@ let error_message = function
     "comparing durations in different units (e.g. months vs. days)"
   | IndivisibleDurations -> "dividing durations that are not in days"
 
-exception Error of error * source_position
+exception Error of error * source_position list
 exception Empty
 
 let error err pos = raise (Error (err, pos))
@@ -84,10 +84,11 @@ let () =
     Printf.sprintf "%s:%d.%d-%d.%d" p.filename p.start_line p.start_column
       p.end_line p.end_column
   in
+  let pposl () pl = String.concat ", " (List.map (ppos ()) pl) in
   Printexc.register_printer
   @@ function
   | Error (err, pos) ->
-    Some (Printf.sprintf "At %a: %s" ppos pos (error_message err))
+    Some (Printf.sprintf "At %a: %s" pposl pos (error_message err))
   | _ -> None
 
 let () =
@@ -721,43 +722,42 @@ end
 
 let handle_default :
       'a.
-      source_position ->
+      source_position array ->
       (unit -> 'a) array ->
       (unit -> bool) ->
       (unit -> 'a) ->
       'a =
  fun pos exceptions just cons ->
-  let except =
-    Array.fold_left
-      (fun acc except ->
-        let new_val = try Some (except ()) with Empty -> None in
-        match acc, new_val with
-        | None, _ -> new_val
-        | Some _, None -> acc
-        | Some _, Some _ -> error Conflict pos)
-      None exceptions
+  let len = Array.length exceptions in
+  let rec filt_except i =
+    if i < len then
+      match exceptions.(i) () with
+      | new_val -> (new_val, i) :: filt_except (i + 1)
+      | exception Empty -> filt_except (i + 1)
+    else []
   in
-  match except with
-  | Some x -> x
-  | None -> if just () then cons () else raise Empty
+  match filt_except 0 with
+  | [] -> if just () then cons () else raise Empty
+  | [(res, _)] -> res
+  | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
 
 let handle_default_opt
-    (pos : source_position)
+    (pos : source_position array)
     (exceptions : 'a Eoption.t array)
     (just : unit -> bool)
     (cons : unit -> 'a Eoption.t) : 'a Eoption.t =
-  let except =
-    Array.fold_left
-      (fun acc except ->
-        match acc, except with
-        | Eoption.ENone _, _ -> except
-        | Eoption.ESome _, Eoption.ENone _ -> acc
-        | Eoption.ESome _, Eoption.ESome _ -> error Conflict pos)
-      (Eoption.ENone ()) exceptions
+  let len = Array.length exceptions in
+  let rec filt_except i =
+    if i < len then
+      match exceptions.(i) with
+      | Eoption.ESome _ as new_val -> (new_val, i) :: filt_except (i + 1)
+      | Eoption.ENone () -> filt_except (i + 1)
+    else []
   in
-  match except with
-  | Eoption.ESome _ -> except
-  | Eoption.ENone _ -> if just () then cons () else Eoption.ENone ()
+  match filt_except 0 with
+  | [] -> if just () then cons () else Eoption.ENone ()
+  | [(res, _)] -> res
+  | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
 
 (* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
    [3 months, 4 months] *)
@@ -767,7 +767,7 @@ let compare_periods pos (p1 : duration) (p2 : duration) : int =
     let p2_days = Dates_calc.Dates.period_to_days p2 in
     compare p1_days p2_days
   with Dates_calc.Dates.AmbiguousComputation ->
-    error UncomparableDurations pos
+    error UncomparableDurations [pos]
 
 (* TODO: same here, although it was tweaked to never fail on equal dates.
    Comparing the difference to duration_0 is not a good idea because we still
@@ -775,7 +775,7 @@ let compare_periods pos (p1 : duration) (p2 : duration) : int =
 let equal_periods pos (p1 : duration) (p2 : duration) : bool =
   try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
   with Dates_calc.Dates.AmbiguousComputation ->
-    error UncomparableDurations pos
+    error UncomparableDurations [pos]
 
 module Oper = struct
   let o_not = Stdlib.not
@@ -801,7 +801,7 @@ module Oper = struct
   let o_map = Array.map
 
   let o_map2 pos f a b =
-    try Array.map2 f a b with Invalid_argument _ -> error NotSameLength pos
+    try Array.map2 f a b with Invalid_argument _ -> error NotSameLength [pos]
 
   let o_reduce f dft a =
     let len = Array.length a in
@@ -838,18 +838,18 @@ module Oper = struct
 
   let o_div_int_int pos i1 i2 =
     (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
-    if Z.zero = i2 then error DivisionByZero pos
+    if Z.zero = i2 then error DivisionByZero [pos]
     else Q.div (Q.of_bigint i1) (Q.of_bigint i2)
 
   let o_div_rat_rat pos i1 i2 =
-    if Q.zero = i2 then error DivisionByZero pos else Q.div i1 i2
+    if Q.zero = i2 then error DivisionByZero [pos] else Q.div i1 i2
 
   let o_div_mon_mon pos m1 m2 =
-    if Z.zero = m2 then error DivisionByZero pos
+    if Z.zero = m2 then error DivisionByZero [pos]
     else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
 
   let o_div_mon_rat pos m1 r1 =
-    if Q.zero = r1 then error DivisionByZero pos
+    if Q.zero = r1 then error DivisionByZero [pos]
     else o_mult_mon_rat m1 (Q.inv r1)
 
   let o_div_dur_dur pos d1 d2 =
@@ -858,7 +858,7 @@ module Oper = struct
         ( integer_of_int (Dates_calc.Dates.period_to_days d1),
           integer_of_int (Dates_calc.Dates.period_to_days d2) )
       with Dates_calc.Dates.AmbiguousComputation ->
-        error IndivisibleDurations pos
+        error IndivisibleDurations [pos]
     in
     o_div_int_int pos i1 i2
 
