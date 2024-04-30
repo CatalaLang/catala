@@ -1058,14 +1058,11 @@ let thunk_term term =
 
 let empty_thunked_term mark = thunk_term (Bindlib.box EEmpty, mark)
 
-let unthunk_term_nobox term mark =
-  Mark.add mark
-    (EApp
-       {
-         f = term;
-         args = [ELit LUnit, mark];
-         tys = [TLit TUnit, mark_pos mark];
-       })
+let unthunk_term_nobox = function
+  | EAbs { binder; tys = [(TLit TUnit, _)] }, _ ->
+    let _v, e = Bindlib.unmbind binder in
+    e
+  | _ -> invalid_arg "unthunk_term_nobox"
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] [tau] (pos e2)

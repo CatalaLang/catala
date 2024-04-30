@@ -352,16 +352,15 @@ let rec evaluate_operator
     match
       List.filter_map
         (fun e ->
-          try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
+          try Some (evaluate_expr (Expr.unthunk_term_nobox e))
           with Runtime.Empty -> None)
         excepts
     with
     | [] -> (
-      let just = evaluate_expr (Expr.unthunk_term_nobox just m) in
+      let just = evaluate_expr (Expr.unthunk_term_nobox just) in
       match Mark.remove just with
       | ELit (LBool true) ->
-        Mark.remove
-          (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox cons))
       | ELit (LBool false) -> raise Runtime.Empty
       | _ ->
         Message.error ~pos
@@ -385,10 +384,10 @@ let rec evaluate_operator
     in
     match valid_exceptions with
     | [] -> (
-      let e = evaluate_expr (Expr.unthunk_term_nobox justification m) in
+      let e = evaluate_expr (Expr.unthunk_term_nobox justification) in
       match Mark.remove e with
       | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion))
       | ELit (LBool false) ->
         EInj
           {

@@ -361,7 +361,10 @@ val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 
 val thunk_term : ('a any, 'b) boxed_gexpr -> ('a, 'b) boxed_gexpr
-val unthunk_term_nobox : ('a any, 'm) gexpr -> 'm mark -> ('a, 'm) gexpr
+
+val unthunk_term_nobox : ('a any, 'm) gexpr -> ('a, 'm) gexpr
+(** Remove thunking around an expression (this assumes it's the right form,
+    raises Invalid_argument otherwise) *)
 
 val make_let_in :
   ('a, 'm) gexpr Var.t ->
