@@ -30,7 +30,7 @@ let s (s_in: S_in.t) : S.t =
     try
       (handle_default
          [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=16; start_column=10; end_line=16; end_column=12;
+            start_line=26; start_column=24; end_line=26; end_column=30;
             law_headings=["Test modules + inclusions 1"]}|]
          ([|(fun (_: unit) ->
                handle_default [||] ([||]) (fun (_: unit) -> true)
@@ -47,7 +47,7 @@ let s (s_in: S_in.t) : S.t =
     try
       (handle_default
          [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=17; start_column=10; end_line=17; end_column=12;
+            start_line=27; start_column=24; end_line=27; end_column=29;
             law_headings=["Test modules + inclusions 1"]}|]
          ([|(fun (_: unit) ->
                handle_default [||] ([||]) (fun (_: unit) -> true)

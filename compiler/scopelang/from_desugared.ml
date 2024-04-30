@@ -448,13 +448,13 @@ let rec rule_tree_to_expr
              match Expr.unbox base_just with
              | ELit (LBool false), _ -> acc
              | _ ->
+               let cons = Expr.make_puredefault base_cons in
                Expr.edefault
                  ~excepts:[]
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
                  ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 ~cons:(Expr.epuredefault base_cons emark)
-                 emark
+                 ~cons (Mark.get cons)
                :: acc)
            (translate_and_unbox_list base_just_list)
            (translate_and_unbox_list base_cons_list)

@@ -14,10 +14,8 @@ scope A:
   definition b under condition not c consequence equals 0
 ```
 
-Note: ideally this could use test-scope but some positions are lost during translation to lcalc
-
 ```catala-test-inline
-$ catala interpret -s A
+$ catala test-scope A
 [ERROR] Error during evaluation: two or more concurring valid computations.
 
 ┌─⯈ tests/scope/bad/scope.catala_en:13.57-13.61:

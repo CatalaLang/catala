@@ -15,10 +15,8 @@ scope A:
   definition x equals 2
 ```
 
-Note: ideally this could use test-scope but some positions are lost during translation to lcalc
-
 ```catala-test-inline
-$ catala interpret -s A
+$ catala test-scope A
 [ERROR] Error during evaluation: two or more concurring valid computations.
 
 ┌─⯈ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:

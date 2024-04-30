@@ -27,10 +27,8 @@ $ catala test-scope R
 [RESULT] r = 30
 ```
 
-Note: ideally this could use test-scope but some positions are lost during translation to lcalc
-
 ```catala-test-inline
-$ catala interpret -s S
+$ catala test-scope S
 [ERROR] Error during evaluation: two or more concurring valid computations.
 
 ┌─⯈ tests/func/bad/bad_func.catala_en:14.65-14.70:

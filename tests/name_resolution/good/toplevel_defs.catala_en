@@ -426,8 +426,8 @@ def s2(s2_in:S2In):
                 return (glob3(money_of_cents_string("4400")) +
                     decimal_of_string("100."))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=45, start_column=10,
-                                  end_line=45, end_column=11,
+                                  start_line=48, start_column=24,
+                                  end_line=48, end_column=43,
                                   law_headings=["Test toplevel function defs"]), [],
                                   temp_a_1, temp_a_2)
         def temp_a_3(_:Unit):
@@ -458,8 +458,8 @@ def s3(s3_in:S3In):
                     glob4(money_of_cents_string("4400"),
                           decimal_of_string("55.")))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=65, start_column=10,
-                                  end_line=65, end_column=11,
+                                  start_line=68, start_column=24,
+                                  end_line=68, end_column=47,
                                   law_headings=["Test function def with two args"]), [],
                                   temp_a_7, temp_a_8)
         def temp_a_9(_:Unit):
@@ -488,8 +488,8 @@ def s4(s4_in:S4In):
             def temp_a_14(_:Unit):
                 return (glob5 + decimal_of_string("1."))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=88, start_column=10,
-                                  end_line=88, end_column=11,
+                                  start_line=91, start_column=24,
+                                  end_line=91, end_column=34,
                                   law_headings=["Test inline defs in toplevel defs"]), [],
                                   temp_a_13, temp_a_14)
         def temp_a_15(_:Unit):
@@ -518,8 +518,8 @@ def s(s_in:SIn):
             def temp_a_20(_:Unit):
                 return (glob1 * glob1)
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=7, start_column=10,
-                                  end_line=7, end_column=11,
+                                  start_line=18, start_column=24,
+                                  end_line=18, end_column=37,
                                   law_headings=["Test basic toplevel values defs"]), [],
                                   temp_a_19, temp_a_20)
         def temp_a_21(_:Unit):
@@ -545,8 +545,8 @@ def s(s_in:SIn):
             def temp_b_2(_:Unit):
                 return glob2
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=8, start_column=10,
-                                  end_line=8, end_column=11,
+                                  start_line=19, start_column=24,
+                                  end_line=19, end_column=29,
                                   law_headings=["Test basic toplevel values defs"]), [],
                                   temp_b_1, temp_b_2)
         def temp_b_3(_:Unit):

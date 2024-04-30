@@ -40,12 +40,8 @@ scope Ge:
   definition d equals 1 month >= 2 day
 ```
 
-*Fixme*: these tests should use `test-scope` rather than `interpret` ; however,
-compiling with optimisations enabled changes the positions at the moment, so
-they are restricted until that is fixed (see the same issue in division by 0 tests)
-
 ```catala-test-inline
-$ catala interpret -s Ge
+$ catala test-scope Ge
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
@@ -59,7 +55,7 @@ $ catala interpret -s Ge
 ```
 
 ```catala-test-inline
-$ catala interpret -s Gt
+$ catala test-scope Gt
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
@@ -73,7 +69,7 @@ $ catala interpret -s Gt
 ```
 
 ```catala-test-inline
-$ catala interpret -s Le
+$ catala test-scope Le
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
@@ -87,7 +83,7 @@ $ catala interpret -s Le
 ```
 
 ```catala-test-inline
-$ catala interpret -s Lt
+$ catala test-scope Lt
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
