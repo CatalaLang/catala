@@ -145,6 +145,7 @@ and literal =
   | LDate of literal_date
 
 and collection_op =
+  | Member of { element : expression }
   | Exists of { predicate : lident Mark.pos list * expression }
   | Forall of { predicate : lident Mark.pos list * expression }
   | Map of { f : lident Mark.pos list * expression }
@@ -175,8 +176,7 @@ and naked_expression =
   | IfThenElse of expression * expression * expression
   | Binop of binop Mark.pos * expression * expression
   | Unop of unop Mark.pos * expression
-  | CollectionOp of collection_op * expression
-  | MemCollection of expression * expression
+  | CollectionOp of collection_op Mark.pos * expression
   | TestMatchCase of expression * match_case_pattern Mark.pos
   | FunCall of expression * expression list
   | ScopeCall of

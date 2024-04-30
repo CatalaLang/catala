@@ -66,7 +66,7 @@ let half_ : integer -> decimal =
   fun (x_: integer) ->
     o_div_int_int
       {filename="tests/modules/good/mod_def.catala_en";
-       start_line=21; start_column=10; end_line=21; end_column=15;
+       start_line=21; start_column=12; end_line=21; end_column=13;
        law_headings=["Test modules + inclusions 1"]} x_ (integer_of_string
       "2")
 

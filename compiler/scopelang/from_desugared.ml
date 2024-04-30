@@ -39,7 +39,7 @@ let tag_with_log_entry
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   if Global.options.trace then
     Expr.eappop
-      ~op:(Log (l, markings))
+      ~op:(Log (l, markings), Expr.pos e)
       ~tys:[TAny, Expr.pos e]
       ~args:[e] (Mark.get e)
   else e
@@ -200,9 +200,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
       ~monomorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~polymorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~overloaded:(fun op ->
-        match
-          Operator.resolve_overload ctx.decl_ctx (Mark.add (Expr.pos e) op) tys
-        with
+        match Operator.resolve_overload ctx.decl_ctx op tys with
         | op, `Straight -> Expr.eappop ~op ~tys ~args m
         | op, `Reversed ->
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)

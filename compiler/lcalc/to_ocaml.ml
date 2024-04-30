@@ -374,14 +374,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       xs_tau format_expr body
   | EApp
       {
-        f = EAppOp { op = Log (BeginCall, info); args = [f]; _ }, _;
+        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
         args = [arg];
         _;
       }
     when Global.options.trace ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EAppOp { op = Log (VarDef var_def_info, info); args = [arg1]; _ }
+  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
     when Global.options.trace ->
     Format.fprintf fmt
       "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
@@ -393,7 +393,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       var_def_info.log_io_output typ_embedding_name
       (var_def_info.log_typ, Pos.no_pos)
       format_with_parens arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _); args = [arg1]; _ }
+  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
     when Global.options.trace ->
     let pos = Expr.pos e in
     Format.fprintf fmt
@@ -402,15 +402,15 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EAppOp { op = Log (EndCall, info); args = [arg1]; _ }
+  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
     when Global.options.trace ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EAppOp { op = Log _; args = [arg1]; _ } ->
+  | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EAppOp
       {
-        op = (HandleDefault | HandleDefaultOpt) as op;
+        op = ((HandleDefault | HandleDefaultOpt) as op), _;
         args = (EArray excs, _) :: _ as args;
         _;
       } ->
@@ -433,14 +433,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
       format_with_parens cond format_with_parens etrue format_with_parens efalse
-  | EAppOp { op; args; _ } ->
+  | EAppOp { op = op, pos; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
         match op with
         | Map2 | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
         | Div_dur_dur | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur | Gte_dur_dur
         | Eq_dur_dur ->
-          Format.fprintf ppf "%a@ " format_pos (Expr.pos e)
+          Format.fprintf ppf "%a@ " format_pos pos
         | _ -> ())
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")

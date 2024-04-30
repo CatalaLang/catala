@@ -51,7 +51,8 @@ let rec translate_default
   let exceptions =
     List.map (fun except -> Expr.thunk_term (translate_expr except)) exceptions
   in
-  Expr.eappop ~op:Op.HandleDefault
+  Expr.eappop
+    ~op:(Op.HandleDefault, Expr.pos cons)
     ~tys:
       [
         TArray (TArrow ([TLit TUnit, pos], (TAny, pos)), pos), pos;

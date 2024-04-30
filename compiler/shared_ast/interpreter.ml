@@ -62,7 +62,8 @@ let print_log lang entry infos pos e =
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
-let handle_eq evaluate_operator m lang e1 e2 =
+let handle_eq pos evaluate_operator m lang e1 e2 =
+  let eq_eval = evaluate_operator (Eq, pos) m lang in
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
@@ -77,7 +78,7 @@ let handle_eq evaluate_operator m lang e1 e2 =
     try
       List.for_all2
         (fun e1 e2 ->
-          match Mark.remove (evaluate_operator Eq m lang [e1; e2]) with
+          match Mark.remove (eq_eval [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -87,7 +88,7 @@ let handle_eq evaluate_operator m lang e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match Mark.remove (evaluate_operator Eq m lang [e1; e2]) with
+           match Mark.remove (eq_eval [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -98,7 +99,7 @@ let handle_eq evaluate_operator m lang e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Mark.remove (evaluate_operator Eq m lang [e1; e2]) with
+      match Mark.remove (eq_eval [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -108,12 +109,12 @@ let handle_eq evaluate_operator m lang e1 e2 =
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
-    (op : < overloaded : no ; .. > operator)
+    ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
     lang
     args =
   let pos = Expr.mark_pos m in
-  let rpos = Expr.pos_to_runtime pos in
+  let rpos = Expr.pos_to_runtime opos in
   let err () =
     Message.error
       ~extra_pos:
@@ -121,7 +122,7 @@ let rec evaluate_operator
            ( Format.asprintf "Operator (value %a):"
                (Print.operator ~debug:true)
                op,
-             pos );
+             opos );
          ]
         @ List.mapi
             (fun i arg ->
@@ -151,7 +152,7 @@ let rec evaluate_operator
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
   | Eq, [(e1, _); (e2, _)] ->
-    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m lang e1 e2))
+    ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
@@ -814,12 +815,13 @@ and partially_evaluate_expr_for_assertion_failure_message :
         args = [e1; e2];
         tys;
         op =
-          ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-          | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-          | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-          | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-          | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-          | Eq_dur_dur | Eq_dat_dat ) as op;
+          ( ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+            | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+            | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
+            | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+            | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+            | Eq_dur_dur | Eq_dat_dat ),
+            _ ) as op;
       } ->
     ( EAppOp
         {
@@ -950,7 +952,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                   (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                      ~name:Expr.option_enum mark_e)
                   ty_in (Expr.mark_pos mark_e);
-                Expr.eappop ~op:Operator.ToClosureEnv
+                Expr.eappop
+                  ~op:(Operator.ToClosureEnv, pos)
                   ~args:[Expr.etuple [] mark_e]
                   ~tys:[TClosureEnv, pos]
                   mark_e;

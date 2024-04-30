@@ -40,7 +40,7 @@ let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
   | hd :: tl ->
     ( EAppOp
         {
-          op = And;
+          op = And, Expr.mark_pos mark;
           tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
           args = [hd; conjunction_exprs tl mark];
         },
@@ -54,7 +54,7 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
     (fun acc arg ->
       ( EAppOp
           {
-            op = And;
+            op = And, Expr.mark_pos mark;
             tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },
@@ -62,7 +62,13 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
     acc list
 
 let negation (arg : vc_return) (mark : typed mark) : vc_return =
-  EAppOp { op = Not; tys = [TLit TBool, Expr.pos arg]; args = [arg] }, mark
+  ( EAppOp
+      {
+        op = Not, Expr.mark_pos mark;
+        tys = [TLit TBool, Expr.pos arg];
+        args = [arg];
+      },
+    mark )
 
 let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
@@ -72,7 +78,7 @@ let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
     (fun (acc : vc_return) arg ->
       ( EAppOp
           {
-            op = Or;
+            op = Or, Expr.mark_pos mark;
             tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },

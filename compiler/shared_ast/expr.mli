@@ -85,7 +85,7 @@ val eassert :
 val efatalerror : Runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
 
 val eappop :
-  op:'a operator ->
+  op:'a operator Mark.pos ->
   args:('a, 'm) boxed_gexpr list ->
   tys:typ list ->
   'm mark ->
@@ -243,7 +243,7 @@ val untype : ('a, 'm) gexpr -> ('a, untyped) boxed_gexpr
 
 val map :
   ?typ:(typ -> typ) ->
-  ?op:('a operator -> 'b operator) ->
+  ?op:('a operator Mark.pos -> 'b operator Mark.pos) ->
   f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
   (('a, 'b, 'm1) base_gexpr, 'm2) marked ->
   ('b, 'm2) boxed_gexpr

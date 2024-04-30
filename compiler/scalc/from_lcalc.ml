@@ -140,7 +140,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
     | EAppOp
         {
-          op = Op.HandleDefaultOpt;
+          op = Op.HandleDefaultOpt, _;
           args = [_exceptions; _just; _cons];
           tys = _;
         }
@@ -275,7 +275,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       e_stmts
   | EFatalError err -> [SFatalError err, Expr.pos block_expr]
   | EAppOp
-      { op = Op.HandleDefaultOpt; tys = _; args = [exceptions; just; cons] }
+      { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
     when ctxt.config.keep_special_ops ->
     let exceptions =
       match Mark.remove exceptions with

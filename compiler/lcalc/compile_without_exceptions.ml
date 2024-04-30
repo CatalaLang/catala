@@ -61,7 +61,8 @@ let rec translate_default
   let pos = Expr.mark_pos mark_default in
   let exceptions = List.map translate_expr exceptions in
   let exceptions_and_cons_ty = Expr.maybe_ty mark_default in
-  Expr.eappop ~op:Op.HandleDefaultOpt
+  Expr.eappop
+    ~op:(Op.HandleDefaultOpt, Expr.pos cons)
     ~tys:
       [
         TArray exceptions_and_cons_ty, pos;

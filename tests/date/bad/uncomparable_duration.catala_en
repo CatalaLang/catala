@@ -49,10 +49,10 @@ $ catala interpret -s Ge
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
-┌─⯈ tests/date/bad/uncomparable_duration.catala_en:40.23-40.39:
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:40.31-40.33:
 └──┐
 40 │   definition d equals 1 month >= 2 day
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │                               ‾‾
    └┬ `UncomparableDurations` exception management
     └─ `>=` operator
 #return code 123#
@@ -63,10 +63,10 @@ $ catala interpret -s Gt
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
-┌─⯈ tests/date/bad/uncomparable_duration.catala_en:30.23-30.38:
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:30.31-30.32:
 └──┐
 30 │   definition d equals 1 month > 2 day
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │                               ‾
    └┬ `UncomparableDurations` exception management
     └─ `<=` operator
 #return code 123#
@@ -77,10 +77,10 @@ $ catala interpret -s Le
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
-┌─⯈ tests/date/bad/uncomparable_duration.catala_en:20.23-20.39:
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:20.31-20.33:
 └──┐
 20 │   definition d equals 1 month <= 2 day
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │                               ‾‾
    └┬ `UncomparableDurations` exception management
     └─ `<=` operator
 #return code 123#
@@ -91,10 +91,10 @@ $ catala interpret -s Lt
 [ERROR] Error during evaluation: comparing durations in different units (e.g.
   months vs. days).
 
-┌─⯈ tests/date/bad/uncomparable_duration.catala_en:10.23-10.38:
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:10.31-10.32:
 └──┐
 10 │   definition d equals 1 month < 2 day
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │                               ‾
    └┬ `UncomparableDurations` exception management
     └─ `<` operator
 #return code 123#

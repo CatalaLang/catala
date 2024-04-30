@@ -472,7 +472,7 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EAppOp : {
-      op : 'a operator;
+      op : 'a operator Mark.pos;
       args : ('a, 'm) gexpr list;
       tys : typ list;
     }

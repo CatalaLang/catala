@@ -61,7 +61,7 @@ and naked_expr =
   | EArray of expr list
   | ELit of lit
   | EApp of { f : expr; args : expr list }
-  | EAppOp of { op : operator; args : expr list }
+  | EAppOp of { op : operator Mark.pos; args : expr list }
   | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
 type stmt =

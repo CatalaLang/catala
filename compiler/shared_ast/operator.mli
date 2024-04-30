@@ -43,11 +43,11 @@ val name : 'a t -> string
     symbols, e.g. [+$]. *)
 
 val kind_dispatch :
-  polymorphic:(< polymorphic : yes ; .. > t -> 'b) ->
-  monomorphic:(< monomorphic : yes ; .. > t -> 'b) ->
-  ?overloaded:(< overloaded : yes ; .. > t -> 'b) ->
-  ?resolved:(< resolved : yes ; .. > t -> 'b) ->
-  'a t ->
+  polymorphic:(< polymorphic : yes ; .. > t Mark.pos -> 'b) ->
+  monomorphic:(< monomorphic : yes ; .. > t Mark.pos -> 'b) ->
+  ?overloaded:(< overloaded : yes ; .. > t Mark.pos -> 'b) ->
+  ?resolved:(< resolved : yes ; .. > t Mark.pos -> 'b) ->
+  'a t Mark.pos ->
   'b
 (** Calls one of the supplied functions depending on the kind of the operator *)
 
@@ -60,7 +60,7 @@ type 'a no_overloads =
   as
   'a
 
-val translate : 'a no_overloads t -> 'b no_overloads t
+val translate : 'a no_overloads t Mark.pos -> 'b no_overloads t Mark.pos
 (** An identity function that allows translating an operator between different
     passes that don't change operator types *)
 
@@ -84,7 +84,7 @@ val resolve_overload :
   decl_ctx ->
   overloaded t Mark.pos ->
   typ list ->
-  < resolved : yes ; .. > t * [ `Straight | `Reversed ]
+  < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ]
 (** Some overloads are sugar for an operation with reversed operands, e.g.
     [TRat * TMoney] is using [mult_mon_rat]. [`Reversed] is returned to signify
     this case. *)

@@ -305,29 +305,26 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1 (format_expression ctx) arg2
+  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
+    Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
+      (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
-      (op, Pos.no_pos) (format_expression ctx) arg2
-  | EAppOp { op = Not; args = [arg1] } ->
-    Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+      (format_expression ctx) arg2
+  | EAppOp { op = (Not, _) as op; args = [arg1] } ->
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
-        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
+        op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
         args = [arg1];
       } ->
-    Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
-    Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
-  | EAppOp { op = HandleDefaultOpt; _ } ->
+    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  | EAppOp { op = HandleDefaultOpt, _; _ } ->
     Message.error ~internal:true
       "R compilation does not currently support the avoiding of exceptions"
-  | EAppOp { op = HandleDefault as op; args; _ } ->
+  | EAppOp { op = (HandleDefault as op), _; args; _ } ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
@@ -359,7 +356,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EAppOp { op; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))

@@ -300,7 +300,9 @@ let runtime_to_pos rpos =
 let map
     (type a b)
     ?(typ : typ -> typ = Fun.id)
-    ?op:(fop = (fun _ -> invalid_arg "Expr.map" : a Operator.t -> b Operator.t))
+    ?op:(fop =
+        (fun _ -> invalid_arg "Expr.map"
+          : a Operator.t Mark.pos -> b Operator.t Mark.pos))
     ~(f : (a, 'm1) gexpr -> (b, 'm2) boxed_gexpr)
     (e : ((a, b, 'm1) base_gexpr, 'm2) marked) : (b, 'm2) boxed_gexpr =
   let m = map_ty typ (Mark.get e) in
@@ -648,7 +650,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     equal e1 e2 && equal_list args1 args2 && Type.equal_list tys1 tys2
   | ( EAppOp { op = op1; args = args1; tys = tys1 },
       EAppOp { op = op2; args = args2; tys = tys2 } ) ->
-    Operator.equal op1 op2
+    Mark.equal Operator.equal op1 op2
     && equal_list args1 args2
     && Type.equal_list tys1 tys2
   | EAssert e1, EAssert e2 -> equal e1 e2
@@ -719,7 +721,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     List.compare compare args1 args2 @@< fun () ->
     List.compare Type.compare tys1 tys2
   | EAppOp {op=op1; args=args1; tys=tys1}, EAppOp {op=op2; args=args2; tys=tys2} ->
-    Operator.compare op1 op2 @@< fun () ->
+    Mark.compare Operator.compare op1 op2 @@< fun () ->
     List.compare compare args1 args2 @@< fun () ->
     List.compare Type.compare tys1 tys2
   | EArray a1, EArray a2 ->
@@ -845,7 +847,8 @@ let remove_logging_calls e =
   let rec f e =
     let e, m = map ~f ~op:Fun.id e in
     ( Bindlib.box_apply
-        (function EAppOp { op = Log _; args = [(arg, _)]; _ } -> arg | e -> e)
+        (function
+          | EAppOp { op = Log _, _; args = [(arg, _)]; _ } -> arg | e -> e)
         e,
       m )
   in

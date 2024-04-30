@@ -145,7 +145,8 @@ let rec transform_closures_expr :
     (* let env = from_closure_env env in let arg0 = env.0 in ... *)
     let new_closure_body =
       Expr.make_let_in closure_env_var any_ty
-        (Expr.eappop ~op:Operator.FromClosureEnv
+        (Expr.eappop
+           ~op:(Operator.FromClosureEnv, binder_pos)
            ~tys:[TClosureEnv, binder_pos]
            ~args:[Expr.evar closure_env_arg_var binder_mark]
            binder_mark)
@@ -178,7 +179,8 @@ let rec transform_closures_expr :
         (Expr.make_tuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
-                Expr.eappop ~op:Operator.ToClosureEnv
+                Expr.eappop
+                  ~op:(Operator.ToClosureEnv, binder_pos)
                   ~tys:[TAny, Expr.pos e]
                   ~args:
                     [
@@ -197,7 +199,7 @@ let rec transform_closures_expr :
         (Expr.pos e) )
   | EAppOp
       {
-        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
@@ -492,7 +494,7 @@ let rec hoist_closures_expr :
         ~args:new_args ~tys m )
   | EAppOp
       {
-        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
         tys;
         args;
       } ->

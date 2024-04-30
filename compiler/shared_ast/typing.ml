@@ -354,13 +354,11 @@ let polymorphic_op_return_type
 let resolve_overload_ret_type
     ~flags
     (ctx : A.decl_ctx)
-    e
-    (op : Operator.overloaded A.operator)
+    _e
+    (op : Operator.overloaded A.operator Mark.pos)
     tys : unionfind_typ =
   let op_ty =
-    Operator.overload_type ctx
-      (Mark.add (Expr.pos e) op)
-      (List.map (typ_to_ast ~flags) tys)
+    Operator.overload_type ctx op (List.map (typ_to_ast ~flags) tys)
   in
   ast_to_typ (Type.arrow_return op_ty)
 
@@ -887,17 +885,14 @@ and typecheck_expr_top_down :
     let t_args = List.map ast_to_typ tys in
     let t_func = unionfind (TArrow (t_args, tau)) in
     let args =
-      Operator.kind_dispatch op
+      Operator.kind_dispatch (Mark.set pos_e op)
         ~polymorphic:(fun op ->
           (* Type the operator first, then right-to-left: polymorphic operators
              are required to allow the resolution of all type variables this
              way *)
           if not env.flags.assume_op_types then
-            unify ctx e (polymorphic_op_type (Mark.add pos_e op)) t_func
-          else
-            unify ctx e
-              (polymorphic_op_return_type ctx e (Mark.add pos_e op) t_args)
-              tau;
+            unify ctx e (polymorphic_op_type op) t_func
+          else unify ctx e (polymorphic_op_return_type ctx e op t_args) tau;
           List.rev_map2
             (typecheck_expr_top_down ctx env)
             (List.rev t_args) (List.rev args))
@@ -908,15 +903,11 @@ and typecheck_expr_top_down :
           args')
         ~monomorphic:(fun op ->
           (* Here it doesn't matter but may affect the error messages *)
-          unify ctx e
-            (ast_to_typ (Operator.monomorphic_type (Mark.add pos_e op)))
-            t_func;
+          unify ctx e (ast_to_typ (Operator.monomorphic_type op)) t_func;
           List.map2 (typecheck_expr_top_down ctx env) t_args args)
         ~resolved:(fun op ->
           (* This case should not fail *)
-          unify ctx e
-            (ast_to_typ (Operator.resolved_type (Mark.add pos_e op)))
-            t_func;
+          unify ctx e (ast_to_typ (Operator.resolved_type op)) t_func;
           List.map2 (typecheck_expr_top_down ctx env) t_args args)
     in
     (* All operator applications are monomorphised at this point *)

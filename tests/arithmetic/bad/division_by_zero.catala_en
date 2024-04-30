@@ -32,54 +32,39 @@ scope Money:
 
 
 ```catala-test-inline
-$ catala Interpret -s Dec
+$ catala test-scope Dec
 [ERROR] Error during evaluation: division by zero.
 
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
+┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:20.26-20.27:
 └──┐
 20 │   definition i equals 1. / 0.
-   │                       ‾‾‾‾‾‾‾
-   └┬ `Division_by_zero` exception management
-    └─ with decimals
-#return code 123#
-```
-
-
-Fixme: the following should give the same result as above, but the optimisation pass propagates the position surrounding the `ErrorOnEmpty` and loses the position of the actual division expression which was in the `cons` of the default term. Unfortunately this is non-trivial due to the bindlib boxing tricks.
-```catala-test-inline
-$ catala Interpret -O -s Dec
-[ERROR] Error during evaluation: division by zero.
-
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:17.10-17.11:
-└──┐
-17 │   output i content decimal
-   │          ‾
+   │                          ‾
    └┬ `Division_by_zero` exception management
     └─ with decimals
 #return code 123#
 ```
 
 ```catala-test-inline
-$ catala interpret -s Int
+$ catala test-scope Int
 [ERROR] Error during evaluation: division by zero.
 
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
+┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:10.25-10.26:
 └──┐
 10 │   definition i equals 1 / 0
-   │                       ‾‾‾‾‾
+   │                         ‾
    └┬ `Division_by_zero` exception management
     └─ with integers
 #return code 123#
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Money
+$ catala test-scope Money
 [ERROR] Error during evaluation: division by zero.
 
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:30.23-30.35:
+┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:30.29-30.30:
 └──┐
 30 │   definition i equals $10.0 / $0.0
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾
+   │                             ‾
    └┬ `Division_by_zero` exception management
     └─ with money
 #return code 123#

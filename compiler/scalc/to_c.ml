@@ -350,26 +350,23 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     failwith
       "should not happen, array initialization is caught at the statement level"
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1 (format_expression ctx) arg2
+  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
+    Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
+      (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
-      (op, Pos.no_pos) (format_expression ctx) arg2
-  | EAppOp { op = Not; args = [arg1] } ->
-    Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+      (format_expression ctx) arg2
+  | EAppOp { op = (Not, _) as op; args = [arg1] } ->
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
-        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
+        op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
         args = [arg1];
       } ->
-    Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
-    Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
-  | EAppOp { op = HandleDefaultOpt | HandleDefault; args = _ } ->
+    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  | EAppOp { op = (HandleDefaultOpt | HandleDefault), _; args = _ } ->
     failwith "should not happen because of keep_special_ops"
   | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
@@ -378,7 +375,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EAppOp { op; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))

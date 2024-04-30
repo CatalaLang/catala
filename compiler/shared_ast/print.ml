@@ -370,7 +370,7 @@ module Precedence = struct
     match Mark.remove e with
     | ELit _ -> Contained (* Todo: unop if < 0 *)
     | EAppOp { op; _ } -> (
-      match op with
+      match Mark.remove op with
       | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
       | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
       | ToRat | ToRat_int | ToRat_mon | ToMoney | ToMoney_rat | Round
@@ -571,16 +571,16 @@ module ExprGen (C : EXPR_PARAM) = struct
                  Format.pp_close_box fmt ();
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
-      | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2]; _ } ->
+      | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
           (rhs exprc) arg2
-      | EAppOp { op = Log _ as op; args = [arg1]; _ } ->
+      | EAppOp { op = (Log _ as op), _; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
-      | EAppOp { op = op0; args = [_; _]; _ } ->
+      | EAppOp { op = op0, _; args = [_; _]; _ } ->
         let prec = Precedence.expr e in
         let rec pr colors fmt = function
           (* Flatten sequences of the same associative op *)
-          | EAppOp { op; args = [arg1; arg2]; _ }, _ when op = op0 -> (
+          | EAppOp { op = op, _; args = [arg1; arg2]; _ }, _ when op = op0 -> (
             (match prec with
             | Op (And | Or | Mul | Add | Div | Sub) -> lhs pr fmt arg1
             | _ -> lhs exprc fmt arg1);
@@ -595,9 +595,9 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_open_hvbox fmt 0;
         pr colors fmt e;
         Format.pp_close_box fmt ()
-      | EAppOp { op; args = [arg1]; _ } ->
+      | EAppOp { op = op, _; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
-      | EAppOp { op; args; _ } ->
+      | EAppOp { op = op, _; args; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -761,7 +761,7 @@ module ExprConciseParam = struct
   let lit = lit
 
   let rec pre_map : type a. (a, 't) gexpr -> (a, 't) gexpr = function
-    | EAppOp { op = Log _; args = [e]; _ }, _ -> pre_map e
+    | EAppOp { op = Log _, _; args = [e]; _ }, _ -> pre_map e
     | e -> e
 end
 
@@ -951,8 +951,8 @@ let program ?(debug = false) fmt p =
 (* This function is re-exported from module [Expr], but defined here where it's
    first needed *)
 let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
-  | EAppOp { op = Log _; args = [e]; tys = _ }, _ -> skip_wrappers e
-  | EApp { f = EAppOp { op = Log _; args = [f]; _ }, _; args; tys }, m ->
+  | EAppOp { op = Log _, _; args = [e]; tys = _ }, _ -> skip_wrappers e
+  | EApp { f = EAppOp { op = Log _, _; args = [f]; _ }, _; args; tys }, m ->
     skip_wrappers (EApp { f; args; tys }, m)
   | EErrorOnEmpty e, _ -> skip_wrappers e
   | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->

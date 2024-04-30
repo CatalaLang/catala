@@ -232,25 +232,26 @@ let naked_expression ==
   RBRACE ; {
   StructReplace (e, fields)
 }
-| e1 = expression ;
-  CONTAINS ;
-  e2 = expression ; {
-  MemCollection (e2, e1)
+| coll = expression ;
+  pos = pos(CONTAINS) ;
+  element = expression ; {
+  CollectionOp ((Member { element }, pos), coll)
 } %prec apply
-| SUM ; typ = addpos(primitive_typ) ;
+| pos = pos(SUM) ; typ = addpos(primitive_typ) ;
   OF ; coll = expression ; {
-  CollectionOp (AggregateSum { typ = Mark.remove typ }, coll)
+  CollectionOp ((AggregateSum { typ = Mark.remove typ }, pos), coll)
 } %prec apply
 | f = expression ;
-  FOR ; i = mbinder ;
+  pos = pos(FOR) ; i = mbinder ;
   AMONG ; coll = expression ; {
-  CollectionOp (Map {f = i, f}, coll)
+  CollectionOp ((Map {f = i, f}, pos), coll)
 } %prec apply
-| max = minmax ;
+| maxp = addpos(minmax) ;
   OF ; coll = expression ;
   OR ; IF ; LIST_EMPTY ; THEN ;
   default = expression ; {
-  CollectionOp (AggregateExtremum { max; default }, coll)
+  let max, pos = maxp in
+  CollectionOp ((AggregateExtremum { max; default }, pos), coll)
 } %prec apply
 | op = addpos(unop) ; e = expression ; {
   Unop (op, e)
@@ -260,15 +261,15 @@ let naked_expression ==
   e2 = expression ; {
   Binop (binop, e1, e2)
 }
-| EXISTS ; i = mbinder ;
+| pos = pos(EXISTS) ; i = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; predicate = expression ; {
-  CollectionOp (Exists {predicate = i, predicate}, coll)
+  CollectionOp ((Exists {predicate = i, predicate}, pos), coll)
 } %prec let_expr
-| FOR ; ALL ; i = mbinder ;
+| pos = pos(FOR) ; ALL ; i = mbinder ;
   AMONG ; coll = expression ;
   WE_HAVE ; predicate = expression ; {
-  CollectionOp (Forall {predicate = i, predicate}, coll)
+  CollectionOp ((Forall {predicate = i, predicate}, pos), coll)
 } %prec let_expr
 | MATCH ; e = expression ;
   WITH ;
@@ -285,23 +286,23 @@ let naked_expression ==
   IN ; e2 = expression ; {
   LetIn (ids, e1, e2)
 } %prec let_expr
-| LIST; ids = mbinder ;
+| pos = pos(LIST); ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
-  CollectionOp (Filter {f = ids, f}, coll)
+  CollectionOp ((Filter {f = ids, f}, pos), coll)
 } %prec top_expr
 | fmap = expression ;
-  FOR ; i = mbinder ;
+  pfor = pos(FOR) ; i = mbinder ;
   AMONG ; coll = expression ;
-  SUCH ; THAT ; ffilt = expression ; {
-  CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
+  psuch = pos(SUCH) ; THAT ; ffilt = expression ; {
+  CollectionOp ((Map {f = i, fmap}, pfor), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), Pos.from_lpos $loc))
 } %prec top_expr
-| CONTENT; OF; ids = mbinder ;
+| pos = pos(CONTENT); OF; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
   OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
-  CollectionOp (AggregateArgExtremum { max; default; f = ids, f }, coll)
+  CollectionOp ((AggregateArgExtremum { max; default; f = ids, f }, pos), coll)
 } %prec top_expr
 
 
