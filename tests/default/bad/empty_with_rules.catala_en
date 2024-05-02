@@ -14,7 +14,8 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] Error during evaluation: no computation with valid conditions found.
+[ERROR] During evaluation: no applicable rule to define this variable in this
+  situation.
 
 ┌─⯈ tests/default/bad/empty_with_rules.catala_en:5.10-5.11:
 └─┐

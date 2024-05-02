@@ -114,7 +114,12 @@ let rec evaluate_operator
     lang
     args =
   let pos = Expr.mark_pos m in
-  let rpos = Expr.pos_to_runtime opos in
+  let rpos () = Expr.pos_to_runtime opos in
+  let div_pos () =
+    (* Division by 0 errors point to their 2nd operand *)
+    Expr.pos_to_runtime
+    @@ match args with _ :: denom :: _ -> Expr.pos denom | _ -> opos
+  in
   let err () =
     Message.error
       ~extra_pos:
@@ -287,15 +292,15 @@ let rec evaluate_operator
   | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
     ELit (LDuration (o_mult_dur_int x y))
   | Div_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LRat (o_div_int_int rpos x y))
+    ELit (LRat (o_div_int_int (div_pos ()) x y))
   | Div_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LRat (o_div_rat_rat rpos x y))
+    ELit (LRat (o_div_rat_rat (div_pos ()) x y))
   | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LRat (o_div_mon_mon rpos x y))
+    ELit (LRat (o_div_mon_mon (div_pos ()) x y))
   | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
-    ELit (LMoney (o_div_mon_rat rpos x y))
+    ELit (LMoney (o_div_mon_rat (div_pos ()) x y))
   | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LRat (o_div_dur_dur rpos x y))
+    ELit (LRat (o_div_dur_dur (div_pos ()) x y))
   | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_lt_int_int x y))
   | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -305,7 +310,7 @@ let rec evaluate_operator
   | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_lt_dat_dat x y))
   | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_lt_dur_dur rpos x y))
+    ELit (LBool (o_lt_dur_dur (rpos ()) x y))
   | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_lte_int_int x y))
   | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -315,7 +320,7 @@ let rec evaluate_operator
   | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_lte_dat_dat x y))
   | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_lte_dur_dur rpos x y))
+    ELit (LBool (o_lte_dur_dur (rpos ()) x y))
   | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_gt_int_int x y))
   | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -325,7 +330,7 @@ let rec evaluate_operator
   | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_gt_dat_dat x y))
   | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_gt_dur_dur rpos x y))
+    ELit (LBool (o_gt_dur_dur (rpos ()) x y))
   | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_gte_int_int x y))
   | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -335,7 +340,7 @@ let rec evaluate_operator
   | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_gte_dat_dat x y))
   | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_gte_dur_dur rpos x y))
+    ELit (LBool (o_gte_dur_dur (rpos ()) x y))
   | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_eq_int_int x y))
   | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -345,7 +350,7 @@ let rec evaluate_operator
   | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_eq_dur_dur rpos x y))
+    ELit (LBool (o_eq_dur_dur (rpos ()) x y))
   | HandleDefault, [(EArray excepts, _); just; cons] -> (
     (* This case is for lcalc with exceptions: we rely OCaml exception handling
        here *)
@@ -846,7 +851,7 @@ let evaluate_expr_safe :
   with Runtime.Error (err, rpos) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
-      "Error during evaluation: %a." Format.pp_print_text
+      "During evaluation: %a." Format.pp_print_text
       (Runtime.error_message err)
 
 (* Typing shenanigan to add custom terms to the AST type. *)

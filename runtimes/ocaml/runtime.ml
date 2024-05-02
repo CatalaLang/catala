@@ -64,13 +64,17 @@ let error_to_string = function
   | IndivisibleDurations -> "IndivisibleDurations"
 
 let error_message = function
-  | AssertionFailed -> "this assertion doesn't hold"
-  | NoValue -> "no computation with valid conditions found"
-  | Conflict -> "two or more concurring valid computations"
-  | DivisionByZero -> "division by zero"
+  | AssertionFailed -> "an assertion doesn't hold"
+  | NoValue -> "no applicable rule to define this variable in this situation"
+  | Conflict ->
+    "conflict between multiple valid consequences for assigning the same \
+     variable"
+  | DivisionByZero ->
+    "a value is being used as denominator in a division and it computed to zero"
   | NotSameLength -> "traversing multiple lists of different lengths"
   | UncomparableDurations ->
-    "comparing durations in different units (e.g. months vs. days)"
+    "ambiguous comparison between durations in different units (e.g. months \
+     vs. days)"
   | IndivisibleDurations -> "dividing durations that are not in days"
 
 exception Error of error * source_position list

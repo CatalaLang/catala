@@ -42,8 +42,8 @@ scope Ge:
 
 ```catala-test-inline
 $ catala test-scope Ge
-[ERROR] Error during evaluation: comparing durations in different units (e.g.
-  months vs. days).
+[ERROR] During evaluation: ambiguous comparison between durations in
+  different units (e.g. months vs. days).
 
 ┌─⯈ tests/date/bad/uncomparable_duration.catala_en:40.31-40.33:
 └──┐
@@ -56,8 +56,8 @@ $ catala test-scope Ge
 
 ```catala-test-inline
 $ catala test-scope Gt
-[ERROR] Error during evaluation: comparing durations in different units (e.g.
-  months vs. days).
+[ERROR] During evaluation: ambiguous comparison between durations in
+  different units (e.g. months vs. days).
 
 ┌─⯈ tests/date/bad/uncomparable_duration.catala_en:30.31-30.32:
 └──┐
@@ -70,8 +70,8 @@ $ catala test-scope Gt
 
 ```catala-test-inline
 $ catala test-scope Le
-[ERROR] Error during evaluation: comparing durations in different units (e.g.
-  months vs. days).
+[ERROR] During evaluation: ambiguous comparison between durations in
+  different units (e.g. months vs. days).
 
 ┌─⯈ tests/date/bad/uncomparable_duration.catala_en:20.31-20.33:
 └──┐
@@ -84,8 +84,8 @@ $ catala test-scope Le
 
 ```catala-test-inline
 $ catala test-scope Lt
-[ERROR] Error during evaluation: comparing durations in different units (e.g.
-  months vs. days).
+[ERROR] During evaluation: ambiguous comparison between durations in
+  different units (e.g. months vs. days).
 
 ┌─⯈ tests/date/bad/uncomparable_duration.catala_en:10.31-10.32:
 └──┐

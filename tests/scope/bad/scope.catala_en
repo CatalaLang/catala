@@ -16,7 +16,8 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] Error during evaluation: two or more concurring valid computations.
+[ERROR] During evaluation: conflict between multiple valid consequences for
+  assigning the same variable.
 
 ┌─⯈ tests/scope/bad/scope.catala_en:13.57-13.61:
 └──┐

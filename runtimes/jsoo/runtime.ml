@@ -60,11 +60,16 @@ let date_of_js d =
     if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
     else d
   in
+  let fail () = failwith "date_of_js: invalid date" in
   match String.split_on_char '-' d with
-  | [year; month; day] ->
-    R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
-      (int_of_string day)
-  | _ -> failwith "date_of_js: invalid date"
+  | [year; month; day] -> (
+    match
+      R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
+        (int_of_string day)
+    with
+    | Some d -> d
+    | None -> fail ())
+  | _ -> fail ()
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
