@@ -315,10 +315,12 @@ val year_of_date : date -> integer
 val date_to_string : date -> string
 
 val date_of_numbers : int -> int -> int -> date
-(** Usage: [date_of_numbers year month day] *)
+(** Usage: [date_of_numbers year month day].
+    @raise Failure on invalid inputs *)
 
 val first_day_of_month : date -> date
 val last_day_of_month : date -> date
+val date_to_years_months_days : date -> int * int * int
 
 (**{2 Durations} *)
 
@@ -326,6 +328,7 @@ val duration_of_numbers : int -> int -> int -> duration
 (** Usage : [duration_of_numbers year mounth day]. *)
 
 val duration_to_years_months_days : duration -> int * int * int
+
 (**{2 Times} *)
 
 val duration_to_string : duration -> string

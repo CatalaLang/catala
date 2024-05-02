@@ -206,10 +206,15 @@ let day_of_month_of_date (d : date) : integer =
 (* This could fail, but is expected to only be called with known, already
    validated arguments by the generated code *)
 let date_of_numbers (year : int) (month : int) (day : int) : date =
-  Dates_calc.Dates.make_date ~year ~month ~day
+  try Dates_calc.Dates.make_date ~year ~month ~day
+  with Dates_calc.Dates.InvalidDate ->
+    failwith "date_of_numbers: invalid date"
 
 let date_to_string (d : date) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_date d
+
+let date_to_years_months_days (d : date) : int * int * int =
+  Dates_calc.Dates.date_to_ymd d
 
 let first_day_of_month = Dates_calc.Dates.first_day_of_month
 let last_day_of_month = Dates_calc.Dates.last_day_of_month
@@ -219,19 +224,6 @@ let duration_of_numbers (year : int) (month : int) (day : int) : duration =
 
 let duration_to_string (d : duration) : string =
   Format.asprintf "%a" Dates_calc.Dates.format_period d
-(* breaks previous format *)
-(* let x, y, z = CalendarLib.Date.Period.ymd d in
- * let to_print =
- *   List.filter (fun (a, _) -> a <> 0) [x, "years"; y, "months"; z, "days"]
- * in
- * match to_print with
- * | [] -> "empty duration"
- * | _ ->
- *   Format.asprintf "%a"
- *     (Format.pp_print_list
- *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
- *        (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
- *     to_print *)
 
 let duration_to_years_months_days (d : duration) : int * int * int =
   Dates_calc.Dates.period_to_ymds d

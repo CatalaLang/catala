@@ -1051,13 +1051,13 @@ module UserFacing = struct
      and some others not, adding confusion. *)
 
   let date (lang : Global.backend_lang) ppf d =
-    let y, m, d = Dates_calc.Dates.date_to_ymd d in
+    let y, m, d = Runtime.date_to_years_months_days d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
     | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
   let duration (lang : Global.backend_lang) ppf dr =
-    let y, m, d = Dates_calc.Dates.period_to_ymds dr in
+    let y, m, d = Runtime.duration_to_years_months_days dr in
     let rec filter0 = function
       | (0, _) :: (_ :: _ as r) -> filter0 r
       | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r

@@ -375,7 +375,7 @@ let rec translate_expr
           (try
              Runtime.date_of_numbers date.literal_date_year
                date.literal_date_month date.literal_date_day
-           with Dates_calc.Dates.InvalidDate ->
+           with Failure _ ->
              Message.error ~pos
                "There is an error in this date, it does not correspond to a \
                 correct calendar day")
