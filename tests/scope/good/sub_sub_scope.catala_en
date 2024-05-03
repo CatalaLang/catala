@@ -55,10 +55,10 @@ $ catala Typecheck --check-invariants
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -85,8 +85,8 @@ $ catala test-scope A
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│u = true
-│x = 0
+│ u = true
+│ x = 0
 └─
 ```
 
@@ -113,7 +113,7 @@ $ catala test-scope B
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│y = 1
+│ y = 1
 └─
 ```
 
@@ -140,6 +140,6 @@ $ catala test-scope C
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│z = 2
+│ z = 2
 └─
 ```

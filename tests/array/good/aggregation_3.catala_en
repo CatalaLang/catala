@@ -36,10 +36,10 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -95,6 +95,6 @@ let scope S (x: integer|internal|output) =
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│x = 0
+│ x = 0
 └─
 ```

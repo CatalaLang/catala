@@ -62,21 +62,21 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│o_b = true
-│o_d = [-13 days]
-│o_i = -5
-│o_m = -$5.75
-│o_t = 2022-01-24
-│o_x = 0.142,857,142,857,142,857,14…
+│ o_b = true
+│ o_d = [-13 days]
+│ o_i = -5
+│ o_m = -$5.75
+│ o_t = 2022-01-24
+│ o_x = 0.142,857,142,857,142,857,14…
 └─
 ```

@@ -26,26 +26,26 @@ scope B:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│x = [0; 9; 64]
+│ x = [0; 9; 64]
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope B
 ┌─[RESULT]─
-│v = 3
-│w = true
-│y = true
-│z = false
+│ v = 3
+│ w = true
+│ y = true
+│ z = false
 └─
 ```

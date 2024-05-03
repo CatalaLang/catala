@@ -34,16 +34,16 @@ scope Test:
 ```catala-test-inline
 $ catala typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Test
 ┌─[RESULT]─
-│o = (2001-01-03, 6.0)
+│ o = (2001-01-03, 6.0)
 └─
 ```

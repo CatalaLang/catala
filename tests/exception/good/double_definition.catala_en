@@ -31,10 +31,10 @@ $ catala Typecheck --check-invariants
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Foo
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 

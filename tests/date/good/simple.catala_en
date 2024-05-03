@@ -17,18 +17,18 @@ scope A:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│x = 2019-01-01
-│y = 2002-09-30
-│z = [5937 days]
+│ x = 2019-01-01
+│ y = 2002-09-30
+│ z = [5937 days]
 └─
 ```

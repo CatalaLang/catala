@@ -22,16 +22,16 @@ scope Caller:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Caller
 ┌─[RESULT]─
-│y = 1
+│ y = 1
 └─
 ```

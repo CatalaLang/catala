@@ -30,18 +30,18 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
-│b = B { -- y: true -- z: 42.0 }
+│ a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
+│ b = B { -- y: true -- z: 42.0 }
 └─
 ```
 
@@ -71,6 +71,6 @@ $ catala test-scope S2
 │    │    ‾
 └─ Check scope of let-in vs scope variable
 ┌─[RESULT]─
-│y = 1
+│ y = 1
 └─
 ```

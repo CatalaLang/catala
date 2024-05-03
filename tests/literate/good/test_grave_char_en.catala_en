@@ -34,24 +34,24 @@ int main(void) { return 0; }
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
-└─
-```
-
-```catala-test-inline
-$ catala test-scope A
-┌─[RESULT]─
-│literate_parsing_is_ok = true
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│literate_parsing_is_ok = true
+│ literate_parsing_is_ok = true
+└─
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[RESULT]─
+│ literate_parsing_is_ok = true
 └─
 ```
 
@@ -98,24 +98,24 @@ int main(void) { return 0; }
 \begin{verbatim}
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
-└─
-\end{verbatim}
-
-\begin{verbatim}
-$ catala test-scope A
-┌─[RESULT]─
-│literate_parsing_is_ok = true
+│ Typechecking successful!
 └─
 \end{verbatim}
 
 \begin{verbatim}
 $ catala test-scope A
 ┌─[RESULT]─
-│literate_parsing_is_ok = true
+│ literate_parsing_is_ok = true
+└─
+\end{verbatim}
+
+\begin{verbatim}
+$ catala test-scope A
+┌─[RESULT]─
+│ literate_parsing_is_ok = true
 └─
 \end{verbatim}
 ```

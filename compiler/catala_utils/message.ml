@@ -244,7 +244,7 @@ module Content = struct
           Format.pp_close_box ppf ();
           not islast)
       | Outcome msg ->
-        Format.fprintf ppf "@,@[<hov 2>%t@]" msg;
+        Format.fprintf ppf "@;<0 1>@[<v 1>@[<hov 2>%t@]@]" msg;
         true
       | Suggestion suggestions_list ->
         Format.fprintf ppf "@,@[<v 1>@,@[<hov 2>%a@]@]" Suggestions.format

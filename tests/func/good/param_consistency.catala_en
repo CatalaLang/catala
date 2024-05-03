@@ -17,17 +17,17 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala typecheck
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -48,8 +48,8 @@ scope T1:
 ```catala-test-inline
 $ catala test-scope T1
 ┌─[RESULT]─
-│o1 = 20.0
-│o2 = 5.0
+│ o1 = 20.0
+│ o2 = 5.0
 └─
 ```
 
@@ -75,6 +75,6 @@ scope T2:
 ```catala-test-inline
 $ catala test-scope T2
 ┌─[RESULT]─
-│o = 40.0
+│ o = 40.0
 └─
 ```

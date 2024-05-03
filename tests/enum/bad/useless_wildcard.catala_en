@@ -30,7 +30,7 @@ $ catala test-scope A
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Useless wildcard
 ┌─[RESULT]─
-│x = Case1 ()
-│y = 42
+│ x = Case1 ()
+│ y = 42
 └─
 ```

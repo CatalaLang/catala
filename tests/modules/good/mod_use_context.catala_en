@@ -45,34 +45,34 @@ scope TestCall:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope TestCall
 ┌─[RESULT]─
-│o_default =
-│  Mod_def_context.S {
-│    -- ci: 0
-│    -- cm: $0.00
-│    -- cfun1: <function>
-│    -- cfun2: <function>
-│  }
-│o_override =
-│  Mod_def_context.S {
-│    -- ci: 1
-│    -- cm: $1.00
-│    -- cfun1: <function>
-│    -- cfun2: <function>
-│  }
-│x11 = 12.0
-│x12 = 6.0
-│x21 = 8.0
-│x22 = 6.0
+│ o_default =
+│   Mod_def_context.S {
+│     -- ci: 0
+│     -- cm: $0.00
+│     -- cfun1: <function>
+│     -- cfun2: <function>
+│   }
+│ o_override =
+│   Mod_def_context.S {
+│     -- ci: 1
+│     -- cm: $1.00
+│     -- cfun1: <function>
+│     -- cfun2: <function>
+│   }
+│ x11 = 12.0
+│ x12 = 6.0
+│ x21 = 8.0
+│ x22 = 6.0
 └─
 ```
 
@@ -98,10 +98,10 @@ scope TestSubDefault:
 ```catala-test-inline
 $ catala test-scope TestSubDefault
 ┌─[RESULT]─
-│ci = 0
-│cm = $0.00
-│x11 = 12.0
-│x12 = 6.0
+│ ci = 0
+│ cm = $0.00
+│ x11 = 12.0
+│ x12 = 6.0
 └─
 ```
 
@@ -127,9 +127,9 @@ scope TestSubOverride:
 ```catala-test-inline
 $ catala test-scope TestSubOverride
 ┌─[RESULT]─
-│ci = 1
-│cm = $1.00
-│x21 = 8.0
-│x22 = 6.0
+│ ci = 1
+│ cm = $1.00
+│ x21 = 8.0
+│ x22 = 6.0
 └─
 ```

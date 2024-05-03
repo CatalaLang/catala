@@ -32,16 +32,16 @@ int main(void) { return 0; }
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│literate_parsing_is_ok = vrai
+│ literate_parsing_is_ok = vrai
 └─
 ```

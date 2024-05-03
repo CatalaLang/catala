@@ -28,19 +28,19 @@ scope T2:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope T2
 ┌─[RESULT]─
-│o1 = No ()
-│o2 = Maybe ()
-│o3 = $1,000.00
-│o4 = 5.0
+│ o1 = No ()
+│ o2 = Maybe ()
+│ o3 = $1,000.00
+│ o4 = 5.0
 └─
 ```

@@ -16,10 +16,10 @@ scope TestBool:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -48,8 +48,8 @@ TestBool
 ```catala-test-inline
 $ catala test-scope TestBool
 ┌─[RESULT]─
-│bar = 1
-│foo = true
+│ bar = 1
+│ foo = true
 └─
 ```
 

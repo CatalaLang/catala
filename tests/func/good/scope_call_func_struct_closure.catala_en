@@ -45,10 +45,10 @@ two closures in Foo.r are different even with optimizations enabled.
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -164,6 +164,6 @@ let scope Foo
 ```catala-test-inline
 $ catala Interpret --lcalc -s Foo --avoid-exceptions -O --closure-conversion
 ┌─[RESULT]─
-│z = 11
+│ z = 11
 └─
 ```

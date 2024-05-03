@@ -41,25 +41,25 @@ scope Simple_case_2:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Simple_case_2
 ┌─[RESULT]─
-│x = Case3 ()
-│y = 31
+│ x = Case3 ()
+│ y = 31
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Simple_case
 ┌─[RESULT]─
-│x = Case1 2
-│y = 31
+│ x = Case1 2
+│ y = 31
 └─
 ```

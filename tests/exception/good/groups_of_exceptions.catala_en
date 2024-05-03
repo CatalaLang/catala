@@ -45,17 +45,17 @@ scope Test:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Test
 ┌─[RESULT]─
-│x = 2
+│ x = 2
 └─
 ```
 
@@ -86,10 +86,10 @@ let scope Test (x: integer|internal|output) (f: Foo {x: integer}|internal) =
 ```catala-test-inline
 $ catala Exceptions -s Foo -v x
 ┌─[RESULT]─
-│Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
+│ Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
 └─
 ┌─[RESULT]─
-│Definitions with label "base":
+│ Definitions with label "base":
 │
 ├─➤ tests/exception/good/groups_of_exceptions.catala_en:9.3-9.26:
 │   │
@@ -103,7 +103,7 @@ $ catala Exceptions -s Foo -v x
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Test
 ┌─[RESULT]─
-│Definitions with label "intermediate":
+│ Definitions with label "intermediate":
 │
 ├─➤ tests/exception/good/groups_of_exceptions.catala_en:17.3-17.49:
 │    │
@@ -117,7 +117,7 @@ $ catala Exceptions -s Foo -v x
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Test
 ┌─[RESULT]─
-│Definitions with label "exception_to_intermediate":
+│ Definitions with label "exception_to_intermediate":
 │
 ├─➤ tests/exception/good/groups_of_exceptions.catala_en:25.3-25.38:
 │    │
@@ -131,8 +131,8 @@ $ catala Exceptions -s Foo -v x
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Test
 ┌─[RESULT]─
-│The exception tree structure is as follows:
-│
-│"base"───"intermediate"───"exception_to_intermediate"
+│ The exception tree structure is as follows:
+│ 
+│ "base"───"intermediate"───"exception_to_intermediate"
 └─
 ```

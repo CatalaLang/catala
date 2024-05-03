@@ -24,18 +24,18 @@ scope T:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope T
 ┌─[RESULT]─
-│o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
-│o2 = $2,500.00
-│o3 = $132.00
+│ o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
+│ o2 = $2,500.00
+│ o3 = $132.00
 └─
 ```

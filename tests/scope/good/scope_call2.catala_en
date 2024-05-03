@@ -33,10 +33,10 @@ $ catala Typecheck --check-invariants
 │    │   ‾‾‾‾
 └─
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -53,7 +53,7 @@ $ catala test-scope Titi
 │    │   ‾‾‾‾
 └─
 ┌─[RESULT]─
-│fizz = Toto { -- foo: 1,213 }
-│fuzz = Toto { -- foo: 1,323 }
+│ fizz = Toto { -- foo: 1,213 }
+│ fuzz = Toto { -- foo: 1,323 }
 └─
 ```

@@ -51,17 +51,17 @@ scope Benefit:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope Benefit
 ┌─[RESULT]─
-│benefit = $2,000.00
-│person = Person { -- age: 26 -- disabled: true }
+│ benefit = $2,000.00
+│ person = Person { -- age: 26 -- disabled: true }
 └─
 ```

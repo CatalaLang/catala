@@ -19,19 +19,19 @@ scope A:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│x = 84.648,665
-│x1 = 85.0
-│y = 4.368,297
-│y1 = 4.0
+│ x = 84.648,665
+│ x1 = 85.0
+│ y = 4.368,297
+│ y1 = 4.0
 └─
 ```

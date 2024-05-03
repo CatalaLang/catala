@@ -21,10 +21,10 @@ scope RentComputation:
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -91,29 +91,29 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG] ≔  HousingComputation.result: 3
 [DEBUG] End of interpretation
 ┌─[RESULT]─
-│f = λ (x: integer) →
-│  error_empty
-│    ⟨ ⟨true
-│       ⊢ ⟨(let result : RentComputation =
-│             (λ (RentComputation_in: RentComputation_in) →
-│              let g : integer → integer =
-│                λ (x1: integer) →
-│                error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩
-│              in
-│              let f : integer → integer =
-│                λ (x1: integer) →
-│                error_empty ⟨ ⟨true ⊢ ⟨g (x1 + 1)⟩⟩ | false ⊢ ∅ ⟩
-│              in
-│              { RentComputation f = f; })
-│               {RentComputation_in}
-│           in
-│           let result1 : RentComputation =
-│             { RentComputation f = λ (param0: integer) → result.f param0; }
-│           in
-│           if true then result1 else result1).
-│            f
-│            x⟩⟩
-│    | false ⊢ ∅ ⟩
-│result = 3
+│ f = λ (x: integer) →
+│   error_empty
+│     ⟨ ⟨true
+│        ⊢ ⟨(let result : RentComputation =
+│              (λ (RentComputation_in: RentComputation_in) →
+│               let g : integer → integer =
+│                 λ (x1: integer) →
+│                 error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩
+│               in
+│               let f : integer → integer =
+│                 λ (x1: integer) →
+│                 error_empty ⟨ ⟨true ⊢ ⟨g (x1 + 1)⟩⟩ | false ⊢ ∅ ⟩
+│               in
+│               { RentComputation f = f; })
+│                {RentComputation_in}
+│            in
+│            let result1 : RentComputation =
+│              { RentComputation f = λ (param0: integer) → result.f param0; }
+│            in
+│            if true then result1 else result1).
+│             f
+│             x⟩⟩
+│     | false ⊢ ∅ ⟩
+│ result = 3
 └─
 ```

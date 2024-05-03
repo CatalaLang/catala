@@ -34,10 +34,10 @@ $ catala Typecheck --check-invariants
 │   │       ‾
 └─ Test
 ┌─[RESULT]─
-│All invariant checks passed
+│ All invariant checks passed
 └─
 ┌─[RESULT]─
-│Typechecking successful!
+│ Typechecking successful!
 └─
 ```
 
@@ -54,6 +54,6 @@ $ catala Proof --disable-counterexamples
 │   │       ‾
 └─ Test
 ┌─[RESULT]─
-│No errors found during the proof mode run.
+│ No errors found during the proof mode run.
 └─
 ```
