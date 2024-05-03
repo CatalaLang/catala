@@ -63,12 +63,10 @@ let date_of_js d =
   let fail () = failwith "date_of_js: invalid date" in
   match String.split_on_char '-' d with
   | [year; month; day] -> (
-    match
+    try
       R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
         (int_of_string day)
-    with
-    | Some d -> d
-    | None -> fail ())
+    with Failure _ -> fail ())
   | _ -> fail ()
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
