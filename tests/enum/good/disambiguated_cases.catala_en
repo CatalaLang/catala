@@ -36,7 +36,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │e = Case1 ()
 │f = Case1 2
 │x = 2

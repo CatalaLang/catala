@@ -48,7 +48,6 @@ scope T1:
 ```catala-test-inline
 $ catala test-scope T1
 ┌─[RESULT]─
-│Computation successful! Results:
 │o1 = 20.0
 │o2 = 5.0
 └─
@@ -76,7 +75,6 @@ scope T2:
 ```catala-test-inline
 $ catala test-scope T2
 ┌─[RESULT]─
-│Computation successful! Results:
 │o = 40.0
 └─
 ```

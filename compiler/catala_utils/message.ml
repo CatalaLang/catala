@@ -394,5 +394,6 @@ let make
 let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
+let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
 let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))

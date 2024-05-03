@@ -61,7 +61,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope Benefit
 ┌─[RESULT]─
-│Computation successful! Results:
 │benefit = $2,000.00
 │person = Person { -- age: 26 -- disabled: true }
 └─

@@ -29,7 +29,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope TestXor
 ┌─[RESULT]─
-│Computation successful! Results:
 │f_xor_f = false
 │f_xor_t = true
 │t_xor_f = true

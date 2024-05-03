@@ -42,7 +42,6 @@ $ catala test-scope S
 │    │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 ┌─[RESULT]─
-│Computation successful! Results:
 │s1 = Str { -- fld1: 99 -- fld2: $1.00 -- fld3: 2003-01-01 }
 │s2 = Str { -- fld1: 0 -- fld2: $99.00 -- fld3: 2003-01-01 }
 │s3 = Str { -- fld1: 99 -- fld2: $99.00 -- fld3: 2099-01-01 }

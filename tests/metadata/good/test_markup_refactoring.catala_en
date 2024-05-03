@@ -43,7 +43,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope S2
 ┌─[RESULT]─
-│Computation successful! Results:
 │b = B ()
 └─
 ```
@@ -51,7 +50,6 @@ $ catala test-scope S2
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│Computation successful! Results:
 │a = A ()
 └─
 ```

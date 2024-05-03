@@ -99,3 +99,4 @@ val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
 val error : ('a, 'b) emitter
+val results : Content.message list -> unit

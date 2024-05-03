@@ -51,7 +51,6 @@ $ catala typecheck
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│Computation successful! Results:
 │r1 =
 │  [
 │    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);

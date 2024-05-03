@@ -92,7 +92,7 @@ let print_exceptions_graph
     Ast.ScopeDef.format var ScopeName.format scope;
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Message.result "@[<v>Definitions with label \"%a\":@]" LabelName.format
+      Message.result "Definitions with label@ \"%a\":" LabelName.format
         ex.Dependency.ExceptionVertex.label
         ~extra_pos:
           (List.map

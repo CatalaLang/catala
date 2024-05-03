@@ -25,7 +25,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │w = false
 │x = [0; 9; 64]
 └─

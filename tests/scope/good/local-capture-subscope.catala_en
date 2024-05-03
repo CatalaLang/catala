@@ -31,7 +31,6 @@ $ catala test-scope S
 │   │   ‾
 └─
 ┌─[RESULT]─
-│Computation successful! Results:
 │so = 42
 └─
 ```

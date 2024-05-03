@@ -52,7 +52,6 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─
-│Computation successful! Results:
 │f1 = λ (x: integer) →
 │  error_empty
 │    ⟨ ⟨true
@@ -90,7 +89,6 @@ $ catala Interpret --lcalc -s RentComputation --avoid-exceptions --optimize --de
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─
-│Computation successful! Results:
 │f1 = λ (x: integer) → let x1 : integer = x + 1 in
 │                      ((x1 + 1))
 │f2 = λ (x: integer) → let x1 : integer = x + 1 in

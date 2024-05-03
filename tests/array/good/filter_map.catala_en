@@ -32,7 +32,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = [$0.00; $9.00; $5.20]
 └─
 ```
@@ -40,7 +39,6 @@ $ catala test-scope A
 ```catala-test-inline
 $ catala test-scope B
 ┌─[RESULT]─
-│Computation successful! Results:
 │y = [$9.00; $5.20]
 │z = [false; true; true]
 └─

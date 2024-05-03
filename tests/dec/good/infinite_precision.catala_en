@@ -29,7 +29,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │a =
 │  -0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
 │x = 84.648,665,652,656,896,23

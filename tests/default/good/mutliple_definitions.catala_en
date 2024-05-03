@@ -54,7 +54,6 @@ $ catala test-scope A
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 ┌─[RESULT]─
-│Computation successful! Results:
 │w = 3
 └─
 ```

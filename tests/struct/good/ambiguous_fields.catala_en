@@ -49,7 +49,6 @@ $ catala test-scope A
 │   │                       ‾‾‾
 └─ Article
 ┌─[RESULT]─
-│Computation successful! Results:
 │y = 1
 └─
 ```

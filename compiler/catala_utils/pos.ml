@@ -129,7 +129,7 @@ let format_loc_text_parts (pos : t) =
       None )
   else
     let pr_head ppf =
-      Format.fprintf ppf "@{<blue>─➤ %s:@}@," (to_string_short pos)
+      Format.fprintf ppf "@{<blue>─➤ @{<bold>%s:@}@}@," (to_string_short pos)
     in
     let pr_context, pr_legal =
       try

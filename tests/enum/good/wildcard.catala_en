@@ -51,7 +51,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope Simple_case_2
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = Case3 ()
 │y = 31
 └─
@@ -60,7 +59,6 @@ $ catala test-scope Simple_case_2
 ```catala-test-inline
 $ catala test-scope Simple_case
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = Case1 2
 │y = 31
 └─

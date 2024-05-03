@@ -19,7 +19,6 @@ scope S:
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│Computation successful! Results:
 │result1 = [$3.33; $0.83; $0.83; $3.33; $0.83; $0.85]
 │result2 = [$3.33; $0.83; $0.83; $3.34; $0.84; $0.83]
 └─

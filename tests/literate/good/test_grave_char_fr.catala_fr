@@ -42,7 +42,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │literate_parsing_is_ok = vrai
 └─
 ```

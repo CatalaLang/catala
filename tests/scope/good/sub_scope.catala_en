@@ -38,7 +38,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │a = -1
 │a_base = 1
 │b = false
@@ -48,7 +47,6 @@ $ catala test-scope A
 ```catala-test-inline
 $ catala test-scope B
 ┌─[RESULT]─
-│Computation successful! Results:
 │a = 42
 │b = true
 └─

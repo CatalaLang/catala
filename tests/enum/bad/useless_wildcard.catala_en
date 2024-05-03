@@ -30,7 +30,6 @@ $ catala test-scope A
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Useless wildcard
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = Case1 ()
 │y = 42
 └─

@@ -24,7 +24,6 @@ scope R:
 ```catala-test-inline
 $ catala test-scope R
 ┌─[RESULT]─
-│Computation successful! Results:
 │r = 30
 └─
 ```

@@ -34,7 +34,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope T
 ┌─[RESULT]─
-│Computation successful! Results:
 │o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
 │o2 = $2,500.00
 │o3 = $132.00

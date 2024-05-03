@@ -95,7 +95,6 @@ let scope S (x: integer|internal|output) =
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = 0
 └─
 ```

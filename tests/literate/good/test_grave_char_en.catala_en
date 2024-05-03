@@ -44,7 +44,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │literate_parsing_is_ok = true
 └─
 ```
@@ -52,7 +51,6 @@ $ catala test-scope A
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │literate_parsing_is_ok = true
 └─
 ```
@@ -110,7 +108,6 @@ $ catala Typecheck --check-invariants
 \begin{verbatim}
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │literate_parsing_is_ok = true
 └─
 \end{verbatim}
@@ -118,7 +115,6 @@ $ catala test-scope A
 \begin{verbatim}
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │literate_parsing_is_ok = true
 └─
 \end{verbatim}

@@ -27,7 +27,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = 2019-01-01
 │y = 2002-09-30
 │z = [5937 days]

@@ -691,9 +691,9 @@ module Commands = struct
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
-    Message.result "Computation successful!%s"
-      (if List.length results > 0 then " Results:" else "")
-      ~outcome:
+    if results = [] then Message.result "Computation successful!"
+    else
+      Message.results
         (List.map
            (fun ((var, _), result) ppf ->
              Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var

@@ -38,7 +38,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │m = [11874 days]
 │m2 = [6 months]
 │x = 2019-01-01

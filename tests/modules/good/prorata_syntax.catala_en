@@ -47,7 +47,6 @@ $ catala typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope S
 ┌─[RESULT]─
-│Computation successful! Results:
 │result =
 │  [
 │    HouseholdMemberTaxed {

@@ -85,7 +85,6 @@ $ catala test-scope A
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│Computation successful! Results:
 │u = true
 │x = 0
 └─
@@ -114,7 +113,6 @@ $ catala test-scope B
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│Computation successful! Results:
 │y = 1
 └─
 ```
@@ -142,7 +140,6 @@ $ catala test-scope C
 │    │   ‾
 └─ Article
 ┌─[RESULT]─
-│Computation successful! Results:
 │z = 2
 └─
 ```

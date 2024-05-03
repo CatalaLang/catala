@@ -38,7 +38,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope T2
 ┌─[RESULT]─
-│Computation successful! Results:
 │o1 = No ()
 │o2 = Maybe ()
 │o3 = $1,000.00

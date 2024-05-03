@@ -27,7 +27,6 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│Computation successful! Results:
 │x = $123.54
 │y = $8,548,650.96
 │z = $7.23

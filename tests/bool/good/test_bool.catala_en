@@ -48,7 +48,6 @@ TestBool
 ```catala-test-inline
 $ catala test-scope TestBool
 ┌─[RESULT]─
-│Computation successful! Results:
 │bar = 1
 │foo = true
 └─

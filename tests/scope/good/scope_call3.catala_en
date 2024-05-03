@@ -91,7 +91,6 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG] ≔  HousingComputation.result: 3
 [DEBUG] End of interpretation
 ┌─[RESULT]─
-│Computation successful! Results:
 │f = λ (x: integer) →
 │  error_empty
 │    ⟨ ⟨true
