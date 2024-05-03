@@ -352,44 +352,50 @@ let make
     ?(suggestion = [])
     ~cont
     ~level =
-  Format.kdprintf
-  @@ fun message ->
-  let t =
-    match level with Result -> of_result message | _ -> of_message message
-  in
-  let t = match header with Some h -> prepend_message t h | None -> t in
-  let t = if internal then to_internal_error t else t in
-  let t =
-    match outcome with [] -> t | o -> t @ List.map (fun o -> Outcome o) o
-  in
-  let t =
-    match pos with Some p -> add_position t ?message:pos_msg p | None -> t
-  in
-  let t =
-    match extra_pos with
-    | Some pl ->
-      List.fold_left
-        (fun t (message, p) ->
-          let message =
-            if message = "" then None
-            else Some (fun ppf -> Format.pp_print_text ppf message)
-          in
-          add_position t ?message p)
-        t pl
-    | None -> t
-  in
-  let t =
-    match fmt_pos with
-    | Some pl ->
-      List.fold_left
-        (fun t (message, p) ->
-          let message = if message == ignore then None else Some message in
-          add_position t ?message p)
-        t pl
-    | None -> t
-  in
-  let t = match suggestion with [] -> t | s -> add_suggestion t s in
-  cont t level
+  match level with
+  | Debug when not Global.options.debug ->
+    Format.ikfprintf (fun _ -> cont [] level) (Lazy.force ignore_ppf)
+  | Warning when Global.options.disable_warnings ->
+    Format.ikfprintf (fun _ -> cont [] level) (Lazy.force ignore_ppf)
+  | _ ->
+    Format.kdprintf
+    @@ fun message ->
+    let t =
+      match level with Result -> of_result message | _ -> of_message message
+    in
+    let t = match header with Some h -> prepend_message t h | None -> t in
+    let t = if internal then to_internal_error t else t in
+    let t =
+      match outcome with [] -> t | o -> t @ List.map (fun o -> Outcome o) o
+    in
+    let t =
+      match pos with Some p -> add_position t ?message:pos_msg p | None -> t
+    in
+    let t =
+      match extra_pos with
+      | Some pl ->
+        List.fold_left
+          (fun t (message, p) ->
+            let message =
+              if message = "" then None
+              else Some (fun ppf -> Format.pp_print_text ppf message)
+            in
+            add_position t ?message p)
+          t pl
+      | None -> t
+    in
+    let t =
+      match fmt_pos with
+      | Some pl ->
+        List.fold_left
+          (fun t (message, p) ->
+            let message = if message == ignore then None else Some message in
+            add_position t ?message p)
+          t pl
+      | None -> t
+    in
+    let t = match suggestion with [] -> t | s -> add_suggestion t s in
+    cont t level
 
 let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
