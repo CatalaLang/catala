@@ -29,15 +29,20 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
-[RESULT] Computation successful! Results:
-[RESULT] a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
-[RESULT] b = B { -- y: true -- z: 42.0 }
+┌─[RESULT]─
+│ a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
+│ b = B { -- y: true -- z: 42.0 }
+└─
 ```
 
 ## Check scope of let-in vs scope variable
@@ -55,14 +60,17 @@ scope S2:
 
 ```catala-test-inline
 $ catala test-scope S2
-[WARNING] Unused varible: x does not contribute to computing any of scope S2
-  outputs. Did you forget something?
-
-┌─⯈ tests/name_resolution/good/let_in.catala_en:47.4-47.5:
-└──┐
-47 │    x scope S
-   │    ‾
-   └─ Check scope of let-in vs scope variable
-[RESULT] Computation successful! Results:
-[RESULT] y = 1
+┌─[WARNING]─
+│
+│  Unused varible: x does not contribute to computing any of scope S2
+│  outputs. Did you forget something?
+│
+├─➤ tests/name_resolution/good/let_in.catala_en:52.4-52.5:
+│    │
+│ 52 │    x scope S
+│    │    ‾
+└─ Check scope of let-in vs scope variable
+┌─[RESULT]─
+│ y = 1
+└─
 ```

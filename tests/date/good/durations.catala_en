@@ -27,18 +27,23 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
-[RESULT] Computation successful! Results:
-[RESULT] m = [11874 days]
-[RESULT] m2 = [6 months]
-[RESULT] x = 2019-01-01
-[RESULT] y = 2002-09-30
-[RESULT] z = true
-[RESULT] z2 = true
-[RESULT] z3 = [5937 days]
+┌─[RESULT]─
+│ m = [11874 days]
+│ m2 = [6 months]
+│ x = 2019-01-01
+│ y = 2002-09-30
+│ z = true
+│ z2 = true
+│ z3 = [5937 days]
+└─
 ```

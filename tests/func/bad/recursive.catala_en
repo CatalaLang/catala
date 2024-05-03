@@ -10,13 +10,15 @@ scope RecursiveFunc:
 
 ```catala-test-inline
 $ catala test-scope RecursiveFunc
-[ERROR] The variable f is used in one of its definitions
-  (Catala doesn't support recursion)
-
-┌─⯈ tests/func/bad/recursive.catala_en:8.28-8.29:
-└─┐
-8 │   definition f of x equals f of x + 1
-  │                            ‾
-  └─ Article
+┌─[ERROR]─
+│
+│  The variable f is used in one of its definitions
+│  (Catala doesn't support recursion)
+│
+├─➤ tests/func/bad/recursive.catala_en:8.28-8.29:
+│   │
+│ 8 │   definition f of x equals f of x + 1
+│   │                            ‾
+└─ Article
 #return code 123#
 ```

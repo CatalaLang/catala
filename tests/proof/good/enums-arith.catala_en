@@ -23,27 +23,37 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] The constructor "C" of enumeration "T" is never used;
-  maybe it's unnecessary?
-
-┌─⯈ tests/proof/good/enums-arith.catala_en:5.7-5.8:
-└─┐
-5 │    -- C content boolean
-  │       ‾
-  └─ Test
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[WARNING]─
+│
+│  The constructor "C" of enumeration "T" is never used;
+│  maybe it's unnecessary?
+│
+├─➤ tests/proof/good/enums-arith.catala_en:5.7-5.8:
+│   │
+│ 5 │    -- C content boolean
+│   │       ‾
+└─ Test
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala Proof --disable-counterexamples 
-[WARNING] The constructor "C" of enumeration "T" is never used;
-  maybe it's unnecessary?
-
-┌─⯈ tests/proof/good/enums-arith.catala_en:5.7-5.8:
-└─┐
-5 │    -- C content boolean
-  │       ‾
-  └─ Test
-[RESULT] No errors found during the proof mode run.
+┌─[WARNING]─
+│
+│  The constructor "C" of enumeration "T" is never used;
+│  maybe it's unnecessary?
+│
+├─➤ tests/proof/good/enums-arith.catala_en:5.7-5.8:
+│   │
+│ 5 │    -- C content boolean
+│   │       ‾
+└─ Test
+┌─[RESULT]─
+│ No errors found during the proof mode run.
+└─
 ```

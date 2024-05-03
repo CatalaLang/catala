@@ -13,36 +13,47 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] These definitions have identical justifications and consequences;
-  is it a mistake?
-
-┌─⯈ tests/default/good/mutliple_definitions.catala_en:9.3-9.15:
-└─┐
-9 │   definition w equals 3
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾
-
-┌─⯈ tests/default/good/mutliple_definitions.catala_en:6.3-6.15:
-└─┐
-6 │   definition w equals 3
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[WARNING]─
+│
+│  These definitions have identical justifications and consequences;
+│  is it a mistake?
+│
+├─➤ tests/default/good/mutliple_definitions.catala_en:9.3-9.15:
+│   │
+│ 9 │   definition w equals 3
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾
+│
+├─➤ tests/default/good/mutliple_definitions.catala_en:6.3-6.15:
+│   │
+│ 6 │   definition w equals 3
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] These definitions have identical justifications and consequences;
-  is it a mistake?
-
-┌─⯈ tests/default/good/mutliple_definitions.catala_en:9.3-9.15:
-└─┐
-9 │   definition w equals 3
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾
-
-┌─⯈ tests/default/good/mutliple_definitions.catala_en:6.3-6.15:
-└─┐
-6 │   definition w equals 3
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾
-[RESULT] Computation successful! Results:
-[RESULT] w = 3
+┌─[WARNING]─
+│
+│  These definitions have identical justifications and consequences;
+│  is it a mistake?
+│
+├─➤ tests/default/good/mutliple_definitions.catala_en:9.3-9.15:
+│   │
+│ 9 │   definition w equals 3
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾
+│
+├─➤ tests/default/good/mutliple_definitions.catala_en:6.3-6.15:
+│   │
+│ 6 │   definition w equals 3
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[RESULT]─
+│ w = 3
+└─
 ```

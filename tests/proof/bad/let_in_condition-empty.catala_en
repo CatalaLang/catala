@@ -13,11 +13,15 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable-counterexamples
-[WARNING] [A.x] This variable might return an empty error:
-┌─⯈ tests/proof/bad/let_in_condition-empty.catala_en:5.10-5.11:
-└─┐
+┌─[WARNING]─
+│
+│  [A.x] This variable might return an empty error:
+─➤ tests/proof/bad/let_in_condition-empty.catala_en:5.10-5.11:
+  │
 5 │   output x content boolean
   │          ‾
-  └─ Test
+Test
 Counterexample generation is disabled so none was generated.
+│
+└─
 ```

@@ -20,15 +20,19 @@ scope S:
 
 ```catala-test-inline
 $ catala test-scope S
-[WARNING] Unused varible: a does not contribute to computing any of scope S
-  outputs. Did you forget something?
-
-┌─⯈ tests/scope/good/local-capture-subscope.catala_en:7.3-7.4:
-└─┐
-7 │   a scope A
-  │   ‾
-[RESULT] Computation successful! Results:
-[RESULT] so = 42
+┌─[WARNING]─
+│
+│  Unused varible: a does not contribute to computing any of scope S outputs.
+│  Did you forget something?
+│
+├─➤ tests/scope/good/local-capture-subscope.catala_en:7.3-7.4:
+│   │
+│ 7 │   a scope A
+│   │   ‾
+└─
+┌─[RESULT]─
+│ so = 42
+└─
 ```
 
 

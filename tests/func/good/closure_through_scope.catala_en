@@ -21,8 +21,12 @@ scope T:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
@@ -42,6 +46,7 @@ let scope T (T_in: T_in): T {y: integer} =
 
 ```catala-test-inline
 $ catala Interpret --lcalc -s T --avoid-exceptions -O --closure-conversion
-[RESULT] Computation successful! Results:
-[RESULT] y = -2
+┌─[RESULT]─
+│ y = -2
+└─
 ```

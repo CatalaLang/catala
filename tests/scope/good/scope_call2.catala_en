@@ -22,27 +22,38 @@ scope Titi:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[WARNING] Unused varible: toto does not contribute to computing any of scope
-  Titi outputs. Did you forget something?
-
-┌─⯈ tests/scope/good/scope_call2.catala_en:13.3-13.7:
-└──┐
-13 │   toto scope Toto
-   │   ‾‾‾‾
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[WARNING]─
+│
+│  Unused varible: toto does not contribute to computing any of scope Titi
+│  outputs. Did you forget something?
+│
+├─➤ tests/scope/good/scope_call2.catala_en:13.3-13.7:
+│    │
+│ 13 │   toto scope Toto
+│    │   ‾‾‾‾
+└─
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope Titi
-[WARNING] Unused varible: toto does not contribute to computing any of scope
-  Titi outputs. Did you forget something?
-
-┌─⯈ tests/scope/good/scope_call2.catala_en:13.3-13.7:
-└──┐
-13 │   toto scope Toto
-   │   ‾‾‾‾
-[RESULT] Computation successful! Results:
-[RESULT] fizz = Toto { -- foo: 1,213 }
-[RESULT] fuzz = Toto { -- foo: 1,323 }
+┌─[WARNING]─
+│
+│  Unused varible: toto does not contribute to computing any of scope Titi
+│  outputs. Did you forget something?
+│
+├─➤ tests/scope/good/scope_call2.catala_en:13.3-13.7:
+│    │
+│ 13 │   toto scope Toto
+│    │   ‾‾‾‾
+└─
+┌─[RESULT]─
+│ fizz = Toto { -- foo: 1,213 }
+│ fuzz = Toto { -- foo: 1,323 }
+└─
 ```

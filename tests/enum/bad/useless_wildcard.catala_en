@@ -19,15 +19,18 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[WARNING] Unreachable match case, all constructors of the enumeration E are
-  already specified
-
-┌─⯈ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
-└──┐
-17 │     -- anything : 31
-   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Useless wildcard
-[RESULT] Computation successful! Results:
-[RESULT] x = Case1 ()
-[RESULT] y = 42
+┌─[WARNING]─
+│
+│  Unreachable match case, all constructors of the enumeration E are already
+│  specified
+│
+├─➤ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
+│    │
+│ 17 │     -- anything : 31
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Useless wildcard
+┌─[RESULT]─
+│ x = Case1 ()
+│ y = 42
+└─
 ```

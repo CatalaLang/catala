@@ -17,19 +17,21 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] During evaluation: conflict between multiple valid consequences for
-  assigning the same variable.
-
-┌─⯈ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:
-└──┐
-12 │   definition x equals 1
-   │                       ‾
-   └─ Test
-
-┌─⯈ tests/exception/bad/two_exceptions.catala_en:15.23-15.24:
-└──┐
-15 │   definition x equals 2
-   │                       ‾
-   └─ Test
+┌─[ERROR]─
+│
+│  During evaluation: conflict between multiple valid consequences for
+│  assigning the same variable.
+│
+├─➤ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:
+│    │
+│ 12 │   definition x equals 1
+│    │                       ‾
+├─ Test
+│
+├─➤ tests/exception/bad/two_exceptions.catala_en:15.23-15.24:
+│    │
+│ 15 │   definition x equals 2
+│    │                       ‾
+└─ Test
 #return code 123#
 ```

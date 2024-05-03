@@ -26,8 +26,12 @@ scope RentComputation:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
@@ -47,21 +51,20 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Typechecking again...
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
-[RESULT] Computation successful! Results:
-[RESULT]
-f1 = λ (x: integer) →
-  error_empty
-    ⟨ ⟨true
-       ⊢ ⟨let x1 : integer = x + 1 in
-          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
-    | false ⊢ ∅ ⟩
-[RESULT]
-f2 = λ (x: integer) →
-  error_empty
-    ⟨ ⟨true
-       ⊢ ⟨let x1 : integer = x + 1 in
-          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
-    | false ⊢ ∅ ⟩
+┌─[RESULT]─
+│ f1 = λ (x: integer) →
+│   error_empty
+│     ⟨ ⟨true
+│        ⊢ ⟨let x1 : integer = x + 1 in
+│           error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+│     | false ⊢ ∅ ⟩
+│ f2 = λ (x: integer) →
+│   error_empty
+│     ⟨ ⟨true
+│        ⊢ ⟨let x1 : integer = x + 1 in
+│           error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+│     | false ⊢ ∅ ⟩
+└─
 ```
 
 ```catala-test-inline
@@ -85,9 +88,10 @@ $ catala Interpret --lcalc -s RentComputation --avoid-exceptions --optimize --de
 [DEBUG] Retyping lambda calculus...
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
-[RESULT] Computation successful! Results:
-[RESULT] f1 = λ (x: integer) → let x1 : integer = x + 1 in
-                               ((x1 + 1))
-[RESULT] f2 = λ (x: integer) → let x1 : integer = x + 1 in
-                               ((x1 + 1))
+┌─[RESULT]─
+│ f1 = λ (x: integer) → let x1 : integer = x + 1 in
+│                       ((x1 + 1))
+│ f2 = λ (x: integer) → let x1 : integer = x + 1 in
+│                       ((x1 + 1))
+└─
 ```

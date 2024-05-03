@@ -60,21 +60,24 @@ scope Stest:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope Stest
-[RESULT] Computation successful! Results:
-[RESULT]
-o1 = S { -- ci: 0 -- cm: $0.00 -- cfun1: <function> -- cfun2: <function> }
-[RESULT]
-o2 = S { -- ci: 1 -- cm: $1.00 -- cfun1: <function> -- cfun2: <function> }
-[RESULT] x11 = 12.0
-[RESULT] x12 = 6.0
-[RESULT] x21 = 8.0
-[RESULT] x22 = 6.0
+┌─[RESULT]─
+│ o1 = S { -- ci: 0 -- cm: $0.00 -- cfun1: <function> -- cfun2: <function> }
+│ o2 = S { -- ci: 1 -- cm: $1.00 -- cfun1: <function> -- cfun2: <function> }
+│ x11 = 12.0
+│ x12 = 6.0
+│ x21 = 8.0
+│ x22 = 6.0
+└─
 ```
 
 ### Testing subscopes (with and without context override)
@@ -97,11 +100,12 @@ scope TestSubDefault:
 
 ```catala-test-inline
 $ catala test-scope TestSubDefault
-[RESULT] Computation successful! Results:
-[RESULT] ci = 0
-[RESULT] cm = $0.00
-[RESULT] x11 = 12.0
-[RESULT] x12 = 6.0
+┌─[RESULT]─
+│ ci = 0
+│ cm = $0.00
+│ x11 = 12.0
+│ x12 = 6.0
+└─
 ```
 
 ```catala
@@ -125,9 +129,10 @@ scope TestSubOverride:
 
 ```catala-test-inline
 $ catala test-scope TestSubOverride
-[RESULT] Computation successful! Results:
-[RESULT] ci = 1
-[RESULT] cm = $1.00
-[RESULT] x21 = 8.0
-[RESULT] x22 = 6.0
+┌─[RESULT]─
+│ ci = 1
+│ cm = $1.00
+│ x21 = 8.0
+│ x22 = 6.0
+└─
 ```

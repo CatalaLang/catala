@@ -46,6 +46,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[RESULT] Computation successful! Results:
-[RESULT] o = false
+┌─[RESULT]─
+│ o = false
+└─
 ```

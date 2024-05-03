@@ -28,20 +28,23 @@ Should be "catala Typecheck", see test err3
 
 ```catala-test-inline
 $ catala ocaml
-[ERROR] Error during typechecking, incompatible types:
-  ┌─⯈ decimal
-  └─⯈ integer
-
-This expression has type decimal:
-┌─⯈ tests/typing/bad/err6.catala_en:20.27-20.30:
-└──┐
-20 │   definition sub.x equals 44.
-   │                           ‾‾‾
-
-Expected type integer coming from expression:
-┌─⯈ tests/typing/bad/common.catala_en:12.19-12.26:
-└──┐
-12 │   input x content integer
-   │                   ‾‾‾‾‾‾‾
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ decimal
+│  ─➤ integer
+│
+│ This expression has type decimal:
+├─➤ tests/typing/bad/err6.catala_en:20.27-20.30:
+│    │
+│ 20 │   definition sub.x equals 44.
+│    │                           ‾‾‾
+│
+│ Expected type integer coming from expression:
+├─➤ tests/typing/bad/common.catala_en:12.19-12.26:
+│    │
+│ 12 │   input x content integer
+│    │                   ‾‾‾‾‾‾‾
+└─
 #return code 123#
 ```

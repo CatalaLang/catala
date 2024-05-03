@@ -16,13 +16,19 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala typecheck
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala
@@ -41,9 +47,10 @@ scope T1:
 
 ```catala-test-inline
 $ catala test-scope T1
-[RESULT] Computation successful! Results:
-[RESULT] o1 = 20.0
-[RESULT] o2 = 5.0
+┌─[RESULT]─
+│ o1 = 20.0
+│ o2 = 5.0
+└─
 ```
 
 ## Multi-argument function
@@ -67,6 +74,7 @@ scope T2:
 
 ```catala-test-inline
 $ catala test-scope T2
-[RESULT] Computation successful! Results:
-[RESULT] o = 40.0
+┌─[RESULT]─
+│ o = 40.0
+└─
 ```

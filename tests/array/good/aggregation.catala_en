@@ -27,21 +27,27 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
-[RESULT] Computation successful! Results:
-[RESULT] x = [$0.00; $9.00; $5.20]
+┌─[RESULT]─
+│ x = [$0.00; $9.00; $5.20]
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope B
-[RESULT] Computation successful! Results:
-[RESULT] max = $18.00
-[RESULT] min = $5.00
-[RESULT] y = $17.20
-[RESULT] z = 1
+┌─[RESULT]─
+│ max = $18.00
+│ min = $5.00
+│ y = $17.20
+│ z = 1
+└─
 ```

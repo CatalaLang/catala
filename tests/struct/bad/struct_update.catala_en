@@ -20,17 +20,20 @@ scope S:
 
 ```catala-test-inline
 $ catala test-scope S
-[ERROR] Field flx1 does not belong to structure Str
-
-┌─⯈ tests/struct/bad/struct_update.catala_en:17.60-17.62:
-└──┐
-17 │   definition s1 equals s0 but replace { --fld1: 0 -- flx1: 99 }
-   │                                                            ‾‾
-
-Declaration of structure Str
-┌─⯈ tests/struct/bad/struct_update.catala_en:2.23-2.26:
-└─┐
-2 │ declaration structure Str:
-  │                       ‾‾‾
+┌─[ERROR]─
+│
+│  Field flx1 does not belong to structure Str
+│
+├─➤ tests/struct/bad/struct_update.catala_en:17.60-17.62:
+│    │
+│ 17 │   definition s1 equals s0 but replace { --fld1: 0 -- flx1: 99 }
+│    │                                                            ‾‾
+│
+│ Declaration of structure Str
+├─➤ tests/struct/bad/struct_update.catala_en:2.23-2.26:
+│   │
+│ 2 │ declaration structure Str:
+│   │                       ‾‾‾
+└─
 #return code 123#
 ```
