@@ -34,30 +34,88 @@ let is_empty_error : type a. (a, 'm) gexpr -> bool =
 let indent_str = ref ""
 
 (** {1 Evaluation} *)
-let print_log lang entry infos pos e =
-  if Global.options.trace then
-    match entry with
-    | VarDef _ ->
-      Message.log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry entry
-        Print.uid_list infos
-        (Message.unformat (fun ppf ->
-             (if Global.options.debug then Print.expr ~debug:true ()
-              else Print.UserFacing.expr lang)
-               ppf e))
-    | PosRecordIfTrueBool -> (
-      match pos <> Pos.no_pos, Mark.remove e with
-      | true, ELit (LBool true) ->
-        Message.log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
-          Print.log_entry entry Pos.format_loc_text pos
-      | _ -> ())
-    | BeginCall ->
-      Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
-        infos;
-      indent_str := !indent_str ^ "  "
-    | EndCall ->
-      indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
-      Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
-        infos
+
+let rec format_runtime_value lang ppf = function
+  | Runtime.Unit -> Print.UserFacing.unit lang ppf ()
+  | Runtime.Bool b -> Print.UserFacing.bool lang ppf b
+  | Runtime.Money m -> Print.UserFacing.money lang ppf m
+  | Runtime.Integer i -> Print.UserFacing.integer lang ppf i
+  | Runtime.Decimal d -> Print.UserFacing.decimal lang ppf d
+  | Runtime.Date t -> Print.UserFacing.date lang ppf t
+  | Runtime.Duration dt -> Print.UserFacing.duration lang ppf dt
+  | Runtime.Enum (name, (constr, v)) ->
+    Format.fprintf ppf "@[<hov 2>%s.%s@ (%a)@]" name constr
+      (format_runtime_value lang)
+      v
+  | Runtime.Struct (name, fields) ->
+    Format.fprintf ppf "@[<hv 2>%s {@ %a@;<1 -2>}@]" name
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (fld, v) ->
+           Format.fprintf ppf "@[<hov 2>-- %s:@ %a@]" fld
+             (format_runtime_value lang)
+             v))
+      fields
+  | Runtime.Array elts ->
+    Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+         (format_runtime_value lang))
+      (Array.to_list elts)
+  | Runtime.Unembeddable -> Format.pp_print_string ppf "<?>"
+
+let print_log lang entry =
+  let pp_infos =
+    Format.(
+      pp_print_list
+        ~pp_sep:(fun ppf () -> Format.fprintf ppf ".@,")
+        pp_print_string)
+  in
+  match entry with
+  | Runtime.BeginCall infos ->
+    Message.log "%s%a %a" !indent_str Print.log_entry BeginCall pp_infos infos;
+    indent_str := !indent_str ^ "  "
+  | Runtime.EndCall infos ->
+    indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
+    Message.log "%s%a %a" !indent_str Print.log_entry EndCall pp_infos infos
+  | Runtime.VariableDefinition (infos, io, value) ->
+    Message.log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
+      (VarDef
+         {
+           log_typ = TAny;
+           log_io_input = io.Runtime.io_input;
+           log_io_output = io.Runtime.io_output;
+         })
+      pp_infos infos
+      (Message.unformat (fun ppf -> format_runtime_value lang ppf value))
+  | Runtime.DecisionTaken rtpos ->
+    let pos = Expr.runtime_to_pos rtpos in
+    Message.log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
+      Print.log_entry PosRecordIfTrueBool Pos.format_loc_text pos
+
+let rec value_to_runtime_embedded = function
+  | ELit LUnit -> Runtime.Unit
+  | ELit (LBool b) -> Runtime.Bool b
+  | ELit (LMoney m) -> Runtime.Money m
+  | ELit (LInt i) -> Runtime.Integer i
+  | ELit (LRat r) -> Runtime.Decimal r
+  | ELit (LDate d) -> Runtime.Date d
+  | ELit (LDuration dt) -> Runtime.Duration dt
+  | EInj { name; cons; e } ->
+    Runtime.Enum
+      ( EnumName.to_string name,
+        ( EnumConstructor.to_string cons,
+          value_to_runtime_embedded (Mark.remove e) ) )
+  | EStruct { name; fields } ->
+    Runtime.Struct
+      ( StructName.to_string name,
+        List.map
+          (fun (f, e) ->
+            StructField.to_string f, value_to_runtime_embedded (Mark.remove e))
+          (StructField.Map.bindings fields) )
+  | EArray el ->
+    Runtime.Array
+      (Array.of_list
+         (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
+  | _ -> Runtime.Unembeddable
 
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
@@ -147,9 +205,22 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [e'] ->
-    print_log lang entry infos pos e';
-    Mark.remove e'
+  | Log (entry, infos), [(e, _)] when Global.options.trace -> (
+    let rtinfos = List.map Uid.MarkedString.to_string infos in
+    match entry with
+    | BeginCall -> Runtime.log_begin_call rtinfos e
+    | EndCall -> Runtime.log_end_call rtinfos e
+    | PosRecordIfTrueBool ->
+      (match e with
+      | ELit (LBool b) ->
+        Runtime.log_decision_taken (Expr.pos_to_runtime pos) b |> ignore
+      | _ -> ());
+      e
+    | VarDef def ->
+      Runtime.log_variable_definition rtinfos
+        { Runtime.io_input = def.log_io_input; io_output = def.log_io_output }
+        value_to_runtime_embedded e)
+  | Log _, [(e', _)] -> e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
        existential types when typing code after closure conversion. There are
@@ -840,6 +911,22 @@ and partially_evaluate_expr_for_assertion_failure_message :
       Mark.get e )
   | _ -> evaluate_expr ctx lang e
 
+let evaluate_expr_trace :
+    type d e.
+    decl_ctx ->
+    Global.backend_lang ->
+    ((d, e, yes) interpr_kind, 't) gexpr ->
+    ((d, e, yes) interpr_kind, 't) gexpr =
+ fun ctx lang e ->
+  Fun.protect
+    (fun () -> evaluate_expr ctx lang e)
+    ~finally:(fun () ->
+      if Global.options.trace then
+        let trace = Runtime.retrieve_log () in
+        List.iter (print_log lang) trace
+        (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
+           (Runtime.EventParser.parse_raw_events trace)] fais here, check why *))
+
 let evaluate_expr_safe :
     type d e.
     decl_ctx ->
@@ -847,7 +934,7 @@ let evaluate_expr_safe :
     ((d, e, yes) interpr_kind, 't) gexpr ->
     ((d, e, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
-  try evaluate_expr ctx lang e
+  try evaluate_expr_trace ctx lang e
   with Runtime.Error (err, rpos) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
