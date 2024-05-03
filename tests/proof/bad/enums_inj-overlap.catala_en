@@ -18,11 +18,15 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable-counterexamples 
-[WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/proof/bad/enums_inj-overlap.catala_en:10.10-10.11:
-└──┐
+┌─[WARNING]─
+│
+│  [A.y] At least two exceptions overlap for this variable:
+─➤ tests/proof/bad/enums_inj-overlap.catala_en:10.10-10.11:
+   │
 10 │   output y content integer
    │          ‾
-   └─ Article
+Article
 Counterexample generation is disabled so none was generated.
+│
+└─
 ```

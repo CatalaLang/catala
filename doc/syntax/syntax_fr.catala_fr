@@ -250,12 +250,14 @@ to ensure that the *syntax* is correct.
 
 ```catala-test-inline
 $ catala typecheck
-[ERROR] No scope named Scope0 found
-
-┌─⯈ doc/syntax/syntax_fr.catala_fr:92.28-92.34:
-└──┐
-92 │   sub1 champ d'application Scope0
-   │                            ‾‾‾‾‾‾
-   └─ Déclaration des métadonnées
+┌─[ERROR]─
+│
+│  No scope named Scope0 found
+│
+├─➤ doc/syntax/syntax_fr.catala_fr:92.28-92.34:
+│    │
+│ 92 │   sub1 champ d'application Scope0
+│    │                            ‾‾‾‾‾‾
+└─ Déclaration des métadonnées
 #return code 123#
 ```

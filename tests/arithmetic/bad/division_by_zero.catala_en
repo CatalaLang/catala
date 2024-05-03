@@ -33,42 +33,48 @@ scope Money:
 
 ```catala-test-inline
 $ catala test-scope Dec
-[ERROR] During evaluation: a value is being used as denominator in a division
-  and it computed to zero.
-
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
-└──┐
-20 │   definition i equals 1. / 0.
-   │                            ‾‾
-   └┬ `Division_by_zero` exception management
-    └─ with decimals
+┌─[ERROR]─
+│
+│  During evaluation: a value is being used as denominator in a division and
+│  it computed to zero.
+│
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
+│    │
+│ 20 │   definition i equals 1. / 0.
+│    │                            ‾‾
+└─ `Division_by_zero` exception management
+   └─ with decimals
 #return code 123#
 ```
 
 ```catala-test-inline
 $ catala test-scope Int
-[ERROR] During evaluation: a value is being used as denominator in a division
-  and it computed to zero.
-
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
-└──┐
-10 │   definition i equals 1 / 0
-   │                           ‾
-   └┬ `Division_by_zero` exception management
-    └─ with integers
+┌─[ERROR]─
+│
+│  During evaluation: a value is being used as denominator in a division and
+│  it computed to zero.
+│
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
+│    │
+│ 10 │   definition i equals 1 / 0
+│    │                           ‾
+└─ `Division_by_zero` exception management
+   └─ with integers
 #return code 123#
 ```
 
 ```catala-test-inline
 $ catala test-scope Money
-[ERROR] During evaluation: a value is being used as denominator in a division
-  and it computed to zero.
-
-┌─⯈ tests/arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
-└──┐
-30 │   definition i equals $10.0 / $0.0
-   │                               ‾‾‾‾
-   └┬ `Division_by_zero` exception management
-    └─ with money
+┌─[ERROR]─
+│
+│  During evaluation: a value is being used as denominator in a division and
+│  it computed to zero.
+│
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
+│    │
+│ 30 │   definition i equals $10.0 / $0.0
+│    │                               ‾‾‾‾
+└─ `Division_by_zero` exception management
+   └─ with money
 #return code 123#
 ```

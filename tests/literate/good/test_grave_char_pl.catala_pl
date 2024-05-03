@@ -29,6 +29,8 @@ int main(void) { return 0; }
 
 ```catala-test-inline
 $ catala test-scope A
-[RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = prawda
+┌─[RESULT]─
+│Computation successful! Results:
+│literate_parsing_is_ok = prawda
+└─
 ```

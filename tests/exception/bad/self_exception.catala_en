@@ -12,12 +12,14 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] Cannot define rule as an exception to itself
-
-┌─⯈ tests/exception/bad/self_exception.catala_en:9.13-9.19:
-└─┐
-9 │   exception base_y
-  │             ‾‾‾‾‾‾
-  └─ Test
+┌─[ERROR]─
+│
+│  Cannot define rule as an exception to itself
+│
+├─➤ tests/exception/bad/self_exception.catala_en:9.13-9.19:
+│   │
+│ 9 │   exception base_y
+│   │             ‾‾‾‾‾‾
+└─ Test
 #return code 123#
 ```

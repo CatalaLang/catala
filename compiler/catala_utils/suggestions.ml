@@ -102,4 +102,5 @@ let format (ppf : Format.formatter) (suggestions_list : string list) =
     Format.pp_print_list
       ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
       (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-      ppf suggestions_list
+      ppf suggestions_list;
+    Format.pp_print_string ppf " ?"

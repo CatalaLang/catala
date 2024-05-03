@@ -59,5 +59,13 @@ val format_loc_text : Format.formatter -> t -> unit
 (** Open the file corresponding to the position and retrieves the text concerned
     by the position *)
 
+val format_loc_text_parts :
+  t ->
+  (Format.formatter -> unit)
+  * (Format.formatter -> unit)
+  * (Format.formatter -> unit) option
+(** Like [format_loc_text], but returns the printing functions in 3 separate
+    parts: the file name header, the line context, and the law headers *)
+
 val no_pos : t
 (** Placeholder position *)

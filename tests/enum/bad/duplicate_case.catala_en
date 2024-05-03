@@ -20,18 +20,20 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] The constructor Case3 has been matched twice:
-
-┌─⯈ tests/enum/bad/duplicate_case.catala_en:18.16-18.20:
-└──┐
-18 │     -- Case3 : true
-   │                ‾‾‾‾
-   └─ Article
-
-┌─⯈ tests/enum/bad/duplicate_case.catala_en:17.16-17.21:
-└──┐
-17 │     -- Case3 : false
-   │                ‾‾‾‾‾
-   └─ Article
+┌─[ERROR]─
+│
+│  The constructor Case3 has been matched twice:
+│
+├─➤ tests/enum/bad/duplicate_case.catala_en:18.16-18.20:
+│    │
+│ 18 │     -- Case3 : true
+│    │                ‾‾‾‾
+├─ Article
+│
+├─➤ tests/enum/bad/duplicate_case.catala_en:17.16-17.21:
+│    │
+│ 17 │     -- Case3 : false
+│    │                ‾‾‾‾‾
+└─ Article
 #return code 123#
 ```

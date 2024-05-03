@@ -21,11 +21,15 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable-counterexamples 
-[WARNING] [A.x] At least two exceptions overlap for this variable:
-┌─⯈ tests/proof/bad/structs-overlap.catala_en:13.10-13.11:
-└──┐
+┌─[WARNING]─
+│
+│  [A.x] At least two exceptions overlap for this variable:
+─➤ tests/proof/bad/structs-overlap.catala_en:13.10-13.11:
+   │
 13 │   output x content integer
    │          ‾
-   └─ Test
+Test
 Counterexample generation is disabled so none was generated.
+│
+└─
 ```

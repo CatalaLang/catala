@@ -688,18 +688,19 @@ module Commands = struct
     let results =
       List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
     in
-    Message.result "Computation successful!%s"
-      (if List.length results > 0 then " Results:" else "");
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
-    List.iter
-      (fun ((var, _), result) ->
-        Message.result "@[<hov 2>%s@ =@ %a@]" var
-          (if options.Global.debug then Print.expr ~debug:false ()
-           else Print.UserFacing.value language)
-          result)
-      results
+    Message.result "Computation successful!%s"
+      (if List.length results > 0 then " Results:" else "")
+      ~outcome:
+        (List.map
+           (fun ((var, _), result) ppf ->
+             Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+               (if options.Global.debug then Print.expr ~debug:false ()
+                else Print.UserFacing.value language)
+               result)
+           results)
 
   let interpret_dcalc
       typed

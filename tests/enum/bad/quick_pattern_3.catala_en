@@ -20,29 +20,31 @@ definition y equals x with pattern Case3
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] Error during typechecking, incompatible types:
-  ┌─⯈ E
-  └─⯈ F
-
-While typechecking the following expression:
-┌─⯈ tests/enum/bad/quick_pattern_3.catala_en:18.21-18.22:
-└──┐
-18 │ definition y equals x with pattern Case3
-   │                     ‾
-   └─ Article
-
-Type E is coming from:
-┌─⯈ tests/enum/bad/quick_pattern_3.catala_en:13.19-13.20:
-└──┐
-13 │ context x content E
-   │                   ‾
-   └─ Article
-
-Type F is coming from:
-┌─⯈ tests/enum/bad/quick_pattern_3.catala_en:18.21-18.41:
-└──┐
-18 │ definition y equals x with pattern Case3
-   │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Article
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ E
+│  ─➤ F
+│
+│ While typechecking the following expression:
+├─➤ tests/enum/bad/quick_pattern_3.catala_en:18.21-18.22:
+│    │
+│ 18 │ definition y equals x with pattern Case3
+│    │                     ‾
+├─ Article
+│
+│ Type E is coming from:
+├─➤ tests/enum/bad/quick_pattern_3.catala_en:13.19-13.20:
+│    │
+│ 13 │ context x content E
+│    │                   ‾
+├─ Article
+│
+│ Type F is coming from:
+├─➤ tests/enum/bad/quick_pattern_3.catala_en:18.21-18.41:
+│    │
+│ 18 │ definition y equals x with pattern Case3
+│    │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
 #return code 123#
 ```

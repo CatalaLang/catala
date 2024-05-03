@@ -14,13 +14,15 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] During evaluation: no applicable rule to define this variable in this
-  situation.
-
-┌─⯈ tests/default/bad/empty_with_rules.catala_en:5.10-5.11:
-└─┐
-5 │   output x content integer
-  │          ‾
-  └─ Article
+┌─[ERROR]─
+│
+│  During evaluation: no applicable rule to define this variable in this
+│  situation.
+│
+├─➤ tests/default/bad/empty_with_rules.catala_en:5.10-5.11:
+│   │
+│ 5 │   output x content integer
+│   │          ‾
+└─ Article
 #return code 123#
 ```

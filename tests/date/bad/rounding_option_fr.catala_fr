@@ -12,6 +12,10 @@ champ d'application Test:
 
 ```catala-test-inline
 $ catala test-scope Test
-[ERROR] Unexpected error: Dates_calc.Dates.AmbiguousComputation
+┌─[ERROR]─
+│
+│  Unexpected error: Dates_calc.Dates.AmbiguousComputation
+│
+└─
 #return code 125#
 ```

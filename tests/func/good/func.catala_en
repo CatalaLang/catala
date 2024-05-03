@@ -25,12 +25,18 @@ scope R:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope R
-[RESULT] Computation successful! Results:
-[RESULT] r = 30
+┌─[RESULT]─
+│Computation successful! Results:
+│r = 30
+└─
 ```

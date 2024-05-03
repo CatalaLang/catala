@@ -17,14 +17,20 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
-[RESULT] Computation successful! Results:
-[RESULT] a = true
+┌─[RESULT]─
+│Computation successful! Results:
+│a = true
+└─
 ```
 
 ```catala-test-inline

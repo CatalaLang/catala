@@ -92,10 +92,12 @@ let print_exceptions_graph
     Ast.ScopeDef.format var ScopeName.format scope;
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Message.result "@[<v>Definitions with label \"%a\":@,%a@]"
-        LabelName.format ex.Dependency.ExceptionVertex.label
-        (RuleName.Map.format_values Pos.format_loc_text)
-        ex.Dependency.ExceptionVertex.rules)
+      Message.result "@[<v>Definitions with label \"%a\":@]" LabelName.format
+        ex.Dependency.ExceptionVertex.label
+        ~extra_pos:
+          (List.map
+             (fun p -> "", p)
+             (RuleName.Map.values ex.Dependency.ExceptionVertex.rules)))
     g;
   let tree = build_exception_tree g in
   Message.result "@[<v>The exception tree structure is as follows:@,@,%a@]"

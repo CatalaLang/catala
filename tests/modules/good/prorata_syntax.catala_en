@@ -36,30 +36,35 @@ scope S:
 
 ```catala-test-inline
 $ catala typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
-[RESULT] Computation successful! Results:
-[RESULT]
-result =
-  [
-    HouseholdMemberTaxed {
-      -- member:
-        HouseholdMember { -- birthdate: 2000-01-01 -- revenue: $10,000.00 }
-      -- tax: $270.27
-    };
-    HouseholdMemberTaxed {
-      -- member:
-        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $1,000.00 }
-      -- tax: $27.03
-    };
-    HouseholdMemberTaxed {
-      -- member:
-        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $100.00 }
-      -- tax: $2.70
-    }
-  ]
+┌─[RESULT]─
+│Computation successful! Results:
+│result =
+│  [
+│    HouseholdMemberTaxed {
+│      -- member:
+│        HouseholdMember { -- birthdate: 2000-01-01 -- revenue: $10,000.00 }
+│      -- tax: $270.27
+│    };
+│    HouseholdMemberTaxed {
+│      -- member:
+│        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $1,000.00 }
+│      -- tax: $27.03
+│    };
+│    HouseholdMemberTaxed {
+│      -- member:
+│        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $100.00 }
+│      -- tax: $2.70
+│    }
+│  ]
+└─
 ```

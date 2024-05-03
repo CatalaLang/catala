@@ -265,8 +265,8 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   in
   Message.error ~fmt_pos
     "Error during typechecking, incompatible types:@\n\
-     @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
-     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
+     @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
+     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" (format_typ ctx) t1 "─➤"
     (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =

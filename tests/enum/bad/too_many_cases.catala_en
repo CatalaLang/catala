@@ -23,13 +23,15 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] This case matches a constructor of enumeration E but previous cases
-  were matching constructors of enumeration F
-
-┌─⯈ tests/enum/bad/too_many_cases.catala_en:21.8-21.13:
-└──┐
-21 │     -- Case4 : true
-   │        ‾‾‾‾‾
-   └─ Article
+┌─[ERROR]─
+│
+│  This case matches a constructor of enumeration E but previous cases were
+│  matching constructors of enumeration F
+│
+├─➤ tests/enum/bad/too_many_cases.catala_en:21.8-21.13:
+│    │
+│ 21 │     -- Case4 : true
+│    │        ‾‾‾‾‾
+└─ Article
 #return code 123#
 ```

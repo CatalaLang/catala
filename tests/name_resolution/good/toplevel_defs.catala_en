@@ -23,15 +23,21 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
-[RESULT] Computation successful! Results:
-[RESULT] a = 1,946.574,4
-[RESULT] b = A { -- y: true -- z: 2,091.0 }
+┌─[RESULT]─
+│Computation successful! Results:
+│a = 1,946.574,4
+│b = A { -- y: true -- z: 2,091.0 }
+└─
 ```
 
 ## Test toplevel function defs
@@ -50,8 +56,10 @@ scope S2:
 
 ```catala-test-inline
 $ catala test-scope S2
-[RESULT] Computation successful! Results:
-[RESULT] a = 154.0
+┌─[RESULT]─
+│Computation successful! Results:
+│a = 154.0
+└─
 ```
 
 ## Test function def with two args
@@ -70,8 +78,10 @@ scope S3:
 
 ```catala-test-inline
 $ catala test-scope S3
-[RESULT] Computation successful! Results:
-[RESULT] a = 2,480.0
+┌─[RESULT]─
+│Computation successful! Results:
+│a = 2,480.0
+└─
 ```
 
 ## Test inline defs in toplevel defs
@@ -93,8 +103,10 @@ scope S4:
 
 ```catala-test-inline
 $ catala test-scope S4
-[RESULT] Computation successful! Results:
-[RESULT] a = 6,001.0
+┌─[RESULT]─
+│Computation successful! Results:
+│a = 6,001.0
+└─
 ```
 
 ```catala-test-inline
@@ -426,8 +438,8 @@ def s2(s2_in:S2In):
                 return (glob3(money_of_cents_string("4400")) +
                     decimal_of_string("100."))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=48, start_column=24,
-                                  end_line=48, end_column=43,
+                                  start_line=54, start_column=24,
+                                  end_line=54, end_column=43,
                                   law_headings=["Test toplevel function defs"]), [],
                                   temp_a_1, temp_a_2)
         def temp_a_3(_:Unit):
@@ -435,15 +447,15 @@ def s2(s2_in:S2In):
         def temp_a_4(_:Unit):
             raise Empty
         temp_a_5 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=45, start_column=10,
-                                  end_line=45, end_column=11,
+                                  start_line=51, start_column=10,
+                                  end_line=51, end_column=11,
                                   law_headings=["Test toplevel function defs"]), [temp_a],
                                   temp_a_3, temp_a_4)
     except Empty:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=45, start_column=10,
-                          end_line=45, end_column=11,
+                          start_line=51, start_column=10,
+                          end_line=51, end_column=11,
                           law_headings=["Test toplevel function defs"]))
     a = temp_a_5
     return S2(a = a)
@@ -458,8 +470,8 @@ def s3(s3_in:S3In):
                     glob4(money_of_cents_string("4400"),
                           decimal_of_string("55.")))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=68, start_column=24,
-                                  end_line=68, end_column=47,
+                                  start_line=76, start_column=24,
+                                  end_line=76, end_column=47,
                                   law_headings=["Test function def with two args"]), [],
                                   temp_a_7, temp_a_8)
         def temp_a_9(_:Unit):
@@ -467,15 +479,15 @@ def s3(s3_in:S3In):
         def temp_a_10(_:Unit):
             raise Empty
         temp_a_11 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                   start_line=65, start_column=10,
-                                   end_line=65, end_column=11,
+                                   start_line=73, start_column=10,
+                                   end_line=73, end_column=11,
                                    law_headings=["Test function def with two args"]), [temp_a_6],
                                    temp_a_9, temp_a_10)
     except Empty:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=65, start_column=10,
-                          end_line=65, end_column=11,
+                          start_line=73, start_column=10,
+                          end_line=73, end_column=11,
                           law_headings=["Test function def with two args"]))
     a_1 = temp_a_11
     return S3(a = a_1)
@@ -488,8 +500,8 @@ def s4(s4_in:S4In):
             def temp_a_14(_:Unit):
                 return (glob5 + decimal_of_string("1."))
             return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=91, start_column=24,
-                                  end_line=91, end_column=34,
+                                  start_line=101, start_column=24,
+                                  end_line=101, end_column=34,
                                   law_headings=["Test inline defs in toplevel defs"]), [],
                                   temp_a_13, temp_a_14)
         def temp_a_15(_:Unit):
@@ -497,15 +509,15 @@ def s4(s4_in:S4In):
         def temp_a_16(_:Unit):
             raise Empty
         temp_a_17 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                                   start_line=88, start_column=10,
-                                   end_line=88, end_column=11,
+                                   start_line=98, start_column=10,
+                                   end_line=98, end_column=11,
                                    law_headings=["Test inline defs in toplevel defs"]), [temp_a_12],
                                    temp_a_15, temp_a_16)
     except Empty:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=88, start_column=10,
-                          end_line=88, end_column=11,
+                          start_line=98, start_column=10,
+                          end_line=98, end_column=11,
                           law_headings=["Test inline defs in toplevel defs"]))
     a_2 = temp_a_17
     return S4(a = a_2)

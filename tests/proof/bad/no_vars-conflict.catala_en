@@ -17,11 +17,15 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable-counterexamples 
-[WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/proof/bad/no_vars-conflict.catala_en:8.10-8.11:
-└─┐
+┌─[WARNING]─
+│
+│  [A.y] At least two exceptions overlap for this variable:
+─➤ tests/proof/bad/no_vars-conflict.catala_en:8.10-8.11:
+  │
 8 │   output y content integer
   │          ‾
-  └─ Test
+Test
 Counterexample generation is disabled so none was generated.
+│
+└─
 ```

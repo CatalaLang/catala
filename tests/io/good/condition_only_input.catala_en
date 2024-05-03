@@ -18,8 +18,12 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
@@ -38,5 +42,7 @@ let scope B (B_in: B_in): B =
 
 ```catala-test-inline
 $ catala test-scope B
-[RESULT] Computation successful!
+┌─[RESULT]─
+│Computation successful!
+└─
 ```

@@ -115,11 +115,11 @@ let pp_marker target ppf =
   let open Ocolor_types in
   let tags, str =
     match target with
-    | Debug -> [Bold; Fg (C4 magenta)], "[DEBUG]"
-    | Error -> [Bold; Fg (C4 red)], "[ERROR]"
-    | Warning -> [Bold; Fg (C4 yellow)], "[WARNING]"
-    | Result -> [Bold; Fg (C4 green)], "[RESULT]"
-    | Log -> [Bold; Fg (C4 black)], "[LOG]"
+    | Debug -> [Bold; Fg (C4 magenta)], "DEBUG"
+    | Error -> [Bold; Fg (C4 red)], "ERROR"
+    | Warning -> [Bold; Fg (C4 yellow)], "WARNING"
+    | Result -> [Bold; Fg (C4 green)], "RESULT"
+    | Log -> [Bold; Fg (C4 black)], "LOG"
   in
   if target = Debug then print_time_marker ppf ();
   Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
@@ -164,28 +164,117 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
+  let basic_msg ppf target content =
+    Format.pp_open_vbox ppf 0;
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
+      (fun ppf -> function
+        | Position pos ->
+          Option.iter
+            (fun msg -> Format.fprintf ppf "@[<hov>%t@]@," msg)
+            pos.pos_message;
+          Pos.format_loc_text ppf pos.pos
+        | MainMessage msg ->
+          Format.fprintf ppf "@[<hov 2>[%t] %t@]" (pp_marker target) msg
+        | Outcome msg ->
+          Format.fprintf ppf "@[<hov>[%t]@ %t@]" (pp_marker target) msg
+        | Suggestion suggestions_list -> Suggestions.format ppf suggestions_list)
+      ppf content;
+    Format.pp_close_box ppf ();
+    Format.pp_print_newline ppf ()
+
+  let fancy_msg ppf target content =
+    let ppf_out_fcts = Format.pp_get_formatter_out_functions ppf () in
+    let restore_ppf () =
+      Format.pp_print_flush ppf ();
+      Format.pp_set_formatter_out_functions ppf ppf_out_fcts
+    in
+    let getcolorstr pp =
+      let buf = Buffer.create 17 in
+      let ppfb = Format.formatter_of_buffer buf in
+      Format.pp_set_formatter_stag_functions ppfb
+        (Format.pp_get_formatter_stag_functions ppf ());
+      Format.pp_set_mark_tags ppfb (Format.pp_get_mark_tags ppf ());
+      pp ppfb;
+      Format.pp_print_flush ppfb ();
+      Buffer.contents buf
+    in
+    (* The following adds a blue line on the left *)
+    Format.pp_set_formatter_out_functions ppf
+      {
+        ppf_out_fcts with
+        out_indent =
+          (fun n ->
+            let lead =
+              getcolorstr (fun ppf -> Format.fprintf ppf "@{<blue>@<1>%s@}" "│")
+            in
+            if n >= 1 then ppf_out_fcts.out_string lead 0 (String.length lead);
+            if n >= 2 then ppf_out_fcts.out_indent (n - 1));
+      };
+    Format.pp_open_vbox ppf 1;
+    Format.fprintf ppf "@{<blue>@<2>%s[%t]@<2>%s@}" "┌─" (pp_marker target) "─";
+    (* Returns true when a finaliser is needed *)
+    let print_elt ppf ?(islast = false) = function
+      | MainMessage msg ->
+        Format.fprintf ppf "@,@[<v 2>@,@[<hov>%t@]@]" msg;
+        if islast then Format.pp_print_cut ppf ();
+        true
+      | Position pos -> (
+        Format.pp_print_cut ppf ();
+        Option.iter
+          (fun msg -> Format.fprintf ppf "@[<v 1>@,@[<hov 2>%t@]@]" msg)
+          pos.pos_message;
+        Format.pp_print_break ppf 0 (-1);
+        let pr_head, pr_context, pr_legal = Pos.format_loc_text_parts pos.pos in
+        Format.pp_open_vbox ppf 2;
+        Format.fprintf ppf "@{<blue>@<1>%s@}%t" "├" pr_head;
+        pr_context ppf;
+        Format.pp_close_box ppf ();
+        match pr_legal with
+        | None -> true
+        | Some pr_legal ->
+          Format.pp_print_break ppf 0 (-1);
+          if islast then (
+            restore_ppf ();
+            Format.pp_open_vbox ppf 3;
+            Format.fprintf ppf "@{<blue>@<3>%s@}%t" "└─ " pr_legal)
+          else (
+            Format.pp_open_vbox ppf 3;
+            Format.fprintf ppf "@{<blue>@<3>%s@}%t" "├─ " pr_legal);
+          Format.pp_close_box ppf ();
+          not islast)
+      | Outcome msg ->
+        Format.fprintf ppf "@,@[<hov 2>%t@]" msg;
+        true
+      | Suggestion suggestions_list ->
+        Format.fprintf ppf "@,@[<v 1>@,@[<hov 2>%a@]@]" Suggestions.format
+          suggestions_list;
+        true
+    in
+    let rec print_lines ppf = function
+      | [elt] ->
+        let finalise = print_elt ppf ~islast:true elt in
+        Format.pp_close_box ppf ();
+        if finalise then Format.fprintf ppf "@,@{<blue>@<2>%s@}" "└─"
+      | elt :: r ->
+        let _ = print_elt ppf elt in
+        print_lines ppf r
+      | [] ->
+        Format.pp_close_box ppf ();
+        Format.pp_print_cut ppf ()
+    in
+    print_lines ppf content;
+    Format.pp_close_box ppf ();
+    restore_ppf ();
+    Format.pp_print_newline ppf ()
+
   let emit (content : t) (target : level) : unit =
     match Global.options.message_format with
-    | Global.Human ->
+    | Global.Human -> (
       let ppf = get_ppf target in
-      Format.pp_open_vbox ppf 0;
-      Format.pp_print_list
-        ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
-        (fun ppf -> function
-          | Position pos ->
-            Option.iter
-              (fun msg -> Format.fprintf ppf "@[<hov>%t@]@," msg)
-              pos.pos_message;
-            Pos.format_loc_text ppf pos.pos
-          | MainMessage msg ->
-            Format.fprintf ppf "@[<hov 2>%t %t@]" (pp_marker target) msg
-          | Outcome msg ->
-            Format.fprintf ppf "@[<hov>%t@ %t@]" (pp_marker target) msg
-          | Suggestion suggestions_list ->
-            Suggestions.format ppf suggestions_list)
-        ppf content;
-      Format.pp_close_box ppf ();
-      Format.pp_print_newline ppf ()
+      match target with
+      | Debug | Log -> basic_msg ppf target content
+      | Result | Warning | Error -> fancy_msg ppf target content)
     | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
@@ -222,7 +311,7 @@ module Content = struct
             (fun pos ->
               Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
             pos;
-          pp_marker target ppf;
+          Format.fprintf ppf "[%t]" (pp_marker target);
           match message with
           | Some message ->
             Format.pp_print_char ppf ' ';
@@ -247,6 +336,7 @@ type ('a, 'b) emitter =
   ?pos_msg:Content.message ->
   ?extra_pos:(string * Pos.t) list ->
   ?fmt_pos:(Content.message * Pos.t) list ->
+  ?outcome:Content.message list ->
   ?suggestion:string list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
@@ -258,6 +348,7 @@ let make
     ?pos_msg
     ?extra_pos
     ?fmt_pos
+    ?(outcome = [])
     ?(suggestion = [])
     ~cont
     ~level =
@@ -268,6 +359,9 @@ let make
   in
   let t = match header with Some h -> prepend_message t h | None -> t in
   let t = if internal then to_internal_error t else t in
+  let t =
+    match outcome with [] -> t | o -> t @ List.map (fun o -> Outcome o) o
+  in
   let t =
     match pos with Some p -> add_position t ?message:pos_msg p | None -> t
   in

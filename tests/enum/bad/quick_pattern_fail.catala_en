@@ -17,17 +17,19 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] The name of this constructor has not been defined before
-  (it's probably a typographical error).
-
-Here is your code :
-┌─⯈ tests/enum/bad/quick_pattern_fail.catala_en:15.38-15.43:
-└──┐
-15 │   definition y equals x with pattern Case3
-   │                                      ‾‾‾‾‾
-   └─ Article
-
-Maybe you wanted to write : "Case1",
-or "Case2"
+┌─[ERROR]─
+│
+│  The name of this constructor has not been defined before
+│  (it's probably a typographical error).
+│
+│ Here is your code :
+├─➤ tests/enum/bad/quick_pattern_fail.catala_en:15.38-15.43:
+│    │
+│ 15 │   definition y equals x with pattern Case3
+│    │                                      ‾‾‾‾‾
+├─ Article
+│
+│ Maybe you wanted to write : "Case1", or "Case2" ?
+└─
 #return code 123#
 ```

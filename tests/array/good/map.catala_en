@@ -14,13 +14,19 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] All invariant checks passed
-[RESULT] Typechecking successful!
+┌─[RESULT]─
+│All invariant checks passed
+└─
+┌─[RESULT]─
+│Typechecking successful!
+└─
 ```
 
 ```catala-test-inline
 $ catala test-scope B
-[RESULT] Computation successful! Results:
-[RESULT] x = [$4.00; $8.00]
-[RESULT] z = [false; true]
+┌─[RESULT]─
+│Computation successful! Results:
+│x = [$4.00; $8.00]
+│z = [false; true]
+└─
 ```

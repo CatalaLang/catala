@@ -17,13 +17,15 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-[ERROR] Couldn't infer the enumeration name from lonely wildcard (wildcard
-  cannot be used as single match case)
-
-┌─⯈ tests/enum/bad/ambiguous_wildcard.catala_en:15.5-15.21:
-└──┐
-15 │     -- anything : 31
-   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Wildcard cannot be used as single match case
+┌─[ERROR]─
+│
+│  Couldn't infer the enumeration name from lonely wildcard (wildcard cannot
+│  be used as single match case)
+│
+├─➤ tests/enum/bad/ambiguous_wildcard.catala_en:15.5-15.21:
+│    │
+│ 15 │     -- anything : 31
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Wildcard cannot be used as single match case
 #return code 123#
 ```
