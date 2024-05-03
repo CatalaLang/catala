@@ -69,14 +69,24 @@ type io_log = {
 
 (** {1 Exceptions} *)
 
-exception EmptyError
-exception AssertionFailed of source_position
-exception ConflictError of source_position
-exception UncomparableDurations
-exception IndivisibleDurations
-exception ImpossibleDate
-exception NoValueProvided of source_position
-exception Division_by_zero (* Shadows the stdlib definition *)
+type error =
+  | AssertionFailed  (** An assertion in the program doesn't hold *)
+  | NoValue  (** No computation with valid conditions found *)
+  | Conflict  (** Two different valid computations at that point *)
+  | DivisionByZero  (** The denominator happened to be 0 here *)
+  | NotSameLength  (** Traversing multiple lists of different lengths *)
+  | UncomparableDurations
+      (** Comparing durations in different units (e.g. months vs. days) *)
+  | IndivisibleDurations  (** Dividing durations that are not in days *)
+
+val error_to_string : error -> string
+(** Returns the capitalized tag of the error as a string *)
+
+val error_message : error -> string
+(** Returns a short explanation message about the error *)
+
+exception Error of error * source_position list
+exception Empty
 
 (** {1 Value Embedding} *)
 
@@ -305,12 +315,12 @@ val year_of_date : date -> integer
 val date_to_string : date -> string
 
 val date_of_numbers : int -> int -> int -> date
-(** Usage: [date_of_numbers year month day]
-
-    @raise ImpossibleDate *)
+(** Usage: [date_of_numbers year month day].
+    @raise Failure on invalid inputs *)
 
 val first_day_of_month : date -> date
 val last_day_of_month : date -> date
+val date_to_years_months_days : date -> int * int * int
 
 (**{2 Durations} *)
 
@@ -318,6 +328,7 @@ val duration_of_numbers : int -> int -> int -> duration
 (** Usage : [duration_of_numbers year mounth day]. *)
 
 val duration_to_years_months_days : duration -> int * int * int
+
 (**{2 Times} *)
 
 val duration_to_string : duration -> string
@@ -325,24 +336,27 @@ val duration_to_string : duration -> string
 (**{1 Defaults} *)
 
 val handle_default :
-  source_position -> (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
-(** @raise EmptyError
-    @raise ConflictError *)
+  source_position array ->
+  (unit -> 'a) array ->
+  (unit -> bool) ->
+  (unit -> 'a) ->
+  'a
+(** @raise Empty
+    @raise Error Conflict *)
 
 val handle_default_opt :
-  source_position ->
+  source_position array ->
   'a Eoption.t array ->
   (unit -> bool) ->
   (unit -> 'a Eoption.t) ->
   'a Eoption.t
-(** @raise ConflictError *)
-
-val no_input : unit -> 'a
+(** @raise Error Conflict *)
 
 (**{1 Operators} *)
 
 module Oper : sig
-  (* The types **must** match with Shared_ast.Operator.*_type *)
+  (* The types **must** match with Shared_ast.Operator.*_type ; but for the
+     added first argument [pos] for any operator that might trigger an error. *)
   val o_not : bool -> bool
   val o_length : 'a array -> integer
   val o_torat_int : integer -> decimal
@@ -365,7 +379,8 @@ module Oper : sig
   val o_eq : 'a -> 'a -> bool
   val o_map : ('a -> 'b) -> 'a array -> 'b array
 
-  val o_map2 : ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
+  val o_map2 :
+    source_position -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
   (** @raise [NotSameLength] *)
 
   val o_reduce : ('a -> 'a -> 'a) -> 'a -> 'a array -> 'a
@@ -386,35 +401,35 @@ module Oper : sig
   val o_mult_rat_rat : decimal -> decimal -> decimal
   val o_mult_mon_rat : money -> decimal -> money
   val o_mult_dur_int : duration -> integer -> duration
-  val o_div_int_int : integer -> integer -> decimal
-  val o_div_rat_rat : decimal -> decimal -> decimal
-  val o_div_mon_mon : money -> money -> decimal
-  val o_div_mon_rat : money -> decimal -> money
-  val o_div_dur_dur : duration -> duration -> decimal
+  val o_div_int_int : source_position -> integer -> integer -> decimal
+  val o_div_rat_rat : source_position -> decimal -> decimal -> decimal
+  val o_div_mon_mon : source_position -> money -> money -> decimal
+  val o_div_mon_rat : source_position -> money -> decimal -> money
+  val o_div_dur_dur : source_position -> duration -> duration -> decimal
   val o_lt_int_int : integer -> integer -> bool
   val o_lt_rat_rat : decimal -> decimal -> bool
   val o_lt_mon_mon : money -> money -> bool
-  val o_lt_dur_dur : duration -> duration -> bool
+  val o_lt_dur_dur : source_position -> duration -> duration -> bool
   val o_lt_dat_dat : date -> date -> bool
   val o_lte_int_int : integer -> integer -> bool
   val o_lte_rat_rat : decimal -> decimal -> bool
   val o_lte_mon_mon : money -> money -> bool
-  val o_lte_dur_dur : duration -> duration -> bool
+  val o_lte_dur_dur : source_position -> duration -> duration -> bool
   val o_lte_dat_dat : date -> date -> bool
   val o_gt_int_int : integer -> integer -> bool
   val o_gt_rat_rat : decimal -> decimal -> bool
   val o_gt_mon_mon : money -> money -> bool
-  val o_gt_dur_dur : duration -> duration -> bool
+  val o_gt_dur_dur : source_position -> duration -> duration -> bool
   val o_gt_dat_dat : date -> date -> bool
   val o_gte_int_int : integer -> integer -> bool
   val o_gte_rat_rat : decimal -> decimal -> bool
   val o_gte_mon_mon : money -> money -> bool
-  val o_gte_dur_dur : duration -> duration -> bool
+  val o_gte_dur_dur : source_position -> duration -> duration -> bool
   val o_gte_dat_dat : date -> date -> bool
   val o_eq_int_int : integer -> integer -> bool
   val o_eq_rat_rat : decimal -> decimal -> bool
   val o_eq_mon_mon : money -> money -> bool
-  val o_eq_dur_dur : duration -> duration -> bool
+  val o_eq_dur_dur : source_position -> duration -> duration -> bool
   val o_eq_dat_dat : date -> date -> bool
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
 end

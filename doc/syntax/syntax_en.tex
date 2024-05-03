@@ -378,8 +378,8 @@
   \\
   \begin{catala}
     ```catala
-    get_day of ...    get_month of ...
-    get_year of ...
+    get_month of ...
+    first_day_of_month of ...
     ```
   \end{catala}
   & Date parts
@@ -674,7 +674,7 @@
   \\
   \begin{catala}
     ```catala
-    x + 2 for x among lst
+    (x + 2) for x among lst
     ```
   \end{catala}
   & Mapping
@@ -688,7 +688,7 @@
   \\
   \begin{catala}
     ```catala
-    x - 2 for x among lst
+    (x - 2) for x among lst
       such that x > 2
     ```
   \end{catala}
@@ -696,7 +696,7 @@
   \\
   \begin{catala}
     ```catala
-    x + y for (x, y) among (lst1, lst2)
+    (x + y) for (x, y) among (lst1, lst2)
     ```
   \end{catala}
   & Multiple mapping

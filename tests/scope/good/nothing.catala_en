@@ -33,7 +33,7 @@ $ catala Scalc -s Foo2 -O -t
   └─ Test
 let Foo2_3 (Foo2_in_2: Foo2_in) =
   decl temp_bar_4 : integer;
-  raise NoValueProvided;
+  fatal NoValue;
   decl bar_3 : integer;
   bar_3 = temp_bar_4;
   return Foo2 {"bar": bar_3}

@@ -126,26 +126,44 @@ let neg_op = function
   | Op.Gte_dur_dur -> Some Op.Lt_dur_dur
   | _ -> None
 
-let rec bool_negation e =
+let rec bool_negation pos e =
   match Expr.skip_wrappers e with
   | ELit (LBool true), m -> ELit (LBool false), m
   | ELit (LBool false), m -> ELit (LBool true), m
-  | EAppOp { op = Op.Not; args = [(e, _)] }, m -> e, m
-  | (EAppOp { op; tys; args = [e1; e2] }, m) as e -> (
+  | EAppOp { op = Op.Not, _; args = [(e, _)] }, m -> e, m
+  | (EAppOp { op = op, opos; tys; args = [e1; e2] }, m) as e -> (
     match op with
     | Op.And ->
-      EAppOp { op = Op.Or; tys; args = [bool_negation e1; bool_negation e2] }, m
+      ( EAppOp
+          {
+            op = Op.Or, opos;
+            tys;
+            args = [bool_negation pos e1; bool_negation pos e2];
+          },
+        m )
     | Op.Or ->
-      ( EAppOp { op = Op.And; tys; args = [bool_negation e1; bool_negation e2] },
+      ( EAppOp
+          {
+            op = Op.And, opos;
+            tys;
+            args = [bool_negation pos e1; bool_negation pos e2];
+          },
         m )
     | op -> (
       match neg_op op with
-      | Some op -> EAppOp { op; tys; args = [e1; e2] }, m
+      | Some op -> EAppOp { op = op, opos; tys; args = [e1; e2] }, m
       | None ->
-        ( EAppOp { op = Op.Not; tys = [TLit TBool, Expr.mark_pos m]; args = [e] },
+        ( EAppOp
+            {
+              op = Op.Not, opos;
+              tys = [TLit TBool, Expr.mark_pos m];
+              args = [e];
+            },
           m )))
   | (_, m) as e ->
-    EAppOp { op = Op.Not; tys = [TLit TBool, Expr.mark_pos m]; args = [e] }, m
+    ( EAppOp
+        { op = Op.Not, pos; tys = [TLit TBool, Expr.mark_pos m]; args = [e] },
+      m )
 
 let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     =
@@ -169,7 +187,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
       let r, env1 = lazy_eval ctx env1 llevel e in
       env_elt.reduced <- r, env1;
       r, Env.join env env1
-  | EAppOp { op; args; tys }, m -> (
+  | EAppOp { op = op, opos; args; tys }, m -> (
     if
       (not llevel.eval_default)
       && not (List.equal Expr.equal args [ELit LUnit, m])
@@ -192,11 +210,13 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             let pos = Expr.mark_pos m in
             ( EAppOp
                 {
-                  op = Op.Eq_int_int;
+                  op = Op.Eq_int_int, opos;
                   tys = [TLit TInt, pos; TLit TInt, pos];
                   args =
                     [
-                      EAppOp { op = Op.Length; tys = [aty]; args = [arr] }, m;
+                      ( EAppOp
+                          { op = Op.Length, opos; tys = [aty]; args = [arr] },
+                        m );
                       ELit (LInt (Runtime.integer_of_int 0)), m;
                     ];
                 },
@@ -245,7 +265,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
           (* We did a transformation (removing the outer operator), but further
              evaluation may be needed to guarantee that [llevel] is reached *)
           lazy_eval ctx env { llevel with eval_match = true } e
-        | _ -> (EAppOp { op; args; tys }, m), env)
+        | _ -> (EAppOp { op = op, opos; args; tys }, m), env)
       | _ ->
         let env, args =
           List.fold_left_map
@@ -254,7 +274,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               env, e)
             env args
         in
-        if not llevel.eval_op then (EAppOp { op; args; tys }, m), env
+        if not llevel.eval_op then (EAppOp { op = op, opos; args; tys }, m), env
         else
           let renv = ref env in
           (* Dirty workaround returning env and conds from evaluate_operator *)
@@ -264,7 +284,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             e
           in
           let e =
-            Interpreter.evaluate_operator eval op m Global.En
+            Interpreter.evaluate_operator eval (op, opos) m Global.En
               (* Default language to English but this should not raise any error
                  messages so we don't care. *)
               args
@@ -294,7 +314,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         log "@]}";
         e, env
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
-  | (EAbs _ | ELit _ | EEmptyError), _ -> e0, env (* these are values *)
+  | (EAbs _ | ELit _ | EEmpty), _ -> e0, env (* these are values *)
   | (EStruct _ | ETuple _ | EInj _ | EArray _), _ ->
     if not llevel.eval_struct then e0, env
     else
@@ -348,7 +368,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
       List.filter_map
         (fun e ->
           match eval_to_value env e ~eval_default:false with
-          | (EEmptyError, _), _ -> None
+          | (EEmpty, _), _ -> None
           | e -> Some e)
         excepts
     in
@@ -359,7 +379,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         let condition = just, env in
         let e, env = lazy_eval ctx env llevel cons in
         add_condition ~condition e, env
-      | (ELit (LBool false), _), _ -> (EEmptyError, m), env
+      | (ELit (LBool false), _), _ -> (EEmpty, m), env
       (* Note: conditions for empty are skipped *)
       | e, _ -> error e "Invalid exception justification %a" Expr.format e)
     | [(e, env)] ->
@@ -370,14 +390,14 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         ~extra_pos:(List.map (fun (e, _) -> "", Expr.pos e) excs)
         "Conflicting exceptions")
   | EPureDefault e, _ -> lazy_eval ctx env llevel e
-  | EIfThenElse { cond; etrue; efalse }, _ -> (
+  | EIfThenElse { cond; etrue; efalse }, m -> (
     match eval_to_value env cond with
     | (ELit (LBool true), _), _ ->
       let condition = cond, env in
       let e, env = lazy_eval ctx env llevel etrue in
       add_condition ~condition e, env
     | (ELit (LBool false), m), _ -> (
-      let condition = bool_negation cond, env in
+      let condition = bool_negation (Expr.mark_pos m) cond, env in
       let e, env = lazy_eval ctx env llevel efalse in
       match efalse with
       (* The negated condition is not added for nested [else if] to reduce
@@ -387,7 +407,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     | e, _ -> error e "Invalid condition %a" Expr.format e)
   | EErrorOnEmpty e, _ -> (
     match eval_to_value env e ~eval_default:false with
-    | ((EEmptyError, _) as e'), _ ->
+    | ((EEmpty, _) as e'), _ ->
       (* This does _not_ match the eager semantics ! *)
       error e' "This value is undefined %a" Expr.format e
     | e, env -> lazy_eval ctx env llevel e)
@@ -400,6 +420,8 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         error e "Assert failure (%a)" Expr.format e error e
           "Assert failure (%a)" Expr.format e
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
+  | EFatalError err, _ ->
+    error e0 "%a" Format.pp_print_text (Runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
   | _ -> .
 
@@ -539,7 +561,8 @@ let to_graph ctx env expr =
   let rec aux env g e =
     (* lazy_eval ctx env (result_level base_vars) e *)
     match Expr.skip_wrappers e with
-    | EAppOp { op = ToRat_int | ToRat_mon | ToMoney_rat; args = [arg]; _ }, _ ->
+    | ( EAppOp { op = (ToRat_int | ToRat_mon | ToMoney_rat), _; args = [arg]; _ },
+        _ ) ->
       aux env g arg
     (* we skip conversions *)
     | ELit l, _ ->
@@ -657,8 +680,9 @@ let program_to_graph
     in
     let e = Mark.set m (Expr.skip_wrappers e) in
     match e with
-    | EAppOp { op = ToRat_int | ToRat_mon | ToMoney_rat; args = [arg]; tys }, _
-      ->
+    | ( EAppOp
+          { op = (ToRat_int | ToRat_mon | ToMoney_rat), _; args = [arg]; tys },
+        _ ) ->
       aux parent (g, var_vertices, env0) (Mark.set m arg)
     (* we skip conversions *)
     | ELit l, _ ->
@@ -696,7 +720,8 @@ let program_to_graph
           let v = G.V.create e in
           let g = G.add_vertex g v in
           (g, var_vertices, env), v))
-    | EAppOp { op = Map | Filter | Reduce | Fold; args = _ :: args; _ }, _ ->
+    | EAppOp { op = (Map | Filter | Reduce | Fold), _; args = _ :: args; _ }, _
+      ->
       (* First argument (which is a function) is ignored *)
       let v = G.V.create e in
       let g = G.add_vertex g v in
@@ -705,7 +730,7 @@ let program_to_graph
       in
       ( (List.fold_left (fun g -> G.add_edge g v) g children, var_vertices, env),
         v )
-    | EAppOp { op; args = [lhs; rhs]; _ }, _ ->
+    | EAppOp { op = op, _; args = [lhs; rhs]; _ }, _ ->
       let v = G.V.create e in
       let g = G.add_vertex g v in
       let (g, var_vertices, env), lhs =
@@ -1072,8 +1097,8 @@ let expr_to_dot_label0 :
       let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
        fun ppf e ->
         match Mark.remove e with
-        | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmptyError
-        | EAbs _ | EExternal _ ->
+        | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
+        | EExternal _ ->
           aux_value ppf e;
           true
         | EMatch { e; cases; _ } ->
@@ -1219,7 +1244,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
         else (* Constants *)
           [`Style `Filled; `Fillcolor 0x77aaff; `Shape `Note]
       | EStruct _, _ | EArray _, _ -> [`Shape `Record]
-      | EAppOp { op; _ }, _ -> (
+      | EAppOp { op = op, _; _ }, _ -> (
         match op_kind op with
         | `Sum | `Product | _ -> [`Shape `Box] (* | _ -> [] *))
       | _ -> [])

@@ -26,7 +26,7 @@ module Runtime = Runtime_ocaml.Runtime
 (** {1 Helpers} *)
 
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
- fun e -> match Mark.remove e with EEmptyError -> true | _ -> false
+ fun e -> match Mark.remove e with EEmpty -> true | _ -> false
 
 (* TODO: we should provide a generic way to print logs, that work across the
    different backends: python, ocaml, javascript, and interpreter *)
@@ -59,20 +59,11 @@ let print_log lang entry infos pos e =
       Message.log "%s%a %a" !indent_str Print.log_entry entry Print.uid_list
         infos
 
-exception CatalaException of except * Pos.t
-
-let () =
-  Printexc.register_printer (function
-    | CatalaException (e, _pos) ->
-      Some
-        (Format.asprintf "uncaught exception %a raised during interpretation"
-           Print.except e)
-    | _ -> None)
-
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
-let handle_eq evaluate_operator pos lang e1 e2 =
+let handle_eq pos evaluate_operator m lang e1 e2 =
+  let eq_eval = evaluate_operator (Eq, pos) m lang in
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
@@ -80,13 +71,14 @@ let handle_eq evaluate_operator pos lang e1 e2 =
   | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
   | ELit (LRat x1), ELit (LRat x2) -> o_eq_rat_rat x1 x2
   | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
-  | ELit (LDuration x1), ELit (LDuration x2) -> o_eq_dur_dur x1 x2
+  | ELit (LDuration x1), ELit (LDuration x2) ->
+    o_eq_dur_dur (Expr.pos_to_runtime (Expr.mark_pos m)) x1 x2
   | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
   | EArray es1, EArray es2 -> (
     try
       List.for_all2
         (fun e1 e2 ->
-          match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
+          match Mark.remove (eq_eval [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -96,7 +88,7 @@ let handle_eq evaluate_operator pos lang e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
+           match Mark.remove (eq_eval [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -107,7 +99,7 @@ let handle_eq evaluate_operator pos lang e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
+      match Mark.remove (eq_eval [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -117,31 +109,16 @@ let handle_eq evaluate_operator pos lang e1 e2 =
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
-    (op : < overloaded : no ; .. > operator)
+    ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
     lang
     args =
   let pos = Expr.mark_pos m in
-  let protect f x y =
-    let get_binop_args_pos = function
-      | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
-        ["", Expr.pos arg0; "", Expr.pos arg1]
-      | _ -> assert false
-    in
-    try f x y with
-    | Runtime.Division_by_zero ->
-      Message.error
-        ~extra_pos:
-          [
-            "The division operator:", pos;
-            "The null denominator:", Expr.pos (List.nth args 1);
-          ]
-        "division by zero at runtime"
-    | Runtime.UncomparableDurations ->
-      Message.error ~extra_pos:(get_binop_args_pos args) "%a"
-        Format.pp_print_text
-        "Cannot compare together durations that cannot be converted to a \
-         precise number of days"
+  let rpos () = Expr.pos_to_runtime opos in
+  let div_pos () =
+    (* Division by 0 errors point to their 2nd operand *)
+    Expr.pos_to_runtime
+    @@ match args with _ :: denom :: _ -> Expr.pos denom | _ -> opos
   in
   let err () =
     Message.error
@@ -150,7 +127,7 @@ let rec evaluate_operator
            ( Format.asprintf "Operator (value %a):"
                (Print.operator ~debug:true)
                op,
-             pos );
+             opos );
          ]
         @ List.mapi
             (fun i arg ->
@@ -180,7 +157,7 @@ let rec evaluate_operator
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
   | Eq, [(e1, _); (e2, _)] ->
-    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m lang e1 e2))
+    ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
@@ -315,15 +292,15 @@ let rec evaluate_operator
   | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
     ELit (LDuration (o_mult_dur_int x y))
   | Div_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LRat (protect o_div_int_int x y))
+    ELit (LRat (o_div_int_int (div_pos ()) x y))
   | Div_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LRat (protect o_div_rat_rat x y))
+    ELit (LRat (o_div_rat_rat (div_pos ()) x y))
   | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LRat (protect o_div_mon_mon x y))
+    ELit (LRat (o_div_mon_mon (div_pos ()) x y))
   | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
-    ELit (LMoney (protect o_div_mon_rat x y))
+    ELit (LMoney (o_div_mon_rat (div_pos ()) x y))
   | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LRat (protect o_div_dur_dur x y))
+    ELit (LRat (o_div_dur_dur (div_pos ()) x y))
   | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_lt_int_int x y))
   | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -333,7 +310,7 @@ let rec evaluate_operator
   | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_lt_dat_dat x y))
   | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (protect o_lt_dur_dur x y))
+    ELit (LBool (o_lt_dur_dur (rpos ()) x y))
   | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_lte_int_int x y))
   | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -343,7 +320,7 @@ let rec evaluate_operator
   | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_lte_dat_dat x y))
   | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (protect o_lte_dur_dur x y))
+    ELit (LBool (o_lte_dur_dur (rpos ()) x y))
   | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_gt_int_int x y))
   | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -353,7 +330,7 @@ let rec evaluate_operator
   | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_gt_dat_dat x y))
   | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (protect o_gt_dur_dur x y))
+    ELit (LBool (o_gt_dur_dur (rpos ()) x y))
   | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_gte_int_int x y))
   | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -363,7 +340,7 @@ let rec evaluate_operator
   | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_gte_dat_dat x y))
   | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (protect o_gte_dur_dur x y))
+    ELit (LBool (o_gte_dur_dur (rpos ()) x y))
   | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_eq_int_int x y))
   | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -373,24 +350,23 @@ let rec evaluate_operator
   | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (protect o_eq_dur_dur x y))
+    ELit (LBool (o_eq_dur_dur (rpos ()) x y))
   | HandleDefault, [(EArray excepts, _); just; cons] -> (
     (* This case is for lcalc with exceptions: we rely OCaml exception handling
        here *)
     match
       List.filter_map
         (fun e ->
-          try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
-          with CatalaException (EmptyError, _) -> None)
+          try Some (evaluate_expr (Expr.unthunk_term_nobox e))
+          with Runtime.Empty -> None)
         excepts
     with
     | [] -> (
-      let just = evaluate_expr (Expr.unthunk_term_nobox just m) in
+      let just = evaluate_expr (Expr.unthunk_term_nobox just) in
       match Mark.remove just with
       | ELit (LBool true) ->
-        Mark.remove
-          (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
-      | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox cons))
+      | ELit (LBool false) -> raise Runtime.Empty
       | _ ->
         Message.error ~pos
           "Default justification has not been reduced to a boolean at@ \
@@ -398,7 +374,12 @@ let rec evaluate_operator
            %a@."
           Expr.format just)
     | [e] -> Mark.remove e
-    | es -> raise (CatalaException (ConflictError (List.map Expr.pos es), pos)))
+    | es ->
+      raise
+        Runtime.(
+          Error
+            (Conflict, List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es))
+    )
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -408,10 +389,10 @@ let rec evaluate_operator
     in
     match valid_exceptions with
     | [] -> (
-      let e = evaluate_expr (Expr.unthunk_term_nobox justification m) in
+      let e = evaluate_expr (Expr.unthunk_term_nobox justification) in
       match Mark.remove e with
       | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion))
       | ELit (LBool false) ->
         EInj
           {
@@ -435,7 +416,10 @@ let rec evaluate_operator
       e
     | [_] -> err ()
     | excs ->
-      raise (CatalaException (ConflictError (List.map Expr.pos excs), pos)))
+      raise
+        Runtime.(
+          Error (Conflict, List.map Expr.(fun e -> pos_to_runtime (pos e)) excs))
+    )
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -533,7 +517,7 @@ and val_to_runtime :
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
-  | _, EEmptyError -> raise Runtime.EmptyError
+  | _, EEmpty -> raise Runtime.Empty
   | TLit TBool, ELit (LBool b) -> Obj.repr b
   | TLit TUnit, ELit LUnit -> Obj.repr ()
   | TLit TInt, ELit (LInt i) -> Obj.repr i
@@ -594,8 +578,7 @@ and val_to_runtime :
         let args = List.rev acc in
         let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
-          (try eval_expr ctx (EApp { f = v; args; tys }, m)
-           with CatalaException (EmptyError, _) -> raise Runtime.EmptyError)
+          (eval_expr ctx (EApp { f = v; args; tys }, m))
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -663,29 +646,24 @@ let rec evaluate_expr :
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | ECustom { obj; targs; tret } -> (
+    | ECustom { obj; targs; tret } ->
       (* Applies the arguments one by one to the curried form *)
-      match
+      let o =
         List.fold_left2
           (fun fobj targ arg ->
             (Obj.obj fobj : Obj.t -> Obj.t)
               (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
           obj targs args
-      with
-      | exception e ->
-        Format.ksprintf
-          (fun s -> raise (CatalaException (Crash s, pos)))
-          "@[<hv 2>This call to code from a module failed with:@ %s@]"
-          (Printexc.to_string e)
-      | o -> runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o)
+      in
+      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
-      Message.error ~pos "%a" Format.pp_print_text
+      Message.error ~pos ~internal:true "%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs _ | ELit _ | ECustom _ | EEmptyError -> e (* these are values *)
+  | EAbs _ | ELit _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
@@ -777,20 +755,21 @@ let rec evaluate_expr :
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
-      Message.error ~pos:(Expr.pos e') "Assertion failed:@\n%a"
+      Message.warning "Assertion failed:@ %a"
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
-           (Expr.skip_wrappers e'))
+           (Expr.skip_wrappers e'));
+      raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
+  | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
-    | EEmptyError, _ ->
-      Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
-        "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
+    | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
+    | exception Runtime.Empty ->
+      raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -800,7 +779,7 @@ let rec evaluate_expr :
       let just = evaluate_expr ctx lang just in
       match Mark.remove just with
       | ELit (LBool true) -> evaluate_expr ctx lang cons
-      | ELit (LBool false) -> Mark.copy e EEmptyError
+      | ELit (LBool false) -> Mark.copy e EEmpty
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
@@ -809,16 +788,17 @@ let rec evaluate_expr :
     | _ ->
       let poslist =
         List.filter_map
-          (fun ex -> if is_empty_error ex then None else Some (Expr.pos ex))
+          (fun ex ->
+            if is_empty_error ex then None
+            else Some Expr.(pos_to_runtime (pos ex)))
           excepts
       in
-      raise (CatalaException (ConflictError poslist, pos)))
+      raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
-  | ERaise exn -> raise (CatalaException (exn, pos))
-  | ECatch { body; exn; handler } -> (
+  | ERaiseEmpty -> raise Runtime.Empty
+  | ECatchEmpty { body; handler } -> (
     try evaluate_expr ctx lang body
-    with CatalaException (caught, _) when Expr.equal_except caught exn ->
-      evaluate_expr ctx lang handler)
+    with Runtime.Empty -> evaluate_expr ctx lang handler)
   | _ -> .
 
 and partially_evaluate_expr_for_assertion_failure_message :
@@ -839,12 +819,13 @@ and partially_evaluate_expr_for_assertion_failure_message :
         args = [e1; e2];
         tys;
         op =
-          ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-          | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-          | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-          | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-          | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-          | Eq_dur_dur | Eq_dat_dat ) as op;
+          ( ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+            | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+            | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
+            | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+            | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+            | Eq_dur_dur | Eq_dat_dat ),
+            _ ) as op;
       } ->
     ( EAppOp
         {
@@ -859,6 +840,20 @@ and partially_evaluate_expr_for_assertion_failure_message :
       Mark.get e )
   | _ -> evaluate_expr ctx lang e
 
+let evaluate_expr_safe :
+    type d e.
+    decl_ctx ->
+    Global.backend_lang ->
+    ((d, e, yes) interpr_kind, 't) gexpr ->
+    ((d, e, yes) interpr_kind, 't) gexpr =
+ fun ctx lang e ->
+  try evaluate_expr ctx lang e
+  with Runtime.Error (err, rpos) ->
+    Message.error
+      ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+      "During evaluation: %a." Format.pp_print_text
+      (Runtime.error_message err)
+
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
   let rec f :
@@ -870,13 +865,13 @@ let addcustom e =
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
     | (EDefault _, _) as e -> Expr.map ~f e
     | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmptyError, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (ECatch _, _) as e -> Expr.map ~f e
-    | (ERaise _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
-        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
-        | EStructAccess _ | EMatch _ ),
+    | (ECatchEmpty _, _) as e -> Expr.map ~f e
+    | (ERaiseEmpty, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
@@ -902,13 +897,13 @@ let delcustom e =
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
     | (EDefault _, _) as e -> Expr.map ~f e
     | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmptyError, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (ECatch _, _) as e -> Expr.map ~f e
-    | (ERaise _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
-        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
-        | EStructAccess _ | EMatch _ ),
+    | (ECatchEmpty _, _) as e -> Expr.map ~f e
+    | (ERaiseEmpty, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
@@ -918,30 +913,11 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
-let interp_failure_message ~pos = function
-  | NoValueProvided ->
-    Message.error ~pos "%a" Format.pp_print_text
-      "This variable evaluated to an empty term (no rule that defined it \
-       applied in this situation)"
-  | ConflictError cpos ->
-    Message.error
-      ~extra_pos:
-        (List.map
-           (fun pos -> "This consequence has a valid justification:", pos)
-           cpos)
-      "%a" Format.pp_print_text
-      "There is a conflict between multiple valid consequences for assigning \
-       the same variable."
-  | Crash s -> Message.error ~pos "%s" s
-  | EmptyError ->
-    Message.error ~pos ~internal:true
-      "A variable without valid definition escaped"
-
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
-  match evaluate_expr ctx p.lang (addcustom e) with
+  match evaluate_expr_safe ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -969,7 +945,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                tell with just this info. *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
+              (Expr.eraiseempty (Expr.with_ty mark_e ty_out))
               ty_in (Expr.mark_pos mark_e)
           | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
             (* ... or a closure if closure conversion is enabled *)
@@ -980,7 +956,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                   (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                      ~name:Expr.option_enum mark_e)
                   ty_in (Expr.mark_pos mark_e);
-                Expr.eappop ~op:Operator.ToClosureEnv
+                Expr.eappop
+                  ~op:(Operator.ToClosureEnv, pos)
                   ~args:[Expr.etuple [] mark_e]
                   ~tys:[TClosureEnv, pos]
                   mark_e;
@@ -1006,16 +983,21 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
-    match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
+    match
+      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+    with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
-    | exception CatalaException (except, pos) ->
-      interp_failure_message ~pos except
+    | exception Runtime.Error (err, rpos) ->
+      Message.error
+        ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+        "%a" Format.pp_print_text
+        (Runtime.error_message err)
     | _ ->
-      Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-        "The interpretation of a program should always yield a struct \
+      Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+        "The interpretation of the program doesn't yield a struct \
          corresponding to the scope variables"
   end
   | _ ->
@@ -1028,7 +1010,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr p.decl_ctx p.lang (addcustom e) with
+  match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1043,7 +1025,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
+              (Bindlib.box EEmpty, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | _ ->
             Message.error ~pos:(Mark.get ty) "%a" Format.pp_print_text
@@ -1063,13 +1045,13 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
-    match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
+    match
+      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+    with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
-    | exception CatalaException (except, pos) ->
-      interp_failure_message ~pos except
     | _ ->
       Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \

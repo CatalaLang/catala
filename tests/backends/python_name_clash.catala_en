@@ -98,24 +98,23 @@ def some_name(some_name_in:SomeNameIn):
             def temp_o_2(_:Unit):
                 return (i + integer_of_string("1"))
             return handle_default(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
-                                  start_line=7, start_column=10,
-                                  end_line=7, end_column=11,
+                                  start_line=10, start_column=23,
+                                  end_line=10, end_column=28,
                                   law_headings=[]), [], temp_o_1, temp_o_2)
         def temp_o_3(_:Unit):
             return False
         def temp_o_4(_:Unit):
-            raise EmptyError
+            raise Empty
         temp_o_5 = handle_default(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
                                   start_line=7, start_column=10,
                                   end_line=7, end_column=11,
                                   law_headings=[]), [temp_o], temp_o_3,
                                   temp_o_4)
-    except EmptyError:
-        temp_o_5 = dead_value
-        raise NoValueProvided(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
-                                             start_line=7, start_column=10,
-                                             end_line=7, end_column=11,
-                                             law_headings=[]))
+    except Empty:
+        raise NoValue(SourcePosition(
+                          filename="tests/backends/python_name_clash.catala_en",
+                          start_line=7, start_column=10,
+                          end_line=7, end_column=11, law_headings=[]))
     o = temp_o_5
     return SomeName(o = o)
 
@@ -127,25 +126,24 @@ def b(b_in:BIn):
             def temp_result_2(_:Unit):
                 return integer_of_string("1")
             return handle_default(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
-                                  start_line=16, start_column=14,
-                                  end_line=16, end_column=25,
+                                  start_line=16, start_column=33,
+                                  end_line=16, end_column=34,
                                   law_headings=[]), [], temp_result_1,
                                   temp_result_2)
         def temp_result_3(_:Unit):
             return False
         def temp_result_4(_:Unit):
-            raise EmptyError
+            raise Empty
         temp_result_5 = handle_default(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
                                        start_line=16, start_column=14,
                                        end_line=16, end_column=25,
                                        law_headings=[]), [temp_result],
                                        temp_result_3, temp_result_4)
-    except EmptyError:
-        temp_result_5 = dead_value
-        raise NoValueProvided(SourcePosition(filename="tests/backends/python_name_clash.catala_en",
-                                             start_line=16, start_column=14,
-                                             end_line=16, end_column=25,
-                                             law_headings=[]))
+    except Empty:
+        raise NoValue(SourcePosition(
+                          filename="tests/backends/python_name_clash.catala_en",
+                          start_line=16, start_column=14,
+                          end_line=16, end_column=25, law_headings=[]))
     result = some_name(SomeNameIn(i_in = temp_result_5))
     result_1 = SomeName(o = result.o)
     if True:

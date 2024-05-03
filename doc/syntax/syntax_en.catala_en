@@ -65,9 +65,8 @@ declaration x content integer equals
     round of $9.99
   ) in
   let x equals (
-    get_day of 0,
-    get_month of 0,
-    get_year of 0
+    get_month of |2003-01-02|,
+    first_day_of_month of |2003-01-02|
   ) in
   let x equals (
     a +! b,    # integer
@@ -214,17 +213,17 @@ declaration x content integer equals
     for all x among lst we have x > 2
   in
   let x equals
-    x + 2 for x among lst
+    (x + 2) for x among lst
   in
   let x equals
     list of x among lst such that x > 2
   in
   let x equals
-    x - 2 for x among lst
+    (x - 2) for x among lst
       such that x > 2
   in
   let x equals
-    x + y for (x, y) among (lst1, lst2)
+    (x + y) for (x, y) among (lst1, lst2)
   in
   let x equals
     lst1 ++ lst2
@@ -255,9 +254,9 @@ to ensure that the *syntax* is correct.
 $ catala typecheck
 [ERROR] No scope named Scope0 found
 
-┌─⯈ doc/syntax/syntax_en.catala_en:95.14-95.20:
+┌─⯈ doc/syntax/syntax_en.catala_en:94.14-94.20:
 └──┐
-95 │   sub1 scope Scope0
+94 │   sub1 scope Scope0
    │              ‾‾‾‾‾‾
    └─ Metadata declaration
 #return code 123#

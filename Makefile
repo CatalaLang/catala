@@ -194,14 +194,14 @@ syntax:
 # High-level test and benchmarks commands
 ##########################################
 
-CATALA_OPTS ?=
+CATALAOPTS ?=
 CLERK_OPTS ?=
 
 CATALA_BIN=_build/default/$(COMPILER_DIR)/catala.exe
 CLERK_BIN=_build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
 
 CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
-	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
+	$(CLERK_OPTS) $(if $(CATALAOPTS),--catala-opts=$(CATALAOPTS),)
 
 
 .FORCE:
@@ -234,7 +234,7 @@ testsuite: unit-tests
 
 #> reset-tests				: Update the expected test results from current run
 reset-tests: .FORCE $(CLERK_BIN)
-	$(CLERK_TEST) tests --reset
+	$(CLERK_TEST) tests doc --reset
 
 tests/%: .FORCE
 	$(CLERK_TEST) test $@

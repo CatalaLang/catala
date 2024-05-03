@@ -378,12 +378,6 @@ end
 
 type 'a operator = 'a Op.t
 
-type except =
-  | ConflictError of Pos.t list
-  | EmptyError
-  | NoValueProvided
-  | Crash of string
-
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@caml.unboxed]
@@ -478,7 +472,7 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EAppOp : {
-      op : 'a operator;
+      op : 'a operator Mark.pos;
       args : ('a, 'm) gexpr list;
       tys : typ list;
     }
@@ -553,6 +547,7 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
+  | EFatalError : Runtime.error -> ('a, < .. >, 'm) base_gexpr
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 'm) gexpr list;
@@ -564,15 +559,14 @@ and ('a, 'b, 'm) base_gexpr =
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
       (** "return" of a pure term, so that it can be typed as [default] *)
-  | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  | EEmpty : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   (* Lambda calculus with exceptions *)
-  | ERaise : except -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
-  | ECatch : {
+  | ERaiseEmpty : ('a, < exceptions : yes ; .. >, 'm) base_gexpr
+  | ECatchEmpty : {
       body : ('a, 'm) gexpr;
-      exn : except;
       handler : ('a, 'm) gexpr;
     }
       -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr

@@ -40,7 +40,7 @@ let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
   | hd :: tl ->
     ( EAppOp
         {
-          op = And;
+          op = And, Expr.mark_pos mark;
           tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
           args = [hd; conjunction_exprs tl mark];
         },
@@ -54,7 +54,7 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
     (fun acc arg ->
       ( EAppOp
           {
-            op = And;
+            op = And, Expr.mark_pos mark;
             tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },
@@ -62,7 +62,13 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
     acc list
 
 let negation (arg : vc_return) (mark : typed mark) : vc_return =
-  EAppOp { op = Not; tys = [TLit TBool, Expr.pos arg]; args = [arg] }, mark
+  ( EAppOp
+      {
+        op = Not, Expr.mark_pos mark;
+        tys = [TLit TBool, Expr.pos arg];
+        args = [arg];
+      },
+    mark )
 
 let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
@@ -72,7 +78,7 @@ let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
     (fun (acc : vc_return) arg ->
       ( EAppOp
           {
-            op = Or;
+            op = Or, Expr.mark_pos mark;
             tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },
@@ -171,7 +177,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
             (Mark.get e);
         ])
       (Mark.get e)
-  | EEmptyError -> Mark.copy e (ELit (LBool false))
+  | EEmpty -> Mark.copy e (ELit (LBool false))
   | EVar _
   (* Per default calculus semantics, you cannot call a function with an argument
      that evaluates to the empty error. Thus, all variable evaluate to
@@ -202,7 +208,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                            can be ignored *)
                         let _vars, body = Bindlib.unmbind binder in
                         match Mark.remove body with
-                        | EEmptyError -> Mark.copy field (ELit (LBool true))
+                        | EEmpty -> Mark.copy field (ELit (LBool true))
                         | _ ->
                           (* same as basic [EAbs case]*)
                           generate_vc_must_not_return_empty ctx field)

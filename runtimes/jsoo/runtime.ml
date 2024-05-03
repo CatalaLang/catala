@@ -60,11 +60,14 @@ let date_of_js d =
     if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
     else d
   in
+  let fail () = failwith "date_of_js: invalid date" in
   match String.split_on_char '-' d with
-  | [year; month; day] ->
-    R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
-      (int_of_string day)
-  | _ -> failwith "date_of_js: invalid date"
+  | [year; month; day] -> (
+    try
+      R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
+        (int_of_string day)
+    with Failure _ -> fail ())
+  | _ -> fail ()
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
@@ -147,13 +150,9 @@ let event_manager : event_manager Js.t =
   end
 
 let execute_or_throw_error f =
-  let throw_error (descr : string) (pos : R_ocaml.source_position) =
-    let msg =
-      Js.string
-        (Format.asprintf "%s in file %s, position %d:%d--%d:%d." descr
-           pos.filename pos.start_line pos.start_column pos.end_line
-           pos.end_column)
-    in
+  try f ()
+  with R_ocaml.Error _ as exc ->
+    let msg = Js.string (Printexc.to_string exc) in
     Js.Js_error.raise_
       (Js.Js_error.of_error
          (object%js
@@ -162,16 +161,6 @@ let execute_or_throw_error f =
             val mutable stack = Js.Optdef.empty
             method toString = msg
          end))
-  in
-  try f () with
-  | R_ocaml.NoValueProvided pos ->
-    throw_error
-      "No rule applies in the given context to give a value to the variable" pos
-  | R_ocaml.ConflictError pos ->
-    throw_error
-      "A conflict happened between two rules giving a value to the variable" pos
-  | R_ocaml.AssertionFailed pos ->
-    throw_error "A failure happened in the assertion" pos
 
 let () =
   Js.export_all

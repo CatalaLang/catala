@@ -247,27 +247,20 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   let v_str = Mark.remove (FuncName.get_info v) in
   format_name_cleaned fmt v_str
 
-let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
-  let pos = Mark.get exc in
-  match Mark.remove exc with
-  | ConflictError _ ->
-    Format.fprintf fmt
-      "ConflictError(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
-       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
-       law_headings=%a)@])@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "EmptyError"
-  | Crash _ -> Format.fprintf fmt "Crash"
-  | NoValueProvided ->
-    Format.fprintf fmt
-      "NoValueProvided(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
-       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
-       law_headings=%a)@])@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+let format_position ppf pos =
+  Format.fprintf ppf
+    "@[<hov 4>SourcePosition(@,\
+     filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
+     end_column=%d,@ law_headings=%a@;\
+     <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
+    (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+    format_string_list (Pos.get_law_info pos)
+
+let format_error (ppf : Format.formatter) (err : Runtime.error Mark.pos) : unit
+    =
+  let pos = Mark.get err in
+  let tag = Runtime.error_to_string (Mark.remove err) in
+  Format.fprintf ppf "%s(%a)" tag format_position pos
 
 let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
@@ -305,18 +298,21 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1 (format_expression ctx) arg2
+  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
+    Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
+      (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
-      (op, Pos.no_pos) (format_expression ctx) arg2
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+      (format_expression ctx) arg2
   | EApp
-      { f = EAppOp { op = Log (BeginCall, info); args = [f] }, _; args = [arg] }
+      {
+        f = EAppOp { op = Log (BeginCall, info), _; args = [f] }, _;
+        args = [arg];
+      }
     when Global.options.trace ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EAppOp { op = Log (VarDef var_def_info, info); args = [arg1] }
+  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1] }
     when Global.options.trace ->
     Format.fprintf fmt
       "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
@@ -328,7 +324,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       | Runtime.Reentrant -> "Reentrant")
       (if var_def_info.log_io_output then "True" else "False")
       (format_expression ctx) arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _); args = [arg1] }
+  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1] }
     when Global.options.trace ->
     let pos = Mark.get e in
     Format.fprintf fmt
@@ -337,31 +333,28 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EAppOp { op = Log (EndCall, info); args = [arg1] } when Global.options.trace
-    ->
+  | EAppOp { op = Log (EndCall, info), _; args = [arg1] }
+    when Global.options.trace ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EAppOp { op = Log _; args = [arg1] } ->
+  | EAppOp { op = Log _, _; args = [arg1] } ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
-  | EAppOp { op = Not; args = [arg1] } ->
-    Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
-      (format_expression ctx) arg1
+  | EAppOp { op = (Not, _) as op; args = [arg1] } ->
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
-        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
+        op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
         args = [arg1];
       } ->
-    Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
-    Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
-  | EAppOp { op = (HandleDefault | HandleDefaultOpt) as op; args } ->
+    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  | EAppOp { op = ((HandleDefault | HandleDefaultOpt), _) as op; args } ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_op (op, pos) (Pos.get_file pos) (Pos.get_start_line pos)
+      format_op op (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
       format_string_list (Pos.get_law_info pos)
       (Format.pp_print_list
@@ -388,7 +381,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (format_expression ctx))
       args
   | EAppOp { op; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
@@ -423,13 +416,12 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     ->
     Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept { try_block = try_b; except; with_block = catch_b } ->
-    Format.fprintf fmt "@[<hov 4>try:@\n%a@]@\n@[<hov 4>except %a:@\n%a@]"
-      (format_block ctx) try_b format_exception (except, Pos.no_pos)
-      (format_block ctx) catch_b
-  | SRaise except ->
-    Format.fprintf fmt "@[<hov 4>raise %a@]" format_exception
-      (except, Mark.get s)
+  | STryWEmpty { try_block = try_b; with_block = catch_b } ->
+    Format.fprintf fmt "@[<v 4>try:@,%a@]@\n@[<v 4>except Empty:@,%a@]"
+      (format_block ctx) try_b (format_block ctx) catch_b
+  | SRaiseEmpty -> Format.fprintf fmt "raise Empty"
+  | SFatalError err ->
+    Format.fprintf fmt "@[<hov 4>raise %a@]" format_error (err, Mark.get s)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2

@@ -140,7 +140,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
     | EAppOp
         {
-          op = Op.HandleDefaultOpt;
+          op = Op.HandleDefaultOpt, _;
           args = [_exceptions; _just; _cons];
           tys = _;
         }
@@ -227,7 +227,8 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
           Expr.pos expr )
       in
       RevBlock.empty, (EExternal { modname; name }, Expr.pos expr)
-    | ECatch _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | ERaise _ ->
+    | ECatchEmpty _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _
+    | EFatalError _ | ERaiseEmpty ->
       raise (NotAnExpr { needs_a_local_decl = true })
     | _ -> .
   with NotAnExpr { needs_a_local_decl } ->
@@ -272,8 +273,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     RevBlock.rebuild
       ~tail:[A.SAssert (Mark.remove new_e), Expr.pos block_expr]
       e_stmts
+  | EFatalError err -> [SFatalError err, Expr.pos block_expr]
   | EAppOp
-      { op = Op.HandleDefaultOpt; tys = _; args = [exceptions; just; cons] }
+      { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
     when ctxt.config.keep_special_ops ->
     let exceptions =
       match Mark.remove exceptions with
@@ -481,15 +483,14 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               },
             Expr.pos block_expr );
         ]
-  | ECatch { body; exn; handler } ->
+  | ECatchEmpty { body; handler } ->
     let s_e_try = translate_statements ctxt body in
     let s_e_catch = translate_statements ctxt handler in
     [
-      ( A.STryExcept
-          { try_block = s_e_try; except = exn; with_block = s_e_catch },
+      ( A.STryWEmpty { try_block = s_e_try; with_block = s_e_catch },
         Expr.pos block_expr );
     ]
-  | ERaise except ->
+  | ERaiseEmpty ->
     (* Before raising the exception, we still give a dummy definition to the
        current variable so that tools like mypy don't complain. *)
     (match ctxt.inside_definition_of with
@@ -504,7 +505,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           Expr.pos block_expr );
       ]
     | _ -> [])
-    @ [A.SRaise except, Expr.pos block_expr]
+    @ [A.SRaiseEmpty, Expr.pos block_expr]
   | EInj { e = e1; cons; name } when ctxt.config.no_struct_literals ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let tmp_struct_var_name =
@@ -572,7 +573,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let e_stmts, new_e = translate_expr ctxt block_expr in
     let tail =
       match (e_stmts :> (A.stmt * Pos.t) list) with
-      | (A.SRaise _, _) :: _ ->
+      | (A.SRaiseEmpty, _) :: _ ->
         (* if the last statement raises an exception, then we don't need to
            return or to define the current variable since this code will be
            unreachable *)

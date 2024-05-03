@@ -5,12 +5,14 @@ open Oper
 
 let mzero = money_of_units_int 0
 
+let pos = {filename=__FILE__; start_line=0; start_column=0; end_line=0; end_column=0; law_headings=[]}
+
 let prorata_ : money -> (money array) -> (money array) =
   fun (amount: money) (weights: money array) ->
   let w_total = Array.fold_left o_add_mon_mon mzero weights in
   let rem, a =
     Array.fold_left_map (fun rem w ->
-        let r = o_mult_mon_rat amount (o_div_mon_mon w w_total) in
+        let r = o_mult_mon_rat amount (o_div_mon_mon pos w w_total) in
         o_sub_mon_mon rem r, r)
       amount weights
   in
@@ -25,7 +27,7 @@ let prorata2_ : money -> (money array) -> (money array) =
         let r =
           o_mult_mon_rat
             rem_amount
-            (o_div_mon_mon w rem_weights) in
+            (o_div_mon_mon pos w rem_weights) in
         (o_sub_mon_mon rem_amount r, o_sub_mon_mon rem_weights w), r)
       (amount, w_total) weights
   in

@@ -42,7 +42,7 @@ let translate_binop :
     Ast.expr boxed =
  fun (op, op_pos) pos lhs rhs ->
   let op_expr op tys =
-    Expr.eappop ~op
+    Expr.eappop ~op:(op, op_pos)
       ~tys:(List.map (Mark.add op_pos) tys)
       ~args:[lhs; rhs]
       (Untyped { pos })
@@ -114,7 +114,10 @@ let translate_binop :
 
 let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
   let op_expr op ty =
-    Expr.eappop ~op ~tys:[Mark.add op_pos ty] ~args:[arg] (Untyped { pos })
+    Expr.eappop ~op:(op, op_pos)
+      ~tys:[Mark.add op_pos ty]
+      ~args:[arg]
+      (Untyped { pos })
   in
   match op with
   | S.Not -> op_expr Not (TLit TBool)
@@ -238,12 +241,12 @@ let rec translate_expr
   let rec_helper ?(local_vars = local_vars) e =
     translate_expr scope inside_definition_of ctxt local_vars e
   in
-  let rec detuplify_list names = function
+  let rec detuplify_list opos names = function
     (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
        tuple is found instead we transpose it into a list of tuples *)
     | S.Tuple ls, pos ->
       let m = Untyped { pos } in
-      let ls = List.map (detuplify_list []) ls in
+      let ls = List.map (detuplify_list opos []) ls in
       let rec zip names = function
         | [] -> assert false
         | [l] -> l
@@ -272,7 +275,7 @@ let rec translate_expr
               (Expr.make_tuple (Expr.evar x1 m :: explode (Expr.evar x2 m)) m)
               tys pos
           in
-          Expr.eappop ~op:Map2 ~args:[f_join; l1; rhs]
+          Expr.eappop ~op:(Map2, opos) ~args:[f_join; l1; rhs]
             ~tys:((TAny, pos) :: List.map (fun ty -> TArray ty, pos) tys)
             m
       in
@@ -286,7 +289,7 @@ let rec translate_expr
   match Mark.remove expr with
   | Paren e -> rec_helper e
   | Binop
-      ( (S.And, _pos_op),
+      ( (S.And, pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
           _pos_e1 ),
         e2 ) ->
@@ -302,14 +305,14 @@ let rec translate_expr
             let nop_var = Var.make "_" in
             Expr.make_abs [| nop_var |]
               (Expr.elit (LBool false) emark)
-              [tau] pos
+              [tau] pos_op
           else
             let binding_var = Var.make (Mark.remove binding) in
             let local_vars =
               Ident.Map.add (Mark.remove binding) binding_var local_vars
             in
             let e2 = rec_helper ~local_vars e2 in
-            Expr.make_abs [| binding_var |] e2 [tau] pos)
+            Expr.make_abs [| binding_var |] e2 [tau] pos_op)
         (EnumName.Map.find enum_uid ctxt.enums)
     in
     Expr.ematch ~e:(rec_helper e1_sub) ~name:enum_uid ~cases emark
@@ -330,12 +333,18 @@ let rec translate_expr
       match l with
       | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
       | LNumber ((Int i, _), Some (Percent, _)) ->
-        LRat Runtime.(Oper.o_div_rat_rat (decimal_of_string i) rat100)
+        LRat
+          Runtime.(
+            Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
+              rat100)
       | LNumber ((Dec (i, f), _), None) ->
         LRat Runtime.(decimal_of_string (i ^ "." ^ f))
       | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
         LRat
-          Runtime.(Oper.o_div_rat_rat (decimal_of_string (i ^ "." ^ f)) rat100)
+          Runtime.(
+            Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
+              (decimal_of_string (i ^ "." ^ f))
+              rat100)
       | LBool b -> LBool b
       | LMoneyAmount i ->
         LMoney
@@ -366,7 +375,7 @@ let rec translate_expr
           (try
              Runtime.date_of_numbers date.literal_date_year
                date.literal_date_month date.literal_date_day
-           with Runtime.ImpossibleDate ->
+           with Failure _ ->
              Message.error ~pos
                "There is an error in this date, it does not correspond to a \
                 correct calendar day")
@@ -487,7 +496,7 @@ let rec translate_expr
     in
     Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path)
       emark
-  | FunCall ((Builtin b, _), [arg]) ->
+  | FunCall ((Builtin b, pos), [arg]) ->
     let op, ty =
       match b with
       | S.ToDecimal -> Op.ToRat, TAny
@@ -500,7 +509,7 @@ let rec translate_expr
       | S.FirstDayOfMonth -> Op.FirstDayOfMonth, TLit TDate
       | S.LastDayOfMonth -> Op.LastDayOfMonth, TLit TDate
     in
-    Expr.eappop ~op ~tys:[ty, pos] ~args:[rec_helper arg] emark
+    Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark
   | S.Builtin _ ->
     Message.error ~pos "Invalid use of built-in: needs one operand"
   | FunCall (f, args) ->
@@ -717,10 +726,10 @@ let rec translate_expr
   | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | TupleAccess (e, n) ->
     Expr.etupleaccess ~e:(rec_helper e) ~index:(Mark.remove n - 1) ~size:0 emark
-  | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
+  | CollectionOp ((((S.Filter { f } | S.Map { f }), opos) as op), collection) ->
     let param_names, predicate = f in
     let collection =
-      detuplify_list (List.map Mark.remove param_names) collection
+      detuplify_list opos (List.map Mark.remove param_names) collection
     in
     let params = List.map (fun n -> Var.make (Mark.remove n)) param_names in
     let local_vars =
@@ -756,18 +765,19 @@ let rec translate_expr
     Expr.eappop
       ~op:
         (match op with
-        | S.Map _ -> Map
-        | S.Filter _ -> Filter
+        | S.Map _, pos -> Map, pos
+        | S.Filter _, pos -> Filter, pos
         | _ -> assert false)
       ~tys:[TAny, pos; TAny, pos]
       ~args:[f_pred; collection] emark
   | CollectionOp
-      ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
+      ( ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
+          opos ),
         collection ) ->
     let default = rec_helper default in
     let pos_dft = Expr.pos default in
     let collection =
-      detuplify_list (List.map Mark.remove param_names) collection
+      detuplify_list opos (List.map Mark.remove param_names) collection
     in
     let params = List.map (fun n -> Var.make (Mark.remove n)) param_names in
     let local_vars =
@@ -775,7 +785,7 @@ let rec translate_expr
         (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
         local_vars param_names params
     in
-    let cmp_op = if max then Op.Gt else Op.Lt in
+    let cmp_op = if max then Op.Gt, opos else Op.Lt, opos in
     let f_pred =
       Expr.make_abs (Array.of_list params)
         (rec_helper ~local_vars predicate)
@@ -814,10 +824,10 @@ let rec translate_expr
     let weighted_result =
       Expr.make_let_in weights_var
         (TArray (TTuple [TAny, pos; TAny, pos], pos), pos)
-        (Expr.eappop ~op:Map
+        (Expr.eappop ~op:(Map, opos)
            ~tys:[TAny, pos; TArray (TAny, pos), pos]
            ~args:[add_weight_f; collection] emark)
-        (Expr.eappop ~op:Reduce
+        (Expr.eappop ~op:(Reduce, opos)
            ~tys:[TAny, pos; TAny, pos; TAny, pos]
            ~args:[reduce_f; default; Expr.evar weights_var emark]
            emark)
@@ -825,14 +835,15 @@ let rec translate_expr
     in
     Expr.etupleaccess ~e:weighted_result ~index:0 ~size:2 emark
   | CollectionOp
-      (((Exists { predicate } | Forall { predicate }) as op), collection) ->
+      ((((Exists { predicate } | Forall { predicate }), opos) as op), collection)
+    ->
     let collection =
-      detuplify_list (List.map Mark.remove (fst predicate)) collection
+      detuplify_list opos (List.map Mark.remove (fst predicate)) collection
     in
     let init, op =
       match op with
-      | Exists _ -> false, S.Or
-      | Forall _ -> true, S.And
+      | Exists _, pos -> false, (S.Or, pos)
+      | Forall _, pos -> true, (S.And, pos)
       | _ -> assert false
     in
     let init = Expr.elit (LBool init) emark in
@@ -851,15 +862,14 @@ let rec translate_expr
       Expr.eabs
         (Expr.bind
            (Array.of_list (acc_var :: params))
-           (translate_binop (op, pos) pos acc
-              (rec_helper ~local_vars predicate)))
+           (translate_binop op pos acc (rec_helper ~local_vars predicate)))
         [TAny, pos; TAny, pos]
         emark
     in
-    Expr.eappop ~op:Fold
+    Expr.eappop ~op:(Fold, opos)
       ~tys:[TAny, pos; TAny, pos; TAny, pos]
       ~args:[f; init; collection] emark
-  | CollectionOp (AggregateExtremum { max; default }, collection) ->
+  | CollectionOp ((AggregateExtremum { max; default }, opos), collection) ->
     let collection = rec_helper collection in
     let default = rec_helper default in
     let op = if max then S.Gt KPoly else S.Lt KPoly in
@@ -874,11 +884,11 @@ let rec translate_expr
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eappop ~op:Reduce
+    Expr.eappop ~op:(Reduce, opos)
       ~tys:[TAny, pos; TAny, pos; TAny, pos]
       ~args:[op_f; default; collection]
       emark
-  | CollectionOp (AggregateSum { typ }, collection) ->
+  | CollectionOp ((AggregateSum { typ }, opos), collection) ->
     let collection = rec_helper collection in
     let default_lit =
       let i0 = Runtime.integer_of_int 0 in
@@ -888,7 +898,8 @@ let rec translate_expr
       | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
       | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
       | t ->
-        Message.error ~pos "It is impossible to sum values of type %a together"
+        Message.error ~pos:opos
+          "It is impossible to sum values of type %a together"
           SurfacePrint.format_primitive_typ t
     in
     let op_f =
@@ -899,28 +910,28 @@ let rec translate_expr
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
-        (translate_binop (S.Add KPoly, pos) pos x1 x2)
+        (translate_binop (S.Add KPoly, opos) pos x1 x2)
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eappop ~op:Reduce
+    Expr.eappop ~op:(Reduce, opos)
       ~tys:[TAny, pos; TAny, pos; TAny, pos]
       ~args:[op_f; Expr.elit default_lit emark; collection]
       emark
-  | MemCollection (member, collection) ->
+  | CollectionOp ((Member { element = member }, opos), collection) ->
     let param_var = Var.make "collection_member" in
     let param = Expr.make_var param_var emark in
-    let collection = detuplify_list ["collection_member"] collection in
+    let collection = detuplify_list opos ["collection_member"] collection in
     let init = Expr.elit (LBool false) emark in
     let acc_var = Var.make "acc" in
     let acc = Expr.make_var acc_var emark in
     let f_body =
       let member = rec_helper member in
-      Expr.eappop ~op:Or
+      Expr.eappop ~op:(Or, opos)
         ~tys:[TLit TBool, pos; TLit TBool, pos]
         ~args:
           [
-            Expr.eappop ~op:Eq
+            Expr.eappop ~op:(Eq, opos)
               ~tys:[TAny, pos; TAny, pos]
               ~args:[member; param] emark;
             acc;
@@ -933,7 +944,7 @@ let rec translate_expr
         [TLit TBool, pos; TAny, pos]
         emark
     in
-    Expr.eappop ~op:Fold
+    Expr.eappop ~op:(Fold, opos)
       ~tys:[TAny, pos; TAny, pos; TAny, pos]
       ~args:[f; init; collection] emark
 
@@ -1084,7 +1095,7 @@ let merge_conditions
     (default_pos : Pos.t) : Ast.expr boxed =
   match precond, cond with
   | Some precond, Some cond ->
-    Expr.eappop ~op:And
+    Expr.eappop ~op:(And, default_pos)
       ~tys:[TLit TBool, default_pos; TLit TBool, default_pos]
       ~args:[precond; cond] (Mark.get cond)
   | Some precond, None -> Mark.remove precond, Untyped { pos = default_pos }

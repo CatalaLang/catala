@@ -19,8 +19,8 @@ $ catala test-scope A
 6 │   output y content boolean
   │          ‾
   └─ Article
-[ERROR] This variable evaluated to an empty term (no rule that defined it
-  applied in this situation)
+[ERROR] During evaluation: no applicable rule to define this variable in this
+  situation.
 
 ┌─⯈ tests/default/bad/empty.catala_en:6.10-6.11:
 └─┐

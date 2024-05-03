@@ -355,37 +355,62 @@ class SourcePosition:
         self.law_headings = law_headings
 
     def __str__(self) -> str:
-        return "in file {}, from {}:{} to {}:{}".format(
-            self.filename, self.start_line, self.start_column, self.end_line, self.end_column)
+        return "{}:{}.{}-{}.{}".format(
+            self.filename,
+            self.start_line, self.start_column,
+            self.end_line, self.end_column)
 
 # ==========
 # Exceptions
 # ==========
 
 
-class EmptyError(Exception):
+class Empty(Exception):
     pass
 
-
-class AssertionFailed(Exception):
-    def __init__(self, source_position: SourcePosition) -> None:
+class CatalaError(Exception):
+    def __init__(self, message: str, source_position: SourcePosition) -> None:
+        self.message = message
         self.source_position = source_position
+    # Prints in the same format as the OCaml runtime
+    def __str__(self) -> str:
+        return "[ERROR] At {}: {}".format(
+            self.source_position,
+            self.message)
 
-
-class ConflictError(Exception):
+class AssertionFailed(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = source_position
+        super().__init__("this assertion doesn't hold", source_position)
 
-
-class NoValueProvided(Exception):
+class NoValue(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = source_position
+        super().__init__("no computation with valid conditions found",
+                         source_position)
 
-
-class AssertionFailure(Exception):
+class Conflict(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = source_position
+        super().__init__("two or more concurring valid computations",
+                         source_position)
 
+class DivisionByZero(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("division by zero", source_position)
+
+class NotSameLength(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("traversing multiple lists of different lengths",
+                         source_position)
+
+class UncomparableDurations(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__(
+            "comparing durations in different units (e.g. months vs. days)",
+            source_position)
+
+class IndivisibleDurations(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("dividing durations that are not in days",
+                         source_position)
 
 # ============================
 # Constructors and conversions
@@ -601,19 +626,19 @@ def handle_default(
         new_val: Optional[Alpha]
         try:
             new_val = exception(Unit())
-        except EmptyError:
+        except Empty:
             new_val = None
         if acc is None:
             acc = new_val
         elif not (acc is None) and new_val is None:
             pass  # acc stays the same
         elif not (acc is None) and not (new_val is None):
-            raise ConflictError(pos)
+            raise Conflict(pos)
     if acc is None:
         if just(Unit()):
             return cons(Unit())
         else:
-            raise EmptyError
+            raise Empty
     else:
         return acc
 
@@ -631,7 +656,7 @@ def handle_default_opt(
         elif not (acc is None) and exception is None:
             pass  # acc stays the same
         elif not (acc is None) and not (exception is None):
-            raise ConflictError(pos)
+            raise Conflict(pos)
     if acc is None:
         b = just(Unit())
         if b:
@@ -644,7 +669,7 @@ def handle_default_opt(
 
 def no_input() -> Callable[[Unit], Alpha]:
     def closure(_: Unit):
-        raise EmptyError
+        raise Empty
     return closure
 
 

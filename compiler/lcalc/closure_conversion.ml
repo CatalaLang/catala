@@ -38,7 +38,8 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EExternal _ | EAssert _ | EIfThenElse _ | ERaise _ | ECatch _ ->
+  | ELit _ | EExternal _ | EAssert _ | EFatalError _ | EIfThenElse _
+  | ERaiseEmpty | ECatchEmpty _ ->
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
       ~f:(transform_closures_expr ctx)
       e
@@ -144,7 +145,8 @@ let rec transform_closures_expr :
     (* let env = from_closure_env env in let arg0 = env.0 in ... *)
     let new_closure_body =
       Expr.make_let_in closure_env_var any_ty
-        (Expr.eappop ~op:Operator.FromClosureEnv
+        (Expr.eappop
+           ~op:(Operator.FromClosureEnv, binder_pos)
            ~tys:[TClosureEnv, binder_pos]
            ~args:[Expr.evar closure_env_arg_var binder_mark]
            binder_mark)
@@ -177,7 +179,8 @@ let rec transform_closures_expr :
         (Expr.make_tuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
-                Expr.eappop ~op:Operator.ToClosureEnv
+                Expr.eappop
+                  ~op:(Operator.ToClosureEnv, binder_pos)
                   ~tys:[TAny, Expr.pos e]
                   ~args:
                     [
@@ -196,7 +199,7 @@ let rec transform_closures_expr :
         (Expr.pos e) )
   | EAppOp
       {
-        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
@@ -491,7 +494,7 @@ let rec hoist_closures_expr :
         ~args:new_args ~tys m )
   | EAppOp
       {
-        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
@@ -538,8 +541,8 @@ let rec hoist_closures_expr :
       ],
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
-  | EArray _ | ELit _ | EAssert _ | EAppOp _ | EIfThenElse _ | ERaise _
-  | ECatch _ | EVar _ ->
+  | EArray _ | ELit _ | EAssert _ | EFatalError _ | EAppOp _ | EIfThenElse _
+  | ERaiseEmpty | ECatchEmpty _ | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
   | EExternal _ -> failwith "unimplemented"
   | _ -> .

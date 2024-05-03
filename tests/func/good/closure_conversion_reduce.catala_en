@@ -75,7 +75,7 @@ let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
          (λ () → false)
          (λ () → ENone ()))
     with
-    | ENone → raise NoValueProvided
+    | ENone → error NoValue
     | ESome arg → arg
   in
   return { S y = y; }

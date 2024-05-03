@@ -330,6 +330,27 @@ module Commands = struct
       Message.error "There is no scope \"@{<yellow>%s@}\" inside the program."
         scope
 
+  let get_scopeopt_uid (ctx : decl_ctx) (scope_opt : string option) :
+      ScopeName.t =
+    match scope_opt with
+    | Some s -> get_scope_uid ctx s
+    | None -> (
+      match ScopeName.Map.cardinal ctx.ctx_scopes with
+      | 0 -> Message.error "The program defines no scopes"
+      | 1 ->
+        let s, _ = ScopeName.Map.choose ctx.ctx_scopes in
+        Message.warning
+          "No scope was specified, using the only one defined by the program:@ \
+           %a"
+          ScopeName.format s;
+        s
+      | _ ->
+        Message.error
+          "Please specify option @{<yellow>--scope@} or @{<yellow>-s@}.@ The \
+           program defines the following scopes:@ @[<hv 4>%a@]"
+          (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
+          ctx.ctx_scopes)
+
   (* TODO: this is very weird but I'm trying to maintain the current behaviour
      for now *)
   let get_random_scope_uid (ctx : decl_ctx) : ScopeName.t =
@@ -680,14 +701,19 @@ module Commands = struct
           result)
       results
 
-  let interpret_dcalc typed options includes optimize check_invariants ex_scope
-      =
+  let interpret_dcalc
+      typed
+      options
+      includes
+      optimize
+      check_invariants
+      ex_scope_opt =
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
-      (get_scope_uid prg.decl_ctx ex_scope)
+      (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let lcalc
       typed
@@ -749,14 +775,14 @@ module Commands = struct
       includes
       optimize
       check_invariants
-      ex_scope =
+      ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~monomorphize_types ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
-      (get_scope_uid prg.decl_ctx ex_scope)
+      (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let interpret_cmd =
     let f lcalc avoid_exceptions closure_conversion monomorphize_types no_typing
@@ -793,7 +819,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope)
+        $ Cli.Flags.ex_scope_opt)
 
   let ocaml
       options

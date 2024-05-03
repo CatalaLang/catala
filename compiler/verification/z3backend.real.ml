@@ -19,7 +19,7 @@ open Shared_ast
 open Dcalc
 open Ast
 open Z3
-module StringMap : Map.S with type key = String.t = Map.Make (String)
+module StringMap = String.Map
 module Runtime = Runtime_ocaml.Runtime
 
 type context = {
@@ -432,15 +432,15 @@ let is_leap_year = Runtime.is_leap_year
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op :
-    context -> dcalc operator -> 'm expr list -> context * Expr.expr =
- fun ctx op args ->
+    context -> dcalc operator Mark.pos -> 'm expr list -> context * Expr.expr =
+ fun ctx (op, pos) args ->
   let ill_formed () =
     Format.kasprintf failwith
       "[Z3 encoding] Ill-formed operator application: %a" Shared_ast.Expr.format
-      (Shared_ast.Expr.eappop ~op
+      (Shared_ast.Expr.eappop ~op:(op, pos)
          ~args:(List.map Shared_ast.Expr.untype args)
          ~tys:[]
-         (Untyped { pos = Pos.no_pos })
+         (Untyped { pos })
       |> Shared_ast.Expr.unbox)
   in
   let app f =
@@ -458,7 +458,7 @@ let rec translate_op :
     failwith "[Z3 encoding] ternary operator application not supported"
     (* Special case for GetYear comparisons *)
   | ( Lt_int_int,
-      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
+      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let e2 =
@@ -469,7 +469,7 @@ let rec translate_op :
        days *)
     ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
   | ( Lte_int_int,
-      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
+      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let ctx, e1 = translate_expr ctx e1 in
     let nb_days = if is_leap_year n then 365 else 364 in
     let n = Runtime.integer_to_int n in
@@ -483,7 +483,7 @@ let rec translate_op :
     in
     ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
   | ( Gt_int_int,
-      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
+      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let ctx, e1 = translate_expr ctx e1 in
     let nb_days = if is_leap_year n then 365 else 364 in
     let n = Runtime.integer_to_int n in
@@ -497,7 +497,7 @@ let rec translate_op :
     in
     ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
   | ( Gte_int_int,
-      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
+      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let e2 =
@@ -507,7 +507,7 @@ let rec translate_op :
        be directly translated as >= in the Z3 encoding using the number of
        days *)
     ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-  | Eq, [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
+  | Eq, [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let min_date =
@@ -746,6 +746,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
   | EAssert e -> translate_expr ctx e
+  | EFatalError _ -> failwith "[Z3 encoding] EFatalError unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
@@ -756,7 +757,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctx, z3_then = translate_expr ctx e_then in
     let ctx, z3_else = translate_expr ctx e_else in
     ctx, Boolean.mk_ite ctx.ctx_z3 z3_if z3_then z3_else
-  | EEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
+  | EEmpty -> failwith "[Z3 encoding] 'Empty' literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
   | _ -> .
 

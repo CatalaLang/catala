@@ -74,15 +74,15 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
+  | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
-  | EAppOp { op; args = [arg1; arg2] } ->
+  | EAppOp { op = op, _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EAppOp { op = Log _; args = [arg1] } when not debug ->
+  | EAppOp { op = Log _, _; args = [arg1] } when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp { op; args = [arg1] } ->
+  | EAppOp { op = op, _; args = [arg1] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
   | EApp { f; args = [] } ->
@@ -93,7 +93,7 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EAppOp { op; args } ->
+  | EAppOp { op = op, _; args } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -137,16 +137,19 @@ let rec format_statement
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | STryExcept { try_block = b_try; except; with_block = b_with } ->
+  | STryWEmpty { try_block = b_try; with_block = b_with } ->
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"
       (format_block decl_ctx ~debug)
-      b_try Print.keyword "with" Print.except except Print.punctuation ":"
+      b_try Print.keyword "with" Print.op_style "Empty" Print.punctuation ":"
       (format_block decl_ctx ~debug)
       b_with
-  | SRaise except ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.except
-      except
+  | SRaiseEmpty ->
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.op_style
+      "Empty"
+  | SFatalError err ->
+    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
+      Print.runtime_error err
   | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
     Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
       Print.keyword "if"

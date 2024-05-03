@@ -39,7 +39,7 @@ let tag_with_log_entry
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   if Global.options.trace then
     Expr.eappop
-      ~op:(Log (l, markings))
+      ~op:(Log (l, markings), Expr.pos e)
       ~tys:[TAny, Expr.pos e]
       ~args:[e] (Mark.get e)
   else e
@@ -200,15 +200,13 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
       ~monomorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~polymorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~overloaded:(fun op ->
-        match
-          Operator.resolve_overload ctx.decl_ctx (Mark.add (Expr.pos e) op) tys
-        with
+        match Operator.resolve_overload ctx.decl_ctx op tys with
         | op, `Straight -> Expr.eappop ~op ~tys ~args m
         | op, `Reversed ->
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
   | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
-    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
-    | EEmptyError | EErrorOnEmpty _ ) as e ->
+    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EFatalError _
+    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)
@@ -450,19 +448,19 @@ let rec rule_tree_to_expr
              match Expr.unbox base_just with
              | ELit (LBool false), _ -> acc
              | _ ->
+               let cons = Expr.make_puredefault base_cons in
                Expr.edefault
                  ~excepts:[]
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
                  ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 ~cons:(Expr.epuredefault base_cons emark)
-                 emark
+                 ~cons (Mark.get cons)
                :: acc)
            (translate_and_unbox_list base_just_list)
            (translate_and_unbox_list base_cons_list)
            [])
       ~just:(Expr.elit (LBool false) emark)
-      ~cons:(Expr.eemptyerror emark) emark
+      ~cons:(Expr.eempty emark) emark
   in
   let exceptions =
     List.map
@@ -561,15 +559,15 @@ let translate_def
        caller. *)
   then
     let m = Untyped { pos = D.ScopeDef.get_position def_info } in
-    let empty_error = Expr.eemptyerror m in
+    let empty = Expr.eempty m in
     match params with
     | Some (ps, _) ->
       let labels, tys = List.split ps in
       Expr.make_abs
         (Array.of_list
            (List.map (fun lbl -> Var.make (Mark.remove lbl)) labels))
-        empty_error tys (Expr.mark_pos m)
-    | _ -> empty_error
+        empty tys (Expr.mark_pos m)
+    | _ -> empty
   else
     rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant
       ~subscope:is_subscope_var ctx

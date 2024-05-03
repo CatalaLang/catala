@@ -253,34 +253,20 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   let v_str = Mark.remove (FuncName.get_info v) in
   format_name_cleaned fmt v_str
 
-let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
-  let pos = Mark.get exc in
-  match Mark.remove exc with
-  | ConflictError _ ->
-    Format.fprintf fmt
-      "catala_conflict_error(@[<hov 0>catala_position(@[<hov \
-       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=%a)@])@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "catala_empty_error()"
-  | Crash _ -> Format.fprintf fmt "catala_crash()"
-  | NoValueProvided ->
-    Format.fprintf fmt
-      "catala_no_value_provided_error(@[<hov 0>catala_position(@[<hov \
-       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=%a)@])@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+let format_position ppf pos =
+  Format.fprintf ppf
+    "@[<hov 2>catala_position(@,\
+     filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
+     end_column=%d,@ law_headings=%a@;\
+     <0 -2>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
+    (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+    format_string_list (Pos.get_law_info pos)
 
-let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
-  match exc with
-  | ConflictError _ -> Format.fprintf fmt "catala_conflict_error"
-  | EmptyError -> Format.fprintf fmt "catala_empty_error"
-  | Crash _ -> Format.fprintf fmt "catala_crash"
-  | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"
+let format_error (ppf : Format.formatter) (err : Runtime.error Mark.pos) : unit
+    =
+  let pos = Mark.get err in
+  let tag = String.to_snake_case (Runtime.error_to_string (Mark.remove err)) in
+  Format.fprintf ppf "%s(%a)" tag format_position pos
 
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
@@ -319,29 +305,26 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1 (format_expression ctx) arg2
+  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
+    Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
+      (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
-      (op, Pos.no_pos) (format_expression ctx) arg2
-  | EAppOp { op = Not; args = [arg1] } ->
-    Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+      (format_expression ctx) arg2
+  | EAppOp { op = (Not, _) as op; args = [arg1] } ->
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
-        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
+        op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
         args = [arg1];
       } ->
-    Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
+    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
-    Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
-      (format_expression ctx) arg1
-  | EAppOp { op = HandleDefaultOpt; _ } ->
+    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  | EAppOp { op = HandleDefaultOpt, _; _ } ->
     Message.error ~internal:true
       "R compilation does not currently support the avoiding of exceptions"
-  | EAppOp { op = HandleDefault as op; args; _ } ->
+  | EAppOp { op = (HandleDefault as op), _; args; _ } ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
@@ -373,7 +356,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EAppOp { op; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
@@ -409,20 +392,19 @@ let rec format_statement
     ->
     Format.fprintf fmt "@[<hov 2>%a <- %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept { try_block = try_b; except; with_block = catch_b } ->
+  | STryWEmpty { try_block = try_b; with_block = catch_b } ->
     Format.fprintf fmt
       (* TODO escape dummy__arg*)
       "@[<hov 2>tryCatch(@[<hov 2>{@;\
        %a@;\
        }@],@;\
-       %a = function(dummy__arg) @[<hov 2>{@;\
+       catala_empty_error() = function(dummy__arg) @[<hov 2>{@;\
        %a@;\
        }@])@]"
-      (format_block ctx) try_b format_exception_name except (format_block ctx)
-      catch_b
-  | SRaise except ->
-    Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_exception
-      (except, Mark.get s)
+      (format_block ctx) try_b (format_block ctx) catch_b
+  | SRaiseEmpty -> Format.pp_print_string fmt "stop(catala_empty_error())"
+  | SFatalError err ->
+    Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_error (err, Mark.get s)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
       "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"

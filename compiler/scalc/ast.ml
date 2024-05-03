@@ -61,7 +61,7 @@ and naked_expr =
   | EArray of expr list
   | ELit of lit
   | EApp of { f : expr; args : expr list }
-  | EAppOp of { op : operator; args : expr list }
+  | EAppOp of { op : operator Mark.pos; args : expr list }
   | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
 type stmt =
@@ -69,8 +69,9 @@ type stmt =
   | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
   | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
   | SLocalDef of { name : VarName.t Mark.pos; expr : expr; typ : typ }
-  | STryExcept of { try_block : block; except : except; with_block : block }
-  | SRaise of except
+  | STryWEmpty of { try_block : block; with_block : block }
+  | SRaiseEmpty
+  | SFatalError of Runtime.error
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
   | SSwitch of {
       switch_expr : expr;

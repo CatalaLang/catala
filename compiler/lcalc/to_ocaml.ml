@@ -19,6 +19,24 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
+let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
+  let sanitize_quotes = Re.compile (Re.char '"') in
+  Format.fprintf fmt "@[<hov 2>[%a]@]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+       (fun fmt info ->
+         Format.fprintf fmt "\"%s\""
+           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
+    uids
+
+let format_pos ppf pos =
+  Format.fprintf ppf
+    "@[<hov 1>{filename=%S;@ start_line=%d; start_column=%d;@ end_line=%d; \
+     end_column=%d;@ law_headings=%a}@]"
+    (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+    (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+    (Pos.get_law_info pos)
+
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool b -> Print.lit fmt (LBool b)
@@ -45,16 +63,6 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
        (fun fmt info ->
          Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
-    uids
-
-let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
-  let sanitize_quotes = Re.compile (Re.char '"') in
-  Format.fprintf fmt "@[<hov 2>[%a]@]"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%s\""
-           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
 (* list taken from
@@ -258,28 +266,6 @@ let needs_parens (e : 'm expr) : bool =
     false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
-  match Mark.remove exc with
-  | ConflictError _ ->
-    let pos = Mark.get exc in
-    Format.fprintf fmt
-      "(ConflictError@ @[<hov 2>{filename = \"%s\";@\n\
-       start_line=%d;@ start_column=%d;@ end_line=%d; end_column=%d;@ \
-       law_headings=%a}@])"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "EmptyError"
-  | Crash s -> Format.fprintf fmt "(Crash %S)" s
-  | NoValueProvided ->
-    let pos = Mark.get exc in
-    Format.fprintf fmt
-      "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
-
 let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     unit =
   let format_expr = format_expr ctx in
@@ -388,14 +374,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       xs_tau format_expr body
   | EApp
       {
-        f = EAppOp { op = Log (BeginCall, info); args = [f]; _ }, _;
+        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
         args = [arg];
         _;
       }
     when Global.options.trace ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EAppOp { op = Log (VarDef var_def_info, info); args = [arg1]; _ }
+  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
     when Global.options.trace ->
     Format.fprintf fmt
       "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
@@ -407,7 +393,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       var_def_info.log_io_output typ_embedding_name
       (var_def_info.log_typ, Pos.no_pos)
       format_with_parens arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _); args = [arg1]; _ }
+  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
     when Global.options.trace ->
     let pos = Expr.pos e in
     Format.fprintf fmt
@@ -416,24 +402,26 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EAppOp { op = Log (EndCall, info); args = [arg1]; _ }
+  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
     when Global.options.trace ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EAppOp { op = Log _; args = [arg1]; _ } ->
+  | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp { op = (HandleDefault | HandleDefaultOpt) as op; args; _ } ->
-    let pos = Expr.pos e in
-    Format.fprintf fmt
-      "@[<hov 2>%s@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
+  | EAppOp
+      {
+        op = ((HandleDefault | HandleDefaultOpt) as op), _;
+        args = (EArray excs, _) :: _ as args;
+        _;
+      } ->
+    let pos = List.map Expr.pos excs in
+    Format.fprintf fmt "@[<hov 2>%s@ [|%a|]@ %a@]"
       (Print.operator_to_string op)
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         format_with_parens)
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+         format_pos)
+      pos
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
       args
   | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
@@ -445,32 +433,33 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
       format_with_parens cond format_with_parens etrue format_with_parens efalse
-  | EAppOp { op; args; _ } ->
-    Format.fprintf fmt "@[<hov 2>%s@ %a@]" (Operator.name op)
+  | EAppOp { op = op, pos; args; _ } ->
+    Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
+      (fun ppf ->
+        match op with
+        | Map2 | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur | Gte_dur_dur
+        | Eq_dur_dur ->
+          Format.fprintf ppf "%a@ " format_pos pos
+        | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
+          Format.fprintf ppf "%a@ " format_pos (Expr.pos (List.nth args 1))
+        | _ -> ())
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \
-       2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ end_line=%d; \
-       end_column=%d;@ law_headings=%a}@])@]"
+      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (Error (%s, [%a]))@]"
       format_with_parens e'
-      (Pos.get_file (Expr.pos e'))
-      (Pos.get_start_line (Expr.pos e'))
-      (Pos.get_start_column (Expr.pos e'))
-      (Pos.get_end_line (Expr.pos e'))
-      (Pos.get_end_column (Expr.pos e'))
-      format_string_list
-      (Pos.get_law_info (Expr.pos e'))
-  | ERaise exc ->
-    Format.fprintf fmt "raise@ %a" format_exception (exc, Expr.pos e)
-  | ECatch { body; exn; handler } ->
-    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
-      format_with_parens body format_exception
-      (exn, Expr.pos e)
-      format_with_parens handler
+      Runtime.(error_to_string AssertionFailed)
+      format_pos (Expr.pos e')
+  | EFatalError er ->
+    Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, [%a]))"
+      Print.runtime_error er format_pos (Expr.pos e)
+  | ERaiseEmpty -> Format.fprintf fmt "raise Empty"
+  | ECatchEmpty { body; handler } ->
+    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with Empty ->@]@ @[%a@]"
+      format_with_parens body format_with_parens handler
   | _ -> .
 
 let format_struct_embedding

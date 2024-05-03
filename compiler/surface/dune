@@ -8,7 +8,6 @@
   re
   zarith
   zarith_stubs_js
-  dates_calc
   shared_ast)
  (preprocess
   (pps sedlex.ppx visitors.ppx)))

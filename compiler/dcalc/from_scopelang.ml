@@ -139,7 +139,8 @@ let tag_with_log_entry
   let m = mark_tany (Mark.get e) (Expr.pos e) in
 
   if Global.options.trace then
-    Expr.eappop ~op:(Log (l, markings)) ~tys:[TAny, Expr.pos e] ~args:[e] m
+    let pos = Expr.pos e in
+    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[TAny, pos] ~args:[e] m
   else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
@@ -264,7 +265,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
               ( var_ctx.scope_input_name,
                 Expr.make_abs
                   [| Var.make "_" |]
-                  (Expr.eemptyerror (Expr.with_ty m ty0))
+                  (Expr.eempty (Expr.with_ty m ty0))
                   [TAny, iopos]
                   pos )
           | Some var_ctx, Some e ->
@@ -565,12 +566,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
       let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
       Expr.evar v m
     else Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m
-  | EAppOp { op = Add_dat_dur _; args; tys } ->
+  | EAppOp { op = Add_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
-    Expr.eappop ~op:(Add_dat_dur ctx.date_rounding) ~args ~tys m
+    Expr.eappop ~op:(Add_dat_dur ctx.date_rounding, opos) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
-    | ETupleAccess _ | EInj _ | EEmptyError | EErrorOnEmpty _ | EArray _
-    | EIfThenElse _ | EAppOp _ ) as e ->
+    | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
+    | EArray _ | EIfThenElse _ | EAppOp _ ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables
