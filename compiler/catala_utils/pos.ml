@@ -245,7 +245,11 @@ let format_loc_text ppf t =
   Format.pp_open_vbox ppf 0;
   pr_head ppf;
   pr_context ppf;
-  Option.iter (fun f -> Format.pp_print_cut ppf (); f ppf) pr_legal;
+  Option.iter
+    (fun f ->
+      Format.pp_print_cut ppf ();
+      f ppf)
+    pr_legal;
   Format.pp_close_box ppf ()
 
 let no_pos : t =
