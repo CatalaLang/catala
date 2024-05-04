@@ -114,7 +114,7 @@ let with_in_channel filename f =
   finally (fun () -> close_in oc) (fun () -> f oc)
 
 let with_formatter_of_out_channel oc f =
-  let fmt = Message.formatter_of_out_channel oc in
+  let fmt = Message.formatter_of_out_channel oc () in
   finally (fun () -> Format.pp_print_flush fmt ()) @@ fun () -> f fmt
 
 let with_formatter_of_file filename f =
@@ -186,15 +186,17 @@ let () =
   let default = 80 in
   let get_terminal_cols () =
     let count =
-      try (* terminfo *)
-          process_out "tput" ["cols"] |> int_of_string
+      try
+        (* terminfo *)
+        process_out "tput" ["cols"] |> String.trim |> int_of_string
       with Failure _ -> (
         try
           (* stty *)
           process_out "stty" ["size"]
+          |> String.trim
           |> fun s ->
           let i = String.rindex s ' ' + 1 in
-          String.sub s (i + 1) (String.length s - i) |> int_of_string
+          String.sub s i (String.length s - i) |> int_of_string
         with Failure _ | Not_found | Invalid_argument _ -> (
           try int_of_string (Sys.getenv "COLUMNS")
           with Not_found | Failure _ -> 0))
