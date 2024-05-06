@@ -56,21 +56,22 @@ let has_color oc =
 
 let formatter_of_out_channel oc =
   let tty = lazy Unix.(isatty (descr_of_out_channel oc)) in
-  let ppf = Format.formatter_of_out_channel oc in
   let ppf =
-    if has_color_raw ~tty then color_formatter ppf else unstyle_formatter ppf
+    lazy
+      (let ppf = Format.formatter_of_out_channel oc in
+       if has_color_raw ~tty then color_formatter ppf else unstyle_formatter ppf)
   in
-  let out, flush = Format.pp_get_formatter_output_functions ppf () in
-  let flush () =
+  fun () ->
+    let ppf = Lazy.force ppf in
     if Lazy.force tty then Format.pp_set_margin ppf (terminal_columns ());
-    flush ()
-  in
-  Format.pp_set_formatter_output_functions ppf out flush;
-  ppf
+    ppf
 
-let std_ppf = lazy (formatter_of_out_channel stdout)
-let err_ppf = lazy (formatter_of_out_channel stderr)
-let ignore_ppf = lazy (Format.make_formatter (fun _ _ _ -> ()) (fun () -> ()))
+let std_ppf = formatter_of_out_channel stdout
+let err_ppf = formatter_of_out_channel stderr
+
+let ignore_ppf =
+  let ppf = lazy (Format.make_formatter (fun _ _ _ -> ()) (fun () -> ())) in
+  fun () -> Lazy.force ppf
 
 let unformat (f : Format.formatter -> unit) : string =
   let buf = Buffer.create 1024 in
@@ -94,10 +95,10 @@ let unformat (f : Format.formatter -> unit) : string =
 type level = Error | Warning | Debug | Log | Result
 
 let get_ppf = function
-  | Result -> Lazy.force std_ppf
-  | Debug when not Global.options.debug -> Lazy.force ignore_ppf
-  | Warning when Global.options.disable_warnings -> Lazy.force ignore_ppf
-  | Error | Log | Debug | Warning -> Lazy.force err_ppf
+  | Result -> std_ppf ()
+  | Debug when not Global.options.debug -> ignore_ppf ()
+  | Warning when Global.options.disable_warnings -> ignore_ppf ()
+  | Error | Log | Debug | Warning -> err_ppf ()
 
 (**{3 Markers}*)
 
@@ -354,9 +355,9 @@ let make
     ~level =
   match level with
   | Debug when not Global.options.debug ->
-    Format.ikfprintf (fun _ -> cont [] level) (Lazy.force ignore_ppf)
+    Format.ikfprintf (fun _ -> cont [] level) (ignore_ppf ())
   | Warning when Global.options.disable_warnings ->
-    Format.ikfprintf (fun _ -> cont [] level) (Lazy.force ignore_ppf)
+    Format.ikfprintf (fun _ -> cont [] level) (ignore_ppf ())
   | _ ->
     Format.kdprintf
     @@ fun message ->

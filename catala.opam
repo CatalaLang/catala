@@ -1,10 +1,10 @@
 opam-version: "2.0"
-version: "0.9.0"
+version: "0.10.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
 description:
   "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information"
-maintainer: ["contact@catala-lang.org"]
+maintainer: "contact@catala-lang.org"
 authors: [
   "Denis Merigoux"
   "Nicolas Chataing"
@@ -19,7 +19,7 @@ homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "ocolor" {>= "1.3.0"}
-  "bindlib" {>= "5.0.1"}
+  "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.4"}
@@ -30,11 +30,11 @@ depends: [
   "ocaml" {>= "4.14.0"}
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
-  "re" {>= "1.9.0"}
+  "re" {>= "1.10"}
   "sedlex" {>= "2.4"}
   "uutf" {>= "1.0.3"}
   "ubase" {>= "0.05"}
-  "unionFind" {>= "20200320"}
+  "unionFind" {>= "20220109"}
   "visitors" {>= "20200210"}
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
@@ -48,6 +48,7 @@ depends: [
   "conf-python-3-dev" {cataladevmode}
   "cpdf" {cataladevmode}
   "conf-diffutils" {cataladevmode}
+  "conf-pandoc" {cataladevmode}
   "z3" {catalaz3mode}
   "conf-ninja"
 ]
@@ -57,28 +58,20 @@ conflicts: [
   "base" {>= "v0.16.0"}
 ]
 build: [
-  [
-    "dune"
-    "build"
-    "-p"
-    name
-    "-j"
-    jobs
-    "@install"
-    "@runtest" {with-test}
-    "@doc" {with-doc}
-  ]
+  "dune"
+  "build"
+  "-p"
+  name
+  "-j"
+  jobs
+  "@install"
+  "@runtest" {with-test}
+  "@doc" {with-doc}
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
   ["groff"] { with-doc }
-  ["python3-pip" "pandoc"]
-    # "latexmk"
-    {cataladevmode & os-family = "debian"}
-  ["py3-pip" "py3-pygments" "pandoc-cli"]
-    # "texlive-xetex" "texmf-dist-latexextra" "texmf-dist-pictures"
-    {cataladevmode & os-distribution = "alpine"}
-  ["python-pygments" "pandoc"]
-    # "latex-mk"
-    {cataladevmode & os-family = "arch"}
+  ["python3-pip"] {cataladevmode & os-family = "debian"}
+  ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
+  ["python-pygments"] {cataladevmode & os-family = "arch"}
 ]

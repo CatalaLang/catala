@@ -75,7 +75,7 @@ val set_terminal_width_function : (unit -> int) -> unit
 
 (* {1 More general color-enabled formatting helpers}*)
 
-val formatter_of_out_channel : out_channel -> Format.formatter
+val formatter_of_out_channel : out_channel -> unit -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
     [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)
