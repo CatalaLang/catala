@@ -225,7 +225,7 @@ testsuite-base: .FORCE
 	@for F in $(TEST_FLAGS_LIST); do \
 	  echo >&2; \
 	  [ -z "$$F" ] || echo ">> RE-RUNNING TESTS WITH FLAGS: $$F" >&2; \
-	  $(CLERK_TEST) tests --test-flags="$$F" || break; \
+	  $(CLERK_TEST) tests --test-flags="$$F" || exit 1; \
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
