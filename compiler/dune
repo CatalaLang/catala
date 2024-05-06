@@ -53,7 +53,7 @@
 
 (executable
  (name catala)
- (modes native js)
+ (modes exe js)
  (flags
   (:standard
    (:include custom_linking.sexp)
