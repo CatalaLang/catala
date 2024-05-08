@@ -935,7 +935,16 @@ let ninja_cmdline ninja_flags nin_file targets =
 let run_ninja ~clean_up_env cmdline =
   let cmd = List.hd cmdline in
   let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
-  Unix.execvpe cmd (Array.of_list cmdline) env
+  let npid =
+    Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
+      Unix.stdout Unix.stderr
+  in
+  let return_code =
+    match Unix.waitpid [] npid with
+    | _, Unix.WEXITED n -> n
+    | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+  in
+  raise (Catala_utils.Cli.Exit_with return_code)
 
 open Cmdliner
 
