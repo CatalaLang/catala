@@ -79,7 +79,7 @@ let raise_parser_error
         | None -> "Error token", error_loc
         | Some last_good_loc -> "Last good token", last_good_loc);
       ]
-    "Syntax error at %a@\n%t"
+    "@[<hov>Syntax error at %a:@ %t@]"
     (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
     token msg
 
@@ -131,10 +131,11 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (match Parser_errors.message (state env) with
       | exception Not_found -> Format.fprintf ppf "@{<yellow>unexpected token@}"
       | msg ->
-        Format.fprintf ppf "@{<yellow>@<1>»@} @[<hov>%a@]" Format.pp_print_text
+        Format.fprintf ppf "@{<yellow>@<1>%s@} @[<hov>%a@]" "»"
+          Format.pp_print_text
           (String.trim (String.uncapitalize_ascii msg)));
       if acceptable_tokens <> [] then
-        Format.fprintf ppf "@,@[<hov>Those are valid at this point:@ %a@]"
+        Format.fprintf ppf "@\n@[<hov>Those are valid at this point:@ %a@]"
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
              (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
