@@ -416,6 +416,14 @@ class IndivisibleDurations(CatalaError):
 # Constructors and conversions
 # ============================
 
+def round(q : Decimal) -> Integer:
+    sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
+    abs = q.value.__abs__()
+    n = q.value.numerator
+    d = q.value.denominator
+    abs_round = (2 * n + d) // (2 * d)
+    return sgn * abs_round
+
 # -----
 # Money
 # -----
@@ -446,12 +454,8 @@ def money_to_cents(m: Money) -> Integer:
 
 
 def money_round(m: Money) -> Money:
-    res, remainder = t_divmod(m.value.value, 100)
-    if remainder < 50:
-        return Money(Integer(res * 100))
-    else:
-        return Money(Integer((res + sign(res)) * 100))
-
+    units : Decimal = m.value.value / 100
+    return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
     """
@@ -486,15 +490,7 @@ def decimal_to_string(precision: int, i: Decimal) -> str:
 
 
 def decimal_round(q: Decimal) -> Decimal:
-    """
-    Implements the workaround by
-    https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html
-    """
-    return Decimal(
-        mpq(f_div(2*q.value.numerator + q.value.denominator,
-            2*q.value.denominator), 1)  # type:ignore
-    )
-
+    return Decimal(round(q))
 
 def decimal_of_money(m: Money) -> Decimal:
     return Decimal(mpq(qdiv(m.value.value, 100)))
