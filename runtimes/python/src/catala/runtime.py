@@ -139,17 +139,8 @@ class Money:
         return Money(self.value - other.value)
 
     def __mul__(self, other: Decimal) -> Money:
-        cents = self.value.value
-        coeff = other.value
-        # TODO: change, does not work with negative values. Must divide the
-        # absolute values and then multiply by the resulting sign.
-        rat_result = self.value.value * other.value
-        out = Money(Integer(rat_result))
-        res, remainder = t_divmod(rat_result.numerator, rat_result.denominator)
-        if 2 * remainder >= rat_result.denominator:
-            return Money(Integer(res + 1))
-        else:
-            return Money(Integer(res))
+        rat_result : Decimal = decimal_of_integer(self.value) * other
+        return Money(round(rat_result))
 
     def __truediv__(self, other: Money) -> Decimal:
         if isinstance(other, Money):
@@ -395,10 +386,10 @@ class AssertionFailure(Exception):
 def round(q : Decimal) -> Integer:
     sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
     abs = q.value.__abs__()
-    n = q.value.numerator
-    d = q.value.denominator
+    n = abs.numerator
+    d = abs.denominator
     abs_round = (2 * n + d) // (2 * d)
-    return sgn * abs_round
+    return Integer(sgn * abs_round)
 
 # -----
 # Money
