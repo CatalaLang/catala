@@ -245,9 +245,11 @@ tests/%: .FORCE
 
 # Note: these are already built by the @doc dune alias
 # (and therefore the doc target here)
-WEBSITE_ASSETS = grammar.html catala.html clerk.html
+WEBSITE_ASSETS_LOCAL_BASE = grammar.html catala.html clerk.html
 
-WEBSITE_ASSETS_EXAMPLES = \
+WEBSITE_ASSETS_LOCAL = $(addprefix _build/default/,$(WEBSITE_ASSETS_BASE))
+
+WEBSITE_ASSETS_EXAMPLES_BASE = \
   tutorial_en/tutorial_en.html \
   tutoriel_fr/tutoriel_fr.html \
   us_tax_code/us_tax_code.html \
@@ -256,19 +258,22 @@ WEBSITE_ASSETS_EXAMPLES = \
   aides_logement/Aides_logement.html \
   aides_logement/Aides_logement_schema.json
 
-WEBSITE_ASSETS_ALL = $(WEBSITE_ASSETS) $(addprefix catala-examples.tmp/,$(WEBSITE_ASSETS_EXAMPLES))
+WEBSITE_ASSETS_EXAMPLES = \
+  $(addprefix _build/default/,$(WEBSITE_ASSETS_EXAMPLES_BASE))
 
-website-assets-base: build
+$(WEBSITE_ASSETS_LOCAL): build
+	dune build $(WEBSITE_ASSETS)
+
+$(WEBSITE_ASSETS_EXAMPLES):
 	$(call local_tmp_clone,catala-examples) && \
 	$(MAKE) -C catala-examples.tmp \
 	  CATALA=../$(CATALA_BIN) \
 	  CLERK=../$(CLERK_BIN) \
 	  BUILD=../_build/default \
-	  $(addprefix ../_build/default/,$(WEBSITE_ASSETS_EXAMPLES))
-	dune build $(addprefix _build/default/,$(WEBSITE_ASSETS_ALL)) $(WEBSITE_ASSETS)
+	  $(addprefix ../,$(WEBSITE_ASSETS_EXAMPLES))
 
-website-assets.tar: website-assets-base
-	tar cf $@ $(foreach file,$(WEBSITE_ASSETS_ALL),-C $(CURDIR)/$(dir _build/default/$(file)) $(notdir $(file)))
+website-assets.tar: $(WEBSITE_ASSETS_LOCAL) $(WEBSITE_ASSETS_EXAMPLES)
+	tar cf $@ $(foreach file,$^,-C $(CURDIR)/$(dir $(file)) $(notdir $(file)))
 
 #> website-assets				: Builds all the assets necessary for the Catala website
 website-assets: website-assets.tar
