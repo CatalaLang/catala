@@ -80,7 +80,10 @@ class Integer:
 
 class Decimal:
     def __init__(self, value: Union[str, int, float,Integer]) -> None:
-        self.value = mpq(value)
+        if isinstance(value, Integer):
+            self.value = mpq(value.value)
+        else:
+            self.value = mpq(value)
 
     def __add__(self, other: Decimal) -> Decimal:
         return Decimal(self.value + other.value)
@@ -421,7 +424,7 @@ def money_to_cents(m: Money) -> Integer:
 
 
 def money_round(m: Money) -> Money:
-    units : Decimal = m.value.value / 100
+    units : Decimal = Decimal(m.value.value / 100)
     return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
