@@ -60,7 +60,7 @@ let rec format_runtime_value lang ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
          (format_runtime_value lang))
       (Array.to_list elts)
-  | Runtime.Unembeddable -> Format.pp_print_string ppf "<?>"
+  | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
 let print_log lang entry =
   let pp_infos =
