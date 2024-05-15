@@ -76,7 +76,7 @@ int main()
             break;
           case catala_malloc_error:
             error_kind = "Malloc error";
-          };
+          }
         printf("\033[1;31m[ERROR]\033[0m %s in file %s:%d.%d-%d.%d\n",
                error_kind,
                catala_fatal_error_raised.position.filename,
