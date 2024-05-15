@@ -139,7 +139,7 @@ jobs:
           opam --cli=2.1 exec -- make bench_ocaml bench_js bench_python
       - name: Pack website assets
         run: >-
-          tar cz -hf website-assets.tar.gz
+          tar cz -hf ~/catala/website-assets.tar.gz
           -C ~/catala-examples/_build/default/tutorial_en/ tutorial_en.html
           -C ~/catala-examples/_build/default/tutoriel_fr/ tutoriel_fr.html
           -C ~/catala-examples/_build/default/us_tax_code/ us_tax_code.html
@@ -156,7 +156,7 @@ jobs:
           tar cz -hf "artifacts/french-law_ocaml.tar.gz" -C french-law/_build/install/default/lib french-law
           cp catala-examples/_build/french-law_npm.tar.gz artifacts/
           cp catala-examples/_build/french_law_python.tar.gz artifacts/
-          mv website-assets.tar.gz artifacts/
+          mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
         continue-on-error: true
         # Uploading artifacts works but then return failure with:
