@@ -1,6 +1,6 @@
-(dirs runtimes compiler build_system)
+(dirs runtimes compiler build_system tests)
 
-(data_only_dirs tests syntax_highlighting)
+(data_only_dirs syntax_highlighting)
 
 (vendored_dirs catala-examples.tmp french-law.tmp)
 

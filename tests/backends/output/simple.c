@@ -388,11 +388,31 @@ baz_struct baz_func(baz_in_struct baz_in) {
     temp_c_2.code = option_3_enum_none_3_cons;
     temp_c_2.payload.none_3_cons = NULL;
   }
+  option_3_enum temp_c_5;
+  if (1 /* TRUE */) {
+    array_3_struct temp_c_6;
+    temp_c_6.content_field = catala_malloc(sizeof(array_3_struct));
+    
+    option_3_enum temp_c_7 = {option_3_enum_some_3_cons,
+      {some_3_cons: temp_c_6}};
+    temp_c_5 = temp_c_7;
+  } else {
+    temp_c_5.code = option_3_enum_none_3_cons;
+    temp_c_5.payload.none_3_cons = NULL;
+  }
   option_3_enum exception_acc_5 = {option_3_enum_none_3_cons,
     {none_3_cons: NULL}};
   option_3_enum exception_current_5;
   char exception_conflict_5 = 0;
   exception_current_5 = temp_c_2;
+  if (exception_current_5.code == option_3_enum_some_3_cons) {
+    if (exception_acc_5.code == option_3_enum_some_3_cons) {
+      exception_conflict_5 = 1;
+    } else {
+      exception_acc_5 = exception_current_5;
+    }
+  }
+  exception_current_5 = temp_c_5;
   if (exception_current_5.code == option_3_enum_some_3_cons) {
     if (exception_acc_5.code == option_3_enum_some_3_cons) {
       exception_conflict_5 = 1;
@@ -413,9 +433,9 @@ baz_struct baz_func(baz_in_struct baz_in) {
     temp_c_1 = exception_acc_5;
   } else {
     if (0 /* FALSE */) {
-      option_3_enum temp_c_5 = {option_3_enum_none_3_cons,
+      option_3_enum temp_c_8 = {option_3_enum_none_3_cons,
         {none_3_cons: NULL}};
-      temp_c_1 = temp_c_5;
+      temp_c_1 = temp_c_8;
     } else {
       temp_c_1.code = option_3_enum_none_3_cons;
       temp_c_1.payload.none_3_cons = NULL;
