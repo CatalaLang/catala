@@ -140,11 +140,11 @@ jobs:
       - name: Pack website assets
         run: >-
           tar cz -hf ~/catala/website-assets.tar.gz
-          -C ~/catala-examples/_build/default/tutorial_en/ tutorial_en.html
-          -C ~/catala-examples/_build/default/tutoriel_fr/ tutoriel_fr.html
-          -C ~/catala-examples/_build/default/us_tax_code/ us_tax_code.html
-          -C ~/catala-examples/_build/default/allocations_familiales/ Allocations_familiales.html Allocations_familiales_schema.json
-          -C ~/catala-examples/_build/default/aides_logement/ Aides_logement.html Aides_logement_schema.json
+          -C ~/catala-examples/_build/tutorial_en/ tutorial_en.html
+          -C ~/catala-examples/_build/tutoriel_fr/ tutoriel_fr.html
+          -C ~/catala-examples/_build/us_tax_code/ us_tax_code.html
+          -C ~/catala-examples/_build/allocations_familiales/ Allocations_familiales.html Allocations_familiales_schema.json
+          -C ~/catala-examples/_build/aides_logement/ Aides_logement.html Aides_logement_schema.json
       - name: Gather all artifacts
         run: |
           cd
