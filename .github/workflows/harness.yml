@@ -138,13 +138,19 @@ jobs:
           opam --cli=2.1 exec -- make dependencies-ocaml dependencies-js dependencies-python
           opam --cli=2.1 exec -- make bench_ocaml bench_js bench_python
       - name: Pack website assets
-        run: >-
-          tar cz -hf ~/catala/website-assets.tar.gz
-          -C ~/catala-examples/_build/tutorial_en/ tutorial_en.html
-          -C ~/catala-examples/_build/tutoriel_fr/ tutoriel_fr.html
-          -C ~/catala-examples/_build/us_tax_code/ us_tax_code.html
-          -C ~/catala-examples/_build/allocations_familiales/ Allocations_familiales.html Allocations_familiales_schema.json
-          -C ~/catala-examples/_build/aides_logement/ Aides_logement.html Aides_logement_schema.json
+        run: |
+          mkdir -p ~/website-assets
+          cd ~/website-assets
+          ln -s \
+            ~/catala-examples/_build/tutorial_en/tutorial_en.html \
+            ~/catala-examples/_build/tutoriel_fr/tutoriel_fr.html \
+            ~/catala-examples/_build/us_tax_code/us_tax_code.html \
+            ~/catala-examples/_build/allocations_familiales/Allocations_familiales.html \
+            ~/catala-examples/_build/allocations_familiales/Allocations_familiales_schema.json \
+            ~/catala-examples/_build/aides_logement/Aides_logement.html\
+            ~/catala-examples/_build/aides_logement/Aides_logement_schema.json \
+            .
+          tar cz -hf ~/catala/website-assets.tar.gz *
       - name: Gather all artifacts
         run: |
           cd
