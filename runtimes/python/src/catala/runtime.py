@@ -80,7 +80,10 @@ class Integer:
 
 class Decimal:
     def __init__(self, value: Union[str, int, float,Integer]) -> None:
-        self.value = mpq(value)
+        if isinstance(value, Integer):
+            self.value = mpq(value.value)
+        else:
+            self.value = mpq(value)
 
     def __add__(self, other: Decimal) -> Decimal:
         return Decimal(self.value + other.value)
