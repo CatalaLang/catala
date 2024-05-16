@@ -42,7 +42,7 @@ let get_law_heading (lexbuf : lexbuf) : token =
   let precedence = calc_precedence (String.trim (R.get_substring rex 1)) in
   LAW_HEADING (title, article_id, is_archive, precedence)
 
-type lexing_context = Law | Code | Directive | Directive_args
+type lexing_context = Law | Raw | Code | Directive | Directive_args
 
 (** Boolean reference, used by the lexer as the mutable state to distinguish
     whether it is lexing code or law. *)

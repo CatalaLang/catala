@@ -17,7 +17,7 @@
 
 (** Auxiliary functions used by all lexers. *)
 
-type lexing_context = Law | Code | Directive | Directive_args
+type lexing_context = Law | Raw | Code | Directive | Directive_args
 
 val context : lexing_context ref
 (** Reference, used by the lexer as the mutable state to distinguish whether it
