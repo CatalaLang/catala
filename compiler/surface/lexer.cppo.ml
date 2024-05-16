@@ -765,6 +765,31 @@ let rec lex_directive (lexbuf : lexbuf) : token =
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
+let lex_raw (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
+  let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
+  if at_bol then
+    match%sedlex lexbuf with
+    | eof -> EOF
+    | "```", Star hspace, ('\n' | eof) ->
+        L.context := Law;
+        LAW_TEXT (Utf8.lexeme lexbuf)
+    | _ -> (
+        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+           sub-match at the same point *)
+        let lexbuf = lexbuf in
+        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12
+           (fixed in 3.1) *)
+        match%sedlex lexbuf with
+        | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+        | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
+  else
+    match%sedlex lexbuf with
+    | eof -> EOF
+    | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+
 (** Main lexing function used outside code blocks *)
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -781,6 +806,9 @@ let lex_law (lexbuf : lexbuf) : token =
         L.context := Code;
         Buffer.clear L.code_buffer;
         BEGIN_METADATA
+    | "```", Star (idchar | '-') ->
+        L.context := Raw;
+        LAW_TEXT (Utf8.lexeme lexbuf)
     | '>' ->
         L.context := Directive;
         BEGIN_DIRECTIVE
@@ -790,7 +818,8 @@ let lex_law (lexbuf : lexbuf) : token =
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)
         let lexbuf = lexbuf in
-        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12 *)
+        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12
+           (fixed in 3.1) *)
         match%sedlex lexbuf with
         | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
         | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
@@ -805,6 +834,7 @@ let lex_law (lexbuf : lexbuf) : token =
 let lexer (lexbuf : lexbuf) : token =
   match !L.context with
   | Law -> lex_law lexbuf
+  | Raw -> lex_raw lexbuf
   | Code -> lex_code lexbuf
   | Directive -> lex_directive lexbuf
   | Directive_args -> lex_directive_args lexbuf
