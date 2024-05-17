@@ -1,0 +1,42 @@
+{
+    "name": "catala",
+    "displayName": "Catala",
+    "description": "Syntax highlighting for Catala programs",
+    "version": "0.10.0",
+    "license": "Apache-2.0",
+    "private": true,
+    "engines": {
+        "vscode": "^1.48.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "icon": "logo.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/CatalaLang/catala",
+        "directory": "syntax_highlighting/vscode"
+    },
+    "contributes": {
+        "languages": [{
+            "id": "catala_en",
+            "aliases": ["Catala (English)"],
+            "extensions": [".catala_en"],
+            "configuration": "./language-configuration.json"
+        }, {
+            "id": "catala_fr",
+            "aliases": ["Catala (French)"],
+            "extensions": [".catala_fr"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "catala_en",
+            "scopeName": "source.catala_en",
+            "path": "./syntaxes/en.xml"
+        }, {
+            "language": "catala_fr",
+            "scopeName": "source.catala_fr",
+            "path": "./syntaxes/fr.xml"
+        }]
+    }
+}
