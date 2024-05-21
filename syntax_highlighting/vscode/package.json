@@ -1,6 +1,7 @@
 {
     "name": "catala",
     "displayName": "Catala",
+    "publisher": "catalalang",
     "description": "Syntax highlighting for Catala programs",
     "version": "0.10.0",
     "license": "Apache-2.0",
