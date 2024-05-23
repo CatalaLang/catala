@@ -60,11 +60,12 @@ end>
 %type<Ast.expression> expression
 %type<Ast.naked_expression> naked_expression
 %type<Ast.lident Mark.pos * expression> struct_content_field
+%type<Ast.scope_var * expression> scope_call_arg
 %type<Ast.naked_expression> struct_or_enum_inject
 %type<Ast.literal_number> num_literal
 %type<Ast.literal_unit> unit_literal
 %type<Ast.literal> literal
-%type<(Ast.lident Mark.pos * expression) list> scope_call_args
+%type<(Ast.scope_var * expression) list> scope_call_args
 %type<bool> minmax
 %type<Ast.unop> unop
 %type<Ast.binop> binop
@@ -353,10 +354,14 @@ let literal :=
 | TRUE ; { LBool true }
 | FALSE ; { LBool false }
 
+
+let scope_call_arg :=
+| field = scope_var ; COLON ; e = expression ; <>
+
 let scope_call_args ==
 | WITH_V ;
   LBRACE ;
-  fields = list(preceded (ALT, struct_content_field)) ;
+  fields = list(preceded (ALT, scope_call_arg)) ;
   RBRACE ; {
   fields
 }
@@ -626,10 +631,11 @@ let scope_decl_item :=
         scope_decl_context_io_input = (Internal, pos);
         scope_decl_context_io_output = out;
       };
-    | (Some _, pos), _ ->
-        Message.error ~pos
-          "Scope declaration does not support input qualifiers ('internal', \
-           'input' or 'context')"
+    | (Some input, pos), out ->
+      {
+        scope_decl_context_io_input = (input, pos);
+        scope_decl_context_io_output = out;
+      }
   in
   ContextScope{
     scope_decl_context_scope_name = i;

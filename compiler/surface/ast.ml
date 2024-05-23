@@ -180,7 +180,7 @@ and naked_expression =
   | TestMatchCase of expression * match_case_pattern Mark.pos
   | FunCall of expression * expression list
   | ScopeCall of
-      (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
+      (path * uident Mark.pos) Mark.pos * (scope_var * expression) list
   | LetIn of lident Mark.pos list * expression * expression
   | Builtin of builtin_expression
   | Literal of literal

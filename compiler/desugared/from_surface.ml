@@ -525,32 +525,85 @@ let rec translate_expr
     in
     let in_struct =
       List.fold_left
-        (fun acc (fld_id, e) ->
-          let var =
+        (fun acc ((fld_id : S.scope_var), e) ->
+          let subscope_path, var =
             match
-              Ident.Map.find_opt (Mark.remove fld_id) scope_def.var_idmap
+              Ident.Map.find_opt
+                (Mark.remove (List.hd fld_id))
+                scope_def.var_idmap
             with
-            | Some (ScopeVar v) -> v
-            | Some (SubScope _) | None ->
+            | Some (ScopeVar v) -> None, v
+            | Some (SubScope (subscope_var, subscope_name, _)) ->
+              Some (List.tl fld_id, subscope_name), subscope_var
+            | None ->
               Message.error
                 ~suggestion:(Ident.Map.keys scope_def.var_idmap)
                 ~extra_pos:
                   [
-                    "", Mark.get fld_id;
+                    "", Mark.get (List.hd fld_id);
                     ( Format.asprintf "Scope %a declared here" ScopeName.format
                         called_scope,
                       Mark.get (ScopeName.get_info called_scope) );
                   ]
                 "Scope %a has no input variable %a" ScopeName.format
-                called_scope Print.lit_style (Mark.remove fld_id)
+                called_scope Print.lit_style
+                (Mark.remove (List.hd fld_id))
+          in
+          let rec add_subscope_path_and_expr_to_in_struct
+              (current_subscope : ScopeName.t)
+              (subscope_path : S.scope_var)
+              (var_expr : S.expression) : Ast.expr boxed =
+            match subscope_path with
+            | hd :: tl -> (
+              let current_subscope_ctx =
+                ScopeName.Map.find current_subscope ctxt.scopes
+              in
+              let subscope_var =
+                Ident.Map.find_opt (Mark.remove hd)
+                  current_subscope_ctx.var_idmap
+              in
+              match subscope_var with
+              | Some (ScopeVar v) -> assert false
+              | Some (SubScope (sub_subscope_var, sub_sub_scope_name, _)) ->
+                assert false
+              | None ->
+                Message.error
+                  ~suggestion:(Ident.Map.keys current_subscope_ctx.var_idmap)
+                  ~extra_pos:
+                    [
+                      "", Mark.get (List.hd fld_id);
+                      ( Format.asprintf "Scope %a declared here"
+                          ScopeName.format current_subscope,
+                        Mark.get (ScopeName.get_info current_subscope) );
+                    ]
+                  "Scope %a has no input variable %a" ScopeName.format
+                  current_subscope Print.lit_style (Mark.remove hd)
+              | _ -> assert false)
+            | [] -> rec_helper e
+          in
+          let merge_subscope_in_structs
+              (acc : Ast.expr boxed)
+              (new_subscope_input : Ast.expr boxed) : Ast.expr boxed =
+            assert false
           in
           ScopeVar.Map.update var
-            (function
-              | None -> Some (rec_helper e)
-              | Some _ ->
-                Message.error ~pos:(Mark.get fld_id)
+            (fun var_expr ->
+              match var_expr, subscope_path with
+              | None, None -> Some (rec_helper e)
+              | Some _, None ->
+                Message.error
+                  ~pos:(Mark.get (List.hd fld_id))
                   "Duplicate definition of scope input variable '%a'"
-                  ScopeVar.format var)
+                  ScopeVar.format var
+              | None, Some (subscope_path, subscope_name) ->
+                Some
+                  (add_subscope_path_and_expr_to_in_struct subscope_name
+                     subscope_path e)
+              | Some subscope_input, Some (subscope_path, subscope_name) ->
+                Some
+                  (merge_subscope_in_structs subscope_input
+                     (add_subscope_path_and_expr_to_in_struct subscope_name
+                        subscope_path e)))
             acc)
         ScopeVar.Map.empty fields
     in
