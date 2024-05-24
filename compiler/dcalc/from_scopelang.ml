@@ -250,8 +250,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     let sc_sig = ScopeName.Map.find scope ctx.scopes_parameters in
     let in_var_map =
       ScopeVar.Map.merge
-        (fun var_name (str_field : scope_input_var_ctx option) expr ->
-          match str_field, expr with
+        (fun var_name (str_field : scope_input_var_ctx option)
+             (arg : _ scope_call_arg option) ->
+          match str_field, arg with
           | None, None -> assert false
           | Some ({ scope_input_io = Reentrant, iopos; _ } as var_ctx), None ->
             let ty0 =
@@ -268,10 +269,11 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                   (Expr.eempty (Expr.with_ty m ty0))
                   [TAny, iopos]
                   pos )
-          | Some var_ctx, Some e ->
+          | Some var_ctx, Some (ScopeVarArg e) ->
             Some
               ( var_ctx.scope_input_name,
                 thunk_scope_arg var_ctx (translate_expr ctx e) )
+          | Some _var_ctx, Some (SubScopeVarArg _) -> failwith "unimplemented !"
           | Some var_ctx, None ->
             Message.error ~pos
               ~extra_pos:
@@ -281,7 +283,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                 ]
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format var_name
-          | None, Some e ->
+          | None, Some (ScopeVarArg e) ->
             Message.error
               ~suggestion:
                 (List.map
@@ -296,7 +298,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                     Mark.get (ScopeName.get_info scope) );
                 ]
               "Unknown input variable '%a' in scope call of '%a'"
-              ScopeVar.format var_name ScopeName.format scope)
+              ScopeVar.format var_name ScopeName.format scope
+          | None, Some (SubScopeVarArg _) -> failwith "unimplemented !")
         sc_sig.scope_sig_in_fields args
     in
     let field_map =

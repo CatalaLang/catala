@@ -19,7 +19,7 @@ scope Foo:
     definition a equals x + y
 
 scope Bar:
-    definition b equals foo.a
+    definition b equals foo.a + z
 
 scope Baz:
     definition c equals (output of Bar with {
