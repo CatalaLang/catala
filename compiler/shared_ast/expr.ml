@@ -72,6 +72,20 @@ module Box = struct
 
   let lift_scope_vars = LiftScopeVars.lift_box
 
+  let rec lift_scope_call_args (args : ('a, 'm) boxed_gexpr scope_call_args) :
+      ('a, 'm) gexpr scope_call_args Bindlib.box =
+    lift_scope_vars
+      (ScopeVar.Map.map
+         (fun (arg : ('a, 'm) boxed_gexpr scope_call_arg) ->
+           match arg with
+           | ScopeVarArg e ->
+             Bindlib.box_apply (fun e -> ScopeVarArg e) (lift e)
+           | SubScopeVarArg sub_args ->
+             Bindlib.box_apply
+               (fun sub_args -> SubScopeVarArg sub_args)
+               (lift_scope_call_args sub_args))
+         args)
+
   module Ren = struct
     module Set = Set.Make (String)
 
@@ -184,11 +198,11 @@ let ematch ~name ~e ~cases mark =
        (Box.lift e)
        (Box.lift_enum (EnumConstructor.Map.map Box.lift cases))
 
-let escopecall ~scope ~args mark =
+let escopecall ~scope ~(args : ('a, 'm) boxed_gexpr scope_call_args) mark =
   Mark.add mark
   @@ Bindlib.box_apply
        (fun args -> EScopeCall { scope; args })
-       (Box.lift_scope_vars (ScopeVar.Map.map Box.lift args))
+       (Box.lift_scope_call_args args)
 
 (* - Manipulation of marks - *)
 
@@ -297,7 +311,7 @@ let runtime_to_pos rpos =
 (* - Traversal functions - *)
 
 (* shallow map *)
-let map
+let rec map
     (type a b)
     ?(typ : typ -> typ = Fun.id)
     ?op:(fop =
@@ -349,7 +363,16 @@ let map
     let cases = EnumConstructor.Map.map f cases in
     ematch ~name ~e:(f e) ~cases m
   | EScopeCall { scope; args } ->
-    let args = ScopeVar.Map.map f args in
+    let rec map_scope_call_args args =
+      ScopeVar.Map.map
+        (fun arg ->
+          match arg with
+          | ScopeVarArg e -> ScopeVarArg (f e)
+          | SubScopeVarArg sub_args ->
+            SubScopeVarArg (map_scope_call_args sub_args))
+        args
+    in
+    let args = map_scope_call_args args in
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
@@ -390,7 +413,16 @@ let shallow_fold
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
     acc |> f e |> EnumConstructor.Map.fold (fun _ -> f) cases
-  | EScopeCall { args; _ } -> acc |> ScopeVar.Map.fold (fun _ -> f) args
+  | EScopeCall { args; _ } ->
+    let rec fold_scope_call_args args =
+      ScopeVar.Map.fold
+        (fun _ arg ->
+          match arg with
+          | ScopeVarArg e -> f e
+          | SubScopeVarArg sub_args -> fold_scope_call_args sub_args)
+        args
+    in
+    acc |> fold_scope_call_args args
   | ECustom _ -> acc
 
 (* Like [map], but also allows to gather a result bottom-up. *)
@@ -504,13 +536,19 @@ let map_gather
     in
     acc, ematch ~name ~e ~cases m
   | EScopeCall { scope; args } ->
-    let acc, args =
+    let rec map_gather_scope_call_args args acc =
       ScopeVar.Map.fold
-        (fun var e (acc, args) ->
-          let acc1, e = f e in
-          join acc acc1, ScopeVar.Map.add var e args)
+        (fun var arg (acc, args) ->
+          match arg with
+          | ScopeVarArg e ->
+            let acc1, e = f e in
+            join acc acc1, ScopeVar.Map.add var (ScopeVarArg e) args
+          | SubScopeVarArg sub_args ->
+            let acc1, sub_args = map_gather_scope_call_args sub_args acc in
+            join acc acc1, ScopeVar.Map.add var (SubScopeVarArg sub_args) args)
         args (acc, ScopeVar.Map.empty)
     in
+    let acc, args = map_gather_scope_call_args args acc in
     acc, escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
 
@@ -694,7 +732,17 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && EnumConstructor.Map.equal equal cases1 cases2
   | ( EScopeCall { scope = s1; args = fields1 },
       EScopeCall { scope = s2; args = fields2 } ) ->
-    ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
+    let rec scope_call_args_equal fields1 fields2 =
+      ScopeVar.Map.equal
+        (fun field1 field2 ->
+          match field1, field2 with
+          | ScopeVarArg e1, ScopeVarArg e2 -> equal e1 e2
+          | SubScopeVarArg sub_fields1, SubScopeVarArg sub_fields2 ->
+            scope_call_args_equal sub_fields1 sub_fields2
+          | _ -> false)
+        fields1 fields2
+    in
+    ScopeName.equal s1 s2 && scope_call_args_equal fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
@@ -769,7 +817,17 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EScopeCall {scope=name1; args=field_map1},
     EScopeCall {scope=name2; args=field_map2} ->
     ScopeName.compare name1 name2 @@< fun () ->
-    ScopeVar.Map.compare compare field_map1 field_map2
+      let rec scope_call_args_compare fields1 fields2 =
+        ScopeVar.Map.compare
+          (fun field1 field2 ->
+            match field1, field2 with
+            | ScopeVarArg e1, ScopeVarArg e2 -> compare e1 e2
+            | SubScopeVarArg sub_fields1, SubScopeVarArg sub_fields2 ->
+              scope_call_args_compare sub_fields1 sub_fields2
+            | ScopeVarArg _, SubScopeVarArg _ -> -1 | SubScopeVarArg _, ScopeVarArg _ -> 1)
+          fields1 fields2
+      in
+    scope_call_args_compare field_map1 field_map2
   | ETuple es1, ETuple es2 ->
     List.compare compare es1 es2
   | ETupleAccess {e=e1; index=n1; size=s1},
@@ -972,7 +1030,18 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EMatch { e; cases; _ } ->
     EnumConstructor.Map.fold (fun _ e acc -> acc + 1 + size e) cases (size e)
   | EScopeCall { args; _ } ->
-    ScopeVar.Map.fold (fun _ e acc -> acc + 1 + size e) args 1
+    let rec scope_call_args_size args acc =
+      ScopeVar.Map.fold
+        (fun _ arg acc ->
+          acc
+          + 1
+          +
+          match arg with
+          | ScopeVarArg e -> size e
+          | SubScopeVarArg sub_args -> scope_call_args_size sub_args acc)
+        args acc
+    in
+    scope_call_args_size args 1
 
 (* - Expression building helpers - *)
 

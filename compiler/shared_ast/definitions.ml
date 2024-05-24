@@ -518,7 +518,7 @@ and ('a, 'b, 'm) base_gexpr =
   | ELocation : 'b glocation -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EScopeCall : {
       scope : ScopeName.t;
-      args : ('a, 'm) gexpr ScopeVar.Map.t;
+      args : ('a, 'm) gexpr scope_call_args;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
   | EDStructAmend : {
@@ -580,6 +580,12 @@ and ('a, 'b, 'm) base_gexpr =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
+
+and 'expr scope_call_args = 'expr scope_call_arg ScopeVar.Map.t
+
+and 'expr scope_call_arg =
+  | ScopeVarArg of 'expr
+  | SubScopeVarArg of 'expr scope_call_args
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr

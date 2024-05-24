@@ -733,6 +733,22 @@ module ExprGen (C : EXPR_PARAM) = struct
                    pp_cons_name punctuation "→" (rhs exprc) e))
           cases
       | EScopeCall { scope; args } ->
+        let rec print_scope_call_args fmt variable_prefix args =
+          ScopeVar.Map.format_bindings
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
+            (fun fmt pp_field_name arg ->
+              match arg with
+              | ScopeVarArg field_expr ->
+                Format.fprintf fmt "%a%t%t%a%a@ %a" punctuation "\""
+                  variable_prefix pp_field_name punctuation "\"" punctuation "="
+                  (rhs exprc) field_expr
+              | SubScopeVarArg sub_args ->
+                print_scope_call_args fmt
+                  (fun fmt ->
+                    Format.fprintf fmt "%t%t." variable_prefix pp_field_name)
+                  sub_args)
+            fmt args
+        in
         Format.pp_open_hovbox fmt 2;
         ScopeName.format fmt scope;
         Format.pp_print_space fmt ();
@@ -740,12 +756,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_print_space fmt ();
         Format.pp_open_hvbox fmt 2;
         punctuation fmt "{";
-        ScopeVar.Map.format_bindings
-          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-          (fun fmt pp_field_name field_expr ->
-            Format.fprintf fmt "%a%t%a%a@ %a" punctuation "\"" pp_field_name
-              punctuation "\"" punctuation "=" (rhs exprc) field_expr)
-          fmt args;
+        print_scope_call_args fmt (fun _ -> ()) args;
         Format.pp_close_box fmt ();
         punctuation fmt "}";
         Format.pp_close_box fmt ()
