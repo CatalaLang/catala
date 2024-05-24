@@ -80,9 +80,9 @@ module Box = struct
            match arg with
            | ScopeVarArg e ->
              Bindlib.box_apply (fun e -> ScopeVarArg e) (lift e)
-           | SubScopeVarArg sub_args ->
+           | SubScopeVarArg (sub_scope_uid, sub_args) ->
              Bindlib.box_apply
-               (fun sub_args -> SubScopeVarArg sub_args)
+               (fun sub_args -> SubScopeVarArg (sub_scope_uid, sub_args))
                (lift_scope_call_args sub_args))
          args)
 
@@ -368,8 +368,8 @@ let rec map
         (fun arg ->
           match arg with
           | ScopeVarArg e -> ScopeVarArg (f e)
-          | SubScopeVarArg sub_args ->
-            SubScopeVarArg (map_scope_call_args sub_args))
+          | SubScopeVarArg (sub_scope_uid, sub_args) ->
+            SubScopeVarArg (sub_scope_uid, map_scope_call_args sub_args))
         args
     in
     let args = map_scope_call_args args in
@@ -419,7 +419,7 @@ let shallow_fold
         (fun _ arg ->
           match arg with
           | ScopeVarArg e -> f e
-          | SubScopeVarArg sub_args -> fold_scope_call_args sub_args)
+          | SubScopeVarArg (_, sub_args) -> fold_scope_call_args sub_args)
         args
     in
     acc |> fold_scope_call_args args
@@ -543,9 +543,12 @@ let map_gather
           | ScopeVarArg e ->
             let acc1, e = f e in
             join acc acc1, ScopeVar.Map.add var (ScopeVarArg e) args
-          | SubScopeVarArg sub_args ->
+          | SubScopeVarArg (sub_scope_uid, sub_args) ->
             let acc1, sub_args = map_gather_scope_call_args sub_args acc in
-            join acc acc1, ScopeVar.Map.add var (SubScopeVarArg sub_args) args)
+            ( join acc acc1,
+              ScopeVar.Map.add var
+                (SubScopeVarArg (sub_scope_uid, sub_args))
+                args ))
         args (acc, ScopeVar.Map.empty)
     in
     let acc, args = map_gather_scope_call_args args acc in
@@ -737,8 +740,10 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
         (fun field1 field2 ->
           match field1, field2 with
           | ScopeVarArg e1, ScopeVarArg e2 -> equal e1 e2
-          | SubScopeVarArg sub_fields1, SubScopeVarArg sub_fields2 ->
-            scope_call_args_equal sub_fields1 sub_fields2
+          | ( SubScopeVarArg (sub_scope_uid1, sub_fields1),
+              SubScopeVarArg (sub_scope_uid2, sub_fields2) ) ->
+            ScopeName.equal sub_scope_uid1 sub_scope_uid2
+            && scope_call_args_equal sub_fields1 sub_fields2
           | _ -> false)
         fields1 fields2
     in
@@ -822,7 +827,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
           (fun field1 field2 ->
             match field1, field2 with
             | ScopeVarArg e1, ScopeVarArg e2 -> compare e1 e2
-            | SubScopeVarArg sub_fields1, SubScopeVarArg sub_fields2 ->
+            | SubScopeVarArg (sub_scope_uid1, sub_fields1), SubScopeVarArg (sub_scope_uid2, sub_fields2) ->
+              ScopeName.compare sub_scope_uid1 sub_scope_uid2 @@< fun () ->
               scope_call_args_compare sub_fields1 sub_fields2
             | ScopeVarArg _, SubScopeVarArg _ -> -1 | SubScopeVarArg _, ScopeVarArg _ -> 1)
           fields1 fields2
@@ -1038,7 +1044,7 @@ let rec size : type a. (a, 't) gexpr -> int =
           +
           match arg with
           | ScopeVarArg e -> size e
-          | SubScopeVarArg sub_args -> scope_call_args_size sub_args acc)
+          | SubScopeVarArg (_, sub_args) -> scope_call_args_size sub_args acc)
         args acc
     in
     scope_call_args_size args 1

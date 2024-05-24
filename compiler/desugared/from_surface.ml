@@ -518,54 +518,114 @@ let rec translate_expr
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope";
-    let called_scope, scope_def =
+    let called_scope =
       let ctxt = Name_resolution.module_ctx ctxt path in
-      let uid = Name_resolution.get_scope ctxt id in
-      uid, ScopeName.Map.find uid ctxt.scopes
+      Name_resolution.get_scope ctxt id
     in
     let in_struct =
       List.fold_left
         (fun acc ((fld_id : S.scope_var), e) ->
-          let subscope_path, var =
-            match
-              Ident.Map.find_opt
-                (Mark.remove (List.hd fld_id))
-                scope_def.var_idmap
-            with
-            | Some (ScopeVar v) -> None, v
-            | Some (SubScope (subscope_var, subscope_name, _)) ->
-              Some (List.tl fld_id, subscope_name), subscope_var
-            | None ->
-              Message.error
-                ~suggestion:(Ident.Map.keys scope_def.var_idmap)
-                ~extra_pos:
-                  [
-                    "", Mark.get (List.hd fld_id);
-                    ( Format.asprintf "Scope %a declared here" ScopeName.format
-                        called_scope,
-                      Mark.get (ScopeName.get_info called_scope) );
-                  ]
-                "Scope %a has no input variable %a" ScopeName.format
-                called_scope Print.lit_style
-                (Mark.remove (List.hd fld_id))
-          in
+          (* Here, we process the syntax scope call args one at a time. These
+             args can either define a callee variable or a variable of an input
+             subscope of the calee (or an even more nested input variable,
+             recursively).
+
+             To process the addition of this potentially nested sub-scope
+             variable input, we need to define a recursive function that will
+             traverse in sync both the accumulator of existing arguments and the
+             scope var argument path, to add the argument expression at the
+             right place in [arg]. *)
           let rec add_subscope_path_and_expr_to_in_struct
+              (acc : Ast.expr boxed scope_call_args)
               (current_subscope : ScopeName.t)
-              (subscope_path : S.scope_var)
-              (var_expr : S.expression) : Ast.expr boxed =
-            match subscope_path with
-            | hd :: tl -> (
-              let current_subscope_ctx =
-                ScopeName.Map.find current_subscope ctxt.scopes
+              (current_path : S.scope_var)
+              (var_expr : S.expression) : Ast.expr boxed scope_call_args =
+            let current_subscope_ctx =
+              ScopeName.Map.find current_subscope ctxt.scopes
+            in
+            match current_path with
+            | [] -> assert false (* should not happen *)
+            | [scope_var_str] -> (
+              (* Here, we've arrived a what is a scope variable argument in our
+                 current level of nesting. We set it in our acc ! *)
+              let scope_var =
+                Ident.Map.find_opt
+                  (Mark.remove scope_var_str)
+                  current_subscope_ctx.var_idmap
               in
+              match scope_var with
+              | None ->
+                Message.error
+                  ~suggestion:(Ident.Map.keys current_subscope_ctx.var_idmap)
+                  ~extra_pos:
+                    [
+                      "", Mark.get scope_var_str;
+                      ( Format.asprintf "Scope %a declared here"
+                          ScopeName.format current_subscope,
+                        Mark.get (ScopeName.get_info current_subscope) );
+                    ]
+                  "Scope %a has no input variable %a" ScopeName.format
+                  current_subscope Print.lit_style
+                  (Mark.remove scope_var_str)
+              | Some (SubScope (_, sub_scope, _)) ->
+                Message.error
+                  ~extra_pos:
+                    [
+                      "", Mark.get scope_var_str;
+                      ( Format.asprintf "Sub-scope %a declared here"
+                          ScopeName.format sub_scope,
+                        Mark.get (ScopeName.get_info sub_scope) );
+                    ]
+                  "Scope@ call@ input@ arguments@ should@ be@ scope@ or@ \
+                   sub-scope@ variables,@ but@ %a@ is@ the@ entire@ sub-scope."
+                  Print.lit_style
+                  (Mark.remove scope_var_str)
+              | Some (ScopeVar scope_var) ->
+                ScopeVar.Map.update scope_var
+                  (fun map_expr ->
+                    match map_expr with
+                    | None -> Some (ScopeVarArg (rec_helper e))
+                    | Some _ ->
+                      Message.error ~pos:(Mark.get scope_var_str)
+                        "Duplicate definition of scope input variable '%a'"
+                        ScopeVar.format scope_var)
+                  acc)
+            | subscope_var_str :: (_ :: _ as rest_of_path) -> (
               let subscope_var =
-                Ident.Map.find_opt (Mark.remove hd)
+                Ident.Map.find_opt
+                  (Mark.remove subscope_var_str)
                   current_subscope_ctx.var_idmap
               in
               match subscope_var with
-              | Some (ScopeVar v) -> assert false
-              | Some (SubScope (sub_subscope_var, sub_sub_scope_name, _)) ->
-                assert false
+              | Some (ScopeVar _) ->
+                Message.error
+                  ~pos:(Mark.get (List.hd rest_of_path))
+                  ~extra_pos:
+                    [
+                      Format.asprintf "Scope variable", Mark.get subscope_var_str;
+                    ]
+                  "This@ scope@ call@ argument@ is@ a@ scope@ variable@ (%a),@ \
+                   which@ cannot@ be@ refined@ by@ another@ path@ qualifier."
+                  Print.lit_style
+                  (Mark.remove subscope_var_str)
+              | Some (SubScope (subscope_var, sub_scope_name, _)) ->
+                ScopeVar.Map.update subscope_var
+                  (fun map_expr ->
+                    let acc =
+                      match map_expr with
+                      | None -> ScopeVar.Map.empty
+                      | Some (ScopeVarArg _) ->
+                        assert false (* should not happen *)
+                      | Some (SubScopeVarArg (sub_scope_name', acc)) ->
+                        assert (ScopeName.equal sub_scope_name sub_scope_name');
+                        acc
+                    in
+                    Some
+                      (SubScopeVarArg
+                         ( sub_scope_name,
+                           add_subscope_path_and_expr_to_in_struct acc
+                             sub_scope_name rest_of_path var_expr )))
+                  acc
               | None ->
                 Message.error
                   ~suggestion:(Ident.Map.keys current_subscope_ctx.var_idmap)
@@ -577,34 +637,10 @@ let rec translate_expr
                         Mark.get (ScopeName.get_info current_subscope) );
                     ]
                   "Scope %a has no input variable %a" ScopeName.format
-                  current_subscope Print.lit_style (Mark.remove hd)
-              | _ -> assert false)
-            | [] -> rec_helper e
+                  current_subscope Print.lit_style
+                  (Mark.remove subscope_var_str))
           in
-          let merge_subscope_in_structs
-              (acc : Ast.expr boxed)
-              (new_subscope_input : Ast.expr boxed) : Ast.expr boxed =
-            assert false
-          in
-          ScopeVar.Map.update var
-            (fun var_expr ->
-              match var_expr, subscope_path with
-              | None, None -> Some (rec_helper e)
-              | Some _, None ->
-                Message.error
-                  ~pos:(Mark.get (List.hd fld_id))
-                  "Duplicate definition of scope input variable '%a'"
-                  ScopeVar.format var
-              | None, Some (subscope_path, subscope_name) ->
-                Some
-                  (add_subscope_path_and_expr_to_in_struct subscope_name
-                     subscope_path e)
-              | Some subscope_input, Some (subscope_path, subscope_name) ->
-                Some
-                  (merge_subscope_in_structs subscope_input
-                     (add_subscope_path_and_expr_to_in_struct subscope_name
-                        subscope_path e)))
-            acc)
+          add_subscope_path_and_expr_to_in_struct acc called_scope fld_id e)
         ScopeVar.Map.empty fields
     in
     Expr.escopecall ~scope:called_scope ~args:in_struct emark

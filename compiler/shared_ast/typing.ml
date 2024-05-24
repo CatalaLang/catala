@@ -743,15 +743,23 @@ and typecheck_expr_top_down :
       (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
-    let vars = A.ScopeName.Map.find scope env.scopes_input in
-    let args' =
+    let rec typecheck_scope_call_args scope args =
       A.ScopeVar.Map.mapi
-        (fun name ->
-          typecheck_expr_top_down ctx env
-            (ast_to_typ (A.ScopeVar.Map.find name vars)))
+        (fun name arg ->
+          let vars = A.ScopeName.Map.find scope env.scopes_input in
+          match arg with
+          | A.ScopeVarArg arg ->
+            A.ScopeVarArg
+              (typecheck_expr_top_down ctx env
+                 (ast_to_typ (A.ScopeVar.Map.find name vars))
+                 arg)
+          | A.SubScopeVarArg (sub_scope, sub_args) ->
+            A.SubScopeVarArg
+              (sub_scope, typecheck_scope_call_args sub_scope sub_args))
         args
     in
-    Expr.escopecall ~scope ~args:args' mark
+
+    Expr.escopecall ~scope ~args:(typecheck_scope_call_args scope args) mark
   | A.ERaiseEmpty -> Expr.eraiseempty context_mark
   | A.ECatchEmpty { body; handler } ->
     let body' = typecheck_expr_top_down ctx env tau body in

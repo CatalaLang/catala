@@ -742,7 +742,7 @@ module ExprGen (C : EXPR_PARAM) = struct
                 Format.fprintf fmt "%a%t%t%a%a@ %a" punctuation "\""
                   variable_prefix pp_field_name punctuation "\"" punctuation "="
                   (rhs exprc) field_expr
-              | SubScopeVarArg sub_args ->
+              | SubScopeVarArg (_, sub_args) ->
                 print_scope_call_args fmt
                   (fun fmt ->
                     Format.fprintf fmt "%t%t." variable_prefix pp_field_name)

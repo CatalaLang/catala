@@ -585,7 +585,7 @@ and 'expr scope_call_args = 'expr scope_call_arg ScopeVar.Map.t
 
 and 'expr scope_call_arg =
   | ScopeVarArg of 'expr
-  | SubScopeVarArg of 'expr scope_call_args
+  | SubScopeVarArg of ScopeName.t * 'expr scope_call_args
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr
