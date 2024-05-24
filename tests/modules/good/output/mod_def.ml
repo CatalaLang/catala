@@ -30,7 +30,7 @@ let s (s_in: S_in.t) : S.t =
     try
       (handle_default
          [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=26; start_column=24; end_line=26; end_column=30;
+            start_line=29; start_column=24; end_line=29; end_column=30;
             law_headings=["Test modules + inclusions 1"]}|]
          ([|(fun (_: unit) ->
                handle_default [||] ([||]) (fun (_: unit) -> true)
@@ -47,7 +47,7 @@ let s (s_in: S_in.t) : S.t =
     try
       (handle_default
          [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=27; start_column=24; end_line=27; end_column=29;
+            start_line=30; start_column=24; end_line=30; end_column=29;
             law_headings=["Test modules + inclusions 1"]}|]
          ([|(fun (_: unit) ->
                handle_default [||] ([||]) (fun (_: unit) -> true)
@@ -70,8 +70,12 @@ let half_ : integer -> decimal =
        law_headings=["Test modules + inclusions 1"]} x_ (integer_of_string
       "2")
 
+let maybe_ : Enum1.t -> Enum1.t =
+  fun (_: Enum1.t) -> Enum1.Maybe ()
+
 let () =
   Runtime_ocaml.Runtime.register_module "Mod_def"
     [ "S", Obj.repr s;
-      "half", Obj.repr half_ ]
-    "todo-module-hash"
+      "half", Obj.repr half_;
+      "maybe", Obj.repr maybe_ ]
+    "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"

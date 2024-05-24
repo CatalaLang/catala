@@ -90,5 +90,5 @@ let s (s_in: S_in.t) : S.t =
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"
     [ "S", Obj.repr s ]
-    "todo-module-hash"
+    "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
