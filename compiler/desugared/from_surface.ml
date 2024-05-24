@@ -1700,8 +1700,9 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       mctx.Name_resolution.typedefs ScopeName.Map.empty
   in
   let program_modules =
-    ModuleName.Map.map
-      (fun mctx ->
+    ModuleName.Map.mapi
+      (fun mname mctx ->
+        let m =
         {
           Ast.module_scopes = get_scopes mctx;
           Ast.module_topdefs =
@@ -1714,7 +1715,8 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
                   { Ast.topdef_expr = None; topdef_visibility; topdef_type }
                   acc)
               mctx.topdefs TopdefName.Map.empty;
-        })
+        } in
+        m, Ast.Hash.module_binding mname m)
       ctxt.modules
   in
   let program_root =
@@ -1740,15 +1742,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
             (fun _ m acc ->
               let mctx = ModuleName.Map.find m ctxt.Name_resolution.modules in
               let sub = aux mctx in
-              let mhash =
-                let intf = ModuleName.Map.find m program_modules in
-                Ast.Hash.module_binding m intf
-                (* We could include the hashes of submodule interfaces in the
-                   hash of the module ; however, the module is already
-                   responsible for checking the consistency of its dependencies
-                   upon load, and that would result in harder to track errors on
-                   mismatch. *)
-              in
+              let mhash = snd (ModuleName.Map.find m program_modules) in
               ModuleName.Map.add m (mhash, sub) acc)
             mctx.used_modules ModuleName.Map.empty
         in
@@ -1788,7 +1782,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     {
       Ast.program_lang = surface.program_lang;
       Ast.program_module_name;
-      Ast.program_modules;
+      Ast.program_modules = ModuleName.Map.map fst program_modules;
       Ast.program_ctx;
       Ast.program_root;
     }
