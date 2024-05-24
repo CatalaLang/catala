@@ -1381,7 +1381,10 @@ let run includes optimize ex_scope explain_options global_options =
     Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false ~typed:Expr.typed
   in
-  Interpreter.load_runtime_modules prg;
+  Interpreter.load_runtime_modules prg
+    ~hashf:
+      (Hash.finalise ~avoid_exceptions:false ~closure_conversion:false
+         ~monomorphize_types:false);
   let scope = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in

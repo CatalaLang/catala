@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 type t = Definitions.typ
 
 val format : Format.formatter -> t -> unit
@@ -23,6 +25,11 @@ module Map : Catala_utils.Map.S with type key = t
 val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
+
+val hash : strip:int -> t -> Hash.t
+(** The [strip] argument strips as many leading path components in included
+    identifiers before hashing *)
+
 val unifiable : t -> t -> bool
 
 val unifiable_list : t list -> t list -> bool

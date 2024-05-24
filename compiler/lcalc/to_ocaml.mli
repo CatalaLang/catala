@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Shared_ast
 
 (** Formats a lambda calculus program into a valid OCaml program *)
@@ -40,6 +41,7 @@ val format_program :
   Format.formatter ->
   ?exec_scope:ScopeName.t ->
   ?exec_args:bool ->
+  hashf:(Hash.t -> Hash.full) ->
   'm Ast.program ->
   Scopelang.Dependency.TVertex.t list ->
   unit

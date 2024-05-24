@@ -39,6 +39,7 @@ type scope_context = {
   scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
+  scope_visibility : visibility;
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
@@ -87,11 +88,12 @@ type module_context = {
 
 type context = {
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
-  topdef_types : typ TopdefName.Map.t;
+  topdefs : (typ * visibility) TopdefName.Map.t;
       (** Types associated with the global definitions *)
-  structs : struct_context StructName.Map.t;
+  structs : (struct_context * visibility) StructName.Map.t;
       (** For each struct, its context *)
-  enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
+  enums : (enum_context * visibility) EnumName.Map.t;
+      (** For each enum, its context *)
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;

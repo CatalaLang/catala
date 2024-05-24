@@ -72,11 +72,12 @@ module ScopeDef = struct
       format_kind ppf k
 
     let hash_kind = function
-      | Var None -> 0
-      | Var (Some st) -> StateName.hash st
-      | SubScopeInput { var_within_origin_scope = v; _ } -> ScopeVar.hash v
+      | Var None -> Hashtbl.hash `VarNone
+      | Var (Some st) -> Hashtbl.hash (`VarSome (StateName.id st))
+      | SubScopeInput { var_within_origin_scope = v; _ } ->
+        Hashtbl.hash (`SubScopeInput (ScopeVar.id v))
 
-    let hash (v, k) = Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
+    let hash (v, k) = Hashtbl.hash (ScopeVar.id (Mark.remove v), hash_kind k)
   end
 
   include Base
@@ -231,6 +232,8 @@ type scope_def = {
 
 type var_or_states = WholeVar | States of StateName.t list
 
+(* If fields are added, make sure to consider including them in the hash
+   computations below *)
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
   scope_sub_scopes : ScopeName.t ScopeVar.Map.t;
@@ -239,20 +242,83 @@ type scope = {
   scope_assertions : assertion AssertionName.Map.t;
   scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
+  scope_visibility : visibility;
+}
+
+type topdef = {
+  topdef_expr : expr option;
+  topdef_type : typ;
+  topdef_visibility : visibility;
 }
 
 type modul = {
   module_scopes : scope ScopeName.Map.t;
-  module_topdefs : (expr option * typ) TopdefName.Map.t;
+  module_topdefs : topdef TopdefName.Map.t;
 }
 
 type program = {
-  program_module_name : Ident.t Mark.pos option;
+  program_module_name : (ModuleName.t * Hash.t) option;
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
   program_root : modul;
   program_lang : Global.backend_lang;
 }
+
+module Hash = struct
+  open Hash.Op
+
+  let var_or_state = function
+    | WholeVar -> !`WholeVar
+    | States s -> !`States % Hash.list StateName.hash s
+
+  let io x =
+    !(Mark.remove x.io_input : Runtime.io_input)
+    % !(Mark.remove x.io_output : bool)
+
+  let scope_decl ~strip d =
+    (* scope_def_rules is ignored (not part of the interface) *)
+    Type.hash ~strip d.scope_def_typ
+    % Hash.option
+        (fun (lst, _) ->
+          List.fold_left
+            (fun acc (name, ty) ->
+              acc % Uid.MarkedString.hash name % Type.hash ~strip ty)
+            !`SDparams lst)
+        d.scope_def_parameters
+    % !(d.scope_def_is_condition : bool)
+    % io d.scope_def_io
+
+  let scope_def ~strip (var, kind) =
+    ScopeVar.hash (Mark.remove var)
+    %
+    match kind with
+    | ScopeDef.Var st -> Hash.option StateName.hash st
+    | ScopeDef.SubScopeInput { name; var_within_origin_scope } ->
+      ScopeName.hash ~strip name % ScopeVar.hash var_within_origin_scope
+
+  let scope ~strip s =
+    Hash.map ScopeVar.Map.fold ScopeVar.hash var_or_state s.scope_vars
+    % Hash.map ScopeVar.Map.fold ScopeVar.hash (ScopeName.hash ~strip)
+        s.scope_sub_scopes
+    % ScopeName.hash ~strip s.scope_uid
+    % Hash.map ScopeDef.Map.fold (scope_def ~strip) (scope_decl ~strip)
+        s.scope_defs
+  (* assertions, options, etc. are not expected to be part of interfaces *)
+
+  let modul ?(strip = 0) m =
+    Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
+      (ScopeName.Map.filter
+         (fun _ s -> s.scope_visibility = Public)
+         m.module_scopes)
+    % Hash.map TopdefName.Map.fold (TopdefName.hash ~strip)
+        (fun td -> Type.hash ~strip td.topdef_type)
+        (TopdefName.Map.filter
+           (fun _ td -> td.topdef_visibility = Public)
+           m.module_topdefs)
+
+  let module_binding ?(root = false) modname m =
+    ModuleName.hash modname % modul ~strip:(if root then 0 else 1) m
+end
 
 let rec locations_used e : LocationSet.t =
   match e with
@@ -311,5 +377,5 @@ let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
       p.program_root.module_scopes init
   in
   TopdefName.Map.fold
-    (fun _ (e, _) acc -> Option.fold ~none:acc ~some:(f acc) e)
+    (fun _ tdef acc -> Option.fold ~none:acc ~some:(f acc) tdef.topdef_expr)
     p.program_root.module_topdefs acc

@@ -712,7 +712,12 @@ module Commands = struct
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
-    Interpreter.load_runtime_modules prg;
+    Interpreter.load_runtime_modules
+      ~hashf:
+        Hash.(
+          finalise ~avoid_exceptions:false ~closure_conversion:false
+            ~monomorphize_types:false)
+      prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
@@ -781,7 +786,10 @@ module Commands = struct
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~monomorphize_types ~typed
     in
-    Interpreter.load_runtime_modules prg;
+    Interpreter.load_runtime_modules
+      ~hashf:
+        (Hash.finalise ~avoid_exceptions ~closure_conversion ~monomorphize_types)
+      prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
@@ -844,7 +852,11 @@ module Commands = struct
     Message.debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
     let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
-    Lcalc.To_ocaml.format_program fmt prg ?exec_scope type_ordering
+    let hashf =
+      Hash.finalise ~avoid_exceptions ~closure_conversion:false
+        ~monomorphize_types:false
+    in
+    Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -1038,7 +1050,7 @@ module Commands = struct
     in
     Format.open_hbox ();
     Format.pp_print_list ~pp_sep:Format.pp_print_space
-      (fun ppf m ->
+      (fun ppf (m, _h) ->
         let f = Pos.get_file (Mark.get (ModuleName.get_info m)) in
         let f =
           match prefix with

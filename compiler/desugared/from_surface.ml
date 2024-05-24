@@ -313,7 +313,7 @@ let rec translate_expr
             in
             let e2 = rec_helper ~local_vars e2 in
             Expr.make_abs [| binding_var |] e2 [tau] pos_op)
-        (EnumName.Map.find enum_uid ctxt.enums)
+        (fst (EnumName.Map.find enum_uid ctxt.enums))
     in
     Expr.ematch ~e:(rec_helper e1_sub) ~name:enum_uid ~cases emark
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
@@ -613,7 +613,7 @@ let rec translate_expr
           StructField.Map.add f_uid f_e s_fields)
         StructField.Map.empty fields
     in
-    let expected_s_fields = StructName.Map.find s_uid ctxt.structs in
+    let expected_s_fields, _ = StructName.Map.find s_uid ctxt.structs in
     if
       StructField.Map.exists
         (fun expected_f _ -> not (StructField.Map.mem expected_f s_fields))
@@ -719,7 +719,7 @@ let rec translate_expr
           Expr.make_abs [| nop_var |]
             (Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
             [tau] pos)
-        (EnumName.Map.find enum_uid ctxt.enums)
+        (fst (EnumName.Map.find enum_uid ctxt.enums))
     in
     Expr.ematch ~e:(rec_helper e1) ~name:enum_uid ~cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
@@ -970,7 +970,7 @@ and disambiguate_match_and_build_expression
     Expr.eabs e_binder
       [
         EnumConstructor.Map.find c_uid
-          (EnumName.Map.find e_uid ctxt.Name_resolution.enums);
+          (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums));
       ]
       (Mark.get case_body)
   in
@@ -1037,6 +1037,7 @@ and disambiguate_match_and_build_expression
         if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
         let missing_constructors =
           EnumName.Map.find e_uid ctxt.Name_resolution.enums
+          |> fst
           |> EnumConstructor.Map.filter_map (fun c_uid _ ->
                  match EnumConstructor.Map.find_opt c_uid cases_d with
                  | Some _ -> None
@@ -1451,6 +1452,7 @@ let process_scope_use
 let process_topdef
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
+    (is_public : bool)
     (def : S.top_def) : Ast.program =
   let id =
     Ident.Map.find
@@ -1493,12 +1495,14 @@ let process_topdef
       in
       Some (Expr.unbox_closed e)
   in
+  let topdef_visibility = if is_public then Public else Private in
   let module_topdefs =
     TopdefName.Map.update id
       (fun def0 ->
         match def0, expr_opt with
-        | None, eopt -> Some (eopt, typ)
-        | Some (eopt0, ty0), eopt -> (
+        | None, eopt ->
+          Some { Ast.topdef_expr = eopt; topdef_visibility; topdef_type = typ }
+        | Some def0, eopt -> (
           let err msg =
             Message.error
               ~extra_pos:
@@ -1508,13 +1512,16 @@ let process_topdef
                 ]
               (msg ^^ " for %a") TopdefName.format id
           in
-          if not (Type.equal ty0 typ) then err "Conflicting type definitions"
+          if not (Type.equal def0.Ast.topdef_type typ) then
+            err "Conflicting type definitions"
           else
-            match eopt0, eopt with
+            match def0.Ast.topdef_expr, eopt with
             | None, None -> err "Multiple declarations"
             | Some _, Some _ -> err "Multiple definitions"
-            | Some e, None -> Some (Some e, typ)
-            | None, Some e -> Some (Some e, ty0)))
+            | (Some _ as topdef_expr), None ->
+              Some { Ast.topdef_expr; topdef_visibility; topdef_type = typ }
+            | None, (Some _ as topdef_expr) ->
+              Some { def0 with Ast.topdef_expr }))
       prgm.Ast.program_root.module_topdefs
   in
   { prgm with program_root = { prgm.program_root with module_topdefs } }
@@ -1680,6 +1687,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       scope_meta_assertions = [];
       scope_options = [];
       scope_uid = s_uid;
+      scope_visibility = s_context.Name_resolution.scope_visibility;
     }
   in
   let get_scopes mctx =
@@ -1699,14 +1707,21 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           Ast.module_topdefs =
             Ident.Map.fold
               (fun _ name acc ->
+                let topdef_type, topdef_visibility =
+                  TopdefName.Map.find name ctxt.Name_resolution.topdefs
+                in
                 TopdefName.Map.add name
-                  ( None,
-                    TopdefName.Map.find name ctxt.Name_resolution.topdef_types
-                  )
+                  { Ast.topdef_expr = None; topdef_visibility; topdef_type }
                   acc)
               mctx.topdefs TopdefName.Map.empty;
         })
       ctxt.modules
+  in
+  let program_root =
+    {
+      Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
+      Ast.module_topdefs = TopdefName.Map.empty;
+    }
   in
   let program_ctx =
     let open Name_resolution in
@@ -1720,23 +1735,36 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     in
     let ctx_modules =
       let rec aux mctx =
-        Ident.Map.fold
-          (fun _ m (M acc) ->
-            let sub = aux (ModuleName.Map.find m ctxt.modules) in
-            M (ModuleName.Map.add m sub acc))
-          mctx.used_modules (M ModuleName.Map.empty)
+        let subs =
+          Ident.Map.fold
+            (fun _ m acc ->
+              let mctx = ModuleName.Map.find m ctxt.Name_resolution.modules in
+              let sub = aux mctx in
+              let mhash =
+                let intf = ModuleName.Map.find m program_modules in
+                Ast.Hash.module_binding m intf
+                (* We could include the hashes of submodule interfaces in the
+                   hash of the module ; however, the module is already
+                   responsible for checking the consistency of its dependencies
+                   upon load, and that would result in harder to track errors on
+                   mismatch. *)
+              in
+              ModuleName.Map.add m (mhash, sub) acc)
+            mctx.used_modules ModuleName.Map.empty
+        in
+        M subs
       in
       aux ctxt.local
     in
     {
-      ctx_structs = ctxt.structs;
-      ctx_enums = ctxt.enums;
+      ctx_structs = StructName.Map.map fst ctxt.structs;
+      ctx_enums = EnumName.Map.map fst ctxt.enums;
       ctx_scopes =
         ModuleName.Map.fold
           (fun _ -> ctx_scopes)
           ctxt.modules
           (ctx_scopes ctxt.local ScopeName.Map.empty);
-      ctx_topdefs = ctxt.topdef_types;
+      ctx_topdefs = TopdefName.Map.map fst ctxt.topdefs;
       ctx_struct_fields = ctxt.local.field_idmap;
       ctx_enum_constrs = ctxt.local.constructor_idmap;
       ctx_scope_index =
@@ -1748,25 +1776,29 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       ctx_modules;
     }
   in
+  let program_module_name =
+    surface.Surface.Ast.program_module_name
+    |> Option.map
+       @@ fun id ->
+       let mname = ModuleName.fresh id in
+       let hash_placeholder = Hash.raw 0 in
+       mname, hash_placeholder
+  in
   let desugared =
     {
       Ast.program_lang = surface.program_lang;
-      Ast.program_module_name = surface.Surface.Ast.program_module_name;
+      Ast.program_module_name;
       Ast.program_modules;
       Ast.program_ctx;
-      Ast.program_root =
-        {
-          Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
-          Ast.module_topdefs = TopdefName.Map.empty;
-        };
+      Ast.program_root;
     }
   in
-  let process_code_block ctxt prgm block =
+  let process_code_block ctxt prgm is_meta block =
     List.fold_left
       (fun prgm item ->
         match Mark.remove item with
         | S.ScopeUse use -> process_scope_use ctxt prgm use
-        | S.Topdef def -> process_topdef ctxt prgm def
+        | S.Topdef def -> process_topdef ctxt prgm is_meta def
         | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ -> prgm)
       prgm block
   in
@@ -1777,7 +1809,20 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       List.fold_left
         (fun prgm child -> process_structure prgm child)
         prgm children
-    | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
+    | S.CodeBlock (block, _, is_meta) ->
+      process_code_block ctxt prgm is_meta block
     | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm
   in
-  List.fold_left process_structure desugared surface.S.program_items
+  let desugared =
+    List.fold_left process_structure desugared surface.S.program_items
+  in
+  {
+    desugared with
+    Ast.program_module_name =
+      (desugared.Ast.program_module_name
+      |> Option.map
+         @@ fun (mname, _) ->
+         ( mname,
+           Ast.Hash.module_binding ~root:true mname desugared.Ast.program_root )
+      );
+  }

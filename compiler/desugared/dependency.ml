@@ -39,9 +39,9 @@ module Vertex = struct
 
   let hash x =
     match x with
-    | Var (x, None) -> ScopeVar.hash x
-    | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
-    | Assertion a -> Ast.AssertionName.hash a
+    | Var (x, None) -> ScopeVar.id x
+    | Var (x, Some sx) -> Hashtbl.hash (ScopeVar.id x, StateName.id sx)
+    | Assertion a -> Hashtbl.hash (`Assert (Ast.AssertionName.id a))
 
   let compare x y =
     match x, y with
@@ -252,7 +252,7 @@ module ExceptionVertex = struct
 
   let hash (x : t) : int =
     RuleName.Map.fold
-      (fun r _ acc -> Int.logxor (RuleName.hash r) acc)
+      (fun r _ acc -> Hashtbl.hash (RuleName.id r, acc))
       x.rules 0
 
   let equal x y = compare x y = 0

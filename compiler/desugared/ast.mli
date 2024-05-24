@@ -123,22 +123,43 @@ type scope = {
       (** empty outside of the root module *)
   scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
+  scope_visibility : visibility;
+}
+
+type topdef = {
+  topdef_expr : expr option;  (** Always [None] outside of the root module *)
+  topdef_type : typ;
+  topdef_visibility : visibility;
+      (** Necessarily [Public] outside of the root module *)
 }
 
 type modul = {
   module_scopes : scope ScopeName.Map.t;
-  module_topdefs : (expr option * typ) TopdefName.Map.t;
-      (** the expr is [None] outside of the root module *)
+  module_topdefs : topdef TopdefName.Map.t;
 }
 
 type program = {
-  program_module_name : Ident.t Mark.pos option;
+  program_module_name : (ModuleName.t * Hash.t) option;
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
       (** Contains all submodules of the program, in a flattened structure *)
   program_root : modul;
   program_lang : Global.backend_lang;
 }
+
+(** {1 Interface hash computations} *)
+
+(** These hashes are computed on interfaces: only signatures are considered. *)
+module Hash : sig
+  (** The [strip] argument below strips as many leading path components before
+      hashing *)
+
+  val scope : strip:int -> scope -> Hash.t
+  val modul : ?strip:int -> modul -> Hash.t
+
+  val module_binding : ?root:bool -> ModuleName.t -> modul -> Hash.t
+  (** This strips 1 path component by default unless [root] is [true] *)
+end
 
 (** {1 Helpers} *)
 

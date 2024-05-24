@@ -669,7 +669,10 @@ type scope_info = {
 }
 
 (** In practice, this is a DAG: beware of repeated names *)
-type module_tree = M of module_tree ModuleName.Map.t [@@caml.unboxed]
+type module_tree = M of (Hash.t * module_tree) ModuleName.Map.t
+[@@caml.unboxed]
+
+type visibility = Private | Public
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
@@ -688,5 +691,5 @@ type 'e program = {
   decl_ctx : decl_ctx;
   code_items : 'e code_item_list;
   lang : Global.backend_lang;
-  module_name : ModuleName.t option;
+  module_name : (ModuleName.t * Hash.t) option;
 }

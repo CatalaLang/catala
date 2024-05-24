@@ -29,6 +29,7 @@ let fold f (x, _) = f x
 let fold2 f (x, _) (y, _) = f x y
 let compare cmp a b = fold2 cmp a b
 let equal eq a b = fold2 eq a b
+let hash f (x, _) = f x
 
 class ['self] marked_map =
   object (_self : 'self)

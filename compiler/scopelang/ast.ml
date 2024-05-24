@@ -67,7 +67,7 @@ type 'm scope_decl = {
 }
 
 type 'm program = {
-  program_module_name : ModuleName.t option;
+  program_module_name : (ModuleName.t * Hash.t) option;
   program_ctx : decl_ctx;
   program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;

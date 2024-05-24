@@ -21,6 +21,7 @@ module type Info = sig
   val format : Format.formatter -> info -> unit
   val equal : info -> info -> bool
   val compare : info -> info -> int
+  val hash : info -> Hash.t
 end
 
 module type Id = sig
@@ -33,7 +34,8 @@ module type Id = sig
   val equal : t -> t -> bool
   val format : Format.formatter -> t -> unit
   val to_string : t -> string
-  val hash : t -> int
+  val id : t -> int
+  val hash : t -> Hash.t
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t
@@ -68,8 +70,9 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-  let hash (x : t) : int = x.id
+  let id (x : t) : int = x.id
   let to_string t = X.to_string t.info
+  let hash t = X.hash t.info
 
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
@@ -84,6 +87,7 @@ module MarkedString = struct
   let format fmt i = String.format fmt (to_string i)
   let equal = Mark.equal String.equal
   let compare = Mark.compare String.compare
+  let hash = Mark.hash String.hash
 end
 
 module Gen (S : Style) () = Make (MarkedString) (S) ()
@@ -109,6 +113,13 @@ module Path = struct
   let to_string p = String.concat "." (List.map Module.to_string p)
   let equal = List.equal Module.equal
   let compare = List.compare Module.compare
+
+  let rec strip n p =
+    if n = 0 then p
+    else
+      match p with
+      | _ :: p -> strip (n - 1) p
+      | [] -> invalid_arg "Uid.Path.strip"
 end
 
 module QualifiedMarkedString = struct
@@ -125,12 +136,21 @@ module QualifiedMarkedString = struct
 
   let compare (p1, i1) (p2, i2) =
     match Path.compare p1 p2 with 0 -> MarkedString.compare i1 i2 | n -> n
+
+  let hash (p, i) =
+    let open Hash.Op in
+    Hash.list Module.hash p % MarkedString.hash i
 end
 
 module Gen_qualified (S : Style) () = struct
   include Make (QualifiedMarkedString) (S) ()
 
   let fresh path t = fresh (path, t)
+
+  let hash ~strip t =
+    let p, i = get_info t in
+    QualifiedMarkedString.hash (Path.strip strip p, i)
+
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)
 end

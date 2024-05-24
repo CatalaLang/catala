@@ -21,10 +21,10 @@ open Ast
 let needs_parens (_e : expr) : bool = false
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%d" VarName.format v (VarName.hash v)
+  Format.fprintf fmt "%a_%d" VarName.format v (VarName.id v)
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.hash v)
+  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.id v)
 
 let rec format_expr
     (decl_ctx : decl_ctx)

@@ -28,6 +28,9 @@ module type Info = sig
 
   val compare : info -> info -> int
   (** Comparison disregards position *)
+
+  val hash : info -> Hash.t
+  (** Hashing disregards position *)
 end
 
 module MarkedString : Info with type info = string Mark.pos
@@ -48,7 +51,15 @@ module type Id = sig
   val equal : t -> t -> bool
   val format : Format.formatter -> t -> unit
   val to_string : t -> string
-  val hash : t -> int
+
+  val id : t -> int
+  (** Returns the unique ID of the identifier *)
+
+  val hash : t -> Hash.t
+  (** While [id] returns a unique ID valable for a given Uid instance within a
+      given run of catala, this is a raw hash of the identifier string.
+      Therefore, it may collide within a given program, but remains meaninful
+      across separate compilations. *)
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t
@@ -88,4 +99,7 @@ module Gen_qualified (_ : Style) () : sig
   val fresh : Path.t -> MarkedString.info -> t
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
+  val hash : strip:int -> t -> Hash.t
+  (* [strip] strips that number of elements from the start of the path before
+     hashing *)
 end

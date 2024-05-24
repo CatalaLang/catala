@@ -42,9 +42,7 @@ module SVertex = struct
     | Topdef g1, Topdef g2 -> TopdefName.equal g1 g2
     | (Scope _ | Topdef _), _ -> false
 
-  let hash = function
-    | Scope s -> ScopeName.hash s
-    | Topdef g -> TopdefName.hash g
+  let hash = function Scope s -> ScopeName.id s | Topdef g -> TopdefName.id g
 
   let format ppf = function
     | Scope s -> ScopeName.format ppf s
@@ -206,7 +204,9 @@ module TVertex = struct
   type t = Struct of StructName.t | Enum of EnumName.t
 
   let hash x =
-    match x with Struct x -> StructName.hash x | Enum x -> EnumName.hash x
+    match x with
+    | Struct x -> StructName.id x
+    | Enum x -> Hashtbl.hash (`Enum (EnumName.id x))
 
   let compare x y =
     match x, y with

@@ -489,7 +489,7 @@ let run
         (Option.value ~default:"stdout" jsoo_output_file);
       let modname =
         match prg.module_name with
-        | Some m -> ModuleName.to_string m
+        | Some (m, _) -> ModuleName.to_string m
         | None ->
           String.capitalize_ascii
             Filename.(

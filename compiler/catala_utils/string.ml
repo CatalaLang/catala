@@ -101,6 +101,7 @@ module Arg = struct
 end
 
 let compare = Arg.compare
+let hash t = Hash.raw t
 
 module Set = Set.Make (Arg)
 module Map = Map.Make (Arg)
