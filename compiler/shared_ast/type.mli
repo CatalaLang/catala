@@ -26,8 +26,8 @@ val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
 
-val hash : strip:int -> t -> Hash.t
-(** The [strip] argument strips as many leading path components in included
+val hash : strip:Uid.Path.t -> t -> Hash.t
+(** The [strip] argument strips the given leading path components in included
     identifiers before hashing *)
 
 val unifiable : t -> t -> bool

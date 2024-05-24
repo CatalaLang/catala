@@ -32,7 +32,7 @@ module ScopeDef : sig
   val equal_kind : kind -> kind -> bool
   val compare_kind : kind -> kind -> int
   val format_kind : Format.formatter -> kind -> unit
-  val hash_kind : kind -> int
+  val hash_kind : strip:Uid.Path.t -> kind -> Hash.t
 
   type t = ScopeVar.t Mark.pos * kind
 
@@ -40,7 +40,7 @@ module ScopeDef : sig
   val compare : t -> t -> int
   val get_position : t -> Pos.t
   val format : Format.formatter -> t -> unit
-  val hash : t -> int
+  val hash : strip:Uid.Path.t -> t -> Hash.t
 
   module Map : Map.S with type key = t
   module Set : Set.S with type elt = t
@@ -154,11 +154,9 @@ module Hash : sig
   (** The [strip] argument below strips as many leading path components before
       hashing *)
 
-  val scope : strip:int -> scope -> Hash.t
-  val modul : ?strip:int -> modul -> Hash.t
-
-  val module_binding : ?root:bool -> ModuleName.t -> modul -> Hash.t
-  (** This strips 1 path component by default unless [root] is [true] *)
+  val scope : strip:Uid.Path.t -> scope -> Hash.t
+  val modul : ?strip:Uid.Path.t -> modul -> Hash.t
+  val module_binding : ModuleName.t -> modul -> Hash.t
 end
 
 (** {1 Helpers} *)

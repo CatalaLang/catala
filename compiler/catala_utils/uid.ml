@@ -114,12 +114,14 @@ module Path = struct
   let equal = List.equal Module.equal
   let compare = List.compare Module.compare
 
-  let rec strip n p =
-    if n = 0 then p
-    else
-      match p with
-      | _ :: p -> strip (n - 1) p
-      | [] -> invalid_arg "Uid.Path.strip"
+  let strip prefix p0 =
+    let rec aux prefix p =
+      match prefix, p with
+      | pfx1 :: pfx, p1 :: p -> if Module.equal pfx1 p1 then aux pfx p else p0
+      | [], p -> p
+      | _ -> p0
+    in
+    aux prefix p0
 end
 
 module QualifiedMarkedString = struct

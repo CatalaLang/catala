@@ -71,13 +71,17 @@ module ScopeDef = struct
       ScopeVar.format ppf (Mark.remove v);
       format_kind ppf k
 
-    let hash_kind = function
-      | Var None -> Hashtbl.hash `VarNone
-      | Var (Some st) -> Hashtbl.hash (`VarSome (StateName.id st))
-      | SubScopeInput { var_within_origin_scope = v; _ } ->
-        Hashtbl.hash (`SubScopeInput (ScopeVar.id v))
+    open Hash.Op
 
-    let hash (v, k) = Hashtbl.hash (ScopeVar.id (Mark.remove v), hash_kind k)
+    let hash_kind ~strip = function
+      | Var v -> !`Var % Hash.option StateName.hash v
+      | SubScopeInput { name; var_within_origin_scope } ->
+        !`SubScopeInput
+        % ScopeName.hash ~strip name
+        % ScopeVar.hash var_within_origin_scope
+
+    let hash ~strip (v, k) =
+      Hash.Op.(ScopeVar.hash (Mark.remove v) % hash_kind ~strip k)
   end
 
   include Base
@@ -288,24 +292,16 @@ module Hash = struct
     % !(d.scope_def_is_condition : bool)
     % io d.scope_def_io
 
-  let scope_def ~strip (var, kind) =
-    ScopeVar.hash (Mark.remove var)
-    %
-    match kind with
-    | ScopeDef.Var st -> Hash.option StateName.hash st
-    | ScopeDef.SubScopeInput { name; var_within_origin_scope } ->
-      ScopeName.hash ~strip name % ScopeVar.hash var_within_origin_scope
-
   let scope ~strip s =
     Hash.map ScopeVar.Map.fold ScopeVar.hash var_or_state s.scope_vars
     % Hash.map ScopeVar.Map.fold ScopeVar.hash (ScopeName.hash ~strip)
         s.scope_sub_scopes
     % ScopeName.hash ~strip s.scope_uid
-    % Hash.map ScopeDef.Map.fold (scope_def ~strip) (scope_decl ~strip)
+    % Hash.map ScopeDef.Map.fold (ScopeDef.hash ~strip) (scope_decl ~strip)
         s.scope_defs
   (* assertions, options, etc. are not expected to be part of interfaces *)
 
-  let modul ?(strip = 0) m =
+  let modul ?(strip = []) m =
     Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
       (ScopeName.Map.filter
          (fun _ s -> s.scope_visibility = Public)
@@ -316,8 +312,8 @@ module Hash = struct
            (fun _ td -> td.topdef_visibility = Public)
            m.module_topdefs)
 
-  let module_binding ?(root = false) modname m =
-    ModuleName.hash modname % modul ~strip:(if root then 0 else 1) m
+  let module_binding modname m =
+    ModuleName.hash modname % modul ~strip:[modname] m
 end
 
 let rec locations_used e : LocationSet.t =

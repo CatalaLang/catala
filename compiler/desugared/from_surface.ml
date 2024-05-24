@@ -1703,19 +1703,20 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     ModuleName.Map.mapi
       (fun mname mctx ->
         let m =
-        {
-          Ast.module_scopes = get_scopes mctx;
-          Ast.module_topdefs =
-            Ident.Map.fold
-              (fun _ name acc ->
-                let topdef_type, topdef_visibility =
-                  TopdefName.Map.find name ctxt.Name_resolution.topdefs
-                in
-                TopdefName.Map.add name
-                  { Ast.topdef_expr = None; topdef_visibility; topdef_type }
-                  acc)
-              mctx.topdefs TopdefName.Map.empty;
-        } in
+          {
+            Ast.module_scopes = get_scopes mctx;
+            Ast.module_topdefs =
+              Ident.Map.fold
+                (fun _ name acc ->
+                  let topdef_type, topdef_visibility =
+                    TopdefName.Map.find name ctxt.Name_resolution.topdefs
+                  in
+                  TopdefName.Map.add name
+                    { Ast.topdef_expr = None; topdef_visibility; topdef_type }
+                    acc)
+                mctx.topdefs TopdefName.Map.empty;
+          }
+        in
         m, Ast.Hash.module_binding mname m)
       ctxt.modules
   in
@@ -1816,7 +1817,5 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       (desugared.Ast.program_module_name
       |> Option.map
          @@ fun (mname, _) ->
-         ( mname,
-           Ast.Hash.module_binding ~root:true mname desugared.Ast.program_root )
-      );
+         mname, Ast.Hash.module_binding mname desugared.Ast.program_root);
   }

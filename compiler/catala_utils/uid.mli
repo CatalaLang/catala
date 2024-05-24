@@ -90,6 +90,10 @@ module Path : sig
   val format : Format.formatter -> t -> unit
   val equal : t -> t -> bool
   val compare : t -> t -> int
+
+  val strip : t -> t -> t
+  (** [strip pfx p] removed [pfx] from the start of [p]. if [p] doesn't start
+      with [pfx], it is returned unchanged *)
 end
 
 (** Same as [Gen] but also registers path information *)
@@ -99,7 +103,6 @@ module Gen_qualified (_ : Style) () : sig
   val fresh : Path.t -> MarkedString.info -> t
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
-  val hash : strip:int -> t -> Hash.t
-  (* [strip] strips that number of elements from the start of the path before
-     hashing *)
+  val hash : strip:Path.t -> t -> Hash.t
+  (* [strip] strips that prefix from the start of the path before hashing *)
 end
