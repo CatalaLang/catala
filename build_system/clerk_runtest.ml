@@ -16,6 +16,27 @@
 
 open Catala_utils
 
+let sanitize =
+  let re_endtest = Re.(compile @@ seq [bol; str "```"]) in
+  let re_modhash =
+    Re.(
+      compile
+      @@ seq
+           [
+             str "\"CM0|";
+             repn xdigit 8 (Some 8);
+             char '|';
+             repn xdigit 8 (Some 8);
+             char '|';
+             repn xdigit 8 (Some 8);
+             char '"';
+           ])
+  in
+  fun str ->
+    str
+    |> Re.replace_string re_endtest ~by:"\\```"
+    |> Re.replace_string re_modhash ~by:"\"CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX\""
+
 let run_catala_test test_flags catala_exe catala_opts file program args oc =
   let cmd_in_rd, cmd_in_wr = Unix.pipe ~cloexec:true () in
   let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
@@ -70,8 +91,9 @@ let run_catala_test test_flags catala_exe catala_opts file program args oc =
   let out_lines =
     Seq.of_dispenser (fun () -> In_channel.input_line command_ic)
   in
-  Seq.iter (fun line ->
-      output_string oc line;
+  Seq.iter
+    (fun line ->
+      output_string oc (sanitize line);
       output_char oc '\n')
     out_lines;
   let return_code =
