@@ -1627,7 +1627,7 @@ let init_scope_defs
     Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
-  let add_def _ v scope_def_map =
+  let rec add_def _ v scope_def_map =
     let pos =
       match v with
       | ScopeVar v | SubScope (v, _) -> Mark.get (ScopeVar.get_info v)
@@ -1676,9 +1676,7 @@ let init_scope_defs
         scope_def)
     | SubScope (v0, subscope_uid) ->
       let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
-      let forward_out =
-        (Name_resolution.get_var_io ctxt v0).scope_decl_context_io_output
-      in
+      let sub_scope_io = Name_resolution.get_var_io ctxt v0 in
       let ctxt =
         List.fold_left
           (fun ctx m ->
@@ -1697,11 +1695,7 @@ let init_scope_defs
               Mark.get (ScopeVar.get_info v0) );
           Ast.scope_def_is_condition = false;
           Ast.scope_def_parameters = None;
-          Ast.scope_def_io =
-            {
-              io_input = NoInput, Mark.get forward_out;
-              io_output = forward_out;
-            };
+          Ast.scope_def_io = attribute_to_io sub_scope_io;
         }
       in
       let scope_def_map =

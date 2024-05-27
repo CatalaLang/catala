@@ -392,7 +392,10 @@ module Commands = struct
                 @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
                id first_part ScopeName.format scope_uid
       in
-      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
+      {
+        scope_def_var_within_scope = v, Pos.no_pos;
+        scope_def_kind = Desugared.Ast.ScopeDef.ScopeVarKind state;
+      }
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in

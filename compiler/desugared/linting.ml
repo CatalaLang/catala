@@ -25,12 +25,14 @@ let detect_empty_definitions (p : program) : unit =
       ScopeDef.Map.iter
         (fun scope_def_key scope_def ->
           if
-            (match scope_def_key with _, ScopeDef.Var _ -> true | _ -> false)
+            (match scope_def_key.scope_def_kind with
+            | ScopeDef.ScopeVarKind _ -> true
+            | _ -> false)
             && RuleName.Map.is_empty scope_def.scope_def_rules
             && (not scope_def.scope_def_is_condition)
             && (not
                   (ScopeVar.Map.mem
-                     (Mark.remove (fst scope_def_key))
+                     (Mark.remove scope_def_key.scope_def_var_within_scope)
                      scope.scope_sub_scopes))
             &&
             match Mark.remove scope_def.scope_def_io.io_input with
