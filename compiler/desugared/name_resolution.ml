@@ -78,6 +78,7 @@ type module_context = {
           between different enums *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   used_modules : ModuleName.t Ident.Map.t;
+  is_external : bool;
 }
 (** Context for name resolution, valid within a given module *)
 
@@ -770,8 +771,10 @@ let rec process_law_structure
     process_code_block
       (process_item ~visibility:(if is_meta then Public else Private))
       ctxt block
+  | Surface.Ast.ModuleDef (_, is_external) ->
+    { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
-  | Surface.Ast.ModuleDef _ | Surface.Ast.ModuleUse _ -> ctxt
+  | Surface.Ast.ModuleUse _ -> ctxt
 
 (** {1 Scope uses pass} *)
 
@@ -979,6 +982,7 @@ let empty_module_ctxt =
     constructor_idmap = Ident.Map.empty;
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
+    is_external = false;
   }
 
 let empty_ctxt =
@@ -1007,7 +1011,13 @@ let form_context (surface, mod_uses) surface_modules : context =
           let ctxt =
             {
               ctxt with
-              local = { ctxt.local with used_modules = mod_uses; path = [m] };
+              local =
+                {
+                  ctxt.local with
+                  used_modules = mod_uses;
+                  path = [m];
+                  is_external = intf.Surface.Ast.intf_modname.module_external;
+                };
             }
           in
           let ctxt =

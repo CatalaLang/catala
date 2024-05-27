@@ -83,6 +83,7 @@ type module_context = {
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   used_modules : ModuleName.t Ident.Map.t;
       (** Module aliases and the modules they point to *)
+  is_external : bool;
 }
 (** Context for name resolution, valid within a given module *)
 

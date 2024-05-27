@@ -659,7 +659,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
   let modules =
     List.fold_left
-      (fun acc (m, _hash) ->
+      (fun acc (m, _) ->
         let vname = Mark.map (( ^ ) "Module_") (ModuleName.get_info m) in
         (* The "Module_" prefix is a workaround name clashes for same-name
            structs and modules, Python in particular mixes everything in one

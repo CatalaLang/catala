@@ -718,14 +718,15 @@ let commands = if commands = [] then entry_scopes else commands
 
 let check_and_reexport_used_modules fmt ~hashf modules =
   List.iter
-    (fun (m, hash) ->
+    (fun (m, intf_id) ->
       Format.fprintf fmt
         "@[<hv 2>let () =@ @[<hov 2>match Runtime_ocaml.Runtime.check_module \
          %S \"%a\"@ with@]@,\
          | Ok () -> ()@,\
          @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
          need recompiling\"@]@]@,"
-        (ModuleName.to_string m) Hash.format (hashf hash) ModuleName.format m;
+        (ModuleName.to_string m) Hash.format (hashf intf_id.hash)
+        ModuleName.format m;
       Format.fprintf fmt "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
         ModuleName.format m)
     modules
@@ -788,8 +789,8 @@ let format_program
   Format.pp_print_cut fmt ();
   let () =
     match p.module_name, exec_scope with
-    | Some (modname, hash), None ->
-      format_module_registration fmt bnd modname (hashf hash)
+    | Some (modname, intf_id), None ->
+      format_module_registration fmt bnd modname (hashf intf_id.hash)
     | None, Some scope_name ->
       let scope_body = Program.get_scope_body p scope_name in
       format_scope_exec p.decl_ctx fmt bnd scope_name scope_body

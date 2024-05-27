@@ -1742,12 +1742,14 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           Ident.Map.fold
             (fun _ m acc ->
               let mctx = ModuleName.Map.find m ctxt.Name_resolution.modules in
-              let sub = aux mctx in
-              let mhash = snd (ModuleName.Map.find m program_modules) in
-              ModuleName.Map.add m (mhash, sub) acc)
+              let deps = aux mctx in
+              let hash = snd (ModuleName.Map.find m program_modules) in
+              ModuleName.Map.add m
+                { deps; intf_id = { hash; is_external = mctx.is_external } }
+                acc)
             mctx.used_modules ModuleName.Map.empty
         in
-        M subs
+        subs
       in
       aux ctxt.local
     in
@@ -1772,12 +1774,12 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     }
   in
   let program_module_name =
-    surface.Surface.Ast.program_module_name
+    surface.Surface.Ast.program_module
     |> Option.map
-       @@ fun id ->
-       let mname = ModuleName.fresh id in
+       @@ fun { Surface.Ast.module_name; module_external } ->
+       let mname = ModuleName.fresh module_name in
        let hash_placeholder = Hash.raw 0 in
-       mname, hash_placeholder
+       mname, { hash = hash_placeholder; is_external = module_external }
   in
   let desugared =
     {
@@ -1816,6 +1818,10 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     Ast.program_module_name =
       (desugared.Ast.program_module_name
       |> Option.map
-         @@ fun (mname, _) ->
-         mname, Ast.Hash.module_binding mname desugared.Ast.program_root);
+         @@ fun (mname, intf_id) ->
+         ( mname,
+           {
+             intf_id with
+             hash = Ast.Hash.module_binding mname desugared.Ast.program_root;
+           } ));
   }

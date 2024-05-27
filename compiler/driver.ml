@@ -93,7 +93,7 @@ let load_module_interfaces
             Surface.Parser_driver.load_interface ?default_module_name
               (Global.FileName f)
           in
-          let modname = ModuleName.fresh intf.intf_modname in
+          let modname = ModuleName.fresh intf.intf_modname.module_name in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
             aux
@@ -107,9 +107,9 @@ let load_module_interfaces
       (seen, Ident.Map.empty) uses
   in
   let seen =
-    match program.Surface.Ast.program_module_name with
+    match program.Surface.Ast.program_module with
     | Some m ->
-      let file = Pos.get_file (Mark.get m) in
+      let file = Pos.get_file (Mark.get m.module_name) in
       File.Map.singleton file None
     | None -> File.Map.empty
   in
@@ -1022,7 +1022,7 @@ module Commands = struct
     let prg =
       Surface.Ast.
         {
-          program_module_name = None;
+          program_module = None;
           program_items = [];
           program_source_files = [];
           program_used_modules =
@@ -1050,7 +1050,7 @@ module Commands = struct
     in
     Format.open_hbox ();
     Format.pp_print_list ~pp_sep:Format.pp_print_space
-      (fun ppf (m, _h) ->
+      (fun ppf (m, _) ->
         let f = Pos.get_file (Mark.get (ModuleName.get_info m)) in
         let f =
           match prefix with

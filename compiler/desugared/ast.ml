@@ -261,7 +261,7 @@ type modul = {
 }
 
 type program = {
-  program_module_name : (ModuleName.t * Hash.t) option;
+  program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
   program_root : modul;

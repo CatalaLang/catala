@@ -1156,16 +1156,16 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
 let evaluate_expr ctx lang e = evaluate_expr ctx lang (addcustom e)
 
 let load_runtime_modules ~hashf prg =
-  let load (m, mod_hash) =
-    let hash = hashf mod_hash in
+  let load (mname, intf_id) =
+    let hash = hashf intf_id.hash in
     let obj_file =
       Dynlink.adapt_filename
-        File.(Pos.get_file (Mark.get (ModuleName.get_info m)) -.- "cmo")
+        File.(Pos.get_file (Mark.get (ModuleName.get_info mname)) -.- "cmo")
     in
     (if not (Sys.file_exists obj_file) then
        Message.error
          ~pos_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-         ~pos:(Mark.get (ModuleName.get_info m))
+         ~pos:(Mark.get (ModuleName.get_info mname))
          "Compiled OCaml object %a@ not@ found.@ Make sure it has been \
           suitably compiled."
          File.format obj_file
@@ -1177,13 +1177,13 @@ let load_runtime_modules ~hashf prg =
            File.format obj_file Format.pp_print_text
            (Dynlink.error_message dl_err));
     match
-      Runtime.check_module (ModuleName.to_string m) (Hash.to_string hash)
+      Runtime.check_module (ModuleName.to_string mname) (Hash.to_string hash)
     with
     | Ok () -> ()
     | Error bad_hash ->
       Message.debug
         "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
-        ModuleName.format m Hash.format hash
+        ModuleName.format mname Hash.format hash
         (fun ppf h ->
           try Hash.format ppf (Hash.of_string h)
           with Failure _ -> Format.pp_print_string ppf "<invalid>")
@@ -1191,16 +1191,16 @@ let load_runtime_modules ~hashf prg =
       Message.error
         "Module %a@ needs@ recompiling:@ %a@ was@ likely@ compiled@ from@ an@ \
          older@ version@ or@ with@ incompatible@ flags."
-        ModuleName.format m File.format obj_file
+        ModuleName.format mname File.format obj_file
     | exception Not_found ->
       Message.error
         "Module %a@ was loaded from file %a but did not register properly, \
          there is something wrong in its code."
-        ModuleName.format m File.format obj_file
+        ModuleName.format mname File.format obj_file
   in
   let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then
     Message.debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)
-      (List.map fst modules_list_topo);
+      (List.map (fun (m, _) -> m) modules_list_topo);
   List.iter load modules_list_topo

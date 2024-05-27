@@ -259,18 +259,21 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
     List.fold_left
       (fun acc command ->
         let join_module_names name_opt =
-          match acc.Ast.program_module_name, name_opt with
+          match acc.Ast.program_module, name_opt with
           | opt, None | None, opt -> opt
           | Some id1, Some id2 ->
             Message.error
-              ~extra_pos:["", Mark.get id1; "", Mark.get id2]
+              ~extra_pos:
+                ["", Mark.get id1.module_name; "", Mark.get id2.module_name]
               "Multiple definitions of the module name"
         in
         match command with
-        | Ast.ModuleDef (id, _) ->
+        | Ast.ModuleDef (id, is_external) ->
           {
             acc with
-            Ast.program_module_name = join_module_names (Some id);
+            Ast.program_module =
+              join_module_names
+                (Some { module_name = id; module_external = is_external });
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.ModuleUse (mod_use_name, alias) ->
@@ -288,22 +291,22 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           @@ fun lexbuf ->
           let includ_program = parse_source lexbuf in
           let () =
-            includ_program.Ast.program_module_name
+            includ_program.Ast.program_module
             |> Option.iter
                @@ fun id ->
                Message.error
                  ~extra_pos:
                    [
                      "File include", Mark.get inc_file;
-                     "Module declaration", Mark.get id;
+                     "Module declaration", Mark.get id.Ast.module_name;
                    ]
                  "A file that declares a module cannot be used through the raw \
                   '@{<yellow>> Include@}'@ directive.@ You should use it as a \
                   module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ instead."
-                 (Mark.remove id)
+                 (Mark.remove id.Ast.module_name)
           in
           {
-            Ast.program_module_name = acc.program_module_name;
+            Ast.program_module = acc.program_module;
             Ast.program_source_files =
               List.rev_append includ_program.program_source_files
                 acc.Ast.program_source_files;
@@ -316,7 +319,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           }
         | Ast.LawHeading (heading, commands') ->
           let {
-            Ast.program_module_name;
+            Ast.program_module;
             Ast.program_items = commands';
             Ast.program_source_files = new_sources;
             Ast.program_used_modules = new_used_modules;
@@ -325,7 +328,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             expand_includes source_file commands'
           in
           {
-            Ast.program_module_name = join_module_names program_module_name;
+            Ast.program_module = join_module_names program_module;
             Ast.program_source_files =
               List.rev_append new_sources acc.Ast.program_source_files;
             Ast.program_items =
@@ -336,7 +339,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           }
         | i -> { acc with Ast.program_items = i :: acc.Ast.program_items })
       {
-        Ast.program_module_name = None;
+        Ast.program_module = None;
         Ast.program_source_files = [];
         Ast.program_items = [];
         Ast.program_used_modules = [];
@@ -346,7 +349,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
   in
   {
     Ast.program_lang = language;
-    Ast.program_module_name = rprg.Ast.program_module_name;
+    Ast.program_module = rprg.Ast.program_module;
     Ast.program_source_files = List.rev rprg.Ast.program_source_files;
     Ast.program_items = List.rev rprg.Ast.program_items;
     Ast.program_used_modules = List.rev rprg.Ast.program_used_modules;
@@ -396,8 +399,8 @@ let with_sedlex_source source_file f =
     f lexbuf
 
 let check_modname program source_file =
-  match program.Ast.program_module_name, source_file with
-  | ( Some (mname, pos),
+  match program.Ast.program_module, source_file with
+  | ( Some { module_name = mname, pos; _ },
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
     Message.error ~pos
@@ -413,10 +416,14 @@ let load_interface ?default_module_name source_file =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
-    match program.Ast.program_module_name, default_module_name with
+    match program.Ast.program_module, default_module_name with
     | Some mname, _ -> mname
     | None, Some n ->
-      n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
+      {
+        module_name =
+          n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0;
+        module_external = false;
+      }
     | None, None ->
       Message.error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
