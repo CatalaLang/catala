@@ -725,8 +725,12 @@ let check_and_reexport_used_modules fmt ~hashf modules =
          | Ok () -> ()@,\
          @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
          need recompiling\"@]@]@,"
-        (ModuleName.to_string m) Hash.format (hashf intf_id.hash)
-        ModuleName.format m;
+        (ModuleName.to_string m)
+        (fun ppf h ->
+          if intf_id.is_external then
+            Format.pp_print_string ppf Hash.external_placeholder
+          else Hash.format ppf h)
+        (hashf intf_id.hash) ModuleName.format m;
       Format.fprintf fmt "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
         ModuleName.format m)
     modules
@@ -735,7 +739,8 @@ let format_module_registration
     fmt
     (bnd : ('m Ast.expr Var.t * _) String.Map.t)
     modname
-    hash =
+    hash
+    is_external =
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
@@ -758,7 +763,11 @@ let format_module_registration
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
   Format.pp_print_space fmt ();
-  Format.fprintf fmt "\"%a\"" Hash.format hash;
+  Format.fprintf fmt "\"%a\""
+    (fun ppf h ->
+      if is_external then Format.pp_print_string ppf Hash.external_placeholder
+      else Hash.format ppf h)
+    hash;
   Format.pp_close_box fmt ();
   Format.pp_close_box fmt ();
   Format.pp_print_newline fmt ()
@@ -791,6 +800,7 @@ let format_program
     match p.module_name, exec_scope with
     | Some (modname, intf_id), None ->
       format_module_registration fmt bnd modname (hashf intf_id.hash)
+        intf_id.is_external
     | None, Some scope_name ->
       let scope_body = Program.get_scope_body p scope_name in
       format_scope_exec p.decl_ctx fmt bnd scope_name scope_body

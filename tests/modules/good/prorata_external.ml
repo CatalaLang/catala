@@ -37,4 +37,4 @@ let () =
   Runtime_ocaml.Runtime.register_module "Prorata_external"
     [ "prorata", Obj.repr prorata_;
       "prorata2", Obj.repr prorata2_ ]
-    "todo-module-hash"
+    "*external*"

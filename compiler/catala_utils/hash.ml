@@ -106,3 +106,5 @@ let of_string s =
       (fun catala_version flags_hash contents ->
         { catala_version; flags_hash = Flags.of_t flags_hash; contents })
   with Scanf.Scan_failure _ -> failwith "Hash.of_string"
+
+let external_placeholder = "*external*"

@@ -71,3 +71,11 @@ val format : Format.formatter -> full -> unit
 
 val of_string : string -> full
 (** @raise Failure *)
+
+val external_placeholder : string
+(** It's inconvenient to need hash updates on external modules. This string is
+    uses as a hash instead for those cases.
+
+    NOTE: This is a temporary solution A future approach could be to have Catala
+    generate a module loader (with the proper hash), relieving the user
+    implementation from having to do the registration. *)
