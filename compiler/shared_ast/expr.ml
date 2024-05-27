@@ -311,7 +311,7 @@ let runtime_to_pos rpos =
 (* - Traversal functions - *)
 
 (* shallow map *)
-let rec map
+let map
     (type a b)
     ?(typ : typ -> typ = Fun.id)
     ?op:(fop =

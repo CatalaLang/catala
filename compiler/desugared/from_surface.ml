@@ -455,7 +455,7 @@ let rec translate_expr
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = x_state })
           emark
-      | Some (SubScope (uid, _, _)) ->
+      | Some (SubScope (uid, _)) ->
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = None })
           emark
@@ -567,7 +567,7 @@ let rec translate_expr
                   "Scope %a has no input variable %a" ScopeName.format
                   current_subscope Print.lit_style
                   (Mark.remove scope_var_str)
-              | Some (SubScope (_, sub_scope, _)) ->
+              | Some (SubScope (_, sub_scope)) ->
                 Message.error
                   ~extra_pos:
                     [
@@ -608,7 +608,7 @@ let rec translate_expr
                    which@ cannot@ be@ refined@ by@ another@ path@ qualifier."
                   Print.lit_style
                   (Mark.remove subscope_var_str)
-              | Some (SubScope (subscope_var, sub_scope_name, _)) ->
+              | Some (SubScope (subscope_var, sub_scope_name)) ->
                 ScopeVar.Map.update subscope_var
                   (fun map_expr ->
                     let acc =
@@ -1630,7 +1630,7 @@ let init_scope_defs
   let add_def _ v scope_def_map =
     let pos =
       match v with
-      | ScopeVar v | SubScope (v, _, _) -> Mark.get (ScopeVar.get_info v)
+      | ScopeVar v | SubScope (v, _) -> Mark.get (ScopeVar.get_info v)
     in
     let new_def v_sig io =
       {
@@ -1674,8 +1674,11 @@ let init_scope_defs
             (scope_def_map, 0) states
         in
         scope_def)
-    | SubScope (v0, subscope_uid, forward_out) ->
+    | SubScope (v0, subscope_uid) ->
       let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
+      let forward_out =
+        (Name_resolution.get_var_io ctxt v0).scope_decl_context_io_output
+      in
       let ctxt =
         List.fold_left
           (fun ctx m ->
@@ -1757,7 +1760,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun _ v acc ->
           match v with
           | ScopeVar _ -> acc
-          | SubScope (sub_var, sub_scope, _) ->
+          | SubScope (sub_var, sub_scope) ->
             ScopeVar.Map.add sub_var sub_scope acc)
         s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
