@@ -395,7 +395,7 @@ module Commands = struct
       Message.error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
-    | Some (ScopeVar v | SubScope (v, _, _)) ->
+    | Some (ScopeVar v | SubScope (v, _)) ->
       let state =
         second_part
         |> Option.map
