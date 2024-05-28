@@ -31,6 +31,7 @@ module Any =
       let format fmt () = Format.fprintf fmt "any"
       let equal () () = true
       let compare () () = 0
+      let hash () = Hash.raw `Any
     end)
     (struct
       let style = Ocolor_types.(Fg (C4 hi_magenta))
@@ -166,7 +167,7 @@ let rec format_typ
     format_typ ~colors fmt t1;
     Format.pp_print_as fmt 1 "⟩"
   | TAny v ->
-    if Global.options.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
+    if Global.options.debug then Format.fprintf fmt "<a%d>" (Any.id v)
     else Format.pp_print_string fmt "<any>"
   | TClosureEnv -> Format.fprintf fmt "closure_env"
 

@@ -953,8 +953,9 @@ let translate_program
   let program_topdefs =
     TopdefName.Map.mapi
       (fun id -> function
-        | Some e, ty -> Expr.unbox (translate_expr ctx e), ty
-        | None, (_, pos) ->
+        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = _ } ->
+          Expr.unbox (translate_expr ctx e), ty
+        | { D.topdef_expr = None; topdef_type = _, pos; _ } ->
           Message.error ~pos "No definition found for %a" TopdefName.format id)
       desugared.program_root.module_topdefs
   in
@@ -964,8 +965,7 @@ let translate_program
       desugared.D.program_root.module_scopes
   in
   {
-    Ast.program_module_name =
-      Option.map ModuleName.fresh desugared.D.program_module_name;
+    Ast.program_module_name = desugared.D.program_module_name;
     Ast.program_topdefs;
     Ast.program_scopes;
     Ast.program_ctx = ctx.decl_ctx;

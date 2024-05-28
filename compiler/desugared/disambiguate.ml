@@ -98,10 +98,14 @@ let program prg =
   in
   let module_topdefs =
     TopdefName.Map.map
-      (function
-        | Some e, ty ->
-          Some (Expr.unbox (expr prg.program_ctx env (Expr.box e))), ty
-        | None, ty -> None, ty)
+      (fun def ->
+        {
+          def with
+          topdef_expr =
+            Option.map
+              (fun e -> Expr.unbox (expr prg.program_ctx env (Expr.box e)))
+              def.topdef_expr;
+        })
       prg.program_root.module_topdefs
   in
   let module_scopes =

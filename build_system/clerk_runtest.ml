@@ -16,10 +16,32 @@
 
 open Catala_utils
 
+let sanitize =
+  let re_endtest = Re.(compile @@ seq [bol; str "```"]) in
+  let re_modhash =
+    Re.(
+      compile
+      @@ seq
+           [
+             str "\"CM0|";
+             repn xdigit 8 (Some 8);
+             char '|';
+             repn xdigit 8 (Some 8);
+             char '|';
+             repn xdigit 8 (Some 8);
+             char '"';
+           ])
+  in
+  fun str ->
+    str
+    |> Re.replace_string re_endtest ~by:"\\```"
+    |> Re.replace_string re_modhash ~by:"\"CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX\""
+
 let run_catala_test test_flags catala_exe catala_opts file program args oc =
-  let cmd_in_rd, cmd_in_wr = Unix.pipe () in
-  Unix.set_close_on_exec cmd_in_wr;
+  let cmd_in_rd, cmd_in_wr = Unix.pipe ~cloexec:true () in
+  let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
   let command_oc = Unix.out_channel_of_descr cmd_in_wr in
+  let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let catala_exe =
     (* If the exe name contains directories, make it absolute. Otherwise don't
        modify it so that it can be looked up in PATH. *)
@@ -59,12 +81,21 @@ let run_catala_test test_flags catala_exe catala_opts file program args oc =
     |> Seq.cons "CATALA_PLUGINS="
     |> Array.of_seq
   in
-  flush oc;
-  let ocfd = Unix.descr_of_out_channel oc in
-  let pid = Unix.create_process_env catala_exe cmd env cmd_in_rd ocfd ocfd in
+  let pid =
+    Unix.create_process_env catala_exe cmd env cmd_in_rd cmd_out_wr cmd_out_wr
+  in
   Unix.close cmd_in_rd;
+  Unix.close cmd_out_wr;
   Seq.iter (output_string command_oc) program;
   close_out command_oc;
+  let out_lines =
+    Seq.of_dispenser (fun () -> In_channel.input_line command_ic)
+  in
+  Seq.iter
+    (fun line ->
+      output_string oc (sanitize line);
+      output_char oc '\n')
+    out_lines;
   let return_code =
     match Unix.waitpid [] pid with
     | _, Unix.WEXITED n -> n

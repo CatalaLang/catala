@@ -548,8 +548,11 @@ let[@ocamlformat "disable"] static_base_rules =
     Nj.rule "out-test"
       ~command: [
         !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags;
-        !input; ">"; !output; "2>&1";
-        "||"; "true";
+        !input; "2>&1";
+        "|"; "sed";
+        "'s/\"CM0|[a-zA-Z0-9|]*\"/\"CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX\"/g'";
+        ">"; !output;
+        "||"; "true"
       ]
       ~description:
         ["<catala>"; "test"; !test_id; "⇐"; !input; "(" ^ !test_command ^ ")"];

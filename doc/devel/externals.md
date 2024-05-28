@@ -31,10 +31,10 @@ catala implementation and compile to OCaml (removing the `external` directive):
     ```
 
 ```shell-session
-$ clerk build _build/.../Prorata_external.ml
+$ clerk build _build/.../prorata_external.ml
 ```
 
-(beware the `_build/`, and the capitalisation of the module name)
+(beware the `_build/`, it is required here)
 
 
 ## Write the OCaml implementation
@@ -44,9 +44,11 @@ capitalisation to match). Edit to replace the dummy implementation by your code.
 Refer to `runtimes/ocaml/runtime.mli` for what is available (especially the
 `Oper` module to manipulate the types).
 
-Keep the `register_module` at the end as is, it's needed for the toplevel to use
-the value (you would get `Failure("Could not resolve reference to Xxx")` during
-evaluation).
+Keep the `register_module` at the end, but replace the hash (which should be of
+the form `"CM0|XXXXXXXX|XXXXXXXX|XXXXXXXX"`) by the string `"*external*"`. This
+section is needed for the Catala interpreter to find the declared values --- the
+error `Failure("Could not resolve reference to Xxx")` during evaluation is a
+symptom that it is missing.
 
 ## Compile and test
 

@@ -23,6 +23,8 @@ module Map : Map.S with type key = string
 val compare : string -> string -> int
 (** String comparison with natural ordering of numbers within strings *)
 
+val hash : string -> Hash.t
+
 val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their
     base letter in the Latin alphabet. *)

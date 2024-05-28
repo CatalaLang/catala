@@ -152,20 +152,20 @@ let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   let v_str = clean_name (Mark.remove (VarName.get_info v)) in
-  let hash = VarName.hash v in
+  let id = VarName.id v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
     | Some ids -> (
-      match IntMap.find_opt hash ids with
+      match IntMap.find_opt id ids with
       | None ->
-        let id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
+        let local_id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
         string_counter_map :=
-          StringMap.add v_str (IntMap.add hash id ids) !string_counter_map;
-        id
+          StringMap.add v_str (IntMap.add id local_id ids) !string_counter_map;
+        local_id
       | Some local_id -> local_id)
     | None ->
       string_counter_map :=
-        StringMap.add v_str (IntMap.singleton hash 0) !string_counter_map;
+        StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
       0
   in
   if v_str = "_" then Format.fprintf fmt "_"
