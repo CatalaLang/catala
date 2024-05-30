@@ -260,7 +260,10 @@ let detect_dead_code (p : program) : unit =
         | Var (var, state) ->
           let scope_def =
             ScopeDef.Map.find
-              ((var, Pos.no_pos), ScopeDef.Var state)
+              {
+                scope_def_var_within_scope = var, Pos.no_pos;
+                scope_def_kind = ScopeDef.ScopeVarKind state;
+              }
               scope.scope_defs
           in
           Mark.remove scope_def.scope_def_io.io_output

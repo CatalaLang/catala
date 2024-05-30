@@ -405,7 +405,14 @@ let rec translate_expr
           | Some st, [], _ ->
             Message.error ~pos:(Mark.get st)
               "Variable %a does not define states" ScopeVar.format uid
-          | st, states, Some (((x'_uid, _), Ast.ScopeDef.Var sx'), _)
+          | ( st,
+              states,
+              Some
+                ( {
+                    scope_def_var_within_scope = x'_uid, _;
+                    scope_def_kind = Ast.ScopeDef.ScopeVarKind sx';
+                  },
+                  _ ) )
             when ScopeVar.equal uid x'_uid -> (
             if st <> None then
               (* TODO *)
@@ -1627,7 +1634,7 @@ let init_scope_defs
     Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
-  let rec add_def _ v scope_def_map =
+  let add_def _ v scope_def_map =
     let pos =
       match v with
       | ScopeVar v | SubScope (v, _) -> Mark.get (ScopeVar.get_info v)
@@ -1646,7 +1653,12 @@ let init_scope_defs
       let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
-        let def_key = (v, pos), Ast.ScopeDef.Var None in
+        let def_key =
+          {
+            Ast.ScopeDef.scope_def_var_within_scope = v, pos;
+            scope_def_kind = Ast.ScopeDef.ScopeVarKind None;
+          }
+        in
         Ast.ScopeDef.Map.add def_key
           (new_def v_sig (attribute_to_io v_sig.var_sig_io))
           scope_def_map
@@ -1655,7 +1667,12 @@ let init_scope_defs
         let scope_def, _ =
           List.fold_left
             (fun (acc, i) state ->
-              let def_key = (v, pos), Ast.ScopeDef.Var (Some state) in
+              let def_key =
+                {
+                  Ast.ScopeDef.scope_def_var_within_scope = v, pos;
+                  scope_def_kind = Ast.ScopeDef.ScopeVarKind (Some state);
+                }
+              in
               let original_io = attribute_to_io v_sig.var_sig_io in
               (* The first state should have the input I/O of the original
                  variable, and the last state should have the output I/O of the
@@ -1695,40 +1712,89 @@ let init_scope_defs
               Mark.get (ScopeVar.get_info v0) );
           Ast.scope_def_is_condition = false;
           Ast.scope_def_parameters = None;
-          Ast.scope_def_io = attribute_to_io sub_scope_io;
+          Ast.scope_def_io =
+            {
+              (attribute_to_io sub_scope_io) with
+              io_input =
+                ( Runtime.NoInput,
+                  Mark.get sub_scope_io.scope_decl_context_io_input );
+            };
         }
       in
+      (* Here we're adding the scope def corresponding to the subscope's output,
+         which is a simple scope variable. *)
       let scope_def_map =
         Ast.ScopeDef.Map.add
-          ((v0, pos), Ast.ScopeDef.Var None)
+          {
+            Ast.ScopeDef.scope_def_var_within_scope = v0, pos;
+            scope_def_kind = Ast.ScopeDef.ScopeVarKind None;
+          }
           var_def scope_def_map
       in
-      Ident.Map.fold
-        (fun _ v scope_def_map ->
-          match v with
-          | SubScope _ ->
-            (* TODO: if we consider "input subscopes" at some point their inputs
-               will need to be forwarded here *)
+      (* Then we're adding all the variables corresponding to the subscope's
+         inputs, recursively ! *)
+      let rec fill_def_keys_with_subscope_inputs
+          sub_scope_nesting
+          (* [sub_scope_nesting final_scope_var] returns the potentially nested
+             sub scope input kind, and is a function used as an accumulator
+             through the recursive calls of [fill_def_keys_with_subscope_inputs]
+             to created the nested value. *)
             scope_def_map
-          | ScopeVar v ->
-            (* TODO: shouldn't we ignore internal variables too at this point
-               ? *)
-            let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
-            let def_key =
-              ( (v0, Mark.get (ScopeVar.get_info v)),
-                Ast.ScopeDef.SubScopeInput
-                  { name = subscope_uid; var_within_origin_scope = v } )
-            in
-            Ast.ScopeDef.Map.add def_key
-              {
-                Ast.scope_def_rules = RuleName.Map.empty;
-                Ast.scope_def_typ = v_sig.var_sig_typ;
-                Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                Ast.scope_def_parameters = v_sig.var_sig_parameters;
-                Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
-              }
-              scope_def_map)
-        sub_scope_def.Name_resolution.var_idmap scope_def_map
+          subscope_defs =
+        Ident.Map.fold
+          (fun _ v scope_def_map ->
+            match v with
+            | ScopeVar v -> (
+              let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
+              match v_sig.var_sig_io.scope_decl_context_io_input with
+              | Internal, _ -> scope_def_map
+              (* We only include input variables *)
+              | (Context | Input), _ ->
+                let def_key =
+                  {
+                    Ast.ScopeDef.scope_def_var_within_scope =
+                      v0, Mark.get (ScopeVar.get_info v);
+                    scope_def_kind =
+                      Ast.ScopeDef.SubScopeInputKind
+                        (sub_scope_nesting
+                           (Ast.ScopeDef.Direct
+                              {
+                                sub_scope_name = subscope_uid;
+                                var_within_sub_scope = v;
+                              }));
+                  }
+                in
+                Ast.ScopeDef.Map.add def_key
+                  {
+                    Ast.scope_def_rules = RuleName.Map.empty;
+                    Ast.scope_def_typ = v_sig.var_sig_typ;
+                    Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                    Ast.scope_def_parameters = v_sig.var_sig_parameters;
+                    Ast.scope_def_io =
+                      {
+                        (attribute_to_io v_sig.var_sig_io) with
+                        io_output = false, Pos.no_pos;
+                      };
+                  }
+                  scope_def_map)
+            | SubScope (nested_sub_scope_var, nested_sub_scope_uid) ->
+              let nested_sub_scope_def =
+                Name_resolution.get_scope_context ctxt nested_sub_scope_uid
+              in
+              fill_def_keys_with_subscope_inputs
+                (fun nested_sub_scope_input_kind ->
+                  Ast.ScopeDef.NestedSubScope
+                    {
+                      sub_scope_name = nested_sub_scope_uid;
+                      nested_sub_scope_var_within_sub_scope =
+                        nested_sub_scope_var;
+                      nested_input_var = nested_sub_scope_input_kind;
+                    })
+                scope_def_map nested_sub_scope_def.Name_resolution.var_idmap)
+          subscope_defs scope_def_map
+      in
+      fill_def_keys_with_subscope_inputs Fun.id scope_def_map
+        sub_scope_def.Name_resolution.var_idmap
   in
   Ident.Map.fold add_def scope_context.var_idmap Ast.ScopeDef.Map.empty
 

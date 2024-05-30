@@ -72,7 +72,9 @@ module ScopeDef = struct
         aux i1 i2
       | (ScopeVarKind _ | SubScopeInputKind _), _ -> false
 
-    let equal (v1, k1) (v2, k2) =
+    let equal
+        { scope_def_var_within_scope = v1; scope_def_kind = k1 }
+        { scope_def_var_within_scope = v2; scope_def_kind = k2 } =
       ScopeVar.equal (Mark.remove v1) (Mark.remove v2) && equal_kind k1 k2
 
     let compare_kind k1 k2 =
@@ -113,7 +115,7 @@ module ScopeDef = struct
       | 0 -> compare_kind k1 k2
       | n -> n
 
-    let get_position (v, _) = Mark.get v
+    let get_position { scope_def_var_within_scope = v; _ } = Mark.get v
 
     let rec format_kind ppf = function
       | ScopeVarKind None -> ()
@@ -148,7 +150,8 @@ module ScopeDef = struct
             }) ->
         Int.logxor (ScopeVar.hash v) (hash_kind (SubScopeInputKind i))
 
-    let hash (v, k) = Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
+    let hash { scope_def_var_within_scope = v; scope_def_kind = k } =
+      Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
   end
 
   include Base
@@ -341,7 +344,12 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar { name; state } -> Some (name, ScopeDef.Var state)
+          | DesugaredScopeVar { name; state } ->
+            Some
+              {
+                ScopeDef.scope_def_var_within_scope = name;
+                scope_def_kind = ScopeDef.ScopeVarKind state;
+              }
           | ToplevelVar _ -> None
         in
         match usage with

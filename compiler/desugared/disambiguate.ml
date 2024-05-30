@@ -83,11 +83,14 @@ let program prg =
         let scope = ScopeName.Map.find scope_name modul.module_scopes in
         let vars =
           ScopeDef.Map.fold
-            (fun (v, kind) def vars ->
+            (fun { scope_def_var_within_scope = v; scope_def_kind = kind } def
+                 vars ->
               match kind with
-              | ScopeDef.Var _ ->
+              | ScopeDef.ScopeVarKind _ ->
                 ScopeVar.Map.add (Mark.remove v) def.scope_def_typ vars
-              | ScopeDef.SubScopeInput _ -> vars)
+              | ScopeDef.SubScopeInputKind _ -> vars
+              (* TODO: should the environment be populated with the subscope
+                 input variables? *))
             scope.scope_defs ScopeVar.Map.empty
         in
         (* at this stage, rule resolution and the corresponding encapsulation

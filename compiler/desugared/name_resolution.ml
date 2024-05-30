@@ -164,10 +164,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     scope.var_idmap
 
 let get_var_def (def : Ast.ScopeDef.t) : ScopeVar.t =
-  match def with
-  | (v, _), Ast.ScopeDef.Var _
-  | _, Ast.ScopeDef.SubScopeInput { var_within_origin_scope = v; _ } ->
-    v
+  match def with { scope_def_var_within_scope = v, _; _ } -> v
 
 (** Retrieves the type of a scope definition from the context *)
 let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
@@ -789,57 +786,87 @@ let get_def_key
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
-  match name with
-  | [x] ->
-    let x_uid = get_var_uid scope_uid ctxt x in
-    let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
-    ( (x_uid, pos),
-      Ast.ScopeDef.Var
-        (match state with
-        | Some state -> (
-          try
-            Some
-              (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
-          with Ident.Map.Not_found _ ->
-            Message.error
-              ~extra_pos:
-                [
-                  "", Mark.get state;
-                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
-                ]
-              "This identifier is not a state declared for variable@ %a."
-              ScopeVar.format x_uid)
+  let def_key_var =
+    match name with
+    | x :: _ ->
+      let x_uid = get_var_uid scope_uid ctxt x in
+      x_uid, pos
+    | _ ->
+      Message.error ~pos "%a" Format.pp_print_text
+        "This line is defining a quantity that is neither a scope variable nor \
+         a subscope variable. In particular, it is not possible to define \
+         struct fields individually in Catala."
+  in
+  let rec get_def_key_kind_subscope name scope_uid =
+    match name with
+    | [x] ->
+      let x_uid = get_var_uid scope_uid ctxt x in
+      Ast.ScopeDef.Direct
+        { sub_scope_name = scope_uid; var_within_sub_scope = x_uid }
+    | sub_scope_name :: rest_of_path ->
+      let (subscope_var, subscope_name) : ScopeVar.t * ScopeName.t =
+        match
+          Ident.Map.find_opt (Mark.remove sub_scope_name) scope_ctxt.var_idmap
+        with
+        | Some (SubScope (v, u)) -> v, u
+        | Some _ ->
+          Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
+            Print.lit_style
+            (Mark.remove sub_scope_name)
         | None ->
-          if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
-            Message.error
-              ~extra_pos:
-                [
-                  "", Mark.get x;
-                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
-                ]
-              "This definition does not indicate which state has to@ be@ \
-               considered@ for@ variable@ %a."
-              ScopeVar.format x_uid
-          else None) )
-  | [y; x] ->
-    let (subscope_var, name) : ScopeVar.t * ScopeName.t =
-      match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
-      | Some (SubScope (v, u)) -> v, u
-      | Some _ ->
-        Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
-          Print.lit_style (Mark.remove y)
-      | None ->
-        Message.error ~pos "No definition found for subscope@ %a"
-          Print.lit_style (Mark.remove y)
-    in
-    let var_within_origin_scope = get_var_uid name ctxt x in
-    ( (subscope_var, pos),
-      Ast.ScopeDef.SubScopeInput { name; var_within_origin_scope } )
-  | _ ->
-    Message.error ~pos "%a" Format.pp_print_text
-      "This line is defining a quantity that is neither a scope variable nor a \
-       subscope variable. In particular, it is not possible to define struct \
-       fields individually in Catala."
+          Message.error ~pos "No definition found for subscope@ %a"
+            Print.lit_style
+            (Mark.remove sub_scope_name)
+      in
+      Ast.ScopeDef.NestedSubScope
+        {
+          sub_scope_name = subscope_name;
+          nested_sub_scope_var_within_sub_scope = subscope_var;
+          nested_input_var =
+            get_def_key_kind_subscope rest_of_path subscope_name;
+        }
+    | _ ->
+      Message.error ~pos "%a" Format.pp_print_text
+        "This line is defining a quantity that is neither a scope variable nor \
+         a subscope variable. In particular, it is not possible to define \
+         struct fields individually in Catala."
+  in
+  {
+    scope_def_var_within_scope = def_key_var;
+    scope_def_kind =
+      (match name with
+      | [x] ->
+        let x_uid = get_var_uid scope_uid ctxt x in
+        let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
+        Ast.ScopeDef.ScopeVarKind
+          (match state with
+          | Some state -> (
+            try
+              Some
+                (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
+            with Ident.Map.Not_found _ ->
+              Message.error
+                ~extra_pos:
+                  [
+                    "", Mark.get state;
+                    "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
+                  ]
+                "This identifier is not a state declared for variable@ %a."
+                ScopeVar.format x_uid)
+          | None ->
+            if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
+              Message.error
+                ~extra_pos:
+                  [
+                    "", Mark.get x;
+                    "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
+                  ]
+                "This definition does not indicate which state has to@ be@ \
+                 considered@ for@ variable@ %a."
+                ScopeVar.format x_uid
+            else None)
+      | _ -> SubScopeInputKind (get_def_key_kind_subscope name scope_uid));
+  }
 
 let update_def_key_ctx
     (d : Surface.Ast.definition)
