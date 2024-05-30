@@ -240,17 +240,18 @@ let rule_to_exception_graph (scope : D.scope) = function
     (* Before calling the sub_scope, we need to include all the re-definitions
        of subscope parameters*)
     D.ScopeDef.Map.fold
-      (fun ((sscope, kind) as def_key) scope_def exc_graphs ->
+      (fun ({ scope_def_var_within_scope = sscope; scope_def_kind = kind } as
+            def_key) scope_def exc_graphs ->
         match kind with
-        | D.ScopeDef.Var _ -> exc_graphs
-        | D.ScopeDef.SubScopeInput _
+        | D.ScopeDef.ScopeVarKind _ -> exc_graphs
+        | D.ScopeDef.SubScopeInputKind _
           when (not (ScopeVar.equal var (Mark.remove sscope)))
                || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
                   && RuleName.Map.is_empty scope_def.scope_def_rules ->
           (* We exclude subscope variables that have 0 re-definitions and are
              not visible in the input of the subscope *)
           exc_graphs
-        | D.ScopeDef.SubScopeInput { var_within_origin_scope; _ } ->
+        | D.ScopeDef.SubScopeInputKind sub_scope_var_kind ->
           (* This definition redefines a variable of the correct subscope. But
              we have to check that this redefinition is allowed with respect to
              the io parameters of that subscope variable. *)
@@ -259,12 +260,23 @@ let rule_to_exception_graph (scope : D.scope) = function
           let () =
             match Mark.remove scope_def.D.scope_def_io.io_input with
             | NoInput ->
+              let rec aux acc sub_scope_var_kind =
+                match sub_scope_var_kind with
+                | D.ScopeDef.Direct { var_within_sub_scope; _ } ->
+                  var_within_sub_scope, acc
+                | D.ScopeDef.NestedSubScope nested ->
+                  aux nested.nested_sub_scope_var_within_sub_scope
+                    nested.nested_input_var
+              in
+              let incriminated_variable, incriminated_subscope =
+                aux (Mark.remove sscope) sub_scope_var_kind
+              in
               Message.error
                 ~extra_pos:
                   (( "Incriminated subscope:",
-                     Mark.get (ScopeVar.get_info (Mark.remove sscope)) )
+                     Mark.get (ScopeVar.get_info incriminated_subscope) )
                   :: ( "Incriminated variable:",
-                       Mark.get (ScopeVar.get_info var_within_origin_scope) )
+                       Mark.get (ScopeVar.get_info incriminated_variable) )
                   :: List.map
                        (fun rule ->
                          ( "Incriminated subscope variable definition:",
@@ -294,7 +306,12 @@ let rule_to_exception_graph (scope : D.scope) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
     let pos = Mark.get (ScopeVar.get_info var) in
     let scope_def =
-      D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
+      D.ScopeDef.Map.find
+        {
+          scope_def_var_within_scope = var, pos;
+          scope_def_kind = D.ScopeDef.ScopeVarKind state;
+        }
+        scope.scope_defs
     in
     let var_def = scope_def.D.scope_def_rules in
     match Mark.remove scope_def.D.scope_def_io.io_input with
@@ -313,9 +330,13 @@ let rule_to_exception_graph (scope : D.scope) = function
     | OnlyInput -> D.ScopeDef.Map.empty
     (* we do not provide any definition for an input-only variable *)
     | _ ->
-      D.ScopeDef.Map.singleton
-        ((var, pos), D.ScopeDef.Var state)
-        (def_to_exception_graph ((var, pos), D.ScopeDef.Var state) var_def))
+      let def_key =
+        {
+          D.ScopeDef.scope_def_var_within_scope = var, pos;
+          scope_def_kind = D.ScopeDef.ScopeVarKind state;
+        }
+      in
+      D.ScopeDef.Map.singleton def_key (def_to_exception_graph def_key var_def))
   | Assertion _ -> D.ScopeDef.Map.empty (* no exceptions for assertions *)
 
 let scope_to_exception_graphs (scope : D.scope) :
@@ -606,9 +627,13 @@ let translate_rule
     (* TODO: this may point to the place where the variable was declared instead
        of the binding in the definition being explored. Needs double-checking
        and maybe adding more position information *)
-    let scope_def =
-      D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
+    let scope_def_key =
+      {
+        D.ScopeDef.scope_def_var_within_scope = var, pos;
+        scope_def_kind = D.ScopeDef.ScopeVarKind state;
+      }
     in
+    let scope_def = D.ScopeDef.Map.find scope_def_key scope.scope_defs in
     match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
     | None -> (
       let var_def = scope_def.D.scope_def_rules in
@@ -621,7 +646,6 @@ let translate_rule
       | OnlyInput -> []
       (* we do not provide any definition for an input-only variable *)
       | _ ->
-        let scope_def_key = (var, pos), D.ScopeDef.Var state in
         let expr_def =
           translate_def ctx scope_def_key var_def var_params var_typ
             scope_def.D.scope_def_io
@@ -650,16 +674,34 @@ let translate_rule
         D.ScopeDef.Map.fold
           (fun def_key scope_def (acc : _ scope_call_args) ->
             match def_key with
-            | _, D.ScopeDef.Var _ -> acc
-            | (v, _), D.ScopeDef.SubScopeInput _
+            | {
+             scope_def_var_within_scope = _;
+             scope_def_kind = D.ScopeDef.ScopeVarKind _;
+            } ->
+              acc
+            | {
+             scope_def_var_within_scope = v, _;
+             scope_def_kind = D.ScopeDef.SubScopeInputKind _;
+            }
               when (not (ScopeVar.equal var v))
                    || Mark.remove scope_def.D.scope_def_io.io_input = NoInput
                       && RuleName.Map.is_empty scope_def.scope_def_rules ->
               acc
-            | _, D.ScopeDef.SubScopeInput { var_within_origin_scope; _ } ->
+            | {
+             scope_def_var_within_scope = _;
+             scope_def_kind = D.ScopeDef.SubScopeInputKind sub_scope_var_kind;
+            } ->
               let def = scope_def.D.scope_def_rules in
               let def_typ = scope_def.scope_def_typ in
               let is_cond = scope_def.scope_def_is_condition in
+              let rec aux sub_scope_var_kind =
+                match sub_scope_var_kind with
+                | D.ScopeDef.Direct { var_within_sub_scope; _ } ->
+                  var_within_sub_scope
+                | D.ScopeDef.NestedSubScope nested ->
+                  aux nested.nested_input_var
+              in
+              let var_within_origin_scope = aux sub_scope_var_kind in
               assert (
                 (* an error should have been already raised *)
                 match scope_def.D.scope_def_io.io_input with
@@ -738,7 +780,10 @@ let translate_scope_interface ctx scope =
         | WholeVar ->
           let scope_def =
             D.ScopeDef.Map.find
-              ((var, Pos.no_pos), D.ScopeDef.Var None)
+              {
+                scope_def_var_within_scope = var, Pos.no_pos;
+                scope_def_kind = D.ScopeDef.ScopeVarKind None;
+              }
               scope.D.scope_defs
           in
           ScopeVar.Map.add
@@ -754,7 +799,10 @@ let translate_scope_interface ctx scope =
             (fun acc (state : StateName.t) ->
               let scope_def =
                 D.ScopeDef.Map.find
-                  ((var, Pos.no_pos), D.ScopeDef.Var (Some state))
+                  {
+                    scope_def_var_within_scope = var, Pos.no_pos;
+                    scope_def_kind = D.ScopeDef.ScopeVarKind (Some state);
+                  }
                   scope.D.scope_defs
               in
               ScopeVar.Map.add
@@ -772,7 +820,10 @@ let translate_scope_interface ctx scope =
       (fun var _scope_name acc ->
         let scope_def =
           D.ScopeDef.Map.find
-            ((var, Pos.no_pos), D.ScopeDef.Var None)
+            {
+              scope_def_var_within_scope = var, Pos.no_pos;
+              scope_def_kind = D.ScopeDef.ScopeVarKind None;
+            }
             scope.D.scope_defs
         in
         ScopeVar.Map.add
@@ -862,7 +913,10 @@ let translate_program
                   in
                   match
                     D.ScopeDef.Map.find_opt
-                      ((scope_var, Pos.no_pos), Var state)
+                      {
+                        scope_def_var_within_scope = scope_var, Pos.no_pos;
+                        scope_def_kind = D.ScopeDef.ScopeVarKind state;
+                      }
                       scdef.D.scope_defs
                   with
                   | Some
