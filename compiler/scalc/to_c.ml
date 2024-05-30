@@ -441,19 +441,14 @@ let rec format_statement
   | SFatalError err ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "catala_fatal_error_raised.code = catala_%s;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);"
+      "@[<hov 2>catala_raise_fatal_error (catala_%s,@ \"%s\",@ %d, %d, %d, \
+       %d);@]@,"
       (String.to_snake_case (Runtime.error_to_string err))
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
-      "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"
+      "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@,@;<1 -2>} else {@,%a@,@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
@@ -486,16 +481,10 @@ let rec format_statement
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 2>if (!(%a)) {@\n\
-       catala_fatal_error_raised.code = catala_assertion_failure;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);@,\
-       }"
-      (format_expression ctx)
+      "@[<v 2>@[<hov 2>if (!(%a)) {@]@,\
+       @[<hov 2>catala_raise_fatal_error (catala_assertion_failed,@ \"%s\",@ \
+       %d, %d, %d, %d);@]@;\
+       <1 -2>}@]" (format_expression ctx)
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)

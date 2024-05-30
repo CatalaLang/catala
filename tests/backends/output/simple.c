@@ -180,13 +180,9 @@ baz_struct baz_func(baz_in_struct baz_in) {
       option_1_enum match_arg = temp_a_3;
       switch (match_arg.code) {
         case option_1_enum_none_1_cons:
-          catala_fatal_error_raised.code = catala_no_value;
-          catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-          catala_fatal_error_raised.position.start_line = 11;
-          catala_fatal_error_raised.position.start_column = 11;
-          catala_fatal_error_raised.position.end_line = 11;
-          catala_fatal_error_raised.position.end_column = 12;
-          longjmp(catala_fatal_error_jump_buffer, 0);
+          catala_raise_fatal_error (catala_no_value,
+            "tests/backends/simple.catala_en", 11, 11, 11, 12);
+          
           break;
         case option_1_enum_some_1_cons:
           bar_enum arg = match_arg.payload.some_1_cons;
@@ -204,13 +200,9 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_1_enum match_arg_1 = temp_a_1;
   switch (match_arg_1.code) {
     case option_1_enum_none_1_cons:
-      catala_fatal_error_raised.code = catala_no_value;
-      catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-      catala_fatal_error_raised.position.start_line = 11;
-      catala_fatal_error_raised.position.start_column = 11;
-      catala_fatal_error_raised.position.end_line = 11;
-      catala_fatal_error_raised.position.end_column = 12;
-      longjmp(catala_fatal_error_jump_buffer, 0);
+      catala_raise_fatal_error (catala_no_value,
+        "tests/backends/simple.catala_en", 11, 11, 11, 12);
+      
       break;
     case option_1_enum_some_1_cons:
       bar_enum arg_1 = match_arg_1.payload.some_1_cons;
@@ -307,11 +299,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
           case bar_enum_yes_cons:
             foo_struct foo = match_arg_3.payload.yes_cons;
             double temp_b_10;
-            if (foo.x_field) {
-              temp_b_10 = 1.;
-            } else {
-              temp_b_10 = 0.;
-            }
+            if (foo.x_field) {temp_b_10 = 1.; } else {temp_b_10 = 0.; }
             temp_b_9 = (foo.y_field + temp_b_10);
             break;
         }
@@ -364,13 +352,9 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_2_enum match_arg_4 = temp_b_1;
   switch (match_arg_4.code) {
     case option_2_enum_none_2_cons:
-      catala_fatal_error_raised.code = catala_no_value;
-      catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-      catala_fatal_error_raised.position.start_line = 12;
-      catala_fatal_error_raised.position.start_column = 10;
-      catala_fatal_error_raised.position.end_line = 12;
-      catala_fatal_error_raised.position.end_column = 11;
-      longjmp(catala_fatal_error_jump_buffer, 0);
+      catala_raise_fatal_error (catala_no_value,
+        "tests/backends/simple.catala_en", 12, 10, 12, 11);
+      
       break;
     case option_2_enum_some_2_cons:
       double arg_2 = match_arg_4.payload.some_2_cons;
@@ -430,13 +414,9 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_3_enum match_arg_5 = temp_c_1;
   switch (match_arg_5.code) {
     case option_3_enum_none_3_cons:
-      catala_fatal_error_raised.code = catala_no_value;
-      catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-      catala_fatal_error_raised.position.start_line = 13;
-      catala_fatal_error_raised.position.start_column = 10;
-      catala_fatal_error_raised.position.end_line = 13;
-      catala_fatal_error_raised.position.end_column = 11;
-      longjmp(catala_fatal_error_jump_buffer, 0);
+      catala_raise_fatal_error (catala_no_value,
+        "tests/backends/simple.catala_en", 13, 10, 13, 11);
+      
       break;
     case option_3_enum_some_3_cons:
       array_3_struct arg_3 = match_arg_5.payload.some_3_cons;
