@@ -1193,6 +1193,12 @@ let main () =
   in
   let command = catala_t plugins in
   let open Cmdliner in
+  let[@inline] exit_with_error excode fcontent =
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit (fcontent ()) Error;
+    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
+    exit excode
+  in
   match Cmd.eval_value ~catch:false ~argv command with
   | Ok _ -> exit Cmd.Exit.ok
   | Error e ->
@@ -1200,34 +1206,22 @@ let main () =
     exit Cmd.Exit.cli_error
   | exception Cli.Exit_with n -> exit n
   | exception Message.CompilerError content ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit content Error;
-    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.some_error
+    exit_with_error Cmd.Exit.some_error @@ fun () -> content
   | exception Message.CompilerErrors contents ->
     let bt = Printexc.get_raw_backtrace () in
     List.iter (fun c -> Message.Content.emit c Error) contents;
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Failure msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit (Message.Content.of_string msg) Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.some_error
+    exit_with_error Cmd.Exit.some_error
+    @@ fun () -> Message.Content.of_string msg
   | exception Sys_error msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("System error: " ^ msg))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () -> Message.Content.of_string ("System error: " ^ msg)
   | exception e ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () ->
+    Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e)
 
 (* Export module PluginAPI, hide parent module Plugin *)
 module Plugin = struct

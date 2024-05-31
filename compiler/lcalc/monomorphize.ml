@@ -146,15 +146,9 @@ let collect_monomorphized_instances (prg : typed program) :
       collect_typ new_acc t
     | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
     | TOption _ | TTuple _ ->
-      raise
-        (Message.CompilerError
-           (Message.Content.add_position
-              (Message.Content.to_internal_error
-                 (Message.Content.of_message (fun fmt ->
-                      Format.fprintf fmt
-                        "Some types in tuples or option have not been resolved \
-                         by the typechecking before monomorphization.")))
-              (Mark.get typ)))
+      Message.error ~internal:true ~pos:(Mark.get typ)
+        "Some types in tuples or option have not been resolved by the \
+         typechecking before monomorphization."
   in
   let rec collect_expr e acc =
     Expr.shallow_fold collect_expr e (collect_typ acc (Expr.ty e))
