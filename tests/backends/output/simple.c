@@ -120,13 +120,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict) {
-    catala_fatal_error_raised.code = catala_conflict;
-    catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-    catala_fatal_error_raised.position.start_line = 11;
-    catala_fatal_error_raised.position.start_column = 11;
-    catala_fatal_error_raised.position.end_line = 11;
-    catala_fatal_error_raised.position.end_column = 12;
-    longjmp(catala_fatal_error_jump_buffer, 0);
+    catala_raise_fatal_error (catala_conflict,
+      "tests/backends/simple.catala_en", 11, 11, 11, 12);
   }
   if (exception_acc.code == option_1_enum_some_1_cons) {
     temp_a_1 = exception_acc;
@@ -157,13 +152,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
         }
       }
       if (exception_conflict_1) {
-        catala_fatal_error_raised.code = catala_conflict;
-        catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-        catala_fatal_error_raised.position.start_line = 11;
-        catala_fatal_error_raised.position.start_column = 11;
-        catala_fatal_error_raised.position.end_line = 11;
-        catala_fatal_error_raised.position.end_column = 12;
-        longjmp(catala_fatal_error_jump_buffer, 0);
+        catala_raise_fatal_error (catala_conflict,
+          "tests/backends/simple.catala_en", 11, 11, 11, 12);
       }
       if (exception_acc_1.code == option_1_enum_some_1_cons) {
         temp_a_3 = exception_acc_1;
@@ -182,7 +172,6 @@ baz_struct baz_func(baz_in_struct baz_in) {
         case option_1_enum_none_1_cons:
           catala_raise_fatal_error (catala_no_value,
             "tests/backends/simple.catala_en", 11, 11, 11, 12);
-          
           break;
         case option_1_enum_some_1_cons:
           bar_enum arg = match_arg.payload.some_1_cons;
@@ -202,7 +191,6 @@ baz_struct baz_func(baz_in_struct baz_in) {
     case option_1_enum_none_1_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 11, 11, 11, 12);
-      
       break;
     case option_1_enum_some_1_cons:
       bar_enum arg_1 = match_arg_1.payload.some_1_cons;
@@ -244,13 +232,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_2) {
-    catala_fatal_error_raised.code = catala_conflict;
-    catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-    catala_fatal_error_raised.position.start_line = 12;
-    catala_fatal_error_raised.position.start_column = 10;
-    catala_fatal_error_raised.position.end_line = 12;
-    catala_fatal_error_raised.position.end_column = 11;
-    longjmp(catala_fatal_error_jump_buffer, 0);
+    catala_raise_fatal_error (catala_conflict,
+      "tests/backends/simple.catala_en", 12, 10, 12, 11);
   }
   if (exception_acc_2.code == option_2_enum_some_2_cons) {
     temp_b_2 = exception_acc_2;
@@ -277,13 +260,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_3) {
-    catala_fatal_error_raised.code = catala_conflict;
-    catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-    catala_fatal_error_raised.position.start_line = 12;
-    catala_fatal_error_raised.position.start_column = 10;
-    catala_fatal_error_raised.position.end_line = 12;
-    catala_fatal_error_raised.position.end_column = 11;
-    longjmp(catala_fatal_error_jump_buffer, 0);
+    catala_raise_fatal_error (catala_conflict,
+      "tests/backends/simple.catala_en", 12, 10, 12, 11);
   }
   if (exception_acc_3.code == option_2_enum_some_2_cons) {
     temp_b_1 = exception_acc_3;
@@ -323,13 +301,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
         }
       }
       if (exception_conflict_4) {
-        catala_fatal_error_raised.code = catala_conflict;
-        catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-        catala_fatal_error_raised.position.start_line = 12;
-        catala_fatal_error_raised.position.start_column = 10;
-        catala_fatal_error_raised.position.end_line = 12;
-        catala_fatal_error_raised.position.end_column = 11;
-        longjmp(catala_fatal_error_jump_buffer, 0);
+        catala_raise_fatal_error (catala_conflict,
+          "tests/backends/simple.catala_en", 12, 10, 12, 11);
       }
       if (exception_acc_4.code == option_2_enum_some_2_cons) {
         temp_b_7 = exception_acc_4;
@@ -354,7 +327,6 @@ baz_struct baz_func(baz_in_struct baz_in) {
     case option_2_enum_none_2_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 12, 10, 12, 11);
-      
       break;
     case option_2_enum_some_2_cons:
       double arg_2 = match_arg_4.payload.some_2_cons;
@@ -391,13 +363,8 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_5) {
-    catala_fatal_error_raised.code = catala_conflict;
-    catala_fatal_error_raised.position.filename = "tests/backends/simple.catala_en";
-    catala_fatal_error_raised.position.start_line = 13;
-    catala_fatal_error_raised.position.start_column = 10;
-    catala_fatal_error_raised.position.end_line = 13;
-    catala_fatal_error_raised.position.end_column = 11;
-    longjmp(catala_fatal_error_jump_buffer, 0);
+    catala_raise_fatal_error (catala_conflict,
+      "tests/backends/simple.catala_en", 13, 10, 13, 11);
   }
   if (exception_acc_5.code == option_3_enum_some_3_cons) {
     temp_c_1 = exception_acc_5;
@@ -416,7 +383,6 @@ baz_struct baz_func(baz_in_struct baz_in) {
     case option_3_enum_none_3_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 13, 10, 13, 11);
-      
       break;
     case option_3_enum_some_3_cons:
       array_3_struct arg_3 = match_arg_5.payload.some_3_cons;

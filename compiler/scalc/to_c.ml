@@ -350,6 +350,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     failwith
       "should not happen, array initialization is caught at the statement level"
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
+  | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg] } ->
+    format_expression ctx fmt arg
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
@@ -442,7 +444,7 @@ let rec format_statement
     let pos = Mark.get s in
     Format.fprintf fmt
       "@[<hov 2>catala_raise_fatal_error (catala_%s,@ \"%s\",@ %d, %d, %d, \
-       %d);@]@,"
+       %d);@]"
       (String.to_snake_case (Runtime.error_to_string err))
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
@@ -542,14 +544,9 @@ let rec format_statement
         exceptions;
       Format.fprintf fmt
         "@[<v 2>if (%a) {@,\
-         catala_fatal_error_raised.code = catala_conflict;@,\
-         catala_fatal_error_raised.position.filename = \"%s\";@,\
-         catala_fatal_error_raised.position.start_line = %d;@,\
-         catala_fatal_error_raised.position.start_column = %d;@,\
-         catala_fatal_error_raised.position.end_line = %d;@,\
-         catala_fatal_error_raised.position.end_column = %d;@,\
-         longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
-         }@,"
+         @[<hov 2>catala_raise_fatal_error (catala_conflict,@ \"%s\",@ %d, %d, \
+         %d, %d);@]@;\
+         <1 -2>}@]@,"
         format_var exception_conflict (Pos.get_file pos)
         (Pos.get_start_line pos) (Pos.get_start_column pos)
         (Pos.get_end_line pos) (Pos.get_end_column pos);
