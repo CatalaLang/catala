@@ -785,17 +785,36 @@ let get_def_key
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
-  let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key_var =
     match name with
-    | x :: _ ->
-      let x_uid = get_var_uid scope_uid ctxt x in
-      x_uid, pos
+    | x :: _ -> (
+      let scope = get_scope_context ctxt scope_uid in
+      match Ident.Map.find_opt (Mark.remove x) scope.var_idmap with
+      | Some (SubScope (x_uid, _)) | Some (ScopeVar x_uid) -> x_uid, pos
+      | None ->
+        raise_unknown_identifier
+          (Format.asprintf "for a variable or sub-scope of scope %a"
+             ScopeName.format scope_uid)
+          x)
     | _ ->
       Message.error ~pos "%a" Format.pp_print_text
         "This line is defining a quantity that is neither a scope variable nor \
          a subscope variable. In particular, it is not possible to define \
          struct fields individually in Catala."
+  in
+  let get_sub_scope_infos scope_uid sub_scope_name =
+    let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
+    match
+      Ident.Map.find_opt (Mark.remove sub_scope_name) scope_ctxt.var_idmap
+    with
+    | Some (SubScope (v, u)) -> v, u
+    | Some _ ->
+      Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
+        Print.lit_style
+        (Mark.remove sub_scope_name)
+    | None ->
+      Message.error ~pos "No definition found for subscope@ %a" Print.lit_style
+        (Mark.remove sub_scope_name)
   in
   let rec get_def_key_kind_subscope name scope_uid =
     match name with
@@ -805,18 +824,7 @@ let get_def_key
         { sub_scope_name = scope_uid; var_within_sub_scope = x_uid }
     | sub_scope_name :: rest_of_path ->
       let (subscope_var, subscope_name) : ScopeVar.t * ScopeName.t =
-        match
-          Ident.Map.find_opt (Mark.remove sub_scope_name) scope_ctxt.var_idmap
-        with
-        | Some (SubScope (v, u)) -> v, u
-        | Some _ ->
-          Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
-            Print.lit_style
-            (Mark.remove sub_scope_name)
-        | None ->
-          Message.error ~pos "No definition found for subscope@ %a"
-            Print.lit_style
-            (Mark.remove sub_scope_name)
+        get_sub_scope_infos scope_uid sub_scope_name
       in
       Ast.ScopeDef.NestedSubScope
         {
@@ -835,6 +843,7 @@ let get_def_key
     scope_def_var_within_scope = def_key_var;
     scope_def_kind =
       (match name with
+      | [] -> assert false (* should not happen *)
       | [x] ->
         let x_uid = get_var_uid scope_uid ctxt x in
         let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
@@ -865,7 +874,10 @@ let get_def_key
                  considered@ for@ variable@ %a."
                 ScopeVar.format x_uid
             else None)
-      | _ -> SubScopeInputKind (get_def_key_kind_subscope name scope_uid));
+      | subscope_name :: _ ->
+        SubScopeInputKind
+          (get_def_key_kind_subscope (List.tl name)
+             (snd (get_sub_scope_infos scope_uid subscope_name))));
   }
 
 let update_def_key_ctx
