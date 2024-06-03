@@ -544,7 +544,7 @@ let rec format_statement
         exceptions;
       Format.fprintf fmt
         "@[<v 2>if (%a) {@,\
-         @[<hov 2>catala_raise_fatal_error (catala_conflict,@ \"%s\",@ %d, %d, \
+         @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
          %d, %d);@]@;\
          <1 -2>}@]@,"
         format_var exception_conflict (Pos.get_file pos)

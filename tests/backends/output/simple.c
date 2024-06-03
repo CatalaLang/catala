@@ -120,7 +120,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict) {
-    catala_raise_fatal_error (catala_conflict,
+    catala_raise_fatal_error(catala_conflict,
       "tests/backends/simple.catala_en", 11, 11, 11, 12);
   }
   if (exception_acc.code == option_1_enum_some_1_cons) {
@@ -152,7 +152,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
         }
       }
       if (exception_conflict_1) {
-        catala_raise_fatal_error (catala_conflict,
+        catala_raise_fatal_error(catala_conflict,
           "tests/backends/simple.catala_en", 11, 11, 11, 12);
       }
       if (exception_acc_1.code == option_1_enum_some_1_cons) {
@@ -232,7 +232,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_2) {
-    catala_raise_fatal_error (catala_conflict,
+    catala_raise_fatal_error(catala_conflict,
       "tests/backends/simple.catala_en", 12, 10, 12, 11);
   }
   if (exception_acc_2.code == option_2_enum_some_2_cons) {
@@ -260,7 +260,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_3) {
-    catala_raise_fatal_error (catala_conflict,
+    catala_raise_fatal_error(catala_conflict,
       "tests/backends/simple.catala_en", 12, 10, 12, 11);
   }
   if (exception_acc_3.code == option_2_enum_some_2_cons) {
@@ -301,7 +301,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
         }
       }
       if (exception_conflict_4) {
-        catala_raise_fatal_error (catala_conflict,
+        catala_raise_fatal_error(catala_conflict,
           "tests/backends/simple.catala_en", 12, 10, 12, 11);
       }
       if (exception_acc_4.code == option_2_enum_some_2_cons) {
@@ -363,7 +363,7 @@ baz_struct baz_func(baz_in_struct baz_in) {
     }
   }
   if (exception_conflict_5) {
-    catala_raise_fatal_error (catala_conflict,
+    catala_raise_fatal_error(catala_conflict,
       "tests/backends/simple.catala_en", 13, 10, 13, 11);
   }
   if (exception_acc_5.code == option_3_enum_some_3_cons) {
