@@ -350,6 +350,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     failwith
       "should not happen, array initialization is caught at the statement level"
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
+  | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg] } ->
+    format_expression ctx fmt arg
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
@@ -441,19 +443,14 @@ let rec format_statement
   | SFatalError err ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "catala_fatal_error_raised.code = catala_%s;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);"
+      "@[<hov 2>catala_raise_fatal_error (catala_%s,@ \"%s\",@ %d, %d, %d, \
+       %d);@]"
       (String.to_snake_case (Runtime.error_to_string err))
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
-      "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"
+      "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@,@;<1 -2>} else {@,%a@,@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
@@ -463,34 +460,33 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hov 2>%a %a = %a;@]@\n@[<hov 2>if %a@]@\n}"
-      format_enum_name e_name format_var tmp_var (format_expression ctx) e1
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
-         (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
-           Format.fprintf fmt "(%a.code == %a_%a) {@\n%a = %a.payload.%a;@\n%a"
-             format_var tmp_var format_enum_name e_name format_enum_cons_name
-             cons_name
-             (format_typ ctx (fun fmt -> format_var fmt payload_var_name))
-             payload_var_typ format_var tmp_var format_enum_cons_name cons_name
-             (format_block ctx) case_block))
-      cases
+    Format.fprintf fmt "@[<hov 2>%a %a = %a;@]@," format_enum_name e_name
+      format_var tmp_var (format_expression ctx) e1;
+    Format.pp_open_vbox fmt 2;
+    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," format_var tmp_var;
+    Format.pp_print_list
+      (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
+        Format.fprintf fmt "@[<hv 2>case %a_%a:@ " format_enum_name e_name
+          format_enum_cons_name cons_name;
+        if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
+          Format.fprintf fmt "%a = %a.payload.%a;@ "
+            (format_typ ctx (fun fmt -> format_var fmt payload_var_name))
+            payload_var_typ format_var tmp_var format_enum_cons_name cons_name;
+        Format.fprintf fmt "%a@ break;@]" (format_block ctx) case_block)
+      fmt cases;
+    (* Do we want to add 'default' case with a failure ? *)
+    Format.fprintf fmt "@;<0 -2>}";
+    Format.pp_close_box fmt ()
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 2>return %a;@]" (format_expression ctx)
       (e1, Mark.get s)
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 2>if (!(%a)) {@\n\
-       catala_fatal_error_raised.code = catala_assertion_failure;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);@,\
-       }"
-      (format_expression ctx)
+      "@[<v 2>@[<hov 2>if (!(%a)) {@]@,\
+       @[<hov 2>catala_raise_fatal_error (catala_assertion_failed,@ \"%s\",@ \
+       %d, %d, %d, %d);@]@;\
+       <1 -2>}@]" (format_expression ctx)
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
@@ -548,14 +544,9 @@ let rec format_statement
         exceptions;
       Format.fprintf fmt
         "@[<v 2>if (%a) {@,\
-         catala_fatal_error_raised.code = catala_conflict;@,\
-         catala_fatal_error_raised.position.filename = \"%s\";@,\
-         catala_fatal_error_raised.position.start_line = %d;@,\
-         catala_fatal_error_raised.position.start_column = %d;@,\
-         catala_fatal_error_raised.position.end_line = %d;@,\
-         catala_fatal_error_raised.position.end_column = %d;@,\
-         longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
-         }@,"
+         @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
+         %d, %d);@]@;\
+         <1 -2>}@]@,"
         format_var exception_conflict (Pos.get_file pos)
         (Pos.get_start_line pos) (Pos.get_start_column pos)
         (Pos.get_end_line pos) (Pos.get_end_column pos);
