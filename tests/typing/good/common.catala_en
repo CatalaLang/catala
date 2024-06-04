@@ -41,8 +41,8 @@ $ catala Typecheck --check-invariants
 └─
 ┌─[WARNING]─
 │
-│  Unused varible: x does not contribute to computing any of scope S outputs.
-│  Did you forget something?
+│  Unused variable: x does not contribute to computing any of scope S
+│  outputs. Did you forget something?
 │
 ├─➤ tests/typing/good/common.catala_en:12.9-12.10:
 │    │
