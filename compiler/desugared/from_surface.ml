@@ -1318,7 +1318,17 @@ let process_def
     process_rule_parameters ctxt (Mark.copy def.definition_name def_key) def
   in
   let scope_updated =
-    let scope_def = Ast.ScopeDef.Map.find def_key scope.scope_defs in
+    let scope_def =
+      (* FIXME: this error catching is very late, there should be a pass
+         preventing this to fail earlier. *)
+      match Ast.ScopeDef.Map.find_opt def_key scope.scope_defs with
+      | Some x -> x
+      | None ->
+        Message.error
+          ~pos:(Mark.get def.definition_name)
+          "%a" Format.pp_print_text
+          "Invalid assignment to an inaccessible sub-scope variable."
+    in
     let rule_name = def.definition_id in
     let label_situation =
       match def.definition_label with

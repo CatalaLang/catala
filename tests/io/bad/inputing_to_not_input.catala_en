@@ -18,28 +18,12 @@ scope B:
 $ catala Typecheck 
 ┌─[ERROR]─
 │
-│  Invalid assignment to a subscope variable that is not tagged as input or
-│  context.
+│  Invalid assignment to an inaccessible sub-scope variable.
 │
-│ Incriminated subscope:
-├─➤ tests/io/bad/inputing_to_not_input.catala_en:8.3-8.4:
-│   │
-│ 8 │   a scope A
-│   │   ‾
-├─ Test
-│
-│ Incriminated variable:
-├─➤ tests/io/bad/inputing_to_not_input.catala_en:5.10-5.11:
-│   │
-│ 5 │   output a content integer
-│   │          ‾
-├─ Test
-│
-│ Incriminated subscope variable definition:
-├─➤ tests/io/bad/inputing_to_not_input.catala_en:14.3-14.17:
+├─➤ tests/io/bad/inputing_to_not_input.catala_en:14.14-14.17:
 │    │
 │ 14 │   definition a.a equals 0
-│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+│    │              ‾‾‾
+└─ Test
 #return code 123#
 ```
