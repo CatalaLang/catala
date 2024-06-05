@@ -1747,8 +1747,8 @@ let init_scope_defs
             | ScopeVar v -> (
               let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
               match v_sig.var_sig_io.scope_decl_context_io_input with
-              | Internal, _ -> scope_def_map
-              (* We only include input variables *)
+              | Internal, _ ->
+                scope_def_map (* We only include input variables *)
               | (Context | Input), _ ->
                 let def_key =
                   {
@@ -1777,20 +1777,29 @@ let init_scope_defs
                       };
                   }
                   scope_def_map)
-            | SubScope (nested_sub_scope_var, nested_sub_scope_uid) ->
+            | SubScope (nested_sub_scope_var, nested_sub_scope_uid) -> (
               let nested_sub_scope_def =
                 Name_resolution.get_scope_context ctxt nested_sub_scope_uid
               in
-              fill_def_keys_with_subscope_inputs
-                (fun nested_sub_scope_input_kind ->
-                  Ast.ScopeDef.NestedSubScope
-                    {
-                      sub_scope_name = nested_sub_scope_uid;
-                      nested_sub_scope_var_within_sub_scope =
-                        nested_sub_scope_var;
-                      nested_input_var = nested_sub_scope_input_kind;
-                    })
-                scope_def_map nested_sub_scope_def.Name_resolution.var_idmap)
+              (* We only fill recursively the sub-scope's inputs if the
+                 sub-scope itself is tagged as context or input. *)
+              match
+                Mark.remove
+                  (Name_resolution.get_var_io ctxt nested_sub_scope_var)
+                    .scope_decl_context_io_input
+              with
+              | Surface.Ast.Context | Input ->
+                fill_def_keys_with_subscope_inputs
+                  (fun nested_sub_scope_input_kind ->
+                    Ast.ScopeDef.NestedSubScope
+                      {
+                        sub_scope_name = nested_sub_scope_uid;
+                        nested_sub_scope_var_within_sub_scope =
+                          nested_sub_scope_var;
+                        nested_input_var = nested_sub_scope_input_kind;
+                      })
+                  scope_def_map nested_sub_scope_def.Name_resolution.var_idmap
+              | Surface.Ast.Internal -> scope_def_map))
           subscope_defs scope_def_map
       in
       fill_def_keys_with_subscope_inputs Fun.id scope_def_map

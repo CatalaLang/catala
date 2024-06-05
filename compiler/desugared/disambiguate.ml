@@ -88,9 +88,15 @@ let program prg =
               match kind with
               | ScopeDef.ScopeVarKind _ ->
                 ScopeVar.Map.add (Mark.remove v) def.scope_def_typ vars
-              | ScopeDef.SubScopeInputKind _ -> vars
-              (* TODO: should the environment be populated with the subscope
-                 input variables? *))
+              | ScopeDef.SubScopeInputKind sub_scope_input_kind ->
+                let rec add_sub_scope_input_vars vars sub_scope_input_kind =
+                  match sub_scope_input_kind with
+                  | Ast.ScopeDef.Direct { var_within_sub_scope; _ } ->
+                    ScopeVar.Map.add var_within_sub_scope def.scope_def_typ vars
+                  | Ast.ScopeDef.NestedSubScope { nested_input_var; _ } ->
+                    add_sub_scope_input_vars vars nested_input_var
+                in
+                add_sub_scope_input_vars vars sub_scope_input_kind)
             scope.scope_defs ScopeVar.Map.empty
         in
         (* at this stage, rule resolution and the corresponding encapsulation

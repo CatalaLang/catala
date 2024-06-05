@@ -132,7 +132,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
     let rec translate_scope_call_args (args : _ scope_call_args) :
         _ scope_call_args =
       ScopeVar.Map.fold
-        (fun v (e : _ scope_call_arg) (args' : _ scope_call_args) ->
+        (fun v (e : _ scope_call_arg) (acc_translated_args : _ scope_call_args) ->
           let v' =
             match ScopeVar.Map.find v ctx.scope_var_mapping with
             | WholeVar v' -> v'
@@ -164,8 +164,22 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
               | Some _ -> Expr.epuredefault e' m
               | None -> e'
             in
-            ScopeVar.Map.add v' (ScopeVarArg e') args'
-          | SubScopeVarArg (_, sub_args) -> translate_scope_call_args sub_args)
+            ScopeVar.Map.add v' (ScopeVarArg e') acc_translated_args
+          | SubScopeVarArg (sub_scope_name, sub_args) ->
+            let translated_sub_args = translate_scope_call_args sub_args in
+            ScopeVar.Map.update v'
+              (fun existing_sub_args ->
+                match existing_sub_args with
+                | None ->
+                  Some (SubScopeVarArg (sub_scope_name, translated_sub_args))
+                | Some (ScopeVarArg _) -> assert false (* should not happen *)
+                | Some (SubScopeVarArg (_, existing_sub_args)) ->
+                  Some
+                    (SubScopeVarArg
+                       ( sub_scope_name,
+                         ScopeVar.Map.disjoint_union existing_sub_args
+                           translated_sub_args )))
+              acc_translated_args)
         args ScopeVar.Map.empty
     in
     Expr.escopecall ~scope ~args:(translate_scope_call_args args) m
@@ -694,37 +708,62 @@ let translate_rule
               let def = scope_def.D.scope_def_rules in
               let def_typ = scope_def.scope_def_typ in
               let is_cond = scope_def.scope_def_is_condition in
-              let rec aux sub_scope_var_kind =
+              let rec add_nested_def_arg_to_scope_call_args
+                  call_args_accumulator
+                  sub_scope_var_kind =
                 match sub_scope_var_kind with
                 | D.ScopeDef.Direct { var_within_sub_scope; _ } ->
-                  var_within_sub_scope
-                | D.ScopeDef.NestedSubScope nested ->
-                  aux nested.nested_input_var
+                  assert (
+                    (* an error should have been already raised *)
+                    match scope_def.D.scope_def_io.io_input with
+                    | NoInput, _ -> false
+                    | OnlyInput, _ -> is_cond || not (RuleName.Map.is_empty def)
+                    | _ -> true);
+                  let var_within_sub_scope =
+                    match
+                      ScopeVar.Map.find var_within_sub_scope
+                        ctx.scope_var_mapping
+                    with
+                    | WholeVar v -> v
+                    | States ((_, v) :: _) -> v
+                    | States [] -> assert false
+                  in
+                  let expr_def =
+                    translate_def ctx def_key def
+                      scope_def.D.scope_def_parameters def_typ
+                      scope_def.D.scope_def_io
+                      (D.ScopeDef.Map.find def_key exc_graphs)
+                      ~is_cond ~is_subscope_var:true
+                  in
+                  let def_arg = ScopeVarArg expr_def in
+                  ScopeVar.Map.add var_within_sub_scope def_arg
+                    call_args_accumulator
+                | D.ScopeDef.NestedSubScope
+                    {
+                      sub_scope_name;
+                      nested_sub_scope_var_within_sub_scope;
+                      nested_input_var;
+                    } ->
+                  let existing_subscope_call_args =
+                    match
+                      ScopeVar.Map.find_opt
+                        nested_sub_scope_var_within_sub_scope
+                        call_args_accumulator
+                    with
+                    | Some (ScopeVarArg _) ->
+                      assert false (* should not happen *)
+                    | Some (SubScopeVarArg (_, args)) -> args
+                    | None -> ScopeVar.Map.empty
+                  in
+                  let new_subscope_call_args =
+                    add_nested_def_arg_to_scope_call_args
+                      existing_subscope_call_args nested_input_var
+                  in
+                  ScopeVar.Map.add nested_sub_scope_var_within_sub_scope
+                    (SubScopeVarArg (sub_scope_name, new_subscope_call_args))
+                    call_args_accumulator
               in
-              let var_within_origin_scope = aux sub_scope_var_kind in
-              assert (
-                (* an error should have been already raised *)
-                match scope_def.D.scope_def_io.io_input with
-                | NoInput, _ -> false
-                | OnlyInput, _ -> is_cond || not (RuleName.Map.is_empty def)
-                | _ -> true);
-              let var_within_origin_scope =
-                match
-                  ScopeVar.Map.find var_within_origin_scope
-                    ctx.scope_var_mapping
-                with
-                | WholeVar v -> v
-                | States ((_, v) :: _) -> v
-                | States [] -> assert false
-              in
-              let expr_def =
-                translate_def ctx def_key def scope_def.D.scope_def_parameters
-                  def_typ scope_def.D.scope_def_io
-                  (D.ScopeDef.Map.find def_key exc_graphs)
-                  ~is_cond ~is_subscope_var:true
-              in
-              ScopeVar.Map.add var_within_origin_scope (ScopeVarArg expr_def)
-                acc)
+              add_nested_def_arg_to_scope_call_args acc sub_scope_var_kind)
           scope.scope_defs ScopeVar.Map.empty
       in
       let subscope_expr =
@@ -826,11 +865,24 @@ let translate_scope_interface ctx scope =
             }
             scope.D.scope_defs
         in
-        ScopeVar.Map.add
-          (match ScopeVar.Map.find var ctx.scope_var_mapping with
-          | WholeVar v -> v
-          | States _ -> assert false)
-          (get_svar scope_def) acc)
+        let acc =
+          ScopeVar.Map.add
+            (match ScopeVar.Map.find var ctx.scope_var_mapping with
+            | WholeVar v -> v
+            | States _ -> assert false)
+            (get_svar scope_def) acc
+        in
+        (* Now that we have added the scope var which corresponds to the output
+           of the sub-scope, we add the sub-scope's inputs ! Note that if there
+           are two sub-scopes corresponding to the same sub-scope call, then the
+           input variables will get added twice to this signature. Indeed, the
+           signature is a map whose keys are scope variables ; normally they are
+           scope variables of the caller scope but we also put in scope
+           variables of the sub-scopes being called. *)
+        let rec _add_sub_scope_input_variables _acc =
+          assert false (*TODO implement*)
+        in
+        acc)
       scope.D.scope_sub_scopes scope_sig
   in
   let pos = Mark.get (ScopeName.get_info scope.scope_uid) in
