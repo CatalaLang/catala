@@ -50,6 +50,14 @@ let remove_prefix ~prefix s =
     sub s plen (length s - plen)
   else s
 
+let repeat n s =
+  let slen = length s in
+  let buf = Bytes.create (n * slen) in
+  for i = 0 to n - 1 do
+    Bytes.blit_string s 0 buf (i * slen) slen
+  done;
+  Bytes.to_string buf
+
 (* Note: this should do, but remains incorrect for combined unicode characters
    that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
    some poing *)

@@ -60,10 +60,10 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
   let rec parse lines n acc =
     match Seq.uncons lines with
     | None -> acc
-    | Some ((_, L.LINE_TEST id), lines) ->
+    | Some ((_, L.LINE_TEST id, _), lines) ->
       let test, lines, n = parse_test id lines (n + 1) in
       parse lines n { acc with legacy_tests = test :: acc.legacy_tests }
-    | Some ((_, line), lines) -> (
+    | Some ((_, line, _), lines) -> (
       parse lines (n + 1)
       @@
       match line with
@@ -88,7 +88,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       [Format.asprintf "'invalid test syntax at %a:%d'" File.format file n]
     in
     match Seq.uncons lines with
-    | Some ((str, L.LINE_ANY), lines) -> (
+    | Some ((str, L.LINE_ANY, _), lines) -> (
       match test_command_args str with
       | Some cmd ->
         let cmd, lines, n = parse_block lines (n + 1) [cmd] in
@@ -103,8 +103,8 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     | None -> { test with cmd = err n }, lines, n
   and parse_block lines n acc =
     match Seq.uncons lines with
-    | Some ((_, L.LINE_BLOCK_END), lines) -> List.rev acc, lines, n + 1
-    | Some ((str, _), lines) -> String.trim str :: acc, lines, n + 1
+    | Some ((_, L.LINE_BLOCK_END, _), lines) -> List.rev acc, lines, n + 1
+    | Some ((str, _, _), lines) -> String.trim str :: acc, lines, n + 1
     | None -> List.rev acc, lines, n
   in
   parse

@@ -73,6 +73,7 @@ val unformat : (Format.formatter -> unit) -> string
 
 val has_color : out_channel -> bool
 val set_terminal_width_function : (unit -> int) -> unit
+val terminal_columns : unit -> int
 
 (* {1 More general color-enabled formatting helpers}*)
 

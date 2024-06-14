@@ -20,7 +20,9 @@
 open Catala_utils
 
 val lines :
-  File.t -> Global.backend_lang -> (string * Lexer_common.line_token) Seq.t
+  File.t ->
+  Global.backend_lang ->
+  (string * Lexer_common.line_token * (Lexing.position * Lexing.position)) Seq.t
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
