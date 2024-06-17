@@ -60,29 +60,6 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         let gobbled, rest_out = split_rest_tree rest_tree in
         LawHeading (heading, gobbled) :: rest_out))
 
-(** Usage: [raise_parser_error error_loc last_good_loc token msg]
-
-    Raises an error message featuring the [error_loc] position where the parser
-    has failed, the [token] on which the parser has failed, and the error
-    message [msg]. If available, displays [last_good_loc] the location of the
-    last token correctly parsed. *)
-let raise_parser_error
-    ?(suggestion : string list option)
-    (error_loc : Pos.t)
-    (last_good_loc : Pos.t option)
-    (token : string)
-    (msg : Format.formatter -> unit) : 'a =
-  Message.error ?suggestion
-    ~extra_pos:
-      [
-        (match last_good_loc with
-        | None -> "Error token", error_loc
-        | Some last_good_loc -> "Last good token", last_good_loc);
-      ]
-    "@[<hov>Syntax error at %a:@ %t@]"
-    (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-    token msg
-
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
   module I = MenhirInterpreter
@@ -93,40 +70,12 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     | MenhirLib.General.Nil -> 0
     | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
-  (** Usage: [fail lexbuf env token_list last_input_needed]
-
-      Raises an error with meaningful hints about what the parsing error was.
-      [lexbuf] is the lexing buffer state at the failure point, [env] is the
-      Menhir environment and [last_input_needed] is the last checkpoint of a
-      valid Menhir state before the parsing error. [token_list] is provided by
-      things like {!val: Surface.Lexer_common.token_list_language_agnostic} and
-      is used to provide suggestions of the tokens acceptable at the failure
-      point *)
-  let fail
+  let register_parsing_error
       (lexbuf : lexbuf)
       (env : 'semantic_value I.env)
-      (token_list : (string * Tokens.token) list)
-      (last_input_needed : 'semantic_value I.env option) : 'a =
-    let wrong_token = Utf8.lexeme lexbuf in
-    let acceptable_tokens, last_positions =
-      match last_input_needed with
-      | Some last_input_needed ->
-        ( List.filter
-            (fun (_, t) ->
-              I.acceptable
-                (I.input_needed last_input_needed)
-                t
-                (fst (lexing_positions lexbuf)))
-            token_list,
-          Some (I.positions last_input_needed) )
-      | None -> token_list, None
-    in
-    let similar_acceptable_tokens =
-      Suggestions.suggestion_minimum_levenshtein_distance_association
-        (List.map (fun (s, _) -> s) acceptable_tokens)
-        wrong_token
-    in
-    (* The parser has suspended itself because of a syntax error. Stop. *)
+      (acceptable_tokens : (string * Tokens.token) list)
+      (similar_candidate_tokens : string list) : 'a =
+    (* The parser has suspended itself because of a syntax error. *)
     let custom_menhir_message ppf =
       (match Parser_errors.message (state env) with
       | exception Not_found -> Format.fprintf ppf "@{<yellow>unexpected token@}"
@@ -141,31 +90,162 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
              (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))
           (List.map (fun (s, _) -> s) acceptable_tokens)
     in
-    raise_parser_error ~suggestion:similar_acceptable_tokens
-      (Pos.from_lpos (lexing_positions lexbuf))
-      (Option.map Pos.from_lpos last_positions)
-      (Utf8.lexeme lexbuf) custom_menhir_message
+    let suggestion =
+      if similar_candidate_tokens = [] then None
+      else Some similar_candidate_tokens
+    in
+    let error_loc = Pos.from_lpos (lexing_positions lexbuf) in
+    let wrong_token = Utf8.lexeme lexbuf in
+    let msg = custom_menhir_message in
+    Message.delayed_error () ?suggestion
+      ~extra_pos:["", error_loc]
+      "@[<hov>Syntax error at %a:@ %t@]"
+      (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+      wrong_token msg
+
+  let sorted_candidate_tokens lexbuf token_list env =
+    let acceptable_tokens =
+      List.filter
+        (fun (_, t) ->
+          I.acceptable (I.input_needed env) t (fst (lexing_positions lexbuf)))
+        token_list
+    in
+    let similar_acceptable_tokens =
+      Suggestions.suggestion_minimum_levenshtein_distance_association
+        (List.map (fun (s, _) -> s) acceptable_tokens)
+        (Utf8.lexeme lexbuf)
+    in
+    let module S = Set.Make (String) in
+    let s_toks = S.of_list similar_acceptable_tokens in
+    let sorted_acceptable_tokens =
+      List.sort
+        (fun (s, _) _ -> if S.mem s s_toks then -1 else 1)
+        acceptable_tokens
+    in
+    similar_acceptable_tokens, sorted_acceptable_tokens
+
+  type 'a ring_buffer = {
+    curr_idx : int;
+    start : int ref;
+    stop : int ref;
+    max_size : int;
+    feed : unit -> 'a;
+    data : 'a array;
+  }
+
+  let next ({ curr_idx; start; stop; max_size; feed; data } as buff) =
+    let next_idx = succ curr_idx mod max_size in
+    if curr_idx = !stop then (
+      let new_elt = feed () in
+      data.(curr_idx) <- new_elt;
+      let size = ((!stop - !start + max_size) mod max_size) + 1 in
+      stop := succ !stop mod max_size;
+      let is_full = size = max_size in
+      if is_full then
+        (* buffer will get full: start is also moved *)
+        start := succ !start mod max_size;
+      { buff with curr_idx = next_idx }, new_elt)
+    else
+      let elt = data.(curr_idx) in
+      { buff with curr_idx = next_idx }, elt
+
+  let create ?(max_size = 20) feed v =
+    {
+      curr_idx = 0;
+      start = ref 0;
+      stop = ref 0;
+      feed;
+      data = Array.make max_size v;
+      max_size;
+    }
+
+  let progress ?(max_step = 10) lexer_buffer env checkpoint : int =
+    let rec loop nth_step lexer_buffer env checkpoint =
+      if nth_step >= max_step then nth_step
+      else
+        match checkpoint with
+        | I.InputNeeded env ->
+          let new_lexer_buffer, token = next lexer_buffer in
+          let checkpoint = I.offer checkpoint token in
+          loop (succ nth_step) new_lexer_buffer env checkpoint
+        | I.Shifting _ | I.AboutToReduce _ ->
+          let checkpoint = I.resume checkpoint in
+          loop nth_step lexer_buffer env checkpoint
+        | I.HandlingError (_ : _ I.env) | I.Accepted _ | I.Rejected -> nth_step
+    in
+    loop 0 lexer_buffer env checkpoint
+
+  let recover_parsing_error lexer_buffer env acceptable_tokens =
+    let candidates_checkpoints =
+      let without_token = I.input_needed env in
+      let make_with_token tok =
+        let l, r = I.positions env in
+        let checkpoint = I.input_needed env in
+        I.offer checkpoint (tok, l, r)
+      in
+      without_token :: List.map make_with_token acceptable_tokens
+    in
+    let threshold = min 10 lexer_buffer.max_size in
+    let rec iterate ((curr_max_progress, _) as acc) = function
+      | [] -> acc
+      | cp :: t ->
+        if curr_max_progress >= 10 then acc
+        else
+          let cp_progress = progress ~max_step:threshold lexer_buffer env cp in
+          if cp_progress > curr_max_progress then iterate (cp_progress, cp) t
+          else iterate acc t
+    in
+    let best_progress, best_cp =
+      let dummy_cp = I.input_needed env in
+      iterate (-1, dummy_cp) candidates_checkpoints
+    in
+    (* We do not consider paths were progress isn't significant *)
+    if best_progress < 2 then None else Some best_cp
 
   (** Main parsing loop *)
-  let rec loop
-      (next_token : unit -> Tokens.token * Lexing.position * Lexing.position)
+  let loop
+      (lexer_buffer :
+        (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
       (token_list : (string * Tokens.token) list)
       (lexbuf : lexbuf)
       (last_input_needed : 'semantic_value I.env option)
       (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
-    match checkpoint with
-    | I.InputNeeded env ->
-      let token = next_token () in
-      let checkpoint = I.offer checkpoint token in
-      loop next_token token_list lexbuf (Some env) checkpoint
-    | I.Shifting _ | I.AboutToReduce _ ->
-      let checkpoint = I.resume checkpoint in
-      loop next_token token_list lexbuf last_input_needed checkpoint
-    | I.HandlingError env -> fail lexbuf env token_list last_input_needed
-    | I.Accepted v -> v
-    | I.Rejected ->
-      (* Cannot happen as we stop at syntax error immediatly *)
-      assert false
+    let rec loop
+        (lexer_buffer :
+          (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
+        (token_list : (string * Tokens.token) list)
+        (lexbuf : lexbuf)
+        (last_input_needed : 'semantic_value I.env option)
+        (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
+      match checkpoint with
+      | I.InputNeeded env ->
+        let new_lexer_buffer, token = next lexer_buffer in
+        let checkpoint = I.offer checkpoint token in
+        loop new_lexer_buffer token_list lexbuf (Some env) checkpoint
+      | I.Shifting _ | I.AboutToReduce _ ->
+        let checkpoint = I.resume checkpoint in
+        loop lexer_buffer token_list lexbuf last_input_needed checkpoint
+      | I.HandlingError (env : 'semantic_value I.env) -> (
+        let similar_candidate_tokens, sorted_acceptable_tokens =
+          sorted_candidate_tokens lexbuf token_list env
+        in
+        register_parsing_error lexbuf env sorted_acceptable_tokens
+          similar_candidate_tokens;
+        let best_effort_checkpoint =
+          recover_parsing_error lexer_buffer env
+            (List.map snd sorted_acceptable_tokens)
+        in
+        match best_effort_checkpoint with
+        | None ->
+          (* No reasonable solution, aborting *)
+          []
+        | Some best_effort_checkpoint ->
+          loop lexer_buffer token_list lexbuf last_input_needed
+            best_effort_checkpoint)
+      | I.Accepted v -> v
+      | I.Rejected -> []
+    in
+    loop lexer_buffer token_list lexbuf last_input_needed checkpoint
 
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type
       difference for [lexbuf]. *)
@@ -174,12 +254,17 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (token_list : (string * Tokens.token) list)
       (target_rule : Lexing.position -> 'semantic_value I.checkpoint)
       (lexbuf : lexbuf) : Ast.source_file =
-    let lexer : unit -> Tokens.token * Lexing.position * Lexing.position =
-      with_tokenizer lexer' lexbuf
+    let lexer_buffer :
+        (Tokens.token * Lexing.position * Lexing.position) ring_buffer =
+      let feed = with_tokenizer lexer' lexbuf in
+      create feed Lexing.(Tokens.EOF, dummy_pos, dummy_pos)
     in
     try
-      loop lexer token_list lexbuf None
-        (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
+      let target_rule =
+        target_rule (fst @@ Sedlexing.lexing_positions lexbuf)
+      in
+      Message.with_delayed_errors
+      @@ fun () -> loop lexer_buffer token_list lexbuf None target_rule
     with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
       Lexer_common.raise_lexer_error
         (Pos.from_lpos (lexing_positions lexbuf))
