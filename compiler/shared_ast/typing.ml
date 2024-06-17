@@ -175,30 +175,34 @@ let rec colors =
   let open Ocolor_types in
   blue :: cyan :: green :: yellow :: red :: magenta :: colors
 
+let dummy_flags = { fail_on_any = false; assume_op_types = false }
 let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
-let record_type_error ctx (A.AnyExpr e) t1 t2 =
-  (* TODO: if we get weird error messages, then it means that we should use the
-     persistent version of the union-find data structure. *)
-  let t1_repr = UnionFind.get (UnionFind.find t1) in
-  let t2_repr = UnionFind.get (UnionFind.find t2) in
+let record_type_error _ctx (A.AnyExpr e) t1 t2 =
+  (* We convert union-find types to ast ones otherwise error messages would be
+     hindered as union-find side-effects wrongly unify both types. The delayed
+     pretty-printing would yield messages such as: 'incompatible types (integer,
+     integer)' *)
+  let t1_repr = typ_to_ast ~flags:dummy_flags t1 in
+  let t2_repr = typ_to_ast ~flags:dummy_flags t2 in
   let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
+  let pp_typ = Print.typ_debug in
   let fmt_pos =
     if e_pos = t1_pos then
       [
         ( (fun ppf ->
             Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
-              "This expression has type" (format_typ ctx) t1;
+              "This expression has type" pp_typ t1_repr;
             if Global.options.debug then
               Format.fprintf ppf "@ %a@]" Expr.format e
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->
             Format.fprintf ppf
-              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
-              (format_typ ctx) t2),
+              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]" pp_typ
+              t2_repr),
           t2_pos );
       ]
     else
@@ -211,20 +215,19 @@ let record_type_error ctx (A.AnyExpr e) t1 t2 =
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->
-            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-              (format_typ ctx) t1),
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]" pp_typ
+              t1_repr),
           t1_pos );
         ( (fun ppf ->
-            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-              (format_typ ctx) t2),
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]" pp_typ
+              t2_repr),
           t2_pos );
       ]
   in
   Message.delayed_error () ~fmt_pos
     "Error during typechecking, incompatible types:@\n\
      @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
-     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" (format_typ ctx) t1 "─➤"
-    (format_typ ctx) t2
+     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" pp_typ t1_repr "─➤" pp_typ t2_repr
 
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
