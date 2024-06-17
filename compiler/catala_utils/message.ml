@@ -327,6 +327,7 @@ open Content
 (** {1 Error exception} *)
 
 exception CompilerError of Content.t
+exception CompilerErrors of Content.t list
 
 (** {1 Error printing} *)
 
@@ -404,3 +405,31 @@ let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
 let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
+
+(* Multiple errors handling *)
+let global_errors = ref None
+
+let delayed_error x =
+  make ~level:Error ~cont:(fun m _ ->
+      match !global_errors with
+      | None ->
+        failwith
+          "delayed error called outside scope: encapsulate using \
+           'with_delayed_errors' first"
+      | Some l ->
+        global_errors := Some (m :: l);
+        x)
+
+let with_delayed_errors (f : unit -> 'a) : 'a =
+  (match !global_errors with
+  | None -> global_errors := Some []
+  | Some _ -> failwith "delayed error scope already initialized");
+  let r = f () in
+  match !global_errors with
+  | None -> assert false
+  | Some [] ->
+    global_errors := None;
+    r
+  | Some errs ->
+    global_errors := None;
+    raise (CompilerErrors (List.rev errs))
