@@ -1,0 +1,27 @@
+## Single parsing error
+
+```catala
+declaration scope A:
+  output i contents decimal
+
+scope A:
+  definition i equals 1 / 0
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[ERROR]─
+│
+│  Syntax error at "contents":
+│  unexpected token
+│  Those are valid at this point: "content", "condition", "scope"
+│
+├─➤ tests/parsing/bad/single_error.catala_en:5.12-5.20:
+│   │
+│ 5 │   output i contents decimal
+│   │            ‾‾‾‾‾‾‾‾
+│
+│ Maybe you wanted to write : "content" ?
+└─
+#return code 123#
+```
