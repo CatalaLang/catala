@@ -177,51 +177,7 @@ let rec colors =
 
 let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
-exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
-
-(** Raises an error if unification cannot be performed. The position annotation
-    of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
-let rec unify
-    (ctx : A.decl_ctx)
-    (e : ('a, 'm) A.gexpr) (* used for error context *)
-    (t1 : unionfind_typ)
-    (t2 : unionfind_typ) : unit =
-  let unify = unify ctx in
-  (* Message.debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
-     t2; *)
-  let t1_repr = UnionFind.get (UnionFind.find t1) in
-  let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
-  let () =
-    match Mark.remove t1_repr, Mark.remove t2_repr with
-    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
-    | TArrow (t11, t12), TArrow (t21, t22) -> (
-      unify e t12 t22;
-      try List.iter2 (unify e) t11 t21
-      with Invalid_argument _ -> raise_type_error ())
-    | TTuple ts1, TTuple ts2 -> (
-      try List.iter2 (unify e) ts1 ts2
-      with Invalid_argument _ -> raise_type_error ())
-    | TStruct s1, TStruct s2 ->
-      if not (A.StructName.equal s1 s2) then raise_type_error ()
-    | TEnum e1, TEnum e2 ->
-      if not (A.EnumName.equal e1 e2) then raise_type_error ()
-    | TOption t1, TOption t2 -> unify e t1 t2
-    | TArray t1', TArray t2' -> unify e t1' t2'
-    | TDefault t1', TDefault t2' -> unify e t1' t2'
-    | TClosureEnv, TClosureEnv -> ()
-    | TAny _, _ | _, TAny _ -> ()
-    | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-        | TArray _ | TDefault _ | TClosureEnv ),
-        _ ) ->
-      raise_type_error ()
-  in
-  ignore
-  @@ UnionFind.merge
-       (fun t1 t2 -> match Mark.remove t2 with TAny _ -> t1 | _ -> t2)
-       t1 t2
-
-let handle_type_error ctx (A.AnyExpr e) t1 t2 =
+let record_type_error ctx (A.AnyExpr e) t1 t2 =
   (* TODO: if we get weird error messages, then it means that we should use the
      persistent version of the union-find data structure. *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
@@ -264,11 +220,53 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
           t2_pos );
       ]
   in
-  Message.error ~fmt_pos
+  Message.delayed_error () ~fmt_pos
     "Error during typechecking, incompatible types:@\n\
      @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
      @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" (format_typ ctx) t1 "─➤"
     (format_typ ctx) t2
+
+(** Raises an error if unification cannot be performed. The position annotation
+    of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
+let rec unify
+    (ctx : A.decl_ctx)
+    (e : ('a, 'm) A.gexpr) (* used for error context *)
+    (t1 : unionfind_typ)
+    (t2 : unionfind_typ) : unit =
+  let unify = unify ctx in
+  (* Message.debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
+     t2; *)
+  let t1_repr = UnionFind.get (UnionFind.find t1) in
+  let t2_repr = UnionFind.get (UnionFind.find t2) in
+  let record_type_error () = record_type_error ctx (A.AnyExpr e) t1 t2 in
+  let () =
+    match Mark.remove t1_repr, Mark.remove t2_repr with
+    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then record_type_error ()
+    | TArrow (t11, t12), TArrow (t21, t22) -> (
+      unify e t12 t22;
+      try List.iter2 (unify e) t11 t21
+      with Invalid_argument _ -> record_type_error ())
+    | TTuple ts1, TTuple ts2 -> (
+      try List.iter2 (unify e) ts1 ts2
+      with Invalid_argument _ -> record_type_error ())
+    | TStruct s1, TStruct s2 ->
+      if not (A.StructName.equal s1 s2) then record_type_error ()
+    | TEnum e1, TEnum e2 ->
+      if not (A.EnumName.equal e1 e2) then record_type_error ()
+    | TOption t1, TOption t2 -> unify e t1 t2
+    | TArray t1', TArray t2' -> unify e t1' t2'
+    | TDefault t1', TDefault t2' -> unify e t1' t2'
+    | TClosureEnv, TClosureEnv -> ()
+    | TAny _, _ | _, TAny _ -> ()
+    | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
+        | TArray _ | TDefault _ | TClosureEnv ),
+        _ ) ->
+      record_type_error ()
+  in
+  ignore
+  @@ UnionFind.merge
+       (fun t1 t2 -> match Mark.remove t2 with TAny _ -> t1 | _ -> t2)
+       t1 t2
 
 let lit_type (lit : A.lit) : naked_typ =
   match lit with
@@ -959,18 +957,6 @@ and typecheck_expr_top_down :
     in
     Expr.ecustom obj targs tret mark
 
-let wrap ctx f e =
-  try f e
-  with Type_error (e, ty1, ty2) -> (
-    let bt = Printexc.get_raw_backtrace () in
-    try handle_type_error ctx e ty1 ty2
-    with e -> Printexc.raise_with_backtrace e bt)
-
-let wrap_expr ctx f e =
-  (* We need to unbox here, because the typing may otherwise be stored in
-     Bindlib closures and not yet applied, and would escape the `try..with` *)
-  wrap ctx (fun e -> Expr.unbox (f e)) e
-
 (** {1 API} *)
 
 let get_ty_mark ~flags (A.Custom { A.custom = uf; pos }) =
@@ -987,7 +973,7 @@ let expr_raw
     | None -> typecheck_expr_bottom_up ctx env
     | Some typ -> typecheck_expr_top_down ctx env (ast_to_typ typ)
   in
-  wrap_expr ctx fty e
+  Expr.unbox (fty e)
 
 let check_expr ctx ?env ?typ e =
   Expr.map_marks
@@ -1002,14 +988,14 @@ let scope_body_expr ctx env ty_out body_expr =
   let _env, ret =
     BoundList.fold_map body_expr ~init:env
       ~last:(fun env e ->
-        let e' = wrap_expr ctx (typecheck_expr_top_down ctx env ty_out) e in
+        let e' = Expr.unbox (typecheck_expr_top_down ctx env ty_out e) in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
         env, Expr.Box.lift e')
       ~f:(fun env var scope ->
         let e0 = scope.A.scope_let_expr in
         let ty_e = ast_to_typ scope.A.scope_let_typ in
-        let e = wrap_expr ctx (typecheck_expr_bottom_up ctx env) e0 in
-        wrap ctx (fun t -> unify ctx e0 (ty e) t) ty_e;
+        let e = Expr.unbox (typecheck_expr_bottom_up ctx env e0) in
+        unify ctx e0 (ty e) ty_e;
         (* We could use [typecheck_expr_top_down] rather than this manual
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined
@@ -1107,3 +1093,7 @@ let program ?fail_on_any ?assume_op_types prg =
             prg.decl_ctx.ctx_enums;
       };
   }
+
+let program ?fail_on_any ?assume_op_types prg =
+  Message.with_delayed_errors (fun () ->
+      program ?fail_on_any ?assume_op_types prg)

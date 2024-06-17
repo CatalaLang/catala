@@ -112,3 +112,5 @@ let program prg =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_root.module_scopes
   in
   { prg with program_root = { module_topdefs; module_scopes } }
+
+let program prg = Message.with_delayed_errors (fun () -> program prg)
