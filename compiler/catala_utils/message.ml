@@ -407,32 +407,42 @@ let warning = make ~level:Warning ~cont:emit
 let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
 
 (* Multiple errors handling *)
-let global_errors = ref None
+
+type global_errors = {
+  mutable errors : t list option;
+  mutable stop_on_error : bool;
+}
+
+let global_errors = { errors = None; stop_on_error = false }
 
 let delayed_error x =
   make ~level:Error ~cont:(fun m _ ->
-      match !global_errors with
+      if global_errors.stop_on_error then raise (CompilerError m);
+      match global_errors.errors with
       | None ->
         error ~internal:true
           "delayed error called outside scope: encapsulate using \
            'with_delayed_errors' first"
       | Some l ->
-        global_errors := Some (m :: l);
+        global_errors.errors <- Some (m :: l);
         x)
 
-let with_delayed_errors (f : unit -> 'a) : 'a =
-  (match !global_errors with
-  | None -> global_errors := Some []
+let with_delayed_errors
+    ?(stop_on_error = Global.options.stop_on_error)
+    (f : unit -> 'a) : 'a =
+  (match global_errors.errors with
+  | None -> global_errors.errors <- Some []
   | Some _ ->
     error ~internal:true
       "delayed error called outside scope: encapsulate using \
        'with_delayed_errors' first");
+  global_errors.stop_on_error <- stop_on_error;
   let r = f () in
-  match !global_errors with
+  match global_errors.errors with
   | None -> error ~internal:true "intertwined delayed error scope"
   | Some [] ->
-    global_errors := None;
+    global_errors.errors <- None;
     r
   | Some errs ->
-    global_errors := None;
+    global_errors.errors <- None;
     raise (CompilerErrors (List.rev errs))

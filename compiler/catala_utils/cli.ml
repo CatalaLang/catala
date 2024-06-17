@@ -199,6 +199,12 @@ module Flags = struct
             "Behave as if run from the given directory for file and error \
              reporting. Does not affect resolution of files in arguments."
 
+    let stop_on_error =
+      value
+      & flag
+      & info ["x"; "stop-on-error"]
+          ~doc:"Stops the compilation as soon as an error is encountered."
+
     let flags =
       let make
           language
@@ -209,7 +215,8 @@ module Flags = struct
           plugins_dirs
           disable_warnings
           max_prec_digits
-          directory : options =
+          directory
+          stop_on_error : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -223,7 +230,8 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite ()
+          ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite
+          ~stop_on_error ()
       in
       Term.(
         const make
@@ -235,7 +243,8 @@ module Flags = struct
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits
-        $ directory)
+        $ directory
+        $ stop_on_error)
 
     let options =
       let make input_src name directory options : options =
