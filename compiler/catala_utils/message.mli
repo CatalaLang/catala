@@ -60,9 +60,10 @@ end
 (** This functions emits the message according to the emission type defined by
     [Cli.message_format_flag]. *)
 
-(** {1 Error exception} *)
+(** {1 Error exceptions} *)
 
 exception CompilerError of Content.t
+exception CompilerErrors of Content.t list
 
 (** {1 Some formatting helpers}*)
 
@@ -98,5 +99,15 @@ val log : ('a, unit) emitter
 val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
-val error : ('a, 'b) emitter
+val error : ('a, 'exn) emitter
 val results : Content.message list -> unit
+
+(** Multiple errors *)
+
+val with_delayed_errors : (unit -> 'a) -> 'a
+(** [with_delayed_errors f] calls [f] and registers each error triggered using
+    [delayed_error].
+
+    @raise CompilerErrors when delayed errors were registered. *)
+
+val delayed_error : 'b -> ('a, 'b) emitter
