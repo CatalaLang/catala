@@ -198,10 +198,10 @@ type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
 let print_box tcolor ppf title (pcontents : box -> unit) =
   let columns = Message.terminal_columns () in
   let tpad = columns - String.width title - 6 in
-  Format.fprintf ppf "@,%t┏%s @{<bold;reverse> %s @} %s┓@}@," tcolor
-    (String.repeat (tpad / 2) "━")
+  Format.fprintf ppf "@,%t┏%t @{<bold;reverse> %s @} %t┓@}@," tcolor
+    (Message.pad (tpad / 2) "━")
     title
-    (String.repeat (tpad - (tpad / 2)) "━");
+    (Message.pad (tpad - (tpad / 2)) "━");
   Format.pp_open_tbox ppf ();
   Format.fprintf ppf "%t@<1>%s@}%*s" tcolor "┃" (columns - 2) "";
   Format.pp_set_tab ppf ();
@@ -220,7 +220,7 @@ let print_box tcolor ppf title (pcontents : box -> unit) =
   pcontents box;
   box.print_line "";
   Format.pp_close_tbox ppf ();
-  Format.fprintf ppf "%t┗%s┛@}@," tcolor (String.repeat (columns - 2) "━")
+  Format.fprintf ppf "%t┗%t┛@}@," tcolor (Message.pad (columns - 2) "━")
 
 let summary ~build_dir tests =
   let ppf = Message.formatter_of_out_channel stdout () in

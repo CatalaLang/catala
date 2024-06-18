@@ -56,6 +56,3 @@ val width : string -> int
 (** Returns the width of a given string in screen columns (assuming a monospace
     font). Useful for alignment. This takes unicode (except composite chars) and
     tabs into account, but not escape sequences. *)
-
-val repeat : int -> string -> string
-(** Repeats the given string the given number of times *)

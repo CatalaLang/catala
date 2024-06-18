@@ -113,6 +113,11 @@ let utf8_byte_index s ui0 =
   in
   aux 0 0
 
+let rec pad_fmt n s ppf =
+  if n > 0 then (
+    Format.pp_print_as ppf 1 s;
+    pad_fmt (n - 1) s ppf)
+
 let format_loc_text_parts (pos : t) =
   let filename = get_file pos in
   if filename = "" then
@@ -191,14 +196,12 @@ let format_loc_text_parts (pos : t) =
             line;
           Format.pp_print_cut ppf ();
           if line_no >= sline && line_no <= eline then
-            Format.fprintf ppf "@{<blue>%s │@} %s@{<bold;red>%a@}"
-              (String.repeat nspaces " ")
-              (String.repeat match_start_col " ")
-              (fun ppf -> Format.pp_print_as ppf match_num_cols)
-              (String.repeat match_num_cols "‾")
+            Format.fprintf ppf "@{<blue>%*s │@} %*s@{<bold;red>%t@}" nspaces ""
+              match_start_col ""
+              (pad_fmt match_num_cols "‾")
         in
         let pr_context ppf =
-          Format.fprintf ppf "@{<blue> %s│@}@," (String.repeat nspaces " ");
+          Format.fprintf ppf "@{<blue> %*s│@}@," nspaces "";
           Format.pp_print_list print_matched_line ppf pos_lines
         in
         let legal_pos_lines =

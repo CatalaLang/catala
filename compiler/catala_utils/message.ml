@@ -90,6 +90,8 @@ let unformat (f : Format.formatter -> unit) : string =
   Format.pp_print_flush ppf ();
   Buffer.contents buf
 
+let pad n s ppf = Pos.pad_fmt n s ppf
+
 (**{2 Message types and output helpers *)
 
 type level = Error | Warning | Debug | Log | Result
