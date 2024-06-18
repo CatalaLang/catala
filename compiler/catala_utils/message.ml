@@ -413,7 +413,7 @@ let delayed_error x =
   make ~level:Error ~cont:(fun m _ ->
       match !global_errors with
       | None ->
-        failwith
+        error ~internal:true
           "delayed error called outside scope: encapsulate using \
            'with_delayed_errors' first"
       | Some l ->
@@ -423,10 +423,13 @@ let delayed_error x =
 let with_delayed_errors (f : unit -> 'a) : 'a =
   (match !global_errors with
   | None -> global_errors := Some []
-  | Some _ -> failwith "delayed error scope already initialized");
+  | Some _ ->
+    error ~internal:true
+      "delayed error called outside scope: encapsulate using \
+       'with_delayed_errors' first");
   let r = f () in
   match !global_errors with
-  | None -> assert false
+  | None -> error ~internal:true "intertwined delayed error scope"
   | Some [] ->
     global_errors := None;
     r
