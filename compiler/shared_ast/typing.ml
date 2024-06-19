@@ -175,9 +175,59 @@ let rec colors =
   let open Ocolor_types in
   blue :: cyan :: green :: yellow :: red :: magenta :: colors
 
+let dummy_flags = { fail_on_any = false; assume_op_types = false }
 let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
-exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
+let record_type_error _ctx (A.AnyExpr e) t1 t2 =
+  (* We convert union-find types to ast ones otherwise error messages would be
+     hindered as union-find side-effects wrongly unify both types. The delayed
+     pretty-printing would yield messages such as: 'incompatible types (integer,
+     integer)' *)
+  let t1_repr = typ_to_ast ~flags:dummy_flags t1 in
+  let t2_repr = typ_to_ast ~flags:dummy_flags t2 in
+  let e_pos = Expr.pos e in
+  let t1_pos = Mark.get t1_repr in
+  let t2_pos = Mark.get t2_repr in
+  let pp_typ = Print.typ_debug in
+  let fmt_pos =
+    if e_pos = t1_pos then
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
+              "This expression has type" pp_typ t1_repr;
+            if Global.options.debug then
+              Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf
+              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]" pp_typ
+              t2_repr),
+          t2_pos );
+      ]
+    else
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
+              "While typechecking the following expression";
+            if Global.options.debug then
+              Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]" pp_typ
+              t1_repr),
+          t1_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]" pp_typ
+              t2_repr),
+          t2_pos );
+      ]
+  in
+  Message.delayed_error () ~fmt_pos
+    "Error during typechecking, incompatible types:@\n\
+     @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
+     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" pp_typ t1_repr "─➤" pp_typ t2_repr
 
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
@@ -191,21 +241,21 @@ let rec unify
      t2; *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
+  let record_type_error () = record_type_error ctx (A.AnyExpr e) t1 t2 in
   let () =
     match Mark.remove t1_repr, Mark.remove t2_repr with
-    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
+    | TLit tl1, TLit tl2 -> if tl1 <> tl2 then record_type_error ()
     | TArrow (t11, t12), TArrow (t21, t22) -> (
       unify e t12 t22;
       try List.iter2 (unify e) t11 t21
-      with Invalid_argument _ -> raise_type_error ())
+      with Invalid_argument _ -> record_type_error ())
     | TTuple ts1, TTuple ts2 -> (
       try List.iter2 (unify e) ts1 ts2
-      with Invalid_argument _ -> raise_type_error ())
+      with Invalid_argument _ -> record_type_error ())
     | TStruct s1, TStruct s2 ->
-      if not (A.StructName.equal s1 s2) then raise_type_error ()
+      if not (A.StructName.equal s1 s2) then record_type_error ()
     | TEnum e1, TEnum e2 ->
-      if not (A.EnumName.equal e1 e2) then raise_type_error ()
+      if not (A.EnumName.equal e1 e2) then record_type_error ()
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
     | TDefault t1', TDefault t2' -> unify e t1' t2'
@@ -214,61 +264,12 @@ let rec unify
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
         | TArray _ | TDefault _ | TClosureEnv ),
         _ ) ->
-      raise_type_error ()
+      record_type_error ()
   in
   ignore
   @@ UnionFind.merge
        (fun t1 t2 -> match Mark.remove t2 with TAny _ -> t1 | _ -> t2)
        t1 t2
-
-let handle_type_error ctx (A.AnyExpr e) t1 t2 =
-  (* TODO: if we get weird error messages, then it means that we should use the
-     persistent version of the union-find data structure. *)
-  let t1_repr = UnionFind.get (UnionFind.find t1) in
-  let t2_repr = UnionFind.get (UnionFind.find t2) in
-  let e_pos = Expr.pos e in
-  let t1_pos = Mark.get t1_repr in
-  let t2_pos = Mark.get t2_repr in
-  let fmt_pos =
-    if e_pos = t1_pos then
-      [
-        ( (fun ppf ->
-            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
-              "This expression has type" (format_typ ctx) t1;
-            if Global.options.debug then
-              Format.fprintf ppf "@ %a@]" Expr.format e
-            else Format.pp_close_box ppf ()),
-          e_pos );
-        ( (fun ppf ->
-            Format.fprintf ppf
-              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
-              (format_typ ctx) t2),
-          t2_pos );
-      ]
-    else
-      [
-        ( (fun ppf ->
-            Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
-              "While typechecking the following expression";
-            if Global.options.debug then
-              Format.fprintf ppf "@ %a@]" Expr.format e
-            else Format.pp_close_box ppf ()),
-          e_pos );
-        ( (fun ppf ->
-            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-              (format_typ ctx) t1),
-          t1_pos );
-        ( (fun ppf ->
-            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-              (format_typ ctx) t2),
-          t2_pos );
-      ]
-  in
-  Message.error ~fmt_pos
-    "Error during typechecking, incompatible types:@\n\
-     @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
-     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" (format_typ ctx) t1 "─➤"
-    (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
   match lit with
@@ -959,18 +960,6 @@ and typecheck_expr_top_down :
     in
     Expr.ecustom obj targs tret mark
 
-let wrap ctx f e =
-  try f e
-  with Type_error (e, ty1, ty2) -> (
-    let bt = Printexc.get_raw_backtrace () in
-    try handle_type_error ctx e ty1 ty2
-    with e -> Printexc.raise_with_backtrace e bt)
-
-let wrap_expr ctx f e =
-  (* We need to unbox here, because the typing may otherwise be stored in
-     Bindlib closures and not yet applied, and would escape the `try..with` *)
-  wrap ctx (fun e -> Expr.unbox (f e)) e
-
 (** {1 API} *)
 
 let get_ty_mark ~flags (A.Custom { A.custom = uf; pos }) =
@@ -987,7 +976,7 @@ let expr_raw
     | None -> typecheck_expr_bottom_up ctx env
     | Some typ -> typecheck_expr_top_down ctx env (ast_to_typ typ)
   in
-  wrap_expr ctx fty e
+  Expr.unbox (fty e)
 
 let check_expr ctx ?env ?typ e =
   Expr.map_marks
@@ -1002,14 +991,14 @@ let scope_body_expr ctx env ty_out body_expr =
   let _env, ret =
     BoundList.fold_map body_expr ~init:env
       ~last:(fun env e ->
-        let e' = wrap_expr ctx (typecheck_expr_top_down ctx env ty_out) e in
+        let e' = Expr.unbox (typecheck_expr_top_down ctx env ty_out e) in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
         env, Expr.Box.lift e')
       ~f:(fun env var scope ->
         let e0 = scope.A.scope_let_expr in
         let ty_e = ast_to_typ scope.A.scope_let_typ in
-        let e = wrap_expr ctx (typecheck_expr_bottom_up ctx env) e0 in
-        wrap ctx (fun t -> unify ctx e0 (ty e) t) ty_e;
+        let e = Expr.unbox (typecheck_expr_bottom_up ctx env e0) in
+        unify ctx e0 (ty e) ty_e;
         (* We could use [typecheck_expr_top_down] rather than this manual
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined
@@ -1107,3 +1096,7 @@ let program ?fail_on_any ?assume_op_types prg =
             prg.decl_ctx.ctx_enums;
       };
   }
+
+let program ?fail_on_any ?assume_op_types prg =
+  Message.with_delayed_errors (fun () ->
+      program ?fail_on_any ?assume_op_types prg)

@@ -16,7 +16,7 @@ $ catala Typecheck
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ decimal
-│  ─➤ list
+│  ─➤ list of any
 │
 │ This expression has type decimal:
 ├─➤ tests/typing/bad/err2.catala_en:10.39-10.42:
@@ -24,7 +24,7 @@ $ catala Typecheck
 │ 10 │   definition a equals number of (z ++ 1.1) / 2
 │    │                                       ‾‾‾
 │
-│ Expected type list coming from expression:
+│ Expected type list of any coming from expression:
 ├─➤ tests/typing/bad/err2.catala_en:10.36-10.38:
 │    │
 │ 10 │   definition a equals number of (z ++ 1.1) / 2

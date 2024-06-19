@@ -104,10 +104,13 @@ val results : Content.message list -> unit
 
 (** Multiple errors *)
 
-val with_delayed_errors : (unit -> 'a) -> 'a
-(** [with_delayed_errors f] calls [f] and registers each error triggered using
-    [delayed_error].
+val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
+(** [with_delayed_errors ?stop_on_error f] calls [f] and registers each error
+    triggered using [delayed_error]. [stop_on_error] defaults to
+    [Global.options.stop_on_error].
 
-    @raise CompilerErrors when delayed errors were registered. *)
+    @raise CompilerErrors when delayed errors were registered.
+    @raise CompilerError
+      on the first error encountered when the [stop_on_error] flag is set. *)
 
 val delayed_error : 'b -> ('a, 'b) emitter
