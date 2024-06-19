@@ -1206,7 +1206,7 @@ let main () =
     exit Cmd.Exit.some_error
   | exception Message.CompilerErrors contents ->
     let bt = Printexc.get_raw_backtrace () in
-    List.iter (fun c -> Message.Content.emit c Error) contents;
+    Message.Content.emit_n Error contents;
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Failure msg ->

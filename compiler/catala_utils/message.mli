@@ -55,6 +55,7 @@ module Content : sig
   (** {2 Content emission}*)
 
   val emit : t -> level -> unit
+  val emit_n : level -> t list -> unit
 end
 
 (** This functions emits the message according to the emission type defined by

@@ -18,7 +18,7 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[ERROR]─
+┌─[ERROR (1/2)]─
 │
 │  Syntax error at "definitoin":
 │  » expected a scope use item: a rule, definition or assertion
@@ -32,7 +32,7 @@ $ catala test-scope A
 │
 │ Maybe you wanted to write : "definition" ?
 └─
-┌─[ERROR]─
+┌─[ERROR (2/2)]─
 │
 │  Syntax error at "equal":
 │  » expected 'under condition' followed by a condition, 'equals' followed by
