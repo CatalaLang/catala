@@ -115,11 +115,7 @@ let catala_commands_with_output_flag =
     "makefile";
     "html";
     "latex";
-    "scopelang";
-    "dcalc";
-    "lcalc";
     "ocaml";
-    "scalc";
     "python";
     "r";
     "c";
