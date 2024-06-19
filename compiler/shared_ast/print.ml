@@ -102,7 +102,7 @@ let rec typ_gen
     Format.pp_open_hvbox fmt 2;
     pp_color_string (List.hd colors) fmt "(";
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt " %a@ " op_style "*")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
        (typ ~colors:(List.tl colors)))
       fmt ts;
     Format.pp_close_box fmt ();
