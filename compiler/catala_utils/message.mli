@@ -73,6 +73,11 @@ val unformat : (Format.formatter -> unit) -> string
 
 val has_color : out_channel -> bool
 val set_terminal_width_function : (unit -> int) -> unit
+val terminal_columns : unit -> int
+
+val pad : int -> string -> Format.formatter -> unit
+(** Prints the given character the given number of times (assuming it is of
+    width 1) *)
 
 (* {1 More general color-enabled formatting helpers}*)
 

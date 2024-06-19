@@ -24,10 +24,8 @@ scope S2:
   definition a equals if r then Int content (number of sub.z) else Dec content 0.0
 ```
 
-Should be "catala Typecheck", see test err3
-
 ```catala-test-inline
-$ catala ocaml
+$ catala typecheck
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:

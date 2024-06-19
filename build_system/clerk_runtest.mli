@@ -22,7 +22,14 @@
 
 open Catala_utils
 
-val run_inline_tests : string -> string list -> string list -> File.t -> unit
-(** [run_inline_tests catala_exe catala_opts test_flags file] runs the tests in
-    Catala [file] using the given path to the Catala executable and the provided
-    options. Output is printed to [stdout]. *)
+val run_tests :
+  catala_exe:string ->
+  catala_opts:string list ->
+  test_flags:string list ->
+  report:File.t option ->
+  out:File.t option ->
+  File.t ->
+  unit
+(** [run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out file] runs the
+    tests in Catala [file] using the given path to the Catala executable and the
+    provided options. Output is printed to [stdout] if [out] is [None]. *)

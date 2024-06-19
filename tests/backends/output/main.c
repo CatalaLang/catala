@@ -52,31 +52,25 @@ int main()
     {
         char *error_kind;
         switch (catala_fatal_error_raised.code)
-          {
-          case catala_assertion_failed:
-            error_kind = "an assertion doesn't hold";
+        {
+        case catala_no_value_provided:
+            error_kind = "No value provided";
             break;
-          case catala_no_value:
-            error_kind = "no applicable rule to define this variable in this situation";
+        case catala_conflict:
+            error_kind = "Conflict between exceptions";
             break;
-          case catala_conflict:
-            error_kind = "conflict between multiple valid consequences for assigning the same variable";
+        case catala_crash:
+            error_kind = "Crash";
             break;
-          case catala_division_by_zero:
-            error_kind = "a value is being used as denominator in a division and it computed to zero";
+        case catala_empty:
+            error_kind = "Empty error not caught";
             break;
-          case catala_not_same_length:
-            error_kind = "traversing multiple lists of different lengths";
+        case catala_assertion_failure:
+            error_kind = "Asssertion failure";
             break;
-          case catala_uncomparable_durations:
-            error_kind = "ambiguous comparison between durations in different units (e.g. months vs. days)";
-            break;
-          case catala_indivisible_durations:
-            error_kind = "dividing durations that are not in days";
-            break;
-          case catala_malloc_error:
+        case catala_malloc_error:
             error_kind = "Malloc error";
-          }
+        }
         printf("\033[1;31m[ERROR]\033[0m %s in file %s:%d.%d-%d.%d\n",
                error_kind,
                catala_fatal_error_raised.position.filename,
