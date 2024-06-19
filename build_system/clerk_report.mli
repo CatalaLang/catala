@@ -39,11 +39,9 @@ val display : build_dir:File.t -> Format.formatter -> test -> unit
 val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
-type disp_toggle = DAll | DFailed | DNone
-
 val set_display_flags :
-  ?files:disp_toggle ->
-  ?tests:disp_toggle ->
+  ?files:[ `All | `Failed | `None ] ->
+  ?tests:[ `All | `FailedFile | `Failed | `None ] ->
   ?diffs:bool ->
   ?use_patdiff:bool ->
   unit ->

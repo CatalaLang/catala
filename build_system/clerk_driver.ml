@@ -208,6 +208,34 @@ module Cli = struct
             "Flags or targets to forward to Ninja directly (use $(b,-- \
              ninja_flags) to separate Ninja flags from Clerk flags)")
 
+  let report_verbosity =
+    Arg.(
+      value
+      & vflag `Failures
+          [
+            ( `Summary,
+              info ["summary"] ~doc:"Only display a summary of the test results"
+            );
+            ( `Short,
+              info ["short"] ~doc:"Don't display detailed test failures diff" );
+            ( `Failures,
+              info ["failures"]
+                ~doc:"Show details of files with failed tests only" );
+            ( `Verbose,
+              info ["verbose"; "v"]
+                ~doc:"Display the full list of tests that have been run" );
+          ])
+
+  let use_patdiff =
+    Arg.(
+      value
+      & flag
+      & info ["patdiff"]
+          ~env:(Cmd.Env.info "CATALA_USE_PATDIFF")
+          ~doc:
+            "Enable use of the 'patdiff' command for showing test failure \
+             details (no effect if the command is not available)")
+
   let ninja_flags =
     let env =
       Cmd.Env.info
@@ -870,13 +898,25 @@ let build_cmd =
     Term.(
       const run $ Cli.Global.term ninja_init $ Cli.targets $ Cli.ninja_flags)
 
+let set_report_verbosity = function
+  | `Summary -> Clerk_report.set_display_flags ~files:`None ~tests:`None ()
+  | `Short ->
+    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false ()
+  | `Failures ->
+    if Global.options.debug then Clerk_report.set_display_flags ~files:`All ()
+  | `Verbose -> Clerk_report.set_display_flags ~files:`All ~tests:`All ()
+
 let test_cmd =
   let run
       ninja_init
       (files_or_folders : string list)
       (reset_test_outputs : bool)
       (test_flags : string list)
+      verbosity
+      (use_patdiff : bool)
       (ninja_flags : string list) =
+    set_report_verbosity verbosity;
+    Clerk_report.set_display_flags ~use_patdiff ();
     ninja_init ~extra:Seq.empty ~test_flags
     @@ fun build_dir nin_file ->
     let targets =
@@ -945,6 +985,8 @@ let test_cmd =
       $ Cli.files_or_folders
       $ Cli.reset_test_outputs
       $ Cli.test_flags
+      $ Cli.report_verbosity
+      $ Cli.use_patdiff
       $ Cli.ninja_flags)
 
 let run_cmd =
@@ -1007,9 +1049,11 @@ let runtest_cmd =
       $ Cli.single_file)
 
 let report_cmd =
-  let run color debug build_dir file =
+  let run color debug verbosity use_patdiff build_dir file =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
+    set_report_verbosity verbosity;
+    Clerk_report.set_display_flags ~use_patdiff ();
     let open Clerk_report in
     let tests = read_many file in
     let success = summary ~build_dir tests in
@@ -1024,6 +1068,8 @@ let report_cmd =
       const run
       $ Cli.Global.color
       $ Cli.Global.debug
+      $ Cli.report_verbosity
+      $ Cli.use_patdiff
       $ Cli.build_dir
       $ Cli.single_file)
 

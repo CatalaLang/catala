@@ -28,17 +28,16 @@ type test = {
 }
 
 type file = { name : File.t; successful : int; total : int; tests : test list }
-type disp_toggle = DAll | DFailed | DNone
 
 type disp_flags = {
-  mutable files : disp_toggle;
-  mutable tests : disp_toggle;
+  mutable files : [ `All | `Failed | `None ];
+  mutable tests : [ `All | `FailedFile | `Failed | `None ];
   mutable diffs : bool;
   mutable use_patdiff : bool;
 }
 
 let disp_flags =
-  { files = DFailed; tests = DAll; diffs = true; use_patdiff = false }
+  { files = `Failed; tests = `FailedFile; diffs = true; use_patdiff = false }
 
 let set_display_flags
     ?(files = disp_flags.files)
@@ -150,47 +149,62 @@ let display ~build_dir ppf t =
       (pfile start.Lexing.pos_fname)
       start.Lexing.pos_lnum stop.Lexing.pos_lnum
   in
-  if t.success then (
-    if disp_flags.tests = DAll then
-      Format.fprintf ppf "@{<green>■@} %a passed" pp_pos t.expected)
-  else (
-    Format.pp_open_vbox ppf 2;
-    Format.fprintf ppf "@{<red>■@} %a failed@," pp_pos t.expected;
-    Format.fprintf ppf "@[<h>$ @{<yellow>%a@}@]@,"
+  let print_command () =
+    Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
-      command_line_cleaned;
-    if disp_flags.diffs then
+      command_line_cleaned
+  in
+  Format.pp_open_vbox ppf 2;
+  if t.success then (
+    Format.fprintf ppf "@{<green>■@} %a passed" pp_pos t.expected;
+    if Global.options.debug then print_command ())
+  else (
+    Format.fprintf ppf "@{<red>■@} %a failed" pp_pos t.expected;
+    print_command ();
+    if disp_flags.diffs then (
+      Format.pp_print_cut ppf ();
       get_diff t.expected t.result
       |> String.split_on_char '\n'
       |> List.filter (( <> ) "")
-      |> Format.pp_print_list Format.pp_print_string ppf;
-    Format.pp_close_box ppf ())
+      |> Format.pp_print_list Format.pp_print_string ppf));
+  Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf t =
   let pfile f = String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep) f in
+  let print_tests tests =
+    let tests =
+      match disp_flags.tests with
+      | `All | `FailedFile -> tests
+      | `Failed -> List.filter (fun t -> not t.success) tests
+      | `None -> assert false
+    in
+    Format.pp_print_break ppf 0 3;
+    Format.pp_open_vbox ppf 0;
+    Format.pp_print_list (display ~build_dir) ppf tests;
+    Format.pp_close_box ppf ()
+  in
   if t.successful = t.total then (
-    if disp_flags.files = DAll then
+    if disp_flags.files = `All then (
       Format.fprintf ppf
         "@{<green;reverse;ul>  @} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
-         passed@,"
-        (pfile t.name) t.successful t.total)
-  else (
-    (function
+         passed"
+        (pfile t.name) t.successful t.total;
+      if disp_flags.tests = `All then print_tests t.tests;
+      Format.pp_print_cut ppf ()))
+  else
+    let () =
+      match t.successful with
       | 0 -> Format.fprintf ppf "@{<red;reverse;ul>  @}"
-      | _ -> Format.fprintf ppf "@{<yellow;reverse;ul>  @}")
-      t.successful;
+      | _ -> Format.fprintf ppf "@{<yellow;reverse;ul>  @}"
+    in
     Format.fprintf ppf " @{<cyan>%s@}: " (pfile t.name);
     (function
       | 0 -> Format.fprintf ppf "@{<red;bold>0@}"
       | n -> Format.fprintf ppf "@{<yellow;bold>%d@}" n)
       t.successful;
     Format.fprintf ppf " / %d tests passed" t.total;
-    Format.pp_print_break ppf 0 3;
-    if disp_flags.tests <> DNone then (
-      Format.pp_open_vbox ppf 0;
-      Format.pp_print_list (display ~build_dir) ppf t.tests;
-      Format.pp_close_box ppf ());
-    Format.pp_print_cut ppf ())
+    if disp_flags.tests <> `None then print_tests t.tests;
+    Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
 [@@ocaml.unboxed]
@@ -236,7 +250,7 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
-  if disp_flags.files <> DNone then
+  if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
     if success < total then
