@@ -29,6 +29,7 @@ $ catala Typecheck
 │ 8 │   definition test_var equals 10 xor 20
 │   │                                 ‾‾‾
 └─ 'xor' should be a boolean operator
+
 ┌─[ERROR (2/2)]─
 │
 │  Error during typechecking, incompatible types:

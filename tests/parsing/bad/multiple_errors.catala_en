@@ -32,6 +32,7 @@ $ catala test-scope A
 │
 │ Maybe you wanted to write : "definition" ?
 └─
+
 ┌─[ERROR (2/2)]─
 │
 │  Syntax error at "equal":

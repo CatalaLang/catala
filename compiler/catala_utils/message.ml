@@ -326,14 +326,18 @@ module Content = struct
         ppf content;
       Format.pp_print_newline ppf ()
 
-  let emit_n (target : level) (contents : t list) : unit =
-    let len = List.length contents in
-    List.iteri
-      (fun i c ->
-        let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
-        let pp_marker ?extra_label:_ = pp_marker ~extra_label in
-        emit ~pp_marker c target)
-      contents
+  let emit_n (target : level) = function
+    | [content] -> emit content target
+    | contents ->
+      let ppf = get_ppf target in
+      let len = List.length contents in
+      List.iteri
+        (fun i c ->
+          if i > 0 then Format.pp_print_newline ppf ();
+          let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
+          let pp_marker ?extra_label:_ = pp_marker ~extra_label in
+          emit ~pp_marker c target)
+        contents
 
   let emit (content : t) (target : level) = emit content target
 end

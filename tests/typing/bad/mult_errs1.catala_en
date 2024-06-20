@@ -30,6 +30,7 @@ $ catala Typecheck
 │ 8 │   data i content integer
 │   │                  ‾‾‾‾‾‾‾
 └─
+
 ┌─[ERROR (2/2)]─
 │
 │  Error during typechecking, incompatible types:
