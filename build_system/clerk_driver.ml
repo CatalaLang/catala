@@ -638,7 +638,7 @@ let gen_build_statements
     let obj =
       Nj.build "ocaml-object" ~inputs:[ml_file]
         ~implicit_in:(!Var.catala_exe :: List.map modd modules)
-        ~outputs:(List.map target_file ["mli"; "cmi"; "cmo"; "cmx"; "cmt"; "o"])
+        ~outputs:(List.map target_file ["mli"; "cmi"; "cmo"; "cmx"; "o"])
         ~vars:
           [
             ( Var.ocaml_flags,
