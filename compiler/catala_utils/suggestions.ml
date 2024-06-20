@@ -77,13 +77,25 @@ let sorted_candidates ?(max_elements = 5) suggs given =
   in
   List.concat candidates |> sub [] max_elements
 
-let format (ppf : Format.formatter) (suggestions_list : string list) =
-  match suggestions_list with
+let format ppf suggs =
+  let open Format in
+  let pp_elt elt = fprintf ppf "@{<yellow>\"%s\"@}" elt in
+  let rec loop = function
+    | [] -> assert false
+    | [h] ->
+      pp_elt h;
+      pp_print_string ppf "?"
+    | [h; t] ->
+      pp_elt h;
+      fprintf ppf "@ or@ ";
+      loop [t]
+    | h :: t ->
+      pp_elt h;
+      fprintf ppf ",@ ";
+      loop t
+  in
+  match suggs with
   | [] -> ()
-  | _ :: _ ->
-    Format.pp_print_string ppf "Maybe you wanted to write : ";
-    Format.pp_print_list
-      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
-      (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-      ppf suggestions_list;
-    Format.pp_print_string ppf " ?"
+  | suggs ->
+    pp_print_string ppf "Maybe you wanted to write: ";
+    loop suggs

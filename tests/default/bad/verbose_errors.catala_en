@@ -50,8 +50,8 @@ $ catala test-scope A
 │   │                       ‾
 ├─ Article
 │
-│ Maybe you wanted to write : "field0", or "field2", or "field10",
-│   or "field1", or "field3" ?
+│ Maybe you wanted to write: "field0", "field2", "field10", "field1" or
+│   "field3"?
 └─
 #return code 123#
 ```

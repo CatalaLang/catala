@@ -24,7 +24,7 @@ $ catala test-scope A
 │ 8 │  definition wrong_definition = 1
 │   │                              ‾
 │
-│ Maybe you wanted to write : "." ?
+│ Maybe you wanted to write: "."?
 └─
 #return code 123#
 ```
