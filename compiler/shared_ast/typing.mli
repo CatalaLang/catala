@@ -100,7 +100,7 @@ val program :
   ('a, 'm) gexpr program ->
   ('a, typed) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
-    later dcalc/lcalc stages.
+    later dcalc/lcalc stages).
 
     Any existing type annotations are checked for unification. Use
     [Program.untype] to remove them beforehand if this is not the desired

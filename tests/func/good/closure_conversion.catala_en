@@ -41,3 +41,69 @@ let scope S (S_in: S_in {x_in: bool}): S {z: integer} =
   return { S z = z; }
 
 ```
+
+
+```catala
+declaration scope S2:
+  output dummy content boolean
+  input output cfun2 content decimal depends on x content integer
+
+scope S2:
+  definition dummy equals false
+
+declaration scope S2Use:
+  internal fun content decimal depends on y content integer
+  output o content (S2, S2)
+
+declaration fun2 content decimal depends on y content integer equals y / 3
+
+scope S2Use:
+  definition fun of y equals y / 2
+  definition o equals
+      (output of S2 with { -- cfun2: fun },
+       output of S2 with { -- cfun2: fun2 })
+```
+
+```catala-test-inline
+$ catala Lcalc --avoid-exceptions -O --closure-conversion -s S2Use
+let scope S2Use
+  (S2Use_in: S2Use_in)
+  : S2Use {
+      o:
+        (S2 {
+           dummy: bool;
+           cfun2: ((closure_env, integer) → decimal, closure_env)
+         },
+          S2 {
+            dummy: bool;
+            cfun2: ((closure_env, integer) → decimal, closure_env)
+          })
+    }
+  =
+  let set fun : ((closure_env, integer) → decimal, closure_env) =
+    (closure_fun, to_closure_env ())
+  in
+  let set o :
+      (S2 {
+         dummy: bool;
+         cfun2: ((closure_env, integer) → decimal, closure_env)
+       },
+        S2 {
+          dummy: bool;
+          cfun2: ((closure_env, integer) → decimal, closure_env)
+        }) =
+    (let result : S2 = S2 { S2_in cfun2_in = fun; } in
+     { S2
+       dummy = result.dummy;
+       cfun2 = (closure_o, to_closure_env (result));
+     },
+      let result : S2 =
+        S2 { S2_in cfun2_in = (closure_o, to_closure_env ()); }
+      in
+      { S2
+        dummy = result.dummy;
+        cfun2 = (closure_o, to_closure_env (result));
+      })
+  in
+  return { S2Use o = o; }
+```
