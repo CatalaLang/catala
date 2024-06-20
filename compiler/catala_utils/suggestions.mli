@@ -15,9 +15,20 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val suggestion_minimum_levenshtein_distance_association :
-  string list -> string -> string list
-(**Returns a list of the closest words into {!name:candidates} to the keyword
-   {!name:keyword}*)
+val levenshtein_distance : string -> string -> int
+(** [levenshtein_distance w1 w2] computes the levenshtein distance separating
+    [w1] from [w2]. *)
+
+val best_candidates : string list -> string -> string list
+(** [best_candidates suggestions word] returns the subset of elements in
+    [suggestions] that minimize the levenshtein distance to [word]. Multiple
+    candidates that have a same distance is possible. *)
+
+val sorted_candidates :
+  ?max_elements:int -> string list -> string -> string list
+(** [sorted_candidates ?max_elements suggestions word] sorts the [suggestions]
+    list and retain at most [max_elements] (defaults to 5). This list is ordered
+    by their levenshtein distance to [word], i.e., the first elements are the
+    most similar. *)
 
 val format : Format.formatter -> string list -> unit

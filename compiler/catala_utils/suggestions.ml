@@ -48,51 +48,34 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
-(*We create a list composed by strings that satisfy the following rule : they
-  have the same levenshtein distance, which is the minimum distance between the
-  reference word "keyword" and all the strings in "candidates" (with the
-  condition that this minimum is equal to or less than one third of the length
-  of keyword + 1, in order to get suggestions close to "keyword")*)
-let suggestion_minimum_levenshtein_distance_association
-    (candidates : string list)
-    (keyword : string) : string list =
-  let rec strings_minimum_levenshtein_distance
-      (minimum : int)
-      (result : string list)
-      (candidates' : string list) : string list =
-    (*As we iterate through the "candidates'" list, we create a list "result"
-      with all strings that have the last minimum levenshtein distance found
-      ("minimum").*)
-    match candidates' with
-    (*When a new minimum levenshtein distance is found, the new result list is
-      our new element "current_string" followed by strings that have the same
-      minimum distance. It will be the "result" list if there is no levenshtein
-      distance smaller than this new minimum.*)
-    | current_string :: tail ->
-      let current_levenshtein_distance =
-        levenshtein_distance current_string keyword
-      in
-      if current_levenshtein_distance < minimum then
-        strings_minimum_levenshtein_distance current_levenshtein_distance
-          [current_string] tail
-        (*The "result" list is updated (we append "current_string" to "result")
-          when a new string shares the same minimum levenshtein distance
-          "minimum"*)
-      else if current_levenshtein_distance = minimum then
-        strings_minimum_levenshtein_distance minimum
-          (result @ [current_string])
-          tail
-        (*If a levenshtein distance greater than the minimum is found, "result"
-          doesn't change*)
-      else strings_minimum_levenshtein_distance minimum result tail
-    (*The "result" list is returned at the end of the "candidates'" list.*)
-    | [] -> result
+module M = Stdlib.Map.Make (Int)
+
+let compute_candidates (candidates : string list) (word : string) :
+    string list M.t =
+  List.fold_left
+    (fun m candidate ->
+      let distance = levenshtein_distance word candidate in
+      M.update distance
+        (function None -> Some [candidate] | Some l -> Some (candidate :: l))
+        m)
+    M.empty candidates
+
+let best_candidates candidates word =
+  let candidates = compute_candidates candidates word in
+  M.choose_opt candidates |> function None -> [] | Some (_, l) -> List.rev l
+
+let sorted_candidates ?(max_elements = 5) suggs given =
+  let rec sub acc n = function
+    | [] -> List.rev acc
+    | x :: t when n > 0 -> sub (x :: acc) (pred n) t
+    | _ -> List.rev acc
   in
-  strings_minimum_levenshtein_distance
-    (1 + (String.length keyword / 3))
-    (*In order to select suggestions that are not too far away from the
-      keyword*)
-    [] candidates
+  let candidates =
+    List.map
+      (fun (_, l) -> List.rev l)
+      (M.bindings (compute_candidates suggs given))
+  in
+  List.concat candidates |> sub [] max_elements
 
 let format (ppf : Format.formatter) (suggestions_list : string list) =
   match suggestions_list with

@@ -618,7 +618,10 @@ and typecheck_expr_top_down :
               "Variable @{<yellow>%s@} is not a declared output of scope %a."
               field A.ScopeName.format scope_out
               ~suggestion:
-                (List.map A.StructField.to_string (A.StructField.Map.keys str))
+                (Suggestions.sorted_candidates
+                   (List.map A.StructField.to_string
+                      (A.StructField.Map.keys str))
+                   field)
           | None ->
             Message.error
               ~extra_pos:
@@ -629,7 +632,10 @@ and typecheck_expr_top_down :
               "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
                @{<yellow>\"%a\"@}."
               field A.StructName.format name
-              ~suggestion:(A.Ident.Map.keys ctx.ctx_struct_fields))
+              ~suggestion:
+                (Suggestions.sorted_candidates
+                   (A.Ident.Map.keys ctx.ctx_struct_fields)
+                   field))
       in
       try A.StructName.Map.find name candidate_structs
       with A.StructName.Map.Not_found _ ->
