@@ -111,17 +111,9 @@ let get_diff p1 p2 =
     File.process_out ~check_exit:(fun _ -> ()) cmd (args @ [f1; f2])
 
 let catala_commands_with_output_flag =
-  [
-    "makefile";
-    "html";
-    "latex";
-    "ocaml";
-    "python";
-    "r";
-    "c";
-  ]
+  ["makefile"; "html"; "latex"; "ocaml"; "python"; "r"; "c"]
 
-let display ~build_dir ppf t =
+let display ~build_dir file ppf t =
   let pfile f =
     f
     |> String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep)
@@ -131,6 +123,10 @@ let display ~build_dir ppf t =
     List.filter_map
       (fun s -> if s = "--directory=" ^ build_dir then None else Some (pfile s))
       t.command_line
+    |> (function
+        | catala :: cmd :: args ->
+          (catala :: cmd :: "-I" :: Filename.dirname file :: args)
+        | cl -> cl)
     |> function
     | catala :: cmd :: args
       when List.mem
@@ -176,7 +172,7 @@ let display_file ~build_dir ppf t =
     in
     Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
-    Format.pp_print_list (display ~build_dir) ppf tests;
+    Format.pp_print_list (display ~build_dir t.name) ppf tests;
     Format.pp_close_box ppf ()
   in
   if t.successful = t.total then (

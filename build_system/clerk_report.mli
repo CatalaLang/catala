@@ -34,7 +34,7 @@ type file = { name : File.t; successful : int; total : int; tests : test list }
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
 val read_many : File.t -> file list
-val display : build_dir:File.t -> Format.formatter -> test -> unit
+val display : build_dir:File.t -> File.t -> Format.formatter -> test -> unit
 
 val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
