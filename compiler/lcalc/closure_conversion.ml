@@ -19,10 +19,19 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
+type name_context = { prefix: string; mutable counter: int }
+
 type 'm ctx = {
-  name_context : string;
+  decl_ctx : decl_ctx;
+  name_context : name_context;
   globally_bound_vars : ('m expr, typ) Var.Map.t;
 }
+
+let new_var ?(pfx="") name_context =
+  name_context.counter <- name_context.counter + 1;
+  Var.make (pfx ^ name_context.prefix ^ string_of_int name_context.counter)
+
+let new_context prefix = { prefix; counter = 0 }
 
 (** Function types will be transformed in this way throughout, including in
     [decl_ctx] *)
@@ -67,7 +76,7 @@ let build_closure :
   let mark_ty ty = Expr.with_ty m ty in
   let free_vars_types = List.map (fun (_, m) -> Expr.maybe_ty m) free_vars in
   (* x1, ..., xn *)
-  let code_var = Var.make ctx.name_context in
+  let code_var = new_var ctx.name_context in
   (* code *)
   let closure_env_arg_var = Var.make "env" in
   let closure_env_var = Var.make "env" in
@@ -319,7 +328,7 @@ let transform_closures_scope_let ctx scope_body_expr =
     ~f:(fun var_next scope_let ->
       let _free_vars, new_scope_let_expr =
         (transform_closures_expr
-           { ctx with name_context = Bindlib.name_of var_next })
+           { ctx with name_context = new_context (Bindlib.name_of var_next) })
           scope_let.scope_let_expr
       in
       ( var_next,
@@ -350,7 +359,8 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           in
           let ctx =
             {
-              name_context = Mark.remove (ScopeName.get_info name);
+              decl_ctx = p.decl_ctx;
+              name_context = new_context (Mark.remove (ScopeName.get_info name));
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -377,7 +387,8 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let v, expr = Bindlib.unmbind binder in
           let ctx =
             {
-              name_context = Mark.remove (TopdefName.get_info name);
+              decl_ctx = p.decl_ctx;
+              name_context = new_context (Mark.remove (TopdefName.get_info name));
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -391,7 +402,8 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
         | Topdef (name, ty, expr) ->
           let ctx =
             {
-              name_context = Mark.remove (TopdefName.get_info name);
+              decl_ctx = p.decl_ctx;
+              name_context = new_context (Mark.remove (TopdefName.get_info name));
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -452,7 +464,7 @@ type 'm hoisted_closure = {
 }
 
 let rec hoist_closures_expr :
-    type m. string -> m expr -> m hoisted_closure list * m expr boxed =
+    type m. name_context -> m expr -> m hoisted_closure list * m expr boxed =
  fun name_context e ->
   let m = Mark.get e in
   match Mark.remove e with
@@ -531,7 +543,7 @@ let rec hoist_closures_expr :
     collected_closures, Expr.eappop ~op ~args:new_args ~tys (Mark.get e)
   | EAbs { tys; _ } ->
     (* this is the closure we want to hoist *)
-    let closure_var = Var.make ("closure_" ^ name_context) in
+    let closure_var = new_var ~pfx:"closure_" name_context in
     (* TODO: This will end up as a toplevel name. However for now we assume
        toplevel names are unique, but this breaks this assertions and can lead
        to name wrangling in the backends. We need to have a better system for
@@ -552,7 +564,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
   BoundList.fold_right
     ~f:(fun scope_let var_next (hoisted_closures, next_scope_lets) ->
       let new_hoisted_closures, new_scope_let_expr =
-        (hoist_closures_expr (Bindlib.name_of var_next))
+        (hoist_closures_expr (new_context (Bindlib.name_of var_next)))
           scope_let.scope_let_expr
       in
       ( new_hoisted_closures @ hoisted_closures,
@@ -589,7 +601,7 @@ let rec hoist_closures_code_item_list
         in
         let new_hoisted_closures, new_scope_lets =
           hoist_closures_scope_let
-            (fst (ScopeName.get_info name))
+            (new_context (fst (ScopeName.get_info name)))
             scope_body_expr
         in
         let new_scope_body_expr =
@@ -603,7 +615,7 @@ let rec hoist_closures_code_item_list
       | Topdef (name, ty, (EAbs { binder; tys }, m)) ->
         let v, expr = Bindlib.unmbind binder in
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr (Mark.remove (TopdefName.get_info name)) expr
+          hoist_closures_expr (new_context (Mark.remove (TopdefName.get_info name))) expr
         in
         let new_binder = Expr.bind v new_expr in
         ( new_hoisted_closures,
@@ -612,7 +624,7 @@ let rec hoist_closures_code_item_list
             (Expr.Box.lift (Expr.eabs new_binder tys m)) )
       | Topdef (name, ty, expr) ->
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr (Mark.remove (TopdefName.get_info name)) expr
+          hoist_closures_expr (new_context (Mark.remove (TopdefName.get_info name))) expr
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
