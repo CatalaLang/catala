@@ -114,7 +114,7 @@ let print_time_marker =
     if delta > 50. then
       Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
 
-let pp_marker target ppf =
+let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
   let tags, str =
     match target with
@@ -123,6 +123,11 @@ let pp_marker target ppf =
     | Warning -> [Bold; Fg (C4 yellow)], "WARNING"
     | Result -> [Bold; Fg (C4 green)], "RESULT"
     | Log -> [Bold; Fg (C4 black)], "LOG"
+  in
+  let str =
+    match extra_label with
+    | None -> str
+    | Some lbl -> Printf.sprintf "%s %s" str lbl
   in
   if target = Debug then print_time_marker ppf ();
   Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
@@ -167,7 +172,7 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let basic_msg ppf target content =
+  let basic_msg ?(pp_marker = pp_marker) ppf target content =
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list
       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
@@ -186,7 +191,7 @@ module Content = struct
     Format.pp_close_box ppf ();
     Format.pp_print_newline ppf ()
 
-  let fancy_msg ppf target content =
+  let fancy_msg ?(pp_marker = pp_marker) ppf target content =
     let ppf_out_fcts = Format.pp_get_formatter_out_functions ppf () in
     let restore_ppf () =
       Format.pp_print_flush ppf ();
@@ -271,13 +276,13 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let emit (content : t) (target : level) : unit =
+  let emit ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human -> (
       let ppf = get_ppf target in
       match target with
-      | Debug | Log -> basic_msg ppf target content
-      | Result | Warning | Error -> fancy_msg ppf target content)
+      | Debug | Log -> basic_msg ~pp_marker ppf target content
+      | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
     | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
@@ -322,6 +327,21 @@ module Content = struct
           | None -> ())
         ppf content;
       Format.pp_print_newline ppf ()
+
+  let emit_n (target : level) = function
+    | [content] -> emit content target
+    | contents ->
+      let ppf = get_ppf target in
+      let len = List.length contents in
+      List.iteri
+        (fun i c ->
+          if i > 0 then Format.pp_print_newline ppf ();
+          let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
+          let pp_marker ?extra_label:_ = pp_marker ~extra_label in
+          emit ~pp_marker c target)
+        contents
+
+  let emit (content : t) (target : level) = emit content target
 end
 
 open Content
@@ -445,6 +465,9 @@ let with_delayed_errors
   | Some [] ->
     global_errors.errors <- None;
     r
+  | Some [err] ->
+    global_errors.errors <- None;
+    raise (CompilerError err)
   | Some errs ->
     global_errors.errors <- None;
     raise (CompilerErrors (List.rev errs))

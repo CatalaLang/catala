@@ -12,7 +12,7 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck
-┌─[ERROR]─
+┌─[ERROR (1/2)]─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ decimal
@@ -30,7 +30,8 @@ $ catala Typecheck
 │ 8 │   data i content integer
 │   │                  ‾‾‾‾‾‾‾
 └─
-┌─[ERROR]─
+
+┌─[ERROR (2/2)]─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ decimal
