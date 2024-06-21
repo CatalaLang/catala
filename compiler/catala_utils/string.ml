@@ -50,6 +50,18 @@ let remove_prefix ~prefix s =
     sub s plen (length s - plen)
   else s
 
+let trim_end s =
+  let rec stop n =
+    if n < 0 then n
+    else
+      match get s n with
+      | ' ' | '\x0c' | '\n' | '\r' | '\t' -> stop (n - 1)
+      | _ -> n
+  in
+  let last = length s - 1 in
+  let i = stop last in
+  if i = last then s else sub s 0 (i + 1)
+
 (* Note: this should do, but remains incorrect for combined unicode characters
    that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
    some poing *)
