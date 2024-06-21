@@ -105,15 +105,16 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
 
   let sorted_candidate_tokens lexbuf token_list env =
     let acceptable_tokens =
-      List.filter
-        (fun (_, t) ->
-          I.acceptable (I.input_needed env) t (fst (lexing_positions lexbuf)))
+      List.filter_map
+        (fun ((_, t) as elt) ->
+          if I.acceptable (I.input_needed env) t (fst (lexing_positions lexbuf))
+          then Some elt
+          else None)
         token_list
     in
+    let lexeme = Utf8.lexeme lexbuf in
     let similar_acceptable_tokens =
-      Suggestions.suggestion_minimum_levenshtein_distance_association
-        (List.map (fun (s, _) -> s) acceptable_tokens)
-        (Utf8.lexeme lexbuf)
+      Suggestions.best_candidates (List.map fst acceptable_tokens) lexeme
     in
     let module S = Set.Make (String) in
     let s_toks = S.of_list similar_acceptable_tokens in

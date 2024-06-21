@@ -138,8 +138,7 @@ let raise_error_cons_not_found
     (constructor : string Mark.pos) =
   let constructors = Ident.Map.keys ctxt.local.constructor_idmap in
   let closest_constructors =
-    Suggestions.suggestion_minimum_levenshtein_distance_association constructors
-      (Mark.remove constructor)
+    Suggestions.best_candidates constructors (Mark.remove constructor)
   in
   Message.error
     ~pos_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")

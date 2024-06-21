@@ -21,7 +21,7 @@ $ catala test-scope A
 │ 5 │   output i contents decimal
 │   │            ‾‾‾‾‾‾‾‾
 │
-│ Maybe you wanted to write : "content" ?
+│ Maybe you wanted to write: "content"?
 └─
 #return code 123#
 ```

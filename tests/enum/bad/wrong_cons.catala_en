@@ -25,7 +25,7 @@ $ catala Typecheck
 │    │                       ‾‾‾‾‾
 ├─ Article
 │
-│ Maybe you wanted to write : "Case1" ?
+│ Maybe you wanted to write: "Case1"?
 └─
 #return code 123#
 ```

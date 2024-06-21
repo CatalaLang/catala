@@ -30,7 +30,7 @@ $ catala test-scope A
 │ 12 │   definitoin i equals 3.
 │    │   ‾‾‾‾‾‾‾‾‾‾
 │
-│ Maybe you wanted to write : "definition" ?
+│ Maybe you wanted to write: "definition"?
 └─
 
 ┌─[ERROR (2/2)]─
@@ -46,7 +46,7 @@ $ catala test-scope A
 │ 16 │   definition i equal money of (decimal of x)
 │    │                ‾‾‾‾‾
 │
-│ Maybe you wanted to write : "equals" ?
+│ Maybe you wanted to write: "equals"?
 └─
 #return code 123#
 ```

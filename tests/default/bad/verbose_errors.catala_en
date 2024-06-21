@@ -1,0 +1,57 @@
+###Article
+
+```catala
+declaration structure S:
+  data field0 content integer
+  data field1 content integer
+  data field2 content integer
+  data field3 content integer
+  data field4 content integer
+  data field5 content integer
+  data field6 content integer
+  data field7 content integer
+  data field8 content integer
+  data field9 content integer
+  data field10 content integer
+  data field11 content integer
+  data field12 content integer
+  data field13 content integer
+  data field14 content integer
+  data field15 content integer
+  data field16 content integer
+  data field17 content integer
+  data field18 content integer
+  data field19 content integer
+
+declaration scope A:
+  input wrong_definition content S
+  output o content integer
+
+scope A:
+ definition o equals wrong_definition.field20
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[ERROR]─
+│
+│  Field "field20" does not belong to structure "S".
+│
+├─➤ tests/default/bad/verbose_errors.catala_en:31.22-31.46:
+│    │
+│ 31 │  definition o equals wrong_definition.field20
+│    │                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Article
+│
+│ Structure definition
+├─➤ tests/default/bad/verbose_errors.catala_en:4.23-4.24:
+│   │
+│ 4 │ declaration structure S:
+│   │                       ‾
+├─ Article
+│
+│ Maybe you wanted to write: "field0", "field2", "field10", "field1" or
+│   "field3"?
+└─
+#return code 123#
+```
