@@ -488,7 +488,9 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
   let catala_flags_ocaml =
     List.filter
       (function
-        | "--avoid-exceptions" | "-O" | "--optimize" -> true | _ -> false)
+        | "--avoid-exceptions" | "-O" | "--optimize" | "--closure-conversion" ->
+          true
+        | _ -> false)
       test_flags
   in
   let catala_flags_python =

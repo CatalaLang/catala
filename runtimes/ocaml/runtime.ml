@@ -884,6 +884,8 @@ module Oper = struct
   let o_eq_dur_dur pos d1 d2 = equal_periods pos d1 d2
   let o_eq_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 = 0
   let o_fold = Array.fold_left
+  let o_toclosureenv = Obj.repr
+  let o_fromclosureenv = Obj.obj
 end
 
 include Oper

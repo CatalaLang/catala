@@ -56,72 +56,72 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc --avoid-exceptions -O --closure-conversion 
 type Eoption =  | ENone of unit  | ESome of any 
 type Result = {
-  r: ((closure_env, integer) → integer * closure_env);
+  r: ((closure_env, integer) → integer, closure_env);
   q: integer;
 }
 type SubFoo1_in = { x_in: integer; }
 type SubFoo1 = {
   x: integer;
-  y: ((closure_env, integer) → integer * closure_env);
+  y: ((closure_env, integer) → integer, closure_env);
 }
 type SubFoo2_in = { x1_in: integer; x2_in: integer; }
 type SubFoo2 = {
   x1: integer;
-  y: ((closure_env, integer) → integer * closure_env);
+  y: ((closure_env, integer) → integer, closure_env);
 }
-type Foo_in = { b_in: ((closure_env, unit) → eoption bool * closure_env); }
+type Foo_in = { b_in: ((closure_env, unit) → eoption bool, closure_env); }
 type Foo = { z: integer; }
 
-let topval closure_y : (closure_env, integer) → integer =
+let topval closure_y1 : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
   (from_closure_env env).0 + z
 let scope SubFoo1
   (SubFoo1_in: SubFoo1_in {x_in: integer})
   : SubFoo1 {
       x: integer;
-      y: ((closure_env, integer) → integer * closure_env)
+      y: ((closure_env, integer) → integer, closure_env)
     }
   =
   let get x : integer = SubFoo1_in.x_in in
-  let set y : ((closure_env, integer) → integer * closure_env) =
-    (closure_y, to_closure_env (x))
+  let set y : ((closure_env, integer) → integer, closure_env) =
+    (closure_y1, to_closure_env (x))
   in
   return { SubFoo1 x = x; y = y; }
-let topval closure_y : (closure_env, integer) → integer =
+let topval closure_y1 : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
-  let env1 : (integer * integer) = from_closure_env env in
+  let env1 : (integer, integer) = from_closure_env env in
   ((env1.1 + env1.0 + z))
 let scope SubFoo2
   (SubFoo2_in: SubFoo2_in {x1_in: integer; x2_in: integer})
   : SubFoo2 {
       x1: integer;
-      y: ((closure_env, integer) → integer * closure_env)
+      y: ((closure_env, integer) → integer, closure_env)
     }
   =
   let get x1 : integer = SubFoo2_in.x1_in in
   let get x2 : integer = SubFoo2_in.x2_in in
-  let set y : ((closure_env, integer) → integer * closure_env) =
-    (closure_y, to_closure_env (x2, x1))
+  let set y : ((closure_env, integer) → integer, closure_env) =
+    (closure_y1, to_closure_env (x2, x1))
   in
   return { SubFoo2 x1 = x1; y = y; }
-let topval closure_r : (closure_env, integer) → integer =
+let topval closure_r2 : (closure_env, integer) → integer =
   λ (env: closure_env) (param0: integer) →
-  let code_and_env : ((closure_env, integer) → integer * closure_env) =
+  let code_and_env : ((closure_env, integer) → integer, closure_env) =
     (from_closure_env env).0.y
   in
   code_and_env.0 code_and_env.1 param0
-let topval closure_r : (closure_env, integer) → integer =
+let topval closure_r1 : (closure_env, integer) → integer =
   λ (env: closure_env) (param0: integer) →
-  let code_and_env : ((closure_env, integer) → integer * closure_env) =
+  let code_and_env : ((closure_env, integer) → integer, closure_env) =
     (from_closure_env env).0.y
   in
   code_and_env.0 code_and_env.1 param0
 let scope Foo
   (Foo_in:
-     Foo_in {b_in: ((closure_env, unit) → eoption bool * closure_env)})
+     Foo_in {b_in: ((closure_env, unit) → eoption bool, closure_env)})
   : Foo {z: integer}
   =
-  let get b : ((closure_env, unit) → eoption bool * closure_env) =
+  let get b : ((closure_env, unit) → eoption bool, closure_env) =
     Foo_in.b_in
   in
   let set b : bool =
@@ -133,13 +133,13 @@ let scope Foo
   in
   let set r :
       Result {
-        r: ((closure_env, integer) → integer * closure_env);
+        r: ((closure_env, integer) → integer, closure_env);
         q: integer
       } =
     if b then
       let f : SubFoo1 =
         let result : SubFoo1 = SubFoo1 { SubFoo1_in x_in = 10; } in
-        { SubFoo1 x = result.x; y = (closure_r, to_closure_env (result)); }
+        { SubFoo1 x = result.x; y = (closure_r1, to_closure_env (result)); }
       in
       { Result r = f.y; q = f.x; }
     else
@@ -147,12 +147,15 @@ let scope Foo
         let result : SubFoo2 =
           SubFoo2 { SubFoo2_in x1_in = 10; x2_in = 10; }
         in
-        { SubFoo2 x1 = result.x1; y = (closure_r, to_closure_env (result)); }
+        { SubFoo2
+          x1 = result.x1;
+          y = (closure_r2, to_closure_env (result));
+        }
       in
       { Result r = f.y; q = f.x1; }
   in
   let set z : integer =
-    let code_and_env : ((closure_env, integer) → integer * closure_env) =
+    let code_and_env : ((closure_env, integer) → integer, closure_env) =
       r.r
     in
     code_and_env.0 code_and_env.1 1

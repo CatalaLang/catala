@@ -99,55 +99,55 @@ in
 let lis3 : list of money =
   [¤20.00; ¤200.00; ¤10.00; ¤23.00; ¤25.00; ¤12.00]
 in
-let grok : (decimal, money, money) → (money * decimal) =
+let grok : (decimal, money, money) → (money, decimal) =
   λ (dec: decimal) (mon1: money) (mon2: money) →
   (mon1 * dec, mon1 / mon2)
 in
-let tlist : list of (decimal * money * money) =
+let tlist : list of (decimal, money, money) =
   map2
-    (λ (a: decimal) (b_c: (money * money)) → (a, b_c.0, b_c.1))
+    (λ (a: decimal) (b_c: (money, money)) → (a, b_c.0, b_c.1))
     lis1
     map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
 in
 let S : S_in → S =
   λ (S_in: S_in) →
-  let r1 : list of (money * decimal) =
-    map (λ (x: (decimal * money * money)) → grok x.0 x.1 x.2) tlist
+  let r1 : list of (money, decimal) =
+    map (λ (x: (decimal, money, money)) → grok x.0 x.1 x.2) tlist
   in
-  let r2 : list of (money * decimal) =
+  let r2 : list of (money, decimal) =
     map2
-      (λ (x: decimal) (zip: (money * money)) →
-       let x1 : (decimal * money * money) = (x, zip.0, zip.1) in
+      (λ (x: decimal) (zip: (money, money)) →
+       let x1 : (decimal, money, money) = (x, zip.0, zip.1) in
        grok x1.0 x1.1 x1.2)
       lis1
       map2 (λ (x: money) (zip: money) → (x, zip)) lis2 lis3
   in
-  let r3 : list of (money * decimal) =
+  let r3 : list of (money, decimal) =
     map2
-      (λ (x: decimal) (y_z: (money * money)) →
-       let x_y_z : (decimal * money * money) = (x, y_z.0, y_z.1) in
+      (λ (x: decimal) (y_z: (money, money)) →
+       let x_y_z : (decimal, money, money) = (x, y_z.0, y_z.1) in
        grok x_y_z.0 x_y_z.1 x_y_z.2)
       lis1
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
-  let r4 : list of (money * decimal) =
-    map (λ (x_y_z: (decimal * money * money)) →
+  let r4 : list of (money, decimal) =
+    map (λ (x_y_z: (decimal, money, money)) →
          (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
       tlist
   in
-  let r5 : list of (money * decimal) =
+  let r5 : list of (money, decimal) =
     map2
-      (λ (x: decimal) (y_z: (money * money)) →
-       let x_y_z : (decimal * money * money) = (x, y_z.0, y_z.1) in
+      (λ (x: decimal) (y_z: (money, money)) →
+       let x_y_z : (decimal, money, money) = (x, y_z.0, y_z.1) in
        (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
       lis1
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
-  let r6 : list of (money * decimal) =
+  let r6 : list of (money, decimal) =
     map2
-      (λ (xy: (decimal * money)) (z: money) →
-       let xy_z : ((decimal * money) * money) = (xy, z) in
-       let xy1 : (decimal * money) = xy_z.0 in
+      (λ (xy: (decimal, money)) (z: money) →
+       let xy_z : ((decimal, money), money) = (xy, z) in
+       let xy1 : (decimal, money) = xy_z.0 in
        let z1 : money = xy_z.1 in
        (xy1.1 * xy1.0, xy1.1 / z1))
       map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2

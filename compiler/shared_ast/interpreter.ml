@@ -566,7 +566,11 @@ let rec runtime_to_val :
       let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
       EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
     | _ -> assert false)
-  | TClosureEnv -> assert false
+  | TClosureEnv ->
+    (* By construction, a closure environment can only be consumed from the same
+       scope where it was built (compiled or not) ; for this reason, we can
+       safely avoid converting in depth here *)
+    Obj.obj o, m
   | TArray ty ->
     ( EArray
         (List.map
@@ -656,6 +660,11 @@ and val_to_runtime :
     in
     curry [] targs
   | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
+  | TClosureEnv, v ->
+    (* By construction, a closure environment can only be consumed from the same
+       scope where it was built (compiled or not) ; for this reason, we can
+       safely avoid converting in depth here *)
+    Obj.repr v
   | _ ->
     Message.error ~internal:true
       "Could not convert value of type %a@ to@ runtime:@ %a" (Print.typ ctx) ty

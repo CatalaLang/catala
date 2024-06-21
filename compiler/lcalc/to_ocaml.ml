@@ -219,6 +219,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   in
   match Mark.remove typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
+  | TTuple [] -> Format.fprintf fmt "unit"
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -239,7 +240,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
       (t1 @ [t2])
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
-  | TClosureEnv -> failwith "unimplemented!"
+  | TClosureEnv -> Format.fprintf fmt "Obj.t"
 
 let format_var_str (fmt : Format.formatter) (v : string) : unit =
   let lowercase_name = String.to_snake_case (String.to_ascii v) in

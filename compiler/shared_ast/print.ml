@@ -102,7 +102,7 @@ let rec typ_gen
     Format.pp_open_hvbox fmt 2;
     pp_color_string (List.hd colors) fmt "(";
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt " %a@ " op_style "*")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
        (typ ~colors:(List.tl colors)))
       fmt ts;
     Format.pp_close_box fmt ();
@@ -1113,6 +1113,8 @@ module UserFacing = struct
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            (value ~fallback lang))
         l
+    | ETuple [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _); _] ->
+      Format.pp_print_string ppf "<function>"
     | ETuple l ->
       Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
         (Format.pp_print_list

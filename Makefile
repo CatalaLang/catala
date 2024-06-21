@@ -299,7 +299,8 @@ BRANCH = $(shell git branch --show-current 2>/dev/null || echo master)
 # its usage.
 local_tmp_clone = { \
   rm -rf $1.tmp && \
-  trap "rm -rf $1.tmp" EXIT && \
+  CLEANUP_TMP_GIT_CLONES="$${CLEANUP_TMP_GIT_CLONES}rm -rf $1.tmp; " && \
+  trap "$$CLEANUP_TMP_GIT_CLONES" EXIT && \
   git clone https://github.com/CatalaLang/$1 \
     --depth 1 --reference-if-able ../$1 \
     $1.tmp -b $(BRANCH) || \
@@ -336,8 +337,12 @@ alltest: dependencies-python
 	  bench_ocaml \
 	  bench_js \
 	  bench_python && \
-	printf "\n#             \e[42;30m[ ALL TESTS PASSED ]\e[m             \e[32m☺\e[m\n" || \
-	{ printf "\n#             \e[41;30m[   TESTS FAILED   ]\e[m             \e[31m☹\e[m\n" ; exit 1; }
+	printf "\n# Full Catala testsuite:\t\t\e[42;30m ALL TESTS PASSED \e[m\t\t\e[32m☺\e[m\n" || \
+	{ printf "\n# Full Catala testsuite:\t\t\e[41;30m   TESTS FAILED   \e[m\t\t\e[31m☹\e[m\n" ; exit 1; }
+
+#> alltest-					: Like 'alltest', but skips doc building and is much faster
+alltest-:
+	@$(MAKE) alltest NODOC=1
 
 #> clean					: Clean build artifacts
 clean:

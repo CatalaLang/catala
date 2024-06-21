@@ -76,7 +76,7 @@ let catala_test_command test_flags catala_exe catala_opts args out =
       let cmd0, flags =
         match String.lowercase_ascii cmd0, flags, test_flags with
         | "test-scope", scope_name :: flags, test_flags ->
-          "interpret", (("--scope=" ^ scope_name) :: flags) @ test_flags
+          "interpret", flags @ test_flags @ ["--scope=" ^ scope_name]
         | "test-scope", [], _ ->
           out_line out
             "[INVALID TEST] Invalid test command syntax, the 'test-scope' \
@@ -126,7 +126,7 @@ let run_catala_test filename cmd program expected out_line =
         out_line result_line;
         match Seq.uncons expected with
         | Some (l, expected) -> success && String.equal result_line l, expected
-        | None -> false, expected)
+        | None -> false, Seq.empty)
       (true, expected) out_lines
   in
   let return_code =
@@ -142,7 +142,7 @@ let run_catala_test filename cmd program expected out_line =
       match Seq.uncons expected with
       | Some (l, expected) when String.equal l line -> success, expected
       | Some (_, expected) -> false, expected
-      | None -> false, expected
+      | None -> false, Seq.empty
   in
   success && Seq.is_empty expected
 
@@ -171,7 +171,7 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
     | Some ((l, tok, _), lines) ->
       push_line l;
       if tok = L.LINE_BLOCK_END then lines else skip_block lines
-    | None -> lines
+    | None -> Seq.empty
   in
   let rec get_block acc lines =
     let return lines acc =
@@ -189,7 +189,7 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
       lines, block, (startpos, endpos)
     in
     match Seq.uncons lines with
-    | None -> return lines acc
+    | None -> return Seq.empty acc
     | Some ((_, L.LINE_BLOCK_END, _), lines) -> return lines acc
     | Some (li, lines) -> get_block (li :: acc) lines
   in
@@ -213,7 +213,7 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
           "[INVALID TEST] Missing test command, use '$ catala <args>'\n"
       in
       rtests := t :: !rtests;
-      None, lines
+      None, Seq.empty
     | Some ((str, L.LINE_BLOCK_END, _), lines) ->
       let t =
         broken_test
