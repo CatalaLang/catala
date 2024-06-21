@@ -1108,18 +1108,20 @@ let program ?fail_on_any ?assume_op_types ?(internal_check=false) prg =
     if internal_check then
       fun f ->
         try Message.with_delayed_errors f with
-        | Message.CompilerErrors errs ->
+        | Message.CompilerError _ | Message.CompilerErrors _ as exc ->
           let bt = Printexc.get_raw_backtrace () in
-          Printexc.raise_with_backtrace
-            (Message.CompilerErrors
-               (List.map Message.Content.to_internal_error errs))
-            bt
-        | Message.CompilerError err ->
-          let bt = Printexc.get_raw_backtrace () in
-          Printexc.raise_with_backtrace
-            (Message.CompilerError
-               (Message.Content.to_internal_error err))
-            bt
+          let err = match exc with
+            | Message.CompilerError err ->
+              Message.CompilerError
+                (Message.Content.to_internal_error err)
+            | Message.CompilerErrors errs ->
+              Message.CompilerErrors
+                (List.map Message.Content.to_internal_error errs)
+            | _ -> assert false
+          in
+          Message.debug "Faulty intermediate program:@ %a"
+            (Print.program ~debug:true) prg;
+          Printexc.raise_with_backtrace err bt
     else
       fun f -> Message.with_delayed_errors f
   in
