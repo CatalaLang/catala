@@ -150,18 +150,44 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EExternal _ | EAssert _ | EFatalError _ | EIfThenElse _
+  | ELit _ | EAssert _ | EFatalError _ | EIfThenElse _
   | ERaiseEmpty | ECatchEmpty _ ->
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars
       ~f:(transform_closures_expr ctx)
       e
-  | EVar v -> (
-    match Var.Map.find_opt v ctx.globally_bound_vars with
-    | None -> Var.Map.singleton v m, (Bindlib.box_var v, m)
-    | Some ((TArrow (targs, tret), _) as fty) ->
+  | EVar _ | EExternal _ as e -> (
+    let body, (free_vars, fty) = match e with
+      | EVar v ->
+        Bindlib.box_var v,
+        (match Var.Map.find_opt v ctx.globally_bound_vars with
+         | None ->
+           Var.Map.singleton v m, None
+         | Some ((TArrow (targs, tret), _) as fty) ->
+           Var.Map.empty, Some (targs, tret, fty)
+         | Some _ ->
+           Var.Map.empty, None)
+      | EExternal { name = External_value td, _ } as e ->
+        Bindlib.box e,
+        (Var.Map.empty,
+         match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
+         | TArrow (targs, tret), _ as fty -> Some (targs, tret, fty)
+         | _ -> None)
+      | EExternal { name = External_scope s, pos } ->
+        let fty =
+          let si = ScopeName.Map.find s ctx.decl_ctx.ctx_scopes in
+          let t_in = TStruct si.in_struct_name, pos in
+          let t_out = TStruct si.out_struct_name, pos in
+          [t_in], t_out, (TArrow ([t_in], t_out), pos)
+        in
+        Bindlib.box e, (Var.Map.empty, Some fty)
+      | _ -> assert false
+    in
+    match fty with
+    | None -> free_vars, (body, m)
+    | Some (targs, tret, fty) ->
       (* Here we eta-expand the argument to make sure function pointers are
          correctly casted as closures *)
-      let args = Array.init (List.length targs) (fun _ -> Var.make "eta_arg") in
+      let args = Array.init (List.length targs) (fun i -> Var.make ("x"^string_of_int i)) in
       let arg_vars =
         List.map2
           (fun v ty -> Expr.evar v (Expr.with_ty m ty))
@@ -170,13 +196,12 @@ let rec transform_closures_expr :
       let closure =
         let body =
           Expr.eapp
-            ~f:(Bindlib.box_var v, Expr.with_ty m fty)
+            ~f:(body, Expr.with_ty m fty)
             ~args:arg_vars ~tys:targs (Expr.with_ty m tret)
         in
         build_closure ctx [] body args targs m
       in
-      Var.Map.empty, closure
-    | Some _ -> Var.Map.empty, (Bindlib.box_var v, m))
+      Var.Map.empty, closure)
   | EMatch { e; cases; name } ->
     let free_vars, new_e = (transform_closures_expr ctx) e in
     (* We do not close the clotures inside the arms of the match expression,
@@ -557,7 +582,7 @@ let rec hoist_closures_expr :
   | EArray _ | ELit _ | EAssert _ | EFatalError _ | EAppOp _ | EIfThenElse _
   | ERaiseEmpty | ECatchEmpty _ | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
-  | EExternal _ -> failwith "unimplemented"
+  | EExternal { name } -> [], Expr.box (EExternal { name }, m)
   | _ -> .
 
 let hoist_closures_scope_let name_context scope_body_expr =
