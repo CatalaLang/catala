@@ -432,6 +432,8 @@ module Oper : sig
   val o_eq_dur_dur : source_position -> duration -> duration -> bool
   val o_eq_dat_dat : date -> date -> bool
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
+  val o_toclosureenv : 'a -> Obj.t
+  val o_fromclosureenv : Obj.t -> 'a
 end
 
 include module type of Oper
