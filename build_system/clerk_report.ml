@@ -69,31 +69,87 @@ let has_command cmd =
   let check_cmd = Printf.sprintf "type %s >/dev/null 2>&1" cmd in
   Sys.command check_cmd = 0
 
+let longuest_common_prefix_length s1 s2 =
+  let len = min (String.length s1) (String.length s2) in
+  let rec aux i =
+    if i >= len then i
+    else
+      let c1 = String.get_utf_8_uchar s1 i in
+      let c2 = String.get_utf_8_uchar s2 i in
+      if c1 = c2 then aux (i + Uchar.utf_decode_length c1) else i
+  in
+  aux 0
+
 let diff_command =
   lazy
-    (if
-       disp_flags.use_patdiff
-       && has_command "patdiff"
-       && Message.has_color stdout
-     then ["patdiff"; "-alt-old"; "expected"; "-alt-new"; "result"]
-     else
-       [
-         "diff";
-         "-y";
-         "-t";
-         (* "--suppress-common-lines"; "--horizon-lines=3"; *)
-         "-W";
-         string_of_int (Message.terminal_columns () - 5);
-         (* "-b"; *)
-         ("--color=" ^ if Message.has_color stdout then "always" else "never");
-         "--palette=ad=31:de=32";
-         "--label";
-         "expected";
-         "--label";
-         "result";
-       ])
+    begin
+      if
+        disp_flags.use_patdiff
+        && has_command "patdiff"
+        && Message.has_color stdout
+      then
+        ( ["patdiff"; "-alt-old"; "expected"; "-alt-new"; "result"],
+          fun ppf s ->
+            s
+            |> String.split_on_char '\n'
+            |> List.filter (( <> ) "")
+            |> Format.pp_print_list Format.pp_print_string ppf )
+      else
+        let width = Message.terminal_columns () - 5 in
+        ( [
+            "diff";
+            "-y";
+            "-t";
+            "-W";
+            string_of_int (Message.terminal_columns () - 5);
+          ],
+          fun ppf s ->
+            let mid = (width - 1) / 2 in
+            Format.fprintf ppf "@{<blue;ul>%*sReference%*s│%*sResult%*s@}@,"
+              ((mid - 9) / 2)
+              ""
+              (mid - 9 - ((mid - 9) / 2))
+              ""
+              ((width - mid - 7) / 2)
+              ""
+              (width - mid - 7 - ((width - mid - 7) / 2))
+              "";
+            s
+            |> String.trim_end
+            |> String.split_on_char '\n'
+            |> Format.pp_print_list
+                 (fun ppf li ->
+                   let rec find_cut col index =
+                     if index >= String.length li then None
+                     else if col = mid then Some index
+                     else
+                       let c = String.get_utf_8_uchar li index in
+                       find_cut (col + 1) (index + Uchar.utf_decode_length c)
+                   in
+                   match find_cut 0 0 with
+                   | None ->
+                     if li = "" then Format.fprintf ppf "%*s@{<blue>│@}" mid ""
+                     else Format.pp_print_string ppf li
+                   | Some i -> (
+                     let l, c, r =
+                       ( String.sub li 0 i,
+                         li.[i],
+                         String.sub li (i + 1) (String.length li - i - 1) )
+                     in
+                     match c with
+                     | ' ' -> Format.fprintf ppf "%s@{<blue>│@}%s" l r
+                     | '>' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>%s@}" l r
+                     | '<' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>-@}" l
+                     | '|' ->
+                       let w = longuest_common_prefix_length (" " ^ l) r in
+                       Format.fprintf ppf "%s@{<blue>│@}%s@{<red>%s@}" l
+                         (String.sub r 0 w)
+                         (String.sub r w (String.length r - w))
+                     | _ -> Format.pp_print_string ppf li))
+                 ppf )
+    end
 
-let get_diff p1 p2 =
+let print_diff ppf p1 p2 =
   let get_str (pstart, pend) =
     assert (pstart.Lexing.pos_fname = pend.Lexing.pos_fname);
     File.with_in_channel pstart.Lexing.pos_fname
@@ -106,9 +162,10 @@ let get_diff p1 p2 =
   File.with_temp_file "clerk_diff" "b" ~contents:(get_str p2)
   @@ fun f2 ->
   match Lazy.force diff_command with
-  | [] -> assert false
-  | cmd :: args ->
+  | [], _ -> assert false
+  | cmd :: args, printer ->
     File.process_out ~check_exit:(fun _ -> ()) cmd (args @ [f1; f2])
+    |> printer ppf
 
 let catala_commands_with_output_flag =
   ["makefile"; "html"; "latex"; "ocaml"; "python"; "r"; "c"]
@@ -155,10 +212,7 @@ let display ~build_dir file ppf t =
     print_command ();
     if disp_flags.diffs then (
       Format.pp_print_cut ppf ();
-      get_diff t.expected t.result
-      |> String.split_on_char '\n'
-      |> List.filter (( <> ) "")
-      |> Format.pp_print_list Format.pp_print_string ppf));
+      print_diff ppf t.expected t.result));
   Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf t =
@@ -255,7 +309,8 @@ let summary ~build_dir tests =
   result_box (fun box ->
       box.print_line "@{<ul>%-5s %10s %10s %10s@}" "" "FAILED" "PASSED" "TOTAL";
       if files > 1 then
-        box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} %10d@}" "files"
+        box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+          "files"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
@@ -264,7 +319,8 @@ let summary ~build_dir tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           success_files files;
-      box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} %10d" "tests"
+      box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+        "tests"
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
           | n -> Format.fprintf ppf "%10d" n)

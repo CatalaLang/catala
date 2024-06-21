@@ -50,6 +50,9 @@ val remove_prefix : prefix:string -> string -> string
     - if [str] starts with [prefix], a string [s] such that [prefix ^ s = str]
     - otherwise, [str] unchanged *)
 
+val trim_end : string -> string
+(** Like [Stdlib.String.trim], but only trims at the end of the string *)
+
 val format : Format.formatter -> string -> unit
 
 val width : string -> int
