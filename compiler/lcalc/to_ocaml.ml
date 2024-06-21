@@ -219,6 +219,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   in
   match Mark.remove typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
+  | TTuple [] -> Format.fprintf fmt "unit"
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list

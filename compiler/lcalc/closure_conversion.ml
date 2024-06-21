@@ -118,21 +118,17 @@ let build_closure :
               ~op:(Operator.ToClosureEnv, pos)
               ~tys:
                 [
-                  ( (if free_vars = [] then TLit TUnit
-                     else TTuple free_vars_types),
+                  ( TTuple free_vars_types,
                     pos );
                 ]
               ~args:
                 [
-                  (if free_vars = [] then
-                     Expr.elit LUnit (mark_ty (TLit TUnit, pos))
-                   else
-                     Expr.etuple
-                       (List.map
-                          (fun (extra_var, m) ->
-                            Bindlib.box_var extra_var, Expr.with_pos pos m)
-                          free_vars)
-                       (mark_ty (TTuple free_vars_types, pos)));
+                  Expr.etuple
+                     (List.map
+                        (fun (extra_var, m) ->
+                           Bindlib.box_var extra_var, Expr.with_pos pos m)
+                        free_vars)
+                     (mark_ty (TTuple free_vars_types, pos));
                 ]
               (mark_ty (TClosureEnv, pos));
           ])
