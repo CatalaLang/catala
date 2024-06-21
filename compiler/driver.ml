@@ -202,15 +202,9 @@ module Passes = struct
     in
     let (prg : ty Dcalc.Ast.program) =
       match typed with
-      | Typed _ -> (
+      | Typed _ ->
         Message.debug "Typechecking again...";
-        try Typing.program prg
-        with Message.CompilerError error_content ->
-          let bt = Printexc.get_raw_backtrace () in
-          Printexc.raise_with_backtrace
-            (Message.CompilerError
-               (Message.Content.to_internal_error error_content))
-            bt)
+        Typing.program ~internal_check:true prg
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
@@ -269,7 +263,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false prg)
+        Typing.program ~fail_on_any:false ~internal_check:true prg)
       else (
         Message.debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
@@ -280,14 +274,14 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false prg)
+        Typing.program ~fail_on_any:false ~internal_check:true prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (
         Message.debug "Monomorphizing types...";
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~fail_on_any:false ~assume_op_types:true prg in
+        let prg = Typing.program ~fail_on_any:false ~assume_op_types:true ~internal_check:true prg in
         prg, type_ordering)
       else prg, type_ordering
     in

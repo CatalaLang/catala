@@ -1103,6 +1103,25 @@ let program ?fail_on_any ?assume_op_types prg =
       };
   }
 
-let program ?fail_on_any ?assume_op_types prg =
-  Message.with_delayed_errors (fun () ->
-      program ?fail_on_any ?assume_op_types prg)
+let program ?fail_on_any ?assume_op_types ?(internal_check=false) prg =
+  let wrap =
+    if internal_check then
+      fun f ->
+        try Message.with_delayed_errors f with
+        | Message.CompilerErrors errs ->
+          let bt = Printexc.get_raw_backtrace () in
+          Printexc.raise_with_backtrace
+            (Message.CompilerErrors
+               (List.map Message.Content.to_internal_error errs))
+            bt
+        | Message.CompilerError err ->
+          let bt = Printexc.get_raw_backtrace () in
+          Printexc.raise_with_backtrace
+            (Message.CompilerError
+               (Message.Content.to_internal_error err))
+            bt
+    else
+      fun f -> Message.with_delayed_errors f
+  in
+  wrap @@ fun () ->
+  program ?fail_on_any ?assume_op_types prg
