@@ -1113,6 +1113,8 @@ module UserFacing = struct
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            (value ~fallback lang))
         l
+    | ETuple [EAbs { tys = (TClosureEnv, _)::_ ; _ }, _; _] ->
+      Format.pp_print_string ppf "<function>"
     | ETuple l ->
       Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
         (Format.pp_print_list
