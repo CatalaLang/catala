@@ -837,10 +837,11 @@ module Commands = struct
       optimize
       check_invariants
       avoid_exceptions
+      closure_conversion
       ex_scope_opt =
     let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~typed:Expr.typed ~closure_conversion:false
+        ~avoid_exceptions ~typed:Expr.typed ~closure_conversion
         ~monomorphize_types:false
     in
     let output_file, with_output =
@@ -853,7 +854,7 @@ module Commands = struct
       (Option.value ~default:"stdout" output_file);
     let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
     let hashf =
-      Hash.finalise ~avoid_exceptions ~closure_conversion:false
+      Hash.finalise ~avoid_exceptions ~closure_conversion
         ~monomorphize_types:false
     in
     Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
@@ -870,6 +871,7 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
         $ Cli.Flags.ex_scope_opt)
 
   let scalc

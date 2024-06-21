@@ -47,6 +47,7 @@ end = struct
   type nonrec t = t
 
   let pass k ~avoid_exceptions ~closure_conversion ~monomorphize_types =
+    let avoid_exceptions = avoid_exceptions || closure_conversion in
     (* Should not affect the call convention or actual interfaces: include,
        optimize, check_invariants, typed *)
     !(avoid_exceptions : bool)

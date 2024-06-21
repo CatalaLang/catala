@@ -223,11 +223,11 @@ type typ = naked_typ Mark.pos
 
 and naked_typ =
   | TLit of typ_lit
+  | TArrow of typ list * typ
   | TTuple of typ list
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TOption of typ
-  | TArrow of typ list * typ
   | TArray of typ
   | TDefault of typ
   | TAny

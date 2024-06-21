@@ -76,7 +76,7 @@ let catala_test_command test_flags catala_exe catala_opts args out =
       let cmd0, flags =
         match String.lowercase_ascii cmd0, flags, test_flags with
         | "test-scope", scope_name :: flags, test_flags ->
-          "interpret", (("--scope=" ^ scope_name) :: flags) @ test_flags
+          "interpret", flags @ test_flags @ ["--scope=" ^ scope_name]
         | "test-scope", [], _ ->
           out_line out
             "[INVALID TEST] Invalid test command syntax, the 'test-scope' \
