@@ -255,7 +255,7 @@ let rec transform_closures_expr :
     free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
   | EAppOp
       {
-        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
+        op = ((HandleDefaultOpt | Fold | Map | Map2 | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
