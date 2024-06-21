@@ -19,7 +19,7 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
-type name_context = { prefix: string; mutable counter: int }
+type name_context = { prefix : string; mutable counter : int }
 
 type 'm ctx = {
   decl_ctx : decl_ctx;
@@ -27,7 +27,7 @@ type 'm ctx = {
   globally_bound_vars : ('m expr, typ) Var.Map.t;
 }
 
-let new_var ?(pfx="") name_context =
+let new_var ?(pfx = "") name_context =
   name_context.counter <- name_context.counter + 1;
   Var.make (pfx ^ name_context.prefix ^ string_of_int name_context.counter)
 
@@ -116,19 +116,15 @@ let build_closure :
        :: [
             Expr.eappop
               ~op:(Operator.ToClosureEnv, pos)
-              ~tys:
-                [
-                  ( TTuple free_vars_types,
-                    pos );
-                ]
+              ~tys:[TTuple free_vars_types, pos]
               ~args:
                 [
                   Expr.etuple
-                     (List.map
-                        (fun (extra_var, m) ->
-                           Bindlib.box_var extra_var, Expr.with_pos pos m)
-                        free_vars)
-                     (mark_ty (TTuple free_vars_types, pos));
+                    (List.map
+                       (fun (extra_var, m) ->
+                         Bindlib.box_var extra_var, Expr.with_pos pos m)
+                       free_vars)
+                    (mark_ty (TTuple free_vars_types, pos));
                 ]
               (mark_ty (TClosureEnv, pos));
           ])
@@ -146,28 +142,27 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EFatalError _ | EIfThenElse _
-  | ERaiseEmpty | ECatchEmpty _ ->
+  | ELit _ | EAssert _ | EFatalError _ | EIfThenElse _ | ERaiseEmpty
+  | ECatchEmpty _ ->
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars
       ~f:(transform_closures_expr ctx)
       e
-  | EVar _ | EExternal _ as e -> (
-    let body, (free_vars, fty) = match e with
-      | EVar v ->
-        Bindlib.box_var v,
-        (match Var.Map.find_opt v ctx.globally_bound_vars with
-         | None ->
-           Var.Map.singleton v m, None
-         | Some ((TArrow (targs, tret), _) as fty) ->
-           Var.Map.empty, Some (targs, tret, fty)
-         | Some _ ->
-           Var.Map.empty, None)
+  | (EVar _ | EExternal _) as e -> (
+    let body, (free_vars, fty) =
+      match e with
+      | EVar v -> (
+        ( Bindlib.box_var v,
+          match Var.Map.find_opt v ctx.globally_bound_vars with
+          | None -> Var.Map.singleton v m, None
+          | Some ((TArrow (targs, tret), _) as fty) ->
+            Var.Map.empty, Some (targs, tret, fty)
+          | Some _ -> Var.Map.empty, None ))
       | EExternal { name = External_value td, _ } as e ->
-        Bindlib.box e,
-        (Var.Map.empty,
-         match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
-         | TArrow (targs, tret), _ as fty -> Some (targs, tret, fty)
-         | _ -> None)
+        ( Bindlib.box e,
+          ( Var.Map.empty,
+            match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
+            | (TArrow (targs, tret), _) as fty -> Some (targs, tret, fty)
+            | _ -> None ) )
       | EExternal { name = External_scope s, pos } ->
         let fty =
           let si = ScopeName.Map.find s ctx.decl_ctx.ctx_scopes in
@@ -183,7 +178,10 @@ let rec transform_closures_expr :
     | Some (targs, tret, fty) ->
       (* Here we eta-expand the argument to make sure function pointers are
          correctly casted as closures *)
-      let args = Array.init (List.length targs) (fun i -> Var.make ("x"^string_of_int i)) in
+      let args =
+        Array.init (List.length targs) (fun i ->
+            Var.make ("x" ^ string_of_int i))
+      in
       let arg_vars =
         List.map2
           (fun v ty -> Expr.evar v (Expr.with_ty m ty))
@@ -409,7 +407,8 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context = new_context (Mark.remove (TopdefName.get_info name));
+              name_context =
+                new_context (Mark.remove (TopdefName.get_info name));
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -424,7 +423,8 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context = new_context (Mark.remove (TopdefName.get_info name));
+              name_context =
+                new_context (Mark.remove (TopdefName.get_info name));
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -636,7 +636,9 @@ let rec hoist_closures_code_item_list
       | Topdef (name, ty, (EAbs { binder; tys }, m)) ->
         let v, expr = Bindlib.unmbind binder in
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr (new_context (Mark.remove (TopdefName.get_info name))) expr
+          hoist_closures_expr
+            (new_context (Mark.remove (TopdefName.get_info name)))
+            expr
         in
         let new_binder = Expr.bind v new_expr in
         ( new_hoisted_closures,
@@ -645,7 +647,9 @@ let rec hoist_closures_code_item_list
             (Expr.Box.lift (Expr.eabs new_binder tys m)) )
       | Topdef (name, ty, expr) ->
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr (new_context (Mark.remove (TopdefName.get_info name))) expr
+          hoist_closures_expr
+            (new_context (Mark.remove (TopdefName.get_info name)))
+            expr
         in
         ( new_hoisted_closures,
           Bindlib.box_apply

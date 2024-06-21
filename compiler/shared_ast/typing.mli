@@ -107,4 +107,5 @@ val program :
     [Program.untype] to remove them beforehand if this is not the desired
     behaviour.
 
-    If [internal_check] is set to [true], typing errors will be marked as internal, and the faulty program will be printed if '--debug' is set. *)
+    If [internal_check] is set to [true], typing errors will be marked as
+    internal, and the faulty program will be printed if '--debug' is set. *)

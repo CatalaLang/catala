@@ -124,9 +124,9 @@ let display ~build_dir file ppf t =
       (fun s -> if s = "--directory=" ^ build_dir then None else Some (pfile s))
       t.command_line
     |> (function
-        | catala :: cmd :: args ->
-          (catala :: cmd :: "-I" :: Filename.dirname file :: args)
-        | cl -> cl)
+         | catala :: cmd :: args ->
+           catala :: cmd :: "-I" :: Filename.dirname file :: args
+         | cl -> cl)
     |> function
     | catala :: cmd :: args
       when List.mem

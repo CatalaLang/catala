@@ -281,7 +281,10 @@ module Passes = struct
         Message.debug "Monomorphizing types...";
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~fail_on_any:false ~assume_op_types:true ~internal_check:true prg in
+        let prg =
+          Typing.program ~fail_on_any:false ~assume_op_types:true
+            ~internal_check:true prg
+        in
         prg, type_ordering)
       else prg, type_ordering
     in
