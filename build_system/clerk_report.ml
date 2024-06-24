@@ -138,7 +138,11 @@ let diff_command =
                      in
                      match c with
                      | ' ' -> Format.fprintf ppf "%s@{<blue>│@}%s" l r
-                     | '>' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>%s@}" l r
+                     | '>' ->
+                       if String.for_all (( = ) ' ') l then
+                         Format.fprintf ppf
+                           "%*s@{<red>-@}@{<blue>│@}@{<red>%s@}" (mid - 1) "" r
+                       else Format.fprintf ppf "%s@{<blue>│@}@{<red>%s@}" l r
                      | '<' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>-@}" l
                      | '|' ->
                        let w = longuest_common_prefix_length (" " ^ l) r in
