@@ -53,7 +53,7 @@ let rec format_expr
       (StructField.Map.bindings es)
       Print.punctuation "}"
   | ETuple es ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "()"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
