@@ -710,7 +710,6 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"
           (EnumConstructor.Map.format_bindings
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt pp_cons_name case_expr ->
                match case_expr with
                | EAbs { binder; tys; _ }, _ ->
@@ -871,7 +870,7 @@ let enum
     (EnumConstructor.Map.format_bindings
        ~pp_sep:(fun _ _ -> ())
        (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<hov2> %a %t %a %a@]@;" punctuation "|" pp_n
+         Format.fprintf fmt "@[<hov2> %a %t %a %a@]@," punctuation "|" pp_n
            keyword "of"
            (if debug then typ_debug else typ decl_ctx)
            ty))
@@ -895,14 +894,10 @@ let struct_
 let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
     : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
-  Format.fprintf fmt "%a@.%a@.@."
-    (EnumName.Map.format_bindings
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
-       (enum ~debug decl_ctx))
+  Format.fprintf fmt "@[<v>%a@,%a@,@,@]"
+    (EnumName.Map.format_bindings (enum ~debug decl_ctx))
     ctx_enums
-    (StructName.Map.format_bindings
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
-       (struct_ ~debug decl_ctx))
+    (StructName.Map.format_bindings (struct_ ~debug decl_ctx))
     ctx_structs
 
 let scope
