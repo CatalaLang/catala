@@ -103,7 +103,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Reduce -> Format.pp_print_string fmt "catala_list_reduce"
   | Filter -> Format.pp_print_string fmt "catala_list_filter"
   | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
-  | HandleDefaultOpt | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
+  | HandleExceptions | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -320,7 +320,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = HandleDefaultOpt, _; _ } ->
+  | EAppOp { op = HandleExceptions, _; _ } ->
     Message.error ~internal:true
       "R compilation does not currently support the avoiding of exceptions"
   (* TODO: port the following to avoid-exceptions
@@ -337,8 +337,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
    *        (format_expression ctx))
    *     args *)
   | EApp { f = EFunc x, pos; args }
-    when Ast.FuncName.compare x Ast.handle_default = 0
-         || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
+    when Ast.FuncName.compare x Ast.handle_exceptions = 0 ->
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"

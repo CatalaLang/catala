@@ -1085,7 +1085,7 @@ let expr_to_dot_label0 :
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
           | Fold -> xlang () ~en:"fold" ~fr:"pliage"
-          | HandleDefaultOpt -> ""
+          | HandleExceptions -> ""
           | ToClosureEnv -> ""
           | FromClosureEnv -> ""
         in

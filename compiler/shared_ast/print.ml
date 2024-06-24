@@ -280,7 +280,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Eq_dur_dur -> "=^"
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
-  | HandleDefaultOpt -> "handle_default_opt"
+  | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
 
@@ -324,7 +324,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat | Gte ->
     ">="
   | Fold -> "fold"
-  | HandleDefaultOpt -> "handle_default_opt"
+  | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
 
@@ -400,7 +400,7 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce | Fold
+      | HandleExceptions | Map | Map2 | Concat | Filter | Reduce | Fold
       | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
@@ -865,13 +865,12 @@ let enum
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ EnumConstructor.Map.t) =
-  Format.fprintf fmt "@[<h 0>%a %t %a@ %a@]" keyword "type" pp_name punctuation
-    "="
-    (EnumConstructor.Map.format_bindings
-       ~pp_sep:(fun _ _ -> ())
+  Format.fprintf fmt "@[<h 0>%a %t %a@ %a@]@," keyword "type" pp_name
+    punctuation "="
+    (EnumConstructor.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<hov2> %a %t %a %a@]@," punctuation "|" pp_n
-           keyword "of"
+         Format.fprintf fmt "@[<hov2>%a %t %a %a@]" punctuation "|" pp_n keyword
+           "of"
            (if debug then typ_debug else typ decl_ctx)
            ty))
     c

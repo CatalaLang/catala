@@ -422,7 +422,7 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_eq_dur_dur (rpos ()) x y))
-  | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
+  | HandleExceptions, [(EArray exps, _)] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
         | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
@@ -430,28 +430,9 @@ let rec evaluate_operator
         | _ -> err ())
     in
     match valid_exceptions with
-    | [] -> (
-      let e = evaluate_expr (Expr.unthunk_term_nobox justification) in
-      match Mark.remove e with
-      | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion))
-      | ELit (LBool false) ->
-        EInj
-          {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
-            e = Mark.copy justification (ELit LUnit);
-          }
-      | EInj { name; cons; e }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.none_constr ->
-        EInj
-          {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
-            e = Mark.copy e (ELit LUnit);
-          }
-      | _ -> err ())
+    | [] ->
+      EInj
+        { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
     | [((EInj { cons; name; _ } as e), _)]
       when EnumName.equal name Expr.option_enum
            && EnumConstructor.equal cons Expr.some_constr ->
@@ -472,7 +453,7 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefaultOpt ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
       _ ) ->
     err ()
 

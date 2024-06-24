@@ -108,7 +108,7 @@ let name : type a. a t -> string = function
   | Eq_dur_dur -> "o_eq_dur_dur"
   | Eq_dat_dat -> "o_eq_dat_dat"
   | Fold -> "o_fold"
-  | HandleDefaultOpt -> "o_handledefaultopt"
+  | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "o_toclosureenv"
   | FromClosureEnv -> "o_fromclosureenv"
 
@@ -231,7 +231,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Eq_dat_dat, Eq_dat_dat
   | Eq_dur_dur, Eq_dur_dur
   | Fold, Fold
-  | HandleDefaultOpt, HandleDefaultOpt
+  | HandleExceptions, HandleExceptions
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
@@ -316,7 +316,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Eq_mon_mon, _ -> -1 | _, Eq_mon_mon -> 1
   | Eq_dat_dat, _ -> -1 | _, Eq_dat_dat -> 1
   | Eq_dur_dur, _ -> -1 | _, Eq_dur_dur -> 1
-  | HandleDefaultOpt, _ -> -1 | _, HandleDefaultOpt -> 1
+  | HandleExceptions, _ -> -1 | _, HandleExceptions -> 1
   | FromClosureEnv, _ -> -1 | _, FromClosureEnv -> 1
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
   | Fold, _  | _, Fold -> .
@@ -341,7 +341,7 @@ let kind_dispatch :
       _ ) as op ->
     monomorphic op
   | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
-      | HandleDefaultOpt | FromClosureEnv | ToClosureEnv ),
+      | HandleExceptions | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     polymorphic op
   | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
@@ -374,7 +374,7 @@ type 'a no_overloads =
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
   | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor | HandleDefaultOpt | Log _ | Length | Eq | Map | Map2
+      | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Map | Map2
       | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
       | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat | Round_mon
       | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur

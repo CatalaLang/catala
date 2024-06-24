@@ -88,7 +88,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Reduce -> Format.pp_print_string fmt "list_reduce"
   | Filter -> Format.pp_print_string fmt "list_filter"
   | Fold -> Format.pp_print_string fmt "list_fold_left"
-  | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
+  | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -348,27 +348,25 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = (HandleDefaultOpt, _) as op; args } ->
-    let pos = Mark.get e in
-    Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_op op (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+  (* | EAppOp { op = ((HandleDefaultOpt), _) as op; args } ->
+   *   let pos = Mark.get e in
+   *   Format.fprintf fmt
+   *     "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
+   *      start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
+   *     format_op op (Pos.get_file pos) (Pos.get_start_line pos)
+   *     (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+   *     format_string_list (Pos.get_law_info pos)
+   *     (Format.pp_print_list
+   *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+   *        (format_expression ctx))
+   *     args *)
+  | EApp { f = EFunc x, _; args = [(EArray el, _)] as args }
+    when Ast.FuncName.compare x Ast.handle_exceptions = 0 ->
+    Format.fprintf fmt "%a([%a], %a)@]" format_func_name x
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
-  | EApp { f = EFunc x, pos; args }
-    when Ast.FuncName.compare x Ast.handle_default = 0
-         || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
-    Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         format_position)
+      (List.map Mark.get el)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))

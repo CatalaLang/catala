@@ -294,7 +294,6 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any3 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
-  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
@@ -314,8 +313,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefaultOpt ->
-      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
+    | HandleExceptions -> [array (option any)] @-> option any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
@@ -347,7 +345,10 @@ let polymorphic_op_return_type
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
-  | HandleDefaultOpt, [_; _; tf] -> return_type tf 1
+  | HandleExceptions, [tau] ->
+    let t_inner = any () in
+    unify ctx e tau (uf (TArray t_inner));
+    t_inner
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
   | _ -> Message.error ~pos "Mismatched operator arguments"

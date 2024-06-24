@@ -34,8 +34,7 @@ module VarName =
     ()
 
 let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
-let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
-let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
+let handle_exceptions = FuncName.fresh ("handle_exceptions", Pos.no_pos)
 
 type operator = Shared_ast.lcalc Shared_ast.operator
 

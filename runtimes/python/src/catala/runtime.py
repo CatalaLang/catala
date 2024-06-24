@@ -383,9 +383,9 @@ class NoValue(CatalaError):
                          source_position)
 
 class Conflict(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("two or more concurring valid computations",
-                         source_position)
+    def __init__(self, pos1: SourcePosition, pos2: SourcePosition) -> None:
+        super().__init__("two or more concurring valid computations:\nAt {}".format(pos2),
+                         pos1)
 
 class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
@@ -606,28 +606,21 @@ def list_length(l: List[Alpha]) -> Integer:
 # ========
 
 
-def handle_default_opt(
-    pos: SourcePosition,
-    exceptions: List[Optional[Any]],
-    just: Callable[[Unit], bool],
-    cons: Callable[[Unit], Optional[Alpha]]
-) -> Optional[Alpha]:
+def handle_exceptions(
+    pos: List[SourcePosition],
+    exceptions: List[Optional[Alpha]])
+-> Optional[Alpha]:
     acc: Optional[Alpha] = None
-    for exception in exceptions:
-        if acc is None:
-            acc = exception
-        elif not (acc is None) and exception is None:
+    acc_pos: Optional[pos] = None
+    for exception, pos in zip(exceptions, pos):
+        if exception is None:
             pass  # acc stays the same
-        elif not (acc is None) and not (exception is None):
-            raise Conflict(pos)
-    if acc is None:
-        b = just(Unit())
-        if b:
-            return cons(Unit())
-        else:
-            return None
-    else:
-        return acc
+        elif acc is None:
+            acc = exception
+            acc_pos = pos
+        else
+            raise Conflict(acc_pos,pos)
+    return acc
 
 
 def no_input() -> Callable[[Unit], Alpha]:

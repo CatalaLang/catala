@@ -335,12 +335,8 @@ val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
 
-val handle_default_opt :
-  source_position array ->
-  'a Eoption.t array ->
-  (unit -> bool) ->
-  (unit -> 'a Eoption.t) ->
-  'a Eoption.t
+val handle_exceptions :
+  source_position array -> 'a Eoption.t array -> 'a Eoption.t
 (** @raise Error Conflict *)
 
 (**{1 Operators} *)

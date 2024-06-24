@@ -257,7 +257,7 @@ let rec transform_closures_expr :
     free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
   | EAppOp
       {
-        op = ((HandleDefaultOpt | Fold | Map | Map2 | Filter | Reduce), _) as op;
+        op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
@@ -534,12 +534,7 @@ let rec hoist_closures_expr :
     in
     ( collected_closures,
       Expr.eapp ~f:(Expr.eabs new_binder tys e1_pos) ~args:new_args ~tys m )
-  | EAppOp
-      {
-        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
-        tys;
-        args;
-      } ->
+  | EAppOp { op = ((Fold | Map | Filter | Reduce), _) as op; tys; args } ->
     (* Special case for some operators: its arguments closures thunks because if
        you want to extract it as a function you need these closures to preserve
        evaluation order, but backends that don't support closures will simply

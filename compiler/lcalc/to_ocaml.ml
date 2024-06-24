@@ -409,21 +409,21 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       format_with_parens arg1
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp
-      {
-        op = (HandleDefaultOpt as op), _;
-        args = (EArray excs, _) :: _ as args;
-        _;
-      } ->
-    let pos = List.map Expr.pos excs in
-    Format.fprintf fmt "@[<hov 2>%s@ [|%a|]@ %a@]"
-      (Print.operator_to_string op)
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-         format_pos)
-      pos
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
-      args
+  (* | EAppOp
+   *     {
+   *       op = (HandleDefaultOpt as op), _;
+   *       args = (EArray excs, _) :: _ as args;
+   *       _;
+   *     } ->
+   *   let pos = List.map Expr.pos excs in
+   *   Format.fprintf fmt "@[<hov 2>%s@ [|%a|]@ %a@]"
+   *     (Print.operator_to_string op)
+   *     (Format.pp_print_list
+   *        ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+   *        format_pos)
+   *     pos
+   *     (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
+   *     args *)
   | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
       (Format.pp_print_list
@@ -443,6 +443,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
           Format.fprintf ppf "%a@ " format_pos pos
         | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos (Expr.pos (List.nth args 1))
+        | HandleExceptions ->
+          Format.fprintf ppf "[|@[<hov>%a@]|]@ "
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+               format_pos)
+            (List.map Expr.pos args)
         | _ -> ())
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")

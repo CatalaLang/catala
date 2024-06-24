@@ -372,7 +372,7 @@ module Op = struct
     (* * polymorphic *)
     | Reduce : < polymorphic ; .. > t
     | Fold : < polymorphic ; .. > t
-    | HandleDefaultOpt : < polymorphic ; .. > t
+    | HandleExceptions : < polymorphic ; .. > t
 end
 
 type 'a operator = 'a Op.t

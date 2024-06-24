@@ -138,15 +138,15 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    | EAppOp
-        {
-          op = Op.HandleDefaultOpt, _;
-          args = [_exceptions; _just; _cons];
-          tys = _;
-        }
-      when ctxt.config.keep_special_ops ->
-      (* This should be translated as a statement *)
-      raise (NotAnExpr { needs_a_local_decl = true })
+    (* | EAppOp
+     *     {
+     *       op = Op.HandleDefaultOpt, _;
+     *       args = [_exceptions; _just; _cons];
+     *       tys = _;
+     *     }
+     *   when ctxt.config.keep_special_ops ->
+     *   (\* This should be translated as a statement *\)
+     *   raise (NotAnExpr { needs_a_local_decl = true }) *)
     | EAppOp { op; args; tys = _ } ->
       let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
@@ -274,60 +274,60 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       ~tail:[A.SAssert (Mark.remove new_e), Expr.pos block_expr]
       e_stmts
   | EFatalError err -> [SFatalError err, Expr.pos block_expr]
-  | EAppOp
-      { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
-    when ctxt.config.keep_special_ops ->
-    let exceptions =
-      match Mark.remove exceptions with
-      | EStruct { fields; _ } -> (
-        let _, exceptions =
-          List.find
-            (fun (field, _) ->
-              String.equal (Mark.remove (StructField.get_info field)) "content")
-            (StructField.Map.bindings fields)
-        in
-        match Mark.remove exceptions with
-        | EArray exceptions -> exceptions
-        | _ -> failwith "should not happen")
-      | _ -> failwith "should not happen"
-    in
-    let just = unthunk just in
-    let cons = unthunk cons in
-    let exceptions_stmts, new_exceptions =
-      translate_expr_list ctxt exceptions
-    in
-    let just_stmts, new_just = translate_expr ctxt just in
-    let cons_stmts, new_cons = translate_expr ctxt cons in
-    RevBlock.rebuild exceptions_stmts
-      ~tail:
-        (RevBlock.rebuild just_stmts
-           ~tail:
-             [
-               ( A.SSpecialOp
-                   (OHandleDefaultOpt
-                      {
-                        exceptions = new_exceptions;
-                        just = new_just;
-                        cons =
-                          RevBlock.rebuild cons_stmts
-                            ~tail:
-                              [
-                                ( (match ctxt.inside_definition_of with
-                                  | None -> A.SReturn (Mark.remove new_cons)
-                                  | Some x ->
-                                    A.SLocalDef
-                                      {
-                                        name = Mark.copy new_cons x;
-                                        expr = new_cons;
-                                        typ =
-                                          Expr.maybe_ty (Mark.get block_expr);
-                                      }),
-                                  Expr.pos block_expr );
-                              ];
-                        return_typ = Expr.maybe_ty (Mark.get block_expr);
-                      }),
-                 Expr.pos block_expr );
-             ])
+  (* | EAppOp
+   *     { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
+   *   when ctxt.config.keep_special_ops ->
+   *   let exceptions =
+   *     match Mark.remove exceptions with
+   *     | EStruct { fields; _ } -> (
+   *       let _, exceptions =
+   *         List.find
+   *           (fun (field, _) ->
+   *             String.equal (Mark.remove (StructField.get_info field)) "content")
+   *           (StructField.Map.bindings fields)
+   *       in
+   *       match Mark.remove exceptions with
+   *       | EArray exceptions -> exceptions
+   *       | _ -> failwith "should not happen")
+   *     | _ -> failwith "should not happen"
+   *   in
+   *   let just = unthunk just in
+   *   let cons = unthunk cons in
+   *   let exceptions_stmts, new_exceptions =
+   *     translate_expr_list ctxt exceptions
+   *   in
+   *   let just_stmts, new_just = translate_expr ctxt just in
+   *   let cons_stmts, new_cons = translate_expr ctxt cons in
+   *   RevBlock.rebuild exceptions_stmts
+   *     ~tail:
+   *       (RevBlock.rebuild just_stmts
+   *          ~tail:
+   *            [
+   *              ( A.SSpecialOp
+   *                  (OHandleDefaultOpt
+   *                     {
+   *                       exceptions = new_exceptions;
+   *                       just = new_just;
+   *                       cons =
+   *                         RevBlock.rebuild cons_stmts
+   *                           ~tail:
+   *                             [
+   *                               ( (match ctxt.inside_definition_of with
+   *                                 | None -> A.SReturn (Mark.remove new_cons)
+   *                                 | Some x ->
+   *                                   A.SLocalDef
+   *                                     {
+   *                                       name = Mark.copy new_cons x;
+   *                                       expr = new_cons;
+   *                                       typ =
+   *                                         Expr.maybe_ty (Mark.get block_expr);
+   *                                     }),
+   *                                 Expr.pos block_expr );
+   *                             ];
+   *                       return_typ = Expr.maybe_ty (Mark.get block_expr);
+   *                     }),
+   *                Expr.pos block_expr );
+   *            ]) *)
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in

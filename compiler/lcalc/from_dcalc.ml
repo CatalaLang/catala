@@ -60,26 +60,43 @@ let rec translate_default
   (* Since the program is well typed, all exceptions have as type [option 't] *)
   let pos = Expr.mark_pos mark_default in
   let exceptions = List.map translate_expr exceptions in
-  let exceptions_and_cons_ty = Expr.maybe_ty mark_default in
-  Expr.eappop
-    ~op:(Op.HandleDefaultOpt, Expr.pos cons)
-    ~tys:
-      [
-        TArray exceptions_and_cons_ty, pos;
-        TArrow ([TLit TUnit, pos], (TLit TBool, pos)), pos;
-        TArrow ([TLit TUnit, pos], exceptions_and_cons_ty), pos;
-      ]
-    ~args:
-      [
-        Expr.earray exceptions
-          (Expr.map_ty (fun ty -> TArray ty, pos) mark_default);
-        (* In call-by-value programming languages, as lcalc, arguments are
-           evalulated before calling the function. Since we don't want to
-           execute the justification and conclusion while before checking every
-           exceptions, we need to thunk them. *)
-        Expr.thunk_term (translate_expr just);
-        Expr.thunk_term (translate_expr cons);
-      ]
+  let ty_option = Expr.maybe_ty mark_default in
+  let ty_array = TArray ty_option, pos in
+  let ty_alpha =
+    match ty_option with
+    | TOption ty, _ -> ty
+    | (TAny, _) as ty -> ty
+    | _ -> assert false
+  in
+  let mark_alpha = Expr.with_ty mark_default ty_alpha in
+  Expr.ematch ~name:Expr.option_enum
+    ~e:
+      (Expr.eappop
+         ~op:(Op.HandleExceptions, Expr.pos cons)
+         ~tys:[ty_array]
+         ~args:[Expr.earray exceptions (Expr.with_ty mark_default ty_array)]
+         mark_default)
+    ~cases:
+      (EnumConstructor.Map.of_list
+         [
+           (* Some x -> Some x *)
+           ( Expr.some_constr,
+             let x = Var.make "x" in
+             Expr.make_abs [| x |]
+               (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
+                  ~e:(Expr.evar x mark_alpha) mark_default)
+               [ty_alpha] pos );
+           (* None -> if just then cons else None *)
+           ( Expr.none_constr,
+             Expr.thunk_term
+               (Expr.eifthenelse (translate_expr just) (translate_expr cons)
+                  (Expr.einj
+                     ~e:
+                       (Expr.elit LUnit
+                          (Expr.with_ty mark_default (TLit TUnit, pos)))
+                     ~cons:Expr.none_constr ~name:Expr.option_enum mark_default)
+                  mark_default) );
+         ])
     mark_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
