@@ -529,7 +529,13 @@ let rec runtime_to_val :
            (Array.to_list (Obj.obj o))),
       m )
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
-  | TDefault ty -> runtime_to_val eval_expr ctx m ty o
+  | TDefault ty -> (
+    (* This case is only valid for ASTs including default terms; but the typer
+       isn't aware so we need some additional dark arts. *)
+    match (Obj.obj o : 'a Runtime.Eoption.t) with
+    | Runtime.Eoption.ENone () -> Obj.magic EEmpty, m
+    | Runtime.Eoption.ESome o -> Obj.magic (runtime_to_val eval_expr ctx m ty o)
+    )
   | TAny -> assert false
 
 and val_to_runtime :
@@ -543,7 +549,6 @@ and val_to_runtime :
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
-  | _, EEmpty -> raise Runtime.Empty
   | TLit TBool, ELit (LBool b) -> Obj.repr b
   | TLit TUnit, ELit LUnit -> Obj.repr ()
   | TLit TInt, ELit (LInt i) -> Obj.repr i
@@ -610,7 +615,11 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
-  | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
+  | TDefault ty, _ -> (
+    match v with
+    | EEmpty, _ -> Obj.repr (Runtime.Eoption.ENone ())
+    | EPureDefault e, _ | e ->
+      Obj.repr (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty e)))
   | TClosureEnv, v ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
