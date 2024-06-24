@@ -53,31 +53,34 @@ let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = S_in.x_in in
   let set y : integer =
     match
-      (handle_default_opt
-         [
-           handle_default_opt
-             []
-             (λ () → true)
-             (λ () →
-              ESome
-                (let weights : list of (integer, integer) =
-                   map (λ (potential_max: integer) →
-                        (potential_max,
-                          let potential_max1 : integer = potential_max in
-                          potential_max1))
-                     x
-                 in
-                 reduce
-                   (λ (x1: (integer, integer)) (x2: (integer, integer)) →
-                    if x1.1 < x2.1 then x1 else x2)
-                   let potential_max : integer = -1 in
-                   (potential_max,
-                     let potential_max1 : integer = potential_max in
-                     potential_max1)
-                   weights).0)
-         ]
-         (λ () → false)
-         (λ () → ENone ()))
+      (match
+         (handle_exceptions
+            [
+              match (handle_exceptions []) with
+              | ENone →
+                if true then
+                  ESome
+                    (let weights : list of (integer, integer) =
+                       map (λ (potential_max: integer) →
+                            (potential_max,
+                              let potential_max1 : integer = potential_max in
+                              potential_max1))
+                         x
+                     in
+                     reduce
+                       (λ (x1: (integer, integer)) (x2: (integer, integer)) →
+                        if x1.1 < x2.1 then x1 else x2)
+                       let potential_max : integer = -1 in
+                       (potential_max,
+                         let potential_max1 : integer = potential_max in
+                         potential_max1)
+                       weights).0
+                else ENone ()
+              | ESome x → ESome x
+            ])
+       with
+       | ENone → if false then ENone () else ENone ()
+       | ESome x → ESome x)
     with
     | ENone → error NoValue
     | ESome arg → arg

@@ -47,44 +47,66 @@ module S = struct
 end
 
 module S_in = struct
-  type t = {a_in: unit -> bool}
+  type t = {a_in: unit -> (bool) Eoption.t}
 end
 
 
 let s (s_in: S_in.t) : S.t =
-  let a_: unit -> bool = s_in.S_in.a_in in
+  let a_: unit -> (bool) Eoption.t = s_in.S_in.a_in in
   let a_: bool =
-    try
-      (handle_default
-         [|{filename="tests/name_resolution/good/let_in2.catala_en";
-            start_line=7; start_column=18; end_line=7; end_column=19;
-            law_headings=["Article"]}|] ([|(fun (_: unit) -> a_ ())|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            try
-              (handle_default
-                 [|{filename="tests/name_resolution/good/let_in2.catala_en";
-                    start_line=11; start_column=5; end_line=13; end_column=6;
-                    law_headings=["Article"]}|]
-                 ([|(fun (_: unit) ->
-                       handle_default [||] ([||]) (fun (_: unit) -> true)
-                         (fun (_: unit) -> (let a_ : bool = false
-                            in
-                            (let a_ : bool = (o_or a_ true) in
-                            a_))))|]) (fun (_: unit) -> false)
-                 (fun (_: unit) -> raise Empty))
-            with Empty ->
-            (raise
-            (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                                                     start_line=7; start_column=18;
-                                                     end_line=7; end_column=19;
-                                                     law_headings=["Article"]}])))))
-    with Empty ->
-    (raise
-    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                                             start_line=7; start_column=18;
-                                             end_line=7; end_column=19;
-                                             law_headings=["Article"]}]))) in
+    match
+      (match
+         (handle_exceptions
+            [|{filename="tests/name_resolution/good/let_in2.catala_en";
+               start_line=7; start_column=18; end_line=7; end_column=19;
+               law_headings=["Article"]}|] ([|(a_ ())|]))
+       with
+       | Eoption.ENone _ ->
+           ( if true then
+              (Eoption.ESome
+                 (match
+                    (match
+                       (handle_exceptions
+                          [|{filename="tests/name_resolution/good/let_in2.catala_en";
+                             start_line=7; start_column=18;
+                             end_line=7; end_column=19;
+                             law_headings=["Article"]}|]
+                          ([|(match
+                                (handle_exceptions
+                                   [|{filename="tests/name_resolution/good/let_in2.catala_en";
+                                      start_line=11; start_column=5;
+                                      end_line=13; end_column=6;
+                                      law_headings=["Article"]}|] ([||]))
+                              with
+                              | Eoption.ENone _ ->
+                                  ( if true then
+                                     (Eoption.ESome (let a_ : bool = false
+                                        in
+                                        (let a_ : bool = (o_or a_ true)
+                                        in
+                                        a_))) else (Eoption.ENone ()))
+                              | Eoption.ESome x_ -> (Eoption.ESome x_))|]))
+                     with
+                     | Eoption.ENone _ ->
+                         ( if false then (Eoption.ENone ()) else
+                            (Eoption.ENone ()))
+                     | Eoption.ESome x_ -> (Eoption.ESome x_))
+                  with
+                  | Eoption.ENone _ -> (raise
+                      (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
+                                                               start_line=7; start_column=18;
+                                                               end_line=7; end_column=19;
+                                                               law_headings=
+                                                               ["Article"]}])))
+                  | Eoption.ESome arg_ -> arg_)) else (Eoption.ENone ()))
+       | Eoption.ESome x_ -> (Eoption.ESome x_))
+    with
+    | Eoption.ENone _ -> (raise
+        (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
+                                                 start_line=7; start_column=18;
+                                                 end_line=7; end_column=19;
+                                                 law_headings=["Article"]}])))
+    | Eoption.ESome arg_ -> arg_ in
   {S.a = a_}
 
 let () =

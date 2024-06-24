@@ -54,7 +54,8 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Lcalc -O --closure-conversion 
-type Eoption =  | ENone of unit  | ESome of any 
+type Eoption = | ENone of unit | ESome of any
+
 type Result = {
   r: ((closure_env, integer) → integer, closure_env);
   q: integer;
@@ -126,7 +127,9 @@ let scope Foo
   in
   let set b : bool =
     match
-      (handle_default_opt [b.0 b.1 ()] (λ () → true) (λ () → ESome true))
+      (match (handle_exceptions [b.0 b.1 ()]) with
+       | ENone → ESome true
+       | ESome x → ESome x)
     with
     | ENone → error NoValue
     | ESome arg → arg
