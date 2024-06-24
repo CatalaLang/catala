@@ -30,11 +30,10 @@ type 'm ctx = {
 let new_var ?(pfx = "") name_context =
   name_context.counter <- name_context.counter + 1;
   Var.make (pfx ^ name_context.prefix ^ string_of_int name_context.counter)
-(* TODO: Closures end up as a toplevel names. However for now we assume
-   toplevel names are unique, this is a temporary workaround to avoid
-   name wrangling in the backends. We need to have a better system for
-   name disambiguation when for instance printing to Dcalc/Lcalc/Scalc but
-   also OCaml, Python, etc. *)
+(* TODO: Closures end up as a toplevel names. However for now we assume toplevel
+   names are unique, this is a temporary workaround to avoid name wrangling in
+   the backends. We need to have a better system for name disambiguation when
+   for instance printing to Dcalc/Lcalc/Scalc but also OCaml, Python, etc. *)
 
 let new_context prefix = { prefix; counter = 0 }
 

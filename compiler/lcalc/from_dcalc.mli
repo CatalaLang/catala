@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   and social benefits computation rules. Copyright (C) 2020-2022 Inria,
+   contributor: Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,13 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val translate_program_with_exceptions : 'm Dcalc.Ast.program -> 'm Ast.program
-(** Translation from the default calculus to the lambda calculus. This
-    translation uses exceptions to handle empty default terms. *)
-
-val translate_program_without_exceptions :
-  'm Dcalc.Ast.program -> 'm Ast.program
 (** Translation from the default calculus to the lambda calculus. This
     translation uses an option monad to handle empty defaults terms. This
     transformation is one piece to permit to compile toward legacy languages
-    that does not contains catchable exceptions. *)
+    that does not contains exceptions. *)
+
+val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program

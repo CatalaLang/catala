@@ -58,12 +58,7 @@ val map :
     first argument is expected to be a [Foo.Map.fold] function. The result is
     independent of the ordering of the map. *)
 
-val finalise :
-  t ->
-  avoid_exceptions:bool ->
-  closure_conversion:bool ->
-  monomorphize_types:bool ->
-  full
+val finalise : t -> closure_conversion:bool -> monomorphize_types:bool -> full
 (** Turns a raw interface hash into a full hash, ready for printing *)
 
 val to_string : full -> string

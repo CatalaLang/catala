@@ -272,9 +272,7 @@ let run includes optimize check_invariants ex_scope options =
       ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
-    ~hashf:
-      (Hash.finalise ~avoid_exceptions:false ~closure_conversion:false
-         ~monomorphize_types:false);
+    ~hashf:(Hash.finalise ~closure_conversion:false ~monomorphize_types:false);
   let scope = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   let result_expr, _env = interpret_program prg scope in
   let fmt = Format.std_formatter in

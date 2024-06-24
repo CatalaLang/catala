@@ -24,7 +24,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid-exceptions -O --closure-conversion
+$ catala Lcalc -O --closure-conversion
 type Eoption =  | ENone of unit  | ESome of any 
 type S_in = { x_in: bool; }
 type S = { z: integer; }
@@ -65,7 +65,7 @@ scope S2Use:
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid-exceptions -O --closure-conversion -s S2Use
+$ catala Lcalc -O --closure-conversion -s S2Use
 let scope S2Use
   (S2Use_in: S2Use_in)
   : S2Use {

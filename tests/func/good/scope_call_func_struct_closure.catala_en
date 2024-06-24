@@ -53,7 +53,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid-exceptions -O --closure-conversion 
+$ catala Lcalc -O --closure-conversion 
 type Eoption =  | ENone of unit  | ESome of any 
 type Result = {
   r: ((closure_env, integer) → integer, closure_env);
@@ -165,7 +165,7 @@ let scope Foo
 ```
 
 ```catala-test-inline
-$ catala Interpret --lcalc -s Foo --avoid-exceptions -O --closure-conversion
+$ catala Interpret --lcalc -s Foo -O --closure-conversion
 ┌─[RESULT]─
 │ z = 11
 └─

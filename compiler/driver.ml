@@ -227,7 +227,6 @@ module Passes = struct
       ~optimize
       ~check_invariants
       ~(typed : ty mark)
-      ~avoid_exceptions
       ~closure_conversion
       ~monomorphize_types :
       typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
@@ -235,23 +234,11 @@ module Passes = struct
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     debug_pass_name "lcalc";
-    let avoid_exceptions = avoid_exceptions || closure_conversion in
-    (* --closure-conversion implies --avoid-exceptions *)
     let prg =
-      if avoid_exceptions && options.trace then
-        Message.warning
-          "It is discouraged to use option @{<yellow>--avoid-exceptions@} if \
-           you@ also@ need@ @{<yellow>--trace@},@ the@ resulting@ trace@ may@ \
-           be@ unreliable@ at@ the@ moment.";
-      match avoid_exceptions, typed with
-      | true, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | true, Typed _ ->
-        Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | false, Typed _ -> Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | false, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
+      match typed with
+      | Untyped _ -> Lcalc.From_dcalc.translate_program prg
+      | Typed _ -> Lcalc.From_dcalc.translate_program prg
+      | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
       if optimize then begin
@@ -295,7 +282,6 @@ module Passes = struct
       ~includes
       ~optimize
       ~check_invariants
-      ~avoid_exceptions
       ~closure_conversion
       ~keep_special_ops
       ~dead_value_assignment
@@ -304,7 +290,7 @@ module Passes = struct
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~avoid_exceptions ~closure_conversion ~monomorphize_types
+        ~closure_conversion ~monomorphize_types
     in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
@@ -710,10 +696,7 @@ module Commands = struct
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules
-      ~hashf:
-        Hash.(
-          finalise ~avoid_exceptions:false ~closure_conversion:false
-            ~monomorphize_types:false)
+      ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
       prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
@@ -725,13 +708,12 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion
       monomorphize_types
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~typed ~monomorphize_types
+        ~closure_conversion ~typed ~monomorphize_types
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -764,14 +746,12 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.ex_scope_opt)
 
   let interpret_lcalc
       typed
-      avoid_exceptions
       closure_conversion
       monomorphize_types
       options
@@ -781,32 +761,27 @@ module Commands = struct
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~monomorphize_types ~typed
+        ~closure_conversion ~monomorphize_types ~typed
     in
     Interpreter.load_runtime_modules
-      ~hashf:
-        (Hash.finalise ~avoid_exceptions ~closure_conversion ~monomorphize_types)
+      ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
       prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let interpret_cmd =
-    let f lcalc avoid_exceptions closure_conversion monomorphize_types no_typing
-        =
+    let f lcalc closure_conversion monomorphize_types no_typing =
       if not lcalc then
-        if avoid_exceptions || closure_conversion || monomorphize_types then
+        if closure_conversion || monomorphize_types then
           Message.error
-            "The flags @{<bold>--avoid-exceptions@}, \
-             @{<bold>--closure-conversion@} and @{<bold>--monomorphize-types@} \
-             only make sense with the @{<bold>--lcalc@} option"
+            "The flags @{<bold>--closure-conversion@} and \
+             @{<bold>--monomorphize-types@} only make sense with the \
+             @{<bold>--lcalc@} option"
         else if no_typing then interpret_dcalc Expr.untyped
         else interpret_dcalc Expr.typed
       else if no_typing then
-        interpret_lcalc Expr.untyped avoid_exceptions closure_conversion
-          monomorphize_types
-      else
-        interpret_lcalc Expr.typed avoid_exceptions closure_conversion
-          monomorphize_types
+        interpret_lcalc Expr.untyped closure_conversion monomorphize_types
+      else interpret_lcalc Expr.typed closure_conversion monomorphize_types
     in
     Cmd.v
       (Cmd.info "interpret"
@@ -817,7 +792,6 @@ module Commands = struct
       Term.(
         const f
         $ Cli.Flags.lcalc
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.no_typing
@@ -833,13 +807,11 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion
       ex_scope_opt =
     let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~typed:Expr.typed ~closure_conversion
-        ~monomorphize_types:false
+        ~typed:Expr.typed ~closure_conversion ~monomorphize_types:false
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output
@@ -850,10 +822,7 @@ module Commands = struct
     Message.debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
     let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
-    let hashf =
-      Hash.finalise ~avoid_exceptions ~closure_conversion
-        ~monomorphize_types:false
-    in
+    let hashf = Hash.finalise ~closure_conversion ~monomorphize_types:false in
     Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
 
   let ocaml_cmd =
@@ -867,7 +836,6 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.ex_scope_opt)
 
@@ -877,7 +845,6 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion
       keep_special_ops
       dead_value_assignment
@@ -886,8 +853,8 @@ module Commands = struct
       ex_scope_opt =
     let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~keep_special_ops
-        ~dead_value_assignment ~no_struct_literals ~monomorphize_types
+        ~closure_conversion ~keep_special_ops ~dead_value_assignment
+        ~no_struct_literals ~monomorphize_types
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -919,7 +886,6 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.dead_value_assignment
@@ -933,13 +899,11 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
-        ~dead_value_assignment:true ~no_struct_literals:false
-        ~monomorphize_types:false
+        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
+        ~no_struct_literals:false ~monomorphize_types:false
     in
 
     let output_file, with_output =
@@ -962,15 +926,13 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
   let r options includes output optimize check_invariants closure_conversion =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:false ~closure_conversion ~keep_special_ops:false
-        ~dead_value_assignment:false ~no_struct_literals:false
-        ~monomorphize_types:false
+        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:false
+        ~no_struct_literals:false ~monomorphize_types:false
     in
 
     let output_file, with_output = get_output_format options ~ext:".r" output in
@@ -994,7 +956,7 @@ module Commands = struct
   let c options includes output optimize check_invariants =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:true ~closure_conversion:true ~keep_special_ops:true
+        ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
         ~monomorphize_types:true
     in

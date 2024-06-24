@@ -217,7 +217,7 @@ tests: test
 TEST_FLAGS_LIST = ""\
 -O \
 --lcalc \
---lcalc,--avoid-exceptions,-O
+--lcalc,--closure-conversion,-O
 
 # Does not include running dune (to avoid duplication when run among bigger rules)
 testsuite-base: .FORCE

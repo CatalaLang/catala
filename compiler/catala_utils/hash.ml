@@ -36,22 +36,16 @@ module Flags : sig
   type nonrec t = private t
 
   val pass :
-    (t -> 'a) ->
-    avoid_exceptions:bool ->
-    closure_conversion:bool ->
-    monomorphize_types:bool ->
-    'a
+    (t -> 'a) -> closure_conversion:bool -> monomorphize_types:bool -> 'a
 
   val of_t : int -> t
 end = struct
   type nonrec t = t
 
-  let pass k ~avoid_exceptions ~closure_conversion ~monomorphize_types =
-    let avoid_exceptions = avoid_exceptions || closure_conversion in
+  let pass k ~closure_conversion ~monomorphize_types =
     (* Should not affect the call convention or actual interfaces: include,
        optimize, check_invariants, typed *)
-    !(avoid_exceptions : bool)
-    % !(closure_conversion : bool)
+    !(closure_conversion : bool)
     % !(monomorphize_types : bool)
     % (* The following may not affect the call convention, but we want it set in
          an homogeneous way *)

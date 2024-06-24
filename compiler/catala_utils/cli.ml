@@ -334,13 +334,6 @@ module Flags = struct
         ~env:(Cmd.Env.info "CATALA_OPTIMIZE")
         ~doc:"Run compiler optimizations."
 
-  let avoid_exceptions =
-    value
-    & flag
-    & info ["avoid-exceptions"]
-        ~env:(Cmd.Env.info "CATALA_AVOID_EXCEPTIONS")
-        ~doc:"Compiles the default calculus without exceptions."
-
   let keep_special_ops =
     value
     & flag
@@ -381,9 +374,7 @@ module Flags = struct
     value
     & flag
     & info ["closure-conversion"]
-        ~doc:
-          "Performs closure conversion on the lambda calculus. Implies \
-           $(b,--avoid-exceptions)."
+        ~doc:"Performs closure conversion on the lambda calculus."
 
   let disable_counterexamples =
     value

@@ -233,21 +233,11 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_print_cut ppf ()
 
 let format_program ?debug ppf prg =
-  let decl_ctx =
-    (* TODO: this is redundant with From_dcalc.add_option_type (which is already
-       applied in avoid_exceptions mode) *)
-    {
-      prg.ctx.decl_ctx with
-      ctx_enums =
-        EnumName.Map.add Expr.option_enum Expr.option_enum_config
-          prg.ctx.decl_ctx.ctx_enums;
-    }
-  in
   Format.pp_open_vbox ppf 0;
   ModuleName.Map.iter
     (fun m var ->
       Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
         var ModuleName.format m)
     prg.ctx.modules;
-  Format.pp_print_list (format_item decl_ctx ?debug) ppf prg.code_items;
+  Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
   Format.pp_close_box ppf ()
