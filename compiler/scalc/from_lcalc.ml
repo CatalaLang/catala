@@ -227,8 +227,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
           Expr.pos expr )
       in
       RevBlock.empty, (EExternal { modname; name }, Expr.pos expr)
-    | ECatchEmpty _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _
-    | EFatalError _ | ERaiseEmpty ->
+    | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
       raise (NotAnExpr { needs_a_local_decl = true })
     | _ -> .
   with NotAnExpr { needs_a_local_decl } ->
@@ -483,29 +482,6 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               },
             Expr.pos block_expr );
         ]
-  | ECatchEmpty { body; handler } ->
-    let s_e_try = translate_statements ctxt body in
-    let s_e_catch = translate_statements ctxt handler in
-    [
-      ( A.STryWEmpty { try_block = s_e_try; with_block = s_e_catch },
-        Expr.pos block_expr );
-    ]
-  | ERaiseEmpty ->
-    (* Before raising the exception, we still give a dummy definition to the
-       current variable so that tools like mypy don't complain. *)
-    (match ctxt.inside_definition_of with
-    | Some x when ctxt.config.dead_value_assignment ->
-      [
-        ( A.SLocalDef
-            {
-              name = x, Expr.pos block_expr;
-              expr = Ast.EVar Ast.dead_value, Expr.pos block_expr;
-              typ = Expr.maybe_ty (Mark.get block_expr);
-            },
-          Expr.pos block_expr );
-      ]
-    | _ -> [])
-    @ [A.SRaiseEmpty, Expr.pos block_expr]
   | EInj { e = e1; cons; name } when ctxt.config.no_struct_literals ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let tmp_struct_var_name =

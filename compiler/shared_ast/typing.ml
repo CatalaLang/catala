@@ -760,11 +760,6 @@ and typecheck_expr_top_down :
         args
     in
     Expr.escopecall ~scope ~args:args' mark
-  | A.ERaiseEmpty -> Expr.eraiseempty context_mark
-  | A.ECatchEmpty { body; handler } ->
-    let body' = typecheck_expr_top_down ctx env tau body in
-    let handler' = typecheck_expr_top_down ctx env tau handler in
-    Expr.ecatchempty body' handler' context_mark
   | A.EVar v ->
     let tau' =
       match Env.get env v with

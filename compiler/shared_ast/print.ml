@@ -424,8 +424,6 @@ module Precedence = struct
     | EPureDefault _ -> Contained
     | EEmpty -> Contained
     | EErrorOnEmpty _ -> App
-    | ERaiseEmpty -> App
-    | ECatchEmpty _ -> App
     | ECustom _ -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
@@ -669,12 +667,6 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EFatalError err ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
           (Runtime.error_to_string err)
-      | ECatchEmpty { body; handler } ->
-        Format.fprintf fmt
-          "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]" keyword "try"
-          expr body keyword "with" op_style "Empty" (rhs exprc) handler
-      | ERaiseEmpty ->
-        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" op_style "Empty"
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -1128,8 +1120,8 @@ module UserFacing = struct
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | ERaiseEmpty | ECatchEmpty _ | ELocation _ | EScopeCall _
-    | EDStructAmend _ | EDStructAccess _ | ECustom _ ->
+    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
+    | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
   let expr :

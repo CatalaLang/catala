@@ -463,10 +463,6 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EFatalError er ->
     Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, [%a]))"
       Print.runtime_error er format_pos (Expr.pos e)
-  | ERaiseEmpty -> Format.fprintf fmt "raise Empty"
-  | ECatchEmpty { body; handler } ->
-    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with Empty ->@]@ @[%a@]"
-      format_with_parens body format_with_parens handler
   | _ -> .
 
 let format_struct_embedding

@@ -138,7 +138,6 @@ type desugared =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
    resolvedNames: no], and after name resolution has the opposite; but the
@@ -159,7 +158,6 @@ type scopelang =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 
 type dcalc =
@@ -173,7 +171,6 @@ type dcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 
 type lcalc =
@@ -187,7 +184,6 @@ type lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : no
-  ; exceptions : yes
   ; custom : no >
 
 type 'a any = < .. > as 'a
@@ -206,12 +202,11 @@ type dcalc_lcalc_features =
   ; assertions : yes >
 (** Features that are common to Dcalc and Lcalc *)
 
-type ('a, 'b) dcalc_lcalc =
-  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : no >
+type 'd dcalc_lcalc = < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
-type ('a, 'b, 'c) interpr_kind =
-  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : 'c >
+type ('d, 'c) interpr_kind =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c >
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
 
@@ -562,13 +557,6 @@ and ('a, 'b, 'm) base_gexpr =
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
-  (* Lambda calculus with exceptions *)
-  | ERaiseEmpty : ('a, < exceptions : yes ; .. >, 'm) base_gexpr
-  | ECatchEmpty : {
-      body : ('a, 'm) gexpr;
-      handler : ('a, 'm) gexpr;
-    }
-      -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;
