@@ -335,15 +335,6 @@ val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
 
-val handle_default :
-  source_position array ->
-  (unit -> 'a) array ->
-  (unit -> bool) ->
-  (unit -> 'a) ->
-  'a
-(** @raise Empty
-    @raise Error Conflict *)
-
 val handle_default_opt :
   source_position array ->
   'a Eoption.t array ->

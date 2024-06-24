@@ -606,34 +606,6 @@ def list_length(l: List[Alpha]) -> Integer:
 # ========
 
 
-def handle_default(
-    pos: SourcePosition,
-    exceptions: List[Callable[[Unit], Alpha]],
-    just: Callable[[Unit], Alpha],
-    cons: Callable[[Unit], Alpha]
-) -> Alpha:
-    acc: Optional[Alpha] = None
-    for exception in exceptions:
-        new_val: Optional[Alpha]
-        try:
-            new_val = exception(Unit())
-        except Empty:
-            new_val = None
-        if acc is None:
-            acc = new_val
-        elif not (acc is None) and new_val is None:
-            pass  # acc stays the same
-        elif not (acc is None) and not (new_val is None):
-            raise Conflict(pos)
-    if acc is None:
-        if just(Unit()):
-            return cons(Unit())
-        else:
-            raise Empty
-    else:
-        return acc
-
-
 def handle_default_opt(
     pos: SourcePosition,
     exceptions: List[Optional[Any]],

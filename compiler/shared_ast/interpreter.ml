@@ -422,35 +422,6 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_eq_dur_dur (rpos ()) x y))
-  | HandleDefault, [(EArray excepts, _); just; cons] -> (
-    (* This case is for lcalc with exceptions: we rely OCaml exception handling
-       here *)
-    match
-      List.filter_map
-        (fun e ->
-          try Some (evaluate_expr (Expr.unthunk_term_nobox e))
-          with Runtime.Empty -> None)
-        excepts
-    with
-    | [] -> (
-      let just = evaluate_expr (Expr.unthunk_term_nobox just) in
-      match Mark.remove just with
-      | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox cons))
-      | ELit (LBool false) -> raise Runtime.Empty
-      | _ ->
-        Message.error ~pos
-          "Default justification has not been reduced to a boolean at@ \
-           evaluation@ (should not happen if the term was well-typed@\n\
-           %a@."
-          Expr.format just)
-    | [e] -> Mark.remove e
-    | es ->
-      raise
-        Runtime.(
-          Error
-            (Conflict, List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es))
-    )
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -501,8 +472,7 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt
-        ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefaultOpt ),
       _ ) ->
     err ()
 

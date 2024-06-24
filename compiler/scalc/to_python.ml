@@ -88,7 +88,6 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Reduce -> Format.pp_print_string fmt "list_reduce"
   | Filter -> Format.pp_print_string fmt "list_filter"
   | Fold -> Format.pp_print_string fmt "list_fold_left"
-  | HandleDefault -> Format.pp_print_string fmt "handle_default"
   | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
@@ -349,7 +348,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = ((HandleDefault | HandleDefaultOpt), _) as op; args } ->
+  | EAppOp { op = (HandleDefaultOpt, _) as op; args } ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \

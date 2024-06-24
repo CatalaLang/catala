@@ -314,7 +314,6 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
     | HandleDefaultOpt ->
       [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
     | ToClosureEnv -> [any] @-> cet
@@ -348,7 +347,7 @@ let polymorphic_op_return_type
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
-  | (HandleDefault | HandleDefaultOpt), [_; _; tf] -> return_type tf 1
+  | HandleDefaultOpt, [_; _; tf] -> return_type tf 1
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
   | _ -> Message.error ~pos "Mismatched operator arguments"

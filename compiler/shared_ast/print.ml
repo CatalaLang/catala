@@ -280,7 +280,6 @@ let operator_to_string : type a. a Op.t -> string =
   | Eq_dur_dur -> "=^"
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
-  | HandleDefault -> "handle_default"
   | HandleDefaultOpt -> "handle_default_opt"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
@@ -325,7 +324,6 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat | Gte ->
     ">="
   | Fold -> "fold"
-  | HandleDefault -> "handle_default"
   | HandleDefaultOpt -> "handle_default_opt"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
@@ -402,8 +400,8 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | HandleDefault | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce
-      | Fold | ToClosureEnv | FromClosureEnv ->
+      | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce | Fold
+      | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
     | EArray _ -> Contained

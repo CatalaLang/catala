@@ -411,7 +411,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "%a" format_with_parens arg1
   | EAppOp
       {
-        op = ((HandleDefault | HandleDefaultOpt) as op), _;
+        op = (HandleDefaultOpt as op), _;
         args = (EArray excs, _) :: _ as args;
         _;
       } ->

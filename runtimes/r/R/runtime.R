@@ -363,36 +363,6 @@ catala_assertion_failure <- function(pos) {
 
 ################ Defaults #################
 
-#' @export
-catala_handle_default <- function(pos, exceptions, just, cons) {
-  acc <- Reduce(function(acc, exception) {
-    new_val <- tryCatch(
-      exception(new("catala_unit", v = 0)),
-      catala_empty_error = function(e) {
-        NULL
-      }
-    )
-    if (is.null(acc)) {
-      new_val
-    } else {
-      if (is.null(new_val)) {
-        acc
-      } else {
-        stop(catala_conflict_error(pos))
-      }
-    }
-  }, exceptions, NULL)
-  if (is.null(acc)) {
-    if (just(new("catala_unit", v = 0))) {
-      cons(new("catala_unit", v = 0))
-    } else {
-      stop(catala_empty_error())
-    }
-  } else {
-    acc
-  }
-}
-
 # This value is used for the R code generation to trump R and forcing
 # it to accept dead code. Indeed, when raising an exception during a variable
 # definition, R could complains that the later dead code will not know what
