@@ -895,15 +895,17 @@ and typecheck_expr_top_down :
     let args =
       Operator.kind_dispatch (Mark.set pos_e op)
         ~polymorphic:(fun op ->
-          (* Type the operator first, then right-to-left: polymorphic operators
-             are required to allow the resolution of all type variables this
-             way *)
-          if not env.flags.assume_op_types then
-            unify ctx e (polymorphic_op_type op) t_func
-          else unify ctx e (polymorphic_op_return_type ctx e op t_args) tau;
-          List.rev_map2
-            (typecheck_expr_top_down ctx env)
-            (List.rev t_args) (List.rev args))
+          if env.flags.assume_op_types then (
+            unify ctx e (polymorphic_op_return_type ctx e op t_args) tau;
+            List.rev_map (typecheck_expr_bottom_up ctx env) (List.rev args))
+          else (
+            (* Type the operator first, then right-to-left: polymorphic
+               operators are required to allow the resolution of all type
+               variables this way *)
+            unify ctx e (polymorphic_op_type op) t_func;
+            List.rev_map2
+              (typecheck_expr_top_down ctx env)
+              (List.rev t_args) (List.rev args)))
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
