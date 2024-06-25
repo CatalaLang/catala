@@ -51,6 +51,7 @@ depends: [
   "conf-pandoc" {cataladevmode}
   "z3" {catalaz3mode}
   "conf-ninja"
+  "otoml" {>= "1.0"}
 ]
 depopts: ["z3"]
 conflicts: [
