@@ -317,7 +317,8 @@ let rec law_structure_to_latex
     Format.fprintf fmt
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
-       break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
+       break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em, \
+       left=0.6em, right=0.6em]\n\
        %a\n\
        \\end{tcolorbox}"
       metadata_title metadata_title
