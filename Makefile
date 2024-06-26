@@ -99,14 +99,13 @@ prepare-install:
 	dune build @install --promote-install-files
 
 install: prepare-install
-	if [ x$$($(OPAM) --version) = "x2.1.5" ]; then \
-	  $(OPAM) install . --working-dir; \
-	else \
-	  $(OPAM) install . --working-dir --assume-built; \
-	fi
+	case x$$($(OPAM) --version) in \
+	  x2.1.5|x2.1.6) $(OPAM) install . --working-dir;; \
+	  *) $(OPAM) install . --working-dir --assume-built;; \
+	esac
 # `dune install` would work, but does a dirty install to the opam prefix without
 # registering with opam.
-# --assume-built is broken in 2.1.5
+# --assume-built is broken in 2.1.5 and 2.1.6
 
 inst: prepare-install
 	@opam custom-install \
