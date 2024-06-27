@@ -287,7 +287,7 @@ let print_box tcolor ppf title (pcontents : box -> unit) =
             (fun ppf ->
               Format.pp_print_tab ppf ();
               Format.fprintf ppf "%t┃@}@," tcolor)
-            ppf ("%t@<1>%s@}  " ^^ fmt) tcolor "┃");
+            ppf ("%t@<1>%s@}   " ^^ fmt) tcolor "┃");
     }
   in
   pcontents box;

@@ -35,13 +35,6 @@ type 'm ctxt = {
   program_ctx : A.ctx;
 }
 
-let unthunk e =
-  match Mark.remove e with
-  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
-    let _, e = Bindlib.unmbind binder in
-    e
-  | _ -> failwith "should not happen"
-
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
 
