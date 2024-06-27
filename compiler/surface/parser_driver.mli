@@ -19,6 +19,8 @@
 
 open Catala_utils
 
+type parsing_error = { msg : string; pos : Pos.t; suggestions : string list }
+
 val lines :
   File.t ->
   Global.backend_lang ->
@@ -32,7 +34,10 @@ val load_interface :
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
-val parse_top_level_file : File.t Global.input_src -> Ast.program
+val parse_top_level_file :
+  ?on_parsing_error:(parsing_error -> unit) ->
+  File.t Global.input_src ->
+  Ast.program
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
     fill them. *)
