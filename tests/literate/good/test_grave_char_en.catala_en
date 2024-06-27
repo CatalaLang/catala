@@ -1,6 +1,6 @@
 > Module Test_grave_char_en
 
-## Law text should be able to contain grave accent '`'.
+## Law text should be able to contain backquote chars `` ` ``.
 
 This is a block of law text containing `.
 This allows to:
@@ -60,7 +60,8 @@ $ catala latex
 
 \textbf{This defines the catala module \texttt{Test\_grave\_char\_en}}
 
-\subsection{Law text should be able to contain grave accent ``'.}
+\subsection{Law text should be able to contain backquote chars
+\texttt{\textasciigrave{}}.}
 
 This is a block of law text containing `. This allows to:
 
