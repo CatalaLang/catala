@@ -226,15 +226,18 @@ module Cli = struct
                 ~doc:"Display the full list of tests that have been run" );
           ])
 
-  let use_patdiff =
+  let diff_command =
     Arg.(
       value
-      & flag
-      & info ["patdiff"]
-          ~env:(Cmd.Env.info "CATALA_USE_PATDIFF")
+      & opt ~vopt:(Some None) (some (some string)) None
+      & info ["diff"]
+          ~env:(Cmd.Env.info "CATALA_DIFF_COMMAND")
           ~doc:
-            "Enable use of the 'patdiff' command for showing test failure \
-             details (no effect if the command is not available)")
+            "Use a standard $(i,diff) command instead of the default \
+             side-by-side view. If no argument is supplied, the command will \
+             be $(b,patdiff) if available or $(b,diff) otherwise. A supplied \
+             argument will be used as diff command with arguments pointing to \
+             the reference file and the output file")
 
   let ninja_flags =
     let env =
@@ -915,10 +918,10 @@ let test_cmd =
       (reset_test_outputs : bool)
       (test_flags : string list)
       verbosity
-      (use_patdiff : bool)
+      (diff_command : string option option)
       (ninja_flags : string list) =
     set_report_verbosity verbosity;
-    Clerk_report.set_display_flags ~use_patdiff ();
+    Clerk_report.set_display_flags ~diff_command ();
     ninja_init ~extra:Seq.empty ~test_flags
     @@ fun build_dir nin_file ->
     let targets =
@@ -988,7 +991,7 @@ let test_cmd =
       $ Cli.reset_test_outputs
       $ Cli.test_flags
       $ Cli.report_verbosity
-      $ Cli.use_patdiff
+      $ Cli.diff_command
       $ Cli.ninja_flags)
 
 let run_cmd =
@@ -1051,11 +1054,11 @@ let runtest_cmd =
       $ Cli.single_file)
 
 let report_cmd =
-  let run color debug verbosity use_patdiff build_dir file =
+  let run color debug verbosity diff_command build_dir file =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
     set_report_verbosity verbosity;
-    Clerk_report.set_display_flags ~use_patdiff ();
+    Clerk_report.set_display_flags ~diff_command ();
     let open Clerk_report in
     let tests = read_many file in
     let success = summary ~build_dir tests in
@@ -1071,7 +1074,7 @@ let report_cmd =
       $ Cli.Global.color
       $ Cli.Global.debug
       $ Cli.report_verbosity
-      $ Cli.use_patdiff
+      $ Cli.diff_command
       $ Cli.build_dir
       $ Cli.single_file)
 

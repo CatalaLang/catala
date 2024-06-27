@@ -43,6 +43,6 @@ val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->
   ?tests:[ `All | `FailedFile | `Failed | `None ] ->
   ?diffs:bool ->
-  ?use_patdiff:bool ->
+  ?diff_command:string option option ->
   unit ->
   unit
