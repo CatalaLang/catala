@@ -2,7 +2,7 @@
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2024-01-14 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2024-05-26 AS dev-build-context
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
@@ -24,10 +24,6 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
     opam clean
 # Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
 # should be enough once opam 2.2 is released (see opam#5185)
-
-# This is temporary, to avoid pulling in a dependency to Str, until it's merged
-# and release into dates_calc
-RUN opam --cli=2.1 pin dates_calc.0.0.5 git+https://github.com/AltGr/dates-calc#nostr
 
 #
 # STAGE 2: get the whole repo and build

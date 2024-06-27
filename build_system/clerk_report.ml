@@ -33,22 +33,22 @@ type disp_flags = {
   mutable files : [ `All | `Failed | `None ];
   mutable tests : [ `All | `FailedFile | `Failed | `None ];
   mutable diffs : bool;
-  mutable use_patdiff : bool;
+  mutable diff_command : string option option;
 }
 
 let disp_flags =
-  { files = `Failed; tests = `FailedFile; diffs = true; use_patdiff = false }
+  { files = `Failed; tests = `FailedFile; diffs = true; diff_command = None }
 
 let set_display_flags
     ?(files = disp_flags.files)
     ?(tests = disp_flags.tests)
     ?(diffs = disp_flags.diffs)
-    ?(use_patdiff = disp_flags.use_patdiff)
+    ?(diff_command = disp_flags.diff_command)
     () =
   disp_flags.files <- files;
   disp_flags.tests <- tests;
   disp_flags.diffs <- diffs;
-  disp_flags.use_patdiff <- use_patdiff
+  disp_flags.diff_command <- diff_command
 
 let write_to f file =
   File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
@@ -81,20 +81,14 @@ let longuest_common_prefix_length s1 s2 =
   aux 0
 
 let diff_command =
+  let has_gnu_diff () =
+    File.process_out ~check_exit:ignore "diff" ["--version"]
+    |> Re.(execp (compile (str "GNU")))
+  in
   lazy
     begin
-      if
-        disp_flags.use_patdiff
-        && has_command "patdiff"
-        && Message.has_color stdout
-      then
-        ( ["patdiff"; "-alt-old"; "expected"; "-alt-new"; "result"],
-          fun ppf s ->
-            s
-            |> String.split_on_char '\n'
-            |> List.filter (( <> ) "")
-            |> Format.pp_print_list Format.pp_print_string ppf )
-      else
+      match disp_flags.diff_command with
+      | None when Message.has_color stdout && has_gnu_diff () ->
         let width = Message.terminal_columns () - 5 in
         ( [
             "diff";
@@ -147,6 +141,21 @@ let diff_command =
                          (String.sub r w (String.length r - w))
                      | _ -> Format.pp_print_string ppf li))
                  ppf )
+      | Some cmd_opt | (None as cmd_opt) ->
+        let command =
+          match cmd_opt with
+          | Some str -> String.split_on_char ' ' str
+          | None ->
+            if Message.has_color stdout && has_command "patdiff" then
+              ["patdiff"; "-alt-old"; "Reference"; "-alt-new"; "Result"]
+            else ["diff"; "-u"; "-L"; "Reference"; "-L"; "Result"]
+        in
+        ( command,
+          fun ppf s ->
+            s
+            |> String.trim_end
+            |> String.split_on_char '\n'
+            |> Format.pp_print_list Format.pp_print_string ppf )
     end
 
 let print_diff ppf p1 p2 =
