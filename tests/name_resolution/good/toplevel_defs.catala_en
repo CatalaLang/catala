@@ -126,8 +126,8 @@ let glob2_9 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 
 let S2_5 (S2_in_10: S2_in) =
   decl temp_a_12 : decimal;
-  decl temp_a_13 : eoption decimal;
-  decl temp_a_14 : eoption decimal;
+  decl temp_a_13 : option decimal;
+  decl temp_a_14 : option decimal;
   switch handle_exceptions []:
   | ENone __15 →
     if true:
@@ -155,8 +155,8 @@ let S2_5 (S2_in_10: S2_in) =
 
 let S3_6 (S3_in_21: S3_in) =
   decl temp_a_23 : decimal;
-  decl temp_a_24 : eoption decimal;
-  decl temp_a_25 : eoption decimal;
+  decl temp_a_24 : option decimal;
+  decl temp_a_25 : option decimal;
   switch handle_exceptions []:
   | ENone __26 →
     if true:
@@ -184,8 +184,8 @@ let S3_6 (S3_in_21: S3_in) =
 
 let S4_7 (S4_in_32: S4_in) =
   decl temp_a_34 : decimal;
-  decl temp_a_35 : eoption decimal;
-  decl temp_a_36 : eoption decimal;
+  decl temp_a_35 : option decimal;
+  decl temp_a_36 : option decimal;
   switch handle_exceptions []:
   | ENone __37 →
     if true:
@@ -213,8 +213,8 @@ let S4_7 (S4_in_32: S4_in) =
 
 let S_8 (S_in_43: S_in) =
   decl temp_a_55 : decimal;
-  decl temp_a_56 : eoption decimal;
-  decl temp_a_57 : eoption decimal;
+  decl temp_a_56 : option decimal;
+  decl temp_a_57 : option decimal;
   switch handle_exceptions []:
   | ENone __58 →
     if true:
@@ -239,8 +239,8 @@ let S_8 (S_in_43: S_in) =
   decl a_44 : decimal;
   a_44 = temp_a_55;
   decl temp_b_46 : A {y: bool; z: decimal};
-  decl temp_b_47 : eoption A {y: bool; z: decimal};
-  decl temp_b_48 : eoption A {y: bool; z: decimal};
+  decl temp_b_47 : option A {y: bool; z: decimal};
+  decl temp_b_48 : option A {y: bool; z: decimal};
   switch handle_exceptions []:
   | ENone __49 →
     if true:

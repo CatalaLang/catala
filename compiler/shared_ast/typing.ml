@@ -345,10 +345,7 @@ let polymorphic_op_return_type
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
-  | HandleExceptions, [tau] ->
-    let t_inner = any () in
-    unify ctx e tau (uf (TArray t_inner));
-    t_inner
+  | HandleExceptions, [_] -> any ()
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
   | _ -> Message.error ~pos "Mismatched operator arguments"

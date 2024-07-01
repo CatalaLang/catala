@@ -70,7 +70,7 @@ type SubFoo2 = {
   x1: integer;
   y: ((closure_env, integer) → integer, closure_env);
 }
-type Foo_in = { b_in: ((closure_env, unit) → eoption bool, closure_env); }
+type Foo_in = { b_in: ((closure_env, unit) → option bool, closure_env); }
 type Foo = { z: integer; }
 
 let topval closure_y1 : (closure_env, integer) → integer =
@@ -118,11 +118,10 @@ let topval closure_r1 : (closure_env, integer) → integer =
   in
   code_and_env.0 code_and_env.1 param0
 let scope Foo
-  (Foo_in:
-     Foo_in {b_in: ((closure_env, unit) → eoption bool, closure_env)})
+  (Foo_in: Foo_in {b_in: ((closure_env, unit) → option bool, closure_env)})
   : Foo {z: integer}
   =
-  let get b : ((closure_env, unit) → eoption bool, closure_env) =
+  let get b : ((closure_env, unit) → option bool, closure_env) =
     Foo_in.b_in
   in
   let set b : bool =

@@ -142,7 +142,7 @@ let rec typ_gen
                mty))
         def punctuation "]")
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "eoption" (typ ~colors) t
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" (typ ~colors) t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (typ_with_parens ~colors) t1
       op_style "→" (typ ~colors) t2
