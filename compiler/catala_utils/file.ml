@@ -66,6 +66,8 @@ let clean_path p =
   in
   if p = "" then "." else p
 
+let exists = Sys.file_exists
+
 let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
@@ -103,6 +105,20 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
     let rbase = List.rev (path_to_list from_dir) in
     String.concat Filename.dir_sep
       (aux (path_to_list f) rbase (path_to_list to_dir))
+
+let find_in_parents predicate =
+  let home = try Sys.getenv "HOME" with Not_found -> "" in
+  let rec lookup dir rel =
+    if predicate dir then Some dir, rel
+    else if dir = home then None, Filename.current_dir_name
+    else
+      let parent = Filename.dirname dir in
+      if parent = dir then None, Filename.current_dir_name
+      else lookup parent (rel / Filename.parent_dir_name)
+  in
+  match lookup (Sys.getcwd ()) Filename.current_dir_name with
+  | Some dir, rel -> Some (dir, rel)
+  | None, _ -> None
 
 let with_out_channel filename f =
   ensure_dir (Filename.dirname filename);

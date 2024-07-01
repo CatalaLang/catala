@@ -89,6 +89,9 @@ val ensure_dir : t -> unit
 (** Creates the directory (and parents recursively) if it doesn't exist already.
     Errors out if the file exists but is not a directory *)
 
+val exists : t -> bool
+(** Alias for Sys.file_exists*)
+
 val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
@@ -121,6 +124,12 @@ val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
     from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
     leading to [f] from [to_dir]. The results attempts to be relative to
     [to_dir]. *)
+
+val find_in_parents : (t -> bool) -> (t * t) option
+(** Checks for the first directory matching the given predicate from the current
+    directory upwards. Recursion stops at home. Returns a pair [dir, rel_path],
+    where [dir] is the ancestor directory matching the predicate, and [rel_path]
+    is a path pointing to it from the current dir. *)
 
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)

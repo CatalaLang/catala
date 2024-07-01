@@ -8,8 +8,9 @@
   ninja_utils
   cmdliner
   re
-  ocolor)
- (modules clerk_scan clerk_report clerk_runtest clerk_driver))
+  ocolor
+  otoml)
+ (modules clerk_scan clerk_report clerk_runtest clerk_config clerk_driver))
 
 (rule
  (target custom_linking.sexp)

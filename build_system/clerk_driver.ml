@@ -1,7 +1,7 @@
 (* This file is part of the Catala build system, a specification language for
    tax and social benefits computation rules. Copyright (C) 2020 Inria,
    contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
-   <emile.rolley@tuta.io>
+   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -101,7 +101,7 @@ module Cli = struct
     val debug : bool Term.t
 
     val term :
-      (chdir:File.t option ->
+      (config_file:File.t option ->
       catala_exe:File.t option ->
       catala_opts:string list ->
       build_dir:File.t option ->
@@ -112,12 +112,14 @@ module Cli = struct
       'a) ->
       'a Term.t
   end = struct
-    let chdir =
+    let config_file =
       Arg.(
         value
-        & opt (some string) None
-        & info ["C"] ~docv:"DIR"
-            ~doc:"Change to the given directory before processing")
+        & opt (some file) None
+        & info ["config"] ~docv:"FILE"
+            ~doc:
+              "Clerk configuration file to use, instead of looking up \
+               \"clerk.toml\" in parent directories.")
 
     let color =
       Arg.(
@@ -148,7 +150,7 @@ module Cli = struct
       Term.(
         const
           (fun
-            chdir
+            config_file
             catala_exe
             catala_opts
             build_dir
@@ -157,9 +159,9 @@ module Cli = struct
             debug
             ninja_output
           ->
-            f ~chdir ~catala_exe ~catala_opts ~build_dir ~include_dirs ~color
-              ~debug ~ninja_output)
-        $ chdir
+            f ~config_file ~catala_exe ~catala_opts ~build_dir ~include_dirs
+              ~color ~debug ~ninja_output)
+        $ config_file
         $ catala_exe
         $ catala_opts
         $ build_dir
@@ -303,36 +305,18 @@ end
 
 (** Some functions that poll the surrounding systems (think [./configure]) *)
 module Poll = struct
-  let project_root_absrel : (File.t option * File.t) Lazy.t =
-    lazy
-      (let open File in
-       let home = try Sys.getenv "HOME" with Not_found -> "" in
-       let rec lookup dir rel =
-         if
-           Sys.file_exists (dir / "catala.opam")
-           || Sys.file_exists (dir / ".git")
-           || Sys.file_exists (dir / "clerk.toml")
-         then Some dir, rel
-         else if dir = home then None, Filename.current_dir_name
-         else
-           let parent = Filename.dirname dir in
-           if parent = dir then None, Filename.current_dir_name
-           else lookup parent (rel / Filename.parent_dir_name)
-       in
-       lookup (Sys.getcwd ()) Filename.current_dir_name)
-
-  let project_root = lazy (fst (Lazy.force project_root_absrel))
-  let project_root_relative = lazy (snd (Lazy.force project_root_absrel))
+  (** This module is sensitive to the CWD at first use. Therefore it's expected
+      that [chdir] has been run beforehand to the project root. *)
+  let root = lazy (Sys.getcwd ())
 
   (** Scans for a parent directory being the root of the Catala source repo *)
   let catala_project_root : File.t option Lazy.t =
-    lazy
-      (match Lazy.force project_root with
-      | Some root
-        when Sys.file_exists File.(root / "catala.opam")
-             && Sys.file_exists File.(root / "dune-project") ->
-        Some root
-      | _ -> None)
+    root
+    |> Lazy.map
+       @@ fun root ->
+       if File.(exists (root / "catala.opam") && exists (root / "dune-project"))
+       then Some root
+       else None
 
   let exec_dir : File.t = Catala_utils.Cli.exec_dir
   let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
@@ -342,14 +326,14 @@ module Poll = struct
       (let f = File.(exec_dir / "catala") in
        if Sys.file_exists f then Unix.realpath f
        else
-         match Lazy.force project_root with
-         | Some root when Sys.file_exists File.(root / "catala.opam") ->
+         match catala_project_root with
+         | (lazy (Some root)) ->
            Unix.realpath
              File.(root / "_build" / "default" / "compiler" / "catala.exe")
          | _ -> File.check_exec "catala")
 
-  let build_dir : ?dir:File.t -> unit -> File.t =
-   fun ?(dir = "_build") () ->
+  let build_dir : dir:File.t -> unit -> File.t =
+   fun ~dir () ->
     let d = File.clean_path dir in
     File.ensure_dir d;
     d
@@ -436,14 +420,6 @@ module Poll = struct
   let ocaml_link_flags : string list Lazy.t =
     lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 end
-
-(* Adjusts paths specified from the command-line relative to the user cwd to be
-   instead relative to the project root *)
-let fix_path =
-  let from_dir = Sys.getcwd () in
-  fun d ->
-    let to_dir = Lazy.force Poll.project_root_relative in
-    Catala_utils.File.reverse_path ~from_dir ~to_dir d
 
 (**{1 Building rules}*)
 
@@ -796,8 +772,10 @@ let gen_ninja_file catala_exe catala_flags build_dir include_dirs test_flags dir
 
 (** {1 Driver} *)
 
+(* Last argument is a continuation taking as arguments [build_dir], the
+   [fix_path] function, and the ninja file name *)
 let ninja_init
-    ~chdir
+    ~config_file
     ~catala_exe
     ~catala_opts
     ~build_dir
@@ -805,14 +783,58 @@ let ninja_init
     ~color
     ~debug
     ~ninja_output :
-    extra:def Seq.t -> test_flags:string list -> (File.t -> File.t -> 'a) -> 'a
-    =
+    extra:def Seq.t ->
+    test_flags:string list ->
+    (File.t -> (File.t -> File.t) -> File.t -> 'a) ->
+    'a =
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
-  let chdir =
-    match chdir with None -> Lazy.force Poll.project_root | some -> some
+  let default_config_file = "clerk.toml" in
+  let set_root_dir dir =
+    Message.debug "Entering directory %a" File.format dir;
+    Sys.chdir dir
   in
-  Option.iter Sys.chdir chdir;
-  let build_dir = Poll.build_dir ?dir:build_dir () in
+  (* fix_path adjusts paths specified from the command-line relative to the user
+     cwd to be instead relative to the project root *)
+  let fix_path, config =
+    let from_dir = Sys.getcwd () in
+    match config_file with
+    | None -> (
+      match
+        File.(find_in_parents (fun dir -> exists (dir / default_config_file)))
+      with
+      | Some (root, rel) ->
+        set_root_dir root;
+        ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
+          Clerk_config.read default_config_file )
+      | None -> (
+        match
+          File.(
+            find_in_parents (function dir ->
+                exists (dir / "catala.opam") || exists (dir / ".git")))
+        with
+        | Some (root, rel) ->
+          set_root_dir root;
+          ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
+            Clerk_config.default )
+        | None -> Fun.id, Clerk_config.default))
+    | Some f ->
+      let root = Filename.dirname f in
+      let config = Clerk_config.read f in
+      set_root_dir root;
+      ( (fun d ->
+          let r = Catala_utils.File.reverse_path ~from_dir ~to_dir:root d in
+          Message.debug "%a => %a" File.format d File.format r;
+          r),
+        config )
+  in
+  let build_dir =
+    let dir =
+      match build_dir with None -> config.build_dir | Some dir -> dir
+    in
+    Poll.build_dir ~dir ()
+  in
+  let catala_opts = config.catala_opts @ catala_opts in
+  let include_dirs = config.include_dirs @ include_dirs in
   let with_ninja_output k =
     match ninja_output with
     | Some f -> k f
@@ -840,7 +862,7 @@ let ninja_init
                ]
         in
         Nj.format nin_ppf ninja_contents);
-    k build_dir nin_file
+    k build_dir fix_path nin_file
 
 let cleaned_up_env () =
   let passthrough_vars =
@@ -882,7 +904,7 @@ open Cmdliner
 let build_cmd =
   let run ninja_init (targets : string list) (ninja_flags : string list) =
     ninja_init ~extra:Seq.empty ~test_flags:[]
-    @@ fun _build_dir nin_file ->
+    @@ fun _build_dir fix_path nin_file ->
     let targets =
       List.map
         (fun f ->
@@ -923,7 +945,7 @@ let test_cmd =
     set_report_verbosity verbosity;
     Clerk_report.set_display_flags ~diff_command ();
     ninja_init ~extra:Seq.empty ~test_flags
-    @@ fun build_dir nin_file ->
+    @@ fun build_dir fix_path nin_file ->
     let targets =
       let fs = if files_or_folders = [] then ["."] else files_or_folders in
       List.map File.(fun f -> (build_dir / fix_path f) ^ "@test") fs
@@ -1008,7 +1030,7 @@ let run_cmd =
               (List.map (fun file -> file ^ "@interpret") files_or_folders)))
     in
     ninja_init ~extra ~test_flags:[]
-    @@ fun _build_dir nin_file ->
+    @@ fun _build_dir _fix_path nin_file ->
     let ninja_cmd = ninja_cmdline ninja_flags nin_file [] in
     Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
     raise (Catala_utils.Cli.Exit_with (run_ninja ~clean_up_env:false ninja_cmd))
