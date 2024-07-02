@@ -19,6 +19,14 @@
 
 open Definitions
 
+type typing_error = {
+  msg : string;
+  pos : Catala_utils.Pos.t;
+  suggestions : string list;
+}
+
+val install_typing_error_catcher : (typing_error -> unit) -> unit
+
 module Env : sig
   type 'e t
 

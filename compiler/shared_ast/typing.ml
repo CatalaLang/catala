@@ -20,6 +20,12 @@
 open Catala_utils
 module A = Definitions
 
+type typing_error = {
+  msg : string;
+  pos : Catala_utils.Pos.t;
+  suggestions : string list;
+}
+
 type flags = { fail_on_any : bool; assume_op_types : bool }
 
 module Any =
@@ -177,6 +183,10 @@ let rec colors =
 
 let dummy_flags = { fail_on_any = false; assume_op_types = false }
 let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
+let on_typing_error = ref None
+
+let install_typing_error_catcher (f : typing_error -> unit) =
+  on_typing_error := Some f
 
 let record_type_error _ctx (A.AnyExpr e) t1 t2 =
   (* We convert union-find types to ast ones otherwise error messages would be
@@ -223,6 +233,22 @@ let record_type_error _ctx (A.AnyExpr e) t1 t2 =
               t2_repr),
           t2_pos );
       ]
+  in
+  let () =
+    Option.iter
+      (fun f ->
+        let msg =
+          Format.asprintf
+            "Error during typechecking, incompatible types@\n\
+             @<2>Expected %s @[<hov>%a@]@\n\
+             @<2>Got      %s @[<hov>%a@]@\n\
+             Expected@ type@ %a coming from:@\n\
+             %a"
+            "─➤" pp_typ t2_repr "─➤" pp_typ t1_repr pp_typ t2_repr
+            Pos.format_loc_text t2_pos
+        in
+        f { msg; pos = t1_pos; suggestions = [] })
+      !on_typing_error
   in
   Message.delayed_error () ~fmt_pos
     "Error during typechecking, incompatible types:@\n\
