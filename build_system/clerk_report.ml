@@ -183,38 +183,38 @@ let print_diff ppf p1 p2 =
 let catala_commands_with_output_flag =
   ["makefile"; "html"; "latex"; "ocaml"; "python"; "r"; "c"]
 
+let pfile ~build_dir f =
+  f
+  |> String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep)
+  |> String.remove_prefix ~prefix:(Sys.getcwd () ^ Filename.dir_sep)
+
+let clean_command_line ~build_dir file cl =
+  cl
+  |> List.filter_map (fun s ->
+         if s = "--directory=" ^ build_dir then None
+         else Some (pfile ~build_dir s))
+  |> (function
+       | catala :: cmd :: args ->
+         catala :: cmd :: "-I" :: Filename.dirname file :: args
+       | cl -> cl)
+  |> function
+  | catala :: cmd :: args
+    when List.mem (String.lowercase_ascii cmd) catala_commands_with_output_flag
+    ->
+    (catala :: cmd :: args) @ ["-o -"]
+  | cl -> cl
+
 let display ~build_dir file ppf t =
-  let pfile f =
-    f
-    |> String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep)
-    |> String.remove_prefix ~prefix:(Sys.getcwd () ^ Filename.dir_sep)
-  in
-  let command_line_cleaned =
-    List.filter_map
-      (fun s -> if s = "--directory=" ^ build_dir then None else Some (pfile s))
-      t.command_line
-    |> (function
-         | catala :: cmd :: args ->
-           catala :: cmd :: "-I" :: Filename.dirname file :: args
-         | cl -> cl)
-    |> function
-    | catala :: cmd :: args
-      when List.mem
-             (String.lowercase_ascii cmd)
-             catala_commands_with_output_flag ->
-      (catala :: cmd :: args) @ ["-o -"]
-    | cl -> cl
-  in
   let pp_pos ppf (start, stop) =
     assert (start.Lexing.pos_fname = stop.Lexing.pos_fname);
     Format.fprintf ppf "@{<cyan>%s:%d-%d@}"
-      (pfile start.Lexing.pos_fname)
+      (pfile ~build_dir start.Lexing.pos_fname)
       start.Lexing.pos_lnum stop.Lexing.pos_lnum
   in
   let print_command () =
     Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
-      command_line_cleaned
+      (clean_command_line ~build_dir file t.command_line)
   in
   Format.pp_open_vbox ppf 2;
   if t.success then (
@@ -344,4 +344,47 @@ let summary ~build_dir tests =
         success total);
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
+  success = total
+
+let print_xml ~build_dir tests =
+  let ffile ppf f = Format.pp_print_string ppf (pfile ~build_dir f) in
+  let ppf = Message.formatter_of_out_channel stdout () in
+  let tests = List.filter (fun f -> f.total > 0) tests in
+  let success, total =
+    List.fold_left
+      (fun (success, total) file ->
+        success + file.successful, total + file.total)
+      (0, 0) tests
+  in
+  Format.fprintf ppf "@[<v><?xml version=\"1.0\" encoding=\"UTF-8\"?>@,";
+  Format.fprintf ppf "@[<v 2><testsuites tests=\"%d\" failures=\"%d\">@,"
+    success (total - success);
+  Format.pp_print_list
+    (fun ppf f ->
+      Format.fprintf ppf
+        "@[<v 2>@[<hov 1><testsuite@ name=\"%a\"@ tests=\"%d\"@ \
+         failures=\"%d\">@]@,"
+        ffile f.name f.total (f.total - f.successful);
+      Format.pp_print_list
+        (fun ppf t ->
+          Format.fprintf ppf "@[<v 2><testcase line=\"%d\">"
+            (fst t.expected).Lexing.pos_lnum;
+          Format.fprintf ppf
+            "@,\
+             @[<hv 2><property name=\"description\">@,\
+             @[<hov 2>%a@]@;\
+             <0 -2></property>@]"
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space
+               Format.pp_print_string)
+            (clean_command_line ~build_dir f.name t.command_line);
+          if not t.success then (
+            Format.fprintf ppf
+              "@,@[<v 2><failure message=\"Output differs from reference\">@,";
+            print_diff ppf t.expected t.result;
+            Format.fprintf ppf "@]@,</failure>");
+          Format.fprintf ppf "@]@,</testcase>")
+        ppf f.tests;
+      Format.fprintf ppf "@]@,</testsuite>")
+    ppf tests;
+  Format.fprintf ppf "@]@,</testsuites>@,@]@.";
   success = total

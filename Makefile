@@ -229,6 +229,7 @@ testsuite-base: .FORCE
 
 #> testsuite				: Run interpreter tests over a selection of configurations
 testsuite: unit-tests
+	$(CLERK_TEST) doc
 	$(MAKE) testsuite-base
 
 #> reset-tests				: Update the expected test results from current run

@@ -93,7 +93,18 @@ jobs:
           git diff --exit-code
       - name: Run tests
         if: ${{ always() }}
-        run: cd /home/ocaml/catala && opam exec -- make tests
+        run: cd /home/ocaml/catala && opam exec -- make testsuite
+      - name: Generate test report
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala
+          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: /home/ocaml/catala/report.junit.xml
+        if: ${{ always() }}
+
 
   examples:
     name: Build examples and generate artifacts
@@ -130,6 +141,16 @@ jobs:
         run: |
           cd ~/catala-examples
           opam --cli=2.1 exec -- make all testsuite install
+      - name: Generate examples test report
+        if: ${{ always() }}
+        run: |
+          cd ~/catala-examples
+          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: /home/ocaml/catala-examples/report.junit.xml
+        if: ${{ always() }}
       - name: Checkout french-law repo
         run: |
           git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
