@@ -60,7 +60,9 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         let gobbled, rest_out = split_rest_tree rest_tree in
         LawHeading (heading, gobbled) :: rest_out))
 
-type parsing_error = { msg : string; pos : Pos.t; suggestions : string list }
+type error =
+  | Parsing_error of { msg : string; pos : Pos.t; suggestions : string list }
+  | Lexing_error of { msg : string; pos : Pos.t }
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -73,7 +75,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
   let register_parsing_error
-      ?on_parsing_error
+      ?on_error
       (lexbuf : lexbuf)
       (env : 'semantic_value I.env)
       (acceptable_tokens : (string * Tokens.token) list)
@@ -103,12 +105,13 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     Option.iter
       (fun f ->
         f
-          {
-            msg = Format.asprintf "Syntax error:@ %t" msg;
-            pos = error_loc;
-            suggestions = Option.value suggestion ~default:[];
-          })
-      on_parsing_error;
+          (Parsing_error
+             {
+               msg = Format.asprintf "Syntax error:@ %t" msg;
+               pos = error_loc;
+               suggestions = Option.value suggestion ~default:[];
+             }))
+      on_error;
     Message.delayed_error () ?suggestion
       ~extra_pos:["", error_loc]
       "@[<hov>Syntax error at %a:@ %t@]"
@@ -217,29 +220,13 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
 
   (** Main parsing loop *)
   let loop
-      ?on_parsing_error
+      ?on_error
       (lexer_buffer :
         (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
       (token_list : (string * Tokens.token) list)
       (lexbuf : lexbuf)
       (last_input_needed : 'semantic_value I.env option)
       (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
-    let next lb =
-      try next lb
-      with
-      | ( Message.CompilerError _ | Sedlexing.MalFormed
-        | Sedlexing.InvalidCodepoint _ ) as e
-      ->
-        Option.iter
-          (fun f ->
-            let pos = Pos.from_lpos (Sedlexing.lexing_positions lexbuf) in
-            let parsing_error =
-              { msg = "Parsing error"; pos; suggestions = [] }
-            in
-            f parsing_error)
-          on_parsing_error;
-        raise e
-    in
     let rec loop
         (lexer_buffer :
           (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
@@ -259,8 +246,8 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         let similar_candidate_tokens, sorted_acceptable_tokens =
           sorted_candidate_tokens lexbuf token_list env
         in
-        register_parsing_error ?on_parsing_error lexbuf env
-          sorted_acceptable_tokens similar_candidate_tokens;
+        register_parsing_error ?on_error lexbuf env sorted_acceptable_tokens
+          similar_candidate_tokens;
         let best_effort_checkpoint =
           recover_parsing_error lexer_buffer env
             (List.map snd sorted_acceptable_tokens)
@@ -280,7 +267,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type
       difference for [lexbuf]. *)
   let sedlex_with_menhir
-      ?on_parsing_error
+      ?on_error
       (lexer' : lexbuf -> Tokens.token)
       (token_list : (string * Tokens.token) list)
       (target_rule : Lexing.position -> 'semantic_value I.checkpoint)
@@ -290,33 +277,37 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       let feed = with_tokenizer lexer' lexbuf in
       create feed Lexing.(Tokens.EOF, dummy_pos, dummy_pos)
     in
+    Message.with_delayed_errors
+    @@ fun () ->
     try
       let target_rule =
         target_rule (fst @@ Sedlexing.lexing_positions lexbuf)
       in
-      Message.with_delayed_errors
-      @@ fun () ->
-      loop ?on_parsing_error lexer_buffer token_list lexbuf None target_rule
-    with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-      Lexer_common.raise_lexer_error
-        (Pos.from_lpos (lexing_positions lexbuf))
-        (Utf8.lexeme lexbuf)
+      loop ?on_error lexer_buffer token_list lexbuf None target_rule
+    with Lexer_common.Lexing_error (pos, token) ->
+      let msg =
+        Printf.sprintf
+          "Parsing error after token \"%s\": what comes after is unknown" token
+      in
+      Option.iter (fun f -> f (Lexing_error { msg; pos })) on_error;
+      (* The encapsulating [Message.with_delayed_errors] will raise an
+         exception: we are safe to return a dummy value. *)
+      Message.delayed_error [] ~pos "%s" msg
 
-  let commands_or_includes ?on_parsing_error (lexbuf : lexbuf) : Ast.source_file
-      =
-    sedlex_with_menhir ?on_parsing_error LocalisedLexer.lexer
-      LocalisedLexer.token_list Incremental.source_file lexbuf
+  let commands_or_includes ?on_error (lexbuf : lexbuf) : Ast.source_file =
+    sedlex_with_menhir ?on_error LocalisedLexer.lexer LocalisedLexer.token_list
+      Incremental.source_file lexbuf
 end
 
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser ?on_parsing_error :
+let localised_parser ?on_error :
     Global.backend_lang -> lexbuf -> Ast.source_file = function
-  | En -> Parser_En.commands_or_includes ?on_parsing_error
-  | Fr -> Parser_Fr.commands_or_includes ?on_parsing_error
-  | Pl -> Parser_Pl.commands_or_includes ?on_parsing_error
+  | En -> Parser_En.commands_or_includes ?on_error
+  | Fr -> Parser_Fr.commands_or_includes ?on_error
+  | Pl -> Parser_Pl.commands_or_includes ?on_error
 
 (** Lightweight lexer for dependency *)
 
@@ -357,13 +348,12 @@ let with_sedlex_file file f =
   Fun.protect ~finally:(fun () -> close_in ic) (fun () -> f lexbuf)
 
 (** Parses a single source file *)
-let rec parse_source ?on_parsing_error (lexbuf : Sedlexing.lexbuf) : Ast.program
-    =
+let rec parse_source ?on_error (lexbuf : Sedlexing.lexbuf) : Ast.program =
   let source_file_name = lexbuf_file lexbuf in
   Message.debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
-  let commands = localised_parser ?on_parsing_error language lexbuf in
-  let program = expand_includes ?on_parsing_error source_file_name commands in
+  let commands = localised_parser ?on_error language lexbuf in
+  let program = expand_includes ?on_error source_file_name commands in
   {
     program with
     program_source_files = source_file_name :: program.Ast.program_source_files;
@@ -373,7 +363,7 @@ let rec parse_source ?on_parsing_error (lexbuf : Sedlexing.lexbuf) : Ast.program
 (** Expands the include directives in a parsing result, thus parsing new source
     files *)
 and expand_includes
-    ?on_parsing_error
+    ?on_error
     (source_file : string)
     (commands : Ast.law_structure list) : Ast.program =
   let language = Cli.file_lang source_file in
@@ -411,7 +401,7 @@ and expand_includes
           let sub_source = File.(source_dir / Mark.remove inc_file) in
           with_sedlex_file sub_source
           @@ fun lexbuf ->
-          let includ_program = parse_source ?on_parsing_error lexbuf in
+          let includ_program = parse_source ?on_error lexbuf in
           let () =
             includ_program.Ast.program_module
             |> Option.iter
@@ -564,10 +554,9 @@ let load_interface ?default_module_name source_file =
     Ast.intf_submodules = used_modules;
   }
 
-let parse_top_level_file
-    ?on_parsing_error
-    (source_file : File.t Global.input_src) : Ast.program =
-  let parse_source = parse_source ?on_parsing_error in
+let parse_top_level_file ?on_error (source_file : File.t Global.input_src) :
+    Ast.program =
+  let parse_source = parse_source ?on_error in
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   {

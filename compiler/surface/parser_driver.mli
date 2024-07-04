@@ -19,7 +19,9 @@
 
 open Catala_utils
 
-type parsing_error = { msg : string; pos : Pos.t; suggestions : string list }
+type error =
+  | Parsing_error of { msg : string; pos : Pos.t; suggestions : string list }
+  | Lexing_error of { msg : string; pos : Pos.t }
 
 val lines :
   File.t ->
@@ -35,9 +37,7 @@ val load_interface :
     only and empty contents. *)
 
 val parse_top_level_file :
-  ?on_parsing_error:(parsing_error -> unit) ->
-  File.t Global.input_src ->
-  Ast.program
+  ?on_error:(error -> unit) -> File.t Global.input_src -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
     fill them. *)
