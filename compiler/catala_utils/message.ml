@@ -458,15 +458,19 @@ let with_delayed_errors
       "delayed error called outside scope: encapsulate using \
        'with_delayed_errors' first");
   global_errors.stop_on_error <- stop_on_error;
-  let r = f () in
-  match global_errors.errors with
-  | None -> error ~internal:true "intertwined delayed error scope"
-  | Some [] ->
+  try
+    let r = f () in
+    match global_errors.errors with
+    | None -> error ~internal:true "intertwined delayed error scope"
+    | Some [] ->
+      global_errors.errors <- None;
+      r
+    | Some [err] ->
+      global_errors.errors <- None;
+      raise (CompilerError err)
+    | Some errs ->
+      global_errors.errors <- None;
+      raise (CompilerErrors (List.rev errs))
+  with e ->
     global_errors.errors <- None;
-    r
-  | Some [err] ->
-    global_errors.errors <- None;
-    raise (CompilerError err)
-  | Some errs ->
-    global_errors.errors <- None;
-    raise (CompilerErrors (List.rev errs))
+    raise e
