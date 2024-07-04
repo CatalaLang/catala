@@ -99,6 +99,9 @@ jobs:
         run: |
           cd /home/ocaml/catala
           opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Workaround Github stuff # https://github.com/actions/checkout/issues/1014
+        if: ${{ always() }}
+        run: sudo chmod +w -R /__w
       - name: Test Summary
         uses: test-summary/action@v2
         with:
@@ -146,6 +149,9 @@ jobs:
         run: |
           cd ~/catala-examples
           opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Workaround Github stuff # https://github.com/actions/checkout/issues/1014
+        if: ${{ always() }}
+        run: sudo chmod +w -R /__w
       - name: Test Summary
         uses: test-summary/action@v2
         with:
@@ -187,10 +193,6 @@ jobs:
           cp catala-examples/_build/french_law_python.tar.gz artifacts/
           mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
-        continue-on-error: true
-        # Uploading artifacts works but then return failure with:
-        # EACCES: permission denied, open '/__w/_temp/_runner_file_commands/set_output_xxx'
-        # a chmod doesn't work around it so we resort to just ignoring the error...
         uses: actions/upload-artifact@v4
         with:
           name: Catala examples
