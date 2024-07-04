@@ -177,6 +177,12 @@ module Cli = struct
       & pos_all string []
       & info [] ~docv:"FILE(S)" ~doc:"File(s) or folder(s) to process")
 
+  let files =
+    Arg.(
+      value
+      & pos_all file []
+      & info [] ~docv:"FILE(S)" ~doc:"File(s) to process")
+
   let single_file =
     Arg.(
       required
@@ -227,6 +233,14 @@ module Cli = struct
               info ["verbose"; "v"]
                 ~doc:"Display the full list of tests that have been run" );
           ])
+
+  let report_xml =
+    Arg.(
+      value
+      & flag
+      & info ["xml"]
+          ~env:(Cmd.Env.info "CATALA_XML_REPORT")
+          ~doc:"Output the test report in JUnit-compatible XML format")
 
   let diff_command =
     Arg.(
@@ -940,6 +954,7 @@ let test_cmd =
       (reset_test_outputs : bool)
       (test_flags : string list)
       verbosity
+      xml
       (diff_command : string option option)
       (ninja_flags : string list) =
     set_report_verbosity verbosity;
@@ -959,6 +974,9 @@ let test_cmd =
       let reports = List.flatten (List.map read_many targets) in
       if reset_test_outputs then
         let () =
+          if xml then
+            Message.error
+              "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
           let ppf = Message.formatter_of_out_channel stdout () in
           match List.filter (fun f -> f.successful < f.total) reports with
           | [] ->
@@ -992,7 +1010,7 @@ let test_cmd =
               (List.length need_reset)
         in
         raise (Catala_utils.Cli.Exit_with 0)
-      else if summary ~build_dir reports then
+      else if (if xml then print_xml else summary) ~build_dir reports then
         raise (Catala_utils.Cli.Exit_with 0)
       else raise (Catala_utils.Cli.Exit_with 1)
     | 1 -> raise (Catala_utils.Cli.Exit_with 10) (* Ninja build failed *)
@@ -1013,6 +1031,7 @@ let test_cmd =
       $ Cli.reset_test_outputs
       $ Cli.test_flags
       $ Cli.report_verbosity
+      $ Cli.report_xml
       $ Cli.diff_command
       $ Cli.ninja_flags)
 
@@ -1076,14 +1095,14 @@ let runtest_cmd =
       $ Cli.single_file)
 
 let report_cmd =
-  let run color debug verbosity diff_command build_dir file =
+  let run color debug verbosity xml diff_command build_dir files =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
     set_report_verbosity verbosity;
     Clerk_report.set_display_flags ~diff_command ();
     let open Clerk_report in
-    let tests = read_many file in
-    let success = summary ~build_dir tests in
+    let tests = List.flatten (List.map read_many files) in
+    let success = (if xml then print_xml else summary) ~build_dir tests in
     exit (if success then 0 else 1)
   in
   let doc =
@@ -1096,9 +1115,10 @@ let report_cmd =
       $ Cli.Global.color
       $ Cli.Global.debug
       $ Cli.report_verbosity
+      $ Cli.report_xml
       $ Cli.diff_command
       $ Cli.build_dir
-      $ Cli.single_file)
+      $ Cli.files)
 
 let main_cmd =
   Cmd.group Cli.info [build_cmd; test_cmd; run_cmd; runtest_cmd; report_cmd]

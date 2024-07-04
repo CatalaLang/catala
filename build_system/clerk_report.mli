@@ -39,6 +39,10 @@ val display : build_dir:File.t -> File.t -> Format.formatter -> test -> unit
 val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
+val print_xml : build_dir:File.t -> file list -> bool
+(** Displays a summary in JUnit XML comptible format to stdout; returns true if
+    all tests succeeded *)
+
 val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->
   ?tests:[ `All | `FailedFile | `Failed | `None ] ->
