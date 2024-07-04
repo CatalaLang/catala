@@ -224,6 +224,22 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (lexbuf : lexbuf)
       (last_input_needed : 'semantic_value I.env option)
       (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
+    let next lb =
+      try next lb
+      with
+      | ( Message.CompilerError _ | Sedlexing.MalFormed
+        | Sedlexing.InvalidCodepoint _ ) as e
+      ->
+        Option.iter
+          (fun f ->
+            let pos = Pos.from_lpos (Sedlexing.lexing_positions lexbuf) in
+            let parsing_error =
+              { msg = "Parsing error"; pos; suggestions = [] }
+            in
+            f parsing_error)
+          on_parsing_error;
+        raise e
+    in
     let rec loop
         (lexer_buffer :
           (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
