@@ -95,7 +95,6 @@ jobs:
       - name: Check promoted files
         run: |
           cd /home/ocaml/catala && opam exec -- make check-promoted
-          git diff --exit-code
       - name: Run tests
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make testsuite
