@@ -131,15 +131,6 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    (* | EAppOp
-     *     {
-     *       op = Op.HandleDefaultOpt, _;
-     *       args = [_exceptions; _just; _cons];
-     *       tys = _;
-     *     }
-     *   when ctxt.config.keep_special_ops ->
-     *   (\* This should be translated as a statement *\)
-     *   raise (NotAnExpr { needs_a_local_decl = true }) *)
     | EAppOp { op; args; tys = _ } ->
       let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)

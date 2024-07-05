@@ -608,8 +608,7 @@ def list_length(l: List[Alpha]) -> Integer:
 
 def handle_exceptions(
     pos: List[SourcePosition],
-    exceptions: List[Optional[Alpha]])
--> Optional[Alpha]:
+    exceptions: List[Optional[Alpha]]) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
     acc_pos: Optional[pos] = None
     for exception, pos in zip(exceptions, pos):
@@ -618,7 +617,7 @@ def handle_exceptions(
         elif acc is None:
             acc = exception
             acc_pos = pos
-        else
+        else:
             raise Conflict(acc_pos,pos)
     return acc
 
