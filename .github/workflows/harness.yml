@@ -102,6 +102,8 @@ jobs:
       - name: Test Summary
         uses: test-summary/action@v1
         with:
+          name: Catala integrated tests
+          reporter: java-junit
           paths: /home/ocaml/catala/report.junit.xml
         if: ${{ always() }}
 
@@ -145,11 +147,13 @@ jobs:
         if: ${{ always() }}
         run: |
           cd ~/catala-examples
-          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+          opam exec -- clerk report --xml _build/clerk_tests/*@test _build/clerk_tests/test-*/*@test >report.junit.xml
       - name: Test Summary
-        uses: test-summary/action@v1
+        uses: dorny/test-reporter@v1
         with:
-          paths: /home/ocaml/catala-examples/report.junit.xml
+          name: Tests on catala-examples
+          reporter: java-junit
+          paths: "/home/ocaml/catala-examples/report.junit.xml"
         if: ${{ always() }}
       - name: Checkout french-law repo
         run: |
