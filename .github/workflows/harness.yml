@@ -87,6 +87,11 @@ jobs:
       image: ${{ needs.build.outputs.image }}
       options: --user root
     steps:
+      - name: Fix home
+        # We need to run as root as a Workaround Github actions issues
+        # (https://github.com/actions/checkout/issues/1014) but need ~ocaml as
+        # home.
+        run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
       - name: Check promoted files
         run: |
           cd /home/ocaml/catala && opam exec -- make check-promoted
