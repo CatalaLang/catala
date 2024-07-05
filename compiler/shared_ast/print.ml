@@ -920,11 +920,15 @@ let code_item ?(debug = false) ?name decl_ctx fmt c =
       "=" (expr ~debug ()) e
 
 let code_item_list ?(debug = false) decl_ctx fmt c =
-  BoundList.iter c ~f:(fun x item ->
+  Format.pp_open_vbox fmt 0;
+  Format.pp_print_seq
+    (fun fmt (x, item) ->
       code_item ~debug
         ~name:(Format.asprintf "%a" var_debug x)
         decl_ctx fmt item;
-      Format.pp_print_newline fmt ())
+      Format.pp_print_cut fmt ())
+    fmt (BoundList.to_seq c);
+  Format.pp_close_box fmt ()
 
 let program ?(debug = false) fmt p =
   decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;

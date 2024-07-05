@@ -20,6 +20,13 @@ type ('e, 'elt, 'last) t = ('e, 'elt, 'last) bound_list =
   | Last of 'last
   | Cons of 'elt * ('e, ('e, 'elt, 'last) t) binder
 
+let rec to_seq = function
+  | Last () -> Seq.empty
+  | Cons (item, next_bind) ->
+    fun () ->
+      let v, next = Bindlib.unbind next_bind in
+      Seq.Cons ((v, item), to_seq next)
+
 let rec last = function
   | Last e -> e
   | Cons (_, bnd) ->

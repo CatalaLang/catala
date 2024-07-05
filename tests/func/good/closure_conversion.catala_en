@@ -33,6 +33,7 @@ type S = { z: integer; }
 let topval closure_f1 : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   if (from_closure_env env).0 then y else - y
+
 let scope S (S_in: S_in {x_in: bool}): S {z: integer} =
   let get x : bool = S_in.x_in in
   let set f : ((closure_env, integer) → integer, closure_env) =
