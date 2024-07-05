@@ -85,7 +85,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: ${{ needs.build.outputs.image }}
-      options: --user ocaml
+      options: --user root
     steps:
       - name: Check promoted files
         run: |
@@ -100,11 +100,9 @@ jobs:
           cd /home/ocaml/catala
           opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
       - name: Test Summary
-        uses: dorny/test-reporter@v1
+        uses: test-summary/action@v2
         with:
-          name: Catala integrated tests
-          reporter: java-junit
-          path: /home/ocaml/catala/report.junit.xml
+          paths: /home/ocaml/catala/report.junit.xml
         if: ${{ always() }}
 
 
@@ -114,7 +112,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: ${{ needs.build.outputs.image }}
-      options: --user ocaml
+      options: --user root
       env:
         DUNE_PROFILE: release
     steps:
@@ -149,11 +147,9 @@ jobs:
           cd ~/catala-examples
           opam exec -- clerk report --xml _build/clerk_tests/*@test _build/clerk_tests/test-*/*@test >report.junit.xml
       - name: Test Summary
-        uses: dorny/test-reporter@v1
+        uses: test-summary/action@v2
         with:
-          name: Tests on catala-examples
-          reporter: java-junit
-          path: "/home/ocaml/catala-examples/report.junit.xml"
+          paths: "/home/ocaml/catala-examples/report.junit.xml"
         if: ${{ always() }}
       - name: Checkout french-law repo
         run: |
@@ -191,12 +187,7 @@ jobs:
           cp catala-examples/_build/french_law_python.tar.gz artifacts/
           mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
-        # See the following to switch to a later upload-artifact version:
-        # continue-on-error: true
-        # Uploading artifacts works but then return failure with:
-        # EACCES: permission denied, open '/__w/_temp/_runner_file_commands/set_output_xxx'
-        # a chmod doesn't work around it so we resort to just ignoring the error...
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Catala examples
           path: /home/ocaml/artifacts/*
