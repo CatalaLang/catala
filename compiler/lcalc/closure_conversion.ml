@@ -220,7 +220,7 @@ let rec transform_closures_expr :
               EnumConstructor.Map.add cons
                 (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
-          | _ -> failwith "should not happen")
+          | _ -> assert false)
         cases
         (free_vars, EnumConstructor.Map.empty)
     in
@@ -273,6 +273,9 @@ let rec transform_closures_expr :
           | EAbs { binder; tys } ->
             let vars, arg = Bindlib.unmbind binder in
             let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
+            let new_free_vars =
+              Array.fold_left (fun m v -> Var.Map.remove v m) new_free_vars vars
+            in
             let new_arg =
               Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
             in
@@ -510,7 +513,7 @@ let rec hoist_closures_expr :
               EnumConstructor.Map.add cons
                 (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
-          | _ -> failwith "should not happen")
+          | _ -> assert false)
         cases
         (collected_closures, EnumConstructor.Map.empty)
     in
