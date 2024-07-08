@@ -313,9 +313,8 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Reduce -> Format.pp_print_string fmt "catala_list_reduce"
   | Filter -> Format.pp_print_string fmt "catala_list_filter"
   | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
-  | HandleDefault -> Format.pp_print_string fmt "catala_handle_default"
-  | HandleDefaultOpt | FromClosureEnv | ToClosureEnv | Map2 ->
-    failwith "unimplemented"
+  | HandleExceptions -> Format.pp_print_string fmt "catala_handle_exceptions"
+  | FromClosureEnv | ToClosureEnv | Map2 -> failwith "unimplemented"
 
 let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -368,8 +367,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = (HandleDefaultOpt | HandleDefault), _; args = _ } ->
-    failwith "should not happen because of keep_special_ops"
   | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list

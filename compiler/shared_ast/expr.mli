@@ -117,13 +117,6 @@ val eerroronempty :
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val ecatchempty :
-  ('a, 'm) boxed_gexpr ->
-  ('a, 'm) boxed_gexpr ->
-  'm mark ->
-  ((< exceptions : yes ; .. > as 'a), 'm) boxed_gexpr
-
-val eraiseempty : 'm mark -> (< exceptions : yes ; .. >, 'm) boxed_gexpr
 val elocation : 'a glocation -> 'm mark -> ((< .. > as 'a), 'm) boxed_gexpr
 
 val estruct :

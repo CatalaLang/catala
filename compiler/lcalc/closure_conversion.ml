@@ -30,6 +30,10 @@ type 'm ctx = {
 let new_var ?(pfx = "") name_context =
   name_context.counter <- name_context.counter + 1;
   Var.make (pfx ^ name_context.prefix ^ string_of_int name_context.counter)
+(* TODO: Closures end up as a toplevel names. However for now we assume toplevel
+   names are unique, this is a temporary workaround to avoid name wrangling in
+   the backends. We need to have a better system for name disambiguation when
+   for instance printing to Dcalc/Lcalc/Scalc but also OCaml, Python, etc. *)
 
 let new_context prefix = { prefix; counter = 0 }
 
@@ -142,8 +146,7 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EFatalError _ | EIfThenElse _ | ERaiseEmpty
-  | ECatchEmpty _ ->
+  | ELit _ | EAssert _ | EFatalError _ | EIfThenElse _ ->
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars
       ~f:(transform_closures_expr ctx)
       e
@@ -217,7 +220,7 @@ let rec transform_closures_expr :
               EnumConstructor.Map.add cons
                 (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
-          | _ -> failwith "should not happen")
+          | _ -> assert false)
         cases
         (free_vars, EnumConstructor.Map.empty)
     in
@@ -253,7 +256,7 @@ let rec transform_closures_expr :
     free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
   | EAppOp
       {
-        op = ((HandleDefaultOpt | Fold | Map | Map2 | Filter | Reduce), _) as op;
+        op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
         tys;
         args;
       } ->
@@ -270,6 +273,9 @@ let rec transform_closures_expr :
           | EAbs { binder; tys } ->
             let vars, arg = Bindlib.unmbind binder in
             let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
+            let new_free_vars =
+              Array.fold_left (fun m v -> Var.Map.remove v m) new_free_vars vars
+            in
             let new_arg =
               Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
             in
@@ -507,7 +513,7 @@ let rec hoist_closures_expr :
               EnumConstructor.Map.add cons
                 (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
-          | _ -> failwith "should not happen")
+          | _ -> assert false)
         cases
         (collected_closures, EnumConstructor.Map.empty)
     in
@@ -530,12 +536,7 @@ let rec hoist_closures_expr :
     in
     ( collected_closures,
       Expr.eapp ~f:(Expr.eabs new_binder tys e1_pos) ~args:new_args ~tys m )
-  | EAppOp
-      {
-        op = ((HandleDefaultOpt | Fold | Map | Filter | Reduce), _) as op;
-        tys;
-        args;
-      } ->
+  | EAppOp { op = ((Fold | Map | Filter | Reduce), _) as op; tys; args } ->
     (* Special case for some operators: its arguments closures thunks because if
        you want to extract it as a function you need these closures to preserve
        evaluation order, but backends that don't support closures will simply
@@ -562,21 +563,21 @@ let rec hoist_closures_expr :
         args ([], [])
     in
     collected_closures, Expr.eappop ~op ~args:new_args ~tys (Mark.get e)
-  | EAbs { tys; _ } ->
+  | EAbs { binder; tys } ->
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
-    (* TODO: This will end up as a toplevel name. However for now we assume
-       toplevel names are unique, but this breaks this assertions and can lead
-       to name wrangling in the backends. We need to have a better system for
-       name disambiguation when for instance printing to Dcalc/Lcalc/Scalc but
-       also OCaml, Python, etc. *)
     let pos = Expr.mark_pos m in
     let ty = Expr.maybe_ty ~typ:(TArrow (tys, (TAny, pos))) m in
-    ( [{ name = closure_var; ty; closure = Expr.rebox e }],
+    let vars, body = Bindlib.unmbind binder in
+    let collected_closures, new_body =
+      (hoist_closures_expr name_context) body
+    in
+    let closure = Expr.make_abs vars new_body tys pos in
+    ( { name = closure_var; ty; closure } :: collected_closures,
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
   | EArray _ | ELit _ | EAssert _ | EFatalError _ | EAppOp _ | EIfThenElse _
-  | ERaiseEmpty | ECatchEmpty _ | EVar _ ->
+  | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
   | EExternal { name } -> [], Expr.box (EExternal { name }, m)
   | _ -> .

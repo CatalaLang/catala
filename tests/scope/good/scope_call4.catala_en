@@ -68,7 +68,7 @@ $ catala interpret -s RentComputation --debug
 ```
 
 ```catala-test-inline
-$ catala Interpret --lcalc -s RentComputation --avoid-exceptions --optimize --debug
+$ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/scope/good/scope_call4.catala_en"

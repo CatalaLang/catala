@@ -86,114 +86,116 @@ typedef struct array_1_struct {
   int length_field;
 } array_1_struct;
 
-typedef struct tuple_0_struct {
+typedef struct tuple_1_struct {
   option_1_enum (*elt_0_field)(void * /* closure_env */ arg_0_typ, void* /* unit */ arg_1_typ);
   void * /* closure_env */ elt_1_field;
-} tuple_0_struct;
+} tuple_1_struct;
 
 typedef struct baz_in_struct {
-  tuple_0_struct a_in_field;
+  tuple_1_struct a_in_field;
 } baz_in_struct;
 
 
 baz_struct baz_func(baz_in_struct baz_in) {
-  tuple_0_struct a;
+  tuple_1_struct a;
   a = baz_in.a_in_field;
   bar_enum temp_a;
   option_1_enum temp_a_1;
-  tuple_0_struct code_and_env;
+  tuple_1_struct code_and_env;
   code_and_env = a;
   option_1_enum (*code)(void * /* closure_env */ arg_0_typ, void* /* unit */ arg_1_typ);
   void * /* closure_env */ env;
   code = code_and_env.elt_0_field;
   env = code_and_env.elt_1_field;
-  option_1_enum exception_acc = {option_1_enum_none_1_cons,
-    {none_1_cons: NULL}};
-  option_1_enum exception_current;
-  char exception_conflict = 0;
-  exception_current = code(env, NULL);
-  if (exception_current.code == option_1_enum_some_1_cons) {
-    if (exception_acc.code == option_1_enum_some_1_cons) {
-      exception_conflict = 1;
-    } else {
-      exception_acc = exception_current;
-    }
-  }
-  if (exception_conflict) {
-    catala_raise_fatal_error(catala_conflict,
-      "tests/backends/simple.catala_en", 11, 11, 11, 12);
-  }
-  if (exception_acc.code == option_1_enum_some_1_cons) {
-    temp_a_1 = exception_acc;
-  } else {
-    if (1 /* TRUE */) {
-      bar_enum temp_a_2;
-      option_1_enum temp_a_3;
-      option_1_enum temp_a_4;
+  array_1_struct temp_a_2;
+  temp_a_2.content_field = catala_malloc(sizeof(array_1_struct));
+  temp_a_2.content_field[0] = code(env, NULL);
+  option_1_enum match_arg = catala_handle_exceptions(temp_a_2);
+  switch (match_arg.code) {
+    case option_1_enum_none_1_cons:
       if (1 /* TRUE */) {
-        bar_enum temp_a_5 = {bar_enum_no_cons, {no_cons: NULL}};
-        option_1_enum temp_a_6 = {option_1_enum_some_1_cons,
-          {some_1_cons: temp_a_5}};
-        temp_a_4 = temp_a_6;
-      } else {
-        temp_a_4.code = option_1_enum_none_1_cons;
-        temp_a_4.payload.none_1_cons = NULL;
-      }
-      option_1_enum exception_acc_1 = {option_1_enum_none_1_cons,
-        {none_1_cons: NULL}};
-      option_1_enum exception_current_1;
-      char exception_conflict_1 = 0;
-      exception_current_1 = temp_a_4;
-      if (exception_current_1.code == option_1_enum_some_1_cons) {
-        if (exception_acc_1.code == option_1_enum_some_1_cons) {
-          exception_conflict_1 = 1;
-        } else {
-          exception_acc_1 = exception_current_1;
+        bar_enum temp_a_3;
+        option_1_enum temp_a_4;
+        option_1_enum temp_a_5;
+        array_1_struct temp_a_6;
+        temp_a_6.content_field = catala_malloc(sizeof(array_1_struct));
+        
+        option_1_enum match_arg_1 = catala_handle_exceptions(temp_a_6);
+        switch (match_arg_1.code) {
+          case option_1_enum_none_1_cons:
+            if (1 /* TRUE */) {
+              bar_enum temp_a_7 = {bar_enum_no_cons, {no_cons: NULL}};
+              option_1_enum temp_a_5 = {option_1_enum_some_1_cons,
+                {some_1_cons: temp_a_7}};
+              
+            } else {
+              option_1_enum temp_a_5 = {option_1_enum_none_1_cons,
+                {none_1_cons: NULL}};
+              
+            }
+            break;
+          case option_1_enum_some_1_cons:
+            bar_enum x = match_arg_1.payload.some_1_cons;
+            option_1_enum temp_a_5 = {option_1_enum_some_1_cons,
+              {some_1_cons: x}};
+            break;
         }
-      }
-      if (exception_conflict_1) {
-        catala_raise_fatal_error(catala_conflict,
-          "tests/backends/simple.catala_en", 11, 11, 11, 12);
-      }
-      if (exception_acc_1.code == option_1_enum_some_1_cons) {
-        temp_a_3 = exception_acc_1;
-      } else {
-        if (0 /* FALSE */) {
-          option_1_enum temp_a_7 = {option_1_enum_none_1_cons,
-            {none_1_cons: NULL}};
-          temp_a_3 = temp_a_7;
-        } else {
-          temp_a_3.code = option_1_enum_none_1_cons;
-          temp_a_3.payload.none_1_cons = NULL;
+        array_1_struct temp_a_8;
+        temp_a_8.content_field = catala_malloc(sizeof(array_1_struct));
+        temp_a_8.content_field[0] = temp_a_5;
+        option_1_enum match_arg_2 = catala_handle_exceptions(temp_a_8);
+        switch (match_arg_2.code) {
+          case option_1_enum_none_1_cons:
+            if (0 /* FALSE */) {
+              option_1_enum temp_a_4 = {option_1_enum_none_1_cons,
+                {none_1_cons: NULL}};
+              
+            } else {
+              option_1_enum temp_a_4 = {option_1_enum_none_1_cons,
+                {none_1_cons: NULL}};
+              
+            }
+            break;
+          case option_1_enum_some_1_cons:
+            bar_enum x_1 = match_arg_2.payload.some_1_cons;
+            option_1_enum temp_a_4 = {option_1_enum_some_1_cons,
+              {some_1_cons: x_1}};
+            break;
         }
+        option_1_enum match_arg_3 = temp_a_4;
+        switch (match_arg_3.code) {
+          case option_1_enum_none_1_cons:
+            catala_raise_fatal_error (catala_no_value,
+              "tests/backends/simple.catala_en", 11, 11, 11, 12);
+            break;
+          case option_1_enum_some_1_cons:
+            bar_enum arg = match_arg_3.payload.some_1_cons;
+            temp_a_3 = arg;
+            break;
+        }
+        option_1_enum temp_a_1 = {option_1_enum_some_1_cons,
+          {some_1_cons: temp_a_3}};
+        
+      } else {
+        option_1_enum temp_a_1 = {option_1_enum_none_1_cons,
+          {none_1_cons: NULL}};
+        
       }
-      option_1_enum match_arg = temp_a_3;
-      switch (match_arg.code) {
-        case option_1_enum_none_1_cons:
-          catala_raise_fatal_error (catala_no_value,
-            "tests/backends/simple.catala_en", 11, 11, 11, 12);
-          break;
-        case option_1_enum_some_1_cons:
-          bar_enum arg = match_arg.payload.some_1_cons;
-          temp_a_2 = arg;
-          break;
-      }
-      option_1_enum temp_a_8 = {option_1_enum_some_1_cons,
-        {some_1_cons: temp_a_2}};
-      temp_a_1 = temp_a_8;
-    } else {
-      temp_a_1.code = option_1_enum_none_1_cons;
-      temp_a_1.payload.none_1_cons = NULL;
-    }
+      break;
+    case option_1_enum_some_1_cons:
+      bar_enum x_2 = match_arg.payload.some_1_cons;
+      option_1_enum temp_a_1 = {option_1_enum_some_1_cons,
+        {some_1_cons: x_2}};
+      break;
   }
-  option_1_enum match_arg_1 = temp_a_1;
-  switch (match_arg_1.code) {
+  option_1_enum match_arg_4 = temp_a_1;
+  switch (match_arg_4.code) {
     case option_1_enum_none_1_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 11, 11, 11, 12);
       break;
     case option_1_enum_some_1_cons:
-      bar_enum arg_1 = match_arg_1.payload.some_1_cons;
+      bar_enum arg_1 = match_arg_4.payload.some_1_cons;
       temp_a = arg_1;
       break;
   }
@@ -203,133 +205,143 @@ baz_struct baz_func(baz_in_struct baz_in) {
   option_2_enum temp_b_1;
   option_2_enum temp_b_2;
   option_2_enum temp_b_3;
-  char /* bool */ temp_b_4;
-  bar_enum match_arg_2 = a_1;
-  switch (match_arg_2.code) {
-    case bar_enum_no_cons: temp_b_4 = 1 /* TRUE */; break;
-    case bar_enum_yes_cons:
-      foo_struct dummy_var = match_arg_2.payload.yes_cons;
-      temp_b_4 = 0 /* FALSE */;
+  array_2_struct temp_b_4;
+  temp_b_4.content_field = catala_malloc(sizeof(array_2_struct));
+  
+  option_2_enum match_arg_5 = catala_handle_exceptions(temp_b_4);
+  switch (match_arg_5.code) {
+    case option_2_enum_none_2_cons:
+      char /* bool */ temp_b_5;
+      bar_enum match_arg_6 = a_1;
+      switch (match_arg_6.code) {
+        case bar_enum_no_cons: temp_b_5 = 1 /* TRUE */; break;
+        case bar_enum_yes_cons:
+          foo_struct dummy_var = match_arg_6.payload.yes_cons;
+          temp_b_5 = 0 /* FALSE */;
+          break;
+      }
+      if (temp_b_5) {
+        option_2_enum temp_b_3 = {option_2_enum_some_2_cons,
+          {some_2_cons: 42.}};
+        
+      } else {
+        option_2_enum temp_b_3 = {option_2_enum_none_2_cons,
+          {none_2_cons: NULL}};
+        
+      }
+      break;
+    case option_2_enum_some_2_cons:
+      double x_3 = match_arg_5.payload.some_2_cons;
+      option_2_enum temp_b_3 = {option_2_enum_some_2_cons,
+        {some_2_cons: x_3}};
       break;
   }
-  if (temp_b_4) {
-    option_2_enum temp_b_5 = {option_2_enum_some_2_cons, {some_2_cons: 42.}};
-    temp_b_3 = temp_b_5;
-  } else {
-    temp_b_3.code = option_2_enum_none_2_cons;
-    temp_b_3.payload.none_2_cons = NULL;
+  array_2_struct temp_b_6;
+  temp_b_6.content_field = catala_malloc(sizeof(array_2_struct));
+  temp_b_6.content_field[0] = temp_b_3;
+  option_2_enum match_arg_7 = catala_handle_exceptions(temp_b_6);
+  switch (match_arg_7.code) {
+    case option_2_enum_none_2_cons:
+      if (0 /* FALSE */) {
+        option_2_enum temp_b_2 = {option_2_enum_none_2_cons,
+          {none_2_cons: NULL}};
+        
+      } else {
+        option_2_enum temp_b_2 = {option_2_enum_none_2_cons,
+          {none_2_cons: NULL}};
+        
+      }
+      break;
+    case option_2_enum_some_2_cons:
+      double x_4 = match_arg_7.payload.some_2_cons;
+      option_2_enum temp_b_2 = {option_2_enum_some_2_cons,
+        {some_2_cons: x_4}};
+      break;
   }
-  option_2_enum exception_acc_2 = {option_2_enum_none_2_cons,
-    {none_2_cons: NULL}};
-  option_2_enum exception_current_2;
-  char exception_conflict_2 = 0;
-  exception_current_2 = temp_b_3;
-  if (exception_current_2.code == option_2_enum_some_2_cons) {
-    if (exception_acc_2.code == option_2_enum_some_2_cons) {
-      exception_conflict_2 = 1;
-    } else {
-      exception_acc_2 = exception_current_2;
-    }
-  }
-  if (exception_conflict_2) {
-    catala_raise_fatal_error(catala_conflict,
-      "tests/backends/simple.catala_en", 12, 10, 12, 11);
-  }
-  if (exception_acc_2.code == option_2_enum_some_2_cons) {
-    temp_b_2 = exception_acc_2;
-  } else {
-    if (0 /* FALSE */) {
-      option_2_enum temp_b_6 = {option_2_enum_none_2_cons,
-        {none_2_cons: NULL}};
-      temp_b_2 = temp_b_6;
-    } else {
-      temp_b_2.code = option_2_enum_none_2_cons;
-      temp_b_2.payload.none_2_cons = NULL;
-    }
-  }
-  option_2_enum exception_acc_3 = {option_2_enum_none_2_cons,
-    {none_2_cons: NULL}};
-  option_2_enum exception_current_3;
-  char exception_conflict_3 = 0;
-  exception_current_3 = temp_b_2;
-  if (exception_current_3.code == option_2_enum_some_2_cons) {
-    if (exception_acc_3.code == option_2_enum_some_2_cons) {
-      exception_conflict_3 = 1;
-    } else {
-      exception_acc_3 = exception_current_3;
-    }
-  }
-  if (exception_conflict_3) {
-    catala_raise_fatal_error(catala_conflict,
-      "tests/backends/simple.catala_en", 12, 10, 12, 11);
-  }
-  if (exception_acc_3.code == option_2_enum_some_2_cons) {
-    temp_b_1 = exception_acc_3;
-  } else {
-    if (1 /* TRUE */) {
-      option_2_enum temp_b_7;
-      option_2_enum temp_b_8;
+  array_2_struct temp_b_7;
+  temp_b_7.content_field = catala_malloc(sizeof(array_2_struct));
+  temp_b_7.content_field[0] = temp_b_2;
+  option_2_enum match_arg_8 = catala_handle_exceptions(temp_b_7);
+  switch (match_arg_8.code) {
+    case option_2_enum_none_2_cons:
       if (1 /* TRUE */) {
-        double temp_b_9;
-        bar_enum match_arg_3 = a_1;
-        switch (match_arg_3.code) {
-          case bar_enum_no_cons: temp_b_9 = 0.; break;
-          case bar_enum_yes_cons:
-            foo_struct foo = match_arg_3.payload.yes_cons;
-            double temp_b_10;
-            if (foo.x_field) {temp_b_10 = 1.; } else {temp_b_10 = 0.; }
-            temp_b_9 = (foo.y_field + temp_b_10);
+        option_2_enum temp_b_8;
+        array_2_struct temp_b_9;
+        temp_b_9.content_field = catala_malloc(sizeof(array_2_struct));
+        
+        option_2_enum match_arg_9 = catala_handle_exceptions(temp_b_9);
+        switch (match_arg_9.code) {
+          case option_2_enum_none_2_cons:
+            if (1 /* TRUE */) {
+              double temp_b_10;
+              bar_enum match_arg_10 = a_1;
+              switch (match_arg_10.code) {
+                case bar_enum_no_cons: temp_b_10 = 0.; break;
+                case bar_enum_yes_cons:
+                  foo_struct foo = match_arg_10.payload.yes_cons;
+                  double temp_b_11;
+                  if (foo.x_field) {temp_b_11 = 1.; } else {temp_b_11 = 0.; }
+                  temp_b_10 = (foo.y_field + temp_b_11);
+                  break;
+              }
+              option_2_enum temp_b_8 = {option_2_enum_some_2_cons,
+                {some_2_cons: temp_b_10}};
+              
+            } else {
+              option_2_enum temp_b_8 = {option_2_enum_none_2_cons,
+                {none_2_cons: NULL}};
+              
+            }
+            break;
+          case option_2_enum_some_2_cons:
+            double x_5 = match_arg_9.payload.some_2_cons;
+            option_2_enum temp_b_8 = {option_2_enum_some_2_cons,
+              {some_2_cons: x_5}};
             break;
         }
-        option_2_enum temp_b_11 = {option_2_enum_some_2_cons,
-          {some_2_cons: temp_b_9}};
-        temp_b_8 = temp_b_11;
-      } else {
-        temp_b_8.code = option_2_enum_none_2_cons;
-        temp_b_8.payload.none_2_cons = NULL;
-      }
-      option_2_enum exception_acc_4 = {option_2_enum_none_2_cons,
-        {none_2_cons: NULL}};
-      option_2_enum exception_current_4;
-      char exception_conflict_4 = 0;
-      exception_current_4 = temp_b_8;
-      if (exception_current_4.code == option_2_enum_some_2_cons) {
-        if (exception_acc_4.code == option_2_enum_some_2_cons) {
-          exception_conflict_4 = 1;
-        } else {
-          exception_acc_4 = exception_current_4;
+        array_2_struct temp_b_12;
+        temp_b_12.content_field = catala_malloc(sizeof(array_2_struct));
+        temp_b_12.content_field[0] = temp_b_8;
+        option_2_enum match_arg_11 = catala_handle_exceptions(temp_b_12);
+        switch (match_arg_11.code) {
+          case option_2_enum_none_2_cons:
+            if (0 /* FALSE */) {
+              option_2_enum temp_b_1 = {option_2_enum_none_2_cons,
+                {none_2_cons: NULL}};
+              
+            } else {
+              option_2_enum temp_b_1 = {option_2_enum_none_2_cons,
+                {none_2_cons: NULL}};
+              
+            }
+            break;
+          case option_2_enum_some_2_cons:
+            double x_6 = match_arg_11.payload.some_2_cons;
+            option_2_enum temp_b_1 = {option_2_enum_some_2_cons,
+              {some_2_cons: x_6}};
+            break;
         }
-      }
-      if (exception_conflict_4) {
-        catala_raise_fatal_error(catala_conflict,
-          "tests/backends/simple.catala_en", 12, 10, 12, 11);
-      }
-      if (exception_acc_4.code == option_2_enum_some_2_cons) {
-        temp_b_7 = exception_acc_4;
+        
       } else {
-        if (0 /* FALSE */) {
-          option_2_enum temp_b_12 = {option_2_enum_none_2_cons,
-            {none_2_cons: NULL}};
-          temp_b_7 = temp_b_12;
-        } else {
-          temp_b_7.code = option_2_enum_none_2_cons;
-          temp_b_7.payload.none_2_cons = NULL;
-        }
+        option_2_enum temp_b_1 = {option_2_enum_none_2_cons,
+          {none_2_cons: NULL}};
+        
       }
-      temp_b_1 = temp_b_7;
-    } else {
-      temp_b_1.code = option_2_enum_none_2_cons;
-      temp_b_1.payload.none_2_cons = NULL;
-    }
+      break;
+    case option_2_enum_some_2_cons:
+      double x_7 = match_arg_8.payload.some_2_cons;
+      option_2_enum temp_b_1 = {option_2_enum_some_2_cons,
+        {some_2_cons: x_7}};
+      break;
   }
-  option_2_enum match_arg_4 = temp_b_1;
-  switch (match_arg_4.code) {
+  option_2_enum match_arg_12 = temp_b_1;
+  switch (match_arg_12.code) {
     case option_2_enum_none_2_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 12, 10, 12, 11);
       break;
     case option_2_enum_some_2_cons:
-      double arg_2 = match_arg_4.payload.some_2_cons;
+      double arg_2 = match_arg_12.payload.some_2_cons;
       temp_b = arg_2;
       break;
   }
@@ -338,54 +350,62 @@ baz_struct baz_func(baz_in_struct baz_in) {
   array_3_struct temp_c;
   option_3_enum temp_c_1;
   option_3_enum temp_c_2;
-  if (1 /* TRUE */) {
-    array_3_struct temp_c_3;
-    temp_c_3.content_field = catala_malloc(sizeof(array_3_struct));
-    temp_c_3.content_field[0] = b;
-    temp_c_3.content_field[1] = b;
-    option_3_enum temp_c_4 = {option_3_enum_some_3_cons,
-      {some_3_cons: temp_c_3}};
-    temp_c_2 = temp_c_4;
-  } else {
-    temp_c_2.code = option_3_enum_none_3_cons;
-    temp_c_2.payload.none_3_cons = NULL;
+  array_4_struct temp_c_3;
+  temp_c_3.content_field = catala_malloc(sizeof(array_4_struct));
+  
+  option_3_enum match_arg_13 = catala_handle_exceptions(temp_c_3);
+  switch (match_arg_13.code) {
+    case option_3_enum_none_3_cons:
+      if (1 /* TRUE */) {
+        array_3_struct temp_c_4;
+        temp_c_4.content_field = catala_malloc(sizeof(array_3_struct));
+        temp_c_4.content_field[0] = b;
+        temp_c_4.content_field[1] = b;
+        option_3_enum temp_c_2 = {option_3_enum_some_3_cons,
+          {some_3_cons: temp_c_4}};
+        
+      } else {
+        option_3_enum temp_c_2 = {option_3_enum_none_3_cons,
+          {none_3_cons: NULL}};
+        
+      }
+      break;
+    case option_3_enum_some_3_cons:
+      array_3_struct x_8 = match_arg_13.payload.some_3_cons;
+      option_3_enum temp_c_2 = {option_3_enum_some_3_cons,
+        {some_3_cons: x_8}};
+      break;
   }
-  option_3_enum exception_acc_5 = {option_3_enum_none_3_cons,
-    {none_3_cons: NULL}};
-  option_3_enum exception_current_5;
-  char exception_conflict_5 = 0;
-  exception_current_5 = temp_c_2;
-  if (exception_current_5.code == option_3_enum_some_3_cons) {
-    if (exception_acc_5.code == option_3_enum_some_3_cons) {
-      exception_conflict_5 = 1;
-    } else {
-      exception_acc_5 = exception_current_5;
-    }
+  array_4_struct temp_c_5;
+  temp_c_5.content_field = catala_malloc(sizeof(array_4_struct));
+  temp_c_5.content_field[0] = temp_c_2;
+  option_3_enum match_arg_14 = catala_handle_exceptions(temp_c_5);
+  switch (match_arg_14.code) {
+    case option_3_enum_none_3_cons:
+      if (0 /* FALSE */) {
+        option_3_enum temp_c_1 = {option_3_enum_none_3_cons,
+          {none_3_cons: NULL}};
+        
+      } else {
+        option_3_enum temp_c_1 = {option_3_enum_none_3_cons,
+          {none_3_cons: NULL}};
+        
+      }
+      break;
+    case option_3_enum_some_3_cons:
+      array_3_struct x_9 = match_arg_14.payload.some_3_cons;
+      option_3_enum temp_c_1 = {option_3_enum_some_3_cons,
+        {some_3_cons: x_9}};
+      break;
   }
-  if (exception_conflict_5) {
-    catala_raise_fatal_error(catala_conflict,
-      "tests/backends/simple.catala_en", 13, 10, 13, 11);
-  }
-  if (exception_acc_5.code == option_3_enum_some_3_cons) {
-    temp_c_1 = exception_acc_5;
-  } else {
-    if (0 /* FALSE */) {
-      option_3_enum temp_c_5 = {option_3_enum_none_3_cons,
-        {none_3_cons: NULL}};
-      temp_c_1 = temp_c_5;
-    } else {
-      temp_c_1.code = option_3_enum_none_3_cons;
-      temp_c_1.payload.none_3_cons = NULL;
-    }
-  }
-  option_3_enum match_arg_5 = temp_c_1;
-  switch (match_arg_5.code) {
+  option_3_enum match_arg_15 = temp_c_1;
+  switch (match_arg_15.code) {
     case option_3_enum_none_3_cons:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 13, 10, 13, 11);
       break;
     case option_3_enum_some_3_cons:
-      array_3_struct arg_3 = match_arg_5.payload.some_3_cons;
+      array_3_struct arg_3 = match_arg_15.payload.some_3_cons;
       temp_c = arg_3;
       break;
   }

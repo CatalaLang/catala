@@ -294,7 +294,6 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any3 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
-  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
@@ -314,9 +313,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
-    | HandleDefaultOpt ->
-      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
+    | HandleExceptions -> [array (option any)] @-> option any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
@@ -348,7 +345,7 @@ let polymorphic_op_return_type
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
-  | (HandleDefault | HandleDefaultOpt), [_; _; tf] -> return_type tf 1
+  | HandleExceptions, [_] -> any ()
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
   | _ -> Message.error ~pos "Mismatched operator arguments"
@@ -760,11 +757,6 @@ and typecheck_expr_top_down :
         args
     in
     Expr.escopecall ~scope ~args:args' mark
-  | A.ERaiseEmpty -> Expr.eraiseempty context_mark
-  | A.ECatchEmpty { body; handler } ->
-    let body' = typecheck_expr_top_down ctx env tau body in
-    let handler' = typecheck_expr_top_down ctx env tau handler in
-    Expr.ecatchempty body' handler' context_mark
   | A.EVar v ->
     let tau' =
       match Env.get env v with
@@ -895,15 +887,17 @@ and typecheck_expr_top_down :
     let args =
       Operator.kind_dispatch (Mark.set pos_e op)
         ~polymorphic:(fun op ->
-          (* Type the operator first, then right-to-left: polymorphic operators
-             are required to allow the resolution of all type variables this
-             way *)
-          if not env.flags.assume_op_types then
-            unify ctx e (polymorphic_op_type op) t_func
-          else unify ctx e (polymorphic_op_return_type ctx e op t_args) tau;
-          List.rev_map2
-            (typecheck_expr_top_down ctx env)
-            (List.rev t_args) (List.rev args))
+          if env.flags.assume_op_types then (
+            unify ctx e (polymorphic_op_return_type ctx e op t_args) tau;
+            List.rev_map (typecheck_expr_bottom_up ctx env) (List.rev args))
+          else (
+            (* Type the operator first, then right-to-left: polymorphic
+               operators are required to allow the resolution of all type
+               variables this way *)
+            unify ctx e (polymorphic_op_type op) t_func;
+            List.rev_map2
+              (typecheck_expr_top_down ctx env)
+              (List.rev t_args) (List.rev args)))
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in

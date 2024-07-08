@@ -75,8 +75,8 @@ module Cli = struct
              tests. Comma-separated list. A subset may also be applied to the \
              compilation of modules, as needed.\n\
              WARNING: flag shortcuts are not allowed here (i.e. don't use \
-             non-ambiguous prefixes such as $(b,--avoid-ex) for \
-             $(b,--avoid-exceptions))\n\
+             non-ambiguous prefixes such as $(b,--closure) for \
+             $(b,--closure-conversion))\n\
              NOTE: if this is set, all inline tests that are $(i,not) \
              $(b,catala test-scope) are skipped to avoid redundant testing.")
 
@@ -481,17 +481,13 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
   let catala_flags_ocaml =
     List.filter
       (function
-        | "--avoid-exceptions" | "-O" | "--optimize" | "--closure-conversion" ->
-          true
-        | _ -> false)
+        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
       test_flags
   in
   let catala_flags_python =
     List.filter
       (function
-        | "--avoid-exceptions" | "-O" | "--optimize" | "--closure-conversion" ->
-          true
-        | _ -> false)
+        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
       test_flags
   in
   let ocaml_flags = Lazy.force Poll.ocaml_include_flags in

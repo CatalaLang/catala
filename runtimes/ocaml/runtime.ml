@@ -716,32 +716,9 @@ module EventParser = struct
     ctx.events
 end
 
-let handle_default :
-      'a.
-      source_position array ->
-      (unit -> 'a) array ->
-      (unit -> bool) ->
-      (unit -> 'a) ->
-      'a =
- fun pos exceptions just cons ->
-  let len = Array.length exceptions in
-  let rec filt_except i =
-    if i < len then
-      match exceptions.(i) () with
-      | new_val -> (new_val, i) :: filt_except (i + 1)
-      | exception Empty -> filt_except (i + 1)
-    else []
-  in
-  match filt_except 0 with
-  | [] -> if just () then cons () else raise Empty
-  | [(res, _)] -> res
-  | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
-
-let handle_default_opt
+let handle_exceptions
     (pos : source_position array)
-    (exceptions : 'a Eoption.t array)
-    (just : unit -> bool)
-    (cons : unit -> 'a Eoption.t) : 'a Eoption.t =
+    (exceptions : 'a Eoption.t array) : 'a Eoption.t =
   let len = Array.length exceptions in
   let rec filt_except i =
     if i < len then
@@ -751,7 +728,7 @@ let handle_default_opt
     else []
   in
   match filt_except 0 with
-  | [] -> if just () then cons () else Eoption.ENone ()
+  | [] -> Eoption.ENone ()
   | [(res, _)] -> res
   | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
 

@@ -422,36 +422,7 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_eq_dur_dur (rpos ()) x y))
-  | HandleDefault, [(EArray excepts, _); just; cons] -> (
-    (* This case is for lcalc with exceptions: we rely OCaml exception handling
-       here *)
-    match
-      List.filter_map
-        (fun e ->
-          try Some (evaluate_expr (Expr.unthunk_term_nobox e))
-          with Runtime.Empty -> None)
-        excepts
-    with
-    | [] -> (
-      let just = evaluate_expr (Expr.unthunk_term_nobox just) in
-      match Mark.remove just with
-      | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox cons))
-      | ELit (LBool false) -> raise Runtime.Empty
-      | _ ->
-        Message.error ~pos
-          "Default justification has not been reduced to a boolean at@ \
-           evaluation@ (should not happen if the term was well-typed@\n\
-           %a@."
-          Expr.format just)
-    | [e] -> Mark.remove e
-    | es ->
-      raise
-        Runtime.(
-          Error
-            (Conflict, List.map (fun e -> Expr.pos_to_runtime (Expr.pos e)) es))
-    )
-  | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
+  | HandleExceptions, [(EArray exps, _)] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
         | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
@@ -459,28 +430,9 @@ let rec evaluate_operator
         | _ -> err ())
     in
     match valid_exceptions with
-    | [] -> (
-      let e = evaluate_expr (Expr.unthunk_term_nobox justification) in
-      match Mark.remove e with
-      | ELit (LBool true) ->
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion))
-      | ELit (LBool false) ->
-        EInj
-          {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
-            e = Mark.copy justification (ELit LUnit);
-          }
-      | EInj { name; cons; e }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.none_constr ->
-        EInj
-          {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
-            e = Mark.copy e (ELit LUnit);
-          }
-      | _ -> err ())
+    | [] ->
+      EInj
+        { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
     | [((EInj { cons; name; _ } as e), _)]
       when EnumName.equal name Expr.option_enum
            && EnumConstructor.equal cons Expr.some_constr ->
@@ -501,23 +453,22 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt
-        ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
       _ ) ->
     err ()
 
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
 let rec runtime_to_val :
-    type d e.
+    type d.
     (decl_ctx ->
-    ((d, e, _) interpr_kind, 'm) gexpr ->
-    ((d, e, _) interpr_kind, 'm) gexpr) ->
+    ((d, _) interpr_kind, 'm) gexpr ->
+    ((d, _) interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     'm mark ->
     typ ->
     Obj.t ->
-    (((d, e, yes) interpr_kind as 'a), 'm) gexpr =
+    (((d, yes) interpr_kind as 'a), 'm) gexpr =
  fun eval_expr ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
@@ -578,21 +529,26 @@ let rec runtime_to_val :
            (Array.to_list (Obj.obj o))),
       m )
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
-  | TDefault ty -> runtime_to_val eval_expr ctx m ty o
+  | TDefault ty -> (
+    (* This case is only valid for ASTs including default terms; but the typer
+       isn't aware so we need some additional dark arts. *)
+    match (Obj.obj o : 'a Runtime.Eoption.t) with
+    | Runtime.Eoption.ENone () -> Obj.magic EEmpty, m
+    | Runtime.Eoption.ESome o -> Obj.magic (runtime_to_val eval_expr ctx m ty o)
+    )
   | TAny -> assert false
 
 and val_to_runtime :
-    type d e.
+    type d.
     (decl_ctx ->
-    ((d, e, _) interpr_kind, 'm) gexpr ->
-    ((d, e, _) interpr_kind, 'm) gexpr) ->
+    ((d, _) interpr_kind, 'm) gexpr ->
+    ((d, _) interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     typ ->
-    ((d, e, _) interpr_kind, 'm) gexpr ->
+    ((d, _) interpr_kind, 'm) gexpr ->
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
-  | _, EEmpty -> raise Runtime.Empty
   | TLit TBool, ELit (LBool b) -> Obj.repr b
   | TLit TUnit, ELit LUnit -> Obj.repr ()
   | TLit TInt, ELit (LInt i) -> Obj.repr i
@@ -659,7 +615,11 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
-  | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
+  | TDefault ty, _ -> (
+    match v with
+    | EEmpty, _ -> Obj.repr (Runtime.Eoption.ENone ())
+    | EPureDefault e, _ | e ->
+      Obj.repr (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty e)))
   | TClosureEnv, v ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
@@ -671,11 +631,11 @@ and val_to_runtime :
       Expr.format v
 
 let rec evaluate_expr :
-    type d e.
+    type d.
     decl_ctx ->
     Global.backend_lang ->
-    ((d, e, yes) interpr_kind, 't) gexpr ->
-    ((d, e, yes) interpr_kind, 't) gexpr =
+    ((d, yes) interpr_kind, 't) gexpr ->
+    ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
@@ -875,18 +835,14 @@ let rec evaluate_expr :
       in
       raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
-  | ERaiseEmpty -> raise Runtime.Empty
-  | ECatchEmpty { body; handler } -> (
-    try evaluate_expr ctx lang body
-    with Runtime.Empty -> evaluate_expr ctx lang handler)
   | _ -> .
 
 and partially_evaluate_expr_for_assertion_failure_message :
-    type d e.
+    type d.
     decl_ctx ->
     Global.backend_lang ->
-    ((d, e, yes) interpr_kind, 't) gexpr ->
-    ((d, e, yes) interpr_kind, 't) gexpr =
+    ((d, yes) interpr_kind, 't) gexpr ->
+    ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
@@ -921,11 +877,11 @@ and partially_evaluate_expr_for_assertion_failure_message :
   | _ -> evaluate_expr ctx lang e
 
 let evaluate_expr_trace :
-    type d e.
+    type d.
     decl_ctx ->
     Global.backend_lang ->
-    ((d, e, yes) interpr_kind, 't) gexpr ->
-    ((d, e, yes) interpr_kind, 't) gexpr =
+    ((d, yes) interpr_kind, 't) gexpr ->
+    ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   Fun.protect
     (fun () -> evaluate_expr ctx lang e)
@@ -937,11 +893,11 @@ let evaluate_expr_trace :
            (Runtime.EventParser.parse_raw_events trace)] fais here, check why *))
 
 let evaluate_expr_safe :
-    type d e.
+    type d.
     decl_ctx ->
     Global.backend_lang ->
-    ((d, e, yes) interpr_kind, 't) gexpr ->
-    ((d, e, yes) interpr_kind, 't) gexpr =
+    ((d, yes) interpr_kind, 't) gexpr ->
+    ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   try evaluate_expr_trace ctx lang e
   with Runtime.Error (err, rpos) ->
@@ -953,9 +909,9 @@ let evaluate_expr_safe :
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
   let rec f :
-      type c d e.
-      ((d, e, c) interpr_kind, 't) gexpr ->
-      ((d, e, yes) interpr_kind, 't) gexpr boxed = function
+      type c d.
+      ((d, c) interpr_kind, 't) gexpr -> ((d, yes) interpr_kind, 't) gexpr boxed
+      = function
     | (ECustom _, _) as e -> Expr.map ~f e
     | EAppOp { op; tys; args }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
@@ -963,8 +919,6 @@ let addcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (ECatchEmpty _, _) as e -> Expr.map ~f e
-    | (ERaiseEmpty, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -974,8 +928,8 @@ let addcustom e =
   in
   let open struct
     external id :
-      (('d, 'e, 'c) interpr_kind, 't) gexpr ->
-      (('d, 'e, yes) interpr_kind, 't) gexpr = "%identity"
+      (('d, 'c) interpr_kind, 't) gexpr -> (('d, yes) interpr_kind, 't) gexpr
+      = "%identity"
   end in
   if false then Expr.unbox (f e)
     (* We keep the implementation as a typing proof, but bypass the AST
@@ -985,9 +939,9 @@ let addcustom e =
 
 let delcustom e =
   let rec f :
-      type c d e.
-      ((d, e, c) interpr_kind, 't) gexpr ->
-      ((d, e, no) interpr_kind, 't) gexpr boxed = function
+      type c d.
+      ((d, c) interpr_kind, 't) gexpr -> ((d, no) interpr_kind, 't) gexpr boxed
+      = function
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EAppOp { op; args; tys }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
@@ -995,8 +949,6 @@ let delcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (ECatchEmpty _, _) as e -> Expr.map ~f e
-    | (ERaiseEmpty, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -1027,22 +979,13 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         (fun ty ->
           match Mark.remove ty with
           | TArrow (ty_in, (TOption _, _)) ->
-            (* Context args may return an option if avoid_exceptions is on *)
+            (* Context args should return an option *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                  ~name:Expr.option_enum mark_e
                 : (_, _) boxed_gexpr)
               ty_in pos
-          | TArrow (ty_in, ty_out) ->
-            (* Or a default term (translated into a plain one if it is off) *)
-            (* Note: this might catch non-context args, but since the
-               compilation to lcalc strips the default around [ty_out] we can't
-               tell with just this info. *)
-            Expr.make_abs
-              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraiseempty (Expr.with_ty mark_e ty_out))
-              ty_in (Expr.mark_pos mark_e)
           | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
             (* ... or a closure if closure conversion is enabled *)
             Expr.make_tuple

@@ -1085,8 +1085,7 @@ let expr_to_dot_label0 :
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
           | Fold -> xlang () ~en:"fold" ~fr:"pliage"
-          | HandleDefault -> ""
-          | HandleDefaultOpt -> ""
+          | HandleExceptions -> ""
           | ToClosureEnv -> ""
           | FromClosureEnv -> ""
         in
@@ -1382,9 +1381,7 @@ let run includes optimize ex_scope explain_options global_options =
       ~check_invariants:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
-    ~hashf:
-      (Hash.finalise ~avoid_exceptions:false ~closure_conversion:false
-         ~monomorphize_types:false);
+    ~hashf:(Hash.finalise ~closure_conversion:false ~monomorphize_types:false);
   let scope = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in

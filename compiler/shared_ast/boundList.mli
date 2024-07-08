@@ -30,6 +30,7 @@ type ('e, 'elt, 'last) t = ('e, 'elt, 'last) bound_list =
   | Last of 'last
   | Cons of 'elt * ('e, ('e, 'elt, 'last) t) binder
 
+val to_seq : (((_, _) gexpr as 'e), 'elt, unit) t -> ('e Var.t * 'elt) Seq.t
 val last : (_, _, 'a) t -> 'a
 val iter : f:('e Var.t -> 'elt -> unit) -> ('e, 'elt, 'last) t -> 'last
 val find : f:('elt -> 'a option) -> (_, 'elt, _) t -> 'a
