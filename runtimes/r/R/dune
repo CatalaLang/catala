@@ -1,4 +1,0 @@
-(install
- (section lib)
- (files
-  (runtime.R as runtime_r/runtime.R)))
