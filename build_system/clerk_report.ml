@@ -69,16 +69,68 @@ let has_command cmd =
   let check_cmd = Printf.sprintf "type %s >/dev/null 2>&1" cmd in
   Sys.command check_cmd = 0
 
-let longuest_common_prefix_length s1 s2 =
-  let len = min (String.length s1) (String.length s2) in
-  let rec aux i =
-    if i >= len then i
-    else
-      let c1 = String.get_utf_8_uchar s1 i in
-      let c2 = String.get_utf_8_uchar s2 i in
-      if c1 = c2 then aux (i + Uchar.utf_decode_length c1) else i
+type 'a diff = Eq of 'a | Subs of 'a * 'a | Del of 'a | Add of 'a
+
+let colordiff_str s1 s2 =
+  let split_re =
+    Re.(compile (alt [set "=()[]{};-,"; rep1 space; rep1 digit]))
   in
-  aux 0
+  let split s =
+    Re.Seq.split_full split_re s
+    |> Seq.map (function `Text t -> t | `Delim g -> Re.Group.get g 0)
+  in
+  let a1 = Array.of_seq (split s1) in
+  let n1 = Array.length a1 in
+  let a2 = Array.of_seq (split s2) in
+  let n2 = Array.length a2 in
+  let d = Array.make_matrix n1 n2 (0, []) in
+  let get i1 i2 =
+    if i1 < 0 then
+      ( i2 + 1,
+        Array.fold_left (fun acc c -> Add c :: acc) [] (Array.sub a2 0 (i2 + 1))
+      )
+    else if i2 < 0 then
+      ( i1 + 1,
+        Array.fold_left (fun acc c -> Del c :: acc) [] (Array.sub a1 0 (i1 + 1))
+      )
+    else d.(i1).(i2)
+  in
+  for i1 = 0 to n1 - 1 do
+    for i2 = 0 to n2 - 1 do
+      if a1.(i1) = a2.(i2) then
+        let eq, eqops = get (i1 - 1) (i2 - 1) in
+        d.(i1).(i2) <- eq, Eq a1.(i1) :: eqops
+      else
+        let del, delops = get (i1 - 1) i2 in
+        let add, addops = get i1 (i2 - 1) in
+        let subs, subsops = get (i1 - 1) (i2 - 1) in
+        if subs <= del && subs <= add then
+          d.(i1).(i2) <- subs + 1, Subs (a1.(i1), a2.(i2)) :: subsops
+        else if del <= add then d.(i1).(i2) <- del + 1, Del a1.(i1) :: delops
+        else d.(i1).(i2) <- add + 1, Add a2.(i2) :: addops
+    done
+  done;
+  let _, rops = get (n1 - 1) (n2 - 1) in
+  let ops = List.rev rops in
+  let pr_left ppf () =
+    Format.pp_print_list
+      ~pp_sep:(fun _ () -> ())
+      (fun ppf -> function
+        | Eq w -> Format.fprintf ppf "%s" w
+        | Subs (w, _) | Del w -> Format.fprintf ppf "@{<green>%s@}" w
+        | Add _ -> ())
+      ppf ops
+  in
+  let pr_right ppf () =
+    Format.pp_print_list
+      ~pp_sep:(fun _ () -> ())
+      (fun ppf -> function
+        | Eq w -> Format.fprintf ppf "%s" w
+        | Subs (_, w) | Add w -> Format.fprintf ppf "@{<red>%s@}" w
+        | Del _ -> ())
+      ppf ops
+  in
+  pr_left, pr_right
 
 let diff_command =
   let has_gnu_diff () =
@@ -139,10 +191,8 @@ let diff_command =
                        else Format.fprintf ppf "%s@{<blue>│@}@{<red>%s@}" l r
                      | '<' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>-@}" l
                      | '|' ->
-                       let w = longuest_common_prefix_length (" " ^ l) r in
-                       Format.fprintf ppf "%s@{<blue>│@}%s@{<red>%s@}" l
-                         (String.sub r 0 w)
-                         (String.sub r w (String.length r - w))
+                       let ppleft, ppright = colordiff_str l r in
+                       Format.fprintf ppf "%a@{<blue>│@}%a" ppleft () ppright ()
                      | _ -> Format.pp_print_string ppf li))
                  ppf )
       | Some cmd_opt | (None as cmd_opt) ->
