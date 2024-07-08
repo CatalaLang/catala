@@ -33,9 +33,6 @@ module VarName =
     end)
     ()
 
-let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
-let handle_exceptions = FuncName.fresh ("handle_exceptions", Pos.no_pos)
-
 type operator = Shared_ast.lcalc Shared_ast.operator
 
 type expr = naked_expr Mark.pos

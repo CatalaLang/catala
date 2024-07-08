@@ -318,36 +318,20 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
         args = [arg1];
       } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
-  | EAppOp { op; args = [arg1] } ->
-    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = HandleExceptions, _; _ } ->
-    Message.error ~internal:true
-      "R compilation does not currently support the avoiding of exceptions"
-  (* TODO: port the following to avoid-exceptions
-   * | EAppOp { op = (HandleDefault as op), _; args; _ } ->
-   *   let pos = Mark.get e in
-   *   Format.fprintf fmt
-   *     "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
-   *      start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-   *     format_op (op, pos) (Pos.get_file pos) (Pos.get_start_line pos)
-   *     (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-   *     format_string_list (Pos.get_law_info pos)
-   *     (Format.pp_print_list
-   *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-   *        (format_expression ctx))
-   *     args *)
-  | EApp { f = EFunc x, pos; args }
-    when Ast.FuncName.compare x Ast.handle_exceptions = 0 ->
+  | EAppOp { op = HandleExceptions, _ as op; args = [EArray el, _] as args } ->
     Format.fprintf fmt
-      "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+      "%a(%a, %a)@]"
+      format_op op
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         format_position)
+      (List.map Mark.get el)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
+  | EAppOp { op; args = [arg1] } ->
+    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
   | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
