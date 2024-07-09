@@ -6,6 +6,7 @@
 
 .. moduleauthor:: Denis Merigoux <denis.merigoux@inria.fr>
 """
+from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
@@ -31,31 +32,31 @@ class Integer:
     def __init__(self, value: Union[str, int]) -> None:
         self.value = mpz(value)
 
-    def __add__(self, other: 'Integer') -> 'Integer':
+    def __add__(self, other: Integer) -> Integer:
         return Integer(self.value + other.value)
 
-    def __sub__(self, other: 'Integer') -> 'Integer':
+    def __sub__(self, other: Integer) -> Integer:
         return Integer(self.value - other.value)
 
-    def __mul__(self, other: 'Integer') -> 'Integer':
+    def __mul__(self, other: Integer) -> Integer:
         return Integer(self.value * other.value)
 
-    def __truediv__(self, other: 'Integer') -> 'Decimal':
+    def __truediv__(self, other: Integer) -> Decimal:
         return Decimal(self.value) / Decimal(other.value)
 
-    def __neg__(self: 'Integer') -> 'Integer':
+    def __neg__(self: Integer) -> Integer:
         return Integer(- self.value)
 
-    def __lt__(self, other: 'Integer') -> bool:
+    def __lt__(self, other: Integer) -> bool:
         return self.value < other.value
 
-    def __le__(self, other: 'Integer') -> bool:
+    def __le__(self, other: Integer) -> bool:
         return self.value <= other.value
 
-    def __gt__(self, other: 'Integer') -> bool:
+    def __gt__(self, other: Integer) -> bool:
         return self.value > other.value
 
-    def __ge__(self, other: 'Integer') -> bool:
+    def __ge__(self, other: Integer) -> bool:
         return self.value >= other.value
 
     def __ne__(self, other: object) -> bool:
@@ -78,34 +79,37 @@ class Integer:
 
 
 class Decimal:
-    def __init__(self, value: Union[str, int, float]) -> None:
-        self.value = mpq(value)
+    def __init__(self, value: Union[str, int, float,Integer]) -> None:
+        if isinstance(value, Integer):
+            self.value = mpq(value.value)
+        else:
+            self.value = mpq(value)
 
-    def __add__(self, other: 'Decimal') -> 'Decimal':
+    def __add__(self, other: Decimal) -> Decimal:
         return Decimal(self.value + other.value)
 
-    def __sub__(self, other: 'Decimal') -> 'Decimal':
+    def __sub__(self, other: Decimal) -> Decimal:
         return Decimal(self.value - other.value)
 
-    def __mul__(self, other: 'Decimal') -> 'Decimal':
+    def __mul__(self, other: Decimal) -> Decimal:
         return Decimal(self.value * other.value)
 
-    def __truediv__(self, other: 'Decimal') -> 'Decimal':
+    def __truediv__(self, other: Decimal) -> Decimal:
         return Decimal(self.value / other.value)
 
-    def __neg__(self: 'Decimal') -> 'Decimal':
+    def __neg__(self: Decimal) -> Decimal:
         return Decimal(- self.value)
 
-    def __lt__(self, other: 'Decimal') -> bool:
+    def __lt__(self, other: Decimal) -> bool:
         return self.value < other.value
 
-    def __le__(self, other: 'Decimal') -> bool:
+    def __le__(self, other: Decimal) -> bool:
         return self.value <= other.value
 
-    def __gt__(self, other: 'Decimal') -> bool:
+    def __gt__(self, other: Decimal) -> bool:
         return self.value > other.value
 
-    def __ge__(self, other: 'Decimal') -> bool:
+    def __ge__(self, other: Decimal) -> bool:
         return self.value >= other.value
 
     def __ne__(self, other: object) -> bool:
@@ -131,26 +135,17 @@ class Money:
     def __init__(self, value: Integer) -> None:
         self.value = value
 
-    def __add__(self, other: 'Money') -> 'Money':
+    def __add__(self, other: Money) -> Money:
         return Money(self.value + other.value)
 
-    def __sub__(self, other: 'Money') -> 'Money':
+    def __sub__(self, other: Money) -> Money:
         return Money(self.value - other.value)
 
-    def __mul__(self, other: Decimal) -> 'Money':
-        cents = self.value.value
-        coeff = other.value
-        # TODO: change, does not work with negative values. Must divide the
-        # absolute values and then multiply by the resulting sign.
-        rat_result = self.value.value * other.value
-        out = Money(Integer(rat_result))
-        res, remainder = t_divmod(rat_result.numerator, rat_result.denominator)
-        if 2 * remainder >= rat_result.denominator:
-            return Money(Integer(res + 1))
-        else:
-            return Money(Integer(res))
+    def __mul__(self, other: Decimal) -> Money:
+        rat_result : Decimal = decimal_of_integer(self.value) * other
+        return Money(round(rat_result))
 
-    def __truediv__(self, other: 'Money') -> Decimal:
+    def __truediv__(self, other: Money) -> Decimal:
         if isinstance(other, Money):
             return self.value / other.value
         elif isinstance(other, Decimal):
@@ -158,19 +153,19 @@ class Money:
         else:
             raise Exception("Dividing money and invalid obj")
 
-    def __neg__(self: 'Money') -> 'Money':
+    def __neg__(self: Money) -> Money:
         return Money(- self.value)
 
-    def __lt__(self, other: 'Money') -> bool:
+    def __lt__(self, other: Money) -> bool:
         return self.value < other.value
 
-    def __le__(self, other: 'Money') -> bool:
+    def __le__(self, other: Money) -> bool:
         return self.value <= other.value
 
-    def __gt__(self, other: 'Money') -> bool:
+    def __gt__(self, other: Money) -> bool:
         return self.value > other.value
 
-    def __ge__(self, other: 'Money') -> bool:
+    def __ge__(self, other: Money) -> bool:
         return self.value >= other.value
 
     def __ne__(self, other: object) -> bool:
@@ -196,7 +191,7 @@ class Date:
     def __init__(self, value: datetime.date) -> None:
         self.value = value
 
-    def __add__(self, other: 'Duration') -> 'Date':
+    def __add__(self, other: Duration) -> Date:
         return Date(self.value + other.value)
 
     def __sub__(self, other: object) -> object:
@@ -207,16 +202,16 @@ class Date:
         else:
             raise Exception("Substracting date and invalid obj")
 
-    def __lt__(self, other: 'Date') -> bool:
+    def __lt__(self, other: Date) -> bool:
         return self.value < other.value
 
-    def __le__(self, other: 'Date') -> bool:
+    def __le__(self, other: Date) -> bool:
         return self.value <= other.value
 
-    def __gt__(self, other: 'Date') -> bool:
+    def __gt__(self, other: Date) -> bool:
         return self.value > other.value
 
-    def __ge__(self, other: 'Date') -> bool:
+    def __ge__(self, other: Date) -> bool:
         return self.value >= other.value
 
     def __ne__(self, other: object) -> bool:
@@ -242,16 +237,16 @@ class Duration:
     def __init__(self, value: dateutil.relativedelta.relativedelta) -> None:
         self.value = value
 
-    def __add__(self, other: 'Duration') -> 'Duration':
+    def __add__(self, other: Duration) -> Duration:
         return Duration(self.value + other.value)
 
-    def __sub__(self, other: 'Duration') -> 'Duration':
+    def __sub__(self, other: Duration) -> Duration:
         return Duration(self.value - other.value)
 
-    def __neg__(self: 'Duration') -> 'Duration':
+    def __neg__(self: Duration) -> Duration:
         return Duration(- self.value)
 
-    def __truediv__(self, other: 'Duration') -> Decimal:
+    def __truediv__(self, other: Duration) -> Decimal:
         x = self.value.normalized()
         y = other.value.normalized()
         if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
@@ -259,13 +254,13 @@ class Duration:
         else:
             return Decimal(x.days / y.days)
 
-    def __mul__(self: 'Duration', rhs: Integer) -> 'Duration':
+    def __mul__(self: Duration, rhs: Integer) -> Duration:
         return Duration(
             dateutil.relativedelta.relativedelta(years=self.value.years * rhs.value,
                                                  months=self.value.months * rhs.value,
                                                  days=self.value.days * rhs.value))
 
-    def __lt__(self, other: 'Duration') -> bool:
+    def __lt__(self, other: Duration) -> bool:
         x = self.value.normalized()
         y = other.value.normalized()
         if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
@@ -273,7 +268,7 @@ class Duration:
         else:
             return x.days < y.days
 
-    def __le__(self, other: 'Duration') -> bool:
+    def __le__(self, other: Duration) -> bool:
         x = self.value.normalized()
         y = other.value.normalized()
         if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
@@ -281,7 +276,7 @@ class Duration:
         else:
             return x.days <= y.days
 
-    def __gt__(self, other: 'Duration') -> bool:
+    def __gt__(self, other: Duration) -> bool:
         x = self.value.normalized()
         y = other.value.normalized()
         if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
@@ -289,7 +284,7 @@ class Duration:
         else:
             return x.days > y.days
 
-    def __ge__(self, other: 'Duration') -> bool:
+    def __ge__(self, other: Duration) -> bool:
         x = self.value.normalized()
         y = other.value.normalized()
         if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
@@ -391,6 +386,14 @@ class AssertionFailure(Exception):
 # Constructors and conversions
 # ============================
 
+def round(q : Decimal) -> Integer:
+    sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
+    abs = q.value.__abs__()
+    n = abs.numerator
+    d = abs.denominator
+    abs_round = (2 * n + d) // (2 * d)
+    return Integer(sgn * abs_round)
+
 # -----
 # Money
 # -----
@@ -421,12 +424,8 @@ def money_to_cents(m: Money) -> Integer:
 
 
 def money_round(m: Money) -> Money:
-    res, remainder = t_divmod(m.value.value, 100)
-    if remainder < 50:
-        return Money(Integer(res * 100))
-    else:
-        return Money(Integer((res + sign(res)) * 100))
-
+    units : Decimal = Decimal(m.value.value / 100)
+    return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
     """
@@ -461,15 +460,7 @@ def decimal_to_string(precision: int, i: Decimal) -> str:
 
 
 def decimal_round(q: Decimal) -> Decimal:
-    """
-    Implements the workaround by
-    https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html
-    """
-    return Decimal(
-        mpq(f_div(2*q.value.numerator + q.value.denominator,
-            2*q.value.denominator), 1)  # type:ignore
-    )
-
+    return Decimal(round(q))
 
 def decimal_of_money(m: Money) -> Decimal:
     return Decimal(mpq(qdiv(m.value.value, 100)))
