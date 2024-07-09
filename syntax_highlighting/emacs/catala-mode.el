@@ -42,7 +42,7 @@
   '("#")
   '("context" "input" "output" "internal"
     "scope" "depends on" "declaration" "includes" "list of" "content" "optional" "structure" "enumeration" "context" "input" "output" "internal" "rule" "under condition" "condition" "data" "consequence" "fulfilled" "equals" "assertion" "definition" "state" "label" "exception" "let" "list empty")
-  '(("\\<\\(match\\|with\s+pattern\\|but\s+replace\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\)\\>" . font-lock-builtin-face)
+  '(("\\<\\(match\\|with\s+pattern\\|but\s+replace\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\|among\\|is\s+maximum\\)\\>" . font-lock-builtin-face)
     ("|[0-9]\\+-[0-9]\\+-[0-9]\\+|" . font-lock-constant-face)
     ("\\<\\(true\\|false\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9,]*\\(\\.[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)
