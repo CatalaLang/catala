@@ -277,8 +277,6 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       let feed = with_tokenizer lexer' lexbuf in
       create feed Lexing.(Tokens.EOF, dummy_pos, dummy_pos)
     in
-    Message.with_delayed_errors
-    @@ fun () ->
     try
       let target_rule =
         target_rule (fst @@ Sedlexing.lexing_positions lexbuf)
@@ -399,36 +397,58 @@ and expand_includes
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = File.(source_dir / Mark.remove inc_file) in
-          with_sedlex_file sub_source
-          @@ fun lexbuf ->
-          let includ_program = parse_source ?on_error lexbuf in
-          let () =
-            includ_program.Ast.program_module
-            |> Option.iter
-               @@ fun id ->
-               Message.error
-                 ~extra_pos:
-                   [
-                     "File include", Mark.get inc_file;
-                     "Module declaration", Mark.get id.Ast.module_name;
-                   ]
-                 "A file that declares a module cannot be used through the raw \
-                  '@{<yellow>> Include@}'@ directive.@ You should use it as a \
-                  module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ instead."
-                 (Mark.remove id.Ast.module_name)
-          in
-          {
-            Ast.program_module = acc.program_module;
-            Ast.program_source_files =
-              List.rev_append includ_program.program_source_files
-                acc.Ast.program_source_files;
-            Ast.program_items =
-              List.rev_append includ_program.program_items acc.Ast.program_items;
-            Ast.program_used_modules =
-              List.rev_append includ_program.program_used_modules
-                acc.Ast.program_used_modules;
-            Ast.program_lang = language;
-          }
+          let pos = Mark.get inc_file in
+          if not (Sys.file_exists sub_source) then (
+            let msg =
+              Printf.sprintf "Included file '%s' does not exist." sub_source
+            in
+            Option.iter
+              (fun f -> f (Parsing_error { msg; pos; suggestions = [] }))
+              on_error;
+            Message.delayed_error ~pos acc "%s" msg)
+          else if Sys.is_directory sub_source then (
+            let msg =
+              Printf.sprintf
+                "Included file '%s' is not a regular file (directory)."
+                sub_source
+            in
+            Option.iter
+              (fun f -> f (Parsing_error { msg; pos; suggestions = [] }))
+              on_error;
+            Message.delayed_error ~pos acc "%s" msg)
+          else
+            with_sedlex_file sub_source
+            @@ fun lexbuf ->
+            let includ_program = parse_source ?on_error lexbuf in
+            let () =
+              includ_program.Ast.program_module
+              |> Option.iter
+                 @@ fun id ->
+                 Message.error
+                   ~extra_pos:
+                     [
+                       "File include", Mark.get inc_file;
+                       "Module declaration", Mark.get id.Ast.module_name;
+                     ]
+                   "A file that declares a module cannot be used through the \
+                    raw '@{<yellow>> Include@}'@ directive.@ You should use it \
+                    as a module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ \
+                    instead."
+                   (Mark.remove id.Ast.module_name)
+            in
+            {
+              Ast.program_module = acc.program_module;
+              Ast.program_source_files =
+                List.rev_append includ_program.program_source_files
+                  acc.Ast.program_source_files;
+              Ast.program_items =
+                List.rev_append includ_program.program_items
+                  acc.Ast.program_items;
+              Ast.program_used_modules =
+                List.rev_append includ_program.program_used_modules
+                  acc.Ast.program_used_modules;
+              Ast.program_lang = language;
+            }
         | Ast.LawHeading (heading, commands') ->
           let {
             Ast.program_module;
@@ -556,6 +576,8 @@ let load_interface ?default_module_name source_file =
 
 let parse_top_level_file ?on_error (source_file : File.t Global.input_src) :
     Ast.program =
+  Message.with_delayed_errors
+  @@ fun () ->
   let parse_source = parse_source ?on_error in
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
