@@ -54,8 +54,8 @@ module Content : sig
 
   (** {2 Content emission}*)
 
-  val emit : t -> level -> unit
-  val emit_n : level -> t list -> unit
+  val emit : ?ppf:Format.formatter -> t -> level -> unit
+  val emit_n : ?ppf:Format.formatter -> level -> t list -> unit
 end
 
 (** This functions emits the message according to the emission type defined by
@@ -120,3 +120,7 @@ val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
       on the first error encountered when the [stop_on_error] flag is set. *)
 
 val delayed_error : 'b -> ('a, 'b) emitter
+
+type generic_error = { msg : string; pos : Pos.t option }
+
+val install_generic_error_catcher : (generic_error -> unit) -> unit

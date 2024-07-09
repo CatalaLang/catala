@@ -275,10 +275,10 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let emit ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+  let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+    let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
     | Global.Human -> (
-      let ppf = get_ppf target in
       match target with
       | Debug | Log -> basic_msg ~pp_marker ppf target content
       | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
@@ -288,7 +288,6 @@ module Content = struct
          message everywhere there is not a more precise message. If we can't
          find a position without a more precise message, we just take the first
          position in the list to pair with the message. *)
-      let ppf = get_ppf target in
       Format.pp_print_list ~pp_sep:Format.pp_print_newline
         (fun ppf elt ->
           let pos, message =
@@ -327,10 +326,10 @@ module Content = struct
         ppf content;
       Format.pp_print_newline ppf ()
 
-  let emit_n (target : level) = function
+  let emit_n ?ppf (target : level) = function
     | [content] -> emit content target
     | contents ->
-      let ppf = get_ppf target in
+      let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
         (fun i c ->
@@ -340,7 +339,7 @@ module Content = struct
           emit ~pp_marker c target)
         contents
 
-  let emit (content : t) (target : level) = emit content target
+  let emit ?ppf (content : t) (target : level) = emit ?ppf content target
 end
 
 open Content
@@ -420,12 +419,24 @@ let make
     let t = match suggestion with [] -> t | s -> add_suggestion t s in
     cont t level
 
+type generic_error = { msg : string; pos : Pos.t option }
+
+let generic_error_hook = ref (fun _ -> ())
+let install_generic_error_catcher f = generic_error_hook := f
 let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
-let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
+
+let error : ('a, 'exn) emitter =
+ fun ?header ?internal ?pos ->
+  make ?header ?internal ?pos ~level:Error ~cont:(fun m _ ->
+      let buf = Buffer.create 256 in
+      let ppf = Format.(formatter_of_buffer buf) in
+      Content.emit ~ppf m Error;
+      !generic_error_hook { msg = Buffer.contents buf; pos };
+      raise (CompilerError m))
 
 (* Multiple errors handling *)
 
