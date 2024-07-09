@@ -928,31 +928,6 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.closure_conversion)
 
-  let r options includes output optimize check_invariants closure_conversion =
-    let prg, type_ordering =
-      Passes.scalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:false
-        ~no_struct_literals:false ~monomorphize_types:false
-    in
-
-    let output_file, with_output = get_output_format options ~ext:".r" output in
-    Message.debug "Compiling program into R...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    with_output @@ fun fmt -> Scalc.To_r.format_program fmt prg type_ordering
-
-  let r_cmd =
-    Cmd.v
-      (Cmd.info "r" ~doc:"Generates an R translation of the Catala program.")
-      Term.(
-        const r
-        $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.output
-        $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants
-        $ Cli.Flags.closure_conversion)
-
   let c options includes output optimize check_invariants =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
@@ -1071,7 +1046,6 @@ module Commands = struct
       proof_cmd;
       ocaml_cmd;
       python_cmd;
-      r_cmd;
       c_cmd;
       latex_cmd;
       html_cmd;
