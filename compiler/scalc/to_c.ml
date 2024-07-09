@@ -140,13 +140,13 @@ let rec format_typ
     (fmt : Format.formatter)
     (typ : typ) : unit =
   match Mark.remove typ with
-  | TLit TUnit -> Format.fprintf fmt "void* /* unit */ %t" element_name
-  | TLit TMoney -> Format.fprintf fmt "int /* money */ %t" element_name
-  | TLit TInt -> Format.fprintf fmt "int %t" element_name
-  | TLit TRat -> Format.fprintf fmt "double %t" element_name
-  | TLit TDate -> Format.fprintf fmt "double %t" element_name
-  | TLit TDuration -> Format.fprintf fmt "double %t" element_name
-  | TLit TBool -> Format.fprintf fmt "char /* bool */ %t" element_name
+  | TLit TUnit -> Format.fprintf fmt "CATALA_UNIT %t" element_name
+  | TLit TMoney -> Format.fprintf fmt "CATALA_MONEY %t" element_name
+  | TLit TInt -> Format.fprintf fmt "CATALA_INT %t" element_name
+  | TLit TRat -> Format.fprintf fmt "CATALA_DEC %t" element_name
+  | TLit TDate -> Format.fprintf fmt "catala_date %t" element_name
+  | TLit TDuration -> Format.fprintf fmt "catala_duration %t" element_name
+  | TLit TBool -> Format.fprintf fmt "CATALA_BOOL %t" element_name
   | TTuple ts ->
     Format.fprintf fmt "@[<v 2>struct {@,%a @]@,}"
       (Format.pp_print_list
@@ -184,7 +184,7 @@ let format_ctx
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a@]@,} %a;"
+    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a@;<1 -2>}@] %a;"
       format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -199,7 +199,7 @@ let format_ctx
     if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum"
     else
-      Format.fprintf fmt "@[<v 2>enum %a_code {@,%a@]@,} %a_code;@\n@\n"
+      Format.fprintf fmt "@[<v 2>enum %a_code {@,%a@;<0 -2>}@] %a_code;@\n@\n"
         format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -238,21 +238,22 @@ let format_ctx
             (fun s _ -> not (is_in_type_ordering s))
             ctx.ctx_structs))
   in
-  List.iter
-    (fun struct_or_enum ->
+  Format.pp_print_list ~pp_sep:(fun fmt () -> Format.pp_print_cut fmt (); Format.pp_print_cut fmt ())
+    (fun fmt struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-        Format.fprintf fmt "%a@\n@\n" format_struct_decl
+        Format.fprintf fmt "%a" format_struct_decl
           (s, StructName.Map.find s ctx.ctx_structs)
       | Scopelang.Dependency.TVertex.Enum e ->
-        Format.fprintf fmt "%a@\n@\n" format_enum_decl
+        Format.fprintf fmt "%a" format_enum_decl
           (e, EnumName.Map.find e ctx.ctx_enums))
+    fmt
     (type_ordering @ scope_structs)
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
-  | LBool true -> Format.pp_print_string fmt "1 /* TRUE */"
-  | LBool false -> Format.pp_print_string fmt "0 /* FALSE */"
+  | LBool true -> Format.pp_print_string fmt "CATALA_TRUE"
+  | LBool false -> Format.pp_print_string fmt "CATALA_FALSE"
   | LInt i -> Format.fprintf fmt "%d" (Runtime.integer_to_int i)
   | LUnit -> Format.pp_print_string fmt "NULL"
   | LRat i -> Format.fprintf fmt "%F" (Runtime.decimal_to_float i)
@@ -269,52 +270,8 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
   | Log (_entry, _infos) -> assert false
-  | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
-    Format.pp_print_string fmt "-"
-  (* Todo: use the names from [Operator.name] *)
-  | Not -> Format.pp_print_string fmt "!"
-  | Length -> Format.pp_print_string fmt "catala_list_length"
-  | ToRat_int -> Format.pp_print_string fmt "catala_decimal_from_integer"
-  | ToRat_mon -> Format.pp_print_string fmt "catala_decimal_from_money"
-  | ToMoney_rat -> Format.pp_print_string fmt "catala_money_from_decimal"
-  | GetDay -> Format.pp_print_string fmt "catala_day_of_month_of_date"
-  | GetMonth -> Format.pp_print_string fmt "catala_month_number_of_date"
-  | GetYear -> Format.pp_print_string fmt "catala_year_of_date"
-  | FirstDayOfMonth ->
-    Format.pp_print_string fmt "catala_date_first_day_of_month"
-  | LastDayOfMonth -> Format.pp_print_string fmt "catala_date_last_day_of_month"
-  | Round_mon -> Format.pp_print_string fmt "catala_money_round"
-  | Round_rat -> Format.pp_print_string fmt "catala_decimal_round"
-  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-  | Concat ->
-    Format.pp_print_string fmt "+"
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
-  | Sub_dur_dur ->
-    Format.pp_print_string fmt "-"
-  | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
-    Format.pp_print_string fmt "*"
-  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
-    Format.pp_print_string fmt "/"
-  | And -> Format.pp_print_string fmt "&&"
-  | Or -> Format.pp_print_string fmt "||"
-  | Eq -> Format.pp_print_string fmt "=="
-  | Xor -> Format.pp_print_string fmt "!="
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
-    Format.pp_print_string fmt "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
-    Format.pp_print_string fmt "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
-    Format.pp_print_string fmt ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
-    Format.pp_print_string fmt ">="
-  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
-    Format.pp_print_string fmt "=="
-  | Map -> Format.pp_print_string fmt "catala_list_map"
-  | Reduce -> Format.pp_print_string fmt "catala_list_reduce"
-  | Filter -> Format.pp_print_string fmt "catala_list_filter"
-  | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
-  | HandleExceptions -> Format.pp_print_string fmt "catala_handle_exceptions"
-  | FromClosureEnv | ToClosureEnv | Map2 -> failwith "unimplemented"
+  | FromClosureEnv | ToClosureEnv -> assert false
+  | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
 
 let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -447,7 +404,7 @@ let rec format_statement
       (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
-      "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@,@;<1 -2>} else {@,%a@,@;<1 -2>}@]"
+      "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@;<1 -2>} else {@,%a@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
@@ -571,43 +528,83 @@ and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt b
 
+let format_main
+    (fmt : Format.formatter)
+    (p: Ast.program) =
+  let scopes_with_no_input =
+    List.fold_left
+      (fun acc -> function
+        | SScope { scope_body_func =
+                     { func_params = [_, (TStruct ts, _)]; _};
+                   scope_body_var = var;
+                   scope_body_name = name; } ->
+          let input_struct =
+            StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
+          in
+          if StructField.Map.is_empty input_struct then (var, name, ts) :: acc
+          else acc
+        | SVar _ | SFunc _ | SScope _ -> acc)
+      []
+      p.code_items
+    |> List.rev
+  in
+  if scopes_with_no_input = [] then () else (
+    Message.debug "Generating entry points for scopes:@ %a"
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
+           ScopeName.format ppf s))
+      scopes_with_no_input;
+    Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv) {";
+    List.iter
+      (fun (var, name, ts) ->
+         Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
+           ScopeName.format name;
+         Format.fprintf fmt "@,%a ((%a){});" format_func_name var format_struct_name ts;
+         Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
+           ScopeName.format name)
+      scopes_with_no_input;
+    Format.fprintf fmt "@;<1 -2>}@]@,"
+  )
+
 let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+  Format.pp_open_vbox fmt 0;
   Format.fprintf fmt
-    "@[<v>/* This file has been generated by the Catala compiler, do not edit! \
+    "/* This file has been generated by the Catala compiler, do not edit! \
      */@,\
      @,\
      #include <stdio.h>@,\
      #include <stdlib.h>@,\
-     #include <runtime.c>@,\
-     @,\
-     %a@,\
-     %a@,\
-     @]"
-    (format_ctx type_ordering) p.ctx.decl_ctx
-    (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt code_item ->
-         match code_item with
-         | SVar { var; expr; typ } ->
-           Format.fprintf fmt "@[<v 2>%a = %a;@]"
-             (format_typ p.ctx.decl_ctx (fun fmt -> format_var fmt var))
-             typ
-             (format_expression p.ctx.decl_ctx)
-             expr
-         | SFunc { var; func }
-         | SScope { scope_body_var = var; scope_body_func = func; _ } ->
-           let { func_params; func_body; func_return_typ } = func in
-           Format.fprintf fmt "@[<v 2>%a(%a) {@,%a@]@,}"
-             (format_typ p.ctx.decl_ctx (fun fmt -> format_func_name fmt var))
-             func_return_typ
-             (Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-                (fun fmt (var, typ) ->
-                  (format_typ p.ctx.decl_ctx (fun fmt ->
-                       format_var fmt (Mark.remove var)))
-                    fmt typ))
-             func_params
-             (format_block p.ctx.decl_ctx)
-             func_body))
-    p.code_items
+     #include <runtime.c>@,@,";
+  format_ctx type_ordering fmt p.ctx.decl_ctx;
+  Format.pp_print_cut fmt ();
+  Format.pp_print_cut fmt ();
+  Format.pp_print_list (fun fmt code_item ->
+      match code_item with
+      | SVar { var; expr; typ } ->
+        Format.fprintf fmt "@[<v 2>%a = %a;@]"
+          (format_typ p.ctx.decl_ctx (fun fmt -> format_var fmt var))
+          typ
+          (format_expression p.ctx.decl_ctx)
+          expr
+      | SFunc { var; func }
+      | SScope { scope_body_var = var; scope_body_func = func; _ } ->
+        let { func_params; func_body; func_return_typ } = func in
+        Format.fprintf fmt "@[<v 2>%a(%a) {@,%a@]@,}"
+          (format_typ p.ctx.decl_ctx (fun fmt -> format_func_name fmt var))
+          func_return_typ
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+             (fun fmt (var, typ) ->
+                (format_typ p.ctx.decl_ctx (fun fmt ->
+                     format_var fmt (Mark.remove var)))
+                  fmt typ))
+          func_params
+          (format_block p.ctx.decl_ctx)
+          func_body)
+    fmt
+    p.code_items;
+  Format.pp_print_cut fmt ();
+  format_main fmt p;
+  Format.pp_close_box fmt ()

@@ -382,7 +382,7 @@ module Oper : sig
   val o_sub_rat_rat : decimal -> decimal -> decimal
   val o_sub_mon_mon : money -> money -> money
   val o_sub_dat_dat : date -> date -> duration
-  val o_sub_dat_dur : date -> duration -> date
+  val o_sub_dat_dur : date -> duration -> date (* TODO: rounding mode!? *)
   val o_sub_dur_dur : duration -> duration -> duration
   val o_mult_int_int : integer -> integer -> integer
   val o_mult_rat_rat : decimal -> decimal -> decimal
