@@ -507,8 +507,6 @@ CATALA_DURATION o_mult_dur_int (CATALA_DURATION x1, CATALA_INT x2)
                       x1->days * mult);
 }
 
-/* Todo: add divby0 handling with source positions in args */
-
 CATALA_DEC o_div_int_int (const catala_code_position* pos,
                           CATALA_INT x1,
                           CATALA_INT x2)
@@ -575,72 +573,150 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   return ret;
 }
 
+CATALA_BOOL o_eq_bool_bool (CATALA_BOOL x1, CATALA_BOOL x2) {
+  return x1 == x2;
+}
+
+CATALA_BOOL o_eq_int_int (CATALA_INT x1, CATALA_INT x2) {
+  return mpz_cmp(x1, x2) == 0;
+}
+
+CATALA_BOOL o_eq_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
+  return mpq_equal(x1, x2);
+}
+
+CATALA_BOOL o_eq_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
+  return mpz_cmp(x1, x2) == 0;
+}
+
+CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
+  return (x1->year == x2->year && x1->month == x2->month && x1->day == x2->day);
+}
+
+CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
+                          CATALA_DURATION x1, CATALA_DURATION x2) {
+  if (x1->years || x2->years || x1->months || x2->months)
+    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+  return x1->days == x2->days;
+}
+
+CATALA_BOOL o_lt_int_int (CATALA_INT x1, CATALA_INT x2) {
+  return mpz_cmp(x1, x2) < 0;
+}
+
+CATALA_BOOL o_lt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
+  return mpq_cmp(x1, x2) < 0;
+}
+
+CATALA_BOOL o_lt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
+  return mpz_cmp(x1, x2) < 0;
+}
+
+CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
+  return
+    (x1->year < x2->year) ||
+    (x1->year == x2->year &&
+     ((x1->month < x2->month) ||
+      (x1->month == x2->month && x1->day < x2->day)));
+}
+
+CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
+                          CATALA_DURATION x1, CATALA_DURATION x2) {
+  if (x1->years || x2->years || x1->months || x2->months)
+    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+  return x1->days < x2->days;
+}
+
+CATALA_BOOL o_lte_int_int (CATALA_INT x1, CATALA_INT x2) {
+  return mpz_cmp(x1, x2) <= 0;
+}
+
+CATALA_BOOL o_lte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
+  return mpq_cmp(x1, x2) <= 0;
+}
+
+CATALA_BOOL o_lte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
+  return mpz_cmp(x1, x2) <= 0;
+}
+
+CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
+  return
+    (x1->year < x2->year) ||
+    (x1->year == x2->year &&
+     ((x1->month < x2->month) ||
+      (x1->month == x2->month && x1->day <= x2->day)));
+}
+
+CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
+                           CATALA_DURATION x1, CATALA_DURATION x2) {
+  if (x1->years || x2->years || x1->months || x2->months)
+    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+  return x1->days <= x2->days;
+}
+
+CATALA_BOOL o_gt_int_int (CATALA_INT x1, CATALA_INT x2) {
+  return mpz_cmp(x1, x2) > 0;
+}
+
+CATALA_BOOL o_gt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
+  return mpq_cmp(x1, x2) > 0;
+}
+
+CATALA_BOOL o_gt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
+  return mpz_cmp(x1, x2) > 0;
+}
+
+CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
+  return
+    (x1->year > x2->year) ||
+    (x1->year == x2->year &&
+     ((x1->month > x2->month) ||
+      (x1->month == x2->month && x1->day > x2->day)));
+}
+
+CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
+                          CATALA_DURATION x1, CATALA_DURATION x2) {
+  if (x1->years || x2->years || x1->months || x2->months)
+    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+  return x1->days > x2->days;
+}
+
+CATALA_BOOL o_gte_int_int (CATALA_INT x1, CATALA_INT x2) {
+  return mpz_cmp(x1, x2) >= 0;
+}
+
+CATALA_BOOL o_gte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
+  return mpq_cmp(x1, x2) >= 0;
+}
+
+CATALA_BOOL o_gte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
+  return mpz_cmp(x1, x2) >= 0;
+}
+
+CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
+  return
+    (x1->year > x2->year) ||
+    (x1->year == x2->year &&
+     ((x1->month > x2->month) ||
+      (x1->month == x2->month && x1->day >= x2->day)));
+}
+
+CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
+                           CATALA_DURATION x1, CATALA_DURATION x2) {
+  if (x1->years || x2->years || x1->months || x2->months)
+    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+  return x1->days >= x2->days;
+}
 
 /*
+TODO
+
 o_eq
 o_map
 o_map2
 o_concat
 o_filter
 o_reduce
-
-o_lt
-o_lt_int_int
-o_lt_rat_rat
-o_lt_mon_mon
-o_lt_dur_dur
-o_lt_dat_dat
-o_lte
-o_lte_int_int
-o_lte_rat_rat
-o_lte_mon_mon
-o_lte_dur_dur
-o_lte_dat_dat
-o_gt
-o_gt_int_int
-o_gt_rat_rat
-o_gt_mon_mon
-o_gt_dur_dur
-o_gt_dat_dat
-o_gte
-o_gte_int_int
-o_gte_rat_rat
-o_gte_mon_mon
-o_gte_dur_dur
-o_gte_dat_dat
-o_eq_int_int
-o_eq_rat_rat
-o_eq_mon_mon
-o_eq_dur_dur
-o_eq_dat_dat
-o_fold
-handle_exceptions
-o_toclosureenv
-o_fromclosureenv
-
-
-
-const mpq_t catala_decimal_from_integer(const mpz_t i) {
-  mpq_t ret;
-  mpq_init (ret);
-  
-
-catala_decimal_from_money
-catala_money_from_decimal
-catala_day_of_month_of_date
-catala_month_number_of_date
-catala_year_of_date
-catala_date_first_day_of_month
-catala_date_last_day_of_month
-catala_money_round
-catala_decimal_round
-
-catala_list_length
-catala_list_map
-catala_list_reduce
-catala_list_filter
-catala_list_fold_left
-catala_list_map2
 */
 
 
