@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <gmp.h>
-#include <signal.h>
+#include <string.h>
 
 /* --- Error handling --- */
 
@@ -48,81 +48,75 @@ void catala_raise_fatal_error(catala_fatal_error_code code,
 /* --- Memory allocations --- */
 
 #define BLOCKSIZE 4096
+
+struct catala_heap
+{
+  void* mem;    /* Start of the allocated block */
+  void* curptr; /* Pointer to the first unattributed yet byte in mem */
+  void* end;    /* End boundary of the allocated block (excluded) */
+  struct catala_heap* next;
+};
+
+struct catala_heap catala_heap = {NULL, NULL, NULL, NULL};
+
 #define MALLOC_CHECK(PTR)                                   \
   if (PTR == NULL) {                                        \
     catala_fatal_error_raised.code = catala_malloc_error;   \
     longjmp(catala_fatal_error_jump_buffer, 1);             \
   }
 
-typedef struct pointer_list pointer_list;
-struct pointer_list
-{
-    void* current[BLOCKSIZE];
-    unsigned int index;
-    pointer_list *next;
-};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpointer-arith"
 
-pointer_list* catala_allocated_pointers_list = NULL;
-
-void * catala_malloc(size_t malloc_size)
+void* catala_malloc (size_t sz)
 {
-    void *output = malloc(malloc_size);
-    MALLOC_CHECK(output);
-    if (catala_allocated_pointers_list != NULL && catala_allocated_pointers_list->index < BLOCKSIZE) {
-      catala_allocated_pointers_list->current[catala_allocated_pointers_list->index] = output;
-      catala_allocated_pointers_list->index++;
-    }
-    else {
-      pointer_list *old_pointer_list = catala_allocated_pointers_list;
-      catala_allocated_pointers_list = malloc(sizeof(pointer_list));
-      MALLOC_CHECK(catala_allocated_pointers_list);
-      catala_allocated_pointers_list->current[0] = output;
-      catala_allocated_pointers_list->index = 1;
-      catala_allocated_pointers_list->next = old_pointer_list;
-    }
-    return output;
+  void* ptr = catala_heap.curptr;
+  void* nextptr = ptr + sz;
+  if (nextptr < catala_heap.end) {
+    catala_heap.curptr = nextptr;
+    return ptr;
+  } else {
+    size_t alloc_size =
+      BLOCKSIZE * ((sz + BLOCKSIZE - 1) / BLOCKSIZE);
+    void* mem = calloc(alloc_size, 1);
+    struct catala_heap* next = (struct catala_heap*)malloc(sizeof(catala_heap));
+    MALLOC_CHECK(mem);
+    MALLOC_CHECK(next);
+    *next = catala_heap;
+    catala_heap.mem = mem;
+    catala_heap.curptr = mem + sz;
+    catala_heap.end = mem + alloc_size;
+    catala_heap.next = next;
+    return mem;
+  }
 }
 
-void catala_free_allocated_pointers()
+void catala_free_all()
 {
-    while (catala_allocated_pointers_list != NULL)
-    {
-      int i;
-      pointer_list *next;
-      for (i = 0; i < catala_allocated_pointers_list->index; i++) {
-        free(catala_allocated_pointers_list->current[i]);
-      }
-      next = catala_allocated_pointers_list->next;
-      free(catala_allocated_pointers_list);
-      catala_allocated_pointers_list = next;
-    }
+  while (catala_heap.mem != NULL) {
+    free(catala_heap.mem);
+    catala_heap = *catala_heap.next;
+  }
 }
 
 void* catala_realloc(void* oldptr, size_t oldsize, size_t newsize)
 {
-  void* newptr = realloc(oldptr, newsize);
-  if (newptr != oldptr) {
-    pointer_list* ptlist = catala_allocated_pointers_list;
-    while (ptlist != NULL) {
-      int i;
-      for (i = 0; i < ptlist->index; i++) {
-        if (ptlist->current[i] == oldptr) {
-          ptlist->current[i] = newptr;
-          break;
-        }
-      }
-      if (i < BLOCKSIZE) break;
-      ptlist = ptlist->next;
-    }
+  if (newsize <= oldsize) {
+    memset(oldptr + newsize, oldsize - newsize, 0);
+    return oldptr;
+  } else {
+    void* ptr = catala_malloc(newsize);
+    memcpy(ptr, oldptr, oldsize);
+    return ptr;
   }
-  return newptr;
 }
 
 void catala_free(void* ptr, size_t sz)
 {
-  /* All pointers are freed in bulk */
+  /* All pointers are freed in bulk by catala_free_all */
   return;
 }
+#pragma GCC diagnostic pop
 
 /* --- Base types --- */
 
@@ -161,12 +155,10 @@ static mpz_t zconst_100;
 
 #define CATALA_NEW_MPZ(X) \
   mpz_ptr X = (mpz_ptr)catala_malloc(sizeof(__mpz_struct)); \
-  MALLOC_CHECK(X); \
   mpz_init(X)
 
 #define CATALA_NEW_MPQ(X) \
   mpq_ptr X = (mpq_ptr)catala_malloc(sizeof(__mpq_struct)); \
-  MALLOC_CHECK(X); \
   mpq_init(X)
 
 CATALA_INT new_int(const signed long int val)
@@ -232,7 +224,6 @@ CATALA_DATE new_date(const unsigned int year,
                      const unsigned int day)
 {
   catala_date* ret = (catala_date *)catala_malloc(sizeof(catala_date));
-  MALLOC_CHECK(ret);
   ret->year = year;
   ret->month = month;
   ret->day = day;
@@ -245,7 +236,6 @@ CATALA_DURATION new_duration(const int years,
 {
   catala_duration* ret =
     (catala_duration *)catala_malloc(sizeof(catala_duration));
-  MALLOC_CHECK(ret);
   ret->years = years;
   ret->months = months;
   ret->days = days;
@@ -698,7 +688,7 @@ void catala_init()
              pos->start_column,
              pos->end_line,
              pos->end_column);
-    catala_free_allocated_pointers();
+    catala_free_all();
     exit(10);
   }
   return;
@@ -720,5 +710,6 @@ int main()
 {
   catala_init();
   test();
+  catala_free_all();
   return 0;
 }
