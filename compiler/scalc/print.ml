@@ -74,15 +74,15 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2] } ->
+  | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
-  | EAppOp { op = op, _; args = [arg1; arg2] } ->
+  | EAppOp { op = op, _; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EAppOp { op = Log _, _; args = [arg1] } when not debug ->
+  | EAppOp { op = Log _, _; args = [arg1]; _ } when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp { op = op, _; args = [arg1] } ->
+  | EAppOp { op = op, _; args = [arg1]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
   | EApp { f; args = [] } ->
@@ -93,7 +93,7 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EAppOp { op = op, _; args } ->
+  | EAppOp { op = op, _; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -137,21 +137,11 @@ let rec format_statement
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | STryWEmpty { try_block = b_try; with_block = b_with } ->
-    Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
-      "try" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      b_try Print.keyword "with" Print.op_style "Empty" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      b_with
-  | SRaiseEmpty ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.op_style
-      "Empty"
   | SFatalError err ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
       Print.runtime_error err
   | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
-    Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
+    Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@]@ @[<v 2>%a%a@ %a@]"
       Print.keyword "if"
       (format_expr decl_ctx ~debug)
       e_if Print.punctuation ":"
@@ -182,17 +172,22 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
-  | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; _ }) ->
-    Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@\n@[<hov 2>%a@ %a %a%a@\n%a@]"
-      Print.keyword "handle exceptions" Print.punctuation "["
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" (format_expr decl_ctx ~debug) e))
-      exceptions Print.punctuation "]" Print.keyword "or if"
-      (format_expr decl_ctx ~debug)
-      just Print.keyword "then" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      cons
+  | _ -> .
+  (* | SSpecialOp (OHandleExceptions { exceptions=_ }) ->
+   *   Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@,"
+   *     Print.keyword "handle exceptions"
+   *     Print.punctuation "["
+   *     (Format.pp_print_list
+   *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+   *        (format_expr decl_ctx ~debug))
+   *     exceptions
+   *     Print.punctuation "]";
+   *   Format.fprintf fmt "@[<hov 2>%a@ %a %a%a@,%a@]"
+   *     Print.keyword "or if"
+   *     (format_expr decl_ctx ~debug) just
+   *     Print.keyword "then"
+   *     Print.punctuation ":"
+   *     (format_block decl_ctx ~debug) cons *)
 
 and format_block
     (decl_ctx : decl_ctx)
@@ -200,7 +195,7 @@ and format_block
     (fmt : Format.formatter)
     (block : block) : unit =
   Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
+    ~pp_sep:(fun fmt () -> Print.punctuation fmt ";"; Format.pp_print_space fmt ())
     (format_statement decl_ctx ~debug)
     fmt block
 

@@ -144,8 +144,8 @@ let rec format_typ
   | TLit TMoney -> Format.fprintf fmt "CATALA_MONEY %t" element_name
   | TLit TInt -> Format.fprintf fmt "CATALA_INT %t" element_name
   | TLit TRat -> Format.fprintf fmt "CATALA_DEC %t" element_name
-  | TLit TDate -> Format.fprintf fmt "catala_date %t" element_name
-  | TLit TDuration -> Format.fprintf fmt "catala_duration %t" element_name
+  | TLit TDate -> Format.fprintf fmt "CATALA_DATE %t" element_name
+  | TLit TDuration -> Format.fprintf fmt "CATALA_DURATION %t" element_name
   | TLit TBool -> Format.fprintf fmt "CATALA_BOOL %t" element_name
   | TTuple ts ->
     Format.fprintf fmt "@[<v 2>struct {@,%a @]@,}"
@@ -254,18 +254,22 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool true -> Format.pp_print_string fmt "CATALA_TRUE"
   | LBool false -> Format.pp_print_string fmt "CATALA_FALSE"
-  | LInt i -> Format.fprintf fmt "%d" (Runtime.integer_to_int i)
-  | LUnit -> Format.pp_print_string fmt "NULL"
-  | LRat i -> Format.fprintf fmt "%F" (Runtime.decimal_to_float i)
-  | LMoney e -> Format.fprintf fmt "%F" (Runtime.money_to_float e)
+  | LInt i ->
+    Format.fprintf fmt "catala_new_int_str(\"%s\")"
+      (Runtime.integer_to_string i)
+  | LUnit -> Format.pp_print_string fmt "CATALA_UNITVAL"
+  | LRat q ->
+    Format.fprintf fmt "catala_new_dec_str(\"%s\")" (Q.to_string q)
+      (* TODO: expose function from [Runtime] *)
+  | LMoney e ->
+    Format.fprintf fmt "catala_new_money_str(\"%s\")"
+      (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
-    Format.fprintf fmt "catala_date_from_ymd(%d,%d,%d)"
-      (Runtime.integer_to_int (Runtime.year_of_date d))
-      (Runtime.integer_to_int (Runtime.month_number_of_date d))
-      (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
-  | LDuration d ->
-    let years, months, days = Runtime.duration_to_years_months_days d in
-    Format.fprintf fmt "catala_duration_from_ymd(%d,%d,%d)" years months days
+    let y, m, d = Runtime.date_to_years_months_days d in
+    Format.fprintf fmt "catala_new_date(%d,%d,%d)" y m d
+  | LDuration dt ->
+    let y, m, d = Runtime.duration_to_years_months_days dt in
+    Format.fprintf fmt "catala_new_duration(%d,%d,%d)" y m d
 
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
@@ -306,23 +310,35 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     failwith
       "should not happen, array initialization is caught at the statement level"
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg] } ->
+  | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg]; _} ->
     format_expression ctx fmt arg
-  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2] } ->
+  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
-  | EAppOp { op; args = [arg1; arg2] } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+  | EAppOp {
+      op = (Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur), _ as op;
+      args = [arg1; arg2];
+      _ } ->
+    Format.fprintf fmt "%a(%s,@ %a,@ %a)" format_op op
+      "catala_empty_position"
+      (* TODO: actual position must be lifted in a (static const) declaration *)
+      (format_expression ctx) arg1
       (format_expression ctx) arg2
-  | EAppOp { op = (Not, _) as op; args = [arg1] } ->
+  | EAppOp { op; args = [arg1; arg2]; _ } ->
+    Format.fprintf fmt "%a(%a,@ %a)"
+      format_op op
+      (format_expression ctx) arg1
+      (format_expression ctx) arg2
+  | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
         op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
         args = [arg1];
+        _
       } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
-  | EAppOp { op; args = [arg1] } ->
+  | EAppOp { op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
   | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
@@ -330,7 +346,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EAppOp { op; args } ->
+  | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -349,6 +365,13 @@ let typ_is_array (ctx : decl_ctx) (typ : typ) =
       fields
   | _ -> false
 
+let format_raise_error fmt err pos =
+  Format.fprintf fmt
+    "@[<hov 2>catala_raise(catala_%s,@ %s,@ %d,@ %d, %d,@ %d);@]"
+    (String.to_snake_case (Runtime.error_to_string err))
+    (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+    (Pos.get_end_line pos) (Pos.get_end_column pos)
+
 let rec format_statement
     (ctx : decl_ctx)
     (fmt : Format.formatter)
@@ -363,6 +386,7 @@ let rec format_statement
       ty
     (* Below we detect array initializations which have special treatment. *)
   | SLocalInit { name = v; expr = EStruct { fields; name }, _; typ }
+  | SLocalDef { name = v; expr = EStruct { fields; name }, _; typ }
     when typ_is_array ctx typ ->
     let array_contents =
       match
@@ -372,14 +396,19 @@ let rec format_statement
           (StructField.Map.bindings fields)
       with
       | _, (EArray args, _) -> args
-      | _ -> failwith "should not happen"
+      | _ -> assert false
+    in
+    let () =
+      match Mark.remove s with
+      | SLocalInit _ ->
+        Format.fprintf fmt "@[<hov 2>%a;@]@,"
+          (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v))) typ
+      | _ -> ()
     in
     Format.fprintf fmt
-      "@[<hov 2>%a;@]@\n\
-       @[<hov 2>%a.content_field = catala_malloc(sizeof(%a));@]@\n\
+      "@[<hov 2>%a.content_field = catala_malloc(sizeof(%a));@]@,\
        %a"
-      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
-      typ format_var (Mark.remove v) format_struct_name name
+      format_var (Mark.remove v) format_struct_name name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (i, arg) ->
@@ -393,15 +422,9 @@ let rec format_statement
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | SRaiseEmpty | STryWEmpty _ -> assert false
   | SFatalError err ->
     let pos = Mark.get s in
-    Format.fprintf fmt
-      "@[<hov 2>catala_raise_fatal_error (catala_%s,@ \"%s\",@ %d, %d, %d, \
-       %d);@]"
-      (String.to_snake_case (Runtime.error_to_string err))
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos)
+    format_raise_error fmt err pos;
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
       "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@;<1 -2>} else {@,%a@;<1 -2>}@]"
@@ -444,86 +467,214 @@ let rec format_statement
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos)
-  | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
-    let e_name =
-      match Mark.remove return_typ with
-      | TEnum t -> t
-      | _ -> failwith "should not happen"
-    in
-    let option_config =
-      List.map fst
-        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
-    in
-    let none_cons, some_cons =
-      match option_config with
-      | [none_cons; some_cons] -> none_cons, some_cons
-      | _ -> failwith "should not happen"
-    in
-    let pos = Mark.get s in
-    let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
-    let exception_current = VarName.fresh ("exception_current", Mark.get s) in
-    let exception_conflict = VarName.fresh ("exception_conflict", Mark.get s) in
-    let variable_defined_in_cons =
-      match List.hd (List.rev cons) with
-      | SReturn (EVar v), _ -> v
-      | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
-      | _ -> failwith "should not happen"
-    in
-    if exceptions <> [] then begin
-      Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {%a: NULL}};@]@,"
-        (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
-        return_typ format_enum_name e_name format_enum_cons_name none_cons
-        format_enum_cons_name none_cons;
-      Format.fprintf fmt "%a;@,"
-        (format_typ ctx (fun fmt -> format_var fmt exception_current))
-        return_typ;
-      Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
-      List.iter
-        (fun except ->
-          Format.fprintf fmt
-            "%a = %a;@,\
-             @[<v 2>if (%a.code == %a_%a) {@,\
-             @[<v 2>if (%a.code == %a_%a) {@,\
-             %a = 1;@]@,\
-             @[<v 2>} else {@,\
-             %a = %a;@]@,\
-             }@]@,\
-             }@,"
-            format_var exception_current (format_expression ctx) except
-            format_var exception_current format_enum_name e_name
-            format_enum_cons_name some_cons format_var exception_acc_var
-            format_enum_name e_name format_enum_cons_name some_cons format_var
-            exception_conflict format_var exception_acc_var format_var
-            exception_current)
-        exceptions;
-      Format.fprintf fmt
-        "@[<v 2>if (%a) {@,\
-         @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
-         %d, %d);@]@;\
-         <1 -2>}@]@,"
-        format_var exception_conflict (Pos.get_file pos)
-        (Pos.get_start_line pos) (Pos.get_start_column pos)
-        (Pos.get_end_line pos) (Pos.get_end_column pos);
-      Format.fprintf fmt
-        "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
-        format_var exception_acc_var format_enum_name e_name
-        format_enum_cons_name some_cons format_var variable_defined_in_cons
-        format_var exception_acc_var
-    end;
-    Format.fprintf fmt
-      "@[<v 2>if (%a) {@,\
-       %a@]@,\
-       @[<v 2>} else {@,\
-       %a.code = %a_%a;@,\
-       %a.payload.%a = NULL;@]@,\
-       }"
-      (format_expression ctx) just (format_block ctx) cons format_var
-      variable_defined_in_cons format_enum_name e_name format_enum_cons_name
-      none_cons format_var variable_defined_in_cons format_enum_cons_name
-      none_cons;
-    if exceptions <> [] then Format.fprintf fmt "@]@,}"
+  | _ -> .
+(*   | SSpecialOp (OHandleExceptions { exceptions }) ->
+ * 
+ *     Format.fprintf fmt "catala_handle_exceptions(%a, "
+ *     let excs_arr = match excs with
+ *       | EStruct {fields; name}, _ ->
+ *         let arr_field, elt_t =
+ *           match Mark.remove etyp with
+ *           | TStruct arr_struct ->
+ *         arr_struct,
+ *         StructField.Map.choose @@
+ *         StructField.Map.filter_map (fun _ -> function
+ *             | TArray telt, _ -> Some telt
+ *             | _ -> None)
+ *           (StructName.Map.find arr_struct ctx.ctx_structs)
+ *       | _ -> assert false
+ *     in
+ *         
+ *         (match StructField.Map.find arr_field fields with
+ *          | EArray es, _ -> es
+ *          | _ -> assert false)
+ *       | _ -> assert false
+ *     in
+ *     (\* T acc = None;
+ *        if (e0 != None) { if (acc != None) catala_error; else acc = e0 }
+ *        if (e1 != None) { if (acc != None) catala_error; else acc = e1 }
+ *        etc. *\)
+ *     (\* e0 != None
+ *        ? (e1..en == None..None ? e0 : conflict)
+ *        : e1 != None
+ *        ? (e2..en == None..None ? e1 : conflict)
+ *        etc.
+ *        : None *\)
+ *     (\* T[] e = [excs];
+ *        int i, j;
+ *        for(i=0; i<n && e[i] == None; i++);
+ *        if (i>=n) return None;
+ *        for(j=i; j<n && e[j] == None; j++);
+ *        if (j < n) conflict;
+ *        else return e[i];
+ * *\)
+ *     let none_cons, some_cons =
+ *       match EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums) with
+ *       | [none_cons, (TLit TUnit, _); some_cons, _] -> none_cons, some_cons
+ *       | _ -> failwith "should not happen"
+ *     in
+ *     let pos = Mark.get s in
+ *     let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
+ *     let exception_current = VarName.fresh ("exception_current", Mark.get s) in
+ *     let exception_conflict = VarName.fresh ("exception_conflict", Mark.get s) in
+ *     let variable_defined_in_cons =
+ *       match List.hd (List.rev cons) with
+ *       | SReturn (EVar v), _ -> v
+ *       | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
+ *       | _ -> failwith "should not happen"
+ *     in
+ *     if exceptions <> [] then begin
+ *       Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {%a: NULL}};@]@,"
+ *         (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
+ *         return_typ format_enum_name e_name format_enum_cons_name none_cons
+ *         format_enum_cons_name none_cons;
+ *       Format.fprintf fmt "%a;@,"
+ *         (format_typ ctx (fun fmt -> format_var fmt exception_current))
+ *         return_typ;
+ *       Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
+ *       List.iter
+ *         (fun except ->
+ *           Format.fprintf fmt
+ *             "%a = %a;@,\
+ *              @[<v 2>if (%a.code == %a_%a) {@,\
+ *              @[<v 2>if (%a.code == %a_%a) {@,\
+ *              %a = 1;@]@,\
+ *              @[<v 2>} else {@,\
+ *              %a = %a;@]@,\
+ *              }@]@,\
+ *              }@,"
+ *             format_var exception_current (format_expression ctx) except
+ *             format_var exception_current format_enum_name e_name
+ *             format_enum_cons_name some_cons format_var exception_acc_var
+ *             format_enum_name e_name format_enum_cons_name some_cons format_var
+ *             exception_conflict format_var exception_acc_var format_var
+ *             exception_current)
+ *         exceptions;
+ *       Format.fprintf fmt
+ *         "@[<v 2>if (%a) {@,\
+ *          @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
+ *          %d, %d);@]@;\
+ *          <1 -2>}@]@,"
+ *         format_var exception_conflict (Pos.get_file pos)
+ *         (Pos.get_start_line pos) (Pos.get_start_column pos)
+ *         (Pos.get_end_line pos) (Pos.get_end_column pos);
+ *       Format.fprintf fmt
+ *         "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
+ *         format_var exception_acc_var format_enum_name e_name
+ *         format_enum_cons_name some_cons format_var variable_defined_in_cons
+ *         format_var exception_acc_var
+ *     end;
+ *     Format.fprintf fmt
+ *       "@[<v 2>if (%a) {@,\
+ *        %a@]@,\
+ *        @[<v 2>} else {@,\
+ *        %a.code = %a_%a;@,\
+ *        %a.payload.%a = NULL;@]@,\
+ *        }"
+ *       (format_expression ctx) just (format_block ctx) cons format_var
+ *       variable_defined_in_cons format_enum_name e_name format_enum_cons_name
+ *       none_cons format_var variable_defined_in_cons format_enum_cons_name
+ *       none_cons;
+ *     if exceptions <> [] then Format.fprintf fmt "@]@,}" *)
+  (* | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
+   *   let e_name =
+   *     match Mark.remove return_typ with
+   *     | TEnum t -> t
+   *     | _ -> failwith "should not happen"
+   *   in
+   *   let option_config =
+   *     List.map fst
+   *       (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+   *   in
+   *   let none_cons, some_cons =
+   *     match option_config with
+   *     | [none_cons; some_cons] -> none_cons, some_cons
+   *     | _ -> failwith "should not happen"
+   *   in
+   *   let pos = Mark.get s in
+   *   let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
+   *   let exception_current = VarName.fresh ("exception_current", Mark.get s) in
+   *   let exception_conflict = VarName.fresh ("exception_conflict", Mark.get s) in
+   *   let variable_defined_in_cons =
+   *     match List.hd (List.rev cons) with
+   *     | SReturn (EVar v), _ -> v
+   *     | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
+   *     | _ -> failwith "should not happen"
+   *   in
+   *   if exceptions <> [] then begin
+   *     Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {%a: NULL}};@]@,"
+   *       (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
+   *       return_typ format_enum_name e_name format_enum_cons_name none_cons
+   *       format_enum_cons_name none_cons;
+   *     Format.fprintf fmt "%a;@,"
+   *       (format_typ ctx (fun fmt -> format_var fmt exception_current))
+   *       return_typ;
+   *     Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
+   *     List.iter
+   *       (fun except ->
+   *         Format.fprintf fmt
+   *           "%a = %a;@,\
+   *            @[<v 2>if (%a.code == %a_%a) {@,\
+   *            @[<v 2>if (%a.code == %a_%a) {@,\
+   *            %a = 1;@]@,\
+   *            @[<v 2>} else {@,\
+   *            %a = %a;@]@,\
+   *            }@]@,\
+   *            }@,"
+   *           format_var exception_current (format_expression ctx) except
+   *           format_var exception_current format_enum_name e_name
+   *           format_enum_cons_name some_cons format_var exception_acc_var
+   *           format_enum_name e_name format_enum_cons_name some_cons format_var
+   *           exception_conflict format_var exception_acc_var format_var
+   *           exception_current)
+   *       exceptions;
+   *     Format.fprintf fmt
+   *       "@[<v 2>if (%a) {@,\
+   *        @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
+   *        %d, %d);@]@;\
+   *        <1 -2>}@]@,"
+   *       format_var exception_conflict (Pos.get_file pos)
+   *       (Pos.get_start_line pos) (Pos.get_start_column pos)
+   *       (Pos.get_end_line pos) (Pos.get_end_column pos);
+   *     Format.fprintf fmt
+   *       "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
+   *       format_var exception_acc_var format_enum_name e_name
+   *       format_enum_cons_name some_cons format_var variable_defined_in_cons
+   *       format_var exception_acc_var
+   *   end;
+   *   Format.fprintf fmt
+   *     "@[<v 2>if (%a) {@,\
+   *      %a@]@,\
+   *      @[<v 2>} else {@,\
+   *      %a.code = %a_%a;@,\
+   *      %a.payload.%a = NULL;@]@,\
+   *      }"
+   *     (format_expression ctx) just (format_block ctx) cons format_var
+   *     variable_defined_in_cons format_enum_name e_name format_enum_cons_name
+   *     none_cons format_var variable_defined_in_cons format_enum_cons_name
+   *     none_cons;
+   *   if exceptions <> [] then Format.fprintf fmt "@]@,}" *)
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
+  let b =
+    (* C89 doesn't accept initialisations from non-constants: split all init into decl + def *)
+    let revb =
+      List.fold_left (fun acc -> function
+        | SLocalInit {expr = ELit _, _; _}, _ as st -> st :: acc
+        | SLocalInit {name; typ; expr}, m ->
+          (SLocalDecl {name; typ}, m) :: (SLocalDef {name; typ; expr}, m) :: acc
+        | st -> st :: acc)
+        [] b
+    in
+    (* C89 requires declarations to be on top of the block *)
+    let decls, others =
+      List.partition (function
+          | (SLocalDecl _| SLocalInit _), _ -> true
+          | _ -> false)
+        revb
+    in
+    List.rev_append decls (List.rev others)
+  in
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt b
@@ -531,6 +682,8 @@ and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
 let format_main
     (fmt : Format.formatter)
     (p: Ast.program) =
+  Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv) {";
+  Format.fprintf fmt "@,catala_init();";
   let scopes_with_no_input =
     List.fold_left
       (fun acc -> function
@@ -548,22 +701,20 @@ let format_main
       p.code_items
     |> List.rev
   in
-  if scopes_with_no_input = [] then () else (
+  if scopes_with_no_input <> [] then
     Message.debug "Generating entry points for scopes:@ %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
            ScopeName.format ppf s))
       scopes_with_no_input;
-    Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv) {";
-    List.iter
-      (fun (var, name, ts) ->
-         Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
-           ScopeName.format name;
-         Format.fprintf fmt "@,%a ((%a){});" format_func_name var format_struct_name ts;
-         Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
-           ScopeName.format name)
-      scopes_with_no_input;
-    Format.fprintf fmt "@;<1 -2>}@]@,"
-  )
+  List.iter
+    (fun (var, name, ts) ->
+       Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
+         ScopeName.format name;
+       Format.fprintf fmt "@,%a ((%a){});" format_func_name var format_struct_name ts;
+       Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
+         ScopeName.format name)
+    scopes_with_no_input;
+  Format.fprintf fmt "@;<1 -2>}@]@,"
 
 let format_program
     (fmt : Format.formatter)

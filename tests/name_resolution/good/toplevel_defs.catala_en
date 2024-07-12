@@ -132,16 +132,16 @@ let S2_4 (S2_in_9: S2_in) =
   | ENone __14 →
     if true:
       temp_a_13 = ESome glob3_1 ¤44.00 + 100.
-      else:
-        temp_a_13 = ENone ()
+    else:
+      temp_a_13 = ENone ()
   | ESome x_15 →
     temp_a_13 = ESome x_15;
   switch handle_exceptions [temp_a_13]:
   | ENone __16 →
     if false:
       temp_a_12 = ENone ()
-      else:
-        temp_a_12 = ENone ()
+    else:
+      temp_a_12 = ENone ()
   | ESome x_17 →
     temp_a_12 = ESome x_17;
   switch temp_a_12:
@@ -161,16 +161,16 @@ let S3_5 (S3_in_20: S3_in) =
   | ENone __25 →
     if true:
       temp_a_24 = ESome 50. + glob4_2 ¤44.00 55.
-      else:
-        temp_a_24 = ENone ()
+    else:
+      temp_a_24 = ENone ()
   | ESome x_26 →
     temp_a_24 = ESome x_26;
   switch handle_exceptions [temp_a_24]:
   | ENone __27 →
     if false:
       temp_a_23 = ENone ()
-      else:
-        temp_a_23 = ENone ()
+    else:
+      temp_a_23 = ENone ()
   | ESome x_28 →
     temp_a_23 = ESome x_28;
   switch temp_a_23:
@@ -190,16 +190,16 @@ let S4_6 (S4_in_31: S4_in) =
   | ENone __36 →
     if true:
       temp_a_35 = ESome glob5_5 + 1.
-      else:
-        temp_a_35 = ENone ()
+    else:
+      temp_a_35 = ENone ()
   | ESome x_37 →
     temp_a_35 = ESome x_37;
   switch handle_exceptions [temp_a_35]:
   | ENone __38 →
     if false:
       temp_a_34 = ENone ()
-      else:
-        temp_a_34 = ENone ()
+    else:
+      temp_a_34 = ENone ()
   | ESome x_39 →
     temp_a_34 = ESome x_39;
   switch temp_a_34:
@@ -219,16 +219,16 @@ let S_7 (S_in_42: S_in) =
   | ENone __57 →
     if true:
       temp_a_56 = ESome glob1_1 * glob1_1
-      else:
-        temp_a_56 = ENone ()
+    else:
+      temp_a_56 = ENone ()
   | ESome x_58 →
     temp_a_56 = ESome x_58;
   switch handle_exceptions [temp_a_56]:
   | ENone __59 →
     if false:
       temp_a_55 = ENone ()
-      else:
-        temp_a_55 = ENone ()
+    else:
+      temp_a_55 = ENone ()
   | ESome x_60 →
     temp_a_55 = ESome x_60;
   switch temp_a_55:
@@ -245,16 +245,16 @@ let S_7 (S_in_42: S_in) =
   | ENone __48 →
     if true:
       temp_b_47 = ESome glob2_8
-      else:
-        temp_b_47 = ENone ()
+    else:
+      temp_b_47 = ENone ()
   | ESome x_49 →
     temp_b_47 = ESome x_49;
   switch handle_exceptions [temp_b_47]:
   | ENone __50 →
     if false:
       temp_b_46 = ENone ()
-      else:
-        temp_b_46 = ENone ()
+    else:
+      temp_b_46 = ENone ()
   | ESome x_51 →
     temp_b_46 = ESome x_51;
   switch temp_b_46:
