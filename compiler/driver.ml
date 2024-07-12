@@ -933,7 +933,7 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:true
+        ~monomorphize_types:false
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.debug "Compiling program into C...";
