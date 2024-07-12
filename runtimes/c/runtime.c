@@ -100,7 +100,7 @@ void* catala_malloc (size_t sz)
     size_t alloc_size =
       BLOCKSIZE * ((sz + BLOCKSIZE - 1) / BLOCKSIZE);
     void* mem = calloc(alloc_size, 1);
-    struct catala_heap* next = (struct catala_heap*)malloc(sizeof(catala_heap));
+    struct catala_heap* next = malloc(sizeof(catala_heap));
     MALLOC_CHECK(mem);
     MALLOC_CHECK(next);
     *next = catala_heap;
@@ -141,18 +141,23 @@ void catala_free(void* ptr, size_t sz)
 
 /* --- Base types --- */
 
-#define CATALA_BOOL int
-#define CATALA_UNIT int
+#define CATALA_BOOL const int*
+#define CATALA_UNIT const int*
 #define CATALA_INT mpz_srcptr
 #define CATALA_DEC mpq_srcptr
 #define CATALA_MONEY mpz_srcptr
 #define CATALA_DATE const catala_date*
 #define CATALA_DURATION const catala_duration*
-#define CATALA_ARRAY const catala_array
+#define CATALA_ARRAY catala_array*
 
-#define CATALA_TRUE 1
-#define CATALA_FALSE 0
-#define CATALA_UNITVAL 0
+const int catala_true = 1;
+#define CATALA_TRUE &catala_true
+
+const int catala_false = 0;
+#define CATALA_FALSE &catala_false
+
+const int catala_unitval = 0;
+#define CATALA_UNITVAL &catala_unitval
 
 typedef struct catala_date {
   unsigned long int year;
@@ -167,21 +172,23 @@ typedef struct catala_duration {
 } catala_duration;
 
 typedef struct catala_array {
-  unsigned int size;
-  unsigned int eltsize;
-  void* elements;
+  size_t size;
+  void const** elements;
 } catala_array;
 
 /* --- Constructors --- */
 
 static mpz_t zconst_100;
 
+#define CATALA_NEW_BOOL(X) \
+  X ? CATALA_TRUE : CATALA_FALSE
+
 #define CATALA_NEW_MPZ(X) \
-  mpz_ptr X = (mpz_ptr)catala_malloc(sizeof(__mpz_struct)); \
+  mpz_ptr X = catala_malloc(sizeof(__mpz_struct)); \
   mpz_init(X)
 
 #define CATALA_NEW_MPQ(X) \
-  mpq_ptr X = (mpq_ptr)catala_malloc(sizeof(__mpq_struct)); \
+  mpq_ptr X = catala_malloc(sizeof(__mpq_struct)); \
   mpq_init(X)
 
 CATALA_INT catala_new_int(const signed long int val)
@@ -247,7 +254,7 @@ CATALA_DATE catala_new_date(const unsigned int year,
                      const unsigned int month,
                      const unsigned int day)
 {
-  catala_date* ret = (catala_date *)catala_malloc(sizeof(catala_date));
+  catala_date* ret = catala_malloc(sizeof(catala_date));
   ret->year = year;
   ret->month = month;
   ret->day = day;
@@ -258,8 +265,7 @@ CATALA_DURATION catala_new_duration(const int years,
                              const int months,
                              const int days)
 {
-  catala_duration* ret =
-    (catala_duration *)catala_malloc(sizeof(catala_duration));
+  catala_duration* ret = catala_malloc(sizeof(catala_duration));
   ret->years = years;
   ret->months = months;
   ret->days = days;
@@ -268,14 +274,14 @@ CATALA_DURATION catala_new_duration(const int years,
 
 /* --- Operators --- */
 
-CATALA_BOOL o_not(int b)
+CATALA_BOOL o_not(CATALA_BOOL b)
 {
-  return (! b);
+  return CATALA_NEW_BOOL(! *b);
 }
 
 CATALA_INT o_length(CATALA_ARRAY arr)
 {
-  return catala_new_int(arr.size);
+  return catala_new_int(arr->size);
 }
 
 CATALA_INT o_getDay(CATALA_DATE date)
@@ -401,17 +407,17 @@ CATALA_MONEY o_round_mon (CATALA_MONEY x)
 
 CATALA_BOOL o_and (CATALA_BOOL x1, CATALA_BOOL x2)
 {
-  return x1 && x2;
+  return CATALA_NEW_BOOL(*x1 && *x2);
 }
 
 CATALA_BOOL o_or (CATALA_BOOL x1, CATALA_BOOL x2)
 {
-  return x1 || x2;
+  return CATALA_NEW_BOOL(*x1 || *x2);
 }
 
 CATALA_BOOL o_xor (CATALA_BOOL x1, CATALA_BOOL x2)
 {
-  return x1 != x2;
+  return CATALA_NEW_BOOL(*x1 != *x2);
 }
 
 CATALA_INT o_add_int_int (CATALA_INT x1, CATALA_INT x2)
@@ -598,138 +604,142 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
 }
 
 CATALA_BOOL o_eq_bool_bool (CATALA_BOOL x1, CATALA_BOOL x2) {
-  return x1 == x2;
+  return CATALA_NEW_BOOL(*x1 == *x2);
 }
 
 CATALA_BOOL o_eq_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return mpz_cmp(x1, x2) == 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) == 0);
 }
 
 CATALA_BOOL o_eq_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return mpq_equal(x1, x2);
+  return CATALA_NEW_BOOL(mpq_equal(x1, x2));
 }
 
 CATALA_BOOL o_eq_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return mpz_cmp(x1, x2) == 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) == 0);
 }
 
 CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return (x1->year == x2->year && x1->month == x2->month && x1->day == x2->day);
+  return CATALA_NEW_BOOL((x1->year == x2->year && x1->month == x2->month && x1->day == x2->day));
 }
 
 CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
     catala_raise_fatal_error(catala_uncomparable_durations, pos);
-  return x1->days == x2->days;
+  return CATALA_NEW_BOOL(x1->days == x2->days);
 }
 
 CATALA_BOOL o_lt_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return mpz_cmp(x1, x2) < 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) < 0);
 }
 
 CATALA_BOOL o_lt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return mpq_cmp(x1, x2) < 0;
+  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) < 0);
 }
 
 CATALA_BOOL o_lt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return mpz_cmp(x1, x2) < 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) < 0);
 }
 
 CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
   return
-    (x1->year < x2->year) ||
-    (x1->year == x2->year &&
-     ((x1->month < x2->month) ||
-      (x1->month == x2->month && x1->day < x2->day)));
+    CATALA_NEW_BOOL
+    ((x1->year < x2->year) ||
+     (x1->year == x2->year &&
+      ((x1->month < x2->month) ||
+       (x1->month == x2->month && x1->day < x2->day))));
 }
 
 CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
     catala_raise_fatal_error(catala_uncomparable_durations, pos);
-  return x1->days < x2->days;
+  return CATALA_NEW_BOOL(x1->days < x2->days);
 }
 
 CATALA_BOOL o_lte_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return mpz_cmp(x1, x2) <= 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) <= 0);
 }
 
 CATALA_BOOL o_lte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return mpq_cmp(x1, x2) <= 0;
+  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) <= 0);
 }
 
 CATALA_BOOL o_lte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return mpz_cmp(x1, x2) <= 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) <= 0);
 }
 
 CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
   return
-    (x1->year < x2->year) ||
-    (x1->year == x2->year &&
-     ((x1->month < x2->month) ||
-      (x1->month == x2->month && x1->day <= x2->day)));
+    CATALA_NEW_BOOL
+    ((x1->year < x2->year) ||
+     (x1->year == x2->year &&
+      ((x1->month < x2->month) ||
+      (x1->month == x2->month && x1->day <= x2->day))));
 }
 
 CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
     catala_raise_fatal_error(catala_uncomparable_durations, pos);
-  return x1->days <= x2->days;
+  return CATALA_NEW_BOOL(x1->days <= x2->days);
 }
 
 CATALA_BOOL o_gt_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return mpz_cmp(x1, x2) > 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) > 0);
 }
 
 CATALA_BOOL o_gt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return mpq_cmp(x1, x2) > 0;
+  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) > 0);
 }
 
 CATALA_BOOL o_gt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return mpz_cmp(x1, x2) > 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) > 0);
 }
 
 CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
   return
-    (x1->year > x2->year) ||
-    (x1->year == x2->year &&
-     ((x1->month > x2->month) ||
-      (x1->month == x2->month && x1->day > x2->day)));
+    CATALA_NEW_BOOL
+    ((x1->year > x2->year) ||
+     (x1->year == x2->year &&
+      ((x1->month > x2->month) ||
+       (x1->month == x2->month && x1->day > x2->day))));
 }
 
 CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
     catala_raise_fatal_error(catala_uncomparable_durations, pos);
-  return x1->days > x2->days;
+  return CATALA_NEW_BOOL(x1->days > x2->days);
 }
 
 CATALA_BOOL o_gte_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return mpz_cmp(x1, x2) >= 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) >= 0);
 }
 
 CATALA_BOOL o_gte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return mpq_cmp(x1, x2) >= 0;
+  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) >= 0);
 }
 
 CATALA_BOOL o_gte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return mpz_cmp(x1, x2) >= 0;
+  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) >= 0);
 }
 
 CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
   return
-    (x1->year > x2->year) ||
-    (x1->year == x2->year &&
-     ((x1->month > x2->month) ||
-      (x1->month == x2->month && x1->day >= x2->day)));
+    CATALA_NEW_BOOL
+    ((x1->year > x2->year) ||
+     (x1->year == x2->year &&
+      ((x1->month > x2->month) ||
+       (x1->month == x2->month && x1->day >= x2->day))));
 }
 
 CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
     catala_raise_fatal_error(catala_uncomparable_durations, pos);
-  return x1->days >= x2->days;
+  return CATALA_NEW_BOOL(x1->days >= x2->days);
 }
 
 /*
@@ -750,27 +760,38 @@ enum catala_option_code {
 
 typedef struct catala_option {
   enum catala_option_code code;
-  void* payload;
+  const void* payload;
 } catala_option;
 
-#define CATALA_OPTION const catala_option
+#define CATALA_OPTION const catala_option*
 
 const catala_option catala_none = {catala_option_none, NULL};
 
-CATALA_BOOL catala_isnone (CATALA_OPTION opt)
-{
-  return opt.code == catala_option_none;
+#define CATALA_NONE &catala_none
+
+CATALA_OPTION catala_some (const void* x) {
+  catala_option* ret;
+  ret = catala_malloc(sizeof(catala_option));
+  ret->code = catala_option_some;
+  ret->payload = x;
+  return ret;
 }
 
-CATALA_OPTION catala_handle_exceptions
+CATALA_BOOL catala_isnone (CATALA_OPTION opt)
+{
+  return CATALA_NEW_BOOL(opt->code == catala_option_none);
+}
+
+CATALA_OPTION handle_exceptions
   (const catala_code_position* pos,
-   const unsigned int size,
-   CATALA_OPTION excs[])
+   const CATALA_ARRAY e)
 {
   int i, j;
-  for (i = 0; i < size && excs[i].code == catala_option_none; i++) {}
-  if (i >= size) return catala_none;
-  for(j = i + 1; j < size && excs[j].code == catala_option_none; j++) {}
+  unsigned int size = e->size;
+  CATALA_OPTION * excs = (CATALA_OPTION *) e->elements;
+  for (i = 0; i < size && excs[i]->code == catala_option_none; i++) {}
+  if (i >= size) return CATALA_NONE;
+  for(j = i + 1; j < size && excs[j]->code == catala_option_none; j++) {}
   if (j < size) catala_raise_fatal_error(catala_conflict, pos);
   else return excs[i];
 }

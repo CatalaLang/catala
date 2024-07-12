@@ -131,42 +131,12 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    | EAppOp { op = Op.HandleExceptions, pos; tys = [t_arr]; args = [exceptions] }
+    | EAppOp { op = Op.HandleExceptions, pos;
+               tys = [t_arr];
+               args = [EArray exceptions, _] }
       when ctxt.config.keep_special_ops ->
-      let arr_struct, field_contents, field_size =
-        match Mark.remove t_arr with
-        | TStruct arr_struct ->
-          let contents, sizes =
-            StructField.Map.partition (fun _ -> function
-                | TArray _, _ -> true
-                | _ -> false)
-              (StructName.Map.find arr_struct ctxt.program_ctx.decl_ctx.ctx_structs)
-          in
-          arr_struct,
-          fst (StructField.Map.choose contents),
-          fst (StructField.Map.choose sizes)
-        | _ -> assert false
-      in
-      let exceptions =
-        match Mark.remove exceptions with
-        | EStruct { fields; _ } -> (
-            match StructField.Map.find field_contents fields with
-            | EArray exceptions, _ -> exceptions
-            | _ -> assert false)
-        | _ -> assert false
-      in
       let exceptions_stmts, new_exceptions =
         translate_expr_list ctxt exceptions
-      in
-      let exn_array =
-        A.EStruct {
-          name = arr_struct;
-          fields =
-            StructField.Map.of_list [
-              field_size, (A.ELit (LInt (Runtime.integer_of_int (List.length exceptions))), pos);
-              field_contents, (A.EArray new_exceptions, pos);
-            ];
-        }
       in
       let arr_var_name =
         A.VarName.fresh (ctxt.context_name, pos)
@@ -185,7 +155,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
              {
                name = arr_var_name, pos;
                typ = t_arr;
-               expr =  exn_array, pos;
+               expr = A.EArray new_exceptions, pos;
              },
            pos]
       in
@@ -425,6 +395,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     ]
   | EMatch { e = e1; cases; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
+    let pos = Expr.pos block_expr in
     let new_cases =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
@@ -450,8 +421,25 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         cases []
     in
     let new_args = List.rev new_cases in
-    RevBlock.rebuild e1_stmts
-      ~tail:
+    let tail =
+      if ctxt.config.keep_special_ops then
+        let tmp_var = A.VarName.fresh ("match_arg", pos) in
+        [
+          A.SLocalInit {
+            name = tmp_var, pos;
+            typ = Expr.maybe_ty (Mark.get e1);
+            expr = new_e1;
+          }, pos;
+          ( A.SSwitch
+              {
+                switch_expr = A.EVar tmp_var, pos;
+                switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+                enum_name = name;
+                switch_cases = new_args;
+              },
+            pos)
+        ]
+      else
         [
           ( A.SSwitch
               {
@@ -462,6 +450,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               },
             Expr.pos block_expr );
         ]
+    in
+    RevBlock.rebuild e1_stmts ~tail
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt etrue in
@@ -499,7 +489,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     RevBlock.rebuild e1_stmts
       ~tail:
         [
-          ( A.SLocalInit
+          ( A.SLocalDef
               {
                 name = tmp_struct_var_name;
                 expr = inj_expr;
