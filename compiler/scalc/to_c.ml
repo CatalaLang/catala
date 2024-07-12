@@ -126,24 +126,6 @@ module TypMap = Map.Make (struct
   let format fmt x = Print.typ_debug fmt (x, Pos.no_pos)
 end)
 
-let tname_to_string = function
-  | TLit TUnit -> "CATALA_UNIT"
-  | TLit TMoney -> "CATALA_MONEY"
-  | TLit TInt -> "CATALA_INT"
-  | TLit TRat -> "CATALA_DEC"
-  | TLit TDate -> "CATALA_DATE"
-  | TLit TDuration -> "CATALA_DURATION"
-  | TLit TBool -> "CATALA_BOOL"
-  | TTuple tl -> Printf.sprintf "void*()[%d]" (List.length tl)
-  | TStruct s -> Format.asprintf "%a" format_struct_name s
-  | TOption _ -> "CATALA_OPTION"
-  | TEnum e -> Format.asprintf "%a" format_enum_name e
-  | TDefault _ -> assert false
-  | TArrow _ -> "void*"
-  | TArray _ -> "CATALA_ARRAY %t"
-  | TAny -> "void*"
-  | TClosureEnv -> "void *"
-
 (* Here, [element_name] is the struct field, union member or function parameter
    of which you're printing the type. *)
 let rec format_typ
@@ -160,7 +142,7 @@ let rec format_typ
   | TLit TDuration -> Format.fprintf fmt "CATALA_DURATION %t" element_name
   | TLit TBool -> Format.fprintf fmt "CATALA_BOOL %t" element_name
   | TTuple ts ->
-    Format.fprintf fmt "@[<v 2>struct {@,%a @]@,}"
+    Format.fprintf fmt "@[<v 2>struct {@,%a @]@,} %t"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (t, i) ->
@@ -168,7 +150,8 @@ let rec format_typ
              (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "arg_%d" i))
              t))
       (List.mapi (fun x y -> y, x) ts)
-  | TStruct s -> Format.fprintf fmt "%a %t" format_struct_name s element_name
+      element_name
+  | TStruct s -> Format.fprintf fmt "%a* %t" format_struct_name s element_name
   | TOption _ -> Format.fprintf fmt "CATALA_OPTION %t" element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
   | TEnum e -> Format.fprintf fmt "%a %t" format_enum_name e element_name
@@ -301,13 +284,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   match Mark.remove e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
-  | EStruct { fields = es; _ } ->
-    (* These should only appear when initializing a variable definition *)
-    Format.fprintf fmt "{ %a }"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (_, e) -> Format.fprintf fmt "%a" (format_expression ctx) e))
-      (StructField.Map.bindings es)
+  | EStruct _ -> assert false
+    (* Should always be handled at the root of a statement *)
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -402,9 +380,11 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a@];"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
-    (* Below we detect array initializations which have special treatment. *)
   | SLocalDef { name = v, _; expr = EArray elts, _; _ } ->
+    (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
+    Format.fprintf fmt
+      "@[<hov 2>%a =@ catala_malloc(sizeof(catala_array));@]@," format_var v;
     Format.fprintf fmt
       "@[<hov 2>%a->size =@ %d;@]@," format_var v size;
     Format.fprintf fmt
@@ -416,10 +396,20 @@ let rec format_statement
            format_var v i (format_expression ctx) arg)
       fmt
       (List.mapi (fun i a -> i, a) elts)
-  | SLocalInit { name = v; expr = e; typ } -> assert false
-    (* Format.fprintf fmt "@[<hov 2>%a = %a;@]"
-     *   (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
-     *   typ (format_expression ctx) e *)
+  | SLocalDef { name = v, _; expr = EStruct {name; fields}, _; _ } ->
+    if not (StructField.Map.is_empty fields) then (
+      Format.fprintf fmt
+        "@[<hov 2>%a =@ catala_malloc(sizeof(%a));@]@," format_var v
+        format_struct_name name;
+      StructField.Map.iter (fun field expr ->
+          Format.fprintf fmt
+            "@[<hov 2>%a->%a =@ %a;@]@,"
+            format_var v
+            format_struct_field_name field
+            (format_expression ctx) expr)
+        fields)
+  | SLocalInit _ -> assert false
+    (* Should have been turned into decl + def *)
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
@@ -745,10 +735,10 @@ let format_main
            ScopeName.format ppf s))
       scopes_with_no_input;
   List.iter
-    (fun (var, name, ts) ->
+    (fun (var, name, _) ->
        Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
          ScopeName.format name;
-       Format.fprintf fmt "@,%a ((%a){});" format_func_name var format_struct_name ts;
+       Format.fprintf fmt "@,%a (NULL);" format_func_name var;
        Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
          ScopeName.format name)
     scopes_with_no_input;
