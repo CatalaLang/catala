@@ -340,11 +340,11 @@ let kind_dispatch :
       | And | Or | Xor ),
       _ ) as op ->
     monomorphic op
-  | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
+  | ( ( Log _ | Length | Map | Map2 | Concat | Filter | Reduce | Fold
       | HandleExceptions | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     polymorphic op
-  | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
+  | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Eq | Lt | Lte | Gt
       | Gte ),
       _ ) as op ->
     overloaded op
@@ -374,7 +374,7 @@ type 'a no_overloads =
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
   | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Map | Map2
+      | And | Or | Xor | HandleExceptions | Log _ | Length | Map | Map2
       | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
       | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat | Round_mon
       | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
@@ -513,6 +513,11 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Div, [TMoney; TMoney] -> Div_mon_mon, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
   | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
+  | Eq, [TInt; TInt] -> Eq_int_int, `Straight
+  | Eq, [TRat; TRat] -> Eq_rat_rat, `Straight
+  | Eq, [TMoney; TMoney] -> Eq_mon_mon, `Straight
+  | Eq, [TDuration; TDuration] -> Eq_dur_dur, `Straight
+  | Eq, [TDate; TDate] -> Eq_dat_dat, `Straight
   | Lt, [TInt; TInt] -> Lt_int_int, `Straight
   | Lt, [TRat; TRat] -> Lt_rat_rat, `Straight
   | Lt, [TMoney; TMoney] -> Lt_mon_mon, `Straight
@@ -533,7 +538,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Gte, [TMoney; TMoney] -> Gte_mon_mon, `Straight
   | Gte, [TDuration; TDuration] -> Gte_dur_dur, `Straight
   | Gte, [TDate; TDate] -> Gte_dat_dat, `Straight
-  | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
+  | ( ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Eq | Lt | Lte | Gt
       | Gte ),
       _ ) ->
     raise Not_found

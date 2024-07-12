@@ -301,7 +301,6 @@ module Op = struct
     | Or : < monomorphic ; .. > t
     | Xor : < monomorphic ; .. > t
     (* * polymorphic *)
-    | Eq : < polymorphic ; .. > t
     | Map : < polymorphic ; .. > t
     | Map2 : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
@@ -331,6 +330,12 @@ module Op = struct
     | Div_mon_rat : < resolved ; .. > t
     | Div_mon_mon : < resolved ; .. > t
     | Div_dur_dur : < resolved ; .. > t
+    | Eq : < overloaded ; .. > t
+    | Eq_int_int : < resolved ; .. > t
+    | Eq_rat_rat : < resolved ; .. > t
+    | Eq_mon_mon : < resolved ; .. > t
+    | Eq_dat_dat : < resolved ; .. > t
+    | Eq_dur_dur : < resolved ; .. > t
     | Lt : < overloaded ; .. > t
     | Lt_int_int : < resolved ; .. > t
     | Lt_rat_rat : < resolved ; .. > t
@@ -355,14 +360,6 @@ module Op = struct
     | Gte_mon_mon : < resolved ; .. > t
     | Gte_dat_dat : < resolved ; .. > t
     | Gte_dur_dur : < resolved ; .. > t
-    (* Todo: Eq is not an overload at the moment, but it should be one. The
-       trick is that it needs generation of specific code for arrays, every
-       struct and enum: operators [Eq_structs of StructName.t], etc. *)
-    | Eq_int_int : < resolved ; .. > t
-    | Eq_rat_rat : < resolved ; .. > t
-    | Eq_mon_mon : < resolved ; .. > t
-    | Eq_dur_dur : < resolved ; .. > t
-    | Eq_dat_dat : < resolved ; .. > t
     (* ternary *)
     (* * polymorphic *)
     | Reduce : < polymorphic ; .. > t
