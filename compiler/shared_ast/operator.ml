@@ -102,6 +102,7 @@ let name : type a. a t -> string = function
   | Gte_mon_mon -> "o_gte_mon_mon"
   | Gte_dur_dur -> "o_gte_dur_dur"
   | Gte_dat_dat -> "o_gte_dat_dat"
+  | Eq_boo_boo -> "o_eq_boo_boo"
   | Eq_int_int -> "o_eq_int_int"
   | Eq_rat_rat -> "o_eq_rat_rat"
   | Eq_mon_mon -> "o_eq_mon_mon"
@@ -225,6 +226,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Gte_mon_mon, Gte_mon_mon
   | Gte_dat_dat, Gte_dat_dat
   | Gte_dur_dur, Gte_dur_dur
+  | Eq_boo_boo, Eq_boo_boo
   | Eq_int_int, Eq_int_int
   | Eq_rat_rat, Eq_rat_rat
   | Eq_mon_mon, Eq_mon_mon
@@ -311,6 +313,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Gte_mon_mon, _ -> -1 | _, Gte_mon_mon -> 1
   | Gte_dat_dat, _ -> -1 | _, Gte_dat_dat -> 1
   | Gte_dur_dur, _ -> -1 | _, Gte_dur_dur -> 1
+  | Eq_boo_boo, _ -> -1 | _, Eq_boo_boo -> 1
   | Eq_int_int, _ -> -1 | _, Eq_int_int -> 1
   | Eq_rat_rat, _ -> -1 | _, Eq_rat_rat -> 1
   | Eq_mon_mon, _ -> -1 | _, Eq_mon_mon -> 1
@@ -357,7 +360,7 @@ let kind_dispatch :
       | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat
       | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
       _ ) as op ->
     resolved op
@@ -385,7 +388,7 @@ let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
       | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur
       | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur
       | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur
-      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
+      | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
       | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     op
@@ -470,6 +473,7 @@ let resolved_type ((op : resolved t), pos) =
     | Gte_mon_mon -> [TMoney; TMoney], TBool
     | Gte_dat_dat -> [TDate; TDate], TBool
     | Gte_dur_dur -> [TDuration; TDuration], TBool
+    | Eq_boo_boo -> [TBool; TBool], TBool
     | Eq_int_int -> [TInt; TInt], TBool
     | Eq_rat_rat -> [TRat; TRat], TBool
     | Eq_mon_mon -> [TMoney; TMoney], TBool
@@ -513,6 +517,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Div, [TMoney; TMoney] -> Div_mon_mon, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
   | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
+  | Eq, [TBool; TBool] -> Eq_boo_boo, `Straight
   | Eq, [TInt; TInt] -> Eq_int_int, `Straight
   | Eq, [TRat; TRat] -> Eq_rat_rat, `Straight
   | Eq, [TMoney; TMoney] -> Eq_mon_mon, `Straight

@@ -413,6 +413,7 @@ module Oper : sig
   val o_gte_mon_mon : money -> money -> bool
   val o_gte_dur_dur : source_position -> duration -> duration -> bool
   val o_gte_dat_dat : date -> date -> bool
+  val o_eq_boo_boo : bool -> bool -> bool
   val o_eq_int_int : integer -> integer -> bool
   val o_eq_rat_rat : decimal -> decimal -> bool
   val o_eq_mon_mon : money -> money -> bool

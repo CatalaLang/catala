@@ -331,6 +331,7 @@ module Op = struct
     | Div_mon_mon : < resolved ; .. > t
     | Div_dur_dur : < resolved ; .. > t
     | Eq : < overloaded ; .. > t
+    | Eq_boo_boo : < resolved ; .. > t
     | Eq_int_int : < resolved ; .. > t
     | Eq_rat_rat : < resolved ; .. > t
     | Eq_mon_mon : < resolved ; .. > t

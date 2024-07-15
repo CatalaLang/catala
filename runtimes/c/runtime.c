@@ -615,7 +615,7 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   return ret;
 }
 
-CATALA_BOOL o_eq_bool_bool (CATALA_BOOL x1, CATALA_BOOL x2) {
+CATALA_BOOL o_eq_boo_boo (CATALA_BOOL x1, CATALA_BOOL x2) {
   return CATALA_NEW_BOOL(*x1 == *x2);
 }
 

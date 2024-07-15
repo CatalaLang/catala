@@ -125,7 +125,7 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
-  | ELit (LBool b1), ELit (LBool b2) -> not (o_xor b1 b2)
+  | ELit (LBool b1), ELit (LBool b2) -> o_eq_boo_boo b1 b2
   | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
   | ELit (LRat x1), ELit (LRat x2) -> o_eq_rat_rat x1 x2
   | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
@@ -410,6 +410,8 @@ let evaluate_operator
     ELit (LBool (o_gte_dat_dat x y))
   | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_gte_dur_dur (rpos ()) x y))
+  | Eq_boo_boo, [(ELit (LBool x), _); (ELit (LBool y), _)] ->
+    ELit (LBool (o_eq_boo_boo x y))
   | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
     ELit (LBool (o_eq_int_int x y))
   | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
@@ -450,7 +452,7 @@ let evaluate_operator
       | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat
       | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
       _ ) ->
     err ()

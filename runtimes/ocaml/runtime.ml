@@ -855,6 +855,7 @@ module Oper = struct
   let o_gte_mon_mon m1 m2 = Z.compare m1 m2 >= 0
   let o_gte_dur_dur pos d1 d2 = compare_periods pos d1 d2 >= 0
   let o_gte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 >= 0
+  let o_eq_boo_boo b1 b2 = b1 = b2
   let o_eq_int_int i1 i2 = Z.equal i1 i2
   let o_eq_rat_rat i1 i2 = Q.equal i1 i2
   let o_eq_mon_mon m1 m2 = Z.equal m1 m2

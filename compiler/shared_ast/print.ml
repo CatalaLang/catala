@@ -274,6 +274,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Gte_mon_mon -> ">=$"
   | Gte_dur_dur -> ">=^"
   | Gte_dat_dat -> ">=@"
+  | Eq_boo_boo -> "=="
   | Eq_int_int -> "=!"
   | Eq_rat_rat -> "=."
   | Eq_mon_mon -> "=$"
@@ -302,7 +303,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | And -> "&&"
   | Or -> "||"
   | Xor -> "xor"
-  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
+  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
   | Map -> "map"
   | Map2 -> "map2"
   | Reduce -> "reduce"
@@ -377,7 +378,7 @@ module Precedence = struct
       | And -> Op And
       | Or -> Op Or
       | Xor -> Op Xor
-      | Eq | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat ->
+      | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat ->
         Op Comp
       | Lt | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
         Op Comp

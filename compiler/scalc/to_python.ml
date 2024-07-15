@@ -80,7 +80,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt ">"
   | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
     Format.pp_print_string fmt ">="
-  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
+  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
     Format.pp_print_string fmt "=="
   | Map -> Format.pp_print_string fmt "list_map"
   | Map2 -> Format.pp_print_string fmt "list_map2"
@@ -377,7 +377,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
-  | ETupleAccess { e1; index } ->
+  | ETupleAccess { e1; index; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) e1 index
   | EExternal { modname; name } ->
     Format.fprintf fmt "%a.%a" format_var (Mark.remove modname)
@@ -460,7 +460,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | SSpecialOp _ -> failwith "should not happen"
+  | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =
   Format.pp_open_vbox fmt 0;
