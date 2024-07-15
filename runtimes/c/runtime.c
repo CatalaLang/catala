@@ -123,7 +123,7 @@ void catala_free_all()
 void* catala_realloc(void* oldptr, size_t oldsize, size_t newsize)
 {
   if (newsize <= oldsize) {
-    memset(oldptr + newsize, oldsize - newsize, 0);
+    memset(oldptr + newsize, 0, oldsize - newsize);
     return oldptr;
   } else {
     void* ptr = catala_malloc(newsize);
@@ -149,6 +149,14 @@ void catala_free(void* ptr, size_t sz)
 #define CATALA_DATE const catala_date*
 #define CATALA_DURATION const catala_duration*
 #define CATALA_ARRAY catala_array*
+#define CATALA_TUPLE void**
+
+#define CLOSURE_ENV void*
+
+typedef struct catala_closure {
+  void (*funcp)(void);
+  CLOSURE_ENV env;
+} catala_closure;
 
 const int catala_true = 1;
 #define CATALA_TRUE &catala_true
@@ -370,15 +378,19 @@ CATALA_DEC o_torat_mon (CATALA_MONEY x)
 static void round_div(mpz_ptr ret, mpz_srcptr num, mpz_srcptr den)
 {
   mpz_t den1;
-  mpz_init_set(den1, den);
-  mpz_set(ret, num);
+  int sign;
+  mpz_init(den1);
+  sign = mpz_sgn(num) * mpz_sgn(den);
+  mpz_abs(ret, num);
+  mpz_abs(den1, den);
   /* if x = n/d, this is (2*n + d) / (2*d) */
   mpz_mul_ui(ret, ret, 2);
   mpz_add(ret, ret, den1);
   mpz_mul_ui(den1, den1, 2);
-  /* round towards 0 */
-  mpz_tdiv_q(ret, ret, den1);
+  /* round towards -inf */
+  mpz_fdiv_q(ret, ret, den1);
   mpz_clear(den1);
+  mpz_mul_si(ret, ret, sign);
   return;
 }
 
@@ -793,7 +805,7 @@ CATALA_OPTION handle_exceptions
   if (i >= size) return CATALA_NONE;
   for(j = i + 1; j < size && excs[j]->code == catala_option_none; j++) {}
   if (j < size) catala_raise_fatal_error(catala_conflict, pos);
-  else return excs[i];
+  return excs[i];
 }
 
 void catala_init()

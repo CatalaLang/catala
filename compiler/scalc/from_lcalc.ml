@@ -122,6 +122,10 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
             },
           Expr.pos expr ) )
     | ETuple args ->
+      if ctxt.config.no_struct_literals then
+        (* In C89, struct literates have to be initialized at variable
+           definition... *)
+        raise (NotAnExpr { needs_a_local_decl = false });
       let args_stmts, new_args = translate_expr_list ctxt args in
       args_stmts, (A.ETuple new_args, Expr.pos expr)
     | EStructAccess { e = e1; field; name } ->
@@ -130,7 +134,8 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
         (A.EStructFieldAccess { e1 = new_e1; field; name }, Expr.pos expr) )
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
+      let typ = Expr.maybe_ty (Mark.get expr) in
+      e1_stmts, (A.ETupleAccess { e1 = new_e1; index; typ }, Expr.pos expr)
     | EAppOp { op = Op.HandleExceptions, pos;
                tys = [t_arr];
                args = [EArray exceptions, _] }
@@ -526,6 +531,35 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                 name = tmp_struct_var_name;
                 expr = struct_expr;
                 typ = TStruct name, Expr.pos block_expr;
+              },
+            Expr.pos block_expr );
+        ]
+  | ETuple elts when ctxt.config.no_struct_literals ->
+    let elts_stmts, rev_elts =
+      List.fold_left
+        (fun (elts_stmts, rev_elts) elt ->
+           let stmt, new_elt = translate_expr ctxt elt in
+           elts_stmts ++ stmt, new_elt :: rev_elts)
+        (RevBlock.empty, [])
+        elts
+    in
+    let tuple_expr =
+      A.ETuple (List.rev rev_elts), Expr.pos block_expr
+    in
+    let tmp_tuple_var_name =
+      match ctxt.inside_definition_of with
+      | None -> assert false
+      (* [translate_expr] should create this [inside_definition_of]*)
+      | Some x -> x, Expr.pos block_expr
+    in
+    RevBlock.rebuild elts_stmts
+      ~tail:
+        [
+          ( A.SLocalInit
+              {
+                name = tmp_tuple_var_name;
+                expr = tuple_expr;
+                typ = Expr.maybe_ty (Mark.get block_expr);
               },
             Expr.pos block_expr );
         ]

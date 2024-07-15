@@ -47,7 +47,7 @@ and naked_expr =
       name : StructName.t;
     }
   | ETuple of expr list
-  | ETupleAccess of { e1 : expr; index : int }
+  | ETupleAccess of { e1 : expr; index : int; typ: typ }
   | EInj of {
       e1 : expr;
       cons : EnumConstructor.t;

@@ -141,16 +141,9 @@ let rec format_typ
   | TLit TDate -> Format.fprintf fmt "CATALA_DATE %t" element_name
   | TLit TDuration -> Format.fprintf fmt "CATALA_DURATION %t" element_name
   | TLit TBool -> Format.fprintf fmt "CATALA_BOOL %t" element_name
-  | TTuple ts ->
-    Format.fprintf fmt "@[<v 2>struct {@,%a @]@,} %t"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         (fun fmt (t, i) ->
-           Format.fprintf fmt "%a;"
-             (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "arg_%d" i))
-             t))
-      (List.mapi (fun x y -> y, x) ts)
-      element_name
+  | TTuple [_; TClosureEnv, _] ->
+    Format.fprintf fmt "catala_closure* %t" element_name
+  | TTuple _ -> Format.fprintf fmt "CATALA_TUPLE %t" element_name
   | TStruct s -> Format.fprintf fmt "%a* %t" format_struct_name s element_name
   | TOption _ -> Format.fprintf fmt "CATALA_OPTION %t" element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
@@ -168,7 +161,7 @@ let rec format_typ
   | TArray _ ->
     Format.fprintf fmt "CATALA_ARRAY %t" element_name
   | TAny -> Format.fprintf fmt "void * /* any */ %t" element_name
-  | TClosureEnv -> Format.fprintf fmt "void * /* closure_env */ %t" element_name
+  | TClosureEnv -> Format.fprintf fmt "CLOSURE_ENV %t" element_name
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
@@ -287,7 +280,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EStruct _ -> assert false
     (* Should always be handled at the root of a statement *)
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
+    Format.fprintf fmt "%a->%a" (format_expression ctx) e1
       format_struct_field_name field
   | EInj { e1; cons; name = enum_name; _ }
     when EnumName.equal enum_name Expr.option_enum ->
@@ -334,8 +327,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       format_op op
       (format_expression ctx) arg1
       (format_expression ctx) arg2
-  | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
-    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp
       {
         op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
@@ -357,8 +348,20 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | ETuple _ | ETupleAccess _ ->
-    Message.error ~internal:true "Tuple compilation to C unimplemented!"
+  | ETuple _ -> assert false (* Must be a statement *)
+  | ETupleAccess {e1; index=0; typ=TArrow _, _ as typ} ->
+    (* Closure function *)
+    Format.fprintf fmt "(%a)%a->funcp"
+      (format_typ ctx ignore) typ
+      (format_expression ctx) e1
+  | ETupleAccess {e1; index=1; typ=TClosureEnv, _ as typ} ->
+    Format.fprintf fmt "(%a)%a->env"
+      (format_typ ctx ignore) typ
+      (format_expression ctx) e1
+  | ETupleAccess {e1; index; typ} ->
+    Format.fprintf fmt "(%a)%a[%d]"
+      (format_typ ctx ignore) typ
+      (format_expression ctx) e1 index
   | EExternal _ -> failwith "TODO"
 
 let format_raise_error fmt err pos =
@@ -401,13 +404,34 @@ let rec format_statement
       Format.fprintf fmt
         "@[<hov 2>%a =@ catala_malloc(sizeof(%a));@]@," format_var v
         format_struct_name name;
-      StructField.Map.iter (fun field expr ->
+      Format.pp_print_seq (fun fmt (field, expr) ->
           Format.fprintf fmt
-            "@[<hov 2>%a->%a =@ %a;@]@,"
+            "@[<hov 2>%a->%a =@ %a;@]"
             format_var v
             format_struct_field_name field
             (format_expression ctx) expr)
-        fields)
+        fmt
+        (StructField.Map.to_seq fields))
+  | SLocalDef { name = v, _; expr = ETuple [fct; env], _;
+                typ = TTuple [TArrow _, _; TClosureEnv, _], _ } ->
+    (* We detect closure initializations which have special treatment. *)
+    Format.fprintf fmt
+      "@[<hov 2>%a =@ catala_malloc(sizeof(catala_closure));@]@," format_var v;
+    Format.fprintf fmt "@[<hov 2>%a->funcp =@ (void (*)(void))%a;@]@,"
+      format_var v (format_expression ctx) fct;
+    Format.fprintf fmt "@[<hov 2>%a->env =@ %a;@]"
+      format_var v (format_expression ctx) env;
+  | SLocalDef { name = v, _; expr = ETuple elts, _; _ } ->
+    (* We detect tuple initializations which have special treatment. *)
+    let size = List.length elts in
+    Format.fprintf fmt
+      "@[<hov 2>%a =@ catala_malloc(%d * sizeof(void*));@]@," format_var v size;
+    Format.pp_print_list
+      (fun fmt (i, arg) ->
+         Format.fprintf fmt "@[<hov 2>%a[%d] =@ %a;@]"
+           format_var v i (format_expression ctx) arg)
+      fmt
+      (List.mapi (fun i a -> i, a) elts)
   | SLocalInit _ -> assert false
     (* Should have been turned into decl + def *)
   | SLocalDef { name = v; expr = e; _ } ->
@@ -418,7 +442,7 @@ let rec format_statement
     format_raise_error fmt err pos;
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
-      "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@;<1 -2>} else {@,%a@;<1 -2>}@]"
+      "@[<hv 2>@[<hov 2>if (*%a) {@]@,%a@;<1 -2>} else {@,%a@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch { switch_expr = EVar match_var, _; enum_name = e_name; switch_cases = cases; _ }
     when EnumName.equal e_name Expr.option_enum ->
@@ -488,7 +512,7 @@ let rec format_statement
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<v 2>@[<hov 2>if (!(%a)) {@]@,\
+      "@[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
        @[<hov 2>catala_raise(catala_assertion_failed,@ \"%s\",@ \
        %d, %d, %d, %d);@]@;\
        <1 -2>}@]" (format_expression ctx)
@@ -742,7 +766,7 @@ let format_main
        Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
          ScopeName.format name)
     scopes_with_no_input;
-  Format.fprintf fmt "@;<1 -2>}@]@,"
+  Format.fprintf fmt "@,return 0;@;<1 -2>}@]@,"
 
 let format_program
     (fmt : Format.formatter)
