@@ -148,7 +148,7 @@ void catala_free(void* ptr, size_t sz)
 #define CATALA_MONEY mpz_srcptr
 #define CATALA_DATE const catala_date*
 #define CATALA_DURATION const catala_duration*
-#define CATALA_ARRAY catala_array*
+#define CATALA_ARRAY(_) catala_array*
 #define CATALA_TUPLE void**
 
 #define CLOSURE_ENV void*
@@ -287,7 +287,7 @@ CATALA_BOOL o_not(CATALA_BOOL b)
   return CATALA_NEW_BOOL(! *b);
 }
 
-CATALA_INT o_length(CATALA_ARRAY arr)
+CATALA_INT o_length(CATALA_ARRAY() arr)
 {
   return catala_new_int(arr->size);
 }
@@ -775,13 +775,13 @@ typedef struct catala_option {
   const void* payload;
 } catala_option;
 
-#define CATALA_OPTION const catala_option*
+#define CATALA_OPTION(_) const catala_option*
 
 const catala_option catala_none = {catala_option_none, NULL};
 
 #define CATALA_NONE &catala_none
 
-CATALA_OPTION catala_some (const void* x) {
+CATALA_OPTION() catala_some (const void* x) {
   catala_option* ret;
   ret = catala_malloc(sizeof(catala_option));
   ret->code = catala_option_some;
@@ -789,18 +789,18 @@ CATALA_OPTION catala_some (const void* x) {
   return ret;
 }
 
-CATALA_BOOL catala_isnone (CATALA_OPTION opt)
+CATALA_BOOL catala_isnone (CATALA_OPTION() opt)
 {
   return CATALA_NEW_BOOL(opt->code == catala_option_none);
 }
 
-CATALA_OPTION handle_exceptions
+CATALA_OPTION() handle_exceptions
   (const catala_code_position* pos,
-   const CATALA_ARRAY e)
+   const CATALA_ARRAY(CATALA_OPTION()) e)
 {
   int i, j;
   unsigned int size = e->size;
-  CATALA_OPTION * excs = (CATALA_OPTION *) e->elements;
+  CATALA_OPTION() * excs = (CATALA_OPTION() *) e->elements;
   for (i = 0; i < size && excs[i]->code == catala_option_none; i++) {}
   if (i >= size) return CATALA_NONE;
   for(j = i + 1; j < size && excs[j]->code == catala_option_none; j++) {}

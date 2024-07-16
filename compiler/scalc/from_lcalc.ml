@@ -110,7 +110,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       if ctxt.config.no_struct_literals then
         (* In C89, struct literates have to be initialized at variable
            definition... *)
-        raise (NotAnExpr { needs_a_local_decl = false });
+        raise (NotAnExpr { needs_a_local_decl = true });
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       ( e1_stmts,
         ( A.EInj

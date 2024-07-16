@@ -145,7 +145,10 @@ let rec format_typ
     Format.fprintf fmt "catala_closure*%t" element_name
   | TTuple _ -> Format.fprintf fmt "CATALA_TUPLE%t" element_name
   | TStruct s -> Format.fprintf fmt "%a*%t" format_struct_name s element_name
-  | TOption _ -> Format.fprintf fmt "CATALA_OPTION%t" element_name
+  | TOption t ->
+    Format.fprintf fmt "CATALA_OPTION(%a)%t"
+      (format_typ decl_ctx ignore) t
+      element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
   | TEnum e -> Format.fprintf fmt "%a*%t" format_enum_name e element_name
   | TArrow (t1, t2) ->
@@ -158,8 +161,10 @@ let rec format_typ
            (format_typ decl_ctx ignore)
              fmt t1_arg))
       t1
-  | TArray _ ->
-    Format.fprintf fmt "CATALA_ARRAY%t" element_name
+  | TArray t ->
+    Format.fprintf fmt "CATALA_ARRAY(%a)%t"
+      (format_typ decl_ctx ignore) t
+      element_name
   | TAny -> Format.fprintf fmt "void * /* any */%t" element_name
   | TClosureEnv -> Format.fprintf fmt "CLOSURE_ENV%t" element_name
 
@@ -201,7 +206,7 @@ let format_ctx
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
-           Format.fprintf fmt "%a;"
+           Format.fprintf fmt "@[<hov 2>%a;@]"
              (format_typ ctx (fun fmt ->
                   Format.pp_print_space fmt ();
                   format_enum_cons_name fmt enum_cons))
@@ -280,8 +285,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   match Mark.remove e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
-  | EStruct _ -> assert false
-    (* Should always be handled at the root of a statement *)
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a->%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -292,13 +295,9 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     else
       Format.fprintf fmt "catala_some(%a)"
         (format_expression ctx) e1
-  | EInj { e1; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "{%a_%a,@ {%a: %a}}" format_enum_name enum_name
-      format_enum_cons_name cons format_enum_cons_name cons
-      (format_expression ctx) e1
-  | EArray _ ->
-    failwith
-      "should not happen, array initialization is caught at the statement level"
+  | EStruct _ | EInj _ | EArray _ ->
+    (* Should always be handled at the root of a statement *)
+    assert false
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg]; _} ->
     format_expression ctx fmt arg
@@ -357,9 +356,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "(%a)%a->funcp"
       (format_typ ctx ignore) typ
       (format_expression ctx) e1
-  | ETupleAccess {e1; index=1; typ=TClosureEnv, _ as typ} ->
-    Format.fprintf fmt "(%a)%a->env"
-      (format_typ ctx ignore) typ
+  | ETupleAccess {e1; index=1; typ=TClosureEnv, _} ->
+    Format.fprintf fmt "%a->env"
       (format_expression ctx) e1
   | ETupleAccess {e1; index; typ} ->
     Format.fprintf fmt "(%a)%a[%d]"
@@ -415,6 +413,21 @@ let rec format_statement
             format_struct_field_name field
             (format_expression ctx) expr)
         fields)
+  | SLocalDef { name = v, _; expr = EInj {e1; cons; name; _}, _; _ }
+    when not (EnumName.equal name Expr.option_enum) ->
+    Format.fprintf fmt
+      "@,@[<hov 2>%a =@ catala_malloc(sizeof(%a));@]" format_var v
+      format_enum_name name;
+    Format.fprintf fmt
+      "@,@[<hov 2>%a->code = %a_%a;@]"
+      format_var v
+      format_enum_name name
+      format_enum_cons_name cons;
+    Format.fprintf fmt
+      "@,@[<hov 2>%a->payload.%a = %a;@]"
+      format_var v
+      format_enum_cons_name cons
+      (format_expression ctx) e1
   | SLocalDef { name = v, _; expr = ETuple [fct; env], _;
                 typ = TTuple [TArrow _, _; TClosureEnv, _], _ } ->
     (* We detect closure initializations which have special treatment. *)
@@ -481,7 +494,7 @@ let rec format_statement
           some_case.case_block
       in
       format_block ctx fmt decls;
-      Format.fprintf fmt "@,%a = (%a)(%a->payload);"
+      Format.fprintf fmt "@,%a = (%a)(&%a->payload);"
         format_var some_case.payload_var_name
         (format_typ ctx ignore)
         some_case.payload_var_typ
@@ -492,19 +505,20 @@ let rec format_statement
     format_block ctx fmt none_case.case_block;
     Format.fprintf fmt "@;<1 -2>}@]"
   | SSwitch { switch_expr = EVar match_var, _; enum_name = e_name; switch_cases = cases; _ } ->
-    Format.pp_open_vbox fmt 2;
-    Format.fprintf fmt "@,@[<hov 4>switch (%a.code) {@]" format_var match_var;
+    Format.fprintf fmt "@,@[<v 2>@[<hov 4>switch (%a->code) {@]" format_var match_var;
     List.iter2
       (fun { case_block; payload_var_name; payload_var_typ } (cons_name, _) ->
-        Format.fprintf fmt "@,@[<hv 2>case %a_%a:" format_enum_name e_name
+        Format.fprintf fmt "@,@[<v 2>case %a_%a: {" format_enum_name e_name
           format_enum_cons_name cons_name;
         if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
-          Format.fprintf fmt "@ %a = %a.payload.%a;"
+          Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"
             (format_typ ctx (fun fmt ->
                  Format.pp_print_space fmt ();
                  format_var fmt payload_var_name))
-            payload_var_typ format_var match_var format_enum_cons_name cons_name;
-        Format.fprintf fmt "%a@ break;@]" (format_block ctx) case_block)
+            payload_var_typ format_var match_var
+            (* format_enum_name e_name *)
+            format_enum_cons_name cons_name;
+        Format.fprintf fmt "%a@ break;@;<1 -2>}@]" (format_block ctx) case_block)
       cases
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums));
     (* Do we want to add 'default' case with a failure ? *)
