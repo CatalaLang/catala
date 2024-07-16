@@ -94,9 +94,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       RevBlock.empty, (local_var, Expr.pos expr)
     | EStruct { fields; name } ->
       if ctxt.config.no_struct_literals then
-        (* In C89, struct literates have to be initialized at variable
+        (* In C89, struct literals have to be initialized at variable
            definition... *)
-        raise (NotAnExpr { needs_a_local_decl = false });
+        raise (NotAnExpr { needs_a_local_decl = true });
       let args_stmts, new_args =
         StructField.Map.fold
           (fun field arg (args_stmts, new_args) ->
@@ -108,7 +108,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
     | EInj { e = e1; cons; name } ->
       if ctxt.config.no_struct_literals then
-        (* In C89, struct literates have to be initialized at variable
+        (* In C89, enum literals have to be initialized at variable
            definition... *)
         raise (NotAnExpr { needs_a_local_decl = true });
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
@@ -123,9 +123,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
           Expr.pos expr ) )
     | ETuple args ->
       if ctxt.config.no_struct_literals then
-        (* In C89, struct literates have to be initialized at variable
+        (* In C89, array literals have to be initialized at variable
            definition... *)
-        raise (NotAnExpr { needs_a_local_decl = false });
+        raise (NotAnExpr { needs_a_local_decl = true });
       let args_stmts, new_args = translate_expr_list ctxt args in
       args_stmts, (A.ETuple new_args, Expr.pos expr)
     | EStructAccess { e = e1; field; name } ->
@@ -147,16 +147,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
         A.VarName.fresh (ctxt.context_name, pos)
       in
       let stmts =
-        RevBlock.make
-          [A.SLocalDecl
-             {
-               name = arr_var_name, pos;
-               typ = t_arr;
-             },
-           pos]
-        ++ exceptions_stmts
+        exceptions_stmts
         ++ RevBlock.make
-          [A.SLocalDef
+          [A.SLocalInit
              {
                name = arr_var_name, pos;
                typ = t_arr;
@@ -405,7 +398,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
-          | EAbs { binder; tys } ->
+          | EAbs { binder; tys = typ::_} ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
@@ -419,7 +412,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             {
               A.case_block = new_arg;
               payload_var_name = scalc_var;
-              payload_var_typ = List.hd tys;
+              payload_var_typ = typ;
             }
             :: new_args
           | _ -> assert false)
@@ -526,7 +519,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     RevBlock.rebuild args_stmts
       ~tail:
         [
-          ( A.SLocalInit
+          ( A.SLocalDef
               {
                 name = tmp_struct_var_name;
                 expr = struct_expr;
@@ -555,7 +548,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     RevBlock.rebuild elts_stmts
       ~tail:
         [
-          ( A.SLocalInit
+          ( A.SLocalDef
               {
                 name = tmp_tuple_var_name;
                 expr = tuple_expr;

@@ -88,6 +88,11 @@ end)
     https://github.com/CatalaLang/catala/issues/240 is fixed. *)
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
+let is_dummy_var v =
+  Mark.remove (VarName.get_info v) = "_"
+(* this is the marker of a variable that's not expected to be used
+   TODO: mark and/or detect such variables in a better way *)
+
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   let v_str = Mark.remove (VarName.get_info v) in
   let id = VarName.id v in
@@ -114,9 +119,10 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
         StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
       0
   in
-  if v_str = "_" then Format.fprintf fmt "dummy_var"
-    (* special case for the unit pattern TODO escape dummy_var *)
-  else if local_id = 0 then format_name_cleaned fmt v_str
+  assert (not (is_dummy_var v));
+  (* if v_str = "_" then Format.fprintf fmt "dummy_var" else
+   *   (\* special case for the unit pattern TODO escape dummy_var *\) *)
+  if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
 module TypMap = Map.Make (struct
@@ -372,6 +378,10 @@ let format_raise_error fmt err pos =
     (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
     (Pos.get_end_line pos) (Pos.get_end_column pos)
 
+let is_closure_typ = function
+  | TTuple [TArrow _, _; TClosureEnv, _], _ -> true
+  | _ -> false
+
 let rec format_statement
     (ctx : decl_ctx)
     (fmt : Format.formatter)
@@ -380,44 +390,56 @@ let rec format_statement
   | SInnerFuncDef _ ->
     Message.error ~pos:(Mark.get s) ~internal:true
       "This inner functions should have been hoisted in Scalc"
-  | SLocalDecl { name = v; typ = ty } ->
+  | SLocalDecl { name = (v, _); typ = ty } ->
+    if is_dummy_var v then () else
     Format.fprintf fmt "@,@[<hov 2>%a@];"
       (format_typ ctx (fun fmt ->
            Format.pp_print_space fmt ();
-           format_var fmt (Mark.remove v)))
+           format_var fmt v))
       ty
+  | SLocalInit { name = (v, _); typ; expr = (EArray _|EStruct _|EInj _|ETuple _) as expr, _ } ->
+    if is_dummy_var v then () else
+    Format.fprintf fmt "@,@[<hov 2>%a =@ catala_malloc(%t)@];"
+      (format_typ ctx (fun fmt ->
+           Format.pp_print_space fmt ();
+           format_var fmt v))
+      typ
+      (fun fmt -> match expr with
+       | EArray _ -> Format.pp_print_string fmt "sizeof(catala_array)"
+       | EStruct { name; _ }-> Format.fprintf fmt "sizeof(%a)" format_struct_name name
+       | EInj { name; _ }
+         when EnumName.equal name Expr.option_enum ->
+         Format.pp_print_string fmt "sizeof(catala_option)"
+       | EInj { name; _ } -> Format.fprintf fmt "sizeof(%a)" format_enum_name name
+       | ETuple [_fct; _env] when is_closure_typ typ ->
+         Format.pp_print_string fmt "sizeof(catala_closure)"
+       | ETuple elts ->
+         Format.fprintf fmt "%d * sizeof(void*)" (List.length elts)
+       | _ -> assert false)
   | SLocalDef { name = v, _; expr = EArray elts, _; _ } ->
     (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
     Format.fprintf fmt
-      "@,@[<hov 2>%a =@ catala_malloc(sizeof(catala_array));@]" format_var v;
-    Format.fprintf fmt
       "@,@[<hov 2>%a->size =@ %d;@]" format_var v size;
-    Format.fprintf fmt
-      "@,@[<hov 2>%a->elements = catala_malloc(%d * sizeof(void*));@]"
-      format_var v size;
+    if size > 0 then
+      Format.fprintf fmt
+        "@,@[<hov 2>%a->elements = catala_malloc(%d * sizeof(void*));@]"
+        format_var v size;
     List.iteri
       (fun i arg ->
          Format.fprintf fmt "@,@[<hov 2>%a->elements[%d] =@ %a;@]"
            format_var v i (format_expression ctx) arg)
       elts
-  | SLocalDef { name = v, _; expr = EStruct {name; fields}, _; _ } ->
-    if not (StructField.Map.is_empty fields) then (
-      Format.fprintf fmt
-        "@,@[<hov 2>%a =@ catala_malloc(sizeof(%a));@]" format_var v
-        format_struct_name name;
-      StructField.Map.iter (fun field expr ->
-          Format.fprintf fmt
-            "@,@[<hov 2>%a->%a =@ %a;@]"
-            format_var v
-            format_struct_field_name field
-            (format_expression ctx) expr)
-        fields)
+  | SLocalDef { name = v, _; expr = EStruct {fields; _}, _; _ } ->
+    StructField.Map.iter (fun field expr ->
+        Format.fprintf fmt
+          "@,@[<hov 2>%a->%a =@ %a;@]"
+          format_var v
+          format_struct_field_name field
+          (format_expression ctx) expr)
+      fields
   | SLocalDef { name = v, _; expr = EInj {e1; cons; name; _}, _; _ }
     when not (EnumName.equal name Expr.option_enum) ->
-    Format.fprintf fmt
-      "@,@[<hov 2>%a =@ catala_malloc(sizeof(%a));@]" format_var v
-      format_enum_name name;
     Format.fprintf fmt
       "@,@[<hov 2>%a->code = %a_%a;@]"
       format_var v
@@ -431,24 +453,24 @@ let rec format_statement
   | SLocalDef { name = v, _; expr = ETuple [fct; env], _;
                 typ = TTuple [TArrow _, _; TClosureEnv, _], _ } ->
     (* We detect closure initializations which have special treatment. *)
-    Format.fprintf fmt
-      "@,@[<hov 2>%a =@ catala_malloc(sizeof(catala_closure));@]" format_var v;
     Format.fprintf fmt "@,@[<hov 2>%a->funcp =@ (void (*)(void))%a;@]"
       format_var v (format_expression ctx) fct;
     Format.fprintf fmt "@,@[<hov 2>%a->env =@ %a;@]"
       format_var v (format_expression ctx) env;
   | SLocalDef { name = v, _; expr = ETuple elts, _; _ } ->
     (* We detect tuple initializations which have special treatment. *)
-    let size = List.length elts in
-    Format.fprintf fmt
-      "@,@[<hov 2>%a =@ catala_malloc(%d * sizeof(void*));@]" format_var v size;
     List.iteri
       (fun i arg ->
          Format.fprintf fmt "@[<hov 2>%a[%d] =@ %a;@]"
            format_var v i (format_expression ctx) arg)
       elts
-  | SLocalInit _ -> assert false
-    (* Should have been turned into decl + def *)
+  | SLocalInit { name = v; typ; expr = e } ->
+    Format.fprintf fmt "@,@[<hov 2>%a = %a;@]"
+      (format_typ ctx (fun fmt ->
+           Format.pp_print_space fmt ();
+           format_var fmt (Mark.remove v)))
+      typ
+      (format_expression ctx) e
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@,@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
@@ -481,28 +503,19 @@ let rec format_statement
     in
     Format.fprintf fmt "@,@[<v 2>if (%a->code == catala_option_some) {"
       format_var match_var;
-    let () =
-      Format.fprintf fmt "@,@[<hov 2>%a;@]"
-        (format_typ ctx (fun fmt ->
-             Format.pp_print_space fmt ();
-             format_var fmt some_case.payload_var_name))
-        some_case.payload_var_typ;
-      let decls, others =
-        List.partition (function
-            | (SLocalDecl _| SLocalInit _), _ -> true
-            | _ -> false)
-          some_case.case_block
-      in
-      format_block ctx fmt decls;
-      Format.fprintf fmt "@,%a = (%a)(&%a->payload);"
-        format_var some_case.payload_var_name
-        (format_typ ctx ignore)
-        some_case.payload_var_typ
-        format_var match_var;
-      format_block ctx fmt others
-    in
+    Format.fprintf fmt "@,@[<hov 2>%a = (%a)(&%a->payload);@]"
+      (format_typ ctx
+         (fun fmt -> Format.pp_print_space fmt ();
+           format_var fmt some_case.payload_var_name))
+      some_case.payload_var_typ
+      (format_typ ctx ignore) some_case.payload_var_typ
+      format_var match_var;
+    format_block ctx fmt some_case.case_block;
     Format.fprintf fmt "@;<1 -2>} else {";
     format_block ctx fmt none_case.case_block;
+
+    (* format_block ctx fmt none_case.case_block; *)
+
     Format.fprintf fmt "@;<1 -2>}@]"
   | SSwitch { switch_expr = EVar match_var, _; enum_name = e_name; switch_cases = cases; _ } ->
     Format.fprintf fmt "@,@[<v 2>@[<hov 4>switch (%a->code) {@]" format_var match_var;
@@ -510,7 +523,8 @@ let rec format_statement
       (fun { case_block; payload_var_name; payload_var_typ } (cons_name, _) ->
         Format.fprintf fmt "@,@[<v 2>case %a_%a: {" format_enum_name e_name
           format_enum_cons_name cons_name;
-        if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
+        if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos))
+           && not (is_dummy_var payload_var_name) then
           Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"
             (format_typ ctx (fun fmt ->
                  Format.pp_print_space fmt ();
@@ -520,7 +534,7 @@ let rec format_statement
             format_enum_cons_name cons_name;
         Format.fprintf fmt "%a@ break;@;<1 -2>}@]" (format_block ctx) case_block)
       cases
-        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums));
+      (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums));
     (* Do we want to add 'default' case with a failure ? *)
     Format.fprintf fmt "@;<0 -2>}";
     Format.pp_close_box fmt ()
@@ -728,26 +742,48 @@ let rec format_statement
    *   if exceptions <> [] then Format.fprintf fmt "@]@,}" *)
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
-  let b =
-    (* C89 doesn't accept initialisations from non-constants: split all init into decl + def *)
-    let revb =
-      List.fold_left (fun acc -> function
-        | SLocalInit {expr = ELit _, _; _}, _ as st -> st :: acc
-        | SLocalInit {name; typ; expr}, m ->
-          (SLocalDecl {name; typ}, m) :: (SLocalDef {name; typ; expr}, m) :: acc
-        | st -> st :: acc)
-        [] b
-    in
-    (* C89 requires declarations to be on top of the block *)
-    let decls, others =
-      List.partition (function
-          | (SLocalDecl _| SLocalInit _), _ -> true
-          | _ -> false)
-        revb
-    in
-    List.rev_append decls (List.rev others)
+  (* C89 doesn't accept initialisations of constructions from non-constants:
+     - for known structures needing malloc, provision the malloc here (turn Decl into Init (that will only do the malloc) + def)
+     - for literal constants keep init
+     - otherwise split Init into decl + def *)
+  let find_static_def name =
+    match List.find_opt (function
+        | SLocalDef {name = n; _}, _ -> Mark.equal VarName.equal n name
+        | _ -> false) b
+    with
+    | Some (SLocalDef {expr = (EArray _|EStruct _|EInj _|ETuple _), _
+                              as expr; _}, _) ->
+      Some expr
+    | _ -> None
   in
-  List.iter (format_statement ctx fmt) b
+  let revb =
+    List.fold_left (fun acc -> function
+        | SLocalInit {expr = ELit _, _; _}, _ as st -> st :: acc
+        | SLocalInit
+            {name; typ; expr = (EArray _|EStruct _|EInj _|ETuple _), _ as expr},
+          m ->
+          (* These need malloc and init, split in two since the Init won't actually set them *)
+          (SLocalDef {name; typ; expr}, m) ::
+          (SLocalInit {name; typ; expr}, m) :: acc
+        | SLocalDecl {name; typ}, m as decl ->
+          (match find_static_def name with
+           | Some expr -> (SLocalInit {name; typ; expr}, m) :: acc
+           | _ -> decl :: acc)
+        | SLocalInit {name; typ; expr}, m ->
+          (SLocalDef {name; typ; expr}, m) :: (SLocalDecl {name; typ}, m) :: acc
+        | st -> st :: acc)
+      [] b
+  in
+  (* C89 requires declarations to be on top of the block *)
+  let decls, others =
+    List.partition (function
+        | (SLocalDecl _| SLocalInit _), _ -> true
+        | _ -> false)
+      revb
+  in
+  List.iter (format_statement ctx fmt) (List.rev decls);
+  if decls <> [] && others <> [] then Format.pp_print_break fmt 0 (-80);
+  List.iter (format_statement ctx fmt) (List.rev others)
 
 let format_main
     (fmt : Format.formatter)
