@@ -40,13 +40,13 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
 
 type 'm rule =
   | ScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : (ScopeVar.t, Pos.t list) Mark.ed;
       typ : typ;
       io : Desugared.Ast.io;
       e : 'm expr;
     }
   | SubScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : (ScopeVar.t, Pos.t list) Mark.ed;
       var_within_origin_scope : ScopeVar.t;
       typ : typ;
       e : 'm expr;

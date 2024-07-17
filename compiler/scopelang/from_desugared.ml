@@ -598,15 +598,16 @@ let translate_rule
     (exc_graphs :
       Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
+    let decl_pos = Mark.get (ScopeVar.get_info var) in
     let scope_def =
       D.ScopeDef.Map.find
         ((var, Pos.no_pos), D.ScopeDef.Var state)
         scope.scope_defs
     in
-    let pos =
-      match RuleName.Map.choose_opt scope_def.scope_def_rules with
-      | None -> Mark.get (ScopeVar.get_info var)
-      | Some (r, _) -> Mark.get (RuleName.get_info r)
+    let all_def_pos =
+      List.map
+        (fun r -> Mark.get (RuleName.get_info r))
+        (RuleName.Map.keys scope_def.scope_def_rules)
     in
     match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
     | None -> (
@@ -620,7 +621,7 @@ let translate_rule
       | OnlyInput -> []
       (* we do not provide any definition for an input-only variable *)
       | _ ->
-        let scope_def_key = (var, pos), D.ScopeDef.Var state in
+        let scope_def_key = (var, decl_pos), D.ScopeDef.Var state in
         let expr_def =
           translate_def ctx scope_def_key var_def var_params var_typ
             scope_def.D.scope_def_io
@@ -636,7 +637,7 @@ let translate_rule
         [
           Ast.ScopeVarDefinition
             {
-              var = scope_var, pos;
+              var = Mark.add all_def_pos scope_var;
               typ = var_typ;
               io = scope_def.D.scope_def_io;
               e = Expr.unbox expr_def;
@@ -702,7 +703,7 @@ let translate_rule
       in
       let subscope_expr =
         Expr.escopecall ~scope:subscope ~args:subscope_param_map
-          (Untyped { pos })
+          (Untyped { pos = decl_pos })
       in
       assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
       (* The subscope will be defined by its inputs, it's not supposed to have
@@ -716,7 +717,7 @@ let translate_rule
       let subscope_def =
         Ast.ScopeVarDefinition
           {
-            var = subscope_var_dcalc, pos;
+            var = Mark.add all_def_pos subscope_var_dcalc;
             typ =
               ( TStruct scope_info.out_struct_name,
                 Mark.get (ScopeVar.get_info var) );
