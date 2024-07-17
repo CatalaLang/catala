@@ -124,9 +124,8 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
         StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
       0
   in
-  assert (not (is_dummy_var v));
-  (* if v_str = "_" then Format.fprintf fmt "dummy_var" else
-   *   (\* special case for the unit pattern TODO escape dummy_var *\) *)
+  if v_str = "_" then Format.fprintf fmt "_" else
+    (* special case for the unit pattern TODO escape dummy_var *)
   if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
@@ -141,9 +140,11 @@ end)
    of which you're printing the type. *)
 let rec format_typ
     (decl_ctx : decl_ctx)
+    ?(const=false)
     (element_name : Format.formatter -> unit)
     (fmt : Format.formatter)
     (typ : typ) : unit =
+  let sconst = if const then "const " else "" in
   match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "CATALA_UNIT%t" element_name
   | TLit TMoney -> Format.fprintf fmt "CATALA_MONEY%t" element_name
@@ -153,31 +154,32 @@ let rec format_typ
   | TLit TDuration -> Format.fprintf fmt "CATALA_DURATION%t" element_name
   | TLit TBool -> Format.fprintf fmt "CATALA_BOOL%t" element_name
   | TTuple [_; TClosureEnv, _] ->
-    Format.fprintf fmt "catala_closure*%t" element_name
-  | TTuple _ -> Format.fprintf fmt "CATALA_TUPLE%t" element_name
-  | TStruct s -> Format.fprintf fmt "%a*%t" format_struct_name s element_name
+    Format.fprintf fmt "%scatala_closure*%t" sconst element_name
+  | TTuple _ -> Format.fprintf fmt "%sCATALA_TUPLE%t" sconst element_name
+  | TStruct s ->
+    Format.fprintf fmt "%a*%t" format_struct_name s element_name
   | TOption t ->
-    Format.fprintf fmt "CATALA_OPTION(%a)%t"
-      (format_typ decl_ctx ignore) t
+    Format.fprintf fmt "%sCATALA_OPTION(%a)%t"
+      sconst
+      (format_typ decl_ctx ~const:false ignore) t
       element_name
-  | TDefault t -> format_typ decl_ctx element_name fmt t
-  | TEnum e -> Format.fprintf fmt "%a*%t" format_enum_name e element_name
+  | TDefault t -> format_typ decl_ctx ~const element_name fmt t
+  | TEnum e -> Format.fprintf fmt "%s%a*%t" sconst format_enum_name e element_name
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "%a(%a)"
-      (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "(*%t)" element_name))
+    Format.fprintf fmt "@[<hv 4>@[<hov 4>%a@]@,@[<hov 1>(%a)@]@]"
+      (format_typ decl_ctx ~const (fun fmt -> Format.fprintf fmt "(*%t)" element_name))
       t2
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         (fun fmt t1_arg ->
-           (format_typ decl_ctx ignore)
-             fmt t1_arg))
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_typ decl_ctx ~const ignore))
       t1
   | TArray t ->
-    Format.fprintf fmt "CATALA_ARRAY(%a)%t"
-      (format_typ decl_ctx ignore) t
+    Format.fprintf fmt "%sCATALA_ARRAY(%a)%t"
+      sconst
+      (format_typ decl_ctx ~const:false ignore) t
       element_name
-  | TAny -> Format.fprintf fmt "void * /* any */%t" element_name
-  | TClosureEnv -> Format.fprintf fmt "CLOSURE_ENV%t" element_name
+  | TAny -> Format.fprintf fmt "%svoid * /* any */%t" sconst element_name
+  | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
@@ -185,13 +187,17 @@ let format_ctx
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
+    if fields = [] then
+    Format.fprintf fmt "@,@[<v 2>typedef void %a;@]"
+      format_struct_name struct_name
+    else
     Format.fprintf fmt "@,@[<v 2>typedef struct %a {@ %a@;<1 -2>}@] %a;"
       format_struct_name struct_name
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         ~pp_sep:Format.pp_print_space
          (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "@[<hov>%a;@]"
-             (format_typ ctx (fun fmt ->
+             (format_typ ~const:true ctx (fun fmt ->
                   Format.pp_print_space fmt ();
                   format_struct_field_name fmt struct_field))
              struct_field_type))
@@ -218,7 +224,7 @@ let format_ctx
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
            Format.fprintf fmt "@[<hov 2>%a;@]"
-             (format_typ ctx (fun fmt ->
+             (format_typ ~const:true ctx (fun fmt ->
                   Format.pp_print_space fmt ();
                   format_enum_cons_name fmt enum_cons))
              typ))
@@ -342,7 +348,7 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
    *     _ } ->
    *   Format.fprintf fmt "*%a(%s,@ %a)" format_op op
    *     "&catala_empty_position"
-   *     (\* TODO: actual position must be lifted in a (static const) declaration *\)
+   *     (* TODO: actual position must be lifted in a (static const) declaration *)
    *     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
    *        (format_expression ctx))
    *     args *)
@@ -385,7 +391,7 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
   | ETupleAccess {e1; index=0; typ=TArrow _, _ as typ} ->
     (* Closure function *)
     Format.fprintf fmt "(%a)%a->funcp"
-      (format_typ ctx.decl_ctx ignore) typ
+      (format_typ ~const:true ctx.decl_ctx ignore) typ
       (format_expression ctx) e1
   | ETupleAccess {e1; index=1; typ=TClosureEnv, _} ->
     Format.fprintf fmt "%a->env"
@@ -398,7 +404,7 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
 
 let format_raise_error ctx fmt err pos =
   Format.fprintf fmt
-    "@,@[<hov 2>catala_raise_fatal_error(catala_%s,@ %a);@]"
+    "@,@[<hov 2>catala_error(catala_%s,@ %a);@]"
     (String.to_snake_case (Runtime.error_to_string err))
     format_var (Pos.Map.find pos ctx.lifted_pos)
 
@@ -417,10 +423,16 @@ let rec format_statement
   | SLocalDecl { name = (v, _); typ = ty } ->
     if is_dummy_var v then () else
     Format.fprintf fmt "@,@[<hov 2>%a@];"
-      (format_typ ctx.decl_ctx (fun fmt ->
+      (format_typ ctx.decl_ctx ~const:true (fun fmt ->
            Format.pp_print_space fmt ();
            format_var fmt v))
       ty
+  | SLocalInit { name = (v, _); typ; expr = EStruct {fields; _}, _ }
+    when StructField.Map.is_empty fields && not (is_dummy_var v) ->
+    Format.fprintf fmt "@,@[<hov 2>%a =@ NULL@];"
+      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+           format_var fmt v))
+      typ
   | SLocalInit { name = (v, _); typ; expr = (EArray _|EStruct _|EInj _|ETuple _) as expr, _ } ->
     if is_dummy_var v then () else
     Format.fprintf fmt "@,@[<hov 2>%a =@ catala_malloc(%t)@];"
@@ -526,19 +538,15 @@ let rec format_statement
     in
     Format.fprintf fmt "@,@[<v 2>if (%a->code == catala_option_some) {"
       format_var match_var;
-    Format.fprintf fmt "@,@[<hov 2>%a = (%a)(&%a->payload);@]"
-      (format_typ ctx.decl_ctx
+    Format.fprintf fmt "@,@[<hov 2>%a = %a->payload;@]"
+      (format_typ ~const:true ctx.decl_ctx
          (fun fmt -> Format.pp_print_space fmt ();
            format_var fmt some_case.payload_var_name))
       some_case.payload_var_typ
-      (format_typ ctx.decl_ctx ignore) some_case.payload_var_typ
       format_var match_var;
     format_block ctx fmt some_case.case_block;
     Format.fprintf fmt "@;<1 -2>} else {";
     format_block ctx fmt none_case.case_block;
-
-    (* format_block ctx fmt none_case.case_block; *)
-
     Format.fprintf fmt "@;<1 -2>}@]"
   | SSwitch { switch_expr = EVar match_var, _; enum_name = e_name; switch_cases = cases; _ } ->
     Format.fprintf fmt "@,@[<v 2>@[<hov 4>switch (%a->code) {@]" format_var match_var;
@@ -569,7 +577,7 @@ let rec format_statement
   | SAssert e1 ->
     Format.fprintf fmt
       "@,@[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]\
-       @,@[<hov 2>catala_raise_fatal_error(catala_assertion_failed,@ %a);@]\
+       @,@[<hov 2>catala_error(catala_assertion_failed,@ %a);@]\
        @;<1 -2>}@]" (format_expression ctx)
       (e1, Mark.get s)
       format_var (Pos.Map.find (Mark.get s) ctx.lifted_pos)
@@ -658,7 +666,7 @@ let rec format_statement
  *         exceptions;
  *       Format.fprintf fmt
  *         "@[<v 2>if (%a) {@,\
- *          @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
+ *          @[<hov 2>catala_error(catala_conflict,@ \"%s\",@ %d, %d, \
  *          %d, %d);@]@;\
  *          <1 -2>}@]@,"
  *         format_var exception_conflict (Pos.get_file pos)
@@ -736,7 +744,7 @@ let rec format_statement
    *       exceptions;
    *     Format.fprintf fmt
    *       "@[<v 2>if (%a) {@,\
-   *        @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
+   *        @[<hov 2>catala_error(catala_conflict,@ \"%s\",@ %d, %d, \
    *        %d, %d);@]@;\
    *        <1 -2>}@]@,"
    *       format_var exception_conflict (Pos.get_file pos)
@@ -839,7 +847,7 @@ and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
 let format_main
     (fmt : Format.formatter)
     (p: Ast.program) =
-  Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv) {";
+  Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";
   Format.fprintf fmt "@,catala_init();";
   let scopes_with_no_input =
     List.fold_left
@@ -901,7 +909,7 @@ let format_program
       | SFunc { var; func }
       | SScope { scope_body_var = var; scope_body_func = func; _ } ->
         let { func_params; func_body; func_return_typ } = func in
-        Format.fprintf fmt "@,@[<v 2>@[<hov 4>%a(%a) {@]%a@]@,}"
+        Format.fprintf fmt "@,@[<v 2>@[<hov 4>%a@ @[<hv 1>(%a)@]@]@;<1 -2>{%a@]@,}"
           (format_typ ctx.decl_ctx
              (fun fmt ->
                 Format.pp_print_space fmt ();
@@ -910,10 +918,12 @@ let format_program
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
              (fun fmt (var, typ) ->
+                Format.pp_open_hovbox fmt 2;
                 (format_typ p.ctx.decl_ctx (fun fmt ->
                      Format.pp_print_space fmt ();
                      format_var fmt (Mark.remove var)))
-                  fmt typ))
+                  fmt typ;
+                Format.pp_close_box fmt ()))
           func_params
           (format_block ctx)
           func_body)

@@ -6,7 +6,7 @@
 
 /* --- Error handling --- */
 
-typedef enum catala_fatal_error_code
+typedef enum catala_error_code
 {
   catala_assertion_failed,
   catala_no_value,
@@ -16,7 +16,7 @@ typedef enum catala_fatal_error_code
   catala_uncomparable_durations,
   catala_indivisible_durations,
   catala_malloc_error
-} catala_fatal_error_code;
+} catala_error_code;
 
 typedef struct catala_code_position
 {
@@ -27,26 +27,26 @@ typedef struct catala_code_position
     unsigned int end_column;
 } catala_code_position;
 
-struct catala_fatal_error
+struct catala_error
 {
   catala_code_position position;
-  catala_fatal_error_code code;
+  catala_error_code code;
 };
 
 const catala_code_position catala_empty_position =
   { NULL, 0, 0, 0, 0 };
 
-struct catala_fatal_error catala_fatal_error_raised =
+struct catala_error catala_error_raised =
   { catala_empty_position, 0 };
 
-jmp_buf catala_fatal_error_jump_buffer;
+jmp_buf catala_error_jump_buffer;
 
-void catala_raise_fatal_error(catala_fatal_error_code code,
-                              const catala_code_position * pos)
+void catala_error(catala_error_code code,
+                  const catala_code_position * pos)
 {
-  catala_fatal_error_raised.code = code;
-  catala_fatal_error_raised.position = *pos;
-  longjmp(catala_fatal_error_jump_buffer, 1);
+  catala_error_raised.code = code;
+  catala_error_raised.position = *pos;
+  longjmp(catala_error_jump_buffer, 1);
 }
 
 /* --- Memory allocations --- */
@@ -65,8 +65,8 @@ struct catala_heap catala_heap = {NULL, NULL, NULL, NULL};
 
 #define MALLOC_CHECK(PTR)                                   \
   if (PTR == NULL) {                                        \
-    catala_fatal_error_raised.code = catala_malloc_error;   \
-    longjmp(catala_fatal_error_jump_buffer, 1);             \
+    catala_error_raised.code = catala_malloc_error;   \
+    longjmp(catala_error_jump_buffer, 1);             \
   }
 
 #pragma GCC diagnostic push
@@ -125,7 +125,7 @@ void catala_free(void* ptr, size_t sz)
 /* --- Base types --- */
 
 #define CATALA_BOOL const int*
-#define CATALA_UNIT const int*
+#define CATALA_UNIT const void*
 #define CATALA_INT mpz_srcptr
 #define CATALA_DEC mpq_srcptr
 #define CATALA_MONEY mpz_srcptr
@@ -164,7 +164,7 @@ typedef struct catala_duration {
 
 typedef struct catala_array {
   size_t size;
-  void const** elements;
+  void const ** elements;
 } catala_array;
 
 /* --- Constructors --- */
@@ -538,7 +538,7 @@ CATALA_DEC o_div_int_int (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpz_sgn(x2) == 0)
-    catala_raise_fatal_error(catala_division_by_zero, pos);
+    catala_error(catala_division_by_zero, pos);
   mpz_set(mpq_numref(ret), x1);
   mpz_set(mpq_denref(ret), x2);
   mpq_canonicalize(ret);
@@ -551,7 +551,7 @@ CATALA_DEC o_div_rat_rat (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpq_sgn(x2) == 0)
-    catala_raise_fatal_error(catala_division_by_zero, pos);
+    catala_error(catala_division_by_zero, pos);
   mpq_div(ret, x1, x2);
   return ret;
 }
@@ -562,7 +562,7 @@ CATALA_DEC o_div_mon_mon (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpz_sgn(x2) == 0)
-    catala_raise_fatal_error(catala_division_by_zero, pos);
+    catala_error(catala_division_by_zero, pos);
   mpz_set(mpq_numref(ret), x2);
   mpz_set(mpq_denref(ret), x1);
   mpq_canonicalize(ret);
@@ -575,7 +575,7 @@ CATALA_MONEY o_div_mon_rat (const catala_code_position* pos,
 {
   CATALA_NEW_MPZ(ret);
   if (mpq_sgn(x2) == 0)
-    catala_raise_fatal_error(catala_division_by_zero, pos);
+    catala_error(catala_division_by_zero, pos);
   mpz_mul(ret, x1, mpq_denref(x2));
   round_div(ret, ret, mpq_numref(x2));
   return ret;
@@ -589,9 +589,9 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   const signed long int days2 = x2->days;
   CATALA_NEW_MPQ(ret);
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_indivisible_durations, pos);
+    catala_error(catala_indivisible_durations, pos);
   if (days2 == 0)
-    catala_raise_fatal_error(catala_division_by_zero, pos);
+    catala_error(catala_division_by_zero, pos);
   mpz_set_si(mpq_numref(ret), days1);
   mpz_set_si(mpq_denref(ret), days2);
   mpq_canonicalize(ret);
@@ -621,7 +621,7 @@ CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+    catala_error(catala_uncomparable_durations, pos);
   return CATALA_NEW_BOOL(x1->days == x2->days);
 }
 
@@ -649,7 +649,7 @@ CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+    catala_error(catala_uncomparable_durations, pos);
   return CATALA_NEW_BOOL(x1->days < x2->days);
 }
 
@@ -677,7 +677,7 @@ CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+    catala_error(catala_uncomparable_durations, pos);
   return CATALA_NEW_BOOL(x1->days <= x2->days);
 }
 
@@ -705,7 +705,7 @@ CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+    catala_error(catala_uncomparable_durations, pos);
   return CATALA_NEW_BOOL(x1->days > x2->days);
 }
 
@@ -733,7 +733,7 @@ CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   if (x1->years || x2->years || x1->months || x2->months)
-    catala_raise_fatal_error(catala_uncomparable_durations, pos);
+    catala_error(catala_uncomparable_durations, pos);
   return CATALA_NEW_BOOL(x1->days >= x2->days);
 }
 
@@ -758,13 +758,13 @@ typedef struct catala_option {
   const void* payload;
 } catala_option;
 
-#define CATALA_OPTION(_) const catala_option*
+#define CATALA_OPTION(_) catala_option*
 
 const catala_option catala_none = {catala_option_none, NULL};
 
 #define CATALA_NONE &catala_none
 
-CATALA_OPTION() catala_some (const void* x) {
+const CATALA_OPTION() catala_some (const void* x) {
   catala_option* ret;
   ret = catala_malloc(sizeof(catala_option));
   ret->code = catala_option_some;
@@ -772,22 +772,22 @@ CATALA_OPTION() catala_some (const void* x) {
   return ret;
 }
 
-CATALA_BOOL catala_isnone (CATALA_OPTION() opt)
+CATALA_BOOL catala_isnone (const CATALA_OPTION() opt)
 {
   return CATALA_NEW_BOOL(opt->code == catala_option_none);
 }
 
-CATALA_OPTION() handle_exceptions
+const CATALA_OPTION() handle_exceptions
   (const catala_code_position* pos,
-   const CATALA_ARRAY(CATALA_OPTION()) e)
+   const CATALA_ARRAY(const CATALA_OPTION()) e)
 {
   int i, j;
   unsigned int size = e->size;
-  CATALA_OPTION() * excs = (CATALA_OPTION() *) e->elements;
+  const CATALA_OPTION() * excs = (const CATALA_OPTION() *)e->elements;
   for (i = 0; i < size && excs[i]->code == catala_option_none; i++) {}
   if (i >= size) return CATALA_NONE;
   for(j = i + 1; j < size && excs[j]->code == catala_option_none; j++) {}
-  if (j < size) catala_raise_fatal_error(catala_conflict, pos);
+  if (j < size) catala_error(catala_conflict, pos);
   return excs[i];
 }
 
@@ -795,10 +795,10 @@ void catala_init()
 {
   mp_set_memory_functions(&catala_malloc,&catala_realloc,&catala_free);
   mpz_init_set_ui(zconst_100, 100);
-  if (setjmp(catala_fatal_error_jump_buffer)) {
+  if (setjmp(catala_error_jump_buffer)) {
     char *error_kind;
-    const catala_code_position pos = catala_fatal_error_raised.position;
-    switch (catala_fatal_error_raised.code) {
+    const catala_code_position pos = catala_error_raised.position;
+    switch (catala_error_raised.code) {
     case catala_assertion_failed:
       error_kind = "Asssertion failure";
       break;
