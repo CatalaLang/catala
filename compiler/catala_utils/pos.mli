@@ -39,6 +39,8 @@ val join : t -> t -> t
       if they don't belong to the same file. The law position used is the one of
       the earliest position. *)
 
+module Map: Map.S with type key = t
+
 (**{2 Formatters}*)
 
 val to_string : t -> string

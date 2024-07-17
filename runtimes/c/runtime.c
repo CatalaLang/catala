@@ -49,23 +49,6 @@ void catala_raise_fatal_error(catala_fatal_error_code code,
   longjmp(catala_fatal_error_jump_buffer, 1);
 }
 
-void catala_raise (catala_fatal_error_code code,
-                   const char *filename,
-                   unsigned int start_line,
-                   unsigned int start_column,
-                   unsigned int end_line,
-                   unsigned int end_column )
-{
-  catala_code_position pos;
-  pos.filename = filename;
-  pos.start_line = start_line;
-  pos.start_column = start_column;
-  pos.end_line = end_line;
-  pos.end_column = end_column;
-  catala_raise_fatal_error(code, &pos);
-}
-
-
 /* --- Memory allocations --- */
 
 #define BLOCKSIZE 4096
