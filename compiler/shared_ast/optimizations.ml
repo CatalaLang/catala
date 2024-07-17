@@ -79,6 +79,12 @@ let binder_vars_used_at_most_once
   in
   not (Array.exists (fun c -> c > 1) (vars_count body))
 
+let literal_bool = function
+  | ELit (LBool b), _
+  | EAppOp { op = Log _, _; args = [(ELit (LBool b), _)]; _ }, _
+    -> Some b
+  | _ -> None
+
 let rec optimize_expr :
     type a b.
     (a, b, 'm) optimizations_ctx ->
@@ -193,12 +199,13 @@ let rec optimize_expr :
           ->
           (* No exceptions with condition [true] *)
           Mark.remove cons
-        | ( [],
-            ( ( ELit (LBool false)
-              | EAppOp { op = Log _, _; args = [(ELit (LBool false), _)]; _ } ),
-              _ ) ) ->
-          (* No exceptions and condition false *)
-          EEmpty
+        | [], cond ->
+          (* No exceptions, this is an if/then/else *)
+          (match literal_bool cond with
+          | Some true -> Mark.remove cons
+          | Some false -> EEmpty
+          | None ->
+            EIfThenElse { cond; etrue = cons; efalse = EEmpty, mark })
         | ( [except],
             ( ( ELit (LBool false)
               | EAppOp { op = Log _, _; args = [(ELit (LBool false), _)]; _ } ),
