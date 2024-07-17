@@ -598,12 +598,15 @@ let translate_rule
     (exc_graphs :
       Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
-    let pos = Mark.get (ScopeVar.get_info var) in
-    (* TODO: this may point to the place where the variable was declared instead
-       of the binding in the definition being explored. Needs double-checking
-       and maybe adding more position information *)
     let scope_def =
-      D.ScopeDef.Map.find ((var, pos), D.ScopeDef.Var state) scope.scope_defs
+      D.ScopeDef.Map.find
+        ((var, Pos.no_pos), D.ScopeDef.Var state)
+        scope.scope_defs
+    in
+    let pos =
+      match RuleName.Map.choose_opt scope_def.scope_def_rules with
+      | None -> Mark.get (ScopeVar.get_info var)
+      | Some (r, _) -> Mark.get (RuleName.get_info r)
     in
     match ScopeVar.Map.find_opt var scope.scope_sub_scopes with
     | None -> (
