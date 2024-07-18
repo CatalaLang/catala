@@ -33,16 +33,14 @@ val locations_used : 'm expr -> LocationSet.t
 
 type 'm rule =
   | ScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : ScopeVar.t * Pos.t list;
+          (** Scope variable and its list of definitions' positions *)
       typ : typ;
       io : Desugared.Ast.io;
       e : 'm expr;
     }
   | SubScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;  (** Variable within the current scope *)
-      (* scope: ScopeVar.t Mark.pos; (\** Variable pointing to the *\) *)
-      (* origin_var: ScopeVar.t Mark.pos;
-       * reentrant: bool; *)
+      var : ScopeVar.t * Pos.t list;  (** Variable within the current scope *)
       var_within_origin_scope : ScopeVar.t;
       typ : typ; (* non-thunked at this point for reentrant vars *)
       e : 'm expr;
