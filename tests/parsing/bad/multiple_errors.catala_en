@@ -1,0 +1,52 @@
+## Multiple parsing errors
+
+```catala
+declaration scope A:
+  output i content decimal
+
+declaration scope B:
+  internal x content integer
+  output i content money
+
+scope A:
+  definitoin i equals 3.
+
+scope B:
+  definition x equals 4
+  definition i equal money of (decimal of x)
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[ERROR (1/2)]─
+│
+│  Syntax error at "definitoin":
+│  » expected a scope use item: a rule, definition or assertion
+│  Those are valid at this point: "definition", "rule", "assertion",
+│  "exception", "label", "date"
+│
+├─➤ tests/parsing/bad/multiple_errors.catala_en:12.3-12.13:
+│    │
+│ 12 │   definitoin i equals 3.
+│    │   ‾‾‾‾‾‾‾‾‾‾
+│
+│ Maybe you wanted to write: "definition"?
+└─
+
+┌─[ERROR (2/2)]─
+│
+│  Syntax error at "equal":
+│  » expected 'under condition' followed by a condition, 'equals' followed by
+│    the definition body, or the rest of the variable qualified name
+│  Those are valid at this point: "equals", ".", "under condition", "state",
+│  "of"
+│
+├─➤ tests/parsing/bad/multiple_errors.catala_en:16.16-16.21:
+│    │
+│ 16 │   definition i equal money of (decimal of x)
+│    │                ‾‾‾‾‾
+│
+│ Maybe you wanted to write: "equals"?
+└─
+#return code 123#
+```

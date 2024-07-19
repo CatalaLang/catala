@@ -93,6 +93,22 @@ let rec compare ty1 ty2 =
   | TClosureEnv, _ -> -1
   | _, TClosureEnv -> 1
 
+let rec hash ~strip ty =
+  let open Hash.Op in
+  match Mark.remove ty with
+  | TLit l -> !`TLit % !(l : typ_lit)
+  | TTuple tl -> List.fold_left (fun acc ty -> acc % hash ~strip ty) !`TTuple tl
+  | TStruct n -> !`TStruct % StructName.hash ~strip n
+  | TEnum n -> !`TEnum % EnumName.hash ~strip n
+  | TOption ty -> !`TOption % hash ~strip ty
+  | TArrow (tl, ty) ->
+    !`TArrow
+    % List.fold_left (fun acc ty -> acc % hash ~strip ty) (hash ~strip ty) tl
+  | TArray ty -> !`TArray % hash ~strip ty
+  | TDefault ty -> !`TDefault % hash ~strip ty
+  | TAny -> !`TAny
+  | TClosureEnv -> !`TClosureEnv
+
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
 let format = Print.typ_debug
 

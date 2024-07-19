@@ -58,7 +58,7 @@ let empty_ctx =
     ctx_struct_fields = Ident.Map.empty;
     ctx_enum_constrs = Ident.Map.empty;
     ctx_scope_index = Ident.Map.empty;
-    ctx_modules = M ModuleName.Map.empty;
+    ctx_modules = ModuleName.Map.empty;
   }
 
 let get_scope_body { code_items; _ } scope =
@@ -87,11 +87,11 @@ let to_expr p main_scope =
   res
 
 let modules_to_list (mt : module_tree) =
-  let rec aux acc (M mtree) =
+  let rec aux acc mtree =
     ModuleName.Map.fold
-      (fun mname sub acc ->
-        if List.exists (ModuleName.equal mname) acc then acc
-        else mname :: aux acc sub)
+      (fun mname mnode acc ->
+        if List.exists (fun (m, _) -> ModuleName.equal m mname) acc then acc
+        else (mname, mnode.intf_id) :: aux acc mnode.deps)
       mtree acc
   in
   List.rev (aux [] mt)

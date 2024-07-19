@@ -21,10 +21,10 @@ open Ast
 let needs_parens (_e : expr) : bool = false
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%d" VarName.format v (VarName.hash v)
+  Format.fprintf fmt "%a_%d" VarName.format v (VarName.id v)
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.hash v)
+  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.id v)
 
 let rec format_expr
     (decl_ctx : decl_ctx)
@@ -53,7 +53,7 @@ let rec format_expr
       (StructField.Map.bindings es)
       Print.punctuation "}"
   | ETuple es ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "()"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
@@ -233,21 +233,11 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_print_cut ppf ()
 
 let format_program ?debug ppf prg =
-  let decl_ctx =
-    (* TODO: this is redundant with From_dcalc.add_option_type (which is already
-       applied in avoid_exceptions mode) *)
-    {
-      prg.ctx.decl_ctx with
-      ctx_enums =
-        EnumName.Map.add Expr.option_enum Expr.option_enum_config
-          prg.ctx.decl_ctx.ctx_enums;
-    }
-  in
   Format.pp_open_vbox ppf 0;
   ModuleName.Map.iter
     (fun m var ->
       Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
         var ModuleName.format m)
     prg.ctx.modules;
-  Format.pp_print_list (format_item decl_ctx ?debug) ppf prg.code_items;
+  Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
   Format.pp_close_box ppf ()

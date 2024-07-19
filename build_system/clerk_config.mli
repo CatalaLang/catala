@@ -1,6 +1,6 @@
-(* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020-2022 Inria,
-   contributor: Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>
+(* This file is part of the Catala build system, a specification language for
+   tax and social benefits computation rules. Copyright (C) 2024 Inria,
+   contributors: Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,9 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from the default calculus to the lambda calculus. This
-    translation uses an option monad to handle empty defaults terms. This
-    transformation is one piece to permit to compile toward legacy languages
-    that does not contains exceptions. *)
+open Catala_utils
 
-val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program
+type t = {
+  catala_opts : string list;
+  build_dir : File.t;
+  include_dirs : File.t list;
+}
+
+val default : t
+val read : File.t -> t
+val write : File.t -> t -> unit

@@ -78,7 +78,7 @@ let collect_monomorphized_instances (prg : typed program) :
                           args;
                       name =
                         StructName.fresh []
-                          ( "tuple_" ^ string_of_int !option_instances_counter,
+                          ( "tuple_" ^ string_of_int !tuple_instances_counter,
                             Pos.no_pos );
                     })
               acc.tuples;
@@ -90,7 +90,7 @@ let collect_monomorphized_instances (prg : typed program) :
         {
           acc with
           arrays =
-            Type.Map.update t
+            Type.Map.update typ
               (fun monomorphized_name ->
                 match monomorphized_name with
                 | Some e -> Some e
@@ -118,7 +118,7 @@ let collect_monomorphized_instances (prg : typed program) :
         {
           acc with
           options =
-            Type.Map.update t
+            Type.Map.update typ
               (fun monomorphized_name ->
                 match monomorphized_name with
                 | Some e -> Some e
@@ -146,15 +146,9 @@ let collect_monomorphized_instances (prg : typed program) :
       collect_typ new_acc t
     | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
     | TOption _ | TTuple _ ->
-      raise
-        (Message.CompilerError
-           (Message.Content.add_position
-              (Message.Content.to_internal_error
-                 (Message.Content.of_message (fun fmt ->
-                      Format.fprintf fmt
-                        "Some types in tuples or option have not been resolved \
-                         by the typechecking before monomorphization.")))
-              (Mark.get typ)))
+      Message.error ~internal:true ~pos:(Mark.get typ)
+        "Some types in tuples or option have not been resolved by the \
+         typechecking before monomorphization."
   in
   let rec collect_expr e acc =
     Expr.shallow_fold collect_expr e (collect_typ acc (Expr.ty e))
@@ -179,8 +173,9 @@ let rec monomorphize_typ
     (typ : typ) : typ =
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> typ
-  | TArray t1 ->
-    TStruct (Type.Map.find t1 monomorphized_instances.arrays).name, Mark.get typ
+  | TArray _ ->
+    ( TStruct (Type.Map.find typ monomorphized_instances.arrays).name,
+      Mark.get typ )
   | TDefault t1 ->
     TDefault (monomorphize_typ monomorphized_instances t1), Mark.get typ
   | TArrow (t1s, t2) ->
@@ -191,8 +186,8 @@ let rec monomorphize_typ
   | TTuple _ ->
     ( TStruct (Type.Map.find typ monomorphized_instances.tuples).name,
       Mark.get typ )
-  | TOption t1 ->
-    TEnum (Type.Map.find t1 monomorphized_instances.options).name, Mark.get typ
+  | TOption _ ->
+    TEnum (Type.Map.find typ monomorphized_instances.options).name, Mark.get typ
 
 let is_some c =
   EnumConstructor.equal Expr.some_constr c
@@ -239,7 +234,12 @@ let rec monomorphize_expr
         field = fst (List.nth tuple_instance.fields index);
       }
   | EMatch { name; e; cases } when EnumName.equal name Expr.option_enum ->
-    let option_instance = Type.Map.find ty0 monomorphized_instances.options in
+    let opt_ty =
+      match e0 with EMatch { e; _ }, _ -> Expr.ty e | _ -> assert false
+    in
+    let option_instance =
+      Type.Map.find opt_ty monomorphized_instances.options
+    in
     EMatch
       {
         name = option_instance.name;
@@ -253,11 +253,7 @@ let rec monomorphize_expr
             cases EnumConstructor.Map.empty;
       }
   | EInj { name; e; cons } when EnumName.equal name Expr.option_enum ->
-    let option_instance =
-      Type.Map.find
-        (match Mark.remove ty0 with TOption t -> t | _ -> assert false)
-        monomorphized_instances.options
-    in
+    let option_instance = Type.Map.find ty0 monomorphized_instances.options in
     EInj
       {
         name = option_instance.name;
@@ -270,7 +266,7 @@ let rec monomorphize_expr
     let elt_ty =
       match Mark.remove ty0 with TArray t -> t | _ -> assert false
     in
-    let array_instance = Type.Map.find elt_ty monomorphized_instances.arrays in
+    let array_instance = Type.Map.find ty0 monomorphized_instances.arrays in
     EStruct
       {
         name = array_instance.name;

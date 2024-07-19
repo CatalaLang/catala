@@ -58,12 +58,12 @@ module ScopeDef : sig
   val equal_kind : kind -> kind -> bool
   val compare_kind : kind -> kind -> int
   val format_kind : Format.formatter -> kind -> unit
-  val hash_kind : kind -> int
+  val hash_kind : strip:Uid.Path.t -> kind -> Hash.t
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val get_position : t -> Pos.t
   val format : Format.formatter -> t -> unit
-  val hash : t -> int
+  val hash : strip:Uid.Path.t -> t -> Hash.t
 
   module Map : Map.S with type key = t
   module Set : Set.S with type elt = t
@@ -146,22 +146,41 @@ type scope = {
       (** empty outside of the root module *)
   scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
+  scope_visibility : visibility;
+}
+
+type topdef = {
+  topdef_expr : expr option;  (** Always [None] outside of the root module *)
+  topdef_type : typ;
+  topdef_visibility : visibility;
+      (** Necessarily [Public] outside of the root module *)
 }
 
 type modul = {
   module_scopes : scope ScopeName.Map.t;
-  module_topdefs : (expr option * typ) TopdefName.Map.t;
-      (** the expr is [None] outside of the root module *)
+  module_topdefs : topdef TopdefName.Map.t;
 }
 
 type program = {
-  program_module_name : Ident.t Mark.pos option;
+  program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
       (** Contains all submodules of the program, in a flattened structure *)
   program_root : modul;
   program_lang : Global.backend_lang;
 }
+
+(** {1 Interface hash computations} *)
+
+(** These hashes are computed on interfaces: only signatures are considered. *)
+module Hash : sig
+  (** The [strip] argument below strips as many leading path components before
+      hashing *)
+
+  val scope : strip:Uid.Path.t -> scope -> Hash.t
+  val modul : ?strip:Uid.Path.t -> modul -> Hash.t
+  val module_binding : ModuleName.t -> modul -> Hash.t
+end
 
 (** {1 Helpers} *)
 

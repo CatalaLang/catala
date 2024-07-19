@@ -66,6 +66,8 @@ let clean_path p =
   in
   if p = "" then "." else p
 
+let exists = Sys.file_exists
+
 let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
@@ -103,6 +105,20 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
     let rbase = List.rev (path_to_list from_dir) in
     String.concat Filename.dir_sep
       (aux (path_to_list f) rbase (path_to_list to_dir))
+
+let find_in_parents predicate =
+  let home = try Sys.getenv "HOME" with Not_found -> "" in
+  let rec lookup dir rel =
+    if predicate dir then Some dir, rel
+    else if dir = home then None, Filename.current_dir_name
+    else
+      let parent = Filename.dirname dir in
+      if parent = dir then None, Filename.current_dir_name
+      else lookup parent (rel / Filename.parent_dir_name)
+  in
+  match lookup (Sys.getcwd ()) Filename.current_dir_name with
+  | Some dir, rel -> Some (dir, rel)
+  | None, _ -> None
 
 let with_out_channel filename f =
   ensure_dir (Filename.dirname filename);
@@ -185,21 +201,24 @@ let process_out ?check_exit cmd args =
 let () =
   let default = 80 in
   let get_terminal_cols () =
+    let from_env () =
+      try int_of_string (Sys.getenv "COLUMNS") with Not_found | Failure _ -> 0
+    in
     let count =
-      try
-        (* terminfo *)
-        process_out "tput" ["cols"] |> String.trim |> int_of_string
-      with Failure _ -> (
+      if not Unix.(isatty stdin) then from_env ()
+      else
         try
-          (* stty *)
-          process_out "stty" ["size"]
-          |> String.trim
-          |> fun s ->
-          let i = String.rindex s ' ' + 1 in
-          String.sub s i (String.length s - i) |> int_of_string
-        with Failure _ | Not_found | Invalid_argument _ -> (
-          try int_of_string (Sys.getenv "COLUMNS")
-          with Not_found | Failure _ -> 0))
+          (* terminfo *)
+          process_out "tput" ["cols"] |> String.trim |> int_of_string
+        with Failure _ -> (
+          try
+            (* stty *)
+            process_out "stty" ["size"]
+            |> String.trim
+            |> fun s ->
+            let i = String.rindex s ' ' + 1 in
+            String.sub s i (String.length s - i) |> int_of_string
+          with Failure _ | Not_found | Invalid_argument _ -> from_env ())
     in
     if count > 0 then count else default
   in

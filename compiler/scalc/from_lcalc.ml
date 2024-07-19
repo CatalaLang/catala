@@ -35,13 +35,6 @@ type 'm ctxt = {
   program_ctx : A.ctx;
 }
 
-let unthunk e =
-  match Mark.remove e with
-  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
-    let _, e = Bindlib.unmbind binder in
-    e
-  | _ -> failwith "should not happen"
-
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
 
@@ -138,15 +131,6 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    | EAppOp
-        {
-          op = Op.HandleDefaultOpt, _;
-          args = [_exceptions; _just; _cons];
-          tys = _;
-        }
-      when ctxt.config.keep_special_ops ->
-      (* This should be translated as a statement *)
-      raise (NotAnExpr { needs_a_local_decl = true })
     | EAppOp { op; args; tys = _ } ->
       let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
@@ -227,8 +211,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
           Expr.pos expr )
       in
       RevBlock.empty, (EExternal { modname; name }, Expr.pos expr)
-    | ECatchEmpty _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _
-    | EFatalError _ | ERaiseEmpty ->
+    | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
       raise (NotAnExpr { needs_a_local_decl = true })
     | _ -> .
   with NotAnExpr { needs_a_local_decl } ->
@@ -274,60 +257,60 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       ~tail:[A.SAssert (Mark.remove new_e), Expr.pos block_expr]
       e_stmts
   | EFatalError err -> [SFatalError err, Expr.pos block_expr]
-  | EAppOp
-      { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
-    when ctxt.config.keep_special_ops ->
-    let exceptions =
-      match Mark.remove exceptions with
-      | EStruct { fields; _ } -> (
-        let _, exceptions =
-          List.find
-            (fun (field, _) ->
-              String.equal (Mark.remove (StructField.get_info field)) "content")
-            (StructField.Map.bindings fields)
-        in
-        match Mark.remove exceptions with
-        | EArray exceptions -> exceptions
-        | _ -> failwith "should not happen")
-      | _ -> failwith "should not happen"
-    in
-    let just = unthunk just in
-    let cons = unthunk cons in
-    let exceptions_stmts, new_exceptions =
-      translate_expr_list ctxt exceptions
-    in
-    let just_stmts, new_just = translate_expr ctxt just in
-    let cons_stmts, new_cons = translate_expr ctxt cons in
-    RevBlock.rebuild exceptions_stmts
-      ~tail:
-        (RevBlock.rebuild just_stmts
-           ~tail:
-             [
-               ( A.SSpecialOp
-                   (OHandleDefaultOpt
-                      {
-                        exceptions = new_exceptions;
-                        just = new_just;
-                        cons =
-                          RevBlock.rebuild cons_stmts
-                            ~tail:
-                              [
-                                ( (match ctxt.inside_definition_of with
-                                  | None -> A.SReturn (Mark.remove new_cons)
-                                  | Some x ->
-                                    A.SLocalDef
-                                      {
-                                        name = Mark.copy new_cons x;
-                                        expr = new_cons;
-                                        typ =
-                                          Expr.maybe_ty (Mark.get block_expr);
-                                      }),
-                                  Expr.pos block_expr );
-                              ];
-                        return_typ = Expr.maybe_ty (Mark.get block_expr);
-                      }),
-                 Expr.pos block_expr );
-             ])
+  (* | EAppOp
+   *     { op = Op.HandleDefaultOpt, _; tys = _; args = [exceptions; just; cons] }
+   *   when ctxt.config.keep_special_ops ->
+   *   let exceptions =
+   *     match Mark.remove exceptions with
+   *     | EStruct { fields; _ } -> (
+   *       let _, exceptions =
+   *         List.find
+   *           (fun (field, _) ->
+   *             String.equal (Mark.remove (StructField.get_info field)) "content")
+   *           (StructField.Map.bindings fields)
+   *       in
+   *       match Mark.remove exceptions with
+   *       | EArray exceptions -> exceptions
+   *       | _ -> failwith "should not happen")
+   *     | _ -> failwith "should not happen"
+   *   in
+   *   let just = unthunk just in
+   *   let cons = unthunk cons in
+   *   let exceptions_stmts, new_exceptions =
+   *     translate_expr_list ctxt exceptions
+   *   in
+   *   let just_stmts, new_just = translate_expr ctxt just in
+   *   let cons_stmts, new_cons = translate_expr ctxt cons in
+   *   RevBlock.rebuild exceptions_stmts
+   *     ~tail:
+   *       (RevBlock.rebuild just_stmts
+   *          ~tail:
+   *            [
+   *              ( A.SSpecialOp
+   *                  (OHandleDefaultOpt
+   *                     {
+   *                       exceptions = new_exceptions;
+   *                       just = new_just;
+   *                       cons =
+   *                         RevBlock.rebuild cons_stmts
+   *                           ~tail:
+   *                             [
+   *                               ( (match ctxt.inside_definition_of with
+   *                                 | None -> A.SReturn (Mark.remove new_cons)
+   *                                 | Some x ->
+   *                                   A.SLocalDef
+   *                                     {
+   *                                       name = Mark.copy new_cons x;
+   *                                       expr = new_cons;
+   *                                       typ =
+   *                                         Expr.maybe_ty (Mark.get block_expr);
+   *                                     }),
+   *                                 Expr.pos block_expr );
+   *                             ];
+   *                       return_typ = Expr.maybe_ty (Mark.get block_expr);
+   *                     }),
+   *                Expr.pos block_expr );
+   *            ]) *)
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
@@ -483,29 +466,6 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               },
             Expr.pos block_expr );
         ]
-  | ECatchEmpty { body; handler } ->
-    let s_e_try = translate_statements ctxt body in
-    let s_e_catch = translate_statements ctxt handler in
-    [
-      ( A.STryWEmpty { try_block = s_e_try; with_block = s_e_catch },
-        Expr.pos block_expr );
-    ]
-  | ERaiseEmpty ->
-    (* Before raising the exception, we still give a dummy definition to the
-       current variable so that tools like mypy don't complain. *)
-    (match ctxt.inside_definition_of with
-    | Some x when ctxt.config.dead_value_assignment ->
-      [
-        ( A.SLocalDef
-            {
-              name = x, Expr.pos block_expr;
-              expr = Ast.EVar Ast.dead_value, Expr.pos block_expr;
-              typ = Expr.maybe_ty (Mark.get block_expr);
-            },
-          Expr.pos block_expr );
-      ]
-    | _ -> [])
-    @ [A.SRaiseEmpty, Expr.pos block_expr]
   | EInj { e = e1; cons; name } when ctxt.config.no_struct_literals ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     let tmp_struct_var_name =
@@ -659,7 +619,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
   let modules =
     List.fold_left
-      (fun acc m ->
+      (fun acc (m, _) ->
         let vname = Mark.map (( ^ ) "Module_") (ModuleName.get_info m) in
         (* The "Module_" prefix is a workaround name clashes for same-name
            structs and modules, Python in particular mixes everything in one

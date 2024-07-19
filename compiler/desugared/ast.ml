@@ -136,22 +136,27 @@ module ScopeDef = struct
       ScopeVar.format ppf (Mark.remove v);
       format_kind ppf k
 
-    let rec hash_kind = function
-      | ScopeVarKind None -> 0
-      | ScopeVarKind (Some st) -> StateName.hash st
-      | SubScopeInputKind (Direct { var_within_sub_scope = v; _ }) ->
-        ScopeVar.hash v
+    open Hash.Op
+
+    let rec hash_kind ~strip = function
+      | ScopeVarKind v -> !`Var % Hash.option StateName.hash v
+      | SubScopeInputKind
+          (Direct { var_within_sub_scope = v; sub_scope_name = s }) ->
+        !`SubScopeInputKind % ScopeName.hash ~strip s % ScopeVar.hash v
       | SubScopeInputKind
           (NestedSubScope
             {
               nested_sub_scope_var_within_sub_scope = v;
               nested_input_var = i;
-              _;
+              sub_scope_name = s;
             }) ->
-        Int.logxor (ScopeVar.hash v) (hash_kind (SubScopeInputKind i))
+        !`SubScopeInputKind
+        % ScopeName.hash ~strip s
+        % ScopeVar.hash v
+        % hash_kind ~strip (SubScopeInputKind i)
 
-    let hash { scope_def_var_within_scope = v; scope_def_kind = k } =
-      Int.logxor (ScopeVar.hash (Mark.remove v)) (hash_kind k)
+    let hash ~strip { scope_def_var_within_scope = v; scope_def_kind = k } =
+      Hash.Op.(ScopeVar.hash (Mark.remove v) % hash_kind ~strip k)
   end
 
   include Base
@@ -306,6 +311,8 @@ type scope_def = {
 
 type var_or_states = WholeVar | States of StateName.t list
 
+(* If fields are added, make sure to consider including them in the hash
+   computations below *)
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
   scope_sub_scopes : ScopeName.t ScopeVar.Map.t;
@@ -314,20 +321,75 @@ type scope = {
   scope_assertions : assertion AssertionName.Map.t;
   scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
+  scope_visibility : visibility;
+}
+
+type topdef = {
+  topdef_expr : expr option;
+  topdef_type : typ;
+  topdef_visibility : visibility;
 }
 
 type modul = {
   module_scopes : scope ScopeName.Map.t;
-  module_topdefs : (expr option * typ) TopdefName.Map.t;
+  module_topdefs : topdef TopdefName.Map.t;
 }
 
 type program = {
-  program_module_name : Ident.t Mark.pos option;
+  program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
   program_root : modul;
   program_lang : Global.backend_lang;
 }
+
+module Hash = struct
+  open Hash.Op
+
+  let var_or_state = function
+    | WholeVar -> !`WholeVar
+    | States s -> !`States % Hash.list StateName.hash s
+
+  let io x =
+    !(Mark.remove x.io_input : Runtime.io_input)
+    % !(Mark.remove x.io_output : bool)
+
+  let scope_decl ~strip d =
+    (* scope_def_rules is ignored (not part of the interface) *)
+    Type.hash ~strip d.scope_def_typ
+    % Hash.option
+        (fun (lst, _) ->
+          List.fold_left
+            (fun acc (name, ty) ->
+              acc % Uid.MarkedString.hash name % Type.hash ~strip ty)
+            !`SDparams lst)
+        d.scope_def_parameters
+    % !(d.scope_def_is_condition : bool)
+    % io d.scope_def_io
+
+  let scope ~strip s =
+    Hash.map ScopeVar.Map.fold ScopeVar.hash var_or_state s.scope_vars
+    % Hash.map ScopeVar.Map.fold ScopeVar.hash (ScopeName.hash ~strip)
+        s.scope_sub_scopes
+    % ScopeName.hash ~strip s.scope_uid
+    % Hash.map ScopeDef.Map.fold (ScopeDef.hash ~strip) (scope_decl ~strip)
+        s.scope_defs
+  (* assertions, options, etc. are not expected to be part of interfaces *)
+
+  let modul ?(strip = []) m =
+    Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
+      (ScopeName.Map.filter
+         (fun _ s -> s.scope_visibility = Public)
+         m.module_scopes)
+    % Hash.map TopdefName.Map.fold (TopdefName.hash ~strip)
+        (fun td -> Type.hash ~strip td.topdef_type)
+        (TopdefName.Map.filter
+           (fun _ td -> td.topdef_visibility = Public)
+           m.module_topdefs)
+
+  let module_binding modname m =
+    ModuleName.hash modname % modul ~strip:[modname] m
+end
 
 let rec locations_used e : LocationSet.t =
   match e with
@@ -391,5 +453,5 @@ let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
       p.program_root.module_scopes init
   in
   TopdefName.Map.fold
-    (fun _ (e, _) acc -> Option.fold ~none:acc ~some:(f acc) e)
+    (fun _ tdef acc -> Option.fold ~none:acc ~some:(f acc) tdef.topdef_expr)
     p.program_root.module_topdefs acc

@@ -51,7 +51,6 @@ module Passes : sig
     optimize:bool ->
     check_invariants:bool ->
     typed:'m Shared_ast.mark ->
-    avoid_exceptions:bool ->
     closure_conversion:bool ->
     monomorphize_types:bool ->
     Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
@@ -61,7 +60,6 @@ module Passes : sig
     includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
-    avoid_exceptions:bool ->
     closure_conversion:bool ->
     keep_special_ops:bool ->
     dead_value_assignment:bool ->

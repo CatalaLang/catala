@@ -159,10 +159,6 @@ let eifthenelse cond etrue efalse =
 
 let eerroronempty e1 = Box.app1 e1 @@ fun e1 -> EErrorOnEmpty e1
 let eempty mark = Mark.add mark (Bindlib.box EEmpty)
-let eraiseempty mark = Mark.add mark (Bindlib.box ERaiseEmpty)
-
-let ecatchempty body handler =
-  Box.app2 body handler @@ fun body handler -> ECatchEmpty { body; handler }
 
 let ecustom obj targs tret mark =
   Mark.add mark (Bindlib.box (ECustom { obj; targs; tret }))
@@ -347,8 +343,6 @@ let map
   | EPureDefault e1 -> epuredefault (f e1) m
   | EEmpty -> eempty m
   | EErrorOnEmpty e1 -> eerroronempty (f e1) m
-  | ECatchEmpty { body; handler } -> ecatchempty (f body) (f handler) m
-  | ERaiseEmpty -> eraiseempty m
   | ELocation loc -> elocation loc m
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
@@ -388,9 +382,7 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
-  | ELit _ | EVar _ | EFatalError _ | EExternal _ | ERaiseEmpty | ELocation _
-  | EEmpty ->
-    acc
+  | ELit _ | EVar _ | EFatalError _ | EExternal _ | ELocation _ | EEmpty -> acc
   | EApp { f = e; args; _ } -> acc |> f e |> lfold args
   | EAppOp { args; _ } -> acc |> lfold args
   | EArray args -> acc |> lfold args
@@ -405,7 +397,6 @@ let shallow_fold
   | EDefault { excepts; just; cons } -> acc |> lfold excepts |> f just |> f cons
   | EPureDefault e -> acc |> f e
   | EErrorOnEmpty e -> acc |> f e
-  | ECatchEmpty { body; handler } -> acc |> f body |> f handler
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
   | EDStructAmend { e; fields; _ } ->
     acc |> f e |> Ident.Map.fold (fun _ -> f) fields
@@ -492,11 +483,6 @@ let map_gather
   | EErrorOnEmpty e ->
     let acc, e = f e in
     acc, eerroronempty e m
-  | ECatchEmpty { body; handler } ->
-    let acc1, body = f body in
-    let acc2, handler = f handler in
-    join acc1 acc2, ecatchempty body handler m
-  | ERaiseEmpty -> acc, eraiseempty m
   | ELocation loc -> acc, elocation loc m
   | EStruct { name; fields } ->
     let acc, fields =
@@ -573,7 +559,7 @@ let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
 let is_value (type a) (e : (a, _) gexpr) =
   match Mark.remove e with
-  | ELit _ | EAbs _ | ERaiseEmpty | ECustom _ | EExternal _ -> true
+  | ELit _ | EAbs _ | ECustom _ | EExternal _ -> true
   | _ -> false
 
 let equal_lit (l1 : lit) (l2 : lit) =
@@ -705,10 +691,6 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     equal if1 if2 && equal then1 then2 && equal else1 else2
   | EEmpty, EEmpty -> true
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> equal e1 e2
-  | ERaiseEmpty, ERaiseEmpty -> true
-  | ( ECatchEmpty { body = etry1; handler = ewith1 },
-      ECatchEmpty { body = etry2; handler = ewith2 } ) ->
-    equal etry1 etry2 && equal ewith1 ewith2
   | ELocation l1, ELocation l2 ->
     equal_location (Mark.add Pos.no_pos l1) (Mark.add Pos.no_pos l2)
   | ( EStruct { name = s1; fields = fields1 },
@@ -753,10 +735,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EDefault _
-      | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _ | ERaiseEmpty
-      | ECatchEmpty _ | ELocation _ | EStruct _ | EDStructAmend _
-      | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _
-      | ECustom _ ),
+      | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _ | ELocation _
+      | EStruct _ | EDStructAmend _ | EDStructAccess _ | EStructAccess _
+      | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -860,11 +841,6 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EEmpty, EEmpty -> 0
   | EErrorOnEmpty e1, EErrorOnEmpty e2 ->
     compare e1 e2
-  | ERaiseEmpty, ERaiseEmpty -> 0
-  | ECatchEmpty {body=etry1; handler=ewith1},
-    ECatchEmpty {body=etry2; handler=ewith2} ->
-    compare etry1 etry2 @@< fun () ->
-    compare ewith1 ewith2
   | ECustom _, _ | _, ECustom _ ->
     (* fixme: ideally this would be forbidden by typing *)
     invalid_arg "Custom block comparison"
@@ -891,9 +867,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmpty , _ -> -1 | _, EEmpty  -> 1
-  | EErrorOnEmpty _, _ -> -1 | _, EErrorOnEmpty _ -> 1
-  | ERaiseEmpty, _ -> -1 | _, ERaiseEmpty -> 1
-  | ECatchEmpty _, _ -> . | _, ECatchEmpty _ -> .
+  | EErrorOnEmpty _, _ -> . | _, EErrorOnEmpty _ -> .
 
 let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
   | EVar v, _ -> Var.Set.singleton v
@@ -1024,8 +998,6 @@ let rec size : type a. (a, 't) gexpr -> int =
       (fun acc except -> acc + size except)
       (1 + size just + size cons)
       excepts
-  | ERaiseEmpty -> 1
-  | ECatchEmpty { body; handler } -> 1 + size body + size handler
   | ELocation _ -> 1
   | EStruct { fields; _ } ->
     StructField.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0

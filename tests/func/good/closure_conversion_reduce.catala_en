@@ -24,12 +24,12 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Lcalc -s S --avoid-exceptions -O --closure-conversion
+$ catala Lcalc -s S -O --closure-conversion
 let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = S_in.x_in in
   let set y : integer =
     (reduce
-       (λ (x1: (integer * integer)) (x2: (integer * integer)) →
+       (λ (x1: (integer, integer)) (x2: (integer, integer)) →
         if x1.1 < x2.1 then x1 else x2)
        (-1, -1)
        map (λ (potential_max: integer) → (potential_max, potential_max)) x).0
@@ -38,12 +38,12 @@ let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
 ```
 
 The next test of closure conversion should give the same results, it checks that
-`--avoid-exceptions` and `-O` are correctly implied by `--closure-conversion`
+`-O` is correctly implied by `--closure-conversion`
 The detection of closures that should not be converted because they are arguments
 to reduce or other special operators relies on pattern matching the special
 operator and its EAbs argument. However without exceptions on, because the
---avoid-exceptions pass is not optimized and produces more options than needed,
-the closures that are arguments to special operators are let-binded with an
+lcalc translation pass is not optimized and produces more options than needed,
+the closures that are arguments to special operators are let-bound with an
 option. This let-binding is reduced by partial evaluation, which is why the test
 with optimizations on passes.
 
@@ -53,31 +53,34 @@ let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = S_in.x_in in
   let set y : integer =
     match
-      (handle_default_opt
-         [
-           handle_default_opt
-             []
-             (λ () → true)
-             (λ () →
-              ESome
-                (let weights : list of (integer * integer) =
-                   map (λ (potential_max: integer) →
-                        (potential_max,
-                          let potential_max1 : integer = potential_max in
-                          potential_max1))
-                     x
-                 in
-                 reduce
-                   (λ (x1: (integer * integer)) (x2: (integer * integer)) →
-                    if x1.1 < x2.1 then x1 else x2)
-                   let potential_max : integer = -1 in
-                   (potential_max,
-                     let potential_max1 : integer = potential_max in
-                     potential_max1)
-                   weights).0)
-         ]
-         (λ () → false)
-         (λ () → ENone ()))
+      (match
+         (handle_exceptions
+            [
+              match (handle_exceptions []) with
+              | ENone →
+                if true then
+                  ESome
+                    (let weights : list of (integer, integer) =
+                       map (λ (potential_max: integer) →
+                            (potential_max,
+                              let potential_max1 : integer = potential_max in
+                              potential_max1))
+                         x
+                     in
+                     reduce
+                       (λ (x1: (integer, integer)) (x2: (integer, integer)) →
+                        if x1.1 < x2.1 then x1 else x2)
+                       let potential_max : integer = -1 in
+                       (potential_max,
+                         let potential_max1 : integer = potential_max in
+                         potential_max1)
+                       weights).0
+                else ENone ()
+              | ESome x → ESome x
+            ])
+       with
+       | ENone → if false then ENone () else ENone ()
+       | ESome x → ESome x)
     with
     | ENone → error NoValue
     | ESome arg → arg

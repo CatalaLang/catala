@@ -100,6 +100,7 @@ module Map = struct
   let empty = empty
   let singleton v x = singleton (t v) x
   let add v x m = add (t v) x m
+  let remove v m = remove (t v) m
   let update v f m = update (t v) f m
   let find v m = find (t v) m
   let find_opt v m = find_opt (t v) m

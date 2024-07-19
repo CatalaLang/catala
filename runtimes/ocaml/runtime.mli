@@ -335,21 +335,8 @@ val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
 
-val handle_default :
-  source_position array ->
-  (unit -> 'a) array ->
-  (unit -> bool) ->
-  (unit -> 'a) ->
-  'a
-(** @raise Empty
-    @raise Error Conflict *)
-
-val handle_default_opt :
-  source_position array ->
-  'a Eoption.t array ->
-  (unit -> bool) ->
-  (unit -> 'a Eoption.t) ->
-  'a Eoption.t
+val handle_exceptions :
+  source_position array -> 'a Eoption.t array -> 'a Eoption.t
 (** @raise Error Conflict *)
 
 (**{1 Operators} *)
@@ -432,6 +419,8 @@ module Oper : sig
   val o_eq_dur_dur : source_position -> duration -> duration -> bool
   val o_eq_dat_dat : date -> date -> bool
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
+  val o_toclosureenv : 'a -> Obj.t
+  val o_fromclosureenv : Obj.t -> 'a
 end
 
 include module type of Oper
@@ -446,8 +435,8 @@ val register_module : string -> (string * Obj.t) list -> hash -> unit
     expected to be a hash of the source file and the Catala version, and will in
     time be used to ensure that the module and the interface are in sync *)
 
-val check_module : string -> hash -> bool
-(** Returns [true] if it has been registered with the correct hash, [false] if
+val check_module : string -> hash -> (unit, hash) result
+(** Returns [Ok] if it has been registered with the correct hash, [Error h] if
     there is a hash mismatch.
 
     @raise Not_found if the module does not exist at all *)

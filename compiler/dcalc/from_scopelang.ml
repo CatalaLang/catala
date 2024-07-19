@@ -592,20 +592,21 @@ let translate_rule
   match rule with
   | S.ScopeVarDefinition { var; typ; e; _ }
   | S.SubScopeVarDefinition { var; typ; e; _ } ->
+    let scope_var = Mark.remove var in
+    let decl_pos = Mark.get (ScopeVar.get_info scope_var) in
     let pos_mark, _ = pos_mark_mk e in
     let scope_let_kind, io =
       match rule with
       | S.ScopeVarDefinition { io; _ } -> ScopeVarDefinition, io
       | S.SubScopeVarDefinition _ ->
-        let pos = Mark.get var in
         ( SubScopeVarDefinition,
-          { io_input = NoInput, pos; io_output = false, pos } )
+          { io_input = NoInput, decl_pos; io_output = false, decl_pos } )
       | S.Assertion _ -> assert false
     in
     let a_name = ScopeVar.get_info (Mark.remove var) in
     let a_var = Var.make (Mark.remove a_name) in
     let new_e = translate_expr ctx e in
-    let a_expr = Expr.make_var a_var (pos_mark (Mark.get var)) in
+    let a_expr = Expr.make_var a_var (pos_mark decl_pos) in
     let is_func = match Mark.remove typ with TArrow _ -> true | _ -> false in
     let merged_expr =
       match Mark.remove io.io_input with
@@ -632,7 +633,7 @@ let translate_rule
                   scope_let_typ = typ;
                   scope_let_expr = merged_expr;
                   scope_let_kind;
-                  scope_let_pos = Mark.get var;
+                  scope_let_pos = decl_pos;
                 },
                 next ))
           (Bindlib.bind_var a_var next)

@@ -137,7 +137,6 @@ type desugared =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
    resolvedNames: no], and after name resolution has the opposite; but the
@@ -158,7 +157,6 @@ type scopelang =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 
 type dcalc =
@@ -172,7 +170,6 @@ type dcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : yes
-  ; exceptions : no
   ; custom : no >
 
 type lcalc =
@@ -186,7 +183,6 @@ type lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : no
-  ; exceptions : yes
   ; custom : no >
 
 type 'a any = < .. > as 'a
@@ -205,12 +201,11 @@ type dcalc_lcalc_features =
   ; assertions : yes >
 (** Features that are common to Dcalc and Lcalc *)
 
-type ('a, 'b) dcalc_lcalc =
-  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : no >
+type 'd dcalc_lcalc = < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
-type ('a, 'b, 'c) interpr_kind =
-  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : 'c >
+type ('d, 'c) interpr_kind =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c >
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
 
@@ -222,11 +217,11 @@ type typ = naked_typ Mark.pos
 
 and naked_typ =
   | TLit of typ_lit
+  | TArrow of typ list * typ
   | TTuple of typ list
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TOption of typ
-  | TArrow of typ list * typ
   | TArray of typ
   | TDefault of typ
   | TAny
@@ -371,8 +366,7 @@ module Op = struct
     (* * polymorphic *)
     | Reduce : < polymorphic ; .. > t
     | Fold : < polymorphic ; .. > t
-    | HandleDefault : < polymorphic ; .. > t
-    | HandleDefaultOpt : < polymorphic ; .. > t
+    | HandleExceptions : < polymorphic ; .. > t
 end
 
 type 'a operator = 'a Op.t
@@ -562,13 +556,6 @@ and ('a, 'b, 'm) base_gexpr =
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
-  (* Lambda calculus with exceptions *)
-  | ERaiseEmpty : ('a, < exceptions : yes ; .. >, 'm) base_gexpr
-  | ECatchEmpty : {
-      body : ('a, 'm) gexpr;
-      handler : ('a, 'm) gexpr;
-    }
-      -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;
@@ -673,8 +660,14 @@ type scope_info = {
   out_struct_fields : StructField.t ScopeVar.Map.t;
 }
 
+type module_intf_id = { hash : Hash.t; is_external : bool }
+
+type module_tree_node = { deps : module_tree; intf_id : module_intf_id }
+
+and module_tree = module_tree_node ModuleName.Map.t
 (** In practice, this is a DAG: beware of repeated names *)
-type module_tree = M of module_tree ModuleName.Map.t [@@caml.unboxed]
+
+type visibility = Private | Public
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
@@ -693,5 +686,5 @@ type 'e program = {
   decl_ctx : decl_ctx;
   code_items : 'e code_item_list;
   lang : Global.backend_lang;
-  module_name : ModuleName.t option;
+  module_name : (ModuleName.t * module_intf_id) option;
 }

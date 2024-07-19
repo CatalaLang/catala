@@ -1,7 +1,7 @@
 (documentation
  (package catala))
 
-(dirs jsoo ocaml python r rescript)
+(dirs jsoo ocaml python r rescript c)
 
 ; Installation is done as source under catala lib directory
 ; For dev version this makes it easy to install the proper runtime with just

@@ -778,9 +778,6 @@ let lex_raw (lexbuf : lexbuf) : token =
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)
-        let lexbuf = lexbuf in
-        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12
-           (fixed in 3.1) *)
         match%sedlex lexbuf with
         | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
         | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
@@ -817,9 +814,6 @@ let lex_law (lexbuf : lexbuf) : token =
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)
-        let lexbuf = lexbuf in
-        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12
-           (fixed in 3.1) *)
         match%sedlex lexbuf with
         | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
         | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)

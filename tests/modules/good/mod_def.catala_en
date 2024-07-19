@@ -19,12 +19,20 @@ declaration scope S:
 declaration half content decimal
   depends on x content integer
   equals x / 2
+
+declaration maybe content Enum1
+  depends on x content Enum1
 ```
 
 ```catala
 scope S:
   definition sr equals $1,000
   definition e1 equals Maybe
+
+
+declaration maybe content Enum1
+  depends on x content Enum1
+  equals Maybe
 ```
 
 

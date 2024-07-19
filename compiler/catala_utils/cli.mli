@@ -55,7 +55,6 @@ module Flags : sig
   val ex_variable : string Term.t
   val output : raw_file option Term.t
   val optimize : bool Term.t
-  val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
   val keep_special_ops : bool Term.t
   val monomorphize_types : bool Term.t

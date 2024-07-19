@@ -22,21 +22,23 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid-exceptions -O --closure-conversion
-type Eoption =  | ENone of unit  | ESome of any 
-type S_in = { x_in: bool; }
-type S = { f: ((closure_env, integer) → integer * closure_env); }
+$ catala Lcalc -O --closure-conversion
+type Eoption = | ENone of unit | ESome of any
 
-let topval closure_f : (closure_env, integer) → integer =
+type S_in = { x_in: bool; }
+type S = { f: ((closure_env, integer) → integer, closure_env); }
+
+let topval closure_f1 : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   if (from_closure_env env).0 then y else - y
+
 let scope S
   (S_in: S_in {x_in: bool})
-  : S {f: ((closure_env, integer) → integer * closure_env)}
+  : S {f: ((closure_env, integer) → integer, closure_env)}
   =
   let get x : bool = S_in.x_in in
-  let set f : ((closure_env, integer) → integer * closure_env) =
-    (closure_f, to_closure_env (x))
+  let set f : ((closure_env, integer) → integer, closure_env) =
+    (closure_f1, to_closure_env (x))
   in
   return { S f = f; }
 

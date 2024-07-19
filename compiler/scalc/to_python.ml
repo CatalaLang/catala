@@ -88,8 +88,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Reduce -> Format.pp_print_string fmt "list_reduce"
   | Filter -> Format.pp_print_string fmt "list_filter"
   | Fold -> Format.pp_print_string fmt "list_fold_left"
-  | HandleDefault -> Format.pp_print_string fmt "handle_default"
-  | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
+  | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -152,20 +151,20 @@ let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   let v_str = clean_name (Mark.remove (VarName.get_info v)) in
-  let hash = VarName.hash v in
+  let id = VarName.id v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
     | Some ids -> (
-      match IntMap.find_opt hash ids with
+      match IntMap.find_opt id ids with
       | None ->
-        let id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
+        let local_id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
         string_counter_map :=
-          StringMap.add v_str (IntMap.add hash id ids) !string_counter_map;
-        id
+          StringMap.add v_str (IntMap.add id local_id ids) !string_counter_map;
+        local_id
       | Some local_id -> local_id)
     | None ->
       string_counter_map :=
-        StringMap.add v_str (IntMap.singleton hash 0) !string_counter_map;
+        StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
       0
   in
   if v_str = "_" then Format.fprintf fmt "_"
@@ -347,41 +346,27 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         args = [arg1];
       } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
+  | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray el, _)] as args }
+    ->
+    Format.fprintf fmt "@[<hv 4>%a(@,[%a],@ %a@;<0 -4>)@]" format_op op
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         format_position)
+      (List.map Mark.get el)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
   | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EAppOp { op = ((HandleDefault | HandleDefaultOpt), _) as op; args } ->
-    let pos = Mark.get e in
-    Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_op op (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
-  | EApp { f = EFunc x, pos; args }
-    when Ast.FuncName.compare x Ast.handle_default = 0
-         || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
-    Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
   | EApp { f; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
+    Format.fprintf fmt "%a(@[<hv 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
   | EAppOp { op; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
+    Format.fprintf fmt "%a(@[<hv 0>%a)@]" format_op op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
@@ -402,10 +387,10 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     =
   match Mark.remove s with
   | SInnerFuncDef { name; func = { func_params; func_body; _ } } ->
-    Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var
+    Format.fprintf fmt "@[<v 4>def %a(@[<hov>%a@]):@ %a@]" format_var
       (Mark.remove name)
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
              (format_typ ctx) typ))
@@ -414,16 +399,16 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
     ->
-    Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
+    Format.fprintf fmt "@[<hv 4>%a = %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryWEmpty { try_block = try_b; with_block = catch_b } ->
-    Format.fprintf fmt "@[<v 4>try:@,%a@]@\n@[<v 4>except Empty:@,%a@]"
+    Format.fprintf fmt "@[<v 4>try:@ %a@]@,@[<v 4>except Empty:@ %a@]"
       (format_block ctx) try_b (format_block ctx) catch_b
   | SRaiseEmpty -> Format.fprintf fmt "raise Empty"
   | SFatalError err ->
     Format.fprintf fmt "@[<hov 4>raise %a@]" format_error (err, Mark.get s)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
-    Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
+    Format.fprintf fmt "@[<v 4>if %a:@ %a@]@,@[<v 4>else:@ %a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch
       {
@@ -439,11 +424,11 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a = %a@\n" format_var tmp_var (format_expression ctx)
-      e1;
-    Format.fprintf fmt "@[<v 4>if %a is None:@\n%a@]@\n" format_var tmp_var
+    Format.fprintf fmt "@[<hv 4>%a = %a@]@," format_var tmp_var
+      (format_expression ctx) e1;
+    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," format_var tmp_var
       (format_block ctx) case_none;
-    Format.fprintf fmt "@[<v 4>else:@\n%a = %a@\n%a@]" format_var case_some_var
+    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" format_var case_some_var
       format_var tmp_var (format_block ctx) case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
@@ -470,10 +455,10 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 4>if not (%a):@\n\
-       raise AssertionFailure(@[<hov 0>SourcePosition(@[<hov \
-       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]"
+      "@[<hv 4>if not (%a):@,\
+       raise AssertionFailure(@[<hov>SourcePosition(@[<hov 0>filename=\"%s\",@ \
+       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
+       law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
@@ -482,12 +467,14 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
   | SSpecialOp _ -> failwith "should not happen"
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =
+  Format.pp_open_vbox fmt 0;
   Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
     (format_statement ctx) fmt
     (List.filter
        (fun s -> match Mark.remove s with SLocalDecl _ -> false | _ -> true)
-       b)
+       b);
+  Format.pp_close_box fmt ()
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
@@ -496,20 +483,20 @@ let format_ctx
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     Format.fprintf fmt
-      "class %a:@\n\
-      \    def __init__(self, %a) -> None:@\n\
-       %a@\n\
-       @\n\
-      \    def __eq__(self, other: object) -> bool:@\n\
-      \        if isinstance(other, %a):@\n\
-      \            return @[<hov>(%a)@]@\n\
-      \        else:@\n\
-      \            return False@\n\
-       @\n\
-      \    def __ne__(self, other: object) -> bool:@\n\
-      \        return not (self == other)@\n\
-       @\n\
-      \    def __str__(self) -> str:@\n\
+      "class %a:@,\
+      \    def __init__(self, %a) -> None:@,\
+       %a@,\
+       @,\
+      \    def __eq__(self, other: object) -> bool:@,\
+      \        if isinstance(other, %a):@,\
+      \            return @[<hov>(%a)@]@,\
+      \        else:@,\
+      \            return False@,\
+       @,\
+      \    def __ne__(self, other: object) -> bool:@,\
+      \        return not (self == other)@,\
+       @,\
+      \    def __str__(self) -> str:@,\
       \        @[<hov 4>return \"%a(%a)\".format(%a)@]" (format_struct_name ctx)
       struct_name
       (Format.pp_print_list
@@ -521,9 +508,7 @@ let format_ctx
       (if StructField.Map.is_empty struct_fields then fun fmt _ ->
          Format.fprintf fmt "        pass"
        else
-         Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun fmt (struct_field, _) ->
+         Format.pp_print_list (fun fmt (struct_field, _) ->
              Format.fprintf fmt "        self.%a = %a" format_struct_field_name
                struct_field format_struct_field_name struct_field))
       fields (format_struct_name ctx) struct_name
@@ -551,32 +536,30 @@ let format_ctx
       failwith "no constructors in the enum"
     else
       Format.fprintf fmt
-        "@[<hov 4>class %a_Code(Enum):@\n\
-         %a@]@\n\
-         @\n\
-         class %a:@\n\
-        \    def __init__(self, code: %a_Code, value: Any) -> None:@\n\
-        \        self.code = code@\n\
-        \        self.value = value@\n\
-         @\n\
-         @\n\
-        \    def __eq__(self, other: object) -> bool:@\n\
-        \        if isinstance(other, %a):@\n\
+        "@[<v 4>class %a_Code(Enum):@,\
+         %a@]@,\
+         @,\
+         class %a:@,\
+        \    def __init__(self, code: %a_Code, value: Any) -> None:@,\
+        \        self.code = code@,\
+        \        self.value = value@,\
+         @,\
+         @,\
+        \    def __eq__(self, other: object) -> bool:@,\
+        \        if isinstance(other, %a):@,\
         \            return self.code == other.code and self.value == \
-         other.value@\n\
-        \        else:@\n\
-        \            return False@\n\
-         @\n\
-         @\n\
-        \    def __ne__(self, other: object) -> bool:@\n\
-        \        return not (self == other)@\n\
-         @\n\
-        \    def __str__(self) -> str:@\n\
+         other.value@,\
+        \        else:@,\
+        \            return False@,\
+         @,\
+         @,\
+        \    def __ne__(self, other: object) -> bool:@,\
+        \        return not (self == other)@,\
+         @,\
+        \    def __str__(self) -> str:@,\
         \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
         (format_enum_name ctx) enum_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun fmt (i, enum_cons, _enum_cons_type) ->
+        (Format.pp_print_list (fun fmt (i, enum_cons, _enum_cons_type) ->
              Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
         (List.mapi
            (fun i (x, y) -> i, x, y)
@@ -606,11 +589,11 @@ let format_ctx
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
         if StructName.path s = [] then
-          Format.fprintf fmt "%a@\n@\n" format_struct_decl
+          Format.fprintf fmt "%a@,@," format_struct_decl
             (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
       | Scopelang.Dependency.TVertex.Enum e ->
         if EnumName.path e = [] then
-          Format.fprintf fmt "%a@\n@\n" format_enum_decl
+          Format.fprintf fmt "%a@,@," format_enum_decl
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
     (type_ordering @ scope_structs)
 
@@ -626,14 +609,15 @@ let reserve_func_name = function
 
 let format_code_item ctx fmt = function
   | SVar { var; expr; typ = _ } ->
-    Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
+    Format.fprintf fmt "@[<hv 4>%a = (@,%a@;<0 -4>)@]@," format_var var
       (format_expression ctx) expr
   | SFunc { var; func }
   | SScope { scope_body_var = var; scope_body_func = func; _ } ->
     let { Ast.func_params; Ast.func_body; _ } = func in
-    Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name var
+    Format.fprintf fmt "@[<v 4>@[<hov 2>def %a(@,%a@;<0 -2>):@]@ %a@]@,"
+      format_func_name var
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
              (format_typ ctx) typ))

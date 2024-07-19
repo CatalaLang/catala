@@ -383,9 +383,9 @@ class NoValue(CatalaError):
                          source_position)
 
 class Conflict(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("two or more concurring valid computations",
-                         source_position)
+    def __init__(self, pos1: SourcePosition, pos2: SourcePosition) -> None:
+        super().__init__("two or more concurring valid computations:\nAt {}".format(pos2),
+                         pos1)
 
 class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
@@ -606,56 +606,20 @@ def list_length(l: List[Alpha]) -> Integer:
 # ========
 
 
-def handle_default(
-    pos: SourcePosition,
-    exceptions: List[Callable[[Unit], Alpha]],
-    just: Callable[[Unit], Alpha],
-    cons: Callable[[Unit], Alpha]
-) -> Alpha:
+def handle_exceptions(
+    pos: List[SourcePosition],
+    exceptions: List[Optional[Alpha]]) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
-    for exception in exceptions:
-        new_val: Optional[Alpha]
-        try:
-            new_val = exception(Unit())
-        except Empty:
-            new_val = None
-        if acc is None:
-            acc = new_val
-        elif not (acc is None) and new_val is None:
+    acc_pos: Optional[pos] = None
+    for exception, pos in zip(exceptions, pos):
+        if exception is None:
             pass  # acc stays the same
-        elif not (acc is None) and not (new_val is None):
-            raise Conflict(pos)
-    if acc is None:
-        if just(Unit()):
-            return cons(Unit())
-        else:
-            raise Empty
-    else:
-        return acc
-
-
-def handle_default_opt(
-    pos: SourcePosition,
-    exceptions: List[Optional[Any]],
-    just: Callable[[Unit], bool],
-    cons: Callable[[Unit], Optional[Alpha]]
-) -> Optional[Alpha]:
-    acc: Optional[Alpha] = None
-    for exception in exceptions:
-        if acc is None:
+        elif acc is None:
             acc = exception
-        elif not (acc is None) and exception is None:
-            pass  # acc stays the same
-        elif not (acc is None) and not (exception is None):
-            raise Conflict(pos)
-    if acc is None:
-        b = just(Unit())
-        if b:
-            return cons(Unit())
+            acc_pos = pos
         else:
-            return None
-    else:
-        return acc
+            raise Conflict(acc_pos,pos)
+    return acc
 
 
 def no_input() -> Callable[[Unit], Alpha]:

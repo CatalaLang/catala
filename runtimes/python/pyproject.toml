@@ -3,7 +3,7 @@ name = "catala-runtime"
 description = "Runtime libraries needed to execute Catala programs compiled to Python"
 version = "0.10.0"
 dependencies = [
-  "gmpy2",
+  "gmpy2 ~= 2.2.0rc1",
   "typing",
   "mypy",
   "python-dateutil",

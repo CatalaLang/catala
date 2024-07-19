@@ -85,15 +85,30 @@ jobs:
     runs-on: self-hosted
     container:
       image: ${{ needs.build.outputs.image }}
-      options: --user ocaml
+      options: --user root
     steps:
+      - name: Fix home
+        # We need to run as root as a Workaround Github actions issues
+        # (https://github.com/actions/checkout/issues/1014) but need ~ocaml as
+        # home.
+        run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
       - name: Check promoted files
         run: |
           cd /home/ocaml/catala && opam exec -- make check-promoted
-          git diff --exit-code
       - name: Run tests
         if: ${{ always() }}
-        run: cd /home/ocaml/catala && opam exec -- make tests
+        run: cd /home/ocaml/catala && opam exec -- make testsuite
+      - name: Generate test report
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala
+          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: /home/ocaml/catala/report.junit.xml
+        if: ${{ always() }}
+
 
   examples:
     name: Build examples and generate artifacts
@@ -101,7 +116,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: ${{ needs.build.outputs.image }}
-      options: --user ocaml
+      options: --user root
       env:
         DUNE_PROFILE: release
     steps:
@@ -112,7 +127,9 @@ jobs:
       - name: Install LaTeX deps
         # This is done late because caching would not benefit compared to
         # installation through apk (1,5G upload is slow)
-        run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-pictures font-dejavu groff
+        run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff texmf-dist-lang
+        # Fewer texmf deps should be required once
+        # https://gitlab.alpinelinux.org/alpine/aports/-/issues/16190 is fixed
       - name: Build Catala extra docs
         run: |
           cd ~/catala
@@ -128,6 +145,16 @@ jobs:
         run: |
           cd ~/catala-examples
           opam --cli=2.1 exec -- make all testsuite install
+      - name: Generate examples test report
+        if: ${{ always() }}
+        run: |
+          cd ~/catala-examples
+          opam exec -- clerk report --xml _build/clerk_tests/*@test _build/clerk_tests/test-*/*@test >report.junit.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "/home/ocaml/catala-examples/report.junit.xml"
+        if: ${{ always() }}
       - name: Checkout french-law repo
         run: |
           git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
@@ -164,10 +191,6 @@ jobs:
           cp catala-examples/_build/french_law_python.tar.gz artifacts/
           mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
-        continue-on-error: true
-        # Uploading artifacts works but then return failure with:
-        # EACCES: permission denied, open '/__w/_temp/_runner_file_commands/set_output_xxx'
-        # a chmod doesn't work around it so we resort to just ignoring the error...
         uses: actions/upload-artifact@v4
         with:
           name: Catala examples

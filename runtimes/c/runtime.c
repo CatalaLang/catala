@@ -33,6 +33,22 @@ catala_fatal_error catala_fatal_error_raised;
 
 jmp_buf catala_fatal_error_jump_buffer;
 
+void catala_raise_fatal_error(catala_fatal_error_code code,
+                              char *filename,
+                              unsigned int start_line,
+                              unsigned int start_column,
+                              unsigned int end_line,
+                              unsigned int end_column)
+{
+  catala_fatal_error_raised.code = code;
+  catala_fatal_error_raised.position.filename = filename;
+  catala_fatal_error_raised.position.start_line = start_line;
+  catala_fatal_error_raised.position.start_column = start_column;
+  catala_fatal_error_raised.position.end_line = end_line;
+  catala_fatal_error_raised.position.end_column = end_column;
+  longjmp(catala_fatal_error_jump_buffer, 0);
+}
+
 typedef struct pointer_list pointer_list;
 struct pointer_list
 {

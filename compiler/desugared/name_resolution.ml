@@ -39,6 +39,7 @@ type scope_context = {
   scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
+  scope_visibility : visibility;
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
@@ -77,15 +78,17 @@ type module_context = {
           between different enums *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   used_modules : ModuleName.t Ident.Map.t;
+  is_external : bool;
 }
 (** Context for name resolution, valid within a given module *)
 
 type context = {
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
-  topdef_types : typ TopdefName.Map.t;
-  structs : struct_context StructName.Map.t;
+  topdefs : (typ * visibility) TopdefName.Map.t;
+  structs : (struct_context * visibility) StructName.Map.t;
       (** For each struct, its context *)
-  enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
+  enums : (enum_context * visibility) EnumName.Map.t;
+      (** For each enum, its context *)
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;
@@ -450,8 +453,10 @@ let process_data_decl
     }
 
 (** Process a struct declaration *)
-let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
-    context =
+let process_struct_decl
+    ?(visibility = Public)
+    (ctxt : context)
+    (sdecl : Surface.Ast.struct_decl) : context =
   let s_uid = get_struct ctxt sdecl.struct_decl_name in
   if sdecl.struct_decl_fields = [] then
     Message.error
@@ -478,25 +483,28 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
       let ctxt = { ctxt with local } in
       let structs =
         StructName.Map.update s_uid
-          (fun fields ->
-            match fields with
+          (function
             | None ->
               Some
-                (StructField.Map.singleton f_uid
-                   (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ))
-            | Some fields ->
+                ( StructField.Map.singleton f_uid
+                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ),
+                  visibility )
+            | Some (fields, _) ->
               Some
-                (StructField.Map.add f_uid
-                   (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
-                   fields))
+                ( StructField.Map.add f_uid
+                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
+                    fields,
+                  visibility ))
           ctxt.structs
       in
       { ctxt with structs })
     ctxt sdecl.struct_decl_fields
 
 (** Process an enum declaration *)
-let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
-    =
+let process_enum_decl
+    ?(visibility = Public)
+    (ctxt : context)
+    (edecl : Surface.Ast.enum_decl) : context =
   let e_uid = get_enum ctxt edecl.enum_decl_name in
   if List.length edecl.enum_decl_cases = 0 then
     Message.error
@@ -530,23 +538,24 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
               | Some typ -> process_type ctxt typ
             in
             match cases with
-            | None -> Some (EnumConstructor.Map.singleton c_uid typ)
-            | Some fields -> Some (EnumConstructor.Map.add c_uid typ fields))
+            | None -> Some (EnumConstructor.Map.singleton c_uid typ, visibility)
+            | Some (fields, _) ->
+              Some (EnumConstructor.Map.add c_uid typ fields, visibility))
           ctxt.enums
       in
       { ctxt with enums })
     ctxt edecl.enum_decl_cases
 
-let process_topdef ctxt def =
+let process_topdef ?(visibility = Public) ctxt def =
   let uid =
     Ident.Map.find (Mark.remove def.Surface.Ast.topdef_name) ctxt.local.topdefs
   in
   {
     ctxt with
-    topdef_types =
+    topdefs =
       TopdefName.Map.add uid
-        (process_type ctxt def.Surface.Ast.topdef_type)
-        ctxt.topdef_types;
+        (process_type ctxt def.Surface.Ast.topdef_type, visibility)
+        ctxt.topdefs;
   }
 
 (** Process an item declaration *)
@@ -560,8 +569,10 @@ let process_item_decl
     process_subscope_decl scope ctxt sub_decl
 
 (** Process a scope declaration *)
-let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
-    context =
+let process_scope_decl
+    ?(visibility = Public)
+    (ctxt : context)
+    (decl : Surface.Ast.scope_decl) : context =
   let scope_uid = get_scope ctxt decl.scope_decl_name in
   let ctxt =
     List.fold_left
@@ -612,11 +623,12 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
       structs =
         StructName.Map.add
           (get_struct ctxt decl.scope_decl_name)
-          StructField.Map.empty ctxt.structs;
+          (StructField.Map.empty, visibility)
+          ctxt.structs;
     }
   else
     let ctxt =
-      process_struct_decl ctxt
+      process_struct_decl ~visibility ctxt
         {
           struct_decl_name = decl.scope_decl_name;
           struct_decl_fields = output_fields;
@@ -660,8 +672,10 @@ let typedef_info = function
   | TScope (s, _) -> ScopeName.get_info s
 
 (** Process the names of all declaration items *)
-let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
-    context =
+let process_name_item
+    ?(visibility = Public)
+    (ctxt : context)
+    (item : Surface.Ast.code_item Mark.pos) : context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Message.error
       ~fmt_pos:
@@ -702,6 +716,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
           scope_in_struct = in_struct_name;
           scope_out_struct = out_struct_name;
           sub_scopes = ScopeName.Set.empty;
+          scope_visibility = visibility;
         }
         ctxt.scopes
     in
@@ -746,14 +761,16 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     { ctxt with local = { ctxt.local with topdefs } }
 
 (** Process a code item that is a declaration *)
-let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
-    context =
+let process_decl_item
+    ?visibility
+    (ctxt : context)
+    (item : Surface.Ast.code_item Mark.pos) : context =
   match Mark.remove item with
-  | ScopeDecl decl -> process_scope_decl ctxt decl
-  | StructDecl sdecl -> process_struct_decl ctxt sdecl
-  | EnumDecl edecl -> process_enum_decl ctxt edecl
+  | ScopeDecl decl -> process_scope_decl ?visibility ctxt decl
+  | StructDecl sdecl -> process_struct_decl ?visibility ctxt sdecl
+  | EnumDecl edecl -> process_enum_decl ?visibility ctxt edecl
   | ScopeUse _ -> ctxt
-  | Topdef def -> process_topdef ctxt def
+  | Topdef def -> process_topdef ?visibility ctxt def
 
 (** Process a code block *)
 let process_code_block
@@ -764,7 +781,11 @@ let process_code_block
 
 (** Process a law structure, only considering the code blocks *)
 let rec process_law_structure
-    (process_item : context -> Surface.Ast.code_item Mark.pos -> context)
+    (process_item :
+      ?visibility:visibility ->
+      context ->
+      Surface.Ast.code_item Mark.pos ->
+      context)
     (ctxt : context)
     (s : Surface.Ast.law_structure) : context =
   match s with
@@ -772,10 +793,14 @@ let rec process_law_structure
     List.fold_left
       (fun ctxt child -> process_law_structure process_item ctxt child)
       ctxt children
-  | Surface.Ast.CodeBlock (block, _, _) ->
-    process_code_block process_item ctxt block
+  | Surface.Ast.CodeBlock (block, _, is_meta) ->
+    process_code_block
+      (process_item ~visibility:(if is_meta then Public else Private))
+      ctxt block
+  | Surface.Ast.ModuleDef (_, is_external) ->
+    { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
-  | Surface.Ast.ModuleDef _ | Surface.Ast.ModuleUse _ -> ctxt
+  | Surface.Ast.ModuleUse _ -> ctxt
 
 (** {1 Scope uses pass} *)
 
@@ -1025,12 +1050,13 @@ let empty_module_ctxt =
     constructor_idmap = Ident.Map.empty;
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
+    is_external = false;
   }
 
 let empty_ctxt =
   {
     scopes = ScopeName.Map.empty;
-    topdef_types = TopdefName.Map.empty;
+    topdefs = TopdefName.Map.empty;
     var_typs = ScopeVar.Map.empty;
     structs = StructName.Map.empty;
     enums = EnumName.Map.empty;
@@ -1053,7 +1079,13 @@ let form_context (surface, mod_uses) surface_modules : context =
           let ctxt =
             {
               ctxt with
-              local = { ctxt.local with used_modules = mod_uses; path = [m] };
+              local =
+                {
+                  ctxt.local with
+                  used_modules = mod_uses;
+                  path = [m];
+                  is_external = intf.Surface.Ast.intf_modname.module_external;
+                };
             }
           in
           let ctxt =
@@ -1085,7 +1117,7 @@ let form_context (surface, mod_uses) surface_modules : context =
   in
   let ctxt =
     List.fold_left
-      (process_law_structure process_use_item)
+      (process_law_structure (fun ?visibility:_ -> process_use_item))
       ctxt surface.Surface.Ast.program_items
   in
   (* Gather struct fields and enum constrs from direct modules: this helps with

@@ -22,20 +22,12 @@
 
 open Catala_utils
 
-let run
-    includes
-    output
-    optimize
-    check_invariants
-    avoid_exceptions
-    closure_conversion
-    options =
+let run includes output optimize check_invariants closure_conversion options =
   let open Driver.Commands in
   let prg, type_ordering =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
-      ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
-      ~dead_value_assignment:true ~no_struct_literals:false
-      ~monomorphize_types:false
+      ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
+      ~no_struct_literals:false ~monomorphize_types:false
   in
 
   let output_file, with_output = get_output_format options ~ext:".py" output in
@@ -50,7 +42,6 @@ let term =
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
-  $ Cli.Flags.avoid_exceptions
   $ Cli.Flags.closure_conversion
 
 let () =

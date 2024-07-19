@@ -471,15 +471,13 @@ let run
     output
     optimize
     check_invariants
-    avoid_exceptions
     closure_conversion
     monomorphize_types
     _options =
   let options = Global.enforce_options ~trace:true () in
   let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
-      ~monomorphize_types
+      ~closure_conversion ~typed:Expr.typed ~monomorphize_types
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output
@@ -489,7 +487,7 @@ let run
         (Option.value ~default:"stdout" jsoo_output_file);
       let modname =
         match prg.module_name with
-        | Some m -> ModuleName.to_string m
+        | Some (m, _) -> ModuleName.to_string m
         | None ->
           String.capitalize_ascii
             Filename.(
@@ -506,7 +504,6 @@ let term =
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
-  $ Cli.Flags.avoid_exceptions
   $ Cli.Flags.closure_conversion
   $ Cli.Flags.monomorphize_types
 

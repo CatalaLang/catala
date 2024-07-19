@@ -93,7 +93,7 @@ let load_module_interfaces
             Surface.Parser_driver.load_interface ?default_module_name
               (Global.FileName f)
           in
-          let modname = ModuleName.fresh intf.intf_modname in
+          let modname = ModuleName.fresh intf.intf_modname.module_name in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
             aux
@@ -107,9 +107,9 @@ let load_module_interfaces
       (seen, Ident.Map.empty) uses
   in
   let seen =
-    match program.Surface.Ast.program_module_name with
+    match program.Surface.Ast.program_module with
     | Some m ->
-      let file = Pos.get_file (Mark.get m) in
+      let file = Pos.get_file (Mark.get m.module_name) in
       File.Map.singleton file None
     | None -> File.Map.empty
   in
@@ -202,15 +202,9 @@ module Passes = struct
     in
     let (prg : ty Dcalc.Ast.program) =
       match typed with
-      | Typed _ -> (
+      | Typed _ ->
         Message.debug "Typechecking again...";
-        try Typing.program prg
-        with Message.CompilerError error_content ->
-          let bt = Printexc.get_raw_backtrace () in
-          Printexc.raise_with_backtrace
-            (Message.CompilerError
-               (Message.Content.to_internal_error error_content))
-            bt)
+        Typing.program ~internal_check:true prg
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
@@ -233,7 +227,6 @@ module Passes = struct
       ~optimize
       ~check_invariants
       ~(typed : ty mark)
-      ~avoid_exceptions
       ~closure_conversion
       ~monomorphize_types :
       typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
@@ -241,23 +234,11 @@ module Passes = struct
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     debug_pass_name "lcalc";
-    let avoid_exceptions = avoid_exceptions || closure_conversion in
-    (* --closure-conversion implies --avoid-exceptions *)
     let prg =
-      if avoid_exceptions && options.trace then
-        Message.warning
-          "It is discouraged to use option @{<yellow>--avoid-exceptions@} if \
-           you@ also@ need@ @{<yellow>--trace@},@ the@ resulting@ trace@ may@ \
-           be@ unreliable@ at@ the@ moment.";
-      match avoid_exceptions, typed with
-      | true, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | true, Typed _ ->
-        Lcalc.From_dcalc.translate_program_without_exceptions prg
-      | false, Typed _ -> Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | false, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_with_exceptions prg
-      | _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
+      match typed with
+      | Untyped _ -> Lcalc.From_dcalc.translate_program prg
+      | Typed _ -> Lcalc.From_dcalc.translate_program prg
+      | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
       if optimize then begin
@@ -269,7 +250,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false prg)
+        Typing.program ~fail_on_any:false ~internal_check:true prg)
       else (
         Message.debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
@@ -280,14 +261,17 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false prg)
+        Typing.program ~fail_on_any:false ~internal_check:true prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (
         Message.debug "Monomorphizing types...";
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~fail_on_any:false ~assume_op_types:true prg in
+        let prg =
+          Typing.program ~fail_on_any:false ~assume_op_types:true
+            ~internal_check:true prg
+        in
         prg, type_ordering)
       else prg, type_ordering
     in
@@ -298,7 +282,6 @@ module Passes = struct
       ~includes
       ~optimize
       ~check_invariants
-      ~avoid_exceptions
       ~closure_conversion
       ~keep_special_ops
       ~dead_value_assignment
@@ -307,7 +290,7 @@ module Passes = struct
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~avoid_exceptions ~closure_conversion ~monomorphize_types
+        ~closure_conversion ~monomorphize_types
     in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
@@ -715,7 +698,9 @@ module Commands = struct
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
-    Interpreter.load_runtime_modules prg;
+    Interpreter.load_runtime_modules
+      ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+      prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
@@ -726,13 +711,12 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion
       monomorphize_types
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~typed ~monomorphize_types
+        ~closure_conversion ~typed ~monomorphize_types
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -765,14 +749,12 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.ex_scope_opt)
 
   let interpret_lcalc
       typed
-      avoid_exceptions
       closure_conversion
       monomorphize_types
       options
@@ -782,29 +764,27 @@ module Commands = struct
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~monomorphize_types ~typed
+        ~closure_conversion ~monomorphize_types ~typed
     in
-    Interpreter.load_runtime_modules prg;
+    Interpreter.load_runtime_modules
+      ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
+      prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let interpret_cmd =
-    let f lcalc avoid_exceptions closure_conversion monomorphize_types no_typing
-        =
+    let f lcalc closure_conversion monomorphize_types no_typing =
       if not lcalc then
-        if avoid_exceptions || closure_conversion || monomorphize_types then
+        if closure_conversion || monomorphize_types then
           Message.error
-            "The flags @{<bold>--avoid-exceptions@}, \
-             @{<bold>--closure-conversion@} and @{<bold>--monomorphize-types@} \
-             only make sense with the @{<bold>--lcalc@} option"
+            "The flags @{<bold>--closure-conversion@} and \
+             @{<bold>--monomorphize-types@} only make sense with the \
+             @{<bold>--lcalc@} option"
         else if no_typing then interpret_dcalc Expr.untyped
         else interpret_dcalc Expr.typed
       else if no_typing then
-        interpret_lcalc Expr.untyped avoid_exceptions closure_conversion
-          monomorphize_types
-      else
-        interpret_lcalc Expr.typed avoid_exceptions closure_conversion
-          monomorphize_types
+        interpret_lcalc Expr.untyped closure_conversion monomorphize_types
+      else interpret_lcalc Expr.typed closure_conversion monomorphize_types
     in
     Cmd.v
       (Cmd.info "interpret"
@@ -815,7 +795,6 @@ module Commands = struct
       Term.(
         const f
         $ Cli.Flags.lcalc
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.no_typing
@@ -831,12 +810,11 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
+      closure_conversion
       ex_scope_opt =
     let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~typed:Expr.typed ~closure_conversion:false
-        ~monomorphize_types:false
+        ~typed:Expr.typed ~closure_conversion ~monomorphize_types:false
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output
@@ -847,7 +825,8 @@ module Commands = struct
     Message.debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
     let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
-    Lcalc.To_ocaml.format_program fmt prg ?exec_scope type_ordering
+    let hashf = Hash.finalise ~closure_conversion ~monomorphize_types:false in
+    Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -860,7 +839,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
         $ Cli.Flags.ex_scope_opt)
 
   let scalc
@@ -869,7 +848,6 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion
       keep_special_ops
       dead_value_assignment
@@ -878,8 +856,8 @@ module Commands = struct
       ex_scope_opt =
     let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~keep_special_ops
-        ~dead_value_assignment ~no_struct_literals ~monomorphize_types
+        ~closure_conversion ~keep_special_ops ~dead_value_assignment
+        ~no_struct_literals ~monomorphize_types
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -911,7 +889,6 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.dead_value_assignment
@@ -925,13 +902,11 @@ module Commands = struct
       output
       optimize
       check_invariants
-      avoid_exceptions
       closure_conversion =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
-        ~dead_value_assignment:true ~no_struct_literals:false
-        ~monomorphize_types:false
+        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
+        ~no_struct_literals:false ~monomorphize_types:false
     in
 
     let output_file, with_output =
@@ -954,39 +929,12 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
-        $ Cli.Flags.closure_conversion)
-
-  let r options includes output optimize check_invariants closure_conversion =
-    let prg, type_ordering =
-      Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:false ~closure_conversion ~keep_special_ops:false
-        ~dead_value_assignment:false ~no_struct_literals:false
-        ~monomorphize_types:false
-    in
-
-    let output_file, with_output = get_output_format options ~ext:".r" output in
-    Message.debug "Compiling program into R...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    with_output @@ fun fmt -> Scalc.To_r.format_program fmt prg type_ordering
-
-  let r_cmd =
-    Cmd.v
-      (Cmd.info "r" ~doc:"Generates an R translation of the Catala program.")
-      Term.(
-        const r
-        $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.output
-        $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants
         $ Cli.Flags.closure_conversion)
 
   let c options includes output optimize check_invariants =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:true ~closure_conversion:true ~keep_special_ops:true
+        ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
         ~monomorphize_types:true
     in
@@ -1013,7 +961,7 @@ module Commands = struct
     let prg =
       Surface.Ast.
         {
-          program_module_name = None;
+          program_module = None;
           program_items = [];
           program_source_files = [];
           program_used_modules =
@@ -1041,7 +989,7 @@ module Commands = struct
     in
     Format.open_hbox ();
     Format.pp_print_list ~pp_sep:Format.pp_print_space
-      (fun ppf m ->
+      (fun ppf (m, _) ->
         let f = Pos.get_file (Mark.get (ModuleName.get_info m)) in
         let f =
           match prefix with
@@ -1101,7 +1049,6 @@ module Commands = struct
       proof_cmd;
       ocaml_cmd;
       python_cmd;
-      r_cmd;
       c_cmd;
       latex_cmd;
       html_cmd;
@@ -1184,6 +1131,12 @@ let main () =
   in
   let command = catala_t plugins in
   let open Cmdliner in
+  let[@inline] exit_with_error excode fcontent =
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit (fcontent ()) Error;
+    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
+    exit excode
+  in
   match Cmd.eval_value ~catch:false ~argv command with
   | Ok _ -> exit Cmd.Exit.ok
   | Error e ->
@@ -1191,29 +1144,22 @@ let main () =
     exit Cmd.Exit.cli_error
   | exception Cli.Exit_with n -> exit n
   | exception Message.CompilerError content ->
+    exit_with_error Cmd.Exit.some_error @@ fun () -> content
+  | exception Message.CompilerErrors contents ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit content Error;
+    Message.Content.emit_n Error contents;
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Failure msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit (Message.Content.of_string msg) Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.some_error
+    exit_with_error Cmd.Exit.some_error
+    @@ fun () -> Message.Content.of_string msg
   | exception Sys_error msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("System error: " ^ msg))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () -> Message.Content.of_string ("System error: " ^ msg)
   | exception e ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () ->
+    Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e)
 
 (* Export module PluginAPI, hide parent module Plugin *)
 module Plugin = struct

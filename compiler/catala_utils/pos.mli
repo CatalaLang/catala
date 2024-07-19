@@ -69,3 +69,8 @@ val format_loc_text_parts :
 
 val no_pos : t
 (** Placeholder position *)
+
+(**/**)
+
+val pad_fmt : int -> string -> Format.formatter -> unit
+(** Exported as [Message.pad] *)

@@ -97,11 +97,15 @@ val check_expr :
 val program :
   ?fail_on_any:bool ->
   ?assume_op_types:bool ->
+  ?internal_check:bool ->
   ('a, 'm) gexpr program ->
   ('a, typed) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
-    later dcalc/lcalc stages.
+    later dcalc/lcalc stages).
 
     Any existing type annotations are checked for unification. Use
     [Program.untype] to remove them beforehand if this is not the desired
-    behaviour. *)
+    behaviour.
+
+    If [internal_check] is set to [true], typing errors will be marked as
+    internal, and the faulty program will be printed if '--debug' is set. *)

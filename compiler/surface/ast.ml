@@ -318,7 +318,7 @@ and law_structure =
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
 and interface = {
-  intf_modname : uident Mark.pos;
+  intf_modname : program_module;
   intf_code : code_block;
       (** Invariant: an interface shall only contain [*Decl] elements, or
           [Topdef] elements with [topdef_expr = None] *)
@@ -330,8 +330,10 @@ and module_use = {
   mod_use_alias : uident Mark.pos;
 }
 
+and program_module = { module_name : uident Mark.pos; module_external : bool }
+
 and program = {
-  program_module_name : uident Mark.pos option;
+  program_module : program_module option;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
   program_used_modules : module_use list;

@@ -37,6 +37,7 @@ type options = {
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
+  mutable stop_on_error : bool;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -56,6 +57,7 @@ let options =
     disable_warnings = false;
     max_prec_digits = 20;
     path_rewrite = (fun _ -> assert false);
+    stop_on_error = false;
   }
 
 let enforce_options
@@ -69,6 +71,7 @@ let enforce_options
     ?disable_warnings
     ?max_prec_digits
     ?path_rewrite
+    ?stop_on_error
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -80,6 +83,7 @@ let enforce_options
   Option.iter (fun x -> options.disable_warnings <- x) disable_warnings;
   Option.iter (fun x -> options.max_prec_digits <- x) max_prec_digits;
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
+  Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f

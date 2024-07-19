@@ -105,14 +105,6 @@ let indent_number (s : string) : int =
     aux 0
   with Invalid_argument _ -> String.length s
 
-let string_repeat n s =
-  let slen = String.length s in
-  let buf = Bytes.create (n * slen) in
-  for i = 0 to n - 1 do
-    Bytes.blit_string s 0 buf (i * slen) slen
-  done;
-  Bytes.to_string buf
-
 let utf8_byte_index s ui0 =
   let rec aux bi ui =
     if ui >= ui0 then bi
@@ -120,6 +112,11 @@ let utf8_byte_index s ui0 =
       aux (bi + Uchar.utf_decode_length (String.get_utf_8_uchar s bi)) (ui + 1)
   in
   aux 0 0
+
+let rec pad_fmt n s ppf =
+  if n > 0 then (
+    Format.pp_print_as ppf 1 s;
+    pad_fmt (n - 1) s ppf)
 
 let format_loc_text_parts (pos : t) =
   let filename = get_file pos in
@@ -199,14 +196,12 @@ let format_loc_text_parts (pos : t) =
             line;
           Format.pp_print_cut ppf ();
           if line_no >= sline && line_no <= eline then
-            Format.fprintf ppf "@{<blue>%s │@} %s@{<bold;red>%a@}"
-              (string_repeat nspaces " ")
-              (string_repeat match_start_col " ")
-              (fun ppf -> Format.pp_print_as ppf match_num_cols)
-              (string_repeat match_num_cols "‾")
+            Format.fprintf ppf "@{<blue>%*s │@} %*s@{<bold;red>%t@}" nspaces ""
+              match_start_col ""
+              (pad_fmt match_num_cols "‾")
         in
         let pr_context ppf =
-          Format.fprintf ppf "@{<blue> %s│@}@," (string_repeat nspaces " ");
+          Format.fprintf ppf "@{<blue> %*s│@}@," nspaces "";
           Format.pp_print_list print_matched_line ppf pos_lines
         in
         let legal_pos_lines =

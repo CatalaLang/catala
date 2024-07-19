@@ -34,13 +34,13 @@ let unstyle_formatter ppf =
    [Format.sprintf] etc. functions (ignoring them) *)
 let () = ignore (unstyle_formatter Format.str_formatter)
 
-let terminal_columns, set_terminal_width_function =
-  let get_cols = ref (fun () -> 80) in
-  (fun () -> !get_cols ()), fun f -> get_cols := f
-
 (* Note: we could do the same for std_formatter, err_formatter... but we'd
    rather promote the use of the formatting functions of this module and the
    below std_ppf / err_ppf *)
+
+let terminal_columns, set_terminal_width_function =
+  let get_cols = ref (fun () -> 80) in
+  (fun () -> !get_cols ()), fun f -> get_cols := f
 
 let has_color_raw ~(tty : bool Lazy.t) =
   match Global.options.color with
@@ -90,6 +90,8 @@ let unformat (f : Format.formatter -> unit) : string =
   Format.pp_print_flush ppf ();
   Buffer.contents buf
 
+let pad n s ppf = Pos.pad_fmt n s ppf
+
 (**{2 Message types and output helpers *)
 
 type level = Error | Warning | Debug | Log | Result
@@ -109,10 +111,9 @@ let print_time_marker =
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 50. then
-      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
+    if delta > 50. then Format.fprintf ppf " @{<bold;black>%.0fms@}" delta
 
-let pp_marker target ppf =
+let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
   let tags, str =
     match target with
@@ -122,10 +123,15 @@ let pp_marker target ppf =
     | Result -> [Bold; Fg (C4 green)], "RESULT"
     | Log -> [Bold; Fg (C4 black)], "LOG"
   in
-  if target = Debug then print_time_marker ppf ();
+  let str =
+    match extra_label with
+    | None -> str
+    | Some lbl -> Printf.sprintf "%s %s" str lbl
+  in
   Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
   Format.pp_print_string ppf str;
-  Format.pp_close_stag ppf ()
+  Format.pp_close_stag ppf ();
+  if target = Debug then print_time_marker ppf ()
 
 (**{2 Printers}*)
 
@@ -165,7 +171,7 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let basic_msg ppf target content =
+  let basic_msg ?(pp_marker = pp_marker) ppf target content =
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list
       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
@@ -184,7 +190,7 @@ module Content = struct
     Format.pp_close_box ppf ();
     Format.pp_print_newline ppf ()
 
-  let fancy_msg ppf target content =
+  let fancy_msg ?(pp_marker = pp_marker) ppf target content =
     let ppf_out_fcts = Format.pp_get_formatter_out_functions ppf () in
     let restore_ppf () =
       Format.pp_print_flush ppf ();
@@ -269,13 +275,13 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let emit (content : t) (target : level) : unit =
+  let emit ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
     match Global.options.message_format with
     | Global.Human -> (
       let ppf = get_ppf target in
       match target with
-      | Debug | Log -> basic_msg ppf target content
-      | Result | Warning | Error -> fancy_msg ppf target content)
+      | Debug | Log -> basic_msg ~pp_marker ppf target content
+      | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
     | Global.GNU ->
       (* The top message doesn't come with a position, which is not something
          the GNU standard allows. So we look the position list and put the top
@@ -320,6 +326,21 @@ module Content = struct
           | None -> ())
         ppf content;
       Format.pp_print_newline ppf ()
+
+  let emit_n (target : level) = function
+    | [content] -> emit content target
+    | contents ->
+      let ppf = get_ppf target in
+      let len = List.length contents in
+      List.iteri
+        (fun i c ->
+          if i > 0 then Format.pp_print_newline ppf ();
+          let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
+          let pp_marker ?extra_label:_ = pp_marker ~extra_label in
+          emit ~pp_marker c target)
+        contents
+
+  let emit (content : t) (target : level) = emit content target
 end
 
 open Content
@@ -327,6 +348,7 @@ open Content
 (** {1 Error exception} *)
 
 exception CompilerError of Content.t
+exception CompilerErrors of Content.t list
 
 (** {1 Error printing} *)
 
@@ -404,3 +426,47 @@ let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
 let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
+
+(* Multiple errors handling *)
+
+type global_errors = {
+  mutable errors : t list option;
+  mutable stop_on_error : bool;
+}
+
+let global_errors = { errors = None; stop_on_error = false }
+
+let delayed_error x =
+  make ~level:Error ~cont:(fun m _ ->
+      if global_errors.stop_on_error then raise (CompilerError m);
+      match global_errors.errors with
+      | None ->
+        error ~internal:true
+          "delayed error called outside scope: encapsulate using \
+           'with_delayed_errors' first"
+      | Some l ->
+        global_errors.errors <- Some (m :: l);
+        x)
+
+let with_delayed_errors
+    ?(stop_on_error = Global.options.stop_on_error)
+    (f : unit -> 'a) : 'a =
+  (match global_errors.errors with
+  | None -> global_errors.errors <- Some []
+  | Some _ ->
+    error ~internal:true
+      "delayed error called outside scope: encapsulate using \
+       'with_delayed_errors' first");
+  global_errors.stop_on_error <- stop_on_error;
+  let r = f () in
+  match global_errors.errors with
+  | None -> error ~internal:true "intertwined delayed error scope"
+  | Some [] ->
+    global_errors.errors <- None;
+    r
+  | Some [err] ->
+    global_errors.errors <- None;
+    raise (CompilerError err)
+  | Some errs ->
+    global_errors.errors <- None;
+    raise (CompilerErrors (List.rev errs))

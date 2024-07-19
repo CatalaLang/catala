@@ -716,32 +716,9 @@ module EventParser = struct
     ctx.events
 end
 
-let handle_default :
-      'a.
-      source_position array ->
-      (unit -> 'a) array ->
-      (unit -> bool) ->
-      (unit -> 'a) ->
-      'a =
- fun pos exceptions just cons ->
-  let len = Array.length exceptions in
-  let rec filt_except i =
-    if i < len then
-      match exceptions.(i) () with
-      | new_val -> (new_val, i) :: filt_except (i + 1)
-      | exception Empty -> filt_except (i + 1)
-    else []
-  in
-  match filt_except 0 with
-  | [] -> if just () then cons () else raise Empty
-  | [(res, _)] -> res
-  | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
-
-let handle_default_opt
+let handle_exceptions
     (pos : source_position array)
-    (exceptions : 'a Eoption.t array)
-    (just : unit -> bool)
-    (cons : unit -> 'a Eoption.t) : 'a Eoption.t =
+    (exceptions : 'a Eoption.t array) : 'a Eoption.t =
   let len = Array.length exceptions in
   let rec filt_except i =
     if i < len then
@@ -751,7 +728,7 @@ let handle_default_opt
     else []
   in
   match filt_except 0 with
-  | [] -> if just () then cons () else Eoption.ENone ()
+  | [] -> Eoption.ENone ()
   | [(res, _)] -> res
   | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
 
@@ -884,6 +861,8 @@ module Oper = struct
   let o_eq_dur_dur pos d1 d2 = equal_periods pos d1 d2
   let o_eq_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 = 0
   let o_fold = Array.fold_left
+  let o_toclosureenv = Obj.repr
+  let o_fromclosureenv = Obj.obj
 end
 
 include Oper
@@ -897,7 +876,9 @@ let register_module modname values hash =
   Hashtbl.add modules_table modname hash;
   List.iter (fun (id, v) -> Hashtbl.add values_table ([modname], id) v) values
 
-let check_module m h = String.equal (Hashtbl.find modules_table m) h
+let check_module m h =
+  let h1 = Hashtbl.find modules_table m in
+  if String.equal h h1 then Ok () else Error h1
 
 let lookup_value qid =
   try Hashtbl.find values_table qid

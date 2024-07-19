@@ -22,7 +22,7 @@ depends: [
   "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
-  "dates_calc" {>= "0.0.4"}
+  "dates_calc" {>= "0.0.6"}
   "dune" {>= "3.11"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
@@ -31,7 +31,7 @@ depends: [
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
   "re" {>= "1.10"}
-  "sedlex" {>= "2.4"}
+  "sedlex" {>= "3.1"}
   "uutf" {>= "1.0.3"}
   "ubase" {>= "0.05"}
   "unionFind" {>= "20220109"}
@@ -47,10 +47,10 @@ depends: [
   "conf-npm" {cataladevmode}
   "conf-python-3-dev" {cataladevmode}
   "cpdf" {cataladevmode}
-  "conf-diffutils" {cataladevmode}
   "conf-pandoc" {cataladevmode}
   "z3" {catalaz3mode}
   "conf-ninja"
+  "otoml" {>= "1.0"}
 ]
 depopts: ["z3"]
 conflicts: [

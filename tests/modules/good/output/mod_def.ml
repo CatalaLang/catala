@@ -27,39 +27,66 @@ end
 
 let s (s_in: S_in.t) : S.t =
   let sr_: money =
-    try
-      (handle_default
-         [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=26; start_column=24; end_line=26; end_column=30;
-            law_headings=["Test modules + inclusions 1"]}|]
-         ([|(fun (_: unit) ->
-               handle_default [||] ([||]) (fun (_: unit) -> true)
-                 (fun (_: unit) -> money_of_cents_string "100000"))|])
-         (fun (_: unit) -> false) (fun (_: unit) -> raise Empty))
-    with Empty ->
-    (raise
-    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                                             start_line=16; start_column=10;
-                                             end_line=16; end_column=12;
-                                             law_headings=["Test modules + inclusions 1"]}])))
-    in
+    match
+      (match
+         (handle_exceptions
+            [|{filename="tests/modules/good/mod_def.catala_en";
+               start_line=16; start_column=10; end_line=16; end_column=12;
+               law_headings=["Test modules + inclusions 1"]}|]
+            ([|(match
+                  (handle_exceptions
+                     [|{filename="tests/modules/good/mod_def.catala_en";
+                        start_line=29; start_column=24;
+                        end_line=29; end_column=30;
+                        law_headings=["Test modules + inclusions 1"]}|]
+                     ([||]))
+                with
+                | Eoption.ENone _ ->
+                    ( if true then
+                       (Eoption.ESome (money_of_cents_string "100000")) else
+                       (Eoption.ENone ()))
+                | Eoption.ESome x_ -> (Eoption.ESome x_))|]))
+       with
+       | Eoption.ENone _ ->
+           ( if false then (Eoption.ENone ()) else (Eoption.ENone ()))
+       | Eoption.ESome x_ -> (Eoption.ESome x_))
+    with
+    | Eoption.ENone _ -> (raise
+        (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
+                                                 start_line=16; start_column=10;
+                                                 end_line=16; end_column=12;
+                                                 law_headings=["Test modules + inclusions 1"]}])))
+    | Eoption.ESome arg_ -> arg_ in
   let e1_: Enum1.t =
-    try
-      (handle_default
-         [|{filename="tests/modules/good/mod_def.catala_en";
-            start_line=27; start_column=24; end_line=27; end_column=29;
-            law_headings=["Test modules + inclusions 1"]}|]
-         ([|(fun (_: unit) ->
-               handle_default [||] ([||]) (fun (_: unit) -> true)
-                 (fun (_: unit) -> Enum1.Maybe ()))|])
-         (fun (_: unit) -> false) (fun (_: unit) -> raise Empty))
-    with Empty ->
-    (raise
-    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                                             start_line=17; start_column=10;
-                                             end_line=17; end_column=12;
-                                             law_headings=["Test modules + inclusions 1"]}])))
-    in
+    match
+      (match
+         (handle_exceptions
+            [|{filename="tests/modules/good/mod_def.catala_en";
+               start_line=17; start_column=10; end_line=17; end_column=12;
+               law_headings=["Test modules + inclusions 1"]}|]
+            ([|(match
+                  (handle_exceptions
+                     [|{filename="tests/modules/good/mod_def.catala_en";
+                        start_line=30; start_column=24;
+                        end_line=30; end_column=29;
+                        law_headings=["Test modules + inclusions 1"]}|]
+                     ([||]))
+                with
+                | Eoption.ENone _ ->
+                    ( if true then (Eoption.ESome (Enum1.Maybe ())) else
+                       (Eoption.ENone ()))
+                | Eoption.ESome x_ -> (Eoption.ESome x_))|]))
+       with
+       | Eoption.ENone _ ->
+           ( if false then (Eoption.ENone ()) else (Eoption.ENone ()))
+       | Eoption.ESome x_ -> (Eoption.ESome x_))
+    with
+    | Eoption.ENone _ -> (raise
+        (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
+                                                 start_line=17; start_column=10;
+                                                 end_line=17; end_column=12;
+                                                 law_headings=["Test modules + inclusions 1"]}])))
+    | Eoption.ESome arg_ -> arg_ in
   {S.sr = sr_; S.e1 = e1_}
 
 let half_ : integer -> decimal =
@@ -70,8 +97,12 @@ let half_ : integer -> decimal =
        law_headings=["Test modules + inclusions 1"]} x_ (integer_of_string
       "2")
 
+let maybe_ : Enum1.t -> Enum1.t =
+  fun (_: Enum1.t) -> Enum1.Maybe ()
+
 let () =
   Runtime_ocaml.Runtime.register_module "Mod_def"
     [ "S", Obj.repr s;
-      "half", Obj.repr half_ ]
-    "todo-module-hash"
+      "half", Obj.repr half_;
+      "maybe", Obj.repr maybe_ ]
+    "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"

@@ -40,13 +40,13 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
 
 type 'm rule =
   | ScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : (ScopeVar.t, Pos.t list) Mark.ed;
       typ : typ;
       io : Desugared.Ast.io;
       e : 'm expr;
     }
   | SubScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : (ScopeVar.t, Pos.t list) Mark.ed;
       var_within_origin_scope : ScopeVar.t;
       typ : typ;
       e : 'm expr;
@@ -67,7 +67,7 @@ type 'm scope_decl = {
 }
 
 type 'm program = {
-  program_module_name : ModuleName.t option;
+  program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
   program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
@@ -145,3 +145,5 @@ let type_program (type m) (prg : m program) : typed program =
       prg.program_scopes
   in
   { prg with program_topdefs; program_scopes }
+
+let type_program prg = Message.with_delayed_errors (fun () -> type_program prg)

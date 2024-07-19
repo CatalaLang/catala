@@ -187,3 +187,25 @@ reformat your branch patch by patch before rebasing.
 
 Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
 
+### Pull Requests Policies
+
+Pull requests must be approved by, at least, one knowledgable
+contributor before merging.
+
+Unless there exists legitimate reasons, every commit of the pull
+request must compile, and, the final commit must successfully pass the
+CI check.
+
+All requested changes should ideally be included in the PR. However,
+if the PR is merged while there are still open discussions or if there
+are late remarks, it should be addressed as soon as possible in a
+follow-up PR.
+
+As much as possible, offline interactions between the author and
+reviewer(s) leading to a discussion resolution should result in a
+quick summary that documents the decision.
+
+Whenever major changes are requested, both PR's author and reviewer(s)
+may reach an agreement to delay the resolution (e.g., in a future PR)
+in which case it must be documented as an issue in order to properly
+track it.

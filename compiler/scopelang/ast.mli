@@ -33,16 +33,14 @@ val locations_used : 'm expr -> LocationSet.t
 
 type 'm rule =
   | ScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;
+      var : ScopeVar.t * Pos.t list;
+          (** Scope variable and its list of definitions' positions *)
       typ : typ;
       io : Desugared.Ast.io;
       e : 'm expr;
     }
   | SubScopeVarDefinition of {
-      var : ScopeVar.t Mark.pos;  (** Variable within the current scope *)
-      (* scope: ScopeVar.t Mark.pos; (\** Variable pointing to the *\) *)
-      (* origin_var: ScopeVar.t Mark.pos;
-       * reentrant: bool; *)
+      var : ScopeVar.t * Pos.t list;  (** Variable within the current scope *)
       var_within_origin_scope : ScopeVar.t;
       typ : typ; (* non-thunked at this point for reentrant vars *)
       e : 'm expr;
@@ -63,12 +61,13 @@ type 'm scope_decl = {
 }
 
 type 'm program = {
-  program_module_name : ModuleName.t option;
+  program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
   program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   (* Using [nil] here ensure that program interfaces don't contain any
-     expressions. They won't contain any rules or topdefs, but will still have
-     the scope signatures needed to respect the call convention *)
+     expressions. They won't contain any rules or topdef implementations, but
+     will still have the scope signatures needed to respect the call
+     convention *)
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_lang : Global.backend_lang;

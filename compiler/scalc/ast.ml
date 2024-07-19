@@ -33,10 +33,6 @@ module VarName =
     end)
     ()
 
-let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
-let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
-let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
-
 type operator = Shared_ast.lcalc Shared_ast.operator
 
 type expr = naked_expr Mark.pos
@@ -121,5 +117,5 @@ type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }
 type program = {
   ctx : ctx;
   code_items : code_item list;
-  module_name : ModuleName.t option;
+  module_name : (ModuleName.t * module_intf_id) option;
 }

@@ -41,6 +41,10 @@ val compare : ('a -> 'a -> int) -> ('a, 'm) ed -> ('a, 'm) ed -> int
 val equal : ('a -> 'a -> bool) -> ('a, 'm) ed -> ('a, 'm) ed -> bool
 (** Tests equality of two marked values {b ignoring marks} *)
 
+val hash : ('a -> Hash.t) -> ('a, 'm) ed -> Hash.t
+(** Computes the hash of the marked values using the given function
+    {b ignoring mark} *)
+
 (** Visitors *)
 
 class ['self] marked_map : object ('self)
