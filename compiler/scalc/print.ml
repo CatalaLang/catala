@@ -67,7 +67,7 @@ let rec format_expr
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""
-  | ETupleAccess { e1; index } ->
+  | ETupleAccess { e1; index; _ } ->
     Format.fprintf fmt "%a%a%a%d%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" index Print.punctuation "\""
   | EInj { e1 = e; cons; _ } ->

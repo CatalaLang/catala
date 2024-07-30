@@ -254,38 +254,38 @@ let rec transform_closures_expr :
       Array.fold_left (fun m v -> Var.Map.remove v m) free_vars vars
     in
     free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
-  | EAppOp
-      {
-        op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
-        tys;
-        args;
-      } ->
-    (* Special case for some operators: its arguments shall remain thunks (which
-       are closures) because if you want to extract it as a function you need
-       these closures to preserve evaluation order, but backends that don't
-       support closures will simply extract these operators in a inlined way and
-       skip the thunks. *)
-    let free_vars, new_args =
-      List.fold_right
-        (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
-          let m_arg = Mark.get arg in
-          match Mark.remove arg with
-          | EAbs { binder; tys } ->
-            let vars, arg = Bindlib.unmbind binder in
-            let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
-            let new_free_vars =
-              Array.fold_left (fun m v -> Var.Map.remove v m) new_free_vars vars
-            in
-            let new_arg =
-              Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
-            in
-            join_vars free_vars new_free_vars, new_arg :: new_args
-          | _ ->
-            let new_free_vars, new_arg = transform_closures_expr ctx arg in
-            join_vars free_vars new_free_vars, new_arg :: new_args)
-        args (Var.Map.empty, [])
-    in
-    free_vars, Expr.eappop ~op ~tys ~args:new_args (Mark.get e)
+  (* | EAppOp
+   *     {
+   *       op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
+   *       tys;
+   *       args;
+   *     } ->
+   *   (\* Special case for some operators: its arguments shall remain thunks (which
+   *      are closures) because if you want to extract it as a function you need
+   *      these closures to preserve evaluation order, but backends that don't
+   *      support closures will simply extract these operators in a inlined way and
+   *      skip the thunks. *\)
+   *   let free_vars, new_args =
+   *     List.fold_right
+   *       (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
+   *         let m_arg = Mark.get arg in
+   *         match Mark.remove arg with
+   *         | EAbs { binder; tys } ->
+   *           let vars, arg = Bindlib.unmbind binder in
+   *           let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
+   *           let new_free_vars =
+   *             Array.fold_left (fun m v -> Var.Map.remove v m) new_free_vars vars
+   *           in
+   *           let new_arg =
+   *             Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
+   *           in
+   *           join_vars free_vars new_free_vars, new_arg :: new_args
+   *         | _ ->
+   *           let new_free_vars, new_arg = transform_closures_expr ctx arg in
+   *           join_vars free_vars new_free_vars, new_arg :: new_args)
+   *       args (Var.Map.empty, [])
+   *   in
+   *   free_vars, Expr.eappop ~op ~tys ~args:new_args (Mark.get e) *)
   | EAppOp _ ->
     (* This corresponds to an operator call, which we don't want to transform *)
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars

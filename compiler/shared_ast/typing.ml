@@ -336,17 +336,21 @@ let polymorphic_op_return_type
     tret
   in
   match Mark.remove op, targs with
-  | Fold, [_; tau; _] -> tau
+  | (Fold | Reduce), [_; tau; _] -> tau
   | Map, [tf; _] -> uf (TArray (return_type tf 1))
   | Map2, [tf; _; _] -> uf (TArray (return_type tf 2))
-  | (Filter | Reduce | Concat), [_; tau] -> tau
+  | (Filter | Concat), [_; tau] -> tau
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
   | HandleExceptions, [_] -> any ()
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
-  | _ -> Message.error ~pos "Mismatched operator arguments"
+  | op, targs ->
+    Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
+      (Print.operator ?debug:None) op
+      (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (format_typ ctx)) targs
 
 let resolve_overload_ret_type
     ~flags

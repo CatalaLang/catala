@@ -261,7 +261,7 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false ~internal_check:true prg)
+        Typing.program ~fail_on_any:false ~internal_check:true ~assume_op_types:true prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (

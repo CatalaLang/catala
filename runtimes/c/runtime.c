@@ -134,11 +134,11 @@ void catala_free(void* ptr, size_t sz)
 #define CATALA_ARRAY(_) catala_array*
 #define CATALA_TUPLE void**
 
-#define CLOSURE_ENV void*
+#define CLOSURE_ENV void**
 
 typedef struct catala_closure {
   void (*funcp)(void);
-  CLOSURE_ENV env;
+  const CLOSURE_ENV env;
 } catala_closure;
 
 const int catala_true = 1;
@@ -270,7 +270,7 @@ CATALA_BOOL o_not(CATALA_BOOL b)
   return CATALA_NEW_BOOL(! *b);
 }
 
-CATALA_INT o_length(CATALA_ARRAY() arr)
+CATALA_INT o_length(const CATALA_ARRAY() arr)
 {
   return catala_new_int(arr->size);
 }
@@ -443,7 +443,7 @@ typedef enum catala_date_rounding
   catala_date_round_abort
 } catala_date_rounding;
 
-CATALA_DATE add_dat_dur (catala_date_rounding mode,
+CATALA_DATE o_add_dat_dur (catala_date_rounding mode,
                          CATALA_DATE x1,
                          CATALA_DURATION x2)
 {
@@ -737,6 +737,94 @@ CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
   return CATALA_NEW_BOOL(x1->days >= x2->days);
 }
 
+const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)
+{
+  int i;
+  CATALA_BOOL (*f)(const CLOSURE_ENV, const void*) =
+    (CATALA_BOOL(*)(const CLOSURE_ENV, const void*))cls->funcp;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = 0;
+  ret->elements = catala_malloc(x->size * sizeof(void*));
+  for (i=0; i < x->size; i++) {
+    CATALA_BOOL cond;
+    cond = f (cls->env, x->elements[i]);
+    if (cond == CATALA_TRUE)
+      ret->elements[ret->size++] = x->elements[i];
+  }
+  return ret;
+}
+
+const CATALA_ARRAY(Y) o_map (catala_closure* cls, const CATALA_ARRAY(X) x)
+{
+  int i;
+  void* (*f)(const CLOSURE_ENV, const void*) =
+    (void* (*)(const CLOSURE_ENV, const void*))cls->funcp;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = x->size;
+  ret->elements = catala_malloc(x->size * sizeof(void*));
+  for (i=0; i < x->size; i++)
+    ret->elements[i] = f (cls->env, x->elements[i]);
+  return ret;
+}
+
+const void* o_fold (catala_closure* cls,
+                    const void* init, const CATALA_ARRAY(X) x)
+{
+  int i;
+  const void* acc = init;
+  void* (*f)(const CLOSURE_ENV, const void*, const void*) =
+    (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
+  for (i=0; i < x->size; i++)
+    acc = f (cls->env, acc, x->elements[i]);
+  return acc;
+}
+
+const void* o_reduce (catala_closure* cls,
+                      const void* dft, const CATALA_ARRAY(X) x)
+{
+  int i;
+  const void* acc;
+  void* (*f)(const CLOSURE_ENV, const void*, const void*) =
+    (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
+  if (x->size == 0) return dft;
+  acc = x->elements[0];
+  for (i=1; i < x->size; i++)
+    acc = f (cls->env, acc, x->elements[i]);
+  return acc;
+}
+
+const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
+                        catala_closure* cls,
+                        const CATALA_ARRAY(X) x,
+                        const CATALA_ARRAY(Y) y)
+{
+  int i;
+  void* (*f)(const CLOSURE_ENV, const void*, const void*) =
+    (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  if (x->size != y->size)
+    catala_error(catala_not_same_length, pos);
+  ret->size = x->size;
+  ret->elements = catala_malloc(ret->size * sizeof(void*));
+  for (i=0; i < x->size; i++)
+    ret->elements[i] = f (cls->env, x->elements[i], y->elements[i]);
+  return ret;
+}
+
+const CATALA_ARRAY(Z) o_concat (const CATALA_ARRAY(X) x,
+                                const CATALA_ARRAY(Y) y)
+{
+  int i;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = x->size + y->size;
+  ret->elements = catala_malloc(ret->size * sizeof(void*));
+  for (i=0; i < x->size; i++)
+    ret->elements[i] = x->elements[i];
+  for (; i < ret->size; i++)
+    ret->elements[i] = y->elements[i - x->size];
+  return ret;
+}
+
 /*
 TODO
 
@@ -764,7 +852,7 @@ const catala_option catala_none = {catala_option_none, NULL};
 
 #define CATALA_NONE &catala_none
 
-const CATALA_OPTION() catala_some (const void* x) {
+const CATALA_OPTION(X) catala_some (const void* x) {
   catala_option* ret;
   ret = catala_malloc(sizeof(catala_option));
   ret->code = catala_option_some;

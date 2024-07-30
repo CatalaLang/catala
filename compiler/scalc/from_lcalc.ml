@@ -164,6 +164,10 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
             tys = [t_arr];
           },
         pos )
+    (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
+     *            tys;
+     *            args = [] }
+     *   when ctxt.config.keep_special_ops -> *)
     | EAppOp { op; args; tys } ->
       let args_stmts, new_args = translate_expr_list ctxt args in
       (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
@@ -230,6 +234,10 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       ( f_stmts ++ args_stmts,
         (A.EApp { f = new_f; args = new_args }, Expr.pos expr) )
     | EArray args ->
+      if ctxt.config.no_struct_literals then
+        (* In C89, struct literals have to be initialized at variable
+           definition... *)
+        raise (NotAnExpr { needs_a_local_decl = true });
       let args_stmts, new_args = translate_expr_list ctxt args in
       args_stmts, (A.EArray new_args, Expr.pos expr)
     | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr)
@@ -552,6 +560,35 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               {
                 name = tmp_tuple_var_name;
                 expr = tuple_expr;
+                typ = Expr.maybe_ty (Mark.get block_expr);
+              },
+            Expr.pos block_expr );
+        ]
+  | EArray elts when ctxt.config.no_struct_literals ->
+    let elts_stmts, rev_elts =
+      List.fold_left
+        (fun (elts_stmts, rev_elts) elt ->
+           let stmt, new_elt = translate_expr ctxt elt in
+           elts_stmts ++ stmt, new_elt :: rev_elts)
+        (RevBlock.empty, [])
+        elts
+    in
+    let arr_expr =
+      A.EArray (List.rev rev_elts), Expr.pos block_expr
+    in
+    let tmp_arr_var_name =
+      match ctxt.inside_definition_of with
+      | None -> assert false
+      (* [translate_expr] should create this [inside_definition_of] *)
+      | Some x -> x, Expr.pos block_expr
+    in
+    RevBlock.rebuild elts_stmts
+      ~tail:
+        [
+          ( A.SLocalDef
+              {
+                name = tmp_arr_var_name;
+                expr = arr_expr;
                 typ = Expr.maybe_ty (Mark.get block_expr);
               },
             Expr.pos block_expr );
