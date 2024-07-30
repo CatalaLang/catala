@@ -97,8 +97,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     let error_loc = Pos.from_lpos (lexing_positions lexbuf) in
     let wrong_token = Utf8.lexeme lexbuf in
     let msg = custom_menhir_message in
-    Message.delayed_error () ?suggestion
-      ~extra_pos:["", error_loc]
+    Message.delayed_error ~kind:Parsing () ?suggestion ~pos:error_loc
       "@[<hov>Syntax error at %a:@ %t@]"
       (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
       wrong_token msg
@@ -264,12 +263,12 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       let target_rule =
         target_rule (fst @@ Sedlexing.lexing_positions lexbuf)
       in
-      Message.with_delayed_errors
-      @@ fun () -> loop lexer_buffer token_list lexbuf None target_rule
-    with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-      Lexer_common.raise_lexer_error
-        (Pos.from_lpos (lexing_positions lexbuf))
-        (Utf8.lexeme lexbuf)
+      loop lexer_buffer token_list lexbuf None target_rule
+    with Lexer_common.Lexing_error (pos, token) ->
+      (* The encapsulating [Message.with_delayed_errors] will raise an
+         exception: we are safe returning a dummy value. *)
+      Message.delayed_error ~kind:Lexing [] ~pos
+        "Parsing error after token \"%s\": what comes after is unknown" token
 
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
     sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list
@@ -349,7 +348,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           match acc.Ast.program_module, name_opt with
           | opt, None | None, opt -> opt
           | Some id1, Some id2 ->
-            Message.error
+            Message.error ~kind:Parsing
               ~extra_pos:
                 ["", Mark.get id1.module_name; "", Mark.get id2.module_name]
               "Multiple definitions of the module name"
@@ -374,36 +373,44 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = File.(source_dir / Mark.remove inc_file) in
-          with_sedlex_file sub_source
-          @@ fun lexbuf ->
-          let includ_program = parse_source lexbuf in
-          let () =
-            includ_program.Ast.program_module
-            |> Option.iter
-               @@ fun id ->
-               Message.error
-                 ~extra_pos:
-                   [
-                     "File include", Mark.get inc_file;
-                     "Module declaration", Mark.get id.Ast.module_name;
-                   ]
-                 "A file that declares a module cannot be used through the raw \
-                  '@{<yellow>> Include@}'@ directive.@ You should use it as a \
-                  module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ instead."
-                 (Mark.remove id.Ast.module_name)
-          in
-          {
-            Ast.program_module = acc.program_module;
-            Ast.program_source_files =
-              List.rev_append includ_program.program_source_files
-                acc.Ast.program_source_files;
-            Ast.program_items =
-              List.rev_append includ_program.program_items acc.Ast.program_items;
-            Ast.program_used_modules =
-              List.rev_append includ_program.program_used_modules
-                acc.Ast.program_used_modules;
-            Ast.program_lang = language;
-          }
+          let pos = Mark.get inc_file in
+          if File.check_file sub_source = None then
+            Message.delayed_error ~kind:Parsing ~pos acc
+              "Included file '%s' is not a regular file or does not exist."
+              sub_source
+          else
+            with_sedlex_file sub_source
+            @@ fun lexbuf ->
+            let includ_program = parse_source lexbuf in
+            let () =
+              includ_program.Ast.program_module
+              |> Option.iter
+                 @@ fun id ->
+                 Message.error ~kind:Parsing
+                   ~extra_pos:
+                     [
+                       "File include", Mark.get inc_file;
+                       "Module declaration", Mark.get id.Ast.module_name;
+                     ]
+                   "A file that declares a module cannot be used through the \
+                    raw '@{<yellow>> Include@}'@ directive.@ You should use it \
+                    as a module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ \
+                    instead."
+                   (Mark.remove id.Ast.module_name)
+            in
+            {
+              Ast.program_module = acc.program_module;
+              Ast.program_source_files =
+                List.rev_append includ_program.program_source_files
+                  acc.Ast.program_source_files;
+              Ast.program_items =
+                List.rev_append includ_program.program_items
+                  acc.Ast.program_items;
+              Ast.program_used_modules =
+                List.rev_append includ_program.program_used_modules
+                  acc.Ast.program_used_modules;
+              Ast.program_lang = language;
+            }
         | Ast.LawHeading (heading, commands') ->
           let {
             Ast.program_module;
@@ -490,7 +497,7 @@ let check_modname program source_file =
   | ( Some { module_name = mname, pos; _ },
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
-    Message.error ~pos
+    Message.error ~kind:Parsing ~pos
       "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ file@ \
        name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ %a."
       mname File.format file
@@ -512,7 +519,7 @@ let load_interface ?default_module_name source_file =
         module_external = false;
       }
     | None, None ->
-      Message.error
+      Message.error ~kind:Parsing
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
         File.format
@@ -530,6 +537,8 @@ let load_interface ?default_module_name source_file =
   }
 
 let parse_top_level_file (source_file : File.t Global.input_src) : Ast.program =
+  Message.with_delayed_errors
+  @@ fun () ->
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   {

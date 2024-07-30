@@ -224,7 +224,7 @@ let record_type_error _ctx (A.AnyExpr e) t1 t2 =
           t2_pos );
       ]
   in
-  Message.delayed_error () ~fmt_pos
+  Message.delayed_error ~kind:Typing () ~fmt_pos
     "Error during typechecking, incompatible types:@\n\
      @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
      @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" pp_typ t1_repr "─➤" pp_typ t2_repr

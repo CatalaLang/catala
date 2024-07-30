@@ -58,10 +58,11 @@ let code_buffer : Buffer.t = Buffer.create 4000
 let update_acc (lexbuf : lexbuf) : unit =
   Buffer.add_string code_buffer (Utf8.lexeme lexbuf)
 
+exception Lexing_error of (Pos.t * string)
+
 (** Error-generating helper *)
 let raise_lexer_error (loc : Pos.t) (token : string) =
-  Message.error ~pos:loc
-    "Parsing error after token \"%s\": what comes after is unknown" token
+  raise (Lexing_error (loc, token))
 
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!module: Surface.Parser} token. Same for all the input languages
