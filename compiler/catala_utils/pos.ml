@@ -135,7 +135,7 @@ let format_loc_text_parts (pos : t) =
         let ic, input_line_opt =
           let from_contents =
             match Global.options.input_src with
-            | Contents (str, _) when str = filename -> Some str
+            | Contents (str, uri) when uri = filename -> Some str
             | _ -> None
           in
           match from_contents with
