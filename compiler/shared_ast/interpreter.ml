@@ -165,7 +165,7 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
   | _, _ -> false (* comparing anything else return false *)
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-let evaluate_operator
+let rec evaluate_operator
     evaluate_expr
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
@@ -227,6 +227,8 @@ let evaluate_operator
        effectively no-ops. *)
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
+  | Eq, [(e1, _); (e2, _)] ->
+    ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
@@ -303,7 +305,7 @@ let evaluate_operator
                        ];
                    })))
          init es)
-  | (Length | Log _ | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
+  | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
     err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
   | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
@@ -855,7 +857,7 @@ and partially_evaluate_expr_for_assertion_failure_message :
         args = [e1; e2];
         tys;
         op =
-          ( ( And | Or | Xor | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+          ( ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
             | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
             | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
             | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon

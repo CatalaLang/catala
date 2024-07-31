@@ -351,6 +351,13 @@ module Flags = struct
            versions of the enumeration, and transform tuples into named \
            structs. "
 
+  let expand_ops =
+    value
+    & flag
+    & info ["expand-ops"]
+        ~doc:
+          "In LCalc, expand equality operators to only rely on comparisons of literals. "
+
   let dead_value_assignment =
     value
     & flag

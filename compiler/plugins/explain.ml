@@ -1036,7 +1036,7 @@ let expr_to_dot_label0 :
         let open Op in
         let str =
           match o with
-          | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq
+          | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq
             ->
             "="
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"

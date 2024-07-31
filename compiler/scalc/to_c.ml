@@ -621,7 +621,7 @@ let rec format_statement
        @,@[<hov 2>catala_error(catala_assertion_failed,@ %a);@]\
        @;<1 -2>}@]" (format_expression ctx)
       e1
-      format_var (Pos.Map.find (Mark.get s) ctx.lifted_pos)
+      format_var (Pos.Map.find (Mark.get e1) ctx.lifted_pos)
   | _ -> .
   (* | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
    *   let e_name =
@@ -711,6 +711,15 @@ and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
            Pos.Map.add pos v pmap
          | _ -> pmap)
       b Pos.Map.empty
+  in
+  let new_pos =
+    List.fold_left
+      (fun pmap -> function
+        | SAssert _, pos ->
+          let v = VarName.fresh ("pos", pos) in
+          Pos.Map.add pos v pmap
+        | _ -> pmap)
+      new_pos b
   in
   let new_pos =
     Pos.Map.merge (fun _ v1 v2 -> match v1 with None -> v2 | _ -> None)

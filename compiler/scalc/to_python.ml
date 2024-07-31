@@ -71,6 +71,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt "/"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"
+  | Eq -> Format.pp_print_string fmt "=="
   | Xor -> Format.pp_print_string fmt "!="
   | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
     Format.pp_print_string fmt "<"

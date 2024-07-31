@@ -228,7 +228,8 @@ module Passes = struct
       ~check_invariants
       ~(typed : ty mark)
       ~closure_conversion
-      ~monomorphize_types :
+      ~monomorphize_types
+      ~expand_ops :
       typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
@@ -241,6 +242,10 @@ module Passes = struct
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
+      if expand_ops then Lcalc.Expand_op.program prg
+      else prg
+    in
+    let prg =
       if optimize then begin
         Message.debug "Optimizing lambda calculus...";
         Optimizations.optimize_program prg
@@ -250,7 +255,9 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false ~internal_check:true prg)
+        let prg = Typing.program ~fail_on_any:false ~internal_check:true prg in
+        if expand_ops then Lcalc.Expand_op.program prg
+        else prg)
       else (
         Message.debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
@@ -286,11 +293,12 @@ module Passes = struct
       ~keep_special_ops
       ~dead_value_assignment
       ~no_struct_literals
-      ~monomorphize_types :
+      ~monomorphize_types
+      ~expand_ops :
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~closure_conversion ~monomorphize_types
+        ~closure_conversion ~monomorphize_types ~expand_ops
     in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
@@ -710,10 +718,11 @@ module Commands = struct
       check_invariants
       closure_conversion
       monomorphize_types
+      expand_ops
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~typed ~monomorphize_types
+        ~closure_conversion ~typed ~monomorphize_types ~expand_ops
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -748,12 +757,14 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.expand_ops
         $ Cli.Flags.ex_scope_opt)
 
   let interpret_lcalc
       typed
       closure_conversion
       monomorphize_types
+      expand_ops
       options
       includes
       optimize
@@ -761,7 +772,7 @@ module Commands = struct
       ex_scope_opt =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~monomorphize_types ~typed
+        ~closure_conversion ~monomorphize_types ~typed ~expand_ops
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
@@ -770,7 +781,7 @@ module Commands = struct
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let interpret_cmd =
-    let f lcalc closure_conversion monomorphize_types no_typing =
+    let f lcalc closure_conversion monomorphize_types expand_ops no_typing =
       if not lcalc then
         if closure_conversion || monomorphize_types then
           Message.error
@@ -780,8 +791,8 @@ module Commands = struct
         else if no_typing then interpret_dcalc Expr.untyped
         else interpret_dcalc Expr.typed
       else if no_typing then
-        interpret_lcalc Expr.untyped closure_conversion monomorphize_types
-      else interpret_lcalc Expr.typed closure_conversion monomorphize_types
+        interpret_lcalc Expr.untyped closure_conversion monomorphize_types expand_ops
+      else interpret_lcalc Expr.typed closure_conversion monomorphize_types expand_ops
     in
     Cmd.v
       (Cmd.info "interpret"
@@ -794,6 +805,7 @@ module Commands = struct
         $ Cli.Flags.lcalc
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
@@ -812,6 +824,7 @@ module Commands = struct
     let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~typed:Expr.typed ~closure_conversion ~monomorphize_types:false
+        ~expand_ops:true
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output
@@ -850,11 +863,12 @@ module Commands = struct
       dead_value_assignment
       no_struct_literals
       monomorphize_types
+      expand_ops
       ex_scope_opt =
     let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
-        ~no_struct_literals ~monomorphize_types
+        ~no_struct_literals ~monomorphize_types ~expand_ops
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -891,6 +905,7 @@ module Commands = struct
         $ Cli.Flags.dead_value_assignment
         $ Cli.Flags.no_struct_literals
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.expand_ops
         $ Cli.Flags.ex_scope_opt)
 
   let python
@@ -903,7 +918,7 @@ module Commands = struct
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~monomorphize_types:false
+        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
     in
 
     let output_file, with_output =
@@ -933,7 +948,7 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:false
+        ~monomorphize_types:false ~expand_ops:true
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.debug "Compiling program into C...";

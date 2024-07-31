@@ -216,7 +216,7 @@ let run
     options =
   let prg, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~closure_conversion ~typed:Expr.typed ~monomorphize_types
+      ~closure_conversion ~typed:Expr.typed ~monomorphize_types ~expand_ops:false
   in
   let output_file, with_output =
     Driver.Commands.get_output_format options ~ext:"_schema.json" output

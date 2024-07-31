@@ -508,6 +508,22 @@ let rec translate_op :
        be directly translated as >= in the Z3 encoding using the number of
        days *)
     ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
+  | Eq, [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let min_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
+    in
+    let max_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year (n + 1)))
+    in
+    ( ctx,
+      Boolean.mk_and ctx.ctx_z3
+        [
+          Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
+          Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
+        ] )
   | And, _ -> app Boolean.mk_and
   | Or, _ -> app Boolean.mk_or
   | Xor, _ -> app2 Boolean.mk_xor
@@ -530,8 +546,7 @@ let rec translate_op :
     app2 Arithmetic.mk_gt
   | (Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur), _ ->
     app2 Arithmetic.mk_ge
-  | (Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur), _ ->
-    failwith "[Z3 encoding] not handling Eq"
+  | Eq, _ -> app2 Boolean.mk_eq
   | Map, _ ->
     failwith "[Z3 encoding] application of binary operator Map not supported"
   | Concat, _ ->

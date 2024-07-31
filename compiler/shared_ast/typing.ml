@@ -304,6 +304,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let ty =
     match Mark.remove op with
     | Fold -> [[any2; any] @-> any2; any2; array any] @-> any2
+    | Eq -> [any; any] @-> bt
     | Map -> [[any] @-> any2; array any] @-> array any2
     | Map2 -> [[any; any2] @-> any3; array any; array any2] @-> array any3
     | Filter -> [[any] @-> bt; array any] @-> array any
@@ -337,6 +338,7 @@ let polymorphic_op_return_type
   in
   match Mark.remove op, targs with
   | (Fold | Reduce), [_; tau; _] -> tau
+  | Eq, _ -> uf (TLit TBool)
   | Map, [tf; _] -> uf (TArray (return_type tf 1))
   | Map2, [tf; _; _] -> uf (TArray (return_type tf 2))
   | (Filter | Concat), [_; tau] -> tau

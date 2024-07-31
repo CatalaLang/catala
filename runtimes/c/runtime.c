@@ -51,7 +51,9 @@ void catala_error(catala_error_code code,
 
 /* --- Memory allocations --- */
 
-#define BLOCKSIZE 4096
+#define BLOCKSIZE 32 /* TODO:
+                        For stressing the allocator for testing purposes only,
+                        should be reverted to something like 4096 or 16384 */
 
 struct catala_heap
 {

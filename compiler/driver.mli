@@ -53,6 +53,7 @@ module Passes : sig
     typed:'m Shared_ast.mark ->
     closure_conversion:bool ->
     monomorphize_types:bool ->
+    expand_ops:bool ->
     Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
 
   val scalc :
@@ -65,6 +66,7 @@ module Passes : sig
     dead_value_assignment:bool ->
     no_struct_literals:bool ->
     monomorphize_types:bool ->
+    expand_ops:bool ->
     Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
 end
 
