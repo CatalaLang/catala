@@ -447,7 +447,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
-      (e1, Mark.get s)
+      e1
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
@@ -456,7 +456,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
        start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
        law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)
-      (e1, Mark.get s)
+      e1
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)

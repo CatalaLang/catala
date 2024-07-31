@@ -308,7 +308,7 @@ let rec transform_closures_expr :
     let tys = List.map translate_type tys in
     let pos = Expr.mark_pos m in
     let env_arg_ty = TClosureEnv, Expr.pos new_e1 in
-    let fun_ty = TArrow (env_arg_ty :: tys, Expr.maybe_ty m), pos in
+    (* let fun_ty = TArrow (env_arg_ty :: tys, Expr.maybe_ty m), pos in *)
     let code_env_var = Var.make "code_and_env" in
     let code_env_expr =
       let pos = Expr.pos e1 in
@@ -321,8 +321,8 @@ let rec transform_closures_expr :
                ],
              pos ))
     in
-    let env_var = Var.make "env" in
-    let code_var = Var.make "code" in
+    (* let env_var = Var.make "env" in
+     * let code_var = Var.make "code" in *)
     let free_vars, new_args =
       List.fold_right
         (fun arg (free_vars, new_args) ->
@@ -331,19 +331,42 @@ let rec transform_closures_expr :
         args (free_vars, [])
     in
     let call_expr =
-      let m1 = Mark.get new_e1 in
-      Expr.make_multiple_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
-        [
-          Expr.make_tupleaccess code_env_expr 0 2 pos;
-          Expr.make_tupleaccess code_env_expr 1 2 pos;
-        ]
-        (Expr.make_app
-           (Bindlib.box_var code_var, Expr.with_ty m1 fun_ty)
-           ((Bindlib.box_var env_var, Expr.with_ty m1 env_arg_ty) :: new_args)
-           (env_arg_ty
-           :: (* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *) tys)
-           pos)
-        pos
+      (Expr.make_app
+         (Expr.make_tupleaccess code_env_expr 0 2 pos)
+         (Expr.make_tupleaccess code_env_expr 1 2 pos :: new_args)
+         (env_arg_ty
+          :: (* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *) tys)
+         pos)
+
+
+
+      (* let m1 = Mark.get new_e1 in
+       *  if Var.Map.is_empty free_vars then
+       *   Expr.make_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
+       *     [
+       *       Expr.make_tupleaccess code_env_expr 0 2 pos;
+       *       Expr.make_tupleaccess code_env_expr 1 2 pos;
+       *     ]
+       *     (Expr.make_app
+       *        (Bindlib.box_var code_var, Expr.with_ty m1 fun_ty)
+       *        ((Bindlib.box_var env_var, Expr.with_ty m1 env_arg_ty) :: new_args)
+       *        (env_arg_ty
+       *         :: (\* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *\) tys)
+       *        pos)
+       *     pos
+       * else
+       *   Expr.make_multiple_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
+       *     [
+       *       Expr.make_tupleaccess code_env_expr 0 2 pos;
+       *       Expr.make_tupleaccess code_env_expr 1 2 pos;
+       *     ]
+       *     (Expr.make_app
+       *        (Bindlib.box_var code_var, Expr.with_ty m1 fun_ty)
+       *        ((Bindlib.box_var env_var, Expr.with_ty m1 env_arg_ty) :: new_args)
+       *        (env_arg_ty
+       *         :: (\* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *\) tys)
+       *        pos)
+       *     pos *)
     in
     free_vars, Expr.make_let_in code_env_var (TAny, pos) new_e1 call_expr pos
   | _ -> .

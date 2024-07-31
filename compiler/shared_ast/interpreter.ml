@@ -337,7 +337,7 @@ let evaluate_operator
   | Add_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
     ELit (LMoney (o_add_mon_mon x y))
   | Add_dat_dur r, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
-    ELit (LDate (o_add_dat_dur r x y))
+    ELit (LDate (o_add_dat_dur r (rpos()) x y))
   | Add_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LDuration (o_add_dur_dur x y))
   | Sub_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->

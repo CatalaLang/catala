@@ -423,7 +423,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
         match op with
-        | Map2 | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur | Gte_dur_dur
+        | Map2 | Add_dat_dur _ | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur | Gte_dur_dur
         | Eq_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos pos
         | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->

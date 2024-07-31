@@ -444,13 +444,14 @@ typedef enum catala_date_rounding
 } catala_date_rounding;
 
 CATALA_DATE o_add_dat_dur (catala_date_rounding mode,
-                         CATALA_DATE x1,
-                         CATALA_DURATION x2)
+                           const catala_code_position* pos,
+                           CATALA_DATE x1,
+                           CATALA_DURATION x2)
 {
   /* TODO */
   return catala_new_date(x1->year + x2->years,
-                  x1->month + x2->months,
-                  x1->day + x2->days);
+                         x1->month + x2->months,
+                         x1->day + x2->days);
 }
 
 CATALA_DURATION o_add_dur_dur (CATALA_DURATION x1, CATALA_DURATION x2)

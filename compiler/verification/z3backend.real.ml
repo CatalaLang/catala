@@ -123,8 +123,9 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
 (** Returns the date (as a string) corresponding to nb days after the base day,
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
+  let dummy_pos = { Runtime.filename = ""; start_line = 0; start_column = 0; end_line = 0; end_column = 0; law_headings = [] } in
   Runtime.date_to_string
-    (Runtime.Oper.o_add_dat_dur AbortOnRound base_day
+    (Runtime.Oper.o_add_dat_dur AbortOnRound dummy_pos base_day
        (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model

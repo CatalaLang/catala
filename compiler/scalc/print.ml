@@ -152,11 +152,11 @@ let rec format_statement
   | SReturn ret ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
-      (ret, Mark.get stmt)
-  | SAssert naked_expr ->
+      ret
+  | SAssert expr ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
-      (naked_expr, Mark.get stmt)
+      expr
   | SSwitch { switch_expr = e_switch; enum_name = enum; switch_cases = arms; _ }
     ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in

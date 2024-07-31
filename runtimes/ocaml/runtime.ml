@@ -52,6 +52,7 @@ type error =
   | DivisionByZero
   | NotSameLength
   | UncomparableDurations
+  | AmbiguousDateRounding
   | IndivisibleDurations
 
 let error_to_string = function
@@ -61,6 +62,7 @@ let error_to_string = function
   | DivisionByZero -> "DivisionByZero"
   | NotSameLength -> "NotSameLength"
   | UncomparableDurations -> "UncomparableDurations"
+  | AmbiguousDateRounding -> "AmbiguousDateRounding"
   | IndivisibleDurations -> "IndivisibleDurations"
 
 let error_message = function
@@ -75,6 +77,8 @@ let error_message = function
   | UncomparableDurations ->
     "ambiguous comparison between durations in different units (e.g. months \
      vs. days)"
+  | AmbiguousDateRounding ->
+    "ambiguous date computation, and rounding mode was not specified"
   | IndivisibleDurations -> "dividing durations that are not in days"
 
 exception Error of error * source_position list
@@ -791,7 +795,10 @@ module Oper = struct
   let o_add_int_int i1 i2 = Z.add i1 i2
   let o_add_rat_rat i1 i2 = Q.add i1 i2
   let o_add_mon_mon m1 m2 = Z.add m1 m2
-  let o_add_dat_dur r da du = Dates_calc.Dates.add_dates ~round:r da du
+  let o_add_dat_dur r pos da du =
+    try Dates_calc.Dates.add_dates ~round:r da du
+    with Dates_calc.Dates.AmbiguousComputation ->
+      error AmbiguousDateRounding [pos]
   let o_add_dur_dur = Dates_calc.Dates.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
   let o_sub_rat_rat i1 i2 = Q.sub i1 i2

@@ -285,6 +285,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
   | Log (_entry, _infos) -> assert false
   | FromClosureEnv | ToClosureEnv -> assert false
+  | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
 
 let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
@@ -297,7 +298,7 @@ let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-(* TODO: move this to a shared place *)
+(* TODO: move these to a shared place *)
 let shallow_fold_expr f e acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
@@ -317,6 +318,24 @@ let shallow_fold_expr f e acc =
 
 let rec fold_expr f e acc =
   shallow_fold_expr (fold_expr f) e (f e acc)
+
+(* Folds through direct expr childs, not subblocks *)
+let fold_expr_stmt f st acc = match Mark.remove st with
+  | SInnerFuncDef _ | SLocalDecl _   | SFatalError _ -> acc
+  | SLocalInit { expr; _ } | SLocalDef { expr; _ } | SIfThenElse { if_expr = expr; _ }
+  | SSwitch { switch_expr = expr ; _ }
+  | SReturn expr | SAssert expr -> fold_expr f expr acc
+  | SSpecialOp _ -> .
+
+let fold_expr_block f b acc =
+  List.fold_left (fun acc st -> fold_expr_stmt f st acc) acc b
+
+(* These operators, since they can raise, have an added first argument giving the position of the error if it happens, so they need special treatment *)
+let op_can_raise op =
+  let open Op in
+  match Mark.remove op with
+  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Gte_dur_dur | Gt_dur_dur | Lte_dur_dur | Lt_dur_dur -> true
+  | _ -> false
 
 let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
     unit =
@@ -345,17 +364,6 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
       format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp {
-      op = (HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur), pos as op;
-      args;
-      _ } ->
-    (* Operators that can raise, and take a position as argument *)
-    Format.fprintf fmt "%a(%a,@ %a)"
-      format_op op
-      format_var (Pos.Map.find pos ctx.lifted_pos)
-      (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
-  | EAppOp {
       op = (Reduce | Fold), _ as op;
       args = [fct; base; arr];
       tys = [_; aty; _];
@@ -367,21 +375,35 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
       (format_expression ctx) fct
       (format_expression ctx) base
       (format_expression ctx) arr
-  | EAppOp { op; args = [arg1; arg2]; _ } ->
-    Format.fprintf fmt "%a(%a,@ %a)"
-      format_op op
+  | EAppOp { op = Add_dat_dur rounding, pos; args = [arg1; arg2]; _ } ->
+    Format.fprintf fmt "o_add_dat_dur(%s,@ %a,@ %a,@ %a)"
+      (match rounding with
+       | RoundUp -> "catala_date_round_up"
+       | RoundDown -> "catala_date_round_down"
+       | AbortOnRound ->   "catala_date_round_abort")
+      format_var (Pos.Map.find pos ctx.lifted_pos)
       (format_expression ctx) arg1
       (format_expression ctx) arg2
-  | EAppOp { op; args = [arg1]; _ } ->
-    Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  (* | EAppOp { op; args = [arg1; arg2]; _ } ->
+   *   Format.fprintf fmt "%a(%a,@ %a)"
+   *     format_op op
+   *     (format_expression ctx) arg1
+   *     (format_expression ctx) arg2
+   * | EAppOp { op; args = [arg1]; _ } ->
+   *   Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1 *)
   | EApp { f; args } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
+    Format.fprintf fmt "@[<hov 2>%a@,(@[<hov 0>%a)@]@]" (format_expression ctx) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EAppOp { op; args; _ } ->
-    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
+  | EAppOp { op = _, pos as op; args; _ } ->
+    Format.fprintf fmt "%a(@[<hov 0>%t%a)@]"
+      format_op op
+      (fun ppf ->
+         if op_can_raise op then
+           Format.fprintf ppf "%a,@ "
+             format_var (Pos.Map.find pos ctx.lifted_pos))
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
@@ -389,7 +411,7 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) :
   | ETuple _ -> assert false (* Must be a statement *)
   | ETupleAccess {e1; index=0; typ=TArrow _, _ as typ} ->
     (* Closure function *)
-    Format.fprintf fmt "(%a)%a->funcp"
+    Format.fprintf fmt "@[<hov 1>((%a)@,%a->funcp)@]"
       (format_typ ~const:true ctx.decl_ctx ignore) typ
       (format_expression ctx) e1
   | ETupleAccess {e1; index=1; typ=TClosureEnv, _} ->
@@ -592,14 +614,13 @@ let rec format_statement
   | SSwitch _ -> assert false
   (* switches should have been rewritten to only match on variables *)
   | SReturn e1 ->
-    Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx)
-      (e1, Mark.get s)
+    Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx) e1
   | SAssert e1 ->
     Format.fprintf fmt
       "@,@[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]\
        @,@[<hov 2>catala_error(catala_assertion_failed,@ %a);@]\
        @;<1 -2>}@]" (format_expression ctx)
-      (e1, Mark.get s)
+      e1
       format_var (Pos.Map.find (Mark.get s) ctx.lifted_pos)
   | _ -> .
   (* | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
@@ -683,19 +704,13 @@ let rec format_statement
 
 and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
   let new_pos =
-    List.fold_left (fun pmap -> function
-        | (SAssert _ | SFatalError _), pos ->
-          let v = VarName.fresh ("pos",pos) in
-          Pos.Map.add pos v pmap
-        | (SLocalInit { expr; _} | SLocalDef { expr; _ }), _ ->
-          fold_expr (fun e pmap -> match e with
-              | EAppOp { op = (HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur), pos; _ }, _ ->
-                let v = VarName.fresh ("pos",pos) in
-                Pos.Map.add pos v pmap
-              | _ -> pmap)
-            expr pmap
-        | _ -> pmap)
-      Pos.Map.empty b
+    fold_expr_block
+      (fun e pmap -> match e with
+         | EAppOp { op = _, pos as op; _ }, _ when op_can_raise op ->
+           let v = VarName.fresh ("pos", pos) in
+           Pos.Map.add pos v pmap
+         | _ -> pmap)
+      b Pos.Map.empty
   in
   let new_pos =
     Pos.Map.merge (fun _ v1 v2 -> match v1 with None -> v2 | _ -> None)
@@ -794,7 +809,7 @@ let format_main
        Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
          ScopeName.format name;
        Format.fprintf fmt "@,%a (NULL);" format_func_name var;
-       Format.fprintf fmt "@,printf(\"Scope %a executed successfully.\\n\");"
+       Format.fprintf fmt "@,printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\\n\");"
          ScopeName.format name)
     scopes_with_no_input;
   Format.fprintf fmt "@,return 0;@;<1 -2>}@]"
@@ -849,4 +864,5 @@ let format_program
     p.code_items;
   Format.pp_print_cut fmt ();
   format_main fmt p;
-  Format.pp_close_box fmt ()
+  Format.pp_close_box fmt ();
+  Format.pp_print_newline fmt ()

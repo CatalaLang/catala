@@ -295,7 +295,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     RevBlock.rebuild
-      ~tail:[A.SAssert (Mark.remove new_e), Expr.pos block_expr]
+      ~tail:[A.SAssert new_e, Expr.pos block_expr]
       e_stmts
   | EFatalError err -> [SFatalError err, Expr.pos block_expr]
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
@@ -599,7 +599,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let tail =
       [
         ( (match ctxt.inside_definition_of with
-              | None -> A.SReturn (Mark.remove new_e)
+              | None -> A.SReturn new_e
               | Some x ->
                 A.SLocalDef
                   {
@@ -633,7 +633,7 @@ let rec translate_scope_body_expr
   match scope_expr with
   | Last e ->
     let block, new_e = translate_expr ctx e in
-    RevBlock.rebuild block ~tail:[A.SReturn (Mark.remove new_e), Mark.get new_e]
+    RevBlock.rebuild block ~tail:[A.SReturn new_e, Mark.get new_e]
   | Cons (scope_let, next_bnd) -> (
     let let_var, scope_let_next = Bindlib.unbind next_bnd in
     let let_var_id =
@@ -758,7 +758,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           in
           let body_block =
             RevBlock.rebuild block
-              ~tail:[A.SReturn (Mark.remove expr), Mark.get expr]
+              ~tail:[A.SReturn expr, Mark.get expr]
           in
           ( Var.Map.add var func_id func_dict,
             var_dict,
@@ -819,7 +819,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                          A.func_params = [];
                          A.func_body =
                            RevBlock.rebuild block
-                             ~tail:[A.SReturn (Mark.remove expr), Mark.get expr];
+                             ~tail:[A.SReturn expr, Mark.get expr];
                          A.func_return_typ = topdef_ty;
                        };
                    }

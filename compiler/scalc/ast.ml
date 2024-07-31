@@ -73,8 +73,8 @@ type stmt =
       enum_name : EnumName.t;
       switch_cases : switch_case list;
     }
-  | SReturn of naked_expr
-  | SAssert of naked_expr
+  | SReturn of expr
+  | SAssert of expr
   | SSpecialOp of special_operator
 
 and special_operator =
