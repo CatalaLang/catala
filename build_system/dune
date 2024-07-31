@@ -1,16 +1,23 @@
 (library
+ (name clerk_config)
+ (public_name catala.clerk_config)
+ (libraries catala.catala_utils otoml)
+ (modules clerk_config))
+
+(library
  (name clerk_driver)
  (public_name catala.clerk_driver)
  (libraries
   catala.runtime_ocaml
   catala.catala_utils
   catala.surface
+  catala.clerk_config
   ninja_utils
   cmdliner
   re
   ocolor
   otoml)
- (modules clerk_scan clerk_report clerk_runtest clerk_config clerk_driver))
+ (modules clerk_scan clerk_report clerk_runtest clerk_driver))
 
 (rule
  (target custom_linking.sexp)

@@ -275,10 +275,10 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let emit ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+  let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+    let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
     | Global.Human -> (
-      let ppf = get_ppf target in
       match target with
       | Debug | Log -> basic_msg ~pp_marker ppf target content
       | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
@@ -288,7 +288,6 @@ module Content = struct
          message everywhere there is not a more precise message. If we can't
          find a position without a more precise message, we just take the first
          position in the list to pair with the message. *)
-      let ppf = get_ppf target in
       Format.pp_print_list ~pp_sep:Format.pp_print_newline
         (fun ppf elt ->
           let pos, message =
@@ -327,10 +326,10 @@ module Content = struct
         ppf content;
       Format.pp_print_newline ppf ()
 
-  let emit_n (target : level) = function
+  let emit_n ?ppf (target : level) = function
     | [content] -> emit content target
     | contents ->
-      let ppf = get_ppf target in
+      let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
         (fun i c ->
@@ -340,7 +339,7 @@ module Content = struct
           emit ~pp_marker c target)
         contents
 
-  let emit (content : t) (target : level) = emit content target
+  let emit ?ppf (content : t) (target : level) = emit ?ppf content target
 end
 
 open Content
@@ -349,6 +348,18 @@ open Content
 
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
+
+type lsp_error_kind = Lexing | Parsing | Typing | Generic
+
+type lsp_error = {
+  kind : lsp_error_kind;
+  message : Format.formatter -> unit;
+  pos : Pos.t option;
+  suggestion : string list option;
+}
+
+let global_error_hook = ref None
+let register_lsp_error_notifier f = global_error_hook := Some f
 
 (** {1 Error printing} *)
 
@@ -425,7 +436,18 @@ let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
-let error = make ~level:Error ~cont:(fun m _ -> raise (CompilerError m))
+
+let error ?(kind = Generic) : ('a, 'exn) emitter =
+ fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
+     fmt ->
+  make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
+    fmt ~level:Error ~cont:(fun m _ ->
+      Option.iter
+        (fun f ->
+          let message ppf = Content.emit ~ppf m Error in
+          f { kind; message; pos; suggestion })
+        !global_error_hook;
+      raise (CompilerError m))
 
 (* Multiple errors handling *)
 
@@ -436,8 +458,16 @@ type global_errors = {
 
 let global_errors = { errors = None; stop_on_error = false }
 
-let delayed_error x =
-  make ~level:Error ~cont:(fun m _ ->
+let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
+ fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
+     fmt ->
+  make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
+    fmt ~level:Error ~cont:(fun m _ ->
+      Option.iter
+        (fun f ->
+          let message ppf = Content.emit ~ppf m Error in
+          f { kind; message; pos; suggestion })
+        !global_error_hook;
       if global_errors.stop_on_error then raise (CompilerError m);
       match global_errors.errors with
       | None ->
@@ -458,15 +488,19 @@ let with_delayed_errors
       "delayed error called outside scope: encapsulate using \
        'with_delayed_errors' first");
   global_errors.stop_on_error <- stop_on_error;
-  let r = f () in
-  match global_errors.errors with
-  | None -> error ~internal:true "intertwined delayed error scope"
-  | Some [] ->
+  try
+    let r = f () in
+    match global_errors.errors with
+    | None -> error ~internal:true "intertwined delayed error scope"
+    | Some [] ->
+      global_errors.errors <- None;
+      r
+    | Some [err] ->
+      global_errors.errors <- None;
+      raise (CompilerError err)
+    | Some errs ->
+      global_errors.errors <- None;
+      raise (CompilerErrors (List.rev errs))
+  with e ->
     global_errors.errors <- None;
-    r
-  | Some [err] ->
-    global_errors.errors <- None;
-    raise (CompilerError err)
-  | Some errs ->
-    global_errors.errors <- None;
-    raise (CompilerErrors (List.rev errs))
+    raise e

@@ -54,8 +54,8 @@ module Content : sig
 
   (** {2 Content emission}*)
 
-  val emit : t -> level -> unit
-  val emit_n : level -> t list -> unit
+  val emit_n : ?ppf:Format.formatter -> level -> t list -> unit
+  val emit : ?ppf:Format.formatter -> t -> level -> unit
 end
 
 (** This functions emits the message according to the emission type defined by
@@ -65,6 +65,17 @@ end
 
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
+
+type lsp_error_kind = Lexing | Parsing | Typing | Generic
+
+type lsp_error = {
+  kind : lsp_error_kind;
+  message : Content.message;
+  pos : Pos.t option;
+  suggestion : string list option;
+}
+
+val register_lsp_error_notifier : (lsp_error -> unit) -> unit
 
 (** {1 Some formatting helpers}*)
 
@@ -105,7 +116,7 @@ val log : ('a, unit) emitter
 val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
-val error : ('a, 'exn) emitter
+val error : ?kind:lsp_error_kind -> ('a, 'exn) emitter
 val results : Content.message list -> unit
 
 (** Multiple errors *)
@@ -119,4 +130,4 @@ val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
     @raise CompilerError
       on the first error encountered when the [stop_on_error] flag is set. *)
 
-val delayed_error : 'b -> ('a, 'b) emitter
+val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter
