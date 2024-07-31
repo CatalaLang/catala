@@ -31,7 +31,7 @@ depends: [
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
   "re" {>= "1.10"}
-  "sedlex" {>= "3.1"}
+  "sedlex" {>= "3.2"}
   "uutf" {>= "1.0.3"}
   "ubase" {>= "0.05"}
   "unionFind" {>= "20220109"}
