@@ -35,7 +35,6 @@ module To_json = struct
       Format.asprintf "%a" StructField.format v
       |> String.to_ascii
       |> String.to_snake_case
-      |> avoid_keywords
       |> to_camel_case
     in
     Format.fprintf fmt "%s" s

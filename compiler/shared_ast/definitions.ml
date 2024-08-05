@@ -645,7 +645,12 @@ type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
   | Topdef of TopdefName.t * typ * 'e
 
-type 'e code_item_list = ('e, 'e code_item, unit) bound_list
+type 'e code_item_list = ('e, 'e code_item, 'naked_e list) bound_list
+  constraint 'e = ('naked_e, _) Mark.ed
+(* The bound_list terminator is a naked expression list that is not part of the
+   program: it contains the list of exported variables, so that Bindlib
+   correctly understands these variables as being used *)
+
 type struct_ctx = typ StructField.Map.t StructName.Map.t
 type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
 

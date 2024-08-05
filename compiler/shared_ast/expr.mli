@@ -393,16 +393,52 @@ val remove_logging_calls :
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
-val rename_vars :
-  ?exclude:string list ->
-  ?reset_context_for_closed_terms:bool ->
-  ?skip_constant_binders:bool ->
-  ?constant_binder_name:string option ->
-  ('a, 'm) gexpr ->
-  ('a, 'm) boxed_gexpr
-(** Disambiguates all variable names in [e]. [exclude] will blacklist the given
-    names (useful for keywords or built-in names) ; the other flags behave as
-    defined in the bindlib documentation for module type [Rename] *)
+(** {2 Renamings and formatting} *)
+
+module Renaming : sig
+  type config = {
+    reserved : string list;  (** Use for keywords and built-ins *)
+    reset_context_for_closed_terms : bool;  (** See [Bindlib.Rename] *)
+    skip_constant_binders : bool;  (** See [Bindlib.Rename] *)
+    constant_binder_name : string option;  (** See [Bindlib.Rename] *)
+  }
+
+  type context
+
+  val get_ctx : config -> context
+
+  val unbind_in :
+    context ->
+    ?fname:(string -> string) ->
+    ('e, 'b) Bindlib.binder ->
+    ('e, _) Mark.ed Var.t * 'b * context
+  (* [fname] applies a transformation on the variable name (typically something
+     like [String.to_snake_case]). The result is advisory and a numerical suffix
+     may be appended or modified *)
+
+  val new_id : context -> string -> string * context
+
+  val set_rewriters :
+    ?scopes:(ScopeName.t -> ScopeName.t) ->
+    ?topdefs:(TopdefName.t -> TopdefName.t) ->
+    ?structs:(StructName.t -> StructName.t) ->
+    ?fields:(StructField.t -> StructField.t) ->
+    ?enums:(EnumName.t -> EnumName.t) ->
+    ?constrs:(EnumConstructor.t -> EnumConstructor.t) ->
+    context ->
+    context
+
+  val typ : context -> typ -> typ
+
+  val expr : context -> ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
+  (** Disambiguates all variable names in [e], and renames structs, fields,
+      enums and constrs according to the given context configuration *)
+
+  val scope_name : context -> ScopeName.t -> ScopeName.t
+  val topdef_name : context -> TopdefName.t -> TopdefName.t
+  val struct_name : context -> StructName.t -> StructName.t
+  val enum_name : context -> EnumName.t -> EnumName.t
+end
 
 val format : Format.formatter -> ('a, 'm) gexpr -> unit
 (** Simple printing without debug, use [Print.expr ()] instead to follow the
@@ -495,9 +531,6 @@ module Box : sig
     ('a, 'm) naked_gexpr) ->
     'm mark ->
     ('a, 'm) boxed_gexpr
-
-  val fv : 'b Bindlib.box -> string list
-  (** [fv] return the list of free variables from a boxed term. *)
 
   val assert_closed : 'b Bindlib.box -> unit
   (** [assert_closed b] check there is no free variables in then [b] boxed term.

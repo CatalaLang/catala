@@ -631,7 +631,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       (Program.modules_to_list p.decl_ctx.ctx_modules)
   in
   let ctx = { A.decl_ctx = p.decl_ctx; A.modules } in
-  let (_, _, rev_items), () =
+  let (_, _, rev_items), _vlist =
     BoundList.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
         match code_item with

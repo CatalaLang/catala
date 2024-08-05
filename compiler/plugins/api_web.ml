@@ -31,7 +31,6 @@ module To_jsoo = struct
     StructField.to_string v
     |> String.to_camel_case
     |> String.uncapitalize_ascii
-    |> avoid_keywords
     |> Format.pp_print_string ppf
 
   (* Supersedes [To_ocaml.format_struct_name], which can refer to enums from
@@ -40,7 +39,6 @@ module To_jsoo = struct
     StructName.to_string name
     |> String.map (function '.' -> '_' | c -> c)
     |> String.to_snake_case
-    |> avoid_keywords
     |> Format.pp_print_string ppf
 
   (* Supersedes [To_ocaml.format_enum_name], which can refer to enums from other
@@ -49,7 +47,6 @@ module To_jsoo = struct
     EnumName.to_string name
     |> String.map (function '.' -> '_' | c -> c)
     |> String.to_snake_case
-    |> avoid_keywords
     |> Format.pp_print_string ppf
 
   let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
@@ -160,7 +157,6 @@ module To_jsoo = struct
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
              "_dot_")
       |> String.uncapitalize_ascii
-      |> avoid_keywords
     in
     if
       List.mem lowercase_name ["handle_default"; "handle_default_opt"]
@@ -388,41 +384,43 @@ module To_jsoo = struct
       (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) =
-    BoundList.iter
-      ~f:(fun var code_item ->
-        match code_item with
-        | Topdef _ -> ()
-        | ScopeDef (_name, body) ->
-          let fmt_fun_call fmt _ =
-            Format.fprintf fmt
-              "@[<hv>@[<hv 2>execute_or_throw_error@ (@[<hv 2>fun () ->@ %a@ \
-               |> %a_of_js@ |> %a@ |> %a_to_js@])@]@]"
-              fmt_input_struct_name body fmt_input_struct_name body format_var
-              var fmt_output_struct_name body
-          in
-          Format.fprintf fmt
-            "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n"
-            format_var var fmt_input_struct_name body fmt_input_struct_name body
-            fmt_output_struct_name body fmt_fun_call ())
-      scopes
+    ignore
+    @@ BoundList.iter
+         ~f:(fun var code_item ->
+           match code_item with
+           | Topdef _ -> ()
+           | ScopeDef (_name, body) ->
+             let fmt_fun_call fmt _ =
+               Format.fprintf fmt
+                 "@[<hv>@[<hv 2>execute_or_throw_error@ (@[<hv 2>fun () ->@ \
+                  %a@ |> %a_of_js@ |> %a@ |> %a_to_js@])@]@]"
+                 fmt_input_struct_name body fmt_input_struct_name body
+                 format_var var fmt_output_struct_name body
+             in
+             Format.fprintf fmt
+               "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n"
+               format_var var fmt_input_struct_name body fmt_input_struct_name
+               body fmt_output_struct_name body fmt_fun_call ())
+         scopes
 
   let format_scopes_to_callbacks
       (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) : unit =
-    BoundList.iter
-      ~f:(fun var code_item ->
-        match code_item with
-        | Topdef _ -> ()
-        | ScopeDef (_name, body) ->
-          let fmt_meth_name fmt _ =
-            Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
-              format_var_camel_case var fmt_input_struct_name body
-              fmt_output_struct_name body
-          in
-          Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,"
-            fmt_meth_name () format_var var)
-      scopes
+    ignore
+    @@ BoundList.iter
+         ~f:(fun var code_item ->
+           match code_item with
+           | Topdef _ -> ()
+           | ScopeDef (_name, body) ->
+             let fmt_meth_name fmt _ =
+               Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
+                 format_var_camel_case var fmt_input_struct_name body
+                 fmt_output_struct_name body
+             in
+             Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,"
+               fmt_meth_name () format_var var)
+         scopes
 
   let format_program
       (fmt : Format.formatter)

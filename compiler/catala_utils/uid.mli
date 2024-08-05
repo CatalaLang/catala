@@ -103,6 +103,7 @@ module Gen_qualified (_ : Style) () : sig
   val fresh : Path.t -> MarkedString.info -> t
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
+
   val hash : strip:Path.t -> t -> Hash.t
-  (* [strip] strips that prefix from the start of the path before hashing *)
+  (** [strip] strips that prefix from the start of the path before hashing *)
 end

@@ -72,39 +72,26 @@ module Box = struct
 
   let lift_scope_vars = LiftScopeVars.lift_box
 
-  module Ren = struct
-    module Set = Set.Make (String)
-
-    type ctxt = Set.t
-
-    let skip_constant_binders = true
-    let reset_context_for_closed_terms = true
-    let constant_binder_name = None
-    let empty_ctxt = Set.empty
-    let reserve_name n s = Set.add n s
-    let new_name n s = n, Set.add n s
-  end
-
-  module Ctx = Bindlib.Ctxt (Ren)
-
-  let fv b = Ren.Set.elements (Ctx.free_vars b)
-
   let assert_closed b =
-    match fv b with
-    | [] -> ()
-    | [h] ->
+    if not (Bindlib.is_closed b) then
+      (* This is a bit convoluted, but we just want to extract the free
+         variables names for debug *)
+      let module Ctx = Bindlib.Ctxt (struct
+        type ctxt = String.Set.t
+
+        let skip_constant_binders = true
+        let reset_context_for_closed_terms = true
+        let constant_binder_name = None
+        let empty_ctxt = String.Set.empty
+        let reserve_name n s = String.Set.add n s
+        let new_name n s = n, String.Set.add n s
+      end) in
       Message.error ~internal:true
-        "The boxed term is not closed the variable %s is free in the global \
-         context"
-        h
-    | l ->
-      Message.error ~internal:true
-        "The boxed term is not closed the variables %a is free in the global \
-         context"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+        "The boxed term is not closed, these variables are free in it:@ \
+         @[<hov>%a@]"
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
            Format.pp_print_string)
-        l
+        (String.Set.elements (Ctx.free_vars b))
 end
 
 let bind vars e = Bindlib.bind_mvar vars (Box.lift e)
@@ -828,84 +815,194 @@ let remove_logging_calls e =
   in
   f e
 
-module DefaultBindlibCtxRename = struct
-  (* This code is a copy-paste from Bindlib, they forgot to expose the default
-     implementation ! *)
-  type ctxt = int String.Map.t
+module Renaming = struct
+  module DefaultBindlibCtxRename : Bindlib.Renaming = struct
+    (* This code is a copy-paste from Bindlib, they forgot to expose the default
+       implementation ! *)
+    type ctxt = int String.Map.t
 
-  let empty_ctxt = String.Map.empty
+    let empty_ctxt = String.Map.empty
 
-  let split_name : string -> string * int =
-   fun name ->
-    let len = String.length name in
-    (* [i] is the index of the first first character of the suffix. *)
-    let i =
-      let is_digit c = '0' <= c && c <= '9' in
-      let first_digit = ref len in
-      let first_non_0 = ref len in
-      while !first_digit > 0 && is_digit name.[!first_digit - 1] do
-        decr first_digit;
-        if name.[!first_digit] <> '0' then first_non_0 := !first_digit
-      done;
-      !first_non_0
+    let split_name : string -> string * int =
+     fun name ->
+      let len = String.length name in
+      (* [i] is the index of the first first character of the suffix. *)
+      let i =
+        let is_digit c = '0' <= c && c <= '9' in
+        let first_digit = ref len in
+        let first_non_0 = ref len in
+        while !first_digit > 0 && is_digit name.[!first_digit - 1] do
+          decr first_digit;
+          if name.[!first_digit] <> '0' then first_non_0 := !first_digit
+        done;
+        !first_non_0
+      in
+      if i = len then name, 0
+      else String.sub name 0 i, int_of_string (String.sub name i (len - i))
+
+    let get_suffix : string -> int -> ctxt -> int * ctxt =
+     fun name suffix ctxt ->
+      let n =
+        try String.Map.find name ctxt with String.Map.Not_found _ -> -1
+      in
+      let suffix = if suffix > n then suffix else n + 1 in
+      suffix, String.Map.add name suffix ctxt
+
+    let merge_name : string -> int -> string =
+     fun prefix suffix ->
+      if suffix > 0 then prefix ^ string_of_int suffix else prefix
+
+    let new_name : string -> ctxt -> string * ctxt =
+     fun name ctxt ->
+      let prefix, suffix = split_name name in
+      let suffix, ctxt = get_suffix prefix suffix ctxt in
+      merge_name prefix suffix, ctxt
+
+    let reserve_name : string -> ctxt -> ctxt =
+     fun name ctxt ->
+      let prefix, suffix = split_name name in
+      try
+        let n = String.Map.find prefix ctxt in
+        if suffix <= n then ctxt else String.Map.add prefix suffix ctxt
+      with String.Map.Not_found _ -> String.Map.add prefix suffix ctxt
+
+    let reset_context_for_closed_terms = false
+    let skip_constant_binders = false
+    let constant_binder_name = None
+  end
+
+  module type BindlibCtxt = module type of Bindlib.Ctxt (DefaultBindlibCtxRename)
+
+  type config = {
+    reserved : string list;
+    reset_context_for_closed_terms : bool;
+    skip_constant_binders : bool;
+    constant_binder_name : string option;
+  }
+
+  type context = {
+    bindCtx : (module BindlibCtxt);
+    bcontext : DefaultBindlibCtxRename.ctxt;
+    scopes : ScopeName.t -> ScopeName.t;
+    topdefs : TopdefName.t -> TopdefName.t;
+    structs : StructName.t -> StructName.t;
+    fields : StructField.t -> StructField.t;
+    enums : EnumName.t -> EnumName.t;
+    constrs : EnumConstructor.t -> EnumConstructor.t;
+  }
+
+  let unbind_in ctx ?fname b =
+    let module BindCtx = (val ctx.bindCtx) in
+    match fname with
+    | Some fn ->
+      let name = fn (Bindlib.binder_name b) in
+      let v, bcontext =
+        BindCtx.new_var_in ctx.bcontext (fun v -> EVar v) name
+      in
+      let e = Bindlib.subst b (EVar v) in
+      v, e, { ctx with bcontext }
+    | None ->
+      let v, e, bcontext = BindCtx.unbind_in ctx.bcontext b in
+      v, e, { ctx with bcontext }
+
+  let unmbind_in ctx ?fname b =
+    let module BindCtx = (val ctx.bindCtx) in
+    match fname with
+    | Some fn ->
+      let names = Array.map fn (Bindlib.mbinder_names b) in
+      let rvs, bcontext =
+        Array.fold_left
+          (fun (rvs, bcontext) n ->
+            let v, bcontext = BindCtx.new_var_in bcontext (fun v -> EVar v) n in
+            v :: rvs, bcontext)
+          ([], ctx.bcontext) names
+      in
+      let vs = Array.of_list (List.rev rvs) in
+      let e = Bindlib.msubst b (Array.map (fun v -> EVar v) vs) in
+      vs, e, { ctx with bcontext }
+    | None ->
+      let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
+      vs, e, { ctx with bcontext }
+
+  let set_rewriters ?scopes ?topdefs ?structs ?fields ?enums ?constrs ctx =
+    (fun ?(scopes = ctx.scopes) ?(topdefs = ctx.topdefs)
+         ?(structs = ctx.structs) ?(fields = ctx.fields) ?(enums = ctx.enums)
+         ?(constrs = ctx.constrs) () ->
+      { ctx with scopes; topdefs; structs; fields; enums; constrs })
+      ?scopes ?topdefs ?structs ?fields ?enums ?constrs ()
+
+  let new_id ctx name =
+    let module BindCtx = (val ctx.bindCtx) in
+    let var, bcontext =
+      BindCtx.new_var_in ctx.bcontext (fun _ -> assert false) name
     in
-    if i = len then name, 0
-    else String.sub name 0 i, int_of_string (String.sub name i (len - i))
+    Bindlib.name_of var, { ctx with bcontext }
 
-  let get_suffix : string -> int -> ctxt -> int * ctxt =
-   fun name suffix ctxt ->
-    let n = try String.Map.find name ctxt with String.Map.Not_found _ -> -1 in
-    let suffix = if suffix > n then suffix else n + 1 in
-    suffix, String.Map.add name suffix ctxt
+  let get_ctx cfg =
+    let module BindCtx = Bindlib.Ctxt (struct
+      include DefaultBindlibCtxRename
 
-  let merge_name : string -> int -> string =
-   fun prefix suffix ->
-    if suffix > 0 then prefix ^ string_of_int suffix else prefix
+      let reset_context_for_closed_terms = cfg.reset_context_for_closed_terms
+      let skip_constant_binders = cfg.skip_constant_binders
+      let constant_binder_name = cfg.constant_binder_name
+    end) in
+    {
+      bindCtx = (module BindCtx);
+      bcontext =
+        List.fold_left
+          (fun ctx name -> DefaultBindlibCtxRename.reserve_name name ctx)
+          BindCtx.empty_ctxt cfg.reserved;
+      scopes = Fun.id;
+      topdefs = Fun.id;
+      structs = Fun.id;
+      fields = Fun.id;
+      enums = Fun.id;
+      constrs = Fun.id;
+    }
 
-  let new_name : string -> ctxt -> string * ctxt =
-   fun name ctxt ->
-    let prefix, suffix = split_name name in
-    let suffix, ctxt = get_suffix prefix suffix ctxt in
-    merge_name prefix suffix, ctxt
+  let rec typ ctx = function
+    | TStruct n, m -> TStruct (ctx.structs n), m
+    | TEnum n, m -> TEnum (ctx.enums n), m
+    | ty -> Type.map (typ ctx) ty
 
-  let reserve_name : string -> ctxt -> ctxt =
-   fun name ctxt ->
-    let prefix, suffix = split_name name in
-    try
-      let n = String.Map.find prefix ctxt in
-      if suffix <= n then ctxt else String.Map.add prefix suffix ctxt
-    with String.Map.Not_found _ -> String.Map.add prefix suffix ctxt
-end
-
-let rename_vars
-    ?(exclude = ([] : string list))
-    ?(reset_context_for_closed_terms = false)
-    ?(skip_constant_binders = false)
-    ?(constant_binder_name = None)
-    e =
-  let module BindCtx = Bindlib.Ctxt (struct
-    include DefaultBindlibCtxRename
-
-    let reset_context_for_closed_terms = reset_context_for_closed_terms
-    let skip_constant_binders = skip_constant_binders
-    let constant_binder_name = constant_binder_name
-  end) in
-  let rec aux : type a. BindCtx.ctxt -> (a, 't) gexpr -> (a, 't) gexpr boxed =
-   fun ctx e ->
-    match e with
+  let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
+   fun ctx -> function
+    | EExternal { name = External_scope s, pos }, m ->
+      eexternal ~name:(External_scope (ctx.scopes s), pos) m
+    | EExternal { name = External_value d, pos }, m ->
+      eexternal ~name:(External_value (ctx.topdefs d), pos) m
     | EAbs { binder; tys }, m ->
-      let vars, body, ctx = BindCtx.unmbind_in ctx binder in
-      let body = aux ctx body in
+      let vars, body, ctx = unmbind_in ctx ~fname:String.to_snake_case binder in
+      let body = expr ctx body in
       let binder = bind vars body in
-      eabs binder tys m
-    | e -> map ~f:(aux ctx) ~op:Fun.id e
-  in
-  let ctx =
-    List.fold_left
-      (fun ctx name -> DefaultBindlibCtxRename.reserve_name name ctx)
-      BindCtx.empty_ctxt exclude
-  in
-  aux ctx e
+      eabs binder (List.map (typ ctx) tys) m
+    | EStruct { name; fields }, m ->
+      estruct ~name:(ctx.structs name)
+        ~fields:
+          (StructField.Map.fold
+             (fun fld e -> StructField.Map.add (ctx.fields fld) (expr ctx e))
+             fields StructField.Map.empty)
+        m
+    | EStructAccess { name; field; e }, m ->
+      estructaccess ~name:(ctx.structs name) ~field:(ctx.fields field)
+        ~e:(expr ctx e) m
+    | EInj { name; e; cons }, m ->
+      einj ~name:(ctx.enums name) ~cons:(ctx.constrs cons) ~e:(expr ctx e) m
+    | EMatch { name; e; cases }, m ->
+      ematch ~name:(ctx.enums name)
+        ~cases:
+          (EnumConstructor.Map.fold
+             (fun cons e ->
+               EnumConstructor.Map.add (ctx.constrs cons) (expr ctx e))
+             cases EnumConstructor.Map.empty)
+        ~e:(expr ctx e) m
+    | e -> map ~typ:(typ ctx) ~f:(expr ctx) ~op:Fun.id e
+
+  let scope_name ctx s = ctx.scopes s
+  let topdef_name ctx s = ctx.topdefs s
+  let struct_name ctx s = ctx.structs s
+  let enum_name ctx e = ctx.enums e
+end
 
 let format ppf e = Print.expr ~debug:false () ppf e
 
