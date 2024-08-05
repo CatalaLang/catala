@@ -19,7 +19,6 @@ open Shared_ast
 
 (** Formats a lambda calculus program into a valid OCaml program *)
 
-val avoid_keywords : string -> string
 val typ_needs_parens : typ -> bool
 
 (* val needs_parens : 'm expr -> bool *)
