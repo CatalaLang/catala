@@ -6,7 +6,7 @@
 
   outputs = {nixpkgs, flake-utils, ...}:
     let
-      systems = [ "x86_64-linux" ];
+      systems = nixpkgs.lib.systems.flakeExposed;
     in flake-utils.lib.eachSystem systems (system:
       let
         pkgs = import nixpkgs { inherit system; };
