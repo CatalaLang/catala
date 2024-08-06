@@ -1128,6 +1128,9 @@ let main () =
     if Catala_utils.Global.options.debug then
       Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
+  | Message.CompilerErrors contents ->
+    List.iter (fun c -> Message.Content.emit c Error) contents;
+    exit Cmd.Exit.some_error
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit
