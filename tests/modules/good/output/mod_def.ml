@@ -19,13 +19,13 @@ module Str1 = struct
   type t = {fld1: Enum1.t; fld2: integer}
 end
 
-module SIn = struct
+module S_in = struct
   type t = unit
 end
 
 
-let s (s_in: SIn.t) : S.t =
-  let sr1: money =
+let s (s_in: S_in.t) : S.t =
+  let sr: money =
     match
       (match
          (handle_exceptions
@@ -56,7 +56,7 @@ let s (s_in: SIn.t) : S.t =
                                                  end_line=16; end_column=12;
                                                  law_headings=["Test modules + inclusions 1"]}])))
     | Eoption.ESome arg -> arg in
-  let e2: Enum1.t =
+  let e1: Enum1.t =
     match
       (match
          (handle_exceptions
@@ -86,7 +86,7 @@ let s (s_in: SIn.t) : S.t =
                                                  end_line=17; end_column=12;
                                                  law_headings=["Test modules + inclusions 1"]}])))
     | Eoption.ESome arg -> arg in
-  {S.sr = sr1; S.e1 = e2}
+  {S.sr = sr; S.e1 = e1}
 
 let half : integer -> decimal =
   fun (x: integer) ->

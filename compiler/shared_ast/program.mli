@@ -62,12 +62,26 @@ val rename_ids :
   reset_context_for_closed_terms:bool ->
   skip_constant_binders:bool ->
   constant_binder_name:string option ->
+  namespaced_fields_constrs:bool ->
+  ?f_var:(string -> string) ->
+  ?f_struct:(string -> string) ->
+  ?f_field:(string -> string) ->
+  ?f_enum:(string -> string) ->
+  ?f_constr:(string -> string) ->
   ('a, 't) gexpr program ->
   ('a, 't) gexpr program * Expr.Renaming.context
 (** Renames all idents (variables, types, struct and enum names, fields and
     constructors) to dispel ambiguities in the target language. Names in
     [reserved], typically keywords and built-ins, will be avoided ; the meaning
-    of the flags is described in [Bindlib.Renaming].
+    of the following three flags is described in [Bindlib.Renaming].
+
+    if [namespaced_fields_constrs] is true, then struct fields and enum
+    constructors can reuse names from other fields/constructors or other idents.
+
+    The [f_*] optional arguments sanitize the different kinds of ids. The
+    default is what is used for OCaml: project to ASCII, capitalise structs,
+    enums (both modules in the backend) and constructors, lowercase fields, and
+    rewrite variables to snake case.
 
     In the returned program, it is safe to directly use `Bindlib.name_of` on
     variables for printing. The same is true for `StructName.get_info` etc. *)
