@@ -293,6 +293,10 @@ let map
   | ELit l -> elit l m
   | EApp { f = e1; args; tys } ->
     eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
+  | EAppOp { op = Op.Log (VarDef vd, infos), pos; tys; args } ->
+    let log_typ = Mark.remove (typ (Mark.add Pos.no_pos vd.log_typ)) in
+    let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
+    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op; tys; args } ->
     eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
