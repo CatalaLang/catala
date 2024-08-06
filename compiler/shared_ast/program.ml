@@ -122,6 +122,10 @@ let rename_ids
   let module PathMap = Map.Make (Uid.Path) in
   let pctxmap = PathMap.singleton [] ctx in
   let pctxmap, structs_map, fields_map, ctx_structs =
+    (* Warning: the folding order matters here, if a module contains e.g. two
+       fields with the same name. This fold relies on UIDs, and is thus
+       dependent on the definition order. Another possibility would be to fold
+       lexicographically, but the result would be "less intuitive" *)
     StructName.Map.fold
       (fun name fields (pctxmap, structs_map, fields_map, ctx_structs) ->
         let path = StructName.path name in
