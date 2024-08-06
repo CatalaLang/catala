@@ -45,20 +45,20 @@ module S = struct
   type t = {a: bool}
 end
 
-module SIn = struct
+module S_in = struct
   type t = {a_in: unit -> (bool) Eoption.t}
 end
 
 
-let s (s_in: SIn.t) : S.t =
-  let a1: unit -> (bool) Eoption.t = s_in.SIn.a_in in
-  let a2: bool =
+let s (s_in: S_in.t) : S.t =
+  let a: unit -> (bool) Eoption.t = s_in.S_in.a_in in
+  let a1: bool =
     match
       (match
          (handle_exceptions
             [|{filename="tests/name_resolution/good/let_in2.catala_en";
                start_line=7; start_column=18; end_line=7; end_column=19;
-               law_headings=["Article"]}|] ([|(a1 ())|]))
+               law_headings=["Article"]}|] ([|(a ())|]))
        with
        | Eoption.ENone _ ->
            ( if true then
@@ -79,11 +79,11 @@ let s (s_in: SIn.t) : S.t =
                               with
                               | Eoption.ENone _1 ->
                                   ( if true then
-                                     (Eoption.ESome (let a2 : bool = false
+                                     (Eoption.ESome (let a1 : bool = false
                                         in
-                                        (let a3 : bool = (o_or a2 true)
+                                        (let a2 : bool = (o_or a1 true)
                                         in
-                                        a3))) else (Eoption.ENone ()))
+                                        a2))) else (Eoption.ENone ()))
                               | Eoption.ESome x -> (Eoption.ESome x))|]))
                      with
                      | Eoption.ENone _1 ->
@@ -106,7 +106,7 @@ let s (s_in: SIn.t) : S.t =
                                                  end_line=7; end_column=19;
                                                  law_headings=["Article"]}])))
     | Eoption.ESome arg -> arg in
-  {S.a = a2}
+  {S.a = a1}
 
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"

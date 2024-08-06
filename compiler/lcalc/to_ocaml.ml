@@ -735,7 +735,7 @@ let format_program
       ~reserved:ocaml_keywords
         (* TODO: add catala runtime built-ins as reserved as well ? *)
       ~reset_context_for_closed_terms:true ~skip_constant_binders:true
-      ~constant_binder_name:(Some "_")
+      ~constant_binder_name:(Some "_") ~namespaced_fields_constrs:true
   in
   let type_ordering =
     let open Scopelang.Dependency.TVertex in

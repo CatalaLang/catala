@@ -97,19 +97,28 @@ let modules_to_list (mt : module_tree) =
   in
   List.rev (aux [] mt)
 
-(* Todo? - add handling for specific naming constraints (automatically convert
-   to camel/snake-case, etc.) - register module names as reserved names *)
+let cap s = String.to_ascii s |> String.capitalize_ascii
+let uncap s = String.to_ascii s |> String.uncapitalize_ascii
+
+(* Todo? - handle separate namespaces ? (e.g. allow a field and var to have the
+   same name for backends that support it) - register module names as reserved
+   names *)
 let rename_ids
     ~reserved
     ~reset_context_for_closed_terms
     ~skip_constant_binders
     ~constant_binder_name
+    ~namespaced_fields_constrs
+    ?(f_var = String.to_snake_case)
+    ?(f_struct = cap)
+    ?(f_field = uncap)
+    ?(f_enum = cap)
+    ?(f_constr = cap)
     p =
-  let cap s = String.to_camel_case s in
-  let uncap s = String.to_snake_case s in
   let cfg =
     {
       Expr.Renaming.reserved;
+      sanitize_varname = f_var;
       reset_context_for_closed_terms;
       skip_constant_binders;
       constant_binder_name;
@@ -119,6 +128,7 @@ let rename_ids
   (* Each module needs its separate ctx since resolution is qualified ; and name
      resolution in a given module must be processed consistently independently
      on the current context. *)
+  let ctx0 = ctx in
   let module PathMap = Map.Make (Uid.Path) in
   let pctxmap = PathMap.singleton [] ctx in
   let pctxmap, structs_map, fields_map, ctx_structs =
@@ -134,20 +144,23 @@ let rename_ids
           try pctxmap, PathMap.find path pctxmap
           with PathMap.Not_found _ -> PathMap.add path ctx pctxmap, ctx
         in
-        let id, ctx = Expr.Renaming.new_id ctx (cap str) in
+        let id, ctx = Expr.Renaming.new_id ctx (f_struct str) in
         let new_name = StructName.fresh path (id, pos) in
-        let ctx, fields_map, ctx_fields =
+        let ctx1, fields_map, ctx_fields =
           StructField.Map.fold
             (fun name ty (ctx, fields_map, ctx_fields) ->
               let str, pos = StructField.get_info name in
-              let id, ctx = Expr.Renaming.new_id ctx (uncap str) in
+              let id, ctx = Expr.Renaming.new_id ctx (f_field str) in
               let new_name = StructField.fresh (id, pos) in
               ( ctx,
                 StructField.Map.add name new_name fields_map,
                 StructField.Map.add new_name ty ctx_fields ))
             fields
-            (ctx, fields_map, StructField.Map.empty)
+            ( (if namespaced_fields_constrs then ctx0 else ctx),
+              fields_map,
+              StructField.Map.empty )
         in
+        let ctx = if namespaced_fields_constrs then ctx else ctx1 in
         ( PathMap.add path ctx pctxmap,
           StructName.Map.add name new_name structs_map,
           fields_map,
@@ -167,20 +180,23 @@ let rename_ids
           try pctxmap, PathMap.find path pctxmap
           with Not_found -> PathMap.add path ctx pctxmap, ctx
         in
-        let id, ctx = Expr.Renaming.new_id ctx (cap str) in
+        let id, ctx = Expr.Renaming.new_id ctx (f_enum str) in
         let new_name = EnumName.fresh path (id, pos) in
-        let ctx, constrs_map, ctx_constrs =
+        let ctx1, constrs_map, ctx_constrs =
           EnumConstructor.Map.fold
             (fun name ty (ctx, constrs_map, ctx_constrs) ->
               let str, pos = EnumConstructor.get_info name in
-              let id, ctx = Expr.Renaming.new_id ctx (cap str) in
+              let id, ctx = Expr.Renaming.new_id ctx (f_constr str) in
               let new_name = EnumConstructor.fresh (id, pos) in
               ( ctx,
                 EnumConstructor.Map.add name new_name constrs_map,
                 EnumConstructor.Map.add new_name ty ctx_constrs ))
             constrs
-            (ctx, constrs_map, EnumConstructor.Map.empty)
+            ( (if namespaced_fields_constrs then ctx0 else ctx),
+              constrs_map,
+              EnumConstructor.Map.empty )
         in
+        let ctx = if namespaced_fields_constrs then ctx else ctx1 in
         ( PathMap.add path ctx pctxmap,
           EnumName.Map.add name new_name enums_map,
           constrs_map,
@@ -218,7 +234,7 @@ let rename_ids
             try pctxmap, PathMap.find path pctxmap
             with Not_found -> PathMap.add path ctx pctxmap, ctx
           in
-          let id, ctx = Expr.Renaming.new_id ctx (uncap str) in
+          let id, ctx = Expr.Renaming.new_id ctx (f_var str) in
           let new_name = ScopeName.fresh path (id, pos) in
           ( PathMap.add path ctx pctxmap,
             ScopeName.Map.add name new_name scopes_map,
@@ -243,7 +259,7 @@ let rename_ids
             try pctxmap, PathMap.find path pctxmap
             with Not_found -> PathMap.add path ctx pctxmap, ctx
           in
-          let id, ctx = Expr.Renaming.new_id ctx (uncap str) in
+          let id, ctx = Expr.Renaming.new_id ctx (f_var str) in
           let new_name = TopdefName.fresh path (id, pos) in
           ( PathMap.add path ctx pctxmap,
             TopdefName.Map.add name new_name topdefs_map,

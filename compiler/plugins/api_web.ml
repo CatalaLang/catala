@@ -37,16 +37,18 @@ module To_jsoo = struct
      other modules: here everything is flattened in the current namespace *)
   let format_struct_name ppf name =
     StructName.to_string name
+    |> String.to_ascii
+    |> String.uncapitalize_ascii
     |> String.map (function '.' -> '_' | c -> c)
-    |> String.to_snake_case
     |> Format.pp_print_string ppf
 
   (* Supersedes [To_ocaml.format_enum_name], which can refer to enums from other
      modules: here everything is flattened in the current namespace *)
   let format_enum_name ppf name =
     EnumName.to_string name
+    |> String.to_ascii
+    |> String.uncapitalize_ascii
     |> String.map (function '.' -> '_' | c -> c)
-    |> String.to_snake_case
     |> Format.pp_print_string ppf
 
   let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
@@ -476,6 +478,19 @@ let run
   let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~closure_conversion ~typed:Expr.typed ~monomorphize_types
+  in
+  let prg, ren_ctx =
+    Program.rename_ids prg ~reserved:To_ocaml.ocaml_keywords
+      ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+      ~constant_binder_name:None ~namespaced_fields_constrs:true
+  in
+  let type_ordering =
+    let open Scopelang.Dependency.TVertex in
+    List.map
+      (function
+        | Struct s -> Struct (Expr.Renaming.struct_name ren_ctx s)
+        | Enum e -> Enum (Expr.Renaming.enum_name ren_ctx e))
+      type_ordering
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output

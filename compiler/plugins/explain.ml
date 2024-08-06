@@ -624,6 +624,7 @@ let program_to_graph
               (Expr.Renaming.get_ctx
                  {
                    Expr.Renaming.reserved = [];
+                   sanitize_varname = String.to_snake_case;
                    reset_context_for_closed_terms = false;
                    skip_constant_binders = false;
                    constant_binder_name = None;

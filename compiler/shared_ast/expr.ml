@@ -879,6 +879,7 @@ module Renaming = struct
 
   type config = {
     reserved : string list;
+    sanitize_varname : string -> string;
     reset_context_for_closed_terms : bool;
     skip_constant_binders : bool;
     constant_binder_name : string option;
@@ -887,6 +888,7 @@ module Renaming = struct
   type context = {
     bindCtx : (module BindlibCtxt);
     bcontext : DefaultBindlibCtxRename.ctxt;
+    vars : string -> string;
     scopes : ScopeName.t -> ScopeName.t;
     topdefs : TopdefName.t -> TopdefName.t;
     structs : StructName.t -> StructName.t;
@@ -956,6 +958,7 @@ module Renaming = struct
         List.fold_left
           (fun ctx name -> DefaultBindlibCtxRename.reserve_name name ctx)
           BindCtx.empty_ctxt cfg.reserved;
+      vars = cfg.sanitize_varname;
       scopes = Fun.id;
       topdefs = Fun.id;
       structs = Fun.id;
@@ -976,7 +979,7 @@ module Renaming = struct
     | EExternal { name = External_value d, pos }, m ->
       eexternal ~name:(External_value (ctx.topdefs d), pos) m
     | EAbs { binder; tys }, m ->
-      let vars, body, ctx = unmbind_in ctx ~fname:String.to_snake_case binder in
+      let vars, body, ctx = unmbind_in ctx ~fname:ctx.vars binder in
       let body = expr ctx body in
       let binder = bind vars body in
       eabs binder (List.map (typ ctx) tys) m
