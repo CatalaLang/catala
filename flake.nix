@@ -1,44 +1,63 @@
 {
   inputs = {
+    opam-repository = {
+      url = "github:ocaml/opam-repository";
+      flake = false;
+    };
+    opam-nix.url = "github:tweag/opam-nix";
+    opam-nix.inputs.opam-repository.follows = "opam-repository";
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.follows = "opam-nix/nixpkgs";
   };
-
-  outputs = {nixpkgs, flake-utils, ...}:
-    let
-      systems = nixpkgs.lib.systems.flakeExposed;
-    in flake-utils.lib.eachSystem systems (system:
+  outputs = { self, flake-utils, opam-nix, nixpkgs, ... }@inputs:
+    flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        ocamlPackages = pkgs.callPackage ./.nix/packages.nix {};
-      in
-        rec {
-          packages = {
-            catala = ocamlPackages.catala;
-            clerk = ocamlPackages.clerk;
-            french_law = ocamlPackages.french_law;
+        pkgs = nixpkgs.legacyPackages.${system};
+        on = opam-nix.lib.${system};
+        localPackagesQuery = builtins.mapAttrs (_: pkgs.lib.last)
+          (on.listRepo (on.makeOpamRepo ./.));
+        devPackagesQuery = {
+          # You can add "development" packages here. They will get added to the devShell automatically.
+          ocaml-lsp-server = "*";
+          ocamlformat = "*";
+        };
+        query = devPackagesQuery // {
+          ## You can force versions of certain packages here, e.g:
+          ## - force the ocaml compiler to be taken from opam-repository:
+          # ocaml-base-compiler = "*";
+          ## - or force the compiler to be taken from nixpkgs and be a certain version:
+          # ocaml-system = "4.14.0";
+          ## - or force ocamlfind to be a certain version:
+          # ocamlfind = "1.9.2";
+        };
+        scope = on.buildOpamProject' { } ./. query;
+        overlay = final: prev:
+          {
+            conf-ninja = prev.conf-ninja.overrideAttrs (old: {
+              nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.ninja ];
+            });
+            # You can add overrides here
           };
-          defaultPackage = packages.clerk;
-          devShell = pkgs.mkShell {
-            inputsFrom = [ packages.clerk packages.catala ];
-            buildInputs = [
-              pkgs.inotify-tools
-              ocamlPackages.merlin
-              pkgs.ocamlformat_0_26_0
-              ocamlPackages.ocp-indent
-              ocamlPackages.utop
-              ocamlPackages.odoc
-              ocamlPackages.ocaml-lsp
-              pkgs.groff
-              pkgs.obelisk
-              pkgs.ninja
-              pkgs.colordiff
-              pkgs.pandoc
-              pkgs.python3.pkgs.pygments
-              pkgs.nodejs
-              pkgs.nodePackages.npm
-            ];
-          };
-        }
-    );
+        scope' = scope.overrideScope' overlay;
+        # Packages from devPackagesQuery
+        devPackages = builtins.attrValues
+          (pkgs.lib.getAttrs (builtins.attrNames devPackagesQuery) scope');
+        # Packages in this workspace
+        packages =
+          pkgs.lib.getAttrs (builtins.attrNames localPackagesQuery) scope';
+      in {
+        legacyPackages = scope';
+
+        #inherit packages;
+
+        ## If you want to have a "default" package which will be built with just `nix build`, do this instead of `inherit packages;`:
+        packages = packages // { default = packages.catala; };
+
+        devShells.default = pkgs.mkShell {
+          inputsFrom = builtins.attrValues packages;
+          buildInputs = devPackages ++ [
+            # You can add packages from nixpkgs here
+          ];
+        };
+      });
 }
