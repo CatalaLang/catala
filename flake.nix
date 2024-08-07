@@ -20,6 +20,10 @@
           # You can add "development" packages here. They will get added to the devShell automatically.
           ocaml-lsp-server = "*";
           ocamlformat = "*";
+          merlin = "*";
+          ocp-indent = "*";
+          utop = "*";
+          odoc = "*";
         };
         query = devPackagesQuery // {
           ## You can force versions of certain packages here, e.g:
@@ -57,6 +61,15 @@
           inputsFrom = builtins.attrValues packages;
           buildInputs = devPackages ++ [
             # You can add packages from nixpkgs here
+            pkgs.inotify-tools
+            pkgs.groff
+            pkgs.obelisk
+            pkgs.ninja
+            pkgs.colordiff
+            pkgs.pandoc
+            pkgs.python3.pkgs.pygments
+            pkgs.nodejs
+            pkgs.nodePackages.npm
           ];
         };
       });
