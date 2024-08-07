@@ -446,215 +446,200 @@ glob6 = (
 )
 
 def s2(s2_in:S2In):
-    match_arg = handle_exceptions([], [])
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+    perhaps_none_arg = handle_exceptions([], [])
+    if perhaps_none_arg is None:
         if True:
-            a3 = Eoption(Eoption_Code.ESome,
-                (glob3(money_of_cents_string("4400")) +
-                decimal_of_string("100.")))
+            a3 = (glob3(money_of_cents_string("4400")) +
+                decimal_of_string("100."))
         else:
-            a3 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a3 = Eoption(Eoption_Code.ESome, x)
-    match_arg = handle_exceptions(
-                    [SourcePosition(
-                         filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                         start_line=53, start_column=24,
-                         end_line=53, end_column=43,
-                         law_headings=["Test toplevel function defs"])],
-                    [a3]
-                )
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a3 = None
+    else:
+        x = perhaps_none_arg
+        a3 = x
+    perhaps_none_arg = handle_exceptions(
+                           [SourcePosition(
+                                filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                start_line=53, start_column=24,
+                                end_line=53, end_column=43,
+                                law_headings=["Test toplevel function defs"])],
+                           [a3]
+                       )
+    if perhaps_none_arg is None:
         if False:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
+            a2 = None
         else:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a2 = Eoption(Eoption_Code.ESome, x)
-    match_arg = a2
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a2 = None
+    else:
+        x = perhaps_none_arg
+        a2 = x
+    perhaps_none_arg = a2
+    if perhaps_none_arg is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
                           start_line=50, start_column=10,
                           end_line=50, end_column=11,
                           law_headings=["Test toplevel function defs"]))
-    elif match_arg.code == Eoption_Code.ESome:
-        arg = match_arg.value
+    else:
+        arg = perhaps_none_arg
         a1 = arg
     a = a1
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    match_arg = handle_exceptions([], [])
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+    perhaps_none_arg = handle_exceptions([], [])
+    if perhaps_none_arg is None:
         if True:
-            a3 = Eoption(Eoption_Code.ESome,
-                (decimal_of_string("50.") +
+            a3 = (decimal_of_string("50.") +
                 glob4(money_of_cents_string("4400"),
-                      decimal_of_string("55."))))
+                      decimal_of_string("55.")))
         else:
-            a3 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a3 = Eoption(Eoption_Code.ESome, x)
-    match_arg = handle_exceptions(
-                    [SourcePosition(
-                         filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                         start_line=74, start_column=24,
-                         end_line=74, end_column=47,
-                         law_headings=["Test function def with two args"])],
-                    [a3]
-                )
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a3 = None
+    else:
+        x = perhaps_none_arg
+        a3 = x
+    perhaps_none_arg = handle_exceptions(
+                           [SourcePosition(
+                                filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                start_line=74, start_column=24,
+                                end_line=74, end_column=47,
+                                law_headings=["Test function def with two args"]
+                            )],
+                           [a3]
+                       )
+    if perhaps_none_arg is None:
         if False:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
+            a2 = None
         else:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a2 = Eoption(Eoption_Code.ESome, x)
-    match_arg = a2
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a2 = None
+    else:
+        x = perhaps_none_arg
+        a2 = x
+    perhaps_none_arg = a2
+    if perhaps_none_arg is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
                           start_line=71, start_column=10,
                           end_line=71, end_column=11,
                           law_headings=["Test function def with two args"]))
-    elif match_arg.code == Eoption_Code.ESome:
-        arg = match_arg.value
+    else:
+        arg = perhaps_none_arg
         a1 = arg
     a = a1
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    match_arg = handle_exceptions([], [])
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+    perhaps_none_arg = handle_exceptions([], [])
+    if perhaps_none_arg is None:
         if True:
-            a3 = Eoption(Eoption_Code.ESome,
-                (glob5 +
-                decimal_of_string("1.")))
+            a3 = (glob5 + decimal_of_string("1."))
         else:
-            a3 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a3 = Eoption(Eoption_Code.ESome, x)
-    match_arg = handle_exceptions(
-                    [SourcePosition(
-                         filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                         start_line=98, start_column=24,
-                         end_line=98, end_column=34,
-                         law_headings=["Test inline defs in toplevel defs"])],
-                    [a3]
-                )
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a3 = None
+    else:
+        x = perhaps_none_arg
+        a3 = x
+    perhaps_none_arg = handle_exceptions(
+                           [SourcePosition(
+                                filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                start_line=98, start_column=24,
+                                end_line=98, end_column=34,
+                                law_headings=["Test inline defs in toplevel defs"]
+                            )],
+                           [a3]
+                       )
+    if perhaps_none_arg is None:
         if False:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
+            a2 = None
         else:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a2 = Eoption(Eoption_Code.ESome, x)
-    match_arg = a2
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a2 = None
+    else:
+        x = perhaps_none_arg
+        a2 = x
+    perhaps_none_arg = a2
+    if perhaps_none_arg is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
                           start_line=95, start_column=10,
                           end_line=95, end_column=11,
                           law_headings=["Test inline defs in toplevel defs"]))
-    elif match_arg.code == Eoption_Code.ESome:
-        arg = match_arg.value
+    else:
+        arg = perhaps_none_arg
         a1 = arg
     a = a1
     return S4(a = a)
 
 def s5(s_in:SIn):
-    match_arg = handle_exceptions([], [])
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+    perhaps_none_arg = handle_exceptions([], [])
+    if perhaps_none_arg is None:
         if True:
-            a3 = Eoption(Eoption_Code.ESome, (glob1 * glob1))
+            a3 = (glob1 * glob1)
         else:
-            a3 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a3 = Eoption(Eoption_Code.ESome, x)
-    match_arg = handle_exceptions(
-                    [SourcePosition(
-                         filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                         start_line=18, start_column=24,
-                         end_line=18, end_column=37,
-                         law_headings=["Test basic toplevel values defs"])],
-                    [a3]
-                )
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a3 = None
+    else:
+        x = perhaps_none_arg
+        a3 = x
+    perhaps_none_arg = handle_exceptions(
+                           [SourcePosition(
+                                filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                start_line=18, start_column=24,
+                                end_line=18, end_column=37,
+                                law_headings=["Test basic toplevel values defs"]
+                            )],
+                           [a3]
+                       )
+    if perhaps_none_arg is None:
         if False:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
+            a2 = None
         else:
-            a2 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        a2 = Eoption(Eoption_Code.ESome, x)
-    match_arg = a2
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            a2 = None
+    else:
+        x = perhaps_none_arg
+        a2 = x
+    perhaps_none_arg = a2
+    if perhaps_none_arg is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
                           start_line=7, start_column=10,
                           end_line=7, end_column=11,
                           law_headings=["Test basic toplevel values defs"]))
-    elif match_arg.code == Eoption_Code.ESome:
-        arg = match_arg.value
+    else:
+        arg = perhaps_none_arg
         a1 = arg
     a = a1
-    match_arg = handle_exceptions([], [])
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+    perhaps_none_arg = handle_exceptions([], [])
+    if perhaps_none_arg is None:
         if True:
-            b3 = Eoption(Eoption_Code.ESome, glob6)
+            b3 = glob6
         else:
-            b3 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        b3 = Eoption(Eoption_Code.ESome, x)
-    match_arg = handle_exceptions(
-                    [SourcePosition(
-                         filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                         start_line=19, start_column=24,
-                         end_line=19, end_column=29,
-                         law_headings=["Test basic toplevel values defs"])],
-                    [b3]
-                )
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            b3 = None
+    else:
+        x = perhaps_none_arg
+        b3 = x
+    perhaps_none_arg = handle_exceptions(
+                           [SourcePosition(
+                                filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                start_line=19, start_column=24,
+                                end_line=19, end_column=29,
+                                law_headings=["Test basic toplevel values defs"]
+                            )],
+                           [b3]
+                       )
+    if perhaps_none_arg is None:
         if False:
-            b2 = Eoption(Eoption_Code.ENone, Unit())
+            b2 = None
         else:
-            b2 = Eoption(Eoption_Code.ENone, Unit())
-    elif match_arg.code == Eoption_Code.ESome:
-        x = match_arg.value
-        b2 = Eoption(Eoption_Code.ESome, x)
-    match_arg = b2
-    if match_arg.code == Eoption_Code.ENone:
-        _ = match_arg.value
+            b2 = None
+    else:
+        x = perhaps_none_arg
+        b2 = x
+    perhaps_none_arg = b2
+    if perhaps_none_arg is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
                           start_line=8, start_column=10,
                           end_line=8, end_column=11,
                           law_headings=["Test basic toplevel values defs"]))
-    elif match_arg.code == Eoption_Code.ESome:
-        arg = match_arg.value
+    else:
+        arg = perhaps_none_arg
         b1 = arg
     b = b1
     return S(a = a, b = b)
