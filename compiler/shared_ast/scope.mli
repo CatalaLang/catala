@@ -77,11 +77,6 @@ val input_type : typ -> Runtime.io_input Mark.pos -> typ
     this doesn't take thunking into account (thunking is added during the
     scopelang->dcalc translation) *)
 
-val rename_ids :
-  Expr.Renaming.context ->
-  ((_ any, 'm) gexpr as 'e) code_item_list ->
-  'e code_item_list
-
 (** {2 Analysis and tests} *)
 
 val free_vars_body_expr : 'e scope_body_expr -> 'e Var.Set.t

@@ -232,7 +232,7 @@ module Passes = struct
       ~renaming :
       typed Lcalc.Ast.program
       * Scopelang.Dependency.TVertex.t list
-      * Expr.Renaming.context option =
+      * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -281,13 +281,13 @@ module Passes = struct
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
-      let prg, ren_ctx = Program.apply renaming prg in
+      let prg, ren_ctx = Renaming.apply renaming prg in
       let type_ordering =
         let open Scopelang.Dependency.TVertex in
         List.map
           (function
-            | Struct s -> Struct (Expr.Renaming.struct_name ren_ctx s)
-            | Enum e -> Enum (Expr.Renaming.enum_name ren_ctx e))
+            | Struct s -> Struct (Renaming.struct_name ren_ctx s)
+            | Enum e -> Enum (Renaming.enum_name ren_ctx e))
           type_ordering
       in
       prg, type_ordering, Some ren_ctx
@@ -303,9 +303,8 @@ module Passes = struct
       ~no_struct_literals
       ~monomorphize_types
       ~renaming :
-      Scalc.Ast.program
-      * Scopelang.Dependency.TVertex.t list
-      * Expr.Renaming.context =
+      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list * Renaming.context
+      =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~closure_conversion ~monomorphize_types ~renaming
@@ -313,7 +312,7 @@ module Passes = struct
     let renaming_context =
       match renaming_context with
       | None ->
-        Expr.Renaming.get_ctx
+        Renaming.get_ctx
           {
             reserved = [];
             sanitize_varname = Fun.id;

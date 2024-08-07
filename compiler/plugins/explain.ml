@@ -620,10 +620,10 @@ let program_to_graph
           let e = customize (Expr.unbox e) in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           let e =
-            Expr.Renaming.expr
-              (Expr.Renaming.get_ctx
+            Renaming.expr
+              (Renaming.get_ctx
                  {
-                   Expr.Renaming.reserved = [];
+                   Renaming.reserved = [];
                    sanitize_varname = String.to_snake_case;
                    reset_context_for_closed_terms = false;
                    skip_constant_binders = false;

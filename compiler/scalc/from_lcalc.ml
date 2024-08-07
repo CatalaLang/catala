@@ -24,7 +24,7 @@ type translation_config = {
   keep_special_ops : bool;
   dead_value_assignment : bool;
   no_struct_literals : bool;
-  renaming_context : Expr.Renaming.context;
+  renaming_context : Renaming.context;
 }
 
 type 'm ctxt = {
@@ -34,7 +34,7 @@ type 'm ctxt = {
   context_name : string;
   config : translation_config;
   program_ctx : A.ctx;
-  ren_ctx : Expr.Renaming.context;
+  ren_ctx : Renaming.context;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
@@ -68,15 +68,15 @@ end
 let ( ++ ) = RevBlock.seq
 
 let unbind ctxt bnd =
-  let v, body, ren_ctx = Expr.Renaming.unbind_in ctxt.ren_ctx bnd in
+  let v, body, ren_ctx = Renaming.unbind_in ctxt.ren_ctx bnd in
   v, body, { ctxt with ren_ctx }
 
 let unmbind ctxt bnd =
-  let vs, body, ren_ctx = Expr.Renaming.unmbind_in ctxt.ren_ctx bnd in
+  let vs, body, ren_ctx = Renaming.unmbind_in ctxt.ren_ctx bnd in
   vs, body, { ctxt with ren_ctx }
 
 let get_name ctxt s =
-  let name, ren_ctx = Expr.Renaming.new_id ctxt.ren_ctx s in
+  let name, ren_ctx = Renaming.new_id ctxt.ren_ctx s in
   name, { ctxt with ren_ctx }
 
 let fresh_var ~pos ctxt name =

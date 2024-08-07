@@ -154,7 +154,7 @@ let python_keywords =
    exposed by the runtime. *)
 
 let renaming =
-  Program.renaming ()
+  Renaming.program ()
     ~reserved:python_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~reset_context_for_closed_terms:false ~skip_constant_binders:false
