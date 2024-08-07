@@ -475,22 +475,10 @@ let run
     monomorphize_types
     _options =
   let options = Global.enforce_options ~trace:true () in
-  let prg, type_ordering =
+  let prg, type_ordering, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~closure_conversion ~typed:Expr.typed ~monomorphize_types
-  in
-  let prg, ren_ctx =
-    Program.rename_ids prg ~reserved:To_ocaml.ocaml_keywords
-      ~reset_context_for_closed_terms:true ~skip_constant_binders:true
-      ~constant_binder_name:None ~namespaced_fields_constrs:true
-  in
-  let type_ordering =
-    let open Scopelang.Dependency.TVertex in
-    List.map
-      (function
-        | Struct s -> Struct (Expr.Renaming.struct_name ren_ctx s)
-        | Enum e -> Enum (Expr.Renaming.enum_name ren_ctx e))
-      type_ordering
+      ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output

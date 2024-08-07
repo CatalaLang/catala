@@ -213,9 +213,10 @@ let run
     monomorphize_types
     ex_scope
     options =
-  let prg, _ =
+  let prg, _, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~closure_conversion ~typed:Expr.typed ~monomorphize_types
+      ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
   let output_file, with_output =
     Driver.Commands.get_output_format options ~ext:"_schema.json" output

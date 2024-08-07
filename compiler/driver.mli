@@ -53,7 +53,9 @@ module Passes : sig
     typed:'m Shared_ast.mark ->
     closure_conversion:bool ->
     monomorphize_types:bool ->
-    Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
+    renaming : Shared_ast.Program.renaming option ->
+    Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list *
+    Shared_ast.Expr.Renaming.context option
 
   val scalc :
     Global.options ->
@@ -65,7 +67,10 @@ module Passes : sig
     dead_value_assignment:bool ->
     no_struct_literals:bool ->
     monomorphize_types:bool ->
-    Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
+    renaming: Shared_ast.Program.renaming option ->
+    Scalc.Ast.program * Scopelang.Dependency.TVertex.t list *
+    Shared_ast.Expr.Renaming.context
+
 end
 
 module Commands : sig
