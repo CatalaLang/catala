@@ -17,7 +17,7 @@
 open Catala_utils
 open Shared_ast
 
-val renaming : Program.renaming
+val renaming : Renaming.t
 
 (** Formats a lambda calculus program into a valid OCaml program *)
 

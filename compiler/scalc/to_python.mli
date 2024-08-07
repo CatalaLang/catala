@@ -18,7 +18,7 @@
 
 open Shared_ast
 
-val renaming : Program.renaming
+val renaming : Renaming.t
 
 val format_program :
   Format.formatter -> Ast.program -> Scopelang.Dependency.TVertex.t list -> unit

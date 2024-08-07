@@ -32,7 +32,7 @@ type translation_config = {
       (** When [no_struct_literals] is true, the translation inserts a temporary
           variable to hold the initialization of struct literals. This matches
           what C89 expects. *)
-  renaming_context : Expr.Renaming.context;
+  renaming_context : Renaming.context;
 }
 
 val translate_program :

@@ -60,7 +60,7 @@ let c_keywords =
   ]
 
 let renaming =
-  Program.renaming ()
+  Renaming.program ()
     ~reserved:c_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~reset_context_for_closed_terms:true ~skip_constant_binders:true
