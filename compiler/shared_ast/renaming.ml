@@ -340,33 +340,45 @@ let program
   let pctxmap, enums_map, constrs_map, ctx_enums =
     EnumName.Map.fold
       (fun name constrs (pctxmap, enums_map, constrs_map, ctx_enums) ->
-        let path = EnumName.path name in
-        let str, pos = EnumName.get_info name in
-        let pctxmap, ctx =
-          try pctxmap, PathMap.find path pctxmap
-          with Not_found -> PathMap.add path ctx pctxmap, ctx
-        in
-        let id, ctx = new_id ctx (f_enum str) in
-        let new_name = EnumName.fresh path (id, pos) in
-        let ctx1, constrs_map, ctx_constrs =
-          EnumConstructor.Map.fold
-            (fun name ty (ctx, constrs_map, ctx_constrs) ->
-              let str, pos = EnumConstructor.get_info name in
-              let id, ctx = new_id ctx (f_constr str) in
-              let new_name = EnumConstructor.fresh (id, pos) in
-              ( ctx,
-                EnumConstructor.Map.add name new_name constrs_map,
-                EnumConstructor.Map.add new_name ty ctx_constrs ))
-            constrs
-            ( (if namespaced_fields_constrs then ctx0 else ctx),
-              constrs_map,
-              EnumConstructor.Map.empty )
-        in
-        let ctx = if namespaced_fields_constrs then ctx else ctx1 in
-        ( PathMap.add path ctx pctxmap,
-          EnumName.Map.add name new_name enums_map,
-          constrs_map,
-          EnumName.Map.add new_name ctx_constrs ctx_enums ))
+        if EnumName.equal name Expr.option_enum then
+          (* The option type shouldn't be renamed, it has special handling in
+             backends. FIXME: could the fact that it's special be detected
+             differently from id comparison ? Structure maybe, or a more
+             specific construct ? *)
+          ( pctxmap,
+            EnumName.Map.add name name enums_map,
+            EnumConstructor.Map.fold
+              (fun c _ constrs_map -> EnumConstructor.Map.add c c constrs_map)
+              Expr.option_enum_config constrs_map,
+            ctx_enums )
+        else
+          let path = EnumName.path name in
+          let str, pos = EnumName.get_info name in
+          let pctxmap, ctx =
+            try pctxmap, PathMap.find path pctxmap
+            with Not_found -> PathMap.add path ctx pctxmap, ctx
+          in
+          let id, ctx = new_id ctx (f_enum str) in
+          let new_name = EnumName.fresh path (id, pos) in
+          let ctx1, constrs_map, ctx_constrs =
+            EnumConstructor.Map.fold
+              (fun name ty (ctx, constrs_map, ctx_constrs) ->
+                let str, pos = EnumConstructor.get_info name in
+                let id, ctx = new_id ctx (f_constr str) in
+                let new_name = EnumConstructor.fresh (id, pos) in
+                ( ctx,
+                  EnumConstructor.Map.add name new_name constrs_map,
+                  EnumConstructor.Map.add new_name ty ctx_constrs ))
+              constrs
+              ( (if namespaced_fields_constrs then ctx0 else ctx),
+                constrs_map,
+                EnumConstructor.Map.empty )
+          in
+          let ctx = if namespaced_fields_constrs then ctx else ctx1 in
+          ( PathMap.add path ctx pctxmap,
+            EnumName.Map.add name new_name enums_map,
+            constrs_map,
+            EnumName.Map.add new_name ctx_constrs ctx_enums ))
       p.decl_ctx.ctx_enums
       ( pctxmap,
         EnumName.Map.empty,
