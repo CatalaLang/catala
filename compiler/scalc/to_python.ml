@@ -113,17 +113,50 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
 let python_keywords =
   (* list taken from
      https://www.programiz.com/python-programming/keyword-list *)
-  [ "False"; "None"; "True"; "and"; "as"; "assert"; "async"; "await";
-    "break"; "class"; "continue"; "def"; "del"; "elif"; "else";
-    "except"; "finally"; "for"; "from"; "global"; "if"; "import"; "in";
-    "is"; "lambda"; "nonlocal"; "not"; "or"; "pass"; "raise"; "return";
-    "try"; "while"; "with"; "yield" ]
-(* todo: reserved names should also include built-in types and everything exposed by the runtime. *)
+  [
+    "False";
+    "None";
+    "True";
+    "and";
+    "as";
+    "assert";
+    "async";
+    "await";
+    "break";
+    "class";
+    "continue";
+    "def";
+    "del";
+    "elif";
+    "else";
+    "except";
+    "finally";
+    "for";
+    "from";
+    "global";
+    "if";
+    "import";
+    "in";
+    "is";
+    "lambda";
+    "nonlocal";
+    "not";
+    "or";
+    "pass";
+    "raise";
+    "return";
+    "try";
+    "while";
+    "with";
+    "yield";
+  ]
+(* todo: reserved names should also include built-in types and everything
+   exposed by the runtime. *)
 
 let renaming =
   Program.renaming ()
     ~reserved:python_keywords
-    (* TODO: add catala runtime built-ins as reserved as well ? *)
+      (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~reset_context_for_closed_terms:false ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields_constrs:true
     ~f_struct:String.to_camel_case
@@ -198,8 +231,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
              (format_expression ctx) e))
       (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
-      StructField.format field
+    Format.fprintf fmt "%a.%a" (format_expression ctx) e1 StructField.format
+      field
   | EInj { cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
@@ -352,8 +385,8 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       (format_expression ctx) e1;
     Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format tmp_var
       (format_block ctx) case_none;
-    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" VarName.format case_some_var
-      VarName.format tmp_var (format_block ctx) case_some
+    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" VarName.format
+      case_some_var VarName.format tmp_var (format_block ctx) case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let cases =
@@ -369,7 +402,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             VarName.format tmp_var (EnumName.format) e_name
+             VarName.format tmp_var EnumName.format e_name
              EnumConstructor.format cons_name VarName.format payload_var_name
              VarName.format tmp_var (format_block ctx) case_block))
       cases
@@ -482,14 +515,14 @@ let format_ctx
          @,\
         \    def __str__(self) -> str:@,\
         \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
-        (EnumName.format) enum_name
+        EnumName.format enum_name
         (Format.pp_print_list (fun fmt (i, enum_cons, _enum_cons_type) ->
              Format.fprintf fmt "%a = %d" EnumConstructor.format enum_cons i))
         (List.mapi
            (fun i (x, y) -> i, x, y)
            (EnumConstructor.Map.bindings enum_cons))
-        (EnumName.format) enum_name EnumName.format enum_name
-        EnumName.format enum_name
+        EnumName.format enum_name EnumName.format enum_name EnumName.format
+        enum_name
   in
 
   let is_in_type_ordering s =

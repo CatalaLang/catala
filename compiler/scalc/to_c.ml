@@ -22,20 +22,49 @@ module L = Lcalc.Ast
 open Ast
 
 let c_keywords =
-  [ "auto"; "break"; "case"; "char"; "const"; "continue"; "default";
-    "do"; "double"; "else"; "enum"; "extern"; "float"; "for"; "goto";
-    "if"; "inline"; "int"; "long"; "register"; "restrict"; "return";
-    "short"; "signed"; "sizeof"; "static"; "struct"; "switch"; "typedef";
-    "union"; "unsigned"; "void"; "volatile"; "while" ]
+  [
+    "auto";
+    "break";
+    "case";
+    "char";
+    "const";
+    "continue";
+    "default";
+    "do";
+    "double";
+    "else";
+    "enum";
+    "extern";
+    "float";
+    "for";
+    "goto";
+    "if";
+    "inline";
+    "int";
+    "long";
+    "register";
+    "restrict";
+    "return";
+    "short";
+    "signed";
+    "sizeof";
+    "static";
+    "struct";
+    "switch";
+    "typedef";
+    "union";
+    "unsigned";
+    "void";
+    "volatile";
+    "while";
+  ]
 
 let renaming =
   Program.renaming ()
     ~reserved:c_keywords
-    (* TODO: add catala runtime built-ins as reserved as well ? *)
-    ~reset_context_for_closed_terms:true
-    ~skip_constant_binders:true
-    ~constant_binder_name:None
-    ~namespaced_fields_constrs:false
+      (* TODO: add catala runtime built-ins as reserved as well ? *)
+    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+    ~constant_binder_name:None ~namespaced_fields_constrs:false
 
 module TypMap = Map.Make (struct
   type t = naked_typ
@@ -102,8 +131,7 @@ let format_ctx
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "@[<v>%a;@]"
-             (format_typ ctx (fun fmt ->
-                  StructField.format fmt struct_field))
+             (format_typ ctx (fun fmt -> StructField.format fmt struct_field))
              struct_field_type))
       fields StructName.format struct_name
   in
@@ -251,8 +279,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt (_, e) -> Format.fprintf fmt "%a" (format_expression ctx) e))
       (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
-      StructField.format field
+    Format.fprintf fmt "%a.%a" (format_expression ctx) e1 StructField.format
+      field
   | EInj { e1; cons; name = enum_name; _ } ->
     Format.fprintf fmt "{%a_%a,@ {%a: %a}}" EnumName.format enum_name
       EnumConstructor.format cons EnumConstructor.format cons
@@ -380,7 +408,8 @@ let rec format_statement
         if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
           Format.fprintf fmt "%a = %a.payload.%a;@ "
             (format_typ ctx (fun fmt -> VarName.format fmt payload_var_name))
-            payload_var_typ VarName.format tmp_var EnumConstructor.format cons_name;
+            payload_var_typ VarName.format tmp_var EnumConstructor.format
+            cons_name;
         Format.fprintf fmt "%a@ break;@]" (format_block ctx) case_block)
       fmt cases;
     (* Do we want to add 'default' case with a failure ? *)
@@ -447,9 +476,9 @@ let rec format_statement
             VarName.format exception_current (format_expression ctx) except
             VarName.format exception_current EnumName.format e_name
             EnumConstructor.format some_cons VarName.format exception_acc_var
-            EnumName.format e_name EnumConstructor.format some_cons VarName.format
-            exception_conflict VarName.format exception_acc_var VarName.format
-            exception_current)
+            EnumName.format e_name EnumConstructor.format some_cons
+            VarName.format exception_conflict VarName.format exception_acc_var
+            VarName.format exception_current)
         exceptions;
       Format.fprintf fmt
         "@[<v 2>if (%a) {@,\

@@ -173,8 +173,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       let vars, body, ctxt = unmbind ctxt binder in
       let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
       let ctxt =
-        List.fold_left (register_fresh_arg ~pos:binder_pos)
-          ctxt vars_tau
+        List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
       in
       let local_decls =
         List.fold_left
@@ -336,9 +335,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let vars, body, ctxt = unmbind ctxt binder in
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let ctxt =
-      List.fold_left
-        (register_fresh_arg ~pos:binder_pos)
-        ctxt vars_tau
+      List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
     in
     let local_decls =
       List.map
@@ -557,12 +554,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     RevBlock.rebuild e_stmts ~tail
   | _ -> .
 
-let rec translate_scope_body_expr
-    ctx
-    (scope_expr : 'm L.expr scope_body_expr) : A.block =
-  let ctx =
-    { ctx with inside_definition_of = None }
-  in
+let rec translate_scope_body_expr ctx (scope_expr : 'm L.expr scope_body_expr) :
+    A.block =
+  let ctx = { ctx with inside_definition_of = None } in
   match scope_expr with
   | Last e ->
     let block, new_e = translate_expr ctx e in
@@ -572,9 +566,7 @@ let rec translate_scope_body_expr
     let let_var_id, ctx =
       register_fresh_var ctx1 let_var ~pos:scope_let.scope_let_pos
     in
-    let next =
-      translate_scope_body_expr ctx scope_let_next
-    in
+    let next = translate_scope_body_expr ctx scope_let_next in
     match scope_let.scope_let_kind with
     | Assertion ->
       translate_statements
@@ -604,7 +596,7 @@ let rec translate_scope_body_expr
                scope_let.scope_let_pos )
           :: next))
 
-let translate_program ~(config : translation_config) (p : 'm L.program):
+let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
   let modules =
     List.fold_left
@@ -632,8 +624,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
     }
   in
   let (_, rev_items), _vlist =
-    BoundList.fold_left
-      ~init:(ctxt, [])
+    BoundList.fold_left ~init:(ctxt, [])
       ~f:(fun (ctxt, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->
@@ -646,13 +637,10 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
           in
           let new_scope_body =
             translate_scope_body_expr
-              { ctxt with
-                context_name = Mark.remove (ScopeName.get_info name) }
+              { ctxt with context_name = Mark.remove (ScopeName.get_info name) }
               scope_body_expr
           in
-          let func_id, ctxt1 =
-            register_fresh_func ctxt1 var ~pos:input_pos
-          in
+          let func_id, ctxt1 = register_fresh_func ctxt1 var ~pos:input_pos in
           ( ctxt1,
             A.SScope
               {
@@ -679,13 +667,14 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
             let rargs_id, ctxt =
               List.fold_left2
                 (fun (rargs_id, ctxt) v ty ->
-                   let pos = Mark.get ty in
-                   let id, ctxt = register_fresh_var ctxt v ~pos in
-                   ((id, pos), ty) :: rargs_id, ctxt)
+                  let pos = Mark.get ty in
+                  let id, ctxt = register_fresh_var ctxt v ~pos in
+                  ((id, pos), ty) :: rargs_id, ctxt)
                 ([], ctxt) args abs.tys
             in
             let ctxt =
-              { ctxt with
+              {
+                ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
               }
             in
@@ -695,7 +684,9 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
             RevBlock.rebuild block
               ~tail:[A.SReturn (Mark.remove expr), Mark.get expr]
           in
-          let func_id, ctxt = register_fresh_func ctxt var ~pos:(Expr.mark_pos m) in
+          let func_id, ctxt =
+            register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
+          in
           ( ctxt,
             A.SFunc
               {
@@ -716,14 +707,16 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
           (* Toplevel constant def *)
           let block, expr =
             let ctxt =
-              { ctxt with
+              {
+                ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
               }
             in
             translate_expr ctxt expr
           in
           let var_id, ctxt =
-            register_fresh_var ctxt var ~pos:(Mark.get (TopdefName.get_info name))
+            register_fresh_var ctxt var
+              ~pos:(Mark.get (TopdefName.get_info name))
           in
           (* If the evaluation of the toplevel expr requires preliminary
              statements, we lift its computation into an auxiliary function *)
@@ -738,26 +731,27 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
               let func_id = A.FuncName.fresh (func_name, pos) in
               (* The list is being built in reverse order *)
               (* FIXME: find a better way than a function with no parameters... *)
-              A.SVar
-                {
-                  var = var_id;
-                  expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
-                  typ = topdef_ty;
-                }
-              :: A.SFunc
-                   {
-                     var = func_id;
-                     func =
-                       {
-                         A.func_params = [];
-                         A.func_body =
-                           RevBlock.rebuild block
-                             ~tail:[A.SReturn (Mark.remove expr), Mark.get expr];
-                         A.func_return_typ = topdef_ty;
-                       };
-                   }
-              :: rev_items,
-              ctxt
+              ( A.SVar
+                  {
+                    var = var_id;
+                    expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
+                    typ = topdef_ty;
+                  }
+                :: A.SFunc
+                     {
+                       var = func_id;
+                       func =
+                         {
+                           A.func_params = [];
+                           A.func_body =
+                             RevBlock.rebuild block
+                               ~tail:
+                                 [A.SReturn (Mark.remove expr), Mark.get expr];
+                           A.func_return_typ = topdef_ty;
+                         };
+                     }
+                :: rev_items,
+                ctxt )
           in
           ( ctxt,
             (* No need to add func_id since the function will only be called
@@ -765,4 +759,8 @@ let translate_program ~(config : translation_config) (p : 'm L.program):
             rev_items ))
       p.code_items
   in
-  { ctx = program_ctx; code_items = List.rev rev_items; module_name = p.module_name }
+  {
+    ctx = program_ctx;
+    code_items = List.rev rev_items;
+    module_name = p.module_name;
+  }
