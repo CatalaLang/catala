@@ -59,7 +59,7 @@ val modules_to_list : module_tree -> (ModuleName.t * module_intf_id) list
 
 type renaming
 
-val apply: renaming -> 'e program -> 'e program * Expr.Renaming.context
+val apply : renaming -> 'e program -> 'e program * Expr.Renaming.context
 
 val renaming :
   reserved:string list ->

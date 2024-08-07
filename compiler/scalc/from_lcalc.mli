@@ -36,5 +36,4 @@ type translation_config = {
 }
 
 val translate_program :
-  config:translation_config -> typed Lcalc.Ast.program ->
-  Ast.program
+  config:translation_config -> typed Lcalc.Ast.program -> Ast.program

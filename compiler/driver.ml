@@ -230,9 +230,9 @@ module Passes = struct
       ~closure_conversion
       ~monomorphize_types
       ~renaming :
-      typed Lcalc.Ast.program *
-      Scopelang.Dependency.TVertex.t list *
-      Expr.Renaming.context option =
+      typed Lcalc.Ast.program
+      * Scopelang.Dependency.TVertex.t list
+      * Expr.Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -303,25 +303,35 @@ module Passes = struct
       ~no_struct_literals
       ~monomorphize_types
       ~renaming :
-      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list * Expr.Renaming.context =
+      Scalc.Ast.program
+      * Scopelang.Dependency.TVertex.t list
+      * Expr.Renaming.context =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~closure_conversion ~monomorphize_types ~renaming
     in
-    let renaming_context = match renaming_context with
-      | None -> Expr.Renaming.get_ctx {
-          reserved = [];
-          sanitize_varname = Fun.id;
-          reset_context_for_closed_terms = true;
-          skip_constant_binders = true;
-          constant_binder_name = None;
-        }
+    let renaming_context =
+      match renaming_context with
+      | None ->
+        Expr.Renaming.get_ctx
+          {
+            reserved = [];
+            sanitize_varname = Fun.id;
+            reset_context_for_closed_terms = true;
+            skip_constant_binders = true;
+            constant_binder_name = None;
+          }
       | Some r -> r
     in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
-        ~config:{ keep_special_ops; dead_value_assignment; no_struct_literals;
-                  renaming_context }
+        ~config:
+          {
+            keep_special_ops;
+            dead_value_assignment;
+            no_struct_literals;
+            renaming_context;
+          }
         prg,
       type_ordering,
       renaming_context )
@@ -963,8 +973,7 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:true
-        ~renaming:(Some Scalc.To_c.renaming)
+        ~monomorphize_types:true ~renaming:(Some Scalc.To_c.renaming)
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.debug "Compiling program into C...";
