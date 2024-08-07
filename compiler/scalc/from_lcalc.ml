@@ -24,6 +24,7 @@ type translation_config = {
   keep_special_ops : bool;
   dead_value_assignment : bool;
   no_struct_literals : bool;
+  renaming_context : Expr.Renaming.context;
 }
 
 type 'm ctxt = {
@@ -33,6 +34,7 @@ type 'm ctxt = {
   context_name : string;
   config : translation_config;
   program_ctx : A.ctx;
+  ren_ctx : Expr.Renaming.context;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
@@ -64,6 +66,36 @@ end = struct
 end
 
 let ( ++ ) = RevBlock.seq
+
+let unbind ctxt bnd =
+  let v, body, ren_ctx = Expr.Renaming.unbind_in ctxt.ren_ctx bnd in
+  v, body, { ctxt with ren_ctx }
+
+let unmbind ctxt bnd =
+  let vs, body, ren_ctx = Expr.Renaming.unmbind_in ctxt.ren_ctx bnd in
+  vs, body, { ctxt with ren_ctx }
+
+let get_name ctxt s =
+  let name, ren_ctx = Expr.Renaming.new_id ctxt.ren_ctx s in
+  name, { ctxt with ren_ctx }
+
+let fresh_var ~pos ctxt name =
+  let v, ctxt = get_name ctxt name in
+  A.VarName.fresh (v, pos), ctxt
+
+let register_fresh_var ~pos ctxt x =
+  let v = A.VarName.fresh (Bindlib.name_of x, pos) in
+  let var_dict = Var.Map.add x v ctxt.var_dict in
+  v, { ctxt with var_dict }
+
+let register_fresh_func ~pos ctxt x =
+  let f = A.FuncName.fresh (Bindlib.name_of x, pos) in
+  let func_dict = Var.Map.add x f ctxt.func_dict in
+  f, { ctxt with func_dict }
+
+let register_fresh_arg ~pos ctxt (x, _) =
+  let _, ctxt = register_fresh_var ~pos ctxt x in
+  ctxt
 
 let rec translate_expr_list ctxt args =
   let stmts, args =
@@ -138,19 +170,11 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
     | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
       (* This defines multiple local variables at the time *)
       let binder_pos = Expr.mark_pos binder_mark in
-      let vars, body = Bindlib.unmbind binder in
+      let vars, body, ctxt = unmbind ctxt binder in
       let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
       let ctxt =
-        {
-          ctxt with
-          var_dict =
-            List.fold_left
-              (fun var_dict (x, _) ->
-                Var.Map.add x
-                  (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                  var_dict)
-              ctxt.var_dict vars_tau;
-        }
+        List.fold_left (register_fresh_arg ~pos:binder_pos)
+          ctxt vars_tau
       in
       let local_decls =
         List.fold_left
@@ -215,18 +239,13 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       raise (NotAnExpr { needs_a_local_decl = true })
     | _ -> .
   with NotAnExpr { needs_a_local_decl } ->
-    let tmp_var =
-      A.VarName.fresh
-        ( (*This piece of logic is used to make the code more readable. TODO:
-            should be removed when
-            https://github.com/CatalaLang/catala/issues/240 is fixed. *)
-          (match ctxt.inside_definition_of with
-          | None -> ctxt.context_name
-          | Some v ->
-            let v = Mark.remove (A.VarName.get_info v) in
-            let tmp_rex = Re.Pcre.regexp "^temp_" in
-            if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
-          Expr.pos expr )
+    let tmp_var, ctxt =
+      let name =
+        match ctxt.inside_definition_of with
+        | None -> ctxt.context_name
+        | Some v -> A.VarName.to_string v
+      in
+      fresh_var ctxt name ~pos:(Expr.pos expr)
     in
     let ctxt =
       {
@@ -314,19 +333,12 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
-    let vars, body = Bindlib.unmbind binder in
+    let vars, body, ctxt = unmbind ctxt binder in
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let ctxt =
-      {
-        ctxt with
-        var_dict =
-          List.fold_left
-            (fun var_dict (x, _) ->
-              Var.Map.add x
-                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                var_dict)
-            ctxt.var_dict vars_tau;
-      }
+      List.fold_left
+        (register_fresh_arg ~pos:binder_pos)
+        ctxt vars_tau
     in
     let local_decls =
       List.map
@@ -369,26 +381,19 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let rest_of_block = translate_statements ctxt body in
     local_decls @ List.flatten def_blocks @ rest_of_block
   | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let binder_pos = Expr.pos block_expr in
-    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
-    let closure_name =
+    let closure_name, ctxt =
       match ctxt.inside_definition_of with
-      | None -> A.VarName.fresh (ctxt.context_name, Expr.pos block_expr)
-      | Some x -> x
+      | None -> fresh_var ctxt ctxt.context_name ~pos:(Expr.pos block_expr)
+      | Some x -> x, ctxt
     in
+    let vars, body, ctxt = unmbind ctxt binder in
+    let binder_pos = Expr.pos block_expr in
+    let vars_tau = List.combine (Array.to_list vars) tys in
     let ctxt =
-      {
-        ctxt with
-        var_dict =
-          List.fold_left
-            (fun var_dict (x, _) ->
-              Var.Map.add x
-                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                var_dict)
-            ctxt.var_dict vars_tau;
-        inside_definition_of = None;
-      }
+      List.fold_left
+        (register_fresh_arg ~pos:binder_pos)
+        { ctxt with inside_definition_of = None }
+        vars_tau
     in
     let new_body = translate_statements ctxt body in
     [
@@ -419,14 +424,11 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         (fun _ arg new_args ->
           match Mark.remove arg with
           | EAbs { binder; tys } ->
-            let vars, body = Bindlib.unmbind binder in
+            let vars, body, ctxt = unmbind ctxt binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
-            let scalc_var =
-              A.VarName.fresh (Bindlib.name_of var, Expr.pos arg)
-            in
-            let ctxt =
-              { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
+            let scalc_var, ctxt =
+              register_fresh_var ctxt var ~pos:(Expr.pos arg)
             in
             let new_arg = translate_statements ctxt body in
             {
@@ -556,35 +558,22 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | _ -> .
 
 let rec translate_scope_body_expr
-    ~(config : translation_config)
-    (scope_name : ScopeName.t)
-    (program_ctx : A.ctx)
-    (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
-    (func_dict : ('m L.expr, A.FuncName.t) Var.Map.t)
+    ctx
     (scope_expr : 'm L.expr scope_body_expr) : A.block =
   let ctx =
-    {
-      func_dict;
-      var_dict;
-      inside_definition_of = None;
-      context_name = Mark.remove (ScopeName.get_info scope_name);
-      config;
-      program_ctx;
-    }
+    { ctx with inside_definition_of = None }
   in
   match scope_expr with
   | Last e ->
     let block, new_e = translate_expr ctx e in
     RevBlock.rebuild block ~tail:[A.SReturn (Mark.remove new_e), Mark.get new_e]
   | Cons (scope_let, next_bnd) -> (
-    let let_var, scope_let_next = Bindlib.unbind next_bnd in
-    let let_var_id =
-      A.VarName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
+    let let_var, scope_let_next, ctx1 = unbind ctx next_bnd in
+    let let_var_id, ctx =
+      register_fresh_var ctx1 let_var ~pos:scope_let.scope_let_pos
     in
-    let new_var_dict = Var.Map.add let_var let_var_id var_dict in
     let next =
-      translate_scope_body_expr ~config scope_name program_ctx new_var_dict
-        func_dict scope_let_next
+      translate_scope_body_expr ctx scope_let_next
     in
     match scope_let.scope_let_kind with
     | Assertion ->
@@ -615,7 +604,7 @@ let rec translate_scope_body_expr
                scope_let.scope_let_pos )
           :: next))
 
-let translate_program ~(config : translation_config) (p : 'm L.program) :
+let translate_program ~(config : translation_config) (p : 'm L.program):
     A.program =
   let modules =
     List.fold_left
@@ -630,29 +619,41 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       ModuleName.Map.empty
       (Program.modules_to_list p.decl_ctx.ctx_modules)
   in
-  let ctx = { A.decl_ctx = p.decl_ctx; A.modules } in
-  let (_, _, rev_items), _vlist =
+  let program_ctx = { A.decl_ctx = p.decl_ctx; A.modules } in
+  let ctxt =
+    {
+      func_dict = Var.Map.empty;
+      var_dict = Var.Map.empty;
+      inside_definition_of = None;
+      context_name = "";
+      config;
+      program_ctx;
+      ren_ctx = config.renaming_context;
+    }
+  in
+  let (_, rev_items), _vlist =
     BoundList.fold_left
-      ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
+      ~init:(ctxt, [])
+      ~f:(fun (ctxt, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->
-          let scope_input_var, scope_body_expr =
-            Bindlib.unbind body.scope_body_expr
+          let scope_input_var, scope_body_expr, ctxt1 =
+            unbind ctxt body.scope_body_expr
           in
           let input_pos = Mark.get (ScopeName.get_info name) in
-          let scope_input_var_id =
-            A.VarName.fresh (Bindlib.name_of scope_input_var, input_pos)
-          in
-          let var_dict_local =
-            Var.Map.add scope_input_var scope_input_var_id var_dict
+          let scope_input_var_id, ctxt =
+            register_fresh_var ctxt scope_input_var ~pos:input_pos
           in
           let new_scope_body =
-            translate_scope_body_expr ~config name ctx var_dict_local func_dict
+            translate_scope_body_expr
+              { ctxt with
+                context_name = Mark.remove (ScopeName.get_info name) }
               scope_body_expr
           in
-          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
-          ( Var.Map.add var func_id func_dict,
-            var_dict,
+          let func_id, ctxt1 =
+            register_fresh_func ctxt1 var ~pos:input_pos
+          in
+          ( ctxt1,
             A.SScope
               {
                 Ast.scope_body_name = name;
@@ -670,40 +671,32 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                   };
               }
             :: rev_items )
-        | Topdef (name, topdef_ty, (EAbs abs, _)) ->
+        | Topdef (name, topdef_ty, (EAbs abs, m)) ->
           (* Toplevel function def *)
-          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
-          let args_a, expr = Bindlib.unmbind abs.binder in
-          let args = Array.to_list args_a in
-          let args_id =
-            List.map2
-              (fun v ty ->
-                let pos = Mark.get ty in
-                (A.VarName.fresh (Bindlib.name_of v, pos), pos), ty)
-              args abs.tys
-          in
-          let block, expr =
+          let (block, expr), args_id =
+            let args_a, expr, ctxt = unmbind ctxt abs.binder in
+            let args = Array.to_list args_a in
+            let rargs_id, ctxt =
+              List.fold_left2
+                (fun (rargs_id, ctxt) v ty ->
+                   let pos = Mark.get ty in
+                   let id, ctxt = register_fresh_var ctxt v ~pos in
+                   ((id, pos), ty) :: rargs_id, ctxt)
+                ([], ctxt) args abs.tys
+            in
             let ctxt =
-              {
-                func_dict;
-                var_dict =
-                  List.fold_left2
-                    (fun map arg ((id, _), _) -> Var.Map.add arg id map)
-                    var_dict args args_id;
-                inside_definition_of = None;
+              { ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
-                config;
-                program_ctx = ctx;
               }
             in
-            translate_expr ctxt expr
+            translate_expr ctxt expr, List.rev rargs_id
           in
           let body_block =
             RevBlock.rebuild block
               ~tail:[A.SReturn (Mark.remove expr), Mark.get expr]
           in
-          ( Var.Map.add var func_id func_dict,
-            var_dict,
+          let func_id, ctxt = register_fresh_func ctxt var ~pos:(Expr.mark_pos m) in
+          ( ctxt,
             A.SFunc
               {
                 var = func_id;
@@ -721,30 +714,28 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             :: rev_items )
         | Topdef (name, topdef_ty, expr) ->
           (* Toplevel constant def *)
-          let var_id = A.VarName.fresh (Bindlib.name_of var, Pos.no_pos) in
           let block, expr =
             let ctxt =
-              {
-                func_dict;
-                var_dict;
-                inside_definition_of = None;
+              { ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
-                config;
-                program_ctx = ctx;
               }
             in
             translate_expr ctxt expr
           in
+          let var_id, ctxt =
+            register_fresh_var ctxt var ~pos:(Mark.get (TopdefName.get_info name))
+          in
           (* If the evaluation of the toplevel expr requires preliminary
              statements, we lift its computation into an auxiliary function *)
-          let rev_items =
+          let rev_items, ctxt =
             if (block :> (A.stmt * Pos.t) list) = [] then
-              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items
+              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items, ctxt
             else
               let pos = Mark.get expr in
-              let func_id =
-                A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
+              let func_name, ctxt =
+                get_name ctxt (A.VarName.to_string var_id ^ "_init")
               in
+              let func_id = A.FuncName.fresh (func_name, pos) in
               (* The list is being built in reverse order *)
               (* FIXME: find a better way than a function with no parameters... *)
               A.SVar
@@ -765,14 +756,13 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                          A.func_return_typ = topdef_ty;
                        };
                    }
-              :: rev_items
+              :: rev_items,
+              ctxt
           in
-          ( func_dict,
+          ( ctxt,
             (* No need to add func_id since the function will only be called
                right here *)
-            Var.Map.add var var_id var_dict,
             rev_items ))
-      ~init:(Var.Map.empty, Var.Map.empty, [])
       p.code_items
   in
-  { ctx; code_items = List.rev rev_items; module_name = p.module_name }
+  { ctx = program_ctx; code_items = List.rev rev_items; module_name = p.module_name }

@@ -110,98 +110,23 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-let avoid_keywords (s : string) : string =
-  if
-    match s with
-    (* list taken from
-       https://www.programiz.com/python-programming/keyword-list *)
-    | "False" | "None" | "True" | "and" | "as" | "assert" | "async" | "await"
-    | "break" | "class" | "continue" | "def" | "del" | "elif" | "else"
-    | "except" | "finally" | "for" | "from" | "global" | "if" | "import" | "in"
-    | "is" | "lambda" | "nonlocal" | "not" | "or" | "pass" | "raise" | "return"
-    | "try" | "while" | "with" | "yield" ->
-      true
-    | _ -> false
-  then s ^ "_"
-  else s
+let python_keywords =
+  (* list taken from
+     https://www.programiz.com/python-programming/keyword-list *)
+  [ "False"; "None"; "True"; "and"; "as"; "assert"; "async"; "await";
+    "break"; "class"; "continue"; "def"; "del"; "elif"; "else";
+    "except"; "finally"; "for"; "from"; "global"; "if"; "import"; "in";
+    "is"; "lambda"; "nonlocal"; "not"; "or"; "pass"; "raise"; "return";
+    "try"; "while"; "with"; "yield" ]
+(* todo: reserved names should also include built-in types and everything exposed by the runtime. *)
 
-module StringMap = String.Map
-
-module IntMap = Map.Make (struct
-  include Int
-
-  let format ppf i = Format.pp_print_int ppf i
-end)
-
-let clean_name (s : string) : string =
-  s
-  |> String.to_snake_case
-  |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
-  |> avoid_keywords
-
-let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
-  Format.pp_print_string fmt (clean_name s)
-
-(** For each `VarName.t` defined by its string and then by its hash, we keep
-    track of which local integer id we've given it. This is used to keep
-    variable naming with low indices rather than one global counter for all
-    variables. TODO: should be removed when
-    https://github.com/CatalaLang/catala/issues/240 is fixed. *)
-let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
-
-let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
-  let v_str = clean_name (Mark.remove (VarName.get_info v)) in
-  let id = VarName.id v in
-  let local_id =
-    match StringMap.find_opt v_str !string_counter_map with
-    | Some ids -> (
-      match IntMap.find_opt id ids with
-      | None ->
-        let local_id = 1 + IntMap.fold (fun _ -> Int.max) ids 0 in
-        string_counter_map :=
-          StringMap.add v_str (IntMap.add id local_id ids) !string_counter_map;
-        local_id
-      | Some local_id -> local_id)
-    | None ->
-      string_counter_map :=
-        StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
-      0
-  in
-  if v_str = "_" then Format.fprintf fmt "_"
-    (* special case for the unit pattern *)
-  else if local_id = 0 then Format.pp_print_string fmt v_str
-  else Format.fprintf fmt "%s_%d" v_str local_id
-
-let format_path ctx fmt p =
-  match List.rev p with
-  | [] -> ()
-  | m :: _ ->
-    format_var fmt (ModuleName.Map.find m ctx.modules);
-    Format.pp_print_char fmt '.'
-
-let format_struct_name ctx (fmt : Format.formatter) (v : StructName.t) : unit =
-  format_path ctx fmt (StructName.path v);
-  Format.pp_print_string fmt
-    (avoid_keywords
-       (String.to_camel_case
-          (String.to_ascii (Mark.remove (StructName.get_info v)))))
-
-let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
-    =
-  Format.pp_print_string fmt
-    (avoid_keywords (String.to_ascii (StructField.to_string v)))
-
-let format_enum_name ctx (fmt : Format.formatter) (v : EnumName.t) : unit =
-  format_path ctx fmt (EnumName.path v);
-  Format.pp_print_string fmt
-    (avoid_keywords
-       (String.to_camel_case
-          (String.to_ascii (Mark.remove (EnumName.get_info v)))))
-
-let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
-    unit =
-  Format.pp_print_string fmt
-    (avoid_keywords (String.to_ascii (EnumConstructor.to_string v)))
+let renaming =
+  Program.renaming ()
+    ~reserved:python_keywords
+    (* TODO: add catala runtime built-ins as reserved as well ? *)
+    ~reset_context_for_closed_terms:false ~skip_constant_binders:false
+    ~constant_binder_name:None ~namespaced_fields_constrs:true
+    ~f_struct:String.to_camel_case
 
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
@@ -226,12 +151,12 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
       ts
-  | TStruct s -> Format.fprintf fmt "%a" (format_struct_name ctx) s
+  | TStruct s -> StructName.format fmt s
   | TOption some_typ ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
   | TDefault t -> format_typ fmt t
-  | TEnum e -> Format.fprintf fmt "%a" (format_enum_name ctx) e
+  | TEnum e -> EnumName.format fmt e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "Callable[[%a], %a]"
       (Format.pp_print_list
@@ -243,8 +168,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TClosureEnv -> failwith "unimplemented!"
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  let v_str = Mark.remove (FuncName.get_info v) in
-  format_name_cleaned fmt v_str
+  FuncName.format fmt v
 
 let format_position ppf pos =
   Format.fprintf ppf
@@ -263,19 +187,19 @@ let format_error (ppf : Format.formatter) (err : Runtime.error Mark.pos) : unit
 
 let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
-  | EVar v -> format_var fmt v
-  | EFunc f -> format_func_name fmt f
+  | EVar v -> VarName.format fmt v
+  | EFunc f -> FuncName.format fmt f
   | EStruct { fields = es; name = s } ->
-    Format.fprintf fmt "%a(%a)" (format_struct_name ctx) s
+    Format.fprintf fmt "%a(%a)" StructName.format s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, e) ->
-           Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
+           Format.fprintf fmt "%a = %a" StructField.format struct_field
              (format_expression ctx) e))
       (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
-      format_struct_field_name field
+      StructField.format field
   | EInj { cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
@@ -287,8 +211,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     (* We translate the option type with an overloading by Python's [None] *)
     format_expression ctx fmt e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum_name ctx) enum_name
-      (format_enum_name ctx) enum_name format_enum_cons_name cons
+    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" EnumName.format enum_name
+      EnumName.format enum_name EnumConstructor.format cons
       (format_expression ctx) e
   | EArray es ->
     Format.fprintf fmt "[%a]"
@@ -380,26 +304,26 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | ETupleAccess { e1; index } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) e1 index
   | EExternal { modname; name } ->
-    Format.fprintf fmt "%a.%a" format_var (Mark.remove modname)
-      format_name_cleaned (Mark.remove name)
+    Format.fprintf fmt "%a.%s" VarName.format (Mark.remove modname)
+      (Mark.remove name)
 
 let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     =
   match Mark.remove s with
   | SInnerFuncDef { name; func = { func_params; func_body; _ } } ->
-    Format.fprintf fmt "@[<v 4>def %a(@[<hov>%a@]):@ %a@]" format_var
+    Format.fprintf fmt "@[<v 4>def %a(@[<hov>%a@]):@ %a@]" VarName.format
       (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
-           Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
+           Format.fprintf fmt "%a:%a" VarName.format (Mark.remove var)
              (format_typ ctx) typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
     ->
-    Format.fprintf fmt "@[<hv 4>%a = %a@]" format_var (Mark.remove v)
+    Format.fprintf fmt "@[<hv 4>%a = %a@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
   | STryWEmpty { try_block = try_b; with_block = catch_b } ->
     Format.fprintf fmt "@[<v 4>try:@ %a@]@,@[<v 4>except Empty:@ %a@]"
@@ -424,12 +348,12 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hv 4>%a = %a@]@," format_var tmp_var
+    Format.fprintf fmt "@[<hv 4>%a = %a@]@," VarName.format tmp_var
       (format_expression ctx) e1;
-    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," format_var tmp_var
+    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format tmp_var
       (format_block ctx) case_none;
-    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" format_var case_some_var
-      format_var tmp_var (format_block ctx) case_some
+    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" VarName.format case_some_var
+      VarName.format tmp_var (format_block ctx) case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let cases =
@@ -439,15 +363,15 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
         (EnumConstructor.Map.bindings cons_map)
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var
+    Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" VarName.format tmp_var
       (format_expression ctx) e1
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var (format_enum_name ctx) e_name
-             format_enum_cons_name cons_name format_var payload_var_name
-             format_var tmp_var (format_block ctx) case_block))
+             VarName.format tmp_var (EnumName.format) e_name
+             EnumConstructor.format cons_name VarName.format payload_var_name
+             VarName.format tmp_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
@@ -497,38 +421,38 @@ let format_ctx
       \        return not (self == other)@,\
        @,\
       \    def __str__(self) -> str:@,\
-      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" (format_struct_name ctx)
+      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" StructName.format
       struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
+           Format.fprintf fmt "%a: %a" StructField.format struct_field
              (format_typ ctx) struct_field_type))
       fields
       (if StructField.Map.is_empty struct_fields then fun fmt _ ->
          Format.fprintf fmt "        pass"
        else
          Format.pp_print_list (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "        self.%a = %a" format_struct_field_name
-               struct_field format_struct_field_name struct_field))
-      fields (format_struct_name ctx) struct_name
+             Format.fprintf fmt "        self.%a = %a" StructField.format
+               struct_field StructField.format struct_field))
+      fields StructName.format struct_name
       (if not (StructField.Map.is_empty struct_fields) then
          Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
            (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
-               struct_field format_struct_field_name struct_field)
+             Format.fprintf fmt "self.%a == other.%a" StructField.format
+               struct_field StructField.format struct_field)
        else fun fmt _ -> Format.fprintf fmt "True")
-      fields (format_struct_name ctx) struct_name
+      fields StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
          (fun fmt (struct_field, _) ->
-           Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
+           Format.fprintf fmt "%a={}" StructField.format struct_field))
       fields
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, _) ->
-           Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
+           Format.fprintf fmt "self.%a" StructField.format struct_field))
       fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
@@ -558,14 +482,14 @@ let format_ctx
          @,\
         \    def __str__(self) -> str:@,\
         \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
-        (format_enum_name ctx) enum_name
+        (EnumName.format) enum_name
         (Format.pp_print_list (fun fmt (i, enum_cons, _enum_cons_type) ->
-             Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
+             Format.fprintf fmt "%a = %d" EnumConstructor.format enum_cons i))
         (List.mapi
            (fun i (x, y) -> i, x, y)
            (EnumConstructor.Map.bindings enum_cons))
-        (format_enum_name ctx) enum_name (format_enum_name ctx) enum_name
-        (format_enum_name ctx) enum_name
+        (EnumName.format) enum_name EnumName.format enum_name
+        EnumName.format enum_name
   in
 
   let is_in_type_ordering s =
@@ -597,19 +521,9 @@ let format_ctx
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
     (type_ordering @ scope_structs)
 
-(* FIXME: this is an ugly (and partial) workaround, Python basically has one
-   namespace and we reserve the name to avoid clashes between func ids and
-   variable ids. *)
-let reserve_func_name = function
-  | SVar _ -> ()
-  | SFunc { var = v; _ } | SScope { scope_body_var = v; _ } ->
-    let v_str = clean_name (Mark.remove (FuncName.get_info v)) in
-    string_counter_map :=
-      StringMap.add v_str (IntMap.singleton (-1) 0) !string_counter_map
-
 let format_code_item ctx fmt = function
   | SVar { var; expr; typ = _ } ->
-    Format.fprintf fmt "@[<hv 4>%a = (@,%a@;<0 -4>)@]@," format_var var
+    Format.fprintf fmt "@[<hv 4>%a = (@,%a@;<0 -4>)@]@," VarName.format var
       (format_expression ctx) expr
   | SFunc { var; func }
   | SScope { scope_body_var = var; scope_body_func = func; _ } ->
@@ -619,7 +533,7 @@ let format_code_item ctx fmt = function
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
-           Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
+           Format.fprintf fmt "%a:%a" VarName.format (Mark.remove var)
              (format_typ ctx) typ))
       func_params (format_block ctx) func_body
 
@@ -627,7 +541,6 @@ let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  List.iter reserve_func_name p.code_items;
   Format.pp_open_vbox fmt 0;
   let header =
     [
@@ -643,7 +556,7 @@ let format_program
   ModuleName.Map.iter
     (fun m v ->
       Format.fprintf fmt "from . import %a as %a@," ModuleName.format m
-        format_var v)
+        VarName.format v)
     p.ctx.modules;
   Format.pp_print_cut fmt ();
   format_ctx type_ordering fmt p.ctx;

@@ -16,6 +16,10 @@
 
 (** Formats a lambda calculus program into a valid Python program *)
 
+open Shared_ast
+
+val renaming : Program.renaming
+
 val format_program :
   Format.formatter -> Ast.program -> Scopelang.Dependency.TVertex.t list -> unit
 (** Usage [format_program fmt p type_dependencies_ordering] *)

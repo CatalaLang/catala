@@ -114,7 +114,8 @@ let rename_ids
     ?(f_field = uncap)
     ?(f_enum = cap)
     ?(f_constr = cap)
-    p =
+    p
+  =
   let cfg =
     {
       Expr.Renaming.reserved;
@@ -283,3 +284,45 @@ let rename_ids
   let decl_ctx = map_decl_ctx ~f:(Expr.Renaming.typ ctx) decl_ctx in
   let code_items = Scope.rename_ids ctx p.code_items in
   { p with decl_ctx; code_items }, ctx
+
+(* This first-class module wrapping is here to allow a polymorphic renaming function to be passed around *)
+
+module type Renaming = sig
+  val apply:
+    'e program ->
+    'e program * Expr.Renaming.context
+end
+
+type renaming = (module Renaming)
+
+let apply (module R: Renaming) = R.apply
+
+let renaming
+    ~reserved
+    ~reset_context_for_closed_terms
+    ~skip_constant_binders
+    ~constant_binder_name
+    ~namespaced_fields_constrs
+    ?f_var
+    ?f_struct
+    ?f_field
+    ?f_enum
+    ?f_constr
+    ()
+  =
+  let module M = struct
+    let apply p =
+      rename_ids
+        ~reserved
+        ~reset_context_for_closed_terms
+        ~skip_constant_binders
+        ~constant_binder_name
+        ~namespaced_fields_constrs
+        ?f_var
+        ?f_struct
+        ?f_field
+        ?f_enum
+        ?f_constr
+        p
+  end in
+  (module M: Renaming)

@@ -17,7 +17,7 @@
 open Catala_utils
 open Shared_ast
 
-val ocaml_keywords : string list
+val renaming : Program.renaming
 
 (** Formats a lambda calculus program into a valid OCaml program *)
 
