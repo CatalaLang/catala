@@ -160,6 +160,7 @@ let renaming =
     ~reset_context_for_closed_terms:false ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields_constrs:true
     ~f_struct:String.to_camel_case
+    ~f_enum:String.to_camel_case
 
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
@@ -413,7 +414,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     let pos = Mark.get s in
     Format.fprintf fmt
       "@[<hv 4>if not (%a):@,\
-       raise AssertionFailure(@[<hov>SourcePosition(@[<hov 0>filename=\"%s\",@ \
+       raise AssertionFailed(@[<hov>SourcePosition(@[<hov 0>filename=\"%s\",@ \
        start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
        law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)

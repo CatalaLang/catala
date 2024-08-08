@@ -15,7 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 open Definitions
 
 let map_decl_ctx ~f ctx =
