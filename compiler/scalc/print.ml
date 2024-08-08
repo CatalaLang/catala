@@ -173,8 +173,7 @@ let rec format_statement
     ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@,@]%a" Print.keyword "switch"
-      format_var_name v_switch
-      Print.punctuation ":"
+      format_var_name v_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), switch_case_data) ->
