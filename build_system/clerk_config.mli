@@ -17,7 +17,6 @@
 open Catala_utils
 
 type modul = {
-  language : Global.backend_lang;
   module_uses : (string * string option) list;
   includes : string list;
 }
