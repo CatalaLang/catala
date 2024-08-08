@@ -397,7 +397,8 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     Format.pp_open_vbox fmt 2;
-    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," VarName.format switch_var;
+    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," VarName.format
+      switch_var;
     Format.pp_print_list
       (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
         Format.fprintf fmt "@[<hv 2>case %a_%a:@ " EnumName.format e_name
