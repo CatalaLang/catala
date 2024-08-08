@@ -93,6 +93,21 @@ let rec compare ty1 ty2 =
   | TClosureEnv, _ -> -1
   | _, TClosureEnv -> 1
 
+let map f ty =
+  Mark.map
+    (function
+      | TLit l -> TLit l
+      | TTuple tl -> TTuple (List.map f tl)
+      | TStruct n -> TStruct n
+      | TEnum n -> TEnum n
+      | TOption ty -> TOption (f ty)
+      | TArrow (tl, ty) -> TArrow (List.map f tl, f ty)
+      | TArray ty -> TArray (f ty)
+      | TDefault ty -> TDefault (f ty)
+      | TAny -> TAny
+      | TClosureEnv -> TClosureEnv)
+    ty
+
 let rec hash ~strip ty =
   let open Hash.Op in
   match Mark.remove ty with

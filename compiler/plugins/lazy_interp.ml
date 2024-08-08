@@ -228,7 +228,7 @@ let rec lazy_eval :
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * 'm Env.t =
   let ctx = prg.decl_ctx in
-  let (all_env, scopes), () =
+  let (all_env, scopes), _ =
     BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with

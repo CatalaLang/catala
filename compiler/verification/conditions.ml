@@ -382,7 +382,7 @@ let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
     (code_items : 'm expr code_item_list)
     (s : ScopeName.t option) : verification_condition list =
-  let conditions, () =
+  let conditions, _ =
     BoundList.fold_left
       ~f:(fun vcs item _ ->
         match item with

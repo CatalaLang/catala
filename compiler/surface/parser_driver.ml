@@ -476,7 +476,8 @@ let get_interface program =
       (* Non-metadata blocks are ignored *)
       req, acc
   in
-  List.fold_left filter ([], []) program.Ast.program_items
+  let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
+  List.rev req, List.rev acc
 
 (** {1 API} *)
 

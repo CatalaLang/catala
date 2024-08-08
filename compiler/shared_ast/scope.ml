@@ -39,6 +39,12 @@ let map_exprs_in_lets :
           (f scope_let.scope_let_expr) ))
     scope_body_expr
 
+let map_last_item ~varf last =
+  Bindlib.box_list
+  @@ List.map
+       (function EVar v -> Bindlib.box_var (varf v) | _ -> assert false)
+       last
+
 let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
   let f v = function
     | ScopeDef (name, body) ->
@@ -58,7 +64,7 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
           (fun e -> Topdef (name, typ ty, e))
           (Expr.Box.lift (f expr)) )
   in
-  BoundList.map ~f ~last:Bindlib.box scopes
+  BoundList.map ~f ~last:(map_last_item ~varf) scopes
 
 let fold_exprs ~f ~init scopes =
   let f acc def _ =
@@ -116,7 +122,7 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
       | None, ScopeDef (name, body) when ScopeName.equal name main_scope ->
         Some (Expr.make_var v (get_body_mark body))
       | r, _ -> r)
-    ~bottom:(fun () -> function Some v -> v | None -> raise Not_found)
+    ~bottom:(fun _vlist -> function Some v -> v | None -> raise Not_found)
     ~up:(fun var item next ->
       let e, typ =
         match item with
@@ -137,6 +143,64 @@ let free_vars_item = function
 
 let free_vars scopes =
   BoundList.fold_right scopes
-    ~init:(fun () -> Var.Set.empty)
+    ~init:(fun _vlist -> Var.Set.empty)
     ~f:(fun item v acc ->
       Var.Set.union (Var.Set.remove v acc) (free_vars_item item))
+
+(** Maps carrying around a naming context, enriched at each [unbind] *)
+let rec boundlist_map_ctx ~f ~fname ~last ~ctx = function
+  | Last l -> Bindlib.box_apply (fun l -> Last l) (last ctx l)
+  | Cons (item, next_bind) ->
+    let item = f ctx item in
+    let var, next, ctx = Expr.Renaming.unbind_in ctx ~fname next_bind in
+    let next = boundlist_map_ctx ~f ~fname ~last ~ctx next in
+    let next_bind = Bindlib.bind_var var next in
+    Bindlib.box_apply2
+      (fun item next_bind -> Cons (item, next_bind))
+      item next_bind
+
+let rename_vars_in_lets ctx scope_body_expr =
+  boundlist_map_ctx scope_body_expr ~ctx ~fname:String.to_snake_case
+    ~last:(fun ctx e -> Expr.Box.lift (Expr.Renaming.expr ctx e))
+    ~f:(fun ctx scope_let ->
+      Bindlib.box_apply
+        (fun scope_let_expr ->
+          {
+            scope_let with
+            scope_let_expr;
+            scope_let_typ = Expr.Renaming.typ ctx scope_let.scope_let_typ;
+          })
+        (Expr.Box.lift (Expr.Renaming.expr ctx scope_let.scope_let_expr)))
+
+let rename_ids ctx (scopes : 'e code_item_list) =
+  let f ctx = function
+    | ScopeDef (name, body) ->
+      let name = Expr.Renaming.scope_name ctx name in
+      let scope_input_var, scope_lets, ctx =
+        Expr.Renaming.unbind_in ctx ~fname:String.to_snake_case
+          body.scope_body_expr
+      in
+      let scope_lets = rename_vars_in_lets ctx scope_lets in
+      let scope_body_expr = Bindlib.bind_var scope_input_var scope_lets in
+      Bindlib.box_apply
+        (fun scope_body_expr ->
+          let body =
+            {
+              scope_body_input_struct =
+                Expr.Renaming.struct_name ctx body.scope_body_input_struct;
+              scope_body_output_struct =
+                Expr.Renaming.struct_name ctx body.scope_body_output_struct;
+              scope_body_expr;
+            }
+          in
+          ScopeDef (name, body))
+        scope_body_expr
+    | Topdef (name, ty, expr) ->
+      Bindlib.box_apply
+        (fun e -> Topdef (name, Expr.Renaming.typ ctx ty, e))
+        (Expr.Box.lift (Expr.Renaming.expr ctx expr))
+  in
+  Bindlib.unbox
+  @@ boundlist_map_ctx ~ctx ~f ~fname:String.to_snake_case
+       ~last:(fun _ctx -> Bindlib.box)
+       scopes

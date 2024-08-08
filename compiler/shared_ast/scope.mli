@@ -47,6 +47,14 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
+val map_last_item :
+  varf:(('a, 'm) naked_gexpr Bindlib.var -> 'e2 Bindlib.var) ->
+  ('a, 'm) naked_gexpr list ->
+  'e2 list Bindlib.box
+
+(** Helper function to handle the [code_item_list] terminator when manually
+    mapping on [code_item_list] *)
+
 val fold_exprs :
   f:('acc -> 'expr -> typ -> 'acc) -> init:'acc -> 'expr code_item_list -> 'acc
 
@@ -68,6 +76,11 @@ val input_type : typ -> Runtime.io_input Mark.pos -> typ
     [TDefault], which only applies to the return type on functions. Note that
     this doesn't take thunking into account (thunking is added during the
     scopelang->dcalc translation) *)
+
+val rename_ids :
+  Expr.Renaming.context ->
+  ((_ any, 'm) gexpr as 'e) code_item_list ->
+  'e code_item_list
 
 (** {2 Analysis and tests} *)
 
