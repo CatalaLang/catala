@@ -389,18 +389,15 @@ let rec format_statement
     Format.fprintf fmt
       "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@,@;<1 -2>} else {@,%a@,@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
-  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
+  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
         cases
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hov 2>%a %a = %a;@]@," EnumName.format e_name
-      VarName.format tmp_var (format_expression ctx) e1;
     Format.pp_open_vbox fmt 2;
-    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," VarName.format tmp_var;
+    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," VarName.format switch_var;
     Format.pp_print_list
       (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
         Format.fprintf fmt "@[<hv 2>case %a_%a:@ " EnumName.format e_name
@@ -408,7 +405,7 @@ let rec format_statement
         if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
           Format.fprintf fmt "%a = %a.payload.%a;@ "
             (format_typ ctx (fun fmt -> VarName.format fmt payload_var_name))
-            payload_var_typ VarName.format tmp_var EnumConstructor.format
+            payload_var_typ VarName.format switch_var EnumConstructor.format
             cons_name;
         Format.fprintf fmt "%a@ break;@]" (format_block ctx) case_block)
       fmt cases;

@@ -110,8 +110,8 @@ Baz baz(Baz_in baz_in) {
   Array_1 a4;
   a4.content_field = catala_malloc(sizeof(Array_1));
   a4.content_field[0] = code(env, NULL);
-  Option_1 match_arg = catala_handle_exceptions(a4);
-  switch (match_arg.code) {
+  Option_1 a3 = catala_handle_exceptions(a4);
+  switch (a3.code) {
     case Option_1_None_1:
       if (1 /* TRUE */) {
         Bar a3;
@@ -120,8 +120,8 @@ Baz baz(Baz_in baz_in) {
         Array_1 a7;
         a7.content_field = catala_malloc(sizeof(Array_1));
         
-        Option_1 match_arg = catala_handle_exceptions(a7);
-        switch (match_arg.code) {
+        Option_1 a8 = catala_handle_exceptions(a7);
+        switch (a8.code) {
           case Option_1_None_1:
             if (1 /* TRUE */) {
               Bar a6 = {Bar_No, {No: NULL}};
@@ -133,15 +133,15 @@ Baz baz(Baz_in baz_in) {
             }
             break;
           case Option_1_Some_1:
-            Bar x1 = match_arg.payload.Some_1;
+            Bar x1 = a8.payload.Some_1;
             option_1 a6 = {Option_1_Some_1, {Some_1: x1}};
             break;
         }
         Array_1 a5;
         a5.content_field = catala_malloc(sizeof(Array_1));
         a5.content_field[0] = a6;
-        Option_1 match_arg = catala_handle_exceptions(a5);
-        switch (match_arg.code) {
+        Option_1 a9 = catala_handle_exceptions(a5);
+        switch (a9.code) {
           case Option_1_None_1:
             if (0 /* FALSE */) {
               option_1 a4 = {Option_1_None_1, {None_1: NULL}};
@@ -152,20 +152,16 @@ Baz baz(Baz_in baz_in) {
             }
             break;
           case Option_1_Some_1:
-            Bar x1 = match_arg.payload.Some_1;
+            Bar x1 = a9.payload.Some_1;
             option_1 a4 = {Option_1_Some_1, {Some_1: x1}};
             break;
         }
-        Option_1 match_arg = a4;
-        switch (match_arg.code) {
+        switch (a4.code) {
           case Option_1_None_1:
             catala_raise_fatal_error (catala_no_value,
               "tests/backends/simple.catala_en", 11, 11, 11, 12);
             break;
-          case Option_1_Some_1:
-            Bar arg = match_arg.payload.Some_1;
-            a3 = arg;
-            break;
+          case Option_1_Some_1: Bar arg = a4.payload.Some_1; a3 = arg; break;
         }
         option_1 a3 = {Option_1_Some_1, {Some_1: a3}};
         
@@ -175,20 +171,16 @@ Baz baz(Baz_in baz_in) {
       }
       break;
     case Option_1_Some_1:
-      Bar x1 = match_arg.payload.Some_1;
+      Bar x1 = a3.payload.Some_1;
       option_1 a3 = {Option_1_Some_1, {Some_1: x1}};
       break;
   }
-  Option_1 match_arg = a3;
-  switch (match_arg.code) {
+  switch (a3.code) {
     case Option_1_None_1:
       catala_raise_fatal_error (catala_no_value,
         "tests/backends/simple.catala_en", 11, 11, 11, 12);
       break;
-    case Option_1_Some_1:
-      Bar arg = match_arg.payload.Some_1;
-      a2 = arg;
-      break;
+    case Option_1_Some_1: Bar arg = a3.payload.Some_1; a2 = arg; break;
   }
   Bar a1;
   a1 = a2;

@@ -421,7 +421,23 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block * R
         binder_pos );
     ], ctxt.ren_ctx
   | EMatch { e = e1; cases; name } ->
+    let typ = Expr.maybe_ty (Mark.get e1) in
     let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
+    let ctxt = { ctxt with ren_ctx } in
+    let e1_stmts, switch_var, ctxt =
+      match new_e1 with
+      | A.EVar v, _ -> e1_stmts, v, ctxt
+      | _ ->
+        let v, ctxt = fresh_var ctxt ctxt.context_name ~pos:(Expr.pos e1) in
+        RevBlock.append e1_stmts
+          ( A.SLocalInit
+              { name = v, Expr.pos e1;
+                expr = new_e1;
+                typ },
+            Expr.pos e1 ),
+        v,
+        ctxt
+    in
     let new_cases =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
@@ -443,20 +459,19 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block * R
           | _ -> assert false)
         cases []
     in
-    let new_args = List.rev new_cases in
     RevBlock.rebuild e1_stmts
       ~tail:
         [
           ( A.SSwitch
               {
-                switch_expr = new_e1;
-                switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+                switch_var;
+                switch_var_typ = typ;
                 enum_name = name;
-                switch_cases = new_args;
+                switch_cases = List.rev new_cases;
               },
             Expr.pos block_expr );
         ],
-    ren_ctx
+    ctxt.ren_ctx
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond, ren_ctx = translate_expr ctxt cond in
     let s_e_true, _ = translate_statements ctxt etrue in

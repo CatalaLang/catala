@@ -370,7 +370,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch
       {
-        switch_expr = e1;
+        switch_var;
         enum_name = e_name;
         switch_cases =
           [
@@ -381,14 +381,11 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       }
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
-    let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hv 4>%a = %a@]@," VarName.format tmp_var
-      (format_expression ctx) e1;
-    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format tmp_var
+    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format switch_var
       (format_block ctx) case_none;
     Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" VarName.format
-      case_some_var VarName.format tmp_var (format_block ctx) case_some
-  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
+      case_some_var VarName.format switch_var (format_block ctx) case_some
+  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let cases =
       List.map2
@@ -396,16 +393,14 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
         cases
         (EnumConstructor.Map.bindings cons_map)
     in
-    let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" VarName.format tmp_var
-      (format_expression ctx) e1
+    Format.fprintf fmt "@[<hov 4>if %a@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             VarName.format tmp_var EnumName.format e_name
+             VarName.format switch_var EnumName.format e_name
              EnumConstructor.format cons_name VarName.format payload_var_name
-             VarName.format tmp_var (format_block ctx) case_block))
+             VarName.format switch_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
