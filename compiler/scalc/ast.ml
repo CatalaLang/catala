@@ -70,8 +70,8 @@ type stmt =
   | SFatalError of Runtime.error
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
   | SSwitch of {
-      switch_expr : expr;
-      switch_expr_typ : typ;
+      switch_var : VarName.t;
+      switch_var_typ : typ;
       enum_name : EnumName.t;
       switch_cases : switch_case list;
     }
