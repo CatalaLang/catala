@@ -162,11 +162,11 @@ def b(b_in:BIn):
         arg = perhaps_none_arg
         result1 = arg
     result = some_name(SomeNameIn(i_in = result1))
-    result1 = SomeName(o = result.o)
+    result4 = SomeName(o = result.o)
     if True:
-        some_name2 = result1
+        some_name2 = result4
     else:
-        some_name2 = result1
+        some_name2 = result4
     some_name1 = some_name2
     return B(some_name = some_name1)
 ```
