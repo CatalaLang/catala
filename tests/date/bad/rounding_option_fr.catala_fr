@@ -14,8 +14,13 @@ champ d'application Test:
 $ catala test-scope Test
 ┌─[ERROR]─
 │
-│  Unexpected error: Dates_calc.Dates.AmbiguousComputation
+│  During evaluation: ambiguous date computation, and rounding mode was not
+│  specified.
 │
+├─➤ tests/date/bad/rounding_option_fr.catala_fr:10.36-10.37:
+│    │
+│ 10 │   définition ambiguité égal à bday + 18 an <= today 
+│    │                                    ‾
 └─
-#return code 125#
+#return code 123#
 ```

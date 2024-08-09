@@ -72,39 +72,26 @@ module Box = struct
 
   let lift_scope_vars = LiftScopeVars.lift_box
 
-  module Ren = struct
-    module Set = Set.Make (String)
-
-    type ctxt = Set.t
-
-    let skip_constant_binders = true
-    let reset_context_for_closed_terms = true
-    let constant_binder_name = None
-    let empty_ctxt = Set.empty
-    let reserve_name n s = Set.add n s
-    let new_name n s = n, Set.add n s
-  end
-
-  module Ctx = Bindlib.Ctxt (Ren)
-
-  let fv b = Ren.Set.elements (Ctx.free_vars b)
-
   let assert_closed b =
-    match fv b with
-    | [] -> ()
-    | [h] ->
+    if not (Bindlib.is_closed b) then
+      (* This is a bit convoluted, but we just want to extract the free
+         variables names for debug *)
+      let module Ctx = Bindlib.Ctxt (struct
+        type ctxt = String.Set.t
+
+        let skip_constant_binders = true
+        let reset_context_for_closed_terms = true
+        let constant_binder_name = None
+        let empty_ctxt = String.Set.empty
+        let reserve_name n s = String.Set.add n s
+        let new_name n s = n, String.Set.add n s
+      end) in
       Message.error ~internal:true
-        "The boxed term is not closed the variable %s is free in the global \
-         context"
-        h
-    | l ->
-      Message.error ~internal:true
-        "The boxed term is not closed the variables %a is free in the global \
-         context"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+        "The boxed term is not closed, these variables are free in it:@ \
+         @[<hov>%a@]"
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
            Format.pp_print_string)
-        l
+        (String.Set.elements (Ctx.free_vars b))
 end
 
 let bind vars e = Bindlib.bind_mvar vars (Box.lift e)
@@ -306,6 +293,10 @@ let map
   | ELit l -> elit l m
   | EApp { f = e1; args; tys } ->
     eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
+  | EAppOp { op = Op.Log (VarDef vd, infos), pos; tys; args } ->
+    let log_typ = Mark.remove (typ (Mark.add Pos.no_pos vd.log_typ)) in
+    let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
+    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op; tys; args } ->
     eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
@@ -827,85 +818,6 @@ let remove_logging_calls e =
       m )
   in
   f e
-
-module DefaultBindlibCtxRename = struct
-  (* This code is a copy-paste from Bindlib, they forgot to expose the default
-     implementation ! *)
-  type ctxt = int String.Map.t
-
-  let empty_ctxt = String.Map.empty
-
-  let split_name : string -> string * int =
-   fun name ->
-    let len = String.length name in
-    (* [i] is the index of the first first character of the suffix. *)
-    let i =
-      let is_digit c = '0' <= c && c <= '9' in
-      let first_digit = ref len in
-      let first_non_0 = ref len in
-      while !first_digit > 0 && is_digit name.[!first_digit - 1] do
-        decr first_digit;
-        if name.[!first_digit] <> '0' then first_non_0 := !first_digit
-      done;
-      !first_non_0
-    in
-    if i = len then name, 0
-    else String.sub name 0 i, int_of_string (String.sub name i (len - i))
-
-  let get_suffix : string -> int -> ctxt -> int * ctxt =
-   fun name suffix ctxt ->
-    let n = try String.Map.find name ctxt with String.Map.Not_found _ -> -1 in
-    let suffix = if suffix > n then suffix else n + 1 in
-    suffix, String.Map.add name suffix ctxt
-
-  let merge_name : string -> int -> string =
-   fun prefix suffix ->
-    if suffix > 0 then prefix ^ string_of_int suffix else prefix
-
-  let new_name : string -> ctxt -> string * ctxt =
-   fun name ctxt ->
-    let prefix, suffix = split_name name in
-    let suffix, ctxt = get_suffix prefix suffix ctxt in
-    merge_name prefix suffix, ctxt
-
-  let reserve_name : string -> ctxt -> ctxt =
-   fun name ctxt ->
-    let prefix, suffix = split_name name in
-    try
-      let n = String.Map.find prefix ctxt in
-      if suffix <= n then ctxt else String.Map.add prefix suffix ctxt
-    with String.Map.Not_found _ -> String.Map.add prefix suffix ctxt
-end
-
-let rename_vars
-    ?(exclude = ([] : string list))
-    ?(reset_context_for_closed_terms = false)
-    ?(skip_constant_binders = false)
-    ?(constant_binder_name = None)
-    e =
-  let module BindCtx = Bindlib.Ctxt (struct
-    include DefaultBindlibCtxRename
-
-    let reset_context_for_closed_terms = reset_context_for_closed_terms
-    let skip_constant_binders = skip_constant_binders
-    let constant_binder_name = constant_binder_name
-  end) in
-  let rec aux : type a. BindCtx.ctxt -> (a, 't) gexpr -> (a, 't) gexpr boxed =
-   fun ctx e ->
-    match e with
-    | EAbs { binder; tys }, m ->
-      let vars, body, ctx = BindCtx.unmbind_in ctx binder in
-      let body = aux ctx body in
-      let binder = bind vars body in
-      eabs binder tys m
-    | e -> map ~f:(aux ctx) ~op:Fun.id e
-  in
-  let ctx =
-    List.fold_left
-      (fun ctx name -> DefaultBindlibCtxRename.reserve_name name ctx)
-      BindCtx.empty_ctxt exclude
-  in
-  aux ctx e
 
 let format ppf e = Print.expr ~debug:false () ppf e
 

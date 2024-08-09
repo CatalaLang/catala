@@ -941,8 +941,11 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. The decl_ctx is filled in left-to-right
      order, then the chained scopes aggregated from the right. *)
-  let rec translate_defs = function
-    | [] -> Bindlib.box (Last ())
+  let rec translate_defs vlist = function
+    | [] ->
+      Bindlib.box_apply
+        (fun vl -> Last vl)
+        (Bindlib.box_rev_list (List.map Bindlib.box_var vlist))
     | def :: next ->
       let dvar, def =
         match def with
@@ -971,13 +974,13 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
               (fun body -> ScopeDef (scope_name, body))
               scope_body )
       in
-      let scope_next = translate_defs next in
+      let scope_next = translate_defs (dvar :: vlist) next in
       let next_bind = Bindlib.bind_var dvar scope_next in
       Bindlib.box_apply2
         (fun item next_bind -> Cons (item, next_bind))
         def next_bind
   in
-  let items = translate_defs defs_ordering in
+  let items = translate_defs [] defs_ordering in
   Expr.Box.assert_closed items;
   {
     code_items = Bindlib.unbox items;

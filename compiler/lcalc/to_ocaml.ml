@@ -130,38 +130,30 @@ let ocaml_keywords =
     "Oper";
   ]
 
-let ocaml_keywords_set = String.Set.of_list ocaml_keywords
-
-let avoid_keywords (s : string) : string =
-  if String.Set.mem s ocaml_keywords_set then s ^ "_user" else s
-(* Fixme: this could cause clashes if the user program contains both e.g. [new]
-   and [new_user] *)
-
-let ppclean fmt str =
-  str |> String.to_ascii |> avoid_keywords |> Format.pp_print_string fmt
-
-let ppsnake fmt str =
-  str
-  |> String.to_ascii
-  |> String.to_snake_case
-  |> avoid_keywords
-  |> Format.pp_print_string fmt
+let renaming =
+  Renaming.program ()
+    ~reserved:ocaml_keywords
+      (* TODO: add catala runtime built-ins as reserved as well ? *)
+    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+    ~constant_binder_name:(Some "_") ~namespaced_fields_constrs:true
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with
   | [] -> ()
   | path ->
-    ppclean fmt (Uid.Path.to_string path);
+    Uid.Path.format fmt path;
     Format.pp_print_char fmt '.');
-  ppsnake fmt (Mark.remove (StructName.get_info v))
+  assert (
+    let n = Mark.remove (StructName.get_info v) in
+    n = String.capitalize_ascii n);
+  Format.pp_print_string fmt (Mark.remove (StructName.get_info v))
 
 let format_to_module_name
     (fmt : Format.formatter)
     (name : [< `Ename of EnumName.t | `Sname of StructName.t ]) =
-  ppclean fmt
-    (match name with
-    | `Ename v -> EnumName.to_string v
-    | `Sname v -> StructName.to_string v)
+  match name with
+  | `Ename v -> EnumName.format fmt v
+  | `Sname v -> StructName.format fmt v
 
 let format_struct_field_name
     (fmt : Format.formatter)
@@ -171,20 +163,16 @@ let format_struct_field_name
       format_to_module_name fmt (`Sname sname);
       Format.pp_print_char fmt '.')
     sname_opt;
-  ppclean fmt (StructField.to_string v)
+  StructField.format fmt v
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
-  (match EnumName.path v with
-  | [] -> ()
-  | path ->
-    ppclean fmt (Uid.Path.to_string path);
-    Format.pp_print_char fmt '.');
-  ppsnake fmt (Mark.remove (EnumName.get_info v))
+  EnumName.format fmt v
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
-  ppclean fmt (EnumConstructor.to_string v)
+  EnumConstructor.format fmt v
 
+(* TODO: these names should be properly registered before renaming *)
 let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   match Mark.remove ty with
   | TLit TUnit -> Format.pp_print_string fmt "embed_unit"
@@ -195,16 +183,12 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   | TLit TDate -> Format.pp_print_string fmt "embed_date"
   | TLit TDuration -> Format.pp_print_string fmt "embed_duration"
   | TStruct s_name ->
-    Format.fprintf fmt "%a%sembed_%a" ppclean
-      (Uid.Path.to_string (StructName.path s_name))
-      (if StructName.path s_name = [] then "" else ".")
-      ppsnake
+    Format.fprintf fmt "%aembed_%a" Uid.Path.format (StructName.path s_name)
+      Format.pp_print_string
       (Uid.MarkedString.to_string (StructName.get_info s_name))
   | TEnum e_name ->
-    Format.fprintf fmt "%a%sembed_%a" ppclean
-      (Uid.Path.to_string (EnumName.path e_name))
-      (if EnumName.path e_name = [] then "" else ".")
-      ppsnake
+    Format.fprintf fmt "%aembed_%a" Uid.Path.format (EnumName.path e_name)
+      Format.pp_print_string
       (Uid.MarkedString.to_string (EnumName.get_info e_name))
   | TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
   | _ -> Format.pp_print_string fmt "unembeddable"
@@ -243,20 +227,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TClosureEnv -> Format.fprintf fmt "Obj.t"
 
 let format_var_str (fmt : Format.formatter) (v : string) : unit =
-  let lowercase_name = String.to_snake_case (String.to_ascii v) in
-  let lowercase_name =
-    Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
-      ~subst:(fun _ -> "_dot_")
-      lowercase_name
-  in
-  let lowercase_name = String.to_ascii lowercase_name in
-  if
-    List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-    (* O_O *)
-    || String.begins_with_uppercase v
-  then Format.pp_print_string fmt lowercase_name
-  else if lowercase_name = "_" then Format.pp_print_string fmt lowercase_name
-  else Format.fprintf fmt "%s_" lowercase_name
+  Format.pp_print_string fmt v
 
 let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   format_var_str fmt (Bindlib.name_of v)
@@ -450,6 +421,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       Print.runtime_error er format_pos (Expr.pos e)
   | _ -> .
 
+(* TODO: move [embed_foo] to [Foo.embed] to protect from name clashes *)
 let format_struct_embedding
     (fmt : Format.formatter)
     ((struct_name, struct_fields) : StructName.t * typ StructField.Map.t) =
@@ -561,15 +533,9 @@ let format_ctx
           Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
-let rename_vars e =
-  Expr.(
-    unbox
-      (rename_vars ~exclude:ocaml_keywords ~reset_context_for_closed_terms:true
-         ~skip_constant_binders:true ~constant_binder_name:(Some "_") e))
-
 let format_expr ctx fmt e =
   Format.pp_open_vbox fmt 0;
-  format_expr ctx fmt (rename_vars e);
+  format_expr ctx fmt e;
   Format.pp_close_box fmt ()
 
 let format_scope_body_expr
@@ -594,7 +560,7 @@ let format_code_items
     (code_items : 'm Ast.expr code_item_list) :
     ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t =
   Format.pp_open_vbox fmt 0;
-  let var_bindings, () =
+  let var_bindings, _ =
     BoundList.fold_left
       ~f:(fun bnd item var ->
         match item with
@@ -761,14 +727,9 @@ let format_module_registration
   Format.pp_print_newline fmt ()
 
 let header =
-  {ocaml|
-(** This file has been generated by the Catala compiler, do not edit! *)
-
-open Runtime_ocaml.Runtime
-
-[@@@ocaml.warning "-4-26-27-32-41-42"]
-
-|ocaml}
+  "(** This file has been generated by the Catala compiler, do not edit! *)\n\n\
+   open Runtime_ocaml.Runtime\n\n\
+   [@@@ocaml.warning \"-4-26-27-32-41-42\"]\n\n"
 
 let format_program
     (fmt : Format.formatter)
