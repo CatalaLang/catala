@@ -361,7 +361,7 @@ module Commands = struct
       Message.error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
-    | Some (ScopeVar v | SubScope (v, _, _)) ->
+    | Some (ScopeVar v | SubScope (v, _)) ->
       let state =
         second_part
         |> Option.map
@@ -375,7 +375,10 @@ module Commands = struct
                 @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
                id first_part ScopeName.format scope_uid
       in
-      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
+      {
+        scope_def_var_within_scope = v, Pos.no_pos;
+        scope_def_kind = Desugared.Ast.ScopeDef.ScopeVarKind state;
+      }
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in

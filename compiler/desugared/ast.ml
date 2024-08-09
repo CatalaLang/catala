@@ -25,62 +25,137 @@ open Shared_ast
     def *)
 module ScopeDef = struct
   module Base = struct
-    type kind =
-      | Var of StateName.t option
-      | SubScopeInput of {
-          name : ScopeName.t;
-          var_within_origin_scope : ScopeVar.t;
+    type sub_scope_input_kind =
+      | Direct of {
+          sub_scope_name : ScopeName.t;
+          var_within_sub_scope : ScopeVar.t;
+        }
+      | NestedSubScope of {
+          sub_scope_name : ScopeName.t;
+          nested_sub_scope_var_within_sub_scope : ScopeVar.t;
+          nested_input_var : sub_scope_input_kind;
         }
 
-    type t = ScopeVar.t Mark.pos * kind
+    type kind =
+      | ScopeVarKind of StateName.t option
+      | SubScopeInputKind of sub_scope_input_kind
+
+    type t = {
+      scope_def_var_within_scope : ScopeVar.t Mark.pos;
+      scope_def_kind : kind;
+    }
 
     let equal_kind k1 k2 =
       match k1, k2 with
-      | Var s1, Var s2 -> Option.equal StateName.equal s1 s2
-      | ( SubScopeInput { var_within_origin_scope = v1; _ },
-          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
-        ScopeVar.equal v1 v2
-      | (Var _ | SubScopeInput _), _ -> false
+      | ScopeVarKind s1, ScopeVarKind s2 -> Option.equal StateName.equal s1 s2
+      | SubScopeInputKind i1, SubScopeInputKind i2 ->
+        let rec aux i1 i2 =
+          match i1, i2 with
+          | ( Direct { var_within_sub_scope = v1; _ },
+              Direct { var_within_sub_scope = v2; _ } ) ->
+            ScopeVar.equal v1 v2
+          | ( NestedSubScope
+                {
+                  nested_sub_scope_var_within_sub_scope = v1;
+                  nested_input_var = i1;
+                  _;
+                },
+              NestedSubScope
+                {
+                  nested_sub_scope_var_within_sub_scope = v2;
+                  nested_input_var = i2;
+                  _;
+                } ) ->
+            ScopeVar.equal v1 v2 && aux i1 i2
+          | _ -> false
+        in
+        aux i1 i2
+      | (ScopeVarKind _ | SubScopeInputKind _), _ -> false
 
-    let equal (v1, k1) (v2, k2) =
+    let equal
+        { scope_def_var_within_scope = v1; scope_def_kind = k1 }
+        { scope_def_var_within_scope = v2; scope_def_kind = k2 } =
       ScopeVar.equal (Mark.remove v1) (Mark.remove v2) && equal_kind k1 k2
 
     let compare_kind k1 k2 =
       match k1, k2 with
-      | Var st1, Var st2 -> Option.compare StateName.compare st1 st2
-      | ( SubScopeInput { var_within_origin_scope = v1; _ },
-          SubScopeInput { var_within_origin_scope = v2; _ } ) ->
-        ScopeVar.compare v1 v2
-      | Var _, SubScopeInput _ -> -1
-      | SubScopeInput _, Var _ -> 1
+      | ScopeVarKind st1, ScopeVarKind st2 ->
+        Option.compare StateName.compare st1 st2
+      | SubScopeInputKind i1, SubScopeInputKind i2 ->
+        let rec aux i1 i2 =
+          match i1, i2 with
+          | ( Direct { var_within_sub_scope = v1; _ },
+              Direct { var_within_sub_scope = v2; _ } ) ->
+            ScopeVar.compare v1 v2
+          | ( NestedSubScope
+                {
+                  nested_sub_scope_var_within_sub_scope = v1;
+                  nested_input_var = i1;
+                  _;
+                },
+              NestedSubScope
+                {
+                  nested_sub_scope_var_within_sub_scope = v2;
+                  nested_input_var = i2;
+                  _;
+                } ) ->
+            let x = ScopeVar.compare v1 v2 in
+            if x <> 0 then x else aux i1 i2
+          | Direct _, NestedSubScope _ -> -1
+          | NestedSubScope _, Direct _ -> 1
+        in
+        aux i1 i2
+      | ScopeVarKind _, SubScopeInputKind _ -> -1
+      | SubScopeInputKind _, ScopeVarKind _ -> 1
 
-    let compare (v1, k1) (v2, k2) =
+    let compare
+        { scope_def_var_within_scope = v1; scope_def_kind = k1 }
+        { scope_def_var_within_scope = v2; scope_def_kind = k2 } =
       match Mark.compare ScopeVar.compare v1 v2 with
       | 0 -> compare_kind k1 k2
       | n -> n
 
-    let get_position (v, _) = Mark.get v
+    let get_position { scope_def_var_within_scope = v; _ } = Mark.get v
 
-    let format_kind ppf = function
-      | Var None -> ()
-      | Var (Some st) -> Format.fprintf ppf "@%a" StateName.format st
-      | SubScopeInput { var_within_origin_scope = v; _ } ->
+    let rec format_kind ppf = function
+      | ScopeVarKind None -> ()
+      | ScopeVarKind (Some st) -> Format.fprintf ppf "@%a" StateName.format st
+      | SubScopeInputKind (Direct { var_within_sub_scope = v; _ }) ->
         Format.fprintf ppf ".%a" ScopeVar.format v
+      | SubScopeInputKind
+          (NestedSubScope
+            {
+              nested_sub_scope_var_within_sub_scope = v;
+              nested_input_var = i;
+              _;
+            }) ->
+        Format.fprintf ppf ".%a%a" ScopeVar.format v format_kind
+          (SubScopeInputKind i)
 
-    let format ppf (v, k) =
+    let format ppf { scope_def_var_within_scope = v; scope_def_kind = k } =
       ScopeVar.format ppf (Mark.remove v);
       format_kind ppf k
 
     open Hash.Op
 
-    let hash_kind ~strip = function
-      | Var v -> !`Var % Hash.option StateName.hash v
-      | SubScopeInput { name; var_within_origin_scope } ->
-        !`SubScopeInput
-        % ScopeName.hash ~strip name
-        % ScopeVar.hash var_within_origin_scope
+    let rec hash_kind ~strip = function
+      | ScopeVarKind v -> !`Var % Hash.option StateName.hash v
+      | SubScopeInputKind
+          (Direct { var_within_sub_scope = v; sub_scope_name = s }) ->
+        !`SubScopeInputKind % ScopeName.hash ~strip s % ScopeVar.hash v
+      | SubScopeInputKind
+          (NestedSubScope
+            {
+              nested_sub_scope_var_within_sub_scope = v;
+              nested_input_var = i;
+              sub_scope_name = s;
+            }) ->
+        !`SubScopeInputKind
+        % ScopeName.hash ~strip s
+        % ScopeVar.hash v
+        % hash_kind ~strip (SubScopeInputKind i)
 
-    let hash ~strip (v, k) =
+    let hash ~strip { scope_def_var_within_scope = v; scope_def_kind = k } =
       Hash.Op.(ScopeVar.hash (Mark.remove v) % hash_kind ~strip k)
   end
 
@@ -331,7 +406,12 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar { name; state } -> Some (name, ScopeDef.Var state)
+          | DesugaredScopeVar { name; state } ->
+            Some
+              {
+                ScopeDef.scope_def_var_within_scope = name;
+                scope_def_kind = ScopeDef.ScopeVarKind state;
+              }
           | ToplevelVar _ -> None
         in
         match usage with

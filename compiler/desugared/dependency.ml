@@ -179,10 +179,12 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   (* then add the edges *)
   let g =
-    let to_vertex (var, kind) =
+    let to_vertex
+        { Ast.ScopeDef.scope_def_var_within_scope = var; scope_def_kind = kind }
+        =
       match kind with
-      | Ast.ScopeDef.Var st -> Vertex.Var (Mark.remove var, st)
-      | Ast.ScopeDef.SubScopeInput _ -> Vertex.Var (Mark.remove var, None)
+      | Ast.ScopeDef.ScopeVarKind st -> Vertex.Var (Mark.remove var, st)
+      | Ast.ScopeDef.SubScopeInputKind _ -> Vertex.Var (Mark.remove var, None)
     in
     Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
@@ -195,12 +197,15 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
             let () =
               if Vertex.equal v_used v_defined then
                 match def_key with
-                | _, Ast.ScopeDef.Var _ ->
+                | { scope_def_kind = Ast.ScopeDef.ScopeVarKind _; _ } ->
                   Message.error ~pos:fv_def_pos
                     "The variable@ %a@ is@ used@ in@ one@ of@ its@ \
                      definitions@ (Catala doesn't support recursion)"
                     Ast.ScopeDef.format def_key
-                | v, Ast.ScopeDef.SubScopeInput _ ->
+                | {
+                 scope_def_var_within_scope = v;
+                 scope_def_kind = Ast.ScopeDef.SubScopeInputKind _;
+                } ->
                   Message.error ~pos:fv_def_pos
                     "The subscope@ %a@ is@ used@ in@ the@ definition@ of@ its@ \
                      own@ input@ %a@ (Catala doesn't support recursion)"

@@ -22,20 +22,43 @@ open Shared_ast
 (** Inside a scope, a definition can refer to a variable (possibly an
     intermediate state thereof) or an input of a subscope. *)
 module ScopeDef : sig
-  type kind =
-    | Var of StateName.t option
-    | SubScopeInput of {
-        name : ScopeName.t;
-        var_within_origin_scope : ScopeVar.t;
+  type sub_scope_input_kind =
+    | Direct of {
+        sub_scope_name : ScopeName.t;
+        var_within_sub_scope : ScopeVar.t;
       }
+        (** The sub-scope input is a plain and direct input variable of the
+            sub-scope. *)
+    | NestedSubScope of {
+        sub_scope_name : ScopeName.t;
+        nested_sub_scope_var_within_sub_scope : ScopeVar.t;
+        nested_input_var : sub_scope_input_kind;
+      }
+        (** The subs-scope input is an input of a nested sub-scope within the
+            sub-scope itself. Note the type recursivity, that should end
+            logically with a [Direct] leaf at the bottom of the sub-scope
+            nesting. *)
+
+  type kind =
+    | ScopeVarKind of StateName.t option
+        (** The scope variable is a variable of the main scope. *)
+    | SubScopeInputKind of sub_scope_input_kind
+        (** The scope variable is an input variable of a (potentially nested)
+            subscope. *)
+
+  type t = {
+    scope_def_var_within_scope : ScopeVar.t Mark.pos;
+    scope_def_kind : kind;
+        (** This fields gives more info about the scope variable : does it come
+            from the scope itself or is it an input variable of a sub-scope of
+            the scope, or an input variable of a nested sub-scope of such a
+            sub-scope? *)
+  }
 
   val equal_kind : kind -> kind -> bool
   val compare_kind : kind -> kind -> int
   val format_kind : Format.formatter -> kind -> unit
   val hash_kind : strip:Uid.Path.t -> kind -> Hash.t
-
-  type t = ScopeVar.t Mark.pos * kind
-
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val get_position : t -> Pos.t

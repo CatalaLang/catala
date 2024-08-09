@@ -1,0 +1,51 @@
+## Test
+
+```catala
+declaration scope Foo:
+    input x content integer
+    context y content integer
+    output a content integer
+
+declaration scope Bar:
+    input foo scope Foo
+    input z content integer
+    output b content integer
+
+declaration scope Baz:
+    output c content integer
+
+scope Foo:
+    definition y equals 1
+    definition a equals x + y
+
+scope Bar:
+    definition b equals foo.a + z
+
+scope Baz:
+    definition c equals (output of Bar with {
+        -- z: 1
+        -- foo.x.q : 1
+    }).b
+```
+
+```catala-test-inline
+$ catala typecheck
+┌─[ERROR]─
+│
+│  This scope call argument is a scope variable (x), which cannot be refined
+│  by another path qualifier.
+│
+├─➤ tests/scope/bad/input_subscope_bad_name2.catala_en:27.18-27.19:
+│    │
+│ 27 │         -- foo.x.q : 1
+│    │                  ‾
+├─ Test
+│
+│ Scope variable
+├─➤ tests/scope/bad/input_subscope_bad_name2.catala_en:27.16-27.17:
+│    │
+│ 27 │         -- foo.x.q : 1
+│    │                ‾
+└─ Test
+#return code 123#
+```

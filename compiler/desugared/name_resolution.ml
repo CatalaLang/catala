@@ -144,7 +144,7 @@ let get_subscope_uid
     ((y, pos) : Ident.t Mark.pos) : ScopeVar.t =
   let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt y scope.var_idmap with
-  | Some (SubScope (sub_uid, _sub_id, _)) -> sub_uid
+  | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
   | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
 
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
@@ -167,10 +167,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     scope.var_idmap
 
 let get_var_def (def : Ast.ScopeDef.t) : ScopeVar.t =
-  match def with
-  | (v, _), Ast.ScopeDef.Var _
-  | _, Ast.ScopeDef.SubScopeInput { var_within_origin_scope = v; _ } ->
-    v
+  match def with { scope_def_var_within_scope = v, _; _ } -> v
 
 (** Retrieves the type of a scope definition from the context *)
 let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
@@ -251,9 +248,15 @@ let process_subscope_decl
     (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
-  let forward_output =
-    decl.Surface.Ast.scope_decl_context_scope_attribute
-      .scope_decl_context_io_output
+  let subscope_io =
+    {
+      Surface.Ast.scope_decl_context_io_output =
+        decl.Surface.Ast.scope_decl_context_scope_attribute
+          .scope_decl_context_io_output;
+      scope_decl_context_io_input =
+        decl.Surface.Ast.scope_decl_context_scope_attribute
+          .scope_decl_context_io_input;
+    }
   in
   let (path, subscope), s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = get_scope_context ctxt scope in
@@ -262,7 +265,7 @@ let process_subscope_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
+      | SubScope (ssc, _) -> ScopeVar.get_info ssc
     in
     Message.error
       ~extra_pos:["first use", Mark.get info; "second use", s_pos]
@@ -278,13 +281,34 @@ let process_subscope_decl
         scope_ctxt with
         var_idmap =
           Ident.Map.add name
-            (SubScope (sub_scope_uid, original_subscope_uid, forward_output))
+            (SubScope (sub_scope_uid, original_subscope_uid))
             scope_ctxt.var_idmap;
         sub_scopes =
           ScopeName.Set.add original_subscope_uid scope_ctxt.sub_scopes;
       }
     in
-    { ctxt with scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes }
+    let subscope_ctxt = get_scope_context ctxt original_subscope_uid in
+    {
+      ctxt with
+      scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes;
+      var_typs =
+        ScopeVar.Map.add sub_scope_uid
+          {
+            var_sig_typ =
+              ( TArrow
+                  ( [TStruct subscope_ctxt.scope_in_struct, name_pos],
+                    (TStruct subscope_ctxt.scope_out_struct, name_pos) ),
+                name_pos );
+            var_sig_is_condition = false;
+            var_sig_parameters = None;
+            (* We do not populate the parameter field for sub-scopes as the
+               parameters are the scope's input variables. *)
+            var_sig_io = subscope_io;
+            var_sig_states_idmap = Shared_ast.Ident.Map.empty;
+            var_sig_states_list = [];
+          }
+          ctxt.var_typs;
+    }
 
 let is_type_cond ((typ, _) : Surface.Ast.typ) =
   match typ with
@@ -365,7 +389,7 @@ let process_data_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _, _) -> ScopeVar.get_info ssc
+      | SubScope (ssc, _) -> ScopeVar.get_info ssc
     in
     Message.error
       ~extra_pos:["First use:", Mark.get info; "Second use:", pos]
@@ -616,15 +640,17 @@ let process_scope_decl
       Ident.Map.fold
         (fun id var svmap ->
           match var with
-          | SubScope (_, _, (false, _)) -> svmap
-          | ScopeVar v | SubScope (v, _, (true, _)) -> (
-            try
-              let field =
-                StructName.Map.find str
-                  (Ident.Map.find id ctxt.local.field_idmap)
-              in
-              ScopeVar.Map.add v field svmap
-            with StructName.Map.Not_found _ | Ident.Map.Not_found _ -> svmap))
+          | ScopeVar v | SubScope (v, _) ->
+            let is_output = (get_var_io ctxt v).scope_decl_context_io_output in
+            if Mark.remove is_output then
+              try
+                let field =
+                  StructName.Map.find str
+                    (Ident.Map.find id ctxt.local.field_idmap)
+                in
+                ScopeVar.Map.add v field svmap
+              with StructName.Map.Not_found _ | Ident.Map.Not_found _ -> svmap
+            else svmap)
         sco.var_idmap ScopeVar.Map.empty
     in
     let typedefs =
@@ -784,58 +810,100 @@ let get_def_key
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
-  let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
-  match name with
-  | [x] ->
-    let x_uid = get_var_uid scope_uid ctxt x in
-    let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
-    ( (x_uid, pos),
-      Ast.ScopeDef.Var
-        (match state with
-        | Some state -> (
-          try
-            Some
-              (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
-          with Ident.Map.Not_found _ ->
-            Message.error
-              ~extra_pos:
-                [
-                  "", Mark.get state;
-                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
-                ]
-              "This identifier is not a state declared for variable@ %a."
-              ScopeVar.format x_uid)
-        | None ->
-          if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
-            Message.error
-              ~extra_pos:
-                [
-                  "", Mark.get x;
-                  "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
-                ]
-              "This definition does not indicate which state has to@ be@ \
-               considered@ for@ variable@ %a."
-              ScopeVar.format x_uid
-          else None) )
-  | [y; x] ->
-    let (subscope_var, name) : ScopeVar.t * ScopeName.t =
-      match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
-      | Some (SubScope (v, u, _)) -> v, u
-      | Some _ ->
-        Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
-          Print.lit_style (Mark.remove y)
+  let def_key_var =
+    match name with
+    | x :: _ -> (
+      let scope = get_scope_context ctxt scope_uid in
+      match Ident.Map.find_opt (Mark.remove x) scope.var_idmap with
+      | Some (SubScope (x_uid, _)) | Some (ScopeVar x_uid) -> x_uid, pos
       | None ->
-        Message.error ~pos "No definition found for subscope@ %a"
-          Print.lit_style (Mark.remove y)
-    in
-    let var_within_origin_scope = get_var_uid name ctxt x in
-    ( (subscope_var, pos),
-      Ast.ScopeDef.SubScopeInput { name; var_within_origin_scope } )
-  | _ ->
-    Message.error ~pos "%a" Format.pp_print_text
-      "This line is defining a quantity that is neither a scope variable nor a \
-       subscope variable. In particular, it is not possible to define struct \
-       fields individually in Catala."
+        raise_unknown_identifier
+          (Format.asprintf "for a variable or sub-scope of scope %a"
+             ScopeName.format scope_uid)
+          x)
+    | _ ->
+      Message.error ~pos "%a" Format.pp_print_text
+        "This line is defining a quantity that is neither a scope variable nor \
+         a subscope variable. In particular, it is not possible to define \
+         struct fields individually in Catala."
+  in
+  let get_sub_scope_infos scope_uid sub_scope_name =
+    let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
+    match
+      Ident.Map.find_opt (Mark.remove sub_scope_name) scope_ctxt.var_idmap
+    with
+    | Some (SubScope (v, u)) -> v, u
+    | Some _ ->
+      Message.error ~pos "Invalid definition,@ %a@ is@ not@ a@ subscope"
+        Print.lit_style
+        (Mark.remove sub_scope_name)
+    | None ->
+      Message.error ~pos "No definition found for subscope@ %a" Print.lit_style
+        (Mark.remove sub_scope_name)
+  in
+  let rec get_def_key_kind_subscope name scope_uid =
+    match name with
+    | [x] ->
+      let x_uid = get_var_uid scope_uid ctxt x in
+      Ast.ScopeDef.Direct
+        { sub_scope_name = scope_uid; var_within_sub_scope = x_uid }
+    | sub_scope_name :: rest_of_path ->
+      let (subscope_var, subscope_name) : ScopeVar.t * ScopeName.t =
+        get_sub_scope_infos scope_uid sub_scope_name
+      in
+      Ast.ScopeDef.NestedSubScope
+        {
+          sub_scope_name = subscope_name;
+          nested_sub_scope_var_within_sub_scope = subscope_var;
+          nested_input_var =
+            get_def_key_kind_subscope rest_of_path subscope_name;
+        }
+    | _ ->
+      Message.error ~pos "%a" Format.pp_print_text
+        "This line is defining a quantity that is neither a scope variable nor \
+         a subscope variable. In particular, it is not possible to define \
+         struct fields individually in Catala."
+  in
+  {
+    scope_def_var_within_scope = def_key_var;
+    scope_def_kind =
+      (match name with
+      | [] -> assert false (* should not happen *)
+      | [x] ->
+        let x_uid = get_var_uid scope_uid ctxt x in
+        let var_sig = ScopeVar.Map.find x_uid ctxt.var_typs in
+        Ast.ScopeDef.ScopeVarKind
+          (match state with
+          | Some state -> (
+            try
+              Some
+                (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
+            with Ident.Map.Not_found _ ->
+              Message.error
+                ~extra_pos:
+                  [
+                    "", Mark.get state;
+                    "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
+                  ]
+                "This identifier is not a state declared for variable@ %a."
+                ScopeVar.format x_uid)
+          | None ->
+            if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
+              Message.error
+                ~extra_pos:
+                  [
+                    "", Mark.get x;
+                    "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
+                  ]
+                "This definition does not indicate which state has to@ be@ \
+                 considered@ for@ variable@ %a."
+                ScopeVar.format x_uid
+            else None)
+      | subscope_name :: _ ->
+        SubScopeInputKind
+          (get_def_key_kind_subscope (List.tl name)
+             (snd (get_sub_scope_infos scope_uid subscope_name))));
+  }
 
 let update_def_key_ctx
     (d : Surface.Ast.definition)

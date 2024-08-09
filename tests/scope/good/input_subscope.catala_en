@@ -1,0 +1,29 @@
+## Test
+
+```catala
+declaration scope Foo:
+    input x content integer
+    context y content integer
+    output a content integer
+
+declaration scope Bar:
+    input foo scope Foo
+    input z content integer
+    output b content integer
+
+declaration scope Baz:
+    output c content integer
+
+scope Foo:
+    definition y equals 1
+    definition a equals x + y
+
+scope Bar:
+    definition b equals foo.a + z
+
+scope Baz:
+    definition c equals (output of Bar with {
+        -- z: 1
+        -- foo.x : 1
+    }).b
+```

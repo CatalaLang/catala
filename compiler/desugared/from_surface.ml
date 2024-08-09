@@ -404,7 +404,14 @@ let rec translate_expr
           | Some st, [], _ ->
             Message.error ~pos:(Mark.get st)
               "Variable %a does not define states" ScopeVar.format uid
-          | st, states, Some (((x'_uid, _), Ast.ScopeDef.Var sx'), _)
+          | ( st,
+              states,
+              Some
+                ( {
+                    scope_def_var_within_scope = x'_uid, _;
+                    scope_def_kind = Ast.ScopeDef.ScopeVarKind sx';
+                  },
+                  _ ) )
             when ScopeVar.equal uid x'_uid -> (
             if st <> None then
               (* TODO *)
@@ -454,7 +461,7 @@ let rec translate_expr
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = x_state })
           emark
-      | Some (SubScope (uid, _, _)) ->
+      | Some (SubScope (uid, _)) ->
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = None })
           emark
@@ -517,40 +524,129 @@ let rec translate_expr
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope";
-    let called_scope, scope_def =
+    let called_scope =
       let ctxt = Name_resolution.module_ctx ctxt path in
-      let uid = Name_resolution.get_scope ctxt id in
-      uid, ScopeName.Map.find uid ctxt.scopes
+      Name_resolution.get_scope ctxt id
     in
     let in_struct =
       List.fold_left
-        (fun acc (fld_id, e) ->
-          let var =
-            match
-              Ident.Map.find_opt (Mark.remove fld_id) scope_def.var_idmap
-            with
-            | Some (ScopeVar v) -> v
-            | Some (SubScope _) | None ->
-              Message.error
-                ~suggestion:(Ident.Map.keys scope_def.var_idmap)
-                ~extra_pos:
-                  [
-                    "", Mark.get fld_id;
-                    ( Format.asprintf "Scope %a declared here" ScopeName.format
-                        called_scope,
-                      Mark.get (ScopeName.get_info called_scope) );
-                  ]
-                "Scope %a has no input variable %a" ScopeName.format
-                called_scope Print.lit_style (Mark.remove fld_id)
+        (fun acc ((fld_id : S.scope_var), e) ->
+          (* Here, we process the syntax scope call args one at a time. These
+             args can either define a callee variable or a variable of an input
+             subscope of the calee (or an even more nested input variable,
+             recursively).
+
+             To process the addition of this potentially nested sub-scope
+             variable input, we need to define a recursive function that will
+             traverse in sync both the accumulator of existing arguments and the
+             scope var argument path, to add the argument expression at the
+             right place in [arg]. *)
+          let rec add_subscope_path_and_expr_to_in_struct
+              (acc : Ast.expr boxed scope_call_args)
+              (current_subscope : ScopeName.t)
+              (current_path : S.scope_var)
+              (var_expr : S.expression) : Ast.expr boxed scope_call_args =
+            let current_subscope_ctx =
+              ScopeName.Map.find current_subscope ctxt.scopes
+            in
+            match current_path with
+            | [] -> assert false (* should not happen *)
+            | [scope_var_str] -> (
+              (* Here, we've arrived a what is a scope variable argument in our
+                 current level of nesting. We set it in our acc ! *)
+              let scope_var =
+                Ident.Map.find_opt
+                  (Mark.remove scope_var_str)
+                  current_subscope_ctx.var_idmap
+              in
+              match scope_var with
+              | None ->
+                Message.error
+                  ~suggestion:(Ident.Map.keys current_subscope_ctx.var_idmap)
+                  ~extra_pos:
+                    [
+                      "", Mark.get scope_var_str;
+                      ( Format.asprintf "Scope %a declared here"
+                          ScopeName.format current_subscope,
+                        Mark.get (ScopeName.get_info current_subscope) );
+                    ]
+                  "Scope %a has no input variable %a" ScopeName.format
+                  current_subscope Print.lit_style
+                  (Mark.remove scope_var_str)
+              | Some (SubScope (_, sub_scope)) ->
+                Message.error
+                  ~extra_pos:
+                    [
+                      "", Mark.get scope_var_str;
+                      ( Format.asprintf "Sub-scope %a declared here"
+                          ScopeName.format sub_scope,
+                        Mark.get (ScopeName.get_info sub_scope) );
+                    ]
+                  "Scope@ call@ input@ arguments@ should@ be@ scope@ or@ \
+                   sub-scope@ variables,@ but@ %a@ is@ the@ entire@ sub-scope."
+                  Print.lit_style
+                  (Mark.remove scope_var_str)
+              | Some (ScopeVar scope_var) ->
+                ScopeVar.Map.update scope_var
+                  (fun map_expr ->
+                    match map_expr with
+                    | None -> Some (ScopeVarArg (rec_helper e))
+                    | Some _ ->
+                      Message.error ~pos:(Mark.get scope_var_str)
+                        "Duplicate definition of scope input variable '%a'"
+                        ScopeVar.format scope_var)
+                  acc)
+            | subscope_var_str :: (_ :: _ as rest_of_path) -> (
+              let subscope_var =
+                Ident.Map.find_opt
+                  (Mark.remove subscope_var_str)
+                  current_subscope_ctx.var_idmap
+              in
+              match subscope_var with
+              | Some (ScopeVar _) ->
+                Message.error
+                  ~pos:(Mark.get (List.hd rest_of_path))
+                  ~extra_pos:
+                    [
+                      Format.asprintf "Scope variable", Mark.get subscope_var_str;
+                    ]
+                  "This@ scope@ call@ argument@ is@ a@ scope@ variable@ (%a),@ \
+                   which@ cannot@ be@ refined@ by@ another@ path@ qualifier."
+                  Print.lit_style
+                  (Mark.remove subscope_var_str)
+              | Some (SubScope (subscope_var, sub_scope_name)) ->
+                ScopeVar.Map.update subscope_var
+                  (fun map_expr ->
+                    let acc =
+                      match map_expr with
+                      | None -> ScopeVar.Map.empty
+                      | Some (ScopeVarArg _) ->
+                        assert false (* should not happen *)
+                      | Some (SubScopeVarArg (sub_scope_name', acc)) ->
+                        assert (ScopeName.equal sub_scope_name sub_scope_name');
+                        acc
+                    in
+                    Some
+                      (SubScopeVarArg
+                         ( sub_scope_name,
+                           add_subscope_path_and_expr_to_in_struct acc
+                             sub_scope_name rest_of_path var_expr )))
+                  acc
+              | None ->
+                Message.error
+                  ~suggestion:(Ident.Map.keys current_subscope_ctx.var_idmap)
+                  ~extra_pos:
+                    [
+                      "", Mark.get (List.hd fld_id);
+                      ( Format.asprintf "Scope %a declared here"
+                          ScopeName.format current_subscope,
+                        Mark.get (ScopeName.get_info current_subscope) );
+                    ]
+                  "Scope %a has no input variable %a" ScopeName.format
+                  current_subscope Print.lit_style
+                  (Mark.remove subscope_var_str))
           in
-          ScopeVar.Map.update var
-            (function
-              | None -> Some (rec_helper e)
-              | Some _ ->
-                Message.error ~pos:(Mark.get fld_id)
-                  "Duplicate definition of scope input variable '%a'"
-                  ScopeVar.format var)
-            acc)
+          add_subscope_path_and_expr_to_in_struct acc called_scope fld_id e)
         ScopeVar.Map.empty fields
     in
     Expr.escopecall ~scope:called_scope ~args:in_struct emark
@@ -1222,7 +1318,17 @@ let process_def
     process_rule_parameters ctxt (Mark.copy def.definition_name def_key) def
   in
   let scope_updated =
-    let scope_def = Ast.ScopeDef.Map.find def_key scope.scope_defs in
+    let scope_def =
+      (* FIXME: this error catching is very late, there should be a pass
+         preventing this to fail earlier. *)
+      match Ast.ScopeDef.Map.find_opt def_key scope.scope_defs with
+      | Some x -> x
+      | None ->
+        Message.error
+          ~pos:(Mark.get def.definition_name)
+          "%a" Format.pp_print_text
+          "Invalid assignment to an inaccessible sub-scope variable."
+    in
     let rule_name = def.definition_id in
     let label_situation =
       match def.definition_label with
@@ -1547,7 +1653,7 @@ let init_scope_defs
   let add_def _ v scope_def_map =
     let pos =
       match v with
-      | ScopeVar v | SubScope (v, _, _) -> Mark.get (ScopeVar.get_info v)
+      | ScopeVar v | SubScope (v, _) -> Mark.get (ScopeVar.get_info v)
     in
     let new_def v_sig io =
       {
@@ -1563,7 +1669,12 @@ let init_scope_defs
       let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
-        let def_key = (v, pos), Ast.ScopeDef.Var None in
+        let def_key =
+          {
+            Ast.ScopeDef.scope_def_var_within_scope = v, pos;
+            scope_def_kind = Ast.ScopeDef.ScopeVarKind None;
+          }
+        in
         Ast.ScopeDef.Map.add def_key
           (new_def v_sig (attribute_to_io v_sig.var_sig_io))
           scope_def_map
@@ -1572,7 +1683,12 @@ let init_scope_defs
         let scope_def, _ =
           List.fold_left
             (fun (acc, i) state ->
-              let def_key = (v, pos), Ast.ScopeDef.Var (Some state) in
+              let def_key =
+                {
+                  Ast.ScopeDef.scope_def_var_within_scope = v, pos;
+                  scope_def_kind = Ast.ScopeDef.ScopeVarKind (Some state);
+                }
+              in
               let original_io = attribute_to_io v_sig.var_sig_io in
               (* The first state should have the input I/O of the original
                  variable, and the last state should have the output I/O of the
@@ -1591,8 +1707,9 @@ let init_scope_defs
             (scope_def_map, 0) states
         in
         scope_def)
-    | SubScope (v0, subscope_uid, forward_out) ->
+    | SubScope (v0, subscope_uid) ->
       let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
+      let sub_scope_io = Name_resolution.get_var_io ctxt v0 in
       let ctxt =
         List.fold_left
           (fun ctx m ->
@@ -1613,42 +1730,96 @@ let init_scope_defs
           Ast.scope_def_parameters = None;
           Ast.scope_def_io =
             {
-              io_input = NoInput, Mark.get forward_out;
-              io_output = forward_out;
+              (attribute_to_io sub_scope_io) with
+              io_input =
+                ( Runtime.NoInput,
+                  Mark.get sub_scope_io.scope_decl_context_io_input );
             };
         }
       in
+      (* Here we're adding the scope def corresponding to the subscope's output,
+         which is a simple scope variable. *)
       let scope_def_map =
         Ast.ScopeDef.Map.add
-          ((v0, pos), Ast.ScopeDef.Var None)
+          {
+            Ast.ScopeDef.scope_def_var_within_scope = v0, pos;
+            scope_def_kind = Ast.ScopeDef.ScopeVarKind None;
+          }
           var_def scope_def_map
       in
-      Ident.Map.fold
-        (fun _ v scope_def_map ->
-          match v with
-          | SubScope _ ->
-            (* TODO: if we consider "input subscopes" at some point their inputs
-               will need to be forwarded here *)
+      (* Then we're adding all the variables corresponding to the subscope's
+         inputs, recursively ! *)
+      let rec fill_def_keys_with_subscope_inputs
+          sub_scope_nesting
+          (* [sub_scope_nesting final_scope_var] returns the potentially nested
+             sub scope input kind, and is a function used as an accumulator
+             through the recursive calls of [fill_def_keys_with_subscope_inputs]
+             to created the nested value. *)
             scope_def_map
-          | ScopeVar v ->
-            (* TODO: shouldn't we ignore internal variables too at this point
-               ? *)
-            let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
-            let def_key =
-              ( (v0, Mark.get (ScopeVar.get_info v)),
-                Ast.ScopeDef.SubScopeInput
-                  { name = subscope_uid; var_within_origin_scope = v } )
-            in
-            Ast.ScopeDef.Map.add def_key
-              {
-                Ast.scope_def_rules = RuleName.Map.empty;
-                Ast.scope_def_typ = v_sig.var_sig_typ;
-                Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                Ast.scope_def_parameters = v_sig.var_sig_parameters;
-                Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
-              }
-              scope_def_map)
-        sub_scope_def.Name_resolution.var_idmap scope_def_map
+          subscope_defs =
+        Ident.Map.fold
+          (fun _ v scope_def_map ->
+            match v with
+            | ScopeVar v -> (
+              let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
+              match v_sig.var_sig_io.scope_decl_context_io_input with
+              | Internal, _ ->
+                scope_def_map (* We only include input variables *)
+              | (Context | Input), _ ->
+                let def_key =
+                  {
+                    Ast.ScopeDef.scope_def_var_within_scope =
+                      v0, Mark.get (ScopeVar.get_info v);
+                    scope_def_kind =
+                      Ast.ScopeDef.SubScopeInputKind
+                        (sub_scope_nesting
+                           (Ast.ScopeDef.Direct
+                              {
+                                sub_scope_name = subscope_uid;
+                                var_within_sub_scope = v;
+                              }));
+                  }
+                in
+                Ast.ScopeDef.Map.add def_key
+                  {
+                    Ast.scope_def_rules = RuleName.Map.empty;
+                    Ast.scope_def_typ = v_sig.var_sig_typ;
+                    Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                    Ast.scope_def_parameters = v_sig.var_sig_parameters;
+                    Ast.scope_def_io =
+                      {
+                        (attribute_to_io v_sig.var_sig_io) with
+                        io_output = false, Pos.no_pos;
+                      };
+                  }
+                  scope_def_map)
+            | SubScope (nested_sub_scope_var, nested_sub_scope_uid) -> (
+              let nested_sub_scope_def =
+                Name_resolution.get_scope_context ctxt nested_sub_scope_uid
+              in
+              (* We only fill recursively the sub-scope's inputs if the
+                 sub-scope itself is tagged as context or input. *)
+              match
+                Mark.remove
+                  (Name_resolution.get_var_io ctxt nested_sub_scope_var)
+                    .scope_decl_context_io_input
+              with
+              | Surface.Ast.Context | Input ->
+                fill_def_keys_with_subscope_inputs
+                  (fun nested_sub_scope_input_kind ->
+                    Ast.ScopeDef.NestedSubScope
+                      {
+                        sub_scope_name = nested_sub_scope_uid;
+                        nested_sub_scope_var_within_sub_scope =
+                          nested_sub_scope_var;
+                        nested_input_var = nested_sub_scope_input_kind;
+                      })
+                  scope_def_map nested_sub_scope_def.Name_resolution.var_idmap
+              | Surface.Ast.Internal -> scope_def_map))
+          subscope_defs scope_def_map
+      in
+      fill_def_keys_with_subscope_inputs Fun.id scope_def_map
+        sub_scope_def.Name_resolution.var_idmap
   in
   Ident.Map.fold add_def scope_context.var_idmap Ast.ScopeDef.Map.empty
 
@@ -1674,7 +1845,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun _ v acc ->
           match v with
           | ScopeVar _ -> acc
-          | SubScope (sub_var, sub_scope, _) ->
+          | SubScope (sub_var, sub_scope) ->
             ScopeVar.Map.add sub_var sub_scope acc)
         s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
