@@ -21,109 +21,50 @@ module D = Dcalc.Ast
 module L = Lcalc.Ast
 open Ast
 
-let avoid_keywords (s : string) : string =
-  if
-    match s with
-    (* list taken from
-       https://learn.microsoft.com/en-us/cpp/c-language/c-keywords *)
-    | "auto" | "break" | "case" | "char" | "const" | "continue" | "default"
-    | "do" | "double" | "else" | "enum" | "extern" | "float" | "for" | "goto"
-    | "if" | "inline" | "int" | "long" | "register" | "restrict" | "return"
-    | "short" | "signed" | "sizeof" | "static" | "struct" | "switch" | "typedef"
-    | "union" | "unsigned" | "void" | "volatile" | "while" ->
-      true
-    | _ -> false
-  then s ^ "_"
-  else s
+let c_keywords =
+  [
+    "auto";
+    "break";
+    "case";
+    "char";
+    "const";
+    "continue";
+    "default";
+    "do";
+    "double";
+    "else";
+    "enum";
+    "extern";
+    "float";
+    "for";
+    "goto";
+    "if";
+    "inline";
+    "int";
+    "long";
+    "register";
+    "restrict";
+    "return";
+    "short";
+    "signed";
+    "sizeof";
+    "static";
+    "struct";
+    "switch";
+    "typedef";
+    "union";
+    "unsigned";
+    "void";
+    "volatile";
+    "while";
+  ]
 
-let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
-  Format.fprintf fmt "%s"
-    (Format.asprintf "%a_struct" StructName.format v
-    |> String.to_ascii
-    |> String.to_snake_case
-    |> avoid_keywords)
-
-let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
-    =
-  Format.fprintf fmt "%s"
-    (Format.asprintf "%a_field" StructField.format v
-    |> String.to_ascii
-    |> String.to_snake_case
-    |> avoid_keywords)
-
-let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
-  Format.fprintf fmt "%s_enum"
-    (Format.asprintf "%a" EnumName.format v
-    |> String.to_ascii
-    |> String.to_snake_case
-    |> avoid_keywords)
-
-let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
-    unit =
-  Format.fprintf fmt "%s_cons"
-    (Format.asprintf "%a" EnumConstructor.format v
-    |> String.to_ascii
-    |> String.to_snake_case
-    |> avoid_keywords)
-
-let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
-  s
-  |> String.to_ascii
-  |> String.to_snake_case
-  |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
-  |> String.to_ascii
-  |> avoid_keywords
-  |> Format.fprintf fmt "%s"
-
-let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  let v_str = Mark.remove (FuncName.get_info v) in
-  Format.fprintf fmt "%a_func" format_name_cleaned v_str
-
-module StringMap = String.Map
-
-module IntMap = Map.Make (struct
-  include Int
-
-  let format ppf i = Format.pp_print_int ppf i
-end)
-
-(** For each `VarName.t` defined by its string and then by its hash, we keep
-    track of which local integer id we've given it. This is used to keep
-    variable naming with low indices rather than one global counter for all
-    variables. TODO: should be removed when
-    https://github.com/CatalaLang/catala/issues/240 is fixed. *)
-let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
-
-let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
-  let v_str = Mark.remove (VarName.get_info v) in
-  let id = VarName.id v in
-  let local_id =
-    match StringMap.find_opt v_str !string_counter_map with
-    | Some ids -> (
-      match IntMap.find_opt id ids with
-      | None ->
-        let max_id =
-          snd
-            (List.hd
-               (List.fast_sort
-                  (fun (_, x) (_, y) -> Int.compare y x)
-                  (IntMap.bindings ids)))
-        in
-        string_counter_map :=
-          StringMap.add v_str
-            (IntMap.add id (max_id + 1) ids)
-            !string_counter_map;
-        max_id + 1
-      | Some local_id -> local_id)
-    | None ->
-      string_counter_map :=
-        StringMap.add v_str (IntMap.singleton id 0) !string_counter_map;
-      0
-  in
-  if v_str = "_" then Format.fprintf fmt "dummy_var"
-    (* special case for the unit pattern TODO escape dummy_var *)
-  else if local_id = 0 then format_name_cleaned fmt v_str
-  else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
+let renaming =
+  Renaming.program ()
+    ~reserved:c_keywords
+      (* TODO: add catala runtime built-ins as reserved as well ? *)
+    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+    ~constant_binder_name:None ~namespaced_fields_constrs:false
 
 module TypMap = Map.Make (struct
   type t = naked_typ
@@ -156,12 +97,12 @@ let rec format_typ
              (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "arg_%d" i))
              t))
       (List.mapi (fun x y -> y, x) ts)
-  | TStruct s -> Format.fprintf fmt "%a %t" format_struct_name s element_name
+  | TStruct s -> Format.fprintf fmt "%a %t" StructName.format s element_name
   | TOption _ ->
     Message.error ~internal:true
       "All option types should have been monomorphized before compilation to C."
   | TDefault t -> format_typ decl_ctx element_name fmt t
-  | TEnum e -> Format.fprintf fmt "%a %t" format_enum_name e element_name
+  | TEnum e -> Format.fprintf fmt "%a %t" EnumName.format e element_name
   | TArrow (t1, t2) ->
     Format.fprintf fmt "%a(%a)"
       (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "(*%t)" element_name))
@@ -185,41 +126,40 @@ let format_ctx
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a@]@,} %a;"
-      format_struct_name struct_name
+      StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "@[<v>%a;@]"
-             (format_typ ctx (fun fmt ->
-                  format_struct_field_name fmt struct_field))
+             (format_typ ctx (fun fmt -> StructField.format fmt struct_field))
              struct_field_type))
-      fields format_struct_name struct_name
+      fields StructName.format struct_name
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum"
     else
       Format.fprintf fmt "@[<v 2>enum %a_code {@,%a@]@,} %a_code;@\n@\n"
-        format_enum_name enum_name
+        EnumName.format enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (enum_cons, _) ->
-             Format.fprintf fmt "%a_%a" format_enum_name enum_name
-               format_enum_cons_name enum_cons))
+             Format.fprintf fmt "%a_%a" EnumName.format enum_name
+               EnumConstructor.format enum_cons))
         (EnumConstructor.Map.bindings enum_cons)
-        format_enum_name enum_name;
+        EnumName.format enum_name;
     Format.fprintf fmt
       "@[<v 2>typedef struct %a {@ enum %a_code code;@ @[<v 2>union {@ %a@]@,\
        } payload;@]@,\
-       } %a;" format_enum_name enum_name format_enum_name enum_name
+       } %a;" EnumName.format enum_name EnumName.format enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
            Format.fprintf fmt "%a;"
-             (format_typ ctx (fun fmt -> format_enum_cons_name fmt enum_cons))
+             (format_typ ctx (fun fmt -> EnumConstructor.format fmt enum_cons))
              typ))
       (EnumConstructor.Map.bindings enum_cons)
-      format_enum_name enum_name
+      EnumName.format enum_name
   in
 
   let is_in_type_ordering s =
@@ -329,8 +269,8 @@ let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
   match Mark.remove e with
-  | EVar v -> format_var fmt v
-  | EFunc f -> format_func_name fmt f
+  | EVar v -> VarName.format fmt v
+  | EFunc f -> FuncName.format fmt f
   | EStruct { fields = es; _ } ->
     (* These should only appear when initializing a variable definition *)
     Format.fprintf fmt "{ %a }"
@@ -339,11 +279,11 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt (_, e) -> Format.fprintf fmt "%a" (format_expression ctx) e))
       (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
-      format_struct_field_name field
+    Format.fprintf fmt "%a.%a" (format_expression ctx) e1 StructField.format
+      field
   | EInj { e1; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "{%a_%a,@ {%a: %a}}" format_enum_name enum_name
-      format_enum_cons_name cons format_enum_cons_name cons
+    Format.fprintf fmt "{%a_%a,@ {%a: %a}}" EnumName.format enum_name
+      EnumConstructor.format cons EnumConstructor.format cons
       (format_expression ctx) e1
   | EArray _ ->
     failwith
@@ -402,7 +342,7 @@ let rec format_statement
       "This inner functions should have been hoisted in Scalc"
   | SLocalDecl { name = v; typ = ty } ->
     Format.fprintf fmt "@[<hov 2>%a@];"
-      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
+      (format_typ ctx (fun fmt -> VarName.format fmt (Mark.remove v)))
       ty
     (* Below we detect array initializations which have special treatment. *)
   | SLocalInit { name = v; expr = EStruct { fields; name }, _; typ }
@@ -421,20 +361,20 @@ let rec format_statement
       "@[<hov 2>%a;@]@\n\
        @[<hov 2>%a.content_field = catala_malloc(sizeof(%a));@]@\n\
        %a"
-      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
-      typ format_var (Mark.remove v) format_struct_name name
+      (format_typ ctx (fun fmt -> VarName.format fmt (Mark.remove v)))
+      typ VarName.format (Mark.remove v) StructName.format name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (i, arg) ->
            Format.fprintf fmt "@[<hov 2>%a.content_field[%d] =@ %a;@]"
-             format_var (Mark.remove v) i (format_expression ctx) arg))
+             VarName.format (Mark.remove v) i (format_expression ctx) arg))
       (List.mapi (fun i a -> i, a) array_contents)
   | SLocalInit { name = v; expr = e; typ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]"
-      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
+      (format_typ ctx (fun fmt -> VarName.format fmt (Mark.remove v)))
       typ (format_expression ctx) e
   | SLocalDef { name = v; expr = e; _ } ->
-    Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
+    Format.fprintf fmt "@[<hov 2>%a = %a;@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
   | SRaiseEmpty | STryWEmpty _ -> assert false
   | SFatalError err ->
@@ -449,26 +389,25 @@ let rec format_statement
     Format.fprintf fmt
       "@[<hv 2>@[<hov 2>if (%a) {@]@,%a@,@;<1 -2>} else {@,%a@,@;<1 -2>}@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
-  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
+  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
         cases
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hov 2>%a %a = %a;@]@," format_enum_name e_name
-      format_var tmp_var (format_expression ctx) e1;
     Format.pp_open_vbox fmt 2;
-    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," format_var tmp_var;
+    Format.fprintf fmt "@[<hov 4>switch (%a.code) {@]@," VarName.format
+      switch_var;
     Format.pp_print_list
       (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
-        Format.fprintf fmt "@[<hv 2>case %a_%a:@ " format_enum_name e_name
-          format_enum_cons_name cons_name;
+        Format.fprintf fmt "@[<hv 2>case %a_%a:@ " EnumName.format e_name
+          EnumConstructor.format cons_name;
         if not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)) then
           Format.fprintf fmt "%a = %a.payload.%a;@ "
-            (format_typ ctx (fun fmt -> format_var fmt payload_var_name))
-            payload_var_typ format_var tmp_var format_enum_cons_name cons_name;
+            (format_typ ctx (fun fmt -> VarName.format fmt payload_var_name))
+            payload_var_typ VarName.format switch_var EnumConstructor.format
+            cons_name;
         Format.fprintf fmt "%a@ break;@]" (format_block ctx) case_block)
       fmt cases;
     (* Do we want to add 'default' case with a failure ? *)
@@ -514,13 +453,13 @@ let rec format_statement
     in
     if exceptions <> [] then begin
       Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {%a: NULL}};@]@,"
-        (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
-        return_typ format_enum_name e_name format_enum_cons_name none_cons
-        format_enum_cons_name none_cons;
+        (format_typ ctx (fun fmt -> VarName.format fmt exception_acc_var))
+        return_typ EnumName.format e_name EnumConstructor.format none_cons
+        EnumConstructor.format none_cons;
       Format.fprintf fmt "%a;@,"
-        (format_typ ctx (fun fmt -> format_var fmt exception_current))
+        (format_typ ctx (fun fmt -> VarName.format fmt exception_current))
         return_typ;
-      Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
+      Format.fprintf fmt "char %a = 0;@," VarName.format exception_conflict;
       List.iter
         (fun except ->
           Format.fprintf fmt
@@ -532,26 +471,26 @@ let rec format_statement
              %a = %a;@]@,\
              }@]@,\
              }@,"
-            format_var exception_current (format_expression ctx) except
-            format_var exception_current format_enum_name e_name
-            format_enum_cons_name some_cons format_var exception_acc_var
-            format_enum_name e_name format_enum_cons_name some_cons format_var
-            exception_conflict format_var exception_acc_var format_var
-            exception_current)
+            VarName.format exception_current (format_expression ctx) except
+            VarName.format exception_current EnumName.format e_name
+            EnumConstructor.format some_cons VarName.format exception_acc_var
+            EnumName.format e_name EnumConstructor.format some_cons
+            VarName.format exception_conflict VarName.format exception_acc_var
+            VarName.format exception_current)
         exceptions;
       Format.fprintf fmt
         "@[<v 2>if (%a) {@,\
          @[<hov 2>catala_raise_fatal_error(catala_conflict,@ \"%s\",@ %d, %d, \
          %d, %d);@]@;\
          <1 -2>}@]@,"
-        format_var exception_conflict (Pos.get_file pos)
+        VarName.format exception_conflict (Pos.get_file pos)
         (Pos.get_start_line pos) (Pos.get_start_column pos)
         (Pos.get_end_line pos) (Pos.get_end_column pos);
       Format.fprintf fmt
         "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
-        format_var exception_acc_var format_enum_name e_name
-        format_enum_cons_name some_cons format_var variable_defined_in_cons
-        format_var exception_acc_var
+        VarName.format exception_acc_var EnumName.format e_name
+        EnumConstructor.format some_cons VarName.format variable_defined_in_cons
+        VarName.format exception_acc_var
     end;
     Format.fprintf fmt
       "@[<v 2>if (%a) {@,\
@@ -560,9 +499,9 @@ let rec format_statement
        %a.code = %a_%a;@,\
        %a.payload.%a = NULL;@]@,\
        }"
-      (format_expression ctx) just (format_block ctx) cons format_var
-      variable_defined_in_cons format_enum_name e_name format_enum_cons_name
-      none_cons format_var variable_defined_in_cons format_enum_cons_name
+      (format_expression ctx) just (format_block ctx) cons VarName.format
+      variable_defined_in_cons EnumName.format e_name EnumConstructor.format
+      none_cons VarName.format variable_defined_in_cons EnumConstructor.format
       none_cons;
     if exceptions <> [] then Format.fprintf fmt "@]@,}"
 
@@ -591,7 +530,7 @@ let format_program
          match code_item with
          | SVar { var; expr; typ } ->
            Format.fprintf fmt "@[<v 2>%a = %a;@]"
-             (format_typ p.ctx.decl_ctx (fun fmt -> format_var fmt var))
+             (format_typ p.ctx.decl_ctx (fun fmt -> VarName.format fmt var))
              typ
              (format_expression p.ctx.decl_ctx)
              expr
@@ -599,13 +538,13 @@ let format_program
          | SScope { scope_body_var = var; scope_body_func = func; _ } ->
            let { func_params; func_body; func_return_typ } = func in
            Format.fprintf fmt "@[<v 2>%a(%a) {@,%a@]@,}"
-             (format_typ p.ctx.decl_ctx (fun fmt -> format_func_name fmt var))
+             (format_typ p.ctx.decl_ctx (fun fmt -> FuncName.format fmt var))
              func_return_typ
              (Format.pp_print_list
                 ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
                 (fun fmt (var, typ) ->
                   (format_typ p.ctx.decl_ctx (fun fmt ->
-                       format_var fmt (Mark.remove var)))
+                       VarName.format fmt (Mark.remove var)))
                     fmt typ))
              func_params
              (format_block p.ctx.decl_ctx)

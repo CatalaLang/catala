@@ -39,11 +39,11 @@ $ catala Scalc -s Foo2 -O -t
 │ 5 │   output bar content integer
 │   │          ‾‾‾
 └─ Test
-let Foo2_1 (Foo2_in_1: Foo2_in) =
-  decl temp_bar_3 : integer;
+let Foo2 (Foo2_in: Foo2_in) =
+  decl bar1 : integer;
   fatal NoValue;
-  decl bar_2 : integer;
-  bar_2 = temp_bar_3;
-  return Foo2 {"bar": bar_2}
+  decl bar : integer;
+  bar = bar1;
+  return Foo2 {"bar": bar}
 
 ```

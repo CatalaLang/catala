@@ -228,8 +228,11 @@ module Passes = struct
       ~check_invariants
       ~(typed : ty mark)
       ~closure_conversion
-      ~monomorphize_types :
-      typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
+      ~monomorphize_types
+      ~renaming :
+      typed Lcalc.Ast.program
+      * Scopelang.Dependency.TVertex.t list
+      * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -275,7 +278,19 @@ module Passes = struct
         prg, type_ordering)
       else prg, type_ordering
     in
-    prg, type_ordering
+    match renaming with
+    | None -> prg, type_ordering, None
+    | Some renaming ->
+      let prg, ren_ctx = Renaming.apply renaming prg in
+      let type_ordering =
+        let open Scopelang.Dependency.TVertex in
+        List.map
+          (function
+            | Struct s -> Struct (Renaming.struct_name ren_ctx s)
+            | Enum e -> Enum (Renaming.enum_name ren_ctx e))
+          type_ordering
+      in
+      prg, type_ordering, Some ren_ctx
 
   let scalc
       options
@@ -286,17 +301,39 @@ module Passes = struct
       ~keep_special_ops
       ~dead_value_assignment
       ~no_struct_literals
-      ~monomorphize_types :
-      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
-    let prg, type_ordering =
+      ~monomorphize_types
+      ~renaming :
+      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list * Renaming.context
+      =
+    let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~closure_conversion ~monomorphize_types
+        ~closure_conversion ~monomorphize_types ~renaming
+    in
+    let renaming_context =
+      match renaming_context with
+      | None ->
+        Renaming.get_ctx
+          {
+            reserved = [];
+            sanitize_varname = Fun.id;
+            reset_context_for_closed_terms = true;
+            skip_constant_binders = true;
+            constant_binder_name = None;
+          }
+      | Some r -> r
     in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
-        ~config:{ keep_special_ops; dead_value_assignment; no_struct_literals }
+        ~config:
+          {
+            keep_special_ops;
+            dead_value_assignment;
+            no_struct_literals;
+            renaming_context;
+          }
         prg,
-      type_ordering )
+      type_ordering,
+      renaming_context )
 end
 
 module Commands = struct
@@ -711,9 +748,9 @@ module Commands = struct
       closure_conversion
       monomorphize_types
       ex_scope_opt =
-    let prg, _ =
+    let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~typed ~monomorphize_types
+        ~closure_conversion ~typed ~monomorphize_types ~renaming:None
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -759,9 +796,9 @@ module Commands = struct
       optimize
       check_invariants
       ex_scope_opt =
-    let prg, _ =
+    let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~monomorphize_types ~typed
+        ~closure_conversion ~monomorphize_types ~typed ~renaming:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
@@ -809,9 +846,10 @@ module Commands = struct
       check_invariants
       closure_conversion
       ex_scope_opt =
-    let prg, type_ordering =
+    let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~typed:Expr.typed ~closure_conversion ~monomorphize_types:false
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output
@@ -851,10 +889,10 @@ module Commands = struct
       no_struct_literals
       monomorphize_types
       ex_scope_opt =
-    let prg, _ =
+    let prg, _, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
-        ~no_struct_literals ~monomorphize_types
+        ~no_struct_literals ~monomorphize_types ~renaming:None
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -900,10 +938,11 @@ module Commands = struct
       optimize
       check_invariants
       closure_conversion =
-    let prg, type_ordering =
+    let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
         ~no_struct_literals:false ~monomorphize_types:false
+        ~renaming:(Some Scalc.To_python.renaming)
     in
 
     let output_file, with_output =
@@ -929,11 +968,11 @@ module Commands = struct
         $ Cli.Flags.closure_conversion)
 
   let c options includes output optimize check_invariants =
-    let prg, type_ordering =
+    let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion:true ~keep_special_ops:true
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:true
+        ~monomorphize_types:true ~renaming:(Some Scalc.To_c.renaming)
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.debug "Compiling program into C...";
