@@ -477,7 +477,8 @@ let run
   let options = Global.enforce_options ~trace:true () in
   let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~closure_conversion ~typed:Expr.typed ~monomorphize_types ~expand_ops:false
+      ~closure_conversion ~typed:Expr.typed ~monomorphize_types
+      ~expand_ops:false
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output

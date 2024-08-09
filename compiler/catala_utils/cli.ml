@@ -356,7 +356,8 @@ module Flags = struct
     & flag
     & info ["expand-ops"]
         ~doc:
-          "In LCalc, expand equality operators to only rely on comparisons of literals. "
+          "In LCalc, expand equality operators to only rely on comparisons of \
+           literals. "
 
   let dead_value_assignment =
     value

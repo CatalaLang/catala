@@ -15,11 +15,7 @@
    the License. *)
 
 val format_expr :
-  Shared_ast.decl_ctx ->
-  ?debug:bool ->
-  Format.formatter ->
-  Ast.expr ->
-  unit
+  Shared_ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.expr -> unit
 
 val format_item :
   Shared_ast.decl_ctx ->

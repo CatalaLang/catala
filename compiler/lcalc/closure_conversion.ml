@@ -331,15 +331,12 @@ let rec transform_closures_expr :
         args (free_vars, [])
     in
     let call_expr =
-      (Expr.make_app
-         (Expr.make_tupleaccess code_env_expr 0 2 pos)
-         (Expr.make_tupleaccess code_env_expr 1 2 pos :: new_args)
-         (env_arg_ty
-          :: (* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *) tys)
-         pos)
-
-
-
+      Expr.make_app
+        (Expr.make_tupleaccess code_env_expr 0 2 pos)
+        (Expr.make_tupleaccess code_env_expr 1 2 pos :: new_args)
+        (env_arg_ty
+        :: (* List.map (fun (_, m) -> Expr.maybe_ty m) new_args *) tys)
+        pos
       (* let m1 = Mark.get new_e1 in
        *  if Var.Map.is_empty free_vars then
        *   Expr.make_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
@@ -368,6 +365,7 @@ let rec transform_closures_expr :
        *        pos)
        *     pos *)
     in
+
     free_vars, Expr.make_let_in code_env_var (TAny, pos) new_e1 call_expr pos
   | _ -> .
 

@@ -47,7 +47,7 @@ and naked_expr =
       name : StructName.t;
     }
   | ETuple of expr list
-  | ETupleAccess of { e1 : expr; index : int; typ: typ }
+  | ETupleAccess of { e1 : expr; index : int; typ : typ }
   | EInj of {
       e1 : expr;
       cons : EnumConstructor.t;
@@ -57,7 +57,7 @@ and naked_expr =
   | EArray of expr list
   | ELit of lit
   | EApp of { f : expr; args : expr list }
-  | EAppOp of { op : operator Mark.pos; args : expr list; tys: typ list }
+  | EAppOp of { op : operator Mark.pos; args : expr list; tys : typ list }
   | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
 type stmt =
@@ -77,12 +77,12 @@ type stmt =
   | SAssert of expr
   | SSpecialOp of special_operator
 
-and special_operator =
-  | (* OHandleExceptions of {
-     *   exceptions : expr list;
-     *   (\* return_typ : typ; *\)
-     * } *)
+and special_operator = |
 
+(* OHandleExceptions of {
+ *   exceptions : expr list;
+ *   (\* return_typ : typ; *\)
+ * } *)
 and block = stmt Mark.pos list
 
 and switch_case = {

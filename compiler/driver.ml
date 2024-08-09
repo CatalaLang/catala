@@ -241,10 +241,7 @@ module Passes = struct
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
-    let prg =
-      if expand_ops then Lcalc.Expand_op.program prg
-      else prg
-    in
+    let prg = if expand_ops then Lcalc.Expand_op.program prg else prg in
     let prg =
       if optimize then begin
         Message.debug "Optimizing lambda calculus...";
@@ -256,8 +253,7 @@ module Passes = struct
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
         let prg = Typing.program ~fail_on_any:false ~internal_check:true prg in
-        if expand_ops then Lcalc.Expand_op.program prg
-        else prg)
+        if expand_ops then Lcalc.Expand_op.program prg else prg)
       else (
         Message.debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
@@ -268,7 +264,8 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false ~internal_check:true ~assume_op_types:true prg)
+        Typing.program ~fail_on_any:false ~internal_check:true
+          ~assume_op_types:true prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (
@@ -294,8 +291,7 @@ module Passes = struct
       ~dead_value_assignment
       ~no_struct_literals
       ~monomorphize_types
-      ~expand_ops :
-      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
+      ~expand_ops : Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~closure_conversion ~monomorphize_types ~expand_ops
@@ -791,8 +787,11 @@ module Commands = struct
         else if no_typing then interpret_dcalc Expr.untyped
         else interpret_dcalc Expr.typed
       else if no_typing then
-        interpret_lcalc Expr.untyped closure_conversion monomorphize_types expand_ops
-      else interpret_lcalc Expr.typed closure_conversion monomorphize_types expand_ops
+        interpret_lcalc Expr.untyped closure_conversion monomorphize_types
+          expand_ops
+      else
+        interpret_lcalc Expr.typed closure_conversion monomorphize_types
+          expand_ops
     in
     Cmd.v
       (Cmd.info "interpret"

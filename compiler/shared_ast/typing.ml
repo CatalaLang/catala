@@ -350,9 +350,12 @@ let polymorphic_op_return_type
   | FromClosureEnv, _ -> any ()
   | op, targs ->
     Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
-      (Print.operator ?debug:None) op
-      (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         (format_typ ctx)) targs
+      (Print.operator ?debug:None)
+      op
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (format_typ ctx))
+      targs
 
 let resolve_overload_ret_type
     ~flags

@@ -173,21 +173,21 @@ let rec format_statement
              switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
   | _ -> .
-  (* | SSpecialOp (OHandleExceptions { exceptions=_ }) ->
-   *   Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@,"
-   *     Print.keyword "handle exceptions"
-   *     Print.punctuation "["
-   *     (Format.pp_print_list
-   *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-   *        (format_expr decl_ctx ~debug))
-   *     exceptions
-   *     Print.punctuation "]";
-   *   Format.fprintf fmt "@[<hov 2>%a@ %a %a%a@,%a@]"
-   *     Print.keyword "or if"
-   *     (format_expr decl_ctx ~debug) just
-   *     Print.keyword "then"
-   *     Print.punctuation ":"
-   *     (format_block decl_ctx ~debug) cons *)
+(* | SSpecialOp (OHandleExceptions { exceptions=_ }) ->
+ *   Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@,"
+ *     Print.keyword "handle exceptions"
+ *     Print.punctuation "["
+ *     (Format.pp_print_list
+ *        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+ *        (format_expr decl_ctx ~debug))
+ *     exceptions
+ *     Print.punctuation "]";
+ *   Format.fprintf fmt "@[<hov 2>%a@ %a %a%a@,%a@]"
+ *     Print.keyword "or if"
+ *     (format_expr decl_ctx ~debug) just
+ *     Print.keyword "then"
+ *     Print.punctuation ":"
+ *     (format_block decl_ctx ~debug) cons *)
 
 and format_block
     (decl_ctx : decl_ctx)
@@ -195,7 +195,9 @@ and format_block
     (fmt : Format.formatter)
     (block : block) : unit =
   Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Print.punctuation fmt ";"; Format.pp_print_space fmt ())
+    ~pp_sep:(fun fmt () ->
+      Print.punctuation fmt ";";
+      Format.pp_print_space fmt ())
     (format_statement decl_ctx ~debug)
     fmt block
 

@@ -136,34 +136,38 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       let typ = Expr.maybe_ty (Mark.get expr) in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index; typ }, Expr.pos expr)
-    | EAppOp { op = Op.HandleExceptions, pos;
-               tys = [t_arr];
-               args = [EArray exceptions, _] }
+    | EAppOp
+        {
+          op = Op.HandleExceptions, pos;
+          tys = [t_arr];
+          args = [(EArray exceptions, _)];
+        }
       when ctxt.config.keep_special_ops ->
       let exceptions_stmts, new_exceptions =
         translate_expr_list ctxt exceptions
       in
-      let arr_var_name =
-        A.VarName.fresh (ctxt.context_name, pos)
-      in
+      let arr_var_name = A.VarName.fresh (ctxt.context_name, pos) in
       let stmts =
         exceptions_stmts
         ++ RevBlock.make
-          [A.SLocalInit
-             {
-               name = arr_var_name, pos;
-               typ = t_arr;
-               expr = A.EArray new_exceptions, pos;
-             },
-           pos]
+             [
+               ( A.SLocalInit
+                   {
+                     name = arr_var_name, pos;
+                     typ = t_arr;
+                     expr = A.EArray new_exceptions, pos;
+                   },
+                 pos );
+             ]
       in
-      stmts,
-      ( A.EAppOp
-          { op = Op.HandleExceptions, pos;
-            args = [A.EVar arr_var_name, pos];
-            tys = [t_arr];
-          },
-        pos )
+      ( stmts,
+        ( A.EAppOp
+            {
+              op = Op.HandleExceptions, pos;
+              args = [A.EVar arr_var_name, pos];
+              tys = [t_arr];
+            },
+          pos ) )
     (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
      *            tys;
      *            args = [] }
@@ -294,9 +298,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
-    RevBlock.rebuild
-      ~tail:[A.SAssert new_e, Expr.pos block_expr]
-      e_stmts
+    RevBlock.rebuild ~tail:[A.SAssert new_e, Expr.pos block_expr] e_stmts
   | EFatalError err -> [SFatalError err, Expr.pos block_expr]
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
@@ -406,7 +408,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
-          | EAbs { binder; tys = typ::_} ->
+          | EAbs { binder; tys = typ :: _ } ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
@@ -431,11 +433,13 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       if ctxt.config.keep_special_ops then
         let tmp_var = A.VarName.fresh ("match_arg", pos) in
         [
-          A.SLocalInit {
-            name = tmp_var, pos;
-            typ = Expr.maybe_ty (Mark.get e1);
-            expr = new_e1;
-          }, pos;
+          ( A.SLocalInit
+              {
+                name = tmp_var, pos;
+                typ = Expr.maybe_ty (Mark.get e1);
+                expr = new_e1;
+              },
+            pos );
           ( A.SSwitch
               {
                 switch_expr = A.EVar tmp_var, pos;
@@ -443,7 +447,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                 enum_name = name;
                 switch_cases = new_args;
               },
-            pos)
+            pos );
         ]
       else
         [
@@ -539,14 +543,11 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let elts_stmts, rev_elts =
       List.fold_left
         (fun (elts_stmts, rev_elts) elt ->
-           let stmt, new_elt = translate_expr ctxt elt in
-           elts_stmts ++ stmt, new_elt :: rev_elts)
-        (RevBlock.empty, [])
-        elts
+          let stmt, new_elt = translate_expr ctxt elt in
+          elts_stmts ++ stmt, new_elt :: rev_elts)
+        (RevBlock.empty, []) elts
     in
-    let tuple_expr =
-      A.ETuple (List.rev rev_elts), Expr.pos block_expr
-    in
+    let tuple_expr = A.ETuple (List.rev rev_elts), Expr.pos block_expr in
     let tmp_tuple_var_name =
       match ctxt.inside_definition_of with
       | None -> assert false
@@ -568,14 +569,11 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let elts_stmts, rev_elts =
       List.fold_left
         (fun (elts_stmts, rev_elts) elt ->
-           let stmt, new_elt = translate_expr ctxt elt in
-           elts_stmts ++ stmt, new_elt :: rev_elts)
-        (RevBlock.empty, [])
-        elts
+          let stmt, new_elt = translate_expr ctxt elt in
+          elts_stmts ++ stmt, new_elt :: rev_elts)
+        (RevBlock.empty, []) elts
     in
-    let arr_expr =
-      A.EArray (List.rev rev_elts), Expr.pos block_expr
-    in
+    let arr_expr = A.EArray (List.rev rev_elts), Expr.pos block_expr in
     let tmp_arr_var_name =
       match ctxt.inside_definition_of with
       | None -> assert false
@@ -599,14 +597,14 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let tail =
       [
         ( (match ctxt.inside_definition_of with
-              | None -> A.SReturn new_e
-              | Some x ->
-                A.SLocalDef
-                  {
-                    name = Mark.copy new_e x;
-                    expr = new_e;
-                    typ = Expr.maybe_ty (Mark.get block_expr);
-                  }),
+          | None -> A.SReturn new_e
+          | Some x ->
+            A.SLocalDef
+              {
+                name = Mark.copy new_e x;
+                expr = new_e;
+                typ = Expr.maybe_ty (Mark.get block_expr);
+              }),
           Expr.pos block_expr );
       ]
     in
@@ -757,8 +755,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             translate_expr ctxt expr
           in
           let body_block =
-            RevBlock.rebuild block
-              ~tail:[A.SReturn expr, Mark.get expr]
+            RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
           in
           ( Var.Map.add var func_id func_dict,
             var_dict,

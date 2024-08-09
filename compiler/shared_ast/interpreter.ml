@@ -339,7 +339,7 @@ let rec evaluate_operator
   | Add_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
     ELit (LMoney (o_add_mon_mon x y))
   | Add_dat_dur r, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
-    ELit (LDate (o_add_dat_dur r (rpos()) x y))
+    ELit (LDate (o_add_dat_dur r (rpos ()) x y))
   | Add_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LDuration (o_add_dur_dur x y))
   | Sub_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
@@ -454,8 +454,8 @@ let rec evaluate_operator
       | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
+      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int
+      | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
       _ ) ->
     err ()
 

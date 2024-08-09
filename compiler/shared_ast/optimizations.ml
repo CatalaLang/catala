@@ -81,8 +81,8 @@ let binder_vars_used_at_most_once
 
 let literal_bool = function
   | ELit (LBool b), _
-  | EAppOp { op = Log _, _; args = [(ELit (LBool b), _)]; _ }, _
-    -> Some b
+  | EAppOp { op = Log _, _; args = [(ELit (LBool b), _)]; _ }, _ ->
+    Some b
   | _ -> None
 
 let rec optimize_expr :
@@ -199,13 +199,12 @@ let rec optimize_expr :
           ->
           (* No exceptions with condition [true] *)
           Mark.remove cons
-        | [], cond ->
+        | [], cond -> (
           (* No exceptions, this is an if/then/else *)
-          (match literal_bool cond with
+          match literal_bool cond with
           | Some true -> Mark.remove cons
           | Some false -> EEmpty
-          | None ->
-            EIfThenElse { cond; etrue = cons; efalse = EEmpty, mark })
+          | None -> EIfThenElse { cond; etrue = cons; efalse = EEmpty, mark })
         | ( [except],
             ( ( ELit (LBool false)
               | EAppOp { op = Log _, _; args = [(ELit (LBool false), _)]; _ } ),
