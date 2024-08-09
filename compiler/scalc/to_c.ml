@@ -23,6 +23,12 @@ open Ast
 
 type ctx = { decl_ctx : decl_ctx; lifted_pos : VarName.t Pos.Map.t }
 
+let fresh_pos_name =
+  (* Fixme: this is a temporary placeholder, either do this more generically during [From_lcalc], or pass a naming context along in the traversal that generates it *)
+  let i = ref 0 in
+  fun pos ->
+    incr i; VarName.fresh ("pos" ^ string_of_int !i, pos)
+
 let c_keywords =
   [
     "auto";
@@ -69,7 +75,7 @@ let renaming =
   Renaming.program ()
     ~reserved:c_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
-    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+    ~reset_context_for_closed_terms:false ~skip_constant_binders:true
     ~constant_binder_name:None ~namespaced_fields_constrs:false
 
 module TypMap = Map.Make (struct
@@ -660,11 +666,12 @@ let rec format_statement
 
 and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
   let new_pos =
+    (* FIXME: this lifting of position should be generalised in scalc (and use proper idents naming *)
     fold_expr_block
       (fun e pmap ->
         match e with
         | EAppOp { op = (_, pos) as op; _ }, _ when op_can_raise op ->
-          let v = VarName.fresh ("pos", pos) in
+          let v = fresh_pos_name pos in
           Pos.Map.add pos v pmap
         | _ -> pmap)
       b Pos.Map.empty
@@ -673,7 +680,7 @@ and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
     List.fold_left
       (fun pmap -> function
         | SAssert _, pos ->
-          let v = VarName.fresh ("pos", pos) in
+          let v = fresh_pos_name pos in
           Pos.Map.add pos v pmap
         | _ -> pmap)
       new_pos b
