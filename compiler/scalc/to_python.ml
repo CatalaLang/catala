@@ -356,7 +356,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
     ->
-    Format.fprintf fmt "@[<hv 4>%a = %a@]" VarName.format (Mark.remove v)
+    Format.fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
   | STryWEmpty { try_block = try_b; with_block = catch_b } ->
     Format.fprintf fmt "@[<v 4>try:@ %a@]@,@[<v 4>except Empty:@ %a@]"
@@ -420,9 +420,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =
   Format.pp_open_vbox fmt 0;
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-    (format_statement ctx) fmt
+  Format.pp_print_list (format_statement ctx) fmt
     (List.filter
        (fun s -> match Mark.remove s with SLocalDecl _ -> false | _ -> true)
        b);

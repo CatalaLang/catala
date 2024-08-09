@@ -441,9 +441,9 @@ def glob4(x:Money, y:Decimal):
     return ((decimal_of_money(x) * y) + decimal_of_string("10."))
 
 def glob5_init():
-    x = (decimal_of_integer(integer_of_string("2")) *
-        decimal_of_string("3."))
-    y = decimal_of_string("1000.")
+    x = ((decimal_of_integer(integer_of_string("2")) *
+        decimal_of_string("3.")))
+    y = (decimal_of_string("1000."))
     return (x * y)
 
 glob5 = (glob5_init())
@@ -456,31 +456,32 @@ glob6 = (
 )
 
 def s2(s2_in:S2In):
-    a4 = handle_exceptions([], [])
+    a4 = (handle_exceptions([], []))
     if a4 is None:
         if True:
-            a3 = (glob3(money_of_cents_string("4400")) +
-                decimal_of_string("100."))
+            a3 = ((glob3(money_of_cents_string("4400")) +
+                decimal_of_string("100.")))
         else:
-            a3 = None
+            a3 = (None)
     else:
         x = a4
-        a3 = x
-    a5 = handle_exceptions(
-             [SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=53, start_column=24, end_line=53, end_column=43,
-                  law_headings=["Test toplevel function defs"])],
-             [a3]
-         )
+        a3 = (x)
+    a5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=53, start_column=24,
+                   end_line=53, end_column=43,
+                   law_headings=["Test toplevel function defs"])],
+              [a3]
+          ))
     if a5 is None:
         if False:
-            a2 = None
+            a2 = (None)
         else:
-            a2 = None
+            a2 = (None)
     else:
         x = a5
-        a2 = x
+        a2 = (x)
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -489,37 +490,38 @@ def s2(s2_in:S2In):
                           law_headings=["Test toplevel function defs"]))
     else:
         arg = a2
-        a1 = arg
-    a = a1
+        a1 = (arg)
+    a = (a1)
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a4 = handle_exceptions([], [])
+    a4 = (handle_exceptions([], []))
     if a4 is None:
         if True:
-            a3 = (decimal_of_string("50.") +
+            a3 = ((decimal_of_string("50.") +
                 glob4(money_of_cents_string("4400"),
-                      decimal_of_string("55.")))
+                      decimal_of_string("55."))))
         else:
-            a3 = None
+            a3 = (None)
     else:
         x = a4
-        a3 = x
-    a5 = handle_exceptions(
-             [SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=74, start_column=24, end_line=74, end_column=47,
-                  law_headings=["Test function def with two args"])],
-             [a3]
-         )
+        a3 = (x)
+    a5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=74, start_column=24,
+                   end_line=74, end_column=47,
+                   law_headings=["Test function def with two args"])],
+              [a3]
+          ))
     if a5 is None:
         if False:
-            a2 = None
+            a2 = (None)
         else:
-            a2 = None
+            a2 = (None)
     else:
         x = a5
-        a2 = x
+        a2 = (x)
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -528,35 +530,36 @@ def s3(s3_in:S3In):
                           law_headings=["Test function def with two args"]))
     else:
         arg = a2
-        a1 = arg
-    a = a1
+        a1 = (arg)
+    a = (a1)
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a4 = handle_exceptions([], [])
+    a4 = (handle_exceptions([], []))
     if a4 is None:
         if True:
-            a3 = (glob5 + decimal_of_string("1."))
+            a3 = ((glob5 + decimal_of_string("1.")))
         else:
-            a3 = None
+            a3 = (None)
     else:
         x = a4
-        a3 = x
-    a5 = handle_exceptions(
-             [SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=98, start_column=24, end_line=98, end_column=34,
-                  law_headings=["Test inline defs in toplevel defs"])],
-             [a3]
-         )
+        a3 = (x)
+    a5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=98, start_column=24,
+                   end_line=98, end_column=34,
+                   law_headings=["Test inline defs in toplevel defs"])],
+              [a3]
+          ))
     if a5 is None:
         if False:
-            a2 = None
+            a2 = (None)
         else:
-            a2 = None
+            a2 = (None)
     else:
         x = a5
-        a2 = x
+        a2 = (x)
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -565,35 +568,36 @@ def s4(s4_in:S4In):
                           law_headings=["Test inline defs in toplevel defs"]))
     else:
         arg = a2
-        a1 = arg
-    a = a1
+        a1 = (arg)
+    a = (a1)
     return S4(a = a)
 
 def s5(s_in:SIn):
-    a4 = handle_exceptions([], [])
+    a4 = (handle_exceptions([], []))
     if a4 is None:
         if True:
-            a3 = (glob1 * glob1)
+            a3 = ((glob1 * glob1))
         else:
-            a3 = None
+            a3 = (None)
     else:
         x = a4
-        a3 = x
-    a5 = handle_exceptions(
-             [SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=18, start_column=24, end_line=18, end_column=37,
-                  law_headings=["Test basic toplevel values defs"])],
-             [a3]
-         )
+        a3 = (x)
+    a5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=18, start_column=24,
+                   end_line=18, end_column=37,
+                   law_headings=["Test basic toplevel values defs"])],
+              [a3]
+          ))
     if a5 is None:
         if False:
-            a2 = None
+            a2 = (None)
         else:
-            a2 = None
+            a2 = (None)
     else:
         x = a5
-        a2 = x
+        a2 = (x)
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -602,32 +606,33 @@ def s5(s_in:SIn):
                           law_headings=["Test basic toplevel values defs"]))
     else:
         arg = a2
-        a1 = arg
-    a = a1
-    b4 = handle_exceptions([], [])
+        a1 = (arg)
+    a = (a1)
+    b4 = (handle_exceptions([], []))
     if b4 is None:
         if True:
-            b3 = glob6
+            b3 = (glob6)
         else:
-            b3 = None
+            b3 = (None)
     else:
         x = b4
-        b3 = x
-    b5 = handle_exceptions(
-             [SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=19, start_column=24, end_line=19, end_column=29,
-                  law_headings=["Test basic toplevel values defs"])],
-             [b3]
-         )
+        b3 = (x)
+    b5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=19, start_column=24,
+                   end_line=19, end_column=29,
+                   law_headings=["Test basic toplevel values defs"])],
+              [b3]
+          ))
     if b5 is None:
         if False:
-            b2 = None
+            b2 = (None)
         else:
-            b2 = None
+            b2 = (None)
     else:
         x = b5
-        b2 = x
+        b2 = (x)
     if b2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -636,7 +641,7 @@ def s5(s_in:SIn):
                           law_headings=["Test basic toplevel values defs"]))
     else:
         arg = b2
-        b1 = arg
-    b = b1
+        b1 = (arg)
+    b = (b1)
     return S(a = a, b = b)
 ```
