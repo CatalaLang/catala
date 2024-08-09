@@ -136,6 +136,9 @@ let new_id ctx name =
   in
   Bindlib.name_of var, { ctx with bcontext }
 
+let reserve_name ctx name =
+  { ctx with bcontext = DefaultBindlibCtxRename.reserve_name name ctx.bcontext }
+
 let get_ctx cfg =
   let module BindCtx = Bindlib.Ctxt (struct
     include DefaultBindlibCtxRename
@@ -345,12 +348,22 @@ let program
              backends. FIXME: could the fact that it's special be detected
              differently from id comparison ? Structure maybe, or a more
              specific construct ? *)
-          ( pctxmap,
-            EnumName.Map.add name name enums_map,
+          let ctx1, constrs_map =
             EnumConstructor.Map.fold
-              (fun c _ constrs_map -> EnumConstructor.Map.add c c constrs_map)
-              Expr.option_enum_config constrs_map,
-            ctx_enums )
+              (fun name _ (ctx, constrs_map) ->
+                 let str, _ = EnumConstructor.get_info name in
+                 let ctx = reserve_name ctx str in
+                 ( ctx,
+                   EnumConstructor.Map.add name name constrs_map ))
+              constrs
+              ( (if namespaced_fields_constrs then ctx0 else ctx),
+                constrs_map )
+          in
+          let ctx = if namespaced_fields_constrs then ctx else ctx1 in
+          ( PathMap.add [] ctx pctxmap,
+            EnumName.Map.add name name enums_map,
+            constrs_map,
+            EnumName.Map.add name Expr.option_enum_config ctx_enums )
         else
           let path = EnumName.path name in
           let str, pos = EnumName.get_info name in

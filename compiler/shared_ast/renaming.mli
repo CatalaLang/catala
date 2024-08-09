@@ -46,6 +46,8 @@ val unmbind_in :
 
 val new_id : context -> string -> string * context
 
+val reserve_name : context -> string -> context
+
 val set_rewriters :
   ?scopes:(ScopeName.t -> ScopeName.t) ->
   ?topdefs:(TopdefName.t -> TopdefName.t) ->
