@@ -99,6 +99,19 @@ let to_string_short (pos : t) : string =
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
+let to_string_shorter (pos : t) : string =
+  let s, e = pos.code_pos in
+  let f = Filename.(remove_extension (basename s.Lexing.pos_fname)) in
+  if s.Lexing.pos_lnum = e.Lexing.pos_lnum then
+    Printf.sprintf "%s:%d.%d-%d" f s.Lexing.pos_lnum
+    (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+    (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+  else
+    Printf.sprintf "%s:%d.%d-%d.%d" f s.Lexing.pos_lnum
+      (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+      e.Lexing.pos_lnum
+      (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+
 let indent_number (s : string) : int =
   try
     let rec aux (i : int) = if s.[i] = ' ' then aux (i + 1) else i in

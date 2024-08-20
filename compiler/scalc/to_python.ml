@@ -204,21 +204,6 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v
 
-let format_position ppf pos =
-  Format.fprintf ppf
-    "@[<hov 4>SourcePosition(@,\
-     filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
-     end_column=%d,@ law_headings=%a@;\
-     <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
-    (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-    format_string_list (Pos.get_law_info pos)
-
-let format_error (ppf : Format.formatter) (err : Runtime.error Mark.pos) : unit
-    =
-  let pos = Mark.get err in
-  let tag = Runtime.error_to_string (Mark.remove err) in
-  Format.fprintf ppf "%s(%a)" tag format_position pos
-
 let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
   | EVar v -> VarName.format fmt v
@@ -255,7 +240,16 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
+  | EPosLit ->
+    let pos = Mark.get e in
+    Format.fprintf fmt
+      "@[<hov 4>SourcePosition(@,\
+       filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
+       end_column=%d,@ law_headings=%a@;\
+       <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
+      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+      format_string_list (Pos.get_law_info pos)
+  | EAppOp { op = ((HandleExceptions | Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2]; _ } ->
@@ -305,18 +299,6 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         _;
       } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
-  | EAppOp
-      { op = (HandleExceptions, _) as op; args = [(EArray el, _)] as args; _ }
-    ->
-    Format.fprintf fmt "@[<hv 4>%a(@,[%a],@ %a@;<0 -4>)@]" format_op op
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         format_position)
-      (List.map Mark.get el)
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
   | EAppOp { op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
   | EApp { f; args } ->
@@ -361,8 +343,10 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     ->
     Format.fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
-  | SFatalError err ->
-    Format.fprintf fmt "@[<hov 4>raise %a@]" format_error (err, Mark.get s)
+  | SFatalError { pos_expr; error } ->
+    Format.fprintf fmt "@[<hov 4>raise %s(%a)@]"
+      (Runtime.error_to_string error)
+      (format_expression ctx) pos_expr
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt "@[<v 4>if %a:@ %a@]@,@[<v 4>else:@ %a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
@@ -402,16 +386,12 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
-  | SAssert e1 ->
-    let pos = Mark.get s in
+  | SAssert { pos_expr; expr = e1 } ->
     Format.fprintf fmt
       "@[<hv 4>if not (%a):@,\
-       raise AssertionFailed(@[<hov>SourcePosition(@[<hov 0>filename=\"%s\",@ \
-       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
-       law_headings=@[<hv>%a@])@])@]@]"
-      (format_expression ctx) e1 (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+       raise AssertionFailed(%a)@]"
+      (format_expression ctx) e1
+      (format_expression ctx) pos_expr
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =

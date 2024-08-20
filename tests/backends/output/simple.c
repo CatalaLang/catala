@@ -98,22 +98,13 @@ typedef struct Baz_in {
 
 const Baz* baz (const Baz_in* baz_in)
 {
-  static const catala_code_position pos2[1] =
-    {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
-  static const catala_code_position pos8[1] =
-    {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
-  static const catala_code_position pos12[1] =
-    {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
-  static const catala_code_position pos4[1] =
-    {{"tests/backends/simple.catala_en", 25, 22, 25, 26}};
-  static const catala_code_position pos10[1] =
-    {{"tests/backends/simple.catala_en", 27, 23, 27, 28}};
   const Tuple_1* a;
   const Bar* a2;
   const option_1* a3;
   array_1* a4 = catala_malloc(sizeof(Array_1));
   CATALA_ARRAY(Option_1*) a5 = catala_malloc(sizeof(catala_array));
   const Tuple_1* code_and_env;
+  CATALA_UNIT pos;
   const Option_1* a6;
   const Option_1* match_arg;
   const option_1* match_arg;
@@ -128,10 +119,13 @@ const Baz* baz (const Baz_in* baz_in)
   const option_2* b9;
   array_2* b10 = catala_malloc(sizeof(Array_2));
   CATALA_ARRAY(Option_2*) b11 = catala_malloc(sizeof(catala_array));
+  CATALA_UNIT pos1;
   const Option_2* b12;
   const Option_2* match_arg;
+  CATALA_UNIT pos2;
   const Option_2* b12;
   const Option_2* match_arg;
+  CATALA_UNIT pos3;
   const Option_2* b12;
   const Option_2* match_arg;
   const option_2* match_arg;
@@ -143,14 +137,15 @@ const Baz* baz (const Baz_in* baz_in)
   const option_3* c6;
   array_4* c7 = catala_malloc(sizeof(Array_4));
   CATALA_ARRAY(Option_3*) c8 = catala_malloc(sizeof(catala_array));
+  CATALA_UNIT pos4;
   const Option_3* c9;
   const Option_3* match_arg;
+  CATALA_UNIT pos5;
   const Option_3* c9;
   const Option_3* match_arg;
   const option_3* match_arg;
   const Array_3* c1;
   Baz* Baz1 = catala_malloc(sizeof(Baz));
-
   a = baz_in->a_in;
   code_and_env = a;
   a5->size = 1;
@@ -158,12 +153,12 @@ const Baz* baz (const Baz_in* baz_in)
   a5->elements[0] = code_and_env->elt_0(code_and_env->elt_1, CATALA_UNITVAL);
   a4->content = a5;
   a4->length = catala_new_int_str("1");
-  a6 = handle_exceptions(pos2, a4);
-  match_arg = handle_exceptions(pos2, a4);
+  static const catala_code_position pos[1] =
+    {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+  a6 = handle_exceptions(pos, a4);
+  match_arg = handle_exceptions(pos, a4);
   switch (match_arg->code) {
     case Option_1_None_1: {
-      static const catala_code_position pos14[1] =
-        {{"tests/backends/simple.catala_en", 16, 23, 16, 25}};
       const Bar* a7;
       const option_1* a8;
       array_1* a9 = catala_malloc(sizeof(Array_1));
@@ -171,21 +166,23 @@ const Baz* baz (const Baz_in* baz_in)
       const option_1* a11;
       array_1* a12 = catala_malloc(sizeof(Array_1));
       CATALA_ARRAY(Option_1*) a13 = catala_malloc(sizeof(catala_array));
+      CATALA_UNIT pos1;
       const Option_1* a14;
       const Option_1* match_arg;
+      CATALA_UNIT pos2;
       const Option_1* a14;
       const Option_1* match_arg;
       const option_1* match_arg;
-
       a13->size = 0;
       a12->content = a13;
       a12->length = catala_new_int_str("0");
-      a14 = handle_exceptions(pos14, a12);
-      match_arg = handle_exceptions(pos14, a12);
+      static const catala_code_position pos1[1] =
+        {{"tests/backends/simple.catala_en", 16, 23, 16, 25}};
+      a14 = handle_exceptions(pos1, a12);
+      match_arg = handle_exceptions(pos1, a12);
       switch (match_arg->code) {
         case Option_1_None_1: {
           Bar* a15 = catala_malloc(sizeof(Bar));
-
           a15->code = Bar_No;
           a15->payload.No = CATALA_UNITVAL;
           a11->code = Option_1_Some_1;
@@ -204,6 +201,8 @@ const Baz* baz (const Baz_in* baz_in)
       a10->elements[0] = a11;
       a9->content = a10;
       a9->length = catala_new_int_str("1");
+      static const catala_code_position pos2[1] =
+        {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
       a14 = handle_exceptions(pos2, a9);
       match_arg = handle_exceptions(pos2, a9);
       switch (match_arg->code) {
@@ -222,7 +221,10 @@ const Baz* baz (const Baz_in* baz_in)
       match_arg = a8;
       switch (match_arg->code) {
         case Option_1_None_1: {
-          catala_error(catala_no_value, pos2);
+          CATALA_UNIT pos3;
+          static const catala_code_position pos3[1] =
+            {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+          catala_error(catala_no_value, pos3);
           break;
         }
         case Option_1_Some_1: {
@@ -245,7 +247,10 @@ const Baz* baz (const Baz_in* baz_in)
   match_arg = a3;
   switch (match_arg->code) {
     case Option_1_None_1: {
-      catala_error(catala_no_value, pos2);
+      CATALA_UNIT pos1;
+      static const catala_code_position pos1[1] =
+        {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+      catala_error(catala_no_value, pos1);
       break;
     }
     case Option_1_Some_1: {
@@ -258,13 +263,14 @@ const Baz* baz (const Baz_in* baz_in)
   b11->size = 0;
   b10->content1 = b11;
   b10->length1 = catala_new_int_str("0");
-  b12 = handle_exceptions(pos4, b10);
-  match_arg = handle_exceptions(pos4, b10);
+  static const catala_code_position pos1[1] =
+    {{"tests/backends/simple.catala_en", 25, 22, 25, 26}};
+  b12 = handle_exceptions(pos1, b10);
+  match_arg = handle_exceptions(pos1, b10);
   switch (match_arg->code) {
     case Option_2_None_2: {
       CATALA_BOOL b13;
       const Bar* match_arg;
-
       match_arg = a1;
       switch (match_arg->code) {
         case Bar_No: {
@@ -298,8 +304,10 @@ const Baz* baz (const Baz_in* baz_in)
   b8->elements[0] = b9;
   b7->content1 = b8;
   b7->length1 = catala_new_int_str("1");
-  b12 = handle_exceptions(pos8, b7);
-  match_arg = handle_exceptions(pos8, b7);
+  static const catala_code_position pos2[1] =
+    {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+  b12 = handle_exceptions(pos2, b7);
+  match_arg = handle_exceptions(pos2, b7);
   switch (match_arg->code) {
     case Option_2_None_2: {
       b6->code = Option_2_None_2;
@@ -318,32 +326,34 @@ const Baz* baz (const Baz_in* baz_in)
   b5->elements[0] = b6;
   b4->content1 = b5;
   b4->length1 = catala_new_int_str("1");
-  b12 = handle_exceptions(pos8, b4);
-  match_arg = handle_exceptions(pos8, b4);
+  static const catala_code_position pos3[1] =
+    {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+  b12 = handle_exceptions(pos3, b4);
+  match_arg = handle_exceptions(pos3, b4);
   switch (match_arg->code) {
     case Option_2_None_2: {
-      static const catala_code_position pos18[1] =
-        {{"tests/backends/simple.catala_en", 19, 5, 21, 54}};
       array_2* b13 = catala_malloc(sizeof(Array_2));
       CATALA_ARRAY(Option_2*) b14 = catala_malloc(sizeof(catala_array));
       const option_2* b15;
       array_2* b16 = catala_malloc(sizeof(Array_2));
       CATALA_ARRAY(Option_2*) b17 = catala_malloc(sizeof(catala_array));
+      CATALA_UNIT pos4;
       const Option_2* b18;
       const Option_2* match_arg;
+      CATALA_UNIT pos5;
       const Option_2* b18;
       const Option_2* match_arg;
-
       b17->size = 0;
       b16->content1 = b17;
       b16->length1 = catala_new_int_str("0");
-      b18 = handle_exceptions(pos18, b16);
-      match_arg = handle_exceptions(pos18, b16);
+      static const catala_code_position pos4[1] =
+        {{"tests/backends/simple.catala_en", 19, 5, 21, 54}};
+      b18 = handle_exceptions(pos4, b16);
+      match_arg = handle_exceptions(pos4, b16);
       switch (match_arg->code) {
         case Option_2_None_2: {
           CATALA_DEC b19;
           const Bar* match_arg;
-
           match_arg = a1;
           switch (match_arg->code) {
             case Bar_No: {
@@ -353,7 +363,6 @@ const Baz* baz (const Baz_in* baz_in)
             case Bar_Yes: {
               Foo* foo = match_arg->payload.Yes;
               CATALA_DEC b20;
-
               if (foo->x == CATALA_TRUE) {
                 b20 = catala_new_dec_str("1");
               } else {
@@ -379,8 +388,10 @@ const Baz* baz (const Baz_in* baz_in)
       b14->elements[0] = b15;
       b13->content1 = b14;
       b13->length1 = catala_new_int_str("1");
-      b18 = handle_exceptions(pos8, b13);
-      match_arg = handle_exceptions(pos8, b13);
+      static const catala_code_position pos5[1] =
+        {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+      b18 = handle_exceptions(pos5, b13);
+      match_arg = handle_exceptions(pos5, b13);
       switch (match_arg->code) {
         case Option_2_None_2: {
           b3->code = Option_2_None_2;
@@ -406,7 +417,10 @@ const Baz* baz (const Baz_in* baz_in)
   match_arg = b3;
   switch (match_arg->code) {
     case Option_2_None_2: {
-      catala_error(catala_no_value, pos8);
+      CATALA_UNIT pos4;
+      static const catala_code_position pos4[1] =
+        {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+      catala_error(catala_no_value, pos4);
       break;
     }
     case Option_2_Some_2: {
@@ -419,13 +433,14 @@ const Baz* baz (const Baz_in* baz_in)
   c8->size = 0;
   c7->content3 = c8;
   c7->length3 = catala_new_int_str("0");
-  c9 = handle_exceptions(pos10, c7);
-  match_arg = handle_exceptions(pos10, c7);
+  static const catala_code_position pos4[1] =
+    {{"tests/backends/simple.catala_en", 27, 23, 27, 28}};
+  c9 = handle_exceptions(pos4, c7);
+  match_arg = handle_exceptions(pos4, c7);
   switch (match_arg->code) {
     case Option_3_None_3: {
       array_3* c10 = catala_malloc(sizeof(Array_3));
       CATALA_ARRAY(CATALA_DEC) c11 = catala_malloc(sizeof(catala_array));
-
       c11->size = 2;
       c11->elements = catala_malloc(2 * sizeof(void*));
       c11->elements[0] = b1;
@@ -448,8 +463,10 @@ const Baz* baz (const Baz_in* baz_in)
   c5->elements[0] = c6;
   c4->content3 = c5;
   c4->length3 = catala_new_int_str("1");
-  c9 = handle_exceptions(pos12, c4);
-  match_arg = handle_exceptions(pos12, c4);
+  static const catala_code_position pos5[1] =
+    {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
+  c9 = handle_exceptions(pos5, c4);
+  match_arg = handle_exceptions(pos5, c4);
   switch (match_arg->code) {
     case Option_3_None_3: {
       c3->code = Option_3_None_3;
@@ -466,7 +483,10 @@ const Baz* baz (const Baz_in* baz_in)
   match_arg = c3;
   switch (match_arg->code) {
     case Option_3_None_3: {
-      catala_error(catala_no_value, pos12);
+      CATALA_UNIT pos6;
+      static const catala_code_position pos6[1] =
+        {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
+      catala_error(catala_no_value, pos6);
       break;
     }
     case Option_3_Some_3: {

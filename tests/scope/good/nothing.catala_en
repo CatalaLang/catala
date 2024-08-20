@@ -41,6 +41,7 @@ $ catala Scalc -s Foo2 -O -t
 └─ Test
 let Foo2 (Foo2_in: Foo2_in) =
   decl bar1 : integer;
+  pos : unit = <nothing:5.10-13>;
   fatal NoValue;
   decl bar : integer;
   bar = bar1;

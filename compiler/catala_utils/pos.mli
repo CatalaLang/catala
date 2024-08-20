@@ -57,6 +57,9 @@ val to_string_short : t -> string
     {{:https://www.gnu.org/prep/standards/standards.html#Errors} GNU coding
       standards}. *)
 
+val to_string_shorter : t -> string
+(** Like [to_string_short], but skips directory names and extension *)
+
 val format_loc_text : Format.formatter -> t -> unit
 (** Open the file corresponding to the position and retrieves the text concerned
     by the position *)

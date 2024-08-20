@@ -90,6 +90,29 @@ let register_fresh_arg ~pos ctxt (x, _) =
   let _, ctxt = register_fresh_var ~pos ctxt x in
   ctxt
 
+(* These operators, since they can raise, have an added first argument giving
+   the position of the error if it happens, so they need special treatment *)
+let op_can_raise op =
+  let open Op in
+  match Mark.remove op with
+  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Gte_dur_dur | Gt_dur_dur | Lte_dur_dur
+  | Lt_dur_dur ->
+    true
+  | _ -> false
+
+let lift_pos ctxt pos =
+  let v, ctxt = fresh_var ~pos ctxt "pos" in
+  (A.EVar v, pos),
+  ( A.SLocalInit
+      {
+        name = v, pos;
+        typ = TLit TUnit, pos;
+        expr = A.EPosLit, pos;
+      },
+    pos ),
+  ctxt
+
 let rec translate_expr_list ctxt args =
   let stmts, args, ren_ctx =
     List.fold_left
@@ -183,30 +206,58 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         tys = [t_arr];
         args = [(EArray exceptions, _)];
       }
-    when ctxt.config.keep_special_ops ->
+    ->
     let exceptions_stmts, new_exceptions, ren_ctx =
       translate_expr_list ctxt exceptions
     in
-    let arr_var_name = A.VarName.fresh (ctxt.context_name, pos) in
-    let stmts =
-      exceptions_stmts
-      ++ RevBlock.make
-           [
-             ( A.SLocalInit
-                 {
-                   name = arr_var_name, pos;
-                   typ = t_arr;
-                   expr = A.EArray new_exceptions, pos;
-                 },
-               pos );
-           ]
+    let eposl, vposdefs, ctxt =
+      List.fold_left (fun (eposl, vposdefs, ctxt) exc ->
+          let epos, vposdef, ctxt = lift_pos ctxt (Expr.pos exc) in
+          (epos :: eposl),
+          (RevBlock.append vposdefs vposdef),
+          ctxt)
+        ([], RevBlock.empty, ctxt) exceptions
+    in
+    let stmts = exceptions_stmts ++ vposdefs in
+    let excs = A.EArray new_exceptions, pos in
+    let epos = A.EArray (List.rev eposl), pos in
+    let stmts, epos, excs, ctxt =
+      if not ctxt.config.keep_special_ops then stmts, epos, excs, ctxt
+      else
+        let arr_var_name, ctxt =
+          fresh_var ~pos { ctxt with ren_ctx } ctxt.context_name
+        in
+        let pos_arr_var_name, ctxt =
+          fresh_var ~pos { ctxt with ren_ctx } "pos_list"
+        in
+        let stmts =
+          stmts
+          ++ RevBlock.make
+            [
+              ( A.SLocalInit
+                  {
+                    name = arr_var_name, pos;
+                    typ = t_arr;
+                    expr = A.EArray new_exceptions, pos;
+                  },
+                pos );
+              ( A.SLocalInit
+                  {
+                    name = pos_arr_var_name, pos;
+                    typ = TArray (TLit TUnit, pos), pos;
+                    expr = A.EArray (List.rev eposl), pos;
+                  },
+                pos );
+            ]
+        in
+        stmts, (A.EVar pos_arr_var_name, pos), (A.EVar arr_var_name, pos), ctxt
     in
     ( stmts,
       ( A.EAppOp
           {
             op = Op.HandleExceptions, pos;
-            args = [A.EVar arr_var_name, pos];
-            tys = [t_arr];
+            args = [epos; excs];
+            tys = [TLit TUnit, pos; t_arr];
           },
         pos ),
       ren_ctx )
@@ -215,9 +266,17 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
    *            args = [] }
    *   when ctxt.config.keep_special_ops -> *)
   | EAppOp { op; args; tys } ->
-    let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
+    let pos = Mark.get op in
+    let stmts, args, ren_ctx = translate_expr_list ctxt args in
+    let ctxt = { ctxt with ren_ctx } in
+    let stmts, args, tys, ctxt =
+      if op_can_raise op then
+        let epos, vposdef, ctxt = lift_pos ctxt pos in
+        RevBlock.append stmts vposdef, (epos :: args), ((TLit TUnit, pos) :: tys), ctxt
+      else stmts, args, tys, ctxt
+    in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
-    args_stmts, (A.EAppOp { op; args = new_args; tys }, Expr.pos expr), ren_ctx
+    stmts, (A.EAppOp { op; args; tys }, Expr.pos expr), ctxt.ren_ctx
   | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
@@ -336,11 +395,18 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
     A.block * Renaming.context =
   match Mark.remove block_expr with
   | EAssert e ->
-    (* Assertions are always encapsulated in a unit-typed let binding *)
-    let e_stmts, new_e, ren_ctx = translate_expr ctxt e in
-    ( RevBlock.rebuild ~tail:[A.SAssert new_e, Expr.pos block_expr] e_stmts,
-      ren_ctx )
-  | EFatalError err -> [SFatalError err, Expr.pos block_expr], ctxt.ren_ctx
+    let pos = Expr.pos block_expr in
+    let e_stmts, expr, ren_ctx = translate_expr ctxt e in
+    let pos_expr, vposdef, ctxt = lift_pos { ctxt with ren_ctx } pos in
+    ( RevBlock.rebuild
+        ~tail:[ vposdef; A.SAssert { pos_expr; expr }, pos ]
+        e_stmts,
+      ctxt.ren_ctx )
+  | EFatalError error ->
+    let pos = Expr.pos block_expr in
+    let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
+    [vposdef; SFatalError {pos_expr; error}, Expr.pos block_expr],
+    ctxt.ren_ctx
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in

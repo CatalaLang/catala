@@ -128,7 +128,7 @@ let S2 (S2_in: S2_in) =
   decl a1 : decimal;
   decl a2 : option decimal;
   decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
+  a4 : option decimal = handle_exceptions [] [];
   switch a4:
   | ENone _ →
     if true:
@@ -137,7 +137,8 @@ let S2 (S2_in: S2_in) =
       a3 = ENone ()
   | ESome x →
     a3 = ESome x;
-  a4 : option decimal = handle_exceptions [a3];
+  pos : unit = <toplevel_defs:53.24-43>;
+  a4 : option decimal = handle_exceptions [pos] [a3];
   switch a4:
   | ENone _ →
     if false:
@@ -148,6 +149,7 @@ let S2 (S2_in: S2_in) =
     a2 = ESome x;
   switch a2:
   | ENone _ →
+    pos : unit = <toplevel_defs:50.10-11>;
     fatal NoValue
   | ESome arg →
     a1 = arg;
@@ -159,7 +161,7 @@ let S3 (S3_in: S3_in) =
   decl a1 : decimal;
   decl a2 : option decimal;
   decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
+  a4 : option decimal = handle_exceptions [] [];
   switch a4:
   | ENone _ →
     if true:
@@ -168,7 +170,8 @@ let S3 (S3_in: S3_in) =
       a3 = ENone ()
   | ESome x →
     a3 = ESome x;
-  a4 : option decimal = handle_exceptions [a3];
+  pos : unit = <toplevel_defs:74.24-47>;
+  a4 : option decimal = handle_exceptions [pos] [a3];
   switch a4:
   | ENone _ →
     if false:
@@ -179,6 +182,7 @@ let S3 (S3_in: S3_in) =
     a2 = ESome x;
   switch a2:
   | ENone _ →
+    pos : unit = <toplevel_defs:71.10-11>;
     fatal NoValue
   | ESome arg →
     a1 = arg;
@@ -190,7 +194,7 @@ let S4 (S4_in: S4_in) =
   decl a1 : decimal;
   decl a2 : option decimal;
   decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
+  a4 : option decimal = handle_exceptions [] [];
   switch a4:
   | ENone _ →
     if true:
@@ -199,7 +203,8 @@ let S4 (S4_in: S4_in) =
       a3 = ENone ()
   | ESome x →
     a3 = ESome x;
-  a4 : option decimal = handle_exceptions [a3];
+  pos : unit = <toplevel_defs:98.24-34>;
+  a4 : option decimal = handle_exceptions [pos] [a3];
   switch a4:
   | ENone _ →
     if false:
@@ -210,6 +215,7 @@ let S4 (S4_in: S4_in) =
     a2 = ESome x;
   switch a2:
   | ENone _ →
+    pos : unit = <toplevel_defs:95.10-11>;
     fatal NoValue
   | ESome arg →
     a1 = arg;
@@ -221,7 +227,7 @@ let S (S_in: S_in) =
   decl a1 : decimal;
   decl a2 : option decimal;
   decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
+  a4 : option decimal = handle_exceptions [] [];
   switch a4:
   | ENone _ →
     if true:
@@ -230,7 +236,8 @@ let S (S_in: S_in) =
       a3 = ENone ()
   | ESome x →
     a3 = ESome x;
-  a4 : option decimal = handle_exceptions [a3];
+  pos : unit = <toplevel_defs:18.24-37>;
+  a4 : option decimal = handle_exceptions [pos] [a3];
   switch a4:
   | ENone _ →
     if false:
@@ -241,6 +248,7 @@ let S (S_in: S_in) =
     a2 = ESome x;
   switch a2:
   | ENone _ →
+    pos : unit = <toplevel_defs:7.10-11>;
     fatal NoValue
   | ESome arg →
     a1 = arg;
@@ -249,7 +257,7 @@ let S (S_in: S_in) =
   decl b1 : A {y: bool; z: decimal};
   decl b2 : option A {y: bool; z: decimal};
   decl b3 : option A {y: bool; z: decimal};
-  b4 : option A {y: bool; z: decimal} = handle_exceptions [];
+  b4 : option A {y: bool; z: decimal} = handle_exceptions [] [];
   switch b4:
   | ENone _ →
     if true:
@@ -258,7 +266,8 @@ let S (S_in: S_in) =
       b3 = ENone ()
   | ESome x →
     b3 = ESome x;
-  b4 : option A {y: bool; z: decimal} = handle_exceptions [b3];
+  pos : unit = <toplevel_defs:19.24-29>;
+  b4 : option A {y: bool; z: decimal} = handle_exceptions [pos] [b3];
   switch b4:
   | ENone _ →
     if false:
@@ -269,6 +278,7 @@ let S (S_in: S_in) =
     b2 = ESome x;
   switch b2:
   | ENone _ →
+    pos : unit = <toplevel_defs:8.10-11>;
     fatal NoValue
   | ESome arg →
     b1 = arg;
@@ -466,14 +476,11 @@ def s2(s2_in:S2In):
     else:
         x = a4
         a3 = (x)
-    a4 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=53, start_column=24,
-                   end_line=53, end_column=43,
-                   law_headings=["Test toplevel function defs"])],
-              [a3]
-          ))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=53, start_column=24, end_line=53, end_column=43,
+               law_headings=["Test toplevel function defs"]))
+    a4 = (handle_exceptions([pos], [a3]))
     if a4 is None:
         if False:
             a2 = (None)
@@ -483,11 +490,12 @@ def s2(s2_in:S2In):
         x = a4
         a2 = (x)
     if a2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=50, start_column=10,
-                          end_line=50, end_column=11,
-                          law_headings=["Test toplevel function defs"]))
+        pos = (SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=50, start_column=10,
+                   end_line=50, end_column=11,
+                   law_headings=["Test toplevel function defs"]))
+        raise NoValue(pos)
     else:
         arg = a2
         a1 = (arg)
@@ -506,14 +514,11 @@ def s3(s3_in:S3In):
     else:
         x = a4
         a3 = (x)
-    a4 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=74, start_column=24,
-                   end_line=74, end_column=47,
-                   law_headings=["Test function def with two args"])],
-              [a3]
-          ))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=74, start_column=24, end_line=74, end_column=47,
+               law_headings=["Test function def with two args"]))
+    a4 = (handle_exceptions([pos], [a3]))
     if a4 is None:
         if False:
             a2 = (None)
@@ -523,11 +528,12 @@ def s3(s3_in:S3In):
         x = a4
         a2 = (x)
     if a2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=71, start_column=10,
-                          end_line=71, end_column=11,
-                          law_headings=["Test function def with two args"]))
+        pos = (SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=71, start_column=10,
+                   end_line=71, end_column=11,
+                   law_headings=["Test function def with two args"]))
+        raise NoValue(pos)
     else:
         arg = a2
         a1 = (arg)
@@ -544,14 +550,11 @@ def s4(s4_in:S4In):
     else:
         x = a4
         a3 = (x)
-    a4 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=98, start_column=24,
-                   end_line=98, end_column=34,
-                   law_headings=["Test inline defs in toplevel defs"])],
-              [a3]
-          ))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=98, start_column=24, end_line=98, end_column=34,
+               law_headings=["Test inline defs in toplevel defs"]))
+    a4 = (handle_exceptions([pos], [a3]))
     if a4 is None:
         if False:
             a2 = (None)
@@ -561,11 +564,12 @@ def s4(s4_in:S4In):
         x = a4
         a2 = (x)
     if a2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=95, start_column=10,
-                          end_line=95, end_column=11,
-                          law_headings=["Test inline defs in toplevel defs"]))
+        pos = (SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=95, start_column=10,
+                   end_line=95, end_column=11,
+                   law_headings=["Test inline defs in toplevel defs"]))
+        raise NoValue(pos)
     else:
         arg = a2
         a1 = (arg)
@@ -582,14 +586,11 @@ def s5(s_in:SIn):
     else:
         x = a4
         a3 = (x)
-    a4 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=18, start_column=24,
-                   end_line=18, end_column=37,
-                   law_headings=["Test basic toplevel values defs"])],
-              [a3]
-          ))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=18, start_column=24, end_line=18, end_column=37,
+               law_headings=["Test basic toplevel values defs"]))
+    a4 = (handle_exceptions([pos], [a3]))
     if a4 is None:
         if False:
             a2 = (None)
@@ -599,11 +600,11 @@ def s5(s_in:SIn):
         x = a4
         a2 = (x)
     if a2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=7, start_column=10,
-                          end_line=7, end_column=11,
-                          law_headings=["Test basic toplevel values defs"]))
+        pos = (SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=7, start_column=10, end_line=7, end_column=11,
+                   law_headings=["Test basic toplevel values defs"]))
+        raise NoValue(pos)
     else:
         arg = a2
         a1 = (arg)
@@ -617,14 +618,11 @@ def s5(s_in:SIn):
     else:
         x = b4
         b3 = (x)
-    b4 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=19, start_column=24,
-                   end_line=19, end_column=29,
-                   law_headings=["Test basic toplevel values defs"])],
-              [b3]
-          ))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=19, start_column=24, end_line=19, end_column=29,
+               law_headings=["Test basic toplevel values defs"]))
+    b4 = (handle_exceptions([pos], [b3]))
     if b4 is None:
         if False:
             b2 = (None)
@@ -634,11 +632,11 @@ def s5(s_in:SIn):
         x = b4
         b2 = (x)
     if b2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                          start_line=8, start_column=10,
-                          end_line=8, end_column=11,
-                          law_headings=["Test basic toplevel values defs"]))
+        pos = (SourcePosition(
+                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                   start_line=8, start_column=10, end_line=8, end_column=11,
+                   law_headings=["Test basic toplevel values defs"]))
+        raise NoValue(pos)
     else:
         arg = b2
         b1 = (arg)

@@ -74,7 +74,8 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
+  | EPosLit -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter (Mark.get e))
+  | EAppOp { op = ((HandleExceptions | Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
   | EAppOp { op = op, _; args = [arg1; arg2]; _ } ->
@@ -137,9 +138,9 @@ let rec format_statement
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | SFatalError err ->
+  | SFatalError { error; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
-      Print.runtime_error err
+      Print.runtime_error error
   | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
     Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@]@ @[<v 2>%a%a@ %a@]"
       Print.keyword "if"
@@ -153,7 +154,7 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
       ret
-  | SAssert expr ->
+  | SAssert { expr; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
       expr
