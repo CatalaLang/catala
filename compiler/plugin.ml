@@ -32,9 +32,11 @@ let load_failures = Hashtbl.create 17
 
 let print_failures () =
   if Hashtbl.length load_failures > 0 then
-    Message.warning "Some plugins could not be loaded:@,%a"
-      (Format.pp_print_seq (fun ppf -> Format.fprintf ppf "  - %s"))
-      (Hashtbl.to_seq_values load_failures)
+    Message.warning "@[<v 2>Some plugins could not be loaded:@,%a@]"
+      (Format.pp_print_seq (fun ppf (n, s) ->
+           Format.fprintf ppf "- @{<bold>%s@}: @[<hov>%a@]" n
+             Format.pp_print_text s))
+      (Hashtbl.to_seq load_failures)
 
 let load_file f =
   try
