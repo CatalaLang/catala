@@ -164,6 +164,39 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
     with Invalid_argument _ -> false)
   | _, _ -> false (* comparing anything else return false *)
 
+(* This evaluation of functional application is used by operators in order to
+   make them compatible with execution after closure-conversion: the case where
+   we need to apply a closure instead is detected and handled transparently *)
+let eval_application evaluate_expr f args =
+  match f with
+  | EAbs _, _ ->
+    let ty =
+      match Expr.maybe_ty (Mark.get f) with TArrow (_, ty), _ -> ty | ty -> ty
+    in
+    evaluate_expr
+      ( EApp
+          { f; args; tys = List.map (fun e -> Expr.maybe_ty (Mark.get e)) args },
+        Expr.with_ty (Mark.get f) ty )
+  | ETuple [closure; closure_env], _ ->
+    let ty =
+      match Expr.maybe_ty (Mark.get closure) with
+      | TArrow (_, ty), _ -> ty
+      | ty -> ty
+    in
+    evaluate_expr
+      ( EApp
+          {
+            f = closure;
+            args = closure_env :: args;
+            tys =
+              (TClosureEnv, Expr.pos closure)
+              :: List.map (fun e -> Expr.maybe_ty (Mark.get e)) args;
+          },
+        Expr.with_ty (Mark.get f) ty )
+  | _ ->
+    Message.error ~internal:true
+      "Trying to apply non-function passed as operator argument"
+
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
@@ -230,56 +263,24 @@ let rec evaluate_operator
   | Eq, [(e1, _); (e2, _)] ->
     ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
-    EArray
-      (List.map
-         (fun e' ->
-           evaluate_expr
-             (Mark.copy e'
-                (EApp { f; args = [e']; tys = [Expr.maybe_ty (Mark.get e')] })))
-         es)
+    EArray (List.map (fun e' -> eval_application evaluate_expr f [e']) es)
   | Map2, [f; (EArray es1, _); (EArray es2, _)] ->
     EArray
       (List.map2
-         (fun e1 e2 ->
-           evaluate_expr
-             (Mark.add m
-                (EApp
-                   {
-                     f;
-                     args = [e1; e2];
-                     tys =
-                       [
-                         Expr.maybe_ty (Mark.get e1); Expr.maybe_ty (Mark.get e2);
-                       ];
-                   })))
+         (fun e1 e2 -> eval_application evaluate_expr f [e1; e2])
          es1 es2)
   | Reduce, [_; default; (EArray [], _)] -> Mark.remove default
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
     Mark.remove
       (List.fold_left
-         (fun acc x ->
-           evaluate_expr
-             (Mark.copy f
-                (EApp
-                   {
-                     f;
-                     args = [acc; x];
-                     tys =
-                       [
-                         Expr.maybe_ty (Mark.get acc); Expr.maybe_ty (Mark.get x);
-                       ];
-                   })))
+         (fun acc x -> eval_application evaluate_expr f [acc; x])
          x0 xn)
   | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
   | Filter, [f; (EArray es, _)] ->
     EArray
       (List.filter
          (fun e' ->
-           match
-             evaluate_expr
-               (Mark.copy e'
-                  (EApp { f; args = [e']; tys = [Expr.maybe_ty (Mark.get e')] }))
-           with
+           match eval_application evaluate_expr f [e'] with
            | ELit (LBool b), _ -> b
            | _ ->
              Message.error
@@ -291,19 +292,7 @@ let rec evaluate_operator
   | Fold, [f; init; (EArray es, _)] ->
     Mark.remove
       (List.fold_left
-         (fun acc e' ->
-           evaluate_expr
-             (Mark.copy e'
-                (EApp
-                   {
-                     f;
-                     args = [acc; e'];
-                     tys =
-                       [
-                         Expr.maybe_ty (Mark.get acc);
-                         Expr.maybe_ty (Mark.get e');
-                       ];
-                   })))
+         (fun acc e' -> eval_application evaluate_expr f [acc; e'])
          init es)
   | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
     err ()
@@ -699,9 +688,13 @@ let rec evaluate_expr :
       in
       runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
-      Message.error ~pos ~internal:true "%a" Format.pp_print_text
+      Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
-         happen if the term was well-typed")
+         happen if the term was well-typed"
+        (fun ppf e ->
+          if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
+          else ())
+        e1)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
