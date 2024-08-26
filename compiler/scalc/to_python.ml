@@ -59,28 +59,37 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
   | Round_mon -> Format.pp_print_string fmt "money_round"
   | Round_rat -> Format.pp_print_string fmt "decimal_round"
-  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-  | Concat ->
+  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat ->
     Format.pp_print_string fmt "+"
+  | Add_dat_dur rounding ->
+    Format.fprintf fmt "add_date_duration(%s)"
+      (match rounding with
+      | RoundUp -> "DateRounding.RoundUp"
+      | RoundDown -> "DateRounding.RoundDown"
+      | AbortOnRound -> "DateRounding.AbortOnRound")
   | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
   | Sub_dur_dur ->
     Format.pp_print_string fmt "-"
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
     Format.pp_print_string fmt "*"
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
-    Format.pp_print_string fmt "/"
+    Format.pp_print_string fmt "div"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
   | Xor -> Format.pp_print_string fmt "!="
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
+  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat ->
     Format.pp_print_string fmt "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
+  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat ->
     Format.pp_print_string fmt "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
+  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat ->
     Format.pp_print_string fmt ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
+  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat ->
     Format.pp_print_string fmt ">="
+  | Lt_dur_dur -> Format.pp_print_string fmt "lt_duration"
+  | Lte_dur_dur -> Format.pp_print_string fmt "leq_duration"
+  | Gt_dur_dur -> Format.pp_print_string fmt "gt_duration"
+  | Gte_dur_dur -> Format.pp_print_string fmt "geq_duration"
   | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
     ->
     Format.pp_print_string fmt "=="
@@ -249,7 +258,12 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
        <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
       format_string_list (Pos.get_law_info pos)
-  | EAppOp { op = ((HandleExceptions | Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
+  | EAppOp
+      {
+        op = ((HandleExceptions | Map | Filter), _) as op;
+        args = [arg1; arg2];
+        _;
+      } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2]; _ } ->
@@ -387,11 +401,8 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
   | SAssert { pos_expr; expr = e1 } ->
-    Format.fprintf fmt
-      "@[<hv 4>if not (%a):@,\
-       raise AssertionFailed(%a)@]"
-      (format_expression ctx) e1
-      (format_expression ctx) pos_expr
+    Format.fprintf fmt "@[<hv 4>if not (%a):@,raise AssertionFailed(%a)@]"
+      (format_expression ctx) e1 (format_expression ctx) pos_expr
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =

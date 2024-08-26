@@ -241,45 +241,6 @@ let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
-(* TODO: move these to a shared place *)
-let shallow_fold_expr f e acc =
-  let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
-  match Mark.remove e with
-  | EVar _ | EFunc _ | ELit _ | EPosLit | EExternal _ -> acc
-  | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
-  | ETuple el | EArray el | EAppOp { args = el; _ } -> acc |> lfold el
-  | EStructFieldAccess { e1; _ } | ETupleAccess { e1; _ } | EInj { e1; _ } ->
-    acc |> f e1
-  | EApp { f = ef; args } -> acc |> f ef |> lfold args
-
-let rec fold_expr f e acc = shallow_fold_expr (fold_expr f) e (f e acc)
-
-(* Folds through direct expr childs, not subblocks *)
-let fold_expr_stmt f st acc =
-  match Mark.remove st with
-  | SInnerFuncDef _ | SLocalDecl _ | SFatalError _ | SSwitch _ -> acc
-  | SLocalInit { expr; _ }
-  | SLocalDef { expr; _ }
-  | SIfThenElse { if_expr = expr; _ }
-  | SReturn expr
-  | SAssert { expr; _ } ->
-    fold_expr f expr acc
-  | SSpecialOp _ -> .
-
-let fold_expr_block f b acc =
-  List.fold_left (fun acc st -> fold_expr_stmt f st acc) acc b
-
-(* These operators, since they can raise, have an added first argument giving
-   the position of the error if it happens, so they need special treatment *)
-let op_can_raise op =
-  let open Op in
-  match Mark.remove op with
-  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Gte_dur_dur | Gt_dur_dur | Lte_dur_dur
-  | Lt_dur_dur ->
-    true
-  | _ -> false
-
 let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) : unit
     =
   match Mark.remove e with

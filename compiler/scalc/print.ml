@@ -75,7 +75,12 @@ let rec format_expr
       format_expr e
   | ELit l -> Print.lit fmt l
   | EPosLit -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter (Mark.get e))
-  | EAppOp { op = ((HandleExceptions | Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
+  | EAppOp
+      {
+        op = ((HandleExceptions | Map | Filter) as op), _;
+        args = [arg1; arg2];
+        _;
+      } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
   | EAppOp { op = op, _; args = [arg1; arg2]; _ } ->

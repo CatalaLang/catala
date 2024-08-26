@@ -103,15 +103,11 @@ let op_can_raise op =
 
 let lift_pos ctxt pos =
   let v, ctxt = fresh_var ~pos ctxt "pos" in
-  (A.EVar v, pos),
-  ( A.SLocalInit
-      {
-        name = v, pos;
-        typ = TLit TUnit, pos;
-        expr = A.EPosLit, pos;
-      },
-    pos ),
-  ctxt
+  ( (A.EVar v, pos),
+    ( A.SLocalInit
+        { name = v, pos; typ = TLit TUnit, pos; expr = A.EPosLit, pos },
+      pos ),
+    ctxt )
 
 let rec translate_expr_list ctxt args =
   let stmts, args, ren_ctx =
@@ -205,24 +201,24 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         op = Op.HandleExceptions, pos;
         tys = [t_arr];
         args = [(EArray exceptions, _)];
-      }
-    ->
+      } ->
     let exceptions_stmts, new_exceptions, ren_ctx =
       translate_expr_list ctxt exceptions
     in
     let eposl, vposdefs, ctxt =
-      List.fold_left (fun (eposl, vposdefs, ctxt) exc ->
+      List.fold_left
+        (fun (eposl, vposdefs, ctxt) exc ->
           let epos, vposdef, ctxt = lift_pos ctxt (Expr.pos exc) in
-          (epos :: eposl),
-          (RevBlock.append vposdefs vposdef),
-          ctxt)
+          epos :: eposl, RevBlock.append vposdefs vposdef, ctxt)
         ([], RevBlock.empty, ctxt) exceptions
     in
     let stmts = exceptions_stmts ++ vposdefs in
-    let excs = A.EArray new_exceptions, pos in
-    let epos = A.EArray (List.rev eposl), pos in
     let stmts, epos, excs, ctxt =
-      if not ctxt.config.keep_special_ops then stmts, epos, excs, ctxt
+      if not ctxt.config.no_struct_literals then
+        ( stmts,
+          (A.EArray (List.rev eposl), pos),
+          (A.EArray new_exceptions, pos),
+          ctxt )
       else
         let arr_var_name, ctxt =
           fresh_var ~pos { ctxt with ren_ctx } ctxt.context_name
@@ -233,22 +229,22 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         let stmts =
           stmts
           ++ RevBlock.make
-            [
-              ( A.SLocalInit
-                  {
-                    name = arr_var_name, pos;
-                    typ = t_arr;
-                    expr = A.EArray new_exceptions, pos;
-                  },
-                pos );
-              ( A.SLocalInit
-                  {
-                    name = pos_arr_var_name, pos;
-                    typ = TArray (TLit TUnit, pos), pos;
-                    expr = A.EArray (List.rev eposl), pos;
-                  },
-                pos );
-            ]
+               [
+                 ( A.SLocalInit
+                     {
+                       name = arr_var_name, pos;
+                       typ = t_arr;
+                       expr = A.EArray new_exceptions, pos;
+                     },
+                   pos );
+                 ( A.SLocalInit
+                     {
+                       name = pos_arr_var_name, pos;
+                       typ = TArray (TLit TUnit, pos), pos;
+                       expr = A.EArray (List.rev eposl), pos;
+                     },
+                   pos );
+               ]
         in
         stmts, (A.EVar pos_arr_var_name, pos), (A.EVar arr_var_name, pos), ctxt
     in
@@ -272,7 +268,10 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     let stmts, args, tys, ctxt =
       if op_can_raise op then
         let epos, vposdef, ctxt = lift_pos ctxt pos in
-        RevBlock.append stmts vposdef, (epos :: args), ((TLit TUnit, pos) :: tys), ctxt
+        ( RevBlock.append stmts vposdef,
+          epos :: args,
+          (TLit TUnit, pos) :: tys,
+          ctxt )
       else stmts, args, tys, ctxt
     in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
@@ -398,15 +397,13 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
     let pos = Expr.pos block_expr in
     let e_stmts, expr, ren_ctx = translate_expr ctxt e in
     let pos_expr, vposdef, ctxt = lift_pos { ctxt with ren_ctx } pos in
-    ( RevBlock.rebuild
-        ~tail:[ vposdef; A.SAssert { pos_expr; expr }, pos ]
-        e_stmts,
+    ( RevBlock.rebuild ~tail:[vposdef; A.SAssert { pos_expr; expr }, pos] e_stmts,
       ctxt.ren_ctx )
   | EFatalError error ->
     let pos = Expr.pos block_expr in
     let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
-    [vposdef; SFatalError {pos_expr; error}, Expr.pos block_expr],
-    ctxt.ren_ctx
+    ( [vposdef; SFatalError { pos_expr; error }, Expr.pos block_expr],
+      ctxt.ren_ctx )
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in

@@ -66,7 +66,7 @@ type stmt =
   | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
   | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
   | SLocalDef of { name : VarName.t Mark.pos; typ : typ; expr : expr }
-  | SFatalError of { pos_expr : expr; error: Runtime.error }
+  | SFatalError of { pos_expr : expr; error : Runtime.error }
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
   | SSwitch of {
       switch_var : VarName.t;
@@ -75,7 +75,7 @@ type stmt =
       switch_cases : switch_case list;
     }
   | SReturn of expr
-  | SAssert of { pos_expr: expr; expr: expr }
+  | SAssert of { pos_expr : expr; expr : expr }
   | SSpecialOp of special_operator
 
 and special_operator = |

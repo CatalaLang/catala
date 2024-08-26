@@ -375,8 +375,8 @@ module Flags = struct
     & info ["no-struct-literals"]
         ~doc:
           "During the Lcalc->Scalc translation, insert temporary variable \
-           assignments to hold the result of structure initializations \
-           (matches the absence of struct literals of C89)."
+           assignments to hold the result of array and structure \
+           initializations (matches the absence of struct literals of C89)."
 
   let closure_conversion =
     value
