@@ -85,6 +85,13 @@ val info : Cmdliner.Cmd.info
 val s_plugins : string
 (** Manpage section name for the installed plugins *)
 
+val s_debug : string
+(** Name of the manpage section for debugging commands (use as [~docs] arg to
+    [Arg.info]) *)
+
+val man_base : Cmdliner.Manpage.block list
+(** Skeleton of the manpage shared by all commands *)
+
 exception Exit_with of int
 (** Exit with a specific exit code (but less brutally than [Sys.exit] which
     would bypass all finalisers) *)

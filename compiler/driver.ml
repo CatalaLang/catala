@@ -449,7 +449,7 @@ module Commands = struct
 
   let makefile_cmd =
     Cmd.v
-      (Cmd.info "makefile"
+      (Cmd.info "makefile" ~man:Cli.man_base
          ~doc:
            "Generates a Makefile-compatible list of the file dependencies of a \
             Catala program.")
@@ -475,7 +475,7 @@ module Commands = struct
 
   let html_cmd =
     Cmd.v
-      (Cmd.info "html"
+      (Cmd.info "html" ~man:Cli.man_base
          ~doc:
            "Weaves an HTML literate programming output of the Catala program.")
       Term.(
@@ -524,7 +524,7 @@ module Commands = struct
 
   let latex_cmd =
     Cmd.v
-      (Cmd.info "latex"
+      (Cmd.info "latex" ~man:Cli.man_base
          ~doc:
            "Weaves a LaTeX literate programming output of the Catala program.")
       Term.(
@@ -548,7 +548,7 @@ module Commands = struct
 
   let exceptions_cmd =
     Cmd.v
-      (Cmd.info "exceptions"
+      (Cmd.info "exceptions" ~man:Cli.man_base
          ~doc:
            "Prints the exception tree for the definitions of a particular \
             variable, for debugging purposes. Use the $(b,-s) option to select \
@@ -579,7 +579,7 @@ module Commands = struct
 
   let scopelang_cmd =
     Cmd.v
-      (Cmd.info "scopelang"
+      (Cmd.info "scopelang" ~man:Cli.man_base ~docs:Cli.s_debug
          ~doc:
            "Prints a debugging verbatim of the scope language intermediate \
             representation of the Catala program. Use the $(b,-s) option to \
@@ -617,7 +617,7 @@ module Commands = struct
 
   let typecheck_cmd =
     Cmd.v
-      (Cmd.info "typecheck"
+      (Cmd.info "typecheck" ~man:Cli.man_base
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
       Term.(
         const typecheck
@@ -658,7 +658,7 @@ module Commands = struct
       if no_typing then dcalc Expr.untyped else dcalc Expr.typed
     in
     Cmd.v
-      (Cmd.info "dcalc"
+      (Cmd.info "dcalc" ~man:Cli.man_base ~docs:Cli.s_debug
          ~doc:
            "Prints a debugging verbatim of the default calculus intermediate \
             representation of the Catala program. Use the $(b,-s) option to \
@@ -693,7 +693,7 @@ module Commands = struct
 
   let proof_cmd =
     Cmd.v
-      (Cmd.info "proof"
+      (Cmd.info "proof" ~man:Cli.man_base
          ~doc:
            "Generates and proves verification conditions about the \
             well-behaved execution of the Catala program.")
@@ -777,7 +777,7 @@ module Commands = struct
       if no_typing then lcalc Expr.untyped else lcalc Expr.typed
     in
     Cmd.v
-      (Cmd.info "lcalc"
+      (Cmd.info "lcalc" ~man:Cli.man_base ~docs:Cli.s_debug
          ~doc:
            "Prints a debugging verbatim of the lambda calculus intermediate \
             representation of the Catala program. Use the $(b,-s) option to \
@@ -834,7 +834,7 @@ module Commands = struct
           expand_ops
     in
     Cmd.v
-      (Cmd.info "interpret"
+      (Cmd.info "interpret" ~man:Cli.man_base
          ~doc:
            "Runs the interpreter on the Catala program, executing the scope \
             specified by the $(b,-s) option assuming no additional external \
@@ -879,7 +879,7 @@ module Commands = struct
 
   let ocaml_cmd =
     Cmd.v
-      (Cmd.info "ocaml"
+      (Cmd.info "ocaml" ~man:Cli.man_base
          ~doc:"Generates an OCaml translation of the Catala program.")
       Term.(
         const ocaml
@@ -927,7 +927,7 @@ module Commands = struct
 
   let scalc_cmd =
     Cmd.v
-      (Cmd.info "scalc"
+      (Cmd.info "scalc" ~man:Cli.man_base ~docs:Cli.s_debug
          ~doc:
            "Prints a debugging verbatim of the statement calculus intermediate \
             representation of the Catala program. Use the $(b,-s) option to \
@@ -972,7 +972,7 @@ module Commands = struct
 
   let python_cmd =
     Cmd.v
-      (Cmd.info "python"
+      (Cmd.info "python" ~man:Cli.man_base
          ~doc:"Generates a Python translation of the Catala program.")
       Term.(
         const python
@@ -999,7 +999,8 @@ module Commands = struct
 
   let c_cmd =
     Cmd.v
-      (Cmd.info "c" ~doc:"Generates an C translation of the Catala program.")
+      (Cmd.info "c" ~man:Cli.man_base
+         ~doc:"Generates an C translation of the Catala program.")
       Term.(
         const c
         $ Cli.Flags.Global.options
@@ -1066,7 +1067,7 @@ module Commands = struct
 
   let depends_cmd =
     Cmd.v
-      (Cmd.info "depends"
+      (Cmd.info "depends" ~man:Cli.man_base
          ~doc:
            "Lists the dependencies of the given catala files, in linking \
             order. This includes recursive dependencies and is useful for \
@@ -1084,7 +1085,7 @@ module Commands = struct
 
   let pygmentize_cmd =
     Cmd.v
-      (Cmd.info "pygmentize"
+      (Cmd.info "pygmentize" ~man:Cli.man_base
          ~doc:
            "This special command is a wrapper around the $(b,pygmentize) \
             command that enables support for colorising Catala code.")
