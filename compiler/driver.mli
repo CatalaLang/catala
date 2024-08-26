@@ -52,6 +52,7 @@ module Passes : sig
     check_invariants:bool ->
     typed:'m Shared_ast.mark ->
     closure_conversion:bool ->
+    keep_special_ops:bool ->
     monomorphize_types:bool ->
     expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->

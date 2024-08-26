@@ -342,8 +342,8 @@ module Flags = struct
     & flag
     & info ["keep-special-ops"]
         ~doc:
-          "During the Lcalc->Scalc translation, uses special AST nodes for \
-           higher-order operators rather than nested closures (useful for C)."
+          "During closure conversion (between Lcalc and Scalc), do not convert \
+           the functional arguments of higher-order operators."
 
   let monomorphize_types =
     value

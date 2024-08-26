@@ -19,23 +19,18 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
-type name_context = { prefix : string; mutable counter : int }
+type flags = { keep_special_ops : bool }
+type name_context = { prefix : string }
 
 type 'm ctx = {
   decl_ctx : decl_ctx;
   name_context : name_context;
+  flags : flags;
   globally_bound_vars : ('m expr, typ) Var.Map.t;
 }
 
-let new_var ?(pfx = "") name_context =
-  name_context.counter <- name_context.counter + 1;
-  Var.make (pfx ^ name_context.prefix ^ string_of_int name_context.counter)
-(* TODO: Closures end up as a toplevel names. However for now we assume toplevel
-   names are unique, this is a temporary workaround to avoid name wrangling in
-   the backends. We need to have a better system for name disambiguation when
-   for instance printing to Dcalc/Lcalc/Scalc but also OCaml, Python, etc. *)
-
-let new_context prefix = { prefix; counter = 0 }
+let new_context prefix = { prefix }
+let new_var ?(pfx = "") name_context = Var.make (pfx ^ name_context.prefix)
 
 (** Function types will be transformed in this way throughout, including in
     [decl_ctx] *)
@@ -254,6 +249,23 @@ let rec transform_closures_expr :
       Array.fold_left (fun m v -> Var.Map.remove v m) free_vars vars
     in
     free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
+  | EAppOp
+      {
+        op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
+        tys = tyf :: targs;
+        args = f :: args;
+      }
+    when ctx.flags.keep_special_ops ->
+    let free_vars, f = transform_closures_expr ctx f in
+    let free_vars, args =
+      List.fold_right
+        (fun a (free_vars, args) ->
+          let free_vars1, a = transform_closures_expr ctx a in
+          join_vars free_vars free_vars1, a :: args)
+        args (free_vars, [])
+    in
+    ( free_vars,
+      Expr.eappop ~op ~tys:(tyf :: targs) ~args:(f :: args) (Mark.get e) )
   | EAppOp _ ->
     (* This corresponds to an operator call, which we don't want to transform *)
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars
@@ -362,7 +374,8 @@ let transform_closures_scope_let ctx scope_body_expr =
       Expr.Box.lift new_scope_let_expr)
     scope_body_expr
 
-let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
+let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
+    =
   let (), new_code_items =
     BoundList.fold_map
       ~f:(fun toplevel_vars var code_item ->
@@ -375,6 +388,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
             {
               decl_ctx = p.decl_ctx;
               name_context = new_context (Mark.remove (ScopeName.get_info name));
+              flags;
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -404,6 +418,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
               decl_ctx = p.decl_ctx;
               name_context =
                 new_context (Mark.remove (TopdefName.get_info name));
+              flags;
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -420,6 +435,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
               decl_ctx = p.decl_ctx;
               name_context =
                 new_context (Mark.remove (TopdefName.get_info name));
+              flags;
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -471,7 +487,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       })
     new_code_items
 
-(** {1 Hoisting closures}*)
+(** {1 Hoisting closures} *)
 
 type 'm hoisted_closure = {
   name : 'm expr Var.t;
@@ -480,12 +496,15 @@ type 'm hoisted_closure = {
 }
 
 let rec hoist_closures_expr :
-    type m. name_context -> m expr -> m hoisted_closure list * m expr boxed =
- fun name_context e ->
+    type m.
+    flags -> name_context -> m expr -> m hoisted_closure list * m expr boxed =
+ fun flags name_context e ->
   let m = Mark.get e in
   match Mark.remove e with
   | EMatch { e; cases; name } ->
-    let collected_closures, new_e = (hoist_closures_expr name_context) e in
+    let collected_closures, new_e =
+      (hoist_closures_expr flags name_context) e
+    in
     (* We do not close the closures inside the arms of the match expression,
        since they get a special treatment at compilation to Scalc. *)
     let collected_closures, new_cases =
@@ -495,7 +514,7 @@ let rec hoist_closures_expr :
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let new_collected_closures, new_body =
-              (hoist_closures_expr name_context) body
+              (hoist_closures_expr flags name_context) body
             in
             let new_binder = Expr.bind vars new_body in
             ( collected_closures @ new_collected_closures,
@@ -511,20 +530,48 @@ let rec hoist_closures_expr :
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let collected_closures, new_body =
-      (hoist_closures_expr name_context) body
+      (hoist_closures_expr flags name_context) body
     in
     let new_binder = Expr.bind vars new_body in
     let collected_closures, new_args =
       List.fold_right
         (fun arg (collected_closures, new_args) ->
           let new_collected_closures, new_arg =
-            (hoist_closures_expr name_context) arg
+            (hoist_closures_expr flags name_context) arg
           in
           collected_closures @ new_collected_closures, new_arg :: new_args)
         args (collected_closures, [])
     in
     ( collected_closures,
       Expr.eapp ~f:(Expr.eabs new_binder tys e1_pos) ~args:new_args ~tys m )
+  | EAppOp { op = ((Fold | Map | Filter | Reduce), _) as op; tys; args }
+    when flags.keep_special_ops ->
+    (* Special case for some operators: its arguments closures thunks because if
+       you want to extract it as a function you need these closures to preserve
+       evaluation order, but backends that don't support closures will simply
+       extract these operators in a inlined way and skip the thunks. *)
+    let collected_closures, new_args =
+      List.fold_right
+        (fun (arg : (lcalc, m) gexpr) (collected_closures, new_args) ->
+          let m_arg = Mark.get arg in
+          match Mark.remove arg with
+          | EAbs { binder; tys } ->
+            let vars, arg = Bindlib.unmbind binder in
+            let new_collected_closures, new_arg =
+              (hoist_closures_expr flags name_context) arg
+            in
+            let new_arg =
+              Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
+            in
+            new_collected_closures @ collected_closures, new_arg :: new_args
+          | _ ->
+            let new_collected_closures, new_arg =
+              hoist_closures_expr flags name_context arg
+            in
+            new_collected_closures @ collected_closures, new_arg :: new_args)
+        args ([], [])
+    in
+    collected_closures, Expr.eappop ~op ~args:new_args ~tys (Mark.get e)
   | EAbs { binder; tys } ->
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
@@ -532,7 +579,7 @@ let rec hoist_closures_expr :
     let ty = Expr.maybe_ty ~typ:(TArrow (tys, (TAny, pos))) m in
     let vars, body = Bindlib.unmbind binder in
     let collected_closures, new_body =
-      (hoist_closures_expr name_context) body
+      (hoist_closures_expr flags name_context) body
     in
     let closure = Expr.make_abs vars new_body tys pos in
     ( { name = closure_var; ty; closure } :: collected_closures,
@@ -540,15 +587,17 @@ let rec hoist_closures_expr :
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
   | EArray _ | ELit _ | EAssert _ | EFatalError _ | EAppOp _ | EIfThenElse _
   | EVar _ ->
-    Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
+    Expr.map_gather ~acc:[] ~join:( @ )
+      ~f:(hoist_closures_expr flags name_context)
+      e
   | EExternal { name } -> [], Expr.box (EExternal { name }, m)
   | _ -> .
 
-let hoist_closures_scope_let name_context scope_body_expr =
+let hoist_closures_scope_let flags name_context scope_body_expr =
   BoundList.fold_right
     ~f:(fun scope_let var_next (hoisted_closures, next_scope_lets) ->
       let new_hoisted_closures, new_scope_let_expr =
-        (hoist_closures_expr (new_context (Bindlib.name_of var_next)))
+        (hoist_closures_expr flags (new_context (Bindlib.name_of var_next)))
           scope_let.scope_let_expr
       in
       ( new_hoisted_closures @ hoisted_closures,
@@ -559,7 +608,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
           (Expr.Box.lift new_scope_let_expr) ))
     ~init:(fun res ->
       let hoisted_closures, new_scope_let_expr =
-        (hoist_closures_expr name_context) res
+        (hoist_closures_expr flags name_context) res
       in
       (* INVARIANT here: the result expr of a scope is simply a struct
          containing all output variables so nothing should be converted here, so
@@ -571,6 +620,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
     scope_body_expr
 
 let rec hoist_closures_code_item_list
+    flags
     (code_items : (lcalc, 'm) gexpr code_item_list) :
     (lcalc, 'm) gexpr code_item_list Bindlib.box =
   match code_items with
@@ -585,7 +635,7 @@ let rec hoist_closures_code_item_list
           Bindlib.unbind body.scope_body_expr
         in
         let new_hoisted_closures, new_scope_lets =
-          hoist_closures_scope_let
+          hoist_closures_scope_let flags
             (new_context (fst (ScopeName.get_info name)))
             scope_body_expr
         in
@@ -600,7 +650,7 @@ let rec hoist_closures_code_item_list
       | Topdef (name, ty, (EAbs { binder; tys }, m)) ->
         let v, expr = Bindlib.unmbind binder in
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr
+          hoist_closures_expr flags
             (new_context (Mark.remove (TopdefName.get_info name)))
             expr
         in
@@ -611,7 +661,7 @@ let rec hoist_closures_code_item_list
             (Expr.Box.lift (Expr.eabs new_binder tys m)) )
       | Topdef (name, ty, expr) ->
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr
+          hoist_closures_expr flags
             (new_context (Mark.remove (TopdefName.get_info name)))
             expr
         in
@@ -620,7 +670,7 @@ let rec hoist_closures_code_item_list
             (fun e -> Topdef (name, (TAny, Mark.get ty), e))
             (Expr.Box.lift new_expr) )
     in
-    let next_code_items = hoist_closures_code_item_list next_code_items in
+    let next_code_items = hoist_closures_code_item_list flags next_code_items in
     let next_code_items =
       Bindlib.box_apply2
         (fun next_code_items new_code_item ->
@@ -651,8 +701,8 @@ let rec hoist_closures_code_item_list
     in
     next_code_items
 
-let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
-  let new_code_items = hoist_closures_code_item_list p.code_items in
+let hoist_closures_program ~flags (p : 'm program) : 'm program Bindlib.box =
+  let new_code_items = hoist_closures_code_item_list flags p.code_items in
   (*TODO: we need to insert the hoisted closures just before the scopes they
     belong to, because some of them call sub-scopes and putting them all at the
     beginning breaks dependency ordering. *)
@@ -662,7 +712,9 @@ let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
 
 (** {1 Closure conversion}*)
 
-let closure_conversion (p : 'm program) : 'm program =
-  let new_p = transform_closures_program p in
-  let new_p = hoist_closures_program (Bindlib.unbox new_p) in
+let closure_conversion ~keep_special_ops (p : 'm program) : 'm program =
+  let new_p = transform_closures_program ~flags:{ keep_special_ops } p in
+  let new_p =
+    hoist_closures_program ~flags:{ keep_special_ops } (Bindlib.unbox new_p)
+  in
   Bindlib.unbox new_p

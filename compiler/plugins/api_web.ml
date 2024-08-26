@@ -472,13 +472,15 @@ let run
     optimize
     check_invariants
     closure_conversion
+    keep_special_ops
     monomorphize_types
     _options =
   let options = Global.enforce_options ~trace:true () in
   let prg, type_ordering, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~closure_conversion ~typed:Expr.typed ~monomorphize_types
-      ~expand_ops:false ~renaming:(Some Lcalc.To_ocaml.renaming)
+      ~closure_conversion ~keep_special_ops ~typed:Expr.typed
+      ~monomorphize_types ~expand_ops:false
+      ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output
@@ -506,6 +508,7 @@ let term =
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
   $ Cli.Flags.closure_conversion
+  $ Cli.Flags.keep_special_ops
   $ Cli.Flags.monomorphize_types
 
 let () =

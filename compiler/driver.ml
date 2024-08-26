@@ -228,6 +228,7 @@ module Passes = struct
       ~check_invariants
       ~(typed : ty mark)
       ~closure_conversion
+      ~keep_special_ops
       ~monomorphize_types
       ~expand_ops
       ~renaming :
@@ -259,7 +260,9 @@ module Passes = struct
         if expand_ops then Lcalc.Expand_op.program prg else prg)
       else (
         Message.debug "Performing closure conversion...";
-        let prg = Lcalc.Closure_conversion.closure_conversion prg in
+        let prg =
+          Lcalc.Closure_conversion.closure_conversion ~keep_special_ops prg
+        in
         let prg =
           if optimize then (
             Message.debug "Optimizing lambda calculus...";
@@ -312,7 +315,8 @@ module Passes = struct
       =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~closure_conversion ~monomorphize_types ~expand_ops ~renaming
+        ~closure_conversion ~keep_special_ops ~monomorphize_types ~expand_ops
+        ~renaming
     in
     let renaming_context =
       match renaming_context with
@@ -751,13 +755,14 @@ module Commands = struct
       optimize
       check_invariants
       closure_conversion
+      keep_special_ops
       monomorphize_types
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~typed ~monomorphize_types ~expand_ops
-        ~renaming:None
+        ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
+        ~expand_ops ~renaming:None
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -791,6 +796,7 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.closure_conversion
+        $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.expand_ops
         $ Cli.Flags.ex_scope_opt)
@@ -798,6 +804,7 @@ module Commands = struct
   let interpret_lcalc
       typed
       closure_conversion
+      keep_special_ops
       monomorphize_types
       expand_ops
       options
@@ -807,8 +814,8 @@ module Commands = struct
       ex_scope_opt =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion ~monomorphize_types ~typed ~expand_ops
-        ~renaming:None
+        ~closure_conversion ~keep_special_ops ~monomorphize_types ~typed
+        ~expand_ops ~renaming:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
@@ -817,7 +824,13 @@ module Commands = struct
       (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
 
   let interpret_cmd =
-    let f lcalc closure_conversion monomorphize_types expand_ops no_typing =
+    let f
+        lcalc
+        closure_conversion
+        keep_special_ops
+        monomorphize_types
+        expand_ops
+        no_typing =
       if not lcalc then
         if closure_conversion || monomorphize_types then
           Message.error
@@ -827,11 +840,11 @@ module Commands = struct
         else if no_typing then interpret_dcalc Expr.untyped
         else interpret_dcalc Expr.typed
       else if no_typing then
-        interpret_lcalc Expr.untyped closure_conversion monomorphize_types
-          expand_ops
+        interpret_lcalc Expr.untyped closure_conversion keep_special_ops
+          monomorphize_types expand_ops
       else
-        interpret_lcalc Expr.typed closure_conversion monomorphize_types
-          expand_ops
+        interpret_lcalc Expr.typed closure_conversion keep_special_ops
+          monomorphize_types expand_ops
     in
     Cmd.v
       (Cmd.info "interpret" ~man:Cli.man_base
@@ -844,6 +857,7 @@ module Commands = struct
         $ Cli.Flags.lcalc
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.keep_special_ops
         $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
@@ -862,8 +876,9 @@ module Commands = struct
       ex_scope_opt =
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~typed:Expr.typed ~closure_conversion ~monomorphize_types:false
-        ~expand_ops:true ~renaming:(Some Lcalc.To_ocaml.renaming)
+        ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
+        ~monomorphize_types:false ~expand_ops:true
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output
@@ -986,7 +1001,7 @@ module Commands = struct
   let c options includes output optimize check_invariants =
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~closure_conversion:true ~keep_special_ops:true
+        ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
         ~monomorphize_types:true ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
