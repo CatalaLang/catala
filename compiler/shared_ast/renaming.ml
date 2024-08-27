@@ -92,6 +92,15 @@ type context = {
   constrs : EnumConstructor.t -> EnumConstructor.t;
 }
 
+let default_config = {
+    reserved = [];
+    sanitize_varname = Fun.id;
+    reset_context_for_closed_terms = true;
+    skip_constant_binders = true;
+    constant_binder_name = None;
+  }
+
+
 let unbind_in ctx ?fname b =
   let module BindCtx = (val ctx.bindCtx) in
   match fname with

@@ -320,15 +320,7 @@ module Passes = struct
     in
     let renaming_context =
       match renaming_context with
-      | None ->
-        Renaming.get_ctx
-          {
-            reserved = [];
-            sanitize_varname = Fun.id;
-            reset_context_for_closed_terms = true;
-            skip_constant_binders = true;
-            constant_binder_name = None;
-          }
+      | None -> Renaming.(get_ctx default_config)
       | Some r -> r
     in
     debug_pass_name "scalc";
@@ -760,9 +752,23 @@ module Commands = struct
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
+      let renaming =
+        if options.Global.debug then None else
+          Some (Renaming.program ()
+                  ~reserved:[]
+                  ~reset_context_for_closed_terms:true
+                  ~skip_constant_binders:true
+                  ~constant_binder_name:(Some "_")
+                  ~f_var:Fun.id
+                  ~f_struct:Fun.id
+                  ~f_field:Fun.id
+                  ~f_enum:Fun.id
+                  ~f_constr:Fun.id
+                  ~namespaced_fields_constrs:true)
+      in
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
-        ~expand_ops ~renaming:None
+        ~expand_ops ~renaming
     in
     let _output_file, with_output = get_output_format options output in
     with_output

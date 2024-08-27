@@ -27,6 +27,8 @@ type config = {
 
 type context
 
+val default_config: config
+
 val get_ctx : config -> context
 
 val unbind_in :
