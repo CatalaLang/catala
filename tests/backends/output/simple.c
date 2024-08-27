@@ -22,15 +22,10 @@ typedef struct Foo {
   double y;
 } Foo;
 
-typedef struct Array_3 {
-  double * content2;
-  int length2;
-} Array_3;
-
-typedef struct Array_2 {
-  Option_2 * content1;
-  int length1;
-} Array_2;
+typedef struct Array_1 {
+  double * content;
+  int length;
+} Array_1;
 
 enum Bar_code {
   Bar_No,
@@ -47,7 +42,7 @@ typedef struct Bar {
 
 typedef struct Baz {
   double b;
-  Array_3 c;
+  Array_1 c;
 } Baz;
 
 enum Option_3_code {
@@ -59,7 +54,7 @@ typedef struct Option_3 {
   enum Option_3_code code;
   union {
     void* /* unit */ None_3;
-    Array_3 Some_3;
+    Array_1 Some_3;
   } payload;
 } Option_3;
 
@@ -75,16 +70,6 @@ typedef struct Option_1 {
     Bar Some_1;
   } payload;
 } Option_1;
-
-typedef struct Array_4 {
-  Option_3 * content3;
-  int length3;
-} Array_4;
-
-typedef struct Array_1 {
-  Option_1 * content;
-  int length;
-} Array_1;
 
 typedef struct Tuple_1 {
   Option_1 (*elt_0)(void * /* closure_env */ arg_0_typ, void* /* unit */ arg_1_typ);
@@ -107,68 +92,20 @@ Baz baz(Baz_in baz_in) {
   void * /* closure_env */ env;
   code = code_and_env.elt_0;
   env = code_and_env.elt_1;
-  Array_1 a4;
-  a4.content_field = catala_malloc(sizeof(Array_1));
-  a4.content_field[0] = code(env, NULL);
-  Option_1 a3 = catala_handle_exceptions(a4);
+  Option_1 a3 = code(env, NULL);
   switch (a3.code) {
     case Option_1_None_1:
-      if (1 /* TRUE */) {
-        Bar a3;
-        option_1 a4;
-        option_1 a6;
-        Array_1 a7;
-        a7.content_field = catala_malloc(sizeof(Array_1));
-        
-        Option_1 a8 = catala_handle_exceptions(a7);
-        switch (a8.code) {
-          case Option_1_None_1:
-            if (1 /* TRUE */) {
-              Bar a6 = {Bar_No, {No: NULL}};
-              option_1 a6 = {Option_1_Some_1, {Some_1: a6}};
-              
-            } else {
-              option_1 a6 = {Option_1_None_1, {None_1: NULL}};
-              
-            }
-            break;
-          case Option_1_Some_1:
-            Bar x1 = a8.payload.Some_1;
-            option_1 a6 = {Option_1_Some_1, {Some_1: x1}};
-            break;
-        }
-        Array_1 a5;
-        a5.content_field = catala_malloc(sizeof(Array_1));
-        a5.content_field[0] = a6;
-        Option_1 a9 = catala_handle_exceptions(a5);
-        switch (a9.code) {
-          case Option_1_None_1:
-            if (0 /* FALSE */) {
-              option_1 a4 = {Option_1_None_1, {None_1: NULL}};
-              
-            } else {
-              option_1 a4 = {Option_1_None_1, {None_1: NULL}};
-              
-            }
-            break;
-          case Option_1_Some_1:
-            Bar x1 = a9.payload.Some_1;
-            option_1 a4 = {Option_1_Some_1, {Some_1: x1}};
-            break;
-        }
-        switch (a4.code) {
-          case Option_1_None_1:
-            catala_raise_fatal_error (catala_no_value,
-              "tests/backends/simple.catala_en", 11, 11, 11, 12);
-            break;
-          case Option_1_Some_1: Bar arg = a4.payload.Some_1; a3 = arg; break;
-        }
-        option_1 a3 = {Option_1_Some_1, {Some_1: a3}};
-        
-      } else {
-        option_1 a3 = {Option_1_None_1, {None_1: NULL}};
-        
+      Bar a3;
+      Bar a5 = {Bar_No, {No: NULL}};
+      option_1 a4 = {Option_1_Some_1, {Some_1: a5}};
+      switch (a4.code) {
+        case Option_1_None_1:
+          catala_raise_fatal_error (catala_no_value,
+            "tests/backends/simple.catala_en", 11, 11, 11, 12);
+          break;
+        case Option_1_Some_1: Bar arg = a4.payload.Some_1; a3 = arg; break;
       }
+      option_1 a3 = {Option_1_Some_1, {Some_1: a3}};
       break;
     case Option_1_Some_1:
       Bar x1 = a3.payload.Some_1;
@@ -186,11 +123,62 @@ Baz baz(Baz_in baz_in) {
   a1 = a2;
   double b2;
   option_2 b3;
-  option_2 b5;
-  option_2 b7;
-  ┌─[ERROR]─
-│
-│  Unexpected error: Not_found
-│
-└─
-#return code 125#
+  Option_2 b4;
+  char /* bool */ b5;
+  switch (a1.code) {
+    case Bar_No: b5 = 1 /* TRUE */; break;
+    case Bar_Yes: Foo _ = a1.payload.Yes; b5 = 0 /* FALSE */; break;
+  }
+  if (b5) {
+    option_2 b4 = {Option_2_Some_2, {Some_2: 42.}};
+    
+  } else {
+    option_2 b4 = {Option_2_None_2, {None_2: NULL}};
+    
+  }
+  switch (b4.code) {
+    case Option_2_None_2:
+      double b6;
+      switch (a1.code) {
+        case Bar_No: b6 = 0.; break;
+        case Bar_Yes:
+          Foo foo = a1.payload.Yes;
+          double b6;
+          if (foo.x) {b6 = 1.; } else {b6 = 0.; }
+          b6 = (foo.y + b6);
+          break;
+      }
+      option_2 b3 = {Option_2_Some_2, {Some_2: b6}};
+      break;
+    case Option_2_Some_2:
+      double x1 = b4.payload.Some_2;
+      option_2 b3 = {Option_2_Some_2, {Some_2: x1}};
+      break;
+  }
+  switch (b3.code) {
+    case Option_2_None_2:
+      catala_raise_fatal_error (catala_no_value,
+        "tests/backends/simple.catala_en", 12, 10, 12, 11);
+      break;
+    case Option_2_Some_2: double arg = b3.payload.Some_2; b2 = arg; break;
+  }
+  double b1;
+  b1 = b2;
+  array_1 c2;
+  Array_1 c4;
+  c4.content_field = catala_malloc(sizeof(Array_1));
+  c4.content_field[0] = b1;
+  c4.content_field[1] = b1;
+  option_3 c3 = {Option_3_Some_3, {Some_3: c4}};
+  switch (c3.code) {
+    case Option_3_None_3:
+      catala_raise_fatal_error (catala_no_value,
+        "tests/backends/simple.catala_en", 13, 10, 13, 11);
+      break;
+    case Option_3_Some_3: Array_1 arg = c3.payload.Some_3; c2 = arg; break;
+  }
+  Array_1 c1;
+  c1 = c2;
+  Baz Baz = { b1, c1 };
+  return Baz;
+}

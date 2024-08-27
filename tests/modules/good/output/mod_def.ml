@@ -26,29 +26,7 @@ end
 
 let s (s_in: S_in.t) : S.t =
   let sr: money =
-    match
-      (match
-         (handle_exceptions
-            [|{filename="tests/modules/good/mod_def.catala_en";
-               start_line=16; start_column=10; end_line=16; end_column=12;
-               law_headings=["Test modules + inclusions 1"]}|]
-            ([|(match
-                  (handle_exceptions
-                     [|{filename="tests/modules/good/mod_def.catala_en";
-                        start_line=29; start_column=24;
-                        end_line=29; end_column=30;
-                        law_headings=["Test modules + inclusions 1"]}|]
-                     ([||]))
-                with
-                | Eoption.ENone _ ->
-                    ( if true then
-                       (Eoption.ESome (money_of_cents_string "100000")) else
-                       (Eoption.ENone ()))
-                | Eoption.ESome x -> (Eoption.ESome x))|]))
-       with
-       | Eoption.ENone _ ->
-           ( if false then (Eoption.ENone ()) else (Eoption.ENone ()))
-       | Eoption.ESome x -> (Eoption.ESome x))
+    match (Eoption.ESome (money_of_cents_string "100000"))
     with
     | Eoption.ENone _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
@@ -57,28 +35,7 @@ let s (s_in: S_in.t) : S.t =
                                                  law_headings=["Test modules + inclusions 1"]}])))
     | Eoption.ESome arg -> arg in
   let e1: Enum1.t =
-    match
-      (match
-         (handle_exceptions
-            [|{filename="tests/modules/good/mod_def.catala_en";
-               start_line=17; start_column=10; end_line=17; end_column=12;
-               law_headings=["Test modules + inclusions 1"]}|]
-            ([|(match
-                  (handle_exceptions
-                     [|{filename="tests/modules/good/mod_def.catala_en";
-                        start_line=30; start_column=24;
-                        end_line=30; end_column=29;
-                        law_headings=["Test modules + inclusions 1"]}|]
-                     ([||]))
-                with
-                | Eoption.ENone _ ->
-                    ( if true then (Eoption.ESome (Enum1.Maybe ())) else
-                       (Eoption.ENone ()))
-                | Eoption.ESome x -> (Eoption.ESome x))|]))
-       with
-       | Eoption.ENone _ ->
-           ( if false then (Eoption.ENone ()) else (Eoption.ENone ()))
-       | Eoption.ESome x -> (Eoption.ESome x))
+    match (Eoption.ESome (Enum1.Maybe ()))
     with
     | Eoption.ENone _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";

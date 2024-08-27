@@ -126,26 +126,7 @@ let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
 let S2 (S2_in: S2_in) =
   decl a1 : decimal;
-  decl a2 : option decimal;
-  decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
-  switch a4:
-  | ENone _ →
-    if true:
-      a3 = ESome glob3 ¤44.00 + 100.
-      else:
-        a3 = ENone ()
-  | ESome x →
-    a3 = ESome x;
-  a5 : option decimal = handle_exceptions [a3];
-  switch a5:
-  | ENone _ →
-    if false:
-      a2 = ENone ()
-      else:
-        a2 = ENone ()
-  | ESome x →
-    a2 = ESome x;
+  a2 : option decimal = ESome glob3 ¤44.00 + 100.;
   switch a2:
   | ENone _ →
     fatal NoValue
@@ -157,26 +138,7 @@ let S2 (S2_in: S2_in) =
 
 let S3 (S3_in: S3_in) =
   decl a1 : decimal;
-  decl a2 : option decimal;
-  decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
-  switch a4:
-  | ENone _ →
-    if true:
-      a3 = ESome 50. + glob4 ¤44.00 55.
-      else:
-        a3 = ENone ()
-  | ESome x →
-    a3 = ESome x;
-  a5 : option decimal = handle_exceptions [a3];
-  switch a5:
-  | ENone _ →
-    if false:
-      a2 = ENone ()
-      else:
-        a2 = ENone ()
-  | ESome x →
-    a2 = ESome x;
+  a2 : option decimal = ESome 50. + glob4 ¤44.00 55.;
   switch a2:
   | ENone _ →
     fatal NoValue
@@ -188,26 +150,7 @@ let S3 (S3_in: S3_in) =
 
 let S4 (S4_in: S4_in) =
   decl a1 : decimal;
-  decl a2 : option decimal;
-  decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
-  switch a4:
-  | ENone _ →
-    if true:
-      a3 = ESome glob5 + 1.
-      else:
-        a3 = ENone ()
-  | ESome x →
-    a3 = ESome x;
-  a5 : option decimal = handle_exceptions [a3];
-  switch a5:
-  | ENone _ →
-    if false:
-      a2 = ENone ()
-      else:
-        a2 = ENone ()
-  | ESome x →
-    a2 = ESome x;
+  a2 : option decimal = ESome glob5 + 1.;
   switch a2:
   | ENone _ →
     fatal NoValue
@@ -219,26 +162,7 @@ let S4 (S4_in: S4_in) =
 
 let S (S_in: S_in) =
   decl a1 : decimal;
-  decl a2 : option decimal;
-  decl a3 : option decimal;
-  a4 : option decimal = handle_exceptions [];
-  switch a4:
-  | ENone _ →
-    if true:
-      a3 = ESome glob1 * glob1
-      else:
-        a3 = ENone ()
-  | ESome x →
-    a3 = ESome x;
-  a5 : option decimal = handle_exceptions [a3];
-  switch a5:
-  | ENone _ →
-    if false:
-      a2 = ENone ()
-      else:
-        a2 = ENone ()
-  | ESome x →
-    a2 = ESome x;
+  a2 : option decimal = ESome glob1 * glob1;
   switch a2:
   | ENone _ →
     fatal NoValue
@@ -247,26 +171,7 @@ let S (S_in: S_in) =
   decl a : decimal;
   a = a1;
   decl b1 : A {y: bool; z: decimal};
-  decl b2 : option A {y: bool; z: decimal};
-  decl b3 : option A {y: bool; z: decimal};
-  b4 : option A {y: bool; z: decimal} = handle_exceptions [];
-  switch b4:
-  | ENone _ →
-    if true:
-      b3 = ESome glob2
-      else:
-        b3 = ENone ()
-  | ESome x →
-    b3 = ESome x;
-  b5 : option A {y: bool; z: decimal} = handle_exceptions [b3];
-  switch b5:
-  | ENone _ →
-    if false:
-      b2 = ENone ()
-      else:
-        b2 = ENone ()
-  | ESome x →
-    b2 = ESome x;
+  b2 : option A {y: bool; z: decimal} = ESome glob2;
   switch b2:
   | ENone _ →
     fatal NoValue
@@ -456,32 +361,7 @@ glob6 = (
 )
 
 def s2(s2_in:S2In):
-    a4 = (handle_exceptions([], []))
-    if a4 is None:
-        if True:
-            a3 = ((glob3(money_of_cents_string("4400")) +
-                decimal_of_string("100.")))
-        else:
-            a3 = (None)
-    else:
-        x = a4
-        a3 = (x)
-    a5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=53, start_column=24,
-                   end_line=53, end_column=43,
-                   law_headings=["Test toplevel function defs"])],
-              [a3]
-          ))
-    if a5 is None:
-        if False:
-            a2 = (None)
-        else:
-            a2 = (None)
-    else:
-        x = a5
-        a2 = (x)
+    a2 = ((glob3(money_of_cents_string("4400")) + decimal_of_string("100.")))
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -495,33 +375,8 @@ def s2(s2_in:S2In):
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a4 = (handle_exceptions([], []))
-    if a4 is None:
-        if True:
-            a3 = ((decimal_of_string("50.") +
-                glob4(money_of_cents_string("4400"),
-                      decimal_of_string("55."))))
-        else:
-            a3 = (None)
-    else:
-        x = a4
-        a3 = (x)
-    a5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=74, start_column=24,
-                   end_line=74, end_column=47,
-                   law_headings=["Test function def with two args"])],
-              [a3]
-          ))
-    if a5 is None:
-        if False:
-            a2 = (None)
-        else:
-            a2 = (None)
-    else:
-        x = a5
-        a2 = (x)
+    a2 = ((decimal_of_string("50.") +
+        glob4(money_of_cents_string("4400"), decimal_of_string("55."))))
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -535,31 +390,7 @@ def s3(s3_in:S3In):
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a4 = (handle_exceptions([], []))
-    if a4 is None:
-        if True:
-            a3 = ((glob5 + decimal_of_string("1.")))
-        else:
-            a3 = (None)
-    else:
-        x = a4
-        a3 = (x)
-    a5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=98, start_column=24,
-                   end_line=98, end_column=34,
-                   law_headings=["Test inline defs in toplevel defs"])],
-              [a3]
-          ))
-    if a5 is None:
-        if False:
-            a2 = (None)
-        else:
-            a2 = (None)
-    else:
-        x = a5
-        a2 = (x)
+    a2 = ((glob5 + decimal_of_string("1.")))
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -573,31 +404,7 @@ def s4(s4_in:S4In):
     return S4(a = a)
 
 def s5(s_in:SIn):
-    a4 = (handle_exceptions([], []))
-    if a4 is None:
-        if True:
-            a3 = ((glob1 * glob1))
-        else:
-            a3 = (None)
-    else:
-        x = a4
-        a3 = (x)
-    a5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=18, start_column=24,
-                   end_line=18, end_column=37,
-                   law_headings=["Test basic toplevel values defs"])],
-              [a3]
-          ))
-    if a5 is None:
-        if False:
-            a2 = (None)
-        else:
-            a2 = (None)
-    else:
-        x = a5
-        a2 = (x)
+    a2 = ((glob1 * glob1))
     if a2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -608,31 +415,7 @@ def s5(s_in:SIn):
         arg = a2
         a1 = (arg)
     a = (a1)
-    b4 = (handle_exceptions([], []))
-    if b4 is None:
-        if True:
-            b3 = (glob6)
-        else:
-            b3 = (None)
-    else:
-        x = b4
-        b3 = (x)
-    b5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=19, start_column=24,
-                   end_line=19, end_column=29,
-                   law_headings=["Test basic toplevel values defs"])],
-              [b3]
-          ))
-    if b5 is None:
-        if False:
-            b2 = (None)
-        else:
-            b2 = (None)
-    else:
-        x = b5
-        b2 = (x)
+    b2 = (glob6)
     if b2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/name_resolution/good/toplevel_defs.catala_en",

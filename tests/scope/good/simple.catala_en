@@ -24,18 +24,7 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -s Foo
 let scope Foo (Foo_in: Foo_in): Foo {bar: integer} =
   let set bar : integer =
-    match
-      (match
-         (handle_exceptions
-            [
-              match (handle_exceptions []) with
-              | ENone → if true then ESome 0 else ENone ()
-              | ESome x → ESome x
-            ])
-       with
-       | ENone → if false then ENone () else ENone ()
-       | ESome x → ESome x)
-    with
+    match (ESome 0) with
     | ENone → error NoValue
     | ESome arg → arg
   in
