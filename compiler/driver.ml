@@ -641,7 +641,7 @@ module Commands = struct
     | Some scope ->
       let scope_uid = get_scope_uid prg.decl_ctx scope in
       Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
-        ( scope_uid,
+        ( scope,
           BoundList.find
             ~f:(function
               | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
@@ -771,7 +771,7 @@ module Commands = struct
     | Some scope ->
       let scope_uid = get_scope_uid prg.decl_ctx scope in
       Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
-        (scope_uid, Program.get_scope_body prg scope_uid);
+        (scope, Program.get_scope_body prg scope_uid);
       Format.pp_print_newline fmt ()
     | None ->
       Print.program ~debug:options.Global.debug fmt prg;

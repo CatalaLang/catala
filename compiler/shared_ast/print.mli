@@ -89,7 +89,7 @@ val scope :
   ?debug:bool ->
   decl_ctx ->
   Format.formatter ->
-  ScopeName.t * ('a, 'm) gexpr scope_body ->
+  string * ('a, 'm) gexpr scope_body ->
   unit
 
 val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
