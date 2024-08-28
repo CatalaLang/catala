@@ -119,6 +119,7 @@ jobs:
       options: --user root
       env:
         DUNE_PROFILE: release
+        OPAMSWITCH: /home/ocaml/catala
     steps:
       - name: Fix home
         # Workaround Github actions issue, see
@@ -185,7 +186,7 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
-          mv ~/.opam/catala/doc/catala-examples/tuto*/*.html artifacts/
+          mv catala/_opam/doc/catala-examples/tuto*/*.html artifacts/
           tar cz -hf "artifacts/french-law_ocaml.tar.gz" -C french-law/_build/install/default/lib french-law
           cp catala-examples/_build/french-law_npm.tar.gz artifacts/
           cp catala-examples/_build/french_law_python.tar.gz artifacts/
