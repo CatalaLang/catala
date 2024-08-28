@@ -21,10 +21,10 @@ open Ast
 let needs_parens (_e : expr) : bool = false
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%d" VarName.format v (VarName.id v)
+  VarName.format fmt v
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.id v)
+  FuncName.format fmt v
 
 let rec format_expr
     (decl_ctx : decl_ctx)
@@ -167,12 +167,11 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
       (naked_expr, Mark.get stmt)
-  | SSwitch { switch_expr = e_switch; enum_name = enum; switch_cases = arms; _ }
+  | SSwitch { switch_var = v_switch; enum_name = enum; switch_cases = arms; _ }
     ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@,@]%a" Print.keyword "switch"
-      (format_expr decl_ctx ~debug)
-      e_switch Print.punctuation ":"
+      format_var_name v_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), switch_case_data) ->

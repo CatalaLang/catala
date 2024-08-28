@@ -90,86 +90,82 @@ class BIn:
 
 
 def some_name(some_name_in:SomeNameIn):
-    i = some_name_in.i_in
-    perhaps_none_arg = handle_exceptions([], [])
-    if perhaps_none_arg is None:
+    i = (some_name_in.i_in)
+    o4 = (handle_exceptions([], []))
+    if o4 is None:
         if True:
-            temp_o = (i + integer_of_string("1"))
+            o3 = ((i + integer_of_string("1")))
         else:
-            temp_o = None
+            o3 = (None)
     else:
-        x = perhaps_none_arg
-        temp_o = x
-    perhaps_none_arg_1 = handle_exceptions(
-                             [SourcePosition(
-                                  filename="tests/backends/python_name_clash.catala_en",
-                                  start_line=10, start_column=23,
-                                  end_line=10, end_column=28, law_headings=[]
-                              )],
-                             [temp_o]
-                         )
-    if perhaps_none_arg_1 is None:
+        x = o4
+        o3 = (x)
+    o5 = (handle_exceptions(
+              [SourcePosition(
+                   filename="tests/backends/python_name_clash.catala_en",
+                   start_line=10, start_column=23,
+                   end_line=10, end_column=28, law_headings=[])],
+              [o3]
+          ))
+    if o5 is None:
         if False:
-            temp_o_1 = None
+            o2 = (None)
         else:
-            temp_o_1 = None
+            o2 = (None)
     else:
-        x_1 = perhaps_none_arg_1
-        temp_o_1 = x_1
-    perhaps_none_arg_2 = temp_o_1
-    if perhaps_none_arg_2 is None:
+        x = o5
+        o2 = (x)
+    if o2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/backends/python_name_clash.catala_en",
                           start_line=7, start_column=10,
                           end_line=7, end_column=11, law_headings=[]))
     else:
-        arg = perhaps_none_arg_2
-        temp_o_2 = arg
-    o = temp_o_2
+        arg = o2
+        o1 = (arg)
+    o = (o1)
     return SomeName(o = o)
 
 def b(b_in:BIn):
-    perhaps_none_arg_3 = handle_exceptions([], [])
-    if perhaps_none_arg_3 is None:
+    result4 = (handle_exceptions([], []))
+    if result4 is None:
         if True:
-            temp_result = integer_of_string("1")
+            result3 = (integer_of_string("1"))
         else:
-            temp_result = None
+            result3 = (None)
     else:
-        x_2 = perhaps_none_arg_3
-        temp_result = x_2
-    perhaps_none_arg_4 = handle_exceptions(
-                             [SourcePosition(
-                                  filename="tests/backends/python_name_clash.catala_en",
-                                  start_line=16, start_column=33,
-                                  end_line=16, end_column=34, law_headings=[]
-                              )],
-                             [temp_result]
-                         )
-    if perhaps_none_arg_4 is None:
+        x = result4
+        result3 = (x)
+    result5 = (handle_exceptions(
+                   [SourcePosition(
+                        filename="tests/backends/python_name_clash.catala_en",
+                        start_line=16, start_column=33,
+                        end_line=16, end_column=34, law_headings=[])],
+                   [result3]
+               ))
+    if result5 is None:
         if False:
-            temp_result_1 = None
+            result2 = (None)
         else:
-            temp_result_1 = None
+            result2 = (None)
     else:
-        x_3 = perhaps_none_arg_4
-        temp_result_1 = x_3
-    perhaps_none_arg_5 = temp_result_1
-    if perhaps_none_arg_5 is None:
+        x = result5
+        result2 = (x)
+    if result2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/backends/python_name_clash.catala_en",
                           start_line=16, start_column=14,
                           end_line=16, end_column=25, law_headings=[]))
     else:
-        arg_1 = perhaps_none_arg_5
-        temp_result_2 = arg_1
-    result = some_name(SomeNameIn(i_in = temp_result_2))
-    result_1 = SomeName(o = result.o)
+        arg = result2
+        result1 = (arg)
+    result = (some_name(SomeNameIn(i_in = result1)))
+    result6 = (SomeName(o = result.o))
     if True:
-        temp_some_name = result_1
+        some_name2 = (result6)
     else:
-        temp_some_name = result_1
-    some_name_1 = temp_some_name
-    return B(some_name = some_name_1)
+        some_name2 = (result6)
+    some_name1 = (some_name2)
+    return B(some_name = some_name1)
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

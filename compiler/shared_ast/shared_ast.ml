@@ -23,6 +23,7 @@ module Expr = Expr
 module BoundList = BoundList
 module Scope = Scope
 module Program = Program
+module Renaming = Renaming
 module Print = Print
 module Typing = Typing
 module Interpreter = Interpreter

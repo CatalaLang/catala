@@ -130,6 +130,13 @@ let ocaml_keywords =
     "Oper";
   ]
 
+let renaming =
+  Renaming.program ()
+    ~reserved:ocaml_keywords
+      (* TODO: add catala runtime built-ins as reserved as well ? *)
+    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
+    ~constant_binder_name:(Some "_") ~namespaced_fields_constrs:true
+
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with
   | [] -> ()
@@ -414,6 +421,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       Print.runtime_error er format_pos (Expr.pos e)
   | _ -> .
 
+(* TODO: move [embed_foo] to [Foo.embed] to protect from name clashes *)
 let format_struct_embedding
     (fmt : Format.formatter)
     ((struct_name, struct_fields) : StructName.t * typ StructField.Map.t) =
@@ -730,21 +738,6 @@ let format_program
     ~(hashf : Hash.t -> Hash.full)
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  let p, ren_ctx =
-    Program.rename_ids p
-      ~reserved:ocaml_keywords
-        (* TODO: add catala runtime built-ins as reserved as well ? *)
-      ~reset_context_for_closed_terms:true ~skip_constant_binders:true
-      ~constant_binder_name:(Some "_") ~namespaced_fields_constrs:true
-  in
-  let type_ordering =
-    let open Scopelang.Dependency.TVertex in
-    List.map
-      (function
-        | Struct s -> Struct (Expr.Renaming.struct_name ren_ctx s)
-        | Enum e -> Enum (Expr.Renaming.enum_name ren_ctx e))
-      type_ordering
-  in
   Format.pp_open_vbox fmt 0;
   Format.pp_print_string fmt header;
   check_and_reexport_used_modules fmt ~hashf
