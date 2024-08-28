@@ -261,13 +261,14 @@ let code_items ctx (scopes : 'e code_item_list) =
               scope_body_output_struct =
                 struct_name ctx body.scope_body_output_struct;
               scope_body_expr;
+              scope_body_visibility = body.scope_body_visibility;
             }
           in
           ScopeDef (name, body))
         scope_body_expr
-    | Topdef (name, ty, e) ->
+    | Topdef (name, ty, visibility, e) -> (* TODO: use [visibility] *)
       Bindlib.box_apply
-        (fun e -> Topdef (name, typ ctx ty, e))
+        (fun e -> Topdef (name, typ ctx ty, visibility, e))
         (Expr.Box.lift (expr ctx e))
   in
   Bindlib.unbox
@@ -419,16 +420,19 @@ let program
               ScopeVar.Map.map
                 (fun fld -> StructField.Map.find fld fields_map)
                 info.out_struct_fields;
+            visibility = info.visibility;
           }
         in
         let path = ScopeName.path name in
         if path = [] then
           (* Scopes / topdefs in the root module will be renamed through the
              variables binding them in the code_items *)
+          let scopes_map =
           ( pctxmap,
             ScopeName.Map.add name name scopes_map,
             ScopeName.Map.add name info ctx_scopes )
         else
+          (* However, items from other modules are referred to through their uids *)
           let str, pos = ScopeName.get_info name in
           let pctxmap, ctx =
             try pctxmap, PathMap.find path pctxmap
@@ -447,7 +451,7 @@ let program
       (fun name typ (pctxmap, topdefs_map, ctx_topdefs) ->
         let path = TopdefName.path name in
         if path = [] then
-          (* Topdefs / topdefs in the root module will be renamed through the
+          (* Scopes / topdefs in the root module will be renamed through the
              variables binding them in the code_items *)
           ( pctxmap,
             TopdefName.Map.add name name topdefs_map,

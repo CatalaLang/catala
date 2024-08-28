@@ -445,7 +445,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, e) -> Env.add v e env env, scopes)
+        | Topdef (_, _, _, e) -> Env.add v e env env, scopes)
   in
   let scope_v, _scope_arg_struct = ScopeName.Map.find scope scopes in
   let e, env = (Env.find scope_v all_env).base in
@@ -633,7 +633,7 @@ let program_to_graph
           in
           ( Env.add (Var.translate v) (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, e) ->
+        | Topdef (_, _, _, e) ->
           Env.add (Var.translate v) (Expr.unbox (customize e)) env env, scopes)
   in
   let scope_v, _scope_arg_struct = ScopeName.Map.find scope scopes in

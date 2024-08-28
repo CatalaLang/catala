@@ -1760,7 +1760,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           (fun _ -> ctx_scopes)
           ctxt.modules
           (ctx_scopes ctxt.local ScopeName.Map.empty);
-      ctx_topdefs = TopdefName.Map.map fst ctxt.topdefs;
+      ctx_topdefs = ctxt.topdefs;
       ctx_struct_fields = ctxt.local.field_idmap;
       ctx_enum_constrs = ctxt.local.constructor_idmap;
       ctx_scope_index =

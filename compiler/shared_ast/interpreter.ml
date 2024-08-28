@@ -644,7 +644,9 @@ let rec evaluate_expr :
     let ty =
       try
         match Mark.remove name with
-        | External_value name -> TopdefName.Map.find name ctx.ctx_topdefs
+        | External_value name ->
+          let typ, _vis = TopdefName.Map.find name ctx.ctx_topdefs in
+          typ
         | External_scope name ->
           let scope_info = ScopeName.Map.find name ctx.ctx_scopes in
           ( TArrow

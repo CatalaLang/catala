@@ -236,7 +236,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
           let e = Scope.to_expr ctx body in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, e) -> Env.add v e env env, scopes)
+        | Topdef (_, _, _, e) -> Env.add v e env env, scopes)
   in
   let scope_v, scope_arg_struct = ScopeName.Map.find scope scopes in
   let { contents = e, env } = Env.find scope_v all_env in

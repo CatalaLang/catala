@@ -625,6 +625,8 @@ type 'e scope_let = {
 (** This type is parametrized by the expression type so it can be reused in
     later intermediate representations. *)
 
+type visibility = Private | Public
+
 type 'e scope_body_expr = ('e, 'e scope_let, 'e) bound_list
   constraint 'e = ('a any, _) gexpr
 (** A scope let-binding has all the information necessary to make a proper
@@ -635,6 +637,7 @@ type 'e scope_body = {
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
   scope_body_expr : ('e, 'e scope_body_expr) binder;
+  scope_body_visibility : visibility;
 }
   constraint 'e = ('a any, _) gexpr
 (** Instead of being a single expression, we give a little more ad-hoc structure
@@ -644,7 +647,7 @@ type 'e scope_body = {
 
 type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
-  | Topdef of TopdefName.t * typ * 'e
+  | Topdef of TopdefName.t * typ * visibility * 'e
 
 type 'e code_item_list = ('e, 'e code_item, 'naked_e list) bound_list
   constraint 'e = ('naked_e, _) Mark.ed
@@ -659,6 +662,7 @@ type scope_info = {
   in_struct_name : StructName.t;
   out_struct_name : StructName.t;
   out_struct_fields : StructField.t ScopeVar.Map.t;
+  visibility : visibility;
 }
 
 type module_intf_id = { hash : Hash.t; is_external : bool }
@@ -668,13 +672,11 @@ type module_tree_node = { deps : module_tree; intf_id : module_intf_id }
 and module_tree = module_tree_node ModuleName.Map.t
 (** In practice, this is a DAG: beware of repeated names *)
 
-type visibility = Private | Public
-
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
   ctx_scopes : scope_info ScopeName.Map.t;
-  ctx_topdefs : typ TopdefName.Map.t;
+  ctx_topdefs : (typ * visibility) TopdefName.Map.t;
   ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
       (** needed for disambiguation (desugared -> scope) *)
   ctx_enum_constrs : EnumConstructor.t EnumName.Map.t Ident.Map.t;

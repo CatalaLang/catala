@@ -783,7 +783,9 @@ and typecheck_expr_top_down :
       in
       match Mark.remove name with
       | A.External_value name -> (
-        try ast_to_typ (A.TopdefName.Map.find name ctx.ctx_topdefs)
+        try
+          let atyp, _vis = A.TopdefName.Map.find name ctx.ctx_topdefs in
+          ast_to_typ atyp
         with A.TopdefName.Map.Not_found _ ->
           not_found A.TopdefName.format name)
       | A.External_scope name -> (
@@ -1055,14 +1057,14 @@ let scopes ctx env =
         ( Env.add var ty_scope env,
           Var.translate var,
           Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
-      | A.Topdef (name, typ, e) ->
+      | A.Topdef (name, typ, vis, e) ->
         let e' = expr_raw ctx ~env ~typ e in
         let (A.Custom { custom = uf; _ }) = Mark.get e' in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
         ( Env.add var uf env,
           Var.translate var,
           Bindlib.box_apply
-            (fun e -> A.Topdef (name, Expr.ty e', e))
+            (fun e -> A.Topdef (name, Expr.ty e', vis, e))
             (Expr.Box.lift e') ))
 
 let program ?fail_on_any ?assume_op_types prg =

@@ -159,7 +159,7 @@ let rec transform_closures_expr :
         ( Bindlib.box e,
           ( Var.Map.empty,
             match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
-            | (TArrow (targs, tret), _) as fty -> Some (targs, tret, fty)
+            | (TArrow (targs, tret), _) as fty, _vis -> Some (targs, tret, fty)
             | _ -> None ) )
       | EExternal { name = External_scope s, pos } ->
         let fty =
@@ -411,7 +411,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
               (fun scope_body_expr ->
                 ScopeDef (name, { body with scope_body_expr }))
               new_scope_body_expr )
-        | Topdef (name, ty, (EAbs { binder; tys }, m)) ->
+        | Topdef (name, ty, vis, (EAbs { binder; tys }, m)) ->
           let v, expr = Bindlib.unmbind binder in
           let ctx =
             {
@@ -427,9 +427,9 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, ty, e))
+              (fun e -> Topdef (name, ty, vis, e))
               (Expr.Box.lift (Expr.eabs new_binder tys m)) )
-        | Topdef (name, ty, expr) ->
+        | Topdef (name, ty, vis, expr) ->
           let ctx =
             {
               decl_ctx = p.decl_ctx;
@@ -443,7 +443,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, (TAny, Mark.get ty), e))
+              (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
               (Expr.Box.lift new_expr) ))
       ~last:(fun _ vlist -> (), Scope.map_last_item ~varf:Fun.id vlist)
       ~init:Var.Map.empty p.code_items
@@ -647,7 +647,7 @@ let rec hoist_closures_code_item_list
             (fun scope_body_expr ->
               ScopeDef (name, { body with scope_body_expr }))
             new_scope_body_expr )
-      | Topdef (name, ty, (EAbs { binder; tys }, m)) ->
+      | Topdef (name, ty, vis, (EAbs { binder; tys }, m)) ->
         let v, expr = Bindlib.unmbind binder in
         let new_hoisted_closures, new_expr =
           hoist_closures_expr flags
@@ -657,9 +657,9 @@ let rec hoist_closures_code_item_list
         let new_binder = Expr.bind v new_expr in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, ty, e))
+            (fun e -> Topdef (name, ty, vis, e))
             (Expr.Box.lift (Expr.eabs new_binder tys m)) )
-      | Topdef (name, ty, expr) ->
+      | Topdef (name, ty, vis, expr) ->
         let new_hoisted_closures, new_expr =
           hoist_closures_expr flags
             (new_context (Mark.remove (TopdefName.get_info name)))
@@ -667,7 +667,7 @@ let rec hoist_closures_code_item_list
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, (TAny, Mark.get ty), e))
+            (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
             (Expr.Box.lift new_expr) )
     in
     let next_code_items = hoist_closures_code_item_list flags next_code_items in
@@ -694,6 +694,7 @@ let rec hoist_closures_code_item_list
                         ( Bindlib.name_of hoisted_closure.name,
                           Expr.mark_pos closure_mark ),
                       hoisted_closure.ty,
+                      Private,
                       (closure, closure_mark) ),
                   next_code_items ))
             next_code_items closure)

@@ -506,7 +506,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
       | ELocation (ScopelangScopeVar { name = var }) ->
         retrieve_out_typ_or_any var ctx.scope_vars
       | ELocation (ToplevelVar { name }) -> (
-        let typ =
+        let typ, _vis =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
         in
         match Mark.remove typ with
@@ -825,6 +825,7 @@ let translate_scope_decl
         scope_body_expr;
         scope_body_input_struct = scope_input_struct_name;
         scope_body_output_struct = scope_return_struct_name;
+        scope_body_visibility = sigma.scope_visibility;
       })
     (Bindlib.bind_var scope_input_var
        (input_destructurings rules_with_return_expr))
@@ -923,7 +924,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let decl_ctx = { decl_ctx with ctx_structs } in
   let toplevel_vars =
     TopdefName.Map.mapi
-      (fun name (_, ty) ->
+      (fun name (_, ty, _vis) ->
         Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
       prgm.S.program_topdefs
   in
@@ -950,11 +951,11 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       let dvar, def =
         match def with
         | Scopelang.Dependency.Topdef gname ->
-          let expr, ty = TopdefName.Map.find gname prgm.program_topdefs in
+          let expr, ty, vis = TopdefName.Map.find gname prgm.program_topdefs in
           let expr = translate_expr ctx expr in
           ( fst (TopdefName.Map.find gname ctx.toplevel_vars),
             Bindlib.box_apply
-              (fun e -> Topdef (gname, ty, e))
+              (fun e -> Topdef (gname, ty, vis, e))
               (Expr.Box.lift expr) )
         | Scopelang.Dependency.Scope scope_name ->
           let scope = ScopeName.Map.find scope_name prgm.program_scopes in

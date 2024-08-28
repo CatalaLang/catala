@@ -113,7 +113,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   in
   let g =
     TopdefName.Map.fold
-      (fun glo_name (expr, _) g ->
+      (fun glo_name (expr, _ty, _vis) g ->
         let used_defs = expr_used_defs expr in
         if VMap.mem (Topdef glo_name) used_defs then
           Message.error

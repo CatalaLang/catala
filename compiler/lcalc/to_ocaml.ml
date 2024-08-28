@@ -564,7 +564,7 @@ let format_code_items
     BoundList.fold_left
       ~f:(fun bnd item var ->
         match item with
-        | Topdef (name, typ, e) ->
+        | Topdef (name, typ, _vis, e) ->
           Format.fprintf fmt "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
             format_var var format_typ typ (format_expr ctx) e;
           String.Map.add (TopdefName.to_string name) (var, item) bnd
