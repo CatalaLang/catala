@@ -399,9 +399,9 @@ module Renaming : sig
   type config = {
     reserved : string list;  (** Use for keywords and built-ins *)
     sanitize_varname : string -> string;  (** Typically String.to_snake_case *)
-    reset_context_for_closed_terms : bool;  (** See [Bindlib.Rename] *)
-    skip_constant_binders : bool;  (** See [Bindlib.Rename] *)
-    constant_binder_name : string option;  (** See [Bindlib.Rename] *)
+    reset_context_for_closed_terms : bool;  (** See [Bindlib.Renaming] *)
+    skip_constant_binders : bool;  (** See [Bindlib.Renaming] *)
+    constant_binder_name : string option;  (** See [Bindlib.Renaming] *)
   }
 
   type context

@@ -745,7 +745,6 @@ let format_program
         | Enum e -> Enum (Expr.Renaming.enum_name ren_ctx e))
       type_ordering
   in
-  (* Print.program fmt p; *)
   Format.pp_open_vbox fmt 0;
   Format.pp_print_string fmt header;
   check_and_reexport_used_modules fmt ~hashf
