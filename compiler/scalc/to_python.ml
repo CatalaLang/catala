@@ -414,7 +414,7 @@ and format_block ctx (fmt : Format.formatter) (b : block) : unit =
   Format.pp_close_box fmt ()
 
 let format_ctx
-    (type_ordering : Scopelang.Dependency.TVertex.t list)
+    (type_ordering : TypeIdent.t list)
     (fmt : Format.formatter)
     ctx : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
@@ -509,13 +509,13 @@ let format_ctx
     List.exists
       (fun struct_or_enum ->
         match struct_or_enum with
-        | Scopelang.Dependency.TVertex.Enum _ -> false
-        | Scopelang.Dependency.TVertex.Struct s' -> s = s')
+        | TypeIdent.Enum _ -> false
+        | TypeIdent.Struct s' -> s = s')
       type_ordering
   in
   let scope_structs =
     List.map
-      (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
+      (fun (s, _) -> TypeIdent.Struct s)
       (StructName.Map.bindings
          (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
@@ -524,11 +524,11 @@ let format_ctx
   List.iter
     (fun struct_or_enum ->
       match struct_or_enum with
-      | Scopelang.Dependency.TVertex.Struct s ->
+      | TypeIdent.Struct s ->
         if StructName.path s = [] then
           Format.fprintf fmt "%a@,@," format_struct_decl
             (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
-      | Scopelang.Dependency.TVertex.Enum e ->
+      | TypeIdent.Enum e ->
         if EnumName.path e = [] then
           Format.fprintf fmt "%a@,@," format_enum_decl
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
@@ -553,7 +553,7 @@ let format_code_item ctx fmt = function
 let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+    (type_ordering : TypeIdent.t list) : unit =
   Format.pp_open_vbox fmt 0;
   let header =
     [

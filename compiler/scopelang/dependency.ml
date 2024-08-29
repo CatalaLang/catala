@@ -200,40 +200,6 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
 let get_defs_ordering (g : SDependencies.t) : SVertex.t list =
   List.rev (STopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])
 
-module TVertex = struct
-  type t = Struct of StructName.t | Enum of EnumName.t
-
-  let hash x =
-    match x with
-    | Struct x -> StructName.id x
-    | Enum x -> Hashtbl.hash (`Enum (EnumName.id x))
-
-  let compare x y =
-    match x, y with
-    | Struct x, Struct y -> StructName.compare x y
-    | Enum x, Enum y -> EnumName.compare x y
-    | Struct _, Enum _ -> 1
-    | Enum _, Struct _ -> -1
-
-  let equal x y =
-    match x, y with
-    | Struct x, Struct y -> StructName.compare x y = 0
-    | Enum x, Enum y -> EnumName.compare x y = 0
-    | _ -> false
-
-  let format (fmt : Format.formatter) (x : t) : unit =
-    match x with
-    | Struct x -> StructName.format fmt x
-    | Enum x -> EnumName.format fmt x
-
-  let get_info (x : t) =
-    match x with
-    | Struct x -> StructName.get_info x
-    | Enum x -> EnumName.get_info x
-end
-
-module TVertexSet = Set.Make (TVertex)
-
 (** On the edges, the label is the expression responsible for the use of the
     function *)
 module TEdge = struct
@@ -244,29 +210,29 @@ module TEdge = struct
 end
 
 module TDependencies =
-  Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (TVertex) (TEdge)
+  Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (TypeIdent) (TEdge)
 
 module TTopologicalTraversal = Graph.Topological.Make (TDependencies)
 
 module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
-let rec get_structs_or_enums_in_type (t : typ) : TVertexSet.t =
+let rec get_structs_or_enums_in_type (t : typ) : TypeIdent.Set.t =
   match Mark.remove t with
-  | TStruct s -> TVertexSet.singleton (TVertex.Struct s)
-  | TEnum e -> TVertexSet.singleton (TVertex.Enum e)
+  | TStruct s -> TypeIdent.Set.singleton (Struct s)
+  | TEnum e -> TypeIdent.Set.singleton (Enum e)
   | TArrow (t1, t2) ->
-    TVertexSet.union
+    TypeIdent.Set.union
       (t1
       |> List.map get_structs_or_enums_in_type
-      |> List.fold_left TVertexSet.union TVertexSet.empty)
+      |> List.fold_left TypeIdent.Set.union TypeIdent.Set.empty)
       (get_structs_or_enums_in_type t2)
-  | TClosureEnv | TLit _ | TAny -> TVertexSet.empty
+  | TClosureEnv | TLit _ | TAny -> TypeIdent.Set.empty
   | TOption t1 | TArray t1 | TDefault t1 -> get_structs_or_enums_in_type t1
   | TTuple ts ->
     List.fold_left
-      (fun acc t -> TVertexSet.union acc (get_structs_or_enums_in_type t))
-      TVertexSet.empty ts
+      (fun acc t -> TypeIdent.Set.union acc (get_structs_or_enums_in_type t))
+      TypeIdent.Set.empty ts
 
 let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
     =
@@ -276,16 +242,16 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
       (fun s fields g ->
         StructField.Map.fold
           (fun _ typ g ->
-            let def = TVertex.Struct s in
+            let def = TypeIdent.Struct s in
             let g = TDependencies.add_vertex g def in
             let used = get_structs_or_enums_in_type typ in
-            TVertexSet.fold
+            TypeIdent.Set.fold
               (fun used g ->
-                if TVertex.equal used def then
+                if TypeIdent.equal used def then
                   Message.error ~pos:(Mark.get typ)
                     "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
                      not@ supported@ (Catala does not allow recursive types)"
-                    TVertex.format used
+                    TypeIdent.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
@@ -298,16 +264,16 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
       (fun e cases g ->
         EnumConstructor.Map.fold
           (fun _ typ g ->
-            let def = TVertex.Enum e in
+            let def = TypeIdent.Enum e in
             let g = TDependencies.add_vertex g def in
             let used = get_structs_or_enums_in_type typ in
-            TVertexSet.fold
+            TypeIdent.Set.fold
               (fun used g ->
-                if TVertex.equal used def then
+                if TypeIdent.equal used def then
                   Message.error ~pos:(Mark.get typ)
                     "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
                      not@ supported@ (Catala does not allow recursive types)"
-                    TVertex.format used
+                    TypeIdent.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
@@ -317,7 +283,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
   in
   g
 
-let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
+let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TypeIdent.t list
     =
   let g = build_type_graph structs enums in
   (* if there is a cycle, there will be an strongly connected component of
@@ -330,13 +296,13 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
          (List.map
             (fun v ->
               let var_str, var_info =
-                Format.asprintf "%a" TVertex.format v, TVertex.get_info v
+                Format.asprintf "%a" TypeIdent.format v, TypeIdent.get_info v
               in
               let succs = TDependencies.succ_e g v in
               let _, edge_pos, succ =
                 List.find (fun (_, _, succ) -> List.mem succ scc) succs
               in
-              let succ_str = Format.asprintf "%a" TVertex.format succ in
+              let succ_str = Format.asprintf "%a" TypeIdent.format succ in
               [
                 "Cycle type " ^ var_str ^ ", declared:", Mark.get var_info;
                 ( "Used here in the definition of another cycle type "

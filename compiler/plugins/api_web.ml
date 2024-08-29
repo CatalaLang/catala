@@ -168,7 +168,7 @@ module To_jsoo = struct
     else Format.fprintf fmt "%s_" lowercase_name
 
   let format_ctx
-      (type_ordering : Scopelang.Dependency.TVertex.t list)
+      (type_ordering : TypeIdent.t list)
       (fmt : Format.formatter)
       (ctx : decl_ctx) : unit =
     let format_prop_or_meth fmt (struct_field_type : typ) =
@@ -353,13 +353,13 @@ module To_jsoo = struct
       List.exists
         (fun struct_or_enum ->
           match struct_or_enum with
-          | Scopelang.Dependency.TVertex.Enum _ -> false
-          | Scopelang.Dependency.TVertex.Struct s' -> s = s')
+          | TypeIdent.Enum _ -> false
+          | TypeIdent.Struct s' -> s = s')
         type_ordering
     in
     let scope_structs =
       List.map
-        (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
+        (fun (s, _) -> TypeIdent.Struct s)
         (StructName.Map.bindings
            (StructName.Map.filter
               (fun s _ -> not (is_in_type_ordering s))
@@ -368,10 +368,10 @@ module To_jsoo = struct
     List.iter
       (fun struct_or_enum ->
         match struct_or_enum with
-        | Scopelang.Dependency.TVertex.Struct s ->
+        | TypeIdent.Struct s ->
           Format.fprintf fmt "%a@\n" format_struct_decl
             (s, StructName.Map.find s ctx.ctx_structs)
-        | Scopelang.Dependency.TVertex.Enum e ->
+        | TypeIdent.Enum e ->
           Format.fprintf fmt "%a@\n" format_enum_decl
             (e, EnumName.Map.find e ctx.ctx_enums))
       (type_ordering @ scope_structs)
@@ -428,7 +428,7 @@ module To_jsoo = struct
       (fmt : Format.formatter)
       (module_name : string option)
       (prgm : 'm Lcalc.Ast.program)
-      (type_ordering : Scopelang.Dependency.TVertex.t list) =
+      (type_ordering : TypeIdent.t list) =
     let fmt_lib_name fmt _ =
       Format.fprintf fmt "%sLib"
         (Option.fold ~none:""

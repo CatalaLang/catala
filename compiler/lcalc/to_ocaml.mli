@@ -44,7 +44,7 @@ val format_program :
   ?exec_args:bool ->
   hashf:(Hash.t -> Hash.full) ->
   'm Ast.program ->
-  Scopelang.Dependency.TVertex.t list ->
+  TypeIdent.t list ->
   unit
 (** Usage [format_program fmt p type_dependencies_ordering]. Either one of these
     may be set:

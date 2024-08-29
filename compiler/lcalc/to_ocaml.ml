@@ -469,7 +469,7 @@ let format_enum_embedding
         (EnumConstructor.Map.bindings enum_cases)
 
 let format_ctx
-    (type_ordering : Scopelang.Dependency.TVertex.t list)
+    (type_ordering : TypeIdent.t list)
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
@@ -508,13 +508,13 @@ let format_ctx
     List.exists
       (fun struct_or_enum ->
         match struct_or_enum with
-        | Scopelang.Dependency.TVertex.Enum _ -> false
-        | Scopelang.Dependency.TVertex.Struct s' -> s = s')
+        | TypeIdent.Enum _ -> false
+        | TypeIdent.Struct s' -> s = s')
       type_ordering
   in
   let scope_structs =
     List.map
-      (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
+      (fun (s, _) -> TypeIdent.Struct s)
       (StructName.Map.bindings
          (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
@@ -523,11 +523,11 @@ let format_ctx
   List.iter
     (fun struct_or_enum ->
       match struct_or_enum with
-      | Scopelang.Dependency.TVertex.Struct s ->
+      | TypeIdent.Struct s ->
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then
           Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
-      | Scopelang.Dependency.TVertex.Enum e ->
+      | TypeIdent.Enum e ->
         let def = EnumName.Map.find e ctx.ctx_enums in
         if EnumName.path e = [] then
           Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
@@ -737,7 +737,7 @@ let format_program
     ?(exec_args = true)
     ~(hashf : Hash.t -> Hash.full)
     (p : 'm Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+    (type_ordering : TypeIdent.t list) : unit =
   Format.pp_open_vbox fmt 0;
   Format.pp_print_string fmt header;
   check_and_reexport_used_modules fmt ~hashf

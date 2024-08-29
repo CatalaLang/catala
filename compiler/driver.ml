@@ -175,7 +175,7 @@ module Passes = struct
       optimize:bool ->
       check_invariants:bool ->
       typed:ty mark ->
-      ty Dcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
+      ty Dcalc.Ast.program * TypeIdent.t list =
    fun options ~includes ~optimize ~check_invariants ~typed ->
     let prg = scopelang options ~includes in
     debug_pass_name "dcalc";
@@ -233,7 +233,7 @@ module Passes = struct
       ~expand_ops
       ~renaming :
       typed Lcalc.Ast.program
-      * Scopelang.Dependency.TVertex.t list
+      * TypeIdent.t list
       * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
@@ -290,7 +290,7 @@ module Passes = struct
     | Some renaming ->
       let prg, ren_ctx = Renaming.apply renaming prg in
       let type_ordering =
-        let open Scopelang.Dependency.TVertex in
+        let open TypeIdent in
         List.map
           (function
             | Struct s -> Struct (Renaming.struct_name ren_ctx s)
@@ -311,7 +311,7 @@ module Passes = struct
       ~monomorphize_types
       ~expand_ops
       ~renaming :
-      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list * Renaming.context
+      Scalc.Ast.program * TypeIdent.t list * Renaming.context
       =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed

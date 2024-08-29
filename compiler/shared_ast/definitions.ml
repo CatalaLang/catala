@@ -228,6 +228,62 @@ and naked_typ =
   | TAny
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
+module TypeIdent: sig
+  type t =
+    | Struct of StructName.t
+    | Enum of EnumName.t
+
+  include Map.OrderedType with type t := t
+
+  val get_info : t -> Uid.MarkedString.info
+  val equal : t -> t -> bool
+  val hash : t -> int
+
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
+end
+= struct
+
+  module Ordering = struct
+    type t =
+      | Struct of StructName.t
+      | Enum of EnumName.t
+
+    let compare x y =
+      match x, y with
+      | Struct x, Struct y -> StructName.compare x y
+      | Enum x, Enum y -> EnumName.compare x y
+      | Struct _, Enum _ -> 1
+      | Enum _, Struct _ -> -1
+
+    let equal x y =
+      match x, y with
+      | Struct x, Struct y -> StructName.compare x y = 0
+      | Enum x, Enum y -> EnumName.compare x y = 0
+      | _ -> false
+
+    let format (fmt : Format.formatter) (x : t) : unit =
+      match x with
+      | Struct x -> StructName.format fmt x
+      | Enum x -> EnumName.format fmt x
+  end
+
+  include Ordering
+
+  let hash x =
+    match x with
+    | Struct x -> StructName.id x
+    | Enum x -> Hashtbl.hash (`Enum (EnumName.id x))
+
+  let get_info (x : t) =
+    match x with
+    | Struct x -> StructName.get_info x
+    | Enum x -> EnumName.get_info x
+
+  module Set = Set.Make (Ordering)
+  module Map = Map.Make (Ordering)
+end
+
 (** {2 Constants and operators} *)
 
 type date = Runtime.date
