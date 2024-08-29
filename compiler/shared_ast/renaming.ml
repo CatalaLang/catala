@@ -92,14 +92,14 @@ type context = {
   constrs : EnumConstructor.t -> EnumConstructor.t;
 }
 
-let default_config = {
+let default_config =
+  {
     reserved = [];
     sanitize_varname = Fun.id;
     reset_context_for_closed_terms = true;
     skip_constant_binders = true;
     constant_binder_name = None;
   }
-
 
 let unbind_in ctx ?fname b =
   let module BindCtx = (val ctx.bindCtx) in
@@ -243,18 +243,25 @@ let rename_vars_in_lets ctx scope_body_expr =
           })
         (Expr.Box.lift (expr ctx scope_let.scope_let_expr)))
 
-let code_items ctx (scopes : 'e code_item_list) =
-  let f ctx = function
-    | ScopeDef (name, body) ->
-      let name = scope_name ctx name in
-      let scope_input_var, scope_lets, ctx =
-        unbind_in ctx ~fname:String.to_snake_case body.scope_body_expr
+let code_items ctx (items : 'e code_item_list) =
+  let rec aux ctx = function
+    | Last l ->
+      let l =
+        Bindlib.box_list
+          (List.map
+             (function EVar v -> Bindlib.box_var v | _ -> assert false)
+             l)
       in
-      let scope_lets = rename_vars_in_lets ctx scope_lets in
-      let scope_body_expr = Bindlib.bind_var scope_input_var scope_lets in
-      Bindlib.box_apply
-        (fun scope_body_expr ->
-          let body =
+      Bindlib.box_apply (fun l -> Last l) l
+    | Cons (ScopeDef (name, body), next_bind) ->
+      let scope_body =
+        let scope_input_var, scope_lets, ctx =
+          unbind_in ctx ~fname:String.to_snake_case body.scope_body_expr
+        in
+        let scope_lets = rename_vars_in_lets ctx scope_lets in
+        let scope_body_expr = Bindlib.bind_var scope_input_var scope_lets in
+        Bindlib.box_apply
+          (fun scope_body_expr ->
             {
               scope_body_input_struct =
                 struct_name ctx body.scope_body_input_struct;
@@ -262,19 +269,45 @@ let code_items ctx (scopes : 'e code_item_list) =
                 struct_name ctx body.scope_body_output_struct;
               scope_body_expr;
               scope_body_visibility = body.scope_body_visibility;
-            }
-          in
-          ScopeDef (name, body))
-        scope_body_expr
-    | Topdef (name, ty, visibility, e) -> (* TODO: use [visibility] *)
-      Bindlib.box_apply
-        (fun e -> Topdef (name, typ ctx ty, visibility, e))
-        (Expr.Box.lift (expr ctx e))
+            })
+          scope_body_expr
+      in
+      let scope_var, next, ctx =
+        match body.scope_body_visibility with
+        | Public ->
+          (* The scope name is already registered in the bcontext *)
+          let name, _ = ScopeName.get_info (scope_name ctx name) in
+          let v = Bindlib.new_var (fun v -> EVar v) name in
+          let next = Bindlib.subst next_bind (EVar v) in
+          v, next, ctx
+        | Private ->
+          (* Otherwise, it is treated as a normal variable *)
+          unbind_in ctx ~fname:ctx.vars next_bind
+      in
+      let next_bind = Bindlib.bind_var scope_var (aux ctx next) in
+      Bindlib.box_apply2
+        (fun body next_bind -> Cons (ScopeDef (name, body), next_bind))
+        scope_body next_bind
+    | Cons (Topdef (name, ty, visibility, e), next_bind) ->
+      let e = expr ctx e in
+      let topdef_var, next, ctx =
+        match visibility with
+        | Public ->
+          (* The topef name is already registered in the bcontext *)
+          let name, _ = TopdefName.get_info (topdef_name ctx name) in
+          let v = Bindlib.new_var (fun v -> EVar v) name in
+          let next = Bindlib.subst next_bind (EVar v) in
+          v, next, ctx
+        | Private ->
+          (* Otherwise, it is treated as a normal variable *)
+          unbind_in ctx ~fname:ctx.vars next_bind
+      in
+      let next_bind = Bindlib.bind_var topdef_var (aux ctx next) in
+      Bindlib.box_apply2
+        (fun e next_bind -> Cons (Topdef (name, ty, visibility, e), next_bind))
+        (Expr.Box.lift e) next_bind
   in
-  Bindlib.unbox
-  @@ boundlist_map_ctx ~ctx ~f ~fname:String.to_snake_case
-       ~last:(fun _ctx -> Bindlib.box)
-       scopes
+  Bindlib.unbox (aux ctx items)
 
 let cap s = String.to_ascii s |> String.capitalize_ascii
 let uncap s = String.to_ascii s |> String.uncapitalize_ascii
@@ -361,13 +394,11 @@ let program
           let ctx1, constrs_map =
             EnumConstructor.Map.fold
               (fun name _ (ctx, constrs_map) ->
-                 let str, _ = EnumConstructor.get_info name in
-                 let ctx = reserve_name ctx str in
-                 ( ctx,
-                   EnumConstructor.Map.add name name constrs_map ))
+                let str, _ = EnumConstructor.get_info name in
+                let ctx = reserve_name ctx str in
+                ctx, EnumConstructor.Map.add name name constrs_map)
               constrs
-              ( (if namespaced_fields_constrs then ctx0 else ctx),
-                constrs_map )
+              ((if namespaced_fields_constrs then ctx0 else ctx), constrs_map)
           in
           let ctx = if namespaced_fields_constrs then ctx else ctx1 in
           ( PathMap.add [] ctx pctxmap,
@@ -424,15 +455,15 @@ let program
           }
         in
         let path = ScopeName.path name in
-        if path = [] then
-          (* Scopes / topdefs in the root module will be renamed through the
-             variables binding them in the code_items *)
-          let scopes_map =
-          ( pctxmap,
-            ScopeName.Map.add name name scopes_map,
-            ScopeName.Map.add name info ctx_scopes )
+        if info.visibility = Private then
+          (* Private scopes / topdefs in the root module will be renamed through
+             the variables binding them in the code_items. It's important that
+             they don't affect the renaming of public items *)
+          pctxmap, scopes_map, ScopeName.Map.add name info ctx_scopes
         else
-          (* However, items from other modules are referred to through their uids *)
+          (* Public items need to be renamed deterministically ; in particular,
+             when coming from other modules, they are referred to through their
+             uids *)
           let str, pos = ScopeName.get_info name in
           let pctxmap, ctx =
             try pctxmap, PathMap.find path pctxmap

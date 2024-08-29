@@ -27,8 +27,7 @@ type config = {
 
 type context
 
-val default_config: config
-
+val default_config : config
 val get_ctx : config -> context
 
 val unbind_in :
@@ -47,7 +46,6 @@ val unmbind_in :
   ('e, _) Mark.ed Var.t Array.t * 'b * context
 
 val new_id : context -> string -> string * context
-
 val reserve_name : context -> string -> context
 
 val set_rewriters :
