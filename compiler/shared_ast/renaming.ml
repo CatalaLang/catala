@@ -440,6 +440,7 @@ let program
         EnumName.Map.empty )
   in
   let pctxmap, scopes_map, ctx_scopes =
+    (* TODO: here we ensure to have stable renaming for public scopes and topdefs, which can be exposed in compiled modules. A similar approach is needed for type names, which can be exposed too. This will require visibility information on enums and structs to be passed along. *)
     ScopeName.Map.fold
       (fun name info (pctxmap, scopes_map, ctx_scopes) ->
         let info =

@@ -55,6 +55,7 @@ let empty_ctx =
     ctx_structs = StructName.Map.empty;
     ctx_scopes = ScopeName.Map.empty;
     ctx_topdefs = TopdefName.Map.empty;
+    ctx_public_types = TypeIdent.Set.empty;
     ctx_struct_fields = Ident.Map.empty;
     ctx_enum_constrs = Ident.Map.empty;
     ctx_scope_index = Ident.Map.empty;

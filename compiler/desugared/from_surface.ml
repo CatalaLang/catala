@@ -1752,6 +1752,18 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       in
       aux ctxt.local
     in
+    let ctx_public_types =
+      StructName.Map.fold (fun name (_, visibility) acc ->
+          if visibility = Public then
+            TypeIdent.Set.add (Struct name) acc
+          else acc)
+        ctxt.structs @@
+      EnumName.Map.fold (fun name (_, visibility) acc ->
+          if visibility = Public then
+            TypeIdent.Set.add (Enum name) acc
+          else acc)
+        ctxt.enums TypeIdent.Set.empty
+    in
     {
       ctx_structs = StructName.Map.map fst ctxt.structs;
       ctx_enums = EnumName.Map.map fst ctxt.enums;
@@ -1763,6 +1775,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       ctx_topdefs = ctxt.topdefs;
       ctx_struct_fields = ctxt.local.field_idmap;
       ctx_enum_constrs = ctxt.local.constructor_idmap;
+      ctx_public_types;
       ctx_scope_index =
         Ident.Map.filter_map
           (fun _ -> function
