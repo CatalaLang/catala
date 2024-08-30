@@ -105,3 +105,6 @@ val program :
 
     In the returned program, it is safe to directly use `Bindlib.name_of` on
     variables for printing. The same is true for `StructName.get_info` etc. *)
+
+val default : t
+(** Basic defaults for minimal renaming, without any reserved keywords, intended for printing intermediate ASTs *)

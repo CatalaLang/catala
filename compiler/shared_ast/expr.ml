@@ -259,6 +259,8 @@ let option_enum_config =
   EnumConstructor.Map.of_list
     [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
+let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.no_pos)
+
 let pos_to_runtime pos =
   {
     Runtime.filename = Pos.get_file pos;

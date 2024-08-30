@@ -752,23 +752,9 @@ module Commands = struct
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
-      let renaming =
-        (* if options.Global.debug then None else *)
-          Some (Renaming.program ()
-                  ~reserved:[]
-                  ~reset_context_for_closed_terms:true
-                  ~skip_constant_binders:true
-                  ~constant_binder_name:(Some "_")
-                  ~f_var:Fun.id
-                  ~f_struct:Fun.id
-                  ~f_field:Fun.id
-                  ~f_enum:Fun.id
-                  ~f_constr:Fun.id
-                  ~namespaced_fields_constrs:true)
-      in
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
-        ~expand_ops ~renaming
+        ~expand_ops ~renaming:(Some Renaming.default)
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -928,7 +914,8 @@ module Commands = struct
     let prg, _, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
-        ~no_struct_literals ~monomorphize_types ~expand_ops ~renaming:None
+        ~no_struct_literals ~monomorphize_types ~expand_ops
+        ~renaming:(Some Renaming.default)
     in
     let _output_file, with_output = get_output_format options output in
     with_output

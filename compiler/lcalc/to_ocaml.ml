@@ -248,14 +248,6 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
   | EExternal { name } -> (
-    (* FIXME: this is wrong in general !! We assume the idents exposed by the
-       module depend only on the original name, while they actually get through
-       Bindlib and may have been renamed. A correct implem could use the runtime
-       registration used by the interpreter, but that would be distasteful and
-       incur a penalty ; or we would need to reproduce the same structure as in
-       the original module to ensure that bindlib performs the exact same
-       renamings ; or finally we could normalise the names at generation time
-       (either at toplevel or in a dedicated submodule ?) *)
     let path =
       match Mark.remove name with
       | External_value name -> TopdefName.path name

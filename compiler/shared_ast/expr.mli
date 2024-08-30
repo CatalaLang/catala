@@ -222,6 +222,9 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
+val source_pos_struct : StructName.t
+(** Fake structure (there is no corresponding decl) used for categorising [PosLit] terms in scalc *)
+
 val pos_to_runtime : Pos.t -> Runtime.source_position
 val runtime_to_pos : Runtime.source_position -> Pos.t
 

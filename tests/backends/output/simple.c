@@ -69,7 +69,6 @@ const Baz* baz (const Baz_in* baz_in)
       const Bar* arg = a6->payload;
       a5 = arg;
     } else {
-      CATALA_UNIT pos;
       static const catala_code_position pos[1] =
         {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
       catala_error(catala_no_value, pos);
@@ -80,7 +79,6 @@ const Baz* baz (const Baz_in* baz_in)
     const Bar* arg = a3->payload;
     a2 = arg;
   } else {
-    CATALA_UNIT pos;
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
     catala_error(catala_no_value, pos);
@@ -129,7 +127,6 @@ const Baz* baz (const Baz_in* baz_in)
     CATALA_DEC arg = b2->payload;
     b1 = arg;
   } else {
-    CATALA_UNIT pos;
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
     catala_error(catala_no_value, pos);
@@ -144,7 +141,6 @@ const Baz* baz (const Baz_in* baz_in)
     const CATALA_ARRAY(CATALA_DEC) arg = c2->payload;
     c1 = arg;
   } else {
-    CATALA_UNIT pos;
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
     catala_error(catala_no_value, pos);

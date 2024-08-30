@@ -26,6 +26,11 @@ let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v
 
+let format_type decl_ctx fmt = function
+  | TStruct name, _ when StructName.equal name Expr.source_pos_struct ->
+      StructName.format fmt name
+  | ty -> Print.typ decl_ctx fmt ty
+
 let rec format_expr
     (decl_ctx : decl_ctx)
     ?(debug : bool = false)
@@ -47,9 +52,9 @@ let rec format_expr
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, e) ->
-           Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
-             StructField.format struct_field Print.punctuation "\""
-             Print.punctuation ":" format_expr e))
+            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
+              StructField.format struct_field Print.punctuation "\""
+              Print.punctuation ":" format_expr e))
       (StructField.Map.bindings es)
       Print.punctuation "}"
   | ETuple es ->
@@ -123,7 +128,7 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-             format_var_name name Print.punctuation ":" (Print.typ decl_ctx) typ
+             format_var_name name Print.punctuation ":" (format_type decl_ctx) typ
              Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
@@ -131,7 +136,7 @@ let rec format_statement
   | SLocalDecl { name; typ } ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       format_var_name (Mark.remove name) Print.punctuation ":"
-      (Print.typ decl_ctx) typ
+      (format_type decl_ctx) typ
   | SLocalDef { name; expr = naked_expr; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name (Mark.remove name)
       Print.punctuation "="
@@ -139,7 +144,7 @@ let rec format_statement
       naked_expr
   | SLocalInit { name; typ; expr = naked_expr } ->
     Format.fprintf fmt "@[<hov 2>%a %a %a %a@ %a@]" format_var_name
-      (Mark.remove name) Print.punctuation ":" (Print.typ decl_ctx) typ
+      (Mark.remove name) Print.punctuation ":" (format_type decl_ctx) typ
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
@@ -224,7 +229,7 @@ let format_item decl_ctx ?debug ppf def =
       Format.pp_print_list
         (fun ppf (arg, ty) ->
           Format.fprintf ppf "@ (%a: %a)" format_var_name (Mark.remove arg)
-            (Print.typ decl_ctx) ty)
+            (format_type decl_ctx) ty)
         ppf func.func_params;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
@@ -235,11 +240,16 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_print_cut ppf ()
 
 let format_program ?debug ppf prg =
-  Format.pp_open_vbox ppf 0;
-  ModuleName.Map.iter
-    (fun m var ->
-      Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
-        var ModuleName.format m)
-    prg.ctx.modules;
-  Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
-  Format.pp_close_box ppf ()
+  try
+    Format.pp_open_vbox ppf 0;
+    ModuleName.Map.iter
+      (fun m var ->
+         Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
+           var ModuleName.format m)
+      prg.ctx.modules;
+    Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
+    Format.pp_close_box ppf ()
+  with e ->
+    let bt = Printexc.get_raw_backtrace () in
+    Format.pp_print_newline ppf ();
+    Printexc.raise_with_backtrace e bt

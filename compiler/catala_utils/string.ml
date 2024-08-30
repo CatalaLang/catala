@@ -27,7 +27,7 @@ let to_snake_case (s : string) : string =
   s
   |> to_ascii
   |> iteri (fun i c ->
-         if is_uppercase_ascii c && 0 <> i then Buffer.add_char out '_';
+         if is_uppercase_ascii c && 0 <> i && get s (i-1) <> '_' then Buffer.add_char out '_';
          Buffer.add_char out (Char.lowercase_ascii c));
   Buffer.contents out
 

@@ -660,7 +660,7 @@ let translate_rule
                   scope_let_kind = Assertion;
                 },
                 next ))
-          (Bindlib.bind_var (Var.make "_") next)
+          (Bindlib.bind_var (Var.make "assert1") next)
           (Expr.Box.lift new_e)),
       ctx )
 

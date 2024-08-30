@@ -544,7 +544,7 @@ let rec hoist_closures_expr :
     in
     ( collected_closures,
       Expr.eapp ~f:(Expr.eabs new_binder tys e1_pos) ~args:new_args ~tys m )
-  | EAppOp { op = ((Fold | Map | Filter | Reduce), _) as op; tys; args }
+  | EAppOp { op = ((Fold | Map | Map2 | Filter | Reduce), _) as op; tys; args }
     when flags.keep_special_ops ->
     (* Special case for some operators: its arguments closures thunks because if
        you want to extract it as a function you need these closures to preserve

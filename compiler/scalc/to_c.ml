@@ -352,7 +352,7 @@ let rec format_statement
            Format.pp_print_space fmt ();
            VarName.format fmt v))
       typ
-  | SLocalDef
+  | SLocalInit
       {
         name = v, _;
         expr = (EPosLit, pos);
@@ -652,7 +652,7 @@ and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
   let revb =
     List.fold_left
       (fun acc -> function
-        | (SLocalInit { expr = ELit _, _; _ }, _) as st -> st :: acc
+        | (SLocalInit { expr = (ELit _ | EPosLit), _; _ }, _) as st -> st :: acc
         (* | SLocalInit { expr = EVar v |
          *                       EAppOp {op=(FromClosureEnv|ToClosureEnv), _;
          *                               args = [EVar v, _]; _}

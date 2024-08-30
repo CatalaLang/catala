@@ -97,7 +97,7 @@ let op_can_raise op =
   match Mark.remove op with
   | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
   | Div_dur_dur | Add_dat_dur _ | Gte_dur_dur | Gt_dur_dur | Lte_dur_dur
-  | Lt_dur_dur ->
+  | Lt_dur_dur | Map2 ->
     true
   | _ -> false
 
@@ -105,7 +105,7 @@ let lift_pos ctxt pos =
   let v, ctxt = fresh_var ~pos ctxt "pos" in
   ( (A.EVar v, pos),
     ( A.SLocalInit
-        { name = v, pos; typ = TLit TUnit, pos; expr = A.EPosLit, pos },
+        { name = v, pos; typ = TStruct Expr.source_pos_struct, pos; expr = A.EPosLit, pos },
       pos ),
     ctxt )
 
@@ -256,7 +256,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
             tys = [TLit TUnit, pos; t_arr];
           },
         pos ),
-      ren_ctx )
+      ctxt.ren_ctx )
   (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
    *            tys;
    *            args = [] }

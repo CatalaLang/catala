@@ -179,28 +179,30 @@ let rec typ ctx = function
 (* {2 Handling expressions} *)
 
 let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
- fun ctx -> function
+ fun ctx e ->
+ let fm m = Expr.map_ty (typ ctx) m in
+ match e with
   | EExternal { name = External_scope s, pos }, m ->
-    Expr.eexternal ~name:(External_scope (ctx.scopes s), pos) m
+    Expr.eexternal ~name:(External_scope (ctx.scopes s), pos) (fm m)
   | EExternal { name = External_value d, pos }, m ->
-    Expr.eexternal ~name:(External_value (ctx.topdefs d), pos) m
+    Expr.eexternal ~name:(External_value (ctx.topdefs d), pos) (fm m)
   | EAbs { binder; tys }, m ->
     let vars, body, ctx = unmbind_in ctx ~fname:ctx.vars binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in
-    Expr.eabs binder (List.map (typ ctx) tys) m
+    Expr.eabs binder (List.map (typ ctx) tys) (fm m)
   | EStruct { name; fields }, m ->
     Expr.estruct ~name:(ctx.structs name)
       ~fields:
         (StructField.Map.fold
            (fun fld e -> StructField.Map.add (ctx.fields fld) (expr ctx e))
            fields StructField.Map.empty)
-      m
+      (fm m)
   | EStructAccess { name; field; e }, m ->
     Expr.estructaccess ~name:(ctx.structs name) ~field:(ctx.fields field)
-      ~e:(expr ctx e) m
+      ~e:(expr ctx e) (fm m)
   | EInj { name; e; cons }, m ->
-    Expr.einj ~name:(ctx.enums name) ~cons:(ctx.constrs cons) ~e:(expr ctx e) m
+    Expr.einj ~name:(ctx.enums name) ~cons:(ctx.constrs cons) ~e:(expr ctx e) (fm m)
   | EMatch { name; e; cases }, m ->
     Expr.ematch ~name:(ctx.enums name)
       ~cases:
@@ -208,7 +210,7 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
            (fun cons e ->
              EnumConstructor.Map.add (ctx.constrs cons) (expr ctx e))
            cases EnumConstructor.Map.empty)
-      ~e:(expr ctx e) m
+      ~e:(expr ctx e) (fm m)
   | e -> Expr.map ~typ:(typ ctx) ~f:(expr ctx) ~op:Fun.id e
 
 let scope_name ctx s = ctx.scopes s
@@ -613,3 +615,16 @@ let program
         ?f_field ?f_enum ?f_constr p
   end in
   (module M : Renaming)
+
+let default =
+  program ()
+    ~reserved:[]
+    ~reset_context_for_closed_terms:true
+    ~skip_constant_binders:true
+    ~constant_binder_name:(Some "_")
+    ~f_var:Fun.id
+    ~f_struct:Fun.id
+    ~f_field:Fun.id
+    ~f_enum:Fun.id
+    ~f_constr:Fun.id
+    ~namespaced_fields_constrs:true
