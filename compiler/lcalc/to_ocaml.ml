@@ -585,6 +585,12 @@ let format_code_items
   Format.pp_close_box fmt ();
   var_bindings
 
+let is_public = function
+  | ScopeDef (_, { scope_body_visibility = Public; _ })
+  | Topdef (_, _, Public, _) ->
+    true
+  | _ -> false
+
 let format_scope_exec
     (ctx : decl_ctx)
     (fmt : Format.formatter)
@@ -710,9 +716,8 @@ let format_module_registration
       Format.pp_print_cut fmt ())
     (fun fmt (id, (var, _)) ->
       Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" id format_var var)
-    fmt (String.Map.to_seq bnd);
-  (* TODO: pass the visibility info down from desugared, and filter what is
-     exported here *)
+    fmt
+    (Seq.filter (fun (_, (_, it)) -> is_public it) (String.Map.to_seq bnd));
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
