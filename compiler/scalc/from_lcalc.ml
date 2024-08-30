@@ -105,7 +105,11 @@ let lift_pos ctxt pos =
   let v, ctxt = fresh_var ~pos ctxt "pos" in
   ( (A.EVar v, pos),
     ( A.SLocalInit
-        { name = v, pos; typ = TStruct Expr.source_pos_struct, pos; expr = A.EPosLit, pos },
+        {
+          name = v, pos;
+          typ = TStruct Expr.source_pos_struct, pos;
+          expr = A.EPosLit, pos;
+        },
       pos ),
     ctxt )
 

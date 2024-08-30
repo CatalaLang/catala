@@ -159,7 +159,7 @@ let rec transform_closures_expr :
         ( Bindlib.box e,
           ( Var.Map.empty,
             match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
-            | (TArrow (targs, tret), _) as fty, _vis -> Some (targs, tret, fty)
+            | ((TArrow (targs, tret), _) as fty), _vis -> Some (targs, tret, fty)
             | _ -> None ) )
       | EExternal { name = External_scope s, pos } ->
         let fty =

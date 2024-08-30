@@ -413,10 +413,8 @@ and format_block ctx (fmt : Format.formatter) (b : block) : unit =
        b);
   Format.pp_close_box fmt ()
 
-let format_ctx
-    (type_ordering : TypeIdent.t list)
-    (fmt : Format.formatter)
-    ctx : unit =
+let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
+    unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     Format.fprintf fmt

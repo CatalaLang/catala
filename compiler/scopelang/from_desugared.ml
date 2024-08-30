@@ -958,7 +958,8 @@ let translate_program
   let program_topdefs =
     TopdefName.Map.mapi
       (fun id -> function
-        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = vis } ->
+        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = vis }
+          ->
           Expr.unbox (translate_expr ctx e), ty, vis
         | { D.topdef_expr = None; topdef_type = _, pos; _ } ->
           Message.error ~pos "No definition found for %a" TopdefName.format id)

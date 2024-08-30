@@ -1753,16 +1753,16 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       aux ctxt.local
     in
     let ctx_public_types =
-      StructName.Map.fold (fun name (_, visibility) acc ->
-          if visibility = Public then
-            TypeIdent.Set.add (Struct name) acc
+      StructName.Map.fold
+        (fun name (_, visibility) acc ->
+          if visibility = Public then TypeIdent.Set.add (Struct name) acc
           else acc)
-        ctxt.structs @@
-      EnumName.Map.fold (fun name (_, visibility) acc ->
-          if visibility = Public then
-            TypeIdent.Set.add (Enum name) acc
-          else acc)
-        ctxt.enums TypeIdent.Set.empty
+        ctxt.structs
+      @@ EnumName.Map.fold
+           (fun name (_, visibility) acc ->
+             if visibility = Public then TypeIdent.Set.add (Enum name) acc
+             else acc)
+           ctxt.enums TypeIdent.Set.empty
     in
     {
       ctx_structs = StructName.Map.map fst ctxt.structs;

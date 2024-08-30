@@ -228,10 +228,8 @@ and naked_typ =
   | TAny
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
-module TypeIdent: sig
-  type t =
-    | Struct of StructName.t
-    | Enum of EnumName.t
+module TypeIdent : sig
+  type t = Struct of StructName.t | Enum of EnumName.t
 
   include Map.OrderedType with type t := t
 
@@ -241,13 +239,9 @@ module TypeIdent: sig
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t
-end
-= struct
-
+end = struct
   module Ordering = struct
-    type t =
-      | Struct of StructName.t
-      | Enum of EnumName.t
+    type t = Struct of StructName.t | Enum of EnumName.t
 
     let compare x y =
       match x, y with

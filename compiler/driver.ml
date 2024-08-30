@@ -232,9 +232,7 @@ module Passes = struct
       ~monomorphize_types
       ~expand_ops
       ~renaming :
-      typed Lcalc.Ast.program
-      * TypeIdent.t list
-      * Renaming.context option =
+      typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -310,9 +308,7 @@ module Passes = struct
       ~no_struct_literals
       ~monomorphize_types
       ~expand_ops
-      ~renaming :
-      Scalc.Ast.program * TypeIdent.t list * Renaming.context
-      =
+      ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~closure_conversion ~keep_special_ops ~monomorphize_types ~expand_ops

@@ -821,7 +821,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
       let () =
         Format.pp_open_hovbox fmt 4;
         keyword fmt "let scope";
-        Format.fprintf fmt "@ @{<hi_magenta>%s@}@]" n;
+        Format.fprintf fmt "@ @{<hi_magenta>%s@}@]" n
       in
       Format.pp_print_space fmt ();
       punctuation fmt "(";
@@ -908,9 +908,10 @@ let code_item ?(debug = false) id decl_ctx fmt c =
   match c with
   | ScopeDef (_, b) -> scope ~debug decl_ctx fmt (name, b)
   | Topdef (_, ty, _vis, e) ->
-    Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
-      "let topval" name op_style ":" (typ decl_ctx) ty op_style
-      "=" (expr ~debug ()) e
+    Format.fprintf fmt
+      "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
+      "let topval" name op_style ":" (typ decl_ctx) ty op_style "="
+      (expr ~debug ()) e
 
 let code_item_list ?(debug = false) decl_ctx fmt c =
   Format.pp_open_vbox fmt 0;

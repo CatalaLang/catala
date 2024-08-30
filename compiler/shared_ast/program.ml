@@ -22,7 +22,8 @@ let map_decl_ctx ~f ctx =
     ctx with
     ctx_enums = EnumName.Map.map (EnumConstructor.Map.map f) ctx.ctx_enums;
     ctx_structs = StructName.Map.map (StructField.Map.map f) ctx.ctx_structs;
-    ctx_topdefs = TopdefName.Map.map (fun (ty, vis) -> f ty, vis) ctx.ctx_topdefs;
+    ctx_topdefs =
+      TopdefName.Map.map (fun (ty, vis) -> f ty, vis) ctx.ctx_topdefs;
   }
 
 let map_exprs ?typ ~f ~varf { code_items; decl_ctx; lang; module_name } =

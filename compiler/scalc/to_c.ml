@@ -283,8 +283,8 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) : unit
       | RoundUp -> "catala_date_round_up"
       | RoundDown -> "catala_date_round_down"
       | AbortOnRound -> "catala_date_round_abort")
-      (Format.pp_print_list (format_expression ctx)
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ "))
+      (Format.pp_print_list (format_expression ctx) ~pp_sep:(fun ppf () ->
+           Format.fprintf ppf ",@ "))
       args
   (* | EAppOp { op; args = [arg1; arg2]; _ } ->
    *   Format.fprintf fmt "%a(%a,@ %a)"
@@ -352,19 +352,13 @@ let rec format_statement
            Format.pp_print_space fmt ();
            VarName.format fmt v))
       typ
-  | SLocalInit
-      {
-        name = v, _;
-        expr = (EPosLit, pos);
-        _
-      } ->
-      Format.fprintf fmt
-        "@,\
-         @[<hov 2>static const catala_code_position %a[1] =@ {{%S,@ %d, %d, \
-         %d, %d}};@]"
-        VarName.format v (Pos.get_file pos) (Pos.get_start_line pos)
-        (Pos.get_start_column pos) (Pos.get_end_line pos)
-        (Pos.get_end_column pos)
+  | SLocalInit { name = v, _; expr = EPosLit, pos; _ } ->
+    Format.fprintf fmt
+      "@,\
+       @[<hov 2>static const catala_code_position %a[1] =@ {{%S,@ %d, %d, %d, \
+       %d}};@]"
+      VarName.format v (Pos.get_file pos) (Pos.get_start_line pos)
+      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SLocalInit
       {
         name = v, _;
@@ -544,8 +538,7 @@ let rec format_statement
       "@,\
        @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
        @[<hov 2>catala_error(catala_assertion_failed,@ %a);@]@;\
-       <1 -2>}@]" (format_expression ctx) expr
-      (format_expression ctx) pos_expr
+       <1 -2>}@]" (format_expression ctx) expr (format_expression ctx) pos_expr
   | _ -> .
 (* | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
  *   let e_name =

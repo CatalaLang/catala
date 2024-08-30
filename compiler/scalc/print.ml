@@ -28,7 +28,7 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 
 let format_type decl_ctx fmt = function
   | TStruct name, _ when StructName.equal name Expr.source_pos_struct ->
-      StructName.format fmt name
+    StructName.format fmt name
   | ty -> Print.typ decl_ctx fmt ty
 
 let rec format_expr
@@ -52,9 +52,9 @@ let rec format_expr
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, e) ->
-            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
-              StructField.format struct_field Print.punctuation "\""
-              Print.punctuation ":" format_expr e))
+           Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
+             StructField.format struct_field Print.punctuation "\""
+             Print.punctuation ":" format_expr e))
       (StructField.Map.bindings es)
       Print.punctuation "}"
   | ETuple es ->
@@ -128,8 +128,8 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-             format_var_name name Print.punctuation ":" (format_type decl_ctx) typ
-             Print.punctuation ")"))
+             format_var_name name Print.punctuation ":" (format_type decl_ctx)
+             typ Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
@@ -244,10 +244,12 @@ let format_program ?debug ppf prg =
     Format.pp_open_vbox ppf 0;
     ModuleName.Map.iter
       (fun m var ->
-         Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
-           var ModuleName.format m)
+        Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
+          var ModuleName.format m)
       prg.ctx.modules;
-    Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
+    Format.pp_print_list
+      (format_item prg.ctx.decl_ctx ?debug)
+      ppf prg.code_items;
     Format.pp_close_box ppf ()
   with e ->
     let bt = Printexc.get_raw_backtrace () in

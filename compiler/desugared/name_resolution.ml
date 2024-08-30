@@ -631,11 +631,18 @@ let process_scope_decl
       Ident.Map.update
         (Mark.remove decl.scope_decl_name)
         (function
-          | Some (TScope (scope, { in_struct_name; out_struct_name; visibility; _ })) ->
+          | Some
+              (TScope
+                (scope, { in_struct_name; out_struct_name; visibility; _ })) ->
             Some
               (TScope
-                 (scope, { in_struct_name; out_struct_name; out_struct_fields;
-                           visibility }))
+                 ( scope,
+                   {
+                     in_struct_name;
+                     out_struct_name;
+                     out_struct_fields;
+                     visibility;
+                   } ))
           | _ -> assert false)
         ctxt.local.typedefs
     in

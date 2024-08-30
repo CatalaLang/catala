@@ -70,7 +70,10 @@ val struct_name : context -> StructName.t -> StructName.t
 val enum_name : context -> EnumName.t -> EnumName.t
 
 val code_items :
-  context -> (typ -> typ) -> ((_ any, 'm) gexpr as 'e) code_item_list -> 'e code_item_list
+  context ->
+  (typ -> typ) ->
+  ((_ any, 'm) gexpr as 'e) code_item_list ->
+  'e code_item_list
 
 type t
 (** Enclosing of a polymorphic renaming function, to be used by [apply] *)
@@ -107,4 +110,5 @@ val program :
     variables for printing. The same is true for `StructName.get_info` etc. *)
 
 val default : t
-(** Basic defaults for minimal renaming, without any reserved keywords, intended for printing intermediate ASTs *)
+(** Basic defaults for minimal renaming, without any reserved keywords, intended
+    for printing intermediate ASTs *)

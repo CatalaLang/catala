@@ -283,8 +283,8 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
   in
   g
 
-let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TypeIdent.t list
-    =
+let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) :
+    TypeIdent.t list =
   let g = build_type_graph structs enums in
   (* if there is a cycle, there will be an strongly connected component of
      cardinality > 1 *)
