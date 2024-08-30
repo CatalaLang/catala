@@ -1009,7 +1009,7 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:true ~expand_ops:true
+        ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
