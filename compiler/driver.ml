@@ -753,7 +753,7 @@ module Commands = struct
       ex_scope_opt =
     let prg, _, _ =
       let renaming =
-        if options.Global.debug then None else
+        (* if options.Global.debug then None else *)
           Some (Renaming.program ()
                   ~reserved:[]
                   ~reset_context_for_closed_terms:true

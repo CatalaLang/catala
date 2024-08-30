@@ -243,7 +243,7 @@ let rename_vars_in_lets ctx scope_body_expr =
           })
         (Expr.Box.lift (expr ctx scope_let.scope_let_expr)))
 
-let code_items ctx (items : 'e code_item_list) =
+let code_items ctx fty (items : 'e code_item_list) =
   let rec aux ctx = function
     | Last l ->
       let l =
@@ -290,6 +290,7 @@ let code_items ctx (items : 'e code_item_list) =
         scope_body next_bind
     | Cons (Topdef (name, ty, visibility, e), next_bind) ->
       let e = expr ctx e in
+      let ty = fty ty in
       let topdef_var, next, ctx =
         match visibility with
         | Public ->
@@ -308,6 +309,109 @@ let code_items ctx (items : 'e code_item_list) =
         (Expr.Box.lift e) next_bind
   in
   Bindlib.unbox (aux ctx items)
+
+module PathMap = Map.Make (Uid.Path)
+
+(* Intermediate structure used by function [Renaming.program] *)
+type type_renaming_ctx = {
+  path_ctx: context PathMap.t;
+  structs_map: StructName.t StructName.Map.t;
+  fields_map: StructField.t StructField.Map.t;
+  enums_map: EnumName.t EnumName.Map.t;
+  constrs_map: EnumConstructor.t EnumConstructor.Map.t;
+  ctx_structs: struct_ctx;
+  ctx_enums: enum_ctx;
+  namespaced_fields_constrs: bool;
+  f_struct: string -> string;
+  f_field : string -> string;
+  f_enum: string -> string;
+  f_constr: string -> string;
+}
+
+let process_type_ident (decl_ctx: decl_ctx) ctx0 type_ident (tctx: type_renaming_ctx) =
+  match type_ident with
+  | TypeIdent.Struct name ->
+    let fields = StructName.Map.find name decl_ctx.ctx_structs in
+    let path = StructName.path name in
+    let str, pos = StructName.get_info name in
+    let path_ctx, ctx =
+      try tctx.path_ctx, PathMap.find path tctx.path_ctx
+      with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
+    in
+    let id, ctx = new_id ctx (tctx.f_struct str) in
+    let new_name = StructName.fresh path (id, pos) in
+    let ctx1, fields_map, ctx_fields =
+      StructField.Map.fold
+        (fun name ty (ctx, fields_map, ctx_fields) ->
+           let str, pos = StructField.get_info name in
+           let id, ctx = new_id ctx (tctx.f_field str) in
+           let new_name = StructField.fresh (id, pos) in
+           ( ctx,
+             StructField.Map.add name new_name fields_map,
+             StructField.Map.add new_name ty ctx_fields ))
+        fields
+        ( (if tctx.namespaced_fields_constrs then ctx0 else ctx),
+          tctx.fields_map,
+          StructField.Map.empty )
+    in
+    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    { tctx with
+      path_ctx = PathMap.add path ctx path_ctx;
+      structs_map = StructName.Map.add name new_name tctx.structs_map;
+      fields_map;
+      ctx_structs = StructName.Map.add new_name ctx_fields tctx.ctx_structs }
+  | TypeIdent.Enum name when EnumName.equal name Expr.option_enum ->
+    (* The option type shouldn't be renamed, it has special handling in
+       backends. FIXME: could the fact that it's special be detected
+       differently from id comparison ? Structure maybe, or a more
+       specific construct ? *)
+    let constrs = EnumName.Map.find name decl_ctx.ctx_enums in
+    let ctx = PathMap.find [] tctx.path_ctx in
+    let ctx1, constrs_map =
+      EnumConstructor.Map.fold
+        (fun name _ (ctx, constrs_map) ->
+           let str, _ = EnumConstructor.get_info name in
+           let ctx = reserve_name ctx str in
+           ctx, EnumConstructor.Map.add name name constrs_map)
+        constrs
+        ((if tctx.namespaced_fields_constrs then ctx0 else ctx), tctx.constrs_map)
+    in
+    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    { tctx with
+      path_ctx = PathMap.add [] ctx tctx.path_ctx;
+      enums_map = EnumName.Map.add name name tctx.enums_map;
+      constrs_map;
+      ctx_enums = EnumName.Map.add name Expr.option_enum_config tctx.ctx_enums }
+  | TypeIdent.Enum name ->
+    let constrs = EnumName.Map.find name decl_ctx.ctx_enums in
+    let path = EnumName.path name in
+    let str, pos = EnumName.get_info name in
+    let path_ctx, ctx =
+      try tctx.path_ctx, PathMap.find path tctx.path_ctx
+      with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
+    in
+    let id, ctx = new_id ctx (tctx.f_enum str) in
+    let new_name = EnumName.fresh path (id, pos) in
+    let ctx1, constrs_map, ctx_constrs =
+      EnumConstructor.Map.fold
+        (fun name ty (ctx, constrs_map, ctx_constrs) ->
+           let str, pos = EnumConstructor.get_info name in
+           let id, ctx = new_id ctx (tctx.f_constr str) in
+           let new_name = EnumConstructor.fresh (id, pos) in
+           ( ctx,
+             EnumConstructor.Map.add name new_name constrs_map,
+             EnumConstructor.Map.add new_name ty ctx_constrs ))
+        constrs
+        ( (if tctx.namespaced_fields_constrs then ctx0 else ctx),
+          tctx.constrs_map,
+          EnumConstructor.Map.empty )
+    in
+    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    { tctx with
+      path_ctx = PathMap.add path ctx path_ctx;
+      enums_map = EnumName.Map.add name new_name tctx.enums_map;
+      constrs_map;
+      ctx_enums = EnumName.Map.add new_name ctx_constrs tctx.ctx_enums }
 
 let cap s = String.to_ascii s |> String.capitalize_ascii
 let uncap s = String.to_ascii s |> String.uncapitalize_ascii
@@ -340,184 +444,143 @@ let program
   (* Each module needs its separate ctx since resolution is qualified ; and name
      resolution in a given module must be processed consistently independently
      on the current context. *)
-  let ctx0 = ctx in
-  let module PathMap = Map.Make (Uid.Path) in
-  let pctxmap = PathMap.singleton [] ctx in
-  let pctxmap, structs_map, fields_map, ctx_structs =
+  let type_renaming_ctx = {
+    path_ctx = PathMap.singleton [] ctx;
+    structs_map = StructName.Map.empty;
+    fields_map = StructField.Map.empty;
+    enums_map = EnumName.Map.empty;
+    constrs_map = EnumConstructor.Map.empty;
+    ctx_structs = StructName.Map.empty;
+    ctx_enums = EnumName.Map.empty;
+    namespaced_fields_constrs;
+    f_struct;
+    f_field ;
+    f_enum;
+    f_constr;
+  } in
+  let type_renaming_ctx =
+    (* We first run the renaming on public idents alone, to be sure it is not affected by private definitions *)
+    TypeIdent.Set.fold (process_type_ident p.decl_ctx ctx) p.decl_ctx.ctx_public_types type_renaming_ctx
     (* Warning: the folding order matters here, if a module contains e.g. two
        fields with the same name. This fold relies on UIDs, and is thus
        dependent on the definition order. Another possibility would be to fold
        lexicographically, but the result would be "less intuitive" *)
-    StructName.Map.fold
-      (fun name fields (pctxmap, structs_map, fields_map, ctx_structs) ->
-        let path = StructName.path name in
-        let str, pos = StructName.get_info name in
-        let pctxmap, ctx =
-          try pctxmap, PathMap.find path pctxmap
-          with PathMap.Not_found _ -> PathMap.add path ctx pctxmap, ctx
-        in
-        let id, ctx = new_id ctx (f_struct str) in
-        let new_name = StructName.fresh path (id, pos) in
-        let ctx1, fields_map, ctx_fields =
-          StructField.Map.fold
-            (fun name ty (ctx, fields_map, ctx_fields) ->
-              let str, pos = StructField.get_info name in
-              let id, ctx = new_id ctx (f_field str) in
-              let new_name = StructField.fresh (id, pos) in
-              ( ctx,
-                StructField.Map.add name new_name fields_map,
-                StructField.Map.add new_name ty ctx_fields ))
-            fields
-            ( (if namespaced_fields_constrs then ctx0 else ctx),
-              fields_map,
-              StructField.Map.empty )
-        in
-        let ctx = if namespaced_fields_constrs then ctx else ctx1 in
-        ( PathMap.add path ctx pctxmap,
-          StructName.Map.add name new_name structs_map,
-          fields_map,
-          StructName.Map.add new_name ctx_fields ctx_structs ))
-      p.decl_ctx.ctx_structs
-      ( pctxmap,
-        StructName.Map.empty,
-        StructField.Map.empty,
-        StructName.Map.empty )
   in
-  let pctxmap, enums_map, constrs_map, ctx_enums =
-    EnumName.Map.fold
-      (fun name constrs (pctxmap, enums_map, constrs_map, ctx_enums) ->
-        if EnumName.equal name Expr.option_enum then
-          (* The option type shouldn't be renamed, it has special handling in
-             backends. FIXME: could the fact that it's special be detected
-             differently from id comparison ? Structure maybe, or a more
-             specific construct ? *)
-          let ctx1, constrs_map =
-            EnumConstructor.Map.fold
-              (fun name _ (ctx, constrs_map) ->
-                let str, _ = EnumConstructor.get_info name in
-                let ctx = reserve_name ctx str in
-                ctx, EnumConstructor.Map.add name name constrs_map)
-              constrs
-              ((if namespaced_fields_constrs then ctx0 else ctx), constrs_map)
-          in
-          let ctx = if namespaced_fields_constrs then ctx else ctx1 in
-          ( PathMap.add [] ctx pctxmap,
-            EnumName.Map.add name name enums_map,
-            constrs_map,
-            EnumName.Map.add name Expr.option_enum_config ctx_enums )
-        else
-          let path = EnumName.path name in
-          let str, pos = EnumName.get_info name in
-          let pctxmap, ctx =
-            try pctxmap, PathMap.find path pctxmap
-            with Not_found -> PathMap.add path ctx pctxmap, ctx
-          in
-          let id, ctx = new_id ctx (f_enum str) in
-          let new_name = EnumName.fresh path (id, pos) in
-          let ctx1, constrs_map, ctx_constrs =
-            EnumConstructor.Map.fold
-              (fun name ty (ctx, constrs_map, ctx_constrs) ->
-                let str, pos = EnumConstructor.get_info name in
-                let id, ctx = new_id ctx (f_constr str) in
-                let new_name = EnumConstructor.fresh (id, pos) in
-                ( ctx,
-                  EnumConstructor.Map.add name new_name constrs_map,
-                  EnumConstructor.Map.add new_name ty ctx_constrs ))
-              constrs
-              ( (if namespaced_fields_constrs then ctx0 else ctx),
-                constrs_map,
-                EnumConstructor.Map.empty )
-          in
-          let ctx = if namespaced_fields_constrs then ctx else ctx1 in
-          ( PathMap.add path ctx pctxmap,
-            EnumName.Map.add name new_name enums_map,
-            constrs_map,
-            EnumName.Map.add new_name ctx_constrs ctx_enums ))
-      p.decl_ctx.ctx_enums
-      ( pctxmap,
-        EnumName.Map.empty,
-        EnumConstructor.Map.empty,
-        EnumName.Map.empty )
-  in
-  let pctxmap, scopes_map, ctx_scopes =
-    (* TODO: here we ensure to have stable renaming for public scopes and topdefs, which can be exposed in compiled modules. A similar approach is needed for type names, which can be exposed too. This will require visibility information on enums and structs to be passed along. *)
+  let path_ctx = type_renaming_ctx.path_ctx in
+  let path_ctx, scopes_map =
     ScopeName.Map.fold
-      (fun name info (pctxmap, scopes_map, ctx_scopes) ->
-        let info =
-          {
-            in_struct_name = StructName.Map.find info.in_struct_name structs_map;
-            out_struct_name =
-              StructName.Map.find info.out_struct_name structs_map;
-            out_struct_fields =
-              ScopeVar.Map.map
-                (fun fld -> StructField.Map.find fld fields_map)
-                info.out_struct_fields;
-            visibility = info.visibility;
-          }
-        in
+      (fun name info (path_ctx, scopes_map) ->
         let path = ScopeName.path name in
         if info.visibility = Private then
           (* Private scopes / topdefs in the root module will be renamed through
              the variables binding them in the code_items. It's important that
              they don't affect the renaming of public items *)
-          pctxmap, scopes_map, ScopeName.Map.add name info ctx_scopes
+          path_ctx, scopes_map
         else
           (* Public items need to be renamed deterministically ; in particular,
              when coming from other modules, they are referred to through their
              uids *)
           let str, pos = ScopeName.get_info name in
-          let pctxmap, ctx =
-            try pctxmap, PathMap.find path pctxmap
-            with Not_found -> PathMap.add path ctx pctxmap, ctx
+          let path_ctx, ctx =
+            try path_ctx, PathMap.find path path_ctx
+            with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
           in
           let id, ctx = new_id ctx (f_var str) in
           let new_name = ScopeName.fresh path (id, pos) in
-          ( PathMap.add path ctx pctxmap,
-            ScopeName.Map.add name new_name scopes_map,
-            ScopeName.Map.add new_name info ctx_scopes ))
+          ( PathMap.add path ctx path_ctx,
+            ScopeName.Map.add name new_name scopes_map))
       p.decl_ctx.ctx_scopes
-      (pctxmap, ScopeName.Map.empty, ScopeName.Map.empty)
+      (path_ctx, ScopeName.Map.empty)
   in
-  let pctxmap, topdefs_map, ctx_topdefs =
+  let path_ctx, topdefs_map, ctx_topdefs =
     TopdefName.Map.fold
-      (fun name typ (pctxmap, topdefs_map, ctx_topdefs) ->
+      (fun name (typ, visibility) (path_ctx, topdefs_map, ctx_topdefs) ->
         let path = TopdefName.path name in
-        if path = [] then
-          (* Scopes / topdefs in the root module will be renamed through the
-             variables binding them in the code_items *)
-          ( pctxmap,
-            TopdefName.Map.add name name topdefs_map,
-            TopdefName.Map.add name typ ctx_topdefs )
+        if visibility = Private then
+          (* Private scopes / topdefs in the root module will be renamed through
+             the variables binding them in the code_items. *)
+          ( path_ctx,
+            topdefs_map,
+            TopdefName.Map.add name (typ, visibility) ctx_topdefs )
           (* [typ] is rewritten later on *)
         else
           let str, pos = TopdefName.get_info name in
-          let pctxmap, ctx =
-            try pctxmap, PathMap.find path pctxmap
-            with Not_found -> PathMap.add path ctx pctxmap, ctx
+          let path_ctx, ctx =
+            try path_ctx, PathMap.find path path_ctx
+            with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
           in
           let id, ctx = new_id ctx (f_var str) in
           let new_name = TopdefName.fresh path (id, pos) in
-          ( PathMap.add path ctx pctxmap,
+          ( PathMap.add path ctx path_ctx,
             TopdefName.Map.add name new_name topdefs_map,
-            TopdefName.Map.add new_name typ ctx_topdefs ))
+            TopdefName.Map.add new_name (typ, visibility) ctx_topdefs ))
       p.decl_ctx.ctx_topdefs
-      (pctxmap, TopdefName.Map.empty, TopdefName.Map.empty)
+      (path_ctx, TopdefName.Map.empty, TopdefName.Map.empty)
   in
-  let ctx = PathMap.find [] pctxmap in
+  (* At this point, all public idents have been deterministically mapped.
+     We proceed with the remaining typedefs *)
+  let type_renaming_ctx =
+    let remaining_type_ids =
+      TypeIdent.Set.diff
+        (StructName.Map.fold (fun s _ -> TypeIdent.Set.add (Struct s))
+           p.decl_ctx.ctx_structs @@
+         EnumName.Map.fold (fun e _ -> TypeIdent.Set.add (Enum e))
+           p.decl_ctx.ctx_enums
+           TypeIdent.Set.empty)
+        p.decl_ctx.ctx_public_types
+    in
+    TypeIdent.Set.fold
+      (process_type_ident p.decl_ctx ctx)
+      remaining_type_ids
+      { type_renaming_ctx with path_ctx }
+  in
+  (* And update the scope infos; the types in the topdefs are taken care of by the generic rewrite of [decl_ctx] *)
+  let ctx_scopes =
+    ScopeName.Map.fold
+      (fun name info ctx_scopes ->
+         let name =
+           try ScopeName.Map.find name scopes_map
+           with ScopeName.Map.Not_found _ -> name
+         in
+         let info =
+           {
+             in_struct_name = StructName.Map.find info.in_struct_name type_renaming_ctx.structs_map;
+             out_struct_name =
+               StructName.Map.find info.out_struct_name type_renaming_ctx.structs_map;
+             out_struct_fields =
+               ScopeVar.Map.map
+                 (fun fld -> StructField.Map.find fld type_renaming_ctx.fields_map)
+                 info.out_struct_fields;
+             visibility = info.visibility;
+           }
+         in
+         ScopeName.Map.add name info ctx_scopes
+      )
+      p.decl_ctx.ctx_scopes
+      ScopeName.Map.empty
+  in
+  (* Note: another possibility would be to process the scope info along
+     with the renamings, but in a first pass for public items, and a second
+     for private ones. This would fail if e.g. a public scope depends on a
+     private struct, which could actually be a feature. *)
+  let ctx = PathMap.find [] path_ctx in
   let ctx =
     set_rewriters ctx
-      ~scopes:(fun n -> ScopeName.Map.find n scopes_map)
-      ~topdefs:(fun n -> TopdefName.Map.find n topdefs_map)
-      ~structs:(fun n -> StructName.Map.find n structs_map)
-      ~fields:(fun n -> StructField.Map.find n fields_map)
-      ~enums:(fun n -> EnumName.Map.find n enums_map)
-      ~constrs:(fun n -> EnumConstructor.Map.find n constrs_map)
+      ~scopes:(fun n -> Option.value ~default:n @@ ScopeName.Map.find_opt n scopes_map)
+      ~topdefs:(fun n -> Option.value ~default:n @@ TopdefName.Map.find_opt n topdefs_map)
+      ~structs:(fun n -> StructName.Map.find n type_renaming_ctx.structs_map)
+      ~fields:(fun n -> StructField.Map.find n type_renaming_ctx.fields_map)
+      ~enums:(fun n -> EnumName.Map.find n type_renaming_ctx.enums_map)
+      ~constrs:(fun n -> EnumConstructor.Map.find n type_renaming_ctx.constrs_map)
   in
   let decl_ctx =
-    { p.decl_ctx with ctx_enums; ctx_structs; ctx_scopes; ctx_topdefs }
+    { p.decl_ctx with
+      ctx_enums = type_renaming_ctx.ctx_enums;
+      ctx_structs = type_renaming_ctx.ctx_structs;
+      ctx_scopes; ctx_topdefs }
   in
   let decl_ctx = Program.map_decl_ctx ~f:(typ ctx) decl_ctx in
-  let code_items = code_items ctx p.code_items in
+  let code_items = code_items ctx (typ ctx) p.code_items in
   { p with decl_ctx; code_items }, ctx
 
 (* This first-class module wrapping is here to allow a polymorphic renaming
