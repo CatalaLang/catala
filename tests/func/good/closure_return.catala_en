@@ -32,7 +32,7 @@ let topval closure_f : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   if (from_closure_env env).0 then y else - y
 
-let scope s
+let scope S
   (s_in: S_in {x_in: bool})
   : S {f: ((closure_env, integer) → integer, closure_env)}
   =

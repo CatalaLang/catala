@@ -71,7 +71,7 @@ let topval closure_assert : (closure_env, integer) → integer =
   
   ((x + 1))
 
-let scope assert (assert_in: Assert_in1): Assert2 {assert: bool} =
+let scope Assert (assert_in: Assert_in1): Assert2 {assert: bool} =
   let set assert : bool =
     match
       (match
@@ -93,7 +93,7 @@ let scope assert (assert_in: Assert_in1): Assert2 {assert: bool} =
   in
   return { Assert2 assert = assert; }
 
-let topval assert1 : integer → integer =
+let topval assert : integer → integer =
   λ (assert1: integer) →
   assert1
 
