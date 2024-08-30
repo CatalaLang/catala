@@ -130,15 +130,9 @@ let scope Foo
   let get b : ((closure_env, unit) → option bool, closure_env) =
     Foo_in.b_in
   in
-  let set b : bool =
-    match
-      (match (handle_exceptions [b.0 b.1 ()]) with
-       | ENone → ESome true
-       | ESome x → ESome x)
-    with
-    | ENone → error NoValue
-    | ESome arg → arg
-  in
+  let set b : bool = match (b.0 b.1 ()) with
+                     | ENone → true
+                     | ESome x → x in
   let set r :
       Result {
         r: ((closure_env, integer) → integer, closure_env);

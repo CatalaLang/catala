@@ -59,7 +59,6 @@ let rec translate_default
     (mark_default : 'm mark) : 'm A.expr boxed =
   (* Since the program is well typed, all exceptions have as type [option 't] *)
   let pos = Expr.mark_pos mark_default in
-  let exceptions = List.map translate_expr exceptions in
   let ty_option = Expr.maybe_ty mark_default in
   let ty_array = TArray ty_option, pos in
   let ty_alpha =
@@ -69,35 +68,59 @@ let rec translate_default
     | _ -> assert false
   in
   let mark_alpha = Expr.with_ty mark_default ty_alpha in
-  Expr.ematch ~name:Expr.option_enum
-    ~e:
+  let if_just_then_cons =
+    let none =
+      Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
+        ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
+        mark_default
+    in
+    match just with
+    | ELit (LBool b), _ -> if b then translate_expr cons else none
+    | just ->
+      Expr.eifthenelse (translate_expr just) (translate_expr cons)
+        (Expr.einj
+           ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
+           ~cons:Expr.none_constr ~name:Expr.option_enum mark_default)
+        mark_default
+  in
+  let match_some e =
+    match just with
+    | ELit (LBool false), _ ->
+      (* in this case we can just forward the option in the argument *)
+      e
+    | _ ->
+      Expr.ematch ~name:Expr.option_enum ~e
+        ~cases:
+          (EnumConstructor.Map.of_list
+             [
+               (* Some x -> Some x *)
+               ( Expr.some_constr,
+                 let x = Var.make "x" in
+                 Expr.make_abs [| x |]
+                   (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
+                      ~e:(Expr.evar x mark_alpha) mark_default)
+                   [ty_alpha] pos );
+               (* None -> if just then cons else None *)
+               Expr.none_constr, Expr.thunk_term if_just_then_cons;
+             ])
+        mark_default
+  in
+  match exceptions with
+  | [] -> if_just_then_cons
+  | [((EInj { cons; _ }, _) as e)] ->
+    if EnumConstructor.equal cons Expr.none_constr then
+      Expr.thunk_term if_just_then_cons
+    else if EnumConstructor.equal cons Expr.some_constr then translate_expr e
+    else assert false
+  | [single_exception] -> match_some (translate_expr single_exception)
+  | exceptions ->
+    let exceptions = List.map translate_expr exceptions in
+    match_some
       (Expr.eappop
          ~op:(Op.HandleExceptions, Expr.pos cons)
          ~tys:[ty_array]
          ~args:[Expr.earray exceptions (Expr.with_ty mark_default ty_array)]
          mark_default)
-    ~cases:
-      (EnumConstructor.Map.of_list
-         [
-           (* Some x -> Some x *)
-           ( Expr.some_constr,
-             let x = Var.make "x" in
-             Expr.make_abs [| x |]
-               (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
-                  ~e:(Expr.evar x mark_alpha) mark_default)
-               [ty_alpha] pos );
-           (* None -> if just then cons else None *)
-           ( Expr.none_constr,
-             Expr.thunk_term
-               (Expr.eifthenelse (translate_expr just) (translate_expr cons)
-                  (Expr.einj
-                     ~e:
-                       (Expr.elit LUnit
-                          (Expr.with_ty mark_default (TLit TUnit, pos)))
-                     ~cons:Expr.none_constr ~name:Expr.option_enum mark_default)
-                  mark_default) );
-         ])
-    mark_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   match e with

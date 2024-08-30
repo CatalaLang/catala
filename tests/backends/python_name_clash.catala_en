@@ -91,30 +91,7 @@ class BIn:
 
 def some_name(some_name_in:SomeNameIn):
     i = (some_name_in.i_in)
-    o4 = (handle_exceptions([], []))
-    if o4 is None:
-        if True:
-            o3 = ((i + integer_of_string("1")))
-        else:
-            o3 = (None)
-    else:
-        x = o4
-        o3 = (x)
-    o5 = (handle_exceptions(
-              [SourcePosition(
-                   filename="tests/backends/python_name_clash.catala_en",
-                   start_line=10, start_column=23,
-                   end_line=10, end_column=28, law_headings=[])],
-              [o3]
-          ))
-    if o5 is None:
-        if False:
-            o2 = (None)
-        else:
-            o2 = (None)
-    else:
-        x = o5
-        o2 = (x)
+    o2 = ((i + integer_of_string("1")))
     if o2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/backends/python_name_clash.catala_en",
@@ -127,30 +104,7 @@ def some_name(some_name_in:SomeNameIn):
     return SomeName(o = o)
 
 def b(b_in:BIn):
-    result4 = (handle_exceptions([], []))
-    if result4 is None:
-        if True:
-            result3 = (integer_of_string("1"))
-        else:
-            result3 = (None)
-    else:
-        x = result4
-        result3 = (x)
-    result5 = (handle_exceptions(
-                   [SourcePosition(
-                        filename="tests/backends/python_name_clash.catala_en",
-                        start_line=16, start_column=33,
-                        end_line=16, end_column=34, law_headings=[])],
-                   [result3]
-               ))
-    if result5 is None:
-        if False:
-            result2 = (None)
-        else:
-            result2 = (None)
-    else:
-        x = result5
-        result2 = (x)
+    result2 = (integer_of_string("1"))
     if result2 is None:
         raise NoValue(SourcePosition(
                           filename="tests/backends/python_name_clash.catala_en",
@@ -160,11 +114,11 @@ def b(b_in:BIn):
         arg = result2
         result1 = (arg)
     result = (some_name(SomeNameIn(i_in = result1)))
-    result6 = (SomeName(o = result.o))
+    result3 = (SomeName(o = result.o))
     if True:
-        some_name2 = (result6)
+        some_name2 = (result3)
     else:
-        some_name2 = (result6)
+        some_name2 = (result3)
     some_name1 = (some_name2)
     return B(some_name = some_name1)
 ```
