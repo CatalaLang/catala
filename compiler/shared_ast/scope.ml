@@ -39,6 +39,12 @@ let map_exprs_in_lets :
           (f scope_let.scope_let_expr) ))
     scope_body_expr
 
+let map_last_item ~varf last =
+  Bindlib.box_list
+  @@ List.map
+       (function EVar v -> Bindlib.box_var (varf v) | _ -> assert false)
+       last
+
 let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
   let f v = function
     | ScopeDef (name, body) ->
@@ -58,7 +64,7 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
           (fun e -> Topdef (name, typ ty, e))
           (Expr.Box.lift (f expr)) )
   in
-  BoundList.map ~f ~last:Bindlib.box scopes
+  BoundList.map ~f ~last:(map_last_item ~varf) scopes
 
 let fold_exprs ~f ~init scopes =
   let f acc def _ =
@@ -116,7 +122,7 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
       | None, ScopeDef (name, body) when ScopeName.equal name main_scope ->
         Some (Expr.make_var v (get_body_mark body))
       | r, _ -> r)
-    ~bottom:(fun () -> function Some v -> v | None -> raise Not_found)
+    ~bottom:(fun _vlist -> function Some v -> v | None -> raise Not_found)
     ~up:(fun var item next ->
       let e, typ =
         match item with
@@ -137,6 +143,6 @@ let free_vars_item = function
 
 let free_vars scopes =
   BoundList.fold_right scopes
-    ~init:(fun () -> Var.Set.empty)
+    ~init:(fun _vlist -> Var.Set.empty)
     ~f:(fun item v acc ->
       Var.Set.union (Var.Set.remove v acc) (free_vars_item item))

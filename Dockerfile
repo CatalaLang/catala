@@ -2,7 +2,7 @@
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2024-05-26 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2024-08-25 AS dev-build-context
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
@@ -18,12 +18,8 @@ ENV OPAMVAR_catalaz3mode=1
 # Get a switch with all the dependencies installed
 # DON'T run 'opam update' here. Instead use a newer parent Docker image
 # (update the 'FROM' line above)
-RUN opam --cli=2.1 switch create catala ocaml-system && \
-    opam --cli=2.1 install . --with-test --with-doc --depext-only && \
-    opam --cli=2.1 install . --with-test --with-doc --deps-only && \
+RUN opam --cli=2.2 switch create . --deps-only --with-test --with-doc && \
     opam clean
-# Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
-# should be enough once opam 2.2 is released (see opam#5185)
 
 #
 # STAGE 2: get the whole repo and build

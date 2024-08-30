@@ -16,10 +16,16 @@
 
 open Catala_utils
 
+type modul = {
+  module_uses : (string * string option) list;
+  includes : string list;
+}
+
 type t = {
   catala_opts : string list;
   build_dir : File.t;
   include_dirs : File.t list;
+  modules : modul String.Map.t;
 }
 
 val default : t

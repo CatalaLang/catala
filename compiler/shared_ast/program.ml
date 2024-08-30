@@ -35,7 +35,7 @@ let map_exprs ?typ ~f ~varf { code_items; decl_ctx; lang; module_name } =
         { code_items; decl_ctx; lang; module_name })
       (Scope.map_exprs ?typ ~f ~varf code_items)
   in
-  assert (Bindlib.is_closed boxed_prg);
+  Expr.Box.assert_closed boxed_prg;
   Bindlib.unbox boxed_prg
 
 let fold_left ~f ~init { code_items; _ } =
@@ -46,7 +46,7 @@ let fold_exprs ~f ~init prg = Scope.fold_exprs ~f ~init prg.code_items
 let fold_right ~f ~init { code_items; _ } =
   BoundList.fold_right
     ~f:(fun e _ acc -> f e acc)
-    ~init:(fun () -> init)
+    ~init:(fun _vlist -> init)
     code_items
 
 let empty_ctx =

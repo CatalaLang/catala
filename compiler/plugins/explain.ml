@@ -436,7 +436,7 @@ let result_level base_vars =
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * Env.t =
   let ctx = prg.decl_ctx in
-  let (all_env, scopes), () =
+  let (all_env, scopes), _ =
     BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
@@ -611,7 +611,7 @@ let program_to_graph
     Expr.map_marks ~f:(fun m ->
         Custom { pos = Expr.mark_pos m; custom = { conditions = [] } })
   in
-  let (all_env, scopes), () =
+  let (all_env, scopes), _ =
     BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
@@ -619,7 +619,18 @@ let program_to_graph
           let e = Scope.to_expr ctx body in
           let e = customize (Expr.unbox e) in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
-          let e = Expr.rename_vars (Expr.unbox e) in
+          let e =
+            Renaming.expr
+              (Renaming.get_ctx
+                 {
+                   Renaming.reserved = [];
+                   sanitize_varname = String.to_snake_case;
+                   reset_context_for_closed_terms = false;
+                   skip_constant_binders = false;
+                   constant_binder_name = None;
+                 })
+              (Expr.unbox e)
+          in
           ( Env.add (Var.translate v) (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
         | Topdef (_, _, e) ->

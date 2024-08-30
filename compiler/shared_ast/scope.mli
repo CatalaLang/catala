@@ -47,6 +47,14 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
+val map_last_item :
+  varf:(('a, 'm) naked_gexpr Bindlib.var -> 'e2 Bindlib.var) ->
+  ('a, 'm) naked_gexpr list ->
+  'e2 list Bindlib.box
+
+(** Helper function to handle the [code_item_list] terminator when manually
+    mapping on [code_item_list] *)
+
 val fold_exprs :
   f:('acc -> 'expr -> typ -> 'acc) -> init:'acc -> 'expr code_item_list -> 'acc
 

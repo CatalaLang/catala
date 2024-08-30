@@ -437,6 +437,15 @@ let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
 let warning = make ~level:Warning ~cont:emit
 
+let join_pos ~pos ~fmt_pos ~extra_pos =
+  (* Error positioning might be provided using multiple options. Thus, we look
+     for each of them and prioritize in this order [fmt_pos] > [extra_pos] >
+     [pos] if multiple positions are present. *)
+  match fmt_pos, extra_pos, pos with
+  | Some ((_, pos) :: _), _, _ | _, Some ((_, pos) :: _), _ | _, _, Some pos ->
+    Some pos
+  | _ -> None
+
 let error ?(kind = Generic) : ('a, 'exn) emitter =
  fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
      fmt ->
@@ -445,6 +454,7 @@ let error ?(kind = Generic) : ('a, 'exn) emitter =
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Error in
+          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
           f { kind; message; pos; suggestion })
         !global_error_hook;
       raise (CompilerError m))
@@ -466,6 +476,7 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Error in
+          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
           f { kind; message; pos; suggestion })
         !global_error_hook;
       if global_errors.stop_on_error then raise (CompilerError m);

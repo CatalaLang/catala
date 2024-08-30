@@ -17,9 +17,10 @@
 open Catala_utils
 open Shared_ast
 
+val renaming : Renaming.t
+
 (** Formats a lambda calculus program into a valid OCaml program *)
 
-val avoid_keywords : string -> string
 val typ_needs_parens : typ -> bool
 
 (* val needs_parens : 'm expr -> bool *)

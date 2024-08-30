@@ -26,6 +26,9 @@ val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
 
+val map : (t -> t) -> t -> t
+(** Shallow mapping on types *)
+
 val hash : strip:Uid.Path.t -> t -> Hash.t
 (** The [strip] argument strips the given leading path components in included
     identifiers before hashing *)

@@ -24,10 +24,11 @@ open Catala_utils
 
 let run includes output optimize check_invariants closure_conversion options =
   let open Driver.Commands in
-  let prg, type_ordering =
+  let prg, type_ordering, _ =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
       ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
       ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+      ~renaming:(Some Scalc.To_python.renaming)
   in
 
   let output_file, with_output = get_output_format options ~ext:".py" output in

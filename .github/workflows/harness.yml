@@ -119,6 +119,7 @@ jobs:
       options: --user root
       env:
         DUNE_PROFILE: release
+        OPAMSWITCH: /home/ocaml/catala
     steps:
       - name: Fix home
         # Workaround Github actions issue, see
@@ -127,7 +128,7 @@ jobs:
       - name: Install LaTeX deps
         # This is done late because caching would not benefit compared to
         # installation through apk (1,5G upload is slow)
-        run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff texmf-dist-lang
+        run: sudo apk add texlive-xetex texlive-dvi texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
         # Fewer texmf deps should be required once
         # https://gitlab.alpinelinux.org/alpine/aports/-/issues/16190 is fixed
       - name: Build Catala extra docs
@@ -185,7 +186,7 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
-          mv ~/.opam/catala/doc/catala-examples/tuto*/*.html artifacts/
+          mv catala/_opam/doc/catala-examples/tuto*/*.html artifacts/
           tar cz -hf "artifacts/french-law_ocaml.tar.gz" -C french-law/_build/install/default/lib french-law
           cp catala-examples/_build/french-law_npm.tar.gz artifacts/
           cp catala-examples/_build/french_law_python.tar.gz artifacts/

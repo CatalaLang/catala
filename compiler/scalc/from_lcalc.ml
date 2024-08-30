@@ -24,6 +24,7 @@ type translation_config = {
   keep_special_ops : bool;
   dead_value_assignment : bool;
   no_struct_literals : bool;
+  renaming_context : Renaming.context;
 }
 
 type 'm ctxt = {
@@ -33,14 +34,8 @@ type 'm ctxt = {
   context_name : string;
   config : translation_config;
   program_ctx : A.ctx;
+  ren_ctx : Renaming.context;
 }
-
-(* Expressions can spill out side effect, hence this function also returns a
-   list of statements to be prepended before the expression is evaluated *)
-
-exception NotAnExpr of { needs_a_local_decl : bool }
-(** Contains the LocalDecl of the temporary variable that will be defined by the
-    next block is it's here *)
 
 (** Blocks are constructed as reverse ordered lists. This module abstracts this
     and avoids confusion in ordering of statements (also opening the opportunity
@@ -65,53 +60,94 @@ end
 
 let ( ++ ) = RevBlock.seq
 
-let rec translate_expr_list ctxt args =
-  let stmts, args =
-    List.fold_left
-      (fun (args_stmts, new_args) arg ->
-        let arg_stmts, new_arg = translate_expr ctxt arg in
-        args_stmts ++ arg_stmts, new_arg :: new_args)
-      (RevBlock.empty, []) args
-  in
-  stmts, List.rev args
+let unbind ctxt bnd =
+  let v, body, ren_ctx = Renaming.unbind_in ctxt.ren_ctx bnd in
+  v, body, { ctxt with ren_ctx }
 
-and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
-  try
-    match Mark.remove expr with
-    | EVar v ->
-      let local_var =
-        try A.EVar (Var.Map.find v ctxt.var_dict)
-        with Var.Map.Not_found _ -> (
-          try A.EFunc (Var.Map.find v ctxt.func_dict)
-          with Var.Map.Not_found _ ->
-            Message.error ~pos:(Expr.pos expr)
-              "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
-              Print.var_debug v
-              (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf v ->
-                   Print.var_debug ppf v))
-              (Var.Map.keys ctxt.var_dict))
-      in
-      RevBlock.empty, (local_var, Expr.pos expr)
-    | EStruct { fields; name } ->
-      if ctxt.config.no_struct_literals then
-        (* In C89, struct literals have to be initialized at variable
-           definition... *)
-        raise (NotAnExpr { needs_a_local_decl = true });
-      let args_stmts, new_args =
+let unmbind ctxt bnd =
+  let vs, body, ren_ctx = Renaming.unmbind_in ctxt.ren_ctx bnd in
+  vs, body, { ctxt with ren_ctx }
+
+let get_name ctxt s =
+  let name, ren_ctx = Renaming.new_id ctxt.ren_ctx s in
+  name, { ctxt with ren_ctx }
+
+let fresh_var ~pos ctxt name =
+  let v, ctxt = get_name ctxt name in
+  A.VarName.fresh (v, pos), ctxt
+
+let register_fresh_var ~pos ctxt x =
+  let v = A.VarName.fresh (Bindlib.name_of x, pos) in
+  let var_dict = Var.Map.add x v ctxt.var_dict in
+  v, { ctxt with var_dict }
+
+let register_fresh_func ~pos ctxt x =
+  let f = A.FuncName.fresh (Bindlib.name_of x, pos) in
+  let func_dict = Var.Map.add x f ctxt.func_dict in
+  f, { ctxt with func_dict }
+
+let register_fresh_arg ~pos ctxt (x, _) =
+  let _, ctxt = register_fresh_var ~pos ctxt x in
+  ctxt
+
+let rec translate_expr_list ctxt args =
+  let stmts, args, ren_ctx =
+    List.fold_left
+      (fun (args_stmts, new_args, ren_ctx) arg ->
+        let arg_stmts, new_arg, ren_ctx =
+          translate_expr { ctxt with ren_ctx } arg
+        in
+        args_stmts ++ arg_stmts, new_arg :: new_args, ren_ctx)
+      (RevBlock.empty, [], ctxt.ren_ctx)
+      args
+  in
+  stmts, List.rev args, ren_ctx
+
+and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
+    RevBlock.t * A.expr * Renaming.context =
+  match Mark.remove expr with
+  | EVar v ->
+    let local_var =
+      try A.EVar (Var.Map.find v ctxt.var_dict)
+      with Var.Map.Not_found _ -> (
+        try A.EFunc (Var.Map.find v ctxt.func_dict)
+        with Var.Map.Not_found _ ->
+          Message.error ~pos:(Expr.pos expr)
+            "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
+            Print.var_debug v
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf v ->
+                 Print.var_debug ppf v))
+            (Var.Map.keys ctxt.var_dict))
+    in
+    RevBlock.empty, (local_var, Expr.pos expr), ctxt.ren_ctx
+  | EStruct { fields; name } ->
+    if ctxt.config.no_struct_literals then
+      (* In C89, struct literals have to be initialized at variable
+         definition... *)
+      spill_expr ~needs_a_local_decl:true ctxt expr
+    else
+      let args_stmts, new_args, ren_ctx =
         StructField.Map.fold
-          (fun field arg (args_stmts, new_args) ->
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            args_stmts ++ arg_stmts, StructField.Map.add field new_arg new_args)
+          (fun field arg (args_stmts, new_args, ren_ctx) ->
+            let arg_stmts, new_arg, ren_ctx =
+              translate_expr { ctxt with ren_ctx } arg
+            in
+            ( args_stmts ++ arg_stmts,
+              StructField.Map.add field new_arg new_args,
+              ren_ctx ))
           fields
-          (RevBlock.empty, StructField.Map.empty)
+          (RevBlock.empty, StructField.Map.empty, ctxt.ren_ctx)
       in
-      args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
-    | EInj { e = e1; cons; name } ->
-      if ctxt.config.no_struct_literals then
-        (* In C89, enum literals have to be initialized at variable
-           definition... *)
-        raise (NotAnExpr { needs_a_local_decl = true });
-      let e1_stmts, new_e1 = translate_expr ctxt e1 in
+      ( args_stmts,
+        (A.EStruct { fields = new_args; name }, Expr.pos expr),
+        ren_ctx )
+  | EInj { e = e1; cons; name } ->
+    if ctxt.config.no_struct_literals then
+      (* In C89, enum literals have to be initialized at variable
+         definition... *)
+      spill_expr ~needs_a_local_decl:true ctxt expr
+    else
+      let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
       ( e1_stmts,
         ( A.EInj
             {
@@ -120,202 +156,198 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : RevBlock.t * A.expr =
               name;
               expr_typ = Expr.maybe_ty (Mark.get expr);
             },
-          Expr.pos expr ) )
-    | ETuple args ->
-      if ctxt.config.no_struct_literals then
-        (* In C89, array literals have to be initialized at variable
-           definition... *)
-        raise (NotAnExpr { needs_a_local_decl = true });
-      let args_stmts, new_args = translate_expr_list ctxt args in
-      args_stmts, (A.ETuple new_args, Expr.pos expr)
-    | EStructAccess { e = e1; field; name } ->
-      let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      ( e1_stmts,
-        (A.EStructFieldAccess { e1 = new_e1; field; name }, Expr.pos expr) )
-    | ETupleAccess { e = e1; index; _ } ->
-      let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      let typ = Expr.maybe_ty (Mark.get expr) in
-      e1_stmts, (A.ETupleAccess { e1 = new_e1; index; typ }, Expr.pos expr)
-    | EAppOp
-        {
-          op = Op.HandleExceptions, pos;
-          tys = [t_arr];
-          args = [(EArray exceptions, _)];
-        }
-      when ctxt.config.keep_special_ops ->
-      let exceptions_stmts, new_exceptions =
-        translate_expr_list ctxt exceptions
-      in
-      let arr_var_name = A.VarName.fresh (ctxt.context_name, pos) in
-      let stmts =
-        exceptions_stmts
-        ++ RevBlock.make
-             [
-               ( A.SLocalInit
-                   {
-                     name = arr_var_name, pos;
-                     typ = t_arr;
-                     expr = A.EArray new_exceptions, pos;
-                   },
-                 pos );
-             ]
-      in
-      ( stmts,
-        ( A.EAppOp
+          Expr.pos expr ),
+        ren_ctx )
+  | ETuple args ->
+    if ctxt.config.no_struct_literals then
+      (* In C89, array literals have to be initialized at variable
+         definition... *)
+      spill_expr ~needs_a_local_decl:true ctxt expr
+    else
+      let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
+      args_stmts, (A.ETuple new_args, Expr.pos expr), ren_ctx
+  | EStructAccess { e = e1; field; name } ->
+    let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
+    ( e1_stmts,
+      (A.EStructFieldAccess { e1 = new_e1; field; name }, Expr.pos expr),
+      ren_ctx )
+  | ETupleAccess { e = e1; index; _ } ->
+    let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
+    let typ = Expr.maybe_ty (Mark.get expr) in
+    ( e1_stmts,
+      (A.ETupleAccess { e1 = new_e1; index; typ }, Expr.pos expr),
+      ren_ctx )
+  | EAppOp
+      {
+        op = Op.HandleExceptions, pos;
+        tys = [t_arr];
+        args = [(EArray exceptions, _)];
+      }
+    when ctxt.config.keep_special_ops ->
+    let exceptions_stmts, new_exceptions, ren_ctx =
+      translate_expr_list ctxt exceptions
+    in
+    let arr_var_name = A.VarName.fresh (ctxt.context_name, pos) in
+    let stmts =
+      exceptions_stmts
+      ++ RevBlock.make
+           [
+             ( A.SLocalInit
+                 {
+                   name = arr_var_name, pos;
+                   typ = t_arr;
+                   expr = A.EArray new_exceptions, pos;
+                 },
+               pos );
+           ]
+    in
+    ( stmts,
+      ( A.EAppOp
+          {
+            op = Op.HandleExceptions, pos;
+            args = [A.EVar arr_var_name, pos];
+            tys = [t_arr];
+          },
+        pos ),
+      ren_ctx )
+  (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
+   *            tys;
+   *            args = [] }
+   *   when ctxt.config.keep_special_ops -> *)
+  | EAppOp { op; args; tys } ->
+    let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
+    (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
+    args_stmts, (A.EAppOp { op; args = new_args; tys }, Expr.pos expr), ren_ctx
+  | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
+    (* This defines multiple local variables at the time *)
+    let binder_pos = Expr.mark_pos binder_mark in
+    let vars, body, ctxt = unmbind ctxt binder in
+    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
+    let ctxt =
+      List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
+    in
+    let local_decls =
+      List.fold_left
+        (fun acc (x, tau) ->
+          RevBlock.append acc
+            ( A.SLocalDecl
+                { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
+              binder_pos ))
+        RevBlock.empty vars_tau
+    in
+    let vars_args =
+      List.map2
+        (fun (x, tau) arg ->
+          (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
+        vars_tau args
+    in
+    let def_blocks, ren_ctx =
+      List.fold_left
+        (fun (rblock, ren_ctx) (x, _tau, arg) ->
+          let ctxt =
             {
-              op = Op.HandleExceptions, pos;
-              args = [A.EVar arr_var_name, pos];
-              tys = [t_arr];
-            },
-          pos ) )
-    (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
-     *            tys;
-     *            args = [] }
-     *   when ctxt.config.keep_special_ops -> *)
-    | EAppOp { op; args; tys } ->
-      let args_stmts, new_args = translate_expr_list ctxt args in
-      (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
-      args_stmts, (A.EAppOp { op; args = new_args; tys }, Expr.pos expr)
-    | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
-      (* This defines multiple local variables at the time *)
-      let binder_pos = Expr.mark_pos binder_mark in
-      let vars, body = Bindlib.unmbind binder in
-      let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
-      let ctxt =
-        {
-          ctxt with
-          var_dict =
-            List.fold_left
-              (fun var_dict (x, _) ->
-                Var.Map.add x
-                  (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                  var_dict)
-              ctxt.var_dict vars_tau;
-        }
-      in
-      let local_decls =
-        List.fold_left
-          (fun acc (x, tau) ->
-            RevBlock.append acc
-              ( A.SLocalDecl
-                  { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
-                binder_pos ))
-          RevBlock.empty vars_tau
-      in
-      let vars_args =
-        List.map2
-          (fun (x, tau) arg ->
-            (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
-          vars_tau args
-      in
-      let def_blocks =
-        List.fold_left
-          (fun acc (x, _tau, arg) ->
-            let ctxt =
-              {
-                ctxt with
-                inside_definition_of = Some (Mark.remove x);
-                context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
-              }
-            in
-            let arg_stmts, new_arg = translate_expr ctxt arg in
-            RevBlock.append (acc ++ arg_stmts)
+              ctxt with
+              inside_definition_of = Some (Mark.remove x);
+              context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
+              ren_ctx;
+            }
+          in
+          let arg_stmts, new_arg, ren_ctx = translate_expr ctxt arg in
+          ( RevBlock.append (rblock ++ arg_stmts)
               ( A.SLocalDef
                   {
                     name = x;
                     expr = new_arg;
                     typ = Expr.maybe_ty (Mark.get arg);
                   },
-                binder_pos ))
-          RevBlock.empty vars_args
-      in
-      let rest_of_expr_stmts, rest_of_expr = translate_expr ctxt body in
-      local_decls ++ def_blocks ++ rest_of_expr_stmts, rest_of_expr
-    | EApp { f; args; tys = _ } ->
-      let f_stmts, new_f = translate_expr ctxt f in
-      let args_stmts, new_args = translate_expr_list ctxt args in
-      (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
-      ( f_stmts ++ args_stmts,
-        (A.EApp { f = new_f; args = new_args }, Expr.pos expr) )
-    | EArray args ->
-      if ctxt.config.no_struct_literals then
-        (* In C89, struct literals have to be initialized at variable
-           definition... *)
-        raise (NotAnExpr { needs_a_local_decl = true });
-      let args_stmts, new_args = translate_expr_list ctxt args in
-      args_stmts, (A.EArray new_args, Expr.pos expr)
-    | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr)
-    | EExternal { name } ->
-      let path, name =
-        match Mark.remove name with
-        | External_value name -> TopdefName.(path name, get_info name)
-        | External_scope name -> ScopeName.(path name, get_info name)
-      in
-      let modname =
-        ( ModuleName.Map.find (List.hd (List.rev path)) ctxt.program_ctx.modules,
-          Expr.pos expr )
-      in
-      RevBlock.empty, (EExternal { modname; name }, Expr.pos expr)
-    | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
-      raise (NotAnExpr { needs_a_local_decl = true })
-    | _ -> .
-  with NotAnExpr { needs_a_local_decl } ->
-    let tmp_var =
-      A.VarName.fresh
-        ( (*This piece of logic is used to make the code more readable. TODO:
-            should be removed when
-            https://github.com/CatalaLang/catala/issues/240 is fixed. *)
-          (match ctxt.inside_definition_of with
-          | None -> ctxt.context_name
-          | Some v ->
-            let v = Mark.remove (A.VarName.get_info v) in
-            let tmp_rex = Re.Pcre.regexp "^temp_" in
-            if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
-          Expr.pos expr )
+                binder_pos ),
+            ren_ctx ))
+        (RevBlock.empty, ctxt.ren_ctx)
+        vars_args
     in
-    let ctxt =
-      {
-        ctxt with
-        inside_definition_of = Some tmp_var;
-        context_name = Mark.remove (A.VarName.get_info tmp_var);
-      }
+    let rest_of_expr_stmts, rest_of_expr, ren_ctx =
+      translate_expr { ctxt with ren_ctx } body
     in
-    let tmp_stmts = translate_statements ctxt expr in
-    ( (if needs_a_local_decl then
-         RevBlock.make
-           (( A.SLocalDecl
-                {
-                  name = tmp_var, Expr.pos expr;
-                  typ = Expr.maybe_ty (Mark.get expr);
-                },
-              Expr.pos expr )
-           :: tmp_stmts)
-       else RevBlock.make tmp_stmts),
-      (A.EVar tmp_var, Expr.pos expr) )
+    local_decls ++ def_blocks ++ rest_of_expr_stmts, rest_of_expr, ren_ctx
+  | EApp { f; args; tys = _ } ->
+    let f_stmts, new_f, ren_ctx = translate_expr ctxt f in
+    let args_stmts, new_args, ren_ctx =
+      translate_expr_list { ctxt with ren_ctx } args
+    in
+    (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
+    ( f_stmts ++ args_stmts,
+      (A.EApp { f = new_f; args = new_args }, Expr.pos expr),
+      ren_ctx )
+  | EArray args ->
+    if ctxt.config.no_struct_literals then
+      (* In C89, struct literals have to be initialized at variable
+         definition... *)
+      spill_expr ~needs_a_local_decl:true ctxt expr
+    else
+      let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
+      args_stmts, (A.EArray new_args, Expr.pos expr), ren_ctx
+  | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr), ctxt.ren_ctx
+  | EExternal { name } ->
+    let path, name =
+      match Mark.remove name with
+      | External_value name -> TopdefName.(path name, get_info name)
+      | External_scope name -> ScopeName.(path name, get_info name)
+    in
+    let modname =
+      ( ModuleName.Map.find (List.hd (List.rev path)) ctxt.program_ctx.modules,
+        Expr.pos expr )
+    in
+    RevBlock.empty, (EExternal { modname; name }, Expr.pos expr), ctxt.ren_ctx
+  | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
+    spill_expr ~needs_a_local_decl:true ctxt expr
+  | _ -> .
 
-and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
+and spill_expr ~needs_a_local_decl ctxt expr =
+  let tmp_var, ctxt =
+    let name =
+      match ctxt.inside_definition_of with
+      | None -> ctxt.context_name
+      | Some v -> A.VarName.to_string v
+    in
+    fresh_var ctxt name ~pos:(Expr.pos expr)
+  in
+  let ctxt =
+    {
+      ctxt with
+      inside_definition_of = Some tmp_var;
+      context_name = Mark.remove (A.VarName.get_info tmp_var);
+    }
+  in
+  let tmp_stmts, ren_ctx = translate_statements ctxt expr in
+  ( (if needs_a_local_decl then
+       RevBlock.make
+         (( A.SLocalDecl
+              {
+                name = tmp_var, Expr.pos expr;
+                typ = Expr.maybe_ty (Mark.get expr);
+              },
+            Expr.pos expr )
+         :: tmp_stmts)
+     else RevBlock.make tmp_stmts),
+    (A.EVar tmp_var, Expr.pos expr),
+    ren_ctx )
+
+and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
+    A.block * Renaming.context =
   match Mark.remove block_expr with
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
-    let e_stmts, new_e = translate_expr ctxt e in
-    RevBlock.rebuild ~tail:[A.SAssert new_e, Expr.pos block_expr] e_stmts
-  | EFatalError err -> [SFatalError err, Expr.pos block_expr]
+    let e_stmts, new_e, ren_ctx = translate_expr ctxt e in
+    ( RevBlock.rebuild ~tail:[A.SAssert new_e, Expr.pos block_expr] e_stmts,
+      ren_ctx )
+  | EFatalError err -> [SFatalError err, Expr.pos block_expr], ctxt.ren_ctx
   | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
-    let vars, body = Bindlib.unmbind binder in
+    let vars, body, ctxt = unmbind ctxt binder in
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let ctxt =
-      {
-        ctxt with
-        var_dict =
-          List.fold_left
-            (fun var_dict (x, _) ->
-              Var.Map.add x
-                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                var_dict)
-            ctxt.var_dict vars_tau;
-      }
+      List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
     in
     let local_decls =
       List.map
@@ -331,94 +363,102 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
         vars_tau args
     in
-    let def_blocks =
-      List.map
-        (fun (x, _tau, arg) ->
+    let def_blocks, ren_ctx =
+      List.fold_left
+        (fun (def_blocks, ren_ctx) (x, _tau, arg) ->
           let ctxt =
             {
               ctxt with
               inside_definition_of = Some (Mark.remove x);
               context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
+              ren_ctx;
             }
           in
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          RevBlock.rebuild arg_stmts
-            ~tail:
-              [
-                ( A.SLocalDef
-                    {
-                      name = x;
-                      expr = new_arg;
-                      typ = Expr.maybe_ty (Mark.get arg);
-                    },
-                  binder_pos );
-              ])
+          let arg_stmts, new_arg, ren_ctx =
+            translate_expr { ctxt with ren_ctx } arg
+          in
+          ( RevBlock.append (def_blocks ++ arg_stmts)
+              ( A.SLocalDef
+                  {
+                    name = x;
+                    expr = new_arg;
+                    typ = Expr.maybe_ty (Mark.get arg);
+                  },
+                binder_pos ),
+            ren_ctx ))
+        (RevBlock.empty, ctxt.ren_ctx)
         vars_args
     in
-    let rest_of_block = translate_statements ctxt body in
-    local_decls @ List.flatten def_blocks @ rest_of_block
+    let rest_of_block, ren_ctx =
+      translate_statements { ctxt with ren_ctx } body
+    in
+    local_decls @ RevBlock.rebuild def_blocks ~tail:rest_of_block, ren_ctx
   | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let binder_pos = Expr.pos block_expr in
-    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
-    let closure_name =
+    let closure_name, ctxt =
       match ctxt.inside_definition_of with
-      | None -> A.VarName.fresh (ctxt.context_name, Expr.pos block_expr)
-      | Some x -> x
+      | None -> fresh_var ctxt ctxt.context_name ~pos:(Expr.pos block_expr)
+      | Some x -> x, ctxt
     in
+    let vars, body, ctxt = unmbind ctxt binder in
+    let binder_pos = Expr.pos block_expr in
+    let vars_tau = List.combine (Array.to_list vars) tys in
     let ctxt =
-      {
-        ctxt with
-        var_dict =
-          List.fold_left
-            (fun var_dict (x, _) ->
-              Var.Map.add x
-                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
-                var_dict)
-            ctxt.var_dict vars_tau;
-        inside_definition_of = None;
-      }
+      List.fold_left
+        (register_fresh_arg ~pos:binder_pos)
+        { ctxt with inside_definition_of = None }
+        vars_tau
     in
-    let new_body = translate_statements ctxt body in
-    [
-      ( A.SInnerFuncDef
-          {
-            name = closure_name, binder_pos;
-            func =
-              {
-                func_params =
-                  List.map
-                    (fun (var, tau) ->
-                      (Var.Map.find var ctxt.var_dict, binder_pos), tau)
-                    vars_tau;
-                func_body = new_body;
-                func_return_typ =
-                  (match Expr.maybe_ty (Mark.get block_expr) with
-                  | TArrow (_, t2), _ -> t2
-                  | TAny, pos_any -> TAny, pos_any
-                  | _ -> assert false);
-              };
-          },
-        binder_pos );
-    ]
+    let new_body, _ren_ctx = translate_statements ctxt body in
+    ( [
+        ( A.SInnerFuncDef
+            {
+              name = closure_name, binder_pos;
+              func =
+                {
+                  func_params =
+                    List.map
+                      (fun (var, tau) ->
+                        (Var.Map.find var ctxt.var_dict, binder_pos), tau)
+                      vars_tau;
+                  func_body = new_body;
+                  func_return_typ =
+                    (match Expr.maybe_ty (Mark.get block_expr) with
+                    | TArrow (_, t2), _ -> t2
+                    | TAny, pos_any -> TAny, pos_any
+                    | _ -> assert false);
+                };
+            },
+          binder_pos );
+      ],
+      ctxt.ren_ctx )
   | EMatch { e = e1; cases; name } ->
-    let e1_stmts, new_e1 = translate_expr ctxt e1 in
+    let typ = Expr.maybe_ty (Mark.get e1) in
     let pos = Expr.pos block_expr in
+    let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
+    let ctxt = { ctxt with ren_ctx } in
+    let e1_stmts, switch_var, ctxt =
+      match new_e1 with
+      | A.EVar v, _ -> e1_stmts, v, ctxt
+      | _ ->
+        let v, ctxt = fresh_var ctxt ctxt.context_name ~pos:(Expr.pos e1) in
+        ( RevBlock.append e1_stmts
+            ( A.SLocalInit { name = v, Expr.pos e1; expr = new_e1; typ },
+              Expr.pos e1 ),
+          v,
+          ctxt )
+    in
     let new_cases =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
           | EAbs { binder; tys = typ :: _ } ->
-            let vars, body = Bindlib.unmbind binder in
+            let vars, body, ctxt = unmbind ctxt binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
-            let scalc_var =
-              A.VarName.fresh (Bindlib.name_of var, Expr.pos arg)
+            let scalc_var, ctxt =
+              register_fresh_var ctxt var ~pos:(Expr.pos arg)
             in
-            let ctxt =
-              { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
-            in
-            let new_arg = translate_statements ctxt body in
+            let new_arg, _ren_ctx = translate_statements ctxt body in
             {
               A.case_block = new_arg;
               payload_var_name = scalc_var;
@@ -442,8 +482,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             pos );
           ( A.SSwitch
               {
-                switch_expr = A.EVar tmp_var, pos;
-                switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+                switch_var = tmp_var;
+                switch_var_typ = typ;
                 enum_name = name;
                 switch_cases = new_args;
               },
@@ -453,37 +493,37 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         [
           ( A.SSwitch
               {
-                switch_expr = new_e1;
-                switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+                switch_var;
+                switch_var_typ = typ;
                 enum_name = name;
-                switch_cases = new_args;
+                switch_cases = List.rev new_cases;
               },
             Expr.pos block_expr );
         ]
     in
-    RevBlock.rebuild e1_stmts ~tail
+    RevBlock.rebuild e1_stmts ~tail, ren_ctx
   | EIfThenElse { cond; etrue; efalse } ->
-    let cond_stmts, s_cond = translate_expr ctxt cond in
-    let s_e_true = translate_statements ctxt etrue in
-    let s_e_false = translate_statements ctxt efalse in
-    RevBlock.rebuild cond_stmts
-      ~tail:
-        [
-          ( A.SIfThenElse
-              {
-                if_expr = s_cond;
-                then_block = s_e_true;
-                else_block = s_e_false;
-              },
-            Expr.pos block_expr );
-        ]
+    let cond_stmts, s_cond, ren_ctx = translate_expr ctxt cond in
+    let s_e_true, _ = translate_statements ctxt etrue in
+    let s_e_false, _ = translate_statements ctxt efalse in
+    ( RevBlock.rebuild cond_stmts
+        ~tail:
+          [
+            ( A.SIfThenElse
+                {
+                  if_expr = s_cond;
+                  then_block = s_e_true;
+                  else_block = s_e_false;
+                },
+              Expr.pos block_expr );
+          ],
+      ren_ctx )
   | EInj { e = e1; cons; name } when ctxt.config.no_struct_literals ->
-    let e1_stmts, new_e1 = translate_expr ctxt e1 in
+    let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
     let tmp_struct_var_name =
       match ctxt.inside_definition_of with
-      | None ->
-        failwith "should not happen"
-        (* [translate_expr] should create this [inside_definition_of]*)
+      | None -> assert false
+      (* [translate_expr] should create this [inside_definition_of]*)
       | Some x -> x, Expr.pos block_expr
     in
     let inj_expr =
@@ -496,27 +536,32 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           },
         Expr.pos block_expr )
     in
-    RevBlock.rebuild e1_stmts
-      ~tail:
-        [
-          ( A.SLocalDef
-              {
-                name = tmp_struct_var_name;
-                expr = inj_expr;
-                typ =
-                  ( Mark.remove (Expr.maybe_ty (Mark.get block_expr)),
-                    Expr.pos block_expr );
-              },
-            Expr.pos block_expr );
-        ]
+    ( RevBlock.rebuild e1_stmts
+        ~tail:
+          [
+            ( A.SLocalDef
+                {
+                  name = tmp_struct_var_name;
+                  expr = inj_expr;
+                  typ =
+                    ( Mark.remove (Expr.maybe_ty (Mark.get block_expr)),
+                      Expr.pos block_expr );
+                },
+              Expr.pos block_expr );
+          ],
+      ren_ctx )
   | EStruct { fields; name } when ctxt.config.no_struct_literals ->
-    let args_stmts, new_args =
+    let args_stmts, new_args, ren_ctx =
       StructField.Map.fold
-        (fun field arg (args_stmts, new_args) ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          args_stmts ++ arg_stmts, StructField.Map.add field new_arg new_args)
+        (fun field arg (args_stmts, new_args, ren_ctx) ->
+          let arg_stmts, new_arg, ren_ctx =
+            translate_expr { ctxt with ren_ctx } arg
+          in
+          ( args_stmts ++ arg_stmts,
+            StructField.Map.add field new_arg new_args,
+            ren_ctx ))
         fields
-        (RevBlock.empty, StructField.Map.empty)
+        (RevBlock.empty, StructField.Map.empty, ctxt.ren_ctx)
     in
     let struct_expr =
       A.EStruct { fields = new_args; name }, Expr.pos block_expr
@@ -528,24 +573,28 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         (* [translate_expr] should create this [inside_definition_of]*)
       | Some x -> x, Expr.pos block_expr
     in
-    RevBlock.rebuild args_stmts
-      ~tail:
-        [
-          ( A.SLocalDef
-              {
-                name = tmp_struct_var_name;
-                expr = struct_expr;
-                typ = TStruct name, Expr.pos block_expr;
-              },
-            Expr.pos block_expr );
-        ]
+    ( RevBlock.rebuild args_stmts
+        ~tail:
+          [
+            ( A.SLocalDef
+                {
+                  name = tmp_struct_var_name;
+                  expr = struct_expr;
+                  typ = TStruct name, Expr.pos block_expr;
+                },
+              Expr.pos block_expr );
+          ],
+      ren_ctx )
   | ETuple elts when ctxt.config.no_struct_literals ->
-    let elts_stmts, rev_elts =
+    let elts_stmts, rev_elts, ren_ctx =
       List.fold_left
-        (fun (elts_stmts, rev_elts) elt ->
-          let stmt, new_elt = translate_expr ctxt elt in
-          elts_stmts ++ stmt, new_elt :: rev_elts)
-        (RevBlock.empty, []) elts
+        (fun (elts_stmts, rev_elts, ren_ctx) elt ->
+          let stmt, new_elt, ren_ctx =
+            translate_expr { ctxt with ren_ctx } elt
+          in
+          elts_stmts ++ stmt, new_elt :: rev_elts, ren_ctx)
+        (RevBlock.empty, [], ctxt.ren_ctx)
+        elts
     in
     let tuple_expr = A.ETuple (List.rev rev_elts), Expr.pos block_expr in
     let tmp_tuple_var_name =
@@ -554,24 +603,28 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       (* [translate_expr] should create this [inside_definition_of]*)
       | Some x -> x, Expr.pos block_expr
     in
-    RevBlock.rebuild elts_stmts
-      ~tail:
-        [
-          ( A.SLocalDef
-              {
-                name = tmp_tuple_var_name;
-                expr = tuple_expr;
-                typ = Expr.maybe_ty (Mark.get block_expr);
-              },
-            Expr.pos block_expr );
-        ]
+    ( RevBlock.rebuild elts_stmts
+        ~tail:
+          [
+            ( A.SLocalDef
+                {
+                  name = tmp_tuple_var_name;
+                  expr = tuple_expr;
+                  typ = Expr.maybe_ty (Mark.get block_expr);
+                },
+              Expr.pos block_expr );
+          ],
+      ren_ctx )
   | EArray elts when ctxt.config.no_struct_literals ->
-    let elts_stmts, rev_elts =
+    let elts_stmts, rev_elts, ren_ctx =
       List.fold_left
-        (fun (elts_stmts, rev_elts) elt ->
-          let stmt, new_elt = translate_expr ctxt elt in
-          elts_stmts ++ stmt, new_elt :: rev_elts)
-        (RevBlock.empty, []) elts
+        (fun (elts_stmts, rev_elts, ren_ctx) elt ->
+          let stmt, new_elt, ren_ctx =
+            translate_expr { ctxt with ren_ctx } elt
+          in
+          elts_stmts ++ stmt, new_elt :: rev_elts, ren_ctx)
+        (RevBlock.empty, [], ctxt.ren_ctx)
+        elts
     in
     let arr_expr = A.EArray (List.rev rev_elts), Expr.pos block_expr in
     let tmp_arr_var_name =
@@ -580,20 +633,21 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       (* [translate_expr] should create this [inside_definition_of] *)
       | Some x -> x, Expr.pos block_expr
     in
-    RevBlock.rebuild elts_stmts
-      ~tail:
-        [
-          ( A.SLocalDef
-              {
-                name = tmp_arr_var_name;
-                expr = arr_expr;
-                typ = Expr.maybe_ty (Mark.get block_expr);
-              },
-            Expr.pos block_expr );
-        ]
+    ( RevBlock.rebuild elts_stmts
+        ~tail:
+          [
+            ( A.SLocalDef
+                {
+                  name = tmp_arr_var_name;
+                  expr = arr_expr;
+                  typ = Expr.maybe_ty (Mark.get block_expr);
+                },
+              Expr.pos block_expr );
+          ],
+      ren_ctx )
   | ELit _ | EAppOp _ | EArray _ | EVar _ | EStruct _ | EInj _ | ETuple _
   | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ ->
-    let e_stmts, new_e = translate_expr ctxt block_expr in
+    let e_stmts, new_e, ren_ctx = translate_expr ctxt block_expr in
     let tail =
       [
         ( (match ctxt.inside_definition_of with
@@ -608,107 +662,99 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           Expr.pos block_expr );
       ]
     in
-    RevBlock.rebuild e_stmts ~tail
+    RevBlock.rebuild e_stmts ~tail, ren_ctx
   | _ -> .
 
-let rec translate_scope_body_expr
-    ~(config : translation_config)
-    (scope_name : ScopeName.t)
-    (program_ctx : A.ctx)
-    (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
-    (func_dict : ('m L.expr, A.FuncName.t) Var.Map.t)
-    (scope_expr : 'm L.expr scope_body_expr) : A.block =
-  let ctx =
-    {
-      func_dict;
-      var_dict;
-      inside_definition_of = None;
-      context_name = Mark.remove (ScopeName.get_info scope_name);
-      config;
-      program_ctx;
-    }
-  in
+let rec translate_scope_body_expr ctx (scope_expr : 'm L.expr scope_body_expr) :
+    A.block =
+  let ctx = { ctx with inside_definition_of = None } in
   match scope_expr with
   | Last e ->
-    let block, new_e = translate_expr ctx e in
+    let block, new_e, _ren_ctx = translate_expr ctx e in
     RevBlock.rebuild block ~tail:[A.SReturn new_e, Mark.get new_e]
-  | Cons (scope_let, next_bnd) -> (
-    let let_var, scope_let_next = Bindlib.unbind next_bnd in
-    let let_var_id =
-      A.VarName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
+  | Cons (scope_let, next_bnd) ->
+    let let_var, scope_let_next, ctx = unbind ctx next_bnd in
+    let let_var_id, ctx =
+      register_fresh_var ctx let_var ~pos:scope_let.scope_let_pos
     in
-    let new_var_dict = Var.Map.add let_var let_var_id var_dict in
-    let next =
-      translate_scope_body_expr ~config scope_name program_ctx new_var_dict
-        func_dict scope_let_next
-    in
-    match scope_let.scope_let_kind with
-    | Assertion ->
-      translate_statements
-        { ctx with inside_definition_of = Some let_var_id }
-        scope_let.scope_let_expr
-      @ next
-    | _ ->
-      let let_expr_stmts, new_let_expr =
-        translate_expr
-          { ctx with inside_definition_of = Some let_var_id }
-          scope_let.scope_let_expr
-      in
-      RevBlock.rebuild let_expr_stmts
-        ~tail:
-          (( A.SLocalDecl
-               {
-                 name = let_var_id, scope_let.scope_let_pos;
-                 typ = scope_let.scope_let_typ;
-               },
-             scope_let.scope_let_pos )
-          :: ( A.SLocalDef
+    let statements, ren_ctx =
+      match scope_let.scope_let_kind with
+      | Assertion ->
+        let stmts, ren_ctx =
+          translate_statements
+            { ctx with inside_definition_of = Some let_var_id }
+            scope_let.scope_let_expr
+        in
+        RevBlock.make stmts, ren_ctx
+      | _ ->
+        let let_expr_stmts, new_let_expr, ren_ctx =
+          translate_expr
+            { ctx with inside_definition_of = Some let_var_id }
+            scope_let.scope_let_expr
+        in
+        let ( +> ) = RevBlock.append in
+        ( let_expr_stmts
+          +> ( A.SLocalDecl
+                 {
+                   name = let_var_id, scope_let.scope_let_pos;
+                   typ = scope_let.scope_let_typ;
+                 },
+               scope_let.scope_let_pos )
+          +> ( A.SLocalDef
                  {
                    name = let_var_id, scope_let.scope_let_pos;
                    expr = new_let_expr;
                    typ = scope_let.scope_let_typ;
                  },
-               scope_let.scope_let_pos )
-          :: next))
+               scope_let.scope_let_pos ),
+          ren_ctx )
+    in
+    let tail = translate_scope_body_expr { ctx with ren_ctx } scope_let_next in
+    RevBlock.rebuild statements ~tail
 
 let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
-  let modules =
+  let ctxt =
+    {
+      func_dict = Var.Map.empty;
+      var_dict = Var.Map.empty;
+      inside_definition_of = None;
+      context_name = "";
+      config;
+      program_ctx = { A.decl_ctx = p.decl_ctx; modules = ModuleName.Map.empty };
+      ren_ctx = config.renaming_context;
+    }
+  in
+  let modules, ctxt =
     List.fold_left
-      (fun acc (m, _) ->
-        let vname = Mark.map (( ^ ) "Module_") (ModuleName.get_info m) in
-        (* The "Module_" prefix is a workaround name clashes for same-name
-           structs and modules, Python in particular mixes everything in one
-           namespaces. It can be removed once we have full clash-free variable
-           renaming in the Python backend (requiring all idents to go through
-           one stage of being bindlib vars) *)
-        ModuleName.Map.add m (A.VarName.fresh vname) acc)
-      ModuleName.Map.empty
+      (fun (modules, ctxt) (m, _) ->
+        let name, pos = ModuleName.get_info m in
+        let vname, ctxt = get_name ctxt name in
+        ModuleName.Map.add m (A.VarName.fresh (vname, pos)) modules, ctxt)
+      (ModuleName.Map.empty, ctxt)
       (Program.modules_to_list p.decl_ctx.ctx_modules)
   in
-  let ctx = { A.decl_ctx = p.decl_ctx; A.modules } in
-  let (_, _, rev_items), () =
-    BoundList.fold_left
-      ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
+  let program_ctx = { ctxt.program_ctx with A.modules } in
+  let ctxt = { ctxt with program_ctx } in
+  let (_, rev_items), _vlist =
+    BoundList.fold_left ~init:(ctxt, [])
+      ~f:(fun (ctxt, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->
-          let scope_input_var, scope_body_expr =
-            Bindlib.unbind body.scope_body_expr
+          let scope_input_var, scope_body_expr, ctxt1 =
+            unbind ctxt body.scope_body_expr
           in
           let input_pos = Mark.get (ScopeName.get_info name) in
-          let scope_input_var_id =
-            A.VarName.fresh (Bindlib.name_of scope_input_var, input_pos)
-          in
-          let var_dict_local =
-            Var.Map.add scope_input_var scope_input_var_id var_dict
+          let scope_input_var_id, ctxt =
+            register_fresh_var ctxt scope_input_var ~pos:input_pos
           in
           let new_scope_body =
-            translate_scope_body_expr ~config name ctx var_dict_local func_dict
+            translate_scope_body_expr
+              { ctxt with context_name = Mark.remove (ScopeName.get_info name) }
               scope_body_expr
           in
-          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
-          ( Var.Map.add var func_id func_dict,
-            var_dict,
+          let func_id, ctxt1 = register_fresh_func ctxt1 var ~pos:input_pos in
+          ( ctxt1,
             A.SScope
               {
                 Ast.scope_body_name = name;
@@ -726,39 +772,34 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                   };
               }
             :: rev_items )
-        | Topdef (name, topdef_ty, (EAbs abs, _)) ->
+        | Topdef (name, topdef_ty, (EAbs abs, m)) ->
           (* Toplevel function def *)
-          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
-          let args_a, expr = Bindlib.unmbind abs.binder in
-          let args = Array.to_list args_a in
-          let args_id =
-            List.map2
-              (fun v ty ->
-                let pos = Mark.get ty in
-                (A.VarName.fresh (Bindlib.name_of v, pos), pos), ty)
-              args abs.tys
-          in
-          let block, expr =
+          let (block, expr, _ren_ctx), args_id =
+            let args_a, expr, ctxt = unmbind ctxt abs.binder in
+            let args = Array.to_list args_a in
+            let rargs_id, ctxt =
+              List.fold_left2
+                (fun (rargs_id, ctxt) v ty ->
+                  let pos = Mark.get ty in
+                  let id, ctxt = register_fresh_var ctxt v ~pos in
+                  ((id, pos), ty) :: rargs_id, ctxt)
+                ([], ctxt) args abs.tys
+            in
             let ctxt =
               {
-                func_dict;
-                var_dict =
-                  List.fold_left2
-                    (fun map arg ((id, _), _) -> Var.Map.add arg id map)
-                    var_dict args args_id;
-                inside_definition_of = None;
+                ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
-                config;
-                program_ctx = ctx;
               }
             in
-            translate_expr ctxt expr
+            translate_expr ctxt expr, List.rev rargs_id
           in
           let body_block =
             RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
           in
-          ( Var.Map.add var func_id func_dict,
-            var_dict,
+          let func_id, ctxt =
+            register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
+          in
+          ( ctxt,
             A.SFunc
               {
                 var = func_id;
@@ -776,58 +817,61 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             :: rev_items )
         | Topdef (name, topdef_ty, expr) ->
           (* Toplevel constant def *)
-          let var_id = A.VarName.fresh (Bindlib.name_of var, Pos.no_pos) in
-          let block, expr =
+          let block, expr, _ren_ctx =
             let ctxt =
               {
-                func_dict;
-                var_dict;
-                inside_definition_of = None;
+                ctxt with
                 context_name = Mark.remove (TopdefName.get_info name);
-                config;
-                program_ctx = ctx;
               }
             in
             translate_expr ctxt expr
           in
+          let var_id, ctxt =
+            register_fresh_var ctxt var
+              ~pos:(Mark.get (TopdefName.get_info name))
+          in
           (* If the evaluation of the toplevel expr requires preliminary
              statements, we lift its computation into an auxiliary function *)
-          let rev_items =
+          let rev_items, ctxt =
             if (block :> (A.stmt * Pos.t) list) = [] then
-              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items
+              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items, ctxt
             else
               let pos = Mark.get expr in
-              let func_id =
-                A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
+              let func_name, ctxt =
+                get_name ctxt (A.VarName.to_string var_id ^ "_init")
               in
+              let func_id = A.FuncName.fresh (func_name, pos) in
               (* The list is being built in reverse order *)
               (* FIXME: find a better way than a function with no parameters... *)
-              A.SVar
-                {
-                  var = var_id;
-                  expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
-                  typ = topdef_ty;
-                }
-              :: A.SFunc
-                   {
-                     var = func_id;
-                     func =
-                       {
-                         A.func_params = [];
-                         A.func_body =
-                           RevBlock.rebuild block
-                             ~tail:[A.SReturn expr, Mark.get expr];
-                         A.func_return_typ = topdef_ty;
-                       };
-                   }
-              :: rev_items
+              ( A.SVar
+                  {
+                    var = var_id;
+                    expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
+                    typ = topdef_ty;
+                  }
+                :: A.SFunc
+                     {
+                       var = func_id;
+                       func =
+                         {
+                           A.func_params = [];
+                           A.func_body =
+                             RevBlock.rebuild block
+                               ~tail:[A.SReturn expr, Mark.get expr];
+                           A.func_return_typ = topdef_ty;
+                         };
+                     }
+                :: rev_items,
+                ctxt )
           in
-          ( func_dict,
+          ( ctxt,
             (* No need to add func_id since the function will only be called
                right here *)
-            Var.Map.add var var_id var_dict,
             rev_items ))
-      ~init:(Var.Map.empty, Var.Map.empty, [])
       p.code_items
   in
-  { ctx; code_items = List.rev rev_items; module_name = p.module_name }
+  {
+    ctx = program_ctx;
+    code_items = List.rev rev_items;
+    module_name = p.module_name;
+  }

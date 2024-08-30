@@ -461,7 +461,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
             Bindlib.box_apply
               (fun e -> Topdef (name, (TAny, Mark.get ty), e))
               (Expr.Box.lift new_expr) ))
-      ~last:(fun _ () -> (), Bindlib.box ())
+      ~last:(fun _ vlist -> (), Scope.map_last_item ~varf:Fun.id vlist)
       ~init:Var.Map.empty p.code_items
   in
   (* Now we need to further tweak [decl_ctx] because some of the user-defined
@@ -633,7 +633,8 @@ let rec hoist_closures_code_item_list
     (code_items : (lcalc, 'm) gexpr code_item_list) :
     (lcalc, 'm) gexpr code_item_list Bindlib.box =
   match code_items with
-  | Last () -> Bindlib.box (Last ())
+  | Last vlist ->
+    Bindlib.box_apply (fun l -> Last l) (Scope.map_last_item ~varf:Fun.id vlist)
   | Cons (code_item, next_code_items) ->
     let code_item_var, next_code_items = Bindlib.unbind next_code_items in
     let hoisted_closures, new_code_item =
