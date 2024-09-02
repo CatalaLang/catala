@@ -116,11 +116,11 @@ def b(b_in:BIn):
         arg = result2
         result1 = (arg)
     result = (some_name(SomeNameIn(i_in = result1)))
-    result2 = (SomeName(o = result.o))
+    result3 = (SomeName(o = result.o))
     if True:
-        some_name2 = (result2)
+        some_name2 = (result3)
     else:
-        some_name2 = (result2)
+        some_name2 = (result3)
     some_name1 = (some_name2)
     return B(some_name = some_name1)
 ```

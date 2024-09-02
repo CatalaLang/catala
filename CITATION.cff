@@ -36,6 +36,10 @@ authors:
     family-names: Banuls
   - given-name: Aminata
     family-names: Boiguillé
+  - given-name: Vincent
+    family-names: Botbol
+    affiliation: "INRIA"
+    email: vincent.botbol@inria.fr
 repository-code: "https://github.com/CatalaLang/catala"
 url: "https://catala-lang.org/"
 abstract: >-
@@ -43,5 +47,5 @@ abstract: >-
   faithful-by-construction algorithms from
   legislative texts.
 license: Apache-2.0
-version: 0.8.0
+version: 0.10.0
 date-released: "2022-03-08"

@@ -75,7 +75,6 @@ module type BindlibCtxt = module type of Bindlib.Ctxt (DefaultBindlibCtxRename)
 type config = {
   reserved : string list;
   sanitize_varname : string -> string;
-  reset_context_for_closed_terms : bool;
   skip_constant_binders : bool;
   constant_binder_name : string option;
 }
@@ -96,41 +95,37 @@ let default_config =
   {
     reserved = [];
     sanitize_varname = Fun.id;
-    reset_context_for_closed_terms = true;
     skip_constant_binders = true;
     constant_binder_name = None;
   }
 
+let patch_binder_name fname b =
+  let name = fname (Bindlib.binder_name b) in
+  let occurs = Bindlib.binder_occur b in
+  let rank = Bindlib.binder_rank b in
+  let mkfree v = EVar v in
+  let subst = Bindlib.subst b in
+  Bindlib.raw_binder name occurs rank mkfree subst
+
+let patch_mbinder_names fname b =
+  let names = Array.map fname (Bindlib.mbinder_names b) in
+  let occurs = Bindlib.mbinder_occurs b in
+  let rank = Bindlib.mbinder_rank b in
+  let mkfree v = EVar v in
+  let msubst = Bindlib.msubst b in
+  Bindlib.raw_mbinder names occurs rank mkfree msubst
+
 let unbind_in ctx ?fname b =
   let module BindCtx = (val ctx.bindCtx) in
-  match fname with
-  | Some fn ->
-    let name = fn (Bindlib.binder_name b) in
-    let v, bcontext = BindCtx.new_var_in ctx.bcontext (fun v -> EVar v) name in
-    let e = Bindlib.subst b (EVar v) in
-    v, e, { ctx with bcontext }
-  | None ->
-    let v, e, bcontext = BindCtx.unbind_in ctx.bcontext b in
-    v, e, { ctx with bcontext }
+  let b = match fname with Some fn -> patch_binder_name fn b | None -> b in
+  let v, e, bcontext = BindCtx.unbind_in ctx.bcontext b in
+  v, e, { ctx with bcontext }
 
 let unmbind_in ctx ?fname b =
   let module BindCtx = (val ctx.bindCtx) in
-  match fname with
-  | Some fn ->
-    let names = Array.map fn (Bindlib.mbinder_names b) in
-    let rvs, bcontext =
-      Array.fold_left
-        (fun (rvs, bcontext) n ->
-          let v, bcontext = BindCtx.new_var_in bcontext (fun v -> EVar v) n in
-          v :: rvs, bcontext)
-        ([], ctx.bcontext) names
-    in
-    let vs = Array.of_list (List.rev rvs) in
-    let e = Bindlib.msubst b (Array.map (fun v -> EVar v) vs) in
-    vs, e, { ctx with bcontext }
-  | None ->
-    let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
-    vs, e, { ctx with bcontext }
+  let b = match fname with Some fn -> patch_mbinder_names fn b | None -> b in
+  let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
+  vs, e, { ctx with bcontext }
 
 let set_rewriters ?scopes ?topdefs ?structs ?fields ?enums ?constrs ctx =
   (fun ?(scopes = ctx.scopes) ?(topdefs = ctx.topdefs) ?(structs = ctx.structs)
@@ -152,7 +147,6 @@ let get_ctx cfg =
   let module BindCtx = Bindlib.Ctxt (struct
     include DefaultBindlibCtxRename
 
-    let reset_context_for_closed_terms = cfg.reset_context_for_closed_terms
     let skip_constant_binders = cfg.skip_constant_binders
     let constant_binder_name = cfg.constant_binder_name
   end) in
@@ -255,7 +249,7 @@ let code_items ctx fty (items : 'e code_item_list) =
              (function EVar v -> Bindlib.box_var v | _ -> assert false)
              l)
       in
-      Bindlib.box_apply (fun l -> Last l) l
+      Bindlib.box_apply (fun l -> Last l) l, ctx
     | Cons (ScopeDef (name, body), next_bind) ->
       let scope_body =
         let scope_input_var, scope_lets, ctx =
@@ -287,10 +281,12 @@ let code_items ctx fty (items : 'e code_item_list) =
           (* Otherwise, it is treated as a normal variable *)
           unbind_in ctx ~fname:ctx.vars next_bind
       in
-      let next_bind = Bindlib.bind_var scope_var (aux ctx next) in
-      Bindlib.box_apply2
-        (fun body next_bind -> Cons (ScopeDef (name, body), next_bind))
-        scope_body next_bind
+      let next_body, ctx = aux ctx next in
+      let next_bind = Bindlib.bind_var scope_var next_body in
+      ( Bindlib.box_apply2
+          (fun body next_bind -> Cons (ScopeDef (name, body), next_bind))
+          scope_body next_bind,
+        ctx )
     | Cons (Topdef (name, ty, visibility, e), next_bind) ->
       let e = expr ctx e in
       let ty = fty ty in
@@ -306,12 +302,16 @@ let code_items ctx fty (items : 'e code_item_list) =
           (* Otherwise, it is treated as a normal variable *)
           unbind_in ctx ~fname:ctx.vars next_bind
       in
-      let next_bind = Bindlib.bind_var topdef_var (aux ctx next) in
-      Bindlib.box_apply2
-        (fun e next_bind -> Cons (Topdef (name, ty, visibility, e), next_bind))
-        (Expr.Box.lift e) next_bind
+      let next_body, ctx = aux ctx next in
+      let next_bind = Bindlib.bind_var topdef_var next_body in
+      ( Bindlib.box_apply2
+          (fun e next_bind ->
+            Cons (Topdef (name, ty, visibility, e), next_bind))
+          (Expr.Box.lift e) next_bind,
+        ctx )
   in
-  Bindlib.unbox (aux ctx items)
+  let items, ctx = aux ctx items in
+  Bindlib.unbox items, ctx
 
 module PathMap = Map.Make (Uid.Path)
 
@@ -434,7 +434,6 @@ let uncap s = String.to_ascii s |> String.uncapitalize_ascii
    names *)
 let program
     ~reserved
-    ~reset_context_for_closed_terms
     ~skip_constant_binders
     ~constant_binder_name
     ~namespaced_fields_constrs
@@ -448,7 +447,6 @@ let program
     {
       reserved;
       sanitize_varname = f_var;
-      reset_context_for_closed_terms;
       skip_constant_binders;
       constant_binder_name;
     }
@@ -608,7 +606,7 @@ let program
     }
   in
   let decl_ctx = Program.map_decl_ctx ~f:(typ ctx) decl_ctx in
-  let code_items = code_items ctx (typ ctx) p.code_items in
+  let code_items, ctx = code_items ctx (typ ctx) p.code_items in
   { p with decl_ctx; code_items }, ctx
 
 (* This first-class module wrapping is here to allow a polymorphic renaming
@@ -624,7 +622,6 @@ let apply (module R : Renaming) = R.apply
 
 let program
     ~reserved
-    ~reset_context_for_closed_terms
     ~skip_constant_binders
     ~constant_binder_name
     ~namespaced_fields_constrs
@@ -636,14 +633,14 @@ let program
     () =
   let module M = struct
     let apply p =
-      program ~reserved ~reset_context_for_closed_terms ~skip_constant_binders
-        ~constant_binder_name ~namespaced_fields_constrs ?f_var ?f_struct
-        ?f_field ?f_enum ?f_constr p
+      program ~reserved ~skip_constant_binders ~constant_binder_name
+        ~namespaced_fields_constrs ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
   end in
   (module M : Renaming)
 
 let default =
-  program () ~reserved:[] ~reset_context_for_closed_terms:true
-    ~skip_constant_binders:true ~constant_binder_name:(Some "_") ~f_var:Fun.id
+  program () ~reserved:default_config.reserved
+    ~skip_constant_binders:default_config.skip_constant_binders
+    ~constant_binder_name:default_config.constant_binder_name ~f_var:Fun.id
     ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id ~f_constr:Fun.id
     ~namespaced_fields_constrs:true

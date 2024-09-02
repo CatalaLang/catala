@@ -64,7 +64,7 @@ let s (s_in: S_in.t) : S.t =
                     (let a2 : bool = (o_or a1 true) in
                     a2)))
                with
-               | Eoption.ENone _1 -> (raise
+               | Eoption.ENone _ -> (raise
                    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
                                                             start_line=7; start_column=18;
                                                             end_line=7; end_column=19;

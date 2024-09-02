@@ -131,16 +131,16 @@ end
 
 
 let closure_assert : Obj.t -> integer -> integer =
-  fun (env: Obj.t) (x: integer) -> (let env1 : unit = (o_fromclosureenv env)
+  fun (env: Obj.t) (x: integer) -> (let _ : unit = (o_fromclosureenv env)
     in
     ((o_add_int_int x (integer_of_string "1"))))
 
-let assert1 (assert_in: Assert_in1.t) : Assert2.t =
+let assert1 (_: Assert_in1.t) : Assert2.t =
   let assert1: bool =
     match
       (match
          (Eoption.ESome
-            (let assert1 : integer array =
+            (let _ : integer array =
                (o_map
                   (let assert1 : Obj.t -> integer -> integer = closure_assert
                   in

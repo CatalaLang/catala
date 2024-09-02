@@ -24,7 +24,7 @@ module S_in = struct
 end
 
 
-let s (s_in: S_in.t) : S.t =
+let s (_: S_in.t) : S.t =
   let sr: money =
     match (Eoption.ESome (money_of_cents_string "100000"))
     with
@@ -54,7 +54,7 @@ let half : integer -> decimal =
       "2")
 
 let maybe : Enum1.t -> Enum1.t =
-  fun (x: Enum1.t) -> Enum1.Maybe ()
+  fun (_: Enum1.t) -> Enum1.Maybe ()
 
 let () =
   Runtime_ocaml.Runtime.register_module "Mod_def"

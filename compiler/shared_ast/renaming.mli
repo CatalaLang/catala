@@ -20,7 +20,6 @@ open Definitions
 type config = {
   reserved : string list;  (** Use for keywords and built-ins *)
   sanitize_varname : string -> string;  (** Typically String.to_snake_case *)
-  reset_context_for_closed_terms : bool;  (** See [Bindlib.Renaming] *)
   skip_constant_binders : bool;  (** See [Bindlib.Renaming] *)
   constant_binder_name : string option;  (** See [Bindlib.Renaming] *)
 }
@@ -73,7 +72,7 @@ val code_items :
   context ->
   (typ -> typ) ->
   ((_ any, 'm) gexpr as 'e) code_item_list ->
-  'e code_item_list
+  'e code_item_list * context
 
 type t
 (** Enclosing of a polymorphic renaming function, to be used by [apply] *)
@@ -82,7 +81,6 @@ val apply : t -> 'e program -> 'e program * context
 
 val program :
   reserved:string list ->
-  reset_context_for_closed_terms:bool ->
   skip_constant_binders:bool ->
   constant_binder_name:string option ->
   namespaced_fields_constrs:bool ->

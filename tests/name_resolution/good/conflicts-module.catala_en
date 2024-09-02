@@ -34,11 +34,11 @@ module Closure_scoppe1_in = struct
 end
 
 
-let closure_scoppe (closure_scoppe_in: Closure_scoppe_in.t) : Closure_scoppe.t =
+let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool = false in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe1 (closure_scoppe1_in: Closure_scoppe1_in.t) : Closure_scoppe1.t =
+let closure_scoppe1 (_: Closure_scoppe1_in.t) : Closure_scoppe1.t =
   let scoppe: bool = false in
   {Closure_scoppe1.scoppe = scoppe}
 
@@ -93,17 +93,17 @@ end
 
 
 let closure_scoppe2 : Obj.t -> bool -> integer -> bool =
-  fun (env: Obj.t) (acc: bool) (x: integer) ->
+  fun (_: Obj.t) (acc: bool) (x: integer) ->
     o_and acc (o_gt_int_int x (integer_of_string "2"))
 
-let closure_scoppe (closure_scoppe_in: Closure_scoppe_in.t) : Closure_scoppe.t =
+let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool =
     o_fold (closure_scoppe2, (o_toclosureenv ())) true
       ([|(integer_of_string "5"); (integer_of_string "6"); (integer_of_string
          "7")|]) in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe1 (closure_scoppe1_in: Closure_scoppe1_in.t) : Closure_scoppe1.t =
+let closure_scoppe1 (_: Closure_scoppe1_in.t) : Closure_scoppe1.t =
   let scoppe: bool = false in
   {Closure_scoppe1.scoppe = scoppe}
 

@@ -124,7 +124,7 @@ let glob5 = glob5_init ()
 
 let glob6 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
-let S2 (_: S2_in) =
+let S2 (s2_in: S2_in) =
   decl a1 : decimal;
   a2 : option decimal = ESome glob3 ¤44.00 + 100.;
   switch a2:
@@ -137,7 +137,7 @@ let S2 (_: S2_in) =
   a = a1;
   return S2 {"a": a}
 
-let S3 (_: S3_in) =
+let S3 (s3_in: S3_in) =
   decl a1 : decimal;
   a2 : option decimal = ESome 50. + glob4 ¤44.00 55.;
   switch a2:
@@ -150,7 +150,7 @@ let S3 (_: S3_in) =
   a = a1;
   return S3 {"a": a}
 
-let S4 (_: S4_in) =
+let S4 (s4_in: S4_in) =
   decl a1 : decimal;
   a2 : option decimal = ESome glob5 + 1.;
   switch a2:
@@ -163,7 +163,7 @@ let S4 (_: S4_in) =
   a = a1;
   return S4 {"a": a}
 
-let S5 (_: S_in) =
+let S5 (s_in: S_in) =
   decl a1 : decimal;
   a2 : option decimal = ESome glob1 * glob1;
   switch a2:
@@ -180,8 +180,8 @@ let S5 (_: S_in) =
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:8.10-11>;
     fatal NoValue
-  | ESome arg →
-    b1 = arg;
+  | ESome arg1 →
+    b1 = arg1;
   decl b : A {y: bool; z: decimal};
   b = b1;
   return S {"a": a, "b": b}
@@ -431,8 +431,8 @@ def s5(s_in:SIn):
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg = b2
-        b1 = (arg)
+        arg1 = b2
+        b1 = (arg1)
     b = (b1)
     return S(a = a, b = b)
 ```

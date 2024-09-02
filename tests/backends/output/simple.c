@@ -100,8 +100,8 @@ const Baz* baz (const Baz_in* baz_in)
     b3 = CATALA_NONE;
   }
   if (b3->code == catala_option_some) {
-    CATALA_DEC x = b3->payload;
-    b2 = catala_some(x);
+    CATALA_DEC x1 = b3->payload;
+    b2 = catala_some(x1);
   } else {
     CATALA_DEC b5;
     switch (a1->code) {
@@ -124,8 +124,8 @@ const Baz* baz (const Baz_in* baz_in)
     b2 = catala_some(b5);
   }
   if (b2->code == catala_option_some) {
-    CATALA_DEC arg = b2->payload;
-    b1 = arg;
+    CATALA_DEC arg1 = b2->payload;
+    b1 = arg1;
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
@@ -138,8 +138,8 @@ const Baz* baz (const Baz_in* baz_in)
   c3->elements[1] = b;
   c2 = catala_some(c3);
   if (c2->code == catala_option_some) {
-    const CATALA_ARRAY(CATALA_DEC) arg = c2->payload;
-    c1 = arg;
+    const CATALA_ARRAY(CATALA_DEC) arg2 = c2->payload;
+    c1 = arg2;
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};

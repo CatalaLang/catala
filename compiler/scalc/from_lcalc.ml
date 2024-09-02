@@ -209,6 +209,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     let exceptions_stmts, new_exceptions, ren_ctx =
       translate_expr_list ctxt exceptions
     in
+    let ctxt = { ctxt with ren_ctx } in
     let eposl, vposdefs, ctxt =
       List.fold_left
         (fun (eposl, vposdefs, ctxt) exc ->
@@ -225,11 +226,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
           ctxt )
       else
         let arr_var_name, ctxt =
-          fresh_var ~pos { ctxt with ren_ctx } ctxt.context_name
+          fresh_var ~pos ctxt ("exc_" ^ ctxt.context_name)
         in
-        let pos_arr_var_name, ctxt =
-          fresh_var ~pos { ctxt with ren_ctx } "pos_list"
-        in
+        let pos_arr_var_name, ctxt = fresh_var ~pos ctxt "pos_list" in
         let stmts =
           stmts
           ++ RevBlock.make
@@ -475,7 +474,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
         { ctxt with inside_definition_of = None }
         vars_tau
     in
-    let new_body, _ren_ctx = translate_statements ctxt body in
+    let new_body, ren_ctx = translate_statements ctxt body in
     ( [
         ( A.SInnerFuncDef
             {
@@ -497,10 +496,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
             },
           binder_pos );
       ],
-      ctxt.ren_ctx )
+      ren_ctx )
   | EMatch { e = e1; cases; name } ->
     let typ = Expr.maybe_ty (Mark.get e1) in
-    let pos = Expr.pos block_expr in
     let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
     let ctxt = { ctxt with ren_ctx } in
     let e1_stmts, switch_var, ctxt =
@@ -514,63 +512,45 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) :
           v,
           ctxt )
     in
-    let new_cases =
+    let new_cases, ren_ctx =
       EnumConstructor.Map.fold
-        (fun _ arg new_args ->
+        (fun _ arg (new_args, ren_ctx) ->
           match Mark.remove arg with
           | EAbs { binder; tys = typ :: _ } ->
-            let vars, body, ctxt = unmbind ctxt binder in
+            let vars, body, ctxt = unmbind { ctxt with ren_ctx } binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
             let scalc_var, ctxt =
               register_fresh_var ctxt var ~pos:(Expr.pos arg)
             in
             let new_arg, _ren_ctx = translate_statements ctxt body in
-            {
-              A.case_block = new_arg;
-              payload_var_name = scalc_var;
-              payload_var_typ = typ;
-            }
-            :: new_args
+            ( {
+                A.case_block = new_arg;
+                payload_var_name = scalc_var;
+                payload_var_typ = typ;
+              }
+              :: new_args,
+              ctxt.ren_ctx )
           | _ -> assert false)
-        cases []
+        cases ([], ctxt.ren_ctx)
     in
-    let new_args = List.rev new_cases in
+    let ctxt = { ctxt with ren_ctx } in
     let tail =
-      if ctxt.config.keep_special_ops then
-        let tmp_var = A.VarName.fresh ("match_arg", pos) in
-        [
-          ( A.SLocalInit
-              {
-                name = tmp_var, pos;
-                typ = Expr.maybe_ty (Mark.get e1);
-                expr = new_e1;
-              },
-            pos );
-          ( A.SSwitch
-              {
-                switch_var = tmp_var;
-                switch_var_typ = typ;
-                enum_name = name;
-                switch_cases = new_args;
-              },
-            pos );
-        ]
-      else
-        [
-          ( A.SSwitch
-              {
-                switch_var;
-                switch_var_typ = typ;
-                enum_name = name;
-                switch_cases = List.rev new_cases;
-              },
-            Expr.pos block_expr );
-        ]
+      [
+        ( A.SSwitch
+            {
+              switch_var;
+              switch_var_typ = typ;
+              enum_name = name;
+              switch_cases = List.rev new_cases;
+            },
+          Expr.pos block_expr );
+      ]
     in
-    RevBlock.rebuild e1_stmts ~tail, ren_ctx
+    RevBlock.rebuild e1_stmts ~tail, ctxt.ren_ctx
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond, ren_ctx = translate_expr ctxt cond in
+    let ctxt = { ctxt with ren_ctx } in
     let s_e_true, _ = translate_statements ctxt etrue in
     let s_e_false, _ = translate_statements ctxt efalse in
     ( RevBlock.rebuild cond_stmts
@@ -808,20 +788,25 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       ~f:(fun (ctxt, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->
-          let scope_input_var, scope_body_expr, ctxt1 =
+          let scope_input_var, scope_body_expr, outer_ctx =
             unbind ctxt body.scope_body_expr
           in
           let input_pos = Mark.get (ScopeName.get_info name) in
-          let scope_input_var_id, ctxt =
+          let scope_input_var_id, inner_ctx =
             register_fresh_var ctxt scope_input_var ~pos:input_pos
           in
           let new_scope_body =
             translate_scope_body_expr
-              { ctxt with context_name = Mark.remove (ScopeName.get_info name) }
+              {
+                inner_ctx with
+                context_name = Mark.remove (ScopeName.get_info name);
+              }
               scope_body_expr
           in
-          let func_id, ctxt1 = register_fresh_func ctxt1 var ~pos:input_pos in
-          ( ctxt1,
+          let func_id, outer_ctx =
+            register_fresh_func outer_ctx var ~pos:input_pos
+          in
+          ( outer_ctx,
             A.SScope
               {
                 Ast.scope_body_name = name;
@@ -841,32 +826,32 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             :: rev_items )
         | Topdef (name, topdef_ty, _vis, (EAbs abs, m)) ->
           (* Toplevel function def *)
-          let (block, expr, _ren_ctx), args_id =
-            let args_a, expr, ctxt = unmbind ctxt abs.binder in
+          let (block, expr, _ren_ctx_inner), args_id =
+            let args_a, expr, ctxt_inner = unmbind ctxt abs.binder in
             let args = Array.to_list args_a in
-            let rargs_id, ctxt =
+            let rargs_id, ctxt_inner =
               List.fold_left2
-                (fun (rargs_id, ctxt) v ty ->
+                (fun (rargs_id, ctxt_inner) v ty ->
                   let pos = Mark.get ty in
-                  let id, ctxt = register_fresh_var ctxt v ~pos in
-                  ((id, pos), ty) :: rargs_id, ctxt)
-                ([], ctxt) args abs.tys
+                  let id, ctxt_inner = register_fresh_var ctxt_inner v ~pos in
+                  ((id, pos), ty) :: rargs_id, ctxt_inner)
+                ([], ctxt_inner) args abs.tys
             in
-            let ctxt =
+            let ctxt_inner =
               {
-                ctxt with
+                ctxt_inner with
                 context_name = Mark.remove (TopdefName.get_info name);
               }
             in
-            translate_expr ctxt expr, List.rev rargs_id
+            translate_expr ctxt_inner expr, List.rev rargs_id
           in
           let body_block =
             RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
           in
-          let func_id, ctxt =
+          let func_id, ctxt_outer =
             register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
           in
-          ( ctxt,
+          ( ctxt_outer,
             A.SFunc
               {
                 var = func_id;
@@ -884,7 +869,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             :: rev_items )
         | Topdef (name, topdef_ty, _vis, expr) ->
           (* Toplevel constant def *)
-          let block, expr, _ren_ctx =
+          let block, expr, _ren_ctx_inner =
             let ctxt =
               {
                 ctxt with
