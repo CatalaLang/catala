@@ -540,84 +540,6 @@ let rec format_statement
        @[<hov 2>catala_error(catala_assertion_failed,@ %a);@]@;\
        <1 -2>}@]" (format_expression ctx) expr (format_expression ctx) pos_expr
   | _ -> .
-(* | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
- *   let e_name =
- *     match Mark.remove return_typ with
- *     | TEnum t -> t
- *     | _ -> failwith "should not happen"
- *   in
- *   let option_config =
- *     List.map fst
- *       (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
- *   in
- *   let none_cons, some_cons =
- *     match option_config with
- *     | [none_cons; some_cons] -> none_cons, some_cons
- *     | _ -> failwith "should not happen"
- *   in
- *   let pos = Mark.get s in
- *   let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
- *   let exception_current = VarName.fresh ("exception_current", Mark.get s) in
- *   let exception_conflict = VarName.fresh ("exception_conflict", Mark.get s) in
- *   let variable_defined_in_cons =
- *     match List.hd (List.rev cons) with
- *     | SReturn (EVar v), _ -> v
- *     | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
- *     | _ -> failwith "should not happen"
- *   in
- *   if exceptions <> [] then begin
- *     Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {%a: NULL}};@]@,"
- *       (format_typ ctx.decl_ctx (fun fmt -> VarName.format fmt exception_acc_var))
- *       return_typ EnumName.format e_name EnumConstructor.format none_cons
- *       EnumConstructor.format none_cons;
- *     Format.fprintf fmt "%a;@,"
- *       (format_typ ctx.decl_ctx (fun fmt -> VarName.format fmt exception_current))
- *       return_typ;
- *     Format.fprintf fmt "char %a = 0;@," VarName.format exception_conflict;
- *     List.iter
- *       (fun except ->
- *         Format.fprintf fmt
- *           "%a = %a;@,\
- *            @[<v 2>if (%a.code == %a_%a) {@,\
- *            @[<v 2>if (%a.code == %a_%a) {@,\
- *            %a = 1;@]@,\
- *            @[<v 2>} else {@,\
- *            %a = %a;@]@,\
- *            }@]@,\
- *            }@,"
- *           VarName.format exception_current (format_expression ctx) except
- *           VarName.format exception_current EnumName.format e_name
- *           EnumConstructor.format some_cons VarName.format exception_acc_var
- *           EnumName.format e_name EnumConstructor.format some_cons VarName.format
- *           exception_conflict format_var exception_acc_var format_var
- *           exception_current)
- *       exceptions;
- *     Format.fprintf fmt
- *       "@[<v 2>if (%a) {@,\
- *        @[<hov 2>catala_error(catala_conflict,@ \"%s\",@ %d, %d, \
- *        %d, %d);@]@;\
- *        <1 -2>}@]@,"
- *       format_var exception_conflict (Pos.get_file pos)
- *       (Pos.get_start_line pos) (Pos.get_start_column pos)
- *       (Pos.get_end_line pos) (Pos.get_end_column pos);
- *     Format.fprintf fmt
- *       "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
- *       format_var exception_acc_var EnumName.format e_name
- *       EnumConstructor.format some_cons format_var variable_defined_in_cons
- *       format_var exception_acc_var
- *   end;
- *   Format.fprintf fmt
- *     "@[<v 2>if (%a) {@,\
- *      %a@]@,\
- *      @[<v 2>} else {@,\
- *      %a.code = %a_%a;@,\
- *      %a.payload.%a = NULL;@]@,\
- *      }"
- *     (format_expression ctx) just (format_block ctx) cons format_var
- *     variable_defined_in_cons EnumName.format e_name EnumConstructor.format
- *     none_cons format_var variable_defined_in_cons EnumConstructor.format
- *     none_cons;
- *   if exceptions <> [] then Format.fprintf fmt "@]@,}" *)
 
 and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
   (* C89 doesn't accept initialisations of constructions from non-constants: -
@@ -646,12 +568,6 @@ and format_block (ctx : ctx) (fmt : Format.formatter) (b : block) : unit =
     List.fold_left
       (fun acc -> function
         | (SLocalInit { expr = (ELit _ | EPosLit), _; _ }, _) as st -> st :: acc
-        (* | SLocalInit { expr = EVar v |
-         *                       EAppOp {op=(FromClosureEnv|ToClosureEnv), _;
-         *                               args = [EVar v, _]; _}
-         *                     , _;_ }, _ as st
-         *   when VarName.Map.mem v ??defined_vars ->
-         *   st :: acc *)
         | ( SLocalInit
               {
                 name;

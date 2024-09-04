@@ -80,10 +80,6 @@ type stmt =
 
 and special_operator = |
 
-(* OHandleExceptions of {
- *   exceptions : expr list;
- *   (\* return_typ : typ; *\)
- * } *)
 and block = stmt Mark.pos list
 
 and switch_case = {

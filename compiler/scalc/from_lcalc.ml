@@ -260,10 +260,6 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
           },
         pos ),
       ctxt.ren_ctx )
-  (* | EAppOp { op = (Op.Reduce | Op.Fold), pos;
-   *            tys;
-   *            args = [] }
-   *   when ctxt.config.keep_special_ops -> *)
   | EAppOp { op; args; tys } ->
     let pos = Mark.get op in
     let stmts, args, ren_ctx = translate_expr_list ctxt args in

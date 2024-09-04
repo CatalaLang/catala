@@ -828,17 +828,6 @@ const CATALA_ARRAY(Z) o_concat (const CATALA_ARRAY(X) x,
   return ret;
 }
 
-/*
-TODO
-
-o_eq
-o_map
-o_map2
-o_concat
-o_filter
-o_reduce
-*/
-
 enum catala_option_code {
   catala_option_none,
   catala_option_some
@@ -931,7 +920,10 @@ void catala_init()
   return;
 }
 
-/* void test()
+/* TODO: this is a basic unit test for the runtime. It should be moved to a
+ * separate file and integrated in the build system. (And extended)
+ *
+ * void test()
  * {
  *   CATALA_MONEY dollars = catala_new_money_str ("10000");
  *   CATALA_DEC rate = catala_new_dec_str ("1/3");
