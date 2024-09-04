@@ -79,7 +79,6 @@ type stmt =
   | SSpecialOp of special_operator
 
 and special_operator = |
-
 and block = stmt Mark.pos list
 
 and switch_case = {

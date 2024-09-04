@@ -486,6 +486,8 @@ CATALA_MONEY o_sub_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2)
 
 CATALA_DURATION o_sub_dat_dat (CATALA_DATE x1, CATALA_DATE x2)
 {
+  /* FIXME: all date/duration operations need to be implemented following
+     dates_calc */
   return catala_new_duration(x1->year - x2->year,
                       x1->month - x2->month,
                       x1->day - x2->day);
@@ -858,7 +860,7 @@ CATALA_BOOL catala_isnone (const CATALA_OPTION() opt)
 }
 
 const CATALA_OPTION() handle_exceptions
-  (const catala_code_position* pos,
+  (const CATALA_ARRAY(const catala_code_position*) pos,
    const CATALA_ARRAY(const CATALA_OPTION()) e)
 {
   int i, j;
@@ -867,7 +869,7 @@ const CATALA_OPTION() handle_exceptions
   for (i = 0; i < size && excs[i]->code == catala_option_none; i++) {}
   if (i >= size) return CATALA_NONE;
   for(j = i + 1; j < size && excs[j]->code == catala_option_none; j++) {}
-  if (j < size) catala_error(catala_conflict, pos);
+  if (j < size) catala_error(catala_conflict, pos->elements[j]);
   return excs[i];
 }
 

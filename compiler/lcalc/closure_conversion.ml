@@ -311,8 +311,7 @@ let rec transform_closures_expr :
       Expr.make_app
         (Expr.make_tupleaccess code_env_expr 0 2 pos)
         (Expr.make_tupleaccess code_env_expr 1 2 pos :: new_args)
-        (env_arg_ty :: tys)
-        pos
+        (env_arg_ty :: tys) pos
     in
 
     free_vars, Expr.make_let_in code_env_var (TAny, pos) new_e1 call_expr pos
