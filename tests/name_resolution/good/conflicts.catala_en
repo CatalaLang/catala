@@ -6,14 +6,14 @@ the backends.
 declaration structure Assert_in:
   data assert content integer
 
-declaration structure Assert1:
+declaration structure Assert__1:
   data assert content integer
 
-declaration assert content integer depends on assert1 content integer
-  equals assert1
+declaration assert content integer depends on assert__1 content integer
+  equals assert__1
 
-declaration closure_assert content (Assert_in, Assert1)
-  equals (Assert_in { -- assert: 99 }, Assert1 { -- assert: 199 })
+declaration closure_assert content (Assert_in, Assert__1)
+  equals (Assert_in { -- assert: 99 }, Assert__1 { -- assert: 199 })
 
 declaration scope Assert:
   output assert condition
@@ -39,9 +39,9 @@ let Assert : Assert_in → Assert =
   in
   { Assert assert = assert; }
 in
-let assert : integer → integer = λ (assert1: integer) → assert1 in
-let closure_assert : (Assert_in, Assert1) =
-  ({ Assert_in assert = 99; }, { Assert1 assert = 199; })
+let assert : integer → integer = λ (assert__1: integer) → assert__1 in
+let closure_assert : (Assert_in, Assert__1) =
+  ({ Assert_in assert = 99; }, { Assert__1 assert = 199; })
 in
 Assert
 ```
@@ -61,17 +61,17 @@ $ catala lcalc --closure-conversion
 type Eoption = | ENone of unit | ESome of any
 
 type Assert_in = { assert: integer; }
-type Assert1 = { assert: integer; }
-type Assert_in1 = {  }
-type Assert2 = { assert: bool; }
+type Assert__1 = { assert: integer; }
+type Assert_in__1 = {  }
+type Assert__2 = { assert: bool; }
 
 let topval closure_assert : (closure_env, integer) → integer =
   λ (env: closure_env) (x: integer) →
-  let env1 : () = from_closure_env env in
+  let env__1 : () = from_closure_env env in
   
   ((x + 1))
 
-let scope Assert (assert_in: Assert_in1): Assert2 {assert: bool} =
+let scope Assert (assert_in: Assert_in__1): Assert__2 {assert: bool} =
   let set assert : bool =
     match
       (match
@@ -91,15 +91,15 @@ let scope Assert (assert_in: Assert_in1): Assert2 {assert: bool} =
     | ENone → error NoValue
     | ESome arg → arg
   in
-  return { Assert2 assert = assert; }
+  return { Assert__2 assert = assert; }
 
 let topval assert : integer → integer =
-  λ (assert1: integer) →
-  assert1
+  λ (assert__1: integer) →
+  assert__1
 
-let topval closure_assert1 :
-  (Assert_in {assert: integer}, Assert1 {assert: integer}) =
-  ({ Assert_in assert = 99; }, { Assert1 assert = 199; })
+let topval closure_assert__1 :
+  (Assert_in {assert: integer}, Assert__1 {assert: integer}) =
+  ({ Assert_in assert = 99; }, { Assert__1 assert = 199; })
 
 ```
 
@@ -114,18 +114,18 @@ open Runtime_ocaml.Runtime
 
 
 module Assert_in = struct
-  type t = {assert1: integer}
+  type t = {assert__1: integer}
 end
 
-module Assert1 = struct
-  type t = {assert1: integer}
+module Assert__1 = struct
+  type t = {assert__1: integer}
 end
 
-module Assert2 = struct
-  type t = {assert1: bool}
+module Assert__2 = struct
+  type t = {assert__1: bool}
 end
 
-module Assert_in1 = struct
+module Assert_in__1 = struct
   type t = unit
 end
 
@@ -135,16 +135,16 @@ let closure_assert : Obj.t -> integer -> integer =
     in
     ((o_add_int_int x (integer_of_string "1"))))
 
-let assert1 (_: Assert_in1.t) : Assert2.t =
-  let assert1: bool =
+let assert__1 (_: Assert_in__1.t) : Assert__2.t =
+  let assert__1: bool =
     match
       (match
          (Eoption.ESome
             (let _ : integer array =
                (o_map
-                  (let assert1 : Obj.t -> integer -> integer = closure_assert
-                  in
-                  (assert1, (o_toclosureenv ())))
+                  (let assert__1 : Obj.t -> integer -> integer =
+                     closure_assert in
+                  (assert__1, (o_toclosureenv ())))
                   ([|(integer_of_string "0")|])) in
             false))
        with
@@ -157,14 +157,14 @@ let assert1 (_: Assert_in1.t) : Assert2.t =
                                                  end_line=19; end_column=16;
                                                  law_headings=[]}])))
     | Eoption.ESome arg -> arg in
-  {Assert2.assert1 = assert1}
+  {Assert__2.assert__1 = assert__1}
 
-let assert2 : integer -> integer =
-  fun (assert2: integer) -> assert2
+let assert__2 : integer -> integer =
+  fun (assert__2: integer) -> assert__2
 
-let closure_assert1 : (Assert_in.t * Assert1.t) =
-  (({Assert_in.assert1 = (integer_of_string "99")}),
-    ({Assert1.assert1 = (integer_of_string "199")}))
+let closure_assert__1 : (Assert_in.t * Assert__1.t) =
+  (({Assert_in.assert__1 = (integer_of_string "99")}),
+    ({Assert__1.assert__1 = (integer_of_string "199")}))
 
 
 let entry_scopes = [
@@ -183,7 +183,7 @@ let commands =
 let commands = if commands = [] then entry_scopes else commands
 
 let () = if List.mem "Assert" commands then (
-  ignore (assert1 ());
+  ignore (assert__1 ());
   print_endline "Scope Assert executed successfully."
 )
 ```

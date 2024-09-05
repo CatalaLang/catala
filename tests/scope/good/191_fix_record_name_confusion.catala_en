@@ -57,8 +57,8 @@ let scope_a (_: ScopeA_in.t) : ScopeA.t = let a: bool = true in
                                           {ScopeA.a = a}
 
 let scope_b (_: ScopeB_in.t) : ScopeB.t =
-  let scope_a1: ScopeA.t = {ScopeA.a = ((scope_a (())).ScopeA.a)} in
-  let a: bool = scope_a1.ScopeA.a in
+  let scope_a__1: ScopeA.t = {ScopeA.a = ((scope_a (())).ScopeA.a)} in
+  let a: bool = scope_a__1.ScopeA.a in
   {ScopeB.a = a}
 
 

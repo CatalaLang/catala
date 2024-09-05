@@ -4,7 +4,7 @@
 declaration scope Closure_scøppe:
   output scoppe condition
 
-declaration scope Closure_scoppe1:
+declaration scope Closure_scoppe__1:
   output scoppe condition
 ```
 
@@ -21,7 +21,7 @@ module Closure_scoppe = struct
   type t = {scoppe: bool}
 end
 
-module Closure_scoppe1 = struct
+module Closure_scoppe__1 = struct
   type t = {scoppe: bool}
 end
 
@@ -29,7 +29,7 @@ module Closure_scoppe_in = struct
   type t = unit
 end
 
-module Closure_scoppe1_in = struct
+module Closure_scoppe__1_in = struct
   type t = unit
 end
 
@@ -38,13 +38,13 @@ let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool = false in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe1 (_: Closure_scoppe1_in.t) : Closure_scoppe1.t =
+let closure_scoppe__1 (_: Closure_scoppe__1_in.t) : Closure_scoppe__1.t =
   let scoppe: bool = false in
-  {Closure_scoppe1.scoppe = scoppe}
+  {Closure_scoppe__1.scoppe = scoppe}
 
 let () =
   Runtime_ocaml.Runtime.register_module "Conflicts-module"
-    [ "Closure_scoppe1", Obj.repr closure_scoppe1;
+    [ "Closure_scoppe__1", Obj.repr closure_scoppe__1;
       "Closure_sc\195\184ppe", Obj.repr closure_scoppe ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
@@ -79,7 +79,7 @@ module Closure_scoppe = struct
   type t = {scoppe: bool}
 end
 
-module Closure_scoppe1 = struct
+module Closure_scoppe__1 = struct
   type t = {scoppe: bool}
 end
 
@@ -87,29 +87,29 @@ module Closure_scoppe_in = struct
   type t = unit
 end
 
-module Closure_scoppe1_in = struct
+module Closure_scoppe__1_in = struct
   type t = unit
 end
 
 
-let closure_scoppe2 : Obj.t -> bool -> integer -> bool =
+let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
   fun (_: Obj.t) (acc: bool) (x: integer) ->
     o_and acc (o_gt_int_int x (integer_of_string "2"))
 
 let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool =
-    o_fold (closure_scoppe2, (o_toclosureenv ())) true
+    o_fold (closure_scoppe__2, (o_toclosureenv ())) true
       ([|(integer_of_string "5"); (integer_of_string "6"); (integer_of_string
          "7")|]) in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe1 (_: Closure_scoppe1_in.t) : Closure_scoppe1.t =
+let closure_scoppe__1 (_: Closure_scoppe__1_in.t) : Closure_scoppe__1.t =
   let scoppe: bool = false in
-  {Closure_scoppe1.scoppe = scoppe}
+  {Closure_scoppe__1.scoppe = scoppe}
 
 let () =
   Runtime_ocaml.Runtime.register_module "Conflicts-module"
-    [ "Closure_scoppe1", Obj.repr closure_scoppe1;
+    [ "Closure_scoppe__1", Obj.repr closure_scoppe__1;
       "Closure_sc\195\184ppe", Obj.repr closure_scoppe ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

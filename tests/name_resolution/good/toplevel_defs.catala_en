@@ -122,68 +122,68 @@ let glob5_init =
 
 let glob5 = glob5_init ()
 
-let glob6 = A {"y": glob1 >= 30., "z": 123. * 17.}
+let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
 let S2 (s2_in: S2_in) =
-  decl a1 : decimal;
-  a2 : option decimal = ESome glob3 ¤44.00 + 100.;
-  switch a2:
+  decl a__1 : decimal;
+  a__2 : option decimal = ESome glob3 ¤44.00 + 100.;
+  switch a__2:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:50.10-11>;
     fatal NoValue
   | ESome arg →
-    a1 = arg;
+    a__1 = arg;
   decl a : decimal;
-  a = a1;
+  a = a__1;
   return S2 {"a": a}
 
 let S3 (s3_in: S3_in) =
-  decl a1 : decimal;
-  a2 : option decimal = ESome 50. + glob4 ¤44.00 55.;
-  switch a2:
+  decl a__1 : decimal;
+  a__2 : option decimal = ESome 50. + glob4 ¤44.00 55.;
+  switch a__2:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:71.10-11>;
     fatal NoValue
   | ESome arg →
-    a1 = arg;
+    a__1 = arg;
   decl a : decimal;
-  a = a1;
+  a = a__1;
   return S3 {"a": a}
 
 let S4 (s4_in: S4_in) =
-  decl a1 : decimal;
-  a2 : option decimal = ESome glob5 + 1.;
-  switch a2:
+  decl a__1 : decimal;
+  a__2 : option decimal = ESome glob5 + 1.;
+  switch a__2:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:95.10-11>;
     fatal NoValue
   | ESome arg →
-    a1 = arg;
+    a__1 = arg;
   decl a : decimal;
-  a = a1;
+  a = a__1;
   return S4 {"a": a}
 
-let S5 (s_in: S_in) =
-  decl a1 : decimal;
-  a2 : option decimal = ESome glob1 * glob1;
-  switch a2:
+let S (s_in: S_in) =
+  decl a__1 : decimal;
+  a__2 : option decimal = ESome glob1 * glob1;
+  switch a__2:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:7.10-11>;
     fatal NoValue
   | ESome arg →
-    a1 = arg;
+    a__1 = arg;
   decl a : decimal;
-  a = a1;
-  decl b1 : A {y: bool; z: decimal};
-  b2 : option A {y: bool; z: decimal} = ESome glob6;
-  switch b2:
+  a = a__1;
+  decl b__1 : A {y: bool; z: decimal};
+  b__2 : option A {y: bool; z: decimal} = ESome glob2;
+  switch b__2:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:8.10-11>;
     fatal NoValue
-  | ESome arg1 →
-    b1 = arg1;
+  | ESome arg__1 →
+    b__1 = arg__1;
   decl b : A {y: bool; z: decimal};
-  b = b1;
+  b = b__1;
   return S {"a": a, "b": b}
 ```
 
@@ -358,7 +358,7 @@ def glob5_init():
 
 glob5 = (glob5_init())
 
-glob6 = (
+glob2 = (
     A(y = (glob1 >=
     decimal_of_string("30.")),
     z = (decimal_of_string("123.") *
@@ -366,8 +366,9 @@ glob6 = (
 )
 
 def s2(s2_in:S2In):
-    a2 = ((glob3(money_of_cents_string("4400")) + decimal_of_string("100.")))
-    if a2 is None:
+    a__2 = ((glob3(money_of_cents_string("4400")) +
+        decimal_of_string("100.")))
+    if a__2 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=50, start_column=10,
@@ -375,15 +376,15 @@ def s2(s2_in:S2In):
                    law_headings=["Test toplevel function defs"]))
         raise NoValue(pos)
     else:
-        arg = a2
-        a1 = (arg)
-    a = (a1)
+        arg = a__2
+        a__1 = (arg)
+    a = (a__1)
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a2 = ((decimal_of_string("50.") +
+    a__2 = ((decimal_of_string("50.") +
         glob4(money_of_cents_string("4400"), decimal_of_string("55."))))
-    if a2 is None:
+    if a__2 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=71, start_column=10,
@@ -391,14 +392,14 @@ def s3(s3_in:S3In):
                    law_headings=["Test function def with two args"]))
         raise NoValue(pos)
     else:
-        arg = a2
-        a1 = (arg)
-    a = (a1)
+        arg = a__2
+        a__1 = (arg)
+    a = (a__1)
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a2 = ((glob5 + decimal_of_string("1.")))
-    if a2 is None:
+    a__2 = ((glob5 + decimal_of_string("1.")))
+    if a__2 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=95, start_column=10,
@@ -406,33 +407,33 @@ def s4(s4_in:S4In):
                    law_headings=["Test inline defs in toplevel defs"]))
         raise NoValue(pos)
     else:
-        arg = a2
-        a1 = (arg)
-    a = (a1)
+        arg = a__2
+        a__1 = (arg)
+    a = (a__1)
     return S4(a = a)
 
-def s5(s_in:SIn):
-    a2 = ((glob1 * glob1))
-    if a2 is None:
+def s(s_in:SIn):
+    a__2 = ((glob1 * glob1))
+    if a__2 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=7, start_column=10, end_line=7, end_column=11,
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg = a2
-        a1 = (arg)
-    a = (a1)
-    b2 = (glob6)
-    if b2 is None:
+        arg = a__2
+        a__1 = (arg)
+    a = (a__1)
+    b__2 = (glob2)
+    if b__2 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=8, start_column=10, end_line=8, end_column=11,
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg1 = b2
-        b1 = (arg1)
-    b = (b1)
+        arg__1 = b__2
+        b__1 = (arg__1)
+    b = (b__1)
     return S(a = a, b = b)
 ```

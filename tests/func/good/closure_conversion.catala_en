@@ -82,7 +82,7 @@ let scope S2Use
           })
     }
   =
-  let set fun3 : ((closure_env, integer) → decimal, closure_env) =
+  let set fun : ((closure_env, integer) → decimal, closure_env) =
     (closure_fun, to_closure_env ())
   in
   let set o :
@@ -94,17 +94,17 @@ let scope S2Use
           dummy: bool;
           cfun2: ((closure_env, integer) → decimal, closure_env)
         }) =
-    (let result : S2 = S2 { S2_in cfun2_in = fun3; } in
+    (let result : S2 = S2 { S2_in cfun2_in = fun; } in
      { S2
        dummy = result.dummy;
-       cfun2 = (closure_o2, to_closure_env (result));
+       cfun2 = (closure_o__2, to_closure_env (result));
      },
       let result : S2 =
         S2 { S2_in cfun2_in = (closure_o, to_closure_env ()); }
       in
       { S2
         dummy = result.dummy;
-        cfun2 = (closure_o1, to_closure_env (result));
+        cfun2 = (closure_o__1, to_closure_env (result));
       })
   in
   return { S2Use o = o; }

@@ -52,17 +52,17 @@ end
 
 let s (s_in: S_in.t) : S.t =
   let a: unit -> (bool) Eoption.t = s_in.S_in.a_in in
-  let a1: bool =
+  let a__1: bool =
     match
       (match (a ())
        with
        | Eoption.ENone _ ->
            (Eoption.ESome
               (match
-                 (Eoption.ESome (let a1 : bool = false
+                 (Eoption.ESome (let a__1 : bool = false
                     in
-                    (let a2 : bool = (o_or a1 true) in
-                    a2)))
+                    (let a__2 : bool = (o_or a__1 true) in
+                    a__2)))
                with
                | Eoption.ENone _ -> (raise
                    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
@@ -79,7 +79,7 @@ let s (s_in: S_in.t) : S.t =
                                                  end_line=7; end_column=19;
                                                  law_headings=["Article"]}])))
     | Eoption.ESome arg -> arg in
-  {S.a = a1}
+  {S.a = a__1}
 
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"

@@ -29,7 +29,7 @@ let scope S (s_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = s_in.x_in in
   let set y : integer =
     (reduce
-       (closure_y1, to_closure_env ())
+       (closure_y__1, to_closure_env ())
        (-1, -1)
        map (closure_y, to_closure_env ()) x).0
   in
@@ -64,13 +64,13 @@ let scope S (s_in: S_in {x_in: list of integer}): S {y: integer} =
             let y :
                 (closure_env, (integer, integer), (integer, integer)) →
                   (integer, integer) =
-              closure_y1
+              closure_y__1
             in
             (y, to_closure_env ())
             let potential_max : integer = -1 in
             (potential_max,
-              let potential_max1 : integer = potential_max in
-              potential_max1)
+              let potential_max__1 : integer = potential_max in
+              potential_max__1)
             weights).0)
     with
     | ENone → error NoValue

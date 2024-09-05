@@ -23,7 +23,7 @@ let scope TestXor
   let get t : unit → option_1[None_1: unit | Some_1: bool] =
     test_xor_in.t_in
   in
-  let set t1 : bool =
+  let set t__1 : bool =
     match
       (match (t ()) with
        | None_1 →
@@ -36,7 +36,7 @@ let scope TestXor
     | None_1 → error NoValue
     | Some_1 arg → arg
   in
-  return { TestXor t = t1; }
+  return { TestXor t = t__1; }
 
 ```
 
@@ -54,8 +54,8 @@ $ catala lcalc --monomorphize-types -s TestXor2
 let scope TestXor2 (test_xor2_in: TestXor2_in): TestXor2 {o: bool} =
   let set t : TestXor {t: bool} =
     let result : TestXor = TestXor { TestXor_in t_in = λ () → None_1 (); } in
-    let result1 : TestXor = { TestXor t = result.t; } in
-    if true then result1 else result1
+    let result__1 : TestXor = { TestXor t = result.t; } in
+    if true then result__1 else result__1
   in
   let set o : bool =
     match (Some_1 t.t) with

@@ -90,10 +90,10 @@ let scope SubFoo1
   in
   return { SubFoo1 x = x; y = y; }
 
-let topval closure_y1 : (closure_env, integer) → integer =
+let topval closure_y__1 : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
-  let env1 : (integer, integer) = from_closure_env env in
-  ((env1.1 + env1.0 + z))
+  let env__1 : (integer, integer) = from_closure_env env in
+  ((env__1.1 + env__1.0 + z))
 
 let scope SubFoo2
   (sub_foo2_in: SubFoo2_in {x1_in: integer; x2_in: integer})
@@ -105,7 +105,7 @@ let scope SubFoo2
   let get x1 : integer = sub_foo2_in.x1_in in
   let get x2 : integer = sub_foo2_in.x2_in in
   let set y : ((closure_env, integer) → integer, closure_env) =
-    (closure_y1, to_closure_env (x2, x1))
+    (closure_y__1, to_closure_env (x2, x1))
   in
   return { SubFoo2 x1 = x1; y = y; }
 
@@ -116,7 +116,7 @@ let topval closure_r : (closure_env, integer) → integer =
   in
   code_and_env.0 code_and_env.1 param0
 
-let topval closure_r1 : (closure_env, integer) → integer =
+let topval closure_r__1 : (closure_env, integer) → integer =
   λ (env: closure_env) (param0: integer) →
   let code_and_env : ((closure_env, integer) → integer, closure_env) =
     (from_closure_env env).0.y
@@ -130,18 +130,23 @@ let scope Foo
   let get b : ((closure_env, unit) → option bool, closure_env) =
     foo_in.b_in
   in
-  let set b1 : bool = match (b.0 b.1 ()) with
-                      | ENone → true
-                      | ESome x → x in
+  let set b__1 : bool =
+    match (b.0 b.1 ()) with
+    | ENone → true
+    | ESome x → x
+  in
   let set r :
       Result {
         r: ((closure_env, integer) → integer, closure_env);
         q: integer
       } =
-    if b1 then
+    if b__1 then
       let f : SubFoo1 =
         let result : SubFoo1 = SubFoo1 { SubFoo1_in x_in = 10; } in
-        { SubFoo1 x = result.x; y = (closure_r1, to_closure_env (result)); }
+        { SubFoo1
+          x = result.x;
+          y = (closure_r__1, to_closure_env (result));
+        }
       in
       { Result r = f.y; q = f.x; }
     else

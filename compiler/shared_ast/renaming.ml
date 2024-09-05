@@ -38,8 +38,11 @@ module DefaultBindlibCtxRename : Bindlib.Renaming = struct
       done;
       !first_non_0
     in
-    if i = len then name, 0
-    else String.sub name 0 i, int_of_string (String.sub name i (len - i))
+    if
+      i = len || not (i >= 2 && name.[i - 1] = '_' && name.[i - 2] = '_')
+      (* The || clause is a Catala addition *)
+    then name, 0
+    else String.sub name 0 (i - 2), int_of_string (String.sub name i (len - i))
 
   let get_suffix : string -> int -> ctxt -> int * ctxt =
    fun name suffix ctxt ->
@@ -49,7 +52,9 @@ module DefaultBindlibCtxRename : Bindlib.Renaming = struct
 
   let merge_name : string -> int -> string =
    fun prefix suffix ->
-    if suffix > 0 then prefix ^ string_of_int suffix else prefix
+    if suffix > 0 then
+      prefix ^ "__" ^ string_of_int suffix (* The "__" is a Catala addition *)
+    else prefix
 
   let new_name : string -> ctxt -> string * ctxt =
    fun name ctxt ->
