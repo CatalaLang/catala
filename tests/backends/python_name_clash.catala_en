@@ -99,8 +99,7 @@ def some_name(some_name_in:SomeNameIn):
                    law_headings=[]))
         raise NoValue(pos)
     else:
-        arg = o__1
-        o = (arg)
+        o = (o__1)
     return SomeName(o = o)
 
 def b(b_in:BIn):
@@ -112,8 +111,7 @@ def b(b_in:BIn):
                    end_line=16, end_column=25, law_headings=[]))
         raise NoValue(pos)
     else:
-        arg = result__2
-        result__1 = (arg)
+        result__1 = (result__2)
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__2 = (SomeName(o = result.o))
     if True:

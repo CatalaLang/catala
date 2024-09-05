@@ -490,12 +490,18 @@ let rec format_statement
     in
     Format.fprintf fmt "@,@[<v 2>if (%a->code == catala_option_some) {"
       VarName.format switch_var;
-    Format.fprintf fmt "@,@[<hov 2>%a = %a->payload;@]"
-      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
-           Format.pp_print_space fmt ();
-           VarName.format fmt some_case.payload_var_name))
-      some_case.payload_var_typ VarName.format switch_var;
-    format_block ctx fmt some_case.case_block;
+    let pos = Mark.get s in
+    format_block ctx fmt
+      (Utils.subst_block some_case.payload_var_name
+         (* Not a real catala struct, but will print as <var>->payload *)
+         ( EStructFieldAccess
+             {
+               e1 = EVar switch_var, pos;
+               field = StructField.fresh ("payload", pos);
+               name = StructName.fresh [] ("Dummy", pos);
+             },
+           pos )
+         some_case.payload_var_typ pos some_case.case_block);
     Format.fprintf fmt "@;<1 -2>} else {";
     format_block ctx fmt none_case.case_block;
     Format.fprintf fmt "@;<1 -2>}@]"

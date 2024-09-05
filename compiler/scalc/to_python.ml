@@ -371,18 +371,25 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
         switch_cases =
           [
             { case_block = case_none; _ };
-            { case_block = case_some; payload_var_name = case_some_var; _ };
+            {
+              case_block = case_some;
+              payload_var_name = case_some_var;
+              payload_var_typ;
+            };
           ];
         _;
       }
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
+    let pos = Mark.get s in
     Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format switch_var
       (format_block ctx) case_none;
-    Format.fprintf fmt "@[<v 4>else:@ %a = %a@,%a@]" VarName.format
-      case_some_var VarName.format switch_var (format_block ctx) case_some
+    Format.fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx)
+      (Utils.subst_block case_some_var (EVar switch_var, pos) payload_var_typ
+         pos case_some)
   | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
+    let pos = Mark.get s in
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
@@ -392,11 +399,20 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     Format.fprintf fmt "@[<hov 4>if %a@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
-         (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
-           Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             VarName.format switch_var EnumName.format e_name
-             EnumConstructor.format cons_name VarName.format payload_var_name
-             VarName.format switch_var (format_block ctx) case_block))
+         (fun fmt (case, cons_name) ->
+           Format.fprintf fmt "%a.code == %a_Code.%a:@," VarName.format
+             switch_var EnumName.format e_name EnumConstructor.format cons_name;
+           format_block ctx fmt
+             (Utils.subst_block case.payload_var_name
+                (* Not a real catala struct, but will print as <var>.value *)
+                ( EStructFieldAccess
+                    {
+                      e1 = EVar switch_var, pos;
+                      field = StructField.fresh ("value", pos);
+                      name = StructName.fresh [] ("Dummy", pos);
+                    },
+                  pos )
+                case.payload_var_typ pos case.case_block)))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1

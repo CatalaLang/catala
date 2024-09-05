@@ -53,8 +53,7 @@ const Baz* baz (const Baz_in* baz_in)
   a__3 = ((const CATALA_OPTION(Bar*)(*)(const CLOSURE_ENV, CATALA_UNIT))
           code_and_env->funcp)(code_and_env->env, CATALA_UNITVAL);
   if (a__3->code == catala_option_some) {
-    const Bar* x = a__3->payload;
-    a__2 = catala_some(x);
+    a__2 = catala_some(a__3->payload);
   } else {
     const Bar* a__3;
     const CATALA_OPTION(Bar*) a__4 = catala_malloc(sizeof(catala_option));
@@ -63,8 +62,7 @@ const Baz* baz (const Baz_in* baz_in)
     a__5->payload.No = CATALA_UNITVAL;
     a__4 = catala_some(a__5);
     if (a__4->code == catala_option_some) {
-      const Bar* arg = a__4->payload;
-      a__3 = arg;
+      a__3 = a__4->payload;
     } else {
       static const catala_code_position pos[1] =
         {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
@@ -73,8 +71,7 @@ const Baz* baz (const Baz_in* baz_in)
     a__2 = catala_some(a__3);
   }
   if (a__2->code == catala_option_some) {
-    const Bar* arg = a__2->payload;
-    a__1 = arg;
+    a__1 = a__2->payload;
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
@@ -96,8 +93,7 @@ const Baz* baz (const Baz_in* baz_in)
     b__2 = CATALA_NONE;
   }
   if (b__2->code == catala_option_some) {
-    CATALA_DEC x = b__2->payload;
-    b__1 = catala_some(x);
+    b__1 = catala_some(b__2->payload);
   } else {
     CATALA_DEC b__4;
     switch (a__1->code) {
@@ -120,8 +116,7 @@ const Baz* baz (const Baz_in* baz_in)
     b__1 = catala_some(b__4);
   }
   if (b__1->code == catala_option_some) {
-    CATALA_DEC arg = b__1->payload;
-    b = arg;
+    b = b__1->payload;
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
@@ -133,8 +128,7 @@ const Baz* baz (const Baz_in* baz_in)
   c__2->elements[1] = b;
   c__1 = catala_some(c__2);
   if (c__1->code == catala_option_some) {
-    const CATALA_ARRAY(CATALA_DEC) arg = c__1->payload;
-    c = arg;
+    c = c__1->payload;
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};

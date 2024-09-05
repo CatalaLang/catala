@@ -366,8 +366,7 @@ def s2(s2_in:S2In):
                    law_headings=["Test toplevel function defs"]))
         raise NoValue(pos)
     else:
-        arg = a__1
-        a = (arg)
+        a = (a__1)
     return S2(a = a)
 
 def s3(s3_in:S3In):
@@ -381,8 +380,7 @@ def s3(s3_in:S3In):
                    law_headings=["Test function def with two args"]))
         raise NoValue(pos)
     else:
-        arg = a__1
-        a = (arg)
+        a = (a__1)
     return S3(a = a)
 
 def s4(s4_in:S4In):
@@ -395,8 +393,7 @@ def s4(s4_in:S4In):
                    law_headings=["Test inline defs in toplevel defs"]))
         raise NoValue(pos)
     else:
-        arg = a__1
-        a = (arg)
+        a = (a__1)
     return S4(a = a)
 
 def s(s_in:SIn):
@@ -408,8 +405,7 @@ def s(s_in:SIn):
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg = a__1
-        a = (arg)
+        a = (a__1)
     b__1 = (glob2)
     if b__1 is None:
         pos = (SourcePosition(
@@ -418,7 +414,6 @@ def s(s_in:SIn):
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg = b__1
-        b = (arg)
+        b = (b__1)
     return S(a = a, b = b)
 ```
