@@ -77,7 +77,7 @@ let topval closure_y : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
   (from_closure_env env).0 + z
 
-let scope SubFoo1
+let scope sub_foo1
   (sub_foo1_in: SubFoo1_in {x_in: integer})
   : SubFoo1 {
       x: integer;
@@ -95,7 +95,7 @@ let topval closure_y__1 : (closure_env, integer) → integer =
   let env__1 : (integer, integer) = from_closure_env env in
   ((env__1.1 + env__1.0 + z))
 
-let scope SubFoo2
+let scope sub_foo2
   (sub_foo2_in: SubFoo2_in {x1_in: integer; x2_in: integer})
   : SubFoo2 {
       x1: integer;
@@ -123,7 +123,7 @@ let topval closure_r__1 : (closure_env, integer) → integer =
   in
   code_and_env.0 code_and_env.1 param0
 
-let scope Foo
+let scope foo
   (foo_in: Foo_in {b_in: ((closure_env, unit) → option bool, closure_env)})
   : Foo {z: integer}
   =
@@ -142,7 +142,7 @@ let scope Foo
       } =
     if b__1 then
       let f : SubFoo1 =
-        let result : SubFoo1 = SubFoo1 { SubFoo1_in x_in = 10; } in
+        let result : SubFoo1 = sub_foo1 { SubFoo1_in x_in = 10; } in
         { SubFoo1
           x = result.x;
           y = (closure_r__1, to_closure_env (result));
@@ -152,7 +152,7 @@ let scope Foo
     else
       let f : SubFoo2 =
         let result : SubFoo2 =
-          SubFoo2 { SubFoo2_in x1_in = 10; x2_in = 10; }
+          sub_foo2 { SubFoo2_in x1_in = 10; x2_in = 10; }
         in
         { SubFoo2 x1 = result.x1; y = (closure_r, to_closure_env (result)); }
       in

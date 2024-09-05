@@ -69,7 +69,7 @@ let unmbind ctxt bnd =
   vs, body, { ctxt with ren_ctx }
 
 let get_name ctxt s =
-  let name, ren_ctx = Renaming.new_id ctxt.ren_ctx s in
+  let name, ren_ctx = Renaming.new_var_id ctxt.ren_ctx s in
   name, { ctxt with ren_ctx }
 
 let fresh_var ~pos ctxt name =

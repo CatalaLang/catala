@@ -39,7 +39,7 @@ $ catala Scalc -s Foo2 -O -t
 │ 5 │   output bar content integer
 │   │          ‾‾‾
 └─ Test
-let Foo2 (foo2_in: Foo2_in) =
+let foo2 (foo2_in: Foo2_in) =
   decl bar : integer;
   decl bar__1 : integer;
   pos : SourcePosition = <nothing:5.10-13>;

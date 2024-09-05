@@ -47,7 +47,7 @@ const Baz* baz (const Baz_in* baz_in)
   const CATALA_OPTION(CATALA_ARRAY(CATALA_DEC)) c__1 =
     catala_malloc(sizeof(catala_option));
   CATALA_ARRAY(CATALA_DEC) c__2 = catala_malloc(sizeof(catala_array));
-  Baz* Baz = catala_malloc(sizeof(Baz));
+  Baz* baz__1 = catala_malloc(sizeof(Baz));
   a = baz_in->a_in;
   code_and_env = a;
   a__3 = ((const CATALA_OPTION(Bar*)(*)(const CLOSURE_ENV, CATALA_UNIT))
@@ -134,9 +134,9 @@ const Baz* baz (const Baz_in* baz_in)
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
     catala_error(catala_no_value, pos);
   }
-  Baz->b = b;
-  Baz->c = c;
-  return Baz;
+  baz__1->b = b;
+  baz__1->c = c;
+  return baz__1;
 }
 
 int main (int argc, char** argv)

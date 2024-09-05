@@ -124,7 +124,7 @@ let glob5 = glob5_init ()
 
 let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
-let S2 (s2_in: S2_in) =
+let s2 (s2_in: S2_in) =
   decl a : decimal;
   a__1 : option decimal = ESome glob3 ¤44.00 + 100.;
   switch a__1:
@@ -135,7 +135,7 @@ let S2 (s2_in: S2_in) =
     a = arg;
   return S2 {"a": a}
 
-let S3 (s3_in: S3_in) =
+let s3 (s3_in: S3_in) =
   decl a : decimal;
   a__1 : option decimal = ESome 50. + glob4 ¤44.00 55.;
   switch a__1:
@@ -146,7 +146,7 @@ let S3 (s3_in: S3_in) =
     a = arg;
   return S3 {"a": a}
 
-let S4 (s4_in: S4_in) =
+let s4 (s4_in: S4_in) =
   decl a : decimal;
   a__1 : option decimal = ESome glob5 + 1.;
   switch a__1:
@@ -157,7 +157,7 @@ let S4 (s4_in: S4_in) =
     a = arg;
   return S4 {"a": a}
 
-let S (s_in: S_in) =
+let s (s_in: S_in) =
   decl a : decimal;
   a__1 : option decimal = ESome glob1 * glob1;
   switch a__1:

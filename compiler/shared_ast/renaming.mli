@@ -30,21 +30,19 @@ val default_config : config
 val get_ctx : config -> context
 
 val unbind_in :
-  context ->
-  ?fname:(string -> string) ->
-  ('e, 'b) Bindlib.binder ->
-  ('e, _) Mark.ed Var.t * 'b * context
-(* [fname] applies a transformation on the variable name (typically something
-   like [String.to_snake_case]). The result is advisory and a numerical suffix
-   may be appended or modified *)
+  context -> ('e, 'b) Bindlib.binder -> ('e, _) Mark.ed Var.t * 'b * context
+(* [fname] applies the transformation registered with [sanitize_varname] in the
+   context to the variable name (typically something like
+   [String.to_snake_case]). The result is advisory and a numerical suffix may be
+   appended or modified *)
 
 val unmbind_in :
   context ->
-  ?fname:(string -> string) ->
   ('e, 'b) Bindlib.mbinder ->
   ('e, _) Mark.ed Var.t Array.t * 'b * context
 
 val new_id : context -> string -> string * context
+val new_var_id : context -> string -> string * context
 val reserve_name : context -> string -> context
 
 val set_rewriters :

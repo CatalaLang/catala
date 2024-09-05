@@ -120,15 +120,15 @@ let patch_mbinder_names fname b =
   let msubst = Bindlib.msubst b in
   Bindlib.raw_mbinder names occurs rank mkfree msubst
 
-let unbind_in ctx ?fname b =
+let unbind_in ctx b =
   let module BindCtx = (val ctx.bindCtx) in
-  let b = match fname with Some fn -> patch_binder_name fn b | None -> b in
+  let b = patch_binder_name ctx.vars b in
   let v, e, bcontext = BindCtx.unbind_in ctx.bcontext b in
   v, e, { ctx with bcontext }
 
-let unmbind_in ctx ?fname b =
+let unmbind_in ctx b =
   let module BindCtx = (val ctx.bindCtx) in
-  let b = match fname with Some fn -> patch_mbinder_names fn b | None -> b in
+  let b = patch_mbinder_names ctx.vars b in
   let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
   vs, e, { ctx with bcontext }
 
@@ -144,6 +144,8 @@ let new_id ctx name =
     BindCtx.new_var_in ctx.bcontext (fun _ -> assert false) name
   in
   Bindlib.name_of var, { ctx with bcontext }
+
+let new_var_id ctx name = new_id ctx (ctx.vars name)
 
 let reserve_name ctx name =
   { ctx with bcontext = DefaultBindlibCtxRename.reserve_name name ctx.bcontext }
@@ -186,7 +188,7 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
   | EExternal { name = External_value d, pos }, m ->
     Expr.eexternal ~name:(External_value (ctx.topdefs d), pos) (fm m)
   | EAbs { binder; tys }, m ->
-    let vars, body, ctx = unmbind_in ctx ~fname:ctx.vars binder in
+    let vars, body, ctx = unmbind_in ctx binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in
     Expr.eabs binder (List.map (typ ctx) tys) (fm m)
@@ -221,19 +223,19 @@ let enum_name ctx e = ctx.enums e
 (* {2 Handling scopes} *)
 
 (** Maps carrying around a naming context, enriched at each [unbind] *)
-let rec boundlist_map_ctx ~f ~fname ~last ~ctx = function
+let rec boundlist_map_ctx ~f ~last ~ctx = function
   | Last l -> Bindlib.box_apply (fun l -> Last l) (last ctx l)
   | Cons (item, next_bind) ->
     let item = f ctx item in
-    let var, next, ctx = unbind_in ctx ~fname next_bind in
-    let next = boundlist_map_ctx ~f ~fname ~last ~ctx next in
+    let var, next, ctx = unbind_in ctx next_bind in
+    let next = boundlist_map_ctx ~f ~last ~ctx next in
     let next_bind = Bindlib.bind_var var next in
     Bindlib.box_apply2
       (fun item next_bind -> Cons (item, next_bind))
       item next_bind
 
 let rename_vars_in_lets ctx scope_body_expr =
-  boundlist_map_ctx scope_body_expr ~ctx ~fname:String.to_snake_case
+  boundlist_map_ctx scope_body_expr ~ctx
     ~last:(fun ctx e -> Expr.Box.lift (expr ctx e))
     ~f:(fun ctx scope_let ->
       Bindlib.box_apply
@@ -258,7 +260,7 @@ let code_items ctx fty (items : 'e code_item_list) =
     | Cons (ScopeDef (name, body), next_bind) ->
       let scope_body =
         let scope_input_var, scope_lets, ctx =
-          unbind_in ctx ~fname:String.to_snake_case body.scope_body_expr
+          unbind_in ctx body.scope_body_expr
         in
         let scope_lets = rename_vars_in_lets ctx scope_lets in
         let scope_body_expr = Bindlib.bind_var scope_input_var scope_lets in
@@ -284,7 +286,7 @@ let code_items ctx fty (items : 'e code_item_list) =
           v, next, ctx
         | Private ->
           (* Otherwise, it is treated as a normal variable *)
-          unbind_in ctx ~fname:ctx.vars next_bind
+          unbind_in ctx next_bind
       in
       let next_body, ctx = aux ctx next in
       let next_bind = Bindlib.bind_var scope_var next_body in
@@ -305,7 +307,7 @@ let code_items ctx fty (items : 'e code_item_list) =
           v, next, ctx
         | Private ->
           (* Otherwise, it is treated as a normal variable *)
-          unbind_in ctx ~fname:ctx.vars next_bind
+          unbind_in ctx next_bind
       in
       let next_body, ctx = aux ctx next in
       let next_bind = Bindlib.bind_var topdef_var next_body in
@@ -646,6 +648,6 @@ let program
 let default =
   program () ~reserved:default_config.reserved
     ~skip_constant_binders:default_config.skip_constant_binders
-    ~constant_binder_name:default_config.constant_binder_name ~f_var:Fun.id
-    ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id ~f_constr:Fun.id
-    ~namespaced_fields_constrs:true
+    ~constant_binder_name:default_config.constant_binder_name
+    ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
+    ~f_constr:Fun.id ~namespaced_fields_constrs:true

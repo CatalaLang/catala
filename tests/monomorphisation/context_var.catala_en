@@ -15,7 +15,7 @@ type option_1 = | None_1 of unit | Some_1 of bool
 type TestXor_in = { t_in: unit → option_1[None_1: unit | Some_1: bool]; }
 type TestXor = { t: bool; }
 
-let scope TestXor
+let scope test_xor
   (test_xor_in:
      TestXor_in {t_in: unit → option_1[None_1: unit | Some_1: bool]})
   : TestXor {t: bool}
@@ -53,7 +53,9 @@ scope TestXor2:
 $ catala lcalc --monomorphize-types -s TestXor2
 let scope TestXor2 (test_xor2_in: TestXor2_in): TestXor2 {o: bool} =
   let set t : TestXor {t: bool} =
-    let result : TestXor = TestXor { TestXor_in t_in = λ () → None_1 (); } in
+    let result : TestXor =
+      test_xor { TestXor_in t_in = λ () → None_1 (); }
+    in
     let result__1 : TestXor = { TestXor t = result.t; } in
     if true then result__1 else result__1
   in
