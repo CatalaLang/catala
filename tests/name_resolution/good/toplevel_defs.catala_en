@@ -125,65 +125,55 @@ let glob5 = glob5_init ()
 let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
 let S2 (s2_in: S2_in) =
-  decl a__1 : decimal;
-  a__2 : option decimal = ESome glob3 ¤44.00 + 100.;
-  switch a__2:
+  decl a : decimal;
+  a__1 : option decimal = ESome glob3 ¤44.00 + 100.;
+  switch a__1:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:50.10-11>;
     fatal NoValue
   | ESome arg →
-    a__1 = arg;
-  decl a : decimal;
-  a = a__1;
+    a = arg;
   return S2 {"a": a}
 
 let S3 (s3_in: S3_in) =
-  decl a__1 : decimal;
-  a__2 : option decimal = ESome 50. + glob4 ¤44.00 55.;
-  switch a__2:
+  decl a : decimal;
+  a__1 : option decimal = ESome 50. + glob4 ¤44.00 55.;
+  switch a__1:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:71.10-11>;
     fatal NoValue
   | ESome arg →
-    a__1 = arg;
-  decl a : decimal;
-  a = a__1;
+    a = arg;
   return S3 {"a": a}
 
 let S4 (s4_in: S4_in) =
-  decl a__1 : decimal;
-  a__2 : option decimal = ESome glob5 + 1.;
-  switch a__2:
+  decl a : decimal;
+  a__1 : option decimal = ESome glob5 + 1.;
+  switch a__1:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:95.10-11>;
     fatal NoValue
   | ESome arg →
-    a__1 = arg;
-  decl a : decimal;
-  a = a__1;
+    a = arg;
   return S4 {"a": a}
 
 let S (s_in: S_in) =
-  decl a__1 : decimal;
-  a__2 : option decimal = ESome glob1 * glob1;
-  switch a__2:
+  decl a : decimal;
+  a__1 : option decimal = ESome glob1 * glob1;
+  switch a__1:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:7.10-11>;
     fatal NoValue
   | ESome arg →
-    a__1 = arg;
-  decl a : decimal;
-  a = a__1;
-  decl b__1 : A {y: bool; z: decimal};
-  b__2 : option A {y: bool; z: decimal} = ESome glob2;
-  switch b__2:
+    a = arg;
+  decl b : A {y: bool; z: decimal};
+  b__1 : option A {y: bool; z: decimal} = ESome glob2;
+  switch b__1:
   | ENone _ →
     pos : SourcePosition = <toplevel_defs:8.10-11>;
     fatal NoValue
-  | ESome arg__1 →
-    b__1 = arg__1;
-  decl b : A {y: bool; z: decimal};
-  b = b__1;
+  | ESome arg →
+    b = arg;
   return S {"a": a, "b": b}
 ```
 
@@ -366,9 +356,9 @@ glob2 = (
 )
 
 def s2(s2_in:S2In):
-    a__2 = ((glob3(money_of_cents_string("4400")) +
+    a__1 = ((glob3(money_of_cents_string("4400")) +
         decimal_of_string("100.")))
-    if a__2 is None:
+    if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=50, start_column=10,
@@ -376,15 +366,14 @@ def s2(s2_in:S2In):
                    law_headings=["Test toplevel function defs"]))
         raise NoValue(pos)
     else:
-        arg = a__2
-        a__1 = (arg)
-    a = (a__1)
+        arg = a__1
+        a = (arg)
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a__2 = ((decimal_of_string("50.") +
+    a__1 = ((decimal_of_string("50.") +
         glob4(money_of_cents_string("4400"), decimal_of_string("55."))))
-    if a__2 is None:
+    if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=71, start_column=10,
@@ -392,14 +381,13 @@ def s3(s3_in:S3In):
                    law_headings=["Test function def with two args"]))
         raise NoValue(pos)
     else:
-        arg = a__2
-        a__1 = (arg)
-    a = (a__1)
+        arg = a__1
+        a = (arg)
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a__2 = ((glob5 + decimal_of_string("1.")))
-    if a__2 is None:
+    a__1 = ((glob5 + decimal_of_string("1.")))
+    if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=95, start_column=10,
@@ -407,33 +395,30 @@ def s4(s4_in:S4In):
                    law_headings=["Test inline defs in toplevel defs"]))
         raise NoValue(pos)
     else:
-        arg = a__2
-        a__1 = (arg)
-    a = (a__1)
+        arg = a__1
+        a = (arg)
     return S4(a = a)
 
 def s(s_in:SIn):
-    a__2 = ((glob1 * glob1))
-    if a__2 is None:
+    a__1 = ((glob1 * glob1))
+    if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=7, start_column=10, end_line=7, end_column=11,
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg = a__2
-        a__1 = (arg)
-    a = (a__1)
-    b__2 = (glob2)
-    if b__2 is None:
+        arg = a__1
+        a = (arg)
+    b__1 = (glob2)
+    if b__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
                    start_line=8, start_column=10, end_line=8, end_column=11,
                    law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos)
     else:
-        arg__1 = b__2
-        b__1 = (arg__1)
-    b = (b__1)
+        arg = b__1
+        b = (arg)
     return S(a = a, b = b)
 ```
