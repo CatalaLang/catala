@@ -1,0 +1,29 @@
+publiccodeYmlVersion: "0.2"
+name: Catala
+url: https://github.com/CatalaLang/catala
+landingURL: https://catala-lang.org
+creationDate: 2020-04-17
+logo: https://github.com/CatalaLang.png
+usedBy:
+  - name: Direction Générale des Finances Publiques (DGFiP)
+    url: https://gitlab.adullact.net/dgfip/ir-catala
+fundedBy:
+  - name: Institut National de Recherche en Informatique et en Automatique (INRIA)
+    url: https://team.inria.fr/prosecco/
+roadmap: "https://www.lemonde.fr/blog/binaire/2022/11/29/pour-un-bureau-de-transformation-du-droit-en-code/"
+softwareType: "standalone/other"
+description:
+  en:
+    shortDescription: "Domain-specific programming language designed for deriving correct-by-construction implementations from legislative texts"
+  fr:
+    shortDescription: "Langage de programmation dédié à l'écriture d'implémentations correctes d'algorithmes dérivés de textes législatifs"
+legal:
+  license: apache-2.0
+  authorsFile: https://github.com/CatalaLang/catala/blob/master/CITATION.cff
+maintenance:
+  type: internal
+  contacts:
+    - name: "Denis Merigoux"
+      email: "denis.merigoux@inria.fr"
+    - name: "Louis Gesbert"
+      email: "louis.gesbert@inria.fr"
