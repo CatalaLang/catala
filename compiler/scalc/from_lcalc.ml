@@ -479,7 +479,7 @@ and translate_assignment
         (fun _ arg new_args ->
           match Mark.remove arg with
           | EAbs { binder; tys = typ :: _ } ->
-            let vars, body, ctxt = unmbind { ctxt with ren_ctx } binder in
+            let vars, body, ctxt = unmbind ctxt binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
             let scalc_var, ctxt =
@@ -504,7 +504,7 @@ and translate_assignment
                switch_cases = List.rev new_cases;
              },
            Expr.pos block_expr ),
-      ren_ctx )
+      ctxt.ren_ctx )
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond, ren_ctx = translate_expr ctxt cond in
     let ctxt = { ctxt with ren_ctx } in

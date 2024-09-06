@@ -113,11 +113,11 @@ def b(b_in:BIn):
     else:
         result__1 = (result__2)
     result = (some_name(SomeNameIn(i_in = result__1)))
-    result__2 = (SomeName(o = result.o))
+    result__3 = (SomeName(o = result.o))
     if True:
-        some_name__1 = (result__2)
+        some_name__1 = (result__3)
     else:
-        some_name__1 = (result__2)
+        some_name__1 = (result__3)
     return B(some_name = some_name__1)
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

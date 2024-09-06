@@ -55,20 +55,20 @@ const Baz* baz (const Baz_in* baz_in)
   if (a__3->code == catala_option_some) {
     a__2 = catala_some(a__3->payload);
   } else {
-    const Bar* a__3;
-    const CATALA_OPTION(Bar*) a__4 = catala_malloc(sizeof(catala_option));
-    Bar* a__5 = catala_malloc(sizeof(Bar));
-    a__5->code = Bar_No;
-    a__5->payload.No = CATALA_UNITVAL;
-    a__4 = catala_some(a__5);
-    if (a__4->code == catala_option_some) {
-      a__3 = a__4->payload;
+    const Bar* a__4;
+    const CATALA_OPTION(Bar*) a__5 = catala_malloc(sizeof(catala_option));
+    Bar* a__6 = catala_malloc(sizeof(Bar));
+    a__6->code = Bar_No;
+    a__6->payload.No = CATALA_UNITVAL;
+    a__5 = catala_some(a__6);
+    if (a__5->code == catala_option_some) {
+      a__4 = a__5->payload;
     } else {
       static const catala_code_position pos[1] =
         {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
       catala_error(catala_no_value, pos);
     }
-    a__2 = catala_some(a__3);
+    a__2 = catala_some(a__4);
   }
   if (a__2->code == catala_option_some) {
     a__1 = a__2->payload;
