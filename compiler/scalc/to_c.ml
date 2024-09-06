@@ -69,7 +69,7 @@ let renaming =
   Renaming.program ()
     ~reserved:c_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
-    ~skip_constant_binders:true ~constant_binder_name:None
+    ~skip_constant_binders:false ~constant_binder_name:None
     ~namespaced_fields_constrs:false
 
 module TypMap = Map.Make (struct

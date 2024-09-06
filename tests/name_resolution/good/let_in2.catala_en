@@ -59,10 +59,10 @@ let s (s_in: S_in.t) : S.t =
        | Eoption.ENone _ ->
            (Eoption.ESome
               (match
-                 (Eoption.ESome (let a__1 : bool = false
+                 (Eoption.ESome (let a__2 : bool = false
                     in
-                    (let a__2 : bool = (o_or a__1 true) in
-                    a__2)))
+                    (let a__3 : bool = (o_or a__2 true) in
+                    a__3)))
                with
                | Eoption.ENone _ -> (raise
                    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";

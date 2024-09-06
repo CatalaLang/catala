@@ -100,7 +100,7 @@ let default_config =
   {
     reserved = [];
     sanitize_varname = Fun.id;
-    skip_constant_binders = true;
+    skip_constant_binders = false;
     constant_binder_name = None;
   }
 
@@ -193,7 +193,7 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     let binder = Expr.bind vars body in
     Expr.eabs binder (List.map (typ ctx) tys) (fm m)
   | EApp { f = EAbs { binder; tys = tyabs }, mabs; args; tys = tyapp }, mapp ->
-    (* forward the context in let-ins to not reuse the parent name *)
+    (* let-in: forward the context to not reuse the name being defined *)
     let vars, body, ctx = unmbind_in ctx binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in

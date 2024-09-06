@@ -76,11 +76,11 @@ let scope assert (assert_in: Assert_in__1): Assert__2 {assert: bool} =
     match
       (match
          (ESome
-            (let assert : list of integer =
-               map (let assert : (closure_env, integer) → integer =
+            (let assert__1 : list of integer =
+               map (let assert__2 : (closure_env, integer) → integer =
                       closure_assert
                     in
-                    (assert, to_closure_env ()))
+                    (assert__2, to_closure_env ()))
                  [0]
              in
              false))
@@ -142,9 +142,9 @@ let assert__1 (_: Assert_in__1.t) : Assert__2.t =
          (Eoption.ESome
             (let _ : integer array =
                (o_map
-                  (let assert__1 : Obj.t -> integer -> integer =
+                  (let assert__2 : Obj.t -> integer -> integer =
                      closure_assert in
-                  (assert__1, (o_toclosureenv ())))
+                  (assert__2, (o_toclosureenv ())))
                   ([|(integer_of_string "0")|])) in
             false))
        with
