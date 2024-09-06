@@ -550,10 +550,8 @@ let rec translate_scope_body_expr ctx (scope_expr : 'm L.expr scope_body_expr) :
     RevBlock.rebuild block ~tail:[A.SReturn new_e, Mark.get new_e]
   | Cons (scope_let, next_bnd) ->
     let let_var, scope_let_next, ctx = unbind ctx next_bnd in
-    let let_var_id, ctx =
-      register_fresh_var ctx let_var ~pos:scope_let.scope_let_pos
-    in
     let pos = scope_let.scope_let_pos in
+    let let_var_id, ctx = register_fresh_var ctx let_var ~pos in
     let decl, assign_to =
       if scope_let.scope_let_kind = Assertion then RevBlock.empty, None
       else

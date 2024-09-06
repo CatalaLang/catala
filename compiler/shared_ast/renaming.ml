@@ -192,6 +192,16 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     let body = expr ctx body in
     let binder = Expr.bind vars body in
     Expr.eabs binder (List.map (typ ctx) tys) (fm m)
+  | EApp { f = EAbs { binder; tys = tyabs }, mabs; args; tys = tyapp }, mapp ->
+    (* forward the context in let-ins to not reuse the parent name *)
+    let vars, body, ctx = unmbind_in ctx binder in
+    let body = expr ctx body in
+    let binder = Expr.bind vars body in
+    Expr.eapp
+      ~f:(Expr.eabs binder (List.map (typ ctx) tyabs) (fm mabs))
+      ~args:(List.map (expr ctx) args)
+      ~tys:(List.map (typ ctx) tyapp)
+      (fm mapp)
   | EStruct { name; fields }, m ->
     Expr.estruct ~name:(ctx.structs name)
       ~fields:
@@ -226,8 +236,8 @@ let enum_name ctx e = ctx.enums e
 let rec boundlist_map_ctx ~f ~last ~ctx = function
   | Last l -> Bindlib.box_apply (fun l -> Last l) (last ctx l)
   | Cons (item, next_bind) ->
-    let item = f ctx item in
     let var, next, ctx = unbind_in ctx next_bind in
+    let item = f ctx item in
     let next = boundlist_map_ctx ~f ~last ~ctx next in
     let next_bind = Bindlib.bind_var var next in
     Bindlib.box_apply2
