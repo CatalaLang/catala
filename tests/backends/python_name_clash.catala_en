@@ -89,8 +89,8 @@ class BIn:
         return "BIn()".format()
 
 
-def some_name(some_name_in:SomeNameIn):
-    i = (some_name_in.i_in)
+def SomeName(SomeName_in:SomeNameIn):
+    i = (SomeName_in.i_in)
     o__1 = ((i + integer_of_string("1")))
     if o__1 is None:
         pos = (SourcePosition(
@@ -102,7 +102,7 @@ def some_name(some_name_in:SomeNameIn):
         o = (o__1)
     return SomeName(o = o)
 
-def b(b_in:BIn):
+def B(B_in:BIn):
     result__2 = (integer_of_string("1"))
     if result__2 is None:
         pos = (SourcePosition(
@@ -112,12 +112,12 @@ def b(b_in:BIn):
         raise NoValue(pos)
     else:
         result__1 = (result__2)
-    result = (some_name(SomeNameIn(i_in = result__1)))
+    result = (SomeName(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
     if True:
-        some_name__1 = (result__3)
+        some_name = (result__3)
     else:
-        some_name__1 = (result__3)
-    return B(some_name = some_name__1)
+        some_name = (result__3)
+    return B(some_name = some_name)
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

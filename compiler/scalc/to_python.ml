@@ -168,8 +168,8 @@ let renaming =
     ~reserved:python_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:false ~constant_binder_name:None
-    ~namespaced_fields_constrs:true ~f_struct:String.to_camel_case
-    ~f_enum:String.to_camel_case
+    ~namespaced_fields_constrs:true ~f_var:String.to_ascii
+    ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
 
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
