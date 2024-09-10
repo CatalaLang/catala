@@ -806,7 +806,10 @@ module Oper = struct
   let o_sub_rat_rat i1 i2 = Q.sub i1 i2
   let o_sub_mon_mon m1 m2 = Z.sub m1 m2
   let o_sub_dat_dat = Dates_calc.Dates.sub_dates
-  let o_sub_dat_dur dat dur = Dates_calc.Dates.(add_dates dat (neg_period dur))
+
+  let o_sub_dat_dur r pos dat dur =
+    o_add_dat_dur r pos dat (Dates_calc.Dates.neg_period dur)
+
   let o_sub_dur_dur = Dates_calc.Dates.sub_periods
   let o_mult_int_int i1 i2 = Z.mul i1 i2
   let o_mult_rat_rat i1 i2 = Q.mul i1 i2

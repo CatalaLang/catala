@@ -368,7 +368,7 @@ module Op = struct
     | Sub_rat_rat : < resolved ; .. > t
     | Sub_mon_mon : < resolved ; .. > t
     | Sub_dat_dat : < resolved ; .. > t
-    | Sub_dat_dur : < resolved ; .. > t
+    | Sub_dat_dur : date_rounding -> < resolved ; .. > t
     | Sub_dur_dur : < resolved ; .. > t
     | Mult : < overloaded ; .. > t
     | Mult_int_int : < resolved ; .. > t

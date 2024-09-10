@@ -569,6 +569,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | EAppOp { op = Add_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding, opos) ~args ~tys m
+  | EAppOp { op = Sub_dat_dur _, opos; args; tys } ->
+    let args = List.map (translate_expr ctx) args in
+    Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
     | EArray _ | EIfThenElse _ | EAppOp _ ) as e ->

@@ -387,6 +387,12 @@ def add_date_duration(rounding: DateRounding):
         return dat + dur
     return add
 
+# TODO: use rounding mode
+def sub_date_duration(rounding: DateRounding):
+    def add(pos: SourcePosition, dat: Date, dur: Duration):
+        return dat - dur
+    return add
+
 def lt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
     x = self.value.normalized()
     y = other.value.normalized()

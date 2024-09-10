@@ -539,7 +539,7 @@ let rec translate_op :
   | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur), _
     ->
     app Arithmetic.mk_add
-  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
       | Sub_dur_dur ),
       _ ) ->
     app Arithmetic.mk_sub

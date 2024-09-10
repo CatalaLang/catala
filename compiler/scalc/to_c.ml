@@ -280,9 +280,9 @@ let rec format_expression (ctx : ctx) (fmt : Format.formatter) (e : expr) : unit
   | EAppOp { op = Add_dat_dur rounding, _; args; _ } ->
     Format.fprintf fmt "o_add_dat_dur(%s,@ %a)"
       (match rounding with
-      | RoundUp -> "catala_date_round_up"
-      | RoundDown -> "catala_date_round_down"
-      | AbortOnRound -> "catala_date_round_abort")
+      | RoundUp -> "dc_date_round_up"
+      | RoundDown -> "dc_date_round_down"
+      | AbortOnRound -> "dc_date_round_abort")
       (Format.pp_print_list (format_expression ctx) ~pp_sep:(fun ppf () ->
            Format.fprintf ppf ",@ "))
       args

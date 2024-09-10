@@ -545,7 +545,7 @@ module G = Graph.Persistent.Digraph.AbstractLabeled (V) (E)
 
 let op_kind = function
   | Op.Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
   | Sub_dur_dur ->
     `Sum
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int
@@ -754,7 +754,7 @@ let program_to_graph
         | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
           ->
           Some (E.Lhs "⊕"), Some (E.Rhs "⊕")
-        | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+        | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
         | Sub_dur_dur ->
           Some (E.Lhs "⊕"), Some (E.Rhs "⊖")
         | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
@@ -1055,8 +1055,8 @@ let expr_to_dot_label0 :
           | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
           | Add_dur_dur | Add ->
             "+"
-          | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
-          | Sub_dur_dur | Sub ->
+          | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+          | Sub_dat_dur _ | Sub_dur_dur | Sub ->
             "-"
           | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult ->
             "×"

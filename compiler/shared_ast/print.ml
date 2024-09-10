@@ -237,7 +237,9 @@ let operator_to_string : type a. a Op.t -> string =
   | Sub_rat_rat -> "-."
   | Sub_mon_mon -> "-$"
   | Sub_dat_dat -> "-@"
-  | Sub_dat_dur -> "-@^"
+  | Sub_dat_dur AbortOnRound -> "-@"
+  | Sub_dat_dur RoundUp -> "-@^u"
+  | Sub_dat_dur RoundDown -> "-@d"
   | Sub_dur_dur -> "-^"
   | Mult -> "*"
   | Mult_int_int -> "*!"
@@ -314,7 +316,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Add
     ->
     "+"
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
   | Sub_dur_dur | Sub ->
     "-"
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult -> "*"
@@ -397,7 +399,7 @@ module Precedence = struct
       | Add_dur_dur ->
         Op Add
       | Sub | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-      | Sub_dat_dur | Sub_dur_dur ->
+      | Sub_dat_dur _ | Sub_dur_dur ->
         Op Sub
       | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
         Op Mul
