@@ -650,7 +650,7 @@ let format_program
      @,\
      #include <stdio.h>@,\
      #include <stdlib.h>@,\
-     #include <runtime.c>@,\
+     #include <catala_runtime.h>@,\
      @,";
   format_ctx type_ordering fmt p.ctx.decl_ctx;
   Format.pp_print_cut fmt ();

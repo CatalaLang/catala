@@ -44,6 +44,7 @@ $(PY_VENV_DIR)/stamp: \
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
+	  -e $$(ocamlfind query dates_calc)/python \
 	  -e runtimes/python \
 	  -e syntax_highlighting/en/pygments \
 	  -e syntax_highlighting/fr/pygments \
@@ -239,9 +240,9 @@ reset-tests: .FORCE $(CLERK_BIN)
 # tests/%: .FORCE
 # 	$(CLERK_TEST) test $@
 
-%.c.exe: %.catala_en $(CATALA_BIN) .FORCE
+%.c.exe: %.catala_en .FORCE
 	$(CATALA_BIN) c $<
-	gcc --std=c89 -Wall -pedantic -I runtimes/c/ $*.c -lgmp -Wno-unused-but-set-variable -o $*.c.exe
+	cc --std=c89 -Wall -pedantic $*.c -lcatala_runtime -lgmp -Wno-unused-but-set-variable -I $$(ocamlfind query dates_calc)/c -I_build/install/default/lib/catala/runtime_c -L_build/install/default/lib/catala/runtime_c -o $*.c.exe
 	$@
 .FORCE:
 

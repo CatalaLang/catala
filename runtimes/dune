@@ -15,10 +15,16 @@
    (python/** with_prefix runtime_python)))
  (section lib))
 
-; Rescript runtime
+;; ; Rescript runtime -- disabled
+;;
+;; (install
+;;  (files
+;;   (glob_files_rec
+;;    (rescript/** with_prefix runtime_rescript)))
+;;  (section lib))
 
 (install
  (files
-  (glob_files_rec
-   (rescript/** with_prefix runtime_rescript)))
+  (c/catala_runtime.a as runtime_c/libcatala_runtime.a)
+  (c/runtime.h as runtime_c/catala_runtime.h))
  (section lib))
