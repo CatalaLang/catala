@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <runtime.c>
+#include <catala_runtime.h>
 
 
 typedef struct Foo {

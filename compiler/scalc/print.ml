@@ -143,7 +143,8 @@ let rec format_statement
       (format_expr decl_ctx ~debug)
       naked_expr
   | SLocalInit { name; typ; expr = naked_expr } ->
-    Format.fprintf fmt "@[<hov 2>%a %a %a %a@ %a@]" format_var_name
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword "init"
+      format_var_name
       (Mark.remove name) Print.punctuation ":" (format_type decl_ctx) typ
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
