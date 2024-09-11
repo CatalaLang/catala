@@ -32,7 +32,11 @@ val load_interface :
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
-val parse_top_level_file : File.t Global.input_src -> Ast.program
+val parse_top_level_file :
+  ?resolve_included_file:(string -> string Global.input_src) ->
+  File.t Global.input_src ->
+  Ast.program
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
-    fill them. *)
+    fill them. When provided [resolve_included_file] replaces file includes with
+    an user provided input source. *)

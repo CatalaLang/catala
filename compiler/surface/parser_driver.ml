@@ -323,13 +323,28 @@ let with_sedlex_file file f =
   Sedlexing.set_filename lexbuf file;
   Fun.protect ~finally:(fun () -> close_in ic) (fun () -> f lexbuf)
 
+let with_sedlex_source source_file f =
+  match source_file with
+  | Global.FileName file -> with_sedlex_file file f
+  | Global.Contents (str, file) ->
+    let lexbuf = Sedlexing.Utf8.from_string str in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
+  | Global.Stdin file ->
+    let lexbuf = Sedlexing.Utf8.from_channel stdin in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
+
 (** Parses a single source file *)
-let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
+let rec parse_source ?resolve_included_file (lexbuf : Sedlexing.lexbuf) :
+    Ast.program =
   let source_file_name = lexbuf_file lexbuf in
   Message.debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
   let commands = localised_parser language lexbuf in
-  let program = expand_includes source_file_name commands in
+  let program =
+    expand_includes ?resolve_included_file source_file_name commands
+  in
   {
     program with
     program_source_files = source_file_name :: program.Ast.program_source_files;
@@ -338,8 +353,10 @@ let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
 
 (** Expands the include directives in a parsing result, thus parsing new source
     files *)
-and expand_includes (source_file : string) (commands : Ast.law_structure list) :
-    Ast.program =
+and expand_includes
+    ?(resolve_included_file = fun path -> Catala_utils.Global.FileName path)
+    (source_file : string)
+    (commands : Ast.law_structure list) : Ast.program =
   let language = Cli.file_lang source_file in
   let rprg =
     List.fold_left
@@ -379,9 +396,10 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
               "Included file '%s' is not a regular file or does not exist."
               sub_source
           else
-            with_sedlex_file sub_source
+            let sub_source = resolve_included_file sub_source in
+            with_sedlex_source sub_source
             @@ fun lexbuf ->
-            let includ_program = parse_source lexbuf in
+            let includ_program = parse_source ~resolve_included_file lexbuf in
             let () =
               includ_program.Ast.program_module
               |> Option.iter
@@ -481,18 +499,6 @@ let get_interface program =
 
 (** {1 API} *)
 
-let with_sedlex_source source_file f =
-  match source_file with
-  | Global.FileName file -> with_sedlex_file file f
-  | Global.Contents (str, file) ->
-    let lexbuf = Sedlexing.Utf8.from_string str in
-    Sedlexing.set_filename lexbuf file;
-    f lexbuf
-  | Global.Stdin file ->
-    let lexbuf = Sedlexing.Utf8.from_channel stdin in
-    Sedlexing.set_filename lexbuf file;
-    f lexbuf
-
 let check_modname program source_file =
   match program.Ast.program_module, source_file with
   | ( Some { module_name = mname, pos; _ },
@@ -537,10 +543,14 @@ let load_interface ?default_module_name source_file =
     Ast.intf_submodules = used_modules;
   }
 
-let parse_top_level_file (source_file : File.t Global.input_src) : Ast.program =
+let parse_top_level_file
+    ?resolve_included_file
+    (source_file : File.t Global.input_src) : Ast.program =
   Message.with_delayed_errors
   @@ fun () ->
-  let program = with_sedlex_source source_file parse_source in
+  let program =
+    with_sedlex_source source_file (parse_source ?resolve_included_file)
+  in
   check_modname program source_file;
   {
     program with
