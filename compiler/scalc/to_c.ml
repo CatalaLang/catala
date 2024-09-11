@@ -659,11 +659,15 @@ let format_program
     (fun fmt code_item ->
       match code_item with
       | SVar { var; expr; typ } ->
-        Format.fprintf fmt "@[<v 2>%a = %a;@]"
-          (format_typ p.ctx.decl_ctx (fun fmt ->
+        Format.fprintf fmt "@[<hov 2>%a = NULL;@]@,"
+          (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
                Format.pp_print_space fmt ();
                VarName.format fmt var))
-          typ (format_expression ctx) expr
+          typ;
+        (* We hide the value below a macro that performs lazy expansion *)
+        Format.fprintf fmt "#define %a (%a ? %a : (%a = %a))@," VarName.format
+          var VarName.format var VarName.format var VarName.format var
+          (format_expression ctx) expr
       | SFunc { var; func }
       | SScope { scope_body_var = var; scope_body_func = func; _ } ->
         let { func_params; func_body; func_return_typ } = func in
