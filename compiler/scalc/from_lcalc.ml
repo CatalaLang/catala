@@ -280,17 +280,14 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         vars_tau args
     in
     let local_defs, ctxt =
-      List.fold_left (fun (defs, ctxt) (var, typ, arg) ->
-          let decl =
-            ( A.SLocalDecl { name = var; typ }, binder_pos )
-          in
+      List.fold_left
+        (fun (defs, ctxt) (var, typ, arg) ->
+          let decl = A.SLocalDecl { name = var; typ }, binder_pos in
           let stmts, ren_ctx = translate_assignment ctxt (Some var) arg in
           defs +> decl ++ stmts, { ctxt with ren_ctx })
         (RevBlock.empty, ctxt) vars_args
     in
-    let rest_of_expr_stmts, rest_of_expr, ren_ctx =
-      translate_expr ctxt body
-    in
+    let rest_of_expr_stmts, rest_of_expr, ren_ctx = translate_expr ctxt body in
     local_defs ++ rest_of_expr_stmts, rest_of_expr, ren_ctx
   | EApp { f; args; tys = _ } ->
     let f_stmts, new_f, ren_ctx = translate_expr ctxt f in

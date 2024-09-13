@@ -130,7 +130,7 @@ const int catala_unitval = 0;
 static mpz_t zconst_100;
 
 #define CATALA_NEW_BOOL(X) \
-  X ? CATALA_TRUE : CATALA_FALSE
+  ((X) ? CATALA_TRUE : CATALA_FALSE)
 
 #define CATALA_NEW_MPZ(X) \
   mpz_ptr X = catala_malloc(sizeof(__mpz_struct)); \
@@ -683,8 +683,7 @@ const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)
   ret->size = 0;
   ret->elements = catala_malloc(x->size * sizeof(void*));
   for (i=0; i < x->size; i++) {
-    CATALA_BOOL cond;
-    cond = f (cls->env, x->elements[i]);
+    CATALA_BOOL cond = f (cls->env, x->elements[i]);
     if (cond == CATALA_TRUE)
       ret->elements[ret->size++] = x->elements[i];
   }

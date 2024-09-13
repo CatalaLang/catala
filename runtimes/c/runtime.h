@@ -70,7 +70,11 @@ void catala_free_all();
 #define CATALA_DATE const dc_date*
 #define CATALA_DURATION const dc_period*
 #define CATALA_ARRAY(_) catala_array*
-#define CATALA_TUPLE void**
+
+typedef struct tuple_element {
+  const void* content;
+} tuple_element;
+#define CATALA_TUPLE tuple_element*
 
 #define CLOSURE_ENV void**
 
