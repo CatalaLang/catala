@@ -255,7 +255,7 @@ let rec format_expression
     else VarName.format fmt v
   | EFunc f -> FuncName.format fmt f
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "%a->%a" format_expression e1 StructField.format field
+    Format.fprintf fmt "(%a)->%a" format_expression e1 StructField.format field
   | EInj { e1; cons; name = enum_name; _ }
     when EnumName.equal enum_name Expr.option_enum ->
     if EnumConstructor.equal cons Expr.none_constr then
@@ -268,8 +268,12 @@ let rec format_expression
     (* Should always be handled at the root of a statement *)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EPosLit -> assert false (* Handled only as toplevel definitions *)
-  | EAppOp { op = (ToClosureEnv | FromClosureEnv), _; args = [arg]; _ } ->
-    format_expression fmt arg
+  | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
+    Format.fprintf fmt "((catala_closure *)%a)"
+      format_expression arg
+  | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
+    Format.fprintf fmt "((CATALA_TUPLE)%a)"
+      format_expression arg
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op format_expression arg1
       format_expression arg2
@@ -314,7 +318,7 @@ let rec format_expression
   | ETupleAccess { e1; index = 1; typ = TClosureEnv, _ } ->
     Format.fprintf fmt "%a->env" format_expression e1
   | ETupleAccess { e1; index; typ } ->
-    Format.fprintf fmt "(%a)%a[%d].content"
+    Format.fprintf fmt "(%a)(%a[%d].content)"
       (format_typ ctx.decl_ctx ignore)
       typ format_expression e1 index
   | EExternal _ -> failwith "TODO"
@@ -432,7 +436,7 @@ let rec format_statement
       | ToClosureEnv -> "catala_closure *"
       | _ -> assert false
     in
-    Format.fprintf fmt "@,@[<hov 2>%a = (const %s)%a;@]"
+    Format.fprintf fmt "@,@[<hov 2>%a =@ (const %s)(%a);@]"
       (format_typ ~const:true ctx.decl_ctx (fun fmt ->
            Format.pp_print_space fmt ();
            VarName.format fmt (Mark.remove v)))
@@ -442,7 +446,7 @@ let rec format_statement
   | SLocalInit { name = v; typ; expr = e } ->
     (* Handling at the block level guarantees that [e] is supported as initial
        value *)
-    Format.fprintf fmt "@,@[<hov 2>%a = %a;@]"
+    Format.fprintf fmt "@,@[<hov 2>%a =@ %a;@]"
       (format_typ ~const:true ctx.decl_ctx (fun fmt ->
            Format.pp_print_space fmt ();
            VarName.format fmt (Mark.remove v)))
