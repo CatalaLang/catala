@@ -560,7 +560,7 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     | (EArray _ | EStruct _ | EInj _ | ETuple _), _ -> true
     | _ -> false
   in
-  let print_init_malloc fmt v typ =
+  let print_init_malloc fmt const_pointer v typ =
     let const, pp_size =
       match Mark.remove typ with
       | TArray _ ->
@@ -590,7 +590,9 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
        contents *)
     Format.fprintf fmt "@,@[<hov 2>%a =@ catala_malloc(%t)@];"
       (format_typ ~const ctx.decl_ctx (fun fmt ->
-           Format.fprintf fmt " const@ %a" VarName.format v))
+           if const_pointer then Format.pp_print_string fmt " const";
+           Format.pp_print_space fmt ();
+           VarName.format fmt v))
       typ pp_size
   in
   (* C89 requires declarations to be on top of the block *)
@@ -602,25 +604,29 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
       format_decls defined_vars remaining
         ((SLocalInit { name; typ; expr }, m) :: r)
     | ((SLocalDecl { name; typ }, _) as decl) :: r ->
-      let requires_malloc =
+      let () =
         match typ with
         | (TArray _ | TStruct _ | TEnum _ | TTuple _), _ ->
-          None
-          <> Utils.find_block
-               (function
-                 | SLocalDef { name = n1; expr; _ }, _
-                 | SLocalInit { name = n1; expr; _ }, _ ->
-                   Mark.equal VarName.equal name n1 && requires_malloc expr
-                 | _ -> false)
-               r
-        | _ -> false
+          let defs =
+            Utils.filter_map_block
+              (function
+                | SLocalDef { name = n1; expr; _ }, _
+                  when Mark.equal VarName.equal name n1 -> Some expr
+                | _ -> None)
+              r
+          in
+          let malloc, no_malloc = List.partition requires_malloc defs in
+          (* NOTE: if there are branches that need a malloc and others not, we choose to do the malloc anyway, but without marking the pointer as const. It could be better to delay the malloc to just before the definitions that will need it. *)
+          if malloc <> [] then
+            print_init_malloc fmt (no_malloc = []) (Mark.remove name) typ
+          else
+            format_statement ctx env fmt decl
+        | _ -> format_statement ctx env fmt decl
       in
-      if requires_malloc then print_init_malloc fmt (Mark.remove name) typ
-      else format_statement ctx env fmt decl;
       format_decls defined_vars remaining r
     | ((SLocalInit { name; typ; expr }, m) as init) :: r ->
       if requires_malloc expr then (
-        print_init_malloc fmt (Mark.remove name) typ;
+        print_init_malloc fmt true (Mark.remove name) typ;
         format_decls defined_vars
           ((SLocalDef { name; typ; expr }, m) :: remaining)
           r)
@@ -639,10 +645,18 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     | stmt :: r -> format_decls defined_vars (stmt :: remaining) r
     | [] -> List.rev remaining
   in
-  let remaining =
-    format_decls (VarName.Set.union env.global_vars env.local_vars) [] b
-  in
-  List.iter (format_statement ctx env fmt) remaining
+  match List.find_opt (function SFatalError _, _ -> true | _ -> false) b with
+  | Some (SFatalError { pos_expr = EVar vpos, _; _ }, _ as fatal) ->
+    (* avoid printing dead code: only print the fatal error (this also avoids warnings about unused or undefined variables) *)
+    let pos_def = List.find_opt (function SLocalInit {name = v, _; _}, _ -> VarName.equal v vpos | _ -> false) b in
+    Option.iter (format_statement ctx env fmt) pos_def;
+    format_statement ctx env fmt fatal;
+    Format.fprintf fmt "@,return NULL;" (* unreachable, but avoids a warning *)
+  | _ ->
+    let remaining =
+      format_decls (VarName.Set.union env.global_vars env.local_vars) [] b
+    in
+    List.iter (format_statement ctx env fmt) remaining
 
 let format_main (fmt : Format.formatter) (p : Ast.program) =
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";

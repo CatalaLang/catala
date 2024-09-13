@@ -31,4 +31,7 @@ val subst_block : VarName.t -> expr -> typ -> Pos.t -> block -> block
 val find_block : (stmt Mark.pos -> bool) -> block -> stmt Mark.pos option
 (** Recurses into branchings, but not function bodies *)
 
+val filter_map_block : (stmt Mark.pos -> 'a option) -> block -> 'a list
+(** Recurses into branchings, but not function bodies *)
+
 val get_vars : expr -> VarName.Set.t
