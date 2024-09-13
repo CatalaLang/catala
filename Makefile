@@ -242,7 +242,7 @@ reset-tests: .FORCE $(CLERK_BIN)
 
 %.c.exe: %.catala_en .FORCE
 	$(CATALA_BIN) c $<
-	cc --std=c89 -Wall -pedantic $*.c -lcatala_runtime -lgmp -Wno-unused-but-set-variable -I $$(ocamlfind query dates_calc)/c -I_build/install/default/lib/catala/runtime_c -L_build/install/default/lib/catala/runtime_c -o $*.c.exe
+	cc --std=c89 -Wall -pedantic $*.c -lcatala_runtime -lgmp -Wno-unused-but-set-variable -Wno-unused-variable -I $$(ocamlfind query dates_calc)/c -I_build/install/default/lib/catala/runtime_c -L_build/install/default/lib/catala/runtime_c -o $*.c.exe
 	$@
 .FORCE:
 

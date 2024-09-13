@@ -273,48 +273,25 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     let ctxt =
       List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
     in
-    let local_decls =
-      List.fold_left
-        (fun acc (x, tau) ->
-          RevBlock.append acc
-            ( A.SLocalDecl
-                { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
-              binder_pos ))
-        RevBlock.empty vars_tau
-    in
     let vars_args =
       List.map2
         (fun (x, tau) arg ->
           (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
         vars_tau args
     in
-    let def_blocks, ren_ctx =
-      List.fold_left
-        (fun (rblock, ren_ctx) (x, _tau, arg) ->
-          let ctxt =
-            {
-              ctxt with
-              context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
-              ren_ctx;
-            }
+    let local_defs, ctxt =
+      List.fold_left (fun (defs, ctxt) (var, typ, arg) ->
+          let decl =
+            ( A.SLocalDecl { name = var; typ }, binder_pos )
           in
-          let arg_stmts, new_arg, ren_ctx = translate_expr ctxt arg in
-          ( RevBlock.append (rblock ++ arg_stmts)
-              ( A.SLocalDef
-                  {
-                    name = x;
-                    expr = new_arg;
-                    typ = Expr.maybe_ty (Mark.get arg);
-                  },
-                binder_pos ),
-            ren_ctx ))
-        (RevBlock.empty, ctxt.ren_ctx)
-        vars_args
+          let stmts, ren_ctx = translate_assignment ctxt (Some var) arg in
+          defs +> decl ++ stmts, { ctxt with ren_ctx })
+        (RevBlock.empty, ctxt) vars_args
     in
     let rest_of_expr_stmts, rest_of_expr, ren_ctx =
-      translate_expr { ctxt with ren_ctx } body
+      translate_expr ctxt body
     in
-    local_decls ++ def_blocks ++ rest_of_expr_stmts, rest_of_expr, ren_ctx
+    local_defs ++ rest_of_expr_stmts, rest_of_expr, ren_ctx
   | EApp { f; args; tys = _ } ->
     let f_stmts, new_f, ren_ctx = translate_expr ctxt f in
     let args_stmts, new_args, ren_ctx =
