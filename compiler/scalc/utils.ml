@@ -21,6 +21,20 @@ module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 
+let rec get_vars e =
+  match Mark.remove e with
+  | EVar v -> VarName.Set.singleton v
+  | EFunc _ | ELit _ | EPosLit | EExternal _ -> VarName.Set.empty
+  | EStruct str ->
+    StructField.Map.fold (fun _ e -> VarName.Set.union (get_vars e)) str.fields VarName.Set.empty
+  | EStructFieldAccess { e1; _ } | ETupleAccess { e1; _ } | EInj { e1; _ }->
+    get_vars e1
+  | ETuple el | EArray el  | EAppOp { args = el; _ } ->
+    List.fold_left (fun acc e -> VarName.Set.union acc (get_vars e)) VarName.Set.empty el
+  | EApp { f; args } ->
+    List.fold_left (fun acc e -> VarName.Set.union acc (get_vars e))
+      (get_vars f) args
+
 let rec subst_expr v e within_expr =
   let m = Mark.get within_expr in
   match Mark.remove within_expr with
@@ -86,3 +100,23 @@ and subst_block v e block =
 let subst_block v expr typ pos block =
   try subst_block v expr block
   with Exit -> (SLocalInit { name = v, pos; typ; expr }, pos) :: block
+
+let rec find_block pred = function
+  | [] -> None
+  | stmt :: _ when pred stmt -> Some stmt
+  | (SIfThenElse { then_block; else_block; _ }, _) :: r ->
+    (match find_block pred then_block with
+     | None ->
+       (match find_block pred else_block with
+        | None -> find_block pred r
+        | some -> some)
+     | some -> some)
+  | (SSwitch { switch_cases; _ }, _) :: r ->
+    (match
+       List.find_map (fun case ->
+           find_block pred case.case_block)
+         switch_cases
+     with
+     | None -> find_block pred r
+     | some -> some)
+  | _ :: r -> find_block pred r

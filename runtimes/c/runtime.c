@@ -119,8 +119,10 @@ void catala_free(void* ptr, size_t sz)
 
 /* --- Base types --- */
 
-const int catala_true = 1;
-const int catala_false = 0;
+const int catala_true_value = 1;
+const int * const catala_true = &catala_true_value;
+const int catala_false_value = 0;
+const int * const catala_false = &catala_false_value;
 const int catala_unitval = 0;
 
 /* --- Constructors --- */

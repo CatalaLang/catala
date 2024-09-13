@@ -27,3 +27,8 @@ val subst_block : VarName.t -> expr -> typ -> Pos.t -> block -> block
     [var] within the given [block]. If not possible (the variable appears in a
     variable-only position), the block is returned with an initialisation of
     [var] with [replacement] prepended *)
+
+val find_block : (stmt Mark.pos -> bool) -> block -> stmt Mark.pos option
+(** Recurses into branchings, but not function bodies *)
+
+val get_vars : expr -> VarName.Set.t

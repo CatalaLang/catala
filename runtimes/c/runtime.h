@@ -79,11 +79,11 @@ typedef struct catala_closure {
   const CLOSURE_ENV env;
 } catala_closure;
 
-extern const int catala_true;
-#define CATALA_TRUE &catala_true
+extern const int * const catala_true;
+#define CATALA_TRUE catala_true
 
-extern const int catala_false;
-#define CATALA_FALSE &catala_false
+extern const int * const catala_false;
+#define CATALA_FALSE catala_false
 
 extern const int catala_unitval;
 #define CATALA_UNITVAL &catala_unitval
