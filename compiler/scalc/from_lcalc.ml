@@ -319,26 +319,34 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     block of statements, and an expression containing the variable holding the
     result *)
 and spill_expr ctxt expr =
-  let tmp_var, ctxt = fresh_var ctxt ctxt.context_name ~pos:(Expr.pos expr) in
+  let pos = Expr.pos expr in
+  let typ = Expr.maybe_ty (Mark.get expr) in
+  let tmp_var, ctxt = fresh_var ctxt ctxt.context_name ~pos in
   let ctxt =
     { ctxt with context_name = Mark.remove (A.VarName.get_info tmp_var) }
   in
-  let tmp_stmts, ren_ctx =
-    translate_assignment ctxt (Some (tmp_var, Expr.pos expr)) expr
-  in
-  let stmts =
-    RevBlock.make
-      [
-        ( A.SLocalDecl
-            {
-              name = tmp_var, Expr.pos expr;
-              typ = Expr.maybe_ty (Mark.get expr);
-            },
-          Expr.pos expr );
-      ]
-    ++ tmp_stmts
-  in
-  stmts, (A.EVar tmp_var, Expr.pos expr), ren_ctx
+  match Mark.remove expr with
+  | (EArray _ | EStruct _ | EInj _ | ETuple _)
+    when ctxt.config.no_struct_literals ->
+    (* We want [SLocalInit] for these constructs requiring malloc *)
+    let stmts, expr, ren_ctx = translate_struct_literal ctxt expr in
+    ( stmts +> (A.SLocalInit { name = tmp_var, pos; expr; typ }, pos),
+      (A.EVar tmp_var, pos),
+      ren_ctx )
+  | _ ->
+    let tmp_stmts, ren_ctx =
+      translate_assignment ctxt (Some (tmp_var, Expr.pos expr)) expr
+    in
+    let stmts =
+      RevBlock.make
+        [
+          ( A.SLocalDecl
+              { name = tmp_var, pos; typ = Expr.maybe_ty (Mark.get expr) },
+            pos );
+        ]
+      ++ tmp_stmts
+    in
+    stmts, (A.EVar tmp_var, pos), ren_ctx
 
 (** This translates an expression [block_expr] to a series of statements that
     compute its value, and either assign to the given variable, or return it. *)
@@ -493,13 +501,20 @@ and translate_assignment
              },
            Expr.pos block_expr ),
       ren_ctx )
-  | ELit _ | EAppOp _ | EArray _ | EVar _ | EStruct _ | EInj _ | ETuple _
+  | EArray _ | EStruct _ | EInj _ | ETuple _ | ELit _ | EAppOp _ | EVar _
   | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ ->
     let stmts, expr, ren_ctx =
-      match block_expr with
-      | ((EStruct _ | EInj _ | ETuple _ | EArray _), _) as e ->
-        translate_struct_literal ctxt e
-      | e -> translate_expr ctxt e
+      match Mark.remove block_expr with
+      | (EArray _ | EStruct _ | EInj _ | ETuple _) as e ->
+        let is_option =
+          match e with
+          | EInj { name; _ } -> EnumName.equal name Expr.option_enum
+          | _ -> false
+        in
+        if ctxt.config.no_struct_literals && not is_option then
+          spill_expr ctxt block_expr
+        else translate_struct_literal ctxt block_expr
+      | _ -> translate_expr ctxt block_expr
     in
     ( (stmts
       +>

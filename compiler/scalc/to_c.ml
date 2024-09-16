@@ -255,7 +255,13 @@ let rec format_expression
     else VarName.format fmt v
   | EFunc f -> FuncName.format fmt f
   | EStructFieldAccess { e1; field; _ } ->
-    Format.fprintf fmt "(%a)->%a" format_expression e1 StructField.format field
+    let lpar, rpar =
+      match e1 with
+      | EVar _, _ | EStructFieldAccess _, _ -> "", ""
+      | _ -> "(", ")"
+    in
+    Format.fprintf fmt "%s%a%s->%a" lpar format_expression e1 rpar
+      StructField.format field
   | EInj { e1; cons; name = enum_name; _ }
     when EnumName.equal enum_name Expr.option_enum ->
     if EnumConstructor.equal cons Expr.none_constr then
@@ -269,11 +275,9 @@ let rec format_expression
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EPosLit -> assert false (* Handled only as toplevel definitions *)
   | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
-    Format.fprintf fmt "((catala_closure *)%a)"
-      format_expression arg
+    Format.fprintf fmt "((catala_closure *)%a)" format_expression arg
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
-    Format.fprintf fmt "((CATALA_TUPLE)%a)"
-      format_expression arg
+    Format.fprintf fmt "((CATALA_TUPLE)%a)" format_expression arg
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op format_expression arg1
       format_expression arg2
@@ -603,26 +607,8 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
       when Mark.equal VarName.equal name n1 ->
       format_decls defined_vars remaining
         ((SLocalInit { name; typ; expr }, m) :: r)
-    | ((SLocalDecl { name; typ }, _) as decl) :: r ->
-      let () =
-        match typ with
-        | (TArray _ | TStruct _ | TEnum _ | TTuple _), _ ->
-          let defs =
-            Utils.filter_map_block
-              (function
-                | SLocalDef { name = n1; expr; _ }, _
-                  when Mark.equal VarName.equal name n1 -> Some expr
-                | _ -> None)
-              r
-          in
-          let malloc, no_malloc = List.partition requires_malloc defs in
-          (* NOTE: if there are branches that need a malloc and others not, we choose to do the malloc anyway, but without marking the pointer as const. It could be better to delay the malloc to just before the definitions that will need it. *)
-          if malloc <> [] then
-            print_init_malloc fmt (no_malloc = []) (Mark.remove name) typ
-          else
-            format_statement ctx env fmt decl
-        | _ -> format_statement ctx env fmt decl
-      in
+    | ((SLocalDecl _, _) as decl) :: r ->
+      format_statement ctx env fmt decl;
       format_decls defined_vars remaining r
     | ((SLocalInit { name; typ; expr }, m) as init) :: r ->
       if requires_malloc expr then (
@@ -646,9 +632,16 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     | [] -> List.rev remaining
   in
   match List.find_opt (function SFatalError _, _ -> true | _ -> false) b with
-  | Some (SFatalError { pos_expr = EVar vpos, _; _ }, _ as fatal) ->
-    (* avoid printing dead code: only print the fatal error (this also avoids warnings about unused or undefined variables) *)
-    let pos_def = List.find_opt (function SLocalInit {name = v, _; _}, _ -> VarName.equal v vpos | _ -> false) b in
+  | Some ((SFatalError { pos_expr = EVar vpos, _; _ }, _) as fatal) ->
+    (* avoid printing dead code: only print the fatal error (this also avoids
+       warnings about unused or undefined variables) *)
+    let pos_def =
+      List.find_opt
+        (function
+          | SLocalInit { name = v, _; _ }, _ -> VarName.equal v vpos
+          | _ -> false)
+        b
+    in
     Option.iter (format_statement ctx env fmt) pos_def;
     format_statement ctx env fmt fatal;
     Format.fprintf fmt "@,return NULL;" (* unreachable, but avoids a warning *)

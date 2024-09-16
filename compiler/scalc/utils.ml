@@ -126,16 +126,16 @@ let rec find_block pred = function
 
 let rec filter_map_block pred = function
   | [] -> []
-  | (SIfThenElse { then_block; else_block; _ }, _) as stmt :: r ->
-    Option.to_list (pred stmt) @
-    filter_map_block pred then_block @
-    filter_map_block pred else_block @
-    filter_map_block pred r
-  | (SSwitch { switch_cases; _ }, _) as stmt :: r ->
-    Option.to_list (pred stmt) @
-    List.flatten
-      (List.map (fun case -> filter_map_block pred case.case_block) switch_cases)
+  | ((SIfThenElse { then_block; else_block; _ }, _) as stmt) :: r ->
+    Option.to_list (pred stmt)
+    @ filter_map_block pred then_block
+    @ filter_map_block pred else_block
     @ filter_map_block pred r
-  | stmt :: r ->
-    Option.to_list (pred stmt) @
-    filter_map_block pred r
+  | ((SSwitch { switch_cases; _ }, _) as stmt) :: r ->
+    Option.to_list (pred stmt)
+    @ List.flatten
+        (List.map
+           (fun case -> filter_map_block pred case.case_block)
+           switch_cases)
+    @ filter_map_block pred r
+  | stmt :: r -> Option.to_list (pred stmt) @ filter_map_block pred r
