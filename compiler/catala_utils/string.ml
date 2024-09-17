@@ -40,6 +40,7 @@ let to_camel_case (s : string) : string =
   |> iter (function
        | '_' -> last_was_underscore := true
        | c ->
+         let c = if c = '-' then '_' else c in
          Buffer.add_char out
            (if !last_was_underscore then Char.uppercase_ascii c else c);
          last_was_underscore := false);

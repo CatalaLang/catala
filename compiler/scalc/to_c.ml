@@ -67,6 +67,9 @@ let is_dummy_var v = VarName.to_string v = "_"
    and/or detect such variables in a better way *)
 
 let renaming =
+  (* We reserve the `__` separator for use in this backend; it's stripped from
+     idents coming from the user, separates modules from idents, and is also
+     used for special ids (eg enum codes) later on *)
   let module_sep_re = Re.(compile (str "__+")) in
   let ren_qualified f s =
     let pfx, id =
@@ -168,8 +171,7 @@ let format_ctx
     if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum"
     else
-      Format.fprintf fmt "@,@[<v 2>enum %s_code {@,%a@;<0 -2>}@] %s_code;@,"
-        (* TODO: properly generate a clash-free ident for <enum>_code *)
+      Format.fprintf fmt "@,@[<v 2>enum %s_code {@,%a@;<0 -2>}@] %s__code;@,"
         (EnumName.base enum_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -210,14 +212,17 @@ let format_ctx
             ctx.ctx_structs))
   in
   Format.pp_print_list
+    ~pp_sep:(fun _ () -> ())
     (fun fmt struct_or_enum ->
       match struct_or_enum with
       | TypeIdent.Struct s ->
-        Format.fprintf fmt "%a" format_struct_decl
-          (s, StructName.Map.find s ctx.ctx_structs)
+        if StructName.path s = [] then
+          Format.fprintf fmt "@,%a" format_struct_decl
+            (s, StructName.Map.find s ctx.ctx_structs)
       | TypeIdent.Enum e ->
-        Format.fprintf fmt "%a" format_enum_decl
-          (e, EnumName.Map.find e ctx.ctx_enums))
+        if EnumName.path e = [] then
+          Format.fprintf fmt "@,%a" format_enum_decl
+            (e, EnumName.Map.find e ctx.ctx_enums))
     fmt
     (type_ordering @ scope_structs)
 
@@ -722,6 +727,11 @@ let format_program
      #include <stdlib.h>@,\
      #include <catala_runtime.h>@,\
      @,";
+  List.iter
+    (fun (m, _intf_id) ->
+      Format.fprintf fmt "#include \"%s.c\"@,"
+        (String.uncapitalize_ascii (ModuleName.to_string m)))
+    (Program.modules_to_list p.ctx.decl_ctx.ctx_modules);
   format_ctx type_ordering fmt p.ctx.decl_ctx;
   Format.pp_print_cut fmt ();
   let ctx = { decl_ctx = p.ctx.decl_ctx } in
@@ -779,6 +789,7 @@ let format_program
       { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
       p.code_items
   in
-  Format.pp_print_cut fmt ();
-  format_main fmt p;
+  if p.module_name = None then (
+    Format.pp_print_cut fmt ();
+    format_main fmt p);
   Format.pp_close_box fmt ()
