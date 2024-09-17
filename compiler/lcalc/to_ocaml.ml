@@ -135,7 +135,7 @@ let renaming =
     ~reserved:ocaml_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:true ~constant_binder_name:(Some "_")
-    ~namespaced_fields_constrs:true
+    ~namespaced_fields_constrs:true ~prefix_module:false
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with

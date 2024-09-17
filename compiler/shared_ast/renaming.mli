@@ -82,6 +82,7 @@ val program :
   skip_constant_binders:bool ->
   constant_binder_name:string option ->
   namespaced_fields_constrs:bool ->
+  prefix_module:bool ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
   ?f_field:(string -> string) ->
@@ -96,6 +97,10 @@ val program :
 
     if [namespaced_fields_constrs] is true, then struct fields and enum
     constructors can reuse names from other fields/constructors or other idents.
+
+    if [prefix_module] is true, the qualifying module name is inserted within
+    the ident string, separated with a [.] dot. This happens before
+    sanitization.
 
     The [f_*] optional arguments sanitize the different kinds of ids. The
     default is what is used for OCaml: project to ASCII, capitalise structs,

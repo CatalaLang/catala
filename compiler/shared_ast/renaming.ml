@@ -335,6 +335,8 @@ module PathMap = Map.Make (Uid.Path)
 (* Intermediate structure used by function [Renaming.program] *)
 type type_renaming_ctx = {
   path_ctx : context PathMap.t;
+  toplevel_module : ModuleName.t option;
+  prefix_module : bool;
   structs_map : StructName.t StructName.Map.t;
   fields_map : StructField.t StructField.Map.t;
   enums_map : EnumName.t EnumName.Map.t;
@@ -348,6 +350,14 @@ type type_renaming_ctx = {
   f_constr : string -> string;
 }
 
+let add_module_prefix ctx path str =
+  let pfx =
+    match List.rev path, ctx.toplevel_module with
+    | [], None -> []
+    | [], Some md | md :: _, _ -> [ModuleName.to_string md]
+  in
+  String.concat "." (pfx @ [str])
+
 let process_type_ident
     (decl_ctx : decl_ctx)
     ctx0
@@ -357,7 +367,15 @@ let process_type_ident
   | TypeIdent.Struct name ->
     let fields = StructName.Map.find name decl_ctx.ctx_structs in
     let path = StructName.path name in
+    let add_prefix =
+      if
+        tctx.prefix_module
+        && TypeIdent.Set.mem (Struct name) decl_ctx.ctx_public_types
+      then add_module_prefix tctx path
+      else Fun.id
+    in
     let str, pos = StructName.get_info name in
+    let str = add_prefix str in
     let path_ctx, ctx =
       try tctx.path_ctx, PathMap.find path tctx.path_ctx
       with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
@@ -368,6 +386,7 @@ let process_type_ident
       StructField.Map.fold
         (fun name ty (ctx, fields_map, ctx_fields) ->
           let str, pos = StructField.get_info name in
+          let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_field str) in
           let new_name = StructField.fresh (id, pos) in
           ( ctx,
@@ -413,7 +432,15 @@ let process_type_ident
   | TypeIdent.Enum name ->
     let constrs = EnumName.Map.find name decl_ctx.ctx_enums in
     let path = EnumName.path name in
+    let add_prefix =
+      if
+        tctx.prefix_module
+        && TypeIdent.Set.mem (Enum name) decl_ctx.ctx_public_types
+      then add_module_prefix tctx path
+      else Fun.id
+    in
     let str, pos = EnumName.get_info name in
+    let str = add_prefix str in
     let path_ctx, ctx =
       try tctx.path_ctx, PathMap.find path tctx.path_ctx
       with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
@@ -424,6 +451,7 @@ let process_type_ident
       EnumConstructor.Map.fold
         (fun name ty (ctx, constrs_map, ctx_constrs) ->
           let str, pos = EnumConstructor.get_info name in
+          let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_constr str) in
           let new_name = EnumConstructor.fresh (id, pos) in
           ( ctx,
@@ -454,6 +482,7 @@ let program
     ~skip_constant_binders
     ~constant_binder_name
     ~namespaced_fields_constrs
+    ~prefix_module
     ?(f_var = String.to_snake_case)
     ?(f_struct = cap)
     ?(f_field = uncap)
@@ -475,6 +504,8 @@ let program
   let type_renaming_ctx =
     {
       path_ctx = PathMap.singleton [] ctx;
+      toplevel_module = Option.map fst p.module_name;
+      prefix_module;
       structs_map = StructName.Map.empty;
       fields_map = StructField.Map.empty;
       enums_map = EnumName.Map.empty;
@@ -514,6 +545,10 @@ let program
              when coming from other modules, they are referred to through their
              uids *)
           let str, pos = ScopeName.get_info name in
+          let str =
+            if prefix_module then add_module_prefix type_renaming_ctx path str
+            else str
+          in
           let path_ctx, ctx =
             try path_ctx, PathMap.find path path_ctx
             with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
@@ -538,6 +573,10 @@ let program
           (* [typ] is rewritten later on *)
         else
           let str, pos = TopdefName.get_info name in
+          let str =
+            if prefix_module then add_module_prefix type_renaming_ctx path str
+            else str
+          in
           let path_ctx, ctx =
             try path_ctx, PathMap.find path path_ctx
             with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
@@ -642,6 +681,7 @@ let program
     ~skip_constant_binders
     ~constant_binder_name
     ~namespaced_fields_constrs
+    ~prefix_module
     ?f_var
     ?f_struct
     ?f_field
@@ -651,7 +691,8 @@ let program
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
-        ~namespaced_fields_constrs ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
+        ~namespaced_fields_constrs ~prefix_module ?f_var ?f_struct ?f_field
+        ?f_enum ?f_constr p
   end in
   (module M : Renaming)
 
@@ -660,4 +701,4 @@ let default =
     ~skip_constant_binders:default_config.skip_constant_binders
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
-    ~f_constr:Fun.id ~namespaced_fields_constrs:true
+    ~f_constr:Fun.id ~namespaced_fields_constrs:true ~prefix_module:false
