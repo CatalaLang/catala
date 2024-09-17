@@ -1,0 +1,31 @@
+> Using Bool
+
+```catala
+declaration scope A_test:
+  output aout scope Bool.A
+
+scope A_test:
+  definition aout.x equals 22
+  definition aout.add_meaning_of_life equals true
+```
+
+
+```catala-test-inline
+$ catala interpret -s A_test
+┌─[ERROR]─
+│
+│  During evaluation: conflict between multiple valid consequences for
+│  assigning the same variable.
+│
+├─➤ tests/modules/bool.catala_en:12.25-12.26:
+│    │
+│ 12 │   definition out equals x
+│    │                         ‾
+│
+├─➤ tests/modules/bool.catala_en:13.73-13.79:
+│    │
+│ 13 │   definition out under condition add_meaning_of_life consequence equals x + 42
+│    │                                                                         ‾‾‾‾‾‾
+└─
+#return code 123#
+```
