@@ -144,9 +144,9 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
     Uid.Path.format fmt path;
     Format.pp_print_char fmt '.');
   assert (
-    let n = Mark.remove (StructName.get_info v) in
+    let n = StructName.base v in
     n = String.capitalize_ascii n);
-  Format.pp_print_string fmt (Mark.remove (StructName.get_info v))
+  Format.pp_print_string fmt (StructName.base v)
 
 let format_to_module_name
     (fmt : Format.formatter)
@@ -255,10 +255,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     in
     Uid.Path.format fmt path;
     match Mark.remove name with
-    | External_value name ->
-      format_var_str fmt (Mark.remove (TopdefName.get_info name))
-    | External_scope name ->
-      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
+    | External_value name -> format_var_str fmt (TopdefName.base name)
+    | External_scope name -> format_var_str fmt (ScopeName.base name))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list

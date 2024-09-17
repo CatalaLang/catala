@@ -660,8 +660,8 @@ let rec evaluate_expr :
     let runtime_path =
       ( List.map ModuleName.to_string path,
         match Mark.remove name with
-        | External_value name -> Mark.remove (TopdefName.get_info name)
-        | External_scope name -> Mark.remove (ScopeName.get_info name) )
+        | External_value name -> TopdefName.base name
+        | External_scope name -> ScopeName.base name )
       (* we have the guarantee that the two cases won't collide because they
          have different capitalisation rules inherited from the input *)
     in

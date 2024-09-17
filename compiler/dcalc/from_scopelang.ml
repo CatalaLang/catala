@@ -284,8 +284,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
           | None, Some e ->
             Message.error
               ~suggestion:
-                (List.map
-                   (fun v -> Mark.remove (ScopeVar.get_info v))
+                (List.map ScopeVar.to_string
                    (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
               ~fmt_pos:
                 [
@@ -752,9 +751,7 @@ let translate_scope_decl
     | None -> AbortOnRound
   in
   let ctx = { ctx with date_rounding } in
-  let scope_input_var =
-    Var.make (Mark.remove (ScopeName.get_info scope_name) ^ "_in")
-  in
+  let scope_input_var = Var.make (ScopeName.base scope_name ^ "_in") in
   let scope_input_struct_name = scope_sig.scope_sig_input_struct in
   let scope_return_struct_name = scope_sig.scope_sig_output_struct in
   let pos_sigma = Mark.get sigma_info in
@@ -845,7 +842,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       let scope_path = ScopeName.path scope_name in
       let scope_ref =
         if scope_path = [] then
-          let v = Var.make (Mark.remove (ScopeName.get_info scope_name)) in
+          let v = Var.make (ScopeName.base scope_name) in
           Local_scope_ref v
         else
           External_scope_ref
@@ -928,7 +925,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let toplevel_vars =
     TopdefName.Map.mapi
       (fun name (_, ty, _vis) ->
-        Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
+        Var.make (TopdefName.base name), Mark.remove ty)
       prgm.S.program_topdefs
   in
   let ctx =

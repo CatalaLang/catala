@@ -595,10 +595,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           in
           let new_scope_body =
             translate_scope_body_expr
-              {
-                inner_ctx with
-                context_name = Mark.remove (ScopeName.get_info name);
-              }
+              { inner_ctx with context_name = ScopeName.base name }
               scope_body_expr
           in
           let func_id, outer_ctx =
@@ -636,10 +633,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                 ([], ctxt_inner) args abs.tys
             in
             let ctxt_inner =
-              {
-                ctxt_inner with
-                context_name = Mark.remove (TopdefName.get_info name);
-              }
+              { ctxt_inner with context_name = TopdefName.base name }
             in
             translate_expr ctxt_inner expr, List.rev rargs_id
           in
@@ -668,12 +662,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
         | Topdef (name, topdef_ty, _vis, expr) ->
           (* Toplevel constant def *)
           let block, expr, _ren_ctx_inner =
-            let ctxt =
-              {
-                ctxt with
-                context_name = Mark.remove (TopdefName.get_info name);
-              }
-            in
+            let ctxt = { ctxt with context_name = TopdefName.base name } in
             translate_expr ctxt expr
           in
           let var_id, ctxt =

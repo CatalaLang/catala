@@ -355,7 +355,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context = new_context (Mark.remove (ScopeName.get_info name));
+              name_context = new_context (ScopeName.base name);
               flags;
               globally_bound_vars = toplevel_vars;
             }
@@ -384,8 +384,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context =
-                new_context (Mark.remove (TopdefName.get_info name));
+              name_context = new_context (TopdefName.base name);
               flags;
               globally_bound_vars = toplevel_vars;
             }
@@ -401,8 +400,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context =
-                new_context (Mark.remove (TopdefName.get_info name));
+              name_context = new_context (TopdefName.base name);
               flags;
               globally_bound_vars = toplevel_vars;
             }
@@ -618,9 +616,7 @@ let rec hoist_closures_code_item_list
       | Topdef (name, ty, vis, (EAbs { binder; tys }, m)) ->
         let v, expr = Bindlib.unmbind binder in
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr flags
-            (new_context (Mark.remove (TopdefName.get_info name)))
-            expr
+          hoist_closures_expr flags (new_context (TopdefName.base name)) expr
         in
         let new_binder = Expr.bind v new_expr in
         ( new_hoisted_closures,
@@ -629,9 +625,7 @@ let rec hoist_closures_code_item_list
             (Expr.Box.lift (Expr.eabs new_binder tys m)) )
       | Topdef (name, ty, vis, expr) ->
         let new_hoisted_closures, new_expr =
-          hoist_closures_expr flags
-            (new_context (Mark.remove (TopdefName.get_info name)))
-            expr
+          hoist_closures_expr flags (new_context (TopdefName.base name)) expr
         in
         ( new_hoisted_closures,
           Bindlib.box_apply

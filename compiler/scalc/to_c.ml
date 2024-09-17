@@ -62,7 +62,7 @@ let c_keywords =
     "while";
   ]
 
-let is_dummy_var v = Mark.remove (VarName.get_info v) = "_"
+let is_dummy_var v = VarName.to_string v = "_"
 (* this is the marker of a variable that's not expected to be used TODO: mark
    and/or detect such variables in a better way *)
 
@@ -118,18 +118,14 @@ let rec format_typ
     Format.fprintf fmt "%scatala_closure*%t" sconst element_name
   | TTuple _ -> Format.fprintf fmt "%sCATALA_TUPLE%t" sconst element_name
   | TStruct s ->
-    Format.fprintf fmt "%s%s*%t" sconst
-      (Mark.remove (StructName.get_info s))
-      element_name
+    Format.fprintf fmt "%s%s*%t" sconst (StructName.base s) element_name
   | TOption t ->
     Format.fprintf fmt "%sCATALA_OPTION(%a)%t" sconst
       (format_typ decl_ctx ~const:false ignore)
       t element_name
   | TDefault t -> format_typ decl_ctx ~const element_name fmt t
   | TEnum e ->
-    Format.fprintf fmt "%s%s*%t" sconst
-      (Mark.remove (EnumName.get_info e))
-      element_name
+    Format.fprintf fmt "%s%s*%t" sconst (EnumName.base e) element_name
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hv 4>@[<hov 4>%a@]@,@[<hov 1>(%a)@]@]"
       (format_typ decl_ctx ~const (fun fmt ->
@@ -154,20 +150,19 @@ let format_ctx
     let fields = StructField.Map.bindings struct_fields in
     if fields = [] then
       Format.fprintf fmt "@,@[<v 2>typedef void %s;@]"
-        (Mark.remove (StructName.get_info struct_name))
+        (StructName.base struct_name)
     else
       Format.fprintf fmt "@,@[<v 2>typedef struct %s {@ %a@;<1 -2>}@] %s;"
-        (Mark.remove (StructName.get_info struct_name))
+        (StructName.base struct_name)
         (Format.pp_print_list ~pp_sep:Format.pp_print_space
            (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov>%a;@]"
                (format_typ ~const:true ctx (fun fmt ->
                     Format.pp_print_space fmt ();
-                    Format.pp_print_string fmt
-                      (Mark.remove (StructField.get_info struct_field))))
+                    StructField.format fmt struct_field))
                struct_field_type))
         fields
-        (Mark.remove (StructName.get_info struct_name))
+        (StructName.base struct_name)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
@@ -175,30 +170,27 @@ let format_ctx
     else
       Format.fprintf fmt "@,@[<v 2>enum %s_code {@,%a@;<0 -2>}@] %s_code;@,"
         (* TODO: properly generate a clash-free ident for <enum>_code *)
-        (Mark.remove (EnumName.get_info enum_name))
+        (EnumName.base enum_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (enum_cons, _) -> EnumConstructor.format fmt enum_cons))
         (EnumConstructor.Map.bindings enum_cons)
-        (Mark.remove (EnumName.get_info enum_name));
+        (EnumName.base enum_name);
     Format.fprintf fmt
       "@,\
        @[<v 2>typedef struct %s {@ enum %s_code code;@ @[<v 2>union {@ %a@]@,\
        } payload;@]@,\
-       } %s;"
-      (Mark.remove (EnumName.get_info enum_name))
-      (Mark.remove (EnumName.get_info enum_name))
+       } %s;" (EnumName.base enum_name) (EnumName.base enum_name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
            Format.fprintf fmt "@[<hov 2>%a;@]"
              (format_typ ~const:true ctx (fun fmt ->
                   Format.pp_print_space fmt ();
-                  Format.pp_print_string fmt
-                    (Mark.remove (EnumConstructor.get_info enum_cons))))
+                  EnumConstructor.format fmt enum_cons))
              typ))
       (EnumConstructor.Map.bindings enum_cons)
-      (Mark.remove (EnumName.get_info enum_name))
+      (EnumName.base enum_name)
   in
 
   let is_in_type_ordering s =
@@ -286,7 +278,7 @@ let rec format_expression
       | _ -> "(", ")"
     in
     Format.fprintf fmt "%s%a%s->%s" lpar format_expression e1 rpar
-      (Mark.remove (StructField.get_info field))
+      (StructField.to_string field)
   | EInj { e1; cons; name = enum_name; _ }
     when EnumName.equal enum_name Expr.option_enum ->
     if EnumConstructor.equal cons Expr.none_constr then
@@ -413,16 +405,16 @@ let rec format_statement
     StructField.Map.iter
       (fun field expr ->
         Format.fprintf fmt "@,@[<hov 2>%a->%s =@ %a;@]" VarName.format v
-          (Mark.remove (StructField.get_info field))
+          (StructField.to_string field)
           (format_expression ctx env)
           expr)
       fields
   | SLocalDef { name = v, _; expr = EInj { e1; cons; name; _ }, _; _ }
     when not (EnumName.equal name Expr.option_enum) ->
     Format.fprintf fmt "@,@[<hov 2>%a->code = %s;@]" VarName.format v
-      (Mark.remove (EnumConstructor.get_info cons));
+      (EnumConstructor.to_string cons);
     Format.fprintf fmt "@,@[<hov 2>%a->payload.%s = %a;@]" VarName.format v
-      (Mark.remove (EnumConstructor.get_info cons))
+      (EnumConstructor.to_string cons)
       (format_expression ctx env)
       e1
   | SLocalDef
@@ -545,18 +537,18 @@ let rec format_statement
       switch_var;
     List.iter2
       (fun { case_block; payload_var_name; payload_var_typ } (cons_name, _) ->
-        Format.fprintf fmt "@,@[<v 2>case %s: {"
-          (Mark.remove (EnumConstructor.get_info cons_name));
+        Format.fprintf fmt "@,@[<v 2>case %a: {" EnumConstructor.format
+          cons_name;
         if
           (not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)))
           && not (is_dummy_var payload_var_name)
         then
-          Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%s;@]"
+          Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"
             (format_typ ctx.decl_ctx ~const:true (fun fmt ->
                  Format.pp_print_space fmt ();
                  VarName.format fmt payload_var_name))
-            payload_var_typ VarName.format switch_var
-            (Mark.remove (EnumConstructor.get_info cons_name));
+            payload_var_typ VarName.format switch_var EnumConstructor.format
+            cons_name;
         Format.fprintf fmt "%a@ break;@;<1 -2>}@]" (format_block ctx env)
           case_block)
       cases
@@ -602,14 +594,9 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
         then false, fun fmt -> Format.fprintf fmt "0"
         else
           ( false,
-            fun fmt ->
-              Format.fprintf fmt "sizeof(%s)"
-                (Mark.remove (StructName.get_info name)) )
+            fun fmt -> Format.fprintf fmt "sizeof(%s)" (StructName.base name) )
       | TEnum name ->
-        ( false,
-          fun fmt ->
-            Format.fprintf fmt "sizeof(%s)"
-              (Mark.remove (EnumName.get_info name)) )
+        false, fun fmt -> Format.fprintf fmt "sizeof(%s)" (EnumName.base name)
       | TTuple _ when is_closure_typ typ ->
         false, fun fmt -> Format.pp_print_string fmt "sizeof(catala_closure)"
       | TTuple ts ->

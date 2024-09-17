@@ -681,7 +681,7 @@ let translate_rule
                   (String.concat "."
                      [
                        Mark.remove (ScopeVar.get_info (Mark.remove v));
-                       Mark.remove (ScopeVar.get_info var_within_origin_scope);
+                       ScopeVar.to_string var_within_origin_scope;
                      ])
               in
               let typ =
