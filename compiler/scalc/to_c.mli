@@ -20,5 +20,10 @@ open Shared_ast
 
 val renaming : Renaming.t
 
-val format_program : Format.formatter -> Ast.program -> TypeIdent.t list -> unit
+val format_program :
+  ppf_src:Format.formatter ->
+  ppf_intf:Format.formatter ->
+  Ast.program ->
+  TypeIdent.t list ->
+  unit
 (** Usage [format_program fmt p type_dependencies_ordering] *)

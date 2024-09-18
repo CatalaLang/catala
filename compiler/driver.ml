@@ -996,10 +996,23 @@ module Commands = struct
         ~renaming:(Some Scalc.To_c.renaming)
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
+    let out_intf, with_output_intf =
+      match output_file with
+      | Some f when prg.module_name <> None ->
+        let f = File.(f -.- "h") in
+        File.get_formatter_of_out_channel ~source_file:options.Global.input_src
+          ~output_file:(Some f) ~ext:".h" ()
+      | _ -> None, fun pp -> pp (Format.make_formatter (fun _ _ _ -> ()) ignore)
+    in
     Message.debug "Compiling program into C...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    with_output @@ fun fmt -> Scalc.To_c.format_program fmt prg type_ordering
+    Message.debug "Writing to %s / %s..."
+      (Option.value ~default:"stdout" output_file)
+      (Option.value ~default:"no interface output" out_intf);
+    with_output
+    @@ fun ppf_src ->
+    with_output_intf
+    @@ fun ppf_intf ->
+    Scalc.To_c.format_program ~ppf_src ~ppf_intf prg type_ordering
 
   let c_cmd =
     Cmd.v

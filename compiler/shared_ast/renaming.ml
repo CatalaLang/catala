@@ -652,6 +652,14 @@ let program
       ~constrs:(fun n ->
         EnumConstructor.Map.find n type_renaming_ctx.constrs_map)
   in
+  let ctx_public_types =
+    TypeIdent.Set.map
+      (function
+        | Struct s ->
+          Struct (StructName.Map.find s type_renaming_ctx.structs_map)
+        | Enum s -> Enum (EnumName.Map.find s type_renaming_ctx.enums_map))
+      p.decl_ctx.ctx_public_types
+  in
   let decl_ctx =
     {
       p.decl_ctx with
@@ -659,6 +667,7 @@ let program
       ctx_structs = type_renaming_ctx.ctx_structs;
       ctx_scopes;
       ctx_topdefs;
+      ctx_public_types;
     }
   in
   let decl_ctx = Program.map_decl_ctx ~f:(typ ctx) decl_ctx in

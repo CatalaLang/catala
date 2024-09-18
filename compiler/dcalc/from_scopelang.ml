@@ -921,7 +921,15 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         StructName.Map.add scope_sig_ctx.scope_sig_input_struct fields acc)
       scopes_parameters decl_ctx.ctx_structs
   in
-  let decl_ctx = { decl_ctx with ctx_structs } in
+  let ctx_public_types =
+    ScopeName.Map.fold
+      (fun scope sig_ctx acc ->
+        if (ScopeName.Map.find scope decl_ctx.ctx_scopes).visibility = Public
+        then TypeIdent.Set.add (Struct sig_ctx.scope_sig_input_struct) acc
+        else acc)
+      scopes_parameters decl_ctx.ctx_public_types
+  in
+  let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in
   let toplevel_vars =
     TopdefName.Map.mapi
       (fun name (_, ty, _vis) ->
