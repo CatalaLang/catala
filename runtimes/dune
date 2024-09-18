@@ -26,5 +26,6 @@
 (install
  (files
   (c/catala_runtime.a as runtime_c/libcatala_runtime.a)
+  (c/dates_calc.h as runtime_c/dates_calc.h)
   (c/runtime.h as runtime_c/catala_runtime.h))
  (section lib))

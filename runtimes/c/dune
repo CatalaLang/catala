@@ -10,3 +10,8 @@
  (target catala_runtime.a)
  (action
   (run ar rcs %{target} %{lib:dates_calc:c/dates_calc.o} %{deps})))
+
+(rule
+ (target dates_calc.h)
+ (action
+  (copy %{lib:dates_calc:c/dates_calc.h} %{target})))
