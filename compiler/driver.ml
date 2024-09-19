@@ -982,7 +982,7 @@ module Commands = struct
 
   let c_cmd =
     Cmd.v
-      (Cmd.info "c" ~doc:"Generates an C translation of the Catala program.")
+      (Cmd.info "c" ~doc:"Generates a C translation of the Catala program.")
       Term.(
         const c
         $ Cli.Flags.Global.options
