@@ -20,7 +20,11 @@ let to_ascii : string -> string = Ubase.from_utf8
 let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let begins_with_uppercase (s : string) : bool =
-  "" <> s && is_uppercase_ascii (get (to_ascii s) 0)
+  "" <> s
+  && is_uppercase_ascii
+       (get
+          (to_ascii (sub s 0 (Uchar.utf_decode_length (get_utf_8_uchar s 0))))
+          0)
 
 let to_snake_case (s : string) : string =
   let out = Buffer.create (2 * length s) in

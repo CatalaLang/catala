@@ -240,10 +240,10 @@ reset-tests: .FORCE $(CLERK_BIN)
 # tests/%: .FORCE
 # 	$(CLERK_TEST) test $@
 
-%.c.exe: %.catala_en .FORCE
-	$(CATALA_BIN) c $(CATALAOPTS) $<
-	cc --std=c89 -Wall -pedantic $*.c -lcatala_runtime -lgmp -Wno-unused-but-set-variable -Wno-unused-variable -I $$(ocamlfind query dates_calc)/c -I_build/install/default/lib/catala/runtime_c -L_build/install/default/lib/catala/runtime_c -o $*.c.exe
-	$@
+%.c.exe: %.catala_en $(CLERK_BIN) .FORCE
+	$(CLERK_BIN) build _build/$@
+	_build/$@
+
 .FORCE:
 
 ##########################################

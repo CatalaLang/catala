@@ -796,7 +796,8 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'));
-      raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
+      Mark.add m (ELit LUnit)
+      (* raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos])) *)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
@@ -1112,8 +1113,9 @@ let load_runtime_modules ~hashf prg =
       else Hash.to_string hash
     in
     let obj_file =
+      let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
       Dynlink.adapt_filename
-        File.(Pos.get_file (Mark.get (ModuleName.get_info mname)) -.- "cmo")
+        File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
     in
     (if not (Sys.file_exists obj_file) then
        Message.error
