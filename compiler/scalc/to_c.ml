@@ -676,6 +676,7 @@ let format_main (fmt : Format.formatter) (p : Ast.program) =
               scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
               scope_body_var = var;
               scope_body_name = name;
+              scope_body_visibility = Public;
             } ->
           let input_struct =
             StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
@@ -750,18 +751,12 @@ let format_program
     List.fold_left
       (fun env code_item ->
         match code_item with
-        | SVar { var; expr; typ } ->
+        | SVar { var; expr; typ; visibility } ->
           (* Global variables are turned into inline functions without
              parameters that perform lazy evaluation: {[ inline foo_type foo() {
              static foo_type foo = NULL; return (foo ? foo : foo = foo_init());
              } ]} NOTE: "inline" is not defined in C89 *)
-          let public =
-            (* TODO: Ugh! Pass this info into scalc ! *)
-            Re.(
-              execp
-                (compile (seq [str "__"; diff any digit]))
-                (VarName.to_string var))
-          in
+          let public = visibility = Public in
           ppboth_if public (fun ppf ->
               Format.fprintf ppf "@,@[<v 2>@[<hov 4>%s%a"
                 (if public then "" else "static")
@@ -782,20 +777,20 @@ let format_program
             expr;
           Format.fprintf ppc "@;<1 -2>}@]@,";
           { env with global_vars = VarName.Set.add var env.global_vars }
-        | SFunc { var; func }
-        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
+        | SFunc { var; func; visibility }
+        | SScope
+            {
+              scope_body_var = var;
+              scope_body_func = func;
+              scope_body_visibility = visibility;
+              _;
+            } ->
           let { func_params; func_body; func_return_typ } = func in
           let local_vars =
             VarName.Set.of_list
               (List.map (fun (v, _) -> Mark.remove v) func_params)
           in
-          let public =
-            (* TODO: Ugh! Pass this info into scalc ! *)
-            Re.(
-              execp
-                (compile (seq [str "__"; diff any digit]))
-                (FuncName.to_string var))
-          in
+          let public = visibility = Public in
           ppboth_if public (fun ppf ->
               Format.fprintf ppf "@,@[<v 2>@[<hov 4>%s%a@ @[<hv 1>(%a)@]@]"
                 (if public then "" else "static ")

@@ -202,14 +202,14 @@ let format_item decl_ctx ?debug ppf def =
   Print.keyword ppf "let ";
   let () =
     match def with
-    | SVar { var; expr; typ = _ } ->
+    | SVar { var; expr; typ = _; visibility = _ } ->
       format_var_name ppf var;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
       Format.pp_print_space ppf ();
       format_expr decl_ctx ?debug ppf expr
     | SScope { scope_body_var = var; scope_body_func = func; _ }
-    | SFunc { var; func } ->
+    | SFunc { var; func; visibility = _ } ->
       format_func_name ppf var;
       Format.pp_print_list
         (fun ppf (arg, ty) ->

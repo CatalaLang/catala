@@ -97,11 +97,12 @@ type scope_body = {
   scope_body_name : ScopeName.t;
   scope_body_var : FuncName.t;
   scope_body_func : func;
+  scope_body_visibility : visibility;
 }
 
 type code_item =
-  | SVar of { var : VarName.t; expr : expr; typ : typ }
-  | SFunc of { var : FuncName.t; func : func }
+  | SVar of { var : VarName.t; expr : expr; typ : typ; visibility : visibility }
+  | SFunc of { var : FuncName.t; func : func; visibility : visibility }
   | SScope of scope_body
 
 type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }

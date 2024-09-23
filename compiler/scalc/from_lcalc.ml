@@ -617,9 +617,10 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                     func_return_typ =
                       TStruct body.scope_body_output_struct, input_pos;
                   };
+                scope_body_visibility = body.scope_body_visibility;
               }
             :: rev_items )
-        | Topdef (name, topdef_ty, _vis, (EAbs abs, m)) ->
+        | Topdef (name, topdef_ty, visibility, (EAbs abs, m)) ->
           (* Toplevel function def *)
           let (block, expr, _ren_ctx_inner), args_id =
             let args_a, expr, ctxt_inner = unmbind ctxt abs.binder in
@@ -657,9 +658,10 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                       | TAny, pos_any -> TAny, pos_any
                       | _ -> failwith "should not happen");
                   };
+                visibility;
               }
             :: rev_items )
-        | Topdef (name, topdef_ty, _vis, expr) ->
+        | Topdef (name, topdef_ty, visibility, expr) ->
           (* Toplevel constant def *)
           let block, expr, _ren_ctx_inner =
             let ctxt = { ctxt with context_name = TopdefName.base name } in
@@ -673,7 +675,9 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
              statements, we lift its computation into an auxiliary function *)
           let rev_items, ctxt =
             if (block :> (A.stmt * Pos.t) list) = [] then
-              A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items, ctxt
+              ( A.SVar { var = var_id; expr; typ = topdef_ty; visibility }
+                :: rev_items,
+                ctxt )
             else
               let pos = Mark.get expr in
               let func_name, ctxt =
@@ -687,6 +691,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                     var = var_id;
                     expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
                     typ = topdef_ty;
+                    visibility;
                   }
                 :: A.SFunc
                      {
@@ -699,6 +704,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                                ~tail:[A.SReturn expr, Mark.get expr];
                            A.func_return_typ = topdef_ty;
                          };
+                       visibility = Private;
                      }
                 :: rev_items,
                 ctxt )
