@@ -585,7 +585,10 @@ let rec translate_expr
       match Ident.Map.find_opt (Mark.remove s_name) ctxt.local.typedefs with
       | Some (Name_resolution.TStruct s_uid)
       | Some (Name_resolution.TScope (_, { out_struct_name = s_uid; _ })) ->
-        s_uid
+        (* Retain the correct position *)
+        StructName.map_info
+          (fun (ml, (s, _pos)) -> ml, (s, Mark.get s_name))
+          s_uid
       | _ ->
         Message.error ~pos:(Mark.get s_name)
           "This identifier should refer to a struct name"
@@ -597,6 +600,7 @@ let rec translate_expr
             try
               StructName.Map.find s_uid
                 (Ident.Map.find (Mark.remove f_name) ctxt.local.field_idmap)
+              |> StructField.map_info (Mark.map_mark (fun _ -> Mark.get f_name))
             with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
               Message.error ~pos:(Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
@@ -664,6 +668,10 @@ let rec translate_expr
           possible_c_uids
       else
         let e_uid, c_uid = EnumName.Map.choose possible_c_uids in
+        let c_uid =
+          (* Retain the correct position *)
+          EnumConstructor.map_info (fun (v, _) -> v, pos_constructor) c_uid
+        in
         let payload = Option.map rec_helper payload in
         Expr.einj
           ~e:
@@ -680,9 +688,17 @@ let rec translate_expr
       let ctxt = Name_resolution.module_ctx ctxt path in
       let possible_c_uids = get_possible_c_uids ctxt in
       (* The path has been qualified *)
-      let e_uid = Name_resolution.get_enum ctxt enum in
+      let e_uid =
+        Name_resolution.get_enum ctxt enum
+        |> (* Retain the correct position *)
+        EnumName.map_info (fun (s, (x, _pos)) -> s, (x, Mark.get enum))
+      in
       try
-        let c_uid = EnumName.Map.find e_uid possible_c_uids in
+        let c_uid =
+          EnumName.Map.find e_uid possible_c_uids
+          |> (* Retain the correct position *)
+          EnumConstructor.map_info (fun (v, _) -> v, pos_constructor)
+        in
         let payload = Option.map rec_helper payload in
         Expr.einj
           ~e:
