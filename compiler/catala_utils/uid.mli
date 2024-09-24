@@ -47,6 +47,7 @@ module type Id = sig
 
   val fresh : info -> t
   val get_info : t -> info
+  val map_info : (info -> info) -> t -> t
   val compare : t -> t -> int
   val equal : t -> t -> bool
   val format : Format.formatter -> t -> unit
