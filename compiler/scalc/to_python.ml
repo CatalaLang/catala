@@ -173,8 +173,25 @@ let renaming =
     ~reserved:python_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:false ~constant_binder_name:None
-    ~namespaced_fields_constrs:true ~prefix_module:false ~f_var:String.to_ascii
-    ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
+    ~namespaced_fields_constrs:true ~prefix_module:false
+    ~f_var:String.to_snake_case ~f_struct:String.to_camel_case
+    ~f_enum:String.to_camel_case
+
+let format_qualified
+    (type id)
+    (module Id : Uid.Qualified with type t = id)
+    ctx
+    ppf
+    (s : id) =
+  match List.rev (Id.path s) with
+  | [] -> Format.pp_print_string ppf (Id.base s)
+  | m :: _ ->
+    Format.fprintf ppf "%a.%s" VarName.format
+      (ModuleName.Map.find m ctx.modules)
+      (Id.base s)
+
+let format_struct = format_qualified (module StructName)
+let format_enum = format_qualified (module EnumName)
 
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
@@ -199,12 +216,12 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
       ts
-  | TStruct s -> StructName.format fmt s
+  | TStruct s -> format_struct ctx fmt s
   | TOption some_typ ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
   | TDefault t -> format_typ fmt t
-  | TEnum e -> EnumName.format fmt e
+  | TEnum e -> format_enum ctx fmt e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "Callable[[%a], %a]"
       (Format.pp_print_list
@@ -223,7 +240,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EVar v -> VarName.format fmt v
   | EFunc f -> FuncName.format fmt f
   | EStruct { fields = es; name = s } ->
-    Format.fprintf fmt "%a(%a)" StructName.format s
+    Format.fprintf fmt "%a(%a)" (format_struct ctx) s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, e) ->
@@ -244,8 +261,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     (* We translate the option type with an overloading by Python's [None] *)
     format_expression ctx fmt e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" EnumName.format enum_name
-      EnumName.format enum_name EnumConstructor.format cons
+    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name
+      (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e
   | EArray es ->
     Format.fprintf fmt "[%a]"
@@ -406,7 +423,8 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt (case, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@," VarName.format
-             switch_var EnumName.format e_name EnumConstructor.format cons_name;
+             switch_var (format_enum ctx) e_name EnumConstructor.format
+             cons_name;
            format_block ctx fmt
              (Utils.subst_block case.payload_var_name
                 (* Not a real catala struct, but will print as <var>.value *)

@@ -355,7 +355,7 @@ glob2 = (
     decimal_of_string("17.")))
 )
 
-def S2(S2_in:S2In):
+def s2(s2_in:S2In):
     a__1 = ((glob3(money_of_cents_string("4400")) +
         decimal_of_string("100.")))
     if a__1 is None:
@@ -369,7 +369,7 @@ def S2(S2_in:S2In):
         a = (a__1)
     return S2(a = a)
 
-def S3(S3_in:S3In):
+def s3(s3_in:S3In):
     a__1 = ((decimal_of_string("50.") +
         glob4(money_of_cents_string("4400"), decimal_of_string("55."))))
     if a__1 is None:
@@ -383,7 +383,7 @@ def S3(S3_in:S3In):
         a = (a__1)
     return S3(a = a)
 
-def S4(S4_in:S4In):
+def s4(s4_in:S4In):
     a__1 = ((glob5 + decimal_of_string("1.")))
     if a__1 is None:
         pos = (SourcePosition(
@@ -396,7 +396,7 @@ def S4(S4_in:S4In):
         a = (a__1)
     return S4(a = a)
 
-def S(S_in:SIn):
+def s(s_in:SIn):
     a__1 = ((glob1 * glob1))
     if a__1 is None:
         pos = (SourcePosition(
