@@ -15,3 +15,13 @@
  (target dates_calc.h)
  (action
   (copy %{lib:dates_calc:c/dates_calc.h} %{target})))
+
+(rule
+ (target runtime-test.c.exe)
+ (action
+  (run
+   %{cc} --std=c89 -Wall -Werror -pedantic %{dep:runtime-test.c} -I. %{dep:catala_runtime.a} -lgmp -o %{target})))
+
+(rule
+ (alias runtest)
+ (action (run ./runtime-test.c.exe)))

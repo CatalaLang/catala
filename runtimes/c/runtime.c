@@ -841,26 +841,3 @@ void catala_init()
   }
   return;
 }
-
-/* TODO: this is a basic unit test for the runtime. It should be moved to a
- * separate file and integrated in the build system. (And extended)
- *
- * void test()
- * {
- *   CATALA_MONEY dollars = catala_new_money_str ("10000");
- *   CATALA_DEC rate = catala_new_dec_str ("1/3");
- *   CATALA_DEC rate2 = catala_new_dec_str ("30/100");
- *   CATALA_DEC ratex = o_add_rat_rat(rate, rate2);
- *   CATALA_MONEY result = o_mult_mon_rat(dollars,ratex);
- *   mpz_out_str(NULL,10,result);
- *   printf("\n");
- *   fflush(stdout);
- * }
- * 
- * int main()
- * {
- *   catala_init();
- *   test();
- *   catala_free_all();
- *   return 0;
- * } */
