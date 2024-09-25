@@ -268,9 +268,14 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (* The encapsulating [Message.with_delayed_errors] will raise an
          exception: we are safe returning a dummy value. *)
       Message.delayed_error ~kind:Lexing [] ~pos
-        "Parsing error after token \"%s\": what comes after is unknown" token
+        "Parsing error after token \"%s\": what comes after could not be \
+         recognised"
+        token
 
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
+    Lexer_common.with_lexing_context
+      (fst (Sedlexing.lexing_positions lexbuf)).pos_fname
+    @@ fun () ->
     sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list
       Incremental.source_file lexbuf
 end

@@ -387,7 +387,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "```" ->
       (* End of code section *)
       L.context := Law;
-      END_CODE (Buffer.contents L.code_buffer)
+      END_CODE (L.flush_acc ())
   | MR_SCOPE ->
       L.update_acc lexbuf;
       SCOPE
@@ -797,11 +797,9 @@ let lex_law (lexbuf : lexbuf) : token =
     | eof -> EOF
     | "```catala", Star white_space, ('\n' | eof) ->
         L.context := Code;
-        Buffer.clear L.code_buffer;
         BEGIN_CODE
     | "```catala-metadata", Star white_space, ('\n' | eof) ->
         L.context := Code;
-        Buffer.clear L.code_buffer;
         BEGIN_METADATA
     | "```", Star (idchar | '-') ->
         L.context := Raw;
@@ -832,7 +830,8 @@ let lexer (lexbuf : lexbuf) : token =
   | Code -> lex_code lexbuf
   | Directive -> lex_directive lexbuf
   | Directive_args -> lex_directive_args lexbuf
-
+  | Inactive ->
+    Message.error ~internal:true "Lexer started outside of an initialised context."
 
 (* -- Shallow lexing for dependency extraction -- *)
 

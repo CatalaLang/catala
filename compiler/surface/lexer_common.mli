@@ -15,21 +15,30 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 (** Auxiliary functions used by all lexers. *)
 
-type lexing_context = Law | Raw | Code | Directive | Directive_args
+type lexing_context = Law | Raw | Code | Directive | Directive_args | Inactive
+
+val with_lexing_context : File.t -> (unit -> 'a) -> 'a
+(** Initialises the lexing context during the call of the supplied function,
+    which is required for using the lexer. Calls can be nested. Upon
+    termination, emits a warning if the lexer is not in a consistent state
+    ([Law] context, no pending code content) *)
 
 val context : lexing_context ref
 (** Reference, used by the lexer as the mutable state to distinguish whether it
     is lexing code or law. *)
 
-val code_buffer : Buffer.t
-(** Buffer that accumulates the string representation of the body of code being
-    lexed. This string representation is used in the literate programming
+val update_acc : Sedlexing.lexbuf -> unit
+(** Updates the current code buffer with the current lexeme. The underlying
+    buffer is used to accumulate the string representation of the body of code
+    being lexed. This string representation is used in the literate programming
     backends to faithfully capture the spacing pattern of the original program *)
 
-val update_acc : Sedlexing.lexbuf -> unit
-(** Updates {!val:code_buffer} with the current lexeme *)
+val flush_acc : unit -> string
+(** Flushes the code buffer and returns its contents (see [update_acc]) *)
 
 exception Lexing_error of (Catala_utils.Pos.t * string)
 
