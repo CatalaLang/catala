@@ -320,5 +320,8 @@ const CATALA_OPTION() handle_exceptions
 /* --- Runtime initialisation --- */
 
 void catala_init();
+/* This must be called once and before any use of the functions above: it
+   performs necessary initialisations of GMP, as well as the setup for our error
+   handling mechanism. */
 
 #endif /* __CATALA_RUNTIME_H__ */

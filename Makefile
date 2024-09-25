@@ -237,9 +237,6 @@ testsuite: unit-tests
 reset-tests: .FORCE $(CLERK_BIN)
 	$(CLERK_TEST) tests doc --reset
 
-# tests/%: .FORCE
-# 	$(CLERK_TEST) test $@
-
 %.c.exe: %.catala_en $(CLERK_BIN) .FORCE
 	$(CLERK_BIN) build _build/$@
 	_build/$@
