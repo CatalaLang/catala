@@ -328,8 +328,8 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
       push_line str;
       run_inline_test lines
     | Some ((str, L.LINE_TEST id, _), lines) ->
-      push_line str;
-      run_output_test id lines
+      run_output_test id lines;
+      push_line str
     | Some ((str, _, _), lines) ->
       push_line str;
       process lines
