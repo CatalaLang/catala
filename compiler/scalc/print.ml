@@ -26,6 +26,11 @@ let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v
 
+let format_type decl_ctx fmt = function
+  | TStruct name, _ when StructName.equal name Expr.source_pos_struct ->
+    StructName.format fmt name
+  | ty -> Print.typ decl_ctx fmt ty
+
 let rec format_expr
     (decl_ctx : decl_ctx)
     ?(debug : bool = false)
@@ -67,22 +72,28 @@ let rec format_expr
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""
-  | ETupleAccess { e1; index } ->
+  | ETupleAccess { e1; index; _ } ->
     Format.fprintf fmt "%a%a%a%d%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" index Print.punctuation "\""
   | EInj { e1 = e; cons; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2] } ->
+  | EPosLit -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter (Mark.get e))
+  | EAppOp
+      {
+        op = ((HandleExceptions | Map | Filter) as op), _;
+        args = [arg1; arg2];
+        _;
+      } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
-  | EAppOp { op = op, _; args = [arg1; arg2] } ->
+  | EAppOp { op = op, _; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EAppOp { op = Log _, _; args = [arg1] } when not debug ->
+  | EAppOp { op = Log _, _; args = [arg1]; _ } when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EAppOp { op = op, _; args = [arg1] } ->
+  | EAppOp { op = op, _; args = [arg1]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
   | EApp { f; args = [] } ->
@@ -93,7 +104,7 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EAppOp { op = op, _; args } ->
+  | EAppOp { op = op, _; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -117,41 +128,31 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-             format_var_name name Print.punctuation ":" (Print.typ decl_ctx) typ
-             Print.punctuation ")"))
+             format_var_name name Print.punctuation ":" (format_type decl_ctx)
+             typ Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
   | SLocalDecl { name; typ } ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       format_var_name (Mark.remove name) Print.punctuation ":"
-      (Print.typ decl_ctx) typ
+      (format_type decl_ctx) typ
   | SLocalDef { name; expr = naked_expr; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name (Mark.remove name)
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
   | SLocalInit { name; typ; expr = naked_expr } ->
-    Format.fprintf fmt "@[<hov 2>%a %a %a %a@ %a@]" format_var_name
-      (Mark.remove name) Print.punctuation ":" (Print.typ decl_ctx) typ
-      Print.punctuation "="
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword "init"
+      format_var_name (Mark.remove name) Print.punctuation ":"
+      (format_type decl_ctx) typ Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | STryWEmpty { try_block = b_try; with_block = b_with } ->
-    Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
-      "try" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      b_try Print.keyword "with" Print.op_style "Empty" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      b_with
-  | SRaiseEmpty ->
-    Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.op_style
-      "Empty"
-  | SFatalError err ->
+  | SFatalError { error; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "fatal"
-      Print.runtime_error err
+      Print.runtime_error error
   | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
-    Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
+    Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@]@ @[<v 2>%a%a@ %a@]"
       Print.keyword "if"
       (format_expr decl_ctx ~debug)
       e_if Print.punctuation ":"
@@ -162,11 +163,11 @@ let rec format_statement
   | SReturn ret ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
-      (ret, Mark.get stmt)
-  | SAssert naked_expr ->
+      ret
+  | SAssert { expr; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
-      (naked_expr, Mark.get stmt)
+      expr
   | SSwitch { switch_var = v_switch; enum_name = enum; switch_cases = arms; _ }
     ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
@@ -181,17 +182,7 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
-  | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; _ }) ->
-    Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@\n@[<hov 2>%a@ %a %a%a@\n%a@]"
-      Print.keyword "handle exceptions" Print.punctuation "["
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" (format_expr decl_ctx ~debug) e))
-      exceptions Print.punctuation "]" Print.keyword "or if"
-      (format_expr decl_ctx ~debug)
-      just Print.keyword "then" Print.punctuation ":"
-      (format_block decl_ctx ~debug)
-      cons
+  | _ -> .
 
 and format_block
     (decl_ctx : decl_ctx)
@@ -199,7 +190,9 @@ and format_block
     (fmt : Format.formatter)
     (block : block) : unit =
   Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
+    ~pp_sep:(fun fmt () ->
+      Print.punctuation fmt ";";
+      Format.pp_print_space fmt ())
     (format_statement decl_ctx ~debug)
     fmt block
 
@@ -209,19 +202,19 @@ let format_item decl_ctx ?debug ppf def =
   Print.keyword ppf "let ";
   let () =
     match def with
-    | SVar { var; expr; typ = _ } ->
+    | SVar { var; expr; typ = _; visibility = _ } ->
       format_var_name ppf var;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
       Format.pp_print_space ppf ();
       format_expr decl_ctx ?debug ppf expr
     | SScope { scope_body_var = var; scope_body_func = func; _ }
-    | SFunc { var; func } ->
+    | SFunc { var; func; visibility = _ } ->
       format_func_name ppf var;
       Format.pp_print_list
         (fun ppf (arg, ty) ->
           Format.fprintf ppf "@ (%a: %a)" format_var_name (Mark.remove arg)
-            (Print.typ decl_ctx) ty)
+            (format_type decl_ctx) ty)
         ppf func.func_params;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
@@ -232,11 +225,18 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_print_cut ppf ()
 
 let format_program ?debug ppf prg =
-  Format.pp_open_vbox ppf 0;
-  ModuleName.Map.iter
-    (fun m var ->
-      Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
-        var ModuleName.format m)
-    prg.ctx.modules;
-  Format.pp_print_list (format_item prg.ctx.decl_ctx ?debug) ppf prg.code_items;
-  Format.pp_close_box ppf ()
+  try
+    Format.pp_open_vbox ppf 0;
+    ModuleName.Map.iter
+      (fun m var ->
+        Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
+          var ModuleName.format m)
+      prg.ctx.modules;
+    Format.pp_print_list
+      (format_item prg.ctx.decl_ctx ?debug)
+      ppf prg.code_items;
+    Format.pp_close_box ppf ()
+  with e ->
+    let bt = Printexc.get_raw_backtrace () in
+    Format.pp_print_newline ppf ();
+    Printexc.raise_with_backtrace e bt

@@ -681,7 +681,7 @@ let translate_rule
                   (String.concat "."
                      [
                        Mark.remove (ScopeVar.get_info (Mark.remove v));
-                       Mark.remove (ScopeVar.get_info var_within_origin_scope);
+                       ScopeVar.to_string var_within_origin_scope;
                      ])
               in
               let typ =
@@ -803,9 +803,10 @@ let translate_scope_interface ctx scope =
   Mark.add pos
     {
       Ast.scope_decl_name = scope.scope_uid;
-      Ast.scope_decl_rules = [];
-      Ast.scope_sig;
-      Ast.scope_options = scope.scope_options;
+      scope_decl_rules = [];
+      scope_sig;
+      scope_options = scope.scope_options;
+      scope_visibility = scope.scope_visibility;
     }
 
 let translate_scope
@@ -957,8 +958,9 @@ let translate_program
   let program_topdefs =
     TopdefName.Map.mapi
       (fun id -> function
-        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = _ } ->
-          Expr.unbox (translate_expr ctx e), ty
+        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = vis }
+          ->
+          Expr.unbox (translate_expr ctx e), ty, vis
         | { D.topdef_expr = None; topdef_type = _, pos; _ } ->
           Message.error ~pos "No definition found for %a" TopdefName.format id)
       desugared.program_root.module_topdefs
@@ -970,9 +972,9 @@ let translate_program
   in
   {
     Ast.program_module_name = desugared.D.program_module_name;
-    Ast.program_topdefs;
-    Ast.program_scopes;
-    Ast.program_ctx = ctx.decl_ctx;
-    Ast.program_modules;
-    Ast.program_lang = desugared.program_lang;
+    program_topdefs;
+    program_scopes;
+    program_ctx = ctx.decl_ctx;
+    program_modules;
+    program_lang = desugared.program_lang;
   }

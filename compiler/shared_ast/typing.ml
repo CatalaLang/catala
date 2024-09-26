@@ -337,18 +337,25 @@ let polymorphic_op_return_type
     tret
   in
   match Mark.remove op, targs with
-  | Fold, [_; tau; _] -> tau
+  | (Fold | Reduce), [_; tau; _] -> tau
   | Eq, _ -> uf (TLit TBool)
   | Map, [tf; _] -> uf (TArray (return_type tf 1))
   | Map2, [tf; _; _] -> uf (TArray (return_type tf 2))
-  | (Filter | Reduce | Concat), [_; tau] -> tau
+  | (Filter | Concat), [_; tau] -> tau
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
   | HandleExceptions, [_] -> any ()
   | ToClosureEnv, _ -> uf TClosureEnv
   | FromClosureEnv, _ -> any ()
-  | _ -> Message.error ~pos "Mismatched operator arguments"
+  | op, targs ->
+    Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
+      (Print.operator ?debug:None)
+      op
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (format_typ ctx))
+      targs
 
 let resolve_overload_ret_type
     ~flags
@@ -776,7 +783,9 @@ and typecheck_expr_top_down :
       in
       match Mark.remove name with
       | A.External_value name -> (
-        try ast_to_typ (A.TopdefName.Map.find name ctx.ctx_topdefs)
+        try
+          let atyp, _vis = A.TopdefName.Map.find name ctx.ctx_topdefs in
+          ast_to_typ atyp
         with A.TopdefName.Map.Not_found _ ->
           not_found A.TopdefName.format name)
       | A.External_scope name -> (
@@ -1048,14 +1057,14 @@ let scopes ctx env =
         ( Env.add var ty_scope env,
           Var.translate var,
           Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
-      | A.Topdef (name, typ, e) ->
+      | A.Topdef (name, typ, vis, e) ->
         let e' = expr_raw ctx ~env ~typ e in
         let (A.Custom { custom = uf; _ }) = Mark.get e' in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
         ( Env.add var uf env,
           Var.translate var,
           Bindlib.box_apply
-            (fun e -> A.Topdef (name, Expr.ty e', e))
+            (fun e -> A.Topdef (name, Expr.ty e', vis, e))
             (Expr.Box.lift e') ))
 
 let program ?fail_on_any ?assume_op_types prg =

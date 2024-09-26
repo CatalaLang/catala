@@ -119,6 +119,11 @@ However, if you wish to get the latest developments of the compiler, you probabl
 want to compile it from the sources of this repository or use nix. For that, see
 [the dedicated readme](INSTALL.md).
 
+Note: the `--locked` flag can be added to the above commands to more closely
+mimic known working dev setups. Conversely, `opam lock` should be called to
+regenerate the `catala.opam.locked` file upon modifications of the main opam
+file.
+
 ## Usage
 
 ### Catala

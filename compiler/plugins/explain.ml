@@ -445,7 +445,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, e) -> Env.add v e env env, scopes)
+        | Topdef (_, _, _, e) -> Env.add v e env env, scopes)
   in
   let scope_v, _scope_arg_struct = ScopeName.Map.find scope scopes in
   let e, env = (Env.find scope_v all_env).base in
@@ -545,7 +545,7 @@ module G = Graph.Persistent.Digraph.AbstractLabeled (V) (E)
 
 let op_kind = function
   | Op.Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
   | Sub_dur_dur ->
     `Sum
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int
@@ -625,7 +625,6 @@ let program_to_graph
                  {
                    Renaming.reserved = [];
                    sanitize_varname = String.to_snake_case;
-                   reset_context_for_closed_terms = false;
                    skip_constant_binders = false;
                    constant_binder_name = None;
                  })
@@ -633,7 +632,7 @@ let program_to_graph
           in
           ( Env.add (Var.translate v) (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, e) ->
+        | Topdef (_, _, _, e) ->
           Env.add (Var.translate v) (Expr.unbox (customize e)) env env, scopes)
   in
   let scope_v, _scope_arg_struct = ScopeName.Map.find scope scopes in
@@ -755,7 +754,7 @@ let program_to_graph
         | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
           ->
           Some (E.Lhs "⊕"), Some (E.Rhs "⊕")
-        | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+        | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
         | Sub_dur_dur ->
           Some (E.Lhs "⊕"), Some (E.Rhs "⊖")
         | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
@@ -1047,8 +1046,8 @@ let expr_to_dot_label0 :
         let open Op in
         let str =
           match o with
-          | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq
-            ->
+          | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
+          | Eq_dat_dat | Eq ->
             "="
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
           | ToRat_int | ToRat_mon | ToRat -> ""
@@ -1056,8 +1055,8 @@ let expr_to_dot_label0 :
           | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
           | Add_dur_dur | Add ->
             "+"
-          | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
-          | Sub_dur_dur | Sub ->
+          | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+          | Sub_dat_dur _ | Sub_dur_dur | Sub ->
             "-"
           | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult ->
             "×"

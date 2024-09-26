@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2021 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   and social benefits computation rules. Copyright (C) 2024 Inria, contributor:
+   Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,11 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Formats a lambda calculus program into a valid Python program *)
+(** This transformation expands the equality operator, that is polymorphic and
+    needs code generation on the backends that don't natively support it ; note
+    that this is a place-holder, generating inline expansions, and is planned to
+    be replaced with a more serious implementation that generates specific
+    functions. In particular, currently, comparison of enums is quadratic in
+    size. *)
 
 open Shared_ast
 
-val renaming : Renaming.t
-
-val format_program : Format.formatter -> Ast.program -> TypeIdent.t list -> unit
-(** Usage [format_program fmt p type_dependencies_ordering] *)
+val expr : decl_ctx -> 'm Ast.expr -> 'm Ast.expr boxed
+val program : 'm Ast.program -> 'm Ast.program

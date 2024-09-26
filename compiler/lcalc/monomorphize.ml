@@ -282,8 +282,7 @@ let rec monomorphize_expr
       }
   | e -> e
 
-let program (prg : typed program) :
-    typed program * Scopelang.Dependency.TVertex.t list =
+let program (prg : typed program) : typed program * TypeIdent.t list =
   let monomorphized_instances = collect_monomorphized_instances prg in
   let decl_ctx = prg.decl_ctx in
   (* First we remove the polymorphic option type *)

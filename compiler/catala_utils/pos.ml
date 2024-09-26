@@ -99,6 +99,19 @@ let to_string_short (pos : t) : string =
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
+let to_string_shorter (pos : t) : string =
+  let s, e = pos.code_pos in
+  let f = Filename.(remove_extension (basename s.Lexing.pos_fname)) in
+  if s.Lexing.pos_lnum = e.Lexing.pos_lnum then
+    Printf.sprintf "%s:%d.%d-%d" f s.Lexing.pos_lnum
+      (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+      (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+  else
+    Printf.sprintf "%s:%d.%d-%d.%d" f s.Lexing.pos_lnum
+      (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+      e.Lexing.pos_lnum
+      (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+
 let indent_number (s : string) : int =
   try
     let rec aux (i : int) = if s.[i] = ' ' then aux (i + 1) else i in
@@ -128,7 +141,7 @@ let format_loc_text_parts (pos : t) =
     let pr_head ppf =
       Format.fprintf ppf "@{<blue>─➤ @{<bold>%s:@}@}@," (to_string_short pos)
     in
-    let pr_context, pr_legal =
+    let pr_context =
       try
         let sline = get_start_line pos in
         let eline = get_end_line pos in
@@ -174,21 +187,35 @@ let format_loc_text_parts (pos : t) =
         let pos_lines = get_lines 1 in
         let nspaces = int_of_float (log10 (float_of_int eline)) + 1 in
         (match ic with None -> () | Some ic -> close_in ic);
-        let print_matched_line ppf ((line_no, line) : int * string) =
-          let line_indent = indent_number line in
-          let match_start_index =
-            utf8_byte_index line
-              (if line_no = sline then get_start_column pos - 1 else line_indent)
-          in
-          let match_end_index =
-            if line_no = eline then utf8_byte_index line (get_end_column pos - 1)
-            else String.length line
-          in
-          let unmatched_prefix = String.sub line 0 match_start_index in
-          let matched_substring =
-            String.sub line match_start_index
-              (max 0 (match_end_index - match_start_index))
-          in
+        let line_matched_substrings =
+          try
+            List.map
+              (fun (line_no, line) ->
+                let line_indent = indent_number line in
+                let match_start_index =
+                  utf8_byte_index line
+                    (if line_no = sline then get_start_column pos - 1
+                     else line_indent)
+                in
+                let match_end_index =
+                  if line_no = eline then
+                    utf8_byte_index line (get_end_column pos - 1)
+                  else String.length line
+                in
+                ( line_no,
+                  line,
+                  String.sub line 0 match_start_index,
+                  String.sub line match_start_index
+                    (max 0 (match_end_index - match_start_index)) ))
+              pos_lines
+          with Invalid_argument _ ->
+            (* Index out of bounds, can happen if the file was changed since
+               initially read *)
+            []
+        in
+        let print_matched_line
+            ppf
+            (line_no, line, unmatched_prefix, matched_substring) =
           let match_start_col = String.width unmatched_prefix in
           let match_num_cols = String.width matched_substring in
           Format.fprintf ppf "@{<blue>%*d │@} %a" nspaces line_no
@@ -200,38 +227,37 @@ let format_loc_text_parts (pos : t) =
               match_start_col ""
               (pad_fmt match_num_cols "‾")
         in
-        let pr_context ppf =
+        if line_matched_substrings <> [] then (fun ppf ->
           Format.fprintf ppf "@{<blue> %*s│@}@," nspaces "";
-          Format.pp_print_list print_matched_line ppf pos_lines
-        in
-        let legal_pos_lines =
-          List.rev_map
-            (fun s ->
-              Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-                ~subst:(fun _ -> " ")
-                s)
-            pos.law_pos
-        in
-        let rec pp_legal nspaces leg ppf =
-          match leg with
-          | [last] ->
-            Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└─" last
-          | l :: lines ->
-            Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└┬" l;
-            pp_legal (nspaces + 1) lines ppf
-          | [] -> ()
-        in
-        let pr_law =
-          match legal_pos_lines with
-          | [] -> None
-          | fst :: rest ->
-            Some
-              (fun ppf ->
-                Format.fprintf ppf "@{<blue>%s@}" fst;
-                pp_legal 0 rest ppf)
-        in
-        pr_context, pr_law
-      with Sys_error _ -> ignore, None
+          Format.pp_print_list print_matched_line ppf line_matched_substrings)
+        else ignore
+      with Sys_error _ -> ignore
+    in
+    let pr_legal =
+      let legal_pos_lines =
+        List.rev_map
+          (fun s ->
+            Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+              ~subst:(fun _ -> " ")
+              s)
+          pos.law_pos
+      in
+      let rec pp_legal nspaces leg ppf =
+        match leg with
+        | [last] ->
+          Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└─" last
+        | l :: lines ->
+          Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└┬" l;
+          pp_legal (nspaces + 1) lines ppf
+        | [] -> ()
+      in
+      match legal_pos_lines with
+      | [] -> None
+      | fst :: rest ->
+        Some
+          (fun ppf ->
+            Format.fprintf ppf "@{<blue>%s@}" fst;
+            pp_legal 0 rest ppf)
     in
     pr_head, pr_context, pr_legal
 
@@ -257,3 +283,14 @@ let no_pos : t =
     }
   in
   { code_pos = zero_pos, zero_pos; law_pos = [] }
+
+module Map = Map.Make (struct
+  type nonrec t = t
+
+  let compare t1 t2 =
+    match lex_pos_compare (fst t1.code_pos) (fst t2.code_pos) with
+    | 0 -> lex_pos_compare (snd t1.code_pos) (snd t2.code_pos)
+    | n -> n
+
+  let format ppf t = Format.pp_print_string ppf (to_string_short t)
+end)

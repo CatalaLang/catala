@@ -47,7 +47,7 @@ and naked_expr =
       name : StructName.t;
     }
   | ETuple of expr list
-  | ETupleAccess of { e1 : expr; index : int }
+  | ETupleAccess of { e1 : expr; index : int; typ : typ }
   | EInj of {
       e1 : expr;
       cons : EnumConstructor.t;
@@ -56,18 +56,18 @@ and naked_expr =
     }
   | EArray of expr list
   | ELit of lit
+  | EPosLit
   | EApp of { f : expr; args : expr list }
-  | EAppOp of { op : operator Mark.pos; args : expr list }
+  | EAppOp of { op : operator Mark.pos; args : expr list; tys : typ list }
   | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
 type stmt =
   | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
   | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
   | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
-  | SLocalDef of { name : VarName.t Mark.pos; expr : expr; typ : typ }
-  | STryWEmpty of { try_block : block; with_block : block }
-  | SRaiseEmpty
-  | SFatalError of Runtime.error
+  | SLocalDef of { name : VarName.t Mark.pos; typ : typ; expr : expr }
+  | SFatalError of { pos_expr : expr; error : Runtime.error }
+      (** [pos_expr] here is the position reified into an expression *)
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
   | SSwitch of {
       switch_var : VarName.t;
@@ -75,18 +75,12 @@ type stmt =
       enum_name : EnumName.t;
       switch_cases : switch_case list;
     }
-  | SReturn of naked_expr
-  | SAssert of naked_expr
+  | SReturn of expr
+  | SAssert of { pos_expr : expr; expr : expr }
+      (** [pos_expr] here is the position reified into an expression *)
   | SSpecialOp of special_operator
 
-and special_operator =
-  | OHandleDefaultOpt of {
-      exceptions : expr list;
-      just : expr;
-      cons : block;
-      return_typ : typ;
-    }
-
+and special_operator = |
 and block = stmt Mark.pos list
 
 and switch_case = {
@@ -105,11 +99,12 @@ type scope_body = {
   scope_body_name : ScopeName.t;
   scope_body_var : FuncName.t;
   scope_body_func : func;
+  scope_body_visibility : visibility;
 }
 
 type code_item =
-  | SVar of { var : VarName.t; expr : expr; typ : typ }
-  | SFunc of { var : FuncName.t; func : func }
+  | SVar of { var : VarName.t; expr : expr; typ : typ; visibility : visibility }
+  | SFunc of { var : FuncName.t; func : func; visibility : visibility }
   | SScope of scope_body
 
 type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }

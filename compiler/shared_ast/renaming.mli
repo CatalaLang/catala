@@ -20,31 +20,30 @@ open Definitions
 type config = {
   reserved : string list;  (** Use for keywords and built-ins *)
   sanitize_varname : string -> string;  (** Typically String.to_snake_case *)
-  reset_context_for_closed_terms : bool;  (** See [Bindlib.Renaming] *)
   skip_constant_binders : bool;  (** See [Bindlib.Renaming] *)
   constant_binder_name : string option;  (** See [Bindlib.Renaming] *)
 }
 
 type context
 
+val default_config : config
 val get_ctx : config -> context
 
 val unbind_in :
-  context ->
-  ?fname:(string -> string) ->
-  ('e, 'b) Bindlib.binder ->
-  ('e, _) Mark.ed Var.t * 'b * context
-(* [fname] applies a transformation on the variable name (typically something
-   like [String.to_snake_case]). The result is advisory and a numerical suffix
-   may be appended or modified *)
+  context -> ('e, 'b) Bindlib.binder -> ('e, _) Mark.ed Var.t * 'b * context
+(* [fname] applies the transformation registered with [sanitize_varname] in the
+   context to the variable name (typically something like
+   [String.to_snake_case]). The result is advisory and a numerical suffix may be
+   appended or modified *)
 
 val unmbind_in :
   context ->
-  ?fname:(string -> string) ->
   ('e, 'b) Bindlib.mbinder ->
   ('e, _) Mark.ed Var.t Array.t * 'b * context
 
 val new_id : context -> string -> string * context
+val new_var_id : context -> string -> string * context
+val reserve_name : context -> string -> context
 
 val set_rewriters :
   ?scopes:(ScopeName.t -> ScopeName.t) ->
@@ -68,7 +67,10 @@ val struct_name : context -> StructName.t -> StructName.t
 val enum_name : context -> EnumName.t -> EnumName.t
 
 val code_items :
-  context -> ((_ any, 'm) gexpr as 'e) code_item_list -> 'e code_item_list
+  context ->
+  (typ -> typ) ->
+  ((_ any, 'm) gexpr as 'e) code_item_list ->
+  'e code_item_list * context
 
 type t
 (** Enclosing of a polymorphic renaming function, to be used by [apply] *)
@@ -77,10 +79,10 @@ val apply : t -> 'e program -> 'e program * context
 
 val program :
   reserved:string list ->
-  reset_context_for_closed_terms:bool ->
   skip_constant_binders:bool ->
   constant_binder_name:string option ->
   namespaced_fields_constrs:bool ->
+  prefix_module:bool ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
   ?f_field:(string -> string) ->
@@ -96,6 +98,10 @@ val program :
     if [namespaced_fields_constrs] is true, then struct fields and enum
     constructors can reuse names from other fields/constructors or other idents.
 
+    if [prefix_module] is true, the qualifying module name is inserted within
+    the ident string, separated with a [.] dot. This happens before
+    sanitization.
+
     The [f_*] optional arguments sanitize the different kinds of ids. The
     default is what is used for OCaml: project to ASCII, capitalise structs,
     enums (both modules in the backend) and constructors, lowercase fields, and
@@ -103,3 +109,7 @@ val program :
 
     In the returned program, it is safe to directly use `Bindlib.name_of` on
     variables for printing. The same is true for `StructName.get_info` etc. *)
+
+val default : t
+(** Basic defaults for minimal renaming, without any reserved keywords, intended
+    for printing intermediate ASTs *)

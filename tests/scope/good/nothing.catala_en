@@ -39,11 +39,12 @@ $ catala Scalc -s Foo2 -O -t
 │ 5 │   output bar content integer
 │   │          ‾‾‾
 └─ Test
-let Foo2 (Foo2_in: Foo2_in) =
-  decl bar1 : integer;
-  fatal NoValue;
+let foo2 (foo2_in: Foo2_in) =
   decl bar : integer;
-  bar = bar1;
+  decl bar__1 : integer;
+  init pos : SourcePosition = <nothing:5.10-13>;
+  fatal NoValue;
+  bar = bar__1;
   return Foo2 {"bar": bar}
 
 ```

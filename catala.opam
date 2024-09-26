@@ -75,3 +75,10 @@ depexts: [
   ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
   ["python-pygments"] {cataladevmode & os-family = "arch"}
 ]
+pin-depends: [
+  [
+  # FIXME: this is temporary, while we wait for the branch to be merged (and package released)
+    "dates_calc.0.0.6"
+    "git+https://github.com/CatalaLang/dates-calc#add-c-implem"
+  ]
+]

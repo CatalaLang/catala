@@ -39,6 +39,8 @@ val join : t -> t -> t
       if they don't belong to the same file. The law position used is the one of
       the earliest position. *)
 
+module Map : Map.S with type key = t
+
 (**{2 Formatters}*)
 
 val to_string : t -> string
@@ -54,6 +56,9 @@ val to_string_short : t -> string
     This function is compliant with the
     {{:https://www.gnu.org/prep/standards/standards.html#Errors} GNU coding
       standards}. *)
+
+val to_string_shorter : t -> string
+(** Like [to_string_short], but skips directory names and extension *)
 
 val format_loc_text : Format.formatter -> t -> unit
 (** Open the file corresponding to the position and retrieves the text concerned

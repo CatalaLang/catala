@@ -23,6 +23,75 @@ Alpha = TypeVar('Alpha')
 Beta = TypeVar('Beta')
 Gamma = TypeVar('Gamma')
 
+# ==========
+# Exceptions
+# ==========
+
+class SourcePosition:
+    def __init__(self,
+                 filename: str,
+                 start_line: int,
+                 start_column: int,
+                 end_line: int,
+                 end_column: int,
+                 law_headings: List[str]) -> None:
+        self.filename = filename
+        self.start_line = start_line
+        self.start_column = start_column
+        self.end_line = end_line
+        self.end_column = end_column
+        self.law_headings = law_headings
+
+    def __str__(self) -> str:
+        return "{}:{}.{}-{}.{}".format(
+            self.filename,
+            self.start_line, self.start_column,
+            self.end_line, self.end_column)
+
+class CatalaError(Exception):
+    def __init__(self, message: str, source_position: SourcePosition) -> None:
+        self.message = message
+        self.source_position = source_position
+    # Prints in the same format as the OCaml runtime
+    def __str__(self) -> str:
+        return "[ERROR] At {}: {}".format(
+            self.source_position,
+            self.message)
+
+class AssertionFailed(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("this assertion doesn't hold", source_position)
+
+class NoValue(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("no computation with valid conditions found",
+                         source_position)
+
+class Conflict(CatalaError):
+    def __init__(self, pos1: SourcePosition, pos2: SourcePosition) -> None:
+        super().__init__("two or more concurring valid computations:\nAt {}".format(pos2),
+                         pos1)
+
+class DivisionByZero(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("division by zero", source_position)
+
+class NotSameLength(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("traversing multiple lists of different lengths",
+                         source_position)
+
+class UncomparableDurations(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__(
+            "comparing durations in different units (e.g. months vs. days)",
+            source_position)
+
+class IndivisibleDurations(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("dividing durations that are not in days",
+                         source_position)
+
 # ============
 # Type classes
 # ============
@@ -186,6 +255,7 @@ class Money:
     def __repr__(self) -> str:
         return f"Money({self.value.__repr__()})"
 
+DateRounding = Enum("DateRounding", ["RoundUp", "RoundDown", "AbortOnRound"])
 
 class Date:
     def __init__(self, value: datetime.date) -> None:
@@ -260,38 +330,6 @@ class Duration:
                                                  months=self.value.months * rhs.value,
                                                  days=self.value.days * rhs.value))
 
-    def __lt__(self, other: Duration) -> bool:
-        x = self.value.normalized()
-        y = other.value.normalized()
-        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
-            raise Exception("Can only compare durations expressed in days")
-        else:
-            return x.days < y.days
-
-    def __le__(self, other: Duration) -> bool:
-        x = self.value.normalized()
-        y = other.value.normalized()
-        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
-            raise Exception("Can only compare durations expressed in days")
-        else:
-            return x.days <= y.days
-
-    def __gt__(self, other: Duration) -> bool:
-        x = self.value.normalized()
-        y = other.value.normalized()
-        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
-            raise Exception("Can only compare durations expressed in days")
-        else:
-            return x.days > y.days
-
-    def __ge__(self, other: Duration) -> bool:
-        x = self.value.normalized()
-        y = other.value.normalized()
-        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
-            raise Exception("Can only compare durations expressed in days")
-        else:
-            return x.days >= y.days
-
     def __ne__(self, other: object) -> bool:
         if isinstance(other, Duration):
             return self.value != other.value
@@ -334,82 +372,58 @@ class Unit:
         return "Unit()"
 
 
-class SourcePosition:
-    def __init__(self,
-                 filename: str,
-                 start_line: int,
-                 start_column: int,
-                 end_line: int,
-                 end_column: int,
-                 law_headings: List[str]) -> None:
-        self.filename = filename
-        self.start_line = start_line
-        self.start_column = start_column
-        self.end_line = end_line
-        self.end_column = end_column
-        self.law_headings = law_headings
-
-    def __str__(self) -> str:
-        return "{}:{}.{}-{}.{}".format(
-            self.filename,
-            self.start_line, self.start_column,
-            self.end_line, self.end_column)
-
-# ==========
-# Exceptions
-# ==========
-
-
-class Empty(Exception):
-    pass
-
-class CatalaError(Exception):
-    def __init__(self, message: str, source_position: SourcePosition) -> None:
-        self.message = message
-        self.source_position = source_position
-    # Prints in the same format as the OCaml runtime
-    def __str__(self) -> str:
-        return "[ERROR] At {}: {}".format(
-            self.source_position,
-            self.message)
-
-class AssertionFailed(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("this assertion doesn't hold", source_position)
-
-class NoValue(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("no computation with valid conditions found",
-                         source_position)
-
-class Conflict(CatalaError):
-    def __init__(self, pos1: SourcePosition, pos2: SourcePosition) -> None:
-        super().__init__("two or more concurring valid computations:\nAt {}".format(pos2),
-                         pos1)
-
-class DivisionByZero(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("division by zero", source_position)
-
-class NotSameLength(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("traversing multiple lists of different lengths",
-                         source_position)
-
-class UncomparableDurations(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__(
-            "comparing durations in different units (e.g. months vs. days)",
-            source_position)
-
-class IndivisibleDurations(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("dividing durations that are not in days",
-                         source_position)
-
 # ============================
 # Constructors and conversions
 # ============================
+
+
+def div(pos: SourcePosition, x, y):
+    try: return x / y
+    except ZeroDivisionError: raise DivisionByZero(pos)
+
+# TODO: use rounding mode
+def add_date_duration(rounding: DateRounding):
+    def add(pos: SourcePosition, dat: Date, dur: Duration):
+        return dat + dur
+    return add
+
+# TODO: use rounding mode
+def sub_date_duration(rounding: DateRounding):
+    def add(pos: SourcePosition, dat: Date, dur: Duration):
+        return dat - dur
+    return add
+
+def lt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
+    x = self.value.normalized()
+    y = other.value.normalized()
+    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+        raise UncomparableDurations(pos)
+    else:
+        x.days < y.days
+
+def leq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
+    x = self.value.normalized()
+    y = other.value.normalized()
+    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+        raise UncomparableDurations(pos)
+    else:
+        x.days <= y.days
+
+def gt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
+    x = self.value.normalized()
+    y = other.value.normalized()
+    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+        raise UncomparableDurations(pos)
+    else:
+        x.days > y.days
+
+def geq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
+    x = self.value.normalized()
+    y = other.value.normalized()
+    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+        raise UncomparableDurations(pos)
+    else:
+        x.days >= y.days
 
 def round(q : Decimal) -> Integer:
     sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1

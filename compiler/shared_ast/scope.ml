@@ -58,10 +58,10 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
           (fun scope_body_expr ->
             ScopeDef (name, { body with scope_body_expr }))
           new_body_expr )
-    | Topdef (name, ty, expr) ->
+    | Topdef (name, ty, vis, expr) ->
       ( varf v,
         Bindlib.box_apply
-          (fun e -> Topdef (name, typ ty, e))
+          (fun e -> Topdef (name, typ ty, vis, e))
           (Expr.Box.lift (f expr)) )
   in
   BoundList.map ~f ~last:(map_last_item ~varf) scopes
@@ -69,7 +69,7 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
 let fold_exprs ~f ~init scopes =
   let f acc def _ =
     match def with
-    | Topdef (_, typ, e) -> f acc e typ
+    | Topdef (_, typ, _vis, e) -> f acc e typ
     | ScopeDef (_, scope) ->
       let _, body = Bindlib.unbind scope.scope_body_expr in
       let acc, last =
@@ -127,7 +127,7 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
       let e, typ =
         match item with
         | ScopeDef (_, body) -> to_expr ctx body, typ body
-        | Topdef (_, typ, expr) -> Expr.rebox expr, typ
+        | Topdef (_, typ, _vis, expr) -> Expr.rebox expr, typ
       in
       Expr.make_let_in var typ e next (Expr.pos e))
 
@@ -139,7 +139,7 @@ let free_vars_item = function
   | ScopeDef (_, { scope_body_expr; _ }) ->
     let v, body = Bindlib.unbind scope_body_expr in
     Var.Set.remove v (free_vars_body_expr body)
-  | Topdef (_, _, expr) -> Expr.free_vars expr
+  | Topdef (_, _, _, expr) -> Expr.free_vars expr
 
 let free_vars scopes =
   BoundList.fold_right scopes

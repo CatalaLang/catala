@@ -36,7 +36,7 @@ let scope B (B_in: B_in): B =
     let result1 : A = { A y = result.y; } in
     if true then result1 else result1
   in
-  let assert _ : unit = assert ((a.y = 1)) in
+  let assert assert__1 : unit = assert ((a.y = 1)) in
   return {B}
 ```
 

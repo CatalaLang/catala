@@ -21,4 +21,5 @@
     After closure conversion, closure hoisting is perform and all closures end
     up as toplevel definitions. *)
 
-val closure_conversion : 'm Ast.program -> 'm Ast.program
+val closure_conversion :
+  keep_special_ops:bool -> 'm Ast.program -> 'm Ast.program

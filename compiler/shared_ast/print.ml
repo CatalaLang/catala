@@ -237,7 +237,9 @@ let operator_to_string : type a. a Op.t -> string =
   | Sub_rat_rat -> "-."
   | Sub_mon_mon -> "-$"
   | Sub_dat_dat -> "-@"
-  | Sub_dat_dur -> "-@^"
+  | Sub_dat_dur AbortOnRound -> "-@"
+  | Sub_dat_dur RoundUp -> "-@^u"
+  | Sub_dat_dur RoundDown -> "-@d"
   | Sub_dur_dur -> "-^"
   | Mult -> "*"
   | Mult_int_int -> "*!"
@@ -274,6 +276,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Gte_mon_mon -> ">=$"
   | Gte_dur_dur -> ">=^"
   | Gte_dat_dat -> ">=@"
+  | Eq_boo_boo -> "=="
   | Eq_int_int -> "=!"
   | Eq_rat_rat -> "=."
   | Eq_mon_mon -> "=$"
@@ -302,7 +305,9 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | And -> "&&"
   | Or -> "||"
   | Xor -> "xor"
-  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
+  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat
+  | Eq ->
+    "="
   | Map -> "map"
   | Map2 -> "map2"
   | Reduce -> "reduce"
@@ -311,7 +316,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Add
     ->
     "+"
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
   | Sub_dur_dur | Sub ->
     "-"
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult -> "*"
@@ -377,7 +382,8 @@ module Precedence = struct
       | And -> Op And
       | Or -> Op Or
       | Xor -> Op Xor
-      | Eq | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat ->
+      | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
+      | Eq_dat_dat ->
         Op Comp
       | Lt | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
         Op Comp
@@ -393,7 +399,7 @@ module Precedence = struct
       | Add_dur_dur ->
         Op Add
       | Sub | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-      | Sub_dat_dur | Sub_dur_dur ->
+      | Sub_dat_dur _ | Sub_dur_dur ->
         Op Sub
       | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
         Op Mul
@@ -800,6 +806,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
     scope_body_input_struct;
     scope_body_output_struct;
     scope_body_expr = body;
+    scope_body_visibility = _vis;
   } =
     l
   in
@@ -816,9 +823,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
       let () =
         Format.pp_open_hovbox fmt 4;
         keyword fmt "let scope";
-        Format.pp_print_space fmt ();
-        ScopeName.format fmt n;
-        Format.pp_close_box fmt ()
+        Format.fprintf fmt "@ @{<hi_magenta>%s@}@]" n
       in
       Format.pp_print_space fmt ();
       punctuation fmt "(";
@@ -895,37 +900,26 @@ let scope
     ?(debug : bool = false)
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    ((n, s) : ScopeName.t * 'm scope_body) : unit =
+    ((n, s) : string * 'm scope_body) : unit =
   Format.pp_open_vbox fmt 0;
   scope_body ~debug ctx fmt (n, s);
   Format.pp_close_box fmt ()
 
-let code_item ?(debug = false) ?name decl_ctx fmt c =
+let code_item ?(debug = false) id decl_ctx fmt c =
+  let name = Format.asprintf "%a" (if debug then var_debug else var) id in
   match c with
-  | ScopeDef (n, b) ->
-    let n =
-      match debug, name with
-      | true, Some n -> ScopeName.fresh [] (n, Pos.no_pos)
-      | _ -> n
-    in
-    scope ~debug decl_ctx fmt (n, b)
-  | Topdef (n, ty, e) ->
-    let n =
-      match debug, name with
-      | true, Some n -> TopdefName.fresh [] (n, Pos.no_pos)
-      | _ -> n
-    in
-    Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ %a@ %a@ %a@ %a@]@ %a@]" keyword
-      "let topval" TopdefName.format n op_style ":" (typ decl_ctx) ty op_style
-      "=" (expr ~debug ()) e
+  | ScopeDef (_, b) -> scope ~debug decl_ctx fmt (name, b)
+  | Topdef (_, ty, _vis, e) ->
+    Format.fprintf fmt
+      "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
+      "let topval" name op_style ":" (typ decl_ctx) ty op_style "="
+      (expr ~debug ()) e
 
 let code_item_list ?(debug = false) decl_ctx fmt c =
   Format.pp_open_vbox fmt 0;
   Format.pp_print_seq
     (fun fmt (x, item) ->
-      code_item ~debug
-        ~name:(Format.asprintf "%a" var_debug x)
-        decl_ctx fmt item;
+      code_item ~debug x decl_ctx fmt item;
       Format.pp_print_cut fmt ())
     fmt (BoundList.to_seq c);
   Format.pp_close_box fmt ()

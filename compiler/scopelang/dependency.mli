@@ -33,24 +33,11 @@ val build_program_dep_graph : 'm Ast.program -> SDependencies.t
 val check_for_cycle_in_defs : SDependencies.t -> unit
 val get_defs_ordering : SDependencies.t -> vertex list
 
-(** {1 Type dependencies} *)
-
-module TVertex : sig
-  type t = Struct of StructName.t | Enum of EnumName.t
-
-  val format : Format.formatter -> t -> unit
-  val get_info : t -> Uid.MarkedString.info
-
-  include Graph.Sig.COMPARABLE with type t := t
-end
-
-module TVertexSet : Set.S with type elt = TVertex.t
-
 (** On the edges, the label is the expression responsible for the use of the
     function *)
 module TDependencies :
-  Graph.Sig.P with type V.t = TVertex.t and type E.label = Pos.t
+  Graph.Sig.P with type V.t = TypeIdent.t and type E.label = Pos.t
 
-val get_structs_or_enums_in_type : typ -> TVertexSet.t
+val get_structs_or_enums_in_type : typ -> TypeIdent.Set.t
 val build_type_graph : struct_ctx -> enum_ctx -> TDependencies.t
-val check_type_cycles : struct_ctx -> enum_ctx -> TVertex.t list
+val check_type_cycles : struct_ctx -> enum_ctx -> TypeIdent.t list

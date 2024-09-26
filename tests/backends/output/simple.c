@@ -2,183 +2,152 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <runtime.c>
+#include <catala_runtime.h>
 
-enum Option_2_code {
-  Option_2_None_2,
-  Option_2_Some_2
-} Option_2_code;
 
-typedef struct Option_2 {
-  enum Option_2_code code;
-  union {
-    void* /* unit */ None_2;
-    double Some_2;
-  } payload;
-} Option_2;
 
 typedef struct Foo {
-  char /* bool */ x;
-  double y;
+  CATALA_BOOL x;
+  CATALA_DEC y;
 } Foo;
 
-typedef struct Array_1 {
-  double * content;
-  int length;
-} Array_1;
+typedef struct Baz {
+  CATALA_DEC b;
+  const CATALA_ARRAY(CATALA_DEC) c;
+} Baz;
 
-enum Bar_code {
-  Bar_No,
-  Bar_Yes
-} Bar_code;
+enum Bar__code {
+  NO,
+  YES
+};
 
 typedef struct Bar {
-  enum Bar_code code;
+  enum Bar__code code;
   union {
-    void* /* unit */ No;
-    Foo Yes;
+    CATALA_UNIT NO;
+    const Foo* YES;
   } payload;
 } Bar;
 
-typedef struct Baz {
-  double b;
-  Array_1 c;
-} Baz;
-
-enum Option_3_code {
-  Option_3_None_3,
-  Option_3_Some_3
-} Option_3_code;
-
-typedef struct Option_3 {
-  enum Option_3_code code;
-  union {
-    void* /* unit */ None_3;
-    Array_1 Some_3;
-  } payload;
-} Option_3;
-
-enum Option_1_code {
-  Option_1_None_1,
-  Option_1_Some_1
-} Option_1_code;
-
-typedef struct Option_1 {
-  enum Option_1_code code;
-  union {
-    void* /* unit */ None_1;
-    Bar Some_1;
-  } payload;
-} Option_1;
-
-typedef struct Tuple_1 {
-  Option_1 (*elt_0)(void * /* closure_env */ arg_0_typ, void* /* unit */ arg_1_typ);
-  void * /* closure_env */ elt_1;
-} Tuple_1;
-
 typedef struct Baz_in {
-  Tuple_1 a_in;
+  const catala_closure* a_in;
 } Baz_in;
 
-
-Baz baz(Baz_in baz_in) {
-  Tuple_1 a;
-  a = baz_in.a_in;
-  Bar a2;
-  option_1 a3;
-  Tuple_1 code_and_env;
-  code_and_env = a;
-  Option_1 (*code)(void * /* closure_env */ arg_0_typ, void* /* unit */ arg_1_typ);
-  void * /* closure_env */ env;
-  code = code_and_env.elt_0;
-  env = code_and_env.elt_1;
-  Option_1 a3 = code(env, NULL);
-  switch (a3.code) {
-    case Option_1_None_1:
-      Bar a3;
-      Bar a5 = {Bar_No, {No: NULL}};
-      option_1 a4 = {Option_1_Some_1, {Some_1: a5}};
-      switch (a4.code) {
-        case Option_1_None_1:
-          catala_raise_fatal_error (catala_no_value,
-            "tests/backends/simple.catala_en", 11, 11, 11, 12);
-          break;
-        case Option_1_Some_1: Bar arg = a4.payload.Some_1; a3 = arg; break;
-      }
-      option_1 a3 = {Option_1_Some_1, {Some_1: a3}};
-      break;
-    case Option_1_Some_1:
-      Bar x1 = a3.payload.Some_1;
-      option_1 a3 = {Option_1_Some_1, {Some_1: x1}};
-      break;
-  }
-  switch (a3.code) {
-    case Option_1_None_1:
-      catala_raise_fatal_error (catala_no_value,
-        "tests/backends/simple.catala_en", 11, 11, 11, 12);
-      break;
-    case Option_1_Some_1: Bar arg = a3.payload.Some_1; a2 = arg; break;
-  }
-  Bar a1;
-  a1 = a2;
-  double b2;
-  option_2 b3;
-  Option_2 b4;
-  char /* bool */ b5;
-  switch (a1.code) {
-    case Bar_No: b5 = 1 /* TRUE */; break;
-    case Bar_Yes: Foo _ = a1.payload.Yes; b5 = 0 /* FALSE */; break;
-  }
-  if (b5) {
-    option_2 b4 = {Option_2_Some_2, {Some_2: 42.}};
-    
+static const Baz* baz (const Baz_in* baz_in)
+{
+  const catala_closure* a = baz_in->a_in;
+  const Bar* a__1;
+  const CATALA_OPTION(Bar*) a__2;
+  const catala_closure* code_and_env = a;
+  const CATALA_OPTION(Bar*) a__3 =
+    ((const CATALA_OPTION(Bar*)(*)(const CLOSURE_ENV, CATALA_UNIT))
+     code_and_env->funcp)(code_and_env->env, CATALA_UNITVAL);
+  CATALA_DEC b;
+  const CATALA_OPTION(CATALA_DEC) b__1;
+  const CATALA_OPTION(CATALA_DEC) b__2;
+  CATALA_BOOL b__3;
+  const CATALA_ARRAY(CATALA_DEC) c;
+  CATALA_ARRAY(CATALA_DEC) const c__2 = catala_malloc(sizeof(catala_array));
+  const CATALA_OPTION(CATALA_ARRAY(CATALA_DEC)) c__1;
+  Baz* const baz__1 = catala_malloc(sizeof(Baz));
+  if (a__3->code == catala_option_some) {
+    a__2 = catala_some(a__3->payload);
   } else {
-    option_2 b4 = {Option_2_None_2, {None_2: NULL}};
-    
+    const Bar* a__4;
+    Bar* const a__6 = catala_malloc(sizeof(Bar));
+    const CATALA_OPTION(Bar*) a__5;
+    a__6->code = NO;
+    a__6->payload.NO = CATALA_UNITVAL;
+    a__5 = catala_some(a__6);
+    if (a__5->code == catala_option_some) {
+      a__4 = a__5->payload;
+    } else {
+      static const catala_code_position pos[1] =
+        {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+      catala_error(catala_no_value, pos);
+      abort();
+    }
+    a__2 = catala_some(a__4);
   }
-  switch (b4.code) {
-    case Option_2_None_2:
-      double b6;
-      switch (a1.code) {
-        case Bar_No: b6 = 0.; break;
-        case Bar_Yes:
-          Foo foo = a1.payload.Yes;
-          double b6;
-          if (foo.x) {b6 = 1.; } else {b6 = 0.; }
-          b6 = (foo.y + b6);
-          break;
+  if (a__2->code == catala_option_some) {
+    a__1 = a__2->payload;
+  } else {
+    static const catala_code_position pos[1] =
+      {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+    catala_error(catala_no_value, pos);
+    abort();
+  }
+  switch (a__1->code) {
+    case NO: {
+      b__3 = CATALA_TRUE;
+      break;
+    }
+    case YES: {
+      b__3 = CATALA_FALSE;
+      break;
+    }
+    default:
+      abort();
+  }
+  if (b__3 == CATALA_TRUE) {
+    b__2 = catala_some(catala_new_dec_str("42"));
+  } else {
+    b__2 = CATALA_NONE;
+  }
+  if (b__2->code == catala_option_some) {
+    b__1 = catala_some(b__2->payload);
+  } else {
+    CATALA_DEC b__4;
+    switch (a__1->code) {
+      case NO: {
+        b__4 = catala_new_dec_str("0");
+        break;
       }
-      option_2 b3 = {Option_2_Some_2, {Some_2: b6}};
-      break;
-    case Option_2_Some_2:
-      double x1 = b4.payload.Some_2;
-      option_2 b3 = {Option_2_Some_2, {Some_2: x1}};
-      break;
+      case YES: {
+        const Foo* foo = a__1->payload.YES;
+        CATALA_DEC b__5;
+        if (foo->x == CATALA_TRUE) {
+          b__5 = catala_new_dec_str("1");
+        } else {
+          b__5 = catala_new_dec_str("0");
+        }
+        b__4 = o_add_rat_rat(foo->y, b__5);
+        break;
+      }
+      default:
+        abort();
+    }
+    b__1 = catala_some(b__4);
   }
-  switch (b3.code) {
-    case Option_2_None_2:
-      catala_raise_fatal_error (catala_no_value,
-        "tests/backends/simple.catala_en", 12, 10, 12, 11);
-      break;
-    case Option_2_Some_2: double arg = b3.payload.Some_2; b2 = arg; break;
+  if (b__1->code == catala_option_some) {
+    b = b__1->payload;
+  } else {
+    static const catala_code_position pos[1] =
+      {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+    catala_error(catala_no_value, pos);
+    abort();
   }
-  double b1;
-  b1 = b2;
-  array_1 c2;
-  Array_1 c4;
-  c4.content_field = catala_malloc(sizeof(Array_1));
-  c4.content_field[0] = b1;
-  c4.content_field[1] = b1;
-  option_3 c3 = {Option_3_Some_3, {Some_3: c4}};
-  switch (c3.code) {
-    case Option_3_None_3:
-      catala_raise_fatal_error (catala_no_value,
-        "tests/backends/simple.catala_en", 13, 10, 13, 11);
-      break;
-    case Option_3_Some_3: Array_1 arg = c3.payload.Some_3; c2 = arg; break;
+  c__2->size = 2;
+  c__2->elements = catala_malloc(2 * sizeof(void*));
+  c__2->elements[0] = b;
+  c__2->elements[1] = b;
+  c__1 = catala_some(c__2);
+  if (c__1->code == catala_option_some) {
+    c = c__1->payload;
+  } else {
+    static const catala_code_position pos[1] =
+      {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
+    catala_error(catala_no_value, pos);
+    abort();
   }
-  Array_1 c1;
-  c1 = c2;
-  Baz Baz = { b1, c1 };
-  return Baz;
+  baz__1->b = b;
+  baz__1->c = c;
+  return baz__1;
+}
+
+
+int main (int argc, char** argv)
+{
+  catala_init();
+  return 0;
 }

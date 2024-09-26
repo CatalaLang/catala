@@ -58,6 +58,7 @@ type 'm scope_decl = {
   scope_sig : scope_var_ty ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_options : Desugared.Ast.catala_option Mark.pos list;
+  scope_visibility : visibility;
 }
 
 type 'm program = {
@@ -69,7 +70,7 @@ type 'm program = {
      will still have the scope signatures needed to respect the call
      convention *)
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
-  program_topdefs : ('m expr * typ) TopdefName.Map.t;
+  program_topdefs : ('m expr * typ * visibility) TopdefName.Map.t;
   program_lang : Global.backend_lang;
 }
 

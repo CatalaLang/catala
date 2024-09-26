@@ -210,12 +210,14 @@ let run
     optimize
     check_invariants
     closure_conversion
+    keep_special_ops
     monomorphize_types
     ex_scope
     options =
   let prg, _, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~closure_conversion ~typed:Expr.typed ~monomorphize_types
+      ~closure_conversion ~keep_special_ops ~typed:Expr.typed
+      ~monomorphize_types ~expand_ops:false
       ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
   let output_file, with_output =
@@ -238,6 +240,7 @@ let term =
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
   $ Cli.Flags.closure_conversion
+  $ Cli.Flags.keep_special_ops
   $ Cli.Flags.monomorphize_types
   $ Cli.Flags.ex_scope
 

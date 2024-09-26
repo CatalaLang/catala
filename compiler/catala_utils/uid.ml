@@ -146,7 +146,19 @@ module QualifiedMarkedString = struct
     Hash.list Module.hash p % MarkedString.hash i
 end
 
-module Gen_qualified (S : Style) () = struct
+module type Qualified = sig
+  include Id with type info = Path.t * MarkedString.info
+
+  val fresh : Path.t -> MarkedString.info -> t
+  val path : t -> Path.t
+  val get_info : t -> MarkedString.info
+  val base : t -> string
+
+  val hash : strip:Path.t -> t -> Hash.t
+  (** [strip] strips that prefix from the start of the path before hashing *)
+end
+
+module Gen_qualified (S : Style) () : Qualified = struct
   include Make (QualifiedMarkedString) (S) ()
 
   let fresh path t = fresh (path, t)
@@ -157,4 +169,5 @@ module Gen_qualified (S : Style) () = struct
 
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)
+  let base t = Mark.remove (get_info t)
 end

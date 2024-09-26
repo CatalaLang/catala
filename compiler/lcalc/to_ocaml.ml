@@ -134,8 +134,8 @@ let renaming =
   Renaming.program ()
     ~reserved:ocaml_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
-    ~reset_context_for_closed_terms:true ~skip_constant_binders:true
-    ~constant_binder_name:(Some "_") ~namespaced_fields_constrs:true
+    ~skip_constant_binders:true ~constant_binder_name:(Some "_")
+    ~namespaced_fields_constrs:true ~prefix_module:false
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with
@@ -144,9 +144,9 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
     Uid.Path.format fmt path;
     Format.pp_print_char fmt '.');
   assert (
-    let n = Mark.remove (StructName.get_info v) in
+    let n = StructName.base v in
     n = String.capitalize_ascii n);
-  Format.pp_print_string fmt (Mark.remove (StructName.get_info v))
+  Format.pp_print_string fmt (StructName.base v)
 
 let format_to_module_name
     (fmt : Format.formatter)
@@ -248,14 +248,6 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
   | EExternal { name } -> (
-    (* FIXME: this is wrong in general !! We assume the idents exposed by the
-       module depend only on the original name, while they actually get through
-       Bindlib and may have been renamed. A correct implem could use the runtime
-       registration used by the interpreter, but that would be distasteful and
-       incur a penalty ; or we would need to reproduce the same structure as in
-       the original module to ensure that bindlib performs the exact same
-       renamings ; or finally we could normalise the names at generation time
-       (either at toplevel or in a dedicated submodule ?) *)
     let path =
       match Mark.remove name with
       | External_value name -> TopdefName.path name
@@ -263,10 +255,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     in
     Uid.Path.format fmt path;
     match Mark.remove name with
-    | External_value name ->
-      format_var_str fmt (Mark.remove (TopdefName.get_info name))
-    | External_scope name ->
-      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
+    | External_value name -> format_var_str fmt (TopdefName.base name)
+    | External_scope name -> format_var_str fmt (ScopeName.base name))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -394,8 +384,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
         match op with
-        | Map2 | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur | Gte_dur_dur
-        | Eq_dur_dur ->
+        | Map2 | Add_dat_dur _ | Lt_dur_dur | Lte_dur_dur | Gt_dur_dur
+        | Gte_dur_dur | Eq_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos pos
         | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos (Expr.pos (List.nth args 1))
@@ -472,7 +462,7 @@ let format_enum_embedding
         (EnumConstructor.Map.bindings enum_cases)
 
 let format_ctx
-    (type_ordering : Scopelang.Dependency.TVertex.t list)
+    (type_ordering : TypeIdent.t list)
     (fmt : Format.formatter)
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
@@ -511,13 +501,13 @@ let format_ctx
     List.exists
       (fun struct_or_enum ->
         match struct_or_enum with
-        | Scopelang.Dependency.TVertex.Enum _ -> false
-        | Scopelang.Dependency.TVertex.Struct s' -> s = s')
+        | TypeIdent.Enum _ -> false
+        | TypeIdent.Struct s' -> s = s')
       type_ordering
   in
   let scope_structs =
     List.map
-      (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
+      (fun (s, _) -> TypeIdent.Struct s)
       (StructName.Map.bindings
          (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
@@ -526,11 +516,11 @@ let format_ctx
   List.iter
     (fun struct_or_enum ->
       match struct_or_enum with
-      | Scopelang.Dependency.TVertex.Struct s ->
+      | TypeIdent.Struct s ->
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then
           Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
-      | Scopelang.Dependency.TVertex.Enum e ->
+      | TypeIdent.Enum e ->
         let def = EnumName.Map.find e ctx.ctx_enums in
         if EnumName.path e = [] then
           Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
@@ -567,7 +557,7 @@ let format_code_items
     BoundList.fold_left
       ~f:(fun bnd item var ->
         match item with
-        | Topdef (name, typ, e) ->
+        | Topdef (name, typ, _vis, e) ->
           Format.fprintf fmt "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
             format_var var format_typ typ (format_expr ctx) e;
           String.Map.add (TopdefName.to_string name) (var, item) bnd
@@ -587,6 +577,12 @@ let format_code_items
   in
   Format.pp_close_box fmt ();
   var_bindings
+
+let is_public = function
+  | ScopeDef (_, { scope_body_visibility = Public; _ })
+  | Topdef (_, _, Public, _) ->
+    true
+  | _ -> false
 
 let format_scope_exec
     (ctx : decl_ctx)
@@ -713,9 +709,8 @@ let format_module_registration
       Format.pp_print_cut fmt ())
     (fun fmt (id, (var, _)) ->
       Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" id format_var var)
-    fmt (String.Map.to_seq bnd);
-  (* TODO: pass the visibility info down from desugared, and filter what is
-     exported here *)
+    fmt
+    (Seq.filter (fun (_, (_, it)) -> is_public it) (String.Map.to_seq bnd));
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
@@ -740,7 +735,7 @@ let format_program
     ?(exec_args = true)
     ~(hashf : Hash.t -> Hash.full)
     (p : 'm Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+    (type_ordering : TypeIdent.t list) : unit =
   Format.pp_open_vbox fmt 0;
   Format.pp_print_string fmt header;
   check_and_reexport_used_modules fmt ~hashf

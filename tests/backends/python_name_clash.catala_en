@@ -91,35 +91,33 @@ class BIn:
 
 def some_name(some_name_in:SomeNameIn):
     i = (some_name_in.i_in)
-    o2 = ((i + integer_of_string("1")))
-    if o2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/backends/python_name_clash.catala_en",
-                          start_line=7, start_column=10,
-                          end_line=7, end_column=11, law_headings=[]))
+    o__1 = ((i + integer_of_string("1")))
+    if o__1 is None:
+        pos = (SourcePosition(
+                   filename="tests/backends/python_name_clash.catala_en",
+                   start_line=7, start_column=10, end_line=7, end_column=11,
+                   law_headings=[]))
+        raise NoValue(pos)
     else:
-        arg = o2
-        o1 = (arg)
-    o = (o1)
+        o = (o__1)
     return SomeName(o = o)
 
 def b(b_in:BIn):
-    result2 = (integer_of_string("1"))
-    if result2 is None:
-        raise NoValue(SourcePosition(
-                          filename="tests/backends/python_name_clash.catala_en",
-                          start_line=16, start_column=14,
-                          end_line=16, end_column=25, law_headings=[]))
+    result__2 = (integer_of_string("1"))
+    if result__2 is None:
+        pos = (SourcePosition(
+                   filename="tests/backends/python_name_clash.catala_en",
+                   start_line=16, start_column=14,
+                   end_line=16, end_column=25, law_headings=[]))
+        raise NoValue(pos)
     else:
-        arg = result2
-        result1 = (arg)
-    result = (some_name(SomeNameIn(i_in = result1)))
-    result3 = (SomeName(o = result.o))
+        result__1 = (result__2)
+    result = (some_name(SomeNameIn(i_in = result__1)))
+    result__3 = (SomeName(o = result.o))
     if True:
-        some_name2 = (result3)
+        some_name__1 = (result__3)
     else:
-        some_name2 = (result3)
-    some_name1 = (some_name2)
-    return B(some_name = some_name1)
+        some_name__1 = (result__3)
+    return B(some_name = some_name__1)
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

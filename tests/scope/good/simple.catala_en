@@ -22,7 +22,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Lcalc -s Foo
-let scope Foo (Foo_in: Foo_in): Foo {bar: integer} =
+let scope Foo (foo_in: Foo_in): Foo {bar: integer} =
   let set bar : integer =
     match (ESome 0) with
     | ENone → error NoValue

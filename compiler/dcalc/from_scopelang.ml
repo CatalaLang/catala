@@ -284,8 +284,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
           | None, Some e ->
             Message.error
               ~suggestion:
-                (List.map
-                   (fun v -> Mark.remove (ScopeVar.get_info v))
+                (List.map ScopeVar.to_string
                    (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
               ~fmt_pos:
                 [
@@ -506,7 +505,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
       | ELocation (ScopelangScopeVar { name = var }) ->
         retrieve_out_typ_or_any var ctx.scope_vars
       | ELocation (ToplevelVar { name }) -> (
-        let typ =
+        let typ, _vis =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
         in
         match Mark.remove typ with
@@ -569,6 +568,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | EAppOp { op = Add_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding, opos) ~args ~tys m
+  | EAppOp { op = Sub_dat_dur _, opos; args; tys } ->
+    let args = List.map (translate_expr ctx) args in
+    Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
     | EArray _ | EIfThenElse _ | EAppOp _ ) as e ->
@@ -660,7 +662,7 @@ let translate_rule
                   scope_let_kind = Assertion;
                 },
                 next ))
-          (Bindlib.bind_var (Var.make "_") next)
+          (Bindlib.bind_var (Var.make "assert__1") next)
           (Expr.Box.lift new_e)),
       ctx )
 
@@ -749,9 +751,7 @@ let translate_scope_decl
     | None -> AbortOnRound
   in
   let ctx = { ctx with date_rounding } in
-  let scope_input_var =
-    Var.make (Mark.remove (ScopeName.get_info scope_name) ^ "_in")
-  in
+  let scope_input_var = Var.make (ScopeName.base scope_name ^ "_in") in
   let scope_input_struct_name = scope_sig.scope_sig_input_struct in
   let scope_return_struct_name = scope_sig.scope_sig_output_struct in
   let pos_sigma = Mark.get sigma_info in
@@ -825,6 +825,7 @@ let translate_scope_decl
         scope_body_expr;
         scope_body_input_struct = scope_input_struct_name;
         scope_body_output_struct = scope_return_struct_name;
+        scope_body_visibility = sigma.scope_visibility;
       })
     (Bindlib.bind_var scope_input_var
        (input_destructurings rules_with_return_expr))
@@ -841,7 +842,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       let scope_path = ScopeName.path scope_name in
       let scope_ref =
         if scope_path = [] then
-          let v = Var.make (Mark.remove (ScopeName.get_info scope_name)) in
+          let v = Var.make (ScopeName.base scope_name) in
           Local_scope_ref v
         else
           External_scope_ref
@@ -920,11 +921,19 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         StructName.Map.add scope_sig_ctx.scope_sig_input_struct fields acc)
       scopes_parameters decl_ctx.ctx_structs
   in
-  let decl_ctx = { decl_ctx with ctx_structs } in
+  let ctx_public_types =
+    ScopeName.Map.fold
+      (fun scope sig_ctx acc ->
+        if (ScopeName.Map.find scope decl_ctx.ctx_scopes).visibility = Public
+        then TypeIdent.Set.add (Struct sig_ctx.scope_sig_input_struct) acc
+        else acc)
+      scopes_parameters decl_ctx.ctx_public_types
+  in
+  let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in
   let toplevel_vars =
     TopdefName.Map.mapi
-      (fun name (_, ty) ->
-        Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
+      (fun name (_, ty, _vis) ->
+        Var.make (TopdefName.base name), Mark.remove ty)
       prgm.S.program_topdefs
   in
   let ctx =
@@ -950,11 +959,11 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       let dvar, def =
         match def with
         | Scopelang.Dependency.Topdef gname ->
-          let expr, ty = TopdefName.Map.find gname prgm.program_topdefs in
+          let expr, ty, vis = TopdefName.Map.find gname prgm.program_topdefs in
           let expr = translate_expr ctx expr in
           ( fst (TopdefName.Map.find gname ctx.toplevel_vars),
             Bindlib.box_apply
-              (fun e -> Topdef (gname, ty, e))
+              (fun e -> Topdef (gname, ty, vis, e))
               (Expr.Box.lift expr) )
         | Scopelang.Dependency.Scope scope_name ->
           let scope = ScopeName.Map.find scope_name prgm.program_scopes in

@@ -309,8 +309,7 @@ let build_exceptions_graph
           | None ->
             RuleName.Map.add rule_to
               (LabelName.fresh
-                 ( "exception_to_" ^ Mark.remove (RuleName.get_info rule_to),
-                   Pos.no_pos ))
+                 ("exception_to_" ^ RuleName.to_string rule_to, Pos.no_pos))
               exception_to_rule_implicit_labels)
         | _ -> exception_to_rule_implicit_labels)
       def RuleName.Map.empty
@@ -333,8 +332,7 @@ let build_exceptions_graph
           | None ->
             LabelName.Map.add label_to
               (LabelName.fresh
-                 ( "exception_to_" ^ Mark.remove (LabelName.get_info label_to),
-                   Pos.no_pos ))
+                 ("exception_to_" ^ LabelName.to_string label_to, Pos.no_pos))
               exception_to_label_implicit_labels)
         | _ -> exception_to_label_implicit_labels)
       def LabelName.Map.empty

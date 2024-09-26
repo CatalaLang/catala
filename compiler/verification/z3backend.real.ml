@@ -123,8 +123,18 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
 (** Returns the date (as a string) corresponding to nb days after the base day,
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
+  let dummy_pos =
+    {
+      Runtime.filename = "";
+      start_line = 0;
+      start_column = 0;
+      end_line = 0;
+      end_column = 0;
+      law_headings = [];
+    }
+  in
   Runtime.date_to_string
-    (Runtime.Oper.o_add_dat_dur AbortOnRound base_day
+    (Runtime.Oper.o_add_dat_dur AbortOnRound dummy_pos base_day
        (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
@@ -164,7 +174,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   | TStruct name ->
     let s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructField.t) : string =
-      Mark.remove (StructField.get_info fn)
+      StructField.to_string fn
     in
     let fields =
       List.map2
@@ -177,9 +187,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
 
     let fields_str = String.concat " " fields in
 
-    Format.asprintf "%s { %s }"
-      (Mark.remove (StructName.get_info name))
-      fields_str
+    Format.asprintf "%s { %s }" (StructName.base name) fields_str
   | TTuple _ ->
     failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
   | TEnum name ->
@@ -193,7 +201,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
       List.find
         (fun (ctr, _) ->
           (* FIXME: don't match on strings *)
-          String.equal fd_name (Mark.remove (EnumConstructor.get_info ctr)))
+          String.equal fd_name (EnumConstructor.to_string ctr))
         (EnumConstructor.Map.bindings enum_ctrs)
     in
 
@@ -293,7 +301,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
       context * Datatype.Constructor.constructor =
-    let name = Mark.remove (EnumConstructor.get_info name) in
+    let name = EnumConstructor.to_string name in
     let ctx, arg_z3_ty = translate_typ ctx (Mark.remove ty) in
 
     (* The mk_constructor_s Z3 function is not so well documented. From my
@@ -327,9 +335,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
         ctrs (ctx, [])
     in
     let z3_enum =
-      Datatype.mk_sort_s ctx.ctx_z3
-        (Mark.remove (EnumName.get_info enum))
-        (List.rev z3_ctrs)
+      Datatype.mk_sort_s ctx.ctx_z3 (EnumName.base enum) (List.rev z3_ctrs)
     in
     add_z3enum enum z3_enum ctx, z3_enum
 
@@ -342,12 +348,11 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   match StructName.Map.find_opt s ctx.ctx_z3structs with
   | Some s -> ctx, s
   | None ->
-    let s_name = Mark.remove (StructName.get_info s) in
+    let s_name = StructName.base s in
     let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
-        (fun f ->
-          Mark.remove (StructField.get_info f) |> Symbol.mk_string ctx.ctx_z3)
+        (fun f -> StructField.to_string f |> Symbol.mk_string ctx.ctx_z3)
         (StructField.Map.keys fields)
     in
     let ctx, z3_fieldtypes_rev =
@@ -529,7 +534,7 @@ let rec translate_op :
   | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur), _
     ->
     app Arithmetic.mk_add
-  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
       | Sub_dur_dur ),
       _ ) ->
     app Arithmetic.mk_sub
