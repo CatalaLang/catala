@@ -1238,4 +1238,9 @@ module Plugin = struct
     let name = String.lowercase_ascii name in
     let info = Cmdliner.Cmd.info name ?man ?doc ~docs:Cli.s_plugins in
     Plugin.register info term
+
+  let register_subcommands name ?man ?doc cmds =
+    let name = String.lowercase_ascii name in
+    let info = Cmdliner.Cmd.info name ?man ?doc ~docs:Cli.s_plugins in
+    Plugin.register_subcommands info cmds
 end

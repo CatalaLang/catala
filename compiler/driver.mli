@@ -119,4 +119,11 @@ module Plugin : sig
     ?doc:string ->
     (Global.options -> unit) Cmdliner.Term.t ->
     unit
+
+  val register_subcommands :
+    string ->
+    ?man:Cmdliner.Manpage.block list ->
+    ?doc:string ->
+    unit Cmdliner.Cmd.t list ->
+    unit
 end

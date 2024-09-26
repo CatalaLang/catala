@@ -28,6 +28,13 @@ val register :
     [--plugins-dirs] to be handled correctly, and for setting debug flags), but
     can add more. *)
 
+val register_subcommands : Cmdliner.Cmd.info -> unit Cmdliner.Cmd.t list -> unit
+(** This alternative to [register] allows to register plugins that define
+    multiple subcommands (e.g. [catala myplugin subcommand --help]). Be aware
+    that all subcommands should take the [Catala_utils.Cli.Flags.Global.options]
+    term that handles the [--plugins-dirs] flags and performs some
+    initialisations. *)
+
 (** {2 catala-facing API} *)
 
 val list : unit -> t list
