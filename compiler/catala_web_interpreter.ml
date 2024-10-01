@@ -25,7 +25,8 @@ let () =
          in
          let prg, _type_order =
            Passes.dcalc options ~includes:[] ~optimize:false
-             ~check_invariants:false ~typed:Shared_ast.Expr.typed
+             ~check_invariants:false ~autotest:false
+             ~typed:Shared_ast.Expr.typed
          in
          Shared_ast.Interpreter.interpret_program_dcalc prg
            (Commands.get_scope_uid prg.decl_ctx scope)

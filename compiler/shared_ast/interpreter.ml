@@ -806,8 +806,9 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'));
-      Mark.add m (ELit LUnit)
-      (* raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos])) *)
+      if Global.options.stop_on_error then
+        raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
+      else Mark.add m (ELit LUnit)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \

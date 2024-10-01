@@ -478,7 +478,7 @@ let run
   let options = Global.enforce_options ~trace:true () in
   let prg, type_ordering, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~closure_conversion ~keep_special_ops ~typed:Expr.typed
+      ~autotest:false ~closure_conversion ~keep_special_ops ~typed:Expr.typed
       ~monomorphize_types ~expand_ops:false
       ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
