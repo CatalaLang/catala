@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Definitions
 
 let map_decl_ctx ~f ctx =
@@ -25,6 +26,62 @@ let map_decl_ctx ~f ctx =
     ctx_topdefs =
       TopdefName.Map.map (fun (ty, vis) -> f ty, vis) ctx.ctx_topdefs;
   }
+
+let map_scopes ~f prg =
+  let code_items =
+    let f var = function
+      | ScopeDef (name, body) ->
+        var, Bindlib.box_apply (fun body -> ScopeDef (name, body)) (f name body)
+      | Topdef (name, ty, vis, expr) ->
+        ( var,
+          Bindlib.box_apply
+            (fun e -> Topdef (name, ty, vis, e))
+            (Expr.Box.lift (Expr.rebox expr)) )
+    in
+    BoundList.map ~f ~last:(Scope.map_last_item ~varf:Fun.id) prg.code_items
+    |> Bindlib.unbox
+  in
+  { prg with code_items }
+
+let map_scopes_env ~f prg =
+  let code_items =
+    let f env var = function
+      | ScopeDef (name, body) ->
+        let pos = Mark.get (ScopeName.get_info name) in
+        let body1 = f env name body in
+        let env child =
+          env
+          @@ Expr.make_let_in var
+               ( TArrow
+                   ( [TStruct body.scope_body_input_struct, pos],
+                     (TStruct body.scope_body_output_struct, pos) ),
+                 pos )
+               (Scope.to_expr prg.decl_ctx body)
+               child pos
+        in
+        let def = Bindlib.box_apply (fun body -> ScopeDef (name, body)) body1 in
+        env, var, def
+      | Topdef (name, ty, vis, expr) ->
+        let pos = Mark.get (TopdefName.get_info name) in
+        let env child =
+          env @@ Expr.make_let_in var ty (Expr.rebox expr) child pos
+        in
+        let def =
+          Bindlib.box_apply
+            (fun e -> Topdef (name, ty, vis, e))
+            (Expr.Box.lift (Expr.rebox expr))
+        in
+        env, var, def
+    in
+    BoundList.fold_map
+      ~init:(fun e -> e)
+      ~f
+      ~last:(fun _env last -> (), Scope.map_last_item ~varf:Fun.id last)
+      prg.code_items
+    |> snd
+    |> Bindlib.unbox
+  in
+  { prg with code_items }
 
 let map_exprs ?typ ~f ~varf { code_items; decl_ctx; lang; module_name } =
   let boxed_prg =

@@ -124,6 +124,22 @@ let rec hash ~strip ty =
   | TAny -> !`TAny
   | TClosureEnv -> !`TClosureEnv
 
+let rec has_arrow decl_ctx ty =
+  match Mark.remove ty with
+  | TArrow _ -> true
+  | TLit _ -> false
+  | TAny | TClosureEnv -> invalid_arg "Type.has_arrow"
+  | TTuple tl -> List.exists (has_arrow decl_ctx) tl
+  | TStruct n ->
+    StructField.Map.exists
+      (fun _ -> has_arrow decl_ctx)
+      (StructName.Map.find n decl_ctx.ctx_structs)
+  | TEnum n ->
+    EnumConstructor.Map.exists
+      (fun _ -> has_arrow decl_ctx)
+      (EnumName.Map.find n decl_ctx.ctx_enums)
+  | TOption ty | TArray ty | TDefault ty -> has_arrow decl_ctx ty
+
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
 let format = Print.typ_debug
 

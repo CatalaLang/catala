@@ -25,6 +25,23 @@ val empty_ctx : decl_ctx
 
 val map_decl_ctx : f:(typ -> typ) -> decl_ctx -> decl_ctx
 
+val map_scopes :
+  f:(ScopeName.t -> 'e scope_body -> 'e scope_body Bindlib.box) ->
+  'e program ->
+  'e program
+
+val map_scopes_env :
+  f:
+    (('e boxed -> 'e boxed) ->
+    ScopeName.t ->
+    'e scope_body ->
+    'e scope_body Bindlib.box) ->
+  'e program ->
+  'e program
+(** Maps on the scopes in the program, passing along an "environment" in the
+    form of a function binding all toplevel and scope definitions to their
+    variables in the argument expression *)
+
 val map_exprs :
   ?typ:(typ -> typ) ->
   f:('expr1 -> 'expr2 boxed) ->

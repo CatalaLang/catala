@@ -40,3 +40,6 @@ val unifiable_list : t list -> t list -> bool
 
 val arrow_return : t -> t
 (** Returns the last member in nested [TArrow] types *)
+
+val has_arrow : Definitions.decl_ctx -> t -> bool
+(** Fails (with [Invalid_argument]) on TAny and TClosureEnv *)

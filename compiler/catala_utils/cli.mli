@@ -47,6 +47,7 @@ module Flags : sig
   (** Parsers for all flags and options that commands can use *)
 
   val check_invariants : bool Term.t
+  val autotest : bool Term.t
   val no_typing : bool Term.t
   val wrap_weaved_output : bool Term.t
   val print_only_law : bool Term.t

@@ -51,7 +51,6 @@ val map_last_item :
   varf:(('a, 'm) naked_gexpr Bindlib.var -> 'e2 Bindlib.var) ->
   ('a, 'm) naked_gexpr list ->
   'e2 list Bindlib.box
-
 (** Helper function to handle the [code_item_list] terminator when manually
     mapping on [code_item_list] *)
 
@@ -64,8 +63,8 @@ val to_expr : decl_ctx -> ('a any, 'm) gexpr scope_body -> ('a, 'm) boxed_gexpr
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
     to the line of the scope declaration for instance. *)
 
-val unfold :
-  decl_ctx -> ((_, 'm) gexpr as 'e) code_item_list -> ScopeName.t -> 'e boxed
+val unfold_body_expr : decl_ctx -> 'e scope_body_expr -> 'e boxed
+val unfold : decl_ctx -> 'e code_item_list -> ScopeName.t -> 'e boxed
 
 val typ : _ scope_body -> typ
 (** builds the arrow type for the specified scope *)

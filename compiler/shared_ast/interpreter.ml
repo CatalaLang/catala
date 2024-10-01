@@ -881,6 +881,7 @@ let evaluate_expr_trace :
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
+  Runtime.reset_log ();
   Fun.protect
     (fun () -> evaluate_expr ctx lang e)
     ~finally:(fun () ->
@@ -1103,7 +1104,9 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
-let evaluate_expr ctx lang e = evaluate_expr ctx lang (addcustom e)
+let evaluate_expr ctx lang e =
+  Fun.protect ~finally:Runtime.reset_log
+  @@ fun () -> evaluate_expr ctx lang (addcustom e)
 
 let load_runtime_modules ~hashf prg =
   let load (mname, intf_id) =
