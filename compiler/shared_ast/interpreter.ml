@@ -60,6 +60,12 @@ let rec format_runtime_value lang ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
          (format_runtime_value lang))
       (Array.to_list elts)
+  | Runtime.Tuple elts ->
+    Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (format_runtime_value lang))
+      (Array.to_list elts)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
 let print_log lang entry =
@@ -115,6 +121,10 @@ let rec value_to_runtime_embedded = function
     Runtime.Array
       (Array.of_list
          (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
+  | ETuple el ->
+    Runtime.Tuple
+      (Array.of_list
+         (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
   | _ -> Runtime.Unembeddable
 
 (* Todo: this should be handled early when resolving overloads. Here we have
@@ -132,7 +142,7 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
   | ELit (LDuration x1), ELit (LDuration x2) ->
     o_eq_dur_dur (Expr.pos_to_runtime (Expr.mark_pos m)) x1 x2
   | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
-  | EArray es1, EArray es2 -> (
+  | EArray es1, EArray es2 | ETuple es1, ETuple es2 -> (
     try
       List.for_all2
         (fun e1 e2 ->

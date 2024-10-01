@@ -247,6 +247,7 @@ type runtime_value =
   | Enum of string * (string * runtime_value)
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value array
+  | Tuple of runtime_value array
   | Unembeddable
 
 let unembeddable _ = Unembeddable
@@ -333,7 +334,7 @@ module BufferedJson = struct
         (list (fun buf (cstr, v) ->
              Printf.bprintf buf {|"%s":%a|} cstr runtime_value v))
         elts
-    | Array elts ->
+    | Array elts | Tuple elts ->
       Printf.bprintf buf "[%a]" (list runtime_value) (Array.to_list elts)
     | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
 
@@ -463,6 +464,12 @@ let rec pp_events ?(is_first_call = true) ppf events =
       Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           format_value)
+        (elts |> Array.to_list)
+    | Tuple elts ->
+      Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            format_value)
         (elts |> Array.to_list)
   and format_event ppf = function
