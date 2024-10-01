@@ -1118,54 +1118,59 @@ let evaluate_expr ctx lang e =
   Fun.protect ~finally:Runtime.reset_log
   @@ fun () -> evaluate_expr ctx lang (addcustom e)
 
+let loaded_modules = Hashtbl.create 17
+
 let load_runtime_modules ~hashf prg =
   let load (mname, intf_id) =
     let hash = hashf intf_id.hash in
-    let expect_hash =
-      if intf_id.is_external then Hash.external_placeholder
-      else Hash.to_string hash
-    in
-    let obj_file =
-      let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
-      Dynlink.adapt_filename
-        File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
-    in
-    (if not (Sys.file_exists obj_file) then
-       Message.error
-         ~pos_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-         ~pos:(Mark.get (ModuleName.get_info mname))
-         "Compiled OCaml object %a@ not@ found.@ Make sure it has been \
-          suitably compiled."
-         File.format obj_file
-     else
-       try Dynlink.loadfile obj_file
-       with Dynlink.Error dl_err ->
+    if Hashtbl.mem loaded_modules mname then ()
+    else
+      let expect_hash =
+        if intf_id.is_external then Hash.external_placeholder
+        else Hash.to_string hash
+      in
+      let obj_file =
+        let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
+        Dynlink.adapt_filename
+          File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
+      in
+      (if not (Sys.file_exists obj_file) then
          Message.error
-           "While loading compiled module from %a:@;<1 2>@[<hov>%a@]"
-           File.format obj_file Format.pp_print_text
-           (Dynlink.error_message dl_err));
-    match Runtime.check_module (ModuleName.to_string mname) expect_hash with
-    | Ok () -> ()
-    | Error bad_hash ->
-      Message.debug
-        "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
-        ModuleName.format mname Hash.format hash
-        (fun ppf h ->
-          try Hash.format ppf (Hash.of_string h)
-          with Failure _ ->
-            if h = Hash.external_placeholder then
-              Format.fprintf ppf "@{<cyan>%s@}" Hash.external_placeholder
-            else Format.fprintf ppf "@{<red><invalid>@}")
-        bad_hash;
-      Message.error
-        "Module %a@ needs@ recompiling:@ %a@ was@ likely@ compiled@ from@ an@ \
-         older@ version@ or@ with@ incompatible@ flags."
-        ModuleName.format mname File.format obj_file
-    | exception Not_found ->
-      Message.error
-        "Module %a@ was loaded from file %a but did not register properly, \
-         there is something wrong in its code."
-        ModuleName.format mname File.format obj_file
+           ~pos_msg:(fun ppf ->
+             Format.pp_print_string ppf "Module defined here")
+           ~pos:(Mark.get (ModuleName.get_info mname))
+           "Compiled OCaml object %a@ not@ found.@ Make sure it has been \
+            suitably compiled."
+           File.format obj_file
+       else
+         try Dynlink.loadfile obj_file
+         with Dynlink.Error dl_err ->
+           Message.error
+             "While loading compiled module from %a:@;<1 2>@[<hov>%a@]"
+             File.format obj_file Format.pp_print_text
+             (Dynlink.error_message dl_err));
+      match Runtime.check_module (ModuleName.to_string mname) expect_hash with
+      | Ok () -> Hashtbl.add loaded_modules mname hash
+      | Error bad_hash ->
+        Message.debug
+          "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
+          ModuleName.format mname Hash.format hash
+          (fun ppf h ->
+            try Hash.format ppf (Hash.of_string h)
+            with Failure _ ->
+              if h = Hash.external_placeholder then
+                Format.fprintf ppf "@{<cyan>%s@}" Hash.external_placeholder
+              else Format.fprintf ppf "@{<red><invalid>@}")
+          bad_hash;
+        Message.error
+          "Module %a@ needs@ recompiling:@ %a@ was@ likely@ compiled@ from@ \
+           an@ older@ version@ or@ with@ incompatible@ flags."
+          ModuleName.format mname File.format obj_file
+      | exception Not_found ->
+        Message.error
+          "Module %a@ was loaded from file %a but did not register properly, \
+           there is something wrong in its code."
+          ModuleName.format mname File.format obj_file
   in
   let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then
