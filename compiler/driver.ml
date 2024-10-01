@@ -87,7 +87,12 @@ let load_module_interfaces
             "Circular module dependency"
         | None ->
           let default_module_name =
-            if allow_notmodules then Some (modname_of_file f) else None
+            if allow_notmodules then
+              (* This preserves the filename capitalisation, which corresponds
+                 to the convention for files related to not-module compilation
+                 artifacts and is used by [depends] below *)
+              Some Filename.(basename (remove_extension f))
+            else None
           in
           let intf =
             Surface.Parser_driver.load_interface ?default_module_name
@@ -1107,7 +1112,11 @@ module Commands = struct
         if extension = [] then Format.pp_print_string ppf f
         else
           Format.pp_print_list ~pp_sep:Format.pp_print_space
-            (fun ppf ext -> Format.pp_print_string ppf File.(f -.- ext))
+            (fun ppf ext ->
+               let base = File.(dirname f / ModuleName.to_string m) in
+               Format.pp_print_string ppf base;
+               if ext <> "" then Format.(pp_print_char ppf '.'; pp_print_string ppf ext)
+            )
             ppf extension)
       Format.std_formatter modules_list_topo;
     Format.close_box ();

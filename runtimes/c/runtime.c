@@ -510,8 +510,8 @@ CATALA_DEC o_div_mon_mon (const catala_code_position* pos,
   CATALA_NEW_MPQ(ret);
   if (mpz_sgn(x2) == 0)
     catala_error(catala_division_by_zero, pos);
-  mpz_set(mpq_numref(ret), x2);
-  mpz_set(mpq_denref(ret), x1);
+  mpz_set(mpq_numref(ret), x1);
+  mpz_set(mpq_denref(ret), x2);
   mpq_canonicalize(ret);
   return ret;
 }

@@ -676,7 +676,7 @@ let format_main (fmt : Format.formatter) (p : Ast.program) =
               scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
               scope_body_var = var;
               scope_body_name = name;
-              scope_body_visibility = Public;
+              scope_body_visibility = _;
             } ->
           let input_struct =
             StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
@@ -759,7 +759,7 @@ let format_program
           let public = visibility = Public in
           ppboth_if public (fun ppf ->
               Format.fprintf ppf "@,@[<v 2>@[<hov 4>%s%a"
-                (if public then "" else "static")
+                (if public then "" else "static ")
                 (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
                      Format.pp_print_space fmt ();
                      VarName.format fmt var))

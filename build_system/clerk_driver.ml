@@ -470,6 +470,7 @@ module Var = struct
   let pool = make "pool"
   let src = make "src"
   let target = make "target"
+  let includes = make "includes"
   let orig_src = make "orig-src"
   let scope = make "scope"
   let test_id = make "test-id"
@@ -542,6 +543,7 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
          "-Wall";
          "-Wno-unused-function";
          "-Wno-unused-variable";
+         "-Wno-unused-but-set-variable";
          "-Werror";
          Var.(!runtime_c_libs);
        ]
@@ -562,10 +564,10 @@ let[@ocamlformat "disable"] static_base_rules =
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
     Nj.rule "ocaml-object"
-      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !input; ">"; !input^"i"; "&&";
-                !ocamlc_exe; "-opaque"; !ocaml_flags; !input^"i"; "&&";
-                !ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
-                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !input]
+      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
+                !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
+                !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
+                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-module"
@@ -590,7 +592,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; "-c"; "-o"; !output]
+        [!cc_exe; !input; !c_flags; !includes; "-c"; "-o"; !output]
       ~description:["<cc>"; "⇒"; !output];
 
     Nj.rule "c-exec"
@@ -636,7 +638,21 @@ let gen_build_statements
     | None -> !Var.builddir / Filename.remove_extension src
     | Some n -> !Var.builddir / Filename.dirname src / n
   in
-  let def_vars = [Nj.binding Var.src [src]; Nj.binding Var.target [target]] in
+  let include_flags =
+    "-I"
+    :: (!Var.builddir / src /../ "")
+    :: List.concat_map
+         (fun d ->
+           ["-I"; (if Filename.is_relative d then !Var.builddir / d else d)])
+         include_dirs
+  in
+  let def_vars =
+    [
+      Nj.binding Var.src [src];
+      Nj.binding Var.target [target];
+      Nj.binding Var.includes include_flags;
+    ]
+  in
   let modules = List.rev item.used_modules in
   let modfile ext modname =
     match List.assoc_opt modname same_dir_modules with
@@ -696,20 +712,7 @@ let gen_build_statements
         ~implicit_in:(!Var.catala_exe :: List.map module_target modules)
         ~outputs:
           (List.map (( ^ ) !Var.target) [".mli"; ".cmi"; ".cmo"; ".cmx"; ".o"])
-        ~vars:
-          [
-            ( Var.ocaml_flags,
-              !Var.ocaml_flags
-              :: "-I"
-              :: (!Var.builddir / src /../ "")
-              :: List.concat_map
-                   (fun d ->
-                     [
-                       "-I";
-                       (if Filename.is_relative d then !Var.builddir / d else d);
-                     ])
-                   include_dirs );
-          ]
+        ~vars:[Var.includes, [!Var.includes]]
     in
     let modexec =
       match item.module_def with
@@ -733,6 +736,7 @@ let gen_build_statements
         :: (!Var.target ^ ".h")
         :: List.map (modfile ".h") modules)
       ~outputs:[!Var.target ^ ".c.o"]
+      ~vars:[Var.includes, [!Var.includes]]
     ::
     (if item.module_def <> None then []
      else
