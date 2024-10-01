@@ -568,6 +568,10 @@ CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   long int days1, days2;
+  if (dc_period_years(x1) == dc_period_years(x2) &&
+      dc_period_months(x1) == dc_period_months(x2) &&
+      dc_period_days(x1) == dc_period_days(x2))
+    return CATALA_TRUE;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
     catala_error(catala_uncomparable_durations, pos);

@@ -757,6 +757,8 @@ let compare_periods pos (p1 : duration) (p2 : duration) : int =
    Comparing the difference to duration_0 is not a good idea because we still
    want to fail on [1 month, 30 days] rather than return [false] *)
 let equal_periods pos (p1 : duration) (p2 : duration) : bool =
+  Dates_calc.Dates.period_to_ymds p1 = Dates_calc.Dates.period_to_ymds p2
+  ||
   try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
   with Dates_calc.Dates.AmbiguousComputation ->
     error UncomparableDurations [pos]
