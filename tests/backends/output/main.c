@@ -66,7 +66,7 @@ int main()
             error_kind = "Empty error not caught";
             break;
         case catala_assertion_failure:
-            error_kind = "Asssertion failure";
+            error_kind = "Assertion failure";
             break;
         case catala_malloc_error:
             error_kind = "Malloc error";

@@ -803,7 +803,7 @@ void catala_init()
     const catala_code_position pos = catala_error_raised.position;
     switch (catala_error_raised.code) {
     case catala_assertion_failed:
-      error_kind = "Asssertion failure";
+      error_kind = "Assertion failure";
       break;
     case catala_no_value:
       error_kind = "No value provided";
