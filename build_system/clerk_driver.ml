@@ -39,7 +39,10 @@ module Cli = struct
       value
       & opt_all string []
       & info ["c"; "catala-opts"] ~docv:"FLAG"
-          ~doc:"Option to pass to the Catala compiler. Can be repeated.")
+          ~doc:
+            "Option to pass to the Catala compiler. Can be repeated. If \
+             neither this nor $(b,--test-flags) is specified, the flags for \
+             the different backends default to $(b,-O).")
 
   let build_dir =
     Arg.(
@@ -67,7 +70,7 @@ module Cli = struct
   let test_flags =
     Arg.(
       value
-      & opt (list string) []
+      & opt ~vopt:[""] (list string) []
       & info ["test-flags"] ~docv:"FLAGS"
           ~env:(Cmd.Env.info "CATALA_TEST_FLAGS")
           ~doc:
@@ -477,7 +480,7 @@ module Var = struct
   let ( ! ) = Var.v
 end
 
-let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
+let base_bindings catala_exe catala_flags0 build_dir include_dirs test_flags =
   let includes =
     List.fold_right
       (fun dir flags ->
@@ -486,21 +489,29 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
         else "-I" :: dir :: flags)
       include_dirs []
   in
-  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags in
+  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags0 in
   let catala_flags_ocaml =
-    List.filter
-      (function
-        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-      test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
   in
   let catala_flags_c =
-    List.filter (function "-O" | "--optimize" -> true | _ -> false) test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function "-O" | "--optimize" -> true | _ -> false)
+        test_flags
   in
   let catala_flags_python =
-    List.filter
-      (function
-        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-      test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
   in
   let ocaml_flags = Lazy.force Poll.ocaml_include_flags in
   [
@@ -1166,6 +1177,7 @@ let runtest_cmd =
         (fun opts dir -> "-I" :: dir :: opts)
         catala_opts include_dirs
     in
+    let test_flags = List.filter (( <> ) "") test_flags in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~test_flags ~report ~out file;
