@@ -255,10 +255,16 @@ let get_command t =
        ["-c"; "command -v " ^ Filename.quote t]
 
 let check_exec t =
-  try if String.contains t dir_sep_char then Unix.realpath t else get_command t
-  with Unix.Unix_error _ | Sys_error _ ->
+  try
+    if String.contains t dir_sep_char then Unix.realpath t else get_command t
+  with
+  | Unix.Unix_error _ | Sys_error _ ->
     Message.error
-      "Could not find the @{<yellow>%s@} program, please fix your installation"
+      "Could not find the @{<yellow>%s@} program, please fix your installation."
+      (Filename.quote t)
+  | Not_found ->
+    Message.error
+      "@{<yellow>%s@} is not a valid executable, it cannot be used by clerk."
       (Filename.quote t)
 
 let dirname = Filename.dirname
