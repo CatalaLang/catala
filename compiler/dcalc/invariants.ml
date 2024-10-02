@@ -119,7 +119,7 @@ let invariant_match_inversion () : string * invariant_expr =
    int; bool; int -> bool; <bool>; <int -> bool>; int -> <bool>; S_in {x: int ->
    <bool>} -> S {y: bool}
 
-   While the following types does not follow the invariant:
+   While the following types do not follow the invariant:
 
    <<int>>; <int -> <bool>>; <bool> -> int; S_in {x: int -> <bool>} -> S {y:
    <bool>}
@@ -163,7 +163,7 @@ let check_type_thunked_or_nodefault ctx ty =
     | _ -> check_typ_no_default ctx ty)
   | _ -> false
 
-let check_type_root ctx ty =
+let rec check_type_root ctx ty =
   check_type_thunked_or_nodefault ctx ty
   ||
   match Mark.remove ty with
@@ -173,17 +173,13 @@ let check_type_root ctx ty =
       (fun _k info -> StructName.equal info.in_struct_name n)
       ctx.ctx_scopes
     && StructField.Map.for_all
-         (fun _k ty -> check_type_thunked_or_nodefault ctx ty)
+         (fun _k ty ->
+           match Mark.remove ty with
+           | TDefault ty -> check_typ_no_default ctx ty
+           | _ -> check_type_root ctx ty)
          s
-  | TArrow ([(TStruct n, _)], res) ->
-    let s = StructName.Map.find n ctx.ctx_structs in
-    ScopeName.Map.exists
-      (fun _k info -> StructName.equal info.in_struct_name n)
-      ctx.ctx_scopes
-    && StructField.Map.for_all
-         (fun _k ty -> check_type_thunked_or_nodefault ctx ty)
-         s
-    && check_typ_no_default ctx res
+  | TArrow ([((TStruct _, _) as tstruct)], res) ->
+    check_type_root ctx tstruct && check_typ_no_default ctx res
   | TDefault arg -> check_typ_no_default ctx arg
   | _ -> false
 

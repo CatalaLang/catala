@@ -27,15 +27,14 @@ $ catala Typecheck --check-invariants
 $ catala Dcalc 
 let TestBool : TestBool_in → TestBool =
   λ (TestBool_in: TestBool_in) →
-  let foo : unit → ⟨bool⟩ = TestBool_in.foo_in in
-  let bar : unit → ⟨integer⟩ = TestBool_in.bar_in in
+  let foo : ⟨bool⟩ = TestBool_in.foo_in in
+  let bar : ⟨integer⟩ = TestBool_in.bar_in in
   let bar1 : integer =
-    error_empty
-      ⟨ bar () | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+    error_empty ⟨ bar | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   let foo1 : bool =
     error_empty
-      ⟨ foo ()
+      ⟨ foo
       | true
         ⊢ ⟨error_empty
              ⟨ ⟨bar1 >= 0 ⊢ ⟨true⟩⟩, ⟨bar1 < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩

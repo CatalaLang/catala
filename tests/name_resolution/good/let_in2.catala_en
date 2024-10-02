@@ -46,15 +46,15 @@ module S = struct
 end
 
 module S_in = struct
-  type t = {a_in: unit -> (bool) Eoption.t}
+  type t = {a_in: (bool) Eoption.t}
 end
 
 
 let s (s_in: S_in.t) : S.t =
-  let a: unit -> (bool) Eoption.t = s_in.S_in.a_in in
+  let a: (bool) Eoption.t = s_in.S_in.a_in in
   let a__1: bool =
     match
-      (match (a ())
+      (match a
        with
        | Eoption.ENone _ ->
            (Eoption.ESome

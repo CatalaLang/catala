@@ -28,10 +28,6 @@ type scope_input_var_ctx = {
   scope_input_name : StructField.t;
   scope_input_io : Runtime.io_input Mark.pos;
   scope_input_typ : naked_typ;
-  scope_input_thunked : bool;
-      (* For reentrant variables: if true, the type t of the field has been
-         changed to (unit -> t). Otherwise, the type was already a function and
-         wasn't changed so no additional wrapping will be needed *)
 }
 
 type 'm scope_ref =
@@ -112,14 +108,6 @@ let merge_defaults
     (* should not happen because there should always be a lambda at the
        beginning of a default with a function type *)
   else
-    let caller =
-      let m = Mark.get caller in
-      let pos = Expr.mark_pos m in
-      Expr.make_app caller
-        [Expr.elit LUnit (Expr.with_ty m (Mark.add pos (TLit TUnit)))]
-        [TLit TUnit, pos]
-        pos
-    in
     let body =
       let m = Mark.get callee in
       let ltrue =
@@ -188,30 +176,9 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
   in
   excepts
 
-let input_var_needs_thunking typ io_in =
-  (* For "context" (or reentrant) variables, we thunk them as [(fun () -> e)] so
-     that we can put them in default terms at the initialisation of the function
-     body, allowing an empty error to recover the default value. *)
-  match Mark.remove io_in.Desugared.Ast.io_input, typ with
-  | Runtime.Reentrant, TArrow _ ->
-    false (* we don't need to thunk expressions that are already functions *)
-  | Runtime.Reentrant, _ -> true
-  | _ -> false
-
 let input_var_typ typ io_in =
   let pos = Mark.get io_in.Desugared.Ast.io_input in
-  if input_var_needs_thunking typ io_in then
-    TArrow ([TLit TUnit, pos], (typ, pos)), pos
-  else typ, pos
-
-let thunk_scope_arg var_ctx e =
-  match var_ctx.scope_input_io, var_ctx.scope_input_thunked with
-  | (Runtime.NoInput, _), _ -> invalid_arg "thunk_scope_arg"
-  | (Runtime.OnlyInput, _), false -> e
-  | (Runtime.Reentrant, _), false -> e
-  | (Runtime.Reentrant, pos), true ->
-    Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
-  | _ -> assert false
+  typ, pos
 
 let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   let m = Mark.get e in
@@ -253,25 +220,18 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         (fun var_name (str_field : scope_input_var_ctx option) expr ->
           match str_field, expr with
           | None, None -> assert false
-          | Some ({ scope_input_io = Reentrant, iopos; _ } as var_ctx), None ->
-            let ty0 =
+          | Some ({ scope_input_io = Reentrant, _; _ } as var_ctx), None ->
+            let e_empty ty = Expr.eempty (Expr.with_ty m ty) in
+            let v =
               match var_ctx.scope_input_typ with
-              | TArrow ([_], ty) -> ty
+              | TArrow ([t_arg], t_ret) ->
+                Expr.make_abs [| Var.make "_" |] (e_empty t_ret) [t_arg] pos
+              | TDefault _ as ty -> e_empty (ty, pos)
               | _ -> assert false
-              (* reentrant field must be thunked with correct function type at
-                 this point *)
             in
-            Some
-              ( var_ctx.scope_input_name,
-                Expr.make_abs
-                  [| Var.make "_" |]
-                  (Expr.eempty (Expr.with_ty m ty0))
-                  [TAny, iopos]
-                  pos )
+            Some (var_ctx.scope_input_name, v)
           | Some var_ctx, Some e ->
-            Some
-              ( var_ctx.scope_input_name,
-                thunk_scope_arg var_ctx (translate_expr ctx e) )
+            Some (var_ctx.scope_input_name, translate_expr ctx e)
           | Some var_ctx, None ->
             Message.error ~pos
               ~extra_pos:
@@ -872,10 +832,6 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
                       (input_var_typ
                          (Mark.remove svar.S.svar_in_ty)
                          svar.S.svar_io);
-                  scope_input_thunked =
-                    input_var_needs_thunking
-                      (Mark.remove svar.S.svar_in_ty)
-                      svar.S.svar_io;
                 })
           scope.S.scope_sig
       in

@@ -1000,6 +1000,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                   mark_e;
               ]
               mark_e
+          | TOption ty ->
+            Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
+              ~e:
+                (Expr.elit LUnit (Expr.with_ty mark_e (TLit TUnit, Expr.pos e)))
+              (Expr.with_ty mark_e (TOption ty, Expr.pos e))
           | _ ->
             Message.error ~pos:(Mark.get ty)
               "This scope needs an input argument of type@ %a@ %a"
@@ -1057,15 +1062,16 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
       StructField.Map.map
-        (fun ty ->
-          match Mark.remove ty with
+        (fun ty0 ->
+          match Mark.remove ty0 with
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Bindlib.box EEmpty, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
+          | TDefault _ -> Bindlib.box EEmpty, Expr.with_ty mark_e ty0
           | _ ->
-            Message.error ~pos:(Mark.get ty) "%a" Format.pp_print_text
+            Message.error ~pos:(Mark.get ty0) "%a" Format.pp_print_text
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \

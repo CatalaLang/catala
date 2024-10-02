@@ -39,7 +39,7 @@ let scope B (B_in: B_in): B =
     let result : A =
       A
         { A_in
-          a_in = λ () → ∅;
+          a_in = ∅;
           b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩;
         }
     in

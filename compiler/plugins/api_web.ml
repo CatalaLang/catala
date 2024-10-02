@@ -146,7 +146,7 @@ module To_jsoo = struct
         elts
     | TOption t ->
       Format.fprintf fmt
-        "(fun o -> Js.Opt.case o (fun () -> Eoption.ENone) (fun x -> \
+        "(fun o -> Js.Opt.case o (fun () -> Eoption.ENone ()) (fun x -> \
          Eoption.ESome (%a x)))"
         format_of_js t
     | TAny -> Format.fprintf fmt "Js.Unsafe.inject"
