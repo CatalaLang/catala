@@ -212,6 +212,8 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                         | _ ->
                           (* same as basic [EAbs case]*)
                           generate_vc_must_not_return_empty ctx field)
+                      | EEmpty -> Mark.copy field (ELit (LBool true))
+                      | EPureDefault _ -> Mark.copy field (ELit (LBool false))
                       | _ -> generate_vc_must_not_return_empty ctx field)
                     (StructField.Map.values fields)
                 | _ -> [generate_vc_must_not_return_empty ctx arg])

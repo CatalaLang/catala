@@ -33,28 +33,22 @@ $ catala Typecheck --check-invariants
 $ catala Dcalc -s A
 let scope A
   (A_in:
-     A_in {
-       c_in: integer;
-       d_in: integer;
-       e_in: unit → ⟨integer⟩;
-       f_in: unit → ⟨integer⟩
-     })
+     A_in {c_in: integer; d_in: integer; e_in: ⟨integer⟩; f_in: ⟨integer⟩})
   : A {b: integer; d: integer; f: integer}
   =
   let get c : integer = A_in.c_in in
   let get d : integer = A_in.d_in in
-  let get e : unit → ⟨integer⟩ = A_in.e_in in
-  let get f : unit → ⟨integer⟩ = A_in.f_in in
+  let get e : ⟨integer⟩ = A_in.e_in in
+  let get f : ⟨integer⟩ = A_in.f_in in
   let set a : integer = error_empty ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ in
   let set b : integer = error_empty ⟨ ⟨true ⊢ ⟨a + 1⟩⟩ | false ⊢ ∅ ⟩ in
   let set e : integer =
     error_empty
-      ⟨ e ()
-      | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨b + c + d + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+      ⟨ e | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨b + c + d + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   let set f : integer =
     error_empty
-      ⟨ f () | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨e + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+      ⟨ f | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨e + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   return { A b = b; d = d; f = f; }
 ```

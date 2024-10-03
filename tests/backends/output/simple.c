@@ -30,18 +30,14 @@ typedef struct Bar {
 } Bar;
 
 typedef struct Baz_in {
-  const catala_closure* a_in;
+  const CATALA_OPTION(Bar*) a_in;
 } Baz_in;
 
 static const Baz* baz (const Baz_in* baz_in)
 {
-  const catala_closure* a = baz_in->a_in;
+  const CATALA_OPTION(Bar*) a = baz_in->a_in;
   const Bar* a__1;
   const CATALA_OPTION(Bar*) a__2;
-  const catala_closure* code_and_env = a;
-  const CATALA_OPTION(Bar*) a__3 =
-    ((const CATALA_OPTION(Bar*)(*)(const CLOSURE_ENV, CATALA_UNIT))
-     code_and_env->funcp)(code_and_env->env, CATALA_UNITVAL);
   CATALA_DEC b;
   const CATALA_OPTION(CATALA_DEC) b__1;
   const CATALA_OPTION(CATALA_DEC) b__2;
@@ -50,24 +46,24 @@ static const Baz* baz (const Baz_in* baz_in)
   CATALA_ARRAY(CATALA_DEC) const c__2 = catala_malloc(sizeof(catala_array));
   const CATALA_OPTION(CATALA_ARRAY(CATALA_DEC)) c__1;
   Baz* const baz__1 = catala_malloc(sizeof(Baz));
-  if (a__3->code == catala_option_some) {
-    a__2 = catala_some(a__3->payload);
+  if (a->code == catala_option_some) {
+    a__2 = catala_some(a->payload);
   } else {
-    const Bar* a__4;
-    Bar* const a__6 = catala_malloc(sizeof(Bar));
-    const CATALA_OPTION(Bar*) a__5;
-    a__6->code = NO;
-    a__6->payload.NO = CATALA_UNITVAL;
-    a__5 = catala_some(a__6);
-    if (a__5->code == catala_option_some) {
-      a__4 = a__5->payload;
+    const Bar* a__3;
+    Bar* const a__5 = catala_malloc(sizeof(Bar));
+    const CATALA_OPTION(Bar*) a__4;
+    a__5->code = NO;
+    a__5->payload.NO = CATALA_UNITVAL;
+    a__4 = catala_some(a__5);
+    if (a__4->code == catala_option_some) {
+      a__3 = a__4->payload;
     } else {
       static const catala_code_position pos[1] =
         {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
       catala_error(catala_no_value, pos);
       abort();
     }
-    a__2 = catala_some(a__4);
+    a__2 = catala_some(a__3);
   }
   if (a__2->code == catala_option_some) {
     a__1 = a__2->payload;
