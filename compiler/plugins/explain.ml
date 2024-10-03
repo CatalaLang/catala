@@ -624,7 +624,7 @@ let program_to_graph
               (Renaming.get_ctx
                  {
                    Renaming.reserved = [];
-                   sanitize_varname = String.to_snake_case;
+                   sanitize_varname = Fun.id;
                    skip_constant_binders = false;
                    constant_binder_name = None;
                  })
@@ -637,22 +637,31 @@ let program_to_graph
   in
   let scope_v, _scope_arg_struct = ScopeName.Map.find scope scopes in
   let e, env = (Env.find (Var.translate scope_v) all_env).base in
-  let e =
+  let rec find_tested_scope e acc =
+    if acc <> None then acc else match e with
+    | EApp { f = EVar vscope, _; args = [EStruct {name; fields}, _]; tys = [_in_ty] }, _ ->
+      Some (vscope, name, fields)
+    | e -> Expr.shallow_fold find_tested_scope e acc
+  in
+  let tested_scope_v, in_struct, in_fields = Option.get (find_tested_scope e None) in
+  log "The specified scope is detected to be testing scope %s" (Bindlib.name_of tested_scope_v);
+  let e, env = (Env.find tested_scope_v all_env).base in
+  let in_var, e =
     match e with
     | EAbs { binder; _ }, _ ->
-      let _vars, e = Bindlib.unmbind binder in
-      e
+      let vars, e = Bindlib.unmbind binder in
+      vars.(0), e
     | _ -> assert false
   in
   let rec get_vars base_vars env = function
-    | EApp { f = EAbs { binder; _ }, _; args = [arg] }, _ ->
-      let vars, e = Bindlib.unmbind binder in
+    (* This assumes the scope body starts with the deconstruction and binding of its input struct *)
+    | EApp { f = EAbs { binder; _ }, _; args = [EStructAccess { name; e = EVar vstruc, _; field; _ }, _]; _ }, _
+      when StructName.equal name in_struct ->
+      let vars, body = Bindlib.unmbind binder in
       let var = vars.(0) in
-      let base_vars =
-        if is_const arg then Var.Set.add var base_vars else base_vars
-      in
-      let env = Env.add var arg env env in
-      get_vars base_vars env e
+      let base_vars = Var.Set.add var base_vars in
+      let env = Env.add var (StructField.Map.find field in_fields) env env in
+      get_vars base_vars env body
     | e -> base_vars, env, e
   in
   let base_vars, env, e = get_vars Var.Set.empty env e in
