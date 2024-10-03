@@ -1143,8 +1143,13 @@ let expr_to_dot_label0 :
   in
   aux_value
 
-let rec expr_to_dot_label lang ctx env ppf e =
-  let print_expr = expr_to_dot_label lang ctx env in
+let expr_to_dot_label lang ctx env ppf e =
+  let print_expr ppf = function
+    | EVar _, _ as e ->
+      let e, _ = lazy_eval ctx env value_level e in
+      expr_to_dot_label0 lang ctx env ppf e
+    | e -> expr_to_dot_label0 lang ctx env ppf e
+  in
   let e = Expr.skip_wrappers e in
   match e with
   | EVar v, _ ->
