@@ -2,7 +2,7 @@
  (name clerk_config)
  (public_name catala.clerk_config)
  (libraries catala.catala_utils otoml)
- (modules clerk_config))
+ (modules clerk_config clerk_toml_encoding))
 
 (library
  (name clerk_driver)
