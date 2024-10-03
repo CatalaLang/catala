@@ -1357,7 +1357,7 @@ let options =
   let base_src_url =
     Arg.(
       value
-      & opt string "https://github.com/CatalaLang/catala/blob/master"
+      & opt string "https://github.com/CatalaLang/catala-examples/blob/exemple_explication"
       & info ["url-base"] ~docv:"URL"
           ~doc:
             "Base URL that can be used to browse the Catala code. Nodes will \
