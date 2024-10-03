@@ -917,8 +917,8 @@ let ninja_init
         | Some (root, rel) ->
           set_root_dir root;
           ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
-            Clerk_config.default )
-        | None -> Fun.id, Clerk_config.default))
+            Clerk_config.default_config )
+        | None -> Fun.id, Clerk_config.default_config))
     | Some f ->
       let root = Filename.dirname f in
       let config = Clerk_config.read f in
@@ -931,12 +931,12 @@ let ninja_init
   in
   let build_dir =
     let dir =
-      match build_dir with None -> config.build_dir | Some dir -> dir
+      match build_dir with None -> config.global.build_dir | Some dir -> dir
     in
     Poll.build_dir ~dir ()
   in
-  let catala_opts = config.catala_opts @ catala_opts in
-  let include_dirs = config.include_dirs @ include_dirs in
+  let catala_opts = config.global.catala_opts @ catala_opts in
+  let include_dirs = config.global.include_dirs @ include_dirs in
   let with_ninja_output k =
     match ninja_output with
     | Some f -> k f

@@ -16,18 +16,48 @@
 
 open Catala_utils
 
-type modul = {
-  module_uses : (string * string option) list;
+type backend = ..
+type backend += C | OCaml
+
+val register_backend : name:string -> backend -> unit
+
+type doc_backend = Html | Latex
+
+type global = {
+  include_dirs : string list;
+  build_dir : string;
+  catala_opts : string list;
+}
+
+type module_ = {
+  name : string;
+  module_uses : [ `Simple of string | `With_alias of string * string ] list;
   includes : string list;
 }
 
-type t = {
-  catala_opts : string list;
-  build_dir : File.t;
-  include_dirs : File.t list;
-  modules : modul String.Map.t;
+type target = {
+  name : string;
+  entrypoints : string list;
+  backend : backend;
+  backend_options : string list;
 }
 
-val default : t
+type doc = {
+  name : string;
+  kind : doc_backend;
+  entrypoints : string list;
+  doc_options : string list;
+}
+
+type config_file = {
+  global : global;
+  modules : module_ list;
+  targets : target list;
+  docs : doc list;
+}
+
+type t = config_file
+
+val default_config : t
 val read : File.t -> t
 val write : File.t -> t -> unit
