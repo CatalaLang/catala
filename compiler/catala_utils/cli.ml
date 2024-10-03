@@ -286,6 +286,20 @@ module Flags = struct
     & flag
     & info ["check-invariants"] ~doc:"Check structural invariants on the AST."
 
+  let autotest =
+    value
+    & flag
+    & info ["autotest"]
+        ~env:(Cmd.Env.info "CATALA_AUTOTEST")
+        ~doc:
+          "Insert automatic test assertions in the compiled program. This \
+           detects all scopes that have no input or context variables, runs \
+           the interpreter to pre-compute their values, then adds runtime \
+           assertions to the program that ensure that the actual output of the \
+           scopes match their pre-computed values. If used on a testing \
+           program with a given backend, this guarantees consistency between \
+           the backend and the interpreter."
+
   let no_typing =
     value
     & flag

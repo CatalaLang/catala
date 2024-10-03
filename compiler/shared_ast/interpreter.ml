@@ -60,6 +60,12 @@ let rec format_runtime_value lang ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
          (format_runtime_value lang))
       (Array.to_list elts)
+  | Runtime.Tuple elts ->
+    Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (format_runtime_value lang))
+      (Array.to_list elts)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
 let print_log lang entry =
@@ -115,6 +121,10 @@ let rec value_to_runtime_embedded = function
     Runtime.Array
       (Array.of_list
          (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
+  | ETuple el ->
+    Runtime.Tuple
+      (Array.of_list
+         (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
   | _ -> Runtime.Unembeddable
 
 (* Todo: this should be handled early when resolving overloads. Here we have
@@ -132,7 +142,7 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
   | ELit (LDuration x1), ELit (LDuration x2) ->
     o_eq_dur_dur (Expr.pos_to_runtime (Expr.mark_pos m)) x1 x2
   | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
-  | EArray es1, EArray es2 -> (
+  | EArray es1, EArray es2 | ETuple es1, ETuple es2 -> (
     try
       List.for_all2
         (fun e1 e2 ->
@@ -796,8 +806,9 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         (partially_evaluate_expr_for_assertion_failure_message ctx lang
            (Expr.skip_wrappers e'));
-      Mark.add m (ELit LUnit)
-      (* raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos])) *)
+      if Global.options.stop_on_error then
+        raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
+      else Mark.add m (ELit LUnit)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
@@ -881,6 +892,7 @@ let evaluate_expr_trace :
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
+  Runtime.reset_log ();
   Fun.protect
     (fun () -> evaluate_expr ctx lang e)
     ~finally:(fun () ->
@@ -1109,56 +1121,63 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
-let evaluate_expr ctx lang e = evaluate_expr ctx lang (addcustom e)
+let evaluate_expr ctx lang e =
+  Fun.protect ~finally:Runtime.reset_log
+  @@ fun () -> evaluate_expr ctx lang (addcustom e)
+
+let loaded_modules = Hashtbl.create 17
 
 let load_runtime_modules ~hashf prg =
   let load (mname, intf_id) =
     let hash = hashf intf_id.hash in
-    let expect_hash =
-      if intf_id.is_external then Hash.external_placeholder
-      else Hash.to_string hash
-    in
-    let obj_file =
-      let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
-      Dynlink.adapt_filename
-        File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
-    in
-    (if not (Sys.file_exists obj_file) then
-       Message.error
-         ~pos_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-         ~pos:(Mark.get (ModuleName.get_info mname))
-         "Compiled OCaml object %a@ not@ found.@ Make sure it has been \
-          suitably compiled."
-         File.format obj_file
-     else
-       try Dynlink.loadfile obj_file
-       with Dynlink.Error dl_err ->
+    if Hashtbl.mem loaded_modules mname then ()
+    else
+      let expect_hash =
+        if intf_id.is_external then Hash.external_placeholder
+        else Hash.to_string hash
+      in
+      let obj_file =
+        let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
+        Dynlink.adapt_filename
+          File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
+      in
+      (if not (Sys.file_exists obj_file) then
          Message.error
-           "While loading compiled module from %a:@;<1 2>@[<hov>%a@]"
-           File.format obj_file Format.pp_print_text
-           (Dynlink.error_message dl_err));
-    match Runtime.check_module (ModuleName.to_string mname) expect_hash with
-    | Ok () -> ()
-    | Error bad_hash ->
-      Message.debug
-        "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
-        ModuleName.format mname Hash.format hash
-        (fun ppf h ->
-          try Hash.format ppf (Hash.of_string h)
-          with Failure _ ->
-            if h = Hash.external_placeholder then
-              Format.fprintf ppf "@{<cyan>%s@}" Hash.external_placeholder
-            else Format.fprintf ppf "@{<red><invalid>@}")
-        bad_hash;
-      Message.error
-        "Module %a@ needs@ recompiling:@ %a@ was@ likely@ compiled@ from@ an@ \
-         older@ version@ or@ with@ incompatible@ flags."
-        ModuleName.format mname File.format obj_file
-    | exception Not_found ->
-      Message.error
-        "Module %a@ was loaded from file %a but did not register properly, \
-         there is something wrong in its code."
-        ModuleName.format mname File.format obj_file
+           ~pos_msg:(fun ppf ->
+             Format.pp_print_string ppf "Module defined here")
+           ~pos:(Mark.get (ModuleName.get_info mname))
+           "Compiled OCaml object %a@ not@ found.@ Make sure it has been \
+            suitably compiled."
+           File.format obj_file
+       else
+         try Dynlink.loadfile obj_file
+         with Dynlink.Error dl_err ->
+           Message.error
+             "While loading compiled module from %a:@;<1 2>@[<hov>%a@]"
+             File.format obj_file Format.pp_print_text
+             (Dynlink.error_message dl_err));
+      match Runtime.check_module (ModuleName.to_string mname) expect_hash with
+      | Ok () -> Hashtbl.add loaded_modules mname hash
+      | Error bad_hash ->
+        Message.debug
+          "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
+          ModuleName.format mname Hash.format hash
+          (fun ppf h ->
+            try Hash.format ppf (Hash.of_string h)
+            with Failure _ ->
+              if h = Hash.external_placeholder then
+                Format.fprintf ppf "@{<cyan>%s@}" Hash.external_placeholder
+              else Format.fprintf ppf "@{<red><invalid>@}")
+          bad_hash;
+        Message.error
+          "Module %a@ needs@ recompiling:@ %a@ was@ likely@ compiled@ from@ \
+           an@ older@ version@ or@ with@ incompatible@ flags."
+          ModuleName.format mname File.format obj_file
+      | exception Not_found ->
+        Message.error
+          "Module %a@ was loaded from file %a but did not register properly, \
+           there is something wrong in its code."
+          ModuleName.format mname File.format obj_file
   in
   let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then

@@ -1388,7 +1388,7 @@ let options =
 let run includes optimize ex_scope explain_options global_options =
   let prg, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
-      ~check_invariants:false ~typed:Expr.typed
+      ~check_invariants:false ~autotest:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
     ~hashf:(Hash.finalise ~closure_conversion:false ~monomorphize_types:false);

@@ -29,6 +29,8 @@ scope Test:
   definition o equals
       (|2001-01-03|,
         f2 of str, Two content (12, str))
+
+  assertion o = (|2001-01-03|, 6.0)
 ```
 
 ```catala-test-inline

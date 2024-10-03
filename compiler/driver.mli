@@ -42,6 +42,7 @@ module Passes : sig
     includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
+    autotest:bool ->
     typed:'m Shared_ast.mark ->
     'm Dcalc.Ast.program * Shared_ast.TypeIdent.t list
 
@@ -50,6 +51,7 @@ module Passes : sig
     includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
+    autotest:bool ->
     typed:'m Shared_ast.mark ->
     closure_conversion:bool ->
     keep_special_ops:bool ->
@@ -65,6 +67,7 @@ module Passes : sig
     includes:Global.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
+    autotest:bool ->
     closure_conversion:bool ->
     keep_special_ops:bool ->
     dead_value_assignment:bool ->

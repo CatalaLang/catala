@@ -77,8 +77,8 @@ depexts: [
 ]
 pin-depends: [
   [
-  # FIXME: this is temporary, while we wait for the branch to be merged (and package released)
+  # FIXME: this is temporary, while we wait for the package to be released
     "dates_calc.0.0.6"
-    "git+https://github.com/CatalaLang/dates-calc#add-c-implem"
+    "git+https://github.com/CatalaLang/dates-calc#9125d78"
   ]
 ]

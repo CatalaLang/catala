@@ -33,6 +33,11 @@ type ('e, 'elt, 'last) t = ('e, 'elt, 'last) bound_list =
 val to_seq : (((_, _) gexpr as 'e), 'elt, _) t -> ('e Var.t * 'elt) Seq.t
 (** Note that the boundlist terminator is ignored in the resulting sequence *)
 
+val of_list :
+  ('e Var.t * 'elt Bindlib.box) list ->
+  last:'last Bindlib.box ->
+  ('e, 'elt, 'last) t Bindlib.box
+
 val last : (_, _, 'a) t -> 'a
 val iter : f:('e Var.t -> 'elt -> unit) -> ('e, 'elt, 'last) t -> 'last
 val find : f:('elt -> 'a option) -> (_, 'elt, _) t -> 'a
@@ -72,6 +77,14 @@ val map :
   last:('last1 -> 'last2 Bindlib.box) ->
   ('e1, 'elt1, 'last1) t ->
   ('e2, 'elt2, 'last2) t Bindlib.box
+
+val map_last :
+  f:('e1 Var.t -> 'elt1 -> 'e2 Var.t * 'elt2 Bindlib.box) ->
+  last:('last1 -> ('e2, 'elt2, 'last2) t Bindlib.box) ->
+  ('e1, 'elt1, 'last1) t ->
+  ('e2, 'elt2, 'last2) t Bindlib.box
+(** A more expressive version of [map] that allows extending the tail (e.g. to
+    append new elements) *)
 
 val fold_map :
   f:('ctx -> 'e1 Var.t -> 'elt1 -> 'ctx * 'e2 Var.t * 'elt2 Bindlib.box) ->

@@ -27,6 +27,15 @@ let rec to_seq = function
       let v, next = Bindlib.unbind next_bind in
       Seq.Cons ((v, item), to_seq next)
 
+let rec of_list list ~last =
+  match list with
+  | [] -> Bindlib.box_apply (fun l -> Last l) last
+  | (var, item) :: list ->
+    Bindlib.box_apply2
+      (fun item next -> Cons (item, next))
+      item
+      (Bindlib.bind_var var (of_list list ~last))
+
 let rec last = function
   | Last e -> e
   | Cons (_, bnd) ->
@@ -70,15 +79,18 @@ let rec fold_lr ~top ~down ~bottom ~up = function
     let bottom = fold_lr ~down ~up ~top ~bottom next in
     up var item bottom
 
-let rec map ~f ~last = function
-  | Last l -> Bindlib.box_apply (fun l -> Last l) (last l)
+let rec map_last ~f ~last = function
+  | Last l -> last l
   | Cons (item, next_bind) ->
     let var, next = Bindlib.unbind next_bind in
     let var, item = f var item in
-    let next_bind = Bindlib.bind_var var (map ~f ~last next) in
+    let next_bind = Bindlib.bind_var var (map_last ~f ~last next) in
     Bindlib.box_apply2
       (fun item next_bind -> Cons (item, next_bind))
       item next_bind
+
+let map ~f ~last =
+  map_last ~f ~last:(fun l -> Bindlib.box_apply (fun l -> Last l) (last l))
 
 let rec fold_map ~f ~last ~init:ctx = function
   | Last l ->

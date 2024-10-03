@@ -174,9 +174,10 @@ module Passes = struct
       includes:Global.raw_file list ->
       optimize:bool ->
       check_invariants:bool ->
+      autotest:bool ->
       typed:ty mark ->
       ty Dcalc.Ast.program * TypeIdent.t list =
-   fun options ~includes ~optimize ~check_invariants ~typed ->
+   fun options ~includes ~optimize ~check_invariants ~autotest ~typed ->
     let prg = scopelang options ~includes in
     debug_pass_name "dcalc";
     let type_ordering =
@@ -193,6 +194,15 @@ module Passes = struct
     in
     Message.debug "Translating to default calculus...";
     let prg = Dcalc.From_scopelang.translate_program prg in
+    let prg =
+      if autotest then (
+        Interpreter.load_runtime_modules
+          ~hashf:
+            Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+          prg;
+        Dcalc.Autotest.program prg)
+      else prg
+    in
     let prg =
       if optimize then begin
         Message.debug "Optimizing default calculus...";
@@ -226,6 +236,7 @@ module Passes = struct
       ~includes
       ~optimize
       ~check_invariants
+      ~autotest
       ~(typed : ty mark)
       ~closure_conversion
       ~keep_special_ops
@@ -234,7 +245,7 @@ module Passes = struct
       ~renaming :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
     let prg, type_ordering =
-      dcalc options ~includes ~optimize ~check_invariants ~typed
+      dcalc options ~includes ~optimize ~check_invariants ~autotest ~typed
     in
     debug_pass_name "lcalc";
     let prg =
@@ -302,6 +313,7 @@ module Passes = struct
       ~includes
       ~optimize
       ~check_invariants
+      ~autotest
       ~closure_conversion
       ~keep_special_ops
       ~dead_value_assignment
@@ -310,9 +322,9 @@ module Passes = struct
       ~expand_ops
       ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
-      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
-        ~closure_conversion ~keep_special_ops ~monomorphize_types ~expand_ops
-        ~renaming
+      lcalc options ~includes ~optimize ~check_invariants ~autotest
+        ~typed:Expr.typed ~closure_conversion ~keep_special_ops
+        ~monomorphize_types ~expand_ops ~renaming
     in
     let renaming_context =
       match renaming_context with
@@ -617,10 +629,18 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.include_dirs)
 
-  let dcalc typed options includes output optimize ex_scope_opt check_invariants
-      =
+  let dcalc
+      typed
+      options
+      includes
+      output
+      optimize
+      ex_scope_opt
+      check_invariants
+      autotest =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest
+        ~typed
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -663,7 +683,8 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
-        $ Cli.Flags.check_invariants)
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest)
 
   let proof
       options
@@ -673,7 +694,7 @@ module Commands = struct
       check_invariants
       disable_counterexamples =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~typed:Expr.typed
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
@@ -727,7 +748,8 @@ module Commands = struct
       check_invariants
       ex_scope_opt =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
+        ~typed
     in
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
@@ -742,13 +764,14 @@ module Commands = struct
       output
       optimize
       check_invariants
+      autotest
       closure_conversion
       keep_special_ops
       monomorphize_types
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
         ~expand_ops ~renaming:(Some Renaming.default)
     in
@@ -783,6 +806,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
@@ -801,7 +825,7 @@ module Commands = struct
       check_invariants
       ex_scope_opt =
     let prg, _, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~closure_conversion ~keep_special_ops ~monomorphize_types ~typed
         ~expand_ops ~renaming:None
     in
@@ -860,10 +884,11 @@ module Commands = struct
       output
       optimize
       check_invariants
+      autotest
       closure_conversion
       ex_scope_opt =
     let prg, type_ordering, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Lcalc.To_ocaml.renaming)
@@ -891,6 +916,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.ex_scope_opt)
 
@@ -900,6 +926,7 @@ module Commands = struct
       output
       optimize
       check_invariants
+      autotest
       closure_conversion
       keep_special_ops
       dead_value_assignment
@@ -908,7 +935,7 @@ module Commands = struct
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
-      Passes.scalc options ~includes ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~monomorphize_types ~expand_ops
         ~renaming:(Some Renaming.default)
@@ -943,6 +970,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.dead_value_assignment
@@ -957,9 +985,10 @@ module Commands = struct
       output
       optimize
       check_invariants
+      autotest
       closure_conversion =
     let prg, type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
         ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
@@ -985,11 +1014,12 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion)
 
-  let c options includes output optimize check_invariants =
+  let c options includes output optimize check_invariants autotest =
     let prg, type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
         ~monomorphize_types:false ~expand_ops:true
@@ -1024,7 +1054,8 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants)
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest)
 
   let depends options includes prefix extension extra_files =
     let file = Global.input_src_file options.Global.input_src in
