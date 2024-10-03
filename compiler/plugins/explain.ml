@@ -1229,7 +1229,11 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
 
     let vertex_attributes v =
       let e = V.label v in
-      let pos = Expr.pos e in
+      let pos = match e with
+      | EVar v, _ ->
+        Expr.pos (fst (Env.find v env).reduced)
+      | e -> Expr.pos e
+      in
       let loc_text =
         Re.replace_string
           Re.(compile (char '\n'))
