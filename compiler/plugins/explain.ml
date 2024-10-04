@@ -171,6 +171,32 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
   let eval_to_value ?(eval_default = true) env e =
     lazy_eval ctx env { value_level with eval_default } e
   in
+  let is_zero env e =
+    let zero = Runtime.integer_of_int 0 in
+    let e, _env = eval_to_value env e in
+    let condition =
+      match Mark.remove e with
+      | ELit (LInt i) -> Runtime.o_eq_int_int zero i
+      | ELit (LRat r) -> Runtime.o_eq_rat_rat (Runtime.decimal_of_integer zero) r
+      | ELit (LMoney m) -> Runtime.o_eq_mon_mon (Runtime.money_of_cents_integer zero) m
+      | ELit (LDuration dt) -> Runtime.duration_to_years_months_days dt = (0, 0, 0)
+      | _ -> false
+    in
+    if condition then Some (e, env) else None
+  in
+  let is_one env e =
+    let one = Runtime.integer_of_int 1 in
+    let e, env = eval_to_value env e in
+    let condition =
+      match Mark.remove e with
+      | ELit (LInt i) -> Runtime.o_eq_int_int one i
+      | ELit (LRat r) -> Runtime.o_eq_rat_rat (Runtime.decimal_of_integer one) r
+      | ELit (LMoney m) -> Runtime.o_eq_mon_mon (Runtime.money_of_units_int 1) m
+      | ELit (LDuration dt) -> Runtime.duration_to_years_months_days dt = (0, 0, 1)
+      | _ -> false
+    in
+    if condition then Some (e, env) else None
+  in
   match e0 with
   | EVar v, _ ->
     if (not llevel.eval_default) || not (llevel.eval_vars v) then e0, env
@@ -190,8 +216,6 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
   | EAppOp { op = op, opos; args; tys }, m -> (
     if
       (not llevel.eval_default)
-      && not (List.equal Expr.equal args [ELit LUnit, m])
-      (* Applications to () encode thunked default terms *)
     then e0, env
     else
       match op with
@@ -274,6 +298,26 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               env, e)
             env args
         in
+        let are_zeroes = lazy (List.map (fun x -> x, is_zero env x) args) in
+        let are_ones = lazy (List.map (fun x -> x, is_one env x) args) in
+        match op, are_zeroes, are_ones with
+        (* First handle neutral elements: they are removed from the formula, but added as conditions *)
+        | ((Op.Mult_int_int | Op.Mult_rat_rat), _,
+           lazy ([x_neutral, Some (neutral, env); not_neutral, None] |
+                 [not_neutral, None; x_neutral, Some (neutral, env)]))
+          (* Note: we could add [Op.Mult_mon_rat | Op.Mult_dur_int] here, but that would require inserting a conversion operator instead *)
+        | (Op.Add_dat_dur _ | Op.Add_dur_dur | Op.Add_int_int | Op.Add_mon_mon | Op.Add_rat_rat),
+          lazy ([x_neutral, Some (neutral, env); not_neutral, None] |
+                [not_neutral, None; x_neutral, Some (neutral, env)]),
+          _
+        | (Op.Sub_dat_dur _ | Op.Sub_dur_dur | Op.Sub_int_int | Op.Sub_mon_mon | Op.Sub_rat_rat),
+          lazy ([not_neutral, None; x_neutral, Some (neutral, env)]),
+          _
+          ->
+          let annot = Custom {pos = opos; custom = {conditions = []}} in
+          let condition = (EAppOp { op = Op.Eq, opos; args = [x_neutral; neutral]; tys }, annot), env in
+          add_condition ~condition not_neutral, env
+        | _ ->
         if not llevel.eval_op then (EAppOp { op = op, opos; args; tys }, m), env
         else
           let renv = ref env in
@@ -290,28 +334,20 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               args
           in
           e, !renv)
-  (* fixme: this forwards eempty *)
   | EApp { f; args }, m -> (
-    if
-      (not llevel.eval_default)
-      && not (List.equal Expr.equal args [ELit LUnit, m])
-      (* Applications to () encode thunked default terms *)
+    if not llevel.eval_default
     then e0, env
     else
       match eval_to_value env f with
       | (EAbs { binder; _ }, _), env ->
         let vars, body = Bindlib.unmbind binder in
-        log "@[<v 2>@[<hov 4>{";
         let env =
           Seq.fold_left2
             (fun env1 var e ->
-              log "@[<hov 2>LET %a = %a@]@ " Print.var_debug var Expr.format e;
               Env.add var e env env1)
             env (Array.to_seq vars) (List.to_seq args)
         in
-        log "@]@[<hov 4>IN [%a]@]" (Print.expr ~debug:true ()) body;
         let e, env = lazy_eval ctx env llevel body in
-        log "@]}";
         e, env
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
   | (EAbs _ | ELit _ | EEmpty), _ -> e0, env (* these are values *)
