@@ -1064,6 +1064,38 @@ let rec graph_cleanup options g base_vars =
           g)
       emap g
   in
+  let g =
+    (* Merge formulas and subsequent variable affectation nodes *)
+    G.fold_edges_e (fun e g ->
+        if not (G.mem_edge_e g e) || (G.E.label e).condition then g else
+          match G.V.label (G.E.src e), G.V.label (G.E.dst e) with
+          | ((EVar _, _) as var), ((EAppOp _, m) as expr) ->
+            let pos = Expr.pos expr in
+            let v' =
+              G.V.create
+                (EAppOp { op = Op.Eq, pos; args = [var; expr];
+                          tys = [TAny, pos; TAny, pos] }, m)
+                (* This form is matched and displayed specifically below *)
+            in
+            let g =
+              G.fold_pred_e (fun e1 g ->
+                  G.add_edge_e g (G.E.create (G.E.src e1) (G.E.label e1) v'))
+                g (G.E.src e) g
+            in
+            let g =
+              G.fold_succ_e (fun e1 g ->
+                  G.add_edge_e g (G.E.create v' (G.E.label e1) (G.E.dst e1)))
+                g (G.E.src e) g
+            in
+            let g =
+              G.fold_succ_e (fun e1 g ->
+                  G.add_edge_e g (G.E.create v' (G.E.label e1) (G.E.dst e1) ))
+                g (G.E.dst e) g
+            in
+            G.remove_vertex (G.remove_vertex g (G.E.dst e)) (G.E.src e)
+          | _ -> g)
+      g g
+  in
   g
 
 let expr_to_dot_label0 :
@@ -1188,7 +1220,22 @@ let expr_to_dot_label0 :
   in
   aux_value
 
-let expr_to_dot_label lang ctx env ppf e =
+let htmlencode =
+  let re = Re.(compile (set "&<>'\"@")) in
+  Re.replace re ~f:(fun g -> match Re.Group.get g 0 with
+      | "&" -> "&amp;"
+      | "<" -> "&lt;"
+      | ">" -> "&gt;"
+      | "'" -> "&apos;"
+      | "\"" -> "&quot;"
+      | "@" -> "&commat;"
+      | _ -> assert false)
+
+let expr_to_dot_label0 lang ctx env ppf e =
+  Format.fprintf ppf "%s"
+    (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
+
+let rec expr_to_dot_label lang ctx env ppf e =
   let print_expr ppf = function
     | EVar _, _ as e ->
       let e, _ = lazy_eval ctx env value_level e in
@@ -1199,37 +1246,42 @@ let expr_to_dot_label lang ctx env ppf e =
   match e with
   | EVar v, _ ->
     let e, _ = lazy_eval ctx env value_level e in
-    Format.fprintf ppf "%a = %a" String.format (Bindlib.name_of v)
-      (expr_to_dot_label0 lang ctx env)
-      e
+    Format.fprintf ppf "<table border=\"0\" cellborder=\"0\" cellspacing=\"1\"><tr><td align=\"left\"><b>%a</b></td></tr><tr><td align=\"right\"><b>= <font color=\"#007799\">@[<hv>%a@]</font></b></td></tr></table>"
+      String.format (Bindlib.name_of v)
+      (expr_to_dot_label0 lang ctx env) e
+  | EAppOp { op = Op.Eq, _; args = [EVar v, _; (EAppOp _, _ as expr)]; _ }, _ ->
+    let value, _ = lazy_eval ctx env value_level expr in
+    Format.fprintf ppf "<table border=\"0\" cellborder=\"0\" cellspacing=\"1\"><tr><td align=\"left\"><b>%a</b></td></tr><hr/><tr><td align=\"left\">@[<hv>%a@]</td></tr><tr><td align=\"right\"><b>= <font color=\"#0088aa\">@[<hv>%a@]</font></b></td></tr></table>"
+      String.format (Bindlib.name_of v)
+      (expr_to_dot_label0 lang ctx env) expr
+      (expr_to_dot_label0 lang ctx env) value
   | EStruct { name; fields }, _ ->
     let pr ppf =
-      Format.fprintf ppf "{ %a | { { %a } | { %a }}}" StructName.format name
+      Format.fprintf ppf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr><td colspan=\"2\">%a</td></tr><tr><td>%a</td><td>%a</td></tr></table>" StructName.format name
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf fld ->
-             StructField.format ppf fld;
-             Format.pp_print_string ppf "\\l"))
+             StructField.format ppf fld(* ;
+              * Format.pp_print_string ppf "<vr/>" *)))
         (StructField.Map.keys fields)
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf -> function
              | ((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _) as
                e ->
-               print_expr ppf e;
-               Format.pp_print_string ppf "\\l"
-             | _ -> Format.pp_print_string ppf "…\\l"))
+               print_expr ppf e(* ;
+                * Format.pp_print_string ppf "\\l" *)
+             | _ -> Format.pp_print_string ppf "…"))
         (StructField.Map.values fields)
     in
     Format.pp_print_string ppf (Message.unformat pr)
   | EArray elts, _ ->
     let pr ppf =
-      Format.fprintf ppf "{ %a }"
+      Format.fprintf ppf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr>%a</tr></table>"
         (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf -> function
-             | ((EVar _ | ELit _), _) as e -> print_expr ppf e
-             | _ -> Format.pp_print_string ppf "…"))
+             | ((EVar _ | ELit _), _) as e -> Format.fprintf ppf "<td>%a</td>" print_expr e
+             | _ -> Format.pp_print_string ppf "<td>…</td>"))
         elts
     in
     Format.pp_print_string ppf (Message.unformat pr)
@@ -1240,35 +1292,35 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
     include G
 
     let print_expr env ctx lang ppf e =
-      let out_funs = Format.pp_get_formatter_out_functions ppf () in
-      Format.pp_set_formatter_out_functions ppf
-        {
-          out_funs with
-          Format.out_newline = (fun () -> out_funs.out_string "\\l" 0 2);
-        };
-      expr_to_dot_label env ctx lang ppf e;
-      Format.pp_print_flush ppf ();
-      Format.pp_set_formatter_out_functions ppf out_funs
+      (* let out_funs = Format.pp_get_formatter_out_functions ppf () in
+       * Format.pp_set_formatter_out_functions ppf
+       *   {
+       *     out_funs with
+       *     Format.out_newline = (fun () -> out_funs.out_string "<br/>" 0 2);
+       *   }; *)
+      expr_to_dot_label env ctx lang ppf e(* ;
+       * Format.pp_print_flush ppf ();
+       * Format.pp_set_formatter_out_functions ppf out_funs *)
 
     let graph_attributes _ = [ (* `Rankdir `LeftToRight *) ]
     let default_vertex_attributes _ = []
 
     let vertex_label v =
       let print_expr = print_expr lang ctx env in
-      match G.V.label v with
-      | (EVar v, _) as e ->
-        Format.asprintf "%a = %a" String.format (Bindlib.name_of v) print_expr
-          (fst (lazy_eval ctx env value_level e))
-      | e -> Format.asprintf "%a" print_expr e
+      (* match G.V.label v with
+       * | (EVar v, _) as e ->
+       *   Format.asprintf "%a = %a" String.format (Bindlib.name_of v) print_expr
+       *     (fst (lazy_eval ctx env value_level e))
+       * | e -> *) Format.asprintf "%a" print_expr (G.V.label v)
 
     let vertex_name v = Printf.sprintf "x%03d" (G.V.hash v)
 
     let vertex_attributes v =
       let e = V.label v in
       let pos = match e with
-      | EVar v, _ ->
-        Expr.pos (fst (Env.find v env).reduced)
-      | e -> Expr.pos e
+        | EVar v, _ ->
+          Expr.pos (fst (Env.find v env).reduced)
+        | e -> Expr.pos e
       in
       let loc_text =
         Re.replace_string
@@ -1276,7 +1328,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           ~by:"&#10;"
           (String.concat "\n» " (List.rev (Pos.get_law_info pos)) ^ "\n")
       in
-      `Label (vertex_label v (* ^ "\n" ^ loc_text *))
+      `HtmlLabel (vertex_label v (* ^ "\n" ^ loc_text *))
       :: `Comment loc_text
          (* :: `Url
           *      ("http://localhost:8080/fr/examples/housing-benefits#"
@@ -1293,7 +1345,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
            ^ Pos.get_file pos
            ^ "#L"
            ^ string_of_int (Pos.get_start_line pos))
-      :: `Fontname "DejaVu Sans Mono"
+      :: `Fontname "monospace"
       ::
       (match G.V.label v with
       | EVar var, _ ->
@@ -1305,12 +1357,14 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           (* non-constants *)
           [`Style `Filled; `Fillcolor 0xffee99; `Shape `Box]
         else (* Constants *)
-          [`Style `Filled; `Fillcolor 0x77aaff; `Shape `Note]
-      | EStruct _, _ | EArray _, _ -> [`Shape `Record]
-      | EAppOp { op = op, _; _ }, _ -> (
-        match op_kind op with
-        | `Sum | `Product | _ -> [`Shape `Box] (* | _ -> [] *))
-      | _ -> [])
+          [`Style `Filled; `Fillcolor 0x99bbff; `Shape `Note]
+      | EAppOp { op = Op.Eq, _; args = [EVar _, _; EAppOp _, _]; _ }, _ ->
+        [ `Style `Filled; `Fillcolor 0xffee99; `Shape `Box ]
+      | EStruct _, _ | EArray _, _ -> [`Shape `Plaintext]
+      (* | EAppOp { op = op, _; _ }, _ -> (
+       *     match op_kind op with
+       *     | `Sum | `Product | _ -> [`Shape `Box; `Fillcolor 0xff0000] (\* | _ -> [] *\)) *)
+      | _ -> [`Shape `Box; `Penwidth 2.; `Style `Dashed; `Color 0xff7700])
 
     let get_subgraph v =
       match G.V.label v with
@@ -1318,7 +1372,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
         if Var.Set.mem var base_vars then
           Some
             {
-              Graph.Graphviz.DotAttributes.sg_name = "inputs";
+              Graph.Graphviz.DotAttributes.sg_name = "cluster_inputs";
               sg_attributes = [];
               sg_parent = None;
             }
@@ -1339,10 +1393,11 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
     let edge_attributes e =
       match E.label e with
       | { condition = true; _ } ->
-        [`Style `Dashed; `Penwidth 5.; `Color 0xff7700; `Arrowhead `Odot]
+        [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot]
       | { side = Some (Lhs s | Rhs s); _ } ->
         [ (* `Label s; `Color 0xbb7700 *) ]
-      | _ -> []
+      | { side = None; _ } ->
+        [(* `Minlen 0; `Weight 10 *)]
   end) in
   GPr.fprint_graph ppf (reverse_graph g)
 
