@@ -1345,7 +1345,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
            ^ Pos.get_file pos
            ^ "#L"
            ^ string_of_int (Pos.get_start_line pos))
-      :: `Fontname "monospace"
+      :: `Fontname "sans"
       ::
       (match G.V.label v with
       | EVar var, _ ->
@@ -1454,6 +1454,7 @@ let options =
             mkinfo "svg";
             mkinfo "png";
             mkinfo "pdf";
+            mkinfo "html";
           ])
   in
   let show =
@@ -1540,8 +1541,15 @@ let run includes optimize ex_scope explain_options global_options =
     let _, with_out =
       Driver.Commands.get_output global_options explain_options.output
     in
+    let wrap_html, fmt = if fmt = "html" then true, "svg" else false, fmt in
     with_out (fun oc ->
-        output_string oc (File.process_out "dot" ["-T" ^ fmt; dotfile]))
+        if wrap_html then
+          (output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
+           output_string oc (htmlencode ex_scope);
+           output_string oc "</title>\n</head>\n<body>\n");
+        output_string oc (File.process_out "dot" ["-T" ^ fmt; dotfile]);
+        if wrap_html then
+          output_string oc "</body>\n</html>\n")
   | `Dot -> ());
   match explain_options.show with
   | None -> ()
