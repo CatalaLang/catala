@@ -17,199 +17,165 @@
 open Catala_utils
 open Otoml
 
-type modul = {
-  module_uses : (string * string option) list;
+type backend = ..
+type backend += C | OCaml
+
+let registered_backends = ref []
+
+let register_backend ~name backend =
+  registered_backends := (name, backend) :: !registered_backends
+
+let () =
+  register_backend ~name:"c" C;
+  register_backend ~name:"ocaml" OCaml
+
+let registered_backends () = !registered_backends
+
+type doc_backend = Html | Latex
+
+type global = {
+  include_dirs : string list;
+  build_dir : string;
+  catala_opts : string list;
+}
+
+type module_ = {
+  name : string;
+  module_uses : [ `Simple of string | `With_alias of string * string ] list;
   includes : string list;
 }
 
-type t = {
-  catala_opts : string list;
-  build_dir : string;
-  include_dirs : string list;
-  modules : modul String.Map.t;
+type target = {
+  name : string;
+  entrypoints : string list;
+  backend : backend;
+  backend_options : string list;
 }
 
-let default =
-  {
-    catala_opts = [];
-    build_dir = "_build";
-    include_dirs = [];
-    modules = String.Map.empty;
-  }
+type doc = {
+  name : string;
+  kind : doc_backend;
+  entrypoints : string list;
+  doc_options : string list;
+}
 
-let parse_module_uses ~fname ~name modul =
-  match find_opt modul (get_array get_value) ["module_uses"] with
-  | None | (exception _) -> [] (* [opt] is a lie. *)
-  | Some module_uses ->
-    List.map
-      (function
-        | TomlString module_name | TomlArray [TomlString module_name] ->
-          module_name, None
-        | TomlArray [TomlString module_name; TomlString module_alias] ->
-          module_name, Some module_alias
-        | _ ->
-          Message.error
-            "While parsing %a: in module @{<italic>%s@}, invalid value for \
-             @{<red>module_uses@}. Expected a module name as string or an \
-             array of two strings (module name and its alias)."
-            File.format fname name)
-      module_uses
+type config_file = {
+  global : global;
+  modules : module_ list;
+  targets : target list;
+  docs : doc list;
+}
 
-let check_module_sanity ~fname modul =
-  match modul with
-  | TomlTable kvs ->
-    let format_module_name ppf =
-      match Helpers.find_string_opt modul ["name"] with
-      | None | (exception _) -> () (* [opt] is a lie. *)
-      | Some name -> Format.fprintf ppf "in module @{<italic>%s@}, " name
-    in
-    List.iter
-      (function
-        | "name", TomlString _ -> ()
-        | "name", _ ->
-          Message.delayed_error ()
-            "While parsing %a: invalid value for key @{<red>name@}.@\n\
-             Expected a direct string." File.format fname
-        | "module_uses", TomlArray _ -> (* checked in [parse_module_uses] *) ()
-        | "module_uses", _ ->
-          Message.delayed_error ()
-            "While parsing %a: %tinvalid value for key @{<red>module_uses@}.@\n\
-             It must be an array." File.format fname format_module_name
-        | "includes", TomlArray srcs ->
-          let only_strings =
-            List.for_all (function TomlString _ -> true | _ -> false) srcs
-          in
-          if not only_strings then
-            Message.delayed_error ()
-              "While parsing %a: %tinvalid value for key @{<red>includes@}.@\n\
-               It must only contain direct strings." File.format fname
-              format_module_name
-        | "includes", _ ->
-          Message.delayed_error ()
-            "While parsing %a: %tinvalid content for key @{<red>includes@}.@\n\
-             Expected an array of strings." File.format fname format_module_name
-        | k, _ ->
-          Message.delayed_error ()
-            "While parsing %a: %tunexpected key @{<red>%S@}.@\n\
-             Allowed keys are: 'name', 'module_uses' and 'includes'."
-            File.format fname format_module_name k)
-      kvs
-  | _ ->
-    Message.delayed_error ()
-      "While parsing %a: invalid module definition, expected a table."
-      File.format fname
+type t = config_file
 
-let find_and_parse_modules_exn ~fname toml =
-  let modules = find toml (get_array get_value) ["module"] in
-  let parse_module modul =
-    let () = check_module_sanity ~fname modul in
-    let name = Helpers.find_string_exn modul ["name"] in
-    let module_uses = parse_module_uses ~fname ~name modul in
-    let includes =
-      try
-        Helpers.find_strings_opt modul ["includes"] |> Option.value ~default:[]
-      with _ ->
-        (* opt is a lie, the error will be triggered later on by the sanity
-           check. *)
-        []
-    in
-    name, { module_uses; includes }
+let default_global =
+  { include_dirs = []; catala_opts = []; build_dir = "_build" }
+
+let default_config =
+  { global = default_global; modules = []; targets = []; docs = [] }
+
+let project_encoding =
+  let open Clerk_toml_encoding in
+  conv
+    (fun { include_dirs; catala_opts; build_dir } ->
+      proj_empty_list include_dirs, proj_empty_list catala_opts, build_dir)
+    (fun (include_dirs, catala_opts, build_dir) ->
+      {
+        include_dirs = inj_empty_list include_dirs;
+        catala_opts = inj_empty_list catala_opts;
+        build_dir;
+      })
+  @@ obj3
+       (opt_field ~name:"include_dirs" @@ list string)
+       (opt_field ~name:"catala_opts" @@ list string)
+       (dft_field ~name:"build_dir" ~default:"_build" string)
+
+let module_uses =
+  let open Clerk_toml_encoding in
+  let case_module =
+    case ~info:{|"<module_name>"|}
+      ~proj:(function `Simple n -> Some n | _ -> None)
+      ~inj:(fun n -> Some (`Simple n))
+      string
   in
-  Message.with_delayed_errors
-  @@ fun () -> List.map parse_module modules |> String.Map.of_list
+  let case_module_alias =
+    case ~info:{|["<module_name>", "<module_alias>"]|}
+      ~proj:(function `With_alias (n, a) -> Some (n, a) | _ -> None)
+      ~inj:(fun (n, a) -> Some (`With_alias (n, a)))
+    @@ pair string string
+  in
+  union [case_module; case_module_alias]
 
-let toml_to_config ~fname toml =
-  {
-    catala_opts = Helpers.find_strings_exn toml ["build"; "catala_opts"];
-    build_dir = Helpers.find_string_exn toml ["build"; "build_dir"];
-    include_dirs = Helpers.find_strings_exn toml ["project"; "include_dirs"];
-    modules = find_and_parse_modules_exn ~fname toml;
-  }
+let module_encoding =
+  let open Clerk_toml_encoding in
+  conv
+    (fun { name; module_uses; includes } ->
+      name, proj_empty_list module_uses, proj_empty_list includes)
+    (fun (name, module_uses, includes) ->
+      {
+        name;
+        module_uses = inj_empty_list module_uses;
+        includes = inj_empty_list includes;
+      })
+  @@ obj3
+       (req_field ~name:"name" @@ string)
+       (opt_field ~name:"module_uses" @@ list module_uses)
+       (opt_field ~name:"includes" @@ list string)
 
-let module_to_toml name { module_uses; includes } =
-  table
-    [
-      "name", string name;
-      ( "module_uses",
-        array
-          (List.map
-             (function
-               | name, None -> string name
-               | name, Some alias -> array [string name; string alias])
-             module_uses) );
-      "includes", array (List.map string includes);
-    ]
+let target_encoding =
+  let open Clerk_toml_encoding in
+  conv
+    (fun { name; entrypoints; backend; backend_options } ->
+      name, entrypoints, backend, proj_empty_list backend_options)
+    (fun (name, entrypoints, backend, backend_options) ->
+      {
+        name;
+        entrypoints;
+        backend;
+        backend_options = inj_empty_list backend_options;
+      })
+  @@ obj4
+       (req_field ~name:"name" @@ string)
+       (req_field ~name:"entrypoints" @@ list string)
+       (req_field ~name:"backend"
+       @@ union (string_cases (registered_backends ())))
+       (opt_field ~name:"backend_options" @@ list string)
 
-let config_to_toml t =
-  table
-    [
-      ( "build",
-        table
-          [
-            "catala_opts", array (List.map string t.catala_opts);
-            "build_dir", string t.build_dir;
-          ] );
-      "project", table ["include_dirs", array (List.map string t.include_dirs)];
-      ( "module",
-        TomlTableArray
-          (String.Map.fold
-             (fun name modul acc -> module_to_toml name modul :: acc)
-             t.modules []
-          |> List.rev) );
-    ]
+let doc_encoding =
+  let open Clerk_toml_encoding in
+  conv
+    (fun { name; entrypoints; kind; doc_options } ->
+      name, entrypoints, kind, proj_empty_list doc_options)
+    (fun (name, entrypoints, kind, doc_options) ->
+      { name; entrypoints; kind; doc_options = inj_empty_list doc_options })
+  @@ obj4
+       (req_field ~name:"name" @@ string)
+       (req_field ~name:"entrypoints" @@ list string)
+       (req_field ~name:"kind"
+       @@ union (string_cases ["latex", Latex; "html", Html]))
+       (opt_field ~name:"doc_options" @@ list string)
 
-let default_toml = config_to_toml default
+let raw_config_encoding =
+  let open Clerk_toml_encoding in
+  table4
+    (table_opt ~name:"project" project_encoding)
+    (multi_table ~name:"module" module_encoding)
+    (multi_table ~name:"target" target_encoding)
+    (multi_table ~name:"doc" doc_encoding)
 
-(* joins default and supplied conf, ensuring types match. The filename is for
-   error reporting *)
-let rec join ?(rpath = []) fname t1 t2 =
-  match t1, t2 with
-  | TomlString _, TomlString _
-  | TomlInteger _, TomlInteger _
-  | TomlFloat _, TomlFloat _
-  | TomlBoolean _, TomlBoolean _
-  | TomlOffsetDateTime _, TomlOffsetDateTime _
-  | TomlLocalDateTime _, TomlLocalDateTime _
-  | TomlLocalDate _, TomlLocalDate _
-  | TomlLocalTime _, TomlLocalTime _
-  | TomlArray _, TomlArray _
-  | TomlTableArray _, TomlTableArray _ ->
-    t2
-  | TomlTable tt1, TomlTable tt2 | TomlInlineTable tt1, TomlInlineTable tt2 ->
-    let m1 = String.Map.of_list tt1 in
-    let m2 = String.Map.of_list tt2 in
-    TomlTable
-      (String.Map.merge
-         (fun key t1 t2 ->
-           match t1, t2 with
-           | None, Some _ ->
-             Message.error
-               "While parsing %a: invalid key @{<red>%S@} at @{<bold>%s@}"
-               File.format fname key
-               (if rpath = [] then "file root"
-                else String.concat "." (List.rev rpath))
-           | Some t1, Some t2 -> Some (join ~rpath:(key :: rpath) fname t1 t2)
-           | Some t1, None -> Some t1
-           | None, None -> assert false)
-         m1 m2
-      |> String.Map.bindings)
-  | _ ->
-    Message.error
-      "While parsing %a: Wrong type for config value @{<bold>%s@}, was \
-       expecting @{<bold>%s@}"
-      File.format fname
-      (String.concat "." (List.rev rpath))
-      (match t1 with
-      | TomlString _ -> "a string"
-      | TomlInteger _ -> "an integer"
-      | TomlFloat _ -> "a float"
-      | TomlBoolean _ -> "a boolean"
-      | TomlOffsetDateTime _ -> "an offsetdatetime"
-      | TomlLocalDateTime _ -> "a localdatetime"
-      | TomlLocalDate _ -> "a localdate"
-      | TomlLocalTime _ -> "a localtime"
-      | TomlArray _ | TomlTableArray _ -> "an array"
-      | TomlTable _ | TomlInlineTable _ -> "a table")
+let config_encoding : config_file Clerk_toml_encoding.t =
+  let open Clerk_toml_encoding in
+  convt
+    (fun { global; modules; targets; docs } ->
+      Some global, modules, targets, docs)
+    (fun (global, modules, targets, docs) ->
+      {
+        global = Option.value global ~default:default_global;
+        modules;
+        targets;
+        docs;
+      })
+  @@ raw_config_encoding
 
 let read f =
   let toml =
@@ -219,8 +185,8 @@ let read f =
         ~pos:(Pos.from_info f li col li (col + 1))
         "Error in Clerk configuration:@ %a" Format.pp_print_text msg
   in
-  toml_to_config ~fname:f (join f default_toml toml)
+  Clerk_toml_encoding.decode toml config_encoding
 
-let write f t =
-  let toml = config_to_toml t in
+let write f config =
+  let toml = Clerk_toml_encoding.encode config config_encoding in
   File.with_out_channel f @@ fun oc -> Printer.to_channel oc toml
