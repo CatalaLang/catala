@@ -1,0 +1,147 @@
+
+```catala
+declaration structure Period:
+  data begin content date
+  data end content date
+
+declaration scope Section121SinglePerson:
+  # Invariant: the periods in the collection are disjoint
+  input date_of_sale_or_exchange content date
+  input property_ownage content list of Period
+  internal aggregate_periods_from_last_five_years content duration
+    depends on periods content list of Period
+  output requirements_ownership_met condition
+
+scope Section121SinglePerson:
+  # Here we aggregate over all the periods of the collection. For
+  # each period, three cases:
+  # - either the period began less that 5 years before the
+  #   date_of_sale_or_exchange in which case we count if full
+  # - either the period ended more that 5 years before the
+  #   date_of_sale_or_exchange in which case we don't count it
+  # - either the 5 years mark is inside the period and we only
+  #   cound the half after 5 years
+  definition aggregate_periods_from_last_five_years of periods equals
+    sum duration of (
+      if date_of_sale_or_exchange <= period.begin + 5 year then
+        period.end - period.begin
+      else (if date_of_sale_or_exchange >= period.end + 5 year then
+        0 day
+      else ((period.end + 5 year) - date_of_sale_or_exchange))
+    )
+    for period among periods
+
+  rule requirements_ownership_met under condition
+    aggregate_periods_from_last_five_years of property_ownage >= 730 day
+  consequence fulfilled
+
+```
+
+
+```catala-test-inline
+$ catala lcalc --closure-conversion
+type Eoption = | ENone of unit | ESome of any
+
+type Period = { begin: date; end: date; }
+type Section121SinglePerson_in = {
+  date_of_sale_or_exchange_in: date;
+  property_ownage_in: list of Period {begin: date; end: date};
+}
+type Section121SinglePerson = { requirements_ownership_met: bool; }
+
+let topval closure_aggregate_periods_from_last_five_years :
+  (closure_env, Period {begin: date; end: date}) → duration =
+  λ (env: closure_env) (period: Period) →
+  let env__1 : (date) = from_closure_env env in
+  let date_of_sale_or_exchange : date = env__1.0 in
+  if
+    date_of_sale_or_exchange <= period.begin + [5 years, 0 months, 0 days]
+  then
+    period.end - period.begin
+  else if
+    date_of_sale_or_exchange >= period.end + [5 years, 0 months, 0 days]
+  then
+    [0 years, 0 months, 0 days]
+  else period.end + [5 years, 0 months, 0 days] - date_of_sale_or_exchange
+
+let topval closure_aggregate_periods_from_last_five_years__1 :
+  (closure_env, duration, duration) → duration =
+  λ (env: closure_env) (sum1: duration) (sum2: duration) →
+  let env__1 : () = from_closure_env env in
+  
+  ((sum1 + sum2))
+
+let topval closure_aggregate_periods_from_last_five_years__2 :
+  (closure_env, (list of Period {begin: date; end: date})) → duration =
+  λ (env: closure_env) (periods: list of Period) →
+  let env__1 : (date) = from_closure_env env in
+  let date_of_sale_or_exchange : date = env__1.0 in
+  match
+    (ESome
+       (reduce
+          let aggregate_periods_from_last_five_years :
+              (closure_env, duration, duration) → duration =
+            closure_aggregate_periods_from_last_five_years__1
+          in
+          (aggregate_periods_from_last_five_years, to_closure_env ())
+          [0 years, 0 months, 0 days]
+          map (let aggregate_periods_from_last_five_years :
+                   (closure_env, Period) → duration =
+                 closure_aggregate_periods_from_last_five_years
+               in
+               (aggregate_periods_from_last_five_years,
+                 to_closure_env (date_of_sale_or_exchange)))
+            periods))
+  with
+  | ENone → error NoValue
+  | ESome arg → arg
+
+let scope section121_single_person
+  (section121_single_person_in:
+     Section121SinglePerson_in {
+       date_of_sale_or_exchange_in: date;
+       property_ownage_in: list of Period {begin: date; end: date}
+     })
+  : Section121SinglePerson {requirements_ownership_met: bool}
+  =
+  let get date_of_sale_or_exchange : date =
+    section121_single_person_in.date_of_sale_or_exchange_in
+  in
+  let get property_ownage : list of Period {begin: date; end: date} =
+    section121_single_person_in.property_ownage_in
+  in
+  let set aggregate_periods_from_last_five_years :
+      ((closure_env, (list of Period {begin: date; end: date})) → duration,
+        closure_env) =
+    let aggregate_periods_from_last_five_years__1 :
+        (closure_env, (list of Period)) → duration =
+      closure_aggregate_periods_from_last_five_years__2
+    in
+    (aggregate_periods_from_last_five_years__1,
+      to_closure_env (date_of_sale_or_exchange))
+  in
+  let set requirements_ownership_met : bool =
+    match
+      (match
+         if
+           (let code_and_env :
+                ((closure_env, (list of Period)) → duration, closure_env) =
+              aggregate_periods_from_last_five_years
+            in
+            code_and_env.0 code_and_env.1 property_ownage)
+           >= [0 years, 0 months, 730 days]
+         then
+           ESome true
+         else ENone ()
+       with
+       | ENone → ESome false
+       | ESome x → ESome x)
+    with
+    | ENone → error NoValue
+    | ESome arg → arg
+  in
+  return { Section121SinglePerson
+           requirements_ownership_met = requirements_ownership_met;
+         }
+
+```

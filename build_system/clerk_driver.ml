@@ -39,7 +39,10 @@ module Cli = struct
       value
       & opt_all string []
       & info ["c"; "catala-opts"] ~docv:"FLAG"
-          ~doc:"Option to pass to the Catala compiler. Can be repeated.")
+          ~doc:
+            "Option to pass to the Catala compiler. Can be repeated. If \
+             neither this nor $(b,--test-flags) is specified, the flags for \
+             the different backends default to $(b,-O).")
 
   let build_dir =
     Arg.(
@@ -67,7 +70,7 @@ module Cli = struct
   let test_flags =
     Arg.(
       value
-      & opt (list string) []
+      & opt ~vopt:[""] (list string) []
       & info ["test-flags"] ~docv:"FLAGS"
           ~env:(Cmd.Env.info "CATALA_TEST_FLAGS")
           ~doc:
@@ -470,13 +473,14 @@ module Var = struct
   let pool = make "pool"
   let src = make "src"
   let target = make "target"
+  let includes = make "includes"
   let orig_src = make "orig-src"
   let scope = make "scope"
   let test_id = make "test-id"
   let ( ! ) = Var.v
 end
 
-let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
+let base_bindings catala_exe catala_flags0 build_dir include_dirs test_flags =
   let includes =
     List.fold_right
       (fun dir flags ->
@@ -485,21 +489,29 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
         else "-I" :: dir :: flags)
       include_dirs []
   in
-  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags in
+  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags0 in
   let catala_flags_ocaml =
-    List.filter
-      (function
-        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-      test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
   in
   let catala_flags_c =
-    List.filter (function "-O" | "--optimize" -> true | _ -> false) test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function "-O" | "--optimize" -> true | _ -> false)
+        test_flags
   in
   let catala_flags_python =
-    List.filter
-      (function
-        | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-      test_flags
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
   in
   let ocaml_flags = Lazy.force Poll.ocaml_include_flags in
   [
@@ -542,6 +554,7 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
          "-Wall";
          "-Wno-unused-function";
          "-Wno-unused-variable";
+         "-Wno-unused-but-set-variable";
          "-Werror";
          Var.(!runtime_c_libs);
        ]
@@ -562,10 +575,10 @@ let[@ocamlformat "disable"] static_base_rules =
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
     Nj.rule "ocaml-object"
-      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !input; ">"; !input^"i"; "&&";
-                !ocamlc_exe; "-opaque"; !ocaml_flags; !input^"i"; "&&";
-                !ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
-                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !input]
+      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
+                !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
+                !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
+                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-module"
@@ -590,7 +603,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; "-c"; "-o"; !output]
+        [!cc_exe; !input; !c_flags; !includes; "-c"; "-o"; !output]
       ~description:["<cc>"; "⇒"; !output];
 
     Nj.rule "c-exec"
@@ -636,7 +649,21 @@ let gen_build_statements
     | None -> !Var.builddir / Filename.remove_extension src
     | Some n -> !Var.builddir / Filename.dirname src / n
   in
-  let def_vars = [Nj.binding Var.src [src]; Nj.binding Var.target [target]] in
+  let include_flags =
+    "-I"
+    :: (!Var.builddir / src /../ "")
+    :: List.concat_map
+         (fun d ->
+           ["-I"; (if Filename.is_relative d then !Var.builddir / d else d)])
+         include_dirs
+  in
+  let def_vars =
+    [
+      Nj.binding Var.src [src];
+      Nj.binding Var.target [target];
+      Nj.binding Var.includes include_flags;
+    ]
+  in
   let modules = List.rev item.used_modules in
   let modfile ext modname =
     match List.assoc_opt modname same_dir_modules with
@@ -696,20 +723,7 @@ let gen_build_statements
         ~implicit_in:(!Var.catala_exe :: List.map module_target modules)
         ~outputs:
           (List.map (( ^ ) !Var.target) [".mli"; ".cmi"; ".cmo"; ".cmx"; ".o"])
-        ~vars:
-          [
-            ( Var.ocaml_flags,
-              !Var.ocaml_flags
-              :: "-I"
-              :: (!Var.builddir / src /../ "")
-              :: List.concat_map
-                   (fun d ->
-                     [
-                       "-I";
-                       (if Filename.is_relative d then !Var.builddir / d else d);
-                     ])
-                   include_dirs );
-          ]
+        ~vars:[Var.includes, [!Var.includes]]
     in
     let modexec =
       match item.module_def with
@@ -733,6 +747,7 @@ let gen_build_statements
         :: (!Var.target ^ ".h")
         :: List.map (modfile ".h") modules)
       ~outputs:[!Var.target ^ ".c.o"]
+      ~vars:[Var.includes, [!Var.includes]]
     ::
     (if item.module_def <> None then []
      else
@@ -1162,6 +1177,7 @@ let runtest_cmd =
         (fun opts dir -> "-I" :: dir :: opts)
         catala_opts include_dirs
     in
+    let test_flags = List.filter (( <> ) "") test_flags in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~test_flags ~report ~out file;

@@ -83,7 +83,7 @@ let renaming =
   in
   let cap s = String.to_ascii s |> String.capitalize_ascii in
   let uncap s = String.to_ascii s |> String.uncapitalize_ascii in
-  let upper s = String.to_ascii s |> String.uppercase_ascii in
+  let upper s = String.to_snake_case s |> String.uppercase_ascii in
   Renaming.program ()
     ~reserved:c_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
@@ -481,19 +481,66 @@ let rec format_statement
       (String.to_snake_case (Runtime.error_to_string error))
       (format_expression ctx env)
       pos_expr
-  | SIfThenElse { if_expr = ELit (LBool true), _; then_block; _ } ->
-    format_block ctx env fmt then_block
-  | SIfThenElse { if_expr = ELit (LBool false), _; else_block; _ } ->
-    format_block ctx env fmt else_block
-  | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
+  | SIfThenElse _ ->
+    Format.fprintf fmt "@,@[<hv 2>%a@]" (format_ite ctx env) [s]
+  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
+    if EnumName.equal e_name Expr.option_enum then
+      Format.fprintf fmt "@,@[<hv 2>%a@]" (format_ite ctx env) [s]
+    else
+      let () =
+        Format.fprintf fmt "@,@[<v 2>@[<hov 4>switch (%a->code) {@]"
+          VarName.format switch_var
+      in
+      List.iter2
+        (fun { case_block; payload_var_name; payload_var_typ } (cons_name, _) ->
+          Format.fprintf fmt "@,@[<v 2>case %a: {" EnumConstructor.format
+            cons_name;
+          if
+            (not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)))
+            && not (is_dummy_var payload_var_name)
+          then
+            Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"
+              (format_typ ctx.decl_ctx ~const:true (fun fmt ->
+                   Format.pp_print_space fmt ();
+                   VarName.format fmt payload_var_name))
+              payload_var_typ VarName.format switch_var EnumConstructor.format
+              cons_name;
+          Format.fprintf fmt "%a@ break;@;<1 -2>}@]" (format_block ctx env)
+            case_block)
+        cases
+        (EnumConstructor.Map.bindings
+           (EnumName.Map.find e_name ctx.decl_ctx.ctx_enums));
+      Format.fprintf fmt "@,@[<v 2>default:@,abort();@]";
+      Format.fprintf fmt "@;<0 -2>}";
+      Format.pp_close_box fmt ()
+  | SReturn e1 ->
+    Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx env) e1
+  | SAssert { pos_expr; expr } ->
     Format.fprintf fmt
       "@,\
-       @[<hv 2>@[<hov 2>if (%a == CATALA_TRUE) {@]%a@;\
-       <1 -2>} else {%a@;\
+       @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
+       @[<hov 2>catala_error(catala_assertion_failed,@ %a);@]@;\
        <1 -2>}@]"
       (format_expression ctx env)
-      cond (format_block ctx env) b1 (format_block ctx env) b2
-  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ }
+      expr
+      (format_expression ctx env)
+      pos_expr
+  | _ -> .
+
+and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
+    unit =
+  match b with
+  | [(SIfThenElse { if_expr = ELit (LBool true), _; then_block = b; _ }, _)]
+  | [(SIfThenElse { if_expr = ELit (LBool false), _; else_block = b; _ }, _)] ->
+    format_ite ctx env fmt b
+  | [(SIfThenElse ite, _)] ->
+    Format.fprintf fmt "@[<hov 2>if (%a == CATALA_TRUE) {@]"
+      (format_expression ctx env)
+      ite.if_expr;
+    format_block ctx env fmt ite.then_block;
+    Format.fprintf fmt "@;<1 -2>} else ";
+    format_ite ctx env fmt ite.else_block
+  | [(SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ }, pos)]
     when EnumName.equal e_name Expr.option_enum ->
     let cases =
       List.map2
@@ -511,9 +558,8 @@ let rec format_statement
       | [(some, _)], [(none, _)] -> some, none
       | _ -> assert false
     in
-    Format.fprintf fmt "@,@[<v 2>if (%a->code == catala_option_some) {"
-      VarName.format switch_var;
-    let pos = Mark.get s in
+    Format.fprintf fmt "if (%a->code == catala_option_some) {" VarName.format
+      switch_var;
     format_block ctx env fmt
       (Utils.subst_block some_case.payload_var_name
          (* Not a real catala struct, but will print as <var>->payload *)
@@ -525,47 +571,9 @@ let rec format_statement
              },
            pos )
          some_case.payload_var_typ pos some_case.case_block);
-    Format.fprintf fmt "@;<1 -2>} else {";
-    format_block ctx env fmt none_case.case_block;
-    Format.fprintf fmt "@;<1 -2>}@]"
-  | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
-    Format.fprintf fmt "@,@[<v 2>@[<hov 4>switch (%a->code) {@]" VarName.format
-      switch_var;
-    List.iter2
-      (fun { case_block; payload_var_name; payload_var_typ } (cons_name, _) ->
-        Format.fprintf fmt "@,@[<v 2>case %a: {" EnumConstructor.format
-          cons_name;
-        if
-          (not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)))
-          && not (is_dummy_var payload_var_name)
-        then
-          Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"
-            (format_typ ctx.decl_ctx ~const:true (fun fmt ->
-                 Format.pp_print_space fmt ();
-                 VarName.format fmt payload_var_name))
-            payload_var_typ VarName.format switch_var EnumConstructor.format
-            cons_name;
-        Format.fprintf fmt "%a@ break;@;<1 -2>}@]" (format_block ctx env)
-          case_block)
-      cases
-      (EnumConstructor.Map.bindings
-         (EnumName.Map.find e_name ctx.decl_ctx.ctx_enums));
-    Format.fprintf fmt "@,@[<v 2>default:@,abort();@]";
-    Format.fprintf fmt "@;<0 -2>}";
-    Format.pp_close_box fmt ()
-  | SReturn e1 ->
-    Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx env) e1
-  | SAssert { pos_expr; expr } ->
-    Format.fprintf fmt
-      "@,\
-       @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
-       @[<hov 2>catala_error(catala_assertion_failed,@ %a);@]@;\
-       <1 -2>}@]"
-      (format_expression ctx env)
-      expr
-      (format_expression ctx env)
-      pos_expr
-  | _ -> .
+    Format.fprintf fmt "@;<1 -2>} else ";
+    format_ite ctx env fmt none_case.case_block
+  | _ -> Format.fprintf fmt "{%a@;<1 -2>}" (format_block ctx env) b
 
 and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     unit =
@@ -676,7 +684,7 @@ let format_main (fmt : Format.formatter) (p : Ast.program) =
               scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
               scope_body_var = var;
               scope_body_name = name;
-              scope_body_visibility = Public;
+              scope_body_visibility = _;
             } ->
           let input_struct =
             StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
@@ -759,7 +767,7 @@ let format_program
           let public = visibility = Public in
           ppboth_if public (fun ppf ->
               Format.fprintf ppf "@,@[<v 2>@[<hov 4>%s%a"
-                (if public then "" else "static")
+                (if public then "" else "static ")
                 (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
                      Format.pp_print_space fmt ();
                      VarName.format fmt var))
