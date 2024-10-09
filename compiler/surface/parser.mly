@@ -246,6 +246,16 @@ let naked_expression ==
   AMONG ; coll = expression ; {
   CollectionOp ((Map {f = i, f}, pos), coll)
 } %prec apply
+| pos = pos(FOR) ; acc = mbinder ; INITIALLY ; init = expression ;
+  AND_THEN ; map_expr = expression ;
+{
+  match map_expr with
+  | CollectionOp ((Map { f = i, f }, _), coll), _ ->
+    CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)
+  | _ ->
+    Message.error ~pos:(snd map_expr)
+      "Expected the form '<expr> for <var> among <collection>'"
+} %prec apply
 | maxp = addpos(minmax) ;
   OF ; coll = expression ;
   OR ; IF ; LIST_EMPTY ; THEN ;

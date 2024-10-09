@@ -1,35 +1,74 @@
 ## Article
 
 ```catala
-declaration structure S:
-  data id content integer
-  data income content money
-
 declaration scope A:
-   context output x content list of S
+  output x content list of money
+  output y content list of decimal
 
 scope A:
-   definition x equals [
-      S { -- id: 0 -- income: $0 };
-      S { -- id: 1 -- income: $4 + $5 };
-      S { -- id: 2 -- income: $8 * 0.65 }
-   ]
+   definition x equals [$12; $13.50; $11; $100.1; $50.20]
+   definition y equals [1.0; 2.0; 3.0; 4.0; 5.9]
 
 declaration scope B:
-   a scope A
-   output argmax content S
-   output argmin content S
+  a scope A
+  output count content integer
+  output max content money
+  output min content money
+  output total content money
+  output reverse content list of money
+  output ratios1 content (list of money, money)
+  output ratios2 content money
+  output ratios3 content (list of money, money)
+  output sorted content list of money
+
+declaration insert content list of money
+  depends on element content money,
+             lst content list of money
+  equals
+  let (lower, higher) equals
+    for (lower, higher) initially ([], []) and then
+      (if x <= element then (lower ++ [x], higher) else (lower, higher ++ [x]))
+      for x among lst
+  in
+  lower ++ [element] ++ higher
 
 scope B:
-   definition argmax equals
-     (content of m among a.x such that m.income * 2.0 is maximum
-      or if list empty then S { -- id: -1 --income: $0 })
-   definition argmin equals
-     (content of m among a.x such that m.income + $5 is minimum
-      or if list empty then S { -- id: -1 --income: $20 })
+  definition count equals
+    for acc initially 0 and then
+      (acc + 1) for x among a.x
+
+  definition max equals
+    for acc initially - $1000 and then
+      (if x > acc then x else acc) for x among a.x
+
+  definition min equals
+    for acc initially $1000 and then
+      (if x < acc then x else acc) for x among a.x
+
+  definition total equals
+    for acc initially $0 and then
+      (x + acc) for x among a.x
+
+  definition reverse equals
+    for acc initially [] and then
+      ([x] ++ acc) for x among a.x
+
+  definition ratios1 equals
+    for (acc1, acc2) initially ([], $1) and then
+      (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+
+  definition ratios2 equals
+    for acc initially $1 and then
+      (acc + x * y) for (x, y) among (a.x, a.y)
+
+  definition ratios3 equals
+    for (acc1, acc2) initially ([], $1) and then
+      (acc1 ++ [x * y], acc2 * y) for (x, y) among (a.x, a.y)
+
+  definition sorted equals
+    for sorted initially [] and then
+      (insert of (x, sorted)) for x among a.x
 ```
-
-
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
@@ -44,18 +83,22 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala test-scope A
 ┌─[RESULT]─
-│ x =
-│   [
-│     S { -- id: 0 -- income: $0.00 }; S { -- id: 1 -- income: $9.00 };
-│     S { -- id: 2 -- income: $5.20 }
-│   ]
+│ x = [$12.00; $13.50; $11.00; $100.10; $50.20]
+│ y = [1.0; 2.0; 3.0; 4.0; 5.9]
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope B
 ┌─[RESULT]─
-│ argmax = S { -- id: 1 -- income: $9.00 }
-│ argmin = S { -- id: 0 -- income: $0.00 }
+│ count = 5
+│ max = $100.10
+│ min = $11.00
+│ ratios1 = ([$13.00; $26.50; $37.50; $137.60; $187.80], $187.80)
+│ ratios2 = $769.58
+│ ratios3 = ([$12.00; $27.00; $33.00; $400.40; $296.18], $141.60)
+│ reverse = [$50.20; $100.10; $11.00; $13.50; $12.00]
+│ sorted = [$11.00; $12.00; $13.50; $50.20; $100.10]
+│ total = $186.80
 └─
 ```

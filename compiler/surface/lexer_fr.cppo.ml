@@ -105,6 +105,8 @@
 #define MR_LIST_EMPTY "liste", space_plus, "vide"
 #define MS_BUT_REPLACE "mais en rempla\195\167ant"
 #define MR_BUT_REPLACE "mais", space_plus, "en", space_plus, "rempla", 0xE7, "ant"
+#define MS_INITIALLY "initialement"
+#define MS_AND_THEN "puis"
 #define MS_CARDINAL "nombre"
 #define MS_YEAR "an"
 #define MS_MONTH "mois"
