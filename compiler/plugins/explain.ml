@@ -26,6 +26,7 @@ type flags = {
   output : Global.raw_file option;
   base_src_url : string;
   line_format : string;
+  inline_module_usages : bool;
 }
 
 (* -- Definition of the lazy interpreter -- *)
@@ -1487,6 +1488,13 @@ let options =
              of characters 'NN' will be expanded using the actual positions. \
              The default value '#LNN' matches github-like positions")
   in
+  let inline_module_usages =
+    Arg.(
+      value
+      & flag
+      & info ["inline-mod-uses"]
+          ~doc:"Attempts to inline existing module usages using a heuristic.")
+  in
   let f
       with_conditions
       no_cleanup
@@ -1495,7 +1503,8 @@ let options =
       show
       output
       base_src_url
-      line_format =
+      line_format
+      inline_module_usages =
     {
       with_conditions;
       with_cleanup = not no_cleanup;
@@ -1505,6 +1514,7 @@ let options =
       output;
       base_src_url;
       line_format;
+      inline_module_usages;
     }
   in
   Term.(
@@ -1516,7 +1526,8 @@ let options =
     $ show
     $ Cli.Flags.output
     $ base_src_url
-    $ line_format)
+    $ line_format
+    $ inline_module_usages)
 
 let inline_used_modules global_options =
   let prg =
@@ -1604,7 +1615,10 @@ let run
     ex_scope
     explain_options
     global_options =
-  let () = inline_used_modules global_options in
+  let () =
+    if explain_options.inline_module_usages then
+      inline_used_modules global_options
+  in
   let prg, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false ~autotest:false ~typed:Expr.typed
