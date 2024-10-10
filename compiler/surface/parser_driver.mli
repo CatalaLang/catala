@@ -32,6 +32,12 @@ val load_interface :
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
+val register_included_file_resolver :
+  filename:string -> new_content:string Global.input_src -> unit
+(** Register an included file dynamic resolver. When the surface's parser
+    encounters an inclusion that correspond to the [filename] argument, it will
+    dynamically replace it with the given [new_content]. *)
+
 val parse_top_level_file :
   ?resolve_included_file:(string -> string Global.input_src) ->
   File.t Global.input_src ->
@@ -39,4 +45,5 @@ val parse_top_level_file :
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
     fill them. When provided [resolve_included_file] replaces file includes with
-    an user provided input source. *)
+    an user provided input source. However, it will shadow any existing dynamic
+    resolver registered using [register_included_file_resolver]. *)
