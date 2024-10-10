@@ -685,7 +685,8 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
               in
               let func_id = A.FuncName.fresh (func_name, pos) in
               (* The list is being built in reverse order *)
-              (* FIXME: find a better way than a function with no parameters... *)
+              (* Note: this pattern is matched in the C backend to make
+                 allocations permanent. *)
               ( A.SVar
                   {
                     var = var_id;

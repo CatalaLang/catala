@@ -319,6 +319,13 @@ const CATALA_OPTION() handle_exceptions
 
 /* --- Runtime initialisation --- */
 
+void catala_set_persistent_malloc();
+void catala_unset_persistent_malloc();
+/* These two functions can be used for switching an init section to persistent
+   malloc, then switching back to catala built-in malloc. In other words, any
+   calls to `catala_malloc` done between the two will not be affected by
+   `catala_free_all()`. */
+
 void catala_init();
 /* This must be called once and before any use of the functions above: it
    performs necessary initialisations of GMP, as well as the setup for our error
