@@ -26,6 +26,8 @@
 #include <dates_calc.h>
 #include "runtime.h"
 
+int catala_persistent_malloc_mode_on = 0;
+
 /* --- Error handling --- */
 
 const catala_code_position catala_empty_position =
@@ -41,6 +43,7 @@ void catala_error(catala_error_code code,
 {
   catala_error_raised.code = code;
   catala_error_raised.position = *pos;
+  catala_persistent_malloc_mode_on = 0;
   longjmp(catala_error_jump_buffer, 1);
 }
 
@@ -71,7 +74,9 @@ void* catala_malloc (size_t sz)
 {
   void* ptr = catala_heap.curptr;
   void* nextptr = ptr + sz;
-  if (nextptr < catala_heap.end) {
+  if (catala_persistent_malloc_mode_on) {
+    return malloc(sz);
+  } else if (nextptr < catala_heap.end) {
     catala_heap.curptr = nextptr;
     return ptr;
   } else {
@@ -100,7 +105,9 @@ void catala_free_all()
 
 void* catala_realloc(void* oldptr, size_t oldsize, size_t newsize)
 {
-  if (newsize <= oldsize) {
+  if (catala_persistent_malloc_mode_on) {
+    return realloc(oldptr, newsize);
+  } else if (newsize <= oldsize) {
     memset(oldptr + newsize, 0, oldsize - newsize);
     return oldptr;
   } else {
@@ -116,6 +123,14 @@ void catala_free(void* ptr, size_t sz)
   return;
 }
 #pragma GCC diagnostic pop
+
+void catala_set_persistent_malloc() {
+  catala_persistent_malloc_mode_on++;
+}
+void catala_unset_persistent_malloc() {
+  assert (catala_persistent_malloc_mode_on > 0);
+  catala_persistent_malloc_mode_on--;
+}
 
 /* --- Base types --- */
 

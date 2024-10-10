@@ -60,6 +60,14 @@ void* catala_malloc (size_t sz);
 
 void catala_free_all();
 
+void catala_set_persistent_malloc();
+void catala_unset_persistent_malloc();
+/* These two functions can be used for switching an init section to persistent
+   malloc, then switching back to catala built-in malloc. In other words, any
+   calls to `catala_malloc` done between the two will not be affected by
+   `catala_free_all()`. Calls can be nested, but errors reset the context. */
+#define CATALA_GET_LAZY(X, X_INIT) (X ? X : (catala_set_persistent_malloc(), X = X_INIT, catala_unset_persistent_malloc(), X))
+
 /* --- Base types --- */
 
 #define CATALA_BOOL const int*
