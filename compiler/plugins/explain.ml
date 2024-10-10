@@ -1495,7 +1495,93 @@ let options =
     $ Cli.Flags.output
     $ base_src_url)
 
-let run includes optimize ex_scope explain_options global_options =
+let inline_used_modules global_options =
+  let prg =
+    Surface.Parser_driver.parse_top_level_file global_options.Global.input_src
+  in
+  let used_modules =
+    prg.Surface.Ast.program_used_modules
+    |> List.map (fun { Surface.Ast.mod_use_name; mod_use_alias; _ } ->
+           Mark.remove mod_use_name, Mark.remove mod_use_alias)
+  in
+  if used_modules = [] then ()
+  else
+    let find_module_file_in_input_directory mod_name =
+      let dir =
+        match global_options.Global.input_src with
+        | FileName f -> Filename.dirname f
+        | _ -> Sys.getcwd ()
+      in
+      let en_candidate = String.uncapitalize_ascii mod_name ^ ".catala_en" in
+      let fr_candidate = String.uncapitalize_ascii mod_name ^ ".catala_fr" in
+      Sys.readdir dir
+      |> Array.map (Filename.concat dir)
+      |> Array.find_map (fun path ->
+             let file = Filename.basename path in
+             if file = en_candidate then Some path
+             else if file = fr_candidate then Some path
+             else None)
+    in
+    let raw_prg, file =
+      match global_options.input_src with
+      | FileName s ->
+        ( Catala_utils.File.(contents (check_file s |> Option.value ~default:"")),
+          s )
+      | Contents (s, fname) -> s, fname
+      | Stdin _ -> Message.error "Cannot inline module usage from stdin"
+    in
+    let raw_prg =
+      (* let's assume it's in english *)
+      String.split_on_char '\n' raw_prg
+    in
+    let contents =
+      List.fold_left
+        (fun raw_prg (used_module, used_module_alias) ->
+          let mod_file_opt = find_module_file_in_input_directory used_module in
+          match mod_file_opt with
+          | None ->
+            Message.error
+              "Cannot find corresponding file for module '%s' required for \
+               module inlining"
+              used_module
+          | Some mod_file ->
+            let new_content =
+              let s =
+                Re.(
+                  replace_string
+                    (compile (str "> Module"))
+                    ~by:"< Module" (File.contents mod_file))
+              in
+              Global.Contents (s, mod_file)
+            in
+            Surface.Parser_driver.register_included_file_resolver
+              ~filename:mod_file ~new_content;
+            List.map
+              (fun s ->
+                let open Re in
+                let using_mod_re =
+                  compile (str (Format.sprintf "> Using %s" used_module))
+                in
+                if matches using_mod_re s <> [] then
+                  Format.sprintf "> Include: %s" (Filename.basename mod_file)
+                else
+                  replace_string
+                    (compile (str (used_module_alias ^ ".")))
+                    ~by:"" ~all:true s)
+              raw_prg)
+        raw_prg used_modules
+    in
+    let contents = String.concat "\n" contents in
+    Global.enforce_options ~input_src:(Global.Contents (contents, file)) ()
+    |> ignore
+
+let run
+    (includes : Global.raw_file list)
+    optimize
+    ex_scope
+    explain_options
+    global_options =
+  let () = inline_used_modules global_options in
   let prg, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false ~autotest:false ~typed:Expr.typed
