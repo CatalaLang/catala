@@ -25,6 +25,7 @@ type flags = {
   show : string option;
   output : Global.raw_file option;
   base_src_url : string;
+  line_format : string;
 }
 
 (* -- Definition of the lazy interpreter -- *)
@@ -1287,7 +1288,7 @@ let rec expr_to_dot_label lang ctx env ppf e =
     Format.pp_print_string ppf (Message.unformat pr)
   | e -> Format.fprintf ppf "%a@," (expr_to_dot_label0 lang ctx env) e
 
-let to_dot lang ppf ctx env base_vars g ~base_src_url =
+let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
   let module GPr = Graph.Graphviz.Dot (struct
     include G
 
@@ -1328,6 +1329,14 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           ~by:"&#10;"
           (String.concat "\n» " (List.rev (Pos.get_law_info pos)) ^ "\n")
       in
+      let url = base_src_url ^ "/" ^ Pos.get_file pos in
+      let line_suffix =
+        Re.(
+          replace_string ~all:true
+            (compile (str "NN"))
+            ~by:(string_of_int (Pos.get_start_line pos))
+            line_format)
+      in
       `HtmlLabel (vertex_label v (* ^ "\n" ^ loc_text *))
       :: `Comment loc_text
          (* :: `Url
@@ -1339,12 +1348,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           *            ~by:"/" (Pos.get_file pos))
           *      ^ "-"
           *      ^ string_of_int (Pos.get_start_line pos)) *)
-      :: `Url
-           (base_src_url
-           ^ "/"
-           ^ Pos.get_file pos
-           ^ "#L"
-           ^ string_of_int (Pos.get_start_line pos))
+      :: `Url (url ^ line_suffix)
       :: `Fontname "sans"
       ::
       (match G.V.label v with
@@ -1471,10 +1475,27 @@ let options =
       & info ["url-base"] ~docv:"URL"
           ~doc:
             "Base URL that can be used to browse the Catala code. Nodes will \
-             link to $(i,URL)/relative/filename.catala_xx#LNN where NN is the \
-             line number in the file")
+             link to $(i,URL)/relative/filename.catala_xx")
   in
-  let f with_conditions no_cleanup merge_level format show output base_src_url =
+  let line_format =
+    Arg.(
+      value
+      & opt string "#LNN"
+      & info ["line-format"] ~docv:"FORMAT"
+          ~doc:
+            "Format used to encode line position in URL's suffix. The sequence \
+             of characters 'NN' will be expanded using the actual positions. \
+             The default value '#LNN' matches github-like positions")
+  in
+  let f
+      with_conditions
+      no_cleanup
+      merge_level
+      format
+      show
+      output
+      base_src_url
+      line_format =
     {
       with_conditions;
       with_cleanup = not no_cleanup;
@@ -1483,6 +1504,7 @@ let options =
       show;
       output;
       base_src_url;
+      line_format;
     }
   in
   Term.(
@@ -1493,7 +1515,8 @@ let options =
     $ format
     $ show
     $ Cli.Flags.output
-    $ base_src_url)
+    $ base_src_url
+    $ line_format)
 
 let inline_used_modules global_options =
   let prg =
@@ -1604,7 +1627,8 @@ let run
   in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
-      ~base_src_url:explain_options.base_src_url;
+      ~base_src_url:explain_options.base_src_url
+      ~line_format:explain_options.line_format;
     Format.flush_str_formatter ()
     |> Re.(replace_string (compile (seq [bow; str "comment="])) ~by:"tooltip=")
   in
