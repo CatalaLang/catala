@@ -1233,6 +1233,11 @@ let htmlencode =
       | "@" -> "&commat;"
       | _ -> assert false)
 
+let scale_svg_width s =
+  let open Re in
+  let re = Pcre.re "<svg width=\"[^\"]*pt\"" in
+  replace_string (compile re) ~by:"<svg width=\"100%\"" s
+
 let expr_to_dot_label0 lang ctx env ppf e =
   Format.fprintf ppf "%s"
     (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
@@ -1667,13 +1672,14 @@ let run
     in
     let wrap_html, fmt = if fmt = "html" then true, "svg" else false, fmt in
     with_out (fun oc ->
-        if wrap_html then
-          (output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
-           output_string oc (htmlencode ex_scope);
-           output_string oc "</title>\n</head>\n<body>\n");
-        output_string oc (File.process_out "dot" ["-T" ^ fmt; dotfile]);
-        if wrap_html then
-          output_string oc "</body>\n</html>\n")
+        if wrap_html then (
+          output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
+          output_string oc (htmlencode ex_scope);
+          output_string oc "</title>\n</head>\n<body>\n");
+        let contents = File.process_out "dot" ["-T" ^ fmt; dotfile] in
+        output_string oc
+          (if wrap_html then scale_svg_width contents else contents);
+        if wrap_html then output_string oc "</body>\n</html>\n")
   | `Dot -> ());
   match explain_options.show with
   | None -> ()
