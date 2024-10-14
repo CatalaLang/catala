@@ -574,7 +574,7 @@ end
 
 module E = struct
   type hand_side = Lhs of string | Rhs of string
-  type t = { side : hand_side option; condition : bool }
+  type t = { side : hand_side option; condition : bool; invisible : bool }
 
   let compare x y =
     match Bool.compare x.condition y.condition with
@@ -588,7 +588,7 @@ module E = struct
         x.side y.side
     | n -> n
 
-  let default = { side = None; condition = false }
+  let default = { side = None; condition = false; invisible = false }
 end
 
 module G = Graph.Persistent.Digraph.AbstractLabeled (V) (E)
@@ -760,7 +760,7 @@ let program_to_graph
                 aux (Some parent) (g, var_vertices, env) econd
               in
               ( G.add_edge_e g
-                  (G.E.create parent { side = None; condition = true } vcond),
+                  (G.E.create parent { side = None; condition = true; invisible = false } vcond),
                 var_vertices,
                 Env.join env0 env ))
             (g, var_vertices, env0) conditions
@@ -842,11 +842,11 @@ let program_to_graph
       in
       let g =
         G.add_edge_e g
-          (G.E.create v { side = lhs_label; condition = false } lhs)
+          (G.E.create v { side = lhs_label; condition = false; invisible = false; } lhs)
       in
       let g =
         G.add_edge_e g
-          (G.E.create v { side = rhs_label; condition = false } rhs)
+          (G.E.create v { side = rhs_label; condition = false; invisible = false;  } rhs)
       in
       (g, var_vertices, env), v
     | EAppOp { op = _; args; _ }, _ ->
@@ -1540,12 +1540,29 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
 
     let edge_attributes e =
       match E.label e with
+      | { invisible = true; _ } -> [`Style `Invis; `Weight 5]
       | { condition = true; _ } ->
-        [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot]
+        [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot; `Weight 5]
       | { side = Some (Lhs s | Rhs s); _ } ->
-        [`Color 0x606060  (* `Label s; `Color 0xbb7700 *) ]
-      | { side = None; _ } -> [`Color 0x606060 (* `Minlen 0; `Weight 10 *) ]
+        [`Color 0x606060  (* `Label s; `Color 0xbb7700 *); `Weight 10 ]
+      | { side = None; _ } -> [`Color 0x606060 (* `Minlen 0; `Weight 10 *); `Weight 10 ]
   end) in
+  let g =
+    (* Add fake edges from everything towards the inputs to force ordering *)
+    G.fold_vertex (fun v g ->
+        match G.V.label v with
+        | EVar var, _ when Var.Set.mem var base_vars ->
+          G.fold_vertex (fun v0 g ->
+              if G.out_degree g v0 > 0 then g else
+              match G.V.label v0 with
+              | EVar var, _ when Var.Set.mem var base_vars -> g
+              | _ -> G.add_edge_e g
+                       (G.E.create v0 { invisible = true; condition = false; side = None } v))
+            g g
+        | _ -> g
+      )
+      g g
+  in
   GPr.fprint_graph ppf (reverse_graph g)
 
 (* -- Plugin registration -- *)
