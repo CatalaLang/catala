@@ -1,0 +1,58 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content list of money
+  output y content list of decimal
+
+scope A:
+   definition x equals [$12; $13.50; $11; $100.1; $50.20]
+   definition y equals [1.0; 2.0; 3.0; 4.0; 5.9]
+
+declaration scope B:
+  a scope A
+  output reverse content list of money
+  output ratios1 content (list of money, money)
+
+scope B:
+  definition reverse equals
+    # Only this case was changed compared to `fold.catala_en`
+    for acc initially [$0] and then
+      (x ++ acc) for x among a.x
+    #  ^ Error should be here (money, while expected list because of `++`)
+
+  definition ratios1 equals
+    for (acc1, acc2) initially ([], $1) and then
+      (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+```
+
+The positions in this error message are completely wrong and misleading.
+Investigation needed...
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+┌─[ERROR]─
+│
+│  I don't know how to apply operator + on types list of money and money
+│
+├─➤ tests/array/good/broken-message.catala_en:26.17-26.25:
+│    │
+│ 26 │       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+│    │                 ‾‾‾‾‾‾‾‾
+├─ Article
+│
+│ Type list of money coming from expression:
+├─➤ tests/array/good/broken-message.catala_en:21.10-21.12:
+│    │
+│ 21 │       (x ++ acc) for x among a.x
+│    │          ‾‾
+├─ Article
+│
+│ Type money coming from expression:
+├─➤ tests/array/good/broken-message.catala_en:25.37-25.39:
+│    │
+│ 25 │     for (acc1, acc2) initially ([], $1) and then
+│    │                                     ‾‾
+└─ Article
+#return code 123#
+```

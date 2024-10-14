@@ -209,6 +209,12 @@ module R = Re.Pcre
 #ifndef MR_BUT_REPLACE
   #define MR_BUT_REPLACE MS_BUT_REPLACE
 #endif
+#ifndef MR_INITIALLY
+  #define MR_INITIALLY MS_INITIALLY
+#endif
+#ifndef MR_AND_THEN
+  #define MR_AND_THEN MS_AND_THEN
+#endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
 #endif
@@ -320,6 +326,8 @@ let token_list : (string * token) list =
     (MS_IS, IS);
     (MS_LIST_EMPTY, LIST_EMPTY);
     (MS_BUT_REPLACE, BUT_REPLACE);
+    (MS_INITIALLY, INITIALLY);
+    (MS_AND_THEN, AND_THEN);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -577,6 +585,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_BUT_REPLACE ->
       L.update_acc lexbuf;
       BUT_REPLACE
+  | MR_INITIALLY ->
+      L.update_acc lexbuf;
+      INITIALLY
+  | MR_AND_THEN ->
+      L.update_acc lexbuf;
+      AND_THEN
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL

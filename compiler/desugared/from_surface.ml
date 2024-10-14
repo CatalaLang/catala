@@ -785,6 +785,71 @@ let rec translate_expr
         | _ -> assert false)
       ~tys:[TAny, pos; TAny, pos]
       ~args:[f_pred; collection] emark
+  | CollectionOp ((Fold { f; init }, opos), collection) ->
+    let acc_names, param_names, fct = f in
+    let collection =
+      detuplify_list opos (List.map Mark.remove param_names) collection
+    in
+    let accs = List.map (fun n -> Var.make (Mark.remove n)) acc_names in
+    let params = List.map (fun n -> Var.make (Mark.remove n)) param_names in
+    let init = rec_helper ~local_vars init in
+    let local_vars =
+      List.fold_left2
+        (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+        local_vars param_names params
+    in
+    let local_vars =
+      List.fold_left2
+        (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+        local_vars acc_names accs
+    in
+    let f_proc =
+      Expr.make_abs
+        (Array.of_list (accs @ params))
+        (rec_helper ~local_vars fct)
+        (List.map (fun _ -> TAny, pos) (accs @ params))
+        pos
+    in
+    let f_proc =
+      (* Detuplification for both acc and list elements *)
+      match List.length acc_names, List.length param_names with
+      | 1, 1 -> f_proc
+      | nb_accs, nb_args ->
+        let v_acc =
+          match accs with
+          | [v] -> v
+          | _ -> Var.make (String.concat "_" (List.map Mark.remove acc_names))
+        in
+        let v_param =
+          match params with
+          | [v] -> v
+          | _ -> Var.make (String.concat "_" (List.map Mark.remove param_names))
+        in
+        let x_acc = Expr.evar v_acc emark in
+        let x_param = Expr.evar v_param emark in
+        let tys = List.init (nb_accs + nb_args) (fun _ -> TAny, pos) in
+        Expr.make_abs [| v_acc; v_param |]
+          (Expr.make_app f_proc
+             ((if nb_accs = 1 then [x_acc]
+               else
+                 List.mapi
+                   (fun index _ ->
+                     Expr.etupleaccess ~e:x_acc ~index ~size:nb_accs emark)
+                   accs)
+             @
+             if nb_args = 1 then [x_param]
+             else
+               List.mapi
+                 (fun index _ ->
+                   Expr.etupleaccess ~e:x_param ~index ~size:nb_args emark)
+                 params)
+             tys pos)
+          [TAny, pos; TAny, pos]
+          pos
+    in
+    Expr.eappop ~op:(Fold, opos)
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[f_proc; init; collection] emark
   | CollectionOp
       ( ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
           opos ),

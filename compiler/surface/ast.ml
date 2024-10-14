@@ -160,6 +160,10 @@ and collection_op =
       default : expression;
       f : lident Mark.pos list * expression;
     }
+  | Fold of {
+      f : lident Mark.pos list * lident Mark.pos list * expression;
+      init : expression;
+    }
 
 and explicit_match_case = {
   match_case_pattern : match_case_pattern Mark.pos;
