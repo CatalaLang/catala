@@ -739,7 +739,7 @@ let program_to_graph
       value_level with
       eval_struct = false;
       eval_op = false;
-      eval_match = false;
+      eval_match = true;
       eval_vars = (fun v -> false);
     }
   in
