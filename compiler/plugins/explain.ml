@@ -1283,6 +1283,53 @@ let expr_to_dot_label0 lang ctx env ppf e =
   Format.fprintf ppf "%s"
     (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
 
+module Style = struct
+  type color = Graph.Graphviz.color
+  type t = {
+    fill: color;
+    border: color;
+    stroke: int; (* in px *)
+    text: color;
+  }
+
+  let input = {
+    fill = 0x252526;
+    border = 0xBC3FBC;
+    stroke = 2;
+    text = 0xFFFFFF;
+  }
+  let middle = {
+    fill = 0x252526;
+    border = 0x0097FB;
+    stroke = 2;
+    text = 0xFFFFFF;
+  }
+  let constant = {
+    fill = 0x252526;
+    border = 0x40C8AE;
+    stroke = 2;
+    text = 0xFFFFFF;
+  }
+  let condition = {
+    fill = 0x252526;
+    border = 0xff7700;
+    stroke = 2;
+    text = 0xFFFFFF;
+  }
+  let output = {
+    fill = 0x252526;
+    border = 0xFFFFFF;
+    stroke = 2;
+    text = 0xFFFFFF;
+  }
+
+  let width pixels =
+    let dpi = 96. in
+    let pt_per_inch = 72.28 in
+    float_of_int pixels /. dpi *. pt_per_inch
+end
+
+
 let rec expr_to_dot_label lang ctx env ppf e =
   let print_expr ppf = function
     | (EVar _, _) as e ->
@@ -1317,8 +1364,11 @@ let rec expr_to_dot_label lang ctx env ppf e =
   | EStruct { name; fields }, _ ->
     let pr ppf =
       Format.fprintf ppf
-        "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr><td \
+        "<table border=\"%f\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"#%06x\" color=\"#%06x\"><tr><td \
          colspan=\"2\">%a</td></tr><tr><td>%a</td><td>%a</td></tr></table>"
+        (float_of_int Style.output.stroke)
+        Style.output.fill
+        Style.output.border
         StructName.format name
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
@@ -1365,7 +1415,12 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
     (* ; * Format.pp_print_flush ppf (); * Format.pp_set_formatter_out_functions
        ppf out_funs *)
 
-    let graph_attributes _ = [ (* `Rankdir `LeftToRight *) ]
+    let graph_attributes _ = [
+      `BgcolorWithTransparency (Int32.of_int 0x00);
+      (* `Ratio (`Float 0.8); *)
+      (* `Concentrate true; *)
+      (* `Size (8.3, 11.7); (\* A4 in inches..... *\) *)
+ (* `Rankdir `LeftToRight *) ]
     let default_vertex_attributes _ = []
 
     let vertex_label v =
@@ -1417,43 +1472,69 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
       (match G.V.label v with
       | EVar var, _ ->
         if Var.Set.mem var base_vars then
-          [`Style `Filled; `Fillcolor 0xffaa55; `Shape `Box]
+          [`Style `Filled;
+           `Fillcolor Style.input.fill;
+           `Shape `Box;
+           `Penwidth Style.(width input.stroke);
+           `Color Style.input.border;
+           `Fontcolor Style.input.text]
         else if
           List.exists (fun e -> not (G.E.label e).condition) (G.succ_e g v)
         then
           (* non-constants *)
-          [`Style `Filled; `Fillcolor 0xffee99; `Shape `Box]
+          [`Style `Filled;
+           `Fillcolor Style.middle.fill;
+           `Shape `Box;
+           `Penwidth Style.(width middle.stroke);
+           `Color Style.middle.border;
+           `Fontcolor Style.middle.text]
         else (* Constants *)
-          [`Style `Filled; `Fillcolor 0x99bbff; `Shape `Note]
+          [`Style `Filled;
+           `Fillcolor Style.constant.fill;
+           `Shape `Box;
+           `Penwidth Style.(width middle.stroke);
+           `Color Style.constant.border;
+           `Fontcolor Style.constant.text]
       | EAppOp { op = Op.Eq, _; args = [(EVar _, _); (EAppOp _, _)]; _ }, _ ->
-        [`Style `Filled; `Fillcolor 0xffee99; `Shape `Box]
-      | EStruct _, _ | EArray _, _ -> [`Shape `Plaintext]
+          [`Style `Filled;
+           `Fillcolor Style.middle.fill;
+           `Shape `Box;
+           `Penwidth Style.(width middle.stroke);
+           `Color Style.middle.border;
+           `Fontcolor Style.middle.text]
+      | EStruct _, _ | EArray _, _ ->
+          [`Style `Solid;
+           (* `Fillcolor Style.output.fill; *)
+           `Shape `Plaintext;
+           `Penwidth Style.(width output.stroke);
+           `Color Style.output.border;
+           `Fontcolor Style.output.text]
       (* | EAppOp { op = op, _; _ }, _ -> (
        *     match op_kind op with
-       *     | `Sum | `Product | _ -> [`Shape `Box; `Fillcolor 0xff0000] (\* | _ -> [] *\)) *)
-      | _ -> [`Shape `Box; `Penwidth 2.; `Style `Dashed; `Color 0xff7700])
+       *     | `Sum | `Product | _ -> [`Shape `Box; `Fillcolor 0xff0000] (* | _ -> [] *)) *)
+      | _ ->
+          [`Style `Dashed; `Style `Filled;
+           `Fillcolor Style.condition.fill;
+           `Shape `Box;
+           `Penwidth Style.(width condition.stroke);
+           `Color Style.condition.border;
+           `Fontcolor Style.condition.text])
 
     let get_subgraph v =
-      match G.V.label v with
-      | EVar var, _ -> (
-        if Var.Set.mem var base_vars then
-          Some
-            {
-              Graph.Graphviz.DotAttributes.sg_name = "cluster_inputs";
-              sg_attributes = [];
-              sg_parent = None;
-            }
-        else
-          match List.map G.V.label (G.succ g v) with
-          (* | [] | [ELit _, _] ->
-           *   Some
-           *     {
-           *       Graph.Graphviz.DotAttributes.sg_name = "constants";
-           *       sg_attributes = [`Shape `Box];
-           *       sg_parent = None;
-           *     } *)
-          | _ -> None)
-      | _ -> None
+      let is_input =
+        match G.V.label v with
+        | EVar var, _ -> Var.Set.mem var base_vars
+        | _ -> false
+      in
+      if is_input then
+        Some
+          {
+            Graph.Graphviz.DotAttributes.sg_name = "inputs";
+            sg_attributes = [`Style `Filled; `FillcolorWithTransparency (Int32.of_int 0x0)];
+            sg_parent = None;
+          }
+      else
+        None
 
     let default_edge_attributes _ = []
 
@@ -1462,8 +1543,8 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
       | { condition = true; _ } ->
         [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot]
       | { side = Some (Lhs s | Rhs s); _ } ->
-        [ (* `Label s; `Color 0xbb7700 *) ]
-      | { side = None; _ } -> [ (* `Minlen 0; `Weight 10 *) ]
+        [`Color 0x606060  (* `Label s; `Color 0xbb7700 *) ]
+      | { side = None; _ } -> [`Color 0x606060 (* `Minlen 0; `Weight 10 *) ]
   end) in
   GPr.fprint_graph ppf (reverse_graph g)
 
