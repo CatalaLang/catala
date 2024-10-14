@@ -1224,10 +1224,19 @@ let expr_to_dot_label0 :
 
       let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
        fun ppf e ->
+        let percent_printer ppf = function
+          | ELit (LRat r), m when Runtime.(o_lt_rat_rat r (Runtime.decimal_of_float 1.)) ->
+            Format.fprintf ppf "%a%%" aux_value
+              (ELit (LRat (Runtime.o_mult_rat_rat r (Runtime.decimal_of_float 100.))), m)
+          | e -> aux_value ppf e
+        in
         match Mark.remove e with
         | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
         | EExternal _ ->
           aux_value ppf e;
+          true
+        | EAppOp { op = (Op.Mult_rat_rat | Op.Mult_mon_rat), _; args = [ x1; x2 ]; _ } ->
+          Format.fprintf ppf "%a × %a" percent_printer x1 percent_printer x2;
           true
         | EMatch { e; cases; _ } ->
           let cases =
