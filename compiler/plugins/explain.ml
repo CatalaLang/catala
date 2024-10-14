@@ -25,6 +25,8 @@ type flags = {
   show : string option;
   output : Global.raw_file option;
   base_src_url : string;
+  line_format : string;
+  inline_module_usages : bool;
 }
 
 (* -- Definition of the lazy interpreter -- *)
@@ -1231,6 +1233,11 @@ let htmlencode =
       | "@" -> "&commat;"
       | _ -> assert false)
 
+let scale_svg_width s =
+  let open Re in
+  let re = Pcre.re "<svg width=\"[^\"]*pt\"" in
+  replace_string (compile re) ~by:"<svg width=\"100%\"" s
+
 let expr_to_dot_label0 lang ctx env ppf e =
   Format.fprintf ppf "%s"
     (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
@@ -1287,7 +1294,7 @@ let rec expr_to_dot_label lang ctx env ppf e =
     Format.pp_print_string ppf (Message.unformat pr)
   | e -> Format.fprintf ppf "%a@," (expr_to_dot_label0 lang ctx env) e
 
-let to_dot lang ppf ctx env base_vars g ~base_src_url =
+let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
   let module GPr = Graph.Graphviz.Dot (struct
     include G
 
@@ -1328,6 +1335,14 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           ~by:"&#10;"
           (String.concat "\n» " (List.rev (Pos.get_law_info pos)) ^ "\n")
       in
+      let url = base_src_url ^ "/" ^ Pos.get_file pos in
+      let line_suffix =
+        Re.(
+          replace_string ~all:true
+            (compile (str "NN"))
+            ~by:(string_of_int (Pos.get_start_line pos))
+            line_format)
+      in
       `HtmlLabel (vertex_label v (* ^ "\n" ^ loc_text *))
       :: `Comment loc_text
          (* :: `Url
@@ -1339,12 +1354,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
           *            ~by:"/" (Pos.get_file pos))
           *      ^ "-"
           *      ^ string_of_int (Pos.get_start_line pos)) *)
-      :: `Url
-           (base_src_url
-           ^ "/"
-           ^ Pos.get_file pos
-           ^ "#L"
-           ^ string_of_int (Pos.get_start_line pos))
+      :: `Url (url ^ line_suffix)
       :: `Fontname "sans"
       ::
       (match G.V.label v with
@@ -1471,10 +1481,35 @@ let options =
       & info ["url-base"] ~docv:"URL"
           ~doc:
             "Base URL that can be used to browse the Catala code. Nodes will \
-             link to $(i,URL)/relative/filename.catala_xx#LNN where NN is the \
-             line number in the file")
+             link to $(i,URL)/relative/filename.catala_xx")
   in
-  let f with_conditions no_cleanup merge_level format show output base_src_url =
+  let line_format =
+    Arg.(
+      value
+      & opt string "#LNN"
+      & info ["line-format"] ~docv:"FORMAT"
+          ~doc:
+            "Format used to encode line position in URL's suffix. The sequence \
+             of characters 'NN' will be expanded using the actual positions. \
+             The default value '#LNN' matches github-like positions")
+  in
+  let inline_module_usages =
+    Arg.(
+      value
+      & flag
+      & info ["inline-mod-uses"]
+          ~doc:"Attempts to inline existing module usages using a heuristic.")
+  in
+  let f
+      with_conditions
+      no_cleanup
+      merge_level
+      format
+      show
+      output
+      base_src_url
+      line_format
+      inline_module_usages =
     {
       with_conditions;
       with_cleanup = not no_cleanup;
@@ -1483,6 +1518,8 @@ let options =
       show;
       output;
       base_src_url;
+      line_format;
+      inline_module_usages;
     }
   in
   Term.(
@@ -1493,9 +1530,100 @@ let options =
     $ format
     $ show
     $ Cli.Flags.output
-    $ base_src_url)
+    $ base_src_url
+    $ line_format
+    $ inline_module_usages)
 
-let run includes optimize ex_scope explain_options global_options =
+let inline_used_modules global_options =
+  let prg =
+    Surface.Parser_driver.parse_top_level_file global_options.Global.input_src
+  in
+  let used_modules =
+    prg.Surface.Ast.program_used_modules
+    |> List.map (fun { Surface.Ast.mod_use_name; mod_use_alias; _ } ->
+           Mark.remove mod_use_name, Mark.remove mod_use_alias)
+  in
+  if used_modules = [] then ()
+  else
+    let find_module_file_in_input_directory mod_name =
+      let dir =
+        match global_options.Global.input_src with
+        | FileName f -> Filename.dirname f
+        | _ -> Sys.getcwd ()
+      in
+      let en_candidate = String.uncapitalize_ascii mod_name ^ ".catala_en" in
+      let fr_candidate = String.uncapitalize_ascii mod_name ^ ".catala_fr" in
+      Sys.readdir dir
+      |> Array.map (Filename.concat dir)
+      |> Array.find_map (fun path ->
+             let file = Filename.basename path in
+             if file = en_candidate then Some path
+             else if file = fr_candidate then Some path
+             else None)
+    in
+    let raw_prg, file =
+      match global_options.input_src with
+      | FileName s ->
+        ( Catala_utils.File.(contents (check_file s |> Option.value ~default:"")),
+          s )
+      | Contents (s, fname) -> s, fname
+      | Stdin _ -> Message.error "Cannot inline module usage from stdin"
+    in
+    let raw_prg =
+      (* let's assume it's in english *)
+      String.split_on_char '\n' raw_prg
+    in
+    let contents =
+      List.fold_left
+        (fun raw_prg (used_module, used_module_alias) ->
+          let mod_file_opt = find_module_file_in_input_directory used_module in
+          match mod_file_opt with
+          | None ->
+            Message.error
+              "Cannot find corresponding file for module '%s' required for \
+               module inlining"
+              used_module
+          | Some mod_file ->
+            let new_content =
+              let s =
+                Re.(
+                  replace_string
+                    (compile (str "> Module"))
+                    ~by:"< Module" (File.contents mod_file))
+              in
+              Global.Contents (s, mod_file)
+            in
+            Surface.Parser_driver.register_included_file_resolver
+              ~filename:mod_file ~new_content;
+            List.map
+              (fun s ->
+                let open Re in
+                let using_mod_re =
+                  compile (str (Format.sprintf "> Using %s" used_module))
+                in
+                if matches using_mod_re s <> [] then
+                  Format.sprintf "> Include: %s" (Filename.basename mod_file)
+                else
+                  replace_string
+                    (compile (str (used_module_alias ^ ".")))
+                    ~by:"" ~all:true s)
+              raw_prg)
+        raw_prg used_modules
+    in
+    let contents = String.concat "\n" contents in
+    Global.enforce_options ~input_src:(Global.Contents (contents, file)) ()
+    |> ignore
+
+let run
+    (includes : Global.raw_file list)
+    optimize
+    ex_scope
+    explain_options
+    global_options =
+  let () =
+    if explain_options.inline_module_usages then
+      inline_used_modules global_options
+  in
   let prg, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false ~autotest:false ~typed:Expr.typed
@@ -1518,7 +1646,8 @@ let run includes optimize ex_scope explain_options global_options =
   in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
-      ~base_src_url:explain_options.base_src_url;
+      ~base_src_url:explain_options.base_src_url
+      ~line_format:explain_options.line_format;
     Format.flush_str_formatter ()
     |> Re.(replace_string (compile (seq [bow; str "comment="])) ~by:"tooltip=")
   in
@@ -1543,13 +1672,14 @@ let run includes optimize ex_scope explain_options global_options =
     in
     let wrap_html, fmt = if fmt = "html" then true, "svg" else false, fmt in
     with_out (fun oc ->
-        if wrap_html then
-          (output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
-           output_string oc (htmlencode ex_scope);
-           output_string oc "</title>\n</head>\n<body>\n");
-        output_string oc (File.process_out "dot" ["-T" ^ fmt; dotfile]);
-        if wrap_html then
-          output_string oc "</body>\n</html>\n")
+        if wrap_html then (
+          output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
+          output_string oc (htmlencode ex_scope);
+          output_string oc "</title>\n</head>\n<body>\n");
+        let contents = File.process_out "dot" ["-T" ^ fmt; dotfile] in
+        output_string oc
+          (if wrap_html then scale_svg_width contents else contents);
+        if wrap_html then output_string oc "</body>\n</html>\n")
   | `Dot -> ());
   match explain_options.show with
   | None -> ()

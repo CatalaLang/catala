@@ -548,13 +548,24 @@ let load_interface ?default_module_name source_file =
     Ast.intf_submodules = used_modules;
   }
 
+let resolution_tbl = Hashtbl.create 13
+
+let register_included_file_resolver ~filename:s ~new_content =
+  Hashtbl.replace resolution_tbl s new_content
+
 let parse_top_level_file
     ?resolve_included_file
     (source_file : File.t Global.input_src) : Ast.program =
+  let resolve_included_file =
+    let tbl_lookup s = Hashtbl.find_opt resolution_tbl s in
+    match resolve_included_file with
+    | None -> fun s -> Option.value (tbl_lookup s) ~default:(Global.FileName s)
+    | Some f -> f
+  in
   Message.with_delayed_errors
   @@ fun () ->
   let program =
-    with_sedlex_source source_file (parse_source ?resolve_included_file)
+    with_sedlex_source source_file (parse_source ~resolve_included_file)
   in
   check_modname program source_file;
   {
