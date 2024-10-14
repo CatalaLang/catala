@@ -1292,6 +1292,9 @@ module Style = struct
     text: color;
   }
 
+(* Dark style *)
+
+(*
   let input = {
     fill = 0x252526;
     border = 0xBC3FBC;
@@ -1321,6 +1324,40 @@ module Style = struct
     border = 0xFFFFFF;
     stroke = 2;
     text = 0xFFFFFF;
+  }
+*)
+
+(* Light style *)
+
+  let input = {
+    fill = 0xffaa55;
+    border = 0x0;
+    stroke = 1;
+    text = 0x0;
+  }
+  let middle = {
+    fill = 0xffee99;
+    border = 0x0;
+    stroke = 1;
+    text = 0x0;
+  }
+  let constant = {
+    fill = 0x99bbff;
+    border = 0x0;
+    stroke = 1;
+    text = 0x0;
+  }
+  let condition = {
+    fill = 0xffffff;
+    border = 0xff7700;
+    stroke = 2;
+    text = 0x0;
+  }
+  let output = {
+    fill = 0xffffff;
+    border = 0x1;
+    stroke = 2;
+    text = 0x0;
   }
 
   let width pixels =
@@ -1419,7 +1456,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
       `BgcolorWithTransparency (Int32.of_int 0x00);
       (* `Ratio (`Float 0.8); *)
       (* `Concentrate true; *)
-      (* `Size (8.3, 11.7); (\* A4 in inches..... *\) *)
+      `Ratio `Compress; `Size (8.3, 11.7); (* A4 in inches..... *)
  (* `Rankdir `LeftToRight *) ]
     let default_vertex_attributes _ = []
 
@@ -1530,7 +1567,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
         Some
           {
             Graph.Graphviz.DotAttributes.sg_name = "inputs";
-            sg_attributes = [`Style `Filled; `FillcolorWithTransparency (Int32.of_int 0x0)];
+            sg_attributes = [`Style `Filled; `FillcolorWithTransparency (Int32.of_int 0x0); `ColorWithTransparency (Int32.of_int 0x0)];
             sg_parent = None;
           }
       else
@@ -1540,7 +1577,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
 
     let edge_attributes e =
       match E.label e with
-      | { invisible = true; _ } -> [`Style `Invis; `Weight 5]
+      | { invisible = true; _ } -> [`Style `Invis; `Weight 6]
       | { condition = true; _ } ->
         [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot; `Weight 5]
       | { side = Some (Lhs s | Rhs s); _ } ->
