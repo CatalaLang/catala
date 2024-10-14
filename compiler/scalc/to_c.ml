@@ -785,6 +785,29 @@ let format_program
             expr;
           Format.fprintf ppc "@;<1 -2>}@]@,";
           { env with global_vars = VarName.Set.add var env.global_vars }
+        | SFunc
+            {
+              var;
+              func = { func_params = []; func_body; func_return_typ };
+              visibility = Private;
+            } ->
+          (* This is reserved for initialisation functions that need persistent
+             allocation *)
+          Format.fprintf ppc "@,@[<v 2>@[<hov 4>static %a@ @[<hv 1>()@]@]"
+            (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+                 Format.pp_print_space fmt ();
+                 FuncName.format fmt var))
+            func_return_typ;
+          Format.fprintf ppc
+            "@;\
+             <1 -2>{@,\
+             catala_set_persistent_malloc();@,\
+             @[<hv 2>{%a@]@,\
+             }@,\
+             catala_unset_persistent_malloc();@]@,\
+             }@,"
+            (format_block ctx env) func_body;
+          env
         | SFunc { var; func; visibility }
         | SScope
             {

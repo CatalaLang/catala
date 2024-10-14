@@ -1113,10 +1113,12 @@ module Commands = struct
         else
           Format.pp_print_list ~pp_sep:Format.pp_print_space
             (fun ppf ext ->
-               let base = File.(dirname f / ModuleName.to_string m) in
-               Format.pp_print_string ppf base;
-               if ext <> "" then Format.(pp_print_char ppf '.'; pp_print_string ppf ext)
-            )
+              let base = File.(dirname f / ModuleName.to_string m) in
+              Format.pp_print_string ppf base;
+              if ext <> "" then (
+                Format.(
+                  pp_print_char ppf '.';
+                  pp_print_string ppf ext)))
             ppf extension)
       Format.std_formatter modules_list_topo;
     Format.close_box ();
