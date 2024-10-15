@@ -18,7 +18,7 @@ scope A:
 $ catala Typecheck 
 ┌─[ERROR]─
 │
-│  Unknown label for the scope variable foo@baz: "thing"
+│  Unknown label for the scope variable foo@baz: "thing".
 │
 ├─➤ tests/variable_state/bad/no_cross_exceptions.catala_en:14.13-14.18:
 │    │

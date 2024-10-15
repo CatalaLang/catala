@@ -13,8 +13,8 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  Syntax error at "contents":
-│  unexpected token
-│  Those are valid at this point: "content", "condition", "scope"
+│  unexpected token.
+│  Those are valid at this point: "content", "condition", "scope".
 │
 ├─➤ tests/parsing/bad/single_error.catala_en:5.12-5.20:
 │   │

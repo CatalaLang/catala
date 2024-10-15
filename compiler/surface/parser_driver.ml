@@ -78,13 +78,14 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     (* The parser has suspended itself because of a syntax error. *)
     let custom_menhir_message ppf =
       (match Parser_errors.message (state env) with
-      | exception Not_found -> Format.fprintf ppf "@{<yellow>unexpected token@}"
+      | exception Not_found ->
+        Format.fprintf ppf "@{<yellow>unexpected token.@}"
       | msg ->
-        Format.fprintf ppf "@{<yellow>@<1>%s@} @[<hov>%a@]" "»"
+        Format.fprintf ppf "@{<yellow>@<1>%s@} @[<hov>%a.@]" "»"
           Format.pp_print_text
           (String.trim (String.uncapitalize_ascii msg)));
       if acceptable_tokens <> [] then
-        Format.fprintf ppf "@\n@[<hov>Those are valid at this point:@ %a@]"
+        Format.fprintf ppf "@\n@[<hov>Those are valid at this point:@ %a.@]"
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
              (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string))

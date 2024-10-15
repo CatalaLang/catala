@@ -250,7 +250,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                 if TypeIdent.equal used def then
                   Message.error ~pos:(Mark.get typ)
                     "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
-                     not@ supported@ (Catala does not allow recursive types)"
+                     not@ supported@ (Catala does not allow recursive types)."
                     TypeIdent.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
@@ -272,7 +272,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                 if TypeIdent.equal used def then
                   Message.error ~pos:(Mark.get typ)
                     "The type@ %a@ is@ defined@ using@ itself,@ which@ is@ \
-                     not@ supported@ (Catala does not allow recursive types)"
+                     not@ supported@ (Catala does not allow recursive types)."
                     TypeIdent.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
@@ -312,5 +312,5 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) :
               ])
             scc)
      in
-     Message.error ~extra_pos:spans "Cyclic dependency detected between types!");
+     Message.error ~extra_pos:spans "Cyclic dependency detected between types.");
   List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])

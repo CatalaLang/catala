@@ -646,7 +646,7 @@ and typecheck_expr_top_down :
         Message.error
           ~pos:(Expr.mark_pos context_mark)
           "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
-           @{<yellow>\"%a\"@}@ (however, structure@ %a@ defines@ it)@]"
+           @{<yellow>\"%a\"@}@ (however, structure@ %a@ defines@ it).@]"
           field A.StructName.format name
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")

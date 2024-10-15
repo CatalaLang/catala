@@ -11,7 +11,7 @@ $ catala typecheck
 ┌─[ERROR]─
 │
 │  Please add parentheses to explicit which of these operators should be
-│  applied first
+│  applied first.
 │
 ├─➤ tests/arithmetic/bad/logical_prio.catala_en:6.28-6.31:
 │   │

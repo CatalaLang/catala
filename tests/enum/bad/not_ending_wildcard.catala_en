@@ -40,7 +40,7 @@ scope Middle_case:
 $ catala test-scope First_case
 ┌─[ERROR]─
 │
-│  Wildcard must be the last match case
+│  Wildcard must be the last match case.
 │
 │ Not ending wildcard:
 ├─➤ tests/enum/bad/not_ending_wildcard.catala_en:19.5-19.21:
@@ -64,7 +64,7 @@ $ catala test-scope First_case
 $ catala test-scope Middle_case
 ┌─[ERROR]─
 │
-│  Wildcard must be the last match case
+│  Wildcard must be the last match case.
 │
 │ Not ending wildcard:
 ├─➤ tests/enum/bad/not_ending_wildcard.catala_en:19.5-19.21:

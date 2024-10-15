@@ -22,7 +22,7 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  Field "g" does not belong to structure "Foo" (however, structure "Bar"
-│  defines it)
+│  defines it).
 ├─➤ tests/struct/bad/wrong_qualified_field.catala_en:17.23-17.30:
 │   │
 │17 │   definition y equals x.Foo.g
