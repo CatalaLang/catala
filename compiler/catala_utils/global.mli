@@ -29,9 +29,8 @@ type backend_lang = En | Fr | Pl
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
 
-type message_format_enum =
-  | Human
-  | GNU  (** Format of error and warning messages output by the compiler. *)
+(** Format of error and warning messages output by the compiler. *)
+type message_format_enum = Human | GNU | Lsp
 
 (** Sources for program input *)
 type 'file input_src =

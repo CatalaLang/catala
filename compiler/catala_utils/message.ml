@@ -317,6 +317,18 @@ module Content = struct
       ppf content;
     Format.pp_print_newline ppf ()
 
+  let lsp_msg ppf content =
+    (* Hypothesis: [MainMessage] is always part of a content list. *)
+    let rec retrieve_message acc = function
+      | [] -> acc
+      | MainMessage m :: _ -> Some m
+      | Outcome m :: t ->
+        retrieve_message (match acc with None -> Some m | _ -> acc) t
+      | (Position _ | Suggestion _) :: t -> retrieve_message acc t
+    in
+    let msg = retrieve_message None content in
+    Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
+
   let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
     let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
@@ -325,6 +337,7 @@ module Content = struct
       | Debug | Log -> basic_msg ~pp_marker ppf target content
       | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
     | GNU -> gnu_msg ~pp_marker ppf target content
+    | Lsp -> lsp_msg ppf content
 
   let emit_n ?ppf (target : level) = function
     | [content] -> emit content target
