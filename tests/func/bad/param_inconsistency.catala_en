@@ -17,7 +17,7 @@ $ catala typecheck
 ┌─[ERROR]─
 │
 │  Function argument name mismatch between declaration ('x') and definition
-│  ('y')
+│  ('y').
 │
 │ Argument declared here:
 ├─➤ tests/func/bad/param_inconsistency.catala_en:4.42-4.43:

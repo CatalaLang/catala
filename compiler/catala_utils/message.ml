@@ -275,6 +275,60 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
+  let gnu_msg ~pp_marker ppf target content =
+    (* The top message doesn't come with a position, which is not something the
+       GNU standard allows. So we look the position list and put the top message
+       everywhere there is not a more precise message. If we can't find a
+       position without a more precise message, we just take the first position
+       in the list to pair with the message. *)
+    Format.pp_print_list ~pp_sep:Format.pp_print_newline
+      (fun ppf elt ->
+        let pos, message =
+          match elt with
+          | MainMessage m ->
+            let pos =
+              List.find_map
+                (function
+                  | Position { pos_message = None; pos } -> Some pos | _ -> None)
+                content
+              |> function
+              | None ->
+                List.find_map
+                  (function
+                    | Position { pos_message = _; pos } -> Some pos | _ -> None)
+                  content
+              | some -> some
+            in
+            pos, Some m
+          | Position { pos_message; pos } -> Some pos, pos_message
+          | Outcome m -> None, Some m
+          | Suggestion sl -> None, Some (fun ppf -> Suggestions.format ppf sl)
+        in
+        Option.iter
+          (fun pos ->
+            Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
+          pos;
+        Format.fprintf ppf "[%t]" (pp_marker target);
+        match message with
+        | Some message ->
+          Format.pp_print_char ppf ' ';
+          Format.pp_print_string ppf (unformat message)
+        | None -> ())
+      ppf content;
+    Format.pp_print_newline ppf ()
+
+  let lsp_msg ppf content =
+    (* Hypothesis: [MainMessage] is always part of a content list. *)
+    let rec retrieve_message acc = function
+      | [] -> acc
+      | MainMessage m :: _ -> Some m
+      | Outcome m :: t ->
+        retrieve_message (match acc with None -> Some m | _ -> acc) t
+      | (Position _ | Suggestion _) :: t -> retrieve_message acc t
+    in
+    let msg = retrieve_message None content in
+    Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
+
   let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
     let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
@@ -282,49 +336,8 @@ module Content = struct
       match target with
       | Debug | Log -> basic_msg ~pp_marker ppf target content
       | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
-    | Global.GNU ->
-      (* The top message doesn't come with a position, which is not something
-         the GNU standard allows. So we look the position list and put the top
-         message everywhere there is not a more precise message. If we can't
-         find a position without a more precise message, we just take the first
-         position in the list to pair with the message. *)
-      Format.pp_print_list ~pp_sep:Format.pp_print_newline
-        (fun ppf elt ->
-          let pos, message =
-            match elt with
-            | MainMessage m ->
-              let pos =
-                List.find_map
-                  (function
-                    | Position { pos_message = None; pos } -> Some pos
-                    | _ -> None)
-                  content
-                |> function
-                | None ->
-                  List.find_map
-                    (function
-                      | Position { pos_message = _; pos } -> Some pos
-                      | _ -> None)
-                    content
-                | some -> some
-              in
-              pos, Some m
-            | Position { pos_message; pos } -> Some pos, pos_message
-            | Outcome m -> None, Some m
-            | Suggestion sl -> None, Some (fun ppf -> Suggestions.format ppf sl)
-          in
-          Option.iter
-            (fun pos ->
-              Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
-            pos;
-          Format.fprintf ppf "[%t]" (pp_marker target);
-          match message with
-          | Some message ->
-            Format.pp_print_char ppf ' ';
-            Format.pp_print_string ppf (unformat message)
-          | None -> ())
-        ppf content;
-      Format.pp_print_newline ppf ()
+    | GNU -> gnu_msg ~pp_marker ppf target content
+    | Lsp -> lsp_msg ppf content
 
   let emit_n ?ppf (target : level) = function
     | [content] -> emit content target

@@ -27,7 +27,7 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  The type E is defined using itself, which is not supported
-│  (Catala does not allow recursive types)
+│  (Catala does not allow recursive types).
 │
 ├─➤ tests/struct/bad/nested.catala_en:6.18-6.19:
 │   │

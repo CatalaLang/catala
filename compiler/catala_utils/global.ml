@@ -18,7 +18,7 @@ type file = string
 type raw_file = file
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
-type message_format_enum = Human | GNU
+type message_format_enum = Human | GNU | Lsp
 
 type 'file input_src =
   | FileName of 'file

@@ -21,9 +21,9 @@ $ catala test-scope A
 ┌─[ERROR (1/2)]─
 │
 │  Syntax error at "definitoin":
-│  » expected a scope use item: a rule, definition or assertion
+│  » expected a scope use item: a rule, definition or assertion.
 │  Those are valid at this point: "definition", "rule", "assertion",
-│  "exception", "label", "date"
+│  "exception", "label", "date".
 │
 ├─➤ tests/parsing/bad/multiple_errors.catala_en:12.3-12.13:
 │    │
@@ -37,9 +37,9 @@ $ catala test-scope A
 │
 │  Syntax error at "equal":
 │  » expected 'under condition' followed by a condition, 'equals' followed by
-│    the definition body, or the rest of the variable qualified name
+│    the definition body, or the rest of the variable qualified name.
 │  Those are valid at this point: "equals", ".", "under condition", "state",
-│  "of"
+│  "of".
 │
 ├─➤ tests/parsing/bad/multiple_errors.catala_en:16.16-16.21:
 │    │

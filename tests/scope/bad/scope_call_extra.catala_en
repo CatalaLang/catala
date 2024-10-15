@@ -18,7 +18,7 @@ scope Titi:
 $ catala dcalc -s Titi
 ┌─[ERROR]─
 │
-│  Scope Toto has no input variable biz
+│  Scope Toto has no input variable biz.
 │
 ├─➤ tests/scope/bad/scope_call_extra.catala_en:14.49-14.52:
 │    │

@@ -198,12 +198,12 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 | _, Ast.ScopeDef.Var _ ->
                   Message.error ~pos:fv_def_pos
                     "The variable@ %a@ is@ used@ in@ one@ of@ its@ \
-                     definitions@ (Catala doesn't support recursion)"
+                     definitions@ (Catala doesn't support recursion)."
                     Ast.ScopeDef.format def_key
                 | v, Ast.ScopeDef.SubScopeInput _ ->
                   Message.error ~pos:fv_def_pos
                     "The subscope@ %a@ is@ used@ in@ the@ definition@ of@ its@ \
-                     own@ input@ %a@ (Catala doesn't support recursion)"
+                     own@ input@ %a@ (Catala doesn't support recursion)."
                     ScopeVar.format (Mark.remove v) Ast.ScopeDef.format def_key
             in
             ScopeDependencies.add_edge_e g
@@ -499,5 +499,5 @@ let check_for_exception_cycle
     Message.error ~extra_pos:spans
       "Exception cycle detected when defining@ %a:@ each of these %d \
        exceptions applies over the previous one,@ and@ the@ first@ applies@ \
-       over@ the@ last"
+       over@ the@ last."
       RuleName.format v (List.length scc)

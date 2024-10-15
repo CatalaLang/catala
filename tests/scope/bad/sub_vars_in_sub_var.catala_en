@@ -18,7 +18,7 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  The subscope a is used in the definition of its own input a.y
-│  (Catala doesn't support recursion)
+│  (Catala doesn't support recursion).
 │
 ├─➤ tests/scope/bad/sub_vars_in_sub_var.catala_en:13.28-13.29:
 │    │

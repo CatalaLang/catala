@@ -15,9 +15,9 @@ $ catala test-scope A
 │
 │  Syntax error at "=":
 │  » expected 'under condition' followed by a condition, 'equals' followed by
-│    the definition body, or the rest of the variable qualified name
+│    the definition body, or the rest of the variable qualified name.
 │  Those are valid at this point: ".", "under condition", "equals", "state",
-│  "of"
+│  "of".
 │
 ├─➤ tests/default/bad/typing_or_logical_error.catala_en:8.30-8.31:
 │   │

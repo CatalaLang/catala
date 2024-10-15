@@ -22,7 +22,7 @@ $ catala test-scope A
 ┌─[WARNING]─
 │
 │  Unreachable match case, all constructors of the enumeration E are already
-│  specified
+│  specified.
 │
 ├─➤ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
 │    │

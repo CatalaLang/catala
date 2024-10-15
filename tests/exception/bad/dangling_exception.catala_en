@@ -17,7 +17,7 @@ scope A:
 $ catala test-scope A
 ┌─[ERROR]─
 │
-│  Unknown label for the scope variable x: "base_y"
+│  Unknown label for the scope variable x: "base_y".
 │
 ├─➤ tests/exception/bad/dangling_exception.catala_en:12.13-12.19:
 │    │

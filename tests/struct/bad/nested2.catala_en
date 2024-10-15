@@ -45,7 +45,7 @@ $ catala test-scope A
 └─ Article
 ┌─[ERROR]─
 │
-│  Cyclic dependency detected between types!
+│  Cyclic dependency detected between types.
 │
 │ Cycle type S, declared:
 ├─➤ tests/struct/bad/nested2.catala_en:4.23-4.24:
