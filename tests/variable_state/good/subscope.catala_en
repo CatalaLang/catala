@@ -44,14 +44,14 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Scopelang -s A
-let scope A (foo_bar: ⟨integer⟩|context) (foo_baz: integer|internal)
-  (foo_fizz: integer|internal|output) =
-  let foo_bar : integer = reentrant or by default
+let scope A (foo#bar: ⟨integer⟩|context) (foo#baz: integer|internal)
+  (foo#fizz: integer|internal|output) =
+  let foo#bar : integer = reentrant or by default
     error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
-  let foo_baz : integer =
-    error_empty ⟨ ⟨true ⊢ ⟨foo_bar + 1⟩⟩ | false ⊢ ∅ ⟩;
-  let foo_fizz : integer =
-    error_empty ⟨ ⟨true ⊢ ⟨foo_baz + 1⟩⟩ | false ⊢ ∅ ⟩
+  let foo#baz : integer =
+    error_empty ⟨ ⟨true ⊢ ⟨foo#bar + 1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo#fizz : integer =
+    error_empty ⟨ ⟨true ⊢ ⟨foo#baz + 1⟩⟩ | false ⊢ ∅ ⟩
 ```
 
 ```catala-test-inline

@@ -40,7 +40,7 @@ module Style = struct
   let dark =
     {
       page_background = 0x0;
-      arrows = 0xff7700;
+      arrows = 0x606060;
       input =
         { fill = 0x252526; border = 0xBC3FBC; stroke = 2; text = 0xFFFFFF };
       middle =
@@ -1227,7 +1227,7 @@ let expr_to_dot_label0 :
           match o with
           | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
           | Eq_dat_dat | Eq ->
-            "="
+            "＝"
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
           | ToRat_int | ToRat_mon | ToRat -> ""
           | ToMoney_rat | ToMoney -> ""
@@ -1241,19 +1241,19 @@ let expr_to_dot_label0 :
             "×"
           | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur
           | Div ->
-            "/"
+            "÷"
           | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt
             ->
             "<"
           | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat
           | Lte ->
-            "<="
+            "≤"
           | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt
             ->
             ">"
           | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat
           | Gte ->
-            ">="
+            "≥"
           | Concat -> "++"
           | Not -> xlang () ~en:"not" ~fr:"non"
           | Length -> xlang () ~en:"length" ~fr:"nombre"
@@ -1349,11 +1349,6 @@ let htmlencode =
       | "@" -> "&commat;"
       | _ -> assert false)
 
-let scale_svg_width s =
-  let open Re in
-  let re = Pcre.re "<svg width=\"[^\"]*pt\"" in
-  replace_string (compile re) ~by:"<svg width=\"100%\"" s
-
 let expr_to_dot_label0 lang ctx env ppf e =
   Format.fprintf ppf "%s"
     (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
@@ -1448,7 +1443,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format ~theme =
         (* `Ratio (`Float 0.8); *)
         (* `Concentrate true; *)
         `Ratio `Compress;
-        (* `Size (8.3, 11.7); (\* A4 in inches..... *\) *)
+        (* `Size (8.3, 11.7); (* A4 in inches..... *) *)
         (* `Rankdir `LeftToRight *)
       ]
 
@@ -1594,14 +1589,14 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format ~theme =
         [
           `Style `Dashed;
           `Penwidth 2.;
-          `Color theme.arrows;
+          `Color 0xff7700;
           `Arrowhead `Odot;
-          `Weight 5;
+          `Weight 8;
         ]
       | { side = Some (Lhs s | Rhs s); _ } ->
-        [`Color 0x606060 (* `Label s; `Color 0xbb7700 *); `Weight 10]
+        [`Color theme.arrows (* `Label s; `Color 0xbb7700 *); `Weight 10]
       | { side = None; _ } ->
-        [`Color 0x606060 (* `Minlen 0; `Weight 10 *); `Weight 10]
+        [`Color theme.arrows (* `Minlen 0; `Weight 10 *); `Weight 10]
   end) in
   let g =
     (* Add fake edges from everything towards the inputs to force ordering *)
@@ -1901,11 +1896,16 @@ let run
           output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
           output_string oc (htmlencode ex_scope);
           Printf.fprintf oc
-            "</title>\n</head>\n<body style=\"background-color: #%06x\">\n"
+            "  </title>\n\
+            \  <style>\n\
+            \    body { background-color: #%06x }\n\
+            \    svg { max-width: 80rem; height: fit-content; }\n\
+            \  </style>\n\
+             </head>\n\
+             <body>\n"
             explain_options.theme.page_background);
         let contents = File.process_out "dot" ["-T" ^ fmt; dotfile] in
-        output_string oc
-          (if wrap_html then scale_svg_width contents else contents);
+        output_string oc contents;
         if wrap_html then output_string oc "</body>\n</html>\n")
   | `Dot -> ());
   match explain_options.show with
