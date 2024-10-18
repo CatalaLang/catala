@@ -17,12 +17,12 @@ declaration scope B:
 scope B:
   definition reverse equals
     # Only this case was changed compared to `fold.catala_en`
-    for acc initially [$0] and then
+    combine acc initially [$0] with
       (x ++ acc) for x among a.x
     #  ^ Error should be here (money, while expected list because of `++`)
 
   definition ratios1 equals
-    for (acc1, acc2) initially ([], $1) and then
+    combine (acc1, acc2) initially ([], $1) with
       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
 ```
 

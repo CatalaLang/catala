@@ -26,7 +26,7 @@ declaration insert content list of money
              lst content list of money
   equals
   let (lower, higher) equals
-    for (lower, higher) initially ([], []) and then
+    combine (lower, higher) initially ([], []) with
       (if x <= element then (lower ++ [x], higher) else (lower, higher ++ [x]))
       for x among lst
   in
@@ -34,39 +34,39 @@ declaration insert content list of money
 
 scope B:
   definition count equals
-    for acc initially 0 and then
+    combine acc initially 0 with
       (acc + 1) for x among a.x
 
   definition max equals
-    for acc initially - $1000 and then
+    combine acc initially - $1000 with
       (if x > acc then x else acc) for x among a.x
 
   definition min equals
-    for acc initially $1000 and then
+    combine acc initially $1000 with
       (if x < acc then x else acc) for x among a.x
 
   definition total equals
-    for acc initially $0 and then
+    combine acc initially $0 with
       (x + acc) for x among a.x
 
   definition reverse equals
-    for acc initially [] and then
+    combine acc initially [] with
       ([x] ++ acc) for x among a.x
 
   definition ratios1 equals
-    for (acc1, acc2) initially ([], $1) and then
+    combine (acc1, acc2) initially ([], $1) with
       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
 
   definition ratios2 equals
-    for acc initially $1 and then
+    combine acc initially $1 with
       (acc + x * y) for (x, y) among (a.x, a.y)
 
   definition ratios3 equals
-    for (acc1, acc2) initially ([], $1) and then
+    combine (acc1, acc2) initially ([], $1) with
       (acc1 ++ [x * y], acc2 * y) for (x, y) among (a.x, a.y)
 
   definition sorted equals
-    for sorted initially [] and then
+    combine sorted initially [] with
       (insert of (x, sorted)) for x among a.x
 ```
 
