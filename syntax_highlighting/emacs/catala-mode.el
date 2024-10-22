@@ -22,8 +22,8 @@
 (define-generic-mode 'catala-mode-fr
   '("#")
   '("contexte" "entrée" "résultat" "interne"
-    "champ d'application" "si et seulement si" "dépend de" "déclaration" "inclus" "liste de" "contenu de" "contenu" "optionnel" "structure" "énumération" "contexte" "entrée" "résultat" "interne" "règle" "sous condition" "condition" "donnée" "conséquence" "rempli" "égal à" "assertion" "définition" "état" "étiquette" "exception" "soit" "liste vide")
-  '(("\\<\\(selon\\|sous\s+forme\\|mais\s+en\s+remplaçant\\|fixé\\|par\\|décroissant\\|croissant\\|varie\\|avec\\|on\s+a\\|soit\\|dans\\|tel\s+que\\|existe\\|pour\\|tout\\|de\\|si\\|alors\\|sinon\\|initial\\|parmi\\|est\s+maximum\\|est\s+minimum\\)\\>" . font-lock-builtin-face)
+    "champ d'application" "si et seulement si" "dépend de" "déclaration" "inclus" "liste de" "maximum de" "minimum de" "nombre de" "contenu de" "contenu" "optionnel" "structure" "énumération" "contexte" "entrée" "résultat" "interne" "règle" "sous condition" "condition" "donnée" "conséquence" "rempli" "égal à" "assertion" "définition" "état" "étiquette" "exception" "soit" "liste vide")
+  '(("\\<\\(selon\\|sous\s+forme\\|mais\s+en\s+remplaçant\\|fixé\\|par\\|décroissant\\|croissant\\|varie\\|avec\\|on\s+a\\|soit\\|dans\\|tel\s+que\\|existe\\|pour\\|tout\\|de\\|si\\|alors\\|sinon\\|initial\\|parmi\\|est\s+maximum\\|est\s+minimum\\|combinaison\\|initialement\\)\\>" . font-lock-builtin-face)
     ("\\<\\(vrai\\|faux\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9 ]*\\(,[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)
     ("\\(->\\|+.\\|+@\\|+^\\|+€\\|+\\|-.\\|-@\\|-^\\|-€\\|-\\|*.\\|*@\\|*^\\|*€\\|*\\|/.\\|/@\\|/€\\|/\\|!\\|>.\\|>=.\\|<=.\\|<.\\|>@\\|>=@\\|<=@\\|<@\\|>€\\|>=€\\|<=€\\|<€\\|>^\\|>=^\\|<=^\\|<^\\|>\\|>=\\|<=\\|<\\|=\\)" . font-lock-keyword-face)
@@ -41,8 +41,8 @@
 (define-generic-mode 'catala-mode-en
   '("#")
   '("context" "input" "output" "internal"
-    "scope" "depends on" "declaration" "includes" "list of" "content of" "content" "optional" "structure" "enumeration" "context" "input" "output" "internal" "rule" "under condition" "condition" "data" "consequence" "fulfilled" "equals" "assertion" "definition" "state" "label" "exception" "let" "list empty")
-  '(("\\<\\(match\\|with\s+pattern\\|but\s+replace\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\|among\\|is\s+maximum\\|is\s+minimum\\)\\>" . font-lock-builtin-face)
+    "scope" "depends on" "declaration" "includes" "list of" "maximum of" "minimum of" "number of" "content of" "content" "optional" "structure" "enumeration" "context" "input" "output" "internal" "rule" "under condition" "condition" "data" "consequence" "fulfilled" "equals" "assertion" "definition" "state" "label" "exception" "let" "list empty")
+  '(("\\<\\(match\\|with\s+pattern\\|but\s+replace\\|fixed\\|by\\|decreasing\\|increasing\\|varies\\|with\\|we\s+have\\|let\\|in\\|such\s+that\\|exists\\|for\\|all\\|of\\|if\\|then\\|else\\|initial\\|among\\|is\s+maximum\\|is\s+minimum\\|combine\\|initially\\)\\>" . font-lock-builtin-face)
     ("|[0-9]\\+-[0-9]\\+-[0-9]\\+|" . font-lock-constant-face)
     ("\\<\\(true\\|false\\)\\>" . font-lock-constant-face)
     ("\\<\\([0-9][0-9,]*\\(\\.[0-9]*\\|\\)\\)\\>" . font-lock-constant-face)

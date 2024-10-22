@@ -97,10 +97,10 @@
 #define MR_LIST_EMPTY "lista", space_plus, "pusta"
 #define MS_BUT_REPLACE "ale zastąpić"
 #define MR_BUT_REPLACE "ale", space_plus, "zast", 0x0105, "pi", 0x0107
+#define MS_COMBINE "łączyć"
+#define MR_COMBINE 0x0142, 0x0105, "czy", 0x0107
 #define MS_INITIALLY "początkowo"
 #define MR_INITIALLY "pocz", 0X0105, "tkowo"
-#define MS_AND_THEN "a następnie"
-#define MR_AND_THEN "a", space_plus, "nast", 0x0119, "pnie"
 #define MS_CARDINAL "liczba"
 #define MS_YEAR "rok"
 #define MS_MONTH "miesiąc"

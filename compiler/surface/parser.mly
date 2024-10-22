@@ -246,9 +246,8 @@ let naked_expression ==
   AMONG ; coll = expression ; {
   CollectionOp ((Map {f = i, f}, pos), coll)
 } %prec apply
-| pos = pos(FOR) ; acc = mbinder ; INITIALLY ; init = expression ;
-  AND_THEN ; map_expr = expression ;
-{
+| pos = pos(COMBINE) ; acc = mbinder ; INITIALLY ; init = expression ;
+  WITH_V ; map_expr = expression ; {
   match map_expr with
   | CollectionOp ((Map { f = i, f }, _), coll), _ ->
     CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)

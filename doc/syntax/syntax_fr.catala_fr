@@ -241,6 +241,11 @@ déclaration x contenu entier égal à
       tel que x * x est minimum
       ou si liste vide alors -1
   dans
+  soit x égal à
+    combinaison de acc initialement 0
+      avec (acc + x)
+      pour x parmi lst
+  dans
   0
 ```
 
