@@ -243,6 +243,11 @@ declaration x content integer equals
       such that x * x is minimum
       or if list empty then -1
   in
+  let x equals
+    combine acc initially 0
+      with (acc + x)
+      for x among lst
+  in
   0
 ```
 
