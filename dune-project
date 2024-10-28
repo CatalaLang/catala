@@ -1,4 +1,4 @@
-(lang dune 3.11)
+(lang dune 3.13)
 
 (name catala)
 
@@ -28,5 +28,5 @@
 
 (license Apache-2.0)
 
-(using menhir 2.1)
+(using menhir 3.0)
 (using directory-targets 0.1)

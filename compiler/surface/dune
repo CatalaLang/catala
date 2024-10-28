@@ -29,12 +29,13 @@
 
 (menhir
  (modules tokens)
+ (explain false)
  (flags --only-tokens))
 
 (menhir
  (modules tokens parser)
  (merge_into parser)
- (flags --external-tokens Tokens --table --explain))
+ (flags --external-tokens Tokens --table))
 
 (rule
  (target grammar.html)
