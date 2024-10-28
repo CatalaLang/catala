@@ -187,18 +187,19 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     Expr.eexternal ~name:(External_scope (ctx.scopes s), pos) (fm m)
   | EExternal { name = External_value d, pos }, m ->
     Expr.eexternal ~name:(External_value (ctx.topdefs d), pos) (fm m)
-  | EAbs { binder; tys }, m ->
+  | EAbs { binder; tys; pos }, m ->
     let vars, body, ctx = unmbind_in ctx binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in
-    Expr.eabs binder (List.map (typ ctx) tys) (fm m)
-  | EApp { f = EAbs { binder; tys = tyabs }, mabs; args; tys = tyapp }, mapp ->
+    Expr.eabs binder pos (List.map (typ ctx) tys) (fm m)
+  | ( EApp { f = EAbs { binder; pos; tys = tyabs }, mabs; args; tys = tyapp },
+      mapp ) ->
     (* let-in: forward the context to not reuse the name being defined *)
     let vars, body, ctx = unmbind_in ctx binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in
     Expr.eapp
-      ~f:(Expr.eabs binder (List.map (typ ctx) tyabs) (fm mabs))
+      ~f:(Expr.eabs binder pos (List.map (typ ctx) tyabs) (fm mabs))
       ~args:(List.map (expr ctx) args)
       ~tys:(List.map (typ ctx) tyapp)
       (fm mapp)

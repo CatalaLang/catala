@@ -251,8 +251,8 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
         (StructField.Map.map
            (function
              | TArrow (ty_in, ty_out), _ ->
-               Expr.make_abs
-                 [| Var.make "_" |]
+               Expr.make_ghost_abs
+                 [Var.make "_"]
                  (Bindlib.box EEmpty, Expr.with_ty m ty_out)
                  ty_in (Expr.mark_pos m)
              | ty -> Expr.evar (Var.make "undefined_input") (Expr.with_ty m ty))

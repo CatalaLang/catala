@@ -253,7 +253,7 @@ let rec optimize_expr :
           Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
         in
         let x = Expr.evar v (mty (Mark.get ls)) in
-        Expr.make_abs [| v |]
+        Expr.make_ghost_abs [v]
           (Expr.eapp ~f:(Expr.box f1)
              ~args:[Expr.eapp ~f:(Expr.box f2) ~args:[x] ~tys:[xty] (mty m2)]
              ~tys:[yty] (mty mark))
@@ -302,7 +302,7 @@ let rec optimize_expr :
         in
         let x1 = Expr.evar v1 (mty (Mark.get ls1)) in
         let x2 = Expr.evar v2 (mty (Mark.get ls2)) in
-        Expr.make_abs [| v1; v2 |]
+        Expr.make_ghost_abs [v1; v2]
           (Expr.eapp ~f:(Expr.box f1)
              ~args:
                [
@@ -366,8 +366,9 @@ let test_iota_reduction_1 () =
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
-        consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
-        consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
+        consA, Expr.eabs_ghost (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
+        ( consB,
+          Expr.eabs_ghost (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark );
       ]
   in
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
@@ -388,7 +389,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   @@ ListLabels.map l ~f:(fun (cons, f) ->
          let var = Var.make "x" in
          ( cons,
-           Expr.eabs
+           Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
              [TAny, Pos.no_pos]
              (Untyped { pos = Pos.no_pos }) ))

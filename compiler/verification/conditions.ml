@@ -111,7 +111,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     when List.exists (fun x' -> Var.equal x x') ctx.input_vars ->
     (* scope variables*)
     cons
-  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
+  | EAbs { binder; pos = _; tys = [(TLit TUnit, _)] } ->
     (* context sub-scope variables *)
     let _, body = Bindlib.unmbind binder in
     body
@@ -198,7 +198,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                   List.map
                     (fun field ->
                       match Mark.remove field with
-                      | EAbs { binder; tys = [(TLit TUnit, _)] } -> (
+                      | EAbs { binder; pos = _; tys = [(TLit TUnit, _)] } -> (
                         (* Invariant: when calling a function with a thunked
                            emptyerror, this means we're in a direct scope call
                            with a context argument. In that case, we don't apply

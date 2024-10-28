@@ -265,7 +265,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     stmts, (A.EAppOp { op; args; tys }, Expr.pos expr), ctxt.ren_ctx
-  | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
+  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; tys = _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -369,7 +369,7 @@ and translate_assignment
   | EFatalError error ->
     let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
     RevBlock.make [vposdef; SFatalError { pos_expr; error }, pos], ctxt.ren_ctx
-  | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
+  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -405,7 +405,7 @@ and translate_assignment
       translate_assignment { ctxt with ren_ctx } assign_to body
     in
     local_decls ++ def_blocks ++ rest_of_block, ren_ctx
-  | EAbs { binder; tys } ->
+  | EAbs { binder; pos = _; tys } ->
     let vars, body, ctxt = unmbind ctxt binder in
     let binder_pos = Expr.pos block_expr in
     let vars_tau = List.combine (Array.to_list vars) tys in
@@ -460,7 +460,7 @@ and translate_assignment
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
-          | EAbs { binder; tys = typ :: _ } ->
+          | EAbs { binder; pos = _; tys = typ :: _ } ->
             let vars, body, ctxt = unmbind ctxt binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in

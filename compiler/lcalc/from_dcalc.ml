@@ -96,7 +96,7 @@ let rec translate_default
                (* Some x -> Some x *)
                ( Expr.some_constr,
                  let x = Var.make "x" in
-                 Expr.make_abs [| x |]
+                 Expr.make_ghost_abs [x]
                    (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
                       ~e:(Expr.evar x mark_alpha) mark_default)
                    [ty_alpha] pos );
@@ -138,7 +138,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
         [
           ( Expr.none_constr,
             let x = Var.make "_" in
-            Expr.make_abs [| x |] (Expr.efatalerror NoValue m) [TAny, pos] pos
+            Expr.make_ghost_abs [x] (Expr.efatalerror NoValue m) [TAny, pos] pos
           );
           (* | None x -> raise NoValueProvided *)
           Expr.some_constr, Expr.fun_id ~var_name:"arg" m (* | Some x -> x *);
