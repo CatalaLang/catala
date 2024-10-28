@@ -18,6 +18,7 @@
 
 (rule
  (target runtime-test.c.exe)
+ (deps dates_calc.h)
  (action
   (run
    %{cc}

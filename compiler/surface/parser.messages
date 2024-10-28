@@ -369,24 +369,6 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT OF LIDENT DECREASIN
 
 expected an expression for defining this function, introduced by the 'equals' keyword ; or a comma followed by another argument
 
-source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT WITH_V
-##
-## Ends in an error in state: 347.
-##
-## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) . option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ASSERTION ]
-##
-## The known suffix of the stack is as follows:
-## option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT))
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 320, spurious reduction of production separated_nonempty_list(DOT,addpos(LIDENT)) -> LIDENT
-##
-
-expected the 'equals' keyword to introduce the definition of this variable
-
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION YEAR
 ##
 ## Ends in an error in state: 346.
@@ -484,24 +466,6 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT OF YEAR
 ##
 
 expected the name of the parameter for this dependent variable
-
-source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT WITH_V
-##
-## Ends in an error in state: 361.
-##
-## rule_expr -> separated_nonempty_list(DOT,addpos(LIDENT)) . option(addpos(definition_parameters)) [ UNDER_CONDITION STATE NOT FILLED ]
-##
-## The known suffix of the stack is as follows:
-## separated_nonempty_list(DOT,addpos(LIDENT))
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 320, spurious reduction of production separated_nonempty_list(DOT,addpos(LIDENT)) -> LIDENT
-##
-
-expected a condition or a consequence for this rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT YEAR
 ##
@@ -812,43 +776,6 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH YEAR
 ##
 
 expected an expression to match with
-
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION TRUE YEAR
-##
-## Ends in an error in state: 308.
-##
-## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . WITH constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . BUT_REPLACE LBRACE nonempty_list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . CONTAINS expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . FOR lident AMONG expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . FOR LPAREN separated_nonempty_list(COMMA,lident) RPAREN AMONG expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . MULT expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . DIV expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . PLUS expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . MINUS expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . PLUSPLUS expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . LESSER expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . LESSER_EQUAL expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . GREATER expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . GREATER_EQUAL expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . EQUAL expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . NOT_EQUAL expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . AND expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . OR expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . XOR expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## expression -> expression . FOR LPAREN separated_nonempty_list(COMMA,lident) RPAREN AMONG expression SUCH THAT expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
-## option(preceded(UNDER_CONDITION,expression)) -> UNDER_CONDITION expression . [ COLON ]
-##
-## The known suffix of the stack is as follows:
-## UNDER_CONDITION expression
-##
-
-expected the function application operator
-
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION YEAR
 ##
@@ -1288,30 +1215,6 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG YEAR
 
 expected an expression describing the list to operate on
 
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG YEAR
-##
-## Ends in an error in state: 230.
-##
-## expression -> EXISTS lident AMONG . expression SUCH THAT expression [ XOR WITH_F WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## EXISTS lident AMONG
-##
-
-expected an expression describing the list to operate on
-
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION DECIMAL_LITERAL WITH_V
-##
-## Ends in an error in state: 87.
-##
-## literal -> DECIMAL_LITERAL . option(addpos(unit_literal)) [ XOR WITH_F WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## DECIMAL_LITERAL
-##
-
-expected binary operator
-
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE YEAR
 ##
 ## Ends in an error in state: 104.
@@ -1408,27 +1311,6 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH YEAR
 ##
 
 expected a pattern to match against
-
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH UIDENT WITH_V
-##
-## Ends in an error in state: 123.
-##
-## constructor_binding -> quident . OF lident [ XOR WITH_F WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ASSERTION AND ALT ]
-## constructor_binding -> quident . [ XOR WITH_F WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## quident
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production quident -> UIDENT
-##
-
-expected the form 'with pattern <Case> of <ident> and <expr>', or a binary
-operator continuing the expression, or a keyword ending the expression and starting the next item
-
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH UIDENT OF YEAR
 ##
