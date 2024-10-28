@@ -140,9 +140,6 @@ module R = Re.Pcre
 #ifndef MR_ASSERTION
   #define MR_ASSERTION MS_ASSERTION
 #endif
-#ifndef MR_VARIES
-  #define MR_VARIES MS_VARIES
-#endif
 #ifndef MR_WITH_V
   #define MR_WITH_V MS_WITH_V
 #endif
@@ -154,12 +151,6 @@ module R = Re.Pcre
 #endif
 #ifndef MR_WE_HAVE
   #define MR_WE_HAVE MS_WE_HAVE
-#endif
-#ifndef MR_FIXED
-  #define MR_FIXED MS_FIXED
-#endif
-#ifndef MR_BY
-  #define MR_BY MS_BY
 #endif
 #ifndef MR_RULE
   #define MR_RULE MS_RULE
@@ -303,13 +294,10 @@ let token_list : (string * token) list =
     (MS_CONTENT, CONTENT);
     (MS_STRUCT, STRUCT);
     (MS_ASSERTION, ASSERTION);
-    (MS_VARIES, VARIES);
     (MS_WITH_V, WITH_V);
     (MS_FOR, FOR);
     (MS_ALL, ALL);
     (MS_WE_HAVE, WE_HAVE);
-    (MS_FIXED, FIXED);
-    (MS_BY, BY);
     (MS_RULE, RULE);
     (MS_LET, LET);
     (MS_EXISTS, EXISTS);
@@ -516,9 +504,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_ASSERTION ->
       L.update_acc lexbuf;
       ASSERTION
-  | MR_VARIES ->
-      L.update_acc lexbuf;
-      VARIES
   | MR_WITH_V ->
       L.update_acc lexbuf;
       WITH_V
@@ -531,12 +516,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_WE_HAVE ->
       L.update_acc lexbuf;
       WE_HAVE
-  | MR_FIXED ->
-      L.update_acc lexbuf;
-      FIXED
-  | MR_BY ->
-      L.update_acc lexbuf;
-      BY
   | MR_RULE ->
       L.update_acc lexbuf;
       RULE

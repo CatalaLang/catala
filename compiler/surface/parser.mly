@@ -524,14 +524,6 @@ let assertion :=
     assertion_content = base;
   })
 }
-| FIXED ; q = addpos(scope_var) ; BY ; i = lident ; {
-  MetaAssertion (FixedBy (q, i))
-}
-| VARIES ; q = addpos(scope_var) ;
-  WITH_V ; e = expression ;
-  t = option(addpos(variation_type)) ; {
-  MetaAssertion (VariesWith (q, e, t))
-}
 
 let scope_item :=
 | r = rule ; {
