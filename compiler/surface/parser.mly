@@ -38,6 +38,7 @@ end>
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
 %right apply OF CONTAINS FOR SUCH WITH BUT_REPLACE
+%right WITH_V
 %right COMMA
 %right unop_expr
 %right CONTENT
@@ -217,8 +218,7 @@ let naked_expression ==
 }
 | OUTPUT ; OF ;
   c = addpos(quident) ;
-  fields = option(scope_call_args) ; {
-  let fields = Option.value ~default:[] fields in
+  fields = scope_call_args ; {
   ScopeCall (c, fields)
 }
 | e = expression ;
@@ -363,6 +363,7 @@ let literal :=
 | FALSE ; { LBool false }
 
 let scope_call_args ==
+| { [] }
 | WITH_V ;
   LBRACE ;
   fields = list(preceded (ALT, struct_content_field)) ;
@@ -523,14 +524,6 @@ let assertion :=
     assertion_condition = cond;
     assertion_content = base;
   })
-}
-| FIXED ; q = addpos(scope_var) ; BY ; i = lident ; {
-  MetaAssertion (FixedBy (q, i))
-}
-| VARIES ; q = addpos(scope_var) ;
-  WITH_V ; e = expression ;
-  t = option(addpos(variation_type)) ; {
-  MetaAssertion (VariesWith (q, e, t))
 }
 
 let scope_item :=

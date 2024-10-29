@@ -1,5 +1,3 @@
-(* -*- coding: iso-latin-1 -*- *)
-
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
    <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
@@ -13,8 +11,6 @@
    is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
-
-(* WARNING: this file must be saved as Latin-1 and not utf8, sedlex requires it *)
 
 (* Defining the lexer macros for French *)
 
@@ -76,15 +72,11 @@
 #define MS_CONTENT "contenu"
 #define MS_STRUCT "structure"
 #define MS_ASSERTION "assertion"
-#define MS_VARIES "varie"
 #define MS_WITH_V "avec"
 #define MS_FOR "pour"
 #define MS_ALL "tout"
 #define MS_WE_HAVE "on a"
 #define MR_WE_HAVE "on", space_plus, "a"
-#define MS_FIXED "fixé"
-#define MR_FIXED "fix", 0xE9
-#define MS_BY "par"
 #define MS_RULE "règle"
 #define MR_RULE "r", 0xE8, "gle"
 #define MS_LET "soit"

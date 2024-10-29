@@ -1,5 +1,3 @@
-(* -*- coding: iso-latin-1 -*- *)
-
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
    <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
@@ -59,14 +57,11 @@
 #define MS_CONTENT "content"
 #define MS_STRUCT "structure"
 #define MS_ASSERTION "assertion"
-#define MS_VARIES "varies"
 #define MS_WITH_V "with"
 #define MS_FOR "for"
 #define MS_ALL "all"
 #define MS_WE_HAVE "we have"
 #define MR_WE_HAVE "we", space_plus, "have"
-#define MS_FIXED "fixed"
-#define MS_BY "by"
 #define MS_RULE "rule"
 #define MS_LET "let"
 #define MS_EXISTS "exists"
