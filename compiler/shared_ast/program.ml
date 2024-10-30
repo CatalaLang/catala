@@ -51,7 +51,7 @@ let map_scopes_env ~f prg =
         let body1 = f env name body in
         let env child =
           env
-          @@ Expr.make_let_in var
+          @@ Expr.make_let_in (Mark.add pos var)
                ( TArrow
                    ( [TStruct body.scope_body_input_struct, pos],
                      (TStruct body.scope_body_output_struct, pos) ),
@@ -64,7 +64,8 @@ let map_scopes_env ~f prg =
       | Topdef (name, ty, vis, expr) ->
         let pos = Mark.get (TopdefName.get_info name) in
         let env child =
-          env @@ Expr.make_let_in var ty (Expr.rebox expr) child pos
+          env
+          @@ Expr.make_let_in (Mark.add pos var) ty (Expr.rebox expr) child pos
         in
         let def =
           Bindlib.box_apply

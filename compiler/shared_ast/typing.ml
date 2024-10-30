@@ -836,7 +836,7 @@ and typecheck_expr_top_down :
             (Print.typ ctx) ty
     in
     Expr.etupleaccess ~e:e1' ~index ~size mark
-  | A.EAbs { binder; tys = t_args } ->
+  | A.EAbs { binder; pos; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~pos:(Expr.pos e)
         "function has %d variables but was supplied %d types\n%a"
@@ -856,7 +856,7 @@ and typecheck_expr_top_down :
       in
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' (List.map (typ_to_ast ~flags) tau_args) mark
+      Expr.eabs binder' pos (List.map (typ_to_ast ~flags) tau_args) mark
   | A.EApp { f = e1; args; tys } ->
     (* Here we type the arguments first (in order), to ensure we know the types
        of the arguments if [f] is [EAbs] before disambiguation. This is also the

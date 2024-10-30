@@ -77,7 +77,7 @@ let merge_defaults
     let m_callee = Mark.get callee in
     let unboxed_callee = Expr.unbox callee in
     match Mark.remove unboxed_callee with
-    | EAbs { binder; tys } ->
+    | EAbs { binder; pos; tys } ->
       let vars, body = Bindlib.unmbind binder in
       let m_body = Mark.get body in
       let caller =
@@ -103,6 +103,7 @@ let merge_defaults
       let d =
         Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons)
       in
+      let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) pos in
       Expr.make_abs vars (Expr.make_erroronempty d) tys (Expr.mark_pos m_callee)
     | _ -> assert false
     (* should not happen because there should always be a lambda at the
@@ -225,7 +226,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
             let v =
               match var_ctx.scope_input_typ with
               | TArrow ([t_arg], t_ret) ->
-                Expr.make_abs [| Var.make "_" |] (e_empty t_ret) [t_arg] pos
+                Expr.make_ghost_abs [Var.make "_"] (e_empty t_ret) [t_arg] pos
               | TDefault _ as ty -> e_empty (ty, pos)
               | _ -> assert false
             in
@@ -366,8 +367,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                          @ [Mark.add (Expr.pos e) ("input" ^ string_of_int i)]))
                      (List.combine params_vars ts_in)
                  in
-                 Expr.make_abs
-                   (Array.of_list params_vars)
+                 Expr.make_ghost_abs params_vars
                    (tag_with_log_entry
                       (tag_with_log_entry
                          (Expr.eapp
@@ -411,10 +411,11 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     (* let result_var = calling_expr in let result_eta_expanded_var =
        result_eta_expaneded in log (if_then_else_returned ) *)
-    Expr.make_let_in result_var
+    Expr.make_let_in (Mark.ghost result_var)
       (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
       calling_expr
-      (Expr.make_let_in result_eta_expanded_var
+      (Expr.make_let_in
+         (Mark.ghost result_eta_expanded_var)
          (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
          result_eta_expanded
          (tag_with_log_entry

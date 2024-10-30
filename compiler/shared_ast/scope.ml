@@ -95,7 +95,7 @@ let get_body_mark scope_body =
 
 let unfold_body_expr (_ctx : decl_ctx) (scope_let : 'e scope_body_expr) =
   BoundList.fold_right scope_let ~init:Expr.rebox ~f:(fun sl var acc ->
-      Expr.make_let_in var sl.scope_let_typ
+      Expr.make_let_in (Mark.add Pos.no_pos var) sl.scope_let_typ
         (Expr.rebox sl.scope_let_expr)
         acc sl.scope_let_pos)
 
@@ -110,7 +110,7 @@ let to_expr (ctx : decl_ctx) (body : 'e scope_body) : 'e boxed =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   let pos = Expr.pos body_expr in
-  Expr.make_abs [| var |] body_expr
+  Expr.make_ghost_abs [var] body_expr
     [TStruct body.scope_body_input_struct, pos]
     pos
 
@@ -129,7 +129,7 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
         | ScopeDef (_, body) -> to_expr ctx body, typ body
         | Topdef (_, typ, _vis, expr) -> Expr.rebox expr, typ
       in
-      Expr.make_let_in var typ e next (Expr.pos e))
+      Expr.make_let_in (Mark.add Pos.no_pos var) typ e next (Expr.pos e))
 
 let free_vars_body_expr scope_lets =
   BoundList.fold_right scope_lets ~init:Expr.free_vars ~f:(fun sl v acc ->

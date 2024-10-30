@@ -991,7 +991,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
           | TArrow (ty_in, (TOption _, _)) ->
             (* Context args should return an option *)
             Expr.make_abs
-              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
               (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                  ~name:Expr.option_enum mark_e
                 : (_, _) boxed_gexpr)
@@ -1001,7 +1001,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
             Expr.make_tuple
               [
                 Expr.make_abs
-                  (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+                  (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
                   (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                      ~name:Expr.option_enum mark_e)
                   ty_in (Expr.mark_pos mark_e);
@@ -1078,7 +1078,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
           match Mark.remove ty0 with
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
-              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
               (Bindlib.box EEmpty, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | TDefault _ -> Bindlib.box EEmpty, Expr.with_ty mark_e ty0

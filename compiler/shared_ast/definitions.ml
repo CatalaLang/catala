@@ -525,6 +525,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, _, 'm) base_gexpr
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
+      pos : Pos.t list;
       tys : typ list;
     }
       -> ('a, < .. >, 'm) base_gexpr

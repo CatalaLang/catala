@@ -532,7 +532,7 @@ module ExprGen (C : EXPR_PARAM) = struct
       | ELit l -> C.lit fmt l
       | EApp { f = EAbs _, _; _ } ->
         let rec pr bnd_ctx colors fmt = function
-          | EApp { f = EAbs { binder; tys }, _; args; _ }, _ ->
+          | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ }, _ ->
             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
             let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
             let xs_tau_arg =
@@ -552,7 +552,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_open_vbox fmt 0;
         pr bnd_ctx colors fmt e;
         Format.pp_close_box fmt ()
-      | EAbs { binder; tys } ->
+      | EAbs { binder; pos = _; tys } ->
         let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
         let expr = exprb bnd_ctx in
         let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
