@@ -81,8 +81,8 @@ let renaming =
     let id = f id |> Re.replace_string module_sep_re ~by:"_" in
     String.concat "__" (pfx @ [id])
   in
-  let cap s = String.to_ascii s |> String.capitalize_ascii in
-  let uncap s = String.to_ascii s |> String.uncapitalize_ascii in
+  let cap s = String.to_id s |> String.capitalize_ascii in
+  let uncap s = String.to_id s |> String.uncapitalize_ascii in
   let upper s = String.to_snake_case s |> String.uppercase_ascii in
   Renaming.program ()
     ~reserved:c_keywords
