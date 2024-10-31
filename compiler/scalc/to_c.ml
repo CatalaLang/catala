@@ -779,8 +779,14 @@ let format_program
                  Format.pp_print_space fmt ();
                  VarName.format fmt var))
             typ;
-          Format.fprintf ppc "@[<hov 2>return (%a ? %a : (%a = %a));@]"
-            VarName.format var VarName.format var VarName.format var
+          Format.fprintf ppc "@[<hov 2>return CATALA_GET_LAZY(%a, %a);@]"
+            (* This does (foo ? foo : foo = foo_init()), but enabling persistent
+               allocation around the init *)
+            (* FIXME: the proper solution would be to do a deep copy of the
+               allocated object from the Catala heap to the persistent heap
+               instead of switching allocation mode (which could persist
+               intermediate values) *)
+            VarName.format var
             (format_expression ctx env)
             expr;
           Format.fprintf ppc "@;<1 -2>}@]@,";
