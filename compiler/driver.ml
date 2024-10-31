@@ -140,16 +140,7 @@ module Passes = struct
     Message.debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
       (String.uppercase_ascii s)
 
-  let surface options : Surface.Ast.program =
-    debug_pass_name "surface";
-    let prg =
-      Surface.Parser_driver.parse_top_level_file options.Global.input_src
-    in
-    Surface.Fill_positions.fill_pos_with_legislative_info prg
-
-  let desugared options ~includes :
-      Desugared.Ast.program * Desugared.Name_resolution.context =
-    let prg = surface options in
+  let desugared_from_surface options ~includes prg =
     let mod_uses, modules = load_module_interfaces options includes prg in
     debug_pass_name "desugared";
     Message.debug "Name resolution...";
@@ -162,8 +153,7 @@ module Passes = struct
     Desugared.Linting.lint_program prg;
     prg, ctx
 
-  let scopelang options ~includes : untyped Scopelang.Ast.program =
-    let prg, _ = desugared options ~includes in
+  let scopelang_from_desugared prg =
     debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -173,29 +163,30 @@ module Passes = struct
     in
     prg
 
-  let dcalc :
-      type ty.
-      Global.options ->
-      includes:Global.raw_file list ->
+  let generic_scopelang :
+      type ty src.
+      src mark ->
       optimize:bool ->
       check_invariants:bool ->
       autotest:bool ->
       typed:ty mark ->
+      src Scopelang.Ast.program ->
       ty Dcalc.Ast.program * TypeIdent.t list =
-   fun options ~includes ~optimize ~check_invariants ~autotest ~typed ->
-    let prg = scopelang options ~includes in
+   fun src_type ~optimize ~check_invariants ~autotest ~typed prg ->
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
         prg.program_ctx.ctx_enums
     in
     let (prg : ty Scopelang.Ast.program) =
-      match typed with
-      | Typed _ ->
+      match src_type, typed with
+      | Untyped _, Typed _ ->
         Message.debug "Typechecking...";
         Scopelang.Ast.type_program prg
-      | Untyped _ -> prg
-      | Custom _ -> invalid_arg "Driver.Passes.dcalc"
+      | Typed _, Typed _ -> prg
+      | Untyped _, Untyped _ -> prg
+      | Typed _, Untyped _ | Custom _, _ | _, Custom _ ->
+        invalid_arg "Driver.Passes.dcalc"
     in
     Message.debug "Translating to default calculus...";
     let prg = Dcalc.From_scopelang.translate_program prg in
@@ -235,26 +226,43 @@ module Passes = struct
       | _ -> Message.error "--check-invariants cannot be used with --no-typing");
     prg, type_ordering
 
-  let lcalc
+  let dcalc_from_scopelang :
+      type ty.
+      optimize:bool ->
+      check_invariants:bool ->
+      autotest:bool ->
+      typed:ty mark ->
+      untyped Scopelang.Ast.program ->
+      ty Dcalc.Ast.program * TypeIdent.t list =
+   fun ~optimize ~check_invariants ~autotest ~typed prg ->
+    generic_scopelang Expr.untyped ~optimize ~check_invariants ~autotest ~typed
+      prg
+
+  let dcalc_from_typed_scopelang :
+      optimize:bool ->
+      check_invariants:bool ->
+      autotest:bool ->
+      typed Scopelang.Ast.program ->
+      typed Dcalc.Ast.program * TypeIdent.t list =
+   fun ~optimize ~check_invariants ~autotest prg ->
+    generic_scopelang Expr.typed ~optimize ~check_invariants ~autotest
+      ~typed:Expr.typed prg
+
+  let lcalc_from_dcalc
       (type ty)
-      options
-      ~includes
-      ~optimize
-      ~check_invariants
-      ~autotest
       ~(typed : ty mark)
+      ~optimize
       ~closure_conversion
       ~keep_special_ops
       ~monomorphize_types
       ~expand_ops
-      ~renaming :
+      ~renaming
+      ((prg, type_ordering) :
+        ty Dcalc.Ast.program * Shared_ast.TypeIdent.t list) :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
-    let prg, type_ordering =
-      dcalc options ~includes ~optimize ~check_invariants ~autotest ~typed
-    in
     debug_pass_name "lcalc";
     let prg =
-      match typed with
+      match (typed : ty mark) with
       | Untyped _ -> Lcalc.From_dcalc.translate_program prg
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
@@ -313,6 +321,79 @@ module Passes = struct
       in
       prg, type_ordering, Some ren_ctx
 
+  let scalc_from_lcalc
+      ~keep_special_ops
+      ~dead_value_assignment
+      ~no_struct_literals
+      (prg, type_ordering, renaming_context) :
+      Scalc.Ast.program * TypeIdent.t list * Renaming.context =
+    let renaming_context =
+      match renaming_context with
+      | None -> Renaming.(get_ctx default_config)
+      | Some r -> r
+    in
+    debug_pass_name "scalc";
+    ( Scalc.From_lcalc.translate_program
+        ~config:
+          {
+            keep_special_ops;
+            dead_value_assignment;
+            no_struct_literals;
+            renaming_context;
+          }
+        prg,
+      type_ordering,
+      renaming_context )
+
+  let surface options : Surface.Ast.program =
+    debug_pass_name "surface";
+    let prg =
+      Surface.Parser_driver.parse_top_level_file options.Global.input_src
+    in
+    Surface.Fill_positions.fill_pos_with_legislative_info prg
+
+  let desugared options ~includes :
+      Desugared.Ast.program * Desugared.Name_resolution.context =
+    let prg = surface options in
+    desugared_from_surface options ~includes prg
+
+  let scopelang options ~includes : untyped Scopelang.Ast.program =
+    let prg, _ = desugared options ~includes in
+    scopelang_from_desugared prg
+
+  let dcalc :
+      type ty.
+      Global.options ->
+      includes:Global.raw_file list ->
+      optimize:bool ->
+      check_invariants:bool ->
+      autotest:bool ->
+      typed:ty mark ->
+      ty Dcalc.Ast.program * TypeIdent.t list =
+   fun options ~includes ~optimize ~check_invariants ~autotest ~typed ->
+    let prg : untyped Scopelang.Ast.program = scopelang options ~includes in
+    dcalc_from_scopelang ~optimize ~check_invariants ~autotest ~typed prg
+
+  let lcalc
+      (type ty)
+      options
+      ~includes
+      ~optimize
+      ~check_invariants
+      ~autotest
+      ~(typed : ty mark)
+      ~closure_conversion
+      ~keep_special_ops
+      ~monomorphize_types
+      ~expand_ops
+      ~renaming :
+      typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
+    let (prg : ty Dcalc.Ast.program), type_ordering =
+      dcalc options ~includes ~optimize ~check_invariants ~autotest ~typed
+    in
+    lcalc_from_dcalc ~typed ~optimize ~closure_conversion ~keep_special_ops
+      ~monomorphize_types ~expand_ops ~renaming (prg, type_ordering)
+
   let scalc
       options
       ~includes
@@ -331,23 +412,9 @@ module Passes = struct
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops
         ~monomorphize_types ~expand_ops ~renaming
     in
-    let renaming_context =
-      match renaming_context with
-      | None -> Renaming.(get_ctx default_config)
-      | Some r -> r
-    in
-    debug_pass_name "scalc";
-    ( Scalc.From_lcalc.translate_program
-        ~config:
-          {
-            keep_special_ops;
-            dead_value_assignment;
-            no_struct_literals;
-            renaming_context;
-          }
-        prg,
-      type_ordering,
-      renaming_context )
+    scalc_from_lcalc ~keep_special_ops ~dead_value_assignment
+      ~no_struct_literals
+      (prg, type_ordering, renaming_context)
 end
 
 module Commands = struct

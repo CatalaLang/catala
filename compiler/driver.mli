@@ -78,6 +78,56 @@ module Passes : sig
     Scalc.Ast.program
     * Shared_ast.TypeIdent.t list
     * Shared_ast.Renaming.context
+
+  (** Utility functions to move from one pass to its successor *)
+
+  val desugared_from_surface :
+    Global.options ->
+    includes:Global.raw_file list ->
+    Surface.Ast.program ->
+    Desugared.Ast.program * Desugared.Name_resolution.context
+
+  val scopelang_from_desugared :
+    Desugared.Ast.program -> Shared_ast.untyped Scopelang.Ast.program
+
+  val dcalc_from_scopelang :
+    optimize:bool ->
+    check_invariants:bool ->
+    autotest:bool ->
+    typed:'m Shared_ast.mark ->
+    Shared_ast.untyped Scopelang.Ast.program ->
+    'm Dcalc.Ast.program * Shared_ast.TypeIdent.t list
+
+  val dcalc_from_typed_scopelang :
+    optimize:bool ->
+    check_invariants:bool ->
+    autotest:bool ->
+    Shared_ast.typed Scopelang.Ast.program ->
+    Shared_ast.typed Dcalc.Ast.program * Shared_ast.TypeIdent.t list
+
+  val lcalc_from_dcalc :
+    typed:'m Shared_ast.mark ->
+    optimize:bool ->
+    closure_conversion:bool ->
+    keep_special_ops:bool ->
+    monomorphize_types:bool ->
+    expand_ops:bool ->
+    renaming:Shared_ast.Renaming.t option ->
+    'm Dcalc.Ast.program * Shared_ast.TypeIdent.t list ->
+    Shared_ast.typed Lcalc.Ast.program
+    * Shared_ast.TypeIdent.t list
+    * Shared_ast.Renaming.context option
+
+  val scalc_from_lcalc :
+    keep_special_ops:bool ->
+    dead_value_assignment:bool ->
+    no_struct_literals:bool ->
+    Shared_ast.typed Lcalc.Ast.program
+    * Shared_ast.TypeIdent.t list
+    * Shared_ast.Renaming.context option ->
+    Scalc.Ast.program
+    * Shared_ast.TypeIdent.t list
+    * Shared_ast.Renaming.context
 end
 
 module Commands : sig
