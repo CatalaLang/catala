@@ -860,7 +860,7 @@ let translate_program
                   match states with
                   | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
                   | States states ->
-                    let var_prefix = var_name ^ "_" in
+                    let var_prefix = var_name ^ "#" in
                     let state_var state =
                       ScopeVar.fresh
                         (Mark.map (( ^ ) var_prefix) (StateName.get_info state))

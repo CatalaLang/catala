@@ -17,6 +17,13 @@
 include Stdlib.String
 
 let to_ascii : string -> string = Ubase.from_utf8
+
+let to_id s =
+  to_ascii s
+  |> map (function
+       | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c -> c
+       | _ -> '_')
+
 let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let begins_with_uppercase (s : string) : bool =
@@ -29,7 +36,7 @@ let begins_with_uppercase (s : string) : bool =
 let to_snake_case (s : string) : string =
   let out = Buffer.create (2 * length s) in
   s
-  |> to_ascii
+  |> to_id
   |> iteri (fun i c ->
          if is_uppercase_ascii c && 0 <> i && get s (i - 1) <> '_' then
            Buffer.add_char out '_';
@@ -40,7 +47,7 @@ let to_camel_case (s : string) : string =
   let last_was_underscore = ref true in
   let out = Buffer.create (length s) in
   s
-  |> to_ascii
+  |> to_id
   |> iter (function
        | '_' -> last_was_underscore := true
        | c ->

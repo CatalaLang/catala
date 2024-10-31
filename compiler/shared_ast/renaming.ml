@@ -472,8 +472,8 @@ let process_type_ident
       ctx_enums = EnumName.Map.add new_name ctx_constrs tctx.ctx_enums;
     }
 
-let cap s = String.to_ascii s |> String.capitalize_ascii
-let uncap s = String.to_ascii s |> String.uncapitalize_ascii
+let cap s = String.to_id s |> String.capitalize_ascii
+let uncap s = String.to_id s |> String.uncapitalize_ascii
 
 (* Todo? - handle separate namespaces ? (e.g. allow a field and var to have the
    same name for backends that support it) - register module names as reserved

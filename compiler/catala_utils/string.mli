@@ -29,6 +29,10 @@ val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their
     base letter in the Latin alphabet. *)
 
+val to_id : string -> string
+(** Like [to_ascii], but in addition replaces any non-alphanumeric character by
+    [_] *)
+
 val is_uppercase_ascii : char -> bool
 (** [is_uppercase c] returns if [c] is in the set ['A'...'Z']. *)
 

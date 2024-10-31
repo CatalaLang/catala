@@ -37,7 +37,7 @@ module To_jsoo = struct
      other modules: here everything is flattened in the current namespace *)
   let format_struct_name ppf name =
     StructName.to_string name
-    |> String.to_ascii
+    |> String.to_id
     |> String.uncapitalize_ascii
     |> String.map (function '.' -> '_' | c -> c)
     |> Format.pp_print_string ppf

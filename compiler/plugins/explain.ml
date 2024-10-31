@@ -17,11 +17,65 @@
 open Catala_utils
 open Shared_ast
 
+module Style = struct
+  type color = Graph.Graphviz.color
+
+  type elt = {
+    fill : color;
+    border : color;
+    stroke : int; (* in px *)
+    text : color;
+  }
+
+  type theme = {
+    page_background : Graph.Graphviz.color;
+    arrows : Graph.Graphviz.color;
+    input : elt;
+    middle : elt;
+    constant : elt;
+    condition : elt;
+    output : elt;
+  }
+
+  let dark =
+    {
+      page_background = 0x0;
+      arrows = 0x606060;
+      input =
+        { fill = 0x252526; border = 0xBC3FBC; stroke = 2; text = 0xFFFFFF };
+      middle =
+        { fill = 0x252526; border = 0x0097FB; stroke = 2; text = 0xFFFFFF };
+      constant =
+        { fill = 0x252526; border = 0x40C8AE; stroke = 2; text = 0xFFFFFF };
+      condition =
+        { fill = 0x252526; border = 0xff7700; stroke = 2; text = 0xFFFFFF };
+      output =
+        { fill = 0x252526; border = 0xFFFFFF; stroke = 2; text = 0xFFFFFF };
+    }
+
+  let light =
+    {
+      page_background = 0xffffff;
+      arrows = 0x0;
+      input = { fill = 0xffaa55; border = 0x0; stroke = 1; text = 0x0 };
+      middle = { fill = 0xffee99; border = 0x0; stroke = 1; text = 0x0 };
+      constant = { fill = 0x99bbff; border = 0x0; stroke = 1; text = 0x0 };
+      condition = { fill = 0xffffff; border = 0xff7700; stroke = 2; text = 0x0 };
+      output = { fill = 0xffffff; border = 0x1; stroke = 2; text = 0x0 };
+    }
+
+  let width pixels =
+    let dpi = 96. in
+    let pt_per_inch = 72.28 in
+    float_of_int pixels /. dpi *. pt_per_inch
+end
+
 type flags = {
   with_conditions : bool;
   with_cleanup : bool;
   merge_level : int;
   format : [ `Dot | `Convert of string ];
+  theme : Style.theme;
   show : string option;
   output : Global.raw_file option;
   base_src_url : string;
@@ -574,7 +628,7 @@ end
 
 module E = struct
   type hand_side = Lhs of string | Rhs of string
-  type t = { side : hand_side option; condition : bool }
+  type t = { side : hand_side option; condition : bool; invisible : bool }
 
   let compare x y =
     match Bool.compare x.condition y.condition with
@@ -588,7 +642,7 @@ module E = struct
         x.side y.side
     | n -> n
 
-  let default = { side = None; condition = false }
+  let default = { side = None; condition = false; invisible = false }
 end
 
 module G = Graph.Persistent.Digraph.AbstractLabeled (V) (E)
@@ -739,7 +793,7 @@ let program_to_graph
       value_level with
       eval_struct = false;
       eval_op = false;
-      eval_match = false;
+      eval_match = true;
       eval_vars = (fun v -> false);
     }
   in
@@ -760,7 +814,9 @@ let program_to_graph
                 aux (Some parent) (g, var_vertices, env) econd
               in
               ( G.add_edge_e g
-                  (G.E.create parent { side = None; condition = true } vcond),
+                  (G.E.create parent
+                     { side = None; condition = true; invisible = false }
+                     vcond),
                 var_vertices,
                 Env.join env0 env ))
             (g, var_vertices, env0) conditions
@@ -842,11 +898,15 @@ let program_to_graph
       in
       let g =
         G.add_edge_e g
-          (G.E.create v { side = lhs_label; condition = false } lhs)
+          (G.E.create v
+             { side = lhs_label; condition = false; invisible = false }
+             lhs)
       in
       let g =
         G.add_edge_e g
-          (G.E.create v { side = rhs_label; condition = false } rhs)
+          (G.E.create v
+             { side = rhs_label; condition = false; invisible = false }
+             rhs)
       in
       (g, var_vertices, env), v
     | EAppOp { op = _; args; _ }, _ ->
@@ -1167,7 +1227,7 @@ let expr_to_dot_label0 :
           match o with
           | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
           | Eq_dat_dat | Eq ->
-            "="
+            "＝"
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
           | ToRat_int | ToRat_mon | ToRat -> ""
           | ToMoney_rat | ToMoney -> ""
@@ -1181,19 +1241,19 @@ let expr_to_dot_label0 :
             "×"
           | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur
           | Div ->
-            "/"
+            "÷"
           | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt
             ->
             "<"
           | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat
           | Lte ->
-            "<="
+            "≤"
           | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt
             ->
             ">"
           | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat
           | Gte ->
-            ">="
+            "≥"
           | Concat -> "++"
           | Not -> xlang () ~en:"not" ~fr:"non"
           | Length -> xlang () ~en:"length" ~fr:"nombre"
@@ -1224,10 +1284,25 @@ let expr_to_dot_label0 :
 
       let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
        fun ppf e ->
+        let percent_printer ppf = function
+          | ELit (LRat r), m
+            when Runtime.(o_lt_rat_rat r (Runtime.decimal_of_float 1.)) ->
+            Format.fprintf ppf "%a%%" aux_value
+              ( ELit
+                  (LRat
+                     (Runtime.o_mult_rat_rat r (Runtime.decimal_of_float 100.))),
+                m )
+          | e -> aux_value ppf e
+        in
         match Mark.remove e with
         | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
         | EExternal _ ->
           aux_value ppf e;
+          true
+        | EAppOp
+            { op = (Op.Mult_rat_rat | Op.Mult_mon_rat), _; args = [x1; x2]; _ }
+          ->
+          Format.fprintf ppf "%a × %a" percent_printer x1 percent_printer x2;
           true
         | EMatch { e; cases; _ } ->
           let cases =
@@ -1274,16 +1349,11 @@ let htmlencode =
       | "@" -> "&commat;"
       | _ -> assert false)
 
-let scale_svg_width s =
-  let open Re in
-  let re = Pcre.re "<svg width=\"[^\"]*pt\"" in
-  replace_string (compile re) ~by:"<svg width=\"100%\"" s
-
 let expr_to_dot_label0 lang ctx env ppf e =
   Format.fprintf ppf "%s"
     (htmlencode (Format.asprintf "%a" (expr_to_dot_label0 lang ctx env) e))
 
-let rec expr_to_dot_label lang ctx env ppf e =
+let rec expr_to_dot_label (style : Style.theme) lang ctx env ppf e =
   let print_expr ppf = function
     | (EVar _, _) as e ->
       let e, _ = lazy_eval ctx env value_level e in
@@ -1317,9 +1387,11 @@ let rec expr_to_dot_label lang ctx env ppf e =
   | EStruct { name; fields }, _ ->
     let pr ppf =
       Format.fprintf ppf
-        "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr><td \
+        "<table border=\"%f\" cellborder=\"1\" cellspacing=\"0\" \
+         bgcolor=\"#%06x\" color=\"#%06x\"><tr><td \
          colspan=\"2\">%a</td></tr><tr><td>%a</td><td>%a</td></tr></table>"
-        StructName.format name
+        (float_of_int style.output.stroke)
+        style.output.fill style.output.border StructName.format name
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf fld ->
@@ -1350,7 +1422,7 @@ let rec expr_to_dot_label lang ctx env ppf e =
     Format.pp_print_string ppf (Message.unformat pr)
   | e -> Format.fprintf ppf "%a@," (expr_to_dot_label0 lang ctx env) e
 
-let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
+let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format ~theme =
   let module GPr = Graph.Graphviz.Dot (struct
     include G
 
@@ -1361,11 +1433,20 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
        *     out_funs with
        *     Format.out_newline = (fun () -> out_funs.out_string "<br/>" 0 2);
        *   }; *)
-      expr_to_dot_label env ctx lang ppf e
+      expr_to_dot_label theme env ctx lang ppf e
     (* ; * Format.pp_print_flush ppf (); * Format.pp_set_formatter_out_functions
        ppf out_funs *)
 
-    let graph_attributes _ = [ (* `Rankdir `LeftToRight *) ]
+    let graph_attributes _ =
+      [
+        `BgcolorWithTransparency (Int32.of_int 0x00);
+        (* `Ratio (`Float 0.8); *)
+        (* `Concentrate true; *)
+        `Ratio `Compress;
+        (* `Size (8.3, 11.7); (* A4 in inches..... *) *)
+        (* `Rankdir `LeftToRight *)
+      ]
+
     let default_vertex_attributes _ = []
 
     let vertex_label v =
@@ -1417,54 +1498,127 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url ~line_format =
       (match G.V.label v with
       | EVar var, _ ->
         if Var.Set.mem var base_vars then
-          [`Style `Filled; `Fillcolor 0xffaa55; `Shape `Box]
+          [
+            `Style `Filled;
+            `Fillcolor theme.input.fill;
+            `Shape `Box;
+            `Penwidth (Style.width theme.input.stroke);
+            `Color theme.input.border;
+            `Fontcolor theme.input.text;
+          ]
         else if
           List.exists (fun e -> not (G.E.label e).condition) (G.succ_e g v)
         then
           (* non-constants *)
-          [`Style `Filled; `Fillcolor 0xffee99; `Shape `Box]
-        else (* Constants *)
-          [`Style `Filled; `Fillcolor 0x99bbff; `Shape `Note]
+          [
+            `Style `Filled;
+            `Fillcolor theme.middle.fill;
+            `Shape `Box;
+            `Penwidth (Style.width theme.middle.stroke);
+            `Color theme.middle.border;
+            `Fontcolor theme.middle.text;
+          ]
+        else
+          (* Constants *)
+          [
+            `Style `Filled;
+            `Fillcolor theme.constant.fill;
+            `Shape `Box;
+            `Penwidth (Style.width theme.middle.stroke);
+            `Color theme.constant.border;
+            `Fontcolor theme.constant.text;
+          ]
       | EAppOp { op = Op.Eq, _; args = [(EVar _, _); (EAppOp _, _)]; _ }, _ ->
-        [`Style `Filled; `Fillcolor 0xffee99; `Shape `Box]
-      | EStruct _, _ | EArray _, _ -> [`Shape `Plaintext]
+        [
+          `Style `Filled;
+          `Fillcolor theme.middle.fill;
+          `Shape `Box;
+          `Penwidth (Style.width theme.middle.stroke);
+          `Color theme.middle.border;
+          `Fontcolor theme.middle.text;
+        ]
+      | EStruct _, _ | EArray _, _ ->
+        [
+          `Style `Solid;
+          (* `Fillcolor theme.output.fill; *)
+          `Shape `Plaintext;
+          `Penwidth (Style.width theme.output.stroke);
+          `Color theme.output.border;
+          `Fontcolor theme.output.text;
+        ]
       (* | EAppOp { op = op, _; _ }, _ -> (
        *     match op_kind op with
-       *     | `Sum | `Product | _ -> [`Shape `Box; `Fillcolor 0xff0000] (\* | _ -> [] *\)) *)
-      | _ -> [`Shape `Box; `Penwidth 2.; `Style `Dashed; `Color 0xff7700])
+       *     | `Sum | `Product | _ -> [`Shape `Box; `Fillcolor 0xff0000] (* | _ -> [] *)) *)
+      | _ ->
+        [
+          `Style `Dashed;
+          `Style `Filled;
+          `Fillcolor theme.condition.fill;
+          `Shape `Box;
+          `Penwidth (Style.width theme.condition.stroke);
+          `Color theme.condition.border;
+          `Fontcolor theme.condition.text;
+        ])
 
     let get_subgraph v =
-      match G.V.label v with
-      | EVar var, _ -> (
-        if Var.Set.mem var base_vars then
-          Some
-            {
-              Graph.Graphviz.DotAttributes.sg_name = "cluster_inputs";
-              sg_attributes = [];
-              sg_parent = None;
-            }
-        else
-          match List.map G.V.label (G.succ g v) with
-          (* | [] | [ELit _, _] ->
-           *   Some
-           *     {
-           *       Graph.Graphviz.DotAttributes.sg_name = "constants";
-           *       sg_attributes = [`Shape `Box];
-           *       sg_parent = None;
-           *     } *)
-          | _ -> None)
-      | _ -> None
+      let is_input =
+        match G.V.label v with
+        | EVar var, _ -> Var.Set.mem var base_vars
+        | _ -> false
+      in
+      if is_input then
+        Some
+          {
+            Graph.Graphviz.DotAttributes.sg_name = "inputs";
+            sg_attributes =
+              [
+                `Style `Filled;
+                `FillcolorWithTransparency (Int32.of_int 0x0);
+                `ColorWithTransparency (Int32.of_int 0x0);
+              ];
+            sg_parent = None;
+          }
+      else None
 
     let default_edge_attributes _ = []
 
     let edge_attributes e =
       match E.label e with
+      | { invisible = true; _ } -> [`Style `Invis; `Weight 6]
       | { condition = true; _ } ->
-        [`Style `Dashed; `Penwidth 2.; `Color 0xff7700; `Arrowhead `Odot]
+        [
+          `Style `Dashed;
+          `Penwidth 2.;
+          `Color 0xff7700;
+          `Arrowhead `Odot;
+          `Weight 8;
+        ]
       | { side = Some (Lhs s | Rhs s); _ } ->
-        [ (* `Label s; `Color 0xbb7700 *) ]
-      | { side = None; _ } -> [ (* `Minlen 0; `Weight 10 *) ]
+        [`Color theme.arrows (* `Label s; `Color 0xbb7700 *); `Weight 10]
+      | { side = None; _ } ->
+        [`Color theme.arrows (* `Minlen 0; `Weight 10 *); `Weight 10]
   end) in
+  let g =
+    (* Add fake edges from everything towards the inputs to force ordering *)
+    G.fold_vertex
+      (fun v g ->
+        match G.V.label v with
+        | EVar var, _ when Var.Set.mem var base_vars ->
+          G.fold_vertex
+            (fun v0 g ->
+              if G.out_degree g v0 > 0 then g
+              else
+                match G.V.label v0 with
+                | EVar var, _ when Var.Set.mem var base_vars -> g
+                | _ ->
+                  G.add_edge_e g
+                    (G.E.create v0
+                       { invisible = true; condition = false; side = None }
+                       v))
+            g g
+        | _ -> g)
+      g g
+  in
   GPr.fprint_graph ppf (reverse_graph g)
 
 (* -- Plugin registration -- *)
@@ -1523,6 +1677,12 @@ let options =
             mkinfo "html";
           ])
   in
+  let theme =
+    Arg.(
+      value
+      & opt (enum ["light", Style.light; "dark", Style.dark]) Style.light
+      & info ["theme"] ~doc:"Select the color theme for graphical outputs")
+  in
   let show =
     Arg.(
       value
@@ -1562,6 +1722,7 @@ let options =
       no_cleanup
       merge_level
       format
+      theme
       show
       output
       base_src_url
@@ -1572,6 +1733,7 @@ let options =
       with_cleanup = not no_cleanup;
       merge_level;
       format;
+      theme;
       show;
       output;
       base_src_url;
@@ -1585,6 +1747,7 @@ let options =
     $ no_cleanup
     $ merge_level
     $ format
+    $ theme
     $ show
     $ Cli.Flags.output
     $ base_src_url
@@ -1704,7 +1867,7 @@ let run
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url
-      ~line_format:explain_options.line_format;
+      ~line_format:explain_options.line_format ~theme:explain_options.theme;
     Format.flush_str_formatter ()
     |> Re.(replace_string (compile (seq [bow; str "comment="])) ~by:"tooltip=")
   in
@@ -1732,10 +1895,17 @@ let run
         if wrap_html then (
           output_string oc "<!DOCTYPE html>\n<html>\n<head>\n  <title>";
           output_string oc (htmlencode ex_scope);
-          output_string oc "</title>\n</head>\n<body>\n");
+          Printf.fprintf oc
+            "  </title>\n\
+            \  <style>\n\
+            \    body { background-color: #%06x }\n\
+            \    svg { max-width: 80rem; height: fit-content; }\n\
+            \  </style>\n\
+             </head>\n\
+             <body>\n"
+            explain_options.theme.page_background);
         let contents = File.process_out "dot" ["-T" ^ fmt; dotfile] in
-        output_string oc
-          (if wrap_html then scale_svg_width contents else contents);
+        output_string oc contents;
         if wrap_html then output_string oc "</body>\n</html>\n")
   | `Dot -> ());
   match explain_options.show with
