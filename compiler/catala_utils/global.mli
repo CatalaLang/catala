@@ -55,6 +55,7 @@ type options = private {
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
+  mutable include_resolver : (file -> file input_src) option;
   mutable stop_on_error : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
@@ -76,6 +77,7 @@ val enforce_options :
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->
   ?path_rewrite:(raw_file -> file) ->
+  ?include_resolver:(file -> file input_src) ->
   ?stop_on_error:bool ->
   unit ->
   options

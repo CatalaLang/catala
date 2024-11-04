@@ -37,6 +37,7 @@ type options = {
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
+  mutable include_resolver : (file -> file input_src) option;
   mutable stop_on_error : bool;
 }
 
@@ -57,6 +58,7 @@ let options =
     disable_warnings = false;
     max_prec_digits = 20;
     path_rewrite = (fun _ -> assert false);
+    include_resolver = None;
     stop_on_error = false;
   }
 
@@ -71,6 +73,7 @@ let enforce_options
     ?disable_warnings
     ?max_prec_digits
     ?path_rewrite
+    ?include_resolver
     ?stop_on_error
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
@@ -83,6 +86,7 @@ let enforce_options
   Option.iter (fun x -> options.disable_warnings <- x) disable_warnings;
   Option.iter (fun x -> options.max_prec_digits <- x) max_prec_digits;
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
+  Option.iter (fun x -> options.include_resolver <- Some x) include_resolver;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   options
 

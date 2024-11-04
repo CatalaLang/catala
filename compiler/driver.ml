@@ -348,7 +348,9 @@ module Passes = struct
   let surface options : Surface.Ast.program =
     debug_pass_name "surface";
     let prg =
-      Surface.Parser_driver.parse_top_level_file options.Global.input_src
+      Surface.Parser_driver.parse_top_level_file
+        ?resolve_included_file:options.Global.include_resolver
+        options.Global.input_src
     in
     Surface.Fill_positions.fill_pos_with_legislative_info prg
 
