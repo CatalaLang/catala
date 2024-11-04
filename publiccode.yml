@@ -5,8 +5,7 @@ landingURL: https://catala-lang.org
 creationDate: 2020-04-17
 logo: https://github.com/CatalaLang.png
 usedBy:
-  - name: Direction Générale des Finances Publiques (DGFiP)
-    url: https://gitlab.adullact.net/dgfip/ir-catala
+  - Direction Générale des Finances Publiques (DGFiP)
 fundedBy:
   - name: Institut National de Recherche en Informatique et en Automatique (INRIA)
     url: https://team.inria.fr/prosecco/
