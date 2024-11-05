@@ -362,7 +362,7 @@ open Content
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
 
-type lsp_error_kind = Lexing | Parsing | Typing | Generic
+type lsp_error_kind = Lexing | Parsing | Typing | Generic | Warning
 
 type lsp_error = {
   kind : lsp_error_kind;
@@ -448,7 +448,6 @@ let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 let results r = emit (List.flatten (List.map of_result r)) Result
-let warning = make ~level:Warning ~cont:emit
 
 let join_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
@@ -458,6 +457,26 @@ let join_pos ~pos ~fmt_pos ~extra_pos =
   | Some ((_, pos) :: _), _, _ | _, Some ((_, pos) :: _), _ | _, _, Some pos ->
     Some pos
   | _ -> None
+
+let warning
+    ?header
+    ?internal
+    ?pos
+    ?pos_msg
+    ?extra_pos
+    ?fmt_pos
+    ?outcome
+    ?suggestion
+    fmt =
+  make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
+    fmt ~level:Warning ~cont:(fun m x ->
+      Option.iter
+        (fun f ->
+          let message ppf = Content.emit ~ppf m Warning in
+          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          f { kind = Warning; message; pos; suggestion })
+        !global_error_hook;
+      emit m x)
 
 let error ?(kind = Generic) : ('a, 'exn) emitter =
  fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
