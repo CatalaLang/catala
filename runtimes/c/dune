@@ -1,14 +1,15 @@
 (rule
- (deps runtime.c runtime.h)
+ (deps runtime.c runtime.h dates_calc.h)
  (target runtime.o)
  (action
   (system
-   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I $(ocamlfind query dates_calc)/c -o %{target}")))
+   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . -o %{target}")))
 
 (rule
  (deps runtime.o)
  (target catala_runtime.a)
  (action
+  ; FIXME: ar is not portable, it makes the build fails on windows ;
   (run ar rcs %{target} %{lib:dates_calc:c/dates_calc.o} %{deps})))
 
 (rule
