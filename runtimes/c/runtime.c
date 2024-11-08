@@ -304,6 +304,13 @@ CATALA_DURATION o_minus_dur (CATALA_DURATION dur)
   return ret;
 }
 
+CATALA_INT o_toint_rat (CATALA_DEC x)
+{
+  CATALA_NEW_MPZ(ret);
+  mpz_tdiv_q(ret, mpq_numref(x), mpq_denref(x));
+  return ret;
+}
+
 CATALA_DEC o_torat_int (CATALA_INT x)
 {
   CATALA_NEW_MPQ(ret);

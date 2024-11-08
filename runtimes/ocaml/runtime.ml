@@ -192,6 +192,7 @@ let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
 let integer_of_int (i : int) : integer = Z.of_int i
+let integer_of_decimal (d : decimal) : integer = Q.to_bigint d
 let integer_exponentiation (i : integer) (e : int) : integer = Z.pow i e
 let integer_log2 = Z.log2
 
@@ -766,6 +767,7 @@ let equal_periods pos (p1 : duration) (p2 : duration) : bool =
 module Oper = struct
   let o_not = Stdlib.not
   let o_length a = Z.of_int (Array.length a)
+  let o_toint_rat = integer_of_decimal
   let o_torat_int = decimal_of_integer
   let o_torat_mon = decimal_of_money
   let o_tomoney_rat = money_of_decimal

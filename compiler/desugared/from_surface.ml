@@ -501,6 +501,7 @@ let rec translate_expr
   | FunCall ((Builtin b, pos), [arg]) ->
     let op, ty =
       match b with
+      | S.ToInteger -> Op.ToInt, TAny
       | S.ToDecimal -> Op.ToRat, TAny
       | S.ToMoney -> Op.ToMoney, TAny
       | S.Round -> Op.Round, TAny

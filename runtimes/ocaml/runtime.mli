@@ -306,6 +306,7 @@ val integer_of_string : string -> integer
 val integer_to_string : integer -> string
 val integer_to_int : integer -> int
 val integer_of_int : int -> integer
+val integer_of_decimal : decimal -> integer
 val integer_log2 : integer -> int
 val integer_exponentiation : integer -> int -> integer
 
@@ -349,6 +350,7 @@ module Oper : sig
      added first argument [pos] for any operator that might trigger an error. *)
   val o_not : bool -> bool
   val o_length : 'a array -> integer
+  val o_toint_rat : decimal -> integer
   val o_torat_int : integer -> decimal
   val o_torat_mon : money -> decimal
   val o_tomoney_rat : decimal -> money
