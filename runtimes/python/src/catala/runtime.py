@@ -98,8 +98,11 @@ class IndivisibleDurations(CatalaError):
 
 
 class Integer:
-    def __init__(self, value: Union[str, int]) -> None:
-        self.value = mpz(value)
+    def __init__(self, value: Union[str, int, Decimal]) -> None:
+        if isinstance(value, Decimal):
+            self.value = t_div(value.value.numerator, value.value.denominator)
+        else:
+            self.value = mpz(value)
 
     def __add__(self, other: Integer) -> Integer:
         return Integer(self.value + other.value)
@@ -490,9 +493,11 @@ def decimal_of_float(d: float) -> Decimal:
     return Decimal(d)
 
 
+def integer_of_decimal(d: Decimal) -> Integer:
+    return Integer(d.value)
+
 def decimal_of_integer(d: Integer) -> Decimal:
     return Decimal(d.value)
-
 
 def decimal_to_string(precision: int, i: Decimal) -> str:
     return "{1:.{0}}".format(precision, mpfr(i.value, precision * 10 // 2))

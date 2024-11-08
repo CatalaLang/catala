@@ -42,6 +42,9 @@ scope A:
   assertion (round of 0.5 = 1.)
   assertion (round of 1.1 = 1.)
   assertion (round of 1.5 = 2.)
+
+  assertion (integer of 1.5 = 1)
+  assertion (integer of -42.443 = -42)
 ```
 
 ```catala-test-inline

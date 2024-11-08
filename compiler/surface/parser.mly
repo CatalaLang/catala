@@ -202,6 +202,9 @@ let naked_expression ==
 | CARDINAL ; {
   Builtin Cardinal
 }
+| INTEGER ; {
+  Builtin ToInteger
+}
 | DECIMAL ; {
   Builtin ToDecimal
 }

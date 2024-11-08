@@ -112,6 +112,7 @@ and unop = Not | Minus of op_kind
 
 and builtin_expression =
   | Cardinal
+  | ToInteger
   | ToDecimal
   | ToMoney
   | GetDay
