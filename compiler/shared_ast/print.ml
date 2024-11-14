@@ -1117,12 +1117,12 @@ module UserFacing = struct
       Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
         (value ~fallback lang) e
     | EEmpty -> Format.pp_print_string ppf "ø"
-    | EAbs _ -> Format.pp_print_string ppf "<function>"
+    | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
     | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
-    | EDStructAccess _ | ECustom _ ->
+    | EDStructAccess _ ->
       fallback ppf e
 
   let expr :
