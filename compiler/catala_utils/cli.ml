@@ -213,8 +213,8 @@ module Flags = struct
       & flag
       & info ["no-fail-on-assert"]
           ~doc:
-            "Instead of aborting the execution on assertion failure, continues \
-             as if the assertion had succeeded and reports a warning."
+            "Instead of reporting an error on assertion failure, reports a \
+             warning and carry on with the interpretation as usual."
 
     let flags =
       let make
