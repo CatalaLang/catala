@@ -56,6 +56,7 @@ type options = private {
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
+  mutable no_fail_on_assert : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -77,6 +78,7 @@ val enforce_options :
   ?max_prec_digits:int ->
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
+  ?no_fail_on_assert:bool ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this

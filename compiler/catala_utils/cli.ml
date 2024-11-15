@@ -208,6 +208,14 @@ module Flags = struct
       & info ["x"; "stop-on-error"]
           ~doc:"Stops the compilation as soon as an error is encountered."
 
+    let no_fail_on_assert =
+      value
+      & flag
+      & info ["no-fail-on-assert"]
+          ~doc:
+            "Instead of aborting the execution on assertion failure, continues \
+             as if the assertion had succeeded and reports a warning."
+
     let flags =
       let make
           language
@@ -219,7 +227,8 @@ module Flags = struct
           disable_warnings
           max_prec_digits
           directory
-          stop_on_error : options =
+          stop_on_error
+          no_fail_on_assert : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -234,7 +243,7 @@ module Flags = struct
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite
-          ~stop_on_error ()
+          ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
         const make
@@ -247,7 +256,8 @@ module Flags = struct
         $ disable_warnings
         $ max_prec_digits
         $ directory
-        $ stop_on_error)
+        $ stop_on_error
+        $ no_fail_on_assert)
 
     let options =
       let make input_src name directory options : options =
