@@ -81,7 +81,8 @@ val program :
   reserved:string list ->
   skip_constant_binders:bool ->
   constant_binder_name:string option ->
-  namespaced_fields_constrs:bool ->
+  namespaced_fields:bool ->
+  namespaced_constrs:bool ->
   prefix_module:bool ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
@@ -95,8 +96,9 @@ val program :
     [reserved], typically keywords and built-ins, will be avoided ; the meaning
     of the following three flags is described in [Bindlib.Renaming].
 
-    if [namespaced_fields_constrs] is true, then struct fields and enum
-    constructors can reuse names from other fields/constructors or other idents.
+    if [namespaced_fields] (resp. [_constrs]) is true, then struct fields (resp.
+    enum constructors) can reuse names from other fields/constructors or other
+    idents.
 
     if [prefix_module] is true, the qualifying module name is inserted within
     the ident string, separated with a [.] dot. This happens before

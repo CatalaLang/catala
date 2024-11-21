@@ -174,7 +174,7 @@ let renaming =
     ~reserved:python_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:false ~constant_binder_name:None
-    ~namespaced_fields_constrs:true ~prefix_module:false
+    ~namespaced_fields:true ~namespaced_constrs:true ~prefix_module:false
     ~f_var:String.to_snake_case ~f_struct:String.to_camel_case
     ~f_enum:String.to_camel_case
 
