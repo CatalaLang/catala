@@ -430,17 +430,17 @@ let process_type_ident
       constrs_map;
       ctx_enums = EnumName.Map.add name Expr.option_enum_config tctx.ctx_enums;
     }
-  | TypeIdent.Enum name ->
-    let constrs = EnumName.Map.find name decl_ctx.ctx_enums in
-    let path = EnumName.path name in
+  | TypeIdent.Enum ename ->
+    let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
+    let path = EnumName.path ename in
     let add_prefix =
       if
         tctx.prefix_module
-        && TypeIdent.Set.mem (Enum name) decl_ctx.ctx_public_types
+        && TypeIdent.Set.mem (Enum ename) decl_ctx.ctx_public_types
       then add_module_prefix tctx path
       else Fun.id
     in
-    let str, pos = EnumName.get_info name in
+    let str, pos = EnumName.get_info ename in
     let str = add_prefix str in
     let path_ctx, ctx =
       try tctx.path_ctx, PathMap.find path tctx.path_ctx
@@ -452,6 +452,10 @@ let process_type_ident
       EnumConstructor.Map.fold
         (fun name ty (ctx, constrs_map, ctx_constrs) ->
           let str, pos = EnumConstructor.get_info name in
+          let str =
+            if tctx.namespaced_constrs then str
+            else EnumName.base ename ^ "." ^ str
+          in
           let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_constr str) in
           let new_name = EnumConstructor.fresh (id, pos) in
@@ -467,7 +471,7 @@ let process_type_ident
     {
       tctx with
       path_ctx = PathMap.add path ctx path_ctx;
-      enums_map = EnumName.Map.add name new_name tctx.enums_map;
+      enums_map = EnumName.Map.add ename new_name tctx.enums_map;
       constrs_map;
       ctx_enums = EnumName.Map.add new_name ctx_constrs tctx.ctx_enums;
     }

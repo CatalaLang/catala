@@ -71,19 +71,20 @@ let renaming =
      idents coming from the user, separates modules from idents, and is also
      used for special ids (eg enum codes) later on *)
   let module_sep_re = Re.(compile (str "__+")) in
+  let cap s = String.to_id s |> String.capitalize_ascii in
+  let uncap s = String.to_id s |> String.uncapitalize_ascii in
+  let upper s = String.to_id s |> String.uppercase_ascii in
   let ren_qualified f s =
     let pfx, id =
       match String.split_on_char '.' s with
       | [id] -> [], id
       | [modname; id] -> [String.to_camel_case modname], id
+      | [modname; enum_name; id] -> [String.to_camel_case modname; cap enum_name], id
       | _ -> assert false
     in
     let id = f id |> Re.replace_string module_sep_re ~by:"_" in
     String.concat "__" (pfx @ [id])
   in
-  let cap s = String.to_id s |> String.capitalize_ascii in
-  let uncap s = String.to_id s |> String.uncapitalize_ascii in
-  let upper s = String.to_id s |> String.uppercase_ascii in
   Renaming.program ()
     ~reserved:c_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
