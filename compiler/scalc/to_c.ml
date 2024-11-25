@@ -79,7 +79,8 @@ let renaming =
       match String.split_on_char '.' s with
       | [id] -> [], id
       | [modname; id] -> [String.to_camel_case modname], id
-      | [modname; enum_name; id] -> [String.to_camel_case modname; cap enum_name], id
+      | [modname; enum_name; id] ->
+        [String.to_camel_case modname; cap enum_name], id
       | _ -> assert false
     in
     let id = f id |> Re.replace_string module_sep_re ~by:"_" in

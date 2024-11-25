@@ -556,8 +556,14 @@ let process_topdef ?(visibility = Public) ctxt def =
   {
     ctxt with
     topdefs =
-      TopdefName.Map.add uid
-        (process_type ctxt def.Surface.Ast.topdef_type, visibility)
+      TopdefName.Map.update uid
+        (fun prev_def ->
+          let visibility =
+            match prev_def, visibility with
+            | Some (_, Private), Private | None, Private -> Private
+            | Some (_, Public), _ | _, Public -> Public
+          in
+          Some (process_type ctxt def.Surface.Ast.topdef_type, visibility))
         ctxt.topdefs;
   }
 

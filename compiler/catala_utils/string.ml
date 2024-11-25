@@ -36,12 +36,12 @@ let begins_with_uppercase (s : string) : bool =
 let to_snake_case (s : string) : string =
   let out = Buffer.create (2 * length s) in
   let s = to_id s in
-  let s =
-    iteri (fun i c ->
-        if is_uppercase_ascii c && 0 <> i && get s (i - 1) <> '_' then
-          Buffer.add_char out '_';
-        Buffer.add_char out (Char.lowercase_ascii c))
-      s;
+  iteri
+    (fun i c ->
+      if is_uppercase_ascii c && 0 <> i && get s (i - 1) <> '_' then
+        Buffer.add_char out '_';
+      Buffer.add_char out (Char.lowercase_ascii c))
+    s;
   Buffer.contents out
 
 let to_camel_case (s : string) : string =
