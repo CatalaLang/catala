@@ -199,7 +199,7 @@ CATALA_DEC catala_new_dec_str(const char* val)
   return ret;
 }
 
-CATALA_INT catala_new_money(const signed long int val)
+CATALA_MONEY catala_new_money(const signed long int val)
 {
   CATALA_NEW_MPZ(ret);
   mpz_set_si(ret, val);

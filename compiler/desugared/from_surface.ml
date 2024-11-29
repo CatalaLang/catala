@@ -1609,13 +1609,18 @@ let process_topdef
           if not (Type.equal def0.Ast.topdef_type typ) then
             err "Conflicting type definitions"
           else
+            let topdef_visibility =
+              match def0.topdef_visibility, topdef_visibility with
+              | Private, Private -> Private
+              | Public, _ | _, Public -> Public
+            in
             match def0.Ast.topdef_expr, eopt with
             | None, None -> err "Multiple declarations"
             | Some _, Some _ -> err "Multiple definitions"
             | (Some _ as topdef_expr), None ->
               Some { Ast.topdef_expr; topdef_visibility; topdef_type = typ }
             | None, (Some _ as topdef_expr) ->
-              Some { def0 with Ast.topdef_expr }))
+              Some { def0 with Ast.topdef_expr; topdef_visibility }))
       prgm.Ast.program_root.module_topdefs
   in
   { prgm with program_root = { prgm.program_root with module_topdefs } }

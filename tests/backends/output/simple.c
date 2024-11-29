@@ -17,15 +17,15 @@ typedef struct Baz {
 } Baz;
 
 enum Bar__code {
-  NO,
-  YES
+  Bar__NO,
+  Bar__YES
 };
 
 typedef struct Bar {
   enum Bar__code code;
   union {
-    CATALA_UNIT NO;
-    const Foo* YES;
+    CATALA_UNIT Bar__NO;
+    const Foo* Bar__YES;
   } payload;
 } Bar;
 
@@ -52,8 +52,8 @@ static const Baz* baz (const Baz_in* baz_in)
     const Bar* a__3;
     Bar* const a__5 = catala_malloc(sizeof(Bar));
     const CATALA_OPTION(Bar*) a__4;
-    a__5->code = NO;
-    a__5->payload.NO = CATALA_UNITVAL;
+    a__5->code = Bar__NO;
+    a__5->payload.Bar__NO = CATALA_UNITVAL;
     a__4 = catala_some(a__5);
     if (a__4->code == catala_option_some) {
       a__3 = a__4->payload;
@@ -74,11 +74,11 @@ static const Baz* baz (const Baz_in* baz_in)
     abort();
   }
   switch (a__1->code) {
-    case NO: {
+    case Bar__NO: {
       b__3 = CATALA_TRUE;
       break;
     }
-    case YES: {
+    case Bar__YES: {
       b__3 = CATALA_FALSE;
       break;
     }
@@ -95,12 +95,12 @@ static const Baz* baz (const Baz_in* baz_in)
   } else {
     CATALA_DEC b__4;
     switch (a__1->code) {
-      case NO: {
+      case Bar__NO: {
         b__4 = catala_new_dec_str("0");
         break;
       }
-      case YES: {
-        const Foo* foo = a__1->payload.YES;
+      case Bar__YES: {
+        const Foo* foo = a__1->payload.Bar__YES;
         CATALA_DEC b__5;
         if (foo->x == CATALA_TRUE) {
           b__5 = catala_new_dec_str("1");

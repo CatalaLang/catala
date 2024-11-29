@@ -344,7 +344,8 @@ type type_renaming_ctx = {
   constrs_map : EnumConstructor.t EnumConstructor.Map.t;
   ctx_structs : struct_ctx;
   ctx_enums : enum_ctx;
-  namespaced_fields_constrs : bool;
+  namespaced_fields : bool;
+  namespaced_constrs : bool;
   f_struct : string -> string;
   f_field : string -> string;
   f_enum : string -> string;
@@ -394,11 +395,11 @@ let process_type_ident
             StructField.Map.add name new_name fields_map,
             StructField.Map.add new_name ty ctx_fields ))
         fields
-        ( (if tctx.namespaced_fields_constrs then ctx0 else ctx),
+        ( (if tctx.namespaced_fields then ctx0 else ctx),
           tctx.fields_map,
           StructField.Map.empty )
     in
-    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    let ctx = if tctx.namespaced_fields then ctx else ctx1 in
     {
       tctx with
       path_ctx = PathMap.add path ctx path_ctx;
@@ -419,10 +420,9 @@ let process_type_ident
           let ctx = reserve_name ctx str in
           ctx, EnumConstructor.Map.add name name constrs_map)
         constrs
-        ( (if tctx.namespaced_fields_constrs then ctx0 else ctx),
-          tctx.constrs_map )
+        ((if tctx.namespaced_constrs then ctx0 else ctx), tctx.constrs_map)
     in
-    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    let ctx = if tctx.namespaced_constrs then ctx else ctx1 in
     {
       tctx with
       path_ctx = PathMap.add [] ctx tctx.path_ctx;
@@ -430,17 +430,17 @@ let process_type_ident
       constrs_map;
       ctx_enums = EnumName.Map.add name Expr.option_enum_config tctx.ctx_enums;
     }
-  | TypeIdent.Enum name ->
-    let constrs = EnumName.Map.find name decl_ctx.ctx_enums in
-    let path = EnumName.path name in
+  | TypeIdent.Enum ename ->
+    let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
+    let path = EnumName.path ename in
     let add_prefix =
       if
         tctx.prefix_module
-        && TypeIdent.Set.mem (Enum name) decl_ctx.ctx_public_types
+        && TypeIdent.Set.mem (Enum ename) decl_ctx.ctx_public_types
       then add_module_prefix tctx path
       else Fun.id
     in
-    let str, pos = EnumName.get_info name in
+    let str, pos = EnumName.get_info ename in
     let str = add_prefix str in
     let path_ctx, ctx =
       try tctx.path_ctx, PathMap.find path tctx.path_ctx
@@ -452,6 +452,10 @@ let process_type_ident
       EnumConstructor.Map.fold
         (fun name ty (ctx, constrs_map, ctx_constrs) ->
           let str, pos = EnumConstructor.get_info name in
+          let str =
+            if tctx.namespaced_constrs then str
+            else EnumName.base ename ^ "." ^ str
+          in
           let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_constr str) in
           let new_name = EnumConstructor.fresh (id, pos) in
@@ -459,15 +463,15 @@ let process_type_ident
             EnumConstructor.Map.add name new_name constrs_map,
             EnumConstructor.Map.add new_name ty ctx_constrs ))
         constrs
-        ( (if tctx.namespaced_fields_constrs then ctx0 else ctx),
+        ( (if tctx.namespaced_constrs then ctx0 else ctx),
           tctx.constrs_map,
           EnumConstructor.Map.empty )
     in
-    let ctx = if tctx.namespaced_fields_constrs then ctx else ctx1 in
+    let ctx = if tctx.namespaced_constrs then ctx else ctx1 in
     {
       tctx with
       path_ctx = PathMap.add path ctx path_ctx;
-      enums_map = EnumName.Map.add name new_name tctx.enums_map;
+      enums_map = EnumName.Map.add ename new_name tctx.enums_map;
       constrs_map;
       ctx_enums = EnumName.Map.add new_name ctx_constrs tctx.ctx_enums;
     }
@@ -482,7 +486,8 @@ let program
     ~reserved
     ~skip_constant_binders
     ~constant_binder_name
-    ~namespaced_fields_constrs
+    ~namespaced_fields
+    ~namespaced_constrs
     ~prefix_module
     ?(f_var = String.to_snake_case)
     ?(f_struct = cap)
@@ -513,7 +518,8 @@ let program
       constrs_map = EnumConstructor.Map.empty;
       ctx_structs = StructName.Map.empty;
       ctx_enums = EnumName.Map.empty;
-      namespaced_fields_constrs;
+      namespaced_fields;
+      namespaced_constrs;
       f_struct;
       f_field;
       f_enum;
@@ -690,7 +696,8 @@ let program
     ~reserved
     ~skip_constant_binders
     ~constant_binder_name
-    ~namespaced_fields_constrs
+    ~namespaced_fields
+    ~namespaced_constrs
     ~prefix_module
     ?f_var
     ?f_struct
@@ -701,8 +708,8 @@ let program
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
-        ~namespaced_fields_constrs ~prefix_module ?f_var ?f_struct ?f_field
-        ?f_enum ?f_constr p
+        ~namespaced_fields ~namespaced_constrs ~prefix_module ?f_var ?f_struct
+        ?f_field ?f_enum ?f_constr p
   end in
   (module M : Renaming)
 
@@ -711,4 +718,5 @@ let default =
     ~skip_constant_binders:default_config.skip_constant_binders
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
-    ~f_constr:Fun.id ~namespaced_fields_constrs:true ~prefix_module:false
+    ~f_constr:Fun.id ~namespaced_fields:true ~namespaced_constrs:true
+    ~prefix_module:false
