@@ -1,0 +1,12 @@
+> Using Ekçternal
+
+
+```catala
+declaration scope S:
+  output s scope Ekçternal.S
+```
+
+
+```catala-test-inline
+$ catala test-scope S
+```
