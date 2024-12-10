@@ -126,6 +126,8 @@ CATALA_BOOL catala_isnone (const CATALA_OPTION() opt);
 
 /* --- Constructors --- */
 
+CATALA_BOOL catala_new_bool(const int);
+
 CATALA_INT catala_new_int(const signed long int val);
 
 /* Arg is a null-terminated string */

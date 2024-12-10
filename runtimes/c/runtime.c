@@ -155,6 +155,11 @@ static mpz_t zconst_100;
   mpq_ptr X = catala_malloc(sizeof(__mpq_struct)); \
   mpq_init(X)
 
+CATALA_BOOL catala_new_bool(const int x)
+{
+  return CATALA_NEW_BOOL(x);
+}
+
 CATALA_INT catala_new_int(const signed long int val)
 {
   CATALA_NEW_MPZ(ret);

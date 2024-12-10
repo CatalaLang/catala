@@ -328,6 +328,14 @@ let rec format_expression
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_expression)
       args
+  | EAppOp { op = ((And | Or) as op), _; args; _ } ->
+    Format.fprintf fmt "catala_new_bool(@[<hov 0>%a)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () ->
+           Format.fprintf fmt " %s@ "
+             (match op with And -> "&&" | Or -> "||" | _ -> assert false))
+         (fun fmt e -> Format.fprintf fmt "*(%a)" format_expression e))
+      args
   | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
