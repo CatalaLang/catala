@@ -101,16 +101,25 @@ let rec resolve_eq ctx pos ty args m =
         constrs
     in
     Expr.ematch ~name ~e:arg1 ~cases m
-  | TArray ty ->
+  | TArray ty1 ->
     let tbool = TLit TBool, pos in
+    let same_length =
+      resolve_eq ctx pos (TLit TInt, pos)
+        (List.map
+           (fun e ->
+             Expr.eappop ~op:(Length, pos) ~args:[e] ~tys:[ty]
+               (Expr.with_ty m (TLit TInt, pos)))
+           args)
+        m
+    in
     let map2_f =
       let x = Var.make "x" in
       let y = Var.make "y" in
       Expr.make_ghost_abs [x; y]
-        (resolve_eq ctx pos ty
-           [Expr.evar x (Expr.with_ty m ty); Expr.evar y (Expr.with_ty m ty)]
+        (resolve_eq ctx pos ty1
+           [Expr.evar x (Expr.with_ty m ty1); Expr.evar y (Expr.with_ty m ty1)]
            m)
-        [ty; ty] pos
+        [ty1; ty1] pos
     in
     let fold_f =
       let acc = Var.make "acc" in
@@ -121,13 +130,18 @@ let rec resolve_eq ctx pos ty args m =
     in
     let bool_list =
       Expr.eappop ~op:(Map2, pos) ~args:(map2_f :: args)
-        ~tys:[TArrow ([ty; ty], tbool), pos; TArray ty, pos; TArray ty, pos]
+        ~tys:[TArrow ([ty1; ty1], tbool), pos; TArray ty1, pos; TArray ty1, pos]
         (Expr.with_ty m (TArray tbool, pos))
     in
-    Expr.eappop ~op:(Fold, pos)
-      ~args:[fold_f; Expr.elit (LBool true) m; bool_list]
-      ~tys:[TArrow ([tbool; tbool], tbool), pos; tbool; TArray tbool, pos]
-      m
+    let same_elements =
+      Expr.eappop ~op:(Fold, pos)
+        ~args:[fold_f; Expr.elit (LBool true) m; bool_list]
+        ~tys:[TArrow ([tbool; tbool], tbool), pos; tbool; TArray tbool, pos]
+        m
+    in
+    Expr.eappop ~op:(And, pos)
+      ~args:[same_length; same_elements]
+      ~tys:[tbool; tbool] m
   | TOption _ | TDefault _ -> assert false
   | TAny -> Message.error ~internal:true "Unknown type for equality resolution"
 
