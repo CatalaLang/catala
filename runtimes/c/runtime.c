@@ -821,6 +821,13 @@ const CATALA_OPTION() handle_exceptions
   return excs[i];
 }
 
+
+void (*error_handler)(const struct catala_error *) = NULL;
+
+void register_error_handler(void (*f)(const struct catala_error *)){
+  error_handler = f;
+}
+
 void catala_init()
 {
   mp_set_memory_functions(&catala_malloc,&catala_realloc,&catala_free);
@@ -828,6 +835,10 @@ void catala_init()
   if (setjmp(catala_error_jump_buffer)) {
     char *error_kind;
     const catala_code_position pos = catala_error_raised.position;
+    if (error_handler != NULL) {
+      error_handler(&catala_error_raised);
+      return;
+    }
     switch (catala_error_raised.code) {
     case catala_assertion_failed:
       error_kind = "Assertion failure";
