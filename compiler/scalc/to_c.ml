@@ -307,8 +307,14 @@ let rec format_expression
       (format_typ ~const:true ctx.decl_ctx ignore)
       aty format_op op format_expression fct format_expression base
       format_expression arr
-  | EAppOp { op = Add_dat_dur rounding, _; args; _ } ->
-    Format.fprintf fmt "o_add_dat_dur(%s,@ %a)"
+  | EAppOp
+      { op = ((Add_dat_dur rounding | Sub_dat_dur rounding) as op), _; args; _ }
+    ->
+    Format.fprintf fmt "%s(%s,@ %a)"
+      (match op with
+      | Add_dat_dur _ -> "o_add_dat_dur"
+      | Sub_dat_dur _ -> "o_sub_dat_dur"
+      | _ -> assert false)
       (match rounding with
       | RoundUp -> "dc_date_round_up"
       | RoundDown -> "dc_date_round_down"
