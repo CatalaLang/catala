@@ -556,6 +556,7 @@ let base_bindings catala_exe catala_flags0 build_dir include_dirs test_flags =
          "-Wno-unused-variable";
          "-Wno-unused-but-set-variable";
          "-Werror";
+         "-g";
          Var.(!runtime_c_libs);
        ]
       @ includes);
