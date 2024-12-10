@@ -582,8 +582,10 @@ and typecheck_expr_top_down :
       match UnionFind.get (ty e_struct') with
       | TStruct name, _ -> name
       | TAny _, _ ->
-        Printf.ksprintf failwith
-          "Disambiguation failed before reaching field %s" field
+        Message.error ~pos:(Expr.pos e)
+          "Ambiguous field access @{<cyan>%s@}: the parent structure could not \
+           be resolved"
+          field
       | _ ->
         Message.error ~pos:(Expr.pos e)
           "This is not a structure, cannot access field %s (found type: %a)"
