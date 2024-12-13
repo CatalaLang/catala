@@ -68,6 +68,9 @@ let rec format_runtime_value lang ppf = function
       (Array.to_list elts)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
+let print_json_log entry =
+  Message.log "%s" (Runtime.Json.event entry)
+
 let print_log lang entry =
   let pp_infos =
     Format.(
@@ -917,7 +920,7 @@ let evaluate_expr_trace :
     ~finally:(fun () ->
       if Global.options.trace then
         let trace = Runtime.retrieve_log () in
-        List.iter (print_log lang) trace
+        List.iter print_json_log (Runtime.EventParser.parse_raw_events trace)
         (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
            (Runtime.EventParser.parse_raw_events trace)] fais here, check why *))
 
