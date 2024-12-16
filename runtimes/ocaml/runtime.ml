@@ -320,7 +320,7 @@ module BufferedJson = struct
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
-    | Unit -> Buffer.add_string buf {|"Unit"|}
+    | Unit -> Buffer.add_string buf {|{}|}
     | Bool b -> Buffer.add_string buf (string_of_bool b)
     | Money m -> Buffer.add_string buf (money_to_string m)
     | Integer i -> Buffer.add_string buf (integer_to_string i)
@@ -329,14 +329,22 @@ module BufferedJson = struct
     | Date d -> quote buf (date_to_string d)
     | Duration d -> quote buf (duration_to_string d)
     | Enum (name, (constr, v)) ->
-      Printf.bprintf buf {|[["%s"],["%s",%a]]|} name constr runtime_value v
+      Printf.bprintf buf
+        {|{"kind": "enum", "name": "%s", "constructor": "%s", "value": %a}|}
+        name constr runtime_value v
     | Struct (name, elts) ->
-      Printf.bprintf buf {|["%s",[%a]]|} name
+      Printf.bprintf buf {|{"kind": "struct", "name": "%s", "fields": {%a}}|}
+        name
         (list (fun buf (cstr, v) ->
-             Printf.bprintf buf {|"%s":%a|} cstr runtime_value v))
+             Printf.bprintf buf {|"%s": %a|} cstr runtime_value v))
         elts
-    | Array elts | Tuple elts ->
-      Printf.bprintf buf "[%a]" (list runtime_value) (Array.to_list elts)
+    | (Array elts | Tuple elts) as v ->
+      Printf.bprintf buf {|{"kind": %s, "value":[%a]}|}
+        (match v with
+        | Array _ -> "\"array\""
+        | Tuple _ -> "\"tuple\""
+        | _ -> assert false)
+        (list runtime_value) (Array.to_list elts)
     | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
@@ -394,10 +402,12 @@ module BufferedJson = struct
          "event": "VariableDefinition",
          "name": "%s",
          "io": %a,
-         "value": "%a"
+         "value": %a
          }|}
         (String.concat "." name) io_log io runtime_value value
-    | DecisionTaken _dectaken -> Printf.bprintf buf {|DecisionTaken|}
+    | DecisionTaken source_pos ->
+      Printf.bprintf buf {|{"event": "DecisionTaken", "pos": %a}|}
+        source_position source_pos
 end
 
 module Json = struct
