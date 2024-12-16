@@ -923,7 +923,11 @@ let evaluate_expr_trace :
           (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
              (Runtime.EventParser.parse_raw_events trace)] fais here, check
              why *)
-        | JSON -> assert false (*TODO*))
+        | JSON ->
+          List.iter
+            (fun raw_event ->
+              Format.printf "%s" (Runtime.Json.raw_event raw_event))
+            trace)
 
 let evaluate_expr_safe :
     type d.
