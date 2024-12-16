@@ -917,9 +917,13 @@ let evaluate_expr_trace :
     ~finally:(fun () ->
       if Global.options.trace then
         let trace = Runtime.retrieve_log () in
-        List.iter (print_log lang) trace
-        (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
-           (Runtime.EventParser.parse_raw_events trace)] fais here, check why *))
+        match Global.options.trace_format with
+        | Human ->
+          List.iter (print_log lang) trace
+          (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
+             (Runtime.EventParser.parse_raw_events trace)] fais here, check
+             why *)
+        | JSON -> assert false (*TODO*))
 
 let evaluate_expr_safe :
     type d.
