@@ -252,6 +252,7 @@ module Json : sig
 
   (* val information: information -> string *)
   val event : event -> string
+  val raw_event : raw_event -> string
 end
 
 val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit

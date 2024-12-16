@@ -366,6 +366,12 @@ module BufferedJson = struct
       Printf.bprintf buf {|{"name":%a,"inputs":[%a],"body":[%a]}|} information
         name (list var_def) inputs (list event) body
 
+  and raw_event buf = function
+  | BeginCall _bcall -> Printf.bprintf buf {|BeginCall|}
+  | EndCall _ecall -> Printf.bprintf buf {|EndCall|}
+  | VariableDefinition (_infos, _io, _value) -> Printf.bprintf buf {|VariableDefinition|}
+  | DecisionTaken _dectaken -> Printf.bprintf buf {|DecisionTaken|}
+
   and var_def buf def =
     Option.iter (Printf.bprintf buf {|{"pos":%a|} source_position) def.pos;
     Printf.bprintf buf {|,"name":%a|} information def.name;
@@ -393,6 +399,7 @@ module Json = struct
   let runtime_value = str runtime_value
   let io_log = str io_log
   let event = str event
+  let raw_event = str raw_event
 end
 
 let log_ref : raw_event list ref = ref []
