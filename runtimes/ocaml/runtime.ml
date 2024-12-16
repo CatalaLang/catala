@@ -366,12 +366,6 @@ module BufferedJson = struct
       Printf.bprintf buf {|{"name":%a,"inputs":[%a],"body":[%a]}|} information
         name (list var_def) inputs (list event) body
 
-  and raw_event buf = function
-  | BeginCall _bcall -> Printf.bprintf buf {|BeginCall|}
-  | EndCall _ecall -> Printf.bprintf buf {|EndCall|}
-  | VariableDefinition (_infos, _io, _value) -> Printf.bprintf buf {|VariableDefinition|}
-  | DecisionTaken _dectaken -> Printf.bprintf buf {|DecisionTaken|}
-
   and var_def buf def =
     Option.iter (Printf.bprintf buf {|{"pos":%a|} source_position) def.pos;
     Printf.bprintf buf {|,"name":%a|} information def.name;
@@ -386,6 +380,17 @@ module BufferedJson = struct
     Printf.bprintf buf {|,"fun_inputs":[%a]|} (list var_def) fc.fun_inputs;
     Printf.bprintf buf {|,"body":[%a]|} (list event) fc.body;
     Printf.bprintf buf {|,"output":%a}|} var_def fc.output
+
+  and raw_event buf = function
+   | BeginCall name -> Printf.bprintf buf {|{"event": "BeginCall", "name": "%s"}|} (String.concat "." name)
+   | EndCall name -> Printf.bprintf buf {|{"event": "EndCall", "name": "%s"}|} (String.concat "." name)
+   | VariableDefinition (name, _io, _value) ->
+       Printf.bprintf buf {|{
+         "event": "VariableDefinition",
+         "name": "%s",
+         "value": "TODO"
+         }|} (String.concat "." name) 
+   | DecisionTaken _dectaken -> Printf.bprintf buf {|DecisionTaken|}
 end
 
 module Json = struct
