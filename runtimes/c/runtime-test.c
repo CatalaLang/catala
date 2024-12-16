@@ -17,7 +17,7 @@ void test()
 
 int main()
 {
-  catala_init();
+  catala_init(NULL);
   test();
   catala_free_all();
   return 0;

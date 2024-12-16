@@ -329,6 +329,8 @@ const CATALA_OPTION() handle_exceptions
 
 /* --- Runtime initialisation --- */
 
+void register_error_handler(void (*f)(const struct catala_error *));
+
 void catala_init();
 /* This must be called once and before any use of the functions above: it
    performs necessary initialisations of GMP, as well as the setup for our error
