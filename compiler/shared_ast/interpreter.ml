@@ -924,10 +924,13 @@ let evaluate_expr_trace :
              (Runtime.EventParser.parse_raw_events trace)] fais here, check
              why *)
         | JSON ->
-          List.iter
-            (fun raw_event ->
-              Format.printf "%s" (Runtime.Json.raw_event raw_event))
-            trace)
+          Format.printf "[";
+          Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+            (fun fmt -> Format.fprintf fmt "%s")
+            Format.std_formatter
+            (List.map Runtime.Json.raw_event trace);
+          Format.printf "]\n")
 
 let evaluate_expr_safe :
     type d.
