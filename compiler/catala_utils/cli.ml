@@ -26,7 +26,8 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-let message_format_opt = ["human", Human; "gnu", GNU]
+let message_format_opt = ["human", (Human : message_format_enum); "gnu", GNU]
+let trace_format_opt = ["human", (Human : trace_format_enum); "json", JSON]
 
 open Cmdliner
 
@@ -154,6 +155,16 @@ module Flags = struct
             "Displays a trace of the interpreter's computation or generates \
              logging instructions in translate programs."
 
+    let trace_format =
+      value
+      & opt (enum trace_format_opt) Human
+      & info ["trace-format"]
+          ~doc:
+            "Selects the format of trace logs emitted by the interpreter. If \
+             set to $(i,human), the messages will be nicely displayed and \
+             meant to be read by a human. If set to $(i, json), the messages \
+             will be emitted as a JSON structured object."
+
     let plugins_dirs =
       let doc = "Set the given directory to be searched for backend plugins." in
       let env = Cmd.Env.info "CATALA_PLUGINS" in
@@ -223,6 +234,7 @@ module Flags = struct
           color
           message_format
           trace
+          trace_format
           plugins_dirs
           disable_warnings
           max_prec_digits
@@ -242,8 +254,8 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite
-          ~stop_on_error ~no_fail_on_assert ()
+          ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
+          ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
         const make
@@ -252,6 +264,7 @@ module Flags = struct
         $ color
         $ message_format
         $ trace
+        $ trace_format
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits
