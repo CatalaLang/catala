@@ -179,7 +179,8 @@ let rec optimize_expr :
       (* reduction of logical and *)
       if b then e else ELit (LBool false)
     | EMatch { name; e; cases } -> simplified_match name e cases mark
-    | EApp { f; args; tys } -> simplified_apply f args tys
+    (* | EApp { f; args; tys } -> simplified_apply f args tys
+       TODO FIXME: this appears broken, debug with RSA test *)
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
