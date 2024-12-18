@@ -830,8 +830,8 @@ void register_error_handler(void (*f)(const struct catala_error *)){
 
 void catala_init()
 {
-  mp_set_memory_functions(&catala_malloc,&catala_realloc,&catala_free);
   mpz_init_set_ui(zconst_100, 100);
+  mp_set_memory_functions(&catala_malloc,&catala_realloc,&catala_free);
   if (setjmp(catala_error_jump_buffer)) {
     char *error_kind;
     const catala_code_position pos = catala_error_raised.position;

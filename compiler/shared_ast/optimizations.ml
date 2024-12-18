@@ -31,9 +31,7 @@ let binder_vars_used_at_most_once
   let rec vars_count (e : ('a dcalc_lcalc, 'm) gexpr) : int array =
     match e with
     | EVar v, _ ->
-      Array.map
-        (fun i -> if Bindlib.eq_vars v (Array.get vars i) then 1 else 0)
-        (Array.make (Array.length vars) 0)
+      Array.map (fun vi -> if Bindlib.eq_vars v vi then 1 else 0) vars
     | e ->
       Expr.shallow_fold
         (fun e' acc -> Array.map2 (fun x y -> x + y) (vars_count e') acc)
