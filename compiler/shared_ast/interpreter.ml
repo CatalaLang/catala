@@ -763,7 +763,7 @@ let rec evaluate_expr :
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in
     match Mark.remove e with
-    | EInj { e = e1; cons; name = name' } ->
+    | EInj { e = e1; cons; name = name' } -> (
       if not (EnumName.equal name name') then
         Message.error
           ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
@@ -781,8 +781,21 @@ let rec evaluate_expr :
       let ty =
         EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
       in
-      let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-      evaluate_expr ctx lang new_e
+      match es_n with
+      | EAbs { binder; _ }, _ -> (
+        let args, body = Bindlib.unmbind binder in
+        let v = args.(0) in
+        match body with
+        | EInj { cons = cons'; e = EVar v', _; _ }, _
+          when EnumConstructor.equal cons cons' && Var.equal v v' ->
+          (* identity match: we special-case this in order to propagate the
+             position of the initial value. This is important for conflict error
+             messages, for example *)
+          e
+        | _ ->
+          let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
+          evaluate_expr ctx lang new_e)
+      | _ -> assert false)
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
