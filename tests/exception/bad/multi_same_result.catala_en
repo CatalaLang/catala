@@ -1,0 +1,110 @@
+
+```catala
+declaration scope A:
+  output taux content decimal depends on case content integer
+
+scope A:
+  definition taux of case
+  under condition case = 1
+  consequence equals 50%
+
+  definition taux of case
+  under condition case = 2
+  consequence equals 30%
+
+  definition taux of case
+  under condition case = 3
+  consequence equals 40%
+
+  definition taux of case
+  under condition case = 4
+  consequence equals 50%
+
+  definition taux of case
+  under condition case = 5
+  consequence equals 30%
+
+  definition taux of case
+  under condition case = 6
+  consequence equals 30%
+
+  definition taux of case
+  under condition case > 5
+  consequence equals 40%
+
+
+declaration scope Test:
+  a scope A
+  output taux1 content decimal
+  output taux2 content decimal
+  output taux3 content decimal
+  output taux4 content decimal
+  output taux5 content decimal
+  output taux6 content decimal
+  output taux7 content decimal
+
+scope Test:
+  definition taux1 equals a.taux of 1
+  definition taux2 equals a.taux of 2
+  definition taux3 equals a.taux of 3
+  definition taux4 equals a.taux of 4
+  definition taux5 equals a.taux of 5
+  definition taux6 equals a.taux of 6
+  definition taux7 equals a.taux of 7
+```
+
+
+```catala-test-inline
+$ catala dcalc -s A
+let scope A (A_in: A_in): A {taux: integer → decimal} =
+  let set taux : integer → decimal =
+    λ (case: integer) →
+    error_empty
+      ⟨ ⟨ ⟨case = 4 ⊢ ⟨0.5⟩⟩ | case = 1 ⊢ ⟨0.5⟩ ⟩,
+        ⟨ ⟨ ⟨case = 6 ⊢ ⟨0.3⟩⟩ | case = 5 ⊢ ⟨0.3⟩ ⟩ | case = 2 ⊢ ⟨0.3⟩ ⟩,
+        ⟨ ⟨case > 5 ⊢ ⟨0.4⟩⟩ | case = 3 ⊢ ⟨0.4⟩ ⟩
+      | false ⊢ ∅ ⟩
+  in
+  return { A taux = taux; }
+```
+
+
+```catala-test-inline
+$ catala interpret -s Test
+┌─[ERROR]─
+│
+│  During evaluation: conflict between multiple valid consequences for
+│  assigning the same variable.
+│
+├─➤ tests/exception/good/multi_same_result.catala_en:29.22-29.25:
+│    │
+│ 29 │   consequence equals 30%
+│    │                      ‾‾‾
+│
+├─➤ tests/exception/good/multi_same_result.catala_en:33.22-33.25:
+│    │
+│ 33 │   consequence equals 40%
+│    │                      ‾‾‾
+└─
+#return code 123#
+```
+
+```catala-test-inline
+$ catala interpret --lcalc -s Test
+┌─[ERROR]─
+│
+│  During evaluation: conflict between multiple valid consequences for
+│  assigning the same variable.
+│
+├─➤ tests/exception/good/multi_same_result.catala_en:29.22-29.25:
+│    │
+│ 29 │   consequence equals 30%
+│    │                      ‾‾‾
+│
+├─➤ tests/exception/good/multi_same_result.catala_en:33.22-33.25:
+│    │
+│ 33 │   consequence equals 40%
+│    │                      ‾‾‾
+└─
+#return code 123#
+```
