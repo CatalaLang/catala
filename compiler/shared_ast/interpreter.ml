@@ -937,8 +937,7 @@ let evaluate_expr_trace :
           Fun.protect
             (fun () -> output_trace fmt)
             ~finally:(fun () ->
-              close_out oc;
-              Format.pp_print_flush fmt ())
+              close_out oc)
         )
 
 let evaluate_expr_safe :
