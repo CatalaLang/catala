@@ -917,20 +917,29 @@ let evaluate_expr_trace :
     ~finally:(fun () ->
       if Global.options.trace then
         let trace = Runtime.retrieve_log () in
-        match Global.options.trace_format with
-        | Human ->
-          List.iter (print_log lang) trace
-          (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
-             (Runtime.EventParser.parse_raw_events trace)] fais here, check
-             why *)
-        | JSON ->
-          Format.printf "[";
-          Format.pp_print_list
-            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-            (fun fmt -> Format.fprintf fmt "%s")
-            Format.std_formatter
-            (List.map Runtime.Json.raw_event trace);
-          Format.printf "]\n")
+        let output_trace fmt =
+          match Global.options.trace_format with
+          | Human -> List.iter (print_log lang) trace
+          | JSON ->
+            Format.fprintf fmt "[";
+            Format.pp_print_list
+              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+              (fun fmt -> Format.fprintf fmt "%s")
+              fmt
+              (List.map Runtime.Json.raw_event trace);
+            Format.fprintf fmt "]@."
+        in
+        match Global.options.trace_output with
+        | None -> output_trace Format.std_formatter
+        | Some filename ->
+          let oc = open_out filename in
+          let fmt = Format.formatter_of_out_channel oc in
+          Fun.protect
+            (fun () -> output_trace fmt)
+            ~finally:(fun () ->
+              close_out oc;
+              Format.pp_print_flush fmt ())
+        )
 
 let evaluate_expr_safe :
     type d.

@@ -61,6 +61,7 @@ type options = private {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable trace_output : string option;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -84,6 +85,7 @@ val enforce_options :
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
   ?no_fail_on_assert:bool ->
+  ?trace_output:string option ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this

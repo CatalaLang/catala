@@ -155,6 +155,14 @@ module Flags = struct
             "Displays a trace of the interpreter's computation or generates \
              logging instructions in translate programs."
 
+    let trace_output =
+      value
+      & opt (some string) None
+      & info ["trace-output"] ~docv:"FILE"
+          ~doc:
+            "Output trace logs to the specified file instead of stdout. Works \
+             with both human-readable and JSON formats."
+
     let trace_format =
       value
       & opt (enum trace_format_opt) Human
@@ -235,6 +243,7 @@ module Flags = struct
           message_format
           trace
           trace_format
+          trace_output
           plugins_dirs
           disable_warnings
           max_prec_digits
@@ -254,7 +263,7 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
+          ~trace_format ~trace_output ~plugins_dirs ~disable_warnings ~max_prec_digits
           ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
@@ -265,6 +274,7 @@ module Flags = struct
         $ message_format
         $ trace
         $ trace_format
+        $ trace_output
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits
