@@ -936,8 +936,7 @@ let evaluate_expr_trace :
           let fmt = Format.formatter_of_out_channel oc in
           Fun.protect
             (fun () -> output_trace fmt)
-            ~finally:(fun () ->
-              close_out oc)
+            ~finally:(fun () -> close_out oc)
         )
 
 let evaluate_expr_safe :
