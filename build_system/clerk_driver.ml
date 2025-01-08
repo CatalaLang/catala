@@ -1044,16 +1044,17 @@ let build_cmd =
         String.split_on_char '\n' result
         |> List.filter_map (fun line ->
                match String.split_on_char ':' line with
-               | [] | "always" :: _ -> None
-               | target :: _ -> Some target)
+               | [] | [""] | "always" :: _ -> None
+               | target :: _ -> Some (String.trim target))
       in
-      Format.eprintf "Available targets:%!";
+      Format.eprintf "Available targets:@.";
       List.iter print_endline targets;
       0
   in
   let doc =
     "Low-level build command: can be used to forward build targets or options \
-     directly to Ninja"
+     directly to Ninja. Without a target argument, lists all available build \
+     targets to stdout."
   in
   Cmd.v (Cmd.info ~doc "build")
     Term.(
