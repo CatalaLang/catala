@@ -97,9 +97,12 @@ void* catala_malloc (size_t sz)
 
 void catala_free_all()
 {
+  struct catala_heap * next_ptr;
   while (catala_heap.mem != NULL) {
     free(catala_heap.mem);
+    next_ptr = catala_heap.next;
     catala_heap = *catala_heap.next;
+    free(next_ptr);
   }
 }
 
