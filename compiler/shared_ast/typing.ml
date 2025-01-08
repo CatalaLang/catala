@@ -578,84 +578,117 @@ and typecheck_expr_top_down :
       | None -> unionfind (TAny (Any.fresh ()))
     in
     let e_struct' = typecheck_expr_top_down ctx env t_struct e_struct in
-    let name =
+    let name_opt =
       match UnionFind.get (ty e_struct') with
-      | TStruct name, _ -> name
-      | TAny _, _ ->
-        Message.error ~pos:(Expr.pos e)
-          "Ambiguous field access @{<cyan>%s@}: the parent structure could not \
-           be resolved"
-          field
+      | TStruct name, _ -> Some name
+      | TAny _, _ -> None
       | _ ->
         Message.error ~pos:(Expr.pos e)
-          "This is not a structure, cannot access field %s (found type: %a)"
+          "This is not a structure, cannot access field @{<magenta>%s@}@ \
+           (found type: %a)"
           field (format_typ ctx) (ty e_struct')
+    in
+    let name, field =
+      let candidate_structs =
+        try A.Ident.Map.find field ctx.ctx_struct_fields
+        with A.Ident.Map.Not_found _ -> (
+          match name_opt with
+          | None ->
+            Message.error
+              ~pos:(Expr.mark_pos context_mark)
+              "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ any@ known@ \
+               structure"
+              field A.StructName.format
+          (* Since we were unable to disambiguate, we can't get any hints at
+             this point (but explaining the situation in more detail would
+             probably not be helpful) *)
+          | Some name -> (
+            match
+              A.ScopeName.Map.choose_opt
+              @@ A.ScopeName.Map.filter
+                   (fun _ { A.out_struct_name; _ } ->
+                     A.StructName.equal out_struct_name name)
+                   ctx.ctx_scopes
+            with
+            | Some (scope_out, _) ->
+              let str =
+                try A.StructName.Map.find name env.structs
+                with A.StructName.Map.Not_found _ ->
+                  Message.error ~pos:pos_e "No structure %a found"
+                    A.StructName.format name
+              in
+              Message.error
+                ~fmt_pos:
+                  [
+                    ( (fun ppf ->
+                        Format.fprintf ppf
+                          "@{<magenta>%s@} is used here as an output" field),
+                      Expr.mark_pos context_mark );
+                    ( (fun ppf ->
+                        Format.fprintf ppf "Scope %a is declared here"
+                          A.ScopeName.format scope_out),
+                      Mark.get (A.StructName.get_info name) );
+                  ]
+                "Variable @{<magenta>%s@} is not a declared output of scope %a."
+                field A.ScopeName.format scope_out
+                ~suggestion:
+                  (Suggestions.sorted_candidates
+                     (List.map A.StructField.to_string
+                        (A.StructField.Map.keys str))
+                     field)
+            | None ->
+              Message.error
+                ~extra_pos:
+                  [
+                    "", Expr.mark_pos context_mark;
+                    ( "Structure definition",
+                      Mark.get (A.StructName.get_info name) );
+                  ]
+                "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
+                 @{<yellow>\"%a\"@}."
+                field A.StructName.format name
+                ~suggestion:
+                  (Suggestions.sorted_candidates
+                     (A.Ident.Map.keys ctx.ctx_struct_fields)
+                     field)))
+      in
+      match name_opt with
+      | None ->
+        if A.StructName.Map.cardinal candidate_structs = 1 then
+          A.StructName.Map.choose candidate_structs
+        else
+          Message.error
+            ~pos:(Expr.mark_pos context_mark)
+            "@[<v>@[<hov>Ambiguous field access @{<cyan>%s@}:@ the@ parent@ \
+             structure@ could@ not@ be@ determined@ at@ this@ point.@ The@ \
+             following@ structures@ have@ a@ field@ by@ this@ name:@]@,\
+             @[<v>%a@]@,\
+             @[<hov>@{<b>Hint@}: explicit the structure the field belongs to \
+             using@ x.@{<cyan>StructName@}.@{<magenta>%s@}@ (or@ \
+             x.@{<blue>ModuleName@}.@{<cyan>StructName@}.@{<magenta>%s@})@]@]"
+            field
+            (Format.pp_print_list (fun fmt s_name ->
+                 Format.fprintf fmt "- %a" A.StructName.format s_name))
+            (A.StructName.Map.keys candidate_structs)
+            field field
+      | Some name -> (
+        try name, A.StructName.Map.find name candidate_structs
+        with A.StructName.Map.Not_found _ ->
+          Message.error
+            ~pos:(Expr.mark_pos context_mark)
+            "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ structure@ %a@ \
+             (however, structure@ %a@ defines@ it).@]"
+            field A.StructName.format name
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+               A.StructName.format)
+            (A.StructName.Map.keys candidate_structs))
     in
     let str =
       try A.StructName.Map.find name env.structs
       with A.StructName.Map.Not_found _ ->
         Message.error ~pos:pos_e "No structure %a found" A.StructName.format
           name
-    in
-    let field =
-      let candidate_structs =
-        try A.Ident.Map.find field ctx.ctx_struct_fields
-        with A.Ident.Map.Not_found _ -> (
-          match
-            A.ScopeName.Map.choose_opt
-            @@ A.ScopeName.Map.filter
-                 (fun _ { A.out_struct_name; _ } ->
-                   A.StructName.equal out_struct_name name)
-                 ctx.ctx_scopes
-          with
-          | Some (scope_out, _) ->
-            Message.error
-              ~fmt_pos:
-                [
-                  ( (fun ppf ->
-                      Format.fprintf ppf
-                        "@{<yellow>%s@} is used here as an output" field),
-                    Expr.mark_pos context_mark );
-                  ( (fun ppf ->
-                      Format.fprintf ppf "Scope %a is declared here"
-                        A.ScopeName.format scope_out),
-                    Mark.get (A.StructName.get_info name) );
-                ]
-              "Variable @{<yellow>%s@} is not a declared output of scope %a."
-              field A.ScopeName.format scope_out
-              ~suggestion:
-                (Suggestions.sorted_candidates
-                   (List.map A.StructField.to_string
-                      (A.StructField.Map.keys str))
-                   field)
-          | None ->
-            Message.error
-              ~extra_pos:
-                [
-                  "", Expr.mark_pos context_mark;
-                  "Structure definition", Mark.get (A.StructName.get_info name);
-                ]
-              "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
-               @{<yellow>\"%a\"@}."
-              field A.StructName.format name
-              ~suggestion:
-                (Suggestions.sorted_candidates
-                   (A.Ident.Map.keys ctx.ctx_struct_fields)
-                   field))
-      in
-      try A.StructName.Map.find name candidate_structs
-      with A.StructName.Map.Not_found _ ->
-        Message.error
-          ~pos:(Expr.mark_pos context_mark)
-          "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
-           @{<yellow>\"%a\"@}@ (however, structure@ %a@ defines@ it).@]"
-          field A.StructName.format name
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-             (fun fmt s_name ->
-               Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
-                 s_name))
-          (A.StructName.Map.keys candidate_structs)
     in
     let fld_ty = A.StructField.Map.find field str in
     let mark = mark_with_tau_and_unify fld_ty in
