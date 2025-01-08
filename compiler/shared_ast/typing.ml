@@ -876,22 +876,21 @@ and typecheck_expr_top_down :
       Message.error ~pos:(Expr.pos e)
         "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
-        (List.length t_args) Expr.format e
-    else
-      let tau_args = List.map ast_to_typ t_args in
-      let t_ret = unionfind (TAny (Any.fresh ())) in
-      let t_func = unionfind (TArrow (tau_args, t_ret)) in
-      let mark = mark_with_tau_and_unify t_func in
-      let xs, body = Bindlib.unmbind binder in
-      let xs' = Array.map Var.translate xs in
-      let env =
-        List.fold_left2
-          (fun env x tau_arg -> Env.add x tau_arg env)
-          env (Array.to_list xs) tau_args
-      in
-      let body' = typecheck_expr_top_down ctx env t_ret body in
-      let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' pos (List.map (typ_to_ast ~flags) tau_args) mark
+        (List.length t_args) Expr.format e;
+    let tau_args = List.map ast_to_typ t_args in
+    let t_ret = unionfind (TAny (Any.fresh ())) in
+    let t_func = unionfind (TArrow (tau_args, t_ret)) in
+    let mark = mark_with_tau_and_unify t_func in
+    let xs, body = Bindlib.unmbind binder in
+    let xs' = Array.map Var.translate xs in
+    let env =
+      List.fold_left2
+        (fun env x tau_arg -> Env.add x tau_arg env)
+        env (Array.to_list xs) tau_args
+    in
+    let body' = typecheck_expr_top_down ctx env t_ret body in
+    let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
+    Expr.eabs binder' pos (List.map (typ_to_ast ~flags) tau_args) mark
   | A.EApp { f = e1; args; tys } ->
     (* Here we type the arguments first (in order), to ensure we know the types
        of the arguments if [f] is [EAbs] before disambiguation. This is also the
@@ -939,6 +938,7 @@ and typecheck_expr_top_down :
                operators are required to allow the resolution of all type
                variables this way *)
             unify ctx e (polymorphic_op_type op) t_func;
+            (* List.rev_map(2) applies the side effects in order *)
             List.rev_map2
               (typecheck_expr_top_down ctx env)
               (List.rev t_args) (List.rev args)))
