@@ -1023,27 +1023,29 @@ let build_cmd =
   let run ninja_init (targets : string list) (ninja_flags : string list) =
     ninja_init ~extra:Seq.empty ~test_flags:[]
     @@ fun _build_dir fix_path nin_file ->
-    if targets <> [] then
+    if targets <> [] then (
       let targets =
         List.map
           (fun f ->
-             if String.exists (function '/' | '.' -> true | _ -> false) f then
-               fix_path f
-             else f)
+            if String.exists (function '/' | '.' -> true | _ -> false) f then
+              fix_path f
+            else f)
           targets
       in
       let ninja_cmd = ninja_cmdline ninja_flags nin_file targets in
       Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
-      raise (Catala_utils.Cli.Exit_with (run_ninja ~clean_up_env:false ninja_cmd))
-    else (* List targets command *)
+      raise
+        (Catala_utils.Cli.Exit_with (run_ninja ~clean_up_env:false ninja_cmd)))
+    else
+      (* List targets command *)
       let ninja_cmd = ninja_cmdline ninja_flags nin_file ["-t"; "targets"] in
       let result = File.process_out (List.hd ninja_cmd) (List.tl ninja_cmd) in
       let targets =
-        String.split_on_char '\n' result |>
-        List.filter_map (fun line ->
-            match String.split_on_char ':' line with
-            | [] | "always" :: _ -> None
-            | target :: _ -> Some target)
+        String.split_on_char '\n' result
+        |> List.filter_map (fun line ->
+               match String.split_on_char ':' line with
+               | [] | "always" :: _ -> None
+               | target :: _ -> Some target)
       in
       Format.eprintf "Available targets:%!";
       List.iter print_endline targets;
