@@ -157,7 +157,7 @@ module Flags = struct
 
     let trace_output =
       value
-      & opt (some string) None
+      & opt (some raw_file) None
       & info ["trace-output"] ~docv:"FILE"
           ~doc:
             "Output trace logs to the specified file instead of stdout. Works \
@@ -260,11 +260,12 @@ module Flags = struct
               | "-" -> "-"
               | f -> File.reverse_path ~to_dir f)
         in
+        let trace_output = Option.map path_rewrite trace_output in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~trace_output ~plugins_dirs ~disable_warnings ~max_prec_digits
-          ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
+          ~trace_format ~trace_output ~plugins_dirs ~disable_warnings
+          ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
         const make

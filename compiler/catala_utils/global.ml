@@ -41,7 +41,7 @@ type options = {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
-  mutable trace_output : string option;
+  mutable trace_output : file option;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
