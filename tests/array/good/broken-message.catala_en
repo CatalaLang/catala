@@ -26,33 +26,38 @@ scope B:
       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
 ```
 
-The positions in this error message are completely wrong and misleading.
-Investigation needed...
+There was an error -- now fixed -- where the issue was pointed on `x+acc2` with
+a confusing message.
+
+This was diagnosed to be due to delayed error messages that got skipped.
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
 ┌─[ERROR]─
 │
-│  I don't know how to apply operator + on types list of money and money
+│  Error during typechecking, incompatible types:
+│  ─➤ money
+│  ─➤ list of money
 │
-├─➤ tests/array/good/broken-message.catala_en:26.17-26.25:
+│ While typechecking the following expression:
+├─➤ tests/array/good/broken-message.catala_en:21.8-21.9:
 │    │
-│ 26 │       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
-│    │                 ‾‾‾‾‾‾‾‾
+│ 21 │       (x ++ acc) for x among a.x
+│    │        ‾
 ├─ Article
 │
-│ Type list of money coming from expression:
+│ Type money is coming from:
+├─➤ tests/array/good/broken-message.catala_en:5.28-5.33:
+│   │
+│ 5 │   output x content list of money
+│   │                            ‾‾‾‾‾
+├─ Article
+│
+│ Type list of money is coming from:
 ├─➤ tests/array/good/broken-message.catala_en:21.10-21.12:
 │    │
 │ 21 │       (x ++ acc) for x among a.x
 │    │          ‾‾
-├─ Article
-│
-│ Type money coming from expression:
-├─➤ tests/array/good/broken-message.catala_en:25.41-25.43:
-│    │
-│ 25 │     combine (acc1, acc2) initially ([], $1) with
-│    │                                         ‾‾
 └─ Article
 #return code 123#
 ```

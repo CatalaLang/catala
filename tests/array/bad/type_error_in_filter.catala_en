@@ -1,0 +1,90 @@
+
+```catala
+declaration structure St:
+  data x content integer
+
+declaration scope S:
+  input ll content list of St
+  output out content list of St
+
+scope S:
+  definition out equals
+    combine acc initially []
+    with (acc ++ list of x among in_n such that x.x > 2)
+      # acc ++ filter (x -> x.x > 2) in_n
+    for in_n among ll
+
+declaration scope Test:
+  output s scope S
+
+declaration st content St
+  depends on x content integer
+  equals St { -- x: x }
+
+scope Test:
+  definition s.ll equals [
+    [st of 1; st of 2; st of 3];
+    [st of 2; st of 3; st of 4];
+    [st of 3; st of 4; st of 5]
+  ]
+```
+
+
+```catala-test-inline
+$ catala dcalc
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ St
+│  ─➤ list of any
+│
+│ While typechecking the following expression:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                                  ‾‾‾‾
+│
+│ Type St is coming from:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+│   │
+│ 7 │   input ll content list of St
+│   │                            ‾‾
+│
+│ Type list of any is coming from:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```
+
+
+```catala-test-inline
+$ catala test-scope Test
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ St
+│  ─➤ list of any
+│
+│ While typechecking the following expression:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                                  ‾‾‾‾
+│
+│ Type St is coming from:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+│   │
+│ 7 │   input ll content list of St
+│   │                            ‾‾
+│
+│ Type list of any is coming from:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```
