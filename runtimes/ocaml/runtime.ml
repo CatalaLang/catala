@@ -317,6 +317,24 @@ module BufferedJson = struct
       str;
     Buffer.add_char buf '"'
 
+  let decimal buf d =
+    let max_decimals = 6 in
+    let dec_str =
+      let open Z in
+      let sign = Q.sign d in
+      let n = abs (Q.num d) in
+      let d = abs (Q.den d) in
+      let int_part, dec_part = div_rem n d in
+      bprint buf (~$sign * int_part);
+      Buffer.add_char buf '.';
+      let dec_part = (((~$10 ** max_decimals) * dec_part) + (d / ~$2)) / d in
+      format ("%0" ^ string_of_int max_decimals ^ "d") dec_part
+    in
+    let rec last_non0 n =
+      if n <= 1 || dec_str.[n - 1] <> '0' then n else last_non0 (n - 1)
+    in
+    Buffer.add_substring buf dec_str 0 (last_non0 max_decimals)
+
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
@@ -324,8 +342,7 @@ module BufferedJson = struct
     | Bool b -> Buffer.add_string buf (string_of_bool b)
     | Money m -> Buffer.add_string buf (money_to_string m)
     | Integer i -> Buffer.add_string buf (integer_to_string i)
-    | Decimal d ->
-      Buffer.add_string buf (decimal_to_string ~max_prec_digits:10 d)
+    | Decimal d -> decimal buf d
     | Date d -> quote buf (date_to_string d)
     | Duration d -> quote buf (duration_to_string d)
     | Enum (name, (constr, v)) ->
