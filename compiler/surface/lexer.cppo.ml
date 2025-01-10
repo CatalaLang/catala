@@ -376,7 +376,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Whitespaces *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | '#', Star (Compl '\n'), '\n' ->
+  | '#', Star (Compl '\r' | Compl '\n'), Opt('\r'), '\n' ->
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf
@@ -737,7 +737,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
   | MR_EXTERNAL -> MODULE_EXTERNAL
   | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
-  | '\n' | eof ->
+  | "\r\n" | '\n' | eof ->
       L.context := Law;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
@@ -753,7 +753,7 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   | ":" ->
       L.context := Directive_args;
       COLON
-  | '\n' | eof ->
+  | "\r\n" | '\n' | eof ->
       L.context := Law;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
@@ -765,18 +765,20 @@ let lex_raw (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```", Star hspace, ('\n' | eof) ->
+    | "```", Star hspace, ("\r\n" | '\n' | eof) ->
         L.context := Law;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)
         match%sedlex lexbuf with
-        | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+        | Star (Compl '\r' | Compl '\n'), ("\r\n" | '\n' | eof) ->
+          LAW_TEXT (Utf8.lexeme lexbuf)
         | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
   else
     match%sedlex lexbuf with
     | eof -> EOF
+    | Star (Compl '\r'), ("\r\n" | eof)
     | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
@@ -788,10 +790,10 @@ let lex_law (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```catala", Star white_space, ('\n' | eof) ->
+    | "```catala", Star white_space, ("\r\n" | '\n' | eof) ->
         L.context := Code;
         BEGIN_CODE
-    | "```catala-metadata", Star white_space, ('\n' | eof) ->
+    | "```catala-metadata", Star white_space, ("\r\n" | '\n' | eof) ->
         L.context := Code;
         BEGIN_METADATA
     | "```", Star (idchar | '-') ->
@@ -800,18 +802,19 @@ let lex_law (lexbuf : lexbuf) : token =
     | '>' ->
         L.context := Directive;
         BEGIN_DIRECTIVE
-    | Plus '#', Star hspace, Plus (Compl '\n'), Star hspace, ('\n' | eof) ->
+    | Plus '#', Star hspace, Plus (Compl '\r' | Compl '\n'), Star hspace, ("\r\n" | '\n' | eof) ->
         L.get_law_heading lexbuf
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)
         match%sedlex lexbuf with
+        | Star (Compl '\r'), ("\r\n" | eof)
         | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
         | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
   else
     match%sedlex lexbuf with
     | eof -> EOF
-    | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+    | Star (Compl '\r' | Compl '\n'), ("\r\n" | '\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law}
@@ -860,9 +863,9 @@ let line_dir_arg_upcase_re =
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   match%sedlex lexbuf with
   | eof -> None
-  | "```catala-test-inline", Star hspace, ('\n' | eof) ->
+  | "```catala-test-inline", Star hspace, ("\r\n" | '\n' | eof) ->
     Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
-  | "```catala-test", Star (Compl '\n'), ('\n' | eof) ->
+  | "```catala-test", Star (Compl '\n'), ("\r\n" | '\n' | eof) ->
     let str = Utf8.lexeme lexbuf in
     (try
        let id = Re.Group.get (Re.exec line_test_id_re str) 1 in
@@ -872,10 +875,10 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
          "Ignored invalid test section, must have an explicit \
           `{ id = \"name\" }` specification";
        Some (str, LINE_ANY))
-  | "```", Star hspace, ('\n' | eof) ->
+  | "```", Star hspace, ("\r\n" | '\n' | eof) ->
     Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
-  | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\n'),
-    ('\n' | eof)  ->
+  | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\r' | Compl '\n'),
+    ("\r\n" | '\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
@@ -883,25 +886,25 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
      with Not_found -> Some (str, LINE_ANY))
   | '>', Star hspace, MR_MODULE_DEF, Plus hspace,
     uppercase, Star (Compl white_space), Plus hspace,
-    MR_EXTERNAL, Star hspace, ('\n' | eof)  ->
+    MR_EXTERNAL, Star hspace, ("\r\n" | '\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_DEF (mdl, true))
      with Not_found -> Some (str, LINE_ANY))
-  | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'),
-    ('\n' | eof)  ->
+  | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\r' | Compl '\n'),
+    ("\r\n" | '\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_DEF (mdl, false))
      with Not_found -> Some (str, LINE_ANY))
-  | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'),
-    ('\n' | eof)  ->
+  | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\r' | Compl '\n'),
+    ("\r\n" | '\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_USE mdl)
      with Not_found -> Some (str, LINE_ANY))
-  | Star (Compl '\n'), ('\n' | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
+  | Star (Compl '\r' | Compl '\n'), ("\r\n", '\n' | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
   | _ -> assert false
