@@ -921,7 +921,7 @@ module Commands = struct
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
-        ~monomorphize_types:false ~expand_ops:true
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
     let output_file, with_output =
