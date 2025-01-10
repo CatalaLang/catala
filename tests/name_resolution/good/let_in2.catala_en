@@ -61,7 +61,7 @@ let s (s_in: S_in.t) : S.t =
               (match
                  (Eoption.ESome (let a__2 : bool = false
                     in
-                    (let a__3 : bool = (o_or a__2 true) in
+                    (let a__3 : bool = (a__2 || true) in
                     a__3)))
                with
                | Eoption.ENone _ -> (raise
