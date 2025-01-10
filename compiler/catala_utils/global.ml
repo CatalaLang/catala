@@ -19,6 +19,7 @@ type raw_file = file
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU | Lsp
+type trace_format_enum = Human | JSON
 
 type 'file input_src =
   | FileName of 'file
@@ -33,12 +34,14 @@ type options = {
   mutable color : when_enum;
   mutable message_format : message_format_enum;
   mutable trace : bool;
+  mutable trace_format : trace_format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable trace_output : file option;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -54,12 +57,14 @@ let options =
     color = Auto;
     message_format = Human;
     trace = false;
+    trace_format = Human;
     plugins_dirs = [];
     disable_warnings = false;
     max_prec_digits = 20;
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
     no_fail_on_assert = false;
+    trace_output = None;
   }
 
 let enforce_options
@@ -69,12 +74,14 @@ let enforce_options
     ?color
     ?message_format
     ?trace
+    ?trace_format
     ?plugins_dirs
     ?disable_warnings
     ?max_prec_digits
     ?path_rewrite
     ?stop_on_error
     ?no_fail_on_assert
+    ?trace_output
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -82,12 +89,14 @@ let enforce_options
   Option.iter (fun x -> options.color <- x) color;
   Option.iter (fun x -> options.message_format <- x) message_format;
   Option.iter (fun x -> options.trace <- x) trace;
+  Option.iter (fun x -> options.trace_format <- x) trace_format;
   Option.iter (fun x -> options.plugins_dirs <- x) plugins_dirs;
   Option.iter (fun x -> options.disable_warnings <- x) disable_warnings;
   Option.iter (fun x -> options.max_prec_digits <- x) max_prec_digits;
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   Option.iter (fun x -> options.no_fail_on_assert <- x) no_fail_on_assert;
+  Option.iter (fun x -> options.trace_output <- x) trace_output;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f

@@ -32,6 +32,9 @@ type when_enum = Auto | Always | Never
 (** Format of error and warning messages output by the compiler. *)
 type message_format_enum = Human | GNU | Lsp
 
+(** Format of trace logs *)
+type trace_format_enum = Human | JSON
+
 (** Sources for program input *)
 type 'file input_src =
   | FileName of 'file  (** A file path to read from disk *)
@@ -51,12 +54,14 @@ type options = private {
   mutable color : when_enum;
   mutable message_format : message_format_enum;
   mutable trace : bool;
+  mutable trace_format : trace_format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable trace_output : string option;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -73,12 +78,14 @@ val enforce_options :
   ?color:when_enum ->
   ?message_format:message_format_enum ->
   ?trace:bool ->
+  ?trace_format:trace_format_enum ->
   ?plugins_dirs:file list ->
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
   ?no_fail_on_assert:bool ->
+  ?trace_output:string option ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this
