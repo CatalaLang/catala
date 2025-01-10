@@ -380,6 +380,10 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
       format_with_parens cond format_with_parens etrue format_with_parens efalse
+  | EAppOp { op = ((And | Or) as op), _; args = [e1; e2]; _ } ->
+    Format.fprintf fmt "@[<hov 2>%a %s@ %a@]" format_with_parens e1
+      (if op = And then "&&" else "||")
+      format_with_parens e2
   | EAppOp { op = op, pos; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->

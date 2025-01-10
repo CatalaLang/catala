@@ -94,7 +94,7 @@ end
 
 let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
   fun (_: Obj.t) (acc: bool) (x: integer) ->
-    o_and acc (o_gt_int_int x (integer_of_string "2"))
+    acc && (o_gt_int_int x (integer_of_string "2"))
 
 let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool =
