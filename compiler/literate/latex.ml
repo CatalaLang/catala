@@ -60,7 +60,7 @@ let wrap_latex
 %s
 \usepackage{fancyvrb,fvextra}
 \usepackage{color}
-\usepackage{longtable}
+\usepackage{calc,longtable}
 \usepackage{booktabs,tabularx}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
