@@ -80,13 +80,13 @@ let () = print_endline "Hello world!"
 \end{verbatim}
 
 \begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}}]
-\```catala
-\PY{k+kr}{declaration} \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
-  \PY{k+kd}{context}\PY{+w}{ }\PY{k+kd}{output}\PY{+w}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{content} \PY{k+kt}{boolean}
+\PY{l+s}{```catala}
+\PY{k+kr}{declaration}\PY{l+s}{ }\PY{k+kr}{scope}\PY{l+s}{ }\PY{n+nc}{A}\PY{o}{:}
+\PY{l+s}{ }\PY{l+s}{ }\PY{k+kd}{context}\PY{l+s}{ }\PY{k+kd}{output}\PY{l+s}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok}\PY{l+s}{ }\PY{k+kr}{content}\PY{l+s}{ }\PY{k+kt}{boolean}
 
-\PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
-  \PY{k+kr}{definition} \PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{equals} \PY{k+kc}{true}
-\```
+\PY{k+kr}{scope}\PY{l+s}{ }\PY{n+nc}{A}\PY{o}{:}
+\PY{l+s}{ }\PY{l+s}{ }\PY{k+kr}{definition}\PY{l+s}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok}\PY{l+s}{ }\PY{k+kr}{equals}\PY{l+s}{ }\PY{k+kc}{true}
+\PY{l+s}{```}
 \end{Verbatim}
 
 
