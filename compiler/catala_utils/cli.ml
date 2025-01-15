@@ -147,21 +147,25 @@ module Flags = struct
              standards."
 
     let trace =
+      let converter =
+        conv ~docv:"FILE"
+          ( (fun s ->
+              if s = "-" then Ok (`Stdout)
+              else Ok (`FileName (Global.raw_file s))),
+            fun ppf -> function
+              | `Stdout -> Format.pp_print_string ppf "-"
+              | `FileName f -> Format.pp_print_string ppf (f:>string) )
+      in
       value
-      & flag
+      & opt (some converter) None ~vopt:(Some `Stdout)
       & info ["trace"; "t"]
+          ~docv: "FILE"
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translate programs."
-
-    let trace_output =
-      value
-      & opt (some raw_file) None
-      & info ["trace-output"] ~docv:"FILE"
-          ~doc:
-            "Output trace logs to the specified file instead of stdout. Works \
-             with both human-readable and JSON formats."
+             logging instructions in translate programs. If set as a flag, outputs
+             trace to stdout. If $(docv) is defined, outputs the trace to a file while interpreting.
+             Defining a filename does not affect code generation."
 
     let trace_format =
       value
@@ -243,7 +247,6 @@ module Flags = struct
           message_format
           trace
           trace_format
-          trace_output
           plugins_dirs
           disable_warnings
           max_prec_digits
@@ -260,11 +263,15 @@ module Flags = struct
               | "-" -> "-"
               | f -> File.reverse_path ~to_dir f)
         in
-        let trace_output = Option.map path_rewrite trace_output in
+        let trace = match trace with
+        | None -> None
+        | Some `Stdout -> Some (lazy (Message.std_ppf ()))
+        | Some `FileName f -> Some (lazy (Message.formatter_of_out_channel (open_out (path_rewrite f)) () ))
+        in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~trace_output ~plugins_dirs ~disable_warnings
+          ~trace_format ~plugins_dirs ~disable_warnings
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
@@ -275,7 +282,6 @@ module Flags = struct
         $ message_format
         $ trace
         $ trace_format
-        $ trace_output
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits

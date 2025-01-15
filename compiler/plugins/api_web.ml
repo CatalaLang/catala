@@ -475,7 +475,7 @@ let run
     keep_special_ops
     monomorphize_types
     _options =
-  let options = Global.enforce_options ~trace:true () in
+  let options = Global.enforce_options ~trace:(Some (lazy Format.std_formatter)) () in
   let prg, type_ordering, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops ~typed:Expr.typed

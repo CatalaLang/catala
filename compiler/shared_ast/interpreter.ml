@@ -68,7 +68,7 @@ let rec format_runtime_value lang ppf = function
       (Array.to_list elts)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
-let print_log lang entry =
+let print_log ppf lang entry =
   let pp_infos =
     Format.(
       pp_print_list
@@ -77,13 +77,13 @@ let print_log lang entry =
   in
   match entry with
   | Runtime.BeginCall infos ->
-    Message.log "%s%a %a" !indent_str Print.log_entry BeginCall pp_infos infos;
+    Format.fprintf ppf "%s%a %a" !indent_str Print.log_entry BeginCall pp_infos infos;
     indent_str := !indent_str ^ "  "
   | Runtime.EndCall infos ->
     indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
-    Message.log "%s%a %a" !indent_str Print.log_entry EndCall pp_infos infos
+    Format.fprintf ppf "%s%a %a" !indent_str Print.log_entry EndCall pp_infos infos
   | Runtime.VariableDefinition (infos, io, value) ->
-    Message.log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
+    Format.fprintf ppf "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
       (VarDef
          {
            log_typ = TAny;
@@ -94,7 +94,7 @@ let print_log lang entry =
       (Message.unformat (fun ppf -> format_runtime_value lang ppf value))
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
-    Message.log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
+    Format.fprintf ppf "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
       Print.log_entry PosRecordIfTrueBool Pos.format_loc_text pos
 
 let rec value_to_runtime_embedded = function
@@ -248,7 +248,7 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [(e, _)] when Global.options.trace -> (
+  | Log (entry, infos), [(e, _)] when Global.options.trace <> None -> (
     let rtinfos = List.map Uid.MarkedString.to_string infos in
     match entry with
     | BeginCall -> Runtime.log_begin_call rtinfos e
@@ -915,11 +915,13 @@ let evaluate_expr_trace :
   Fun.protect
     (fun () -> evaluate_expr ctx lang e)
     ~finally:(fun () ->
-      if Global.options.trace then
+      match Global.options.trace with
+      | None -> ()
+      | Some (lazy ppf) ->
         let trace = Runtime.retrieve_log () in
         let output_trace fmt =
           match Global.options.trace_format with
-          | Human -> List.iter (print_log lang) trace
+          | Human -> List.iter (print_log ppf lang) trace
           | JSON ->
             Format.fprintf fmt "[";
             Format.pp_print_list
@@ -929,14 +931,9 @@ let evaluate_expr_trace :
               (List.map Runtime.Json.raw_event trace);
             Format.fprintf fmt "]@."
         in
-        match Global.options.trace_output with
-        | None -> output_trace Format.std_formatter
-        | Some filename ->
-          let oc = open_out filename in
-          let fmt = Format.formatter_of_out_channel oc in
           Fun.protect
-            (fun () -> output_trace fmt)
-            ~finally:(fun () -> close_out oc))
+            (fun () -> output_trace ppf)
+            ~finally:(fun () -> (Format.pp_print_flush ppf ())))
 
 let evaluate_expr_safe :
     type d.

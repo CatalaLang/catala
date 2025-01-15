@@ -33,7 +33,7 @@ type options = {
   mutable debug : bool;
   mutable color : when_enum;
   mutable message_format : message_format_enum;
-  mutable trace : bool;
+  mutable trace : Format.formatter Lazy.t option;
   mutable trace_format : trace_format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
@@ -41,7 +41,6 @@ type options = {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
-  mutable trace_output : file option;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -56,7 +55,7 @@ let options =
     debug = false;
     color = Auto;
     message_format = Human;
-    trace = false;
+    trace = None;
     trace_format = Human;
     plugins_dirs = [];
     disable_warnings = false;
@@ -64,7 +63,6 @@ let options =
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
     no_fail_on_assert = false;
-    trace_output = None;
   }
 
 let enforce_options
@@ -81,7 +79,6 @@ let enforce_options
     ?path_rewrite
     ?stop_on_error
     ?no_fail_on_assert
-    ?trace_output
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -96,7 +93,6 @@ let enforce_options
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   Option.iter (fun x -> options.no_fail_on_assert <- x) no_fail_on_assert;
-  Option.iter (fun x -> options.trace_output <- x) trace_output;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
