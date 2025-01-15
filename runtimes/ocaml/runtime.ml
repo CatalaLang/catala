@@ -338,7 +338,7 @@ module BufferedJson = struct
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
-    | Unit -> Buffer.add_string buf {|{}|}
+    | Unit -> Buffer.add_string buf "{}"
     | Bool b -> Buffer.add_string buf (string_of_bool b)
     | Money m -> Buffer.add_string buf (money_to_string m)
     | Integer i -> Buffer.add_string buf (integer_to_string i)
