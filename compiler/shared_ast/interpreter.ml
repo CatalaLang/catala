@@ -80,7 +80,7 @@ let print_log ppf lang entry =
     Format.fprintf ppf "%s%a %a" !indent_str Print.log_entry BeginCall pp_infos infos;
     indent_str := !indent_str ^ "  "
   | Runtime.EndCall infos ->
-    indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
+    indent_str := if String.length !indent_str >= 2 then String.sub !indent_str 0 (String.length !indent_str - 2) else !indent_str;
     Format.fprintf ppf "%s%a %a" !indent_str Print.log_entry EndCall pp_infos infos
   | Runtime.VariableDefinition (infos, io, value) ->
     Format.fprintf ppf "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
