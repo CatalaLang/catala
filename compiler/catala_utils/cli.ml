@@ -150,7 +150,12 @@ module Flags = struct
       let converter =
         conv ~docv:"FILE"
           ( (fun s ->
-              if s = "-" then Ok `Stdout else Ok (`FileName (Global.raw_file s))),
+              if s = "-" then Ok `Stdout
+              else if
+                Filename.extension s |> String.starts_with ~prefix:".catala"
+              then
+                Error (`Msg "Output trace file cannot have a .catala extension")
+              else Ok (`FileName (Global.raw_file s))),
             fun ppf -> function
               | `Stdout -> Format.pp_print_string ppf "-"
               | `FileName f -> Format.pp_print_string ppf (f :> string) )
@@ -165,7 +170,8 @@ module Flags = struct
              outputs\n\
             \             trace to stdout. If $(docv) is defined, outputs the \
              trace to a file while interpreting.\n\
-            \             Defining a filename does not affect code generation."
+            \             Defining a filename does not affect code generation. \
+             Cannot use .catala extension."
 
     let trace_format =
       value
