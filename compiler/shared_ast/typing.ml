@@ -55,43 +55,91 @@ and naked_typ =
   | TAny of Any.t
   | TClosureEnv
 
-let rec typ_to_ast ~(flags : flags) (ty : unionfind_typ) : A.typ =
-  let typ_to_ast = typ_to_ast ~flags in
-  let ty, pos = UnionFind.get (UnionFind.find ty) in
-  match ty with
-  | TLit l -> A.TLit l, pos
-  | TTuple ts -> A.TTuple (List.map typ_to_ast ts), pos
-  | TStruct s -> A.TStruct s, pos
-  | TEnum e -> A.TEnum e, pos
-  | TOption t -> A.TOption (typ_to_ast t), pos
-  | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
-  | TArray t1 -> A.TArray (typ_to_ast t1), pos
-  | TDefault t1 -> A.TDefault (typ_to_ast t1), pos
-  | TAny _ ->
-    if flags.fail_on_any then
-      (* No polymorphism in Catala: type inference should return full types
-         without wildcards, and this function is used to recover the types after
-         typing. *)
-      Message.error ~pos
-        "Internal error: typing at this point could not be resolved"
-    else A.TAny, pos
-  | TClosureEnv -> TClosureEnv, pos
-
-let rec ast_to_typ (ty : A.typ) : unionfind_typ =
-  let ty' =
-    match Mark.remove ty with
-    | A.TLit l -> TLit l
-    | A.TArrow (t1, t2) -> TArrow (List.map ast_to_typ t1, ast_to_typ t2)
-    | A.TTuple ts -> TTuple (List.map ast_to_typ ts)
-    | A.TStruct s -> TStruct s
-    | A.TEnum e -> TEnum e
-    | A.TOption t -> TOption (ast_to_typ t)
-    | A.TArray t -> TArray (ast_to_typ t)
-    | A.TDefault t -> TDefault (ast_to_typ t)
-    | A.TAny -> TAny (Any.fresh ())
-    | A.TClosureEnv -> TClosureEnv
+let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
+  let rec aux vars ty =
+    let ty, pos = UnionFind.get (UnionFind.find ty) in
+    let ( @& ) f bt = Bindlib.box_apply (fun t -> f t, pos) bt in
+    match ty with
+    | TLit l -> vars, Bindlib.box (A.TLit l, pos)
+    | TTuple ts ->
+      let vars, ts = List.fold_left_map aux vars ts in
+      vars, (fun ts -> A.TTuple ts) @& Bindlib.box_list ts
+    | TStruct s -> vars, Bindlib.box (A.TStruct s, pos)
+    | TEnum e -> vars, Bindlib.box (A.TEnum e, pos)
+    | TOption t ->
+      let vars, t = aux vars t in
+      vars, (fun t -> A.TOption t) @& t
+    | TArrow (t1, t2) ->
+      let vars, t1 = List.fold_left_map aux vars t1 in
+      let vars, t2 = aux vars t2 in
+      ( vars,
+        Bindlib.box_apply2
+          (fun t1 t2 -> A.TArrow (t1, t2), pos)
+          (Bindlib.box_list t1) t2 )
+    | TArray t1 ->
+      let vars, t1 = aux vars t1 in
+      vars, (fun t1 -> A.TArray t1) @& t1
+    | TDefault t1 ->
+      let vars, t1 = aux vars t1 in
+      vars, (fun t1 -> A.TDefault t1) @& t1
+    | TAny any ->
+      let vars, var =
+        match Any.Map.find_opt any vars with
+        | Some var -> vars, var
+        | None ->
+          let var = Type.Var.fresh pos in
+          Any.Map.add any var vars, var
+      in
+      vars, Bindlib.box_var var
+    | TClosureEnv -> vars, Bindlib.box (A.TClosureEnv, pos)
   in
-  UnionFind.make (Mark.copy ty ty')
+  let pos = Mark.get (UnionFind.get (UnionFind.find ty)) in
+  let vars, ty = aux Any.Map.empty ty in
+  let boxed_ty =
+    Any.Map.fold
+      (fun _ v ty ->
+        Bindlib.box_apply (fun t -> A.TAny t, pos) (Bindlib.bind_var v ty))
+      vars ty
+  in
+  assert (Bindlib.is_closed boxed_ty);
+  Bindlib.unbox boxed_ty
+
+let ast_to_typ (ty : A.typ) : unionfind_typ =
+  let vars =
+    (* free variables are quantified at the outermost level
+
+       Note: it would be more efficient to gather them out in a single pass
+       instead of using `Type.free_vars` *)
+    Type.Var.Set.fold
+      (fun v vars ->
+        let any = UnionFind.make (TAny (Any.fresh ()), Mark.get ty) in
+        Type.Var.Map.add v any vars)
+      (Type.free_vars ty) Type.Var.Map.empty
+  in
+  let rec aux vars = function
+    | A.TVar v, _ -> Type.Var.Map.find v vars
+    | A.TAny tb, m ->
+      let var, ty = Bindlib.unbind tb in
+      let any = UnionFind.make (TAny (Any.fresh ()), m) in
+      let vars = Type.Var.Map.add var any vars in
+      aux vars ty
+    | ty, m ->
+      let ty =
+        match ty with
+        | A.TLit l -> TLit l
+        | A.TArrow (t1, t2) -> TArrow (List.map (aux vars) t1, aux vars t2)
+        | A.TTuple ts -> TTuple (List.map (aux vars) ts)
+        | A.TStruct s -> TStruct s
+        | A.TEnum e -> TEnum e
+        | A.TOption t -> TOption (aux vars t)
+        | A.TArray t -> TArray (aux vars t)
+        | A.TDefault t -> TDefault (aux vars t)
+        | A.TClosureEnv -> TClosureEnv
+        | A.TVar _ | A.TAny _ -> assert false
+      in
+      UnionFind.make (ty, m)
+  in
+  aux vars ty
 
 (** {1 Types and unification} *)
 
@@ -188,7 +236,7 @@ let record_type_error _ctx (A.AnyExpr e) t1 t2 =
   let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
-  let pp_typ = Print.typ_debug in
+  let pp_typ = Print.typ in
   let fmt_pos =
     if e_pos = t1_pos then
       [
@@ -483,7 +531,7 @@ and typecheck_expr_top_down :
     (* If there already is a type annotation on the given expr, ensure it
        matches *)
     match Mark.get e with
-    | A.Untyped _ | A.Typed { A.ty = A.TAny, _; _ } -> ()
+    | A.Untyped _ -> ()
     | A.Typed { A.ty; _ } -> unify ctx e tau (ast_to_typ ty)
     | A.Custom _ -> assert false
   in
@@ -864,11 +912,11 @@ and typecheck_expr_top_down :
           match List.nth_opt l index with
           | None -> out_of_bounds (List.length l)
           | Some ty -> List.length l, mark_with_tau_and_unify (ast_to_typ ty))
-        | TAny, _ -> failwith "Disambiguation failure"
+        | TAny _, _ -> failwith "Disambiguation failure"
         | ty ->
           Message.error ~pos:(Expr.pos e1)
             "This expression has type@ %a,@ while a tuple was expected"
-            (Print.typ ctx) ty
+            Print.typ ty
     in
     Expr.etupleaccess ~e:e1' ~index ~size mark
   | A.EAbs { binder; pos; tys = t_args } ->
@@ -1055,7 +1103,7 @@ let scope_body_expr ctx env ty_out body_expr =
                 scope with
                 A.scope_let_typ =
                   (match scope.A.scope_let_typ with
-                  | TAny, _ -> typ_to_ast ~flags:env.flags (ty e)
+                  | TAny _, _ -> typ_to_ast ~flags:env.flags (ty e)
                   | ty -> ty);
                 A.scope_let_expr;
               })
@@ -1118,7 +1166,7 @@ let program ?fail_on_any ?assume_op_types prg =
               A.StructField.Map.mapi
                 (fun f_name (t : A.typ) ->
                   match Mark.remove t with
-                  | TAny ->
+                  | TAny _ ->
                     typ_to_ast ~flags:env.flags
                       (A.StructField.Map.find f_name
                          (A.StructName.Map.find s_name new_env.structs))
@@ -1131,7 +1179,7 @@ let program ?fail_on_any ?assume_op_types prg =
               A.EnumConstructor.Map.mapi
                 (fun cons_name (t : A.typ) ->
                   match Mark.remove t with
-                  | TAny ->
+                  | TAny _ ->
                     typ_to_ast ~flags:env.flags
                       (A.EnumConstructor.Map.find cons_name
                          (A.EnumName.Map.find e_name new_env.enums))

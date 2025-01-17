@@ -187,7 +187,7 @@ let escopecall ~scope ~args mark =
 
 let no_mark : type m. m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.no_pos }
-  | Typed _ -> Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos TAny }
+  | Typed _ -> Typed { pos = Pos.no_pos; ty = Type.new_var Pos.no_pos }
   | Custom { custom; pos = _ } -> Custom { pos = Pos.no_pos; custom }
 
 let mark_pos (type m) (m : m mark) : Pos.t =
@@ -237,7 +237,25 @@ let fold_marks
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
         ty = ty_f (List.map (function Typed m -> m) ms);
       }
-  | Custom _ :: _ -> invalid_arg "map_mark2"
+  | Custom _ :: _ -> invalid_arg "fold_marks"
+
+let fold_marked
+    (type a m)
+    (pos_f : (a * Pos.t) list -> Pos.t)
+    (ty_f : (a * typed) list -> typ)
+    (xs : (a, m) marked list) : m mark =
+  match xs with
+  | [] -> invalid_arg "Dcalc.Ast.fold_mark"
+  | (_, Untyped _) :: _ as xs ->
+    Untyped
+      { pos = pos_f (List.map (function x, Untyped { pos } -> x, pos) xs) }
+  | (_, Typed _) :: _ as xs ->
+    Typed
+      {
+        pos = pos_f (List.map (function x, Typed { pos; _ } -> x, pos) xs);
+        ty = ty_f (List.map (function x, Typed m -> x, m) xs);
+      }
+  | (_, Custom _) :: _ -> invalid_arg "fold_marked"
 
 let with_pos (type m) (pos : Pos.t) (m : m mark) : m mark =
   map_mark (fun _ -> pos) (fun ty -> ty) m
@@ -248,10 +266,11 @@ let map_ty (type m) (ty_f : typ -> typ) (m : m mark) : m mark =
 let with_ty (type m) (m : m mark) ?pos (ty : typ) : m mark =
   map_mark (fun default -> Option.value pos ~default) (fun _ -> ty) m
 
-let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
+let maybe_ty (type m) ?typ (m : m mark) : typ =
   match m with
-  | Untyped { pos } | Custom { pos; _ } -> Mark.add pos typ
   | Typed { ty; _ } -> ty
+  | Untyped { pos } | Custom { pos; _ } -> (
+    match typ with Some typ -> typ, pos | None -> Type.new_var pos)
 
 let untyped = Untyped { pos = Pos.no_pos }
 let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
@@ -265,9 +284,12 @@ let option_enum = EnumName.fresh [] ("Eoption", Pos.no_pos)
 let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
+(* Enums don't have type variables at the moment, so the correctness is handled
+   by the specific TOption type; the below definition is used as placeholder in
+   dcalc but doesn't guarantee consistency by itself. *)
 let option_enum_config =
   EnumConstructor.Map.of_list
-    [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
+    [none_constr, (TLit TUnit, Pos.no_pos); some_constr, Type.any Pos.no_pos]
 
 let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.no_pos)
 
@@ -912,10 +934,10 @@ let make_tupleaccess e index size pos =
           try List.nth tl index
           with Failure _ ->
             Message.error ~internal:true "Trying to build invalid tuple access")
-        | TAny, pos -> TAny, pos
+        | TVar v, pos -> TVar v, pos
         | ty ->
           Message.error ~internal:true "Unexpected non-tuple type annotation %a"
-            Print.typ_debug ty)
+            Print.typ ty)
       (Mark.get e)
   in
   etupleaccess ~e ~index ~size m
@@ -926,16 +948,19 @@ let make_app f args tys pos =
       (fun _ -> pos)
       (function
         | [] -> assert false
-        | fty :: argtys -> (
-          match Mark.remove fty.ty with
+        | fty :: args -> (
+          match Mark.remove (Type.unquantify fty.ty) with
           | TArrow (tx', tr) ->
-            assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
+            assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) args));
+            (* here we check that unification is possible arg by arg, but
+               without performing anything; it's only a preliminary check before
+               the typer runs *)
             tr
-          | TAny -> fty.ty
+          | TVar _ -> Type.new_var pos
           | _ ->
             Message.error ~internal:true
               "wrong type: found %a while expecting either an Arrow or Any"
-              Print.typ_debug fty.ty))
+              Print.typ fty.ty))
       (List.map Mark.get (f :: args))
   in
   eapp ~f ~args ~tys mark
@@ -944,13 +969,14 @@ let make_erroronempty e =
   let mark =
     map_mark
       (fun pos -> pos)
-      (function
+      (fun ty ->
+        match Type.unquantify ty with
         | TDefault ty, _ -> ty
-        | TAny, pos -> TAny, pos
+        | TVar _, pos -> Type.new_var pos
         | ty ->
           Message.error ~internal:true
             "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
-            Print.typ_debug ty format (unbox e))
+            Print.typ ty format (unbox e))
       (Mark.get e)
   in
   eerroronempty e mark
@@ -980,6 +1006,13 @@ let make_puredefault e =
   in
   epuredefault e mark
 
-let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
+let fun_id (type m) ?(var_name : string = "x") (mark : m mark) :
+    ('a any, m) boxed_gexpr =
+  let pos = mark_pos mark in
   let x = Var.make var_name in
-  make_abs [x, Pos.no_pos] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)
+  let argty =
+    match mark with
+    | Typed { ty = TArrow ([ty], _), _; _ } -> ty
+    | _ -> Type.new_var pos
+  in
+  make_abs [x, pos] (evar x mark) [argty] pos

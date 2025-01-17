@@ -47,6 +47,7 @@ let translate_binop :
       ~args:[lhs; rhs]
       (Untyped { pos })
   in
+  let tany () = Mark.remove (Type.any op_pos) in
   match op with
   | S.And -> op_expr And [TLit TBool; TLit TBool]
   | S.Or -> op_expr Or [TLit TBool; TLit TBool]
@@ -54,7 +55,7 @@ let translate_binop :
   | S.Add k ->
     op_expr Add
       (match k with
-      | S.KPoly -> [TAny; TAny]
+      | S.KPoly -> [tany (); tany ()]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
@@ -63,7 +64,7 @@ let translate_binop :
   | S.Sub k ->
     op_expr Sub
       (match k with
-      | S.KPoly -> [TAny; TAny]
+      | S.KPoly -> [tany (); tany ()]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
@@ -72,7 +73,7 @@ let translate_binop :
   | S.Mult k ->
     op_expr Mult
       (match k with
-      | S.KPoly -> [TAny; TAny]
+      | S.KPoly -> [tany (); tany ()]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TRat]
@@ -83,7 +84,7 @@ let translate_binop :
   | S.Div k ->
     op_expr Div
       (match k with
-      | S.KPoly -> [TAny; TAny]
+      | S.KPoly -> [tany (); tany ()]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
@@ -100,17 +101,22 @@ let translate_binop :
       | S.Gte _ -> Gte
       | _ -> assert false)
       (match k with
-      | S.KPoly -> [TAny; TAny]
+      | S.KPoly ->
+        let a = tany () in
+        [a; a]
       | S.KInt -> [TLit TInt; TLit TInt]
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
       | S.KDate -> [TLit TDate; TLit TDate]
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Eq ->
-    op_expr Eq [TAny; TAny]
+    let a = tany () in
+    op_expr Eq [a; a]
     (* This is a truly polymorphic operator, not an overload *)
   | S.Neq -> assert false (* desugared already *)
-  | S.Concat -> op_expr Concat [TArray (TAny, op_pos); TArray (TAny, op_pos)]
+  | S.Concat ->
+    let a = Type.any op_pos in
+    op_expr Concat [TArray a; TArray a]
 
 let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
   let op_expr op ty =
@@ -124,7 +130,7 @@ let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
   | S.Minus k ->
     op_expr Minus
       (match k with
-      | S.KPoly -> TAny
+      | S.KPoly -> Mark.remove (Type.any op_pos)
       | S.KInt -> TLit TInt
       | S.KDec -> TLit TRat
       | S.KMoney -> TLit TMoney
@@ -256,14 +262,14 @@ let rec translate_expr
           let rhs = zip names r in
           let rtys, explode =
             match List.length r with
-            | 1 -> (TAny, pos), fun e -> [e]
+            | 1 -> Type.any pos, fun e -> [e]
             | size ->
-              ( (TTuple (List.map (fun _ -> TAny, pos) r), pos),
+              ( (TTuple (List.map (fun _ -> Type.any pos) r), pos),
                 fun e ->
                   List.init size (fun index ->
                       Expr.etupleaccess ~e ~size ~index m) )
           in
-          let tys = [TAny, pos; rtys] in
+          let tys = [Type.any pos; rtys] in
           let f_join =
             let x1 = Var.make name1 in
             let x2 =
@@ -275,7 +281,7 @@ let rec translate_expr
               tys pos
           in
           Expr.eappop ~op:(Map2, opos) ~args:[f_join; l1; rhs]
-            ~tys:((TAny, pos) :: List.map (fun ty -> TArray ty, pos) tys)
+            ~tys:(Type.any pos :: List.map (fun ty -> TArray ty, pos) tys)
             m
       in
       zip names ls
@@ -501,11 +507,11 @@ let rec translate_expr
   | FunCall ((Builtin b, pos), [arg]) ->
     let op, ty =
       match b with
-      | S.ToInteger -> Op.ToInt, TAny
-      | S.ToDecimal -> Op.ToRat, TAny
-      | S.ToMoney -> Op.ToMoney, TAny
-      | S.Round -> Op.Round, TAny
-      | S.Cardinal -> Op.Length, TArray (TAny, pos)
+      | S.ToInteger -> Op.ToInt, Mark.remove (Type.any pos)
+      | S.ToDecimal -> Op.ToRat, Mark.remove (Type.any pos)
+      | S.ToMoney -> Op.ToMoney, Mark.remove (Type.any pos)
+      | S.Round -> Op.Round, Mark.remove (Type.any pos)
+      | S.Cardinal -> Op.Length, TArray (Type.any pos)
       | S.GetDay -> Op.GetDay, TLit TDate
       | S.GetMonth -> Op.GetMonth, TLit TDate
       | S.GetYear -> Op.GetYear, TLit TDate
@@ -568,7 +574,7 @@ let rec translate_expr
           Ident.Map.add (Mark.remove x) (Mark.remove v) local_vars)
         local_vars xs m_xs
     in
-    let taus = List.map (fun x -> TAny, Mark.get x) xs in
+    let taus = List.map (fun x -> Type.any (Mark.get x)) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
     let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) taus pos in
     Expr.eapp ~f ~args:[rec_helper e1] ~tys:[] emark
@@ -760,7 +766,7 @@ let rec translate_expr
     let f_pred =
       Expr.make_abs params
         (rec_helper ~local_vars predicate)
-        (List.map (fun _ -> TAny, pos) params)
+        (List.map (fun _ -> Type.any pos) params)
         pos
     in
     let f_pred =
@@ -773,14 +779,14 @@ let rec translate_expr
           Var.make (String.concat "_" (List.map Mark.remove param_names))
         in
         let x = Expr.evar v emark in
-        let tys = List.map (fun _ -> TAny, pos) param_names in
+        let tys = List.map (fun _ -> Type.any pos) param_names in
         Expr.make_abs
           [Mark.add Pos.no_pos v]
           (Expr.make_app f_pred
              (List.init nb_args (fun i ->
                   Expr.etupleaccess ~e:x ~index:i ~size:nb_args emark))
              tys pos)
-          [TAny, pos]
+          [Type.any pos]
           pos
     in
     Expr.eappop
@@ -789,7 +795,7 @@ let rec translate_expr
         | S.Map _, pos -> Map, pos
         | S.Filter _, pos -> Filter, pos
         | _ -> assert false)
-      ~tys:[TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos]
       ~args:[f_pred; collection] emark
   | CollectionOp ((Fold { f; init }, opos), collection) ->
     let acc_names, param_names, fct = f in
@@ -812,7 +818,7 @@ let rec translate_expr
     let f_proc =
       Expr.make_abs (accs @ params)
         (rec_helper ~local_vars fct)
-        (List.map (fun _ -> TAny, pos) (accs @ params))
+        (List.map (fun _ -> Type.any pos) (accs @ params))
         pos
     in
     let f_proc =
@@ -832,7 +838,7 @@ let rec translate_expr
         in
         let x_acc = Expr.evar v_acc emark in
         let x_param = Expr.evar v_param emark in
-        let tys = List.init (nb_accs + nb_args) (fun _ -> TAny, pos) in
+        let tys = List.init (nb_accs + nb_args) (fun _ -> Type.any pos) in
         Expr.make_ghost_abs [v_acc; v_param]
           (Expr.make_app f_proc
              ((if nb_accs = 1 then [x_acc]
@@ -849,11 +855,11 @@ let rec translate_expr
                    Expr.etupleaccess ~e:x_param ~index ~size:nb_args emark)
                  params)
              tys pos)
-          [TAny, pos; TAny, pos]
+          [Type.any pos; Type.any pos]
           pos
     in
     Expr.eappop ~op:(Fold, opos)
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f_proc; init; collection] emark
   | CollectionOp
       ( ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
@@ -872,7 +878,7 @@ let rec translate_expr
     in
     let cmp_op = if max then Op.Gt, opos else Op.Lt, opos in
     let f_pred =
-      Expr.make_abs params (rec_helper ~local_vars predicate) [TAny, pos] pos
+      Expr.make_abs params (rec_helper ~local_vars predicate) [Type.any pos] pos
     in
     let add_weight_f =
       let vs =
@@ -882,7 +888,7 @@ let rec translate_expr
       let x = match xs with [x] -> x | xs -> Expr.etuple xs emark in
       Expr.make_ghost_abs vs
         (Expr.make_tuple [x; Expr.eapp ~f:f_pred ~args:xs ~tys:[] emark] emark)
-        [TAny, pos]
+        [Type.any pos]
         pos
     in
     let reduce_f =
@@ -892,7 +898,7 @@ let rec translate_expr
       Expr.make_ghost_abs [v1; v2]
         (Expr.eifthenelse
            (Expr.eappop ~op:cmp_op
-              ~tys:[TAny, pos_dft; TAny, pos_dft]
+              ~tys:[Type.any pos_dft; Type.any pos_dft]
               ~args:
                 [
                   Expr.etupleaccess ~e:x1 ~index:1 ~size:2 emark;
@@ -900,19 +906,19 @@ let rec translate_expr
                 ]
               emark)
            x1 x2 emark)
-        [TAny, pos; TAny, pos]
+        [Type.any pos; Type.any pos]
         pos
     in
     let weights_var = Var.make "weights" in
-    let default = Expr.make_app add_weight_f [default] [TAny, pos] pos_dft in
+    let default = Expr.make_app add_weight_f [default] [Type.any pos] pos_dft in
     let weighted_result =
       Expr.make_let_in (Mark.ghost weights_var)
-        (TArray (TTuple [TAny, pos; TAny, pos], pos), pos)
+        (TArray (TTuple [Type.any pos; Type.any pos], pos), pos)
         (Expr.eappop ~op:(Map, opos)
-           ~tys:[TAny, pos; TArray (TAny, pos), pos]
+           ~tys:[Type.any pos; TArray (Type.any pos), pos]
            ~args:[add_weight_f; collection] emark)
         (Expr.eappop ~op:(Reduce, opos)
-           ~tys:[TAny, pos; TAny, pos; TAny, pos]
+           ~tys:[Type.any pos; Type.any pos; Type.any pos]
            ~args:[reduce_f; default; Expr.evar weights_var emark]
            emark)
         pos
@@ -950,10 +956,10 @@ let rec translate_expr
           (Array.of_list (List.map Mark.remove vs))
           (translate_binop op pos acc (rec_helper ~local_vars predicate))
       in
-      Expr.eabs mvars vs_marks [TAny, pos; TAny, pos] emark
+      Expr.eabs mvars vs_marks [Type.any pos; Type.any pos] emark
     in
     Expr.eappop ~op:(Fold, opos)
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f; init; collection] emark
   | CollectionOp ((AggregateExtremum { max; default }, opos), collection) ->
     let collection = rec_helper collection in
@@ -967,11 +973,11 @@ let rec translate_expr
       let x2 = Expr.make_var v2 emark in
       Expr.make_ghost_abs [v1; v2]
         (Expr.eifthenelse (translate_binop (op, pos) pos x1 x2) x1 x2 emark)
-        [TAny, pos; TAny, pos]
+        [Type.any pos; Type.any pos]
         pos
     in
     Expr.eappop ~op:(Reduce, opos)
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[op_f; default; collection]
       emark
   | CollectionOp ((AggregateSum { typ }, opos), collection) ->
@@ -997,11 +1003,11 @@ let rec translate_expr
       let x2 = Expr.make_var v2 emark in
       Expr.make_ghost_abs [v1; v2]
         (translate_binop (S.Add KPoly, opos) pos x1 x2)
-        [TAny, pos; TAny, pos]
+        [Type.any pos; Type.any pos]
         pos
     in
     Expr.eappop ~op:(Reduce, opos)
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[op_f; Expr.elit default_lit emark; collection]
       emark
   | CollectionOp ((Member { element = member }, opos), collection) ->
@@ -1018,7 +1024,7 @@ let rec translate_expr
         ~args:
           [
             Expr.eappop ~op:(Eq, opos)
-              ~tys:[TAny, pos; TAny, pos]
+              ~tys:[Type.any pos; Type.any pos]
               ~args:[member; param] emark;
             acc;
           ]
@@ -1029,11 +1035,11 @@ let rec translate_expr
       Expr.eabs
         (Expr.bind (Array.of_list (List.map Mark.remove vars)) f_body)
         (List.map Mark.get vars)
-        [TLit TBool, pos; TAny, pos]
+        [TLit TBool, pos; Type.any pos]
         emark
     in
     Expr.eappop ~op:(Fold, opos)
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f; init; collection] emark
 
 and disambiguate_match_and_build_expression
