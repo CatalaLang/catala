@@ -19,7 +19,6 @@ open Shared_ast
 open Ast
 
 let struc
-    ctx
     (fmt : Format.formatter)
     (name : StructName.t)
     (fields : typ StructField.Map.t) : unit =
@@ -29,12 +28,11 @@ let struc
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
          Format.fprintf fmt "%a%a %a" StructField.format field_name
-           Print.punctuation ":" (Print.typ ctx) typ))
+           Print.punctuation ":" Print.typ typ))
     (StructField.Map.bindings fields)
     Print.punctuation "}"
 
 let enum
-    ctx
     (fmt : Format.formatter)
     (name : EnumName.t)
     (cases : typ EnumConstructor.Map.t) : unit =
@@ -44,17 +42,16 @@ let enum
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
          Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
-           EnumConstructor.format field_name Print.punctuation ":"
-           (Print.typ ctx) typ))
+           EnumConstructor.format field_name Print.punctuation ":" Print.typ typ))
     (EnumConstructor.Map.bindings cases)
 
-let scope ?debug ctx fmt (name, (decl, _pos)) =
+let scope ?debug fmt (name, (decl, _pos)) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
     Print.keyword "let" Print.keyword "scope" ScopeName.format name
     (Format.pp_print_list ~pp_sep:Format.pp_print_space
        (fun fmt (scope_var, svar) ->
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
-           ScopeVar.format scope_var Print.punctuation ":" (Print.typ ctx)
+           ScopeVar.format scope_var Print.punctuation ":" Print.typ
            svar.svar_in_ty Print.punctuation "|" Print.keyword
            (match Mark.remove svar.svar_io.Desugared.Ast.io_input with
            | NoInput -> "internal"
@@ -75,7 +72,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
          | ScopeVarDefinition { var; typ; io; e } ->
            Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword
              "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
-             (Print.typ ctx) typ Print.punctuation "="
+             Print.typ typ Print.punctuation "="
              (fun fmt ->
                match Mark.remove io.io_input with
                | Reentrant ->
@@ -86,7 +83,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
          | SubScopeVarDefinition { var; typ; e; _ } ->
            Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
              "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
-             (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
+             Print.typ typ Print.punctuation "=" (Print.expr ?debug ()) e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
              (Print.expr ?debug ()) e))
@@ -101,7 +98,7 @@ let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
     TopdefName.format ppf name;
     Print.punctuation ppf ":";
     Format.pp_print_space ppf ();
-    Print.typ ctx ppf ty;
+    Print.typ ppf ty;
     Format.pp_print_space ppf ();
     Print.punctuation ppf "=";
     Format.pp_close_box ppf ()
@@ -120,19 +117,19 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
   Format.pp_open_vbox fmt 0;
   StructName.Map.iter
     (fun n s ->
-      struc ctx fmt n s;
+      struc fmt n s;
       pp_sep fmt ())
     ctx.ctx_structs;
   EnumName.Map.iter
     (fun n e ->
-      enum ctx fmt n e;
+      enum fmt n e;
       pp_sep fmt ())
     ctx.ctx_enums;
   TopdefName.Map.iter
     (fun name def ->
-      print_topdef ctx fmt name def;
+      print_topdef fmt name def;
       pp_sep fmt ())
     p.program_topdefs;
-  Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
+  Format.pp_print_list ~pp_sep (scope ~debug) fmt
     (ScopeName.Map.bindings p.program_scopes);
   Format.pp_close_box fmt ()
