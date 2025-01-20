@@ -55,7 +55,7 @@ let collect_monomorphized_instances (prg : typed program) :
   let tuple_instances_counter = ref 0 in
   let array_instances_counter = ref 0 in
   let rec collect_typ acc typ =
-    match Mark.remove typ with
+    match Mark.remove (Type.unquantify typ) with
     | TTuple args
       when List.for_all
              (function (TAny _ | TVar _), _ -> false | _ -> true)
@@ -148,7 +148,8 @@ let collect_monomorphized_instances (prg : typed program) :
       in
       collect_typ new_acc t
     | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> acc
-    | TAny _ | TVar _ -> assert false (* TODO *)
+    | TAny _ -> assert false
+    | TVar _ -> (* TODO ? *) acc
     | TOption _ | TTuple _ ->
       Message.error ~internal:true ~pos:(Mark.get typ)
         "Some types in tuples or option have not been resolved by the \

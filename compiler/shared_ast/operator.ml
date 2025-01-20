@@ -556,7 +556,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
     raise Not_found
 
 let resolve_overload
-    ctx
+    _ctx
     ((op, pos) : overloaded t Mark.pos)
     (operands : typ list) :
     < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ] =
