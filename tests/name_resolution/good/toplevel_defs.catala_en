@@ -166,8 +166,8 @@ let s (s_in: S_in) =
     fatal NoValue
   | ESome arg →
     a = arg;
-  decl b : A {y: bool; z: decimal};
-  init b__1 : option A {y: bool; z: decimal} = ESome glob2;
+  decl b : A;
+  init b__1 : option A = ESome glob2;
   switch b__1:
   | ENone _ →
     init pos : SourcePosition = <toplevel_defs:8.10-11>;
