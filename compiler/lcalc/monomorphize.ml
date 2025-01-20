@@ -55,8 +55,11 @@ let collect_monomorphized_instances (prg : typed program) :
   let tuple_instances_counter = ref 0 in
   let array_instances_counter = ref 0 in
   let rec collect_typ acc typ =
-    match Mark.remove typ with
-    | TTuple args when List.for_all (fun t -> Mark.remove t <> TAny) args ->
+    match Mark.remove (Type.unquantify typ) with
+    | TTuple args
+      when List.for_all
+             (function (TAny _ | TVar _), _ -> false | _ -> true)
+             args ->
       let new_acc =
         {
           acc with
@@ -113,7 +116,7 @@ let collect_monomorphized_instances (prg : typed program) :
     | TDefault t -> collect_typ acc t
     | TArrow (args, ret) ->
       List.fold_left collect_typ (collect_typ acc ret) args
-    | TOption t when Mark.remove t <> TAny ->
+    | TOption t when match t with (TAny _ | TVar _), _ -> false | _ -> true ->
       let new_acc =
         {
           acc with
@@ -144,7 +147,9 @@ let collect_monomorphized_instances (prg : typed program) :
         }
       in
       collect_typ new_acc t
-    | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
+    | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> acc
+    | TAny _ -> assert false
+    | TVar _ -> (* TODO ? *) acc
     | TOption _ | TTuple _ ->
       Message.error ~internal:true ~pos:(Mark.get typ)
         "Some types in tuples or option have not been resolved by the \
@@ -172,7 +177,8 @@ let rec monomorphize_typ
     (monomorphized_instances : monomorphized_instances)
     (typ : typ) : typ =
   match Mark.remove typ with
-  | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> typ
+  | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> typ
+  | TAny _ | TVar _ -> assert false (* TODO *)
   | TArray _ ->
     ( TStruct (Type.Map.find typ monomorphized_instances.arrays).name,
       Mark.get typ )
