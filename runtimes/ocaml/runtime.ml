@@ -317,26 +317,51 @@ module BufferedJson = struct
       str;
     Buffer.add_char buf '"'
 
+  let decimal buf d =
+    let max_decimals = 6 in
+    let dec_str =
+      let open Z in
+      let sign = Q.sign d in
+      let n = abs (Q.num d) in
+      let d = abs (Q.den d) in
+      let int_part, dec_part = div_rem n d in
+      bprint buf (~$sign * int_part);
+      Buffer.add_char buf '.';
+      let dec_part = (((~$10 ** max_decimals) * dec_part) + (d / ~$2)) / d in
+      format ("%0" ^ string_of_int max_decimals ^ "d") dec_part
+    in
+    let rec last_non0 n =
+      if n <= 1 || dec_str.[n - 1] <> '0' then n else last_non0 (n - 1)
+    in
+    Buffer.add_substring buf dec_str 0 (last_non0 max_decimals)
+
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
-    | Unit -> Buffer.add_string buf {|"Unit"|}
+    | Unit -> Buffer.add_string buf "{}"
     | Bool b -> Buffer.add_string buf (string_of_bool b)
     | Money m -> Buffer.add_string buf (money_to_string m)
     | Integer i -> Buffer.add_string buf (integer_to_string i)
-    | Decimal d ->
-      Buffer.add_string buf (decimal_to_string ~max_prec_digits:10 d)
+    | Decimal d -> decimal buf d
     | Date d -> quote buf (date_to_string d)
     | Duration d -> quote buf (duration_to_string d)
     | Enum (name, (constr, v)) ->
-      Printf.bprintf buf {|[["%s"],["%s",%a]]|} name constr runtime_value v
+      Printf.bprintf buf
+        {|{"kind": "enum", "name": "%s", "constructor": "%s", "value": %a}|}
+        name constr runtime_value v
     | Struct (name, elts) ->
-      Printf.bprintf buf {|["%s",[%a]]|} name
+      Printf.bprintf buf {|{"kind": "struct", "name": "%s", "fields": {%a}}|}
+        name
         (list (fun buf (cstr, v) ->
-             Printf.bprintf buf {|"%s":%a|} cstr runtime_value v))
+             Printf.bprintf buf {|"%s": %a|} cstr runtime_value v))
         elts
-    | Array elts | Tuple elts ->
-      Printf.bprintf buf "[%a]" (list runtime_value) (Array.to_list elts)
+    | (Array elts | Tuple elts) as v ->
+      Printf.bprintf buf {|{"kind": %s, "value":[%a]}|}
+        (match v with
+        | Array _ -> "\"array\""
+        | Tuple _ -> "\"tuple\""
+        | _ -> assert false)
+        (list runtime_value) (Array.to_list elts)
     | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
@@ -380,6 +405,26 @@ module BufferedJson = struct
     Printf.bprintf buf {|,"fun_inputs":[%a]|} (list var_def) fc.fun_inputs;
     Printf.bprintf buf {|,"body":[%a]|} (list event) fc.body;
     Printf.bprintf buf {|,"output":%a}|} var_def fc.output
+
+  and raw_event buf = function
+    | BeginCall name ->
+      Printf.bprintf buf {|{"event": "BeginCall", "name": "%s"}|}
+        (String.concat "." name)
+    | EndCall name ->
+      Printf.bprintf buf {|{"event": "EndCall", "name": "%s"}|}
+        (String.concat "." name)
+    | VariableDefinition (name, io, value) ->
+      Printf.bprintf buf
+        {|{
+         "event": "VariableDefinition",
+         "name": "%s",
+         "io": %a,
+         "value": %a
+         }|}
+        (String.concat "." name) io_log io runtime_value value
+    | DecisionTaken source_pos ->
+      Printf.bprintf buf {|{"event": "DecisionTaken", "pos": %a}|}
+        source_position source_pos
 end
 
 module Json = struct
@@ -393,6 +438,7 @@ module Json = struct
   let runtime_value = str runtime_value
   let io_log = str io_log
   let event = str event
+  let raw_event = str raw_event
 end
 
 let log_ref : raw_event list ref = ref []
