@@ -26,17 +26,17 @@
 #include <dates_calc.h>
 #include "runtime.h"
 
-int catala_persistent_malloc_mode_on = 0;
+__thread int catala_persistent_malloc_mode_on = 0;
 
 /* --- Error handling --- */
 
-const catala_code_position catala_empty_position =
+__thread const catala_code_position catala_empty_position =
   { NULL, 0, 0, 0, 0 };
 
-struct catala_error catala_error_raised =
+__thread struct catala_error catala_error_raised =
   { catala_empty_position, 0 };
 
-jmp_buf catala_error_jump_buffer;
+__thread jmp_buf catala_error_jump_buffer;
 
 void catala_error(catala_error_code code,
                   const catala_code_position * pos)
@@ -59,7 +59,7 @@ struct catala_heap
   struct catala_heap* next;
 };
 
-struct catala_heap catala_heap = {NULL, NULL, NULL, NULL};
+__thread struct catala_heap catala_heap = {NULL, NULL, NULL, NULL};
 
 #define MALLOC_CHECK(PTR)                                   \
   if (PTR == NULL) {                                        \
