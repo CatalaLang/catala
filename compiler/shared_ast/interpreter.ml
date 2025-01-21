@@ -73,34 +73,34 @@ let print_log ppf lang level entry =
         ~pp_sep:(fun ppf () -> fprintf ppf ".@,")
         pp_print_string)
   in
-  let logprintf entry fmt =
-    if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;black>LOG@}] ";
-    Format.fprintf ppf ("%s@[<hov>%a " ^^ fmt ^^ "@]@,") (String.make (level * 2) ' ') Print.log_entry entry
+  let logprintf level entry fmt =
+    if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] ";
+    Format.fprintf ppf ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,") (level * 2) "" Print.log_entry entry
   in
   match entry with
   | Runtime.BeginCall infos ->
-    logprintf BeginCall "%a" pp_infos infos;
+    logprintf level BeginCall " %a" pp_infos infos;
     level + 1
   | Runtime.EndCall infos ->
     let level = max 0 (level - 1) in
-    logprintf EndCall "%a" pp_infos infos;
+    logprintf level EndCall " %a" pp_infos infos;
     level
   | Runtime.VariableDefinition (infos, io, value) ->
-    logprintf
+    logprintf level
       (VarDef
          {
            log_typ = TAny;
            log_io_input = io.Runtime.io_input;
            log_io_output = io.Runtime.io_output;
          })
-      "%a: @{<green>%s@}"
+      " %a: @{<green>%s@}"
       pp_infos infos
       (Message.unformat (fun ppf -> format_runtime_value lang ppf value));
     level
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
-    logprintf PosRecordIfTrueBool
-      "@[<v>@{<green>Definition applied@}:@,%a@]@,"
+    logprintf level PosRecordIfTrueBool
+      "@[<v -2>@{<green>Definition applied@}:@,%a@]@,"
       Pos.format_loc_text pos;
     level
 

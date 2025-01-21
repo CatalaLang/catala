@@ -66,8 +66,13 @@ let formatter_of_out_channel oc =
     if Lazy.force tty then Format.pp_set_margin ppf (terminal_columns ());
     ppf
 
-let std_ppf = formatter_of_out_channel stdout
-let err_ppf = formatter_of_out_channel stderr
+let std_ppf =
+  let ppf = lazy (formatter_of_out_channel stdout ()) in
+  fun () -> Lazy.force ppf
+
+let err_ppf =
+  let ppf = lazy (formatter_of_out_channel stderr ()) in
+  fun () -> Lazy.force ppf
 
 let ignore_ppf =
   let ppf = lazy (Format.make_formatter (fun _ _ _ -> ()) (fun () -> ())) in
