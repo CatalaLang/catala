@@ -297,11 +297,11 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
         args = [arg];
       }
-    when Global.options.trace ->
+    when Global.options.trace <> None ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
   | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
-    when Global.options.trace ->
+    when Global.options.trace <> None ->
     Format.fprintf fmt
       "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
        output_io=%s),@ %a)"
@@ -313,7 +313,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (if var_def_info.log_io_output then "True" else "False")
       (format_expression ctx) arg1
   | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
-    when Global.options.trace ->
+    when Global.options.trace <> None ->
     let pos = Mark.get e in
     Format.fprintf fmt
       "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
@@ -322,7 +322,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
   | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
-    when Global.options.trace ->
+    when Global.options.trace <> None ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->

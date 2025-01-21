@@ -26,7 +26,8 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-let message_format_opt = ["human", Human; "gnu", GNU]
+let message_format_opt = ["human", (Human : message_format_enum); "gnu", GNU]
+let trace_format_opt = ["human", (Human : trace_format_enum); "json", JSON]
 
 open Cmdliner
 
@@ -146,13 +147,41 @@ module Flags = struct
              standards."
 
     let trace =
+      let converter =
+        conv ~docv:"FILE"
+          ( (fun s ->
+              if s = "-" then Ok `Stdout
+              else if
+                Filename.extension s |> String.starts_with ~prefix:".catala"
+              then
+                Error (`Msg "Output trace file cannot have a .catala extension")
+              else Ok (`FileName (Global.raw_file s))),
+            fun ppf -> function
+              | `Stdout -> Format.pp_print_string ppf "-"
+              | `FileName f -> Format.pp_print_string ppf (f :> string) )
+      in
       value
-      & flag
-      & info ["trace"; "t"]
+      & opt (some converter) None ~vopt:(Some `Stdout)
+      & info ["trace"; "t"] ~docv:"FILE"
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translate programs."
+             logging instructions in translate programs. If set as a flag, \
+             outputs\n\
+            \             trace to stdout. If $(docv) is defined, outputs the \
+             trace to a file while interpreting.\n\
+            \             Defining a filename does not affect code generation. \
+             Cannot use .catala extension."
+
+    let trace_format =
+      value
+      & opt (some (enum trace_format_opt)) None
+      & info ["trace-format"]
+          ~doc:
+            "Selects the format of trace logs emitted by the interpreter. If \
+             set to $(i,human), the messages will be nicely displayed and \
+             meant to be read by a human. If set to $(i, json), the messages \
+             will be emitted as a JSON structured object."
 
     let plugins_dirs =
       let doc = "Set the given directory to be searched for backend plugins." in
@@ -223,6 +252,7 @@ module Flags = struct
           color
           message_format
           trace
+          trace_format
           plugins_dirs
           disable_warnings
           max_prec_digits
@@ -239,11 +269,34 @@ module Flags = struct
               | "-" -> "-"
               | f -> File.reverse_path ~to_dir f)
         in
+        let trace, trace_format =
+          match trace, trace_format with
+          | None, _ -> None, trace_format
+          | Some `Stdout, _ -> Some (lazy (Message.std_ppf ())), trace_format
+          | Some (`FileName f), Some _ ->
+            ( Some
+                (lazy
+                  (Message.formatter_of_out_channel
+                     (open_out (path_rewrite f))
+                     ())),
+              trace_format )
+          | Some (`FileName f), None ->
+            let trace_format =
+              if Filename.extension (f :> file) = ".json" then JSON else Human
+            in
+            ( Some
+                (lazy
+                  (Message.formatter_of_out_channel
+                     (open_out (path_rewrite f))
+                     ())),
+              Some trace_format )
+        in
+        let trace_format = Option.value trace_format ~default:Human in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~plugins_dirs ~disable_warnings ~max_prec_digits ~path_rewrite
-          ~stop_on_error ~no_fail_on_assert ()
+          ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
+          ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
       in
       Term.(
         const make
@@ -252,6 +305,7 @@ module Flags = struct
         $ color
         $ message_format
         $ trace
+        $ trace_format
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits

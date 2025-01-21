@@ -127,7 +127,7 @@ let tag_with_log_entry
     (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Mark.get e) (Expr.pos e) in
 
-  if Global.options.trace then
+  if Global.options.trace <> None then
     let pos = Expr.pos e in
     Expr.eappop ~op:(Log (l, markings), pos) ~tys:[TAny, pos] ~args:[e] m
   else e

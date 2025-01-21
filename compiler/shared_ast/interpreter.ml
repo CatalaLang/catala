@@ -31,8 +31,6 @@ let is_empty_error : type a. (a, 'm) gexpr -> bool =
 (* TODO: we should provide a generic way to print logs, that work across the
    different backends: python, ocaml, javascript, and interpreter *)
 
-let indent_str = ref ""
-
 (** {1 Evaluation} *)
 
 let rec format_runtime_value lang ppf = function
@@ -68,34 +66,43 @@ let rec format_runtime_value lang ppf = function
       (Array.to_list elts)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
-let print_log lang entry =
+let print_log ppf lang level entry =
   let pp_infos =
     Format.(
       pp_print_list
-        ~pp_sep:(fun ppf () -> Format.fprintf ppf ".@,")
+        ~pp_sep:(fun ppf () -> fprintf ppf ".@,")
         pp_print_string)
+  in
+  let logprintf level entry fmt =
+    if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] ";
+    Format.fprintf ppf ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,") (level * 2) "" Print.log_entry entry
   in
   match entry with
   | Runtime.BeginCall infos ->
-    Message.log "%s%a %a" !indent_str Print.log_entry BeginCall pp_infos infos;
-    indent_str := !indent_str ^ "  "
+    logprintf level BeginCall " %a" pp_infos infos;
+    level + 1
   | Runtime.EndCall infos ->
-    indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
-    Message.log "%s%a %a" !indent_str Print.log_entry EndCall pp_infos infos
+    let level = max 0 (level - 1) in
+    logprintf level EndCall " %a" pp_infos infos;
+    level
   | Runtime.VariableDefinition (infos, io, value) ->
-    Message.log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
+    logprintf level
       (VarDef
          {
            log_typ = TAny;
            log_io_input = io.Runtime.io_input;
            log_io_output = io.Runtime.io_output;
          })
+      " %a: @{<green>%s@}"
       pp_infos infos
-      (Message.unformat (fun ppf -> format_runtime_value lang ppf value))
+      (Message.unformat (fun ppf -> format_runtime_value lang ppf value));
+    level
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
-    Message.log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]" !indent_str
-      Print.log_entry PosRecordIfTrueBool Pos.format_loc_text pos
+    logprintf level PosRecordIfTrueBool
+      "@[<v -2>@{<green>Definition applied@}:@,%a@]@,"
+      Pos.format_loc_text pos;
+    level
 
 let rec value_to_runtime_embedded = function
   | ELit LUnit -> Runtime.Unit
@@ -248,7 +255,7 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [(e, _)] when Global.options.trace -> (
+  | Log (entry, infos), [(e, _)] when Global.options.trace <> None -> (
     let rtinfos = List.map Uid.MarkedString.to_string infos in
     match entry with
     | BeginCall -> Runtime.log_begin_call rtinfos e
@@ -915,11 +922,28 @@ let evaluate_expr_trace :
   Fun.protect
     (fun () -> evaluate_expr ctx lang e)
     ~finally:(fun () ->
-      if Global.options.trace then
+      match Global.options.trace with
+      | None -> ()
+      | Some (lazy ppf) ->
         let trace = Runtime.retrieve_log () in
-        List.iter (print_log lang) trace
-        (* TODO: [Runtime.pp_events ~is_first_call:true Format.err_formatter
-           (Runtime.EventParser.parse_raw_events trace)] fais here, check why *))
+        let output_trace fmt =
+          match Global.options.trace_format with
+          | Human ->
+            Format.pp_open_vbox ppf 0;
+            ignore @@ List.fold_left (print_log ppf lang) 0 trace;
+            Format.pp_close_box ppf ()
+          | JSON ->
+            Format.fprintf fmt "@[<v 2>[@,";
+            Format.pp_print_list
+              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
+              Format.pp_print_string
+              fmt
+              (List.map Runtime.Json.raw_event trace);
+            Format.fprintf fmt "]@]@."
+        in
+          Fun.protect
+            (fun () -> output_trace ppf)
+            ~finally:(fun () -> (Format.pp_print_flush ppf ())))
 
 let evaluate_expr_safe :
     type d.

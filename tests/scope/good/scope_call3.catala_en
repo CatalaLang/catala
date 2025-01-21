@@ -67,7 +67,7 @@ $ catala Interpret -t -s HousingComputation --debug
           7 │   definition f of x equals (output of RentComputation).f of x
             │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 [LOG]     ≔  RentComputation.direct.
-  output: RentComputation { -- f: <object> }
+      output: RentComputation { -- f: <object> }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
