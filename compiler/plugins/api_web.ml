@@ -78,7 +78,10 @@ module To_jsoo = struct
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
-    | TAny -> Format.fprintf fmt "Js.Unsafe.any Js.t"
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.any Js.t"
+    | TAny tb ->
+      let _v, typ = Bindlib.unbind tb in
+      format_typ fmt typ
     | TArrow (t1, t2) ->
       Format.fprintf fmt "(@[<hov 2>unit, @ %a -> %a@]) Js.meth_callback"
         (Format.pp_print_list
@@ -117,7 +120,10 @@ module To_jsoo = struct
         "(function Eoption.ENone () -> Js.null | Eoption.ESome x -> Js.some \
          (%a x))"
         format_to_js t
-    | TAny -> Format.fprintf fmt "Js.Unsafe.inject"
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
+    | TAny tb ->
+      let _v, typ = Bindlib.unbind tb in
+      format_to_js fmt typ
     | TArrow _ | TClosureEnv -> ()
 
   let rec format_of_js fmt typ =
@@ -149,7 +155,10 @@ module To_jsoo = struct
         "(fun o -> Js.Opt.case o (fun () -> Eoption.ENone ()) (fun x -> \
          Eoption.ESome (%a x)))"
         format_of_js t
-    | TAny -> Format.fprintf fmt "Js.Unsafe.inject"
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
+    | TAny tb ->
+      let _v, typ = Bindlib.unbind tb in
+      format_of_js fmt typ
     | TArrow _ | TClosureEnv -> Format.fprintf fmt ""
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm Var.t) : unit =

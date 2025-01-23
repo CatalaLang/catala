@@ -579,7 +579,7 @@ module Commands = struct
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.program_ctx scope in
-      Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
+      Scopelang.Print.scope ~debug:options.Global.debug fmt
         (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
       Format.pp_print_newline fmt ()
     | None ->
@@ -895,7 +895,7 @@ module Commands = struct
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
-        ~monomorphize_types:false ~expand_ops:true
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
     let output_file, with_output =
