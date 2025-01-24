@@ -1,19 +1,23 @@
 import json
 import sys
 from collections import defaultdict
+from anytree import Node, RenderTree
 
 class CallTracker:
     def __init__(self):
         self.call_stack = defaultdict(list)
         self.call_counts = defaultdict(int)
+        self.root = Node("ROOT")
+        self.current_node = self.root
 
     def process_events(self, events):
-        # Track the call hierarchy
         for event in events:
             name = event['name']
             event_type = event['event']
 
             if event_type == 'BeginCall':
+                new_node = Node(name, parent=self.current_node)
+                self.current_node = new_node
                 self.call_stack[name].append(event)
                 self.call_counts[name] += 1
             elif event_type == 'EndCall':
@@ -21,15 +25,18 @@ class CallTracker:
                     self._unbalanced_error(name, "END CALL WITHOUT MATCHING BEGIN", event)
                 else:
                     self.call_stack[name].pop()
+                    self.current_node = self.current_node.parent
 
-        # Check for unbalanced calls after processing all events
         self._check_final_balance()
 
     def _unbalanced_error(self, name, error_type, event):
         print("\n" + "🚨 UNBALANCED CALL DETECTED 🚨".center(80, '!'))
         print(f"CATASTROPHIC {error_type} FOR: {name}")
         print(f"PROBLEMATIC EVENT: {event}")
-        print(f"CURRENT CALL STACK STATE: {dict(self.call_stack)}")
+        print("\n📋 CALL TREE AT FAILURE:")
+        for pre, _, node in RenderTree(self.root):
+            print(f"{pre}{node.name}")
+        print(f"\nCURRENT CALL STACK STATE: {dict(self.call_stack)}")
         print(f"CURRENT CALL COUNTS: {dict(self.call_counts)}")
         print("🔥 PANIC MODE ACTIVATED 🔥".center(80, '!'))
         sys.exit(1)
