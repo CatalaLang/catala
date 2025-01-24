@@ -318,6 +318,8 @@ module Passes = struct
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     check_log_balance "after lcalc translation" prg;
+    check_log_balance "after lcalc translation" prg;
+    check_log_balance "after lcalc translation" prg;
     let prg = 
       if expand_ops then begin
         let prg = Lcalc.Expand_op.program prg in
