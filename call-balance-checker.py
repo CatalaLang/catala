@@ -1,12 +1,11 @@
 import json
 import sys
-from collections import defaultdict
 from anytree import Node, RenderTree
 
 class CallTracker:
     def __init__(self):
-        self.call_stack = defaultdict(list)
-        self.call_counts = defaultdict(int)
+        self.call_stack = []
+        self.call_counts = {}
         self.root = Node("ROOT")
         self.current_node = self.root
 
@@ -18,13 +17,13 @@ class CallTracker:
             if event_type == 'BeginCall':
                 new_node = Node(name, parent=self.current_node)
                 self.current_node = new_node
-                self.call_stack[name].append(event)
-                self.call_counts[name] += 1
+                self.call_stack.append(name)
+                self.call_counts[name] = self.call_counts.get(name, 0) + 1
             elif event_type == 'EndCall':
-                if not self.call_stack[name]:
+                if not self.call_stack or self.call_stack[-1] != name:
                     self._unbalanced_error(name, "END CALL WITHOUT MATCHING BEGIN", event)
                 else:
-                    self.call_stack[name].pop()
+                    self.call_stack.pop()
                     self.current_node = self.current_node.parent
 
         self._check_final_balance()
@@ -36,18 +35,17 @@ class CallTracker:
         print("\n📋 CALL TREE AT FAILURE:")
         for pre, _, node in RenderTree(self.root):
             print(f"{pre}{node.name}")
-        print(f"\nCURRENT CALL STACK STATE: {dict(self.call_stack)}")
-        print(f"CURRENT CALL COUNTS: {dict(self.call_counts)}")
+        print(f"\nCURRENT CALL STACK: {self.call_stack}")
+        print(f"CURRENT CALL COUNTS: {self.call_counts}")
         print("🔥 PANIC MODE ACTIVATED 🔥".center(80, '!'))
         sys.exit(1)
 
     def _check_final_balance(self):
-        for name, stack in self.call_stack.items():
-            if stack:
-                self._unbalanced_error(name, "UNMATCHED BEGIN CALLS", {
-                    "name": name, 
-                    "remaining_begins": len(stack)
-                })
+        if self.call_stack:
+            self._unbalanced_error(self.call_stack[-1], "UNMATCHED BEGIN CALLS", {
+                "name": self.call_stack[-1], 
+                "remaining_begins": len(self.call_stack)
+            })
 
 def main():
     if len(sys.argv) < 2:
