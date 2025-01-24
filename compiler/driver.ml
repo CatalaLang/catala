@@ -141,33 +141,49 @@ module Passes = struct
     let count_end = ref 0 in
     let count_vardef = ref 0 in
     let count_posrecord = ref 0 in
+    let log_positions = ref [] in
     let f _acc expr _typ =
       match Mark.remove expr with
-      | EAppOp {op = (Log (BeginCall _, _), pos); _} -> 
-          Message.debug "Found BeginCall at %s" (Pos.to_string pos);
-          incr count_begin
-      | EAppOp {op = (Log (EndCall _, _), pos); _} ->
-          Message.debug "Found EndCall at %s" (Pos.to_string pos);
-          incr count_end
-      | EAppOp {op = (Log (VarDef _, _), pos); _} ->
-          Message.debug "Found VarDef at %s" (Pos.to_string pos);
-          incr count_vardef
-      | EAppOp {op = (Log (PosRecordIfTrueBool, _), pos); _} ->
-          Message.debug "Found PosRecord at %s" (Pos.to_string pos);
-          incr count_posrecord
+      | EAppOp {op = (Log (op, _), pos); _} -> 
+          log_positions := (op, pos) :: !log_positions;
+          (match op with
+           | BeginCall -> 
+               Message.debug "Found BeginCall at %s" (Pos.to_string pos);
+               incr count_begin
+           | EndCall ->
+               Message.debug "Found EndCall at %s" (Pos.to_string pos);
+               incr count_end
+           | VarDef _ ->
+               Message.debug "Found VarDef at %s" (Pos.to_string pos);
+               incr count_vardef
+           | PosRecordIfTrueBool ->
+               Message.debug "Found PosRecord at %s" (Pos.to_string pos);
+               incr count_posrecord)
       | _ -> ()
     in
     Program.fold_exprs program ~f ~init:();
     if !count_begin <> !count_end then
       Message.error 
-        "At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)@.\
-         Total log ops: VarDef=%d PosRecord=%d"
+        "@[<v>At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)@.\
+         Total log ops: VarDef=%d PosRecord=%d@.\
+         Log operations in order:@,%a@]"
         name !count_begin !count_end (!count_begin - !count_end)
         !count_vardef !count_posrecord
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+           (fun fmt (op, pos) ->
+              Format.fprintf fmt "%s at %s"
+                (match op with
+                 | BeginCall -> "BeginCall"
+                 | EndCall -> "EndCall" 
+                 | VarDef _ -> "VarDef"
+                 | PosRecordIfTrueBool -> "PosRecord")
+                (Pos.to_string pos)))
+        (List.rev !log_positions)
     else
       Message.debug 
-        "At phase %s: Log operations balanced (Begin=%d End=%d)@.\
-         Total log ops: VarDef=%d PosRecord=%d"
+        "@[<v>At phase %s: Log operations balanced (Begin=%d End=%d)@.\
+         Total log ops: VarDef=%d PosRecord=%d@]"
         name !count_begin !count_end !count_vardef !count_posrecord
 
   let debug_pass_name s =
