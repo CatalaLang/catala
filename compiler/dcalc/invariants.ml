@@ -191,6 +191,19 @@ let invariant_typing_defaults () : string * invariant_expr =
         Message.warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
         Fail) )
 
+let invariant_log_balance () : string * invariant_expr =
+  let count_begin = ref 0 in
+  let count_end = ref 0 in
+  ( "log_balance",
+    fun _ctx e ->
+      match Mark.remove e with
+      | EAppOp {op = (Log (op, _), _); _} -> (
+          match op with
+          | BeginCall -> incr count_begin; Pass
+          | EndCall -> incr count_end; Pass
+          | _ -> Ignore)
+      | _ -> Ignore)
+
 let check_all_invariants prgm =
   List.fold_left ( && ) true
     [
@@ -200,4 +213,5 @@ let check_all_invariants prgm =
       check_invariant (invariant_app_inversion ()) prgm;
       check_invariant (invariant_match_inversion ()) prgm;
       check_invariant (invariant_typing_defaults ()) prgm;
+      check_invariant (invariant_log_balance ()) prgm;
     ]
