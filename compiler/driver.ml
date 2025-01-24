@@ -139,21 +139,36 @@ module Passes = struct
   let check_log_balance name program =
     let count_begin = ref 0 in
     let count_end = ref 0 in
+    let count_vardef = ref 0 in
+    let count_posrecord = ref 0 in
     let f _acc expr _typ =
       match Mark.remove expr with
-      | EAppOp {op = (Log (BeginCall _, _), _); _} -> incr count_begin
-      | EAppOp {op = (Log (EndCall _, _), _); _} -> incr count_end
+      | EAppOp {op = (Log (BeginCall _, _), pos); _} -> 
+          Message.debug "Found BeginCall at %s" (Pos.to_string pos);
+          incr count_begin
+      | EAppOp {op = (Log (EndCall _, _), pos); _} ->
+          Message.debug "Found EndCall at %s" (Pos.to_string pos);
+          incr count_end
+      | EAppOp {op = (Log (VarDef _, _), pos); _} ->
+          Message.debug "Found VarDef at %s" (Pos.to_string pos);
+          incr count_vardef
+      | EAppOp {op = (Log (PosRecordIfTrueBool, _), pos); _} ->
+          Message.debug "Found PosRecord at %s" (Pos.to_string pos);
+          incr count_posrecord
       | _ -> ()
     in
     Program.fold_exprs program ~f ~init:();
     if !count_begin <> !count_end then
       Message.error 
-        "At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)"
+        "At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)@.\
+         Total log ops: VarDef=%d PosRecord=%d"
         name !count_begin !count_end (!count_begin - !count_end)
+        !count_vardef !count_posrecord
     else
       Message.debug 
-        "At phase %s: Log operations balanced (Begin=%d End=%d)"
-        name !count_begin !count_end
+        "At phase %s: Log operations balanced (Begin=%d End=%d)@.\
+         Total log ops: VarDef=%d PosRecord=%d"
+        name !count_begin !count_end !count_vardef !count_posrecord
 
   let debug_pass_name s =
     Message.debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
