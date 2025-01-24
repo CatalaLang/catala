@@ -126,13 +126,6 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Mark.get e) (Expr.pos e) in
-  Message.debug "tag_with_log_entry called with log_entry: %s at %s"
-    (match l with 
-     | BeginCall -> "BeginCall"
-     | EndCall -> "EndCall"
-     | VarDef _ -> "VarDef"
-     | PosRecordIfTrueBool -> "PosRecordIfTrueBool")
-    (Pos.to_string (Expr.pos e));
 
   if Global.options.trace <> None then
     let pos = Expr.pos e in
