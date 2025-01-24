@@ -136,6 +136,25 @@ module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
      (forwarding their options as needed) *)
 
+  let check_log_balance name program =
+    let count_begin = ref 0 in
+    let count_end = ref 0 in
+    let f _acc expr _typ =
+      match Mark.remove expr with
+      | EAppOp {op = (Log (BeginCall _, _), _); _} -> incr count_begin
+      | EAppOp {op = (Log (EndCall _, _), _); _} -> incr count_end
+      | _ -> ()
+    in
+    Program.fold_exprs program ~f ~init:();
+    if !count_begin <> !count_end then
+      Message.error 
+        "At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)"
+        name !count_begin !count_end (!count_begin - !count_end)
+    else
+      Message.debug 
+        "At phase %s: Log operations balanced (Begin=%d End=%d)"
+        name !count_begin !count_end
+
   let debug_pass_name s =
     Message.debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
       (String.uppercase_ascii s)
@@ -199,19 +218,24 @@ module Passes = struct
     in
     Message.debug "Translating to default calculus...";
     let prg = Dcalc.From_scopelang.translate_program prg in
+    check_log_balance "after dcalc translation" prg;
     let prg =
       if autotest then (
         Interpreter.load_runtime_modules
           ~hashf:
             Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
           prg;
-        Dcalc.Autotest.program prg)
+        let prg = Dcalc.Autotest.program prg in
+        check_log_balance "after autotest" prg;
+        prg)
       else prg
     in
     let prg =
       if optimize then begin
         Message.debug "Optimizing default calculus...";
-        Optimizations.optimize_program prg
+        let prg = Optimizations.optimize_program prg in
+        check_log_balance "after dcalc optimization" prg;
+        prg
       end
       else prg
     in
@@ -219,7 +243,9 @@ module Passes = struct
       match typed with
       | Typed _ ->
         Message.debug "Typechecking again...";
-        Typing.program ~internal_check:true prg
+        let prg = Typing.program ~internal_check:true prg in
+        check_log_balance "after dcalc typing" prg;
+        prg
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
@@ -259,11 +285,20 @@ module Passes = struct
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
-    let prg = if expand_ops then Lcalc.Expand_op.program prg else prg in
+    check_log_balance "after lcalc translation" prg;
+    let prg = 
+      if expand_ops then begin
+        let prg = Lcalc.Expand_op.program prg in
+        check_log_balance "after expand_ops" prg;
+        prg
+      end else prg
+    in
     let prg =
       if optimize then begin
         Message.debug "Optimizing lambda calculus...";
-        Optimizations.optimize_program prg
+        let prg = Optimizations.optimize_program prg in
+        check_log_balance "after lcalc optimization" prg;
+        prg
       end
       else prg
     in
