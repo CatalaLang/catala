@@ -144,20 +144,16 @@ module Passes = struct
     let log_positions = ref [] in
     let rec check_expr expr =
       (match Mark.remove expr with
-       | EAppOp {op = (Log (op, pos), op_pos); _} -> 
+       | EAppOp {op = (Log (op, _pos), op_pos); _} -> 
            log_positions := (op, op_pos) :: !log_positions;
            (match op with
             | BeginCall -> 
-                Message.debug "Found BeginCall at %s" (Pos.to_string op_pos);
                 incr count_begin
             | EndCall ->
-                Message.debug "Found EndCall at %s" (Pos.to_string op_pos);
                 incr count_end
             | VarDef _ ->
-                Message.debug "Found VarDef at %s" (Pos.to_string op_pos);
                 incr count_vardef
             | PosRecordIfTrueBool ->
-                Message.debug "Found PosRecord at %s" (Pos.to_string op_pos);
                 incr count_posrecord)
        | _ -> ());
       Expr.shallow_fold (fun e () -> check_expr e) expr ()
