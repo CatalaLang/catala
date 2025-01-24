@@ -145,11 +145,12 @@ module Passes = struct
     let rec check_expr expr =
       (match Mark.remove expr with
        | EAppOp {op = (Log (op, _pos), op_pos); _} -> 
-           log_positions := (op, op_pos) :: !log_positions;
            (match op with
             | BeginCall -> 
+                log_positions := (`Begin, op_pos) :: !log_positions;
                 incr count_begin
             | EndCall ->
+                log_positions := (`End, op_pos) :: !log_positions;
                 incr count_end
             | VarDef _ ->
                 incr count_vardef
@@ -159,29 +160,24 @@ module Passes = struct
       Expr.shallow_fold (fun e () -> check_expr e) expr ()
     in
     Program.fold_exprs program ~f:(fun () expr _ty -> check_expr expr) ~init:();
+    Message.debug 
+      "@[<v>At phase %s: Log operations (Begin=%d End=%d)@.\
+       Total log ops: VarDef=%d PosRecord=%d@.\
+       Begin/End positions:@,%a@]"
+      name !count_begin !count_end !count_vardef !count_posrecord
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+         (fun fmt (op, pos) ->
+            Format.fprintf fmt "%s at %s"
+              (match op with
+               | `Begin -> "BeginCall"
+               | `End -> "EndCall")
+              (Pos.to_string pos)))
+      (List.rev !log_positions);
     if !count_begin <> !count_end then
       Message.error 
-        "@[<v>At phase %s: Unbalanced log operations (Begin: %d, End: %d, diff: %d)@.\
-         Total log ops: VarDef=%d PosRecord=%d@.\
-         Log operations in order:@,%a@]"
-        name !count_begin !count_end (!count_begin - !count_end)
-        !count_vardef !count_posrecord
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-           (fun fmt (op, pos) ->
-              Format.fprintf fmt "%s at %s"
-                (match op with
-                 | BeginCall -> "BeginCall"
-                 | EndCall -> "EndCall" 
-                 | VarDef _ -> "VarDef"
-                 | PosRecordIfTrueBool -> "PosRecord")
-                (Pos.to_string pos)))
-        (List.rev !log_positions)
-    else
-      Message.debug 
-        "@[<v>At phase %s: Log operations balanced (Begin=%d End=%d)@.\
-         Total log ops: VarDef=%d PosRecord=%d@]"
-        name !count_begin !count_end !count_vardef !count_posrecord
+        "Unbalanced log operations (Begin: %d, End: %d, diff: %d)"
+        !count_begin !count_end (!count_begin - !count_end)
 
   let debug_pass_name s =
     Message.debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
@@ -313,8 +309,6 @@ module Passes = struct
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
-    check_log_balance "after lcalc translation" prg;
-    check_log_balance "after lcalc translation" prg;
     check_log_balance "after lcalc translation" prg;
     let prg = 
       if expand_ops then begin
