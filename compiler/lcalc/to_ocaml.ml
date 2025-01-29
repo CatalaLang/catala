@@ -337,12 +337,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EApp
       {
         f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
-        args = [arg];
+        args;
         _;
       }
     when Global.options.trace <> None ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
-      format_with_parens f format_with_parens arg
+      format_with_parens f
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
+      args
   | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
     when Global.options.trace <> None ->
     Format.fprintf fmt
