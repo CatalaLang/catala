@@ -22,22 +22,6 @@ module A = Definitions
 
 type flags = { fail_on_any : bool; assume_op_types : bool }
 
-module Any =
-  Uid.Make
-    (struct
-      type info = unit
-
-      let to_string () = "any"
-      let format fmt () = Format.fprintf fmt "any"
-      let equal () () = true
-      let compare () () = 0
-      let hash () = Hash.raw `Any
-    end)
-    (struct
-      let style = Ocolor_types.(Fg (C4 hi_magenta))
-    end)
-    ()
-
 type unionfind_typ = naked_typ Mark.pos UnionFind.elem
 (** We do not reuse {!type: A.typ} because we have to include a new [TAny]
     variant. Indeed, error terms can have any type and this has to be captured
@@ -52,8 +36,25 @@ and naked_typ =
   | TOption of unionfind_typ
   | TArray of unionfind_typ
   | TDefault of unionfind_typ
-  | TAny of Any.t
+  | TAny of naked_typ Bindlib.var
   | TClosureEnv
+
+module Any = struct
+  module Var = struct
+    type t = naked_typ Bindlib.var
+    let to_string v = Format.sprintf "<%s>" (Bindlib.name_of v)
+    let format fmt v = Format.fprintf fmt "<%s>" (Bindlib.name_of v)
+    let equal v1 v2 = Bindlib.eq_vars v1 v2
+    let compare v1 v2 =  Bindlib.compare_vars v1 v2
+    let hash v = Bindlib.hash_var v
+  end
+  include Var
+  module Map = Map.Make(Var)
+  module Set = Set.Make(Var)
+
+  let make name = Bindlib.new_var (fun x -> TAny x) name
+  let fresh () = make "ty"
+end
 
 let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
   let rec aux vars ty =
@@ -98,6 +99,7 @@ let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
   let boxed_ty =
     Any.Map.fold
       (fun _ v ty ->
+         (* Fixme: don't generalise everything ? *)
         Bindlib.box_apply (fun t -> A.TAny t, pos) (Bindlib.bind_var v ty))
       vars ty
   in
@@ -214,9 +216,7 @@ let rec format_typ
     Format.pp_print_as fmt 1 "⟨";
     format_typ ~colors fmt t1;
     Format.pp_print_as fmt 1 "⟩"
-  | TAny v ->
-    if Global.options.debug then Format.fprintf fmt "<a%d>" (Any.id v)
-    else Format.pp_print_string fmt "<any>"
+  | TAny v -> Any.format fmt v
   | TClosureEnv -> Format.fprintf fmt "closure_env"
 
 let rec colors =
@@ -425,7 +425,7 @@ module Env = struct
     flags : flags;
     structs : unionfind_typ A.StructField.Map.t A.StructName.Map.t;
     enums : unionfind_typ A.EnumConstructor.Map.t A.EnumName.Map.t;
-    vars : ('e, unionfind_typ) Var.Map.t;
+    vars : ('e, A.typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
@@ -458,8 +458,7 @@ module Env = struct
   let get t v = Var.Map.find_opt v t.vars
   let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
   let get_toplevel_var t v = A.TopdefName.Map.find_opt v t.toplevel_vars
-  let add v tau t = { t with vars = Var.Map.add v tau t.vars }
-  let add_var v typ t = add v (ast_to_typ typ) t
+  let add_var v tau t = { t with vars = Var.Map.add v tau t.vars }
 
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
@@ -856,7 +855,7 @@ and typecheck_expr_top_down :
   | A.EVar v ->
     let tau' =
       match Env.get env v with
-      | Some t -> t
+      | Some t -> ast_to_typ t
       | None ->
         Message.error ~pos:pos_e "Variable %s not found in the current context"
           (Bindlib.name_of v)
@@ -931,7 +930,7 @@ and typecheck_expr_top_down :
         "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
-    let tau_args = List.map ast_to_typ t_args in
+    let tau_args = List.map ast_to_typ t_args in (* fixme: TAny in fct type ? *)
     let t_ret = unionfind (TAny (Any.fresh ())) in
     let t_func = unionfind (TArrow (tau_args, t_ret)) in
     let mark = mark_with_tau_and_unify t_func in
@@ -939,8 +938,8 @@ and typecheck_expr_top_down :
     let xs' = Array.map Var.translate xs in
     let env =
       List.fold_left2
-        (fun env x tau_arg -> Env.add x tau_arg env)
-        env (Array.to_list xs) tau_args
+        (fun env x tau_arg -> Env.add_var x tau_arg env)
+        env (Array.to_list xs) t_args
     in
     let body' = typecheck_expr_top_down ctx env t_ret body in
     let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
@@ -1101,7 +1100,7 @@ let scope_body_expr ctx env ty_out body_expr =
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined
            instead of as inferred. *)
-        ( Env.add var ty_e env,
+        ( Env.add_var var ty_e env,
           Var.translate var,
           Bindlib.box_apply
             (fun scope_let_expr ->

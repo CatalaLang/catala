@@ -46,11 +46,6 @@ val arrow_return : t -> t
 val has_arrow : Definitions.decl_ctx -> t -> bool
 (** Fails (with [Invalid_argument]) on TAny and TClosureEnv *)
 
-val unquantify : t -> t
-(** Removes the outermost quantifiers from the given type, if any. The returned
-    type is guaranteed to not have the form [TAny _] and may contain free
-    variables *)
-
 val any : Pos.t -> t
 (** Returns a quantified type variable ([TAny ('a)]) (the returned type is
     closed thus safe to box) *)
@@ -72,3 +67,12 @@ module Var : sig
 end
 
 val free_vars : t -> Var.Set.t
+
+val quantify : Var.Set.t -> t -> t
+(** Adds [TAny] quantifiers for the given type variables around the type *)
+
+val unquantify : t -> t
+(** Removes the outermost quantifiers from the given type, if any. The returned
+    type is guaranteed to not have the form [TAny _] and may contain free
+    variables *)
+

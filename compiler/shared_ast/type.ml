@@ -184,6 +184,16 @@ let map f ty =
     (fun tb -> TAny tb) @& Bindlib.bind_var tv (f ty)
   | TClosureEnv -> Bindlib.box (TClosureEnv, m)
 
+let rec rebox ty = map rebox ty
+
+let quantify vars ty =
+  let pos = Mark.get ty in
+  Var.Set.fold (fun v ty ->
+      Bindlib.box_apply (fun bnd -> TAny bnd, pos)
+        (Bindlib.bind_var v ty))
+    vars (rebox ty)
+  |> Bindlib.unbox
+
 let hash ~strip ty =
   let open Hash.Op in
   let rec aux ctx ty =

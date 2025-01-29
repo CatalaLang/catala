@@ -51,6 +51,7 @@ and primitive_typ =
   | Text
   | Date
   | Named of path * uident Mark.pos
+  | Var of lident Mark.pos option
 
 and base_typ_data =
   | Primitive of primitive_typ

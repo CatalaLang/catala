@@ -135,7 +135,9 @@ let rec typ_gen
     punctuation fmt "⟩"
   | TVar tv -> Format.fprintf fmt "@{<bold><%s>@}" (Bindlib.name_of tv)
   | TAny tb ->
-    let _tv, ty, bctx = Bindlib.unbind_in bctx tb in
+    let tv, ty, bctx = Bindlib.unbind_in bctx tb in
+    if Global.options.debug then
+      Format.fprintf fmt "\\@{<bold>%s@}.@ " (Bindlib.name_of tv);
     typ_gen ~colors bctx fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
 
@@ -458,13 +460,13 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
-    (* (* Uncomment for type annotations everywhere *)
-     * (fun f ->
-     *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
-     *      f e
-     *      typ_debug
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
-     * @@ fun fmt e -> *)
+    (* Uncomment for type annotations everywhere *)
+    (fun f ->
+       Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
+         f e
+         typ
+         (match Mark.get e with Typed {ty; _} -> ty | _ -> TLit TUnit, Pos.no_pos))
+    @@ fun fmt e ->
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
     let expr e = exprc colors e in

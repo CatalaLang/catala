@@ -1599,7 +1599,6 @@ let process_topdef
       ctxt.Name_resolution.local.topdefs
   in
   let translate_typ t = Name_resolution.process_type ctxt t in
-  let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
   let typ = translate_typ def.S.topdef_type in
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
@@ -1607,19 +1606,18 @@ let process_topdef
     | Some e, None ->
       Some (Expr.unbox_closed (translate_expr None None ctxt Ident.Map.empty e))
     | Some e, Some (args, _) ->
-      let local_vars, args_tys =
+      let local_vars, args =
         List.fold_left_map
-          (fun local_vars ((lbl, pos), ty) ->
+          (fun local_vars ((lbl, pos), _) ->
             let v = Var.make lbl in
-            let local_vars = Ident.Map.add lbl v local_vars in
-            local_vars, ((v, pos), ty))
+            Ident.Map.add lbl v local_vars, (v, pos))
           Ident.Map.empty args
       in
       let body = translate_expr None None ctxt local_vars e in
-      let args, tys = List.split args_tys in
+      let tys = match Type.unquantify typ with TArrow (targs, _tret), _ -> targs | _ -> assert false in
       let () =
         match tys with
-        | [(Data (S.TTuple _), pos)] ->
+        | [TTuple _, pos] ->
           Message.error ~pos
             "Defining arguments of a function as a tuple is not supported, \
              please name the individual arguments."
@@ -1627,7 +1625,7 @@ let process_topdef
       in
       let e =
         Expr.make_abs args body
-          (List.map translate_tbase tys)
+          tys
           (Mark.get def.S.topdef_name)
       in
       Some (Expr.unbox_closed e)

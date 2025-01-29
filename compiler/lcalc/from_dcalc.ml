@@ -29,7 +29,7 @@ module A = Ast
     The typing translation is to simply transform default type into option
     types. *)
 
-let rec translate_typ (tau : typ) : typ =
+let translate_typ (tau : typ) : typ =
   let rec aux = function
     | TDefault t, m -> Bindlib.box_apply (fun t -> TOption t, m) (aux t)
     | TOption _, pos ->
