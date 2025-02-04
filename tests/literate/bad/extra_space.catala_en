@@ -1,0 +1,140 @@
+# Title
+
+ ```catala
+declaration structure Individual:
+  data income content money
+  data number_of_children content integer
+
+ declaration scope IncomeTaxComputation:
+   input individual content Individual
+   internal fixed_percentage content decimal
+   output income_tax content money
+ ```
+
+ ## Article 1
+
+ The income tax for an individual is defined as a fixed percentage of the
+ individual's income over a year.
+
+```catala
+ scope IncomeTaxComputation:
+   definition income_tax equals
+     individual.income * fixed_percentage
+```
+
+```catala-test-inline
+$ catala typecheck
+┌─[WARNING]─
+│
+│  Extra leading or trailing space
+│
+├─➤ tests/literate/bad/extra_space.catala_en:3.1-4.1:
+│   │
+│ 3 │  ```catala
+│   │ ‾‾‾‾‾‾‾‾‾‾
+│ 4 │ declaration structure Individual:
+│   │ 
+└─
+┌─[WARNING]─
+│
+│  Extra leading or trailing space
+│
+├─➤ tests/literate/bad/extra_space.catala_en:12.1-13.1:
+│    │
+│ 12 │  ```
+│    │ ‾‾‾‾
+│ 13 │ 
+│    │ 
+└─
+┌─[WARNING]─
+│
+│  In scope "IncomeTaxComputation", the variable "fixed_percentage" is
+│  declared but never defined; did you forget something?
+│
+├─➤ tests/literate/bad/extra_space.catala_en:10.13-10.29:
+│    │
+│ 10 │    internal fixed_percentage content decimal
+│    │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Title
+┌─[WARNING]─
+│
+│  The field "number_of_children" of struct "Individual" is never used;
+│  maybe it's unnecessary?
+│
+├─➤ tests/literate/bad/extra_space.catala_en:6.8-6.26:
+│   │
+│ 6 │   data number_of_children content integer
+│   │        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Title
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+# Title
+
+```catala
+declaration scope Foo:
+  output out condition
+ ```
+
+
+```catala-test-inline
+$ catala test-scope Foo
+┌─[WARNING]─
+│
+│  Extra leading or trailing space
+│
+├─➤ tests/literate/bad/extra_space.catala_en:3.1-4.1:
+│   │
+│ 3 │  ```catala
+│   │ ‾‾‾‾‾‾‾‾‾‾
+│ 4 │ declaration structure Individual:
+│   │ 
+└─
+┌─[WARNING]─
+│
+│  Extra leading or trailing space
+│
+├─➤ tests/literate/bad/extra_space.catala_en:12.1-13.1:
+│    │
+│ 12 │  ```
+│    │ ‾‾‾‾
+│ 13 │ 
+│    │ 
+└─
+┌─[WARNING]─
+│
+│  Extra leading or trailing space
+│
+├─➤ tests/literate/bad/extra_space.catala_en:79.1-80.1:
+│    │
+│ 79 │  ```
+│    │ ‾‾‾‾
+│ 80 │ 
+│    │ 
+└─
+┌─[WARNING]─
+│
+│  In scope "IncomeTaxComputation", the variable "fixed_percentage" is
+│  declared but never defined; did you forget something?
+│
+├─➤ tests/literate/bad/extra_space.catala_en:10.13-10.29:
+│    │
+│ 10 │    internal fixed_percentage content decimal
+│    │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Title
+┌─[WARNING]─
+│
+│  The field "number_of_children" of struct "Individual" is never used;
+│  maybe it's unnecessary?
+│
+├─➤ tests/literate/bad/extra_space.catala_en:6.8-6.26:
+│   │
+│ 6 │   data number_of_children content integer
+│   │        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Title
+┌─[RESULT]─
+│ out = false
+└─
+```

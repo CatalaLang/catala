@@ -373,6 +373,16 @@ let op_kind = function
   | "^" -> Ast.KDuration
   | _ -> invalid_arg "op_kind"
 
+let check_fence_space =
+  let trail_re =
+    Re.(compile @@ alt [ seq [bol; space]; seq [blank; eol] ])
+  in
+  fun lexbuf ->
+  let txt = Utf8.lexeme lexbuf in
+  if Re.execp trail_re txt then
+    Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
+      "Extra leading or trailing space"
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -386,7 +396,8 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | "```" ->
+  | Star hspace, "```", Star hspace, (eol | eof) ->
+      check_fence_space lexbuf;
       (* End of code section *)
       L.context := Law;
       END_CODE (L.flush_acc ())
@@ -771,7 +782,8 @@ let lex_raw (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```", Star hspace, (eol | eof) ->
+    | Star hspace, "```", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Law;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> (
@@ -787,6 +799,7 @@ let lex_raw (lexbuf : lexbuf) : token =
     | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
+
 (** Main lexing function used outside code blocks *)
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -795,13 +808,16 @@ let lex_law (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```catala", Star white_space, (eol | eof) ->
+    | Star hspace, "```catala", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Code;
         BEGIN_CODE
-    | "```catala-metadata", Star white_space, (eol | eof) ->
+    | Star hspace, "```catala-metadata", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Code;
         BEGIN_METADATA
-    | "```", Star (idchar | '-') ->
+    | Star hspace, "```", Star (idchar | '-') ->
+        check_fence_space lexbuf;
         L.context := Raw;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | '>' ->
