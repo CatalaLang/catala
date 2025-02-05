@@ -926,24 +926,29 @@ let evaluate_expr_trace :
       | None -> ()
       | Some (lazy ppf) ->
         let trace = Runtime.retrieve_log () in
-        let output_trace fmt =
-          match Global.options.trace_format with
-          | Human ->
-            Format.pp_open_vbox ppf 0;
-            ignore @@ List.fold_left (print_log ppf lang) 0 trace;
-            Format.pp_close_box ppf ()
-          | JSON ->
-            Format.fprintf fmt "@[<v 2>[@,";
-            Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
-              Format.pp_print_string
-              fmt
-              (List.map Runtime.Json.raw_event trace);
-            Format.fprintf fmt "]@]@."
-        in
+        if trace = [] then
+          (* FIXME: we call evaluate twice: once to generate the scope function
+             and once for the actual call scope call. A proper fix would be to
+             disable the trace for the the first pass. *)
+          ()
+        else
+          let output_trace fmt =
+            match Global.options.trace_format with
+            | Human ->
+              Format.pp_open_vbox ppf 0;
+              ignore @@ List.fold_left (print_log ppf lang) 0 trace;
+              Format.pp_close_box ppf ()
+            | JSON ->
+              Format.fprintf fmt "@[<v 2>[@,";
+              Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
+                Format.pp_print_string fmt
+                (List.map Runtime.Json.raw_event trace);
+              Format.fprintf fmt "]@]@."
+          in
           Fun.protect
             (fun () -> output_trace ppf)
-            ~finally:(fun () -> (Format.pp_print_flush ppf ())))
+            ~finally:(fun () -> Format.pp_print_flush ppf ()))
 
 let evaluate_expr_safe :
     type d.
