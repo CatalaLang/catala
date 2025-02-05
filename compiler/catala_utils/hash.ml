@@ -49,7 +49,7 @@ end = struct
     % !(monomorphize_types : bool)
     % (* The following may not affect the call convention, but we want it set in
          an homogeneous way *)
-    !(Global.options.trace <> None: bool)
+    !(Global.options.trace <> None : bool)
     % !(Global.options.max_prec_digits : int)
     |> k
 

@@ -95,6 +95,7 @@ val pad : int -> string -> Format.formatter -> unit
 
 val std_ppf : unit -> Format.formatter
 val err_ppf : unit -> Format.formatter
+
 val formatter_of_out_channel : out_channel -> unit -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on

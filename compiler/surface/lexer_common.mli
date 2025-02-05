@@ -31,6 +31,9 @@ val context : lexing_context ref
 (** Reference, used by the lexer as the mutable state to distinguish whether it
     is lexing code or law. *)
 
+val context_start_pos : (Lexing.position * Lexing.position) ref
+(** The position of the opening token of the last opened [context] *)
+
 val update_acc : Sedlexing.lexbuf -> unit
 (** Updates the current code buffer with the current lexeme. The underlying
     buffer is used to accumulate the string representation of the body of code
