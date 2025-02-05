@@ -44,9 +44,12 @@ let get_law_heading (lexbuf : lexbuf) : token =
 
 type lexing_context = Law | Raw | Code | Directive | Directive_args | Inactive
 
-(** Boolean reference, used by the lexer as the mutable state to distinguish
-    whether it is lexing code or law. *)
+(** Reference used by the lexer as the mutable state to distinguish whether it
+    is lexing code or law. *)
 let context : lexing_context ref = ref Inactive
+
+let context_start_pos : (Lexing.position * Lexing.position) ref =
+  ref (Lexing.dummy_pos, Lexing.dummy_pos)
 
 (** Mutable string reference that accumulates the string representation of the
     body of code being lexed. This string representation is used in the literate
@@ -56,19 +59,26 @@ let code_buffer : Buffer.t option ref = ref None
 
 let with_lexing_context filename f =
   let saved_context = !context in
+  let saved_context_start_pos = !context_start_pos in
   let saved_buffer = !code_buffer in
   context := Law;
+  (context_start_pos :=
+     let pos =
+       { Lexing.pos_fname = filename; pos_bol = 0; pos_cnum = 0; pos_lnum = 0 }
+     in
+     pos, pos);
   code_buffer := Some (Buffer.create 4000);
   Fun.protect f ~finally:(fun () ->
       if
         !context <> Law
         || match !code_buffer with Some b -> Buffer.length b > 0 | _ -> false
       then
-        Message.warning
-          "Unclosed block or missing newline at the end of file %a.@ Did you \
-           forget a @{<yellow>```@} ?"
-          File.format filename;
+        Message.delayed_error ~kind:Lexing ()
+          ~pos:(Pos.from_lpos !context_start_pos)
+          "Unclosed block or missing newline at the end of file.@ Did you \
+           forget a @{<yellow>```@} delimiter ?";
       context := saved_context;
+      context_start_pos := saved_context_start_pos;
       code_buffer := saved_buffer)
 
 (** Updates {!val:code_buffer} with the current lexeme *)
