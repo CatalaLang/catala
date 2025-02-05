@@ -400,6 +400,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       check_fence_space lexbuf;
       (* End of code section *)
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_CODE (L.flush_acc ())
   | MR_SCOPE ->
       L.update_acc lexbuf;
@@ -756,6 +757,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
   | Plus hspace -> lex_directive_args lexbuf
   | eol | eof ->
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
@@ -765,13 +767,21 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
   | MR_LAW_INCLUDE -> LAW_INCLUDE
-  | MR_MODULE_DEF -> L.context := Directive_args; MODULE_DEF
-  | MR_MODULE_USE -> L.context := Directive_args; MODULE_USE
+  | MR_MODULE_DEF ->
+      L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
+      MODULE_DEF
+  | MR_MODULE_USE ->
+      L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
+      MODULE_USE
   | ":" ->
       L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
       COLON
   | eol | eof ->
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
@@ -785,6 +795,7 @@ let lex_raw (lexbuf : lexbuf) : token =
     | Star hspace, "```", Star hspace, (eol | eof) ->
         check_fence_space lexbuf;
         L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
@@ -811,17 +822,21 @@ let lex_law (lexbuf : lexbuf) : token =
     | Star hspace, "```catala", Star hspace, (eol | eof) ->
         check_fence_space lexbuf;
         L.context := Code;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_CODE
     | Star hspace, "```catala-metadata", Star hspace, (eol | eof) ->
         check_fence_space lexbuf;
         L.context := Code;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_METADATA
     | Star hspace, "```", Star (idchar | '-') ->
         check_fence_space lexbuf;
         L.context := Raw;
+        L.context_start_pos := lexing_positions lexbuf;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | '>' ->
         L.context := Directive;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
         L.get_law_heading lexbuf
