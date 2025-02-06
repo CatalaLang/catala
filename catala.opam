@@ -22,7 +22,7 @@ depends: [
   "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
-  "dates_calc" {>= "0.0.6"}
+  "dates_calc" {>= "0.0.7"}
   "dune" {>= "3.13"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
@@ -74,11 +74,4 @@ depexts: [
   ["python3-pip"] {cataladevmode & os-family = "debian"}
   ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
   ["python-pygments"] {cataladevmode & os-family = "arch"}
-]
-pin-depends: [
-  [
-  # FIXME: this is temporary, while we wait for the package to be released
-    "dates_calc.0.0.6"
-    "git+https://github.com/CatalaLang/dates-calc#9125d78"
-  ]
 ]
