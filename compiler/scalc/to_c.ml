@@ -323,7 +323,19 @@ let rec format_expression
            Format.fprintf ppf ",@ "))
       args
   | EApp { f; args } ->
-    Format.fprintf fmt "@[<hov 2>%a@,(@[<hov 0>%a)@]@]" format_expression f
+    let format_fun fmt = function
+      | EExternal { name; _ }, _ -> Format.pp_print_string fmt (Mark.remove name)
+      | EFunc f, _ -> FuncName.format fmt f
+      | ETupleAccess { e1; index = 0; typ = (TArrow _, _) as typ }, _ ->
+        Format.fprintf fmt "@[<hov 1>((%a)@,%a->funcp)@]"
+          (format_typ ~const:true ctx.decl_ctx ignore)
+          typ format_expression e1
+      | (_, pos) as e ->
+        Message.error ~internal:true ~pos "Cannot apply %a"
+          (Scalc__Print.format_expr ctx.decl_ctx ?debug:None)
+          e
+    in
+    Format.fprintf fmt "@[<hov 2>%a@,(@[<hov 0>%a)@]@]" format_fun f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_expression)
@@ -343,11 +355,6 @@ let rec format_expression
          format_expression)
       args
   | ETuple _ -> assert false (* Must be a statement *)
-  | ETupleAccess { e1; index = 0; typ = (TArrow _, _) as typ } ->
-    (* Closure function *)
-    Format.fprintf fmt "@[<hov 1>((%a)@,%a->funcp)@]"
-      (format_typ ~const:true ctx.decl_ctx ignore)
-      typ format_expression e1
   | ETupleAccess { e1; index = 1; typ = TClosureEnv, _ } ->
     Format.fprintf fmt "%a->env" format_expression e1
   | ETupleAccess { e1; index; typ } ->
@@ -356,7 +363,7 @@ let rec format_expression
       typ format_expression e1 index
   | EExternal { name; _ } ->
     (* The name has already been properly qualified in [Renaming] *)
-    Format.pp_print_string fmt (Mark.remove name)
+    Format.fprintf fmt "%s()" (Mark.remove name)
 
 let is_closure_typ = function
   | TTuple [(TArrow _, _); (TClosureEnv, _)], _ -> true
@@ -788,7 +795,7 @@ let format_program
                      Format.pp_print_space fmt ();
                      VarName.format fmt var))
                 typ);
-          if public then Format.fprintf pph ";@]@]@,";
+          if public then Format.fprintf pph " ();@]@]@,";
           Format.fprintf ppc " () {@]@,";
           Format.fprintf ppc "@[<hov 2>static %a = NULL;@]@,"
             (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
