@@ -324,7 +324,8 @@ let rec format_expression
       args
   | EApp { f; args } ->
     let format_fun fmt = function
-      | EExternal { name; _ }, _ -> Format.pp_print_string fmt (Mark.remove name)
+      | EExternal { name; _ }, _ ->
+        Format.pp_print_string fmt (Mark.remove name)
       | EFunc f, _ -> FuncName.format fmt f
       | ETupleAccess { e1; index = 0; typ = (TArrow _, _) as typ }, _ ->
         Format.fprintf fmt "@[<hov 1>((%a)@,%a->funcp)@]"

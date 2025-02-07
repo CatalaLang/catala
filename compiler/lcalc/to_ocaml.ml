@@ -501,7 +501,8 @@ let format_ctx
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons);
-    if Global.options.trace <> None then format_enum_embedding fmt (enum_name, enum_cons)
+    if Global.options.trace <> None then
+      format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
     List.exists

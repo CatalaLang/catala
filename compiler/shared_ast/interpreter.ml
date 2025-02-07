@@ -69,13 +69,13 @@ let rec format_runtime_value lang ppf = function
 let print_log ppf lang level entry =
   let pp_infos =
     Format.(
-      pp_print_list
-        ~pp_sep:(fun ppf () -> fprintf ppf ".@,")
-        pp_print_string)
+      pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ".@,") pp_print_string)
   in
   let logprintf level entry fmt =
     if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] ";
-    Format.fprintf ppf ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,") (level * 2) "" Print.log_entry entry
+    Format.fprintf ppf
+      ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,")
+      (level * 2) "" Print.log_entry entry
   in
   match entry with
   | Runtime.BeginCall infos ->
@@ -93,15 +93,13 @@ let print_log ppf lang level entry =
            log_io_input = io.Runtime.io_input;
            log_io_output = io.Runtime.io_output;
          })
-      " %a: @{<green>%s@}"
-      pp_infos infos
+      " %a: @{<green>%s@}" pp_infos infos
       (Message.unformat (fun ppf -> format_runtime_value lang ppf value));
     level
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
     logprintf level PosRecordIfTrueBool
-      "@[<v -2>@{<green>Definition applied@}:@,%a@]@,"
-      Pos.format_loc_text pos;
+      "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
 let rec value_to_runtime_embedded = function
