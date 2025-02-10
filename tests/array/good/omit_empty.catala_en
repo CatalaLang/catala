@@ -1,0 +1,43 @@
+## Article
+
+```catala
+declaration structure S:
+  data id content integer
+  data income content money
+
+declaration scope A:
+   context output x content list of S
+
+scope A:
+   definition x equals [
+      S { -- id: 0 -- income: $0 };
+      S { -- id: 1 -- income: $4 + $5 };
+      S { -- id: 2 -- income: $8 * 0.65 }
+   ]
+
+declaration scope B:
+   a scope A
+   output argmax content S
+   output argmin content S
+
+scope B:
+   definition argmax equals
+     (content of m among a.x such that m.income * 2.0 is maximum)
+   definition argmin equals
+     (content of m among a.x such that m.income + $5 is minimum)
+```
+
+
+```catala-test-inline
+$ catala test-scope B
+┌─[ERROR]─
+│
+│  During evaluation: the list was empty.
+│
+├─➤ tests/array/good/omit_empty.catala_en:27.7-27.14:
+│    │
+│ 27 │      (content of m among a.x such that m.income + $5 is minimum)
+│    │       ‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```
