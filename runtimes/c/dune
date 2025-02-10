@@ -1,9 +1,13 @@
 (rule
+ (with-stdout-to gmph
+  (run pkg-config --cflags gmp)))
+
+(rule
  (deps runtime.c runtime.h dates_calc.h)
  (target runtime.o)
  (action
   (system
-   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . -o %{target}")))
+   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmph} -o %{target}")))
 
 (rule
  (deps runtime.o)
