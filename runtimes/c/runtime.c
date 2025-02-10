@@ -750,13 +750,17 @@ const void* o_fold (catala_closure* cls,
 }
 
 const void* o_reduce (catala_closure* cls,
-                      const void* dft, const CATALA_ARRAY(X) x)
+                      catala_closure* dft, const CATALA_ARRAY(X) x)
 {
   int i;
   const void* acc;
   void* (*f)(const CLOSURE_ENV, const void*, const void*) =
     (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
-  if (x->size == 0) return dft;
+  if (x->size == 0) {
+    void* (*dft_f)(const CLOSURE_ENV, const void*) =
+      (void* (*)(const CLOSURE_ENV, const void*))dft->funcp;
+    return dft_f(dft->env, &catala_unitval);
+  }
   acc = x->elements[0];
   for (i=1; i < x->size; i++)
     acc = f (cls->env, acc, x->elements[i]);
@@ -854,6 +858,9 @@ void catala_init(void)
       break;
     case catala_division_by_zero:
       error_kind = "Division by zero";
+      break;
+    case catala_list_empty:
+      error_kind = "Empty list";
       break;
     case catala_not_same_length:
       error_kind = "List lengths not matching";

@@ -17,10 +17,14 @@ scope A:
 
 declaration scope B:
    a scope A
+   output max content money
+   output min content money
    output argmax content S
    output argmin content S
 
 scope B:
+   definition max equals maximum of m.income for m among a.x
+   definition min equals minimum of m.income for m among a.x
    definition argmax equals
      (content of m among a.x such that m.income * 2.0 is maximum)
    definition argmin equals
@@ -30,14 +34,10 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope B
-┌─[ERROR]─
-│
-│  During evaluation: the list was empty.
-│
-├─➤ tests/array/good/omit_empty.catala_en:27.7-27.14:
-│    │
-│ 27 │      (content of m among a.x such that m.income + $5 is minimum)
-│    │       ‾‾‾‾‾‾‾
-└─ Article
-#return code 123#
+┌─[RESULT]─
+│ argmax = S { -- id: 1 -- income: $9.00 }
+│ argmin = S { -- id: 0 -- income: $0.00 }
+│ max = $9.00
+│ min = $0.00
+└─
 ```

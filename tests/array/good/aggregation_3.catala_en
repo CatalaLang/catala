@@ -54,12 +54,12 @@ let scope S (x: integer|internal|output) =
          = [5];
   assert (reduce
             (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
-            0
+            (λ () → 0)
             [1; 2; 3])
          = 6;
   assert (reduce
             (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
-            0
+            (λ () → 0)
             map (λ (i: integer) → i + 2) [1; 2; 3])
          = 12;
   assert (length [1; 2; 3]) = 3;
@@ -67,13 +67,13 @@ let scope S (x: integer|internal|output) =
   assert (reduce
             (λ (max1: integer) (max2: integer) →
              if max1 > max2 then max1 else max2)
-            10
+            (λ () → 10)
             [1; 2; 3])
          = 3;
   assert (reduce
             (λ (max1: decimal) (max2: decimal) →
              if max1 > max2 then max1 else max2)
-            10.
+            (λ () → 10.)
             map (λ (i: integer) → to_rat i) [1; 2; 3])
          = 3.;
   assert (let weights : list of (integer, decimal) =
@@ -85,9 +85,10 @@ let scope S (x: integer|internal|output) =
           reduce
             (λ (x1: (integer, decimal)) (x2: (integer, decimal)) →
              if x1.1 < x2.1 then x1 else x2)
-            let i : integer = 42 in
-            (i, let i1 : integer = i in
-                to_rat ((2 - i1) * (2 - i1)))
+            (λ () →
+             let i : integer = 42 in
+             (i, let i1 : integer = i in
+                 to_rat ((2 - i1) * (2 - i1))))
             weights).0
          = 2
 ```

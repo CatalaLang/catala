@@ -50,6 +50,7 @@ type error =
   | NoValue
   | Conflict
   | DivisionByZero
+  | ListEmpty
   | NotSameLength
   | UncomparableDurations
   | AmbiguousDateRounding
@@ -60,6 +61,7 @@ let error_to_string = function
   | NoValue -> "NoValue"
   | Conflict -> "Conflict"
   | DivisionByZero -> "DivisionByZero"
+  | ListEmpty -> "ListEmpty"
   | NotSameLength -> "NotSameLength"
   | UncomparableDurations -> "UncomparableDurations"
   | AmbiguousDateRounding -> "AmbiguousDateRounding"
@@ -73,6 +75,7 @@ let error_message = function
      variable"
   | DivisionByZero ->
     "a value is being used as denominator in a division and it computed to zero"
+  | ListEmpty -> "the list was empty"
   | NotSameLength -> "traversing multiple lists of different lengths"
   | UncomparableDurations ->
     "ambiguous comparison between durations in different units (e.g. months \
@@ -839,7 +842,7 @@ module Oper = struct
 
   let o_reduce f dft a =
     let len = Array.length a in
-    if len = 0 then dft
+    if len = 0 then dft ()
     else
       let r = ref a.(0) in
       for i = 1 to len - 1 do
