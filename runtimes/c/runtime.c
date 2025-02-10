@@ -95,7 +95,7 @@ void* catala_malloc (size_t sz)
   }
 }
 
-void catala_free_all()
+void catala_free_all(void)
 {
   struct catala_heap * next_ptr;
   while (catala_heap.mem != NULL) {
@@ -127,10 +127,10 @@ void catala_free(void* ptr, size_t sz)
 }
 #pragma GCC diagnostic pop
 
-void catala_set_persistent_malloc() {
+void catala_set_persistent_malloc(void) {
   catala_persistent_malloc_mode_on++;
 }
-void catala_unset_persistent_malloc() {
+void catala_unset_persistent_malloc(void) {
   assert (catala_persistent_malloc_mode_on > 0);
   catala_persistent_malloc_mode_on--;
 }
@@ -562,7 +562,7 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1,
                           CATALA_DURATION x2)
 {
-  long int days1, days2;
+  long int days1, days2 = 0;
   CATALA_NEW_MPQ(ret);
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
@@ -597,7 +597,7 @@ CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2;
+  long int days1, days2 = 0;
   if (dc_period_years(x1) == dc_period_years(x2) &&
       dc_period_months(x1) == dc_period_months(x2) &&
       dc_period_days(x1) == dc_period_days(x2))
@@ -626,7 +626,7 @@ CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2;
+  long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
     catala_error(catala_uncomparable_durations, pos);
@@ -651,7 +651,7 @@ CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2;
+  long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
     catala_error(catala_uncomparable_durations, pos);
@@ -676,7 +676,7 @@ CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2;
+  long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
     catala_error(catala_uncomparable_durations, pos);
@@ -701,7 +701,7 @@ CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2;
+  long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
     catala_error(catala_uncomparable_durations, pos);
@@ -831,7 +831,7 @@ void register_error_handler(void (*f)(const struct catala_error *)){
   error_handler = f;
 }
 
-void catala_init()
+void catala_init(void)
 {
   mpz_init_set_ui(zconst_100, 100);
   mp_set_memory_functions(&catala_malloc,&catala_realloc,&catala_free);
