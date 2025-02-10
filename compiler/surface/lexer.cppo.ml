@@ -194,8 +194,8 @@ module R = Re.Pcre
 #ifndef MR_IS
   #define MR_IS MS_IS
 #endif
-#ifndef MR_LIST_EMPTY
-  #define MR_LIST_EMPTY MS_LIST_EMPTY
+#ifndef MR_OR_IF_LIST_EMPTY
+  #define MR_OR_IF_LIST_EMPTY MS_OR_IF_LIST_EMPTY
 #endif
 #ifndef MR_BUT_REPLACE
   #define MR_BUT_REPLACE MS_BUT_REPLACE
@@ -312,7 +312,7 @@ let token_list : (string * token) list =
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
     (MS_IS, IS);
-    (MS_LIST_EMPTY, LIST_EMPTY);
+    (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
     (MS_BUT_REPLACE, BUT_REPLACE);
     (MS_COMBINE, COMBINE);
     (MS_INITIALLY, INITIALLY);
@@ -576,9 +576,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IS ->
       L.update_acc lexbuf;
       IS
-  | MR_LIST_EMPTY ->
+  | MR_OR_IF_LIST_EMPTY ->
       L.update_acc lexbuf;
-      LIST_EMPTY
+      OR_IF_LIST_EMPTY
   | MR_BUT_REPLACE ->
       L.update_acc lexbuf;
       BUT_REPLACE

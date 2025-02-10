@@ -859,7 +859,7 @@ let rec translate_expr
       ( ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
           opos ),
         collection ) ->
-    let default = rec_helper default in
+    let default = rec_helper (Option.get default) in
     let pos_dft = Expr.pos default in
     let collection =
       detuplify_list opos (List.map Mark.remove param_names) collection
@@ -957,7 +957,7 @@ let rec translate_expr
       ~args:[f; init; collection] emark
   | CollectionOp ((AggregateExtremum { max; default }, opos), collection) ->
     let collection = rec_helper collection in
-    let default = rec_helper default in
+    let default = rec_helper (Option.get default) in
     let op = if max then S.Gt KPoly else S.Lt KPoly in
     let op_f =
       (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
