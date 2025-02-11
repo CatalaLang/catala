@@ -375,7 +375,7 @@ let op_kind = function
 
 let check_fence_space =
   let trail_re =
-    Re.(compile @@ alt [ seq [bol; space]; seq [blank; eol] ])
+    Re.(compile @@ alt [ seq [bol; space]; seq [blank; opt (char '\r') ; eol] ])
   in
   fun lexbuf ->
   let txt = Utf8.lexeme lexbuf in
