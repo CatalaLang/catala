@@ -58,10 +58,10 @@ void catala_error(catala_error_code code,
 
 void* catala_malloc (size_t sz);
 
-void catala_free_all();
+void catala_free_all(void);
 
-void catala_set_persistent_malloc();
-void catala_unset_persistent_malloc();
+void catala_set_persistent_malloc(void);
+void catala_unset_persistent_malloc(void);
 /* These two functions can be used for switching an init section to persistent
    malloc, then switching back to catala built-in malloc. In other words, any
    calls to `catala_malloc` done between the two will not be affected by
@@ -333,7 +333,7 @@ const CATALA_OPTION() handle_exceptions
 
 void register_error_handler(void (*f)(const struct catala_error *));
 
-void catala_init();
+void catala_init(void);
 /* This must be called once and before any use of the functions above: it
    performs necessary initialisations of GMP, as well as the setup for our error
    handling mechanism. */
