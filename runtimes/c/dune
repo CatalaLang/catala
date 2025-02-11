@@ -1,6 +1,11 @@
+(executable
+ (name discover)
+ (modes native)
+ (libraries re compiler-libs.common))
+
 (rule
  (with-stdout-to gmph
-  (run pkg-config --cflags gmp)))
+  (run ./discover.exe gmp_flags)))
 
 (rule
  (deps runtime.c runtime.h dates_calc.h)
@@ -10,12 +15,20 @@
    "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmph} -o %{target}")))
 
 (rule
+ (with-stdout-to
+  ar_bin_name
+  (run ./discover.exe ar)))
+
+(rule
  (deps runtime.o)
  (target catala_runtime.a)
  (action
-  ; FIXME: ar is not portable, it makes the build fails on windows.
-  ; A workaround is to install a mingw toolchain that exposes ar.
-  (run ar rcs %{target} %{lib:dates_calc:c/dates_calc.o} %{deps})))
+  (run
+   %{read-strings:ar_bin_name}
+   rcs
+   %{target}
+   %{lib:dates_calc:c/dates_calc.o}
+   %{deps})))
 
 (rule
  (target dates_calc.h)
