@@ -76,6 +76,11 @@ class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("division by zero", source_position)
 
+class ListEmpty(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("the list was empty",
+                         source_position)
+
 class NotSameLength(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("traversing multiple lists of different lengths",
@@ -610,9 +615,9 @@ def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
 def list_map2(f: Callable[[Alpha, Beta], Gamma], l1: List[Alpha], l2: List[Beta]) -> List[Gamma]:
     return [f(i, j) for i, j in zip(l1, l2, strict=True)]
 
-def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: (Unit -> Alpha), l: List[Alpha]) -> Alpha:
+def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Callable[[Unit], Alpha], l: List[Alpha]) -> Alpha:
     if l == []:
-        return dft()
+        return dft(Unit())
     else:
         return reduce(f, l)
 
