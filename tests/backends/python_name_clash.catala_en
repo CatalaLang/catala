@@ -119,5 +119,11 @@ def b(b_in:BIn):
     else:
         some_name__1 = (result__3)
     return B(some_name = some_name__1)
+
+# Automatic Catala tests
+if __name__ == "__main__":
+  print("Executing scope B...")
+  b (BIn());
+  print("\x1b[32m[RESULT]\x1b[m Scope B executed successfully.")
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`
