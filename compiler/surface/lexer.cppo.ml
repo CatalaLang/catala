@@ -373,6 +373,16 @@ let op_kind = function
   | "^" -> Ast.KDuration
   | _ -> invalid_arg "op_kind"
 
+let check_fence_space =
+  let trail_re =
+    Re.(compile @@ alt [ seq [bol; space]; seq [blank; opt (char '\r') ; eol] ])
+  in
+  fun lexbuf ->
+  let txt = Utf8.lexeme lexbuf in
+  if Re.execp trail_re txt then
+    Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
+      "Extra leading or trailing space"
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -386,9 +396,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | "```" ->
+  | Star hspace, "```", Star hspace, (eol | eof) ->
+      check_fence_space lexbuf;
       (* End of code section *)
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_CODE (L.flush_acc ())
   | MR_SCOPE ->
       L.update_acc lexbuf;
@@ -745,6 +757,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
   | Plus hspace -> lex_directive_args lexbuf
   | eol | eof ->
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
@@ -754,13 +767,21 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
   | MR_LAW_INCLUDE -> LAW_INCLUDE
-  | MR_MODULE_DEF -> L.context := Directive_args; MODULE_DEF
-  | MR_MODULE_USE -> L.context := Directive_args; MODULE_USE
+  | MR_MODULE_DEF ->
+      L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
+      MODULE_DEF
+  | MR_MODULE_USE ->
+      L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
+      MODULE_USE
   | ":" ->
       L.context := Directive_args;
+      L.context_start_pos := lexing_positions lexbuf;
       COLON
   | eol | eof ->
       L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
       END_DIRECTIVE
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
@@ -771,8 +792,10 @@ let lex_raw (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```", Star hspace, (eol | eof) ->
+    | Star hspace, "```", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Law;
+      L.context_start_pos := lexing_positions lexbuf;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
@@ -787,6 +810,7 @@ let lex_raw (lexbuf : lexbuf) : token =
     | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
+
 (** Main lexing function used outside code blocks *)
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -795,17 +819,24 @@ let lex_law (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```catala", Star white_space, (eol | eof) ->
+    | Star hspace, "```catala", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Code;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_CODE
-    | "```catala-metadata", Star white_space, (eol | eof) ->
+    | Star hspace, "```catala-metadata", Star hspace, (eol | eof) ->
+        check_fence_space lexbuf;
         L.context := Code;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_METADATA
-    | "```", Star (idchar | '-') ->
+    | Star hspace, "```", Star (idchar | '-') ->
+        check_fence_space lexbuf;
         L.context := Raw;
+        L.context_start_pos := lexing_positions lexbuf;
         LAW_TEXT (Utf8.lexeme lexbuf)
     | '>' ->
         L.context := Directive;
+        L.context_start_pos := lexing_positions lexbuf;
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
         L.get_law_heading lexbuf

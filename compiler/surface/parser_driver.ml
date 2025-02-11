@@ -269,8 +269,8 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (* The encapsulating [Message.with_delayed_errors] will raise an
          exception: we are safe returning a dummy value. *)
       Message.delayed_error ~kind:Lexing [] ~pos
-        "Parsing error after token \"%s\": what comes after could not be \
-         recognised"
+        "Parsing error after token @{<yellow>%S@}: what comes after could not \
+         be recognised"
         token
 
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
