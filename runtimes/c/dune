@@ -4,7 +4,8 @@
  (libraries re compiler-libs.common))
 
 (rule
- (with-stdout-to gmph
+ (with-stdout-to
+  gmp_include_flags
   (run ./discover.exe gmp_flags)))
 
 (rule
@@ -12,7 +13,7 @@
  (target runtime.o)
  (action
   (system
-   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmph} -o %{target}")))
+   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmp_include_flags} -o %{target}")))
 
 (rule
  (with-stdout-to
