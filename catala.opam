@@ -74,4 +74,5 @@ depexts: [
   ["python3-pip"] {cataladevmode & os-family = "debian"}
   ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
   ["python-pygments"] {cataladevmode & os-family = "arch"}
+  ["ninja"] { os-family = "windows" }
 ]
