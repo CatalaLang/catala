@@ -94,7 +94,7 @@ jobs:
         run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
       - name: Check promoted files
         run: |
-          cd /home/ocaml/catala && opam exec -- make check-promoted || touch bad-format
+          cd /home/ocaml/catala && opam exec -- make check-promoted && git diff --exit-code && touch /home/ocaml/correct-format
       - name: Run tests
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make testsuite
@@ -109,7 +109,7 @@ jobs:
           paths: /home/ocaml/catala/report.junit.xml
         if: ${{ always() }}
       - name: Hygiene check
-        run: cd /home/ocaml/catala && test ! -e bad-format && git diff --exit-code
+        run: test -e /home/ocaml/correct-format
 
 
   examples:
