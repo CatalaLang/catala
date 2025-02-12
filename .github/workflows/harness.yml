@@ -94,11 +94,12 @@ jobs:
         # And we need yet another workaround for git to accept to work with the
         # resulting file ownership issues
         run: |
-          sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
+          HOME=/home/ocaml
+          sudo sh -c "echo HOME=$HOME >> ${GITHUB_ENV}"
           git config --global --add safe.directory /home/ocaml/catala
       - name: Check promoted files
         run: |
-          cd /home/ocaml/catala && opam exec -- make check-promoted && git diff --exit-code && touch /home/ocaml/correct-format
+          cd /home/ocaml/catala && opam exec -- make check-promoted && git diff --exit-code
       - name: Run tests
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make testsuite
@@ -112,8 +113,6 @@ jobs:
         with:
           paths: /home/ocaml/catala/report.junit.xml
         if: ${{ always() }}
-      - name: Hygiene check
-        run: test -e /home/ocaml/correct-format
 
 
   examples:
