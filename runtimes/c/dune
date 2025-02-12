@@ -1,5 +1,6 @@
 (rule
- (with-stdout-to gmph
+ (with-stdout-to
+  gmph
   (run pkg-config --cflags gmp)))
 
 (rule
