@@ -109,7 +109,7 @@ jobs:
           paths: /home/ocaml/catala/report.junit.xml
         if: ${{ always() }}
       - name: Hygiene check
-        run: test ! -e bad-format && git diff --exit-code
+        run: cd /home/ocaml/catala && test ! -e bad-format && git diff --exit-code
 
 
   examples:
