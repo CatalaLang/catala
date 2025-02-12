@@ -261,9 +261,9 @@ jobs:
           cd artifacts
           tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: 'artifacts/'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
