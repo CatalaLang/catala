@@ -344,17 +344,18 @@ module Content = struct
     | GNU -> gnu_msg ~pp_marker ppf target content
     | Lsp -> lsp_msg ppf content
 
-  let emit_n ?ppf (target : level) = function
-    | [content] -> emit content target
+  let emit_n ?ppf (errs : t list) (target : level) =
+    match errs with
+    | [content] -> emit ?ppf content target
     | contents ->
       let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
         (fun i c ->
-          if i > 0 then Format.pp_print_newline ppf ();
+          if i > 0 then Format.pp_print_space ppf ();
           let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
           let pp_marker ?extra_label:_ = pp_marker ~extra_label in
-          emit ~pp_marker c target)
+          emit ~ppf ~pp_marker c target)
         contents
 
   let emit ?ppf (content : t) (target : level) = emit ?ppf content target
