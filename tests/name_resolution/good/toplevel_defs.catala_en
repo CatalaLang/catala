@@ -416,4 +416,19 @@ def s(s_in:SIn):
     else:
         b = (b__1)
     return S(a = a, b = b)
+
+# Automatic Catala tests
+if __name__ == "__main__":
+  print("Executing scope S2...")
+  s2 (S2In());
+  print("\x1b[32m[RESULT]\x1b[m Scope S2 executed successfully.")
+  print("Executing scope S3...")
+  s3 (S3In());
+  print("\x1b[32m[RESULT]\x1b[m Scope S3 executed successfully.")
+  print("Executing scope S4...")
+  s4 (S4In());
+  print("\x1b[32m[RESULT]\x1b[m Scope S4 executed successfully.")
+  print("Executing scope S...")
+  s (SIn());
+  print("\x1b[32m[RESULT]\x1b[m Scope S executed successfully.")
 ```

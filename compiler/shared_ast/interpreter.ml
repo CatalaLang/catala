@@ -284,7 +284,10 @@ let rec evaluate_operator
       (List.map2
          (fun e1 e2 -> eval_application evaluate_expr f [e1; e2])
          es1 es2)
-  | Reduce, [_; default; (EArray [], _)] -> Mark.remove default
+  | Reduce, [_; default; (EArray [], _)] ->
+    Mark.remove
+      (eval_application evaluate_expr default
+         [ELit LUnit, Expr.with_ty m (TLit TUnit, pos)])
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
     Mark.remove
       (List.fold_left

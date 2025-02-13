@@ -29,6 +29,7 @@ typedef enum catala_error_code
   catala_no_value,
   catala_conflict,
   catala_division_by_zero,
+  catala_list_empty,
   catala_not_same_length,
   catala_uncomparable_durations,
   catala_ambiguous_date_rounding,
@@ -315,7 +316,7 @@ const void* o_fold (catala_closure* cls,
                     const void* init, const CATALA_ARRAY(X) x);
 
 const void* o_reduce (catala_closure* cls,
-                      const void* dft, const CATALA_ARRAY(X) x);
+                      catala_closure* dft, const CATALA_ARRAY(X) x);
 
 const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
                         catala_closure* cls,

@@ -293,6 +293,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any3 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
@@ -308,7 +309,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Map -> [[any] @-> any2; array any] @-> array any2
     | Map2 -> [[any; any2] @-> any3; array any; array any2] @-> array any3
     | Filter -> [[any] @-> bt; array any] @-> array any
-    | Reduce -> [[any; any] @-> any; any; array any] @-> any
+    | Reduce -> [[any; any] @-> any; [ut] @-> any; array any] @-> any
     | Concat -> [array any; array any] @-> array any
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
@@ -337,7 +338,8 @@ let polymorphic_op_return_type
     tret
   in
   match Mark.remove op, targs with
-  | (Fold | Reduce), [_; tau; _] -> tau
+  | Fold, [_; tau; _] -> tau
+  | Reduce, [tf; _; _] -> return_type tf 2
   | Eq, _ -> uf (TLit TBool)
   | Map, [tf; _] -> uf (TArray (return_type tf 1))
   | Map2, [tf; _; _] -> uf (TArray (return_type tf 2))

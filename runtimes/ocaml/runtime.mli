@@ -74,6 +74,7 @@ type error =
   | NoValue  (** No computation with valid conditions found *)
   | Conflict  (** Two different valid computations at that point *)
   | DivisionByZero  (** The denominator happened to be 0 here *)
+  | ListEmpty  (** Element access on an empty list *)
   | NotSameLength  (** Traversing multiple lists of different lengths *)
   | UncomparableDurations
       (** Comparing durations in different units (e.g. months vs. days) *)
@@ -376,7 +377,7 @@ module Oper : sig
     source_position -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
   (** @raise [NotSameLength] *)
 
-  val o_reduce : ('a -> 'a -> 'a) -> 'a -> 'a array -> 'a
+  val o_reduce : ('a -> 'a -> 'a) -> (unit -> 'a) -> 'a array -> 'a
   val o_concat : 'a array -> 'a array -> 'a array
   val o_filter : ('a -> bool) -> 'a array -> 'a array
   val o_add_int_int : integer -> integer -> integer

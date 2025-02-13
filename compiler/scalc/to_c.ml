@@ -300,12 +300,12 @@ let rec format_expression
       {
         op = ((Reduce | Fold), _) as op;
         args = [fct; base; arr];
-        tys = [_; aty; _];
+        tys = [(TArrow (_, rty), _); _; _];
       } ->
     (* Operators with a polymorphic return type need a cast *)
     Format.fprintf fmt "((%a)%a(%a,@ %a,@ %a))"
       (format_typ ~const:true ctx.decl_ctx ignore)
-      aty format_op op format_expression fct format_expression base
+      rty format_op op format_expression fct format_expression base
       format_expression arr
   | EAppOp
       { op = ((Add_dat_dur rounding | Sub_dat_dur rounding) as op), _; args; _ }

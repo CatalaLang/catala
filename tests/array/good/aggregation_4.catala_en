@@ -65,13 +65,20 @@ let topval closure_aggregate_periods_from_last_five_years :
   else period.end + [5 years, 0 months, 0 days] - date_of_sale_or_exchange
 
 let topval closure_aggregate_periods_from_last_five_years__1 :
+  (closure_env, unit) → duration =
+  λ (env: closure_env) () →
+  let env__1 : () = from_closure_env env in
+  
+  [0 years, 0 months, 0 days]
+
+let topval closure_aggregate_periods_from_last_five_years__2 :
   (closure_env, duration, duration) → duration =
   λ (env: closure_env) (sum1: duration) (sum2: duration) →
   let env__1 : () = from_closure_env env in
   
   ((sum1 + sum2))
 
-let topval closure_aggregate_periods_from_last_five_years__2 :
+let topval closure_aggregate_periods_from_last_five_years__3 :
   (closure_env, (list of Period {begin: date; end: date})) → duration =
   λ (env: closure_env) (periods: list of Period) →
   let env__1 : (date) = from_closure_env env in
@@ -81,10 +88,14 @@ let topval closure_aggregate_periods_from_last_five_years__2 :
        (reduce
           let aggregate_periods_from_last_five_years :
               (closure_env, duration, duration) → duration =
+            closure_aggregate_periods_from_last_five_years__2
+          in
+          (aggregate_periods_from_last_five_years, to_closure_env ())
+          let aggregate_periods_from_last_five_years :
+              (closure_env, unit) → duration =
             closure_aggregate_periods_from_last_five_years__1
           in
           (aggregate_periods_from_last_five_years, to_closure_env ())
-          [0 years, 0 months, 0 days]
           map (let aggregate_periods_from_last_five_years :
                    (closure_env, Period) → duration =
                  closure_aggregate_periods_from_last_five_years
@@ -115,7 +126,7 @@ let scope section121_single_person
         closure_env) =
     let aggregate_periods_from_last_five_years__1 :
         (closure_env, (list of Period)) → duration =
-      closure_aggregate_periods_from_last_five_years__2
+      closure_aggregate_periods_from_last_five_years__3
     in
     (aggregate_periods_from_last_five_years__1,
       to_closure_env (date_of_sale_or_exchange))

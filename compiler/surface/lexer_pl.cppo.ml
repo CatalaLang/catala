@@ -86,8 +86,8 @@
 #define MS_MAXIMUM "maksimum"
 #define MS_MINIMUM "minimum"
 #define MS_IS "jest"
-#define MS_LIST_EMPTY "lista pusta"
-#define MR_LIST_EMPTY "lista", space_plus, "pusta"
+#define MS_OR_IF_LIST_EMPTY "lub jeżeli lista pusta"
+#define MR_OR_IF_LIST_EMPTY "lub", space_plus, "je", 0x017C, "eli", space_plus, "lista", space_plus, "pusta"
 #define MS_BUT_REPLACE "ale zastąpić"
 #define MR_BUT_REPLACE "ale", space_plus, "zast", 0x0105, "pi", 0x0107
 #define MS_COMBINE "łączyć"
