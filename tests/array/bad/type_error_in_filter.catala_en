@@ -36,7 +36,7 @@ $ catala dcalc
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
-│  ─➤ list of any
+│  ─➤ list of <ty1>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
@@ -50,7 +50,7 @@ $ catala dcalc
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
-│ Type list of any is coming from:
+│ Type list of <ty1> is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
 │    │
 │ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
@@ -66,7 +66,7 @@ $ catala test-scope Test
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
-│  ─➤ list of any
+│  ─➤ list of <ty1>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
@@ -80,7 +80,7 @@ $ catala test-scope Test
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
-│ Type list of any is coming from:
+│ Type list of <ty1> is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
 │    │
 │ 13 │     with (acc ++ list of x among in_n such that x.x > 2)

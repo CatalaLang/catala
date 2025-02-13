@@ -556,7 +556,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
     raise Not_found
 
 let resolve_overload
-    ctx
+    _ctx
     ((op, pos) : overloaded t Mark.pos)
     (operands : typ list) :
     < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ] =
@@ -575,8 +575,7 @@ let resolve_overload
         (("", pos)
         :: List.map
              (fun ty ->
-               ( Format.asprintf "Type %a coming from expression:"
-                   (Print.typ ctx) ty,
+               ( Format.asprintf "Type %a coming from expression:" Print.typ ty,
                  Mark.get ty ))
              operands)
       "I don't know how to apply operator %a on types %a"
@@ -584,7 +583,7 @@ let resolve_overload
       op
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " and@ ")
-         (Print.typ ctx))
+         Print.typ)
       operands
 
 let overload_type ctx (op : overloaded t Mark.pos) (operands : typ list) : typ =

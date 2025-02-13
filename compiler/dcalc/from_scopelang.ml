@@ -54,14 +54,14 @@ type 'm ctx = {
   date_rounding : date_rounding;
 }
 
-let mark_tany m pos = Expr.with_ty m (Mark.add pos TAny) ~pos
+let mark_tany m pos = Expr.with_ty m (Type.any pos) ~pos
 
 (* Expression argument is used as a type witness, its type and positions aren't
    used *)
 let pos_mark_mk (type a m) (e : (a, m) gexpr) :
     (Pos.t -> m mark) * ((_, Pos.t) Mark.ed -> m mark) =
   let pos_mark pos =
-    Expr.map_mark (fun _ -> pos) (fun _ -> TAny, pos) (Mark.get e)
+    Expr.map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e)
   in
   let pos_mark_as e = pos_mark (Mark.get e) in
   pos_mark, pos_mark_as
@@ -129,7 +129,7 @@ let tag_with_log_entry
 
   if Global.options.trace <> None then
     let pos = Expr.pos e in
-    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[TAny, pos] ~args:[e] m
+    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[Type.any pos] ~args:[e] m
   else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
@@ -458,9 +458,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
          https://github.com/CatalaLang/catala/pull/280#discussion_r898851693. *)
       let retrieve_out_typ_or_any var vars =
         let _, typ, _ = ScopeVar.Map.find (Mark.remove var) vars in
-        match typ with
-        | TArrow (_, marked_output_typ) -> Mark.remove marked_output_typ
-        | _ -> TAny
+        match Type.unquantify (typ, Expr.pos f) with
+        | TArrow (_, marked_output_typ), _ -> Mark.remove marked_output_typ
+        | _, pos -> Mark.remove (Type.any pos)
       in
       match Mark.remove f with
       | ELocation (ScopelangScopeVar { name = var }) ->
@@ -474,7 +474,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         | _ ->
           Message.error ~pos:(Expr.pos e)
             "Application of non-function toplevel variable")
-      | _ -> TAny
+      | _ -> Mark.remove (Type.any (Expr.pos f))
     in
     (* Message.debug "new_args %d, input_typs: %d, input_typs %a" (List.length
        new_args) (List.length input_typs) (Format.pp_print_list Print.typ_debug)
