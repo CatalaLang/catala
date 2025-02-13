@@ -54,7 +54,7 @@ module Content : sig
 
   (** {2 Content emission}*)
 
-  val emit_n : ?ppf:Format.formatter -> level -> t list -> unit
+  val emit_n : ?ppf:Format.formatter -> t list -> level -> unit
   val emit : ?ppf:Format.formatter -> t -> level -> unit
 end
 
