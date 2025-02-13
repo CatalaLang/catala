@@ -36,7 +36,7 @@ let temp_file pfx sfx =
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
-let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
+let ( / ) a b = if a = Filename.current_dir_name then b else if a = "" then Filename.dir_sep ^ b else Filename.concat a b
 let dir_sep_char = Filename.dir_sep.[0]
 
 let rec parent f =
@@ -83,7 +83,12 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   clean_path
   @@
   if Filename.is_relative from_dir then invalid_arg "File.reverse_path"
-  else if not (Filename.is_relative f) then f
+  else
+  let f =
+    if Filename.is_relative f then f
+    else String.remove_prefix ~prefix:(from_dir / "") f
+  in
+  if not (Filename.is_relative f) then f
   else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
   else
     let rec aux acc rbase = function
@@ -271,7 +276,7 @@ let dirname = Filename.dirname
 let ( /../ ) a b = parent a / b
 
 let ( -.- ) file ext =
-  let base = Filename.chop_extension file in
+  let base = Filename.remove_extension file in
   match ext with "" -> base | ext -> base ^ "." ^ ext
 
 let path_to_list path =
