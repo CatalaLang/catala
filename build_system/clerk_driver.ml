@@ -25,6 +25,10 @@ let version = Catala_utils.Cli.version
 
 (** {1 Command line interface} *)
 
+type target_kinds = OCaml | Python | C (* | JS *)
+
+let enabled_targets = [OCaml; Python; C] (* TODO: make this customisable *)
+
 module Cli = struct
   open Cmdliner
 
@@ -470,11 +474,9 @@ module Var = struct
 
   let input = make "in"
   let output = make "out"
-  let pool = make "pool"
   let src = make "src"
   let target = make "target"
   let includes = make "includes"
-  let orig_src = make "orig-src"
   let scope = make "scope"
   let test_id = make "test-id"
   let ( ! ) = Var.v
@@ -526,77 +528,78 @@ let base_bindings catala_exe catala_flags0 build_dir include_dirs test_flags =
         | None -> Lazy.force Poll.catala_exe);
       ];
     Nj.binding Var.catala_flags (catala_flags @ includes);
-    Nj.binding Var.catala_flags_ocaml catala_flags_ocaml;
-    Nj.binding Var.catala_flags_c catala_flags_c;
-    Nj.binding Var.catala_flags_python catala_flags_python;
     Nj.binding Var.clerk_flags
       ("-e"
        :: Var.(!catala_exe)
        :: ("--test-flags=" ^ String.concat "," test_flags)
        :: includes
       @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
-    Nj.binding Var.ocamlc_exe ["ocamlc"];
-    Nj.binding Var.ocamlopt_exe ["ocamlopt"];
-    Nj.binding Var.ocaml_flags (ocaml_flags @ includes);
-    Nj.binding Var.runtime_ocaml_libs (Lazy.force Poll.ocaml_link_flags);
-    Nj.binding Var.cc_exe ["cc"];
-    Nj.binding Var.runtime_c_libs
-      [
-        "-I" ^ Lazy.force Poll.c_runtime_dir;
-        "-L" ^ Lazy.force Poll.c_runtime_dir;
-        "-lcatala_runtime";
-        "-lgmp";
-      ];
-    Nj.binding Var.c_flags
-      ([
-         "-std=c89";
-         "-pedantic";
-         "-Wall";
-         "-Wno-unused-function";
-         "-Wno-unused-variable";
-         "-Wno-unused-but-set-variable";
-         "-Werror";
-         "-g";
-         Var.(!runtime_c_libs);
-       ]
-      @ includes);
   ]
+  @ (if List.mem OCaml enabled_targets then
+       [
+         Nj.binding Var.catala_flags_ocaml catala_flags_ocaml;
+         Nj.binding Var.ocamlc_exe ["ocamlc"];
+         Nj.binding Var.ocamlopt_exe ["ocamlopt"];
+         Nj.binding Var.ocaml_flags (ocaml_flags @ includes);
+         Nj.binding Var.runtime_ocaml_libs (Lazy.force Poll.ocaml_link_flags);
+       ]
+     else [])
+  @ (if List.mem Python enabled_targets then
+       [Nj.binding Var.catala_flags_python catala_flags_python]
+     else [])
+  @
+  if List.mem C enabled_targets then
+    [
+      Nj.binding Var.catala_flags_c catala_flags_c;
+      Nj.binding Var.cc_exe ["cc"];
+      Nj.binding Var.runtime_c_libs
+        [
+          "-I" ^ Lazy.force Poll.c_runtime_dir;
+          "-L" ^ Lazy.force Poll.c_runtime_dir;
+          "-lcatala_runtime";
+          "-lgmp";
+        ];
+      Nj.binding Var.c_flags
+        ([
+           "-std=c89";
+           "-pedantic";
+           "-Wall";
+           "-Wno-unused-function";
+           "-Wno-unused-variable";
+           "-Wno-unused-but-set-variable";
+           "-Werror";
+           "-g";
+           Var.(!runtime_c_libs);
+         ]
+        @ includes);
+    ]
+  else []
 
 let[@ocamlformat "disable"] static_base_rules =
   let open Var in
-  let shellout l = Format.sprintf "$$(%s)" (String.concat " " l) in
   [
     Nj.rule "copy"
       ~command:["cp"; "-f"; !input; !output]
       ~description:["<copy>"; !input];
+  ] @ (if List.mem OCaml enabled_targets then [
+      Nj.rule "catala-ocaml"
+        ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
+                  !input; "-o"; !output]
+        ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
-    Nj.rule "catala-ocaml"
-      ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
-                !input; "-o"; !output]
-      ~description:["<catala>"; "ocaml"; "⇒"; !output];
+      Nj.rule "ocaml-object"
+        ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
+                  !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
+                  !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
+                  !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input]
+        ~description:["<ocaml>"; "⇒"; !output];
 
-    Nj.rule "ocaml-object"
-      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
-                !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
-                !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
-                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input]
-      ~description:["<ocaml>"; "⇒"; !output];
-
-    Nj.rule "ocaml-module"
-      ~command:
-        [!ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
-      ~description:["<ocaml>"; "⇒"; !output];
-
-    Nj.rule "ocaml-exec"
-      ~command: [
-        !ocamlopt_exe; !ocaml_flags; !runtime_ocaml_libs;
-        shellout [!catala_exe; "depends";
-                  "--prefix="^ !builddir; "--extension=cmx";
-                  !catala_flags; !orig_src];
-        "-o"; !output;
-      ]
-      ~description:["<ocaml>"; "⇒"; !output];
-
+      Nj.rule "ocaml-module"
+        ~command:
+          [!ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
+        ~description:["<ocaml>"; "⇒"; !output];
+    ] else []) @
+  (if List.mem C enabled_targets then [
     Nj.rule "catala-c"
       ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
                 !input; "-o"; !output]
@@ -606,32 +609,18 @@ let[@ocamlformat "disable"] static_base_rules =
       ~command:
         [!cc_exe; !input; !c_flags; !includes; "-c"; "-o"; !output]
       ~description:["<cc>"; "⇒"; !output];
-
-    Nj.rule "c-exec"
-      ~command: [
-        !cc_exe;
-        shellout [!catala_exe; "depends";
-                  "--prefix="^ !builddir; "--extension=c.o";
-                  !catala_flags; !orig_src];
-        !input; !c_flags; "-o"; !output]
-      ~description:["<cc>"; "⇒"; !output];
-
-    Nj.rule "python"
-      ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
-                !input; "-o"; !output]
-      ~description:["<catala>"; "python"; "⇒"; !output];
-
-    Nj.rule "tests"
+  ] else []) @
+  (if List.mem Python enabled_targets then [
+      Nj.rule "python"
+        ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
+                  !input; "-o"; !output]
+        ~description:["<catala>"; "python"; "⇒"; !output];
+    ] else []) @
+  [Nj.rule "tests"
       ~command:
         [!clerk_exe; "runtest"; !clerk_flags; !input;
          "--report"; !output;]
       ~description:["<catala>"; "tests"; "⇐"; !input];
-
-    Nj.rule "interpret"
-      ~command:
-        [!catala_exe; "interpret"; !catala_flags; !input; "--scope=" ^ !scope]
-      ~description:["<catala>"; "interpret"; !scope; "⇐"; !input]
-      ~vars:[pool, ["console"]];
 
     Nj.rule "dir-tests"
       ~command:["cat"; !input; ">"; !output; ";"]
@@ -726,19 +715,15 @@ let gen_build_statements
           (List.map (( ^ ) !Var.target) [".mli"; ".cmi"; ".cmo"; ".cmx"; ".o"])
         ~vars:[Var.includes, [!Var.includes]]
     in
-    let modexec =
-      match item.module_def with
-      | Some _ ->
+    match item.module_def with
+    | Some _ ->
+      [
+        obj;
         Nj.build "ocaml-module"
           ~inputs:[!Var.target ^ ".cmx"]
-          ~outputs:[!Var.target ^ ".cmxs"]
-      | None ->
-        Nj.build "ocaml-exec"
-          ~inputs:[!Var.target ^ ".cmx"]
-          ~outputs:[!Var.target ^ ".exe"]
-          ~vars:[Var.orig_src, [catala_src]]
-    in
-    [obj; modexec]
+          ~outputs:[!Var.target ^ ".cmxs"];
+      ]
+    | None -> [obj]
   in
   let cc =
     Nj.build "c-object"
@@ -749,16 +734,6 @@ let gen_build_statements
         :: List.map (modfile ".h") modules)
       ~outputs:[!Var.target ^ ".c.o"]
       ~vars:[Var.includes, [!Var.includes]]
-    ::
-    (if item.module_def <> None then []
-     else
-       [
-         Nj.build "c-exec"
-           ~implicit_in:
-             ((!Var.target ^ ".c.o") :: List.map (modfile ".c.o") modules)
-           ~outputs:[!Var.target ^ ".c.exe"]
-           ~vars:[Var.orig_src, [catala_src]];
-       ])
   in
   let expose_module =
     match item.module_def with
@@ -770,20 +745,6 @@ let gen_build_statements
           ~inputs:[modfile ".h" m; modfile ".c.o" m];
       ]
     | _ -> []
-  in
-  let interp_deps =
-    !Var.catala_exe
-    :: List.map
-         (fun m ->
-           match List.assoc_opt m same_dir_modules with
-           | Some _ -> modfile ".cmxs" m
-           | None -> m ^ "@module")
-         modules
-  in
-  let interpret =
-    Nj.build "interpret"
-      ~outputs:[!Var.src ^ "@interpret"]
-      ~inputs:[catala_src] ~implicit_in:interp_deps
   in
   let legacy_test_reference test =
     (src /../ "output" / Filename.basename src) -.- test.Scan.id
@@ -803,8 +764,8 @@ let gen_build_statements
         [
           Nj.build "tests" ~inputs:[catala_src]
             ~implicit_in:
-              ((!Var.clerk_exe :: interp_deps)
-              @ List.map (( / ) !Var.builddir) out_tests_references)
+              (!Var.clerk_exe
+              :: List.map (( / ) !Var.builddir) out_tests_references)
             ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"]
             ~implicit_out:
               (List.map
@@ -814,22 +775,21 @@ let gen_build_statements
     in
     out_tests_prepare @ tests
   in
-  Seq.concat
-  @@ List.to_seq
-       [
-         Seq.return (Nj.comment "");
-         List.to_seq def_vars;
-         Seq.return include_deps;
-         Option.to_seq module_deps;
-         List.to_seq expose_module;
-         Seq.return ocaml;
-         List.to_seq ocamlopt;
-         c;
-         List.to_seq cc;
-         Seq.return python;
-         List.to_seq tests;
-         Seq.return interpret;
-       ]
+  let statements_list =
+    [Seq.return (Nj.comment ""); List.to_seq def_vars; Seq.return include_deps]
+    @ (if List.mem OCaml enabled_targets then
+         [
+           Option.to_seq module_deps;
+           List.to_seq expose_module;
+           Seq.return ocaml;
+           List.to_seq ocamlopt;
+         ]
+       else [])
+    @ (if List.mem C enabled_targets then [c; Seq.return cc] else [])
+    @ (if List.mem Python enabled_targets then [Seq.return python] else [])
+    @ [List.to_seq tests]
+  in
+  Seq.concat (List.to_seq statements_list)
 
 let gen_build_statements_dir
     (include_dirs : string list)
