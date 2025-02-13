@@ -369,10 +369,13 @@ module Commands = struct
     match scope_opt with
     | Some s -> get_scope_uid ctx s
     | None -> (
-      match ScopeName.Map.cardinal ctx.ctx_scopes with
+      let top_scopes =
+        ScopeName.Map.filter (fun n _ -> ScopeName.path n = []) ctx.ctx_scopes
+      in
+      match ScopeName.Map.cardinal top_scopes with
       | 0 -> Message.error "The program defines no scopes"
       | 1 ->
-        let s, _ = ScopeName.Map.choose ctx.ctx_scopes in
+        let s, _ = ScopeName.Map.choose top_scopes in
         Message.warning
           "No scope was specified, using the only one defined by the program:@ \
            %a"
@@ -383,7 +386,7 @@ module Commands = struct
           "Please specify option @{<yellow>--scope@} or @{<yellow>-s@}.@ The \
            program defines the following scopes:@ @[<hv 4>%a@]"
           (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-          ctx.ctx_scopes)
+          top_scopes)
 
   (* TODO: this is very weird but I'm trying to maintain the current behaviour
      for now *)
