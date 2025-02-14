@@ -36,7 +36,11 @@ let temp_file pfx sfx =
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
-let ( / ) a b = if a = Filename.current_dir_name then b else if a = "" then Filename.dir_sep ^ b else Filename.concat a b
+let ( / ) a b =
+  if a = Filename.current_dir_name then b
+  else if a = "" then Filename.dir_sep ^ b
+  else Filename.concat a b
+
 let dir_sep_char = Filename.dir_sep.[0]
 
 let rec parent f =
@@ -84,34 +88,35 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   @@
   if Filename.is_relative from_dir then invalid_arg "File.reverse_path"
   else
-  let f =
-    if Filename.is_relative f then f
-    else String.remove_prefix ~prefix:(from_dir / "") f
-  in
-  if not (Filename.is_relative f) then f
-  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
-  else
-    let rec aux acc rbase = function
-      | [] -> acc
-      | dir :: p -> (
-        if dir = Filename.parent_dir_name then
-          match rbase with
-          | base1 :: rbase -> aux (base1 :: acc) rbase p
-          | [] -> aux acc [] p
-        else
-          match acc with
-          | dir1 :: acc when dir1 = dir -> aux acc rbase p
-          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
+    let f =
+      if Filename.is_relative f then f
+      else String.remove_prefix ~prefix:(from_dir / "") f
     in
-    let path_to_list path =
-      String.split_on_char Filename.dir_sep.[0] path
-      |> List.filter (function "" | "." -> false | _ -> true)
-    in
-    let rbase = List.rev (path_to_list from_dir) in
-    String.concat Filename.dir_sep
-      (aux (path_to_list f) rbase (path_to_list to_dir))
+    if not (Filename.is_relative f) then f
+    else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
+    else
+      let rec aux acc rbase = function
+        | [] -> acc
+        | dir :: p -> (
+          if dir = Filename.parent_dir_name then
+            match rbase with
+            | base1 :: rbase -> aux (base1 :: acc) rbase p
+            | [] -> aux acc [] p
+          else
+            match acc with
+            | dir1 :: acc when dir1 = dir -> aux acc rbase p
+            | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
+      in
+      let path_to_list path =
+        String.split_on_char Filename.dir_sep.[0] path
+        |> List.filter (function "" | "." -> false | _ -> true)
+      in
+      let rbase = List.rev (path_to_list from_dir) in
+      String.concat Filename.dir_sep
+        (aux (path_to_list f) rbase (path_to_list to_dir))
 
-let find_in_parents predicate =
+let find_in_parents ?cwd predicate =
+  let cwd = match cwd with None -> Sys.getcwd () | Some cwd -> cwd in
   let home = try Sys.getenv "HOME" with Not_found -> "" in
   let rec lookup dir rel =
     if predicate dir then Some dir, rel
@@ -121,7 +126,7 @@ let find_in_parents predicate =
       if parent = dir then None, Filename.current_dir_name
       else lookup parent (rel / Filename.parent_dir_name)
   in
-  match lookup (Sys.getcwd ()) Filename.current_dir_name with
+  match lookup cwd Filename.current_dir_name with
   | Some dir, rel -> Some (dir, rel)
   | None, _ -> None
 
