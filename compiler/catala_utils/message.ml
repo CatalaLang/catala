@@ -97,7 +97,7 @@ let unformat (f : Format.formatter -> unit) : string =
 
 let pad n s ppf = Pos.pad_fmt n s ppf
 
-(**{2 Message types and output helpers *)
+(** {2 Message types and output helpers} *)
 
 type level = Error | Warning | Debug | Log | Result
 

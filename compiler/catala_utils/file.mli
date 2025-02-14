@@ -125,18 +125,19 @@ val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
     leading to [f] from [to_dir]. The results attempts to be relative to
     [to_dir]. *)
 
-val find_in_parents : (t -> bool) -> (t * t) option
-(** Checks for the first directory matching the given predicate from the current
-    directory upwards. Recursion stops at home. Returns a pair [dir, rel_path],
-    where [dir] is the ancestor directory matching the predicate, and [rel_path]
-    is a path pointing to it from the current dir. *)
+val find_in_parents : ?cwd:t -> (t -> bool) -> (t * t) option
+(** Checks for the first directory matching the given predicate from [cwd]
+    upwards (defaults to the current directory). Recursion stops at home.
+    Returns a pair [dir, rel_path], where [dir] is the ancestor directory
+    matching the predicate, and [rel_path] is a path pointing to it from the
+    current dir. *)
 
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
-    with the given one (which shouldn't contain a dot). No dot is appended if
+    with the given one (which shouldn't start with a dot). No dot is appended if
     the provided extension is empty. *)
 
 val path_to_list : t -> string list
