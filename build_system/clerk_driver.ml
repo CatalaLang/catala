@@ -694,26 +694,31 @@ let gen_build_statements
     ]
   in
   let modules = List.rev item.used_modules in
-  let modfile ext modname =
+  let modfile ext ?(mod_ext = ext) modname =
     match List.assoc_opt modname same_dir_modules with
     | Some f -> (!Var.builddir / Filename.dirname f / modname) ^ ext
-    | None -> modname ^ ext
+    | None -> modname ^ mod_ext
   in
-  let module_target x = modfile "@module" x in
+  let module_target x = modfile "@ml-module" x in
   let catala_src = !Var.builddir / !Var.src in
   let include_deps =
     Nj.build "copy" ~inputs:[!Var.src]
       ~implicit_in:
         (List.map (( / ) !Var.builddir) item.included_files
-        @ List.map module_target modules)
+        @ List.map
+            (fun m ->
+              try !Var.builddir / List.assoc m same_dir_modules
+              with Not_found -> m ^ "@src")
+            modules)
       ~outputs:[catala_src]
   in
   let module_deps =
     Option.map
       (fun _ ->
         Nj.build "phony"
-          ~inputs:[catala_src; !Var.target ^ ".cmi"; !Var.target ^ ".cmxs"]
-          ~outputs:[!Var.target ^ "@module"])
+          ~inputs:[!Var.target ^ ".cmi"; !Var.target ^ ".cmxs"]
+          ~implicit_in:(List.map (modfile "@ml-module") modules)
+          ~outputs:[!Var.target ^ "@ml-module"])
       item.module_def
   in
   let ocaml, c, python =
@@ -770,19 +775,49 @@ let gen_build_statements
       ~implicit_in:
         (!Var.catala_exe
         :: (!Var.target ^ ".h")
-        :: List.map (modfile ".h") modules)
+        :: List.map (modfile ".h" ~mod_ext:"@c-module") modules)
       ~outputs:[!Var.target ^ ".c.o"]
       ~vars:[Var.includes, [!Var.includes]]
   in
   let expose_module =
+    (* Note: these rules define direct (top-level) aliases for module targets of
+       modules that are in include-dirs, so that Ninja can find them from
+       wherever; they are only in implicit-in, because once they are built the
+       compilers will find them independently through their '-I' arguments.
+
+       This works but it might make things simpler to resolve these aliases at
+       the Clerk level ; this would force an initial scan of the included dirs
+       but then we could use the already resolved target files directly and get
+       rid of these aliases. *)
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      [
-        Nj.build "phony" ~outputs:[m ^ "@module"] ~inputs:[module_target m];
-        Nj.build "phony"
-          ~outputs:[m ^ ".h"; m ^ ".c.o"]
-          ~inputs:[modfile ".h" m; modfile ".c.o" m];
-      ]
+      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.src]
+      ::
+      (if List.mem OCaml enabled_backends then
+         [
+           Nj.build "phony"
+             ~outputs:[m ^ "@ml-module"]
+             ~inputs:[module_target !Var.target];
+         ]
+       else [])
+      @ (if List.mem C enabled_backends then
+           [
+             Nj.build "phony"
+               ~outputs:[m ^ "@c-module"]
+               ~inputs:[modfile ".h" !Var.target; modfile ".c.o" !Var.target];
+             Nj.build "phony"
+               ~outputs:[m ^ "@h-module"]
+               ~inputs:[modfile ".h" !Var.target];
+           ]
+         else [])
+      @
+      if List.mem Python enabled_backends then
+        [
+          Nj.build "phony"
+            ~outputs:[m ^ "@py-module"]
+            ~inputs:[modfile ".py" !Var.target];
+        ]
+      else []
     | _ -> []
   in
   let legacy_test_reference test =
@@ -803,8 +838,8 @@ let gen_build_statements
         [
           Nj.build "tests" ~inputs:[catala_src]
             ~implicit_in:
-              (!Var.clerk_exe
-              :: List.map (( / ) !Var.builddir) out_tests_references)
+              ((!Var.clerk_exe :: List.map (modfile "@ml-module") modules)
+              @ List.map (( / ) !Var.builddir) out_tests_references)
             ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"]
             ~implicit_out:
               (List.map
@@ -1286,7 +1321,7 @@ let run_cmd =
     let enabled_backends =
       match backend with
       | `Interpret | `OCaml -> [OCaml]
-      | `C -> [C; OCaml]
+      | `C -> [C]
       | `Python -> [Python]
     in
     ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
@@ -1319,46 +1354,6 @@ let run_cmd =
           | targets -> targets)
         files_or_folders
     in
-    let nin_targets =
-      let target item =
-        let open File in
-        let f =
-          match item.Scan.module_def with
-          | None -> item.Scan.file_name
-          | Some m ->
-            (dirname item.Scan.file_name / m)
-            ^ Filename.extension item.Scan.file_name
-        in
-        let base =
-          match backend with
-          | `Interpret -> item.Scan.file_name
-          | `OCaml -> f -.- "cmx"
-          | `C -> f -.- "c.o"
-          | `Python -> f -.- "py"
-        in
-        item, build_dir / base
-      in
-      List.map target target_items
-    in
-    let ninja_cmd =
-      ninja_cmdline ("--quiet" :: ninja_flags) nin_file
-        (List.map snd nin_targets)
-    in
-    Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
-    let exit_code = run_command ~clean_up_env:false ninja_cmd in
-    if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
-    let re_var =
-      Re.(
-        compile (seq [str "${"; group (rep1 (diff any (char '}'))); char '}']))
-    in
-    let rec get_var v =
-      (* replaces ${var} with its value, recursively *)
-      let s = List.assoc v var_bindings in
-      List.map
-        (Re.replace ~all:true re_var ~f:(fun g ->
-             String.concat " " (get_var (Var.make (Re.Group.get g 1)))))
-        s
-    in
     let modules =
       List.fold_left
         (fun acc it ->
@@ -1366,6 +1361,15 @@ let run_cmd =
           | Some m -> String.Map.add m it acc
           | None -> acc)
         String.Map.empty items
+    in
+    let rem_dups =
+      let rec aux seen = function
+        | it :: r ->
+          if String.Set.mem it.Scan.file_name seen then aux seen r
+          else it :: aux (String.Set.add it.Scan.file_name seen) r
+        | [] -> []
+      in
+      aux String.Set.empty
     in
     let link_deps item =
       let rec traverse acc item =
@@ -1377,22 +1381,71 @@ let run_cmd =
               traverse (it :: acc) it)
           acc item.Scan.used_modules
       in
-      let rec rem_dups seen = function
-        | it :: r ->
-          if String.Set.mem it.Scan.file_name seen then rem_dups seen r
-          else it :: rem_dups (String.Set.add it.Scan.file_name seen) r
-        | [] -> []
-      in
-      rem_dups String.Set.empty (traverse [] item)
-      |> fun r ->
-      Message.debug "%a => %a" File.format item.Scan.file_name
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf i ->
-             File.format ppf i.Scan.file_name))
-        r;
-      r
+      rem_dups (traverse [] item)
+      (* |> fun r -> Message.debug "%a => %a" File.format item.Scan.file_name
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf i ->
+         File.format ppf i.Scan.file_name)) r; r *)
     in
+    let make_target item =
+      let open File in
+      let f =
+        match item.Scan.module_def with
+        | None -> item.Scan.file_name
+        | Some m ->
+          (dirname item.Scan.file_name / m)
+          ^ Filename.extension item.Scan.file_name
+      in
+      let base =
+        match backend with
+        | `Interpret -> item.Scan.file_name
+        | `OCaml -> f -.- "cmx"
+        | `C -> f -.- "c.o"
+        | `Python -> f -.- "py"
+      in
+      build_dir / base
+    in
+    let base_targets = List.map (fun it -> it, make_target it) target_items in
     let multi_targets =
-      match nin_targets with _ :: _ :: _ -> true | _ -> false
+      match base_targets with _ :: _ :: _ -> true | _ -> false
+    in
+    let ninja_cmd =
+      let ninja_targets =
+        List.fold_left
+          (fun acc (it, t) ->
+            if String.Set.mem t acc then acc
+            else
+              String.Set.add t
+              @@ List.fold_left
+                   (fun acc it -> String.Set.add (make_target it) acc)
+                   acc (link_deps it))
+          String.Set.empty base_targets
+      in
+      ninja_cmdline ("--quiet" :: ninja_flags) nin_file
+        (String.Set.elements ninja_targets)
+    in
+    Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
+    let exit_code = run_command ~clean_up_env:false ninja_cmd in
+    if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
+    let re_single_var, re_var =
+      let open Re in
+      let re = seq [str "${"; group (rep1 (diff any (char '}'))); char '}'] in
+      compile (whole_string re), compile re
+    in
+    let rec get_var v =
+      (* replaces ${var} with its value, recursively *)
+      let s = List.assoc v var_bindings in
+      List.concat_map
+        (fun s ->
+          match Re.exec_opt re_single_var s with
+          | Some g -> get_var (Var.make (Re.Group.get g 1))
+          | None ->
+            [
+              Re.replace ~all:true re_var
+                ~f:(fun g ->
+                  String.concat " " (get_var (Var.make (Re.Group.get g 1))))
+                s;
+            ])
+        s
     in
     let run_cmd item target =
       match backend with
@@ -1418,15 +1471,39 @@ let run_cmd =
                 ^ ".cmx")
             (link_deps item)
         @ [target; "-o"; File.(target -.- "exe")]
-      | _ -> assert false (* TODO *)
+      | `C ->
+        get_var Var.cc_exe
+        @ List.map
+            File.(
+              fun it ->
+                build_dir
+                / Filename.dirname it.Scan.file_name
+                / Option.get it.Scan.module_def
+                ^ ".c.o")
+            (link_deps item)
+        @ [target]
+        @ get_var Var.c_flags
+        @ ["-o"; File.(target -.- "exe")]
+      | `Python ->
+        (* TODO: setup the proper environment so that the runtime and modules
+           can be found *)
+        ["python3"; target]
     in
     let run_artifact src =
       match backend with
       | `Interpret -> 0
       | `OCaml ->
-        run_command ~clean_up_env:false
-          (File.(src -.- "exe") :: Option.to_list scope)
-      | _ -> assert false (* TODO *)
+        let cmd = File.(src -.- "exe") :: Option.to_list scope in
+        Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+        run_command ~clean_up_env:false cmd
+      | `C ->
+        let cmd =
+          File.(src -.- "exe")
+          :: Option.to_list scope (* NOTE: not handled yet by the backend *)
+        in
+        Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+        run_command ~clean_up_env:false cmd
+      | `Python -> 0
     in
     let cmd_exit_code =
       List.fold_left
@@ -1444,7 +1521,7 @@ let run_cmd =
           match run_command ~clean_up_env:false cmd with
           | 0 -> max code (run_artifact target)
           | n -> max code n)
-        0 nin_targets
+        0 base_targets
     in
     raise (Catala_utils.Cli.Exit_with cmd_exit_code)
   in
