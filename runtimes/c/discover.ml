@@ -18,5 +18,9 @@ let () =
         (* On cygwin/windows, pkg-config is not aware of gmp but opam is aware
            of the include dir. *)
         ()
-      else exit @@ Sys.command "pkg-config --cflags gmp"
+      else
+        let _ = Sys.command "pkg-config --cflags gmp" in
+        (* If pkg-config fails to find gmp's header location, let it fail and
+           print its message on stderr then try without any flag. *)
+        exit 0
     | s -> Format.ksprintf failwith "unknown command: %s" s
