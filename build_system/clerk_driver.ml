@@ -132,6 +132,15 @@ module Cli = struct
              custom plugin instead. This is ignored if $(i,--backend) isn't \
              $(b,interpret).")
 
+  let vars_override =
+    Arg.(
+      value
+      & opt_all (pair ~sep:'=' string string) []
+      & info ["vars"] ~docv:"VAR=VALUE"
+          ~doc:
+            "Override the given build variable with the given value. Use \
+             $(i,clerk list-vars) to list the available variables.")
+
   module Global : sig
     val color : Catala_utils.Global.when_enum Term.t
     val debug : bool Term.t
@@ -142,6 +151,7 @@ module Cli = struct
       catala_opts:string list ->
       build_dir:File.t option ->
       include_dirs:string list ->
+      vars_override:(string * string) list ->
       color:Global.when_enum ->
       debug:bool ->
       ninja_output:File.t option ->
@@ -191,17 +201,19 @@ module Cli = struct
             catala_opts
             build_dir
             include_dirs
+            vars_override
             color
             debug
             ninja_output
           ->
             f ~config_file ~catala_exe ~catala_opts ~build_dir ~include_dirs
-              ~color ~debug ~ninja_output)
+              ~vars_override ~color ~debug ~ninja_output)
         $ config_file
         $ catala_exe
         $ catala_opts
         $ build_dir
         $ include_dirs
+        $ vars_override
         $ color
         $ debug
         $ ninja_output)
@@ -485,12 +497,21 @@ module Var = struct
   let ninja_required_version = make "ninja_required_version"
   let builddir = make "builddir"
   let clerk_exe = make "CLERK_EXE"
+  let clerk_flags = make "CLERK_FLAGS"
   let catala_exe = make "CATALA_EXE"
   let catala_flags = make "CATALA_FLAGS"
+
+  let make, all_vars_ref =
+    let all_vars_ref = ref String.Map.empty in
+    ( (fun s ->
+        let v = make s in
+        all_vars_ref := String.Map.add s v !all_vars_ref;
+        v),
+      all_vars_ref )
+
   let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
   let catala_flags_c = make "CATALA_FLAGS_C"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
-  let clerk_flags = make "CLERK_FLAGS"
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
@@ -498,6 +519,7 @@ module Var = struct
   let cc_exe = make "CC"
   let c_flags = make "CFLAGS"
   let runtime_c_libs = make "RUNTIME_C_LIBS"
+  let all_vars = all_vars_ref.contents
 
   (** Rule vars, Used in specific rules *)
 
@@ -517,6 +539,7 @@ let base_bindings
     catala_flags0
     build_dir
     include_dirs
+    vars_override
     test_flags
     enabled_backends =
   let includes =
@@ -551,63 +574,75 @@ let base_bindings
           | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
         test_flags
   in
-  let ocaml_flags = Lazy.force Poll.ocaml_include_flags in
+  let def var value =
+    let value =
+      match List.assoc_opt (Var.name var) vars_override with
+      | Some v -> [v]
+      | None -> Lazy.force value
+    in
+    Nj.binding var value
+  in
   [
-    Nj.binding Var.ninja_required_version ["1.7"];
+    def Var.ninja_required_version (lazy ["1.7"]);
     (* use of implicit outputs *)
-    Nj.binding Var.builddir [build_dir];
-    Nj.binding Var.clerk_exe [Lazy.force Poll.clerk_exe];
-    Nj.binding Var.catala_exe
-      [
-        (match catala_exe with
-        | Some e -> File.check_exec e
-        | None -> Lazy.force Poll.catala_exe);
-      ];
-    Nj.binding Var.catala_flags (catala_flags @ includes);
-    Nj.binding Var.clerk_flags
-      ("-e"
-       :: Var.(!catala_exe)
-       :: ("--test-flags=" ^ String.concat "," test_flags)
-       :: includes
-      @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
+    def Var.builddir (lazy [build_dir]);
+    def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
+    def Var.catala_exe
+      (lazy
+        [
+          (match catala_exe with
+          | Some e -> File.check_exec e
+          | None -> Lazy.force Poll.catala_exe);
+        ]);
+    def Var.catala_flags (lazy (catala_flags @ includes));
+    def Var.clerk_flags
+      (lazy
+        ("-e"
+         :: Var.(!catala_exe)
+         :: ("--test-flags=" ^ String.concat "," test_flags)
+         :: includes
+        @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
   ]
   @ (if List.mem OCaml enabled_backends then
        [
-         Nj.binding Var.catala_flags_ocaml catala_flags_ocaml;
-         Nj.binding Var.ocamlc_exe ["ocamlc"];
-         Nj.binding Var.ocamlopt_exe ["ocamlopt"];
-         Nj.binding Var.ocaml_flags (ocaml_flags @ includes);
-         Nj.binding Var.runtime_ocaml_libs (Lazy.force Poll.ocaml_link_flags);
+         def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
+         def Var.ocamlc_exe (lazy ["ocamlc"]);
+         def Var.ocamlopt_exe (lazy ["ocamlopt"]);
+         def Var.ocaml_flags
+           (lazy (Lazy.force Poll.ocaml_include_flags @ includes));
+         def Var.runtime_ocaml_libs (lazy (Lazy.force Poll.ocaml_link_flags));
        ]
      else [])
   @ (if List.mem Python enabled_backends then
-       [Nj.binding Var.catala_flags_python catala_flags_python]
+       [def Var.catala_flags_python (lazy catala_flags_python)]
      else [])
   @
   if List.mem C enabled_backends then
     [
-      Nj.binding Var.catala_flags_c catala_flags_c;
-      Nj.binding Var.cc_exe ["cc"];
-      Nj.binding Var.runtime_c_libs
-        [
-          "-I" ^ Lazy.force Poll.c_runtime_dir;
-          "-L" ^ Lazy.force Poll.c_runtime_dir;
-          "-lcatala_runtime";
-          "-lgmp";
-        ];
-      Nj.binding Var.c_flags
-        ([
-           "-std=c89";
-           "-pedantic";
-           "-Wall";
-           "-Wno-unused-function";
-           "-Wno-unused-variable";
-           "-Wno-unused-but-set-variable";
-           "-Werror";
-           "-g";
-           Var.(!runtime_c_libs);
-         ]
-        @ includes);
+      def Var.catala_flags_c (lazy catala_flags_c);
+      def Var.cc_exe (lazy ["cc"]);
+      def Var.runtime_c_libs
+        (lazy
+          [
+            "-I" ^ Lazy.force Poll.c_runtime_dir;
+            "-L" ^ Lazy.force Poll.c_runtime_dir;
+            "-lcatala_runtime";
+            "-lgmp";
+          ]);
+      def Var.c_flags
+        (lazy
+          ([
+             "-std=c89";
+             "-pedantic";
+             "-Wall";
+             "-Wno-unused-function";
+             "-Wno-unused-variable";
+             "-Wno-unused-but-set-variable";
+             "-Werror";
+             "-g";
+             Var.(!runtime_c_libs);
+           ]
+          @ includes));
     ]
   else []
 
@@ -918,12 +953,13 @@ let gen_ninja_file
     catala_flags
     build_dir
     include_dirs
+    vars_override
     test_flags
     enabled_backends
     dir =
   let var_bindings =
-    base_bindings catala_exe catala_flags build_dir include_dirs test_flags
-      enabled_backends
+    base_bindings catala_exe catala_flags build_dir include_dirs vars_override
+      test_flags enabled_backends
   in
   let prologue =
     Seq.return
@@ -957,6 +993,7 @@ let ninja_init
     ~catala_opts
     ~build_dir
     ~include_dirs
+    ~vars_override
     ~color
     ~debug
     ~ninja_output :
@@ -1037,7 +1074,7 @@ let ninja_init
       File.with_formatter_of_file nin_file (fun nin_ppf ->
           let ninja_contents, build_items, var_bindings =
             gen_ninja_file catala_exe catala_opts build_dir include_dirs
-              test_flags enabled_backends "."
+              vars_override test_flags enabled_backends "."
           in
           let ninja_contents =
             ninja_contents
@@ -1310,6 +1347,29 @@ let test_cmd =
       $ Cli.diff_command
       $ Cli.ninja_flags)
 
+let rec get_var =
+  (* replaces ${var} with its value, recursively *)
+  let re_single_var, re_var =
+    let open Re in
+    let re = seq [str "${"; group (rep1 (diff any (char '}'))); char '}'] in
+    compile (whole_string re), compile re
+  in
+  fun var_bindings v ->
+    let s = List.assoc v var_bindings in
+    let get_var = get_var (List.remove_assoc v var_bindings) in
+    List.concat_map
+      (fun s ->
+        match Re.exec_opt re_single_var s with
+        | Some g -> get_var (Var.make (Re.Group.get g 1))
+        | None ->
+          [
+            Re.replace ~all:true re_var
+              ~f:(fun g ->
+                String.concat " " (get_var (Var.make (Re.Group.get g 1))))
+              s;
+          ])
+      s
+
 let run_cmd =
   let run
       ninja_init
@@ -1426,27 +1486,7 @@ let run_cmd =
     Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
     let exit_code = run_command ~clean_up_env:false ninja_cmd in
     if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
-    let re_single_var, re_var =
-      let open Re in
-      let re = seq [str "${"; group (rep1 (diff any (char '}'))); char '}'] in
-      compile (whole_string re), compile re
-    in
-    let rec get_var v =
-      (* replaces ${var} with its value, recursively *)
-      let s = List.assoc v var_bindings in
-      List.concat_map
-        (fun s ->
-          match Re.exec_opt re_single_var s with
-          | Some g -> get_var (Var.make (Re.Group.get g 1))
-          | None ->
-            [
-              Re.replace ~all:true re_var
-                ~f:(fun g ->
-                  String.concat " " (get_var (Var.make (Re.Group.get g 1))))
-                s;
-            ])
-        s
-    in
+    let get_var = get_var var_bindings in
     let run_cmd item target =
       match backend with
       | `Interpret ->
@@ -1594,9 +1634,49 @@ let report_cmd =
       $ Cli.build_dir
       $ Cli.files)
 
+let list_vars_cmd =
+  let run catala_exe catala_flags build_dir include_dirs =
+    let build_dir = Option.value ~default:"_build" build_dir in
+    let var_bindings =
+      base_bindings catala_exe catala_flags build_dir include_dirs [] []
+        all_backends
+      |> List.filter_map (function Nj.Binding b -> Some b | _ -> None)
+    in
+    Format.eprintf "Defined variables:@.";
+    Format.open_vbox 0;
+    String.Map.iter
+      (fun s v ->
+        Format.printf "%s=%S@," s
+          (String.concat " " (List.assoc v var_bindings)))
+      Var.all_vars;
+    Format.close_box ();
+    0
+  in
+  let doc =
+    "List pre-defined build variables that can be overriden using the \
+     $(i,--var) flag"
+    (* TODO: or the clerk.toml file *)
+  in
+  Cmd.v
+    (Cmd.info ~doc "list-vars")
+    Term.(
+      const run
+      $ Cli.catala_exe
+      $ Cli.catala_opts
+      $ Cli.build_dir
+      $ Cli.include_dirs)
+
 let main_cmd =
   Cmd.group Cli.info
-    [build_cmd; test_cmd; run_cmd; runtest_cmd; report_cmd; raw_cmd]
+    [
+      build_cmd;
+      test_cmd;
+      run_cmd;
+      runtest_cmd;
+      report_cmd;
+      raw_cmd;
+      list_vars_cmd;
+    ]
 
 let main () =
   try exit (Cmdliner.Cmd.eval' ~catch:false main_cmd) with
