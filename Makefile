@@ -209,6 +209,11 @@ CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 unit-tests: .FORCE
 	dune build @for-tests @runtest
 
+BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
+
+backend-tests: $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
+	@clerk run $^ --command interpret
+
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
 	$(CLERK_TEST) tests doc
