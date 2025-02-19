@@ -501,6 +501,9 @@ module Poll = struct
 
   let c_runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_c")
+
+  let python_runtime_dir : File.t Lazy.t =
+    lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_python" / "src")
 end
 
 (**{1 Building rules}*)
@@ -536,6 +539,8 @@ module Var = struct
   let cc_exe = make "CC"
   let c_flags = make "CFLAGS"
   let runtime_c_libs = make "RUNTIME_C_LIBS"
+  let python = make "PYTHON"
+  let runtime_python_dir = make "RUNTIME_PYTHON"
   let all_vars = all_vars_ref.contents
 
   (** Rule vars, Used in specific rules *)
@@ -638,7 +643,11 @@ let base_bindings
        ]
      else [])
   @ (if List.mem Python enabled_backends then
-       [def Var.catala_flags_python (lazy catala_flags_python)]
+       [
+         def Var.catala_flags_python (lazy catala_flags_python);
+         def Var.python (lazy ["python3"]);
+         def Var.runtime_python_dir (lazy [Lazy.force Poll.python_runtime_dir]);
+       ]
      else [])
   @
   if List.mem C enabled_backends then
@@ -1145,19 +1154,35 @@ let ninja_cmdline ninja_flags nin_file targets =
   @ (if Catala_utils.Global.options.debug then ["-v"] else [])
   @ targets
 
-let run_command ~clean_up_env cmdline =
-  let cmd = List.hd cmdline in
-  let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
-  let npid =
-    Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
-      Unix.stdout Unix.stderr
-  in
-  let return_code =
-    match Unix.waitpid [] npid with
-    | _, Unix.WEXITED n -> n
-    | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
-  in
-  return_code
+let run_command ~clean_up_env ?(setenv = []) cmdline =
+  if cmdline = [] then 0
+  else
+    let cmd = List.hd cmdline in
+    let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
+    let env =
+      let cut s =
+        let i = String.index s '=' in
+        String.sub s 0 i, String.sub s (i + 1) (String.length s - i - 1)
+      in
+      env
+      |> Array.to_seq
+      |> Seq.map cut
+      |> String.Map.of_seq
+      |> String.Map.add_seq (List.to_seq setenv)
+      |> String.Map.to_seq
+      |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
+      |> Array.of_seq
+    in
+    let npid =
+      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
+        Unix.stdout Unix.stderr
+    in
+    let return_code =
+      match Unix.waitpid [] npid with
+      | _, Unix.WEXITED n -> n
+      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+    in
+    return_code
 
 open Cmdliner
 
@@ -1348,10 +1373,7 @@ let test_cmd =
                     File.Map.empty f.tests
                 in
                 File.Map.iter
-                  (fun result expected ->
-                    Format.kasprintf Sys.command "cp -f %a %a@." File.format
-                      result File.format expected
-                    |> ignore)
+                  (fun result expected -> File.copy ~src:result ~dst:expected)
                   files)
               need_reset;
             Format.fprintf ppf
@@ -1422,6 +1444,7 @@ let run_cmd =
       | `C -> [C]
       | `Python -> [Python]
     in
+    let open File in
     ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
     @@ fun ~build_dir ~fix_path ~nin_file ~items ~var_bindings ->
     Message.debug "Enabled backends: %a"
@@ -1439,7 +1462,7 @@ let run_cmd =
           let filter item =
             if is_dir then
               item.Scan.module_def = None
-              && String.starts_with ~prefix:File.(ffile / "") item.file_name
+              && String.starts_with ~prefix:(ffile / "") item.file_name
             else
               item.Scan.module_def = Some file
               || item.Scan.file_name = ffile
@@ -1447,8 +1470,8 @@ let run_cmd =
           in
           match List.filter filter items with
           | [] ->
-            Message.error "No source file or module matching %a found"
-              File.format file
+            Message.error "No source file or module matching %a found" format
+              file
           | targets -> targets)
         files_or_folders
     in
@@ -1541,47 +1564,73 @@ let run_cmd =
         @ get_var Var.ocaml_flags
         @ get_var Var.runtime_ocaml_libs
         @ List.map
-            File.(
-              fun it ->
-                build_dir
-                / Filename.dirname it.Scan.file_name
-                / Option.get it.Scan.module_def
-                ^ ".cmx")
+            (fun it ->
+              build_dir
+              / Filename.dirname it.Scan.file_name
+              / Option.get it.Scan.module_def
+              ^ ".cmx")
             (link_deps item)
-        @ [target; "-o"; File.(target -.- "exe")]
+        @ [target; "-o"; target -.- "exe"]
       | `C ->
         get_var Var.cc_exe
         @ List.map
-            File.(
-              fun it ->
-                build_dir
-                / Filename.dirname it.Scan.file_name
-                / Option.get it.Scan.module_def
-                ^ ".c.o")
+            (fun it ->
+              build_dir
+              / Filename.dirname it.Scan.file_name
+              / Option.get it.Scan.module_def
+              ^ ".c.o")
             (link_deps item)
         @ [target]
         @ get_var Var.c_flags
-        @ ["-o"; File.(target -.- "exe")]
+        @ ["-o"; target -.- "exe"]
       | `Python ->
-        (* TODO: setup the proper environment so that the runtime and modules
-           can be found *)
-        ["python3"; target]
+        (* a "linked" python module is a "Module.py" folder containing the
+           module .py file along with the runtime and all dependencies, plus a
+           __init__.py file *)
+        let tdir = Filename.remove_extension target ^ "_python" in
+        remove tdir;
+        ensure_dir tdir;
+        List.iter
+          (fun it ->
+            let src =
+              build_dir
+              / Filename.dirname it.Scan.file_name
+              / Option.get it.Scan.module_def
+              ^ ".py"
+            in
+            copy_in ~src ~dir:tdir)
+          (link_deps item);
+        copy_in ~src:(target -.- "py") ~dir:tdir;
+        close_out (open_out (tdir / "__init__.py"));
+        []
     in
     let run_artifact src =
       match backend with
       | `Interpret -> 0
       | `OCaml ->
-        let cmd = File.(src -.- "exe") :: Option.to_list scope in
+        let cmd = (src -.- "exe") :: Option.to_list scope in
         Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
         run_command ~clean_up_env:false cmd
       | `C ->
         let cmd =
-          File.(src -.- "exe")
+          (src -.- "exe")
           :: Option.to_list scope (* NOTE: not handled yet by the backend *)
         in
         Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
         run_command ~clean_up_env:false cmd
-      | `Python -> 0
+      | `Python ->
+        let cmd =
+          let base = Filename.(basename (remove_extension src)) in
+          get_var Var.python @ ["-m"; base ^ "_python." ^ base]
+        in
+        let pythonpath =
+          String.concat ":"
+            ((File.dirname src :: get_var Var.runtime_python_dir)
+            @ [Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")])
+        in
+        Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
+          (String.concat " " cmd);
+        run_command ~clean_up_env:false ~setenv:["PYTHONPATH", pythonpath] cmd
     in
     let cmd_exit_code =
       List.fold_left
