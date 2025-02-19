@@ -178,6 +178,42 @@ let contents filename =
   with_in_channel filename (fun ic ->
       really_input_string ic (in_channel_length ic))
 
+let copy ~src ~dst =
+  let chunk = 4096 in
+  let buf = Bytes.create chunk in
+  let ic = open_in_bin src in
+  let oc = open_out_bin dst in
+  let rec loop () =
+    match input ic buf 0 chunk with
+    | 0 -> ()
+    | n ->
+      output oc buf 0 n;
+      loop ()
+  in
+  Fun.protect
+    ~finally:(fun () ->
+      close_out oc;
+      close_in ic)
+    loop
+
+let copy_in ~src ~dir = copy ~src ~dst:(dir / Filename.basename src)
+
+let rec remove t =
+  match Unix.lstat t with
+  (* Don't use Sys.file_exists or Sys.is_directory here, they would follow
+     symlinks *)
+  | { Unix.st_kind = Unix.S_DIR; _ } ->
+    (* directory *)
+    let files = Sys.readdir t in
+    Array.iter (fun f -> remove (t / f)) files;
+    Sys.rmdir t
+  | _ ->
+    (* anything else, including symlinks *)
+    Sys.remove t
+  | exception Unix.Unix_error (Unix.ENOENT, _, _) ->
+    (* already does not exist *)
+    ()
+
 let process_out ?check_exit cmd args =
   let check_exit =
     let default n =
