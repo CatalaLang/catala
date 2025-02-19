@@ -382,14 +382,17 @@ module Commands = struct
       match
         ScopeName.Map.cardinal top_scopes, ScopeName.Map.cardinal noinput_scopes
       with
-      | 0, _ -> Message.error "The program defines no scopes"
+      | 0, _ ->
+        Message.warning "The program defines no scopes";
+        []
       | _, 0 ->
-        Message.error
+        Message.warning
           "The program defines no scopes without input.@ Please specify option \
            @{<yellow>--scope@} or @{<yellow>-s@} to force the choice of a \
            scope.@ The program defines the following scopes:@ @[<hv 4>%a@]"
           (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-          top_scopes
+          top_scopes;
+        []
       | _, _ ->
         let scopes = ScopeName.Map.keys noinput_scopes in
         Message.debug

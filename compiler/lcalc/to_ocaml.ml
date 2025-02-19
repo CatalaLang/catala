@@ -637,13 +637,14 @@ let format_scope_exec_args
     |> List.rev
   in
   if scopes_with_no_input = [] then
-    Message.error
-      "No scopes that don't require input were found, executable can't be \
-       generated";
-  Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-    (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
-         ScopeName.format ppf s))
-    scopes_with_no_input;
+    Message.warning
+      "No scopes that don't require input were found, the generated executable \
+       won't test any computation."
+  else
+    Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
+           ScopeName.format ppf s))
+      scopes_with_no_input;
   Format.pp_print_string fmt "\nlet entry_scopes = [\n";
   List.iter
     (fun (_, _, name) -> Format.fprintf fmt "  %S;\n" name)
