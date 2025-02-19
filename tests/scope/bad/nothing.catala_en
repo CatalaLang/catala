@@ -14,7 +14,7 @@ $ catala Typecheck --check-invariants
 │  In scope "Foo2", the variable "bar" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/scope/good/nothing.catala_en:5.10-5.13:
+├─➤ tests/scope/bad/nothing.catala_en:5.10-5.13:
 │   │
 │ 5 │   output bar content integer
 │   │          ‾‾‾
@@ -34,7 +34,7 @@ $ catala Scalc -s Foo2 -O -t
 │  In scope "Foo2", the variable "bar" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/scope/good/nothing.catala_en:5.10-5.13:
+├─➤ tests/scope/bad/nothing.catala_en:5.10-5.13:
 │   │
 │ 5 │   output bar content integer
 │   │          ‾‾‾
