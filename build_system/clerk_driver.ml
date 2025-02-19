@@ -48,6 +48,20 @@ module Cli = struct
              neither this nor $(b,--test-flags) is specified, the flags for \
              the different backends default to $(b,-O).")
 
+  let autotest =
+    Arg.(
+      value
+      & flag
+      & info ["autotest"]
+          ~doc:
+            "When compiling to the backends, enable the Catala $(i--autotest) \
+             option that runs an evaluation of test scopes (understood as \
+             scopes that need no input) and instruments their compiled version \
+             with assertions that the results match. This shouldn't be \
+             specified directly using $(i,--catala-opts=--autotest) because \
+             that wouldn't guarantee that the necessary artifacts for \
+             interpretation are present.")
+
   let build_dir =
     Arg.(
       value
@@ -149,6 +163,7 @@ module Cli = struct
       (config_file:File.t option ->
       catala_exe:File.t option ->
       catala_opts:string list ->
+      autotest:bool ->
       build_dir:File.t option ->
       include_dirs:string list ->
       vars_override:(string * string) list ->
@@ -199,6 +214,7 @@ module Cli = struct
             config_file
             catala_exe
             catala_opts
+            autotest
             build_dir
             include_dirs
             vars_override
@@ -206,11 +222,12 @@ module Cli = struct
             debug
             ninja_output
           ->
-            f ~config_file ~catala_exe ~catala_opts ~build_dir ~include_dirs
-              ~vars_override ~color ~debug ~ninja_output)
+            f ~config_file ~catala_exe ~catala_opts ~autotest ~build_dir
+              ~include_dirs ~vars_override ~color ~debug ~ninja_output)
         $ config_file
         $ catala_exe
         $ catala_opts
+        $ autotest
         $ build_dir
         $ include_dirs
         $ vars_override
@@ -541,7 +558,8 @@ let base_bindings
     include_dirs
     vars_override
     test_flags
-    enabled_backends =
+    enabled_backends
+    autotest =
   let includes =
     List.fold_right
       (fun dir flags ->
@@ -552,6 +570,8 @@ let base_bindings
   in
   let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags0 in
   let catala_flags_ocaml =
+    (if autotest then ["--autotest"] else [])
+    @
     if test_flags = [] && catala_flags0 = [] then ["-O"]
     else
       List.filter
@@ -560,6 +580,8 @@ let base_bindings
         test_flags
   in
   let catala_flags_c =
+    (if autotest then ["--autotest"] else [])
+    @
     if test_flags = [] && catala_flags0 = [] then ["-O"]
     else
       List.filter
@@ -567,6 +589,8 @@ let base_bindings
         test_flags
   in
   let catala_flags_python =
+    (if autotest then ["--autotest"] else [])
+    @
     if test_flags = [] && catala_flags0 = [] then ["-O"]
     else
       List.filter
@@ -703,6 +727,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
 let gen_build_statements
     (include_dirs : string list)
     (enabled_backends : backend list)
+    (autotest : bool)
     (same_dir_modules : (string * File.t) list)
     (item : Scan.item) : Nj.ninja =
   let open File in
@@ -774,16 +799,20 @@ let gen_build_statements
           ~inputs:[src -.- "py"]
           ~outputs:[!Var.target ^ ".py"] )
     else
-      ( Nj.build "catala-ocaml" ~inputs:[catala_src]
-          ~implicit_in:[!Var.catala_exe]
+      let inputs = [catala_src] in
+      let implicit_in =
+        (* autotest requires interpretation at compile-time, which makes use of
+           the dependent OCaml modules (cmxs) *)
+        !Var.catala_exe
+        :: (if autotest then List.map module_target modules else [])
+      in
+      ( Nj.build "catala-ocaml" ~inputs ~implicit_in
           ~outputs:[!Var.target ^ ".ml"],
         Seq.return
-          (Nj.build "catala-c" ~inputs:[catala_src]
-             ~implicit_in:[!Var.catala_exe]
+          (Nj.build "catala-c" ~inputs ~implicit_in
              ~outputs:[!Var.target ^ ".c"]
              ~implicit_out:[!Var.target ^ ".h"]),
-        Nj.build "python" ~inputs:[catala_src] ~implicit_in:[!Var.catala_exe]
-          ~outputs:[!Var.target ^ ".py"] )
+        Nj.build "python" ~inputs ~implicit_in ~outputs:[!Var.target ^ ".py"] )
   in
   let ocamlopt =
     let obj =
@@ -903,6 +932,7 @@ let gen_build_statements
 let gen_build_statements_dir
     (include_dirs : string list)
     (enabled_backends : backend list)
+    (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
     List.filter_map
@@ -911,7 +941,8 @@ let gen_build_statements_dir
       items
   in
   Seq.flat_map
-    (gen_build_statements include_dirs enabled_backends same_dir_modules)
+    (gen_build_statements include_dirs enabled_backends autotest
+       same_dir_modules)
     (List.to_seq items)
 
 let dir_test_rules dir subdirs enabled_backends items =
@@ -937,13 +968,13 @@ let dir_test_rules dir subdirs enabled_backends items =
       ]
   else Seq.empty
 
-let build_statements include_dirs enabled_backends dir =
+let build_statements include_dirs enabled_backends autotest dir =
   Scan.tree dir
   |> Seq.map
      @@ fun (dir, subdirs, items) ->
      ( items,
        Seq.append
-         (gen_build_statements_dir include_dirs enabled_backends items)
+         (gen_build_statements_dir include_dirs enabled_backends autotest items)
          (dir_test_rules dir subdirs enabled_backends items) )
 
 let ( @+ ) = Seq.append
@@ -956,10 +987,11 @@ let gen_ninja_file
     vars_override
     test_flags
     enabled_backends
+    autotest
     dir =
   let var_bindings =
     base_bindings catala_exe catala_flags build_dir include_dirs vars_override
-      test_flags enabled_backends
+      test_flags enabled_backends autotest
   in
   let prologue =
     Seq.return
@@ -972,7 +1004,7 @@ let gen_ninja_file
     @+ Seq.return (Nj.Comment "\n- Project-specific build statements - #")
   in
   let items, main =
-    Seq.unzip (build_statements include_dirs enabled_backends dir)
+    Seq.unzip (build_statements include_dirs enabled_backends autotest dir)
   in
   ( (prologue
     @+ Seq.concat main
@@ -991,6 +1023,7 @@ let ninja_init
     ~config_file
     ~catala_exe
     ~catala_opts
+    ~autotest
     ~build_dir
     ~include_dirs
     ~vars_override
@@ -1063,6 +1096,11 @@ let ninja_init
   in
   fun ~enabled_backends ~extra ~test_flags k ->
     Message.debug "building ninja rules...";
+    let enabled_backends =
+      if autotest && not (List.mem OCaml enabled_backends) then
+        OCaml :: enabled_backends
+      else enabled_backends
+    in
     let build_dir =
       match test_flags with
       | [] -> build_dir
@@ -1074,7 +1112,7 @@ let ninja_init
       File.with_formatter_of_file nin_file (fun nin_ppf ->
           let ninja_contents, build_items, var_bindings =
             gen_ninja_file catala_exe catala_opts build_dir include_dirs
-              vars_override test_flags enabled_backends "."
+              vars_override test_flags enabled_backends autotest "."
           in
           let ninja_contents =
             ninja_contents
@@ -1639,7 +1677,7 @@ let list_vars_cmd =
     let build_dir = Option.value ~default:"_build" build_dir in
     let var_bindings =
       base_bindings catala_exe catala_flags build_dir include_dirs [] []
-        all_backends
+        all_backends false
       |> List.filter_map (function Nj.Binding b -> Some b | _ -> None)
     in
     Format.eprintf "Defined variables:@.";
