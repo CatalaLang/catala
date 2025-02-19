@@ -81,6 +81,19 @@ val process_out : ?check_exit:(int -> unit) -> string -> string list -> string
     is called on the return code of the sub-process, the default is to fail on
     anything but 0. *)
 
+val copy : src:t -> dst:t -> unit
+(** File copy. Doesn't copy file attributes, only file content. The destination
+    file is silently overwritten if it exists. Failures may leave a partial
+    copy. [dst] can not be a directory *)
+
+val copy_in : src:t -> dir:t -> unit
+(** Same as [copy], but copies the file into the given, existing dir. *)
+
+val remove : t -> unit
+(** Recursively removes files and directories. Dangerous!
+
+    Does not fail on already non-existent files *)
+
 val check_directory : t -> t option
 (** Checks if the given directory exists and returns it normalised (as per
     [Unix.realpath]). *)
@@ -90,7 +103,7 @@ val ensure_dir : t -> unit
     Errors out if the file exists but is not a directory *)
 
 val exists : t -> bool
-(** Alias for Sys.file_exists*)
+(** Alias for Sys.file_exists *)
 
 val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
