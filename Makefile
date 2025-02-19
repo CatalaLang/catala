@@ -211,8 +211,13 @@ unit-tests: .FORCE
 
 BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
 
-backend-tests: $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
-	@clerk run $^ --command interpret
+BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
+
+backend-tests-%: $(BACKEND_TESTS)
+	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
+	@clerk run $^ --command interpret --backend $*
+
+backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
 
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
