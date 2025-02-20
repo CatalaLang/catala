@@ -393,6 +393,11 @@ module Flags = struct
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on."
 
+  let ex_scopes =
+    value
+    & opt_all string []
+    & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on."
+
   let ex_variable =
     required
     & opt (some string) None

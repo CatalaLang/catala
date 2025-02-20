@@ -209,6 +209,16 @@ CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 unit-tests: .FORCE
 	dune build @for-tests @runtest
 
+BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
+
+BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
+
+backend-tests-%: $(BACKEND_TESTS)
+	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
+	@clerk run $^ --command interpret --backend $*
+
+backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
+
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
 	$(CLERK_TEST) tests doc

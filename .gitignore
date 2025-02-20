@@ -17,6 +17,6 @@ build.ninja
 .#*
 .envrc
 .direnv
-
+**/__pycache__/
 
 .catleg_secrets.toml
