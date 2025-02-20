@@ -740,7 +740,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         punctuation fmt "{";
         ScopeVar.Map.format_bindings
           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-          (fun fmt pp_field_name field_expr ->
+          (fun fmt pp_field_name (_, field_expr) ->
             Format.fprintf fmt "%a%t%a%a@ %a" punctuation "\"" pp_field_name
               punctuation "\"" punctuation "=" (rhs exprc) field_expr)
           fmt args;
