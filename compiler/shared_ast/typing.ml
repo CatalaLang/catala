@@ -795,9 +795,13 @@ and typecheck_expr_top_down :
     let vars = A.ScopeName.Map.find scope env.scopes_input in
     let args' =
       A.ScopeVar.Map.mapi
-        (fun name ->
-          typecheck_expr_top_down ctx env
-            (ast_to_typ (A.ScopeVar.Map.find name vars)))
+        (fun name (p, e) ->
+          let e' =
+            typecheck_expr_top_down ctx env
+              (ast_to_typ (A.ScopeVar.Map.find name vars))
+              e
+          in
+          p, e')
         args
     in
     Expr.escopecall ~scope ~args:args' mark

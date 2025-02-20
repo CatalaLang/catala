@@ -170,7 +170,7 @@ val ematch :
 
 val escopecall :
   scope:ScopeName.t ->
-  args:('a, 'm) boxed_gexpr ScopeVar.Map.t ->
+  args:(Pos.t * ('a, 'm) boxed_gexpr) ScopeVar.Map.t ->
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
 

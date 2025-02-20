@@ -132,7 +132,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
     Expr.escopecall ~scope
       ~args:
         (ScopeVar.Map.fold
-           (fun v e args' ->
+           (fun v (p, e) args' ->
              let v' =
                match ScopeVar.Map.find v ctx.scope_var_mapping with
                | WholeVar v' -> v'
@@ -162,7 +162,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                | Some _ -> Expr.epuredefault e' m
                | None -> e'
              in
-             ScopeVar.Map.add v' e' args')
+             ScopeVar.Map.add v' (p, e') args')
            args ScopeVar.Map.empty)
       m
   | EApp { f; tys; args } -> (
@@ -696,7 +696,7 @@ let translate_rule
           scope.scope_defs ScopeVar.Map.empty
       in
       let subscope_param_map =
-        ScopeVar.Map.map (fun (_, _, _, expr) -> expr) subscope_params
+        ScopeVar.Map.map (fun (_, p, _, expr) -> p, expr) subscope_params
       in
       let subscope_expr =
         Expr.escopecall ~scope:subscope ~args:subscope_param_map

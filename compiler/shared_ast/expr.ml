@@ -181,7 +181,10 @@ let escopecall ~scope ~args mark =
   Mark.add mark
   @@ Bindlib.box_apply
        (fun args -> EScopeCall { scope; args })
-       (Box.lift_scope_vars (ScopeVar.Map.map Box.lift args))
+       (Box.lift_scope_vars
+          (ScopeVar.Map.map
+             (fun (pos, e) -> Bindlib.box_apply (fun e -> pos, e) (Box.lift e))
+             args))
 
 (* - Manipulation of marks - *)
 
@@ -346,7 +349,7 @@ let map
     let cases = EnumConstructor.Map.map f cases in
     ematch ~name ~e:(f e) ~cases m
   | EScopeCall { scope; args } ->
-    let args = ScopeVar.Map.map f args in
+    let args = ScopeVar.Map.map (fun (p, e) -> p, f e) args in
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
@@ -384,7 +387,8 @@ let shallow_fold
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
     acc |> f e |> EnumConstructor.Map.fold (fun _ -> f) cases
-  | EScopeCall { args; _ } -> acc |> ScopeVar.Map.fold (fun _ -> f) args
+  | EScopeCall { args; _ } ->
+    acc |> ScopeVar.Map.fold (fun _ (_p, e) -> f e) args
   | ECustom _ -> acc
 
 (* Like [map], but also allows to gather a result bottom-up. *)
@@ -495,9 +499,9 @@ let map_gather
   | EScopeCall { scope; args } ->
     let acc, args =
       ScopeVar.Map.fold
-        (fun var e (acc, args) ->
+        (fun var (p, e) (acc, args) ->
           let acc1, e = f e in
-          join acc acc1, ScopeVar.Map.add var e args)
+          join acc acc1, ScopeVar.Map.add var (p, e) args)
         args (acc, ScopeVar.Map.empty)
     in
     acc, escopecall ~scope ~args m
@@ -680,7 +684,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && EnumConstructor.Map.equal equal cases1 cases2
   | ( EScopeCall { scope = s1; args = fields1 },
       EScopeCall { scope = s2; args = fields2 } ) ->
-    ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
+    ScopeName.equal s1 s2
+    && ScopeVar.Map.equal (fun (_, e) (_, e') -> equal e e') fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
@@ -754,7 +759,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EScopeCall {scope=name1; args=field_map1},
     EScopeCall {scope=name2; args=field_map2} ->
     ScopeName.compare name1 name2 @@< fun () ->
-    ScopeVar.Map.compare compare field_map1 field_map2
+    ScopeVar.Map.compare (fun (_, e) (_, e') -> compare e e') field_map1 field_map2
   | ETuple es1, ETuple es2 ->
     List.compare compare es1 es2
   | ETupleAccess {e=e1; index=n1; size=s1},
@@ -869,7 +874,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EMatch { e; cases; _ } ->
     EnumConstructor.Map.fold (fun _ e acc -> acc + 1 + size e) cases (size e)
   | EScopeCall { args; _ } ->
-    ScopeVar.Map.fold (fun _ e acc -> acc + 1 + size e) args 1
+    ScopeVar.Map.fold (fun _ (_, e) acc -> acc + 1 + size e) args 1
 
 (* - Expression building helpers - *)
 
