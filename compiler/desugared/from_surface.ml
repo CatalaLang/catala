@@ -549,7 +549,7 @@ let rec translate_expr
           in
           ScopeVar.Map.update var
             (function
-              | None -> Some (rec_helper e)
+              | None -> Some (Mark.get fld_id, rec_helper e)
               | Some _ ->
                 Message.error ~pos:(Mark.get fld_id)
                   "Duplicate definition of scope input variable '%a'."

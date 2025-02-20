@@ -231,7 +231,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
               | _ -> assert false
             in
             Some (var_ctx.scope_input_name, v)
-          | Some var_ctx, Some e ->
+          | Some var_ctx, Some (_p, e) ->
             Some (var_ctx.scope_input_name, translate_expr ctx e)
           | Some var_ctx, None ->
             Message.error ~pos
@@ -242,7 +242,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                 ]
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format var_name
-          | None, Some e ->
+          | None, Some (_p, e) ->
             Message.error
               ~suggestion:
                 (List.map ScopeVar.to_string
