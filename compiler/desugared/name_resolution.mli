@@ -174,7 +174,7 @@ val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
 
-val module_ctx : context -> Surface.Ast.path -> context
+val module_ctx : context -> Surface.Ast.path -> Uid.Path.t * context
 (** Returns the context corresponding to the given module path; raises a user
     error if the module is not found *)
 

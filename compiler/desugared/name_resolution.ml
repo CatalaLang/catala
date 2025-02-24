@@ -234,14 +234,22 @@ let get_modname ctxt (id, pos) =
   | None -> Message.error ~pos "Module \"@{<blue>%s@}\" not found" id
   | Some modname -> modname
 
-let get_module_ctx ctxt id =
-  let modname = get_modname ctxt id in
+let get_module_ctx ctxt modname =
   { ctxt with local = ModuleName.Map.find modname ctxt.modules }
 
-let rec module_ctx ctxt path0 =
-  match path0 with
-  | [] -> ctxt
-  | mod_id :: path -> module_ctx (get_module_ctx ctxt mod_id) path
+let module_ctx ctxt path0 =
+  let rec loop acc ctxt = function
+    | [] -> List.rev acc, ctxt
+    | mod_id :: path ->
+      let modname = get_modname ctxt mod_id in
+      let ctxt = get_module_ctx ctxt modname in
+      loop (modname :: acc) ctxt path
+  in
+  loop [] ctxt path0
+
+let get_module_ctx ctxt id =
+  let modname = get_modname ctxt id in
+  get_module_ctx ctxt modname
 
 (** {1 Declarations pass} *)
 
@@ -276,7 +284,7 @@ let process_subscope_decl
   | None ->
     let sub_scope_uid = ScopeVar.fresh (name, name_pos) in
     let original_subscope_uid =
-      let ctxt = module_ctx ctxt path in
+      let _, ctxt = module_ctx ctxt path in
       get_scope ctxt subscope
     in
     let scope_ctxt =
