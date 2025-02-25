@@ -67,7 +67,7 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
-  path : Uid.Path.t;
+  current_module : ModuleName.t option;
       (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
@@ -174,7 +174,7 @@ val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
 
-val module_ctx : context -> Surface.Ast.path -> context
+val module_ctx : context -> Surface.Ast.path -> Uid.Path.t * context
 (** Returns the context corresponding to the given module path; raises a user
     error if the module is not found *)
 

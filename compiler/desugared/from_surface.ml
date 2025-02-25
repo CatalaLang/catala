@@ -221,6 +221,10 @@ let rec check_formula (op, pos_op) e =
     check_formula (op1, pos_op1) e2
   | _ -> ()
 
+(** Helper that restores surface positions in module paths. *)
+let restore_position path_item mname =
+  ModuleName.map_info (fun (mn, _) -> mn, Mark.get path_item) mname
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -479,7 +483,7 @@ let rec translate_expr
       "Access to intermediate states is only allowed for variables of the \
        current scope."
   | Ident (path, name, None) -> (
-    let ctxt = Name_resolution.module_ctx ctxt path in
+    let _, ctxt = Name_resolution.module_ctx ctxt path in
     match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
     | Some v ->
       Expr.elocation
@@ -522,8 +526,14 @@ let rec translate_expr
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope.";
     let called_scope, scope_def =
-      let ctxt = Name_resolution.module_ctx ctxt path in
-      let uid = Name_resolution.get_scope ctxt id in
+      let resolved_path, ctxt = Name_resolution.module_ctx ctxt path in
+      let uid =
+        let uid = Name_resolution.get_scope ctxt id in
+        (* Retain the correct positions *)
+        ScopeName.map_info
+          (fun (_ml, pos) -> List.map2 restore_position path resolved_path, pos)
+          uid
+      in
       uid, ScopeName.Map.find uid ctxt.scopes
     in
     let in_struct =
@@ -549,7 +559,7 @@ let rec translate_expr
           in
           ScopeVar.Map.update var
             (function
-              | None -> Some (rec_helper e)
+              | None -> Some (Mark.get fld_id, rec_helper e)
               | Some _ ->
                 Message.error ~pos:(Mark.get fld_id)
                   "Duplicate definition of scope input variable '%a'."
@@ -585,14 +595,16 @@ let rec translate_expr
     in
     Expr.edstructamend ~fields ~e:(rec_helper e) ~name_opt:None emark
   | StructLit (((path, s_name), _), fields) ->
-    let ctxt = Name_resolution.module_ctx ctxt path in
+    let resolved_path, ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
       match Ident.Map.find_opt (Mark.remove s_name) ctxt.local.typedefs with
       | Some (Name_resolution.TStruct s_uid)
       | Some (Name_resolution.TScope (_, { out_struct_name = s_uid; _ })) ->
-        (* Retain the correct position *)
+        (* Retain the correct positions *)
         StructName.map_info
-          (fun (ml, (s, _pos)) -> ml, (s, Mark.get s_name))
+          (fun (_, (s, _pos)) ->
+            let path = List.map2 restore_position path resolved_path in
+            path, (s, Mark.get s_name))
           s_uid
       | _ ->
         Message.error ~pos:(Mark.get s_name)
@@ -690,13 +702,17 @@ let rec translate_expr
         | enum :: rpath -> List.rev rpath, enum
         | _ -> assert false
       in
-      let ctxt = Name_resolution.module_ctx ctxt path in
+      let resolved_path, ctxt = Name_resolution.module_ctx ctxt path in
       let possible_c_uids = get_possible_c_uids ctxt in
       (* The path has been qualified *)
       let e_uid =
-        Name_resolution.get_enum ctxt enum
-        |> (* Retain the correct position *)
-        EnumName.map_info (fun (s, (x, _pos)) -> s, (x, Mark.get enum))
+        let e_uid = Name_resolution.get_enum ctxt enum in
+        (* Retain the correct positions *)
+        EnumName.map_info
+          (fun (_, (x, _pos)) ->
+            let path = List.map2 restore_position path resolved_path in
+            path, (x, Mark.get enum))
+          e_uid
       in
       try
         let c_uid =
