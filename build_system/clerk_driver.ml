@@ -863,7 +863,7 @@ let gen_build_statements
       ~vars:[Var.includes, [!Var.includes]]
   in
   let expose_module =
-    (* Note: these rules define direct (top-level) aliases for module targets of
+    (* Note: these rules define global (top-level) aliases for module targets of
        modules that are in include-dirs, so that Ninja can find them from
        wherever; they are only in implicit-in, because once they are built the
        compilers will find them independently through their '-I' arguments.
@@ -874,7 +874,7 @@ let gen_build_statements
        rid of these aliases. *)
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.src]
+      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.builddir / !Var.src]
       ::
       (if List.mem OCaml enabled_backends then
          [
@@ -933,15 +933,14 @@ let gen_build_statements
     out_tests_prepare @ tests
   in
   let statements_list =
-    [Seq.return (Nj.comment ""); List.to_seq def_vars; Seq.return include_deps]
-    @ (if List.mem OCaml enabled_backends then
-         [
-           Option.to_seq module_deps;
-           List.to_seq expose_module;
-           Seq.return ocaml;
-           List.to_seq ocamlopt;
-         ]
-       else [])
+    Seq.return (Nj.comment "")
+    :: List.to_seq def_vars
+    :: Seq.return include_deps
+    :: List.to_seq expose_module
+    ::
+    (if List.mem OCaml enabled_backends then
+       [Option.to_seq module_deps; Seq.return ocaml; List.to_seq ocamlopt]
+     else [])
     @ (if List.mem C enabled_backends then [c; Seq.return cc] else [])
     @ (if List.mem Python enabled_backends then [Seq.return python] else [])
     @ if List.mem Tests enabled_backends then [List.to_seq tests] else []

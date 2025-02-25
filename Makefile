@@ -303,7 +303,7 @@ all: \
 	runtimes \
 	plugins
 
-BRANCH = $(shell git branch --show-current 2>/dev/null || echo master)
+BRANCH = $(shell jj bname 2>/dev/null || git branch --show-current 2>/dev/null || echo master)
 
 # Attempt a clone of the named CatalaLang repo into <name>.tmp, using local git
 # objects in ../<name> if available, the branch with the same name as the
