@@ -135,6 +135,16 @@ module Cli = struct
             "Run the program using the given backend. $(docv) must be one of \
              $(b,interpret), $(b,ocaml), $(b,c), $(b,python)")
 
+  let ignore_modules =
+    Arg.(
+      value
+      & flag
+      & info ["ignore-modules"]
+          ~doc:
+            "Silently ignore the files on the command-line that belong to \
+             modules. May be useful to automatically run stand-alone tests \
+             when using a general glob-pattern.")
+
   let run_command =
     Arg.(
       value
@@ -1436,6 +1446,7 @@ let run_cmd =
       (files_or_folders : File.t list)
       backend
       cmd
+      ignore_modules
       (scope : string option)
       (ninja_flags : string list) =
     let enabled_backends =
@@ -1472,9 +1483,13 @@ let run_cmd =
           | [] ->
             Message.error "No source file or module matching %a found" format
               file
-          | targets -> targets)
+          | targets ->
+            if ignore_modules then
+              List.filter (fun item -> item.Scan.module_def = None) targets
+            else targets)
         files_or_folders
     in
+    if target_items = [] then Message.error "Nothing to run";
     let modules =
       List.fold_left
         (fun acc it ->
@@ -1664,6 +1679,7 @@ let run_cmd =
       $ Cli.files_or_folders
       $ Cli.backend
       $ Cli.run_command
+      $ Cli.ignore_modules
       $ Cli.scope
       $ Cli.ninja_flags)
 

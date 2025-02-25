@@ -215,7 +215,7 @@ BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
 
 backend-tests-%: $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
-	@clerk run $^ --command interpret --backend $*
+	@clerk run $^ --command interpret --backend $* --ignore-modules
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
 
