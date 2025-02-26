@@ -230,7 +230,7 @@ class Money:
         if isinstance(other, Money):
             return self.value / other.value
         elif isinstance(other, Decimal):
-            return self * (1 / other.value)
+            return self * (Decimal(1) / other)
         else:
             raise Exception("Dividing money and invalid obj")
 
@@ -482,7 +482,7 @@ def money_of_decimal(d: Decimal) -> Money:
     """
     Warning: rounds to the nearest cent
     """
-    return Money(Integer(mpz(d.value) * mpz(100)))
+    return Money(f_div(d.value.numerator * mpz(100), d.value.denominator))
 
 
 # --------
@@ -616,8 +616,11 @@ def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
 def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
 
-def list_map2(f: Callable[[Alpha, Beta], Gamma], l1: List[Alpha], l2: List[Beta]) -> List[Gamma]:
-    return [f(i, j) for i, j in zip(l1, l2, strict=True)]
+def list_map2(pos: SourcePosition, f: Callable[[Alpha, Beta], Gamma], l1: List[Alpha], l2: List[Beta]) -> List[Gamma]:
+    try:
+      zipped = zip(l1, l2, strict=True)
+    except ValueError: raise NotSameLength(pos)
+    return [f(i, j) for i, j in zipped]
 
 def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Callable[[Unit], Alpha], l: List[Alpha]) -> Alpha:
     if l == []:

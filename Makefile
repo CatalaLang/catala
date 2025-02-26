@@ -215,12 +215,12 @@ BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
 
 backend-tests-%: $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
-	@clerk run $^ --command interpret --backend $* --ignore-modules
+	@$(CLERK_BIN) run $^ --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
 
 backend-tests-python: $(BACKEND_TESTS) dependencies-python
 	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
 	@echo ">> RUNNING BACKEND TESTS FOR python <<"
-	@$(PY_VENV_ACTIVATE) clerk run $(BACKEND_TESTS) --command interpret --backend python --ignore-modules
+	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
 
