@@ -10,7 +10,7 @@ from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, sign  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # type: ignore
 import datetime
 import calendar
 import dateutil.relativedelta
@@ -101,11 +101,15 @@ class IndivisibleDurations(CatalaError):
 # Type classes
 # ============
 
+class Decimal0:
+    value: mpq
 
 class Integer:
-    def __init__(self, value: Union[str, int, Decimal]) -> None:
-        if isinstance(value, Decimal):
-            self.value = t_div(value.value.numerator, value.value.denominator)
+    def __init__(self, value: Union[str, int, Decimal0]) -> None:
+        if isinstance(value, Decimal0):
+            self.value = t_div(
+                  value.value.numerator,
+                  value.value.denominator)
         else:
             self.value = mpz(value)
 
@@ -155,8 +159,8 @@ class Integer:
         return f"Integer({self.value.__repr__()})"
 
 
-class Decimal:
-    def __init__(self, value: Union[str, int, float,Integer]) -> None:
+class Decimal(Decimal0):
+    def __init__(self, value: Union[str, int, float, Integer]) -> None:
         if isinstance(value, Integer):
             self.value = mpq(value.value)
         else:
@@ -226,7 +230,7 @@ class Money:
         if isinstance(other, Money):
             return self.value / other.value
         elif isinstance(other, Decimal):
-            return self * (1. / other.value)
+            return self * (1 / other.value)
         else:
             raise Exception("Dividing money and invalid obj")
 
@@ -402,36 +406,36 @@ def sub_date_duration(rounding: DateRounding):
     return add
 
 def lt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days < y.days
+        return x.value.days < y.value.days
 
 def leq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days <= y.days
+        return x.value.days <= y.value.days
 
 def gt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days > y.days
+        return x.value.days > y.value.days
 
 def geq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days >= y.days
+        return x.value.days >= y.value.days
 
 def round(q : Decimal) -> Integer:
     sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
@@ -634,17 +638,18 @@ def handle_exceptions(
     pos: List[SourcePosition],
     exceptions: List[Optional[Alpha]]) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
-    acc_pos: Optional[pos] = None
-    for exception, pos in zip(exceptions, pos):
+    acc_pos: Optional[SourcePosition] = None
+    for exception, pos1 in zip(exceptions, pos):
         if exception is None:
             pass  # acc stays the same
-        elif acc is None:
+        elif acc_pos is None:
             acc = exception
-            acc_pos = pos
+            acc_pos = pos1
         else:
-            raise Conflict(acc_pos,pos)
+            raise Conflict(acc_pos,pos1)
     return acc
 
+class Empty(Exception): pass
 
 def no_input() -> Callable[[Unit], Alpha]:
     def closure(_: Unit):

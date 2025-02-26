@@ -217,6 +217,11 @@ backend-tests-%: $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
 	@clerk run $^ --command interpret --backend $* --ignore-modules
 
+backend-tests-python: $(BACKEND_TESTS) dependencies-python
+	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
+	@echo ">> RUNNING BACKEND TESTS FOR python <<"
+	@$(PY_VENV_ACTIVATE) clerk run $(BACKEND_TESTS) --command interpret --backend python --ignore-modules
+
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
 
 #> test					: Run interpreter tests
