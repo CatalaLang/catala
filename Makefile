@@ -239,7 +239,7 @@ testsuite-base: .FORCE
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: unit-tests
+testsuite: unit-tests backend-tests-ocaml backend-tests-c
 	$(CLERK_TEST) doc
 	$(MAKE) testsuite-base
 

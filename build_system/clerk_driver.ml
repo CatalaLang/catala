@@ -28,6 +28,7 @@ let version = Catala_utils.Cli.version
 type backend = OCaml | Python | C | Tests (* | JS *)
 
 let all_backends = [OCaml; Python; C; Tests]
+let ninja_exec = "ninja"
 
 module Cli = struct
   open Cmdliner
@@ -1159,7 +1160,7 @@ let cleaned_up_env () =
   |> Array.of_seq
 
 let ninja_cmdline ninja_flags nin_file targets =
-  ("ninja" :: "-f" :: nin_file :: ninja_flags)
+  (ninja_exec :: "-f" :: nin_file :: ninja_flags)
   @ (if Catala_utils.Global.options.debug then ["-v"] else [])
   @ targets
 
@@ -1439,6 +1440,16 @@ let rec get_var =
           ])
       s
 
+let ninja_version =
+  lazy
+    (try
+       File.process_out
+         ~check_exit:(function 0 -> () | _ -> raise Exit)
+         ninja_exec ["--version"]
+       |> String.split_on_char '.'
+       |> List.map int_of_string
+     with Exit | Failure _ -> [])
+
 let run_cmd =
   let run
       ninja_init
@@ -1555,8 +1566,11 @@ let run_cmd =
                    acc (link_deps it))
           String.Set.empty base_targets
       in
-      ninja_cmdline ("--quiet" :: ninja_flags) nin_file
-        (String.Set.elements ninja_targets)
+      let flags =
+        if Lazy.force ninja_version >= [1; 12] then "--quiet" :: ninja_flags
+        else ninja_flags
+      in
+      ninja_cmdline flags nin_file (String.Set.elements ninja_targets)
     in
     Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
     let exit_code = run_command ~clean_up_env:false ninja_cmd in
