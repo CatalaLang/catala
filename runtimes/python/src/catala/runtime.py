@@ -101,12 +101,9 @@ class IndivisibleDurations(CatalaError):
 # Type classes
 # ============
 
-class Decimal0:
-    value: mpq
-
 class Integer:
-    def __init__(self, value: Union[str, int, Decimal0]) -> None:
-        if isinstance(value, Decimal0):
+    def __init__(self, value: Union[str, int, Decimal]) -> None:
+        if isinstance(value, Decimal):
             self.value = t_div(
                   value.value.numerator,
                   value.value.denominator)
@@ -159,7 +156,9 @@ class Integer:
         return f"Integer({self.value.__repr__()})"
 
 
-class Decimal(Decimal0):
+class Decimal:
+    value: mpq
+
     def __init__(self, value: Union[str, int, float, Integer]) -> None:
         if isinstance(value, Integer):
             self.value = mpq(value.value)
@@ -276,7 +275,7 @@ class Date:
     def __add__(self, other: Duration) -> Date:
         return Date(self.value + other.value)
 
-    def __sub__(self, other: object) -> object:
+    def __sub__(self, other: Union[Date, Duration]) -> Union[Duration, Date]:
         if isinstance(other, Date):
             return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
@@ -337,10 +336,13 @@ class Duration:
             return Decimal(x.days / y.days)
 
     def __mul__(self: Duration, rhs: Integer) -> Duration:
+        mul_int : int = int(rhs.value)
+        delta = self.value
+        y : int = delta.years * mul_int
+        m : int = delta.months * mul_int
+        d : int = delta.days * mul_int
         return Duration(
-            dateutil.relativedelta.relativedelta(years=self.value.years * rhs.value,
-                                                 months=self.value.months * rhs.value,
-                                                 days=self.value.days * rhs.value))
+            dateutil.relativedelta.relativedelta(years=y, months=m, days=d))
 
     def __ne__(self, other: object) -> bool:
         if isinstance(other, Duration):
@@ -438,10 +440,10 @@ def geq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
         return x.value.days >= y.value.days
 
 def round(q : Decimal) -> Integer:
-    sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
-    abs = q.value.__abs__()
-    n = abs.numerator
-    d = abs.denominator
+    sgn = sign(q.value)
+    qabs = abs(q.value)
+    n = qabs.numerator
+    d = qabs.denominator
     abs_round = (2 * n + d) // (2 * d)
     return Integer(sgn * abs_round)
 
@@ -473,16 +475,15 @@ def money_to_string(m: Money) -> str:
 def money_to_cents(m: Money) -> Integer:
     return m.value
 
-
 def money_round(m: Money) -> Money:
-    units : Decimal = Decimal(m.value.value / 100)
+    units : Decimal = Decimal(m.value) / Decimal(100)
     return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
     """
     Warning: rounds to the nearest cent
     """
-    return Money(f_div(d.value.numerator * mpz(100), d.value.denominator))
+    return Money(round(d * Decimal(100)))
 
 
 # --------

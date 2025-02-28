@@ -332,32 +332,32 @@ class S4In:
         return "S4In()".format()
 
 
-glob1 = (decimal_of_string("44.12"))
+glob1 = (decimal_of_string("1103/25"))
 
 def glob3(x:Money):
-    return (decimal_of_money(x) + decimal_of_string("10."))
+    return (decimal_of_money(x) + decimal_of_string("10"))
 
 def glob4(x:Money, y:Decimal):
-    return ((decimal_of_money(x) * y) + decimal_of_string("10."))
+    return ((decimal_of_money(x) * y) + decimal_of_string("10"))
 
 def glob5_init():
     x = ((decimal_of_integer(integer_of_string("2")) *
-        decimal_of_string("3.")))
-    y = (decimal_of_string("1000."))
+        decimal_of_string("3")))
+    y = (decimal_of_string("1000"))
     return (x * y)
 
 glob5 = (glob5_init())
 
 glob2 = (
     A(y = (glob1 >=
-    decimal_of_string("30.")),
-    z = (decimal_of_string("123.") *
-    decimal_of_string("17.")))
+    decimal_of_string("30")),
+    z = (decimal_of_string("123") *
+    decimal_of_string("17")))
 )
 
 def s2(s2_in:S2In):
     a__1 = ((glob3(money_of_cents_string("4400")) +
-        decimal_of_string("100.")))
+        decimal_of_string("100")))
     if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -370,8 +370,8 @@ def s2(s2_in:S2In):
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a__1 = ((decimal_of_string("50.") +
-        glob4(money_of_cents_string("4400"), decimal_of_string("55."))))
+    a__1 = ((decimal_of_string("50") +
+        glob4(money_of_cents_string("4400"), decimal_of_string("55"))))
     if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
@@ -384,7 +384,7 @@ def s3(s3_in:S3In):
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a__1 = ((glob5 + decimal_of_string("1.")))
+    a__1 = ((glob5 + decimal_of_string("1")))
     if a__1 is None:
         pos = (SourcePosition(
                    filename="tests/name_resolution/good/toplevel_defs.catala_en",
