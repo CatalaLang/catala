@@ -3,3 +3,5 @@ _minted*
 *.fls
 *.fdb_latexmk
 *.log
+syntax*.pdf
+*.xdv
