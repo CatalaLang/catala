@@ -116,7 +116,9 @@ let print_time_marker =
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 50. then Format.fprintf ppf " @{<bold;black>%.0fms@}" delta
+    if delta > 50. then
+      Format.fprintf ppf
+        "[@{<bold;magenta>DEBUG@}] @{<bold;black>- %.0fms elapsed -@}@," delta
 
 let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
@@ -135,8 +137,7 @@ let pp_marker ?extra_label target ppf =
   in
   Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
   Format.pp_print_string ppf str;
-  Format.pp_close_stag ppf ();
-  if target = Debug then print_time_marker ppf ()
+  Format.pp_close_stag ppf ()
 
 (**{2 Printers}*)
 
@@ -187,6 +188,7 @@ module Content = struct
             pos.pos_message;
           Pos.format_loc_text ppf pos.pos
         | MainMessage msg ->
+          if target = Debug then print_time_marker ppf ();
           Format.fprintf ppf "@[<hov 2>[%t] %t@]" (pp_marker target) msg
         | Outcome msg ->
           Format.fprintf ppf "@[<hov>[%t]@ %t@]" (pp_marker target) msg

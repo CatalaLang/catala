@@ -53,6 +53,7 @@ module Flags : sig
   val print_only_law : bool Term.t
   val ex_scope : string Term.t
   val ex_scope_opt : string option Term.t
+  val ex_scopes : string list Term.t
   val ex_variable : string Term.t
   val output : raw_file option Term.t
   val optimize : bool Term.t

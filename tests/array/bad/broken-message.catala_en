@@ -40,21 +40,21 @@ $ catala Typecheck --check-invariants
 │  ─➤ list of money
 │
 │ While typechecking the following expression:
-├─➤ tests/array/good/broken-message.catala_en:21.8-21.9:
+├─➤ tests/array/bad/broken-message.catala_en:21.8-21.9:
 │    │
 │ 21 │       (x ++ acc) for x among a.x
 │    │        ‾
 ├─ Article
 │
 │ Type money is coming from:
-├─➤ tests/array/good/broken-message.catala_en:5.28-5.33:
+├─➤ tests/array/bad/broken-message.catala_en:5.28-5.33:
 │   │
 │ 5 │   output x content list of money
 │   │                            ‾‾‾‾‾
 ├─ Article
 │
 │ Type list of money is coming from:
-├─➤ tests/array/good/broken-message.catala_en:21.10-21.12:
+├─➤ tests/array/bad/broken-message.catala_en:21.10-21.12:
 │    │
 │ 21 │       (x ++ acc) for x among a.x
 │    │          ‾‾
