@@ -123,8 +123,8 @@ let wrap_latex
 
 %s
 
-\newcommand*\FancyVerbStartString{\PY{l+s}{```catala}}
-\newcommand*\FancyVerbStopString{\PY{l+s}{```}}
+\newcommand*\FancyVerbStartString{```catala}}
+\newcommand*\FancyVerbStopString{```}
 
 %% We have to do that to enable line breaks in pygmentize outputs:
 \let\oldPY\PY
