@@ -137,8 +137,10 @@ let lident :=
 | i = LIDENT ; {
   match Localisation.lex_builtin i with
   | Some _ ->
-      Message.error ~pos:
-        (Pos.from_lpos $sloc)
+     Message.delayed_error
+       (i, Pos.from_lpos $sloc)
+       ~kind:Parsing
+       ~pos:(Pos.from_lpos $sloc)
         "Reserved builtin name"
   | None ->
       (i, Pos.from_lpos $sloc)
@@ -173,8 +175,8 @@ let naked_expression ==
 | id = addpos(LIDENT) ; state = option(state_qualifier) ; {
   match Localisation.lex_builtin (Mark.remove id), state with
   | Some b, None -> Builtin b
-  | Some _, Some _ ->
-      Message.error ~pos:
+  | Some b, Some _ ->
+      Message.delayed_error (Builtin b) ~kind:Parsing ~pos:
         (Pos.from_lpos $loc(id))
         "Invalid use of built-in @{<bold>%s@}" (Mark.remove id)
   | None, state -> Ident ([], id, state)
@@ -196,7 +198,9 @@ let naked_expression ==
   let n_str, pos_n = arg in
   let n = int_of_string n_str in
   if n <= 0 then
-    Message.error ~pos:pos_n "Tuple indices must be >= 1";
+    Message.delayed_error ()
+      ~kind:Parsing
+      ~pos:pos_n "Tuple indices must be >= 1";
   TupleAccess (e, (n, pos_n))
 }
 | CARDINAL ; {
@@ -255,7 +259,10 @@ let naked_expression ==
   | CollectionOp ((Map { f = i, f }, _), coll), _ ->
     CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)
   | _ ->
-    Message.error ~pos:(snd map_expr)
+     let init, _ = init in
+     Message.delayed_error
+       init (* dummy value *)
+       ~kind:Parsing ~pos:(snd map_expr)
       "Expected the form '<expr> for <var> among <collection>'"
 } %prec apply
 | maxp = addpos(minmax) ;
@@ -545,9 +552,11 @@ let scope_item :=
     | Some Round ->
        DateRounding(v), Mark.get v
     | _ ->
-         Message.error ~pos:
-           (Pos.from_lpos $loc(i))
-           "Expected the form 'date round increasing' or 'date round decreasing'"
+       Message.delayed_error
+         (DateRounding(v), Mark.get v)
+         ~kind:Parsing ~pos:
+         (Pos.from_lpos $loc(i))
+         "Expected the form 'date round increasing' or 'date round decreasing'"
   }
 
 let struct_scope_base :=
@@ -584,7 +593,9 @@ let scope_decl_item_attribute ==
   i = lident ; {
   match input, output with
   | (Some Internal, _), (true, pos) ->
-    Message.error ~pos
+     Message.delayed_error
+       (input, output, i)
+       ~kind:Parsing ~pos
       "A variable cannot be declared both 'internal' and 'output'."
   | input, output -> input, output, i
 }
@@ -594,9 +605,11 @@ let scope_decl_item_attribute_mandatory ==
   let in_attr_opt, out_attr, i = attr in
   let in_attr = match in_attr_opt, out_attr with
     | (None, _), (false, _) ->
-      Message.error ~pos:(Pos.from_lpos $loc(attr))
-        "Variable declaration requires input qualification ('internal', \
-         'input' or 'context')"
+       Message.delayed_error
+         (Internal, Pos.from_lpos $loc(attr))
+         ~kind:Parsing ~pos:(Pos.from_lpos $loc(attr))
+         "Variable declaration requires input qualification \
+          ('internal', 'input' or 'context')"
     | (None, pos), (true, _) -> Internal, pos
     | (Some i, pos), _ -> i, pos
   in
@@ -632,8 +645,13 @@ let scope_decl_item :=
         scope_decl_context_io_input = (Internal, pos);
         scope_decl_context_io_output = out;
       };
-    | (Some _, pos), _ ->
-        Message.error ~pos
+    | (Some _, pos), out ->
+       Message.delayed_error
+         {
+           scope_decl_context_io_input = (Internal, pos);
+           scope_decl_context_io_output = out;
+         }
+         ~kind:Parsing ~pos
           "Scope declaration does not support input qualifiers ('internal', \
            'input' or 'context')"
   in
