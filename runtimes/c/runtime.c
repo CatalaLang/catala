@@ -493,6 +493,13 @@ CATALA_DEC o_mult_rat_rat (CATALA_DEC x1, CATALA_DEC x2)
   return ret;
 }
 
+CATALA_MONEY o_mult_mon_int (CATALA_MONEY x1, CATALA_INT x2)
+{
+  CATALA_NEW_MPZ(ret);
+  mpz_mul(ret, x1, x2);
+  return ret;
+}
+
 CATALA_MONEY o_mult_mon_rat (CATALA_MONEY x1, CATALA_DEC x2)
 {
   CATALA_NEW_MPZ(ret);
@@ -543,6 +550,17 @@ CATALA_DEC o_div_mon_mon (const catala_code_position* pos,
   mpz_set(mpq_numref(ret), x1);
   mpz_set(mpq_denref(ret), x2);
   mpq_canonicalize(ret);
+  return ret;
+}
+
+CATALA_MONEY o_div_mon_int (const catala_code_position* pos,
+                            CATALA_MONEY x1,
+                            CATALA_INT x2)
+{
+  CATALA_NEW_MPZ(ret);
+  if (mpz_sgn(x2) == 0)
+    catala_error(catala_division_by_zero, pos);
+  round_div(ret, x1, x2);
   return ret;
 }
 

@@ -399,11 +399,13 @@ module Oper : sig
   val o_sub_dur_dur : duration -> duration -> duration
   val o_mult_int_int : integer -> integer -> integer
   val o_mult_rat_rat : decimal -> decimal -> decimal
+  val o_mult_mon_int : money -> integer -> money
   val o_mult_mon_rat : money -> decimal -> money
   val o_mult_dur_int : duration -> integer -> duration
   val o_div_int_int : source_position -> integer -> integer -> decimal
   val o_div_rat_rat : source_position -> decimal -> decimal -> decimal
   val o_div_mon_mon : source_position -> money -> money -> decimal
+  val o_div_mon_int : source_position -> money -> integer -> money
   val o_div_mon_rat : source_position -> money -> decimal -> money
   val o_div_dur_dur : source_position -> duration -> duration -> decimal
   val o_lt_int_int : integer -> integer -> bool

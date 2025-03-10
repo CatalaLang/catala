@@ -221,17 +221,15 @@ class Money:
     def __sub__(self, other: Money) -> Money:
         return Money(self.value - other.value)
 
-    def __mul__(self, other: Decimal) -> Money:
-        rat_result : Decimal = decimal_of_integer(self.value) * other
+    def __mul__(self, other: Union [Integer, Decimal]) -> Money:
+        rat_result : Decimal = decimal_of_integer(self.value) * Decimal(other.value)
         return Money(round(rat_result))
 
-    def __truediv__(self, other: Money) -> Decimal:
+    def __truediv__(self, other: Union [Integer, Decimal, Money]) -> Union [Decimal, Money]:
         if isinstance(other, Money):
             return self.value / other.value
-        elif isinstance(other, Decimal):
-            return self * (Decimal(1) / other)
         else:
-            raise Exception("Dividing money and invalid obj")
+            return self * (Decimal(1) / Decimal(other.value))
 
     def __neg__(self: Money) -> Money:
         return Money(- self.value)
