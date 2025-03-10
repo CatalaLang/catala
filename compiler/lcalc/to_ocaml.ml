@@ -43,7 +43,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
   | LUnit -> Print.lit fmt LUnit
-  | LRat i -> Format.fprintf fmt "decimal_of_string \"%a\"" Print.lit (LRat i)
+  | LRat i -> Format.fprintf fmt "decimal_of_string \"%s\"" (Q.to_string i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string@ \"%s\""
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -637,13 +637,14 @@ let format_scope_exec_args
     |> List.rev
   in
   if scopes_with_no_input = [] then
-    Message.error
-      "No scopes that don't require input were found, executable can't be \
-       generated";
-  Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-    (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
-         ScopeName.format ppf s))
-    scopes_with_no_input;
+    Message.warning
+      "No scopes that don't require input were found, the generated executable \
+       won't test any computation."
+  else
+    Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
+           ScopeName.format ppf s))
+      scopes_with_no_input;
   Format.pp_print_string fmt "\nlet entry_scopes = [\n";
   List.iter
     (fun (_, _, name) -> Format.fprintf fmt "  %S;\n" name)

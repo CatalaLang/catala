@@ -209,6 +209,21 @@ CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 unit-tests: .FORCE
 	dune build @for-tests @runtest
 
+BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
+
+BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
+
+backend-tests-%: $(BACKEND_TESTS)
+	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
+	@$(CLERK_BIN) run $^ --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
+
+backend-tests-python: $(BACKEND_TESTS) dependencies-python
+	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
+	@echo ">> RUNNING BACKEND TESTS FOR python <<"
+	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest
+
+backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
+
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
 	$(CLERK_TEST) tests doc
@@ -229,7 +244,7 @@ testsuite-base: .FORCE
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: unit-tests
+testsuite: unit-tests backend-tests-ocaml backend-tests-c backend-tests-python
 	$(CLERK_TEST) doc
 	$(MAKE) testsuite-base
 
@@ -293,7 +308,7 @@ all: \
 	runtimes \
 	plugins
 
-BRANCH = $(shell git branch --show-current 2>/dev/null || echo master)
+BRANCH = $(shell jj bname 2>/dev/null || git branch --show-current 2>/dev/null || echo master)
 
 # Attempt a clone of the named CatalaLang repo into <name>.tmp, using local git
 # objects in ../<name> if available, the branch with the same name as the

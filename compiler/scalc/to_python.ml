@@ -28,7 +28,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   | LInt i ->
     Format.fprintf fmt "integer_of_string(\"%s\")" (Runtime.integer_to_string i)
   | LUnit -> Format.pp_print_string fmt "Unit()"
-  | LRat i -> Format.fprintf fmt "decimal_of_string(\"%a\")" Print.lit (LRat i)
+  | LRat i -> Format.fprintf fmt "decimal_of_string(\"%s\")" (Q.to_string i)
   | LMoney e ->
     Format.fprintf fmt "money_of_cents_string(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))

@@ -103,13 +103,19 @@ let rec resolve_eq ctx pos ty args m =
     Expr.ematch ~name ~e:arg1 ~cases m
   | TArray ty1 ->
     let tbool = TLit TBool, pos in
+    let vargs =
+      List.mapi (fun i _ -> Var.make ("l" ^ string_of_int (i + 1))) args
+    in
+    let vargs_e =
+      List.map2 (fun v a -> Expr.make_var v (Mark.get a)) vargs args
+    in
     let same_length =
       resolve_eq ctx pos (TLit TInt, pos)
         (List.map
            (fun e ->
              Expr.eappop ~op:(Length, pos) ~args:[e] ~tys:[ty]
                (Expr.with_ty m (TLit TInt, pos)))
-           args)
+           vargs_e)
         m
     in
     let map2_f =
@@ -129,7 +135,7 @@ let rec resolve_eq ctx pos ty args m =
         [tbool; tbool] pos
     in
     let bool_list =
-      Expr.eappop ~op:(Map2, pos) ~args:(map2_f :: args)
+      Expr.eappop ~op:(Map2, pos) ~args:(map2_f :: vargs_e)
         ~tys:[TArrow ([ty1; ty1], tbool), pos; TArray ty1, pos; TArray ty1, pos]
         (Expr.with_ty m (TArray tbool, pos))
     in
@@ -139,9 +145,13 @@ let rec resolve_eq ctx pos ty args m =
         ~tys:[TArrow ([tbool; tbool], tbool), pos; tbool; TArray tbool, pos]
         m
     in
-    Expr.eappop ~op:(And, pos)
-      ~args:[same_length; same_elements]
-      ~tys:[tbool; tbool] m
+    Expr.make_multiple_let_in
+      (List.map (fun v -> v, Pos.no_pos) vargs)
+      [ty; ty] args
+      (Expr.eappop ~op:(And, pos)
+         ~args:[same_length; same_elements]
+         ~tys:[tbool; tbool] m)
+      pos
   | TOption _ | TDefault _ -> assert false
   | TAny -> Message.error ~internal:true "Unknown type for equality resolution"
 

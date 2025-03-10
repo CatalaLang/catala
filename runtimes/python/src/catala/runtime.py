@@ -10,7 +10,7 @@ from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, sign  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # type: ignore
 import datetime
 import calendar
 import dateutil.relativedelta
@@ -101,11 +101,12 @@ class IndivisibleDurations(CatalaError):
 # Type classes
 # ============
 
-
 class Integer:
     def __init__(self, value: Union[str, int, Decimal]) -> None:
         if isinstance(value, Decimal):
-            self.value = t_div(value.value.numerator, value.value.denominator)
+            self.value = t_div(
+                  value.value.numerator,
+                  value.value.denominator)
         else:
             self.value = mpz(value)
 
@@ -156,7 +157,9 @@ class Integer:
 
 
 class Decimal:
-    def __init__(self, value: Union[str, int, float,Integer]) -> None:
+    value: mpq
+
+    def __init__(self, value: Union[str, int, float, Integer]) -> None:
         if isinstance(value, Integer):
             self.value = mpq(value.value)
         else:
@@ -226,7 +229,7 @@ class Money:
         if isinstance(other, Money):
             return self.value / other.value
         elif isinstance(other, Decimal):
-            return self * (1. / other.value)
+            return self * (Decimal(1) / other)
         else:
             raise Exception("Dividing money and invalid obj")
 
@@ -272,7 +275,7 @@ class Date:
     def __add__(self, other: Duration) -> Date:
         return Date(self.value + other.value)
 
-    def __sub__(self, other: object) -> object:
+    def __sub__(self, other: Union[Date, Duration]) -> Union[Duration, Date]:
         if isinstance(other, Date):
             return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
@@ -333,10 +336,13 @@ class Duration:
             return Decimal(x.days / y.days)
 
     def __mul__(self: Duration, rhs: Integer) -> Duration:
+        mul_int : int = int(rhs.value)
+        delta = self.value
+        y : int = delta.years * mul_int
+        m : int = delta.months * mul_int
+        d : int = delta.days * mul_int
         return Duration(
-            dateutil.relativedelta.relativedelta(years=self.value.years * rhs.value,
-                                                 months=self.value.months * rhs.value,
-                                                 days=self.value.days * rhs.value))
+            dateutil.relativedelta.relativedelta(years=y, months=m, days=d))
 
     def __ne__(self, other: object) -> bool:
         if isinstance(other, Duration):
@@ -402,42 +408,42 @@ def sub_date_duration(rounding: DateRounding):
     return add
 
 def lt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days < y.days
+        return x.value.days < y.value.days
 
 def leq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days <= y.days
+        return x.value.days <= y.value.days
 
 def gt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days > y.days
+        return x.value.days > y.value.days
 
 def geq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    x = self.value.normalized()
-    y = other.value.normalized()
-    if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
+    xdt = x.value.normalized()
+    ydt = y.value.normalized()
+    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
         raise UncomparableDurations(pos)
     else:
-        x.days >= y.days
+        return x.value.days >= y.value.days
 
 def round(q : Decimal) -> Integer:
-    sgn = 1 if q.value > 0 else 0 if q.value == 0 else -1
-    abs = q.value.__abs__()
-    n = abs.numerator
-    d = abs.denominator
+    sgn = sign(q.value)
+    qabs = abs(q.value)
+    n = qabs.numerator
+    d = qabs.denominator
     abs_round = (2 * n + d) // (2 * d)
     return Integer(sgn * abs_round)
 
@@ -469,16 +475,15 @@ def money_to_string(m: Money) -> str:
 def money_to_cents(m: Money) -> Integer:
     return m.value
 
-
 def money_round(m: Money) -> Money:
-    units : Decimal = Decimal(m.value.value / 100)
+    units : Decimal = Decimal(m.value) / Decimal(100)
     return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
     """
     Warning: rounds to the nearest cent
     """
-    return Money(Integer(mpz(d.value) * mpz(100)))
+    return Money(round(d * Decimal(100)))
 
 
 # --------
@@ -612,8 +617,11 @@ def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
 def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
 
-def list_map2(f: Callable[[Alpha, Beta], Gamma], l1: List[Alpha], l2: List[Beta]) -> List[Gamma]:
-    return [f(i, j) for i, j in zip(l1, l2, strict=True)]
+def list_map2(pos: SourcePosition, f: Callable[[Alpha, Beta], Gamma], l1: List[Alpha], l2: List[Beta]) -> List[Gamma]:
+    try:
+      zipped = zip(l1, l2, strict=True)
+    except ValueError: raise NotSameLength(pos)
+    return [f(i, j) for i, j in zipped]
 
 def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Callable[[Unit], Alpha], l: List[Alpha]) -> Alpha:
     if l == []:
@@ -634,17 +642,18 @@ def handle_exceptions(
     pos: List[SourcePosition],
     exceptions: List[Optional[Alpha]]) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
-    acc_pos: Optional[pos] = None
-    for exception, pos in zip(exceptions, pos):
+    acc_pos: Optional[SourcePosition] = None
+    for exception, pos1 in zip(exceptions, pos):
         if exception is None:
             pass  # acc stays the same
-        elif acc is None:
+        elif acc_pos is None:
             acc = exception
-            acc_pos = pos
+            acc_pos = pos1
         else:
-            raise Conflict(acc_pos,pos)
+            raise Conflict(acc_pos,pos1)
     return acc
 
+class Empty(Exception): pass
 
 def no_input() -> Callable[[Unit], Alpha]:
     def closure(_: Unit):

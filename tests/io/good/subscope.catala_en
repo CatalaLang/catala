@@ -17,7 +17,7 @@ scope A:
 
 scope B:
   definition a.b equals 2
-  assertion a.c = 1
+  assertion a.c = 3
 ```
 
 
@@ -46,7 +46,7 @@ let scope B (B_in: B_in): B =
     let result1 : A = { A c = result.c; } in
     if true then result1 else result1
   in
-  let assert assert__1 : unit = assert ((a.c = 1)) in
+  let assert assert__1 : unit = assert ((a.c = 3)) in
   return {B}
 ```
 

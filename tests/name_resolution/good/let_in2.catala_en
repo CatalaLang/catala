@@ -86,3 +86,8 @@ let () =
     [  ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
+
+```catala
+declaration scope Stest:
+  output s scope S
+```

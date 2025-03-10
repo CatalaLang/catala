@@ -364,33 +364,43 @@ module Commands = struct
       Message.error "There is no scope \"@{<yellow>%s@}\" inside the program."
         scope
 
-  let get_scopeopt_uid (ctx : decl_ctx) (scope_opt : string option) :
-      ScopeName.t =
-    match scope_opt with
-    | Some s -> get_scope_uid ctx s
-    | None -> (
-      match ScopeName.Map.cardinal ctx.ctx_scopes with
-      | 0 -> Message.error "The program defines no scopes"
-      | 1 ->
-        let s, _ = ScopeName.Map.choose ctx.ctx_scopes in
+  let get_scopelist_uids (ctx : decl_ctx) (scopes : string list) :
+      ScopeName.t list =
+    match scopes with
+    | _ :: _ -> List.map (get_scope_uid ctx) scopes
+    | [] -> (
+      let top_scopes =
+        ScopeName.Map.filter (fun n _ -> ScopeName.path n = []) ctx.ctx_scopes
+      in
+      let noinput_scopes =
+        ScopeName.Map.filter
+          (fun _ s ->
+            StructName.Map.find s.in_struct_name ctx.ctx_structs
+            |> StructField.Map.is_empty)
+          top_scopes
+      in
+      match
+        ScopeName.Map.cardinal top_scopes, ScopeName.Map.cardinal noinput_scopes
+      with
+      | 0, _ ->
+        Message.warning "The program defines no scopes";
+        []
+      | _, 0 ->
         Message.warning
-          "No scope was specified, using the only one defined by the program:@ \
-           %a"
-          ScopeName.format s;
-        s
-      | _ ->
-        Message.error
-          "Please specify option @{<yellow>--scope@} or @{<yellow>-s@}.@ The \
-           program defines the following scopes:@ @[<hv 4>%a@]"
+          "The program defines no scopes without input.@ Please specify option \
+           @{<yellow>--scope@} or @{<yellow>-s@} to force the choice of a \
+           scope.@ The program defines the following scopes:@ @[<hv 4>%a@]"
           (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-          ctx.ctx_scopes)
-
-  (* TODO: this is very weird but I'm trying to maintain the current behaviour
-     for now *)
-  let get_random_scope_uid (ctx : decl_ctx) : ScopeName.t =
-    match Ident.Map.choose_opt ctx.ctx_scope_index with
-    | Some (_, name) -> name
-    | None -> Message.error "There isn't any scope inside the program."
+          top_scopes;
+        []
+      | _, _ ->
+        let scopes = ScopeName.Map.keys noinput_scopes in
+        Message.debug
+          "Automatically selecting the following scopes because they don't \
+           need input:@ %a"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
+          scopes;
+        scopes)
 
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
@@ -571,18 +581,21 @@ module Commands = struct
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable)
 
-  let scopelang options includes output ex_scope_opt =
+  let scopelang options includes output ex_scopes =
     let prg = Passes.scopelang options ~includes in
     let _output_file, with_output = get_output_format options output in
     with_output
     @@ fun fmt ->
-    match ex_scope_opt with
-    | Some scope ->
-      let scope_uid = get_scope_uid prg.program_ctx scope in
-      Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
-        (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
-      Format.pp_print_newline fmt ()
-    | None ->
+    match ex_scopes with
+    | _ :: _ ->
+      List.iter
+        (fun scope ->
+          let scope_uid = get_scope_uid prg.program_ctx scope in
+          Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
+            (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
+          Format.pp_print_newline fmt ())
+        ex_scopes
+    | [] ->
       Scopelang.Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
@@ -598,7 +611,7 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.ex_scopes)
 
   let typecheck options check_invariants includes =
     let prg = Passes.scopelang options ~includes in
@@ -640,7 +653,7 @@ module Commands = struct
       includes
       output
       optimize
-      ex_scope_opt
+      ex_scopes
       check_invariants
       autotest =
     let prg, _ =
@@ -650,25 +663,27 @@ module Commands = struct
     let _output_file, with_output = get_output_format options output in
     with_output
     @@ fun fmt ->
-    match ex_scope_opt with
-    | Some scope ->
-      let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
-        ( scope,
-          BoundList.find
-            ~f:(function
-              | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
-                Some body
-              | _ -> None)
-            prg.code_items );
-      Format.pp_print_newline fmt ()
-    | None ->
-      let scope_uid = get_random_scope_uid prg.decl_ctx in
-      (* TODO: ??? *)
+    match ex_scopes with
+    | [] ->
+      let _, scope_uid = Ident.Map.choose prg.decl_ctx.ctx_scope_index in
       let prg_dcalc_expr = Expr.unbox (Program.to_expr prg scope_uid) in
       Format.fprintf fmt "%a\n"
         (Print.expr ~debug:options.Global.debug ())
         prg_dcalc_expr
+    | scopes ->
+      List.iter
+        (fun scope ->
+          let scope_uid = get_scope_uid prg.decl_ctx scope in
+          Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
+            ( scope,
+              BoundList.find
+                ~f:(function
+                  | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                    Some body
+                  | _ -> None)
+                prg.code_items );
+          Format.pp_print_newline fmt ())
+        scopes
 
   let dcalc_cmd =
     let f no_typing =
@@ -687,7 +702,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
-        $ Cli.Flags.ex_scope_opt
+        $ Cli.Flags.ex_scopes
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
@@ -745,13 +760,8 @@ module Commands = struct
                result)
            results)
 
-  let interpret_dcalc
-      typed
-      options
-      includes
-      optimize
-      check_invariants
-      ex_scope_opt =
+  let interpret_dcalc typed options includes optimize check_invariants ex_scopes
+      =
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~typed
@@ -759,8 +769,10 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
       prg;
-    print_interpretation_results options Interpreter.interpret_program_dcalc prg
-      (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
+    List.iter
+      (print_interpretation_results options Interpreter.interpret_program_dcalc
+         prg)
+      (get_scopelist_uids prg.decl_ctx ex_scopes)
 
   let lcalc
       typed
@@ -774,7 +786,7 @@ module Commands = struct
       keep_special_ops
       monomorphize_types
       expand_ops
-      ex_scope_opt =
+      ex_scopes =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
@@ -783,13 +795,16 @@ module Commands = struct
     let _output_file, with_output = get_output_format options output in
     with_output
     @@ fun fmt ->
-    match ex_scope_opt with
-    | Some scope ->
-      let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
-        (scope, Program.get_scope_body prg scope_uid);
-      Format.pp_print_newline fmt ()
-    | None ->
+    match ex_scopes with
+    | _ :: _ as scopes ->
+      List.iter
+        (fun scope ->
+          let scope_uid = get_scope_uid prg.decl_ctx scope in
+          Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
+            (scope, Program.get_scope_body prg scope_uid);
+          Format.pp_print_newline fmt ())
+        scopes
+    | [] ->
       Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
@@ -816,7 +831,7 @@ module Commands = struct
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.expand_ops
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.ex_scopes)
 
   let interpret_lcalc
       typed
@@ -828,7 +843,7 @@ module Commands = struct
       includes
       optimize
       check_invariants
-      ex_scope_opt =
+      ex_scopes =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~closure_conversion ~keep_special_ops ~monomorphize_types ~typed
@@ -837,8 +852,10 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
       prg;
-    print_interpretation_results options Interpreter.interpret_program_lcalc prg
-      (get_scopeopt_uid prg.decl_ctx ex_scope_opt)
+    List.iter
+      (print_interpretation_results options Interpreter.interpret_program_lcalc
+         prg)
+      (get_scopelist_uids prg.decl_ctx ex_scopes)
 
   let interpret_cmd =
     let f
@@ -881,7 +898,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.ex_scopes)
 
   let ocaml
       options
