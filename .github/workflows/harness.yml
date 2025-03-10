@@ -139,6 +139,7 @@ jobs:
       - name: Build Catala extra docs
         run: |
           cd ~/catala
+          sed -i 's/minted2/minted/' doc/syntax/syntax_??.tex
           opam --cli=2.1 exec -- make syntax
           opam --cli=2.1 exec -- make doc
       - name: Checkout examples repo
