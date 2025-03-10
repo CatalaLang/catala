@@ -77,12 +77,14 @@ let name : type a. a t -> string = function
   | Mult -> "o_mult"
   | Mult_int_int -> "o_mult_int_int"
   | Mult_rat_rat -> "o_mult_rat_rat"
+  | Mult_mon_int -> "o_mult_mon_int"
   | Mult_mon_rat -> "o_mult_mon_rat"
   | Mult_dur_int -> "o_mult_dur_int"
   | Div -> "o_div"
   | Div_int_int -> "o_div_int_int"
   | Div_rat_rat -> "o_div_rat_rat"
   | Div_mon_mon -> "o_div_mon_mon"
+  | Div_mon_int -> "o_div_mon_int"
   | Div_mon_rat -> "o_div_mon_rat"
   | Div_dur_dur -> "o_div_dur_dur"
   | Lt -> "o_lt"
@@ -203,12 +205,14 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Mult, Mult
   | Mult_int_int, Mult_int_int
   | Mult_rat_rat, Mult_rat_rat
+  | Mult_mon_int, Mult_mon_int
   | Mult_mon_rat, Mult_mon_rat
   | Mult_dur_int, Mult_dur_int
   | Div, Div
   | Div_int_int, Div_int_int
   | Div_rat_rat, Div_rat_rat
   | Div_mon_mon, Div_mon_mon
+  | Div_mon_int, Div_mon_int
   | Div_mon_rat, Div_mon_rat
   | Div_dur_dur, Div_dur_dur
   | Lt, Lt
@@ -292,12 +296,14 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Mult, _ -> -1 | _, Mult -> 1
   | Mult_int_int, _ -> -1 | _, Mult_int_int -> 1
   | Mult_rat_rat, _ -> -1 | _, Mult_rat_rat -> 1
+  | Mult_mon_int, _ -> -1 | _, Mult_mon_int -> 1
   | Mult_mon_rat, _ -> -1 | _, Mult_mon_rat -> 1
   | Mult_dur_int, _ -> -1 | _, Mult_dur_int -> 1
   | Div, _ -> -1 | _, Div -> 1
   | Div_int_int, _ -> -1 | _, Div_int_int -> 1
   | Div_rat_rat, _ -> -1 | _, Div_rat_rat -> 1
   | Div_mon_mon, _ -> -1 | _, Div_mon_mon -> 1
+  | Div_mon_int, _ -> -1 | _, Div_mon_int -> 1
   | Div_mon_rat, _ -> -1 | _, Div_mon_rat -> 1
   | Div_dur_dur, _ -> -1 | _, Div_dur_dur -> 1
   | Lt, _ -> -1 | _, Lt -> 1
@@ -366,13 +372,14 @@ let kind_dispatch :
       | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
       | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
       | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _ | Sub_dur_dur
-      | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int
-      | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int
-      | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int
-      | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int
-      | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int
-      | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo
-      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
+      | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int
+      | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+      | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
+      | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
+      | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
+      | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
+      | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+      | Eq_dat_dat | Eq_dur_dur ),
       _ ) as op ->
     resolved op
 
@@ -393,14 +400,15 @@ let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
       | Minus_dur | ToInt_rat | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat
       | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
       | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-      | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_rat
-      | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
-      | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
-      | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
-      | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
-      | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-      | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-      | Eq_dat_dat | Eq_dur_dur | FromClosureEnv | ToClosureEnv ),
+      | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
+      | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
+      | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+      | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+      | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+      | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int
+      | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | FromClosureEnv
+      | ToClosureEnv ),
       _ ) as op ->
     op
 
@@ -458,11 +466,13 @@ let resolved_type ((op : resolved t), pos) =
     | Sub_dur_dur -> [TDuration; TDuration], TDuration
     | Mult_int_int -> [TInt; TInt], TInt
     | Mult_rat_rat -> [TRat; TRat], TRat
+    | Mult_mon_int -> [TMoney; TInt], TMoney
     | Mult_mon_rat -> [TMoney; TRat], TMoney
     | Mult_dur_int -> [TDuration; TInt], TDuration
     | Div_int_int -> [TInt; TInt], TRat
     | Div_rat_rat -> [TRat; TRat], TRat
     | Div_mon_mon -> [TMoney; TMoney], TRat
+    | Div_mon_int -> [TMoney; TInt], TMoney
     | Div_mon_rat -> [TMoney; TRat], TMoney
     | Div_dur_dur -> [TDuration; TDuration], TRat
     | Lt_int_int -> [TInt; TInt], TBool
@@ -521,6 +531,8 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Sub, [TDate; TDuration] -> Sub_dat_dur AbortOnRound, `Straight
   | Mult, [TInt; TInt] -> Mult_int_int, `Straight
   | Mult, [TRat; TRat] -> Mult_rat_rat, `Straight
+  | Mult, [TMoney; TInt] -> Mult_mon_int, `Straight
+  | Mult, [TInt; TMoney] -> Mult_mon_int, `Reversed
   | Mult, [TMoney; TRat] -> Mult_mon_rat, `Straight
   | Mult, [TRat; TMoney] -> Mult_mon_rat, `Reversed
   | Mult, [TDuration; TInt] -> Mult_dur_int, `Straight
@@ -528,6 +540,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Div, [TInt; TInt] -> Div_int_int, `Straight
   | Div, [TRat; TRat] -> Div_rat_rat, `Straight
   | Div, [TMoney; TMoney] -> Div_mon_mon, `Straight
+  | Div, [TMoney; TInt] -> Div_mon_int, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
   | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
   | Lt, [TInt; TInt] -> Lt_int_int, `Straight

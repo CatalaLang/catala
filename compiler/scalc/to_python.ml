@@ -76,9 +76,10 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
       | RoundUp -> "DateRounding.RoundUp"
       | RoundDown -> "DateRounding.RoundDown"
       | AbortOnRound -> "DateRounding.AbortOnRound")
-  | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
+  | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int ->
     Format.pp_print_string fmt "*"
-  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur ->
     Format.pp_print_string fmt "div"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"

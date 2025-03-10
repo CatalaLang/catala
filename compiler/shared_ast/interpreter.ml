@@ -366,6 +366,8 @@ let rec evaluate_operator
     ELit (LInt (o_mult_int_int x y))
   | Mult_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
     ELit (LRat (o_mult_rat_rat x y))
+  | Mult_mon_int, [(ELit (LMoney x), _); (ELit (LInt y), _)] ->
+    ELit (LMoney (o_mult_mon_int x y))
   | Mult_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
     ELit (LMoney (o_mult_mon_rat x y))
   | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
@@ -376,6 +378,8 @@ let rec evaluate_operator
     ELit (LRat (o_div_rat_rat (div_pos ()) x y))
   | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
     ELit (LRat (o_div_mon_mon (div_pos ()) x y))
+  | Div_mon_int, [(ELit (LMoney x), _); (ELit (LInt y), _)] ->
+    ELit (LMoney (o_div_mon_int (div_pos ()) x y))
   | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
     ELit (LMoney (o_div_mon_rat (div_pos ()) x y))
   | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
@@ -457,14 +461,14 @@ let rec evaluate_operator
       | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
       | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
       | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _ | Sub_dur_dur
-      | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int
-      | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int
-      | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int
-      | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int
-      | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int
-      | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo
-      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
-      | HandleExceptions ),
+      | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int
+      | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+      | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
+      | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
+      | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
+      | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
+      | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+      | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
       _ ) ->
     err ()
 

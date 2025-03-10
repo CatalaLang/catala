@@ -374,11 +374,13 @@ module Op = struct
     | Mult : < overloaded ; .. > t
     | Mult_int_int : < resolved ; .. > t
     | Mult_rat_rat : < resolved ; .. > t
+    | Mult_mon_int : < resolved ; .. > t
     | Mult_mon_rat : < resolved ; .. > t
     | Mult_dur_int : < resolved ; .. > t
     | Div : < overloaded ; .. > t
     | Div_int_int : < resolved ; .. > t
     | Div_rat_rat : < resolved ; .. > t
+    | Div_mon_int : < resolved ; .. > t
     | Div_mon_rat : < resolved ; .. > t
     | Div_mon_mon : < resolved ; .. > t
     | Div_dur_dur : < resolved ; .. > t

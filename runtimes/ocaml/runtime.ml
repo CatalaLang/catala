@@ -879,6 +879,7 @@ module Oper = struct
     let rat_result = Q.mul (Q.of_bigint i1) i2 in
     round rat_result
 
+  let o_mult_mon_int i1 i2 = o_mult_mon_rat i1 (decimal_of_integer i2)
   let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
 
   let o_div_int_int pos i1 i2 =
@@ -896,6 +897,8 @@ module Oper = struct
   let o_div_mon_rat pos m1 r1 =
     if Q.zero = r1 then error DivisionByZero [pos]
     else o_mult_mon_rat m1 (Q.inv r1)
+
+  let o_div_mon_int pos m1 i1 = o_div_mon_rat pos m1 (decimal_of_integer i1)
 
   let o_div_dur_dur pos d1 d2 =
     let i1, i2 =
