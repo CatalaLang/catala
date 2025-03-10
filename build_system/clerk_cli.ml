@@ -20,9 +20,6 @@ open Catala_utils
 
 (** {1 Command line interface} *)
 
-(* Version is synchronised with the catala version *)
-let version = Catala_utils.Cli.version
-
 let catala_exe =
   Arg.(
     value
@@ -369,4 +366,4 @@ let info =
     ]
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
-  Cmd.info "clerk" ~version ~doc ~exits ~man
+  Cmd.info "clerk" ~version:Catala_utils.Cli.version ~doc ~exits ~man

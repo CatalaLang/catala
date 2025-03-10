@@ -16,135 +16,9 @@
    the License. *)
 
 open Catala_utils
-open Clerk_cli
 module Nj = Ninja_utils
 module Scan = Clerk_scan
-
-(** {1 System analysis} *)
-
-(** Some functions that poll the surrounding systems (think [./configure]) *)
-module Poll = struct
-  (** This module is sensitive to the CWD at first use. Therefore it's expected
-      that [chdir] has been run beforehand to the project root. *)
-  let root = lazy (Sys.getcwd ())
-
-  (** Scans for a parent directory being the root of the Catala source repo *)
-  let catala_project_root : File.t option Lazy.t =
-    root
-    |> Lazy.map
-       @@ fun root ->
-       if File.(exists (root / "catala.opam") && exists (root / "dune-project"))
-       then Some root
-       else None
-
-  let exec_dir : File.t = Catala_utils.Cli.exec_dir
-  let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
-
-  let catala_exe : File.t Lazy.t =
-    lazy
-      (let f = File.(exec_dir / "catala") in
-       if Sys.file_exists f then Unix.realpath f
-       else
-         match catala_project_root with
-         | (lazy (Some root)) ->
-           Unix.realpath
-             File.(root / "_build" / "default" / "compiler" / "catala.exe")
-         | _ -> File.check_exec "catala")
-
-  let build_dir : dir:File.t -> unit -> File.t =
-   fun ~dir () ->
-    let d = File.clean_path dir in
-    File.ensure_dir d;
-    d
-  (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
-     default, but Ninja treats relative and absolute paths separately so that
-     you wouldn't then be able to build target _build/foo.ml but would have to
-     write the full path every time *)
-
-  (** Locates the main [lib] directory containing the OCaml libs *)
-  let ocaml_libdir : File.t Lazy.t =
-    lazy
-      (try String.trim (File.process_out "opam" ["var"; "lib"])
-       with Failure _ -> (
-         try String.trim (File.process_out "ocamlc" ["-where"])
-         with Failure _ -> (
-           match File.(check_directory (exec_dir /../ "lib")) with
-           | Some d -> d
-           | None ->
-             Message.error
-               "Could not locate the OCaml library directory, make sure OCaml \
-                or opam is installed")))
-
-  (** Locates the directory containing the OCaml runtime to link to *)
-  let ocaml_runtime_dir : File.t Lazy.t =
-    lazy
-      (let d =
-         match Lazy.force catala_project_root with
-         | Some root ->
-           (* Relative dir when running from catala source *)
-           File.(
-             root
-             / "_build"
-             / "install"
-             / "default"
-             / "lib"
-             / "catala"
-             / "runtime_ocaml")
-         | None -> (
-           match
-             File.check_directory
-               File.(exec_dir /../ "lib" / "catala" / "runtime_ocaml")
-           with
-           | Some d -> d
-           | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime_ocaml")
-           )
-       in
-       match File.check_directory d with
-       | Some dir ->
-         Message.debug "Catala runtime libraries found at @{<bold>%s@}." dir;
-         dir
-       | None ->
-         Message.error
-           "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
-            sure that either catala is correctly installed,@ or you are \
-            running from the root of a compiled source tree.@]"
-           d)
-
-  let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
-    lazy
-      (let link_libs = ["zarith"; "dates_calc"] in
-       let includes_libs =
-         List.map
-           (fun lib ->
-             match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
-             | None ->
-               Message.error
-                 "Required OCaml library not found at %a.@ Try `opam install \
-                  %s'"
-                 File.format
-                 File.(Lazy.force ocaml_libdir / lib)
-                 lib
-             | Some d ->
-               ( ["-I"; d],
-                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
-           link_libs
-       in
-       let includes, libs = List.split includes_libs in
-       ( List.concat includes @ ["-I"; Lazy.force ocaml_runtime_dir],
-         libs @ [File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa")] ))
-
-  let ocaml_include_flags : string list Lazy.t =
-    lazy (fst (Lazy.force ocaml_include_and_lib_flags))
-
-  let ocaml_link_flags : string list Lazy.t =
-    lazy (snd (Lazy.force ocaml_include_and_lib_flags))
-
-  let c_runtime_dir : File.t Lazy.t =
-    lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_c")
-
-  let python_runtime_dir : File.t Lazy.t =
-    lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_python" / "src")
-end
+module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
@@ -201,14 +75,15 @@ module Var = struct
 end
 
 let base_bindings
-    catala_exe
-    catala_flags0
-    build_dir
-    include_dirs
-    vars_override
-    test_flags
-    enabled_backends
-    autotest =
+    ~catala_exe
+    ~catala_flags:catala_flags0
+    ~build_dir
+    ~include_dirs
+    ?(vars_override = [])
+    ?(test_flags = [])
+    ?(enabled_backends = all_backends)
+    ~autotest
+    () =
   let includes =
     List.fold_right
       (fun dir flags ->
@@ -642,12 +517,14 @@ let gen_ninja_file
     autotest
     dir =
   let var_bindings =
-    base_bindings catala_exe catala_flags build_dir include_dirs vars_override
-      test_flags enabled_backends autotest
+    base_bindings ~catala_exe ~catala_flags ~build_dir ~include_dirs
+      ~vars_override ~test_flags ~enabled_backends ~autotest ()
   in
   let prologue =
     Seq.return
-      (Nj.Comment (Printf.sprintf "File generated by Clerk v.%s\n" version))
+      (Nj.Comment
+         (Printf.sprintf "File generated by Clerk v.%s\n"
+            Catala_utils.Cli.version))
     @+ Seq.return (Nj.Comment "- Global variables - #\n")
     @+ List.to_seq var_bindings
     @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
@@ -736,7 +613,13 @@ let ninja_init
     let dir =
       match build_dir with None -> config.global.build_dir | Some dir -> dir
     in
-    Poll.build_dir ~dir ()
+    let d = File.clean_path dir in
+    File.ensure_dir d;
+    d
+    (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
+       default, but Ninja treats relative and absolute paths separately so that
+       you wouldn't then be able to build target _build/foo.ml but would have to
+       write the full path every time *)
   in
   let catala_opts = config.global.catala_opts @ catala_opts in
   let include_dirs = config.global.include_dirs @ include_dirs in

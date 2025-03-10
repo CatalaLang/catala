@@ -16,9 +16,10 @@
    the License. *)
 
 open Catala_utils
-open Clerk_rules
 module Nj = Ninja_utils
 module Cli = Clerk_cli
+module Scan = Clerk_scan
+module Var = Clerk_rules.Var
 
 let ninja_exec = "ninja"
 
@@ -77,10 +78,10 @@ open Cmdliner
 
 let target_backend t =
   let aux = function
-    | ".c" | ".h" -> C
-    | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> OCaml
-    | ".py" -> Python
-    | ".catala_en" | ".catala_fr" | ".catala_pl" -> OCaml
+    | ".c" | ".h" -> Clerk_rules.C
+    | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> Clerk_rules.OCaml
+    | ".py" -> Clerk_rules.Python
+    | ".catala_en" | ".catala_fr" | ".catala_pl" -> Clerk_rules.OCaml
     | "" -> Message.error "Target without extension: @{<red>%S@}" t
     | ext ->
       Message.error
@@ -89,7 +90,7 @@ let target_backend t =
   match Filename.extension t with
   | ".exe" -> (
     match Filename.extension (Filename.chop_extension t) with
-    | "" -> OCaml
+    | "" -> Clerk_rules.OCaml
     | e -> aux e)
   | ext -> aux ext
 
@@ -159,11 +160,15 @@ let build_cmd =
   in
   Cmd.v (Cmd.info ~doc "build")
     Term.(
-      const run $ Cli.Global.term ninja_init $ Cli.targets $ Cli.ninja_flags)
+      const run
+      $ Cli.Global.term Clerk_rules.ninja_init
+      $ Cli.targets
+      $ Cli.ninja_flags)
 
 let raw_cmd =
   let run ninja_init (targets : string list) (ninja_flags : string list) =
-    ninja_init ~enabled_backends:all_backends ~extra:Seq.empty ~test_flags:[]
+    ninja_init ~enabled_backends:Clerk_rules.all_backends ~extra:Seq.empty
+      ~test_flags:[]
     @@ fun ~build_dir:_ ~fix_path ~nin_file ~items:_ ~var_bindings:_ ->
     if targets <> [] then (
       let targets =
@@ -201,7 +206,10 @@ let raw_cmd =
   Cmd.v
     (Cmd.info ~doc "raw-target")
     Term.(
-      const run $ Cli.Global.term ninja_init $ Cli.targets $ Cli.ninja_flags)
+      const run
+      $ Cli.Global.term Clerk_rules.ninja_init
+      $ Cli.targets
+      $ Cli.ninja_flags)
 
 let set_report_verbosity = function
   | `Summary -> Clerk_report.set_display_flags ~files:`None ~tests:`None ()
@@ -223,7 +231,9 @@ let test_cmd =
       (ninja_flags : string list) =
     set_report_verbosity verbosity;
     Clerk_report.set_display_flags ~diff_command ();
-    ninja_init ~enabled_backends:[OCaml; Tests] ~extra:Seq.empty ~test_flags
+    ninja_init
+      ~enabled_backends:Clerk_rules.[OCaml; Tests]
+      ~extra:Seq.empty ~test_flags
     @@ fun ~build_dir ~fix_path ~nin_file ~items:_ ~var_bindings:_ ->
     let targets =
       let fs = if files_or_folders = [] then ["."] else files_or_folders in
@@ -287,7 +297,7 @@ let test_cmd =
   Cmd.v (Cmd.info ~doc "test")
     Term.(
       const run
-      $ Cli.Global.term ninja_init
+      $ Cli.Global.term Clerk_rules.ninja_init
       $ Cli.files_or_folders
       $ Cli.reset_test_outputs
       $ Cli.test_flags
@@ -340,9 +350,9 @@ let run_cmd =
       (ninja_flags : string list) =
     let enabled_backends =
       match backend with
-      | `Interpret | `OCaml -> [OCaml]
-      | `C -> [C]
-      | `Python -> [Python]
+      | `Interpret | `OCaml -> [Clerk_rules.OCaml]
+      | `C -> [Clerk_rules.C]
+      | `Python -> [Clerk_rules.Python]
     in
     let open File in
     ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
@@ -350,7 +360,8 @@ let run_cmd =
     Message.debug "Enabled backends: %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
       (List.map
-         (function
+         Clerk_rules.(
+           function
            | OCaml -> "OCaml" | C -> "C" | Python -> "Python" | Tests -> "Tests")
          enabled_backends);
     let items = List.of_seq items in
@@ -567,7 +578,7 @@ let run_cmd =
   Cmd.v (Cmd.info ~doc "run")
     Term.(
       const run
-      $ Cli.Global.term ninja_init
+      $ Cli.Global.term Clerk_rules.ninja_init
       $ Cli.files_or_folders
       $ Cli.backend
       $ Cli.run_command
@@ -633,8 +644,8 @@ let list_vars_cmd =
   let run catala_exe catala_flags build_dir include_dirs =
     let build_dir = Option.value ~default:"_build" build_dir in
     let var_bindings =
-      base_bindings catala_exe catala_flags build_dir include_dirs [] []
-        all_backends false
+      Clerk_rules.base_bindings ~catala_exe ~catala_flags ~build_dir
+        ~include_dirs ~autotest:false ()
       |> List.filter_map (function Nj.Binding b -> Some b | _ -> None)
     in
     Format.eprintf "Defined variables:@.";
