@@ -1,0 +1,46 @@
+## Parser internal error
+
+```catala
+scope S:
+  definition x equals
+    combine acc initially 0
+    with
+      match x with pattern
+      -- A : 2
+    )
+    for i among lst
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[ERROR (1/2)]─
+│
+│  Expected the form '<expr> for <var> among <collection>'
+│
+├─➤ tests/parsing/bad/internal_parser_error.catala_en:8.7-9.15:
+│   │
+│ 8 │       match x with pattern
+│   │       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 9 │       -- A : 2
+│   │       ‾‾‾‾‾‾‾‾
+└─
+
+┌─[ERROR (2/2)]─
+│
+│  Syntax error at ")":
+│  » expected a binary operator continuing the expression, or a keyword
+│    ending the expression and starting the next item.
+│  Those are valid at this point: ".", ">", "=", "+", "-", "*", "/", "++",
+│  "!=", ">=", "<=", "but replace", "xor", "or", "and", "rule", "for",
+│  "assertion", "with pattern", "exception", "label", "definition", "date",
+│  "contains", "of", "declaration", "scope".
+│
+├─➤ tests/parsing/bad/internal_parser_error.catala_en:10.5-10.6:
+│    │
+│ 10 │     )
+│    │     ‾
+│
+│ Maybe you wanted to write: ".", ">", "=", "+", "-", "*" or "/"?
+└─
+#return code 123#
+```
