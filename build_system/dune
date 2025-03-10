@@ -17,7 +17,7 @@
   re
   ocolor
   otoml)
- (modules clerk_scan clerk_report clerk_runtest clerk_driver))
+ (modules clerk_scan clerk_report clerk_runtest clerk_cli clerk_rules clerk_driver))
 
 (rule
  (target custom_linking.sexp)
