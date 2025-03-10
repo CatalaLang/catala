@@ -17,7 +17,14 @@
   re
   ocolor
   otoml)
- (modules clerk_scan clerk_report clerk_runtest clerk_driver))
+ (modules
+  clerk_scan
+  clerk_report
+  clerk_runtest
+  clerk_cli
+  clerk_poll
+  clerk_rules
+  clerk_driver))
 
 (rule
  (target custom_linking.sexp)
@@ -34,7 +41,9 @@
   (:standard
    (:include custom_linking.sexp)))
  (libraries clerk_driver)
- (link_deps ../compiler/catala.exe)
+ (link_deps
+  ../compiler/catala.exe
+  (glob_files_rec ../runtimes/**))
  ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- ckerk test`)
  (modules clerk)
  (package catala))
