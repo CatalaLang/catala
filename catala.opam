@@ -68,7 +68,7 @@ build: [
   "@runtest" {with-test}
   "@doc" {with-doc}
 ]
-dev-repo: "git+https://github.com/CatalaLang/catala.git"
+dev-repo: "git+https://github.com/CatalaLang/catala"
 depexts: [
   ["groff"] { with-doc }
   ["python3-pip"] {cataladevmode & os-family = "debian"}
