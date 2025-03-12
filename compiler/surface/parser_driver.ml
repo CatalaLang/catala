@@ -475,34 +475,6 @@ and expand_includes
 
 (** {2 Handling interfaces} *)
 
-let get_interface program =
-  let rec filter (req, acc) = function
-    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
-    | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
-    | Ast.ModuleUse (mod_use_name, alias) ->
-      ( {
-          Ast.mod_use_name;
-          mod_use_alias = Option.value ~default:mod_use_name alias;
-        }
-        :: req,
-        acc )
-    | Ast.CodeBlock (code, _, true) ->
-      ( req,
-        List.fold_left
-          (fun acc -> function
-            | Ast.ScopeUse _, _ -> acc
-            | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-              e :: acc
-            | Ast.Topdef def, m ->
-              (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
-          acc code )
-    | Ast.CodeBlock (_, _, false) ->
-      (* Non-metadata blocks are ignored *)
-      req, acc
-  in
-  let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
-  List.rev req, List.rev acc
-
 (** {1 API} *)
 
 let check_modname program source_file =
@@ -519,7 +491,7 @@ let check_modname program source_file =
       File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
-let load_interface ?default_module_name source_file =
+let load_source_file ?default_module_name source_file content_builder =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
@@ -542,12 +514,61 @@ let load_interface ?default_module_name source_file =
           String.capitalize_ascii Filename.(basename (remove_extension s))
         | _ -> "Module_name")
   in
-  let used_modules, intf = get_interface program in
+  let used_modules, module_items = content_builder program in
   {
-    Ast.intf_modname = modname;
-    Ast.intf_code = intf;
-    Ast.intf_submodules = used_modules;
+    Ast.module_modname = modname;
+    Ast.module_items;
+    Ast.module_submodules = used_modules;
   }
+
+let load_interface ?default_module_name source_file =
+  let get_interface program =
+    let rec filter (req, acc) = function
+      | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
+      | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
+      | Ast.ModuleUse (mod_use_name, alias) ->
+        ( {
+            Ast.mod_use_name;
+            mod_use_alias = Option.value ~default:mod_use_name alias;
+          }
+          :: req,
+          acc )
+      | Ast.CodeBlock (code, _, true) ->
+        ( req,
+          List.fold_left
+            (fun acc -> function
+              | Ast.ScopeUse _, _ -> acc
+              | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+                e :: acc
+              | Ast.Topdef def, m ->
+                (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
+            acc code )
+      | Ast.CodeBlock (_, _, false) ->
+        (* Non-metadata blocks are ignored *)
+        req, acc
+    in
+    let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
+    List.rev req, Ast.Interface (List.rev acc)
+  in
+  load_source_file ?default_module_name source_file get_interface
+
+let load_interface_and_code ?default_module_name source_file =
+  let get_code_block program =
+    let rec filter req = function
+      | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req
+      | Ast.LawHeading (_, str) -> List.fold_left filter req str
+      | Ast.ModuleUse (mod_use_name, alias) ->
+        {
+          Ast.mod_use_name;
+          mod_use_alias = Option.value ~default:mod_use_name alias;
+        }
+        :: req
+      | Ast.CodeBlock _ -> req
+    in
+    let mod_uses = List.fold_left filter [] program.Ast.program_items in
+    List.rev mod_uses, Ast.Code program.Ast.program_items
+  in
+  load_source_file ?default_module_name source_file get_code_block
 
 let resolution_tbl = Hashtbl.create 13
 
