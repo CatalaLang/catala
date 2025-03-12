@@ -245,6 +245,14 @@ module Flags = struct
             "Instead of reporting an error on assertion failure, reports a \
              warning and carry on with the interpretation as usual."
 
+    let whole_program =
+      value
+      & flag
+      & info ["W"; "whole-program"]
+          ~doc:
+            "Compile the full chain of module dependencies without requiring a \
+             separate module compilation."
+
     let flags =
       let make
           language
@@ -258,7 +266,8 @@ module Flags = struct
           max_prec_digits
           directory
           stop_on_error
-          no_fail_on_assert : options =
+          no_fail_on_assert
+          whole_program : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -296,7 +305,7 @@ module Flags = struct
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
-          ~path_rewrite ~stop_on_error ~no_fail_on_assert ()
+          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program ()
       in
       Term.(
         const make
@@ -311,7 +320,8 @@ module Flags = struct
         $ max_prec_digits
         $ directory
         $ stop_on_error
-        $ no_fail_on_assert)
+        $ no_fail_on_assert
+        $ whole_program)
 
     let options =
       let make input_src name directory options : options =
