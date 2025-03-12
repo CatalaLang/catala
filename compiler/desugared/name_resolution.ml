@@ -1099,6 +1099,9 @@ let form_context (surface, mod_uses) surface_modules : context =
           let ctxt =
             List.fold_left process_decl_item ctxt intf.Surface.Ast.intf_code
           in
+          let ctxt =
+            List.fold_left process_use_item ctxt intf.Surface.Ast.intf_code
+          in
           {
             ctxt with
             modules = ModuleName.Map.add m ctxt.local ctxt.modules;
