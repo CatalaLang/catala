@@ -393,7 +393,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         | Map2 | Add_dat_dur _ | Sub_dat_dur _ | Lt_dur_dur | Lte_dur_dur
         | Gt_dur_dur | Gte_dur_dur | Eq_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos pos
-        | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
+        | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+        | Div_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos (Expr.pos (List.nth args 1))
         | HandleExceptions ->
           let excs =

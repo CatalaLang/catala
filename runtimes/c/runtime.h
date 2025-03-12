@@ -227,6 +227,8 @@ CATALA_INT o_mult_int_int (CATALA_INT x1, CATALA_INT x2);
 
 CATALA_DEC o_mult_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
 
+CATALA_MONEY o_mult_mon_int (CATALA_MONEY x1, CATALA_INT x2);
+
 CATALA_MONEY o_mult_mon_rat (CATALA_MONEY x1, CATALA_DEC x2);
 
 CATALA_DURATION o_mult_dur_int (CATALA_DURATION x1, CATALA_INT x2);
@@ -242,6 +244,10 @@ CATALA_DEC o_div_rat_rat (const catala_code_position* pos,
 CATALA_DEC o_div_mon_mon (const catala_code_position* pos,
                           CATALA_MONEY x1,
                           CATALA_MONEY x2);
+
+CATALA_MONEY o_div_mon_int (const catala_code_position* pos,
+                            CATALA_MONEY x1,
+                            CATALA_INT x2);
 
 CATALA_MONEY o_div_mon_rat (const catala_code_position* pos,
                             CATALA_MONEY x1,
