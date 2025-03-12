@@ -41,6 +41,7 @@ type options = {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable whole_program : bool;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -63,6 +64,7 @@ let options =
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
     no_fail_on_assert = false;
+    whole_program = true;
   }
 
 let enforce_options
@@ -79,6 +81,7 @@ let enforce_options
     ?path_rewrite
     ?stop_on_error
     ?no_fail_on_assert
+    ?whole_program
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -93,6 +96,7 @@ let enforce_options
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   Option.iter (fun x -> options.no_fail_on_assert <- x) no_fail_on_assert;
+  Option.iter (fun x -> options.whole_program <- x) whole_program;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
