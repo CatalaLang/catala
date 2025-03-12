@@ -32,6 +32,12 @@ val load_interface :
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
+val load_interface_and_code :
+  ?default_module_name:string -> File.t Global.input_src -> Ast.interface
+(** Reads the supplied input file and returns its interface that contains type
+    information as well as scope and topdef definitions. The list of submodules
+    is initialised with names only and empty contents. *)
+
 val register_included_file_resolver :
   filename:string -> new_content:string Global.input_src -> unit
 (** Register an included file dynamic resolver. When the surface's parser

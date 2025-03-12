@@ -325,8 +325,9 @@ and law_structure =
 and interface = {
   intf_modname : program_module;
   intf_code : code_block;
-      (** Invariant: an interface shall only contain [*Decl] elements, or
-          [Topdef] elements with [topdef_expr = None] *)
+      (** Invariant (only when [not Global.options.whole_program]): an interface
+          shall only contain [*Decl] elements, or [Topdef] elements with
+          [topdef_expr = None] *)
   intf_submodules : module_use list;
 }
 

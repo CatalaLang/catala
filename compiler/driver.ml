@@ -26,7 +26,7 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let load_module_interfaces
+let load_modules
     options
     includes
     ?(more_includes = [])
@@ -95,8 +95,12 @@ let load_module_interfaces
             else None
           in
           let intf =
-            Surface.Parser_driver.load_interface ?default_module_name
-              (Global.FileName f)
+            if options.Global.whole_program then
+              Surface.Parser_driver.load_interface_and_code ?default_module_name
+                (Global.FileName f)
+            else
+              Surface.Parser_driver.load_interface ?default_module_name
+                (Global.FileName f)
           in
           let modname = ModuleName.fresh intf.intf_modname.module_name in
           let seen = File.Map.add f None seen in
@@ -150,7 +154,7 @@ module Passes = struct
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg = surface options in
-    let mod_uses, modules = load_module_interfaces options includes prg in
+    let mod_uses, modules = load_modules options includes prg in
     debug_pass_name "desugared";
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
@@ -1101,8 +1105,7 @@ module Commands = struct
         }
     in
     let mod_uses, modules =
-      load_module_interfaces options includes ~more_includes
-        ~allow_notmodules:true prg
+      load_modules options includes ~more_includes ~allow_notmodules:true prg
     in
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
