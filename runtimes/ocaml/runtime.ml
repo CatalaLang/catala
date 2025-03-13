@@ -778,20 +778,24 @@ module EventParser = struct
 end
 
 let handle_exceptions
-    (pos : source_position array)
-    (exceptions : 'a Eoption.t array) : 'a Eoption.t =
+    (exceptions : ('a  * source_position) Eoption.t array) :
+    ('a * source_position) Eoption.t =
   let len = Array.length exceptions in
   let rec filt_except i =
     if i < len then
       match exceptions.(i) with
-      | Eoption.ESome _ as new_val -> (new_val, i) :: filt_except (i + 1)
+      | Eoption.ESome _ as new_val -> new_val :: filt_except (i + 1)
       | Eoption.ENone () -> filt_except (i + 1)
     else []
   in
   match filt_except 0 with
   | [] -> Eoption.ENone ()
-  | [(res, _)] -> res
-  | res -> error Conflict (List.map (fun (_, i) -> pos.(i)) res)
+  | [res] -> res
+  | res ->
+    error Conflict (List.map (function
+      | Eoption.ESome (_, pos) -> pos
+      | _ -> assert false)
+      res)
 
 (* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
    [3 months, 4 months] *)

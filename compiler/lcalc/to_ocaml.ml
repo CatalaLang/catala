@@ -396,19 +396,22 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
         | Div_dur_dur ->
           Format.fprintf ppf "%a@ " format_pos (Expr.pos (List.nth args 1))
-        | HandleExceptions ->
-          let excs =
-            match args with [(EArray ex, _)] -> ex | _ -> assert false
-          in
-          Format.fprintf ppf "[|@[<hov>%a@]|]@ "
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-               format_pos)
-            (List.map Expr.pos excs)
+        (* | HandleExceptions ->
+         *   let excs =
+         *     match args with [(EArray ex, _)] -> ex | _ -> assert false
+         *   in
+         *   Format.fprintf ppf "[|@[<hov>%a@]|]@ "
+         *     (Format.pp_print_list
+         *        ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+         *        format_pos)
+         *     (List.map Expr.pos excs) *)
         | _ -> ())
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         format_with_parens)
+         ~pp_sep:Format.pp_print_space
+         ((* if op = HandleExceptions
+           * then (fun ppf e ->
+           *     Format.fprintf ppf "(%a, %a)" format_expr e format_pos (Expr.pos e))
+           * else *) format_with_parens))
       args
   | EAssert e' ->
     Format.fprintf fmt
