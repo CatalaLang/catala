@@ -81,10 +81,12 @@ let rec expr_used_defs e =
   in
   match e with
   | ELocation (ToplevelVar { name = v, pos }), _ ->
-    if TopdefName.path v <> [] then VMap.empty
+    if TopdefName.path v <> [] && not Global.options.whole_program then
+      VMap.empty
     else VMap.singleton (Topdef v) pos
   | (EScopeCall { scope; _ }, m) as e ->
-    if ScopeName.path scope <> [] then recurse_subterms e
+    if ScopeName.path scope <> [] && not Global.options.whole_program then
+      recurse_subterms e
     else VMap.add (Scope scope) (Expr.mark_pos m) (recurse_subterms e)
   | EAbs { binder; _ }, _ ->
     let _, body = Bindlib.unmbind binder in
