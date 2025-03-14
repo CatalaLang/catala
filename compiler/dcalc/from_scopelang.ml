@@ -308,7 +308,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     (* For the purposes of log parsing explained in Runtime.EventParser, we need
        to wrap this function call in a flurry of log tags. Specifically, we are
-       mascarading this scope call as a function call. In a normal function
+       masquerading this scope call as a function call. In a normal function
        call, the log parser expects the output of the function to be defined as
        a default, hence the production of the output should yield a
        PosRecordIfTrueBool (which is not the case here). To remedy this absence
@@ -476,9 +476,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
             "Application of non-function toplevel variable")
       | _ -> TAny
     in
-    (* Message.debug "new_args %d, input_typs: %d, input_typs %a" (List.length
-       new_args) (List.length input_typs) (Format.pp_print_list Print.typ_debug)
-       (List.map (Mark.add Pos.no_pos) input_typs); *)
     let new_args =
       ListLabels.mapi (List.combine new_args input_typs)
         ~f:(fun i (new_arg, input_typ) ->
@@ -520,12 +517,16 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | ELocation (ScopelangScopeVar { name = a }) ->
     let v, _, _ = ScopeVar.Map.find (Mark.remove a) ctx.scope_vars in
     Expr.evar v m
-  | ELocation (ToplevelVar { name }) ->
-    let path = TopdefName.path (Mark.remove name) in
-    if path = [] then
+  | ELocation (ToplevelVar { name }) -> (
+    match TopdefName.path (Mark.remove name) with
+    | [] ->
       let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
       Expr.evar v m
-    else Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m
+    | _ :: _ when Global.options.whole_program ->
+      let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
+      Expr.evar v m
+    | _ :: _ ->
+      Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m)
   | EAppOp { op = Add_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding, opos) ~args ~tys m
@@ -800,12 +801,15 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let decl_ctx = prgm.program_ctx in
   let scopes_parameters : 'm scope_sig_ctx ScopeName.Map.t =
     let process_scope_sig decl_ctx scope_name scope =
-      let scope_path = ScopeName.path scope_name in
       let scope_ref =
-        if scope_path = [] then
+        match ScopeName.path scope_name with
+        | [] ->
           let v = Var.make (ScopeName.base scope_name) in
           Local_scope_ref v
-        else
+        | _ :: _ when Global.options.whole_program ->
+          let v = Var.make (ScopeName.base scope_name) in
+          Local_scope_ref v
+        | _ :: _ ->
           External_scope_ref
             (Mark.copy (ScopeName.get_info scope_name) scope_name)
       in
@@ -859,7 +863,10 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         scopes
     in
     ModuleName.Map.fold
-      (fun _ s -> ScopeName.Map.disjoint_union (process_scopes s))
+      (fun _ s ->
+        if Global.options.whole_program then
+          ScopeName.Map.union (fun _ x _ -> Some x) (process_scopes s)
+        else ScopeName.Map.disjoint_union (process_scopes s))
       prgm.S.program_modules
       (process_scopes prgm.S.program_scopes)
   in
