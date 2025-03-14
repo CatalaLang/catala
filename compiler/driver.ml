@@ -771,9 +771,11 @@ module Commands = struct
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~typed
     in
-    Interpreter.load_runtime_modules
-      ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
-      prg;
+    if not options.Global.whole_program then
+      Interpreter.load_runtime_modules
+        ~hashf:
+          Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+        prg;
     List.iter
       (print_interpretation_results options Interpreter.interpret_program_dcalc
          prg)
