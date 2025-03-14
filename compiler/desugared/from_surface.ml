@@ -1924,6 +1924,9 @@ let translate_program
     surface.Surface.Ast.program_module
     |> Option.map
        @@ fun { Surface.Ast.module_name; module_external } ->
+       if Global.options.whole_program then
+         Message.error "Cannot use --whole-program with %s external module."
+           (Mark.remove module_name);
        let mname = ModuleName.fresh module_name in
        let hash_placeholder = Hash.raw 0 in
        mname, { hash = hash_placeholder; is_external = module_external }

@@ -555,6 +555,11 @@ let load_interface ?default_module_name source_file =
 let load_interface_and_code ?default_module_name source_file =
   let get_code_block program =
     let rec filter (req, (acc : Ast.code_block)) = function
+      | Ast.ModuleDef (mname, true) ->
+        if Global.options.whole_program then
+          Message.error "Cannot use --whole-program with %s external module."
+            (Mark.remove mname)
+        else req, acc
       | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
       | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
       | Ast.ModuleUse (mod_use_name, alias) ->
