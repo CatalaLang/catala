@@ -1327,7 +1327,19 @@ let process_def
     (prgm : Ast.program)
     (def : S.definition) : Ast.program =
   let scope : Ast.scope =
-    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+    ScopeName.Map.find_opt scope_uid prgm.program_root.module_scopes
+    |> function
+    | Some s -> s
+    | None when Global.options.whole_program -> (
+      (* In whole-program, also look for the def in modules *)
+      ModuleName.Map.fold
+        (fun _mn modul -> function
+          | Some s -> Some s
+          | None -> ScopeName.Map.find_opt scope_uid modul.Ast.module_scopes)
+        prgm.program_modules None
+      |> function
+      | None -> raise (ScopeName.Map.Not_found scope_uid) | Some s -> s)
+    | None -> raise (ScopeName.Map.Not_found scope_uid)
   in
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key =
@@ -1557,13 +1569,6 @@ let process_scope_use
     (prgm : Ast.program)
     (use : S.scope_use) : Ast.program =
   let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
-  (* Make sure the scope exists *)
-  let prgm =
-    match ScopeName.Map.find_opt scope_uid prgm.program_root.module_scopes with
-    | Some _ -> prgm
-    | None -> assert false
-    (* should not happen *)
-  in
   let precond = use.scope_use_condition in
   List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
   List.fold_left
@@ -1781,8 +1786,10 @@ let init_scope_defs
   Ident.Map.fold add_def scope_context.var_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
-let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
-    Ast.program =
+let translate_program
+    (ctxt : Name_resolution.context)
+    (modules_itfs : Surface.Ast.interface ModuleName.Map.t)
+    (surface : S.program) : Ast.program =
   let get_scope s_uid =
     let s_context = ScopeName.Map.find s_uid ctxt.scopes in
     let scope_vars =
@@ -1953,15 +1960,25 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
   let desugared =
     List.fold_left process_structure desugared surface.S.program_items
   in
-  {
-    desugared with
-    Ast.program_module_name =
-      (desugared.Ast.program_module_name
-      |> Option.map
-         @@ fun (mname, intf_id) ->
-         ( mname,
-           {
-             intf_id with
-             hash = Ast.Hash.module_binding mname desugared.Ast.program_root;
-           } ));
-  }
+  let desugared =
+    (* Add module's code items to the program *)
+    if Global.options.whole_program then
+      ModuleName.Map.fold
+        (fun mn itf prog ->
+          let local = ModuleName.Map.find mn ctxt.modules in
+          let ctxt = { ctxt with local } in
+          process_code_block ctxt prog true itf.S.intf_code)
+        modules_itfs desugared
+    else desugared
+  in
+  let program_module_name =
+    Option.map
+      (fun (mname, intf_id) ->
+        ( mname,
+          {
+            intf_id with
+            hash = Ast.Hash.module_binding mname desugared.Ast.program_root;
+          } ))
+      desugared.Ast.program_module_name
+  in
+  { desugared with Ast.program_module_name }
