@@ -59,10 +59,10 @@
 (alias
  (name for-tests)
  (deps
-  _build/install/default/bin/catala
-  _build/install/default/bin/clerk
-  _build/install/default/lib/catala/runtime_ocaml/runtime_ocaml.cmi
-  _build/install/default/lib/catala/runtime_ocaml/runtime_ocaml__Runtime.cmi))
+  %{bin:catala}
+  %{bin:clerk}
+  (alias runtimes)))
+
 
 ;; This garbles Clerk output, prefer to run from Makefile
 ;; (rule
