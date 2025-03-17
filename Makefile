@@ -73,17 +73,20 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-python
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
 
+CATALA_BIN = _build/default/$(COMPILER_DIR)/catala.exe
+CLERK_BIN = _build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
+
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
 	dune build \
 		$(COMPILER_DIR)/catala.exe \
 		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe 
+		$(BUILD_SYSTEM_DIR)/clerk.exe
 
-_build/install/default/bin/catala: .FORCE
+$(CATALA_BIN): .FORCE
 	dune build @catala
 
-_build/install/default/bin/clerk: .FORCE
+$(CLERK_BIN): .FORCE
 	dune build @clerk
 
 # Just the base compiler as needed to run the tests
@@ -202,9 +205,6 @@ syntax:
 
 CATALAOPTS ?=
 CLERK_OPTS ?=
-
-CATALA_BIN = _build/default/$(COMPILER_DIR)/catala.exe
-CLERK_BIN := _build/install/default/bin/clerk
 
 CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 	$(CLERK_OPTS) $(if $(CATALAOPTS),--catala-opts=$(CATALAOPTS),)

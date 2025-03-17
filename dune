@@ -61,8 +61,7 @@
  (deps
   %{bin:catala}
   %{bin:clerk}
-  (alias runtimes)))
-
+  (alias runtimes/runtimes)))
 
 ;; This garbles Clerk output, prefer to run from Makefile
 ;; (rule
