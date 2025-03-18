@@ -314,7 +314,11 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleExceptions -> [array (option any)] @-> option any
+    | HandleExceptions ->
+      let pair a b = lazy (UnionFind.make (TTuple [Lazy.force a; Lazy.force b], pos)) in
+      let tpos = lazy (UnionFind.make (TLit A.TPos, pos)) in
+      let texn = option (pair any tpos) in
+      [array texn] @-> texn
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
