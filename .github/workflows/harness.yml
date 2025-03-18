@@ -133,13 +133,13 @@ jobs:
       - name: Install LaTeX deps
         # This is done late because caching would not benefit compared to
         # installation through apk (1,5G upload is slow)
-        run: sudo apk add texlive-xetex texlive-dvi texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
+        run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
         # Fewer texmf deps should be required once
         # https://gitlab.alpinelinux.org/alpine/aports/-/issues/16190 is fixed
       - name: Build Catala extra docs
         run: |
           cd ~/catala
-          sed -i 's/minted2/minted/' doc/syntax/syntax_??.tex
+          sed -i s/minted2/minted/ doc/syntax/syntax_en.tex doc/syntax/syntax_fr.tex
           opam --cli=2.1 exec -- make syntax
           opam --cli=2.1 exec -- make doc
       - name: Checkout examples repo
