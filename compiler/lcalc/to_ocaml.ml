@@ -422,6 +422,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EFatalError er ->
     Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, [%a]))"
       Print.runtime_error er format_pos (Expr.pos e)
+  | EPos p ->
+    format_pos fmt p
   | _ -> .
 
 (* TODO: move [embed_foo] to [Foo.embed] to protect from name clashes *)

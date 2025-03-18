@@ -993,6 +993,7 @@ and typecheck_expr_top_down :
     in
     Expr.eassert e1' mark
   | A.EFatalError err -> Expr.efatalerror err context_mark
+  | A.EPos p -> Expr.epos p (ty_mark (TLit TPos))
   | A.EEmpty ->
     Expr.eempty (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
   | A.EErrorOnEmpty e1 ->

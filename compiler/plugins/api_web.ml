@@ -59,7 +59,8 @@ module To_jsoo = struct
       | TRat | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
-      | TDate -> "Js.js_string Js.t")
+      | TDate -> "Js.js_string Js.t"
+      | TPos -> assert false)
 
   let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
     let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
@@ -96,6 +97,7 @@ module To_jsoo = struct
     | TLit TMoney -> Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
     | TLit TDuration -> Format.fprintf fmt "duration_to_js"
     | TLit TDate -> Format.fprintf fmt "date_to_js"
+    | TLit TPos -> assert false
     | TEnum ename -> Format.fprintf fmt "%a_to_js" format_enum_name ename
     | TStruct sname -> Format.fprintf fmt "%a_to_js" format_struct_name sname
     | TArray t ->
@@ -131,6 +133,7 @@ module To_jsoo = struct
         "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
     | TLit TDuration -> Format.fprintf fmt "duration_of_js"
     | TLit TDate -> Format.fprintf fmt "date_of_js"
+    | TLit TPos -> assert false
     | TEnum ename -> Format.fprintf fmt "%a_of_js" format_enum_name ename
     | TStruct sname -> Format.fprintf fmt "%a_of_js" format_struct_name sname
     | TArray t ->

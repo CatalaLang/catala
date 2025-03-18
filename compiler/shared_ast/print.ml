@@ -68,7 +68,8 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TRat -> "decimal"
     | TMoney -> "money"
     | TDuration -> "duration"
-    | TDate -> "date")
+    | TDate -> "date"
+    | TPos -> "position")
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
@@ -439,6 +440,7 @@ module Precedence = struct
     | EPureDefault _ -> Contained
     | EEmpty -> Contained
     | EErrorOnEmpty _ -> App
+    | EPos _ -> Contained
     | ECustom _ -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
@@ -676,6 +678,8 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
           (rhs exprc) e'
+      | EPos p ->
+        Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
           "(" (rhs exprc) e' punctuation ")"
@@ -1127,7 +1131,7 @@ module UserFacing = struct
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
+    | EErrorOnEmpty _ | EPos _ | ELocation _ | EScopeCall _ | EDStructAmend _
     | EDStructAccess _ ->
       fallback ppf e
 

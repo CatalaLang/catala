@@ -20,6 +20,9 @@ type t
 (** A position in the source code is a file, as well as begin and end location
     of the form col:line *)
 
+val compare : t -> t -> int
+val equal : t -> t -> bool
+
 (**{2 Constructor and getters}*)
 
 val from_lpos : Lexing.position * Lexing.position -> t

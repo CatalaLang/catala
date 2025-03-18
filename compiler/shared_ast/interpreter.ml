@@ -494,6 +494,12 @@ let rec runtime_to_val :
   | TLit TMoney -> ELit (LMoney (Obj.obj o)), m
   | TLit TDate -> ELit (LDate (Obj.obj o)), m
   | TLit TDuration -> ELit (LDuration (Obj.obj o)), m
+  | TLit TPos ->
+    let rpos : Runtime.source_position = Obj.obj o in
+    let p = Pos.from_info rpos.filename rpos.start_line rpos.start_column rpos.end_line rpos.end_column in
+    let p = Pos.overwrite_law_info p rpos.law_headings in
+    (* This is only allowed in lcalc, but the typer doesn't know *)
+    Obj.magic (EPos p), m
   | TTuple ts ->
     ( ETuple
         (List.map2
@@ -571,6 +577,17 @@ and val_to_runtime :
   | TLit TMoney, ELit (LMoney m) -> Obj.repr m
   | TLit TDate, ELit (LDate t) -> Obj.repr t
   | TLit TDuration, ELit (LDuration d) -> Obj.repr d
+  | TLit TPos, EPos p ->
+    let rpos : Runtime.source_position =
+      { Runtime.
+        filename = Pos.get_file p;
+        start_line = Pos.get_start_line p;
+        start_column = Pos.get_start_column p;
+        end_line = Pos.get_end_line p;
+        end_column = Pos.get_end_column p;
+        law_headings = Pos.get_law_info p;
+      } in
+    Obj.repr rpos
   | TTuple ts, ETuple es ->
     List.map2 (val_to_runtime eval_expr ctx) ts es |> Array.of_list |> Obj.repr
   | TStruct name1, EStruct { name; fields } ->
@@ -724,7 +741,7 @@ let rec evaluate_expr :
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs _ | ELit _ | ECustom _ | EEmpty -> e (* these are values *)
+  | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
@@ -982,6 +999,7 @@ let addcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -1012,6 +1030,7 @@ let delcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
