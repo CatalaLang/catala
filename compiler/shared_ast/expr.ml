@@ -263,6 +263,7 @@ let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
 (* - Predefined types (option) - *)
 
 let option_enum = EnumName.fresh [] ("Eoption", Pos.no_pos)
+let option_struct = StructName.fresh [] ("Soption", Pos.no_pos)
 
 (* Warning: order of these definitions is important, binary injection assumes
    that None is first *)
@@ -994,6 +995,8 @@ let make_puredefault e =
     map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
   epuredefault e mark
+
+let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in

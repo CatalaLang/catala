@@ -48,12 +48,14 @@ typedef struct catala_code_position
 
 struct catala_error
 {
-  catala_code_position position;
+  const catala_code_position ** position;
+  int nb_positions;
   catala_error_code code;
 };
 
 void catala_error(catala_error_code code,
-                  const catala_code_position * pos);
+                  const catala_code_position ** pos,
+                  const int nb_pos);
 
 /* --- Memory allocations --- */
 
@@ -79,12 +81,14 @@ void catala_unset_persistent_malloc(void);
 #define CATALA_DATE const dc_date*
 #define CATALA_DURATION const dc_period*
 #define CATALA_ARRAY(_) catala_array*
-#define CATALA_POSITOIN const catala_code_position*
+#define CATALA_POSITION const catala_code_position*
 
 typedef struct tuple_element {
   const void* content;
 } tuple_element;
-#define CATALA_TUPLE tuple_element*
+#define CATALA_TUPLE(_) tuple_element*
+
+#define CATALA_EXN(X) CATALA_OPTION(CATALA_TUPLE(X,CATALA_POSITION))
 
 #define CLOSURE_ENV void**
 
@@ -333,9 +337,8 @@ const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
 const CATALA_ARRAY(Z) o_concat (const CATALA_ARRAY(X) x,
                                 const CATALA_ARRAY(Y) y);
 
-const CATALA_OPTION() handle_exceptions
-  (const CATALA_ARRAY(const catala_code_position*) pos,
-   const CATALA_ARRAY(const CATALA_OPTION()) e);
+const CATALA_EXN(X) handle_exceptions
+  (const CATALA_ARRAY(const CATALA_EXN(X)) e);
 
 /* --- Runtime initialisation --- */
 
