@@ -69,7 +69,7 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TMoney -> "money"
     | TDuration -> "duration"
     | TDate -> "date"
-    | TPos -> "position")
+    | TPos -> "source_position")
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with

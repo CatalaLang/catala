@@ -196,57 +196,38 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         tys = [t_arr];
         args = [(EArray exceptions, _)];
       } ->
-    let exceptions_stmts, new_exceptions, ren_ctx =
+    let stmts, new_exceptions, ren_ctx =
       translate_expr_list ctxt exceptions
     in
     let ctxt = { ctxt with ren_ctx } in
-    let eposl, vposdefs, ctxt =
-      List.fold_left
-        (fun (eposl, vposdefs, ctxt) exc ->
-          let epos, vposdef, ctxt = lift_pos ctxt (Expr.pos exc) in
-          epos :: eposl, RevBlock.append vposdefs vposdef, ctxt)
-        ([], RevBlock.empty, ctxt) exceptions
-    in
-    let stmts = exceptions_stmts ++ vposdefs in
-    let stmts, epos, excs, ctxt =
+    let stmts, excs, ctxt =
       if not ctxt.config.no_struct_literals then
         ( stmts,
-          (A.EArray (List.rev eposl), pos),
           (A.EArray new_exceptions, pos),
           ctxt )
       else
         let arr_var_name, ctxt =
           fresh_var ~pos ctxt ("exc_" ^ ctxt.context_name)
         in
-        let pos_arr_var_name, ctxt = fresh_var ~pos ctxt "pos_list" in
         let stmts =
           stmts
-          ++ RevBlock.make
-               [
-                 ( A.SLocalInit
-                     {
-                       name = arr_var_name, pos;
-                       typ = t_arr;
-                       expr = A.EArray new_exceptions, pos;
-                     },
-                   pos );
-                 ( A.SLocalInit
-                     {
-                       name = pos_arr_var_name, pos;
-                       typ = TArray (TLit TUnit, pos), pos;
-                       expr = A.EArray (List.rev eposl), pos;
-                     },
-                   pos );
-               ]
+          +>
+          ( A.SLocalInit
+              {
+                name = arr_var_name, pos;
+                typ = t_arr;
+                expr = A.EArray new_exceptions, pos;
+              },
+            pos )
         in
-        stmts, (A.EVar pos_arr_var_name, pos), (A.EVar arr_var_name, pos), ctxt
+        stmts, (A.EVar arr_var_name, pos), ctxt
     in
     ( stmts,
       ( A.EAppOp
           {
             op = Op.HandleExceptions, pos;
-            args = [epos; excs];
-            tys = [TLit TUnit, pos; t_arr];
+            args = [excs];
+            tys = [t_arr];
           },
         pos ),
       ctxt.ren_ctx )
@@ -259,7 +240,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         let epos, vposdef, ctxt = lift_pos ctxt pos in
         ( RevBlock.append stmts vposdef,
           epos :: args,
-          (TLit TUnit, pos) :: tys,
+          (TLit TPos, pos) :: tys,
           ctxt )
       else stmts, args, tys, ctxt
     in
@@ -299,7 +280,11 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       (A.EApp { f = new_f; args = new_args }, Expr.pos expr),
       ren_ctx )
   | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr), ctxt.ren_ctx
-  | EPos p -> RevBlock.empty, (A.EPosLit, p), ctxt.ren_ctx
+  | EPos p ->
+    let epos, vposdef, ctxt = lift_pos ctxt p in
+    ( RevBlock.empty +> vposdef,
+      epos,
+      ctxt.ren_ctx)
   | EExternal { name } ->
     let path, name =
       match Mark.remove name with

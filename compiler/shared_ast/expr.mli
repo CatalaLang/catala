@@ -230,6 +230,8 @@ val typed : typed mark
 (** {2 Predefined types} *)
 
 val option_enum : EnumName.t
+val option_struct : StructName.t (** Only used in some backends where enums piggy-back on structs (e.g. C) *)
+
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
@@ -370,6 +372,10 @@ val make_app :
 
 val make_puredefault :
   ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val make_pos :
+  Pos.t -> 'm mark -> ((< defaultTerms : no ; .. > as 'a), 'm) boxed_gexpr
+(** [m] is used as type witness, but both position and type are overriden *)
 
 val make_erroronempty :
   ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr

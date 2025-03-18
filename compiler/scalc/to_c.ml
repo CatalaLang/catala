@@ -122,7 +122,7 @@ let rec format_typ
   | TLit TPos -> Format.fprintf fmt "CATALA_POSITION%t" element_name
   | TTuple [_; (TClosureEnv, _)] ->
     Format.fprintf fmt "%scatala_closure*%t" sconst element_name
-  | TTuple _ -> Format.fprintf fmt "%sCATALA_TUPLE%t" sconst element_name
+  | TTuple ts -> Format.fprintf fmt "%sCATALA_TUPLE(%a)%t" sconst (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ';') (format_typ decl_ctx ~const:false ignore)) ts element_name
   | TStruct s ->
     Format.fprintf fmt "%s%s*%t" sconst (StructName.base s) element_name
   | TOption t ->
@@ -293,7 +293,7 @@ let rec format_expression
   | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
     Format.fprintf fmt "((catala_closure *)%a)" format_expression arg
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
-    Format.fprintf fmt "((CATALA_TUPLE)%a)" format_expression arg
+    Format.fprintf fmt "((CATALA_TUPLE(_))%a)" format_expression arg
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op format_expression arg1
       format_expression arg2
@@ -362,7 +362,12 @@ let rec format_expression
   | ETupleAccess { e1; index; typ } ->
     Format.fprintf fmt "(%a)(%a[%d].content)"
       (format_typ ctx.decl_ctx ignore)
-      typ format_expression e1 index
+      typ
+      (fun ppf -> function
+         | EStructFieldAccess {name; _}, _ as e when name = Expr.option_struct ->
+           Format.fprintf ppf "((CATALA_TUPLE(_))%a)" format_expression e
+         | e -> format_expression ppf e )
+      e1 index
   | EExternal { name; _ } ->
     (* The name has already been properly qualified in [Renaming] *)
     Format.fprintf fmt "%s()" (Mark.remove name)
@@ -476,7 +481,7 @@ let rec format_statement
       } ->
     let cast =
       match op with
-      | FromClosureEnv -> "CATALA_TUPLE"
+      | FromClosureEnv -> "CATALA_TUPLE(_)"
       | ToClosureEnv -> "catala_closure *"
       | _ -> assert false
     in
@@ -502,7 +507,7 @@ let rec format_statement
       (format_expression ctx env)
       e
   | SFatalError { pos_expr; error } ->
-    Format.fprintf fmt "@,@[<hov 2>catala_error(catala_%s,@ %a);@]"
+    Format.fprintf fmt "@,@[<hov 2>catala_error(catala_%s,@ (const catala_code_position **)&%a, 1);@]"
       (String.to_snake_case (Runtime.error_to_string error))
       (format_expression ctx env)
       pos_expr
@@ -544,7 +549,8 @@ let rec format_statement
     Format.fprintf fmt
       "@,\
        @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
-       @[<hov 2>catala_error(catala_assertion_failed,@ %a);@]@;\
+       @[<hov 2>catala_error(catala_assertion_failed,@ \
+       (const catala_code_position **)&%a, 1);@]@;\
        <1 -2>}@]"
       (format_expression ctx env)
       expr
@@ -592,7 +598,7 @@ and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
              {
                e1 = EVar switch_var, pos;
                field = StructField.fresh ("payload", pos);
-               name = StructName.fresh [] ("Dummy", pos);
+               name = Expr.option_struct;
              },
            pos )
          some_case.payload_var_typ pos some_case.case_block);
