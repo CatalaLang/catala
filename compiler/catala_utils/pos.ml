@@ -24,6 +24,14 @@ let lex_pos_compare lp1 lp2 =
   | 0 -> Int.compare lp1.Lexing.pos_cnum lp2.Lexing.pos_cnum
   | n -> n
 
+let compare p1 p2 =
+  let p1beg, p1end = p1.code_pos and p2beg, p2end = p2.code_pos in
+  match lex_pos_compare p1beg p2beg with
+  | 0 -> lex_pos_compare p1end p2end
+  | n -> n
+
+let equal p1 p2 = p1.code_pos = p2.code_pos
+
 let join (p1 : t) (p2 : t) : t =
   if (fst p1.code_pos).Lexing.pos_fname <> (fst p2.code_pos).Lexing.pos_fname
   then invalid_arg "Pos.join";

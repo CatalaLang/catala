@@ -119,6 +119,7 @@ let rec format_typ
   | TLit TDate -> Format.fprintf fmt "CATALA_DATE%t" element_name
   | TLit TDuration -> Format.fprintf fmt "CATALA_DURATION%t" element_name
   | TLit TBool -> Format.fprintf fmt "CATALA_BOOL%t" element_name
+  | TLit TPos -> Format.fprintf fmt "CATALA_POSITION%t" element_name
   | TTuple [_; (TClosureEnv, _)] ->
     Format.fprintf fmt "%scatala_closure*%t" sconst element_name
   | TTuple _ -> Format.fprintf fmt "%sCATALA_TUPLE%t" sconst element_name

@@ -167,6 +167,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     (* TODO: Use differnt dates conventions depending on the language ? *)
     | TDate -> nb_days_to_date (int_of_string (Expr.to_string e))
     | TDuration -> Format.asprintf "%s days" (Expr.to_string e)
+    | TPos -> ""
   in
 
   match Mark.remove ty with
@@ -274,6 +275,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
      Jan 1, 1900 *)
   | TDate -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TDuration -> Arithmetic.Integer.mk_sort ctx.ctx_z3
+  | TPos -> fst ctx.ctx_z3unit
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
 let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =

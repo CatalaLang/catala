@@ -79,6 +79,7 @@ void catala_unset_persistent_malloc(void);
 #define CATALA_DATE const dc_date*
 #define CATALA_DURATION const dc_period*
 #define CATALA_ARRAY(_) catala_array*
+#define CATALA_POSITOIN const catala_code_position*
 
 typedef struct tuple_element {
   const void* content;

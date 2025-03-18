@@ -92,6 +92,9 @@ val eassert :
 
 val efatalerror : Runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
 
+val epos :
+  Pos.t -> 'm mark -> ((< defaultTerms : no ; .. > as 'a), 'm) boxed_gexpr
+
 val eappop :
   op:'a operator Mark.pos ->
   args:('a, 'm) boxed_gexpr list ->

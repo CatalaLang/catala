@@ -211,7 +211,7 @@ type ('d, 'c) interpr_kind =
 
 (** {2 Types} *)
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 
 type typ = naked_typ Mark.pos
 
@@ -599,6 +599,8 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
   | EFatalError : Runtime.error -> ('a, < .. >, 'm) base_gexpr
+  | EPos : Pos.t -> ('a, < defaultTerms : no ; .. >, 'm) base_gexpr
+      (** Position literal, used along returned exceptions *)
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 'm) gexpr list;
