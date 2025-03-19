@@ -26,23 +26,33 @@ end
 
 let s (_: S_in.t) : S.t =
   let sr: money =
-    match (Eoption.ESome (money_of_cents_string "100000"))
+    match
+      (Eoption.ESome
+         ((money_of_cents_string "100000"),
+           ({filename="tests/modules/good/mod_def.catala_en";
+             start_line=29; start_column=24; end_line=29; end_column=30;
+             law_headings=["Test modules + inclusions 1"]})))
     with
     | Eoption.ENone _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                                                  start_line=16; start_column=10;
                                                  end_line=16; end_column=12;
                                                  law_headings=["Test modules + inclusions 1"]}])))
-    | Eoption.ESome arg -> arg in
+    | Eoption.ESome arg -> (let x, _ = arg in x) in
   let e1: Enum1.t =
-    match (Eoption.ESome (Enum1.Maybe ()))
+    match
+      (Eoption.ESome
+         ((Enum1.Maybe ()),
+           ({filename="tests/modules/good/mod_def.catala_en";
+             start_line=30; start_column=24; end_line=30; end_column=29;
+             law_headings=["Test modules + inclusions 1"]})))
     with
     | Eoption.ENone _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                                                  start_line=17; start_column=10;
                                                  end_line=17; end_column=12;
                                                  law_headings=["Test modules + inclusions 1"]}])))
-    | Eoption.ESome arg -> arg in
+    | Eoption.ESome arg -> (let x, _ = arg in x) in
   {S.sr = sr; S.e1 = e1}
 
 let half : integer -> decimal =
