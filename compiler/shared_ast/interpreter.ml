@@ -1187,9 +1187,12 @@ let evaluate_expr ctx lang e =
 let loaded_modules = Hashtbl.create 17
 
 let load_runtime_modules ~hashf prg =
+  (* In whole-program, we only need to load external modules *)
+  let externals_only = Global.options.whole_program in
   let load (mname, intf_id) =
     let hash = hashf intf_id.hash in
     if Hashtbl.mem loaded_modules mname then ()
+    else if (not intf_id.is_external) && externals_only then ()
     else
       let expect_hash =
         if intf_id.is_external then Hash.external_placeholder
@@ -1242,5 +1245,8 @@ let load_runtime_modules ~hashf prg =
   if modules_list_topo <> [] then
     Message.debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)
-      (List.map (fun (m, _) -> m) modules_list_topo);
+      (List.filter_map
+         (fun (m, { is_external; _ }) ->
+           if externals_only && not is_external then None else Some m)
+         modules_list_topo);
   List.iter load modules_list_topo
