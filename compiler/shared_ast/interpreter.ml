@@ -558,8 +558,10 @@ let rec runtime_to_val :
        isn't aware so we need some additional dark arts. *)
     match (Obj.obj o : 'a Runtime.Eoption.t) with
     | Runtime.Eoption.ENone () -> Obj.magic EEmpty, m
-    | Runtime.Eoption.ESome o -> Obj.magic (runtime_to_val eval_expr ctx m ty o)
-    )
+    | Runtime.Eoption.ESome o -> (
+      match runtime_to_val eval_expr ctx m ty o with
+      | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
+      | _ -> assert false))
   | TAny -> assert false
 
 and val_to_runtime :
@@ -652,10 +654,22 @@ and val_to_runtime :
     in
     curry [] targs
   | TDefault ty, _ -> (
+    (* In dcalc, this is an expression. in the runtime (lcalc), this is an
+       option(pair(expression, pos)) *)
     match v with
     | EEmpty, _ -> Obj.repr (Runtime.Eoption.ENone ())
-    | EPureDefault e, _ | e ->
-      Obj.repr (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty e)))
+    | EPureDefault e, m | ((_, m) as e) ->
+      let e = eval_expr ctx e in
+      let pos = Expr.pos e in
+      let epos = Obj.magic (EPos pos) in
+      (* EPos is not accepted in dcalc, but here we deal with a lcalc-based
+         runtime *)
+      let ty = TTuple [ty; TLit TPos, pos], pos in
+      let with_pos =
+        ETuple [e; epos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
+      in
+      Obj.repr
+        (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))
   | TClosureEnv, v ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
