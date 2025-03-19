@@ -482,6 +482,7 @@ type 'a glocation =
       -> < scopeVarSimpl : yes ; .. > glocation
   | ToplevelVar : {
       name : TopdefName.t Mark.pos;
+      is_external : bool;
     }
       -> < explicitScopes : yes ; .. > glocation
 

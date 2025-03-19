@@ -70,9 +70,9 @@ type 'm scope_decl = {
 type 'm program = {
   program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
-  program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
+  program_modules : 'm scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
-  program_topdefs : ('m expr * typ * visibility) TopdefName.Map.t;
+  program_topdefs : ('m expr * typ * visibility * bool) TopdefName.Map.t;
   program_lang : Global.backend_lang;
 }
 
@@ -124,27 +124,34 @@ let type_program (type m) (prg : m program) : typed program =
   in
   let program_topdefs =
     TopdefName.Map.map
-      (fun (expr, typ, vis) ->
-        Expr.unbox (Typing.expr prg.program_ctx ~env ~typ expr), typ, vis)
+      (fun (expr, typ, vis, is_external) ->
+        ( Expr.unbox (Typing.expr prg.program_ctx ~env ~typ expr),
+          typ,
+          vis,
+          is_external ))
       prg.program_topdefs
   in
-  let program_scopes =
-    ScopeName.Map.map
-      (Mark.map (fun scope_decl ->
-           let env =
-             ScopeVar.Map.fold
-               (fun svar { svar_out_ty; _ } env ->
-                 Typing.Env.add_scope_var svar svar_out_ty env)
-               scope_decl.scope_sig env
-           in
-           let scope_decl_rules =
-             List.map
-               (type_rule prg.program_ctx env)
-               scope_decl.scope_decl_rules
-           in
-           { scope_decl with scope_decl_rules }))
-      prg.program_scopes
+  let type_scope scope =
+    Mark.map
+      (fun scope_decl ->
+        let env =
+          ScopeVar.Map.fold
+            (fun svar { svar_out_ty; _ } env ->
+              Typing.Env.add_scope_var svar svar_out_ty env)
+            scope_decl.scope_sig env
+        in
+        let scope_decl_rules =
+          List.map (type_rule prg.program_ctx env) scope_decl.scope_decl_rules
+        in
+        { scope_decl with scope_decl_rules })
+      scope
   in
-  { prg with program_topdefs; program_scopes }
+  let program_scopes = ScopeName.Map.map type_scope prg.program_scopes in
+  let program_modules =
+    ModuleName.Map.map
+      (fun scopes -> ScopeName.Map.map type_scope scopes)
+      prg.program_modules
+  in
+  { prg with program_topdefs; program_scopes; program_modules }
 
 let type_program prg = Message.with_delayed_errors (fun () -> type_program prg)
