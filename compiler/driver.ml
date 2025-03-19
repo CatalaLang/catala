@@ -163,7 +163,8 @@ module Passes = struct
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.debug "Desugaring...";
-    let prg = Desugared.From_surface.translate_program ctx prg in
+    let modules = ModuleName.Map.map fst modules in
+    let prg = Desugared.From_surface.translate_program ctx modules prg in
     Message.debug "Disambiguating...";
     let prg = Desugared.Disambiguate.program prg in
     Message.debug "Linting...";
@@ -1114,7 +1115,8 @@ module Commands = struct
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
     in
-    let prg = Desugared.From_surface.translate_program d_ctx prg in
+    let modules = ModuleName.Map.map fst modules in
+    let prg = Desugared.From_surface.translate_program d_ctx modules prg in
     let modules_list_topo =
       Program.modules_to_list prg.program_ctx.ctx_modules
     in

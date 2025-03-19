@@ -185,6 +185,6 @@ val process_type : context -> Surface.Ast.typ -> typ
 
 val form_context :
   Surface.Ast.program * ModuleName.t Ident.Map.t ->
-  (Surface.Ast.interface * ModuleName.t Ident.Map.t) ModuleName.Map.t ->
+  (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t ->
   context
 (** Derive the context from metadata, in one pass over the declarations *)
