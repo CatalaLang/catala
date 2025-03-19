@@ -24,9 +24,9 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -s Foo
 let scope Foo (foo_in: Foo_in): Foo {bar: integer} =
   let set bar : integer =
-    match (ESome 0) with
+    match (ESome (0, <simple:8.25-26>)) with
     | ENone → error NoValue
-    | ESome arg → arg
+    | ESome arg → arg.0
   in
   return { Foo bar = bar; }
 ```

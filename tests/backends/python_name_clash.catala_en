@@ -91,27 +91,35 @@ class BIn:
 
 def some_name(some_name_in:SomeNameIn):
     i = (some_name_in.i_in)
-    o__1 = ((i + integer_of_string("1")))
+    pos = (SourcePosition(
+               filename="tests/backends/python_name_clash.catala_en",
+               start_line=10, start_column=23, end_line=10, end_column=28,
+               law_headings=[]))
+    o__1 = (((i + integer_of_string("1")), pos))
     if o__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/backends/python_name_clash.catala_en",
-                   start_line=7, start_column=10, end_line=7, end_column=11,
-                   law_headings=[]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/backends/python_name_clash.catala_en",
+                      start_line=7, start_column=10,
+                      end_line=7, end_column=11, law_headings=[]))
+        raise NoValue(pos__1)
     else:
-        o = (o__1)
+        o = (o__1[0])
     return SomeName(o = o)
 
 def b(b_in:BIn):
-    result__2 = (integer_of_string("1"))
+    pos = (SourcePosition(
+               filename="tests/backends/python_name_clash.catala_en",
+               start_line=16, start_column=33, end_line=16, end_column=34,
+               law_headings=[]))
+    result__2 = ((integer_of_string("1"), pos))
     if result__2 is None:
-        pos = (SourcePosition(
-                   filename="tests/backends/python_name_clash.catala_en",
-                   start_line=16, start_column=14,
-                   end_line=16, end_column=25, law_headings=[]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/backends/python_name_clash.catala_en",
+                      start_line=16, start_column=14,
+                      end_line=16, end_column=25, law_headings=[]))
+        raise NoValue(pos__1)
     else:
-        result__1 = (result__2)
+        result__1 = (result__2[0])
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
     if True:
