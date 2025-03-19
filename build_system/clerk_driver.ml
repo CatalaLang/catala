@@ -422,7 +422,7 @@ let run_cmd =
          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf i ->
          File.format ppf i.Scan.file_name)) r; r *)
     in
-    let make_target item =
+    let make_target backend item =
       let open File in
       let f =
         match item.Scan.module_def with
@@ -440,7 +440,9 @@ let run_cmd =
       in
       build_dir / base
     in
-    let base_targets = List.map (fun it -> it, make_target it) target_items in
+    let base_targets =
+      List.map (fun it -> it, make_target backend it) target_items
+    in
     let multi_targets =
       match base_targets with _ :: _ :: _ -> true | _ -> false
     in
@@ -452,7 +454,7 @@ let run_cmd =
             else
               String.Set.add t
               @@ List.fold_left
-                   (fun acc it -> String.Set.add (make_target it) acc)
+                   (fun acc it -> String.Set.add (make_target `OCaml it) acc)
                    acc (link_deps it))
           String.Set.empty base_targets
       in

@@ -73,12 +73,21 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-python
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
 
+CATALA_BIN = _build/default/$(COMPILER_DIR)/catala.exe
+CLERK_BIN = _build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
+
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
 	dune build \
 		$(COMPILER_DIR)/catala.exe \
 		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe 
+		$(BUILD_SYSTEM_DIR)/clerk.exe
+
+$(CATALA_BIN): .FORCE
+	dune build @catala
+
+$(CLERK_BIN): .FORCE
+	dune build @clerk
 
 # Just the base compiler as needed to run the tests
 compiler: parser-messages
@@ -197,9 +206,6 @@ syntax:
 CATALAOPTS ?=
 CLERK_OPTS ?=
 
-CATALA_BIN=_build/default/$(COMPILER_DIR)/catala.exe
-CLERK_BIN=_build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
-
 CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 	$(CLERK_OPTS) $(if $(CATALAOPTS),--catala-opts=$(CATALAOPTS),)
 
@@ -213,11 +219,11 @@ BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func i
 
 BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
 
-backend-tests-%: $(BACKEND_TESTS)
+backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
-	@$(CLERK_BIN) run $^ --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
+	@$(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
 
-backend-tests-python: $(BACKEND_TESTS) dependencies-python
+backend-tests-python: $(CLERK_BIN) $(BACKEND_TESTS) dependencies-python
 	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
 	@echo ">> RUNNING BACKEND TESTS FOR python <<"
 	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest

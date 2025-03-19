@@ -7,13 +7,26 @@
 ; For dev version this makes it easy to install the proper runtime with just
 ; `pip install dir` and be sure to get the right version
 
+(alias
+ (name runtime-ocaml)
+ (deps
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_ocaml/runtime_ocaml.cmi
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_ocaml/runtime_ocaml__Runtime.cmi
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_ocaml/runtime_ocaml.cma
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_ocaml/runtime_ocaml.cmxa
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_ocaml/runtime_ocaml.a))
+
 ; Python runtime
 
 (install
- (files
-  (glob_files_rec
-   (python/** with_prefix runtime_python)))
+ (source_trees
+  (python as runtime_python))
  (section lib))
+
+(alias
+ (name runtime-python)
+ (deps
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_python/src/catala/runtime.py))
 
 ;; ; Rescript runtime -- disabled
 ;;
@@ -29,3 +42,17 @@
   (c/dates_calc.h as runtime_c/dates_calc.h)
   (c/runtime.h as runtime_c/catala_runtime.h))
  (section lib))
+
+(alias
+ (name runtime-c)
+ (deps
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_c/libcatala_runtime.a
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_c/dates_calc.h
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_c/catala_runtime.h))
+
+(alias
+ (name runtimes)
+ (deps
+  (alias runtime-ocaml)
+  (alias runtime-python)
+  (alias runtime-c)))

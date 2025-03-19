@@ -1237,10 +1237,11 @@ let expr_to_dot_label0 :
           | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
           | Sub_dat_dur _ | Sub_dur_dur | Sub ->
             "-"
-          | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult ->
+          | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat
+          | Mult_dur_int | Mult ->
             "×"
-          | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur
-          | Div ->
+          | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+          | Div_dur_dur | Div ->
             "÷"
           | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt
             ->

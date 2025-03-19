@@ -43,7 +43,11 @@
  (libraries clerk_driver)
  (link_deps
   ../compiler/catala.exe
-  (glob_files_rec ../runtimes/**))
+  (alias ../runtimes/runtimes))
  ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- ckerk test`)
  (modules clerk)
  (package catala))
+
+(alias
+ (name clerk)
+ (deps %{bin:clerk}))
