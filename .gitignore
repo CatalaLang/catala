@@ -20,3 +20,4 @@ build.ninja
 **/__pycache__/
 
 .catleg_secrets.toml
+*.tmp/

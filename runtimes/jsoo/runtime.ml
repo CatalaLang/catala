@@ -71,6 +71,10 @@ let date_of_js d =
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
+let position_of_js _jpos = assert false (* TODO *)
+
+let position_to_js _pos = assert false (* TODO *)
+
 class type event_manager = object
   method resetLog : unit Js.meth
   method retrieveEvents : event Js.t Js.js_array Js.t Js.meth

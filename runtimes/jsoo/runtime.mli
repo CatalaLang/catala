@@ -108,6 +108,9 @@ val date_to_js : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
+val position_of_js : source_position Js.t -> Runtime_ocaml.Runtime.source_position
+val position_to_js : Runtime_ocaml.Runtime.source_position -> source_position Js.t
+
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the
     {!Runtime_ocaml.Runtime.NoValueProvided},
