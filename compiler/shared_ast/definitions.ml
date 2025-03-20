@@ -452,8 +452,7 @@ type ('a, 'm) marked = ('a, 'm mark) Mark.ed
 
 (** Define a common base type for the expressions in most passes of the compiler *)
 
-(** Literals are the same throughout compilation except for the [LEmptyError]
-    case which is eliminated midway through. *)
+(** Literals are the same throughout compilation. *)
 type lit =
   | LBool of bool
   | LInt of Runtime.integer
@@ -599,8 +598,11 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
   | EFatalError : Runtime.error -> ('a, < .. >, 'm) base_gexpr
-  | EPos : Pos.t -> ('a, < defaultTerms : no ; .. >, 'm) base_gexpr
-      (** Position literal, used along returned exceptions *)
+  | EPos : Pos.t -> ('a, < .. >, 'm) base_gexpr
+      (** Position literal, used along returned exceptions. Note that it's only
+          used in lcalc, so it could have [< defaultTerms: no; ..>], but since
+          the HandleExceptions operator isn't limited to that it would be
+          inconvenient *)
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 'm) gexpr list;

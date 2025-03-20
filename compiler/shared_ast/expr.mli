@@ -91,9 +91,7 @@ val eassert :
   ((< assertions : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val efatalerror : Runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
-
-val epos :
-  Pos.t -> 'm mark -> ((< defaultTerms : no ; .. > as 'a), 'm) boxed_gexpr
+val epos : Pos.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val eappop :
   op:'a operator Mark.pos ->

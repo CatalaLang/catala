@@ -910,7 +910,7 @@ void catala_init(void)
     printf("\033[1;31m[ERROR]\033[m %s", error_kind);
     for (i = 0; i < catala_error_raised.nb_positions; i++) {
       if (pos[i]->filename)
-        printf("\n        in file %s:%d.%d-%d.%d\n",
+        printf("\n        in file %s:%d.%d-%d.%d",
              pos[i]->filename,
              pos[i]->start_line,
              pos[i]->start_column,

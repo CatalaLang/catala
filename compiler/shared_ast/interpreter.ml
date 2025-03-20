@@ -437,26 +437,34 @@ let rec evaluate_operator
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_eq_dur_dur (rpos ()) x y))
   | HandleExceptions, [(EArray exps, _)] -> (
-    let valid_exceptions =
-      ListLabels.filter exps ~f:(function
-        | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
-          EnumConstructor.equal cons Expr.some_constr
-        | _ -> err ())
+    (* Shallow conversion to runtime option, so that we can call
+       [handle_exceptions] *)
+    let exps =
+      List.map
+        (function
+          | EInj { name; cons; e }, _ when EnumName.equal name Expr.option_enum
+            ->
+            if EnumConstructor.equal cons Expr.some_constr then
+              match e with
+              | ETuple [e; (EPos p, _)], _ ->
+                Runtime.Eoption.ESome (e, Expr.pos_to_runtime p)
+              | _ -> err ()
+            else Runtime.Eoption.ENone ()
+          | _ -> err ())
+        exps
     in
-    match valid_exceptions with
-    | [] ->
+    match Runtime.handle_exceptions (Array.of_list exps) with
+    | Runtime.Eoption.ENone () ->
       EInj
         { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
-    | [((EInj { cons; name; _ } as e), _)]
-      when EnumName.equal name Expr.option_enum
-           && EnumConstructor.equal cons Expr.some_constr ->
-      e
-    | [_] -> err ()
-    | excs ->
-      raise
-        Runtime.(
-          Error (Conflict, List.map Expr.(fun e -> pos_to_runtime (pos e)) excs))
-    )
+    | Runtime.Eoption.ESome (e, rpos) ->
+      let p = Expr.runtime_to_pos rpos in
+      EInj
+        {
+          name = Expr.option_enum;
+          cons = Expr.some_constr;
+          e = ETuple [e; EPos p, Expr.with_pos p m], m;
+        })
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToRat_int
       | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
       | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
@@ -501,8 +509,7 @@ let rec runtime_to_val :
         rpos.end_line rpos.end_column
     in
     let p = Pos.overwrite_law_info p rpos.law_headings in
-    (* This is only allowed in lcalc, but the typer doesn't know *)
-    Obj.magic (EPos p), m
+    EPos p, m
   | TTuple ts ->
     ( ETuple
         (List.map2
@@ -661,12 +668,9 @@ and val_to_runtime :
     | EPureDefault e, m | ((_, m) as e) ->
       let e = eval_expr ctx e in
       let pos = Expr.pos e in
-      let epos = Obj.magic (EPos pos) in
-      (* EPos is not accepted in dcalc, but here we deal with a lcalc-based
-         runtime *)
       let ty = TTuple [ty; TLit TPos, pos], pos in
       let with_pos =
-        ETuple [e; epos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
+        ETuple [e; EPos pos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
       in
       Obj.repr
         (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))

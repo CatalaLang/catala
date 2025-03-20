@@ -170,7 +170,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       (translate_mark m)
   | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
       | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
-      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ ),
+      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ | EPos _ ),
       _ ) as e ->
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .

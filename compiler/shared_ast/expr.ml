@@ -818,7 +818,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EFatalError _, _ -> -1 | _, EFatalError _ -> 1
-  | EPos _, _ -> . | _, EPos _ -> .
+  | EPos _, _ -> -1 | _, EPos _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmpty , _ -> -1 | _, EEmpty  -> 1

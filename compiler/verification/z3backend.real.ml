@@ -766,6 +766,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     ctx, Boolean.mk_ite ctx.ctx_z3 z3_if z3_then z3_else
   | EEmpty -> failwith "[Z3 encoding] 'Empty' literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
+  | EPos _ -> failwith "[Z3 encoding] EPos unsupported"
   | _ -> .
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
