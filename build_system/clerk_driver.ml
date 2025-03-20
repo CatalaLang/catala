@@ -411,16 +411,11 @@ let run_cmd =
       let rec traverse acc item =
         List.fold_left
           (fun acc m ->
-            if List.exists (fun it -> it.Scan.module_def = Some m) acc then acc
-            else
-              let it = String.Map.find m modules in
-              traverse (it :: acc) it)
+            let it = String.Map.find m modules in
+            traverse (it :: acc) it)
           acc item.Scan.used_modules
       in
       rem_dups (traverse [] item)
-      (* |> fun r -> Message.debug "%a => %a" File.format item.Scan.file_name
-         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf i ->
-         File.format ppf i.Scan.file_name)) r; r *)
     in
     let make_target backend item =
       let open File in
@@ -434,6 +429,8 @@ let run_cmd =
       let base =
         match backend with
         | `Interpret -> item.Scan.file_name
+        | `Interpret_module -> (
+          f -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
         | `OCaml -> f -.- "cmx"
         | `C -> f -.- "c.o"
         | `Python -> f -.- "py"
@@ -454,7 +451,8 @@ let run_cmd =
             else
               String.Set.add t
               @@ List.fold_left
-                   (fun acc it -> String.Set.add (make_target `OCaml it) acc)
+                   (fun acc it ->
+                     String.Set.add (make_target `Interpret_module it) acc)
                    acc (link_deps it))
           String.Set.empty base_targets
       in
