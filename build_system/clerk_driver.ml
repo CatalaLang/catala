@@ -411,10 +411,8 @@ let run_cmd =
       let rec traverse acc item =
         List.fold_left
           (fun acc m ->
-            if List.exists (fun it -> it.Scan.module_def = Some m) acc then acc
-            else
-              let it = String.Map.find m modules in
-              traverse (it :: acc) it)
+            let it = String.Map.find m modules in
+            traverse (it :: acc) it)
           acc item.Scan.used_modules
       in
       rem_dups (traverse [] item)
