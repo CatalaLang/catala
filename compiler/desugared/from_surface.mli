@@ -21,5 +21,8 @@
     - Separate code from legislation *)
 
 val translate_program :
-  Name_resolution.context -> Surface.Ast.program -> Ast.program
+  Name_resolution.context ->
+  Surface.Ast.module_content Shared_ast.ModuleName.Map.t ->
+  Surface.Ast.program ->
+  Ast.program
 (** Main function of this module *)

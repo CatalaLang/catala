@@ -1071,6 +1071,33 @@ let empty_ctxt =
 
 (** Derive the context from metadata, in one pass over the declarations *)
 let form_context (surface, mod_uses) surface_modules : context =
+  (* Gather struct fields and enum constrs from direct modules: this helps with
+     disambiguation. This is only done towards the root context, because
+     submodules are only interfaces which don't need disambiguation ; and
+     transitive dependencies shouldn't be visible here. *)
+  let gather_struct_fields_ids ctxt modul_ctxt =
+    let constructor_idmap, field_idmap =
+      Ident.Map.fold
+        (fun _ m_name (cmap, fmap) ->
+          let lctx = ModuleName.Map.find m_name ctxt.modules in
+          let cmap =
+            Ident.Map.union
+              (fun _ enu1 enu2 ->
+                Some (EnumName.Map.union (fun _ e _ -> Some e) enu1 enu2))
+              cmap lctx.constructor_idmap
+          in
+          let fmap =
+            Ident.Map.union
+              (fun _ str1 str2 ->
+                Some (StructName.Map.union (fun _ s _ -> Some s) str1 str2))
+              fmap lctx.field_idmap
+          in
+          cmap, fmap)
+        modul_ctxt.used_modules
+        (modul_ctxt.constructor_idmap, modul_ctxt.field_idmap)
+    in
+    { modul_ctxt with constructor_idmap; field_idmap }
+  in
   let rec process_modules ctxt mod_uses =
     (* Recursing on [mod_uses] rather than folding on [modules] ensures a
        topological traversal. *)
@@ -1079,7 +1106,9 @@ let form_context (surface, mod_uses) surface_modules : context =
         match ModuleName.Map.find_opt m ctxt.modules with
         | Some _ -> ctxt
         | None ->
-          let intf, mod_uses = ModuleName.Map.find m surface_modules in
+          let module_content, mod_uses =
+            ModuleName.Map.find m surface_modules
+          in
           let ctxt = process_modules ctxt mod_uses in
           let ctxt =
             {
@@ -1089,15 +1118,34 @@ let form_context (surface, mod_uses) surface_modules : context =
                   ctxt.local with
                   used_modules = mod_uses;
                   current_module = Some m;
-                  is_external = intf.Surface.Ast.intf_modname.module_external;
+                  is_external =
+                    module_content.Surface.Ast.module_modname.module_external;
                 };
             }
           in
           let ctxt =
-            List.fold_left process_name_item ctxt intf.Surface.Ast.intf_code
-          in
-          let ctxt =
-            List.fold_left process_decl_item ctxt intf.Surface.Ast.intf_code
+            match module_content.Surface.Ast.module_items with
+            | Interface decl_items ->
+              let ctxt = List.fold_left process_name_item ctxt decl_items in
+              List.fold_left process_decl_item ctxt decl_items
+            | Code module_items ->
+              (* Whole-program *)
+              let ctxt =
+                { ctxt with local = gather_struct_fields_ids ctxt ctxt.local }
+              in
+              let ctxt =
+                List.fold_left
+                  (process_law_structure process_name_item)
+                  ctxt module_items
+              in
+              let ctxt =
+                List.fold_left
+                  (process_law_structure process_decl_item)
+                  ctxt module_items
+              in
+              List.fold_left
+                (process_law_structure (fun ?visibility:_ -> process_use_item))
+                ctxt module_items
           in
           {
             ctxt with
@@ -1125,26 +1173,5 @@ let form_context (surface, mod_uses) surface_modules : context =
       (process_law_structure (fun ?visibility:_ -> process_use_item))
       ctxt surface.Surface.Ast.program_items
   in
-  (* Gather struct fields and enum constrs from direct modules: this helps with
-     disambiguation. This is only done towards the root context, because
-     submodules are only interfaces which don't need disambiguation ; and
-     transitive dependencies shouldn't be visible here. *)
-  let constructor_idmap, field_idmap =
-    Ident.Map.fold
-      (fun _ m (cmap, fmap) ->
-        let lctx = ModuleName.Map.find m ctxt.modules in
-        let cmap =
-          Ident.Map.union
-            (fun _ enu1 enu2 -> Some (EnumName.Map.disjoint_union enu1 enu2))
-            cmap lctx.constructor_idmap
-        in
-        let fmap =
-          Ident.Map.union
-            (fun _ str1 str2 -> Some (StructName.Map.disjoint_union str1 str2))
-            fmap lctx.field_idmap
-        in
-        cmap, fmap)
-      mod_uses
-      (ctxt.local.constructor_idmap, ctxt.local.field_idmap)
-  in
-  { ctxt with local = { ctxt.local with constructor_idmap; field_idmap } }
+  let ctxt = { ctxt with local = gather_struct_fields_ids ctxt ctxt.local } in
+  ctxt

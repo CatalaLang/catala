@@ -591,7 +591,7 @@ let compare_location
     | n -> n)
   | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
-  | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->
+  | ToplevelVar { name = vx, _; _ }, ToplevelVar { name = vy, _; _ } ->
     TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1

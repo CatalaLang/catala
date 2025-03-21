@@ -166,7 +166,13 @@ let rec disambiguate_constructor
        current one *)
     let current_module =
       EnumName.Map.filter
-        (fun struc _ -> EnumName.path struc = [])
+        (fun struc _ ->
+          EnumName.path struc = []
+          || Global.options.whole_program
+             &&
+             match ctxt.local.current_module with
+             | None -> false
+             | Some m -> EnumName.path struc = [m])
         possible_c_uids
     in
     if EnumName.Map.is_empty current_module then possible_c_uids
@@ -473,7 +479,11 @@ let rec translate_expr
               "Access to intermediate states is only allowed for variables of \
                the current scope.";
           Expr.elocation
-            (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
+            (ToplevelVar
+               {
+                 name = v, Mark.get (TopdefName.get_info v);
+                 is_external = ctxt.local.is_external;
+               })
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
@@ -487,7 +497,11 @@ let rec translate_expr
     match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
     | Some v ->
       Expr.elocation
-        (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
+        (ToplevelVar
+           {
+             name = v, Mark.get (TopdefName.get_info v);
+             is_external = ctxt.local.is_external;
+           })
         emark
     | None ->
       Name_resolution.raise_unknown_identifier "for an external variable" name)
@@ -662,7 +676,15 @@ let rec translate_expr
         (* Eliminate candidates from other modules if there exists some from the
            current one *)
         let current_module =
-          EnumName.Map.filter (fun struc _ -> EnumName.path struc = []) possible
+          EnumName.Map.filter
+            (fun struc _ ->
+              EnumName.path struc = []
+              || Global.options.whole_program
+                 &&
+                 match ctxt.local.current_module with
+                 | None -> false
+                 | Some m -> EnumName.path struc = [m])
+            possible
         in
         if EnumName.Map.is_empty current_module then possible
         else current_module
@@ -1324,11 +1346,9 @@ let process_def
     (precond : Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
-    (def : S.definition) : Ast.program =
-  let scope : Ast.scope =
-    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
-  in
+    (modul : Ast.modul)
+    (def : S.definition) : Ast.modul =
+  let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
@@ -1393,30 +1413,28 @@ let process_def
     }
   in
   let module_scopes =
-    ScopeName.Map.add scope_uid scope_updated prgm.program_root.module_scopes
+    ScopeName.Map.add scope_uid scope_updated modul.module_scopes
   in
-  { prgm with program_root = { prgm.program_root with module_scopes } }
+  { modul with module_scopes }
 
 (** Translates a {!type: S.rule} from the surface language *)
 let process_rule
     (precond : Ast.expr boxed option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
-    (rule : S.rule) : Ast.program =
+    (modul : Ast.modul)
+    (rule : S.rule) : Ast.modul =
   let def = S.rule_to_def rule in
-  process_def precond scope ctxt prgm def
+  process_def precond scope ctxt modul def
 
 (** Translates assertions *)
 let process_assert
     (precond : Ast.expr boxed option)
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
-    (ass : S.assertion) : Ast.program =
-  let scope : Ast.scope =
-    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
-  in
+    (modul : Ast.modul)
+    (ass : S.assertion) : Ast.modul =
+  let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
   let ass =
     translate_expr (Some scope_uid) None ctxt Ident.Map.empty
       (match ass.S.assertion_condition with
@@ -1449,29 +1467,27 @@ let process_assert
     }
   in
   let module_scopes =
-    ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+    ScopeName.Map.add scope_uid new_scope modul.module_scopes
   in
-  { prgm with program_root = { prgm.program_root with module_scopes } }
+  { modul with module_scopes }
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
     (precond : S.expression option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
-    (item : S.scope_use_item Mark.pos) : Ast.program =
+    (modul : Ast.modul)
+    (item : S.scope_use_item Mark.pos) : Ast.modul =
   let precond =
     Option.map (translate_expr (Some scope) None ctxt Ident.Map.empty) precond
   in
   match Mark.remove item with
-  | S.Rule rule -> process_rule precond scope ctxt prgm rule
-  | S.Definition def -> process_def precond scope ctxt prgm def
-  | S.Assertion ass -> process_assert precond scope ctxt prgm ass
+  | S.Rule rule -> process_rule precond scope ctxt modul rule
+  | S.Definition def -> process_def precond scope ctxt modul def
+  | S.Assertion ass -> process_assert precond scope ctxt modul ass
   | S.DateRounding (r, _) ->
     let scope_uid = scope in
-    let scope : Ast.scope =
-      ScopeName.Map.find scope_uid prgm.program_root.module_scopes
-    in
+    let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
     let r =
       match r with
       | S.Increasing -> Ast.Increasing
@@ -1497,10 +1513,10 @@ let process_scope_use_item
         }
     in
     let module_scopes =
-      ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+      ScopeName.Map.add scope_uid new_scope modul.module_scopes
     in
-    { prgm with program_root = { prgm.program_root with module_scopes } }
-  | _ -> prgm
+    { modul with module_scopes }
+  | _ -> modul
 
 (** {1 Translating top-level items} *)
 
@@ -1554,27 +1570,23 @@ let check_unlabeled_exception
 (** Translates a surface scope use, which is a bunch of definitions *)
 let process_scope_use
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
-    (use : S.scope_use) : Ast.program =
+    (modul : Ast.modul)
+    (use : S.scope_use) : Ast.modul =
   let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
   (* Make sure the scope exists *)
-  let prgm =
-    match ScopeName.Map.find_opt scope_uid prgm.program_root.module_scopes with
-    | Some _ -> prgm
-    | None -> assert false
-    (* should not happen *)
-  in
+  let () = assert (ScopeName.Map.mem scope_uid modul.module_scopes) in
   let precond = use.scope_use_condition in
   List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
   List.fold_left
     (process_scope_use_item precond scope_uid ctxt)
-    prgm use.scope_use_items
+    modul use.scope_use_items
 
 let process_topdef
     (ctxt : Name_resolution.context)
-    (prgm : Ast.program)
+    (modul : Ast.modul)
     (is_public : bool)
-    (def : S.top_def) : Ast.program =
+    (is_module_external : bool)
+    (def : S.top_def) : Ast.modul =
   let id =
     Ident.Map.find
       (Mark.remove def.S.topdef_name)
@@ -1616,21 +1628,28 @@ let process_topdef
   in
   let topdef_visibility = if is_public then Public else Private in
   let module_topdefs =
+    let err msg =
+      Message.error
+        ~extra_pos:
+          [
+            "", Mark.get (TopdefName.get_info id); "", Mark.get def.S.topdef_name;
+          ]
+        (msg ^^ " for %a.") TopdefName.format id
+    in
     TopdefName.Map.update id
       (fun def0 ->
         match def0, expr_opt with
+        | None, Some _ when is_module_external ->
+          err "Unexpected definition in an external module"
         | None, eopt ->
-          Some { Ast.topdef_expr = eopt; topdef_visibility; topdef_type = typ }
+          Some
+            {
+              Ast.topdef_expr = eopt;
+              topdef_visibility;
+              topdef_type = typ;
+              topdef_external = is_module_external;
+            }
         | Some def0, eopt -> (
-          let err msg =
-            Message.error
-              ~extra_pos:
-                [
-                  "", Mark.get (TopdefName.get_info id);
-                  "", Mark.get def.S.topdef_name;
-                ]
-              (msg ^^ " for %a.") TopdefName.format id
-          in
           if not (Type.equal def0.Ast.topdef_type typ) then
             err "Conflicting type definitions"
           else
@@ -1643,12 +1662,18 @@ let process_topdef
             | None, None -> err "Multiple declarations"
             | Some _, Some _ -> err "Multiple definitions"
             | (Some _ as topdef_expr), None ->
-              Some { Ast.topdef_expr; topdef_visibility; topdef_type = typ }
+              Some
+                {
+                  Ast.topdef_expr;
+                  topdef_visibility;
+                  topdef_type = typ;
+                  topdef_external = false;
+                }
             | None, (Some _ as topdef_expr) ->
               Some { def0 with Ast.topdef_expr; topdef_visibility }))
-      prgm.Ast.program_root.module_topdefs
+      modul.module_topdefs
   in
-  { prgm with program_root = { prgm.program_root with module_topdefs } }
+  { modul with module_topdefs }
 
 let attribute_to_io (attr : S.scope_decl_context_io) : Ast.io =
   {
@@ -1781,8 +1806,10 @@ let init_scope_defs
   Ident.Map.fold add_def scope_context.var_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
-let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
-    Ast.program =
+let translate_program
+    (ctxt : Name_resolution.context)
+    (modules_contents : Surface.Ast.module_content ModuleName.Map.t)
+    (surface : S.program) : Ast.program =
   let get_scope s_uid =
     let s_context = ScopeName.Map.find s_uid ctxt.scopes in
     let scope_vars =
@@ -1827,21 +1854,32 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       mctx.Name_resolution.typedefs ScopeName.Map.empty
   in
   let program_modules =
+    let module_topdefs (mctx : Name_resolution.module_context) =
+      if Global.options.whole_program then
+        (* This will be populated later on *)
+        TopdefName.Map.empty
+      else
+        Ident.Map.fold
+          (fun _ name acc ->
+            let topdef_type, topdef_visibility =
+              TopdefName.Map.find name ctxt.Name_resolution.topdefs
+            in
+            TopdefName.Map.add name
+              {
+                Ast.topdef_expr = None;
+                topdef_visibility;
+                topdef_type;
+                topdef_external = mctx.is_external;
+              }
+              acc)
+          mctx.topdefs TopdefName.Map.empty
+    in
     ModuleName.Map.mapi
       (fun mname mctx ->
         let m =
           {
             Ast.module_scopes = get_scopes mctx;
-            Ast.module_topdefs =
-              Ident.Map.fold
-                (fun _ name acc ->
-                  let topdef_type, topdef_visibility =
-                    TopdefName.Map.find name ctxt.Name_resolution.topdefs
-                  in
-                  TopdefName.Map.add name
-                    { Ast.topdef_expr = None; topdef_visibility; topdef_type }
-                    acc)
-                mctx.topdefs TopdefName.Map.empty;
+            module_topdefs = module_topdefs mctx;
           }
         in
         m, Ast.Hash.module_binding mname m)
@@ -1930,38 +1968,66 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       Ast.program_root;
     }
   in
-  let process_code_block ctxt prgm is_meta block =
+  let process_code_block ctxt modul ~is_meta block =
     List.fold_left
-      (fun prgm item ->
+      (fun modul item ->
         match Mark.remove item with
-        | S.ScopeUse use -> process_scope_use ctxt prgm use
-        | S.Topdef def -> process_topdef ctxt prgm is_meta def
-        | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ -> prgm)
-      prgm block
+        | S.ScopeUse use -> process_scope_use ctxt modul use
+        | S.Topdef def ->
+          process_topdef ctxt modul is_meta ctxt.local.is_external def
+        | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ -> modul)
+      modul block
   in
-  let rec process_structure (prgm : Ast.program) (item : S.law_structure) :
-      Ast.program =
+  let rec process_structure ctxt (modul : Ast.modul) (item : S.law_structure) :
+      Ast.modul =
     match item with
     | S.LawHeading (_, children) ->
       List.fold_left
-        (fun prgm child -> process_structure prgm child)
-        prgm children
+        (fun modul child -> process_structure ctxt modul child)
+        modul children
     | S.CodeBlock (block, _, is_meta) ->
-      process_code_block ctxt prgm is_meta block
-    | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm
+      process_code_block ctxt modul ~is_meta block
+    | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> modul
   in
   let desugared =
-    List.fold_left process_structure desugared surface.S.program_items
+    {
+      desugared with
+      program_root =
+        List.fold_left (process_structure ctxt) desugared.program_root
+          surface.S.program_items;
+    }
   in
-  {
-    desugared with
-    Ast.program_module_name =
-      (desugared.Ast.program_module_name
-      |> Option.map
-         @@ fun (mname, intf_id) ->
-         ( mname,
-           {
-             intf_id with
-             hash = Ast.Hash.module_binding mname desugared.Ast.program_root;
-           } ));
-  }
+  let desugared =
+    if Global.options.whole_program then
+      (* Now, we can populate modules code items with their actual code *)
+      ModuleName.Map.fold
+        (fun mn content (prgm : Ast.program) ->
+          let local = ModuleName.Map.find mn ctxt.modules in
+          let ctxt = { ctxt with local } in
+          let modul = ModuleName.Map.find mn prgm.program_modules in
+          let modul =
+            match content.S.module_items with
+            | Interface _decl_items ->
+              (* Unreachable: nothing to do *)
+              assert false
+            | Code module_items ->
+              List.fold_left (process_structure ctxt) modul module_items
+          in
+          let program_modules =
+            ModuleName.Map.add mn modul prgm.program_modules
+          in
+          { prgm with program_modules })
+        modules_contents desugared
+    else desugared
+  in
+  let program_module_name =
+    Option.map
+      (fun (mname, intf_id) ->
+        ( mname,
+          {
+            intf_id with
+            hash = Ast.Hash.module_binding mname desugared.Ast.program_root;
+          } ))
+      desugared.Ast.program_module_name
+  in
+  { desugared with Ast.program_module_name }

@@ -253,6 +253,7 @@ type topdef = {
   topdef_expr : expr option;
   topdef_type : typ;
   topdef_visibility : visibility;
+  topdef_external : bool;
 }
 
 type modul = {

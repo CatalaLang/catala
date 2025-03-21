@@ -322,14 +322,6 @@ and law_structure =
   | LawText of (string[@opaque])
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
-and interface = {
-  intf_modname : program_module;
-  intf_code : code_block;
-      (** Invariant: an interface shall only contain [*Decl] elements, or
-          [Topdef] elements with [topdef_expr = None] *)
-  intf_submodules : module_use list;
-}
-
 and module_use = {
   mod_use_name : uident Mark.pos;
   mod_use_alias : uident Mark.pos;
@@ -347,6 +339,19 @@ and program = {
 
 and source_file = law_structure list
 [@@deriving visitors { variety = "map"; ancestors = ["Mark.pos_map"] }]
+
+type module_items =
+  | Code of law_structure list
+      (** Used in whole-program to gather all module code *)
+  | Interface of code_block
+      (** Invariant: an interface shall only contain [*Decl] elements, or
+          [Topdef] elements with [topdef_expr = None] (metadata only) *)
+
+type module_content = {
+  module_modname : program_module;
+  module_items : module_items;
+  module_submodules : module_use list;
+}
 
 (** {1 Helpers}*)
 

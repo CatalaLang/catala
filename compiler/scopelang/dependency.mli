@@ -22,7 +22,9 @@ open Shared_ast
 
 (** {1 Scope dependencies} *)
 
-type vertex = Scope of ScopeName.t | Topdef of TopdefName.t
+type vertex =
+  | Scope of (ScopeName.t * ModuleName.t option) (* In whole-program, scopes *)
+  | Topdef of TopdefName.t
 
 (** On the edges, the label is the expression responsible for the use of the
     function *)

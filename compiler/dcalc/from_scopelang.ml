@@ -308,7 +308,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     (* For the purposes of log parsing explained in Runtime.EventParser, we need
        to wrap this function call in a flurry of log tags. Specifically, we are
-       mascarading this scope call as a function call. In a normal function
+       masquerading this scope call as a function call. In a normal function
        call, the log parser expects the output of the function to be defined as
        a default, hence the production of the output should yield a
        PosRecordIfTrueBool (which is not the case here). To remedy this absence
@@ -465,7 +465,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
       match Mark.remove f with
       | ELocation (ScopelangScopeVar { name = var }) ->
         retrieve_out_typ_or_any var ctx.scope_vars
-      | ELocation (ToplevelVar { name }) -> (
+      | ELocation (ToplevelVar { name; _ }) -> (
         let typ, _vis =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
         in
@@ -476,9 +476,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
             "Application of non-function toplevel variable")
       | _ -> TAny
     in
-    (* Message.debug "new_args %d, input_typs: %d, input_typs %a" (List.length
-       new_args) (List.length input_typs) (Format.pp_print_list Print.typ_debug)
-       (List.map (Mark.add Pos.no_pos) input_typs); *)
     let new_args =
       ListLabels.mapi (List.combine new_args input_typs)
         ~f:(fun i (new_arg, input_typ) ->
@@ -520,12 +517,19 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | ELocation (ScopelangScopeVar { name = a }) ->
     let v, _, _ = ScopeVar.Map.find (Mark.remove a) ctx.scope_vars in
     Expr.evar v m
-  | ELocation (ToplevelVar { name }) ->
-    let path = TopdefName.path (Mark.remove name) in
-    if path = [] then
+  | ELocation (ToplevelVar { name; is_external }) -> (
+    match TopdefName.path (Mark.remove name) with
+    | [] ->
       let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
       Expr.evar v m
-    else Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m
+    | _ :: _ when Global.options.whole_program ->
+      if is_external then
+        Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m
+      else
+        let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
+        Expr.evar v m
+    | _ :: _ ->
+      Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m)
   | EAppOp { op = Add_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding, opos) ~args ~tys m
@@ -800,12 +804,15 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let decl_ctx = prgm.program_ctx in
   let scopes_parameters : 'm scope_sig_ctx ScopeName.Map.t =
     let process_scope_sig decl_ctx scope_name scope =
-      let scope_path = ScopeName.path scope_name in
       let scope_ref =
-        if scope_path = [] then
+        match ScopeName.path scope_name with
+        | [] ->
           let v = Var.make (ScopeName.base scope_name) in
           Local_scope_ref v
-        else
+        | _ :: _ when Global.options.whole_program ->
+          let v = Var.make (ScopeName.base scope_name) in
+          Local_scope_ref v
+        | _ :: _ ->
           External_scope_ref
             (Mark.copy (ScopeName.get_info scope_name) scope_name)
       in
@@ -858,10 +865,14 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
           process_scope_sig decl_ctx scope_name scope_decl)
         scopes
     in
-    ModuleName.Map.fold
-      (fun _ s -> ScopeName.Map.disjoint_union (process_scopes s))
-      prgm.S.program_modules
-      (process_scopes prgm.S.program_scopes)
+    let scopes = process_scopes prgm.S.program_scopes in
+    if Global.options.whole_program then
+      (* In whole-program, module scopes are already merged during scopelang. *)
+      scopes
+    else
+      ModuleName.Map.fold
+        (fun _ s -> ScopeName.Map.disjoint_union (process_scopes s))
+        prgm.S.program_modules scopes
   in
   let ctx_structs =
     ScopeName.Map.fold
@@ -888,9 +899,10 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   in
   let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in
   let toplevel_vars =
-    TopdefName.Map.mapi
-      (fun name (_, ty, _vis) ->
-        Var.make (TopdefName.base name), Mark.remove ty)
+    TopdefName.Map.filter_map
+      (fun name (_, ty, _vis, is_external) ->
+        if is_external then None
+        else Some (Var.make (TopdefName.base name), Mark.remove ty))
       prgm.S.program_topdefs
   in
   let ctx =
@@ -899,7 +911,6 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       scope_name = None;
       scopes_parameters;
       scope_vars = ScopeVar.Map.empty;
-      (* subscope_vars = ScopeVar.Map.empty; *)
       toplevel_vars;
       date_rounding = AbortOnRound;
     }
@@ -916,14 +927,28 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
       let dvar, def =
         match def with
         | Scopelang.Dependency.Topdef gname ->
-          let expr, ty, vis = TopdefName.Map.find gname prgm.program_topdefs in
+          let expr, ty, vis, _ext =
+            TopdefName.Map.find gname prgm.program_topdefs
+          in
           let expr = translate_expr ctx expr in
           ( fst (TopdefName.Map.find gname ctx.toplevel_vars),
             Bindlib.box_apply
               (fun e -> Topdef (gname, ty, vis, e))
               (Expr.Box.lift expr) )
-        | Scopelang.Dependency.Scope scope_name ->
-          let scope = ScopeName.Map.find scope_name prgm.program_scopes in
+        | Scopelang.Dependency.Scope (scope_name, mname_opt) ->
+          let scope =
+            match ScopeName.path scope_name, mname_opt with
+            | [], None -> ScopeName.Map.find scope_name prgm.program_scopes
+            | p, None ->
+              (* Only happens in whole-program *)
+              let mn = List.hd (List.rev p) in
+              ScopeName.Map.find scope_name
+                (ModuleName.Map.find mn prgm.program_modules)
+            | [], Some mn | _ :: _, Some mn ->
+              (* Only happens in whole-program *)
+              ScopeName.Map.find scope_name
+                (ModuleName.Map.find mn prgm.program_modules)
+          in
           let scope_body =
             translate_scope_decl ctx scope_name (Mark.remove scope)
           in

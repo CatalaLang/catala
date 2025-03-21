@@ -96,7 +96,7 @@ let program prg =
         Typing.Env.add_scope scope_name ~vars ~in_vars:vars env)
       prg.program_ctx.ctx_scopes env
   in
-  let module_topdefs =
+  let topdef modul =
     TopdefName.Map.map
       (fun def ->
         {
@@ -106,11 +106,32 @@ let program prg =
               (fun e -> Expr.unbox (expr prg.program_ctx env (Expr.box e)))
               def.topdef_expr;
         })
-      prg.program_root.module_topdefs
+      modul.module_topdefs
+  in
+  let module_topdefs = topdef prg.program_root in
+  let prg =
+    if Global.options.whole_program then
+      (* Also disambiguate modules' topdefs *)
+      let program_modules =
+        ModuleName.Map.map
+          (fun modul -> { modul with module_topdefs = topdef modul })
+          prg.program_modules
+      in
+      { prg with program_modules }
+    else prg
   in
   let module_scopes =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_root.module_scopes
   in
-  { prg with program_root = { module_topdefs; module_scopes } }
+  let program_modules =
+    ModuleName.Map.map
+      (fun modul ->
+        let module_scopes =
+          ScopeName.Map.map (scope prg.program_ctx env) modul.module_scopes
+        in
+        { modul with module_scopes })
+      prg.program_modules
+  in
+  { prg with program_root = { module_topdefs; module_scopes }; program_modules }
 
 let program prg = Message.with_delayed_errors (fun () -> program prg)

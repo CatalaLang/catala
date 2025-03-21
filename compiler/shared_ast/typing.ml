@@ -503,7 +503,7 @@ and typecheck_expr_top_down :
       match loc with
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
-      | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
+      | ToplevelVar { name; _ } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
       match ty_opt with

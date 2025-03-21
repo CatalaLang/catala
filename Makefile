@@ -239,7 +239,8 @@ tests: test
 TEST_FLAGS_LIST = ""\
 -O \
 --lcalc \
---lcalc,--closure-conversion,-O
+--lcalc,--closure-conversion,-O \
+--whole-program
 
 # Does not include running dune (to avoid duplication when run among bigger rules)
 testsuite-base: .FORCE

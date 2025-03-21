@@ -26,7 +26,7 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let load_module_interfaces
+let load_modules
     options
     includes
     ?(more_includes = [])
@@ -68,7 +68,8 @@ let load_module_interfaces
         ms
   in
   let rec aux req_chain seen uses :
-      (ModuleName.t * Surface.Ast.interface * ModuleName.t Ident.Map.t) option
+      (ModuleName.t * Surface.Ast.module_content * ModuleName.t Ident.Map.t)
+      option
       File.Map.t
       * ModuleName.t Ident.Map.t =
     List.fold_left
@@ -94,18 +95,25 @@ let load_module_interfaces
               Some Filename.(basename (remove_extension f))
             else None
           in
-          let intf =
-            Surface.Parser_driver.load_interface ?default_module_name
-              (Global.FileName f)
+          let module_content =
+            if options.Global.whole_program then
+              Surface.Parser_driver.load_interface_and_code ?default_module_name
+                (Global.FileName f)
+            else
+              Surface.Parser_driver.load_interface ?default_module_name
+                (Global.FileName f)
           in
-          let modname = ModuleName.fresh intf.intf_modname.module_name in
+          let modname =
+            ModuleName.fresh
+              module_content.Surface.Ast.module_modname.module_name
+          in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
             aux
               (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-              seen intf.Surface.Ast.intf_submodules
+              seen module_content.Surface.Ast.module_submodules
           in
-          ( File.Map.add f (Some (modname, intf, sub_use_map)) seen,
+          ( File.Map.add f (Some (modname, module_content, sub_use_map)) seen,
             Ident.Map.add
               (Mark.remove use.Surface.Ast.mod_use_alias)
               modname use_map ))
@@ -150,12 +158,13 @@ module Passes = struct
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg = surface options in
-    let mod_uses, modules = load_module_interfaces options includes prg in
+    let mod_uses, modules = load_modules options includes prg in
     debug_pass_name "desugared";
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.debug "Desugaring...";
-    let prg = Desugared.From_surface.translate_program ctx prg in
+    let modules = ModuleName.Map.map fst modules in
+    let prg = Desugared.From_surface.translate_program ctx modules prg in
     Message.debug "Disambiguating...";
     let prg = Desugared.Disambiguate.program prg in
     Message.debug "Linting...";
@@ -1101,13 +1110,13 @@ module Commands = struct
         }
     in
     let mod_uses, modules =
-      load_module_interfaces options includes ~more_includes
-        ~allow_notmodules:true prg
+      load_modules options includes ~more_includes ~allow_notmodules:true prg
     in
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
     in
-    let prg = Desugared.From_surface.translate_program d_ctx prg in
+    let modules = ModuleName.Map.map fst modules in
+    let prg = Desugared.From_surface.translate_program d_ctx modules prg in
     let modules_list_topo =
       Program.modules_to_list prg.program_ctx.ctx_modules
     in

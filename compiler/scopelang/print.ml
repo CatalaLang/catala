@@ -92,7 +92,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
              (Print.expr ?debug ()) e))
     decl.scope_decl_rules
 
-let print_topdef ctx ppf name (e, ty, _vis) =
+let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
   Format.pp_open_vbox ppf 2;
   let () =
     Format.pp_open_hovbox ppf 2;

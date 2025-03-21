@@ -331,11 +331,27 @@ let scope_to_exception_graphs (scope : D.scope) :
 
 let build_exceptions_graph (pgrm : D.program) :
     Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t =
-  ScopeName.Map.fold
-    (fun _ scope exceptions_graph ->
-      let new_exceptions_graphs = scope_to_exception_graphs scope in
-      D.ScopeDef.Map.disjoint_union new_exceptions_graphs exceptions_graph)
-    pgrm.program_root.module_scopes D.ScopeDef.Map.empty
+  let g =
+    ScopeName.Map.fold
+      (fun _ scope exceptions_graph ->
+        let new_exceptions_graphs = scope_to_exception_graphs scope in
+        D.ScopeDef.Map.disjoint_union new_exceptions_graphs exceptions_graph)
+      pgrm.program_root.module_scopes D.ScopeDef.Map.empty
+  in
+  let g =
+    if Global.options.whole_program then
+      ModuleName.Map.fold
+        (fun _ modul g ->
+          ScopeName.Map.fold
+            (fun _ scope exceptions_graph ->
+              let new_exceptions_graphs = scope_to_exception_graphs scope in
+              D.ScopeDef.Map.disjoint_union new_exceptions_graphs
+                exceptions_graph)
+            modul.D.module_scopes g)
+        pgrm.program_modules g
+    else g
+  in
+  g
 
 (** Transforms a flat list of rules into a tree, taking into account the
     priorities declared between rules *)
@@ -949,23 +965,57 @@ let translate_program
   let program_modules =
     ModuleName.Map.map
       (fun m ->
-        ScopeName.Map.map (translate_scope_interface ctx) m.D.module_scopes)
+        ScopeName.Map.map
+          (fun scope ->
+            if Global.options.whole_program then
+              translate_scope ctx exc_graphs scope
+            else translate_scope_interface ctx scope)
+          m.D.module_scopes)
       desugared.D.program_modules
   in
   let program_topdefs =
-    TopdefName.Map.mapi
-      (fun id -> function
-        | { D.topdef_expr = Some e; topdef_type = ty; topdef_visibility = vis }
-          ->
-          Expr.unbox (translate_expr ctx e), ty, vis
-        | { D.topdef_expr = None; topdef_type = _, pos; _ } ->
-          Message.error ~pos "No definition found for %a" TopdefName.format id)
-      desugared.program_root.module_topdefs
+    let translate_topdef modul =
+      TopdefName.Map.filter_map
+        (fun id -> function
+          | {
+              D.topdef_expr = Some e;
+              topdef_type = ty;
+              topdef_visibility = vis;
+              topdef_external = ext;
+            } ->
+            Some (Expr.unbox (translate_expr ctx e), ty, vis, ext)
+          | { D.topdef_expr = None; topdef_external = true; _ } -> None
+          | {
+              D.topdef_expr = None;
+              topdef_type = _, pos;
+              topdef_external = false;
+              _;
+            } ->
+            Message.error ~pos "No definition found for %a" TopdefName.format id)
+        modul.D.module_topdefs
+    in
+    let program_topdefs = translate_topdef desugared.program_root in
+    let program_topdefs =
+      if Global.options.whole_program then
+        ModuleName.Map.fold
+          (fun _mn modul topdefs ->
+            TopdefName.Map.disjoint_union (translate_topdef modul) topdefs)
+          desugared.program_modules program_topdefs
+      else program_topdefs
+    in
+    program_topdefs
   in
   let program_scopes =
-    ScopeName.Map.map
-      (translate_scope ctx exc_graphs)
-      desugared.D.program_root.module_scopes
+    let translate_scope modul =
+      ScopeName.Map.map (translate_scope ctx exc_graphs) modul.D.module_scopes
+    in
+    let program_scopes = translate_scope desugared.D.program_root in
+    if Global.options.whole_program then
+      ModuleName.Map.fold
+        (fun _mn modul scopes ->
+          ScopeName.Map.disjoint_union (translate_scope modul) scopes)
+        desugared.program_modules program_scopes
+    else program_scopes
   in
   {
     Ast.program_module_name = desugared.D.program_module_name;

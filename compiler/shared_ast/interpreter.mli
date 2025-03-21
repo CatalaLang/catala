@@ -64,4 +64,5 @@ val delcustom :
 
 val load_runtime_modules : hashf:(Hash.t -> Hash.full) -> _ program -> unit
 (** Dynlink the runtime modules required by the given program, in order to make
-    them callable by the interpreter. *)
+    them callable by the interpreter. Note: in whole-program, we will only try
+    loading external modules. *)

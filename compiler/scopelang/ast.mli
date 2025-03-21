@@ -64,13 +64,11 @@ type 'm scope_decl = {
 type 'm program = {
   program_module_name : (ModuleName.t * module_intf_id) option;
   program_ctx : decl_ctx;
-  program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
-  (* Using [nil] here ensure that program interfaces don't contain any
-     expressions. They won't contain any rules or topdef implementations, but
-     will still have the scope signatures needed to respect the call
-     convention *)
+  program_modules : 'm scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
-  program_topdefs : ('m expr * typ * visibility) TopdefName.Map.t;
+  program_topdefs :
+    ('m expr * typ * visibility * bool (* external if [true] *))
+    TopdefName.Map.t;
   program_lang : Global.backend_lang;
 }
 

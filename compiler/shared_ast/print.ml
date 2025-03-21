@@ -74,7 +74,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
   | DesugaredScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
   | ScopelangScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
-  | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
+  | ToplevelVar { name; _ } -> TopdefName.format fmt (Mark.remove name)
 
 let external_ref fmt er =
   match Mark.remove er with
