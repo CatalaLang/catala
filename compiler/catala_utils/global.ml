@@ -64,7 +64,7 @@ let options =
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
     no_fail_on_assert = false;
-    whole_program = true;
+    whole_program = false;
   }
 
 let enforce_options
