@@ -98,9 +98,20 @@ let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
 
 let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
   let scoppe: bool =
-    o_fold (closure_scoppe__2, (o_toclosureenv ())) true
-      ([|(integer_of_string "5"); (integer_of_string "6"); (integer_of_string
-         "7")|]) in
+     if
+      (o_fold (closure_scoppe__2, (o_toclosureenv ())) true
+         ([|(integer_of_string "5"); (integer_of_string "6");
+            (integer_of_string "7")|])) then
+      (let x, _
+        = (true,
+            ({filename="tests/name_resolution/good/conflicts-module.catala_en";
+              start_line=56; start_column=14; end_line=56; end_column=24;
+              law_headings=[]})) in x) else
+      (let x, _
+        = (false,
+            ({filename="tests/name_resolution/good/conflicts-module.catala_en";
+              start_line=5; start_column=10; end_line=5; end_column=16;
+              law_headings=[]})) in x) in
   {Closure_scoppe.scoppe = scoppe}
 
 let closure_scoppe__1 (_: Closure_scoppe__1_in.t) : Closure_scoppe__1.t =

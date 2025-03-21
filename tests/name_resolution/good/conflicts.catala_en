@@ -83,13 +83,13 @@ let scope assert (assert_in: Assert_in__1): Assert__2 {assert: bool} =
                     (assert__2, to_closure_env ()))
                  [0]
              in
-             false))
+             false, <conflicts:23.3-51>))
        with
-       | ENone → ESome false
+       | ENone → ESome (false, <conflicts:19.10-16>)
        | ESome x → ESome x)
     with
     | ENone → error NoValue
-    | ESome arg → arg
+    | ESome arg → arg.0
   in
   return { Assert__2 assert = assert; }
 
@@ -140,15 +140,23 @@ let assert__1 (_: Assert_in__1.t) : Assert__2.t =
     match
       (match
          (Eoption.ESome
-            (let _ : integer array =
-               (o_map
-                  (let assert__2 : Obj.t -> integer -> integer =
-                     closure_assert in
-                  (assert__2, (o_toclosureenv ())))
-                  ([|(integer_of_string "0")|])) in
-            false))
+            ((let _ : integer array =
+                (o_map
+                   (let assert__2 : Obj.t -> integer -> integer =
+                      closure_assert in
+                   (assert__2, (o_toclosureenv ())))
+                   ([|(integer_of_string "0")|])) in
+              false),
+              ({filename="tests/name_resolution/good/conflicts.catala_en";
+                start_line=23; start_column=3; end_line=23; end_column=51;
+                law_headings=[]})))
        with
-       | Eoption.ENone _ -> (Eoption.ESome false)
+       | Eoption.ENone _ ->
+           (Eoption.ESome
+              (false,
+                ({filename="tests/name_resolution/good/conflicts.catala_en";
+                  start_line=19; start_column=10; end_line=19; end_column=16;
+                  law_headings=[]})))
        | Eoption.ESome x -> (Eoption.ESome x))
     with
     | Eoption.ENone _ -> (raise
@@ -156,7 +164,7 @@ let assert__1 (_: Assert_in__1.t) : Assert__2.t =
                                                  start_line=19; start_column=10;
                                                  end_line=19; end_column=16;
                                                  law_headings=[]}])))
-    | Eoption.ESome arg -> arg in
+    | Eoption.ESome arg -> (let x, _ = arg in x) in
   {Assert__2.assert__1 = assert__1}
 
 let assert__2 : integer -> integer =

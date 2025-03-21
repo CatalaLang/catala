@@ -46,31 +46,38 @@ module S = struct
 end
 
 module S_in = struct
-  type t = {a_in: (bool) Eoption.t}
+  type t = {a_in: ((bool * source_position)) Eoption.t}
 end
 
 
 let s (s_in: S_in.t) : S.t =
-  let a: (bool) Eoption.t = s_in.S_in.a_in in
+  let a: ((bool * source_position)) Eoption.t = s_in.S_in.a_in in
   let a__1: bool =
     match
       (match a
        with
        | Eoption.ENone _ ->
            (Eoption.ESome
-              (match
-                 (Eoption.ESome (let a__2 : bool = false
-                    in
-                    (let a__3 : bool = (a__2 || true) in
-                    a__3)))
-               with
-               | Eoption.ENone _ -> (raise
-                   (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                                                            start_line=7; start_column=18;
-                                                            end_line=7; end_column=19;
-                                                            law_headings=
-                                                            ["Article"]}])))
-               | Eoption.ESome arg -> arg))
+              ((match
+                  (Eoption.ESome
+                     ((let a__2 : bool = false
+                       in
+                       (let a__3 : bool = (a__2 || true) in
+                       a__3)),
+                       ({filename="tests/name_resolution/good/let_in2.catala_en";
+                         start_line=11; start_column=5;
+                         end_line=13; end_column=6; law_headings=["Article"]})))
+                with
+                | Eoption.ENone _ -> (raise
+                    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
+                                                             start_line=7; start_column=18;
+                                                             end_line=7; end_column=19;
+                                                             law_headings=
+                                                             ["Article"]}])))
+                | Eoption.ESome arg -> (let x, _ = arg in x)),
+                ({filename="tests/name_resolution/good/let_in2.catala_en";
+                  start_line=7; start_column=18; end_line=7; end_column=19;
+                  law_headings=["Article"]})))
        | Eoption.ESome x -> (Eoption.ESome x))
     with
     | Eoption.ENone _ -> (raise
@@ -78,7 +85,7 @@ let s (s_in: S_in.t) : S.t =
                                                  start_line=7; start_column=18;
                                                  end_line=7; end_column=19;
                                                  law_headings=["Article"]}])))
-    | Eoption.ESome arg -> arg in
+    | Eoption.ESome arg -> (let x, _ = arg in x) in
   {S.a = a__1}
 
 let () =

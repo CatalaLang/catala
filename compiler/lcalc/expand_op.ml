@@ -37,6 +37,7 @@ let rec resolve_eq ctx pos ty args m =
   | TLit TMoney -> Expr.eappop ~op:(Eq_mon_mon, pos) ~args ~tys:[ty; ty] m
   | TLit TDuration -> Expr.eappop ~op:(Eq_dur_dur, pos) ~args ~tys:[ty; ty] m
   | TLit TDate -> Expr.eappop ~op:(Eq_dat_dat, pos) ~args ~tys:[ty; ty] m
+  | TLit TPos -> assert false
   | TTuple tys ->
     let size = List.length tys in
     let eqs =

@@ -206,7 +206,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
   | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
     | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EFatalError _
-    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ ) as e ->
+    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ | EPos _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)

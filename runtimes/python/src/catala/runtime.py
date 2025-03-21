@@ -49,53 +49,53 @@ class SourcePosition:
             self.end_line, self.end_column)
 
 class CatalaError(Exception):
-    def __init__(self, message: str, source_position: SourcePosition) -> None:
+    def __init__(self, message: str, source_positions: List[SourcePosition]) -> None:
         self.message = message
-        self.source_position = source_position
+        self.source_positions = source_positions
     # Prints in the same format as the OCaml runtime
     def __str__(self) -> str:
         return "[ERROR] At {}: {}".format(
-            self.source_position,
+            ', '.join([str(e) for e in self.source_positions]),
             self.message)
 
 class AssertionFailed(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("this assertion doesn't hold", source_position)
+        super().__init__("this assertion doesn't hold", [source_position])
 
 class NoValue(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("no computation with valid conditions found",
-                         source_position)
+                         [source_position])
 
 class Conflict(CatalaError):
-    def __init__(self, pos1: SourcePosition, pos2: SourcePosition) -> None:
-        super().__init__("two or more concurring valid computations:\nAt {}".format(pos2),
-                         pos1)
+    def __init__(self, pos: List[SourcePosition]) -> None:
+        super().__init__("two or more concurring valid computations",
+                         pos)
 
 class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("division by zero", source_position)
+        super().__init__("division by zero", [source_position])
 
 class ListEmpty(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("the list was empty",
-                         source_position)
+                         [source_position])
 
 class NotSameLength(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("traversing multiple lists of different lengths",
-                         source_position)
+                         [source_position])
 
 class UncomparableDurations(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__(
             "comparing durations in different units (e.g. months vs. days)",
-            source_position)
+            [source_position])
 
 class IndivisibleDurations(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("dividing durations that are not in days",
-                         source_position)
+                         [source_position])
 
 # ============
 # Type classes
@@ -637,19 +637,15 @@ def list_length(l: List[Alpha]) -> Integer:
 
 
 def handle_exceptions(
-    pos: List[SourcePosition],
-    exceptions: List[Optional[Alpha]]) -> Optional[Alpha]:
-    acc: Optional[Alpha] = None
-    acc_pos: Optional[SourcePosition] = None
-    for exception, pos1 in zip(exceptions, pos):
-        if exception is None:
-            pass  # acc stays the same
-        elif acc_pos is None:
-            acc = exception
-            acc_pos = pos1
-        else:
-            raise Conflict(acc_pos,pos1)
-    return acc
+    exceptions: List[Optional[Tuple[Alpha,SourcePosition]]]) -> Optional[Tuple[Alpha,SourcePosition]]:
+    active_exns: List[Tuple[Alpha,SourcePosition]] = [e for e in exceptions if e is not None]
+    count = len(active_exns)
+    if count == 0:
+        return None
+    elif count == 1:
+        return active_exns[0]
+    else:
+        raise Conflict([e[1] for e in active_exns])
 
 class Empty(Exception): pass
 

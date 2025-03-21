@@ -437,26 +437,34 @@ let rec evaluate_operator
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (o_eq_dur_dur (rpos ()) x y))
   | HandleExceptions, [(EArray exps, _)] -> (
-    let valid_exceptions =
-      ListLabels.filter exps ~f:(function
-        | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
-          EnumConstructor.equal cons Expr.some_constr
-        | _ -> err ())
+    (* Shallow conversion to runtime option, so that we can call
+       [handle_exceptions] *)
+    let exps =
+      List.map
+        (function
+          | EInj { name; cons; e }, _ when EnumName.equal name Expr.option_enum
+            ->
+            if EnumConstructor.equal cons Expr.some_constr then
+              match e with
+              | ETuple [e; (EPos p, _)], _ ->
+                Runtime.Eoption.ESome (e, Expr.pos_to_runtime p)
+              | _ -> err ()
+            else Runtime.Eoption.ENone ()
+          | _ -> err ())
+        exps
     in
-    match valid_exceptions with
-    | [] ->
+    match Runtime.handle_exceptions (Array.of_list exps) with
+    | Runtime.Eoption.ENone () ->
       EInj
         { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
-    | [((EInj { cons; name; _ } as e), _)]
-      when EnumName.equal name Expr.option_enum
-           && EnumConstructor.equal cons Expr.some_constr ->
-      e
-    | [_] -> err ()
-    | excs ->
-      raise
-        Runtime.(
-          Error (Conflict, List.map Expr.(fun e -> pos_to_runtime (pos e)) excs))
-    )
+    | Runtime.Eoption.ESome (e, rpos) ->
+      let p = Expr.runtime_to_pos rpos in
+      EInj
+        {
+          name = Expr.option_enum;
+          cons = Expr.some_constr;
+          e = ETuple [e; EPos p, Expr.with_pos p m], m;
+        })
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToRat_int
       | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
       | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
@@ -494,6 +502,14 @@ let rec runtime_to_val :
   | TLit TMoney -> ELit (LMoney (Obj.obj o)), m
   | TLit TDate -> ELit (LDate (Obj.obj o)), m
   | TLit TDuration -> ELit (LDuration (Obj.obj o)), m
+  | TLit TPos ->
+    let rpos : Runtime.source_position = Obj.obj o in
+    let p =
+      Pos.from_info rpos.filename rpos.start_line rpos.start_column
+        rpos.end_line rpos.end_column
+    in
+    let p = Pos.overwrite_law_info p rpos.law_headings in
+    EPos p, m
   | TTuple ts ->
     ( ETuple
         (List.map2
@@ -549,8 +565,10 @@ let rec runtime_to_val :
        isn't aware so we need some additional dark arts. *)
     match (Obj.obj o : 'a Runtime.Eoption.t) with
     | Runtime.Eoption.ENone () -> Obj.magic EEmpty, m
-    | Runtime.Eoption.ESome o -> Obj.magic (runtime_to_val eval_expr ctx m ty o)
-    )
+    | Runtime.Eoption.ESome o -> (
+      match runtime_to_val eval_expr ctx m ty o with
+      | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
+      | _ -> assert false))
   | TAny -> assert false
 
 and val_to_runtime :
@@ -571,6 +589,18 @@ and val_to_runtime :
   | TLit TMoney, ELit (LMoney m) -> Obj.repr m
   | TLit TDate, ELit (LDate t) -> Obj.repr t
   | TLit TDuration, ELit (LDuration d) -> Obj.repr d
+  | TLit TPos, EPos p ->
+    let rpos : Runtime.source_position =
+      {
+        Runtime.filename = Pos.get_file p;
+        start_line = Pos.get_start_line p;
+        start_column = Pos.get_start_column p;
+        end_line = Pos.get_end_line p;
+        end_column = Pos.get_end_column p;
+        law_headings = Pos.get_law_info p;
+      }
+    in
+    Obj.repr rpos
   | TTuple ts, ETuple es ->
     List.map2 (val_to_runtime eval_expr ctx) ts es |> Array.of_list |> Obj.repr
   | TStruct name1, EStruct { name; fields } ->
@@ -631,10 +661,19 @@ and val_to_runtime :
     in
     curry [] targs
   | TDefault ty, _ -> (
+    (* In dcalc, this is an expression. in the runtime (lcalc), this is an
+       option(pair(expression, pos)) *)
     match v with
     | EEmpty, _ -> Obj.repr (Runtime.Eoption.ENone ())
-    | EPureDefault e, _ | e ->
-      Obj.repr (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty e)))
+    | EPureDefault e, m | ((_, m) as e) ->
+      let e = eval_expr ctx e in
+      let pos = Expr.pos e in
+      let ty = TTuple [ty; TLit TPos, pos], pos in
+      let with_pos =
+        ETuple [e; EPos pos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
+      in
+      Obj.repr
+        (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))
   | TClosureEnv, v ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
@@ -724,7 +763,7 @@ let rec evaluate_expr :
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs _ | ELit _ | ECustom _ | EEmpty -> e (* these are values *)
+  | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
@@ -982,6 +1021,7 @@ let addcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -1012,6 +1052,7 @@ let delcustom e =
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),

@@ -126,6 +126,7 @@ let eabs_ghost binder tys mark =
 let eapp ~f ~args ~tys = Box.app1n f args @@ fun f args -> EApp { f; args; tys }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
 let efatalerror e1 = Box.app0 @@ EFatalError e1
+let epos p = Box.app0 @@ EPos p
 
 let eappop ~op ~args ~tys =
   Box.appn args @@ fun args -> EAppOp { op; args; tys }
@@ -262,6 +263,7 @@ let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
 (* - Predefined types (option) - *)
 
 let option_enum = EnumName.fresh [] ("Eoption", Pos.no_pos)
+let option_struct = StructName.fresh [] ("Soption", Pos.no_pos)
 
 (* Warning: order of these definitions is important, binary injection assumes
    that None is first *)
@@ -330,6 +332,7 @@ let map
   | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EFatalError e1 -> efatalerror e1 m
+  | EPos p -> epos p m
   | EDefault { excepts; just; cons } ->
     edefault ~excepts:(List.map f excepts) ~just:(f just) ~cons:(f cons) m
   | EPureDefault e1 -> epuredefault (f e1) m
@@ -365,7 +368,9 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
-  | ELit _ | EVar _ | EFatalError _ | EExternal _ | ELocation _ | EEmpty -> acc
+  | ELit _ | EVar _ | EFatalError _ | EPos _ | EExternal _ | ELocation _
+  | EEmpty ->
+    acc
   | EApp { f = e; args; _ } -> acc |> f e |> lfold args
   | EAppOp { args; _ } -> acc |> lfold args
   | EArray args -> acc |> lfold args
@@ -446,6 +451,7 @@ let map_gather
     let acc, e = f e in
     acc, eassert e m
   | EFatalError e -> acc, efatalerror e m
+  | EPos p -> acc, epos p m
   | EDefault { excepts; just; cons } ->
     let acc1, excepts = lfoldmap excepts in
     let acc2, just = f just in
@@ -649,6 +655,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && Type.equal_list tys1 tys2
   | EAssert e1, EAssert e2 -> equal e1 e2
   | EFatalError e1, EFatalError e2 -> equal_error e1 e2
+  | EPos p1, EPos p2 -> Pos.equal p1 p2
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
     equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
@@ -690,10 +697,10 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
-      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EDefault _
-      | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _ | ELocation _
-      | EStruct _ | EDStructAmend _ | EDStructAccess _ | EStructAccess _
-      | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
+      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EPos _
+      | EDefault _ | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _
+      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
+      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -776,6 +783,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2
   | EFatalError e1, EFatalError e2 ->
     compare_error e1 e2
+  | EPos p1, EPos p2 ->
+    Pos.compare p1 p2
   | EDefault {excepts=exs1; just=just1; cons=cons1},
     EDefault {excepts=exs2; just=just2; cons=cons2} ->
     compare just1 just2 @@< fun () ->
@@ -809,6 +818,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EFatalError _, _ -> -1 | _, EFatalError _ -> 1
+  | EPos _, _ -> -1 | _, EPos _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmpty , _ -> -1 | _, EEmpty  -> 1
@@ -849,6 +859,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EInj { e; _ } -> size e + 1
   | EAssert e -> size e + 1
   | EFatalError _ -> 1
+  | EPos _ -> 1
   | EErrorOnEmpty e -> size e + 1
   | EPureDefault e -> size e + 1
   | EApp { f; args; _ } ->
@@ -984,6 +995,8 @@ let make_puredefault e =
     map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
   epuredefault e mark
+
+let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in

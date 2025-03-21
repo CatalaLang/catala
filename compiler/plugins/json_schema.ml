@@ -48,6 +48,7 @@ module To_json = struct
     | TBool -> Format.fprintf fmt "\"type\": \"boolean\",@\n\"default\": false"
     | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
     | TDuration -> failwith "TODO: tlit duration"
+    | TPos -> assert false
     | TUnit ->
       (* NOTE(@EmileRolley): we previously used the "null" type for unit, but it
          is not working properly so we simply decided to remove it. *)

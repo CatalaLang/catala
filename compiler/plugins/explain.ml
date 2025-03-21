@@ -418,7 +418,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         let e, env = lazy_eval ctx env llevel body in
         e, env
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
-  | (EAbs _ | ELit _ | EEmpty), _ -> e0, env (* these are values *)
+  | (EAbs _ | ELit _ | EEmpty | EPos _), _ -> e0, env (* these are values *)
   | (EStruct _ | ETuple _ | EInj _ | EArray _), _ ->
     if not llevel.eval_struct then e0, env
     else

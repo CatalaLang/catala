@@ -342,7 +342,7 @@ val duration_to_string : duration -> string
 (**{1 Defaults} *)
 
 val handle_exceptions :
-  source_position array -> 'a Eoption.t array -> 'a Eoption.t
+  ('a * source_position) Eoption.t array -> ('a * source_position) Eoption.t
 (** @raise Error Conflict *)
 
 (**{1 Operators} *)

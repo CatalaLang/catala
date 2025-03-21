@@ -126,54 +126,62 @@ let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
 let s2 (s2_in: S2_in) =
   decl a : decimal;
-  init a__1 : option decimal = ESome glob3 ¤44.00 + 100.;
+  init pos : SourcePosition = <toplevel_defs:53.24-43>;
+  init a__1 : option (decimal, source_position) =
+    ESome (glob3 ¤44.00 + 100., pos);
   switch a__1:
   | ENone _ →
-    init pos : SourcePosition = <toplevel_defs:50.10-11>;
+    init pos__1 : SourcePosition = <toplevel_defs:50.10-11>;
     fatal NoValue
   | ESome arg →
-    a = arg;
+    a = arg."0";
   return S2 {"a": a}
 
 let s3 (s3_in: S3_in) =
   decl a : decimal;
-  init a__1 : option decimal = ESome 50. + glob4 ¤44.00 55.;
+  init pos : SourcePosition = <toplevel_defs:74.24-47>;
+  init a__1 : option (decimal, source_position) =
+    ESome (50. + glob4 ¤44.00 55., pos);
   switch a__1:
   | ENone _ →
-    init pos : SourcePosition = <toplevel_defs:71.10-11>;
+    init pos__1 : SourcePosition = <toplevel_defs:71.10-11>;
     fatal NoValue
   | ESome arg →
-    a = arg;
+    a = arg."0";
   return S3 {"a": a}
 
 let s4 (s4_in: S4_in) =
   decl a : decimal;
-  init a__1 : option decimal = ESome glob5 + 1.;
+  init pos : SourcePosition = <toplevel_defs:98.24-34>;
+  init a__1 : option (decimal, source_position) = ESome (glob5 + 1., pos);
   switch a__1:
   | ENone _ →
-    init pos : SourcePosition = <toplevel_defs:95.10-11>;
+    init pos__1 : SourcePosition = <toplevel_defs:95.10-11>;
     fatal NoValue
   | ESome arg →
-    a = arg;
+    a = arg."0";
   return S4 {"a": a}
 
 let s (s_in: S_in) =
   decl a : decimal;
-  init a__1 : option decimal = ESome glob1 * glob1;
+  init pos : SourcePosition = <toplevel_defs:18.24-37>;
+  init a__1 : option (decimal, source_position) = ESome (glob1 * glob1, pos);
   switch a__1:
   | ENone _ →
-    init pos : SourcePosition = <toplevel_defs:7.10-11>;
+    init pos__1 : SourcePosition = <toplevel_defs:7.10-11>;
     fatal NoValue
   | ESome arg →
-    a = arg;
+    a = arg."0";
   decl b : A {y: bool; z: decimal};
-  init b__1 : option A {y: bool; z: decimal} = ESome glob2;
+  init pos__1 : SourcePosition = <toplevel_defs:19.24-29>;
+  init b__1 : option (A {y: bool; z: decimal}, source_position) =
+    ESome (glob2, pos__1);
   switch b__1:
   | ENone _ →
-    init pos : SourcePosition = <toplevel_defs:8.10-11>;
+    init pos__2 : SourcePosition = <toplevel_defs:8.10-11>;
     fatal NoValue
   | ESome arg →
-    b = arg;
+    b = arg."0";
   return S {"a": a, "b": b}
 ```
 
@@ -356,65 +364,89 @@ glob2 = (
 )
 
 def s2(s2_in:S2In):
-    a__1 = ((glob3(money_of_cents_string("4400")) +
-        decimal_of_string("100")))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=53, start_column=24, end_line=53, end_column=43,
+               law_headings=["Test toplevel function defs"]))
+    a__1 = (((glob3(money_of_cents_string("4400")) +
+        decimal_of_string("100")),
+        pos))
     if a__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=50, start_column=10,
-                   end_line=50, end_column=11,
-                   law_headings=["Test toplevel function defs"]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                      start_line=50, start_column=10,
+                      end_line=50, end_column=11,
+                      law_headings=["Test toplevel function defs"]))
+        raise NoValue(pos__1)
     else:
-        a = (a__1)
+        a = (a__1[0])
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    a__1 = ((decimal_of_string("50") +
-        glob4(money_of_cents_string("4400"), decimal_of_string("55"))))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=74, start_column=24, end_line=74, end_column=47,
+               law_headings=["Test function def with two args"]))
+    a__1 = (((decimal_of_string("50") +
+        glob4(money_of_cents_string("4400"), decimal_of_string("55"))),
+        pos))
     if a__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=71, start_column=10,
-                   end_line=71, end_column=11,
-                   law_headings=["Test function def with two args"]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                      start_line=71, start_column=10,
+                      end_line=71, end_column=11,
+                      law_headings=["Test function def with two args"]))
+        raise NoValue(pos__1)
     else:
-        a = (a__1)
+        a = (a__1[0])
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    a__1 = ((glob5 + decimal_of_string("1")))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=98, start_column=24, end_line=98, end_column=34,
+               law_headings=["Test inline defs in toplevel defs"]))
+    a__1 = (((glob5 + decimal_of_string("1")), pos))
     if a__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=95, start_column=10,
-                   end_line=95, end_column=11,
-                   law_headings=["Test inline defs in toplevel defs"]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                      start_line=95, start_column=10,
+                      end_line=95, end_column=11,
+                      law_headings=["Test inline defs in toplevel defs"]))
+        raise NoValue(pos__1)
     else:
-        a = (a__1)
+        a = (a__1[0])
     return S4(a = a)
 
 def s(s_in:SIn):
-    a__1 = ((glob1 * glob1))
+    pos = (SourcePosition(
+               filename="tests/name_resolution/good/toplevel_defs.catala_en",
+               start_line=18, start_column=24, end_line=18, end_column=37,
+               law_headings=["Test basic toplevel values defs"]))
+    a__1 = (((glob1 * glob1), pos))
     if a__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=7, start_column=10, end_line=7, end_column=11,
-                   law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos)
+        pos__1 = (SourcePosition(
+                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                      start_line=7, start_column=10,
+                      end_line=7, end_column=11,
+                      law_headings=["Test basic toplevel values defs"]))
+        raise NoValue(pos__1)
     else:
-        a = (a__1)
-    b__1 = (glob2)
+        a = (a__1[0])
+    pos__1 = (SourcePosition(
+                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                  start_line=19, start_column=24, end_line=19, end_column=29,
+                  law_headings=["Test basic toplevel values defs"]))
+    b__1 = ((glob2, pos__1))
     if b__1 is None:
-        pos = (SourcePosition(
-                   filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                   start_line=8, start_column=10, end_line=8, end_column=11,
-                   law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos)
+        pos__2 = (SourcePosition(
+                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                      start_line=8, start_column=10,
+                      end_line=8, end_column=11,
+                      law_headings=["Test basic toplevel values defs"]))
+        raise NoValue(pos__2)
     else:
-        b = (b__1)
+        b = (b__1[0])
     return S(a = a, b = b)
 
 # Automatic Catala tests

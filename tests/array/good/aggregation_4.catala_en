@@ -102,10 +102,10 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
                in
                (aggregate_periods_from_last_five_years,
                  to_closure_env (date_of_sale_or_exchange)))
-            periods))
+            periods, <aggregation_4:25.5-32.29>))
   with
   | ENone → error NoValue
-  | ESome arg → arg
+  | ESome arg → arg.0
 
 let scope section121_single_person
   (section121_single_person_in:
@@ -142,14 +142,14 @@ let scope section121_single_person
             code_and_env.0 code_and_env.1 property_ownage)
            >= [0 years, 0 months, 730 days]
          then
-           ESome true
+           ESome (true, <aggregation_4:36.14-24>)
          else ENone ()
        with
-       | ENone → ESome false
+       | ENone → ESome (false, <aggregation_4:13.10-36>)
        | ESome x → ESome x)
     with
     | ENone → error NoValue
-    | ESome arg → arg
+    | ESome arg → arg.0
   in
   return { Section121SinglePerson
            requirements_ownership_met = requirements_ownership_met;
