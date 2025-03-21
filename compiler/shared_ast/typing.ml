@@ -1100,7 +1100,7 @@ let scope_body_expr ctx env ty_out body_expr =
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined
            instead of as inferred. *)
-        ( Env.add_var var ty_e env,
+        ( Env.add_var var scope.A.scope_let_typ env,
           Var.translate var,
           Bindlib.box_apply
             (fun scope_let_expr ->
@@ -1120,20 +1120,19 @@ let scope_body_expr ctx env ty_out body_expr =
 let scope_body ctx env body =
   let get_pos struct_name = Mark.get (A.StructName.get_info struct_name) in
   let struct_ty struct_name =
-    UnionFind.make (Mark.add (get_pos struct_name) (TStruct struct_name))
+    Mark.add (get_pos struct_name) (A.TStruct struct_name)
   in
   let ty_in = struct_ty body.A.scope_body_input_struct in
   let ty_out = struct_ty body.A.scope_body_output_struct in
   let var, e = Bindlib.unbind body.A.scope_body_expr in
-  let env = Env.add var ty_in env in
-  let e' = scope_body_expr ctx env ty_out e in
+  let env = Env.add_var var ty_in env in
+  let e' = scope_body_expr ctx env (ast_to_typ ty_out) e in
   ( Bindlib.box_apply
       (fun scope_body_expr -> { body with scope_body_expr })
       (Bindlib.bind_var (Var.translate var) e'),
-    UnionFind.make
       (Mark.add
          (get_pos body.A.scope_body_output_struct)
-         (TArrow ([ty_in], ty_out))) )
+         (A.TArrow ([ty_in], ty_out))) )
 
 let scopes ctx env =
   BoundList.fold_map ~init:env
@@ -1142,14 +1141,13 @@ let scopes ctx env =
       match item with
       | A.ScopeDef (name, body) ->
         let body_e, ty_scope = scope_body ctx env body in
-        ( Env.add var ty_scope env,
+        ( Env.add_var var ty_scope env,
           Var.translate var,
           Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
       | A.Topdef (name, typ, vis, e) ->
         let e' = expr_raw ctx ~env ~typ e in
-        let (A.Custom { custom = uf; _ }) = Mark.get e' in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
-        ( Env.add var uf env,
+        ( Env.add_var var typ env,
           Var.translate var,
           Bindlib.box_apply
             (fun e -> A.Topdef (name, Expr.ty e', vis, e))
