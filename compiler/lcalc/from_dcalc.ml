@@ -32,7 +32,8 @@ let rec translate_typ (tau : typ) : typ =
   Mark.copy tau
     begin
       match Mark.remove tau with
-      | TDefault t -> TOption (translate_typ t)
+      | TDefault ((_, pos) as t) ->
+        TOption (TTuple [translate_typ t; TLit TPos, pos], pos)
       | TLit l -> TLit l
       | TTuple ts -> TTuple (List.map translate_typ ts)
       | TStruct s -> TStruct s
@@ -57,7 +58,8 @@ let rec translate_default
     (just : 'm D.expr)
     (cons : 'm D.expr)
     (mark_default : 'm mark) : 'm A.expr boxed =
-  (* Since the program is well typed, all exceptions have as type [option 't] *)
+  (* Since the program is well typed, all exceptions have as type [option ('t *
+     pos)] *)
   let pos = Expr.mark_pos mark_default in
   let ty_option = Expr.maybe_ty mark_default in
   let ty_array = TArray ty_option, pos in
@@ -133,6 +135,9 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   | EErrorOnEmpty arg, m ->
     let m = translate_mark m in
     let pos = Expr.mark_pos m in
+    let m_pos_pair =
+      Expr.map_ty (fun ty -> TTuple [ty; TLit TPos, pos], pos) m
+    in
     let cases =
       EnumConstructor.Map.of_list
         [
@@ -141,15 +146,23 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
             Expr.make_ghost_abs [x] (Expr.efatalerror NoValue m) [TAny, pos] pos
           );
           (* | None x -> raise NoValueProvided *)
-          Expr.some_constr, Expr.fun_id ~var_name:"arg" m (* | Some x -> x *);
+          ( Expr.some_constr,
+            let var = Var.make "arg" in
+            Expr.make_abs
+              [var, pos]
+              (Expr.make_tupleaccess (Expr.evar var m_pos_pair) 0 2 pos)
+              [Expr.maybe_ty m_pos_pair]
+              pos );
         ]
     in
     Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases m
   | EDefault { excepts; just; cons }, m ->
     translate_default excepts just cons (translate_mark m)
   | EPureDefault e, m ->
-    Expr.einj ~e:(translate_expr e) ~cons:Expr.some_constr
-      ~name:Expr.option_enum (translate_mark m)
+    let pos = Expr.mark_pos m in
+    let e = Expr.make_tuple [translate_expr e; Expr.make_pos pos m] m in
+    Expr.einj ~e ~cons:Expr.some_constr ~name:Expr.option_enum
+      (translate_mark m)
   | EAppOp { op; tys; args }, m ->
     Expr.eappop ~op:(Operator.translate op)
       ~tys:(List.map translate_typ tys)
@@ -157,7 +170,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       (translate_mark m)
   | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
       | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
-      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ ),
+      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ | EPos _ ),
       _ ) as e ->
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .

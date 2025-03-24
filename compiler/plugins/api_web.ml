@@ -59,7 +59,8 @@ module To_jsoo = struct
       | TRat | TMoney -> "Js.number Js.t"
       | TDuration -> "Runtime_jsoo.Runtime.duration Js.t"
       | TBool -> "bool Js.t"
-      | TDate -> "Js.js_string Js.t")
+      | TDate -> "Js.js_string Js.t"
+      | TPos -> "source_position Js.t")
 
   let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
     let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
@@ -71,10 +72,10 @@ module To_jsoo = struct
     | TStruct s -> Format.fprintf fmt "%a Js.t" format_struct_name s
     | TTuple _ ->
       (* Tuples are encoded as an javascript polymorphic array. *)
-      Format.fprintf fmt "Js.Unsafe.any_js_array Js.t "
+      Format.fprintf fmt "Js.Unsafe.any Js.js_array Js.t "
     | TOption t ->
       Format.fprintf fmt "@[<hov 2>(%a)@] Js.opt" format_typ_with_parens t
-    | TDefault t -> format_typ fmt t
+    | TDefault _ -> assert false
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
@@ -96,21 +97,24 @@ module To_jsoo = struct
     | TLit TMoney -> Format.fprintf fmt "Js.number_of_float %@%@ money_to_float"
     | TLit TDuration -> Format.fprintf fmt "duration_to_js"
     | TLit TDate -> Format.fprintf fmt "date_to_js"
+    | TLit TPos -> Format.fprintf fmt "position_to_js"
     | TEnum ename -> Format.fprintf fmt "%a_to_js" format_enum_name ename
     | TStruct sname -> Format.fprintf fmt "%a_to_js" format_struct_name sname
     | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)" format_to_js
         t
-    | TDefault t -> format_to_js fmt t
+    | TDefault _ -> assert false
     | TTuple tl ->
-      let pp_sep fmt () = Format.fprintf fmt ",@ " in
       let elts = List.mapi (fun i t -> i, t) tl in
       Format.fprintf fmt "(fun (%a) -> Js.array [|%a|])"
-        (Format.pp_print_list ~pp_sep (fun fmt (i, _) ->
-             Format.fprintf fmt "x%d" i))
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           (fun fmt (i, _) -> Format.fprintf fmt "x%d" i))
         elts
-        (Format.pp_print_list ~pp_sep (fun fmt (i, t) ->
-             Format.fprintf fmt "%a x%d" format_to_js t i))
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           (fun fmt (i, t) ->
+             Format.fprintf fmt "Js.Unsafe.inject (%a x%d)" format_to_js t i))
         elts
     | TOption t ->
       Format.fprintf fmt
@@ -131,23 +135,25 @@ module To_jsoo = struct
         "money_of_decimal %@%@ decimal_of_float %@%@ Js.float_of_number"
     | TLit TDuration -> Format.fprintf fmt "duration_of_js"
     | TLit TDate -> Format.fprintf fmt "date_of_js"
+    | TLit TPos -> Format.fprintf fmt "position_of_js"
     | TEnum ename -> Format.fprintf fmt "%a_of_js" format_enum_name ename
     | TStruct sname -> Format.fprintf fmt "%a_of_js" format_struct_name sname
     | TArray t ->
       Format.fprintf fmt "Array.map (fun x -> %a x) %@%@ Js.to_array"
         format_of_js t
-    | TDefault t -> format_of_js fmt t
+    | TDefault _ -> assert false
     | TTuple tl ->
       let pp_sep fmt () = Format.fprintf fmt ",@ " in
       let elts = List.mapi (fun i t -> i, t) tl in
-      Format.fprintf fmt "(fun t -> (%a))"
+      Format.fprintf fmt "@[<hv 2>(fun t ->@ let t = Js.to_array t in@ %a)@]"
         (Format.pp_print_list ~pp_sep (fun fmt (i, t) ->
-             Format.fprintf fmt "%a (Js.array_get t %d)" format_of_js t i))
+             Format.fprintf fmt "%a (Js.Unsafe.coerce t.(%d))" format_of_js t i))
         elts
     | TOption t ->
       Format.fprintf fmt
-        "(fun o -> Js.Opt.case o (fun () -> Eoption.ENone ()) (fun x -> \
-         Eoption.ESome (%a x)))"
+        "@[<hv 2>(fun o ->@ @[<hv 2>Js.Opt.case o@ (fun () -> Eoption.ENone \
+         ())@ @[<hov 2>(fun x ->@ @[<hov 2>Eoption.ESome@ @[<hv 2>(%a@ \
+         x)@]@])@]@])@]"
         format_of_js t
     | TAny -> Format.fprintf fmt "Js.Unsafe.inject"
     | TArrow _ | TClosureEnv -> Format.fprintf fmt ""

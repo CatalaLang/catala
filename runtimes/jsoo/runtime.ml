@@ -71,6 +71,29 @@ let date_of_js d =
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
+let position_of_js (jpos : source_position Js.t) : R_ocaml.source_position =
+  {
+    R_ocaml.filename = Js.to_string jpos##.fileName;
+    start_line = jpos##.startLine;
+    start_column = jpos##.startColumn;
+    end_line = jpos##.endLine;
+    end_column = jpos##.endColumn;
+    law_headings =
+      Js.to_array jpos##.lawHeadings |> Array.map Js.to_string |> Array.to_list;
+  }
+
+let position_to_js (pos : R_ocaml.source_position) : source_position Js.t =
+  object%js
+    val mutable fileName = Js.string pos.R_ocaml.filename
+    val mutable startLine = pos.R_ocaml.start_line
+    val mutable endLine = pos.R_ocaml.end_line
+    val mutable startColumn = pos.R_ocaml.start_column
+    val mutable endColumn = pos.R_ocaml.end_column
+
+    val mutable lawHeadings =
+      Array.of_list pos.law_headings |> Array.map Js.string |> Js.array
+  end
+
 class type event_manager = object
   method resetLog : unit Js.meth
   method retrieveEvents : event Js.t Js.js_array Js.t Js.meth

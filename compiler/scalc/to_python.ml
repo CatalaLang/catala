@@ -212,6 +212,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TLit TDate -> Format.fprintf fmt "Date"
   | TLit TDuration -> Format.fprintf fmt "Duration"
   | TLit TBool -> Format.fprintf fmt "bool"
+  | TLit TPos -> Format.fprintf fmt "SourcePosition"
   | TTuple ts ->
     Format.fprintf fmt "Tuple[%a]"
       (Format.pp_print_list
