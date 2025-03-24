@@ -172,10 +172,13 @@ let get_ctx cfg =
     constrs = Fun.id;
   }
 
-let rec typ ctx = function
-  | TStruct n, m -> TStruct (ctx.structs n), m
-  | TEnum n, m -> TEnum (ctx.enums n), m
-  | ty -> Type.map (typ ctx) ty
+let typ ctx ty =
+  let rec aux = function
+    | TStruct n, m -> Bindlib.box (TStruct (ctx.structs n), m)
+    | TEnum n, m -> Bindlib.box (TEnum (ctx.enums n), m)
+    | ty -> Type.map aux ty
+  in
+  Bindlib.unbox (aux ty)
 
 (* {2 Handling expressions} *)
 

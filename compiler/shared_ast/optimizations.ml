@@ -121,7 +121,7 @@ let simplified_match enum_name match_arg cases mark =
                 Expr.map_ty
                   (function
                     | TArrow (args, _), pos -> TArrow (args, ret_ty), pos
-                    | (TAny, _) as t -> t
+                    | (TVar _, _) as t -> t
                     | _ -> assert false)
                   m
               in
@@ -248,7 +248,7 @@ let rec optimize_expr :
             | _ -> "x")
         in
         let mty m =
-          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> Type.any pos) m
         in
         let x = Expr.evar v (mty (Mark.get ls)) in
         Expr.make_ghost_abs [v]
@@ -296,7 +296,7 @@ let rec optimize_expr :
           | _ -> Var.make "x", Var.make "y"
         in
         let mty m =
-          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> Type.any pos) m
         in
         let x1 = Expr.evar v1 (mty (Mark.get ls1)) in
         let x2 = Expr.evar v2 (mty (Mark.get ls2)) in
@@ -364,9 +364,12 @@ let test_iota_reduction_1 () =
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
-        consA, Expr.eabs_ghost (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
+        ( consA,
+          Expr.eabs_ghost (Expr.bind [| x |] injC) [Type.any Pos.no_pos] nomark
+        );
         ( consB,
-          Expr.eabs_ghost (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark );
+          Expr.eabs_ghost (Expr.bind [| x |] injD) [Type.any Pos.no_pos] nomark
+        );
       ]
   in
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
@@ -389,7 +392,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
          ( cons,
            Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
-             [TAny, Pos.no_pos]
+             [Type.any Pos.no_pos]
              (Untyped { pos = Pos.no_pos }) ))
 
 let test_iota_reduction_2 () =

@@ -31,10 +31,8 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Lcalc -s T -O --closure-conversion
-let scope T (t_in: T_in): T {y: integer} =
-  let set s__1 : S {f: ((closure_env, integer) → integer, closure_env)} =
-    { S f = (closure_s, to_closure_env ()); }
-  in
+let scope T (t_in: T_in): T =
+  let set s__1 : S = { S f = (closure_s, to_closure_env ()); } in
   let set y : integer =
     let code_and_env : ((closure_env, integer) → integer, closure_env) =
       s__1.f

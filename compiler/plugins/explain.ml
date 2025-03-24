@@ -1171,7 +1171,7 @@ let rec graph_cleanup options g base_vars =
                     {
                       op = Op.Eq, pos;
                       args = [var; expr];
-                      tys = [TAny, pos; TAny, pos];
+                      tys = [Type.any pos; Type.any pos];
                     },
                   m )
               (* This form is matched and displayed specifically below *)

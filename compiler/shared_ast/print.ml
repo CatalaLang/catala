@@ -82,19 +82,18 @@ let external_ref fmt er =
   | External_scope s -> ScopeName.format fmt s
 
 let rec typ_gen
-    (ctx : decl_ctx option)
     ~(colors : Ocolor_types.color4 list)
+    (bctx : Bindlib.ctxt)
     (fmt : Format.formatter)
     (ty : typ) : unit =
-  let typ = typ_gen ctx in
   let typ_with_parens ~colors (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then (
       Format.pp_open_hvbox fmt 1;
       pp_color_string (List.hd colors) fmt "(";
-      typ ~colors:(List.tl colors) fmt t;
+      typ_gen ~colors:(List.tl colors) bctx fmt t;
       Format.pp_close_box fmt ();
       pp_color_string (List.hd colors) fmt ")")
-    else typ ~colors fmt t
+    else typ_gen ~colors bctx fmt t
   in
   match Mark.remove ty with
   | TLit l -> tlit fmt l
@@ -103,49 +102,18 @@ let rec typ_gen
     pp_color_string (List.hd colors) fmt "(";
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
-       (typ ~colors:(List.tl colors)))
+       (typ_gen ~colors:(List.tl colors) bctx))
       fmt ts;
     Format.pp_close_box fmt ();
     pp_color_string (List.hd colors) fmt ")"
-  | TStruct s -> (
-    match ctx with
-    | None -> StructName.format fmt s
-    | Some ctx ->
-      let fields = StructName.Map.find s ctx.ctx_structs in
-      if StructField.Map.is_empty fields then StructName.format fmt s
-      else
-        Format.fprintf fmt "@[<hv 2>%a %a@,%a@;<0 -2>%a@]" StructName.format s
-          (pp_color_string (List.hd colors))
-          "{"
-          (StructField.Map.format_bindings
-             ~pp_sep:(fun fmt () ->
-               op_style fmt ";";
-               Format.pp_print_space fmt ())
-             (fun fmt pp_field_name field_typ ->
-               Format.fprintf fmt "@[<hv 2>%t%a@ %a@]" pp_field_name punctuation
-                 ":"
-                 (typ ~colors:(List.tl colors))
-                 field_typ))
-          fields
-          (pp_color_string (List.hd colors))
-          "}")
-  | TEnum e -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
-    | Some ctx ->
-      let def = EnumName.Map.find e ctx.ctx_enums in
-      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format e punctuation "["
-        (EnumConstructor.Map.format_bindings
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
-           (fun fmt pp_case mty ->
-             Format.fprintf fmt "%t%a@ %a" pp_case punctuation ":" (typ ~colors)
-               mty))
-        def punctuation "]")
+  | TStruct s -> StructName.format fmt s
+  | TEnum e -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" (typ ~colors) t
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option"
+      (typ_gen ~colors bctx) t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (typ_with_parens ~colors) t1
-      op_style "→" (typ ~colors) t2
+      op_style "→" (typ_gen ~colors bctx) t2
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@ %a@ %a@]"
       (pp_color_string (List.hd colors))
@@ -156,19 +124,24 @@ let rec typ_gen
       t1
       (pp_color_string (List.hd colors))
       ")" op_style "→"
-      (typ ~colors:(List.tl colors))
+      (typ_gen ~colors:(List.tl colors) bctx)
       t2
   | TArray t1 ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of" (typ ~colors) t1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of"
+      (typ_gen ~colors bctx) t1
   | TDefault t1 ->
     punctuation fmt "⟨";
-    typ ~colors fmt t1;
+    typ_gen ~colors bctx fmt t1;
     punctuation fmt "⟩"
-  | TAny -> base_type fmt "any"
+  | TVar tv -> Format.fprintf fmt "@{<bold><%s>@}" (Bindlib.name_of tv)
+  | TAny tb ->
+    let tv, ty, bctx = Bindlib.unbind_in bctx tb in
+    if Global.options.debug then
+      Format.fprintf fmt "\\@{<bold>%s@}.@ " (Bindlib.name_of tv);
+    typ_gen ~colors bctx fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
 
-let typ_debug = typ_gen None ~colors
-let typ ctx = typ_gen (Some ctx) ~colors
+let typ = typ_gen ~colors Bindlib.empty_ctxt
 
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
@@ -487,13 +460,13 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
-    (* (* Uncomment for type annotations everywhere *)
-     * (fun f ->
-     *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
-     *      f e
-     *      typ_debug
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
-     * @@ fun fmt e -> *)
+    (* Uncomment for type annotations everywhere *)
+    (fun f ->
+       Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
+         f e
+         typ
+         (match Mark.get e with Typed {ty; _} -> ty | _ -> TLit TUnit, Pos.no_pos))
+    @@ fun fmt e ->
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
     let expr e = exprc colors e in
@@ -551,8 +524,9 @@ module ExprGen (C : EXPR_PARAM) = struct
               (fun fmt (x, tau, arg) ->
                 Format.fprintf fmt
                   "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
-                  "let" var x punctuation ":" (typ_gen None ~colors) tau
-                  punctuation "=" (exprc colors) arg keyword "in")
+                  "let" var x punctuation ":"
+                  (typ_gen ~colors Bindlib.empty_ctxt)
+                  tau punctuation "=" (exprc colors) arg keyword "in")
               fmt xs_tau_arg;
             Format.pp_print_cut fmt ();
             rhs (pr bnd_ctx) fmt body
@@ -578,7 +552,7 @@ module ExprGen (C : EXPR_PARAM) = struct
                  var fmt x;
                  punctuation fmt ":";
                  Format.pp_print_space fmt ();
-                 typ_gen None ~colors fmt tau;
+                 typ_gen ~colors Bindlib.empty_ctxt fmt tau;
                  Format.pp_close_box fmt ();
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
@@ -802,7 +776,7 @@ let[@ocamlformat "disable"]
       (scope_let_kind ~debug ctx) sl.scope_let_kind
       (if debug then var_debug else var) x
       punctuation ":"
-      (typ ctx) sl.scope_let_typ
+      typ sl.scope_let_typ
       punctuation "="
       (expr ~debug ()) sl.scope_let_expr
       keyword "in"
@@ -841,7 +815,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
         (if debug then var_debug else var) fmt x;
         punctuation fmt ":";
         Format.pp_print_space fmt ();
-        (if debug then typ_debug else typ ctx) fmt input_typ;
+        typ fmt input_typ;
         punctuation fmt ")";
         Format.pp_close_box fmt ()
       in
@@ -850,7 +824,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
       Format.pp_print_string fmt " ";
       let () =
         Format.pp_open_hvbox fmt 2;
-        (if debug then typ_debug else typ ctx) fmt output_typ;
+        typ fmt output_typ;
         Format.pp_close_box fmt ()
       in
       Format.pp_print_space fmt ();
@@ -866,8 +840,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
   ()
 
 let enum
-    ?(debug = false)
-    decl_ctx
+    ?debug:(_ = false)
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ EnumConstructor.Map.t) =
@@ -876,14 +849,11 @@ let enum
     (EnumConstructor.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
          Format.fprintf fmt "@[<hov2>%a %t %a %a@]" punctuation "|" pp_n keyword
-           "of"
-           (if debug then typ_debug else typ decl_ctx)
-           ty))
+           "of" typ ty))
     c
 
 let struct_
-    ?(debug = false)
-    decl_ctx
+    ?debug:(_ = false)
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ StructField.Map.t) =
@@ -891,18 +861,16 @@ let struct_
     pp_name punctuation "=" punctuation "{"
     (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<h 2>%t%a %a%a@]" pp_n keyword ":"
-           (if debug then typ_debug else typ decl_ctx)
-           ty punctuation ";"))
+         Format.fprintf fmt "@[<h 2>%t%a %a%a@]" pp_n keyword ":" typ ty
+           punctuation ";"))
     c punctuation "}"
 
-let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
-    : unit =
+let decl_ctx ?(debug = false) (fmt : Format.formatter) (ctx : decl_ctx) : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
   Format.fprintf fmt "@[<v>%a@,%a@,@,@]"
-    (EnumName.Map.format_bindings (enum ~debug decl_ctx))
+    (EnumName.Map.format_bindings (enum ~debug))
     ctx_enums
-    (StructName.Map.format_bindings (struct_ ~debug decl_ctx))
+    (StructName.Map.format_bindings (struct_ ~debug))
     ctx_structs
 
 let scope
@@ -921,8 +889,7 @@ let code_item ?(debug = false) id decl_ctx fmt c =
   | Topdef (_, ty, _vis, e) ->
     Format.fprintf fmt
       "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
-      "let topval" name op_style ":" (typ decl_ctx) ty op_style "="
-      (expr ~debug ()) e
+      "let topval" name op_style ":" typ ty op_style "=" (expr ~debug ()) e
 
 let code_item_list ?(debug = false) decl_ctx fmt c =
   Format.pp_open_vbox fmt 0;
@@ -934,7 +901,7 @@ let code_item_list ?(debug = false) decl_ctx fmt c =
   Format.pp_close_box fmt ()
 
 let program ?(debug = false) fmt p =
-  decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
+  decl_ctx ~debug fmt p.decl_ctx;
   code_item_list ~debug p.decl_ctx fmt p.code_items
 
 (* - User-facing value printer - *)
