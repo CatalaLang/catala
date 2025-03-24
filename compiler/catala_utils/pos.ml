@@ -14,10 +14,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = { code_pos : Lexing.position * Lexing.position; law_pos : string list }
+type attr = ..
+type t = { code_pos : Lexing.position * Lexing.position; attr : attr list }
+type attr += Law_pos of string list
 
 let from_lpos (p : Lexing.position * Lexing.position) : t =
-  { code_pos = p; law_pos = [] }
+  { code_pos = p; attr = [] }
 
 let lex_pos_compare lp1 lp2 =
   match String.compare lp1.Lexing.pos_fname lp2.Lexing.pos_fname with
@@ -31,18 +33,34 @@ let compare p1 p2 =
   | n -> n
 
 let equal p1 p2 = p1.code_pos = p2.code_pos
+let attrs t = t.attr
+let set_attrs t attr = { t with attr }
+let add_attr t attr = { t with attr = attr :: t.attr }
+let get_attrs t f = List.filter_map f t.attr
+
+let get_attr t f =
+  match get_attrs t f with
+  | [] -> None
+  | [a] -> Some a
+  | _ :: _ :: _ -> invalid_arg "Pos.get_attr: multiple matching attributes"
+
+let join_attr a1 a2 =
+  if List.exists (function Law_pos _ -> true | _ -> false) a1 then
+    a1 @ List.filter (function Law_pos _ -> false | _ -> true) a2
+  else a1 @ a2
 
 let join (p1 : t) (p2 : t) : t =
   if (fst p1.code_pos).Lexing.pos_fname <> (fst p2.code_pos).Lexing.pos_fname
   then invalid_arg "Pos.join";
   let beg1, end1 = p1.code_pos in
   let beg2, end2 = p2.code_pos in
+  let first, second =
+    if lex_pos_compare beg1 beg2 <= 0 then p1, p2 else p2, p1
+  in
   {
     code_pos =
-      ( (if lex_pos_compare beg1 beg2 <= 0 then beg1 else beg2),
-        if lex_pos_compare end1 end2 <= 0 then end2 else end1 );
-    law_pos =
-      (if lex_pos_compare beg1 beg2 <= 0 then p1.law_pos else p2.law_pos);
+      (fst first.code_pos, if lex_pos_compare end1 end2 <= 0 then end2 else end1);
+    attr = join_attr first.attr second.attr;
   }
 
 let from_info
@@ -67,12 +85,19 @@ let from_info
       Lexing.pos_bol = 1;
     }
   in
-  { code_pos = spos, epos; law_pos = [] }
+  { code_pos = spos, epos; attr = [] }
 
 let overwrite_law_info (pos : t) (law_pos : string list) : t =
-  { pos with law_pos }
+  {
+    pos with
+    attr =
+      Law_pos law_pos
+      :: List.filter (function Law_pos _ -> false | _ -> true) pos.attr;
+  }
 
-let get_law_info (pos : t) : string list = pos.law_pos
+let get_law_info (pos : t) : string list =
+  Option.value ~default:[]
+  @@ List.find_map (function Law_pos l -> Some l | _ -> None) pos.attr
 
 let get_start_line (pos : t) : int =
   let s, _ = pos.code_pos in
@@ -248,7 +273,7 @@ let format_loc_text_parts (pos : t) =
             Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
               ~subst:(fun _ -> " ")
               s)
-          pos.law_pos
+          (get_law_info pos)
       in
       let rec pp_legal nspaces leg ppf =
         match leg with
@@ -290,7 +315,7 @@ let void : t =
       Lexing.pos_bol = 0;
     }
   in
-  { code_pos = zero_pos, zero_pos; law_pos = [] }
+  { code_pos = zero_pos, zero_pos; attr = [] }
 
 module Map = Map.Make (struct
   type nonrec t = t

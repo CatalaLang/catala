@@ -80,6 +80,8 @@ end>
    so that we concat them efficiently as much as possible. *)
 %right LAW_TEXT
 
+%right ATTR_START
+
 (* Precedence of expression constructions *)
 %right top_expr
 %right ALT
@@ -99,8 +101,13 @@ end>
 (* Types of all rules, in order. Without this, Menhir type errors are nearly
    impossible to debug because of inlining *)
 
-%type<Ast.uident Mark.pos> addpos(UIDENT)
 %type<Pos.t> pos(CONDITION)
+%type<Ast.naked_expression Mark.pos> addpos(naked_expression)
+%type<Ast.uident Mark.pos> addpos(UIDENT)
+%type<Ast.src_attr_value> attribute_value
+%type<(string list Mark.pos) * Ast.src_attr_value option> attribute
+%type<Ast.expression> attr(noattr_expression)
+%type<Ast.base_typ_data Mark.pos> posattr(typ_data)
 %type<Ast.primitive_typ> primitive_typ
 %type<Ast.base_typ_data> typ_data
 %type<Ast.base_typ> typ
@@ -158,7 +165,31 @@ let pos(x) ==
 | x ; { get_pos $loc }
 
 let addpos(x) ==
-| ~=x ; { x, get_pos $loc(x) }
+| a = x ; { (a, get_pos $loc(a)) }
+
+let attribute_value ==
+| ~ = addpos(STRING); <String>
+| ~ = expression; <Expression>
+
+let attribute :=
+| ATTR_START; tag = addpos(separated_nonempty_list(DOT,LIDENT)) ; value = option(preceded(EQUAL, attribute_value)) ; RBRACKET ; <>
+
+let attr(x) ==
+| attrs = list(addpos(attribute)) ; x_pos=x ; {
+  let x, pos = x_pos in
+  x, List.fold_left
+    (fun attrs ((akey, val_opt), apos) ->
+      Pos.add_attr attrs @@
+      Ast.Src (akey, Option.value ~default:Unit val_opt, apos)
+    ) pos attrs
+}
+
+let posattr(x) ==
+| ~ = attr(addpos(x)) ; <>
+
+let list_with_attr(x) :=
+| ~ = posattr(x) ; ~ = list_with_attr(x) ; < (::) >
+| { [] } %prec ATTR_START
 
 let primitive_typ :=
 | INTEGER ; { Integer }
@@ -172,8 +203,8 @@ let primitive_typ :=
 
 let typ_data :=
 | t = primitive_typ ; <Primitive>
-| LIST ; t = addpos(typ_data) ; <Collection>
-| LPAREN ; tl = separated_nonempty_list(COMMA,addpos(typ_data)) ; RPAREN ; {
+| LIST ; t = posattr(typ_data) ; <Collection>
+| LPAREN ; tl = separated_nonempty_list(COMMA,posattr(typ_data)) ; RPAREN ; {
   match tl with
   | [t, _] -> t
   | ts -> TTuple ts
@@ -213,14 +244,18 @@ let qlident :=
 | id = lident ; { [], id }
 
 let mbinder ==
-| id = lident ; { [id] }
-| LPAREN ; ids = separated_nonempty_list(COMMA,lident) ; RPAREN ; <>
+| id = attr(lident) ; { [id] }
+| LPAREN ; ids = separated_nonempty_list(COMMA,attr(lident)) ; RPAREN ; <>
 
-let expression :=
-| e = addpos(naked_expression) ; <>
+let noattr_expression :=
+| ~ = addpos(naked_expression) ; <>
+(* Required for leading expressions to explicitely apply to the outermost expression *)
+
+let expression ==
+| ~ = attr(noattr_expression) ; <>
 
 let state_qualifier ==
-| STATE ; state = addpos(LIDENT); <>
+| STATE ; state = posattr(LIDENT) ; <>
 
 let naked_expression ==
 | id = addpos(LIDENT) ; state = option(state_qualifier) ; {
@@ -243,9 +278,9 @@ let naked_expression ==
   | [e] -> Paren e
   | es -> Tuple es
 }
-| e = expression ;
+| e = noattr_expression ;
   DOT ; i = addpos(qlident) ; <Dotted>
-| e = expression ; DOT ; arg = addpos(INT_LITERAL) ; {
+| e = noattr_expression ; DOT ; arg = addpos(INT_LITERAL) ; {
   let n_str, pos_n = arg in
   let n = int_of_string n_str in
   if n <= 0 then
@@ -269,7 +304,7 @@ let naked_expression ==
 | LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
   <ArrayLit>
 | e = struct_or_enum_inject ; <>
-| e1 = expression ;
+| e1 = noattr_expression ;
   OF ;
   args = funcall_args ; {
   FunCall (e1, args)
@@ -279,18 +314,18 @@ let naked_expression ==
   fields = scope_call_args ; {
   ScopeCall (c, fields)
 }
-| e = expression ;
+| e = noattr_expression ;
   WITH ; c = constructor_binding ; {
   TestMatchCase (e, (c, get_pos $sloc))
 }
-| e = expression ;
+| e = noattr_expression ;
   BUT_REPLACE ;
   LBRACE ;
   fields = nonempty_list(preceded (ALT, struct_content_field)) ;
   RBRACE ; {
   StructReplace (e, fields)
 }
-| coll = expression ;
+| coll = noattr_expression ;
   pos = pos(CONTAINS) ;
   element = expression ; {
   CollectionOp ((Member { element }, pos), coll)
@@ -299,7 +334,7 @@ let naked_expression ==
   OF ; coll = expression ; {
   CollectionOp ((AggregateSum { typ = Mark.remove typ }, pos), coll)
 } %prec apply
-| f = expression ;
+| f = noattr_expression ;
   pos = pos(FOR) ; i = mbinder ;
   AMONG ; coll = expression ; {
   CollectionOp ((Map {f = i, f}, pos), coll)
@@ -324,7 +359,7 @@ let naked_expression ==
 | op = addpos(unop) ; e = expression ; {
   Unop (op, e)
 } %prec unop_expr
-| e1 = expression ;
+| e1 = noattr_expression ;
   binop = addpos(binop) ;
   e2 = expression ; {
   Binop (binop, e1, e2)
@@ -359,7 +394,7 @@ let naked_expression ==
   SUCH ; THAT ; f = expression ; {
   CollectionOp ((Filter {f = ids, f}, pos), coll)
 } %prec top_expr
-| fmap = expression ;
+| fmap = noattr_expression ;
   pfor = pos(FOR) ; i = mbinder ;
   AMONG ; coll = expression ;
   psuch = pos(SUCH) ; THAT ; ffilt = expression ; {
@@ -484,7 +519,7 @@ let condition_consequence :=
 | UNDER_CONDITION ; c = expression ; CONSEQUENCE ; <>
 
 let rule_expr :=
-| i = addpos(scope_var) ; p = option(addpos(definition_parameters)) ; <>
+| i = posattr(scope_var) ; p = option(posattr(definition_parameters)) ; <>
 
 let rule_consequence :=
 | flag = option(NOT); FILLED ; {
@@ -588,12 +623,22 @@ let assertion :=
   })
 }
 
+let scope_item_list :=
+| ~ = scope_item ; ~ = scope_item_list ; <(::)>
+| it = scope_item ; { [it] } %prec ATTR_START
+
 let scope_item :=
-| r = rule ; {
-  Rule r, Mark.get (Shared_ast.RuleName.get_info r.rule_id)
+| r_pos = posattr(rule) ; {
+  let r, pos = r_pos in
+  Rule r,
+  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info r.rule_id))
+    (Pos.attrs pos)
 }
-| d = definition ; {
-  Definition d, Mark.get (Shared_ast.RuleName.get_info d.definition_id)
+| d_pos = posattr(definition) ; {
+  let d, pos = d_pos in
+  Definition d,
+  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info d.definition_id))
+    (Pos.attrs pos)
 }
 | ASSERTION ; contents = addpos(assertion) ; <>
 | DATE ; i = LIDENT ; v = addpos(variation_type) ;
@@ -612,7 +657,7 @@ let scope_item :=
 
 let struct_scope_base :=
 | DATA ; i = lident ;
-  CONTENT ; t = addpos(typ) ; <>
+  CONTENT ; t = posattr(typ) ; <>
 | pos = pos(CONDITION) ; i = lident ; {
   (i, (Condition, pos))
 }
@@ -652,13 +697,13 @@ let scope_decl_item_attribute ==
 }
 
 let scope_decl_item_attribute_mandatory ==
-| attr = scope_decl_item_attribute ; {
-  let in_attr_opt, out_attr, i = attr in
+| iattr = scope_decl_item_attribute ; {
+  let in_attr_opt, out_attr, i = iattr in
   let in_attr = match in_attr_opt, out_attr with
     | (None, _), (false, _) ->
        Message.delayed_error
-         (Internal, get_pos $loc(attr))
-         ~kind:Parsing ~pos:(get_pos $loc(attr))
+         (Internal, get_pos $loc(iattr))
+         ~kind:Parsing ~pos:(get_pos $loc(iattr))
          "Variable declaration requires input qualification \
           ('internal', 'input' or 'context')"
     | (None, pos), (true, _) -> Internal, pos
@@ -755,29 +800,29 @@ let depends_stance ==
 let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
-  COLON ; items = nonempty_list(scope_item) ; {
+  COLON ; items = scope_item_list ; {
   ScopeUse {
     scope_use_name = c;
     scope_use_condition = e;
     scope_use_items = items;
   }
 }
-| DECLARATION ; STRUCT ; c = uident ;
-  COLON ; scopes = list(addpos(struct_scope)) ; {
+| DECLARATION ; STRUCT ; c = attr(uident) ;
+  COLON ; scopes = list_with_attr(struct_scope) ; {
   StructDecl {
     struct_decl_name = c;
     struct_decl_fields = scopes;
   }
 }
 | DECLARATION ; SCOPE ; c = uident ;
-  COLON ; context = nonempty_list(addpos(scope_decl_item)) ; {
+  COLON ; context = list_with_attr(scope_decl_item) ; {
   ScopeDecl {
     scope_decl_name = c;
     scope_decl_context = context;
   }
 }
 | DECLARATION ; ENUM ; c = uident ;
-  COLON ; cases = list(addpos(enum_decl_line)) ; {
+  COLON ; cases = list_with_attr(enum_decl_line) ; {
   EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
@@ -799,7 +844,7 @@ let opt_def ==
 | DEFINED_AS; e = expression; <>
 
 let code :=
-| code = list(addpos(code_item)) ; <>
+| ~ = list(posattr(code_item)) ; <>
 
 let metadata_block :=
 | BEGIN_METADATA ; option(law_text) ;

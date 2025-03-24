@@ -383,6 +383,18 @@ let check_fence_space =
     Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
       "Extra leading or trailing space"
 
+let rec lex_string buf lexbuf : token =
+  match%sedlex lexbuf with
+  | Plus (Compl (Chars "\\\"")) ->
+    Buffer.add_string buf (Utf8.lexeme lexbuf);
+    lex_string buf lexbuf
+  | '\\', eol, hspace -> lex_string buf lexbuf
+  | '\\', any ->
+    Buffer.add_string buf (Utf8.lexeme lexbuf);
+    lex_string buf lexbuf
+  | '"' -> STRING (Buffer.contents buf)
+  | _ -> invalid_arg "lex_string"
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -392,7 +404,13 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Whitespaces *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | '#', Star any_but_eol, eol ->
+  | "#[" -> ATTR_START
+  | '"' -> lex_string (Buffer.create 73) lexbuf
+  | '#', eol ->
+      (* Comments *)
+      L.update_acc lexbuf;
+      lex_code lexbuf
+  | '#', Sub (any_but_eol, '['), Star any_but_eol, eol ->
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf

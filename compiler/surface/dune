@@ -1,7 +1,6 @@
 (library
  (name surface)
  (public_name catala.surface)
- (modules_without_implementation ast)
  (libraries
   catala_utils
   menhirLib
@@ -10,7 +9,15 @@
   zarith
   zarith_stubs_js
   shared_ast)
- (preprocess (pps sedlex.ppx)))
+ (preprocess
+  (per_module
+   ((pps sedlex.ppx)
+    lexer_en
+    lexer_fr
+    lexer_pl))))
+
+(rule
+ (copy ast.mli ast.ml))
 
 (rule
  (with-stdout-to

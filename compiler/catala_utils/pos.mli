@@ -18,10 +18,13 @@
 
 type t
 (** A position in the source code is a file, as well as begin and end location
-    of the form col:line *)
+    of the form col:line, and optionally, attributes *)
 
 val compare : t -> t -> int
 val equal : t -> t -> bool
+
+type attr = ..
+type attr += Law_pos of string list
 
 (**{2 Constructor and getters}*)
 
@@ -34,13 +37,20 @@ val get_start_column : t -> int
 val get_end_line : t -> int
 val get_end_column : t -> int
 val get_file : t -> string
+val attrs : t -> attr list
+val set_attrs : t -> attr list -> t
+val add_attr : t -> attr -> t
+
+val get_attr : t -> (attr -> 'a option) -> 'a option
+(** Raises [Invalid_argument] if the attribute appears multiple times *)
+
+val get_attrs : t -> (attr -> 'a option) -> 'a list
 
 val join : t -> t -> t
-(** Returns the smallest range including both supplied ranges.
+(** Returns the smallest range including both supplied ranges. Attributes are
+    merged ; law info is taken from the earliest position.
 
-    @raise Invalid_argument
-      if they don't belong to the same file. The law position used is the one of
-      the earliest position. *)
+    @raise Invalid_argument if they don't belong to the same file. *)
 
 module Map : Map.S with type key = t
 
