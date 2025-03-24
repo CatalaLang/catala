@@ -321,6 +321,14 @@ type program = {
 }
 
 type source_file = law_structure list
+type attr_path = string list Mark.pos
+
+type src_attr_value =
+  | String of string Mark.pos
+  | Expression of expression
+  | Unit
+
+type Pos.attr += Src of attr_path * src_attr_value * Pos.t
 
 type module_items =
   | Code of law_structure list
