@@ -234,9 +234,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
           | Some var_ctx, Some (_p, e) ->
             Some (var_ctx.scope_input_name, translate_expr ctx e)
           | Some var_ctx, None ->
-            Message.error ~pos
+            Message.error
               ~extra_pos:
                 [
+                  "", pos;
                   ( "Declaration of the missing input variable",
                     Mark.get (StructField.get_info var_ctx.scope_input_name) );
                 ]
