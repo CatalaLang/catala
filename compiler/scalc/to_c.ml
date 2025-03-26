@@ -98,8 +98,8 @@ let renaming =
 module TypMap = Map.Make (struct
   type t = naked_typ
 
-  let compare x y = Type.compare (x, Pos.no_pos) (y, Pos.no_pos)
-  let format fmt x = Print.typ_debug fmt (x, Pos.no_pos)
+  let compare x y = Type.compare (x, Pos.void) (y, Pos.void)
+  let format fmt x = Print.typ_debug fmt (x, Pos.void)
 end)
 
 (* Here, [element_name] is the struct field, union member or function parameter
@@ -535,7 +535,7 @@ let rec format_statement
           Format.fprintf fmt "@,@[<v 2>case %a: {" EnumConstructor.format
             cons_name;
           if
-            (not (Type.equal payload_var_typ (TLit TUnit, Pos.no_pos)))
+            (not (Type.equal payload_var_typ (TLit TUnit, Pos.void)))
             && not (is_dummy_var payload_var_name)
           then
             Format.fprintf fmt "@ @[<hov 2>%a = %a->payload.%a;@]"

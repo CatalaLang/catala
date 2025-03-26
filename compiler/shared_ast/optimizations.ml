@@ -352,21 +352,20 @@ let optimize_program (p : 'm program) : 'm program =
 
 let test_iota_reduction_1 () =
   let x = Var.make "x" in
-  let enumT = EnumName.fresh [] ("t", Pos.no_pos) in
-  let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
-  let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
-  let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
-  let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
-  let nomark = Untyped { pos = Pos.no_pos } in
+  let enumT = EnumName.fresh [] ("t", Pos.void) in
+  let consA = EnumConstructor.fresh ("A", Pos.void) in
+  let consB = EnumConstructor.fresh ("B", Pos.void) in
+  let consC = EnumConstructor.fresh ("C", Pos.void) in
+  let consD = EnumConstructor.fresh ("D", Pos.void) in
+  let nomark = Untyped { pos = Pos.void } in
   let injA = Expr.einj ~e:(Expr.evar x nomark) ~cons:consA ~name:enumT nomark in
   let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
   let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
-        consA, Expr.eabs_ghost (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
-        ( consB,
-          Expr.eabs_ghost (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark );
+        consA, Expr.eabs_ghost (Expr.bind [| x |] injC) [TAny, Pos.void] nomark;
+        consB, Expr.eabs_ghost (Expr.bind [| x |] injD) [TAny, Pos.void] nomark;
       ]
   in
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
@@ -389,17 +388,17 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
          ( cons,
            Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
-             [TAny, Pos.no_pos]
-             (Untyped { pos = Pos.no_pos }) ))
+             [TAny, Pos.void]
+             (Untyped { pos = Pos.void }) ))
 
 let test_iota_reduction_2 () =
-  let enumT = EnumName.fresh [] ("t", Pos.no_pos) in
-  let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
-  let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
-  let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
-  let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
+  let enumT = EnumName.fresh [] ("t", Pos.void) in
+  let consA = EnumConstructor.fresh ("A", Pos.void) in
+  let consB = EnumConstructor.fresh ("B", Pos.void) in
+  let consC = EnumConstructor.fresh ("C", Pos.void) in
+  let consD = EnumConstructor.fresh ("D", Pos.void) in
 
-  let nomark = Untyped { pos = Pos.no_pos } in
+  let nomark = Untyped { pos = Pos.void } in
 
   let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
 

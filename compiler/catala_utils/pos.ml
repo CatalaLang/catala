@@ -281,7 +281,7 @@ let format_loc_text ppf t =
     pr_legal;
   Format.pp_close_box ppf ()
 
-let no_pos : t =
+let void : t =
   let zero_pos =
     {
       Lexing.pos_fname = "";

@@ -355,7 +355,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       | OnlyInput -> "OnlyInput"
       | Reentrant -> "Reentrant")
       var_def_info.log_io_output typ_embedding_name
-      (var_def_info.log_typ, Pos.no_pos)
+      (var_def_info.log_typ, Pos.void)
       format_with_parens arg1
   | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
     when Global.options.trace <> None ->

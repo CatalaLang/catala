@@ -494,7 +494,7 @@ module ExprGen (C : EXPR_PARAM) = struct
      *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
      *      f e
      *      typ_debug
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
+     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.void))
      * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
@@ -823,8 +823,8 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
     l
   in
 
-  let input_typ = TStruct scope_body_input_struct, Pos.no_pos in
-  let output_typ = TStruct scope_body_output_struct, Pos.no_pos in
+  let input_typ = TStruct scope_body_input_struct, Pos.void in
+  let output_typ = TStruct scope_body_output_struct, Pos.void in
 
   let x, body = Bindlib.unbind body in
 

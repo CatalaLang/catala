@@ -614,7 +614,7 @@ let translate_rule
     let decl_pos = Mark.get (ScopeVar.get_info var) in
     let scope_def =
       D.ScopeDef.Map.find
-        ((var, Pos.no_pos), D.ScopeDef.Var state)
+        ((var, Pos.void), D.ScopeDef.Var state)
         scope.scope_defs
     in
     let all_def_pos =
@@ -768,7 +768,7 @@ let translate_scope_interface ctx scope =
         | WholeVar ->
           let scope_def =
             D.ScopeDef.Map.find
-              ((var, Pos.no_pos), D.ScopeDef.Var None)
+              ((var, Pos.void), D.ScopeDef.Var None)
               scope.D.scope_defs
           in
           ScopeVar.Map.add
@@ -784,7 +784,7 @@ let translate_scope_interface ctx scope =
             (fun acc (state : StateName.t) ->
               let scope_def =
                 D.ScopeDef.Map.find
-                  ((var, Pos.no_pos), D.ScopeDef.Var (Some state))
+                  ((var, Pos.void), D.ScopeDef.Var (Some state))
                   scope.D.scope_defs
               in
               ScopeVar.Map.add
@@ -802,7 +802,7 @@ let translate_scope_interface ctx scope =
       (fun var _scope_name acc ->
         let scope_def =
           D.ScopeDef.Map.find
-            ((var, Pos.no_pos), D.ScopeDef.Var None)
+            ((var, Pos.void), D.ScopeDef.Var None)
             scope.D.scope_defs
         in
         ScopeVar.Map.add
@@ -893,7 +893,7 @@ let translate_program
                   in
                   match
                     D.ScopeDef.Map.find_opt
-                      ((scope_var, Pos.no_pos), Var state)
+                      ((scope_var, Pos.void), Var state)
                       scdef.D.scope_defs
                   with
                   | Some

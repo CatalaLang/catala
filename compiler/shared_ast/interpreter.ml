@@ -541,7 +541,7 @@ let rec runtime_to_val :
     match Obj.tag o - Obj.first_non_constant_constructor_tag with
     | 0 ->
       let e =
-        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.no_pos) (Obj.field o 0)
+        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.void) (Obj.field o 0)
       in
       EInj { name = Expr.option_enum; cons = Expr.none_constr; e }, m
     | 1 ->
@@ -634,7 +634,7 @@ and val_to_runtime :
       (* None is before Some because the constructors have been defined in this
          order in [expr.ml], and the ident maps preserve definition ordering *)
       if EnumConstructor.equal cons Expr.none_constr then
-        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.no_pos)
+        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.void)
       else if EnumConstructor.equal cons Expr.some_constr then
         Obj.first_non_constant_constructor_tag + 1, ty
       else assert false

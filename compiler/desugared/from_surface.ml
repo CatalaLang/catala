@@ -813,7 +813,7 @@ let rec translate_expr
         let x = Expr.evar v emark in
         let tys = List.map (fun _ -> TAny, pos) param_names in
         Expr.make_abs
-          [Mark.add Pos.no_pos v]
+          [Mark.add Pos.void v]
           (Expr.make_app f_pred
              (List.init nb_args (fun i ->
                   Expr.etupleaccess ~e:x ~index:i ~size:nb_args emark))
@@ -1148,7 +1148,7 @@ and disambiguate_match_and_build_expression
       let e_binder = Expr.bind [| param_var |] case_body in
       let pos_binder =
         match binding with
-        | None -> [Pos.no_pos]
+        | None -> [Pos.void]
         | Some binding -> [Mark.get binding]
       in
       let case_expr =
@@ -1209,7 +1209,7 @@ and disambiguate_match_and_build_expression
             match_case_expr
         in
         let e_binder = Expr.bind [| payload_var |] case_body in
-        let pos_binder = [Pos.no_pos] in
+        let pos_binder = [Pos.void] in
         (* For each missing cases, binds the wildcard payload. *)
         EnumConstructor.Map.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->

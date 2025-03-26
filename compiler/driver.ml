@@ -445,7 +445,7 @@ module Commands = struct
                 @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
                id first_part ScopeName.format scope_uid
       in
-      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
+      (v, Pos.void), Desugared.Ast.ScopeDef.Var state
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
@@ -1102,8 +1102,8 @@ module Commands = struct
               (fun f ->
                 let name = modname_of_file f in
                 {
-                  mod_use_name = name, Pos.no_pos;
-                  mod_use_alias = name, Pos.no_pos;
+                  mod_use_name = name, Pos.void;
+                  mod_use_alias = name, Pos.void;
                 })
               (file :: extra_files);
           program_lang = Cli.file_lang file;

@@ -73,13 +73,13 @@ let collect_monomorphized_instances (prg : typed program) :
                         List.mapi
                           (fun i arg ->
                             ( StructField.fresh
-                                ("elt_" ^ string_of_int i, Pos.no_pos),
+                                ("elt_" ^ string_of_int i, Pos.void),
                               Mark.remove arg ))
                           args;
                       name =
                         StructName.fresh []
                           ( "tuple_" ^ string_of_int !tuple_instances_counter,
-                            Pos.no_pos );
+                            Pos.void );
                     })
               acc.tuples;
         }
@@ -98,13 +98,13 @@ let collect_monomorphized_instances (prg : typed program) :
                   incr array_instances_counter;
                   Some
                     {
-                      len_field = StructField.fresh ("length", Pos.no_pos);
-                      content_field = StructField.fresh ("content", Pos.no_pos);
+                      len_field = StructField.fresh ("length", Pos.void);
+                      content_field = StructField.fresh ("content", Pos.void);
                       content_typ = Mark.remove t;
                       name =
                         StructName.fresh []
                           ( "array_" ^ string_of_int !array_instances_counter,
-                            Pos.no_pos );
+                            Pos.void );
                     })
               acc.arrays;
         }
@@ -129,16 +129,16 @@ let collect_monomorphized_instances (prg : typed program) :
                       some_cons =
                         EnumConstructor.fresh
                           ( "Some_" ^ string_of_int !option_instances_counter,
-                            Pos.no_pos );
+                            Pos.void );
                       none_cons =
                         EnumConstructor.fresh
                           ( "None_" ^ string_of_int !option_instances_counter,
-                            Pos.no_pos );
+                            Pos.void );
                       some_typ = Mark.remove t;
                       name =
                         EnumName.fresh []
                           ( "option_" ^ string_of_int !option_instances_counter,
-                            Pos.no_pos );
+                            Pos.void );
                     })
               acc.options;
         }
@@ -306,10 +306,10 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
       (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
         EnumName.Map.add option_instance.name
           (EnumConstructor.Map.add option_instance.none_cons
-             (TLit TUnit, Pos.no_pos)
+             (TLit TUnit, Pos.void)
              (EnumConstructor.Map.singleton option_instance.some_cons
                 (monomorphize_typ monomorphized_instances
-                   (option_instance.some_typ, Pos.no_pos))))
+                   (option_instance.some_typ, Pos.void))))
           ctx_enums)
       monomorphized_instances.options ctx_enums
   in
@@ -320,7 +320,7 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
           (List.fold_left
              (fun acc (field, typ) ->
                StructField.Map.add field
-                 (monomorphize_typ monomorphized_instances (typ, Pos.no_pos))
+                 (monomorphize_typ monomorphized_instances (typ, Pos.void))
                  acc)
              StructField.Map.empty tuple_instance.fields)
           ctx_structs)
@@ -331,10 +331,10 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
              (StructField.Map.add array_instance.content_field
                 ( TArray
                     (monomorphize_typ monomorphized_instances
-                       (array_instance.content_typ, Pos.no_pos)),
-                  Pos.no_pos )
+                       (array_instance.content_typ, Pos.void)),
+                  Pos.void )
                 (StructField.Map.singleton array_instance.len_field
-                   (TLit TInt, Pos.no_pos)))
+                   (TLit TInt, Pos.void)))
              ctx_structs)
          monomorphized_instances.arrays ctx_structs)
   in

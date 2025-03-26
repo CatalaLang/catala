@@ -117,7 +117,7 @@ let eabs_ghost binder tys mark =
   ( Bindlib.box_apply
       (fun binder ->
         let pos =
-          List.init (Bindlib.mbinder_arity binder) (fun _ -> Pos.no_pos)
+          List.init (Bindlib.mbinder_arity binder) (fun _ -> Pos.void)
         in
         EAbs { binder; pos; tys })
       binder,
@@ -190,9 +190,9 @@ let escopecall ~scope ~args mark =
 (* - Manipulation of marks - *)
 
 let no_mark : type m. m mark -> m mark = function
-  | Untyped _ -> Untyped { pos = Pos.no_pos }
-  | Typed _ -> Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos TAny }
-  | Custom { custom; pos = _ } -> Custom { pos = Pos.no_pos; custom }
+  | Untyped _ -> Untyped { pos = Pos.void }
+  | Typed _ -> Typed { pos = Pos.void; ty = Mark.add Pos.void TAny }
+  | Custom { custom; pos = _ } -> Custom { pos = Pos.void; custom }
 
 let mark_pos (type m) (m : m mark) : Pos.t =
   match m with Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos
@@ -257,24 +257,24 @@ let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
   | Untyped { pos } | Custom { pos; _ } -> Mark.add pos typ
   | Typed { ty; _ } -> ty
 
-let untyped = Untyped { pos = Pos.no_pos }
-let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
+let untyped = Untyped { pos = Pos.void }
+let typed = Typed { pos = Pos.void; ty = TLit TUnit, Pos.void }
 
 (* - Predefined types (option) - *)
 
-let option_enum = EnumName.fresh [] ("Eoption", Pos.no_pos)
-let option_struct = StructName.fresh [] ("Soption", Pos.no_pos)
+let option_enum = EnumName.fresh [] ("Eoption", Pos.void)
+let option_struct = StructName.fresh [] ("Soption", Pos.void)
 
 (* Warning: order of these definitions is important, binary injection assumes
    that None is first *)
-let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
-let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
+let none_constr = EnumConstructor.fresh ("ENone", Pos.void)
+let some_constr = EnumConstructor.fresh ("ESome", Pos.void)
 
 let option_enum_config =
   EnumConstructor.Map.of_list
-    [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
+    [none_constr, (TLit TUnit, Pos.void); some_constr, (TAny, Pos.void)]
 
-let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.no_pos)
+let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
 
 let pos_to_runtime pos =
   {
@@ -311,7 +311,7 @@ let map
   | EApp { f = e1; args; tys } ->
     eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
   | EAppOp { op = Op.Log (VarDef vd, infos), pos; tys; args } ->
-    let log_typ = Mark.remove (typ (Mark.add Pos.no_pos vd.log_typ)) in
+    let log_typ = Mark.remove (typ (Mark.add Pos.void vd.log_typ)) in
     let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
     eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op; tys; args } ->
@@ -544,7 +544,7 @@ let equal_lit (l1 : lit) (l2 : lit) =
   | LUnit, LUnit -> true
   | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
   | LDuration d1, LDuration d2 -> (
-    try o_eq_dur_dur (pos_to_runtime Pos.no_pos) d1 d2
+    try o_eq_dur_dur (pos_to_runtime Pos.void) d1 d2
     with Runtime.(Error (UncomparableDurations, _)) -> false)
   | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _), _ ->
     false
@@ -666,7 +666,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | EEmpty, EEmpty -> true
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> equal e1 e2
   | ELocation l1, ELocation l2 ->
-    equal_location (Mark.add Pos.no_pos l1) (Mark.add Pos.no_pos l2)
+    equal_location (Mark.add Pos.void l1) (Mark.add Pos.void l2)
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
@@ -738,7 +738,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare t1 t2 @@< fun () ->
     compare e1 e2
   | ELocation l1, ELocation l2 ->
-    compare_location (Mark.add Pos.no_pos l1) (Mark.add Pos.no_pos l2)
+    compare_location (Mark.add Pos.void l1) (Mark.add Pos.void l2)
   | EStruct {name=name1; fields=field_map1 },
     EStruct {name=name2; fields=field_map2 } ->
     StructName.compare name1 name2 @@< fun () ->
@@ -904,7 +904,7 @@ let make_abs m_xs e taus pos =
   eabs (bind xs e) pos_xs taus mark
 
 let make_ghost_abs xs e taus pos =
-  let xs = List.map (Mark.add Pos.no_pos) xs in
+  let xs = List.map (Mark.add Pos.void) xs in
   make_abs xs e taus pos
 
 let make_tuple el m0 =
@@ -974,7 +974,7 @@ let make_erroronempty e =
 let thunk_term term =
   let silent = Var.make "_" in
   let pos = mark_pos (Mark.get term) in
-  make_abs [silent, Pos.no_pos] term [TLit TUnit, pos] pos
+  make_abs [silent, Pos.void] term [TLit TUnit, pos] pos
 
 let empty_thunked_term mark = thunk_term (Bindlib.box EEmpty, mark)
 
@@ -1000,4 +1000,4 @@ let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in
-  make_abs [x, Pos.no_pos] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)
+  make_abs [x, Pos.void] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)

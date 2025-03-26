@@ -147,7 +147,7 @@ let rec resolve_eq ctx pos ty args m =
         m
     in
     Expr.make_multiple_let_in
-      (List.map (fun v -> v, Pos.no_pos) vargs)
+      (List.map (fun v -> v, Pos.void) vargs)
       [ty; ty] args
       (Expr.eappop ~op:(And, pos)
          ~args:[same_length; same_elements]
