@@ -23,7 +23,7 @@ $ catala test-scope A
 │   │       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │ 9 │       -- A : 2
 │   │       ‾‾‾‾‾‾‾‾
-└─
+└─ Parser internal error
 
 ┌─[ERROR (2/2)]─
 │

@@ -1424,7 +1424,7 @@ let process_rule
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
     (rule : S.rule) : Ast.modul =
-  let def = S.rule_to_def rule in
+  let def = Name_resolution.surface_rule_to_def rule in
   process_def precond scope ctxt modul def
 
 (** Translates assertions *)

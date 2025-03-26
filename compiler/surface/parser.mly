@@ -1,8 +1,8 @@
 (*
   This file is part of the Catala compiler, a specification language for tax and social benefits
   computation rules.
-  Copyright (C) 2020 Inria, contributors: Denis Merigoux <denis.merigoux@inria.fr>,
-  Emile Rolley <emile.rolley@tuta.io>
+  Copyright (C) 2020-2025 Inria, contributors: Denis Merigoux <denis.merigoux@inria.fr>,
+  Emile Rolley <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,6 +19,57 @@
 
 %{
   open Catala_utils
+
+  let new_heading, get_heading =
+    let current_heading = ref [] in
+    let current_file = ref "" in
+    let reset (pos, _) =
+      if pos.Lexing.pos_fname <> !current_file then (
+        current_file := pos.Lexing.pos_fname;
+        current_heading := [];
+       )
+    in
+    let new_heading heading lpos =
+      reset lpos;
+      let (title, id, is_archive, precedence) = heading in
+      let upper_headings =
+        List.filter
+          (fun hd -> hd.Ast.law_heading_precedence < precedence)
+          !current_heading
+      in
+      let pos =
+        Pos.overwrite_law_info (Pos.from_lpos lpos)
+          (List.map (fun h -> Mark.remove h.Ast.law_heading_name)
+             upper_headings)
+      in
+      let heading = {
+        Ast.law_heading_name = (title, pos);
+        law_heading_id = id;
+        law_heading_is_archive = is_archive;
+        law_heading_precedence = precedence;
+      } in
+      current_heading := heading :: upper_headings;
+      heading
+    in
+    let get_heading lpos =
+      reset lpos;
+      List.map (fun h -> Mark.remove h.Ast.law_heading_name)
+          !current_heading
+    in
+    new_heading, get_heading
+
+  let get_pos lpos =
+    let p = Pos.from_lpos lpos in
+    Pos.overwrite_law_info p (get_heading lpos)
+
+  let type_from_args
+      (args :
+         (Ast.lident Mark.pos * Ast.base_typ Mark.pos) list Mark.pos option)
+      (return_typ : Ast.base_typ Mark.pos) : Ast.typ =
+    match args with
+    | None -> Mark.map (fun r -> Ast.Base r) return_typ
+    | Some (arg_typ, _) ->
+      Mark.add (Mark.get return_typ) (Ast.Func { arg_typ; return_typ })
 %}
 
 %parameter<Localisation: sig
@@ -104,10 +155,10 @@ end>
 %%
 
 let pos(x) ==
-| x ; { Pos.from_lpos $loc }
+| x ; { get_pos $loc }
 
 let addpos(x) ==
-| ~=x ; { x, Pos.from_lpos $loc(x) }
+| ~=x ; { x, get_pos $loc(x) }
 
 let primitive_typ :=
 | INTEGER ; { Integer }
@@ -138,12 +189,12 @@ let lident :=
   match Localisation.lex_builtin i with
   | Some _ ->
      Message.delayed_error
-       (i, Pos.from_lpos $sloc)
+       (i, get_pos $sloc)
        ~kind:Parsing
-       ~pos:(Pos.from_lpos $sloc)
+       ~pos:(get_pos $sloc)
         "Reserved builtin name"
   | None ->
-      (i, Pos.from_lpos $sloc)
+      (i, get_pos $sloc)
 }
 
 let scope_var ==
@@ -177,7 +228,7 @@ let naked_expression ==
   | Some b, None -> Builtin b
   | Some b, Some _ ->
       Message.delayed_error (Builtin b) ~kind:Parsing ~pos:
-        (Pos.from_lpos $loc(id))
+        (get_pos $loc(id))
         "Invalid use of built-in @{<bold>%s@}" (Mark.remove id)
   | None, state -> Ident ([], id, state)
 }
@@ -230,7 +281,7 @@ let naked_expression ==
 }
 | e = expression ;
   WITH ; c = constructor_binding ; {
-  TestMatchCase (e, (c, Pos.from_lpos $sloc))
+  TestMatchCase (e, (c, get_pos $sloc))
 }
 | e = expression ;
   BUT_REPLACE ;
@@ -312,7 +363,7 @@ let naked_expression ==
   pfor = pos(FOR) ; i = mbinder ;
   AMONG ; coll = expression ;
   psuch = pos(SUCH) ; THAT ; ffilt = expression ; {
-  CollectionOp ((Map {f = i, fmap}, pfor), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), Pos.from_lpos $loc))
+  CollectionOp ((Map {f = i, fmap}, pfor), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), get_pos $loc))
 } %prec top_expr
 | pos = pos(CONTENT); OF; ids = mbinder ;
   AMONG ; coll = expression ;
@@ -505,8 +556,8 @@ let definition :=
     | Some x -> x
   in
   let pos_start =
-    match label with Some _ -> Pos.from_lpos $loc(label)
-    | None -> match except with Some _ -> Pos.from_lpos $loc(except)
+    match label with Some _ -> get_pos $loc(label)
+    | None -> match except with Some _ -> get_pos $loc(except)
     | None -> pos_def
   in
   {
@@ -555,7 +606,7 @@ let scope_item :=
        Message.delayed_error
          (DateRounding(v), Mark.get v)
          ~kind:Parsing ~pos:
-         (Pos.from_lpos $loc(i))
+         (get_pos $loc(i))
          "Expected the form 'date round increasing' or 'date round decreasing'"
   }
 
@@ -573,7 +624,7 @@ let struct_scope :=
   (* let (typ, typ_pos) = typ in *)
   {
     struct_decl_field_name = name;
-    struct_decl_field_typ = Ast.type_from_args args typ;
+    struct_decl_field_typ = type_from_args args typ;
   }
 }
 
@@ -606,8 +657,8 @@ let scope_decl_item_attribute_mandatory ==
   let in_attr = match in_attr_opt, out_attr with
     | (None, _), (false, _) ->
        Message.delayed_error
-         (Internal, Pos.from_lpos $loc(attr))
-         ~kind:Parsing ~pos:(Pos.from_lpos $loc(attr))
+         (Internal, get_pos $loc(attr))
+         ~kind:Parsing ~pos:(get_pos $loc(attr))
          "Variable declaration requires input qualification \
           ('internal', 'input' or 'context')"
     | (None, pos), (true, _) -> Internal, pos
@@ -675,7 +726,7 @@ let scope_decl_item :=
            (List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m))))
         args;
     scope_decl_context_item_typ =
-      Ast.type_from_args args (Condition, pos_condition);
+      type_from_args args (Condition, pos_condition);
     scope_decl_context_item_states = states;
   }
 }
@@ -694,10 +745,10 @@ let var_content ==
 | ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
 let depends_stance ==
 | DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; {
-  Some (args, Pos.from_lpos $sloc)
+  Some (args, get_pos $sloc)
 }
 | DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; {
-  Some (args, Pos.from_lpos $sloc)
+  Some (args, get_pos $sloc)
 }
 | { None }
 
@@ -754,17 +805,12 @@ let metadata_block :=
 | BEGIN_METADATA ; option(law_text) ;
   ~ = code ;
   text = END_CODE ; {
-  (code, (text, Pos.from_lpos $sloc))
+  (code, (text, get_pos $sloc))
 }
 
 let law_heading :=
-| title = LAW_HEADING ; {
-  let (title, id, is_archive, precedence) = title in {
-    law_heading_name = (title, Pos.from_lpos $sloc);
-    law_heading_id = id;
-    law_heading_is_archive = is_archive;
-    law_heading_precedence = precedence;
-  }
+| heading = LAW_HEADING ; {
+  new_heading heading $sloc
 }
 
 let law_text :=
@@ -775,7 +821,7 @@ let directive :=
   args = nonempty_list(DIRECTIVE_ARG) ;
   page = option(AT_PAGE) ; {
   let filename = String.trim (String.concat "" args) in
-  let pos = Pos.from_lpos $sloc in
+  let pos = get_pos $sloc in
   let jorftext = Re.Pcre.regexp "(JORFARTI\\d{12}|LEGIARTI\\d{12}|CETATEXT\\d{12})" in
   if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
     LawInclude (Ast.LegislativeText (filename, pos))
@@ -798,7 +844,7 @@ let source_file_item :=
 | BEGIN_CODE ;
   ~ = code ;
   text = END_CODE ; {
-  CodeBlock (code, (text, Pos.from_lpos $sloc), false)
+  CodeBlock (code, (text, get_pos $sloc), false)
 }
 | heading = law_heading ; {
   LawHeading (heading, [])
