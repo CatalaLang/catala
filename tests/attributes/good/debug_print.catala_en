@@ -1,0 +1,46 @@
+```catala
+declaration scope A:
+  output w content integer
+  output x content integer
+  output y content integer
+  output z content decimal
+
+scope A:
+  definition w equals #[debug.print] 4 - 2 - 2
+  definition x equals 4 - #[debug.print = "value of x"] (2 - 2)
+  definition y equals 4 - #[debug.print] 2 - -2
+  definition z equals 200 / 2 * 4. - 50. / - (5. - #[debug.print] 20 / 2)
+```
+
+
+
+```catala-test-inline
+$ catala interpret -s A --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/attributes/good/debug_print.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Starting interpretation...
+[DEBUG] 0 (at debug_print:9.38-47)
+[DEBUG] 0 (at debug_print:9.38-47)
+[DEBUG] 0 (at debug_print:9.38-47)
+[DEBUG] value of x = 0 (at debug_print:10.57-64)
+[DEBUG] 2 (at debug_print:11.42-43)
+[DEBUG] 10. (at debug_print:12.67-73)
+[DEBUG] End of interpretation
+┌─[RESULT]─
+│ w = 0
+│ x = 4
+│ y = 4
+│ z = 390.
+└─
+```
