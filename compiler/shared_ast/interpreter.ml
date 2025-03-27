@@ -693,6 +693,25 @@ let rec evaluate_expr :
  fun ctx lang e ->
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
+  let debug_print =
+    List.filter
+      (fun (p, _) -> Mark.remove p = ["debug"; "print"])
+      (Expr.attrs e)
+  in
+  (match debug_print with
+  | [] -> fun r -> r
+  | ((_, (kind, _)) as p) :: _ ->
+    fun r ->
+      let r =
+        Expr.attrs r |> List.filter (fun a -> a <> p) |> Expr.set_attrs r
+      in
+      Message.debug "%a%a @{<grey>(at %s)@}"
+        (fun ppf -> function
+          | String (s, _) -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
+          | Unit | _ -> ())
+        kind (Print.expr ()) r (Pos.to_string_short pos);
+      r)
+  @@
   match Mark.remove e with
   | EVar _ ->
     Message.error ~pos "%a" Format.pp_print_text
