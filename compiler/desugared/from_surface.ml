@@ -231,6 +231,57 @@ let rec check_formula (op, pos_op) e =
 let restore_position path_item mname =
   ModuleName.map_info (fun (mn, _) -> mn, Mark.get path_item) mname
 
+let translate_literal l pos =
+  match l with
+  | S.LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
+  | S.LNumber ((Int i, _), Some (Percent, _)) ->
+    LRat
+      Runtime.(
+        Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
+          rat100)
+  | S.LNumber ((Dec (i, f), _), None) ->
+    LRat Runtime.(decimal_of_string (i ^ "." ^ f))
+  | S.LNumber ((Dec (i, f), _), Some (Percent, _)) ->
+    LRat
+      Runtime.(
+        Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
+          (decimal_of_string (i ^ "." ^ f))
+          rat100)
+  | S.LBool b -> LBool b
+  | S.LMoneyAmount i ->
+    LMoney
+      Runtime.(
+        money_of_cents_integer
+          (Oper.o_add_int_int
+             (Oper.o_mult_int_int
+                (integer_of_string i.money_amount_units)
+                int100)
+             (integer_of_string i.money_amount_cents)))
+  | S.LNumber ((Int i, _), Some (Year, _)) ->
+    LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
+  | S.LNumber ((Int i, _), Some (Month, _)) ->
+    LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0)
+  | S.LNumber ((Int i, _), Some (Day, _)) ->
+    LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
+  | S.LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
+    Message.error ~pos
+      "Impossible to specify decimal amounts of days, months or years."
+  | S.LDate date ->
+    if date.literal_date_month > 12 then
+      Message.error ~pos
+        "There is an error in this date: the month number is bigger than 12.";
+    if date.literal_date_day > 31 then
+      Message.error ~pos
+        "There is an error in this date: the day number is bigger than 31.";
+    LDate
+      (try
+         Runtime.date_of_numbers date.literal_date_year date.literal_date_month
+           date.literal_date_day
+       with Failure _ ->
+         Message.error ~pos
+           "There is an error in this date, it does not correspond to a \
+            correct calendar day.")
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -340,58 +391,7 @@ let rec translate_expr
   | Binop (op, e1, e2) -> translate_binop op pos (rec_helper e1) (rec_helper e2)
   | Unop (op, e) -> translate_unop op pos (rec_helper e)
   | Literal l ->
-    let lit =
-      match l with
-      | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
-      | LNumber ((Int i, _), Some (Percent, _)) ->
-        LRat
-          Runtime.(
-            Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
-              rat100)
-      | LNumber ((Dec (i, f), _), None) ->
-        LRat Runtime.(decimal_of_string (i ^ "." ^ f))
-      | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
-        LRat
-          Runtime.(
-            Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
-              (decimal_of_string (i ^ "." ^ f))
-              rat100)
-      | LBool b -> LBool b
-      | LMoneyAmount i ->
-        LMoney
-          Runtime.(
-            money_of_cents_integer
-              (Oper.o_add_int_int
-                 (Oper.o_mult_int_int
-                    (integer_of_string i.money_amount_units)
-                    int100)
-                 (integer_of_string i.money_amount_cents)))
-      | LNumber ((Int i, _), Some (Year, _)) ->
-        LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
-      | LNumber ((Int i, _), Some (Month, _)) ->
-        LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0)
-      | LNumber ((Int i, _), Some (Day, _)) ->
-        LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
-      | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-        Message.error ~pos
-          "Impossible to specify decimal amounts of days, months or years."
-      | LDate date ->
-        if date.literal_date_month > 12 then
-          Message.error ~pos
-            "There is an error in this date: the month number is bigger than \
-             12.";
-        if date.literal_date_day > 31 then
-          Message.error ~pos
-            "There is an error in this date: the day number is bigger than 31.";
-        LDate
-          (try
-             Runtime.date_of_numbers date.literal_date_year
-               date.literal_date_month date.literal_date_day
-           with Failure _ ->
-             Message.error ~pos
-               "There is an error in this date, it does not correspond to a \
-                correct calendar day.")
-    in
+    let lit = translate_literal l pos in
     Expr.elit lit emark
   | Ident ([], (x, pos), state) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
