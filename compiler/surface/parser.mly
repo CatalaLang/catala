@@ -104,8 +104,8 @@ end>
 %type<Pos.t> pos(CONDITION)
 %type<Ast.naked_expression Mark.pos> addpos(naked_expression)
 %type<Ast.uident Mark.pos> addpos(UIDENT)
-%type<Ast.src_attr_value> attribute_value
-%type<(string list Mark.pos) * Ast.src_attr_value option> attribute
+%type<Shared_ast.attr_value> attribute_value
+%type<(string list Mark.pos) * Shared_ast.attr_value option> attribute
 %type<Ast.expression> attr(noattr_expression)
 %type<Ast.base_typ_data Mark.pos> posattr(typ_data)
 %type<Ast.primitive_typ> primitive_typ
@@ -168,11 +168,15 @@ let addpos(x) ==
 | a = x ; { (a, get_pos $loc(a)) }
 
 let attribute_value ==
-| ~ = addpos(STRING); <String>
-| ~ = expression; <Expression>
+| ~ = addpos(STRING); <Shared_ast.String>
+| ~ = expression; <Ast.Expression>
 
 let attribute :=
-| ATTR_START; tag = addpos(separated_nonempty_list(DOT,LIDENT)) ; value = option(preceded(EQUAL, attribute_value)) ; RBRACKET ; <>
+| ATTR_START ;
+  tag = addpos(separated_nonempty_list(DOT,LIDENT)) ;
+  value = option(preceded(EQUAL, attribute_value)) ;
+  RBRACKET ;
+  <>
 
 let attr(x) ==
 | attrs = list(addpos(attribute)) ; x_pos=x ; {
@@ -180,7 +184,7 @@ let attr(x) ==
   x, List.fold_left
     (fun attrs ((akey, val_opt), apos) ->
       Pos.add_attr attrs @@
-      Ast.Src (akey, Option.value ~default:Unit val_opt, apos)
+      Shared_ast.Src (akey, Option.value ~default:Shared_ast.Unit val_opt, apos)
     ) pos attrs
 }
 
