@@ -388,9 +388,11 @@ let rec lex_string buf lexbuf : token =
   | Plus (Compl (Chars "\\\"")) ->
     Buffer.add_string buf (Utf8.lexeme lexbuf);
     lex_string buf lexbuf
-  | '\\', eol, hspace -> lex_string buf lexbuf
-  | '\\', any ->
-    Buffer.add_string buf (Utf8.lexeme lexbuf);
+  | '\\', eol, Star hspace ->
+    lex_string buf lexbuf
+  | '\\', any_but_eol ->
+    let s = Utf8.lexeme lexbuf in
+    Buffer.add_substring buf s 1 (String.length s - 1);
     lex_string buf lexbuf
   | '"' -> STRING (Buffer.contents buf)
   | _ -> invalid_arg "lex_string"

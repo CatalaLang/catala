@@ -347,7 +347,7 @@ let rec translate_expr
   let pos = Mark.get expr in
   let emark = Untyped { pos } in
   match Mark.remove expr with
-  | Paren e -> rec_helper e
+  | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
   | Binop
       ( (S.And, pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
