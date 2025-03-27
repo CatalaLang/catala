@@ -200,6 +200,11 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
+let attrs e =
+  Pos.get_attrs (pos e) (function
+    | Src (path, v, pos) -> Some (path, (v, pos))
+    | _ -> None)
+
 let set_ty (type m) (ty : typ) (x : ('a, m) marked) : ('a, typed) marked =
   Mark.add
     (match Mark.get x with
@@ -214,6 +219,10 @@ let map_mark (type m) (pos_f : Pos.t -> Pos.t) (ty_f : typ -> typ) (m : m mark)
   | Untyped { pos } -> Untyped { pos = pos_f pos }
   | Typed { pos; ty } -> Typed { pos = pos_f pos; ty = ty_f ty }
   | Custom { pos; custom } -> Custom { pos = pos_f pos; custom }
+
+let set_attrs e attrs =
+  let attrs = List.map (fun (k, (v, pos)) -> Src (k, v, pos)) attrs in
+  Mark.map_mark (map_mark (fun pos -> Pos.set_attrs pos attrs) (fun ty -> ty)) e
 
 let map_mark2
     (type m)

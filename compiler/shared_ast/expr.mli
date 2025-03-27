@@ -188,6 +188,11 @@ val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 (** {2 Manipulation of marks} *)
 
+val attrs : ('a, 'm) gexpr -> (attr_path * attr_value Mark.pos) list
+
+val set_attrs :
+  ('a, 'm) gexpr -> (attr_path * attr_value Mark.pos) list -> ('a, 'm) gexpr
+
 val no_mark : 'm mark -> 'm mark
 (** Returns an empty mark, using the argument as type witness. Note that the
     custom part is kept on [Custom] marks *)

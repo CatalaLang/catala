@@ -82,6 +82,23 @@ let external_ref fmt er =
   | External_value v -> TopdefName.format fmt v
   | External_scope s -> ScopeName.format fmt s
 
+let attr ppf = function
+  | Pos.Law_pos _ -> ()
+  | Src (path, value, _pos) ->
+    Format.fprintf ppf "#[%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.pp_print_char ppf '.')
+         Format.pp_print_string)
+      (Mark.remove path);
+    (match value with
+    | Unit -> ()
+    | String (str, _) -> Format.fprintf ppf " = %S" str
+    | _ -> Format.fprintf ppf " = <expr>");
+    Format.fprintf ppf "]@ "
+  | _ -> Format.fprintf ppf "#[?]@ "
+
+let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
+
 let rec typ_gen
     (ctx : decl_ctx option)
     ~(colors : Ocolor_types.color4 list)
@@ -97,6 +114,7 @@ let rec typ_gen
       pp_color_string (List.hd colors) fmt ")")
     else typ ~colors fmt t
   in
+  attrs fmt (Mark.get ty);
   match Mark.remove ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
@@ -489,6 +507,9 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
+    attrs fmt
+      (match Mark.get e with
+      | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
     (* (* Uncomment for type annotations everywhere *)
      * (fun f ->
      *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
