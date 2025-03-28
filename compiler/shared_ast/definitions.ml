@@ -431,7 +431,10 @@ type attr_path = string list Mark.pos
 
 type attr_value = ..
 type attr_value += String of string Mark.pos | Unit
-type Pos.attr += Src of attr_path * attr_value * Pos.t
+
+type Pos.attr +=
+  | Src of attr_path * attr_value * Pos.t
+  | DebugPrint of { label : string option }
 
 (** {2 Markings} *)
 

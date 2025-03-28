@@ -282,6 +282,32 @@ let translate_literal l pos =
            "There is an error in this date, it does not correspond to a \
             correct calendar day.")
 
+let translate_expr_pos pos =
+  let translate_attr = function
+    | Src ((p1 :: ps, ppos), v, pos) as attr -> (
+      match p1 with
+      | "debug" -> (
+        match ps with
+        | ["print"] ->
+          let label =
+            match v with
+            | Unit -> None
+            | String (s, _) -> Some s
+            | S.Expression (_, pos) ->
+              Message.error ~pos "Invalid value for \"#[debug.print]\""
+            | _ -> Message.error ~pos "Invalid value for \"#[debug.print]\""
+          in
+          DebugPrint { label }
+        | ps ->
+          Message.error ~pos:ppos "Unknown debug attribute \"%s\""
+            (String.concat "." ps))
+      | _ ->
+        (* Pass through *)
+        attr)
+    | attr -> attr
+  in
+  Pos.attrs pos |> List.map translate_attr |> Pos.set_attrs pos
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -344,7 +370,7 @@ let rec translate_expr
       (* If the input is not a tuple, we assume it's already a list *)
       rec_helper e
   in
-  let pos = Mark.get expr in
+  let pos = translate_expr_pos (Mark.get expr) in
   let emark = Untyped { pos } in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)

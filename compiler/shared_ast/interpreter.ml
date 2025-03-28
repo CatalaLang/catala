@@ -691,25 +691,20 @@ let rec evaluate_expr :
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
+  let debug_print, e =
+    Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
+  in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
-  let debug_print =
-    List.filter
-      (fun (p, _) -> Mark.remove p = ["debug"; "print"])
-      (Expr.attrs e)
-  in
   (match debug_print with
-  | [] -> fun r -> r
-  | ((_, (kind, _)) as p) :: _ ->
+  | None -> fun r -> r
+  | Some label_opt ->
     fun r ->
-      let r =
-        Expr.attrs r |> List.filter (fun a -> a <> p) |> Expr.set_attrs r
-      in
       Message.debug "%a%a @{<grey>(at %s)@}"
         (fun ppf -> function
-          | String (s, _) -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
-          | Unit | _ -> ())
-        kind (Print.expr ()) r (Pos.to_string_short pos);
+          | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
+          | None -> ())
+        label_opt (Print.expr ()) r (Pos.to_string_short pos);
       r)
   @@
   match Mark.remove e with

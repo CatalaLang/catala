@@ -228,7 +228,9 @@ let no_attrs m =
   map_mark
     (fun pos ->
       Pos.set_attrs pos
-        (List.filter (function Src _ -> false | _ -> true) (Pos.attrs pos)))
+        (Pos.get_attrs pos (function
+          | Pos.Law_pos _ as p -> Some p
+          | _ -> None)))
     (fun ty -> ty)
     m
 
@@ -262,6 +264,10 @@ let fold_marks
 
 let with_pos (type m) (pos : Pos.t) (m : m mark) : m mark =
   map_mark (fun _ -> pos) (fun ty -> ty) m
+
+let take_attr (e, m) f =
+  let a, pos = Pos.take_attr (mark_pos m) f in
+  a, (e, with_pos pos m)
 
 let map_ty (type m) (ty_f : typ -> typ) (m : m mark) : m mark =
   map_mark (fun pos -> pos) ty_f m

@@ -95,6 +95,12 @@ let attr ppf = function
     | String (str, _) -> Format.fprintf ppf " = %S" str
     | _ -> Format.fprintf ppf " = <expr>");
     Format.fprintf ppf "]@ "
+  | DebugPrint { label } ->
+    Format.fprintf ppf "#[debug.print%a]@ "
+      (fun ppf -> function
+        | None -> ()
+        | Some label -> Format.fprintf ppf " = %S" label)
+      label
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)

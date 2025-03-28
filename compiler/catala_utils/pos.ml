@@ -44,6 +44,17 @@ let get_attr t f =
   | [a] -> Some a
   | _ :: _ :: _ -> invalid_arg "Pos.get_attr: multiple matching attributes"
 
+let take_attr t f =
+  let rec aux acc = function
+    | [] -> None, List.rev acc
+    | a :: r -> (
+      match f a with
+      | None -> aux (a :: acc) r
+      | some -> some, List.rev_append acc r)
+  in
+  let r, attr = aux [] t.attr in
+  r, { t with attr }
+
 let join_attr a1 a2 =
   if List.exists (function Law_pos _ -> true | _ -> false) a1 then
     a1 @ List.filter (function Law_pos _ -> false | _ -> true) a2
