@@ -62,10 +62,10 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG]     ≔  RentComputation.g: <object>
 [LOG]     ≔  RentComputation.f: <object>
 [LOG]     ☛ Definition applied:
-          ─➤ tests/scope/good/scope_call3.catala_en:7.29-7.54:
+          ─➤ tests/scope/good/scope_call3.catala_en:7.28-7.55:
             │
           7 │   definition f of x equals (output of RentComputation).f of x
-            │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+            │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 [LOG]     ≔  RentComputation.direct.
       output: RentComputation { -- f: <object> }
 [LOG]   ←  RentComputation.direct

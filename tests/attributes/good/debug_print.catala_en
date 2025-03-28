@@ -30,12 +30,10 @@ $ catala interpret -s A --debug
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
 [DEBUG] Starting interpretation...
-[DEBUG] 0 (at debug_print:9.38-47)
-[DEBUG] 0 (at debug_print:9.38-47)
-[DEBUG] 0 (at debug_print:9.38-47)
-[DEBUG] value of x = 0 (at debug_print:10.57-64)
-[DEBUG] 2 (at debug_print:11.42-43)
-[DEBUG] 10. (at debug_print:12.67-73)
+[DEBUG] 0 (at tests/attributes/good/debug_print.catala_en:9.38-9.47)
+[DEBUG] value of x = 0 (at tests/attributes/good/debug_print.catala_en:10.57-10.64)
+[DEBUG] 2 (at tests/attributes/good/debug_print.catala_en:11.42-11.43)
+[DEBUG] 10. (at tests/attributes/good/debug_print.catala_en:12.67-12.73)
 [DEBUG] End of interpretation
 ┌─[RESULT]─
 │ w = 0

@@ -224,6 +224,14 @@ let set_attrs e attrs =
   let attrs = List.map (fun (k, (v, pos)) -> Src (k, v, pos)) attrs in
   Mark.map_mark (map_mark (fun pos -> Pos.set_attrs pos attrs) (fun ty -> ty)) e
 
+let no_attrs m =
+  map_mark
+    (fun pos ->
+      Pos.set_attrs pos
+        (List.filter (function Src _ -> false | _ -> true) (Pos.attrs pos)))
+    (fun ty -> ty)
+    m
+
 let map_mark2
     (type m)
     (pos_f : Pos.t -> Pos.t -> Pos.t)
@@ -1001,7 +1009,10 @@ let make_multiple_let_in xs taus e1s e2 mpos =
 
 let make_puredefault e =
   let mark =
-    map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
+    map_mark
+      (fun pos -> pos)
+      (fun ty -> TDefault ty, Mark.get ty)
+      (no_attrs (Mark.get e))
   in
   epuredefault e mark
 

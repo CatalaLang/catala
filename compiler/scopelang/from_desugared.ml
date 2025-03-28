@@ -143,7 +143,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                | States [] -> assert false
              in
              let e' = translate_expr ctx e in
-             let m = Mark.get e in
+             let m = Expr.no_attrs (Mark.get e) in
              let e' =
                match ScopeVar.Map.find_opt v ctx.reentrant_vars with
                | Some (TArrow (targs, _), _) ->
@@ -397,7 +397,7 @@ let rec rule_tree_to_expr
     (def_pos : Pos.t)
     (params : D.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
-  let emark = Untyped { pos = def_pos } in
+  let emark = Expr.no_attrs (Untyped { pos = def_pos }) in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
@@ -470,7 +470,8 @@ let rec rule_tree_to_expr
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
                  ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 ~cons (Mark.get cons)
+                 ~cons
+                 (Expr.no_attrs (Mark.get cons))
                :: acc)
            (translate_and_unbox_list base_just_list)
            (translate_and_unbox_list base_cons_list)
