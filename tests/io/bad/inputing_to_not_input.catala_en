@@ -40,6 +40,6 @@ $ catala Typecheck
 │    │
 │ 14 │   definition a.a equals 0
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+└─ Test
 #return code 123#
 ```

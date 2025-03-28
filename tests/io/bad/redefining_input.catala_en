@@ -25,6 +25,6 @@ $ catala Typecheck
 │   │
 │ 8 │   definition a equals 0
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+└─ Test
 #return code 123#
 ```

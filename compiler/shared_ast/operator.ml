@@ -125,9 +125,7 @@ let name : type a. a t -> string = function
 let compare_log_entries l1 l2 =
   match l1, l2 with
   | VarDef t1, VarDef t2 ->
-    let tcompare =
-      Type.compare (t1.log_typ, Pos.no_pos) (t2.log_typ, Pos.no_pos)
-    in
+    let tcompare = Type.compare (t1.log_typ, Pos.void) (t2.log_typ, Pos.void) in
     if tcompare = 0 then
       let ocompare = Bool.compare t1.log_io_output t2.log_io_output in
       if ocompare = 0 then

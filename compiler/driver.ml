@@ -150,10 +150,7 @@ module Passes = struct
 
   let surface options : Surface.Ast.program =
     debug_pass_name "surface";
-    let prg =
-      Surface.Parser_driver.parse_top_level_file options.Global.input_src
-    in
-    Surface.Fill_positions.fill_pos_with_legislative_info prg
+    Surface.Parser_driver.parse_top_level_file options.Global.input_src
 
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
@@ -445,7 +442,7 @@ module Commands = struct
                 @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
                id first_part ScopeName.format scope_uid
       in
-      (v, Pos.no_pos), Desugared.Ast.ScopeDef.Var state
+      (v, Pos.void), Desugared.Ast.ScopeDef.Var state
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
@@ -517,9 +514,7 @@ module Commands = struct
     let prg = Passes.surface options in
     let prg_annex =
       List.map
-        (fun f ->
-          Surface.Parser_driver.parse_top_level_file (FileName f)
-          |> Surface.Fill_positions.fill_pos_with_legislative_info)
+        (fun f -> Surface.Parser_driver.parse_top_level_file (FileName f))
         extra_files
     in
     Message.debug "Weaving literate program into LaTeX";
@@ -1102,8 +1097,8 @@ module Commands = struct
               (fun f ->
                 let name = modname_of_file f in
                 {
-                  mod_use_name = name, Pos.no_pos;
-                  mod_use_alias = name, Pos.no_pos;
+                  mod_use_name = name, Pos.void;
+                  mod_use_alias = name, Pos.void;
                 })
               (file :: extra_files);
           program_lang = Cli.file_lang file;

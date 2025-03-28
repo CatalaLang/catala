@@ -162,6 +162,10 @@ val get_def_key :
   Ast.ScopeDef.t
 (** Usage: [get_def_key var_name var_state scope_uid ctxt pos]*)
 
+val surface_rule_to_def : Surface.Ast.rule -> Surface.Ast.definition
+(** Translates a {!type: Surface.rule} into the corresponding
+    {!type: Surface.definition} *)
+
 val get_enum : context -> Ident.t Mark.pos -> EnumName.t
 (** Find an enum definition from the typedefs, failing if there is none or it
     has a different kind *)

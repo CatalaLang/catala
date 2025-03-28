@@ -1010,12 +1010,28 @@ let process_definition
         ctxt.scopes;
   }
 
+(** Translates a {!type: rule} into the corresponding {!type: definition} *)
+let surface_rule_to_def (rule : Surface.Ast.rule) : Surface.Ast.definition =
+  let consequence_expr =
+    Surface.Ast.Literal (LBool (Mark.remove rule.rule_consequence))
+  in
+  {
+    definition_label = rule.rule_label;
+    definition_exception_to = rule.rule_exception_to;
+    definition_name = rule.rule_name;
+    definition_parameter = rule.rule_parameter;
+    definition_condition = rule.rule_condition;
+    definition_id = rule.rule_id;
+    definition_expr = consequence_expr, Mark.get rule.rule_consequence;
+    definition_state = rule.rule_state;
+  }
+
 let process_scope_use_item
     (s_name : ScopeName.t)
     (ctxt : context)
     (sitem : Surface.Ast.scope_use_item Mark.pos) : context =
   match Mark.remove sitem with
-  | Rule r -> process_definition ctxt s_name (Surface.Ast.rule_to_def r)
+  | Rule r -> process_definition ctxt s_name (surface_rule_to_def r)
   | Definition d -> process_definition ctxt s_name d
   | _ -> ctxt
 

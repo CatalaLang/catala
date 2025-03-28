@@ -80,7 +80,7 @@ module Edge = struct
   type t = Pos.t
 
   let compare = compare
-  let default = Pos.no_pos
+  let default = Pos.void
 end
 
 module ScopeDependencies =
@@ -262,7 +262,7 @@ module EdgeExceptions = struct
   type t = Pos.t list
 
   let compare = compare
-  let default = [Pos.no_pos]
+  let default = [Pos.void]
 end
 
 module ExceptionsDependencies =
@@ -292,7 +292,7 @@ let build_exceptions_graph
 
   (* All the rules of the form [definition x ...] are base case with no explicit
      label, so they should share this implicit label. *)
-  let base_case_implicit_label = LabelName.fresh ("base_case", Pos.no_pos) in
+  let base_case_implicit_label = LabelName.fresh ("base_case", Pos.void) in
   (* When declaring [exception definition x ...], it means there is a unique
      rule [R] to which this can be an exception to. So we give a unique label to
      all the rules that are implicitly exceptions to rule [R]. *)
@@ -309,7 +309,7 @@ let build_exceptions_graph
           | None ->
             RuleName.Map.add rule_to
               (LabelName.fresh
-                 ("exception_to_" ^ RuleName.to_string rule_to, Pos.no_pos))
+                 ("exception_to_" ^ RuleName.to_string rule_to, Pos.void))
               exception_to_rule_implicit_labels)
         | _ -> exception_to_rule_implicit_labels)
       def RuleName.Map.empty
@@ -332,7 +332,7 @@ let build_exceptions_graph
           | None ->
             LabelName.Map.add label_to
               (LabelName.fresh
-                 ("exception_to_" ^ LabelName.to_string label_to, Pos.no_pos))
+                 ("exception_to_" ^ LabelName.to_string label_to, Pos.void))
               exception_to_label_implicit_labels)
         | _ -> exception_to_label_implicit_labels)
       def LabelName.Map.empty

@@ -34,6 +34,7 @@ $ catala test-scope A
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │ 10 │   definition x equals 0
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
 │
 ├─➤ tests/exception/bad/exceptions_cycle.catala_en:12.3-14.15:
 │    │
@@ -43,6 +44,7 @@ $ catala test-scope A
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │ 14 │   definition x equals 1
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
 │
 ├─➤ tests/exception/bad/exceptions_cycle.catala_en:16.3-18.15:
 │    │
@@ -52,6 +54,6 @@ $ catala test-scope A
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │ 18 │   definition x equals 2
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+└─ Test
 #return code 123#
 ```

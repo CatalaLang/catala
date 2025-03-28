@@ -21,7 +21,7 @@ type 'a pos = ('a, Pos.t) ed
 let add m e = e, m
 let remove (x, _) = x
 let get (_, m) = m
-let ghost x = x, Pos.no_pos
+let ghost x = x, Pos.void
 let set m (x, _) = x, m
 let map f (x, m) = f x, m
 let map_mark f (a, m) = a, f m
@@ -31,50 +31,3 @@ let fold2 f (x, _) (y, _) = f x y
 let compare cmp a b = fold2 cmp a b
 let equal eq a b = fold2 eq a b
 let hash f (x, _) = f x
-
-class ['self] marked_map =
-  object (_self : 'self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-            ; .. >
-
-    method visit_marked
-        : 'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed =
-      fun f env (x, m) -> f env x, m
-  end
-
-class ['self] marked_iter =
-  object (_self : 'self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-            ; .. >
-
-    method visit_marked
-        : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit =
-      fun f env (x, _) -> f env x
-  end
-
-class ['self] pos_map =
-  object (_self : 'self)
-    constraint
-    'self = < visit_pos :
-                'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-            ; .. >
-
-    method visit_pos
-        : 'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed =
-      fun f env (x, m) -> f env x, m
-  end
-
-class ['self] pos_iter =
-  object (_self : 'self)
-    constraint
-    'self = < visit_pos :
-                'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-            ; .. >
-
-    method visit_pos : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit =
-      fun f env (x, _) -> f env x
-  end

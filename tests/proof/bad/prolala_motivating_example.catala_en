@@ -149,6 +149,7 @@ $ catala Proof --disable-counterexamples
 │    │
 │ 64 │   definition eligibility.is_student equals is_student
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+└─ ProLaLa 2022 Super Cash Bonus
+   └─ Amount
 #return code 123#
 ```
