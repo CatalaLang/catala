@@ -264,7 +264,7 @@ let gen_build_statements
   let target =
     match item.module_def with
     | None -> !Var.builddir / Filename.remove_extension src
-    | Some n -> !Var.builddir / Filename.dirname src / n
+    | Some n -> !Var.builddir / Filename.dirname src / Mark.remove n
   in
   let include_flags =
     "-I"
@@ -281,7 +281,7 @@ let gen_build_statements
       Nj.binding Var.includes include_flags;
     ]
   in
-  let modules = List.rev item.used_modules in
+  let modules = List.rev_map Mark.remove item.used_modules in
   let modfile ext ?(mod_ext = ext) modname =
     match List.assoc_opt modname same_dir_modules with
     | Some f -> (!Var.builddir / Filename.dirname f / modname) ^ ext
@@ -292,7 +292,7 @@ let gen_build_statements
   let include_deps =
     Nj.build "copy" ~inputs:[!Var.src]
       ~implicit_in:
-        (List.map (( / ) !Var.builddir) item.included_files
+        (List.map (fun f -> !Var.builddir / Mark.remove f) item.included_files
         @ List.map
             (fun m ->
               try !Var.builddir / List.assoc m same_dir_modules
@@ -383,6 +383,7 @@ let gen_build_statements
        rid of these aliases. *)
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
+      let m = Mark.remove m in
       Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.builddir / !Var.src]
       ::
       (if List.mem OCaml enabled_backends then
@@ -464,7 +465,9 @@ let gen_build_statements_dir
   let same_dir_modules =
     List.filter_map
       (fun item ->
-        Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
+        Option.map
+          (fun name -> Mark.remove name, item.Scan.file_name)
+          item.Scan.module_def)
       items
   in
   Seq.flat_map

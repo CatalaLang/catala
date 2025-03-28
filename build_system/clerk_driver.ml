@@ -375,7 +375,7 @@ let run_cmd =
               item.Scan.module_def = None
               && String.starts_with ~prefix:(ffile / "") item.file_name
             else
-              item.Scan.module_def = Some file
+              Option.map Mark.remove item.Scan.module_def = Some file
               || item.Scan.file_name = ffile
               || Filename.remove_extension item.file_name = ffile
           in
@@ -394,7 +394,7 @@ let run_cmd =
       List.fold_left
         (fun acc it ->
           match it.Scan.module_def with
-          | Some m -> String.Map.add m it acc
+          | Some m -> String.Map.add (Mark.remove m) it acc
           | None -> acc)
         String.Map.empty items
     in
@@ -411,7 +411,7 @@ let run_cmd =
       let rec traverse acc item =
         List.fold_left
           (fun acc m ->
-            let it = String.Map.find m modules in
+            let it = String.Map.find (Mark.remove m) modules in
             traverse (it :: acc) it)
           acc item.Scan.used_modules
       in
@@ -423,7 +423,7 @@ let run_cmd =
         match item.Scan.module_def with
         | None -> item.Scan.file_name
         | Some m ->
-          (dirname item.Scan.file_name / m)
+          (dirname item.Scan.file_name / Mark.remove m)
           ^ Filename.extension item.Scan.file_name
       in
       let base =
@@ -485,7 +485,7 @@ let run_cmd =
             (fun it ->
               build_dir
               / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
+              / Mark.remove (Option.get it.Scan.module_def)
               ^ ".cmx")
             (link_deps item)
         @ [target; "-o"; target -.- "exe"]
@@ -495,7 +495,7 @@ let run_cmd =
             (fun it ->
               build_dir
               / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
+              / Mark.remove (Option.get it.Scan.module_def)
               ^ ".c.o")
             (link_deps item)
         @ [target]
@@ -513,7 +513,7 @@ let run_cmd =
             let src =
               build_dir
               / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
+              / Mark.remove (Option.get it.Scan.module_def)
               ^ ".py"
             in
             copy_in ~src ~dir:tdir)
