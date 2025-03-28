@@ -25,10 +25,10 @@ type expected_output_descr = {
 
 type item = {
   file_name : File.t;
-  module_def : string option;
+  module_def : string Mark.pos option;
   extrnal : bool;
-  used_modules : string list;
-  included_files : File.t list;
+  used_modules : string Mark.pos list;
+  included_files : File.t Mark.pos list;
   legacy_tests : expected_output_descr list;
   has_inline_tests : bool;
 }
@@ -57,22 +57,28 @@ let test_command_args =
 let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     =
   let module L = Surface.Lexer_common in
-  let rec parse lines n acc =
+  let rec parse
+      (lines :
+        (string * L.line_token * (Lexing.position * Lexing.position)) Seq.t)
+      n
+      acc =
     match Seq.uncons lines with
     | None -> acc
     | Some ((_, L.LINE_TEST id, _), lines) ->
       let test, lines, n = parse_test id lines (n + 1) in
       parse lines n { acc with legacy_tests = test :: acc.legacy_tests }
-    | Some ((_, line, _), lines) -> (
+    | Some ((_, line, lpos), lines) -> (
+      let pos = Pos.from_lpos lpos in
       parse lines (n + 1)
       @@
       match line with
       | L.LINE_INCLUDE f ->
         let f = if Filename.is_relative f then File.(file /../ f) else f in
-        { acc with included_files = f :: acc.included_files }
+        { acc with included_files = Mark.add pos f :: acc.included_files }
       | L.LINE_MODULE_DEF (m, extrnal) ->
-        { acc with module_def = Some m; extrnal }
-      | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
+        { acc with module_def = Some (Mark.add pos m); extrnal }
+      | L.LINE_MODULE_USE m ->
+        { acc with used_modules = Mark.add pos m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | _ -> acc)
   and parse_test id lines n =
