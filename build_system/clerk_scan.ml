@@ -19,10 +19,10 @@ module L = Surface.Lexer_common
 
 type item = {
   file_name : File.t;
-  module_def : string option;
+  module_def : string Mark.pos option;
   extrnal : bool;
-  used_modules : string list;
-  included_files : File.t list;
+  used_modules : string Mark.pos list;
+  included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : bool Lazy.t;
 }
@@ -69,19 +69,26 @@ let rec find_test_scope ~lang file =
 
 let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     =
-  let rec parse lines n acc =
+  let module L = Surface.Lexer_common in
+  let rec parse
+      (lines :
+        (string * L.line_token * (Lexing.position * Lexing.position)) Seq.t)
+      n
+      acc =
     match Seq.uncons lines with
     | None -> acc
-    | Some ((_, line, _), lines) -> (
+    | Some ((_, line, lpos), lines) -> (
+      let pos = Pos.from_lpos lpos in
       parse lines (n + 1)
       @@
       match line with
       | L.LINE_INCLUDE f ->
         let f = if Filename.is_relative f then File.(file /../ f) else f in
-        { acc with included_files = f :: acc.included_files }
+        { acc with included_files = Mark.add pos f :: acc.included_files }
       | L.LINE_MODULE_DEF (m, extrnal) ->
-        { acc with module_def = Some m; extrnal }
-      | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
+        { acc with module_def = Some (Mark.add pos m); extrnal }
+      | L.LINE_MODULE_USE m ->
+        { acc with used_modules = Mark.add pos m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | L.LINE_TEST_ATTRIBUTE -> { acc with has_scope_tests = lazy true }
       | _ -> acc)
@@ -104,7 +111,9 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     lazy
       ((* If there are includes, they must be checked for test scopes as well *)
        Lazy.force item.has_scope_tests
-      || List.exists (find_test_scope ~lang) item.included_files)
+      || List.exists
+           (fun f -> find_test_scope ~lang (Mark.remove f))
+           item.included_files)
   in
   { item with has_scope_tests }
 
@@ -120,5 +129,5 @@ let target_file_name t =
   let open File in
   let dir = File.dirname t.file_name in
   match t.module_def with
-  | Some m -> dir / String.to_id m
+  | Some m -> dir / String.to_id (Mark.remove m)
   | None -> dir / String.to_id (basename t.file_name -.- "")

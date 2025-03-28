@@ -337,7 +337,8 @@ let gen_build_statements
     in
     !Var.tdir / bdir !Var.dst
   in
-  let modules = List.rev item.used_modules in
+  let modules = List.rev_map Mark.remove item.used_modules in
+  let included_files = List.map Mark.remove item.included_files in
   let modfile ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
     | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
@@ -353,7 +354,7 @@ let gen_build_statements
            (fun f ->
              if dir / basename f = f then !Var.tdir / basename f
              else !Var.builddir / f)
-           item.included_files
+           included_files
         @ List.map
             (fun m ->
               try !Var.tdir / basename (List.assoc m same_dir_modules)
@@ -527,7 +528,7 @@ let gen_build_statements
        the Clerk level ; this would force an initial scan of the included dirs
        but then we could use the already resolved target files directly and get
        rid of these aliases. *)
-    match item.module_def with
+    match Option.map Mark.remove item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
       Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[catala_src]
       ::
@@ -597,7 +598,8 @@ let gen_build_statements_dir
   let same_dir_modules =
     List.filter_map
       (fun item ->
-        Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
+        Option.map Mark.remove item.Scan.module_def
+        |> Option.map (fun name -> name, item.Scan.file_name))
       items
   in
   let check_conflicts seen item =

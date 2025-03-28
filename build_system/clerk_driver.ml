@@ -133,7 +133,7 @@ let linking_dependencies items =
   let modules =
     List.fold_left
       (fun acc it ->
-        match it.Scan.module_def with
+        match Option.map Mark.remove it.Scan.module_def with
         | Some m -> String.Map.add m it acc
         | None -> acc)
       String.Map.empty items
@@ -151,7 +151,7 @@ let linking_dependencies items =
     let rec traverse acc item =
       List.fold_left
         (fun acc m ->
-          let it = String.Map.find m modules in
+          let it = String.Map.find (Mark.remove m) modules in
           traverse (it :: acc) it)
         acc item.Scan.used_modules
     in
@@ -386,7 +386,7 @@ let build_cmd =
                 List.find
                   (fun it ->
                     let item_name =
-                      match it.Scan.module_def with
+                      match Option.map Mark.remove it.Scan.module_def with
                       | Some m -> File.dirname it.Scan.file_name / m
                       | None -> it.Scan.file_name -.- ""
                     in
@@ -524,12 +524,13 @@ let run_tests
     ~backend
     ~scope
     ~cmd
-    files_or_folders =
+    (files_or_folders : File.t list) =
   let open File in
   let items = List.of_seq items in
   let target_items =
     List.concat_map
       (fun file ->
+        let mrm = Option.map Mark.remove in
         let ffile = fix_path file in
         let is_dir = try Sys.is_directory ffile with Sys_error _ -> false in
         let filter item =
@@ -537,7 +538,7 @@ let run_tests
             String.starts_with ~prefix:(ffile / "") item.Scan.file_name
             && Lazy.force item.Scan.has_scope_tests
           else
-            item.Scan.module_def = Some file
+            mrm item.Scan.module_def = Some file
             || item.Scan.file_name = ffile
             || Filename.remove_extension item.Scan.file_name = ffile
         in
