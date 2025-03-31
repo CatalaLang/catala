@@ -63,7 +63,9 @@ Non-module Catala files can still be generated as a module.
 
 ### Scopes
 
-Scopes are to be compiled as a single java file named after this scope.
+Scopes are to be compiled as a single java file named after this
+scope. Additionally, we can make them implement the `Function` Java
+interface with their input and ouput as internal public records (structures).
 
 E.g.,
 ```catala-metadata
@@ -74,17 +76,19 @@ declaration scope S:
 ```
 would yield a `S.java` file such as
 ```java
-class S {
+class S implements Function<S.S_in, S.S_out>{
 
   private BigDecimal y;
 
-  public S (BigInteger x){ ... }
+  public record S_in(CatalaInteger x);
+  public record S_out(CatalaMoney m);
 
-  public CatalaMoney compute () { ... }
+  @Override
+  public F_out apply(F_in t) {
+    ...
+  }
 }
 ```
-
-N.b., we will describe the more complex outputs later on.
 
 For visibility, we can use `private` for internal variables and
 constructors/methods (when the scope is not exposed). `protected` for
