@@ -1,6 +1,7 @@
 _build/
 _opam/
 _python_venv/
+runtimes/java/target/
 dune-workspace*
 result
 *.install
