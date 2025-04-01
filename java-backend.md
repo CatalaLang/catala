@@ -204,6 +204,8 @@ void processReimbursement(Reimbursement r) {
 }
 ```
 
+The main benefit to this approach might be that it could guide users to write cleaner code at the borders/interfaces of the system (when supplying data for catala computation, or when implementing external modules in java?)
+
 ### Tuples
 
 Two options are possible:
