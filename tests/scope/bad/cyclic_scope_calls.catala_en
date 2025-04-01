@@ -34,22 +34,22 @@ $ catala typecheck
 │  S4 → S3 → S2 → S4
 │
 │ S4 is used here in the definition of S3:
-├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:21.24-21.36:
+├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:21.23-21.37:
 │    │
 │ 21 │   definition o equals (output of S4).o
-│    │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ S3 is used here in the definition of S2:
-├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:18.43-18.55:
+├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:18.42-18.56:
 │    │
 │ 18 │   definition o equals (output of S1).o + (output of S3).o
-│    │                                           ‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                                          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ S2 is used here in the definition of S4:
-├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:24.24-24.36:
+├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:24.23-24.37:
 │    │
 │ 24 │   definition o equals (output of S2).o
-│    │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

@@ -41,10 +41,10 @@ let rec translate_type t =
     ( TTuple
         [
           ( TArrow
-              ( (TClosureEnv, Pos.no_pos) :: List.map translate_type t1,
+              ( (TClosureEnv, Pos.void) :: List.map translate_type t1,
                 translate_type t2 ),
-            Pos.no_pos );
-          TClosureEnv, Pos.no_pos;
+            Pos.void );
+          TClosureEnv, Pos.void;
         ],
       pos )
   | TDefault t' -> TDefault (translate_type t'), pos

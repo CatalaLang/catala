@@ -426,6 +426,16 @@ end
 
 type 'a operator = 'a Op.t
 
+type attr_path = string list Mark.pos
+(** {2 Position-embedded attributes} *)
+
+type attr_value = ..
+type attr_value += String of string Mark.pos | Unit
+
+type Pos.attr +=
+  | Src of attr_path * attr_value * Pos.t
+  | DebugPrint of { label : string option }
+
 (** {2 Markings} *)
 
 type untyped = { pos : Pos.t } [@@caml.unboxed]

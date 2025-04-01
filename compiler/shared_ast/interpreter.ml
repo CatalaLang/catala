@@ -541,7 +541,7 @@ let rec runtime_to_val :
     match Obj.tag o - Obj.first_non_constant_constructor_tag with
     | 0 ->
       let e =
-        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.no_pos) (Obj.field o 0)
+        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.void) (Obj.field o 0)
       in
       EInj { name = Expr.option_enum; cons = Expr.none_constr; e }, m
     | 1 ->
@@ -634,7 +634,7 @@ and val_to_runtime :
       (* None is before Some because the constructors have been defined in this
          order in [expr.ml], and the ident maps preserve definition ordering *)
       if EnumConstructor.equal cons Expr.none_constr then
-        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.no_pos)
+        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.void)
       else if EnumConstructor.equal cons Expr.some_constr then
         Obj.first_non_constant_constructor_tag + 1, ty
       else assert false
@@ -691,8 +691,22 @@ let rec evaluate_expr :
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
+  let debug_print, e =
+    Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
+  in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
+  (match debug_print with
+  | None -> fun r -> r
+  | Some label_opt ->
+    fun r ->
+      Message.debug "%a%a @{<grey>(at %s)@}"
+        (fun ppf -> function
+          | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
+          | None -> ())
+        label_opt (Print.expr ()) r (Pos.to_string_short pos);
+      r)
+  @@
   match Mark.remove e with
   | EVar _ ->
     Message.error ~pos "%a" Format.pp_print_text

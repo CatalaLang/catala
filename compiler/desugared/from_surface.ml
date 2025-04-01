@@ -231,6 +231,83 @@ let rec check_formula (op, pos_op) e =
 let restore_position path_item mname =
   ModuleName.map_info (fun (mn, _) -> mn, Mark.get path_item) mname
 
+let translate_literal l pos =
+  match l with
+  | S.LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
+  | S.LNumber ((Int i, _), Some (Percent, _)) ->
+    LRat
+      Runtime.(
+        Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
+          rat100)
+  | S.LNumber ((Dec (i, f), _), None) ->
+    LRat Runtime.(decimal_of_string (i ^ "." ^ f))
+  | S.LNumber ((Dec (i, f), _), Some (Percent, _)) ->
+    LRat
+      Runtime.(
+        Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
+          (decimal_of_string (i ^ "." ^ f))
+          rat100)
+  | S.LBool b -> LBool b
+  | S.LMoneyAmount i ->
+    LMoney
+      Runtime.(
+        money_of_cents_integer
+          (Oper.o_add_int_int
+             (Oper.o_mult_int_int
+                (integer_of_string i.money_amount_units)
+                int100)
+             (integer_of_string i.money_amount_cents)))
+  | S.LNumber ((Int i, _), Some (Year, _)) ->
+    LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
+  | S.LNumber ((Int i, _), Some (Month, _)) ->
+    LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0)
+  | S.LNumber ((Int i, _), Some (Day, _)) ->
+    LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
+  | S.LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
+    Message.error ~pos
+      "Impossible to specify decimal amounts of days, months or years."
+  | S.LDate date ->
+    if date.literal_date_month > 12 then
+      Message.error ~pos
+        "There is an error in this date: the month number is bigger than 12.";
+    if date.literal_date_day > 31 then
+      Message.error ~pos
+        "There is an error in this date: the day number is bigger than 31.";
+    LDate
+      (try
+         Runtime.date_of_numbers date.literal_date_year date.literal_date_month
+           date.literal_date_day
+       with Failure _ ->
+         Message.error ~pos
+           "There is an error in this date, it does not correspond to a \
+            correct calendar day.")
+
+let translate_expr_pos pos =
+  let translate_attr = function
+    | Src ((p1 :: ps, ppos), v, pos) as attr -> (
+      match p1 with
+      | "debug" -> (
+        match ps with
+        | ["print"] ->
+          let label =
+            match v with
+            | Unit -> None
+            | String (s, _) -> Some s
+            | S.Expression (_, pos) ->
+              Message.error ~pos "Invalid value for \"#[debug.print]\""
+            | _ -> Message.error ~pos "Invalid value for \"#[debug.print]\""
+          in
+          DebugPrint { label }
+        | ps ->
+          Message.error ~pos:ppos "Unknown debug attribute \"%s\""
+            (String.concat "." ps))
+      | _ ->
+        (* Pass through *)
+        attr)
+    | attr -> attr
+  in
+  Pos.attrs pos |> List.map translate_attr |> Pos.set_attrs pos
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -293,10 +370,10 @@ let rec translate_expr
       (* If the input is not a tuple, we assume it's already a list *)
       rec_helper e
   in
-  let pos = Mark.get expr in
+  let pos = translate_expr_pos (Mark.get expr) in
   let emark = Untyped { pos } in
   match Mark.remove expr with
-  | Paren e -> rec_helper e
+  | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
   | Binop
       ( (S.And, pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
@@ -340,58 +417,7 @@ let rec translate_expr
   | Binop (op, e1, e2) -> translate_binop op pos (rec_helper e1) (rec_helper e2)
   | Unop (op, e) -> translate_unop op pos (rec_helper e)
   | Literal l ->
-    let lit =
-      match l with
-      | LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
-      | LNumber ((Int i, _), Some (Percent, _)) ->
-        LRat
-          Runtime.(
-            Oper.o_div_rat_rat (Expr.pos_to_runtime pos) (decimal_of_string i)
-              rat100)
-      | LNumber ((Dec (i, f), _), None) ->
-        LRat Runtime.(decimal_of_string (i ^ "." ^ f))
-      | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
-        LRat
-          Runtime.(
-            Oper.o_div_rat_rat (Expr.pos_to_runtime pos)
-              (decimal_of_string (i ^ "." ^ f))
-              rat100)
-      | LBool b -> LBool b
-      | LMoneyAmount i ->
-        LMoney
-          Runtime.(
-            money_of_cents_integer
-              (Oper.o_add_int_int
-                 (Oper.o_mult_int_int
-                    (integer_of_string i.money_amount_units)
-                    int100)
-                 (integer_of_string i.money_amount_cents)))
-      | LNumber ((Int i, _), Some (Year, _)) ->
-        LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
-      | LNumber ((Int i, _), Some (Month, _)) ->
-        LDuration (Runtime.duration_of_numbers 0 (int_of_string i) 0)
-      | LNumber ((Int i, _), Some (Day, _)) ->
-        LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
-      | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-        Message.error ~pos
-          "Impossible to specify decimal amounts of days, months or years."
-      | LDate date ->
-        if date.literal_date_month > 12 then
-          Message.error ~pos
-            "There is an error in this date: the month number is bigger than \
-             12.";
-        if date.literal_date_day > 31 then
-          Message.error ~pos
-            "There is an error in this date: the day number is bigger than 31.";
-        LDate
-          (try
-             Runtime.date_of_numbers date.literal_date_year
-               date.literal_date_month date.literal_date_day
-           with Failure _ ->
-             Message.error ~pos
-               "There is an error in this date, it does not correspond to a \
-                correct calendar day.")
-    in
+    let lit = translate_literal l pos in
     Expr.elit lit emark
   | Ident ([], (x, pos), state) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
@@ -813,7 +839,7 @@ let rec translate_expr
         let x = Expr.evar v emark in
         let tys = List.map (fun _ -> TAny, pos) param_names in
         Expr.make_abs
-          [Mark.add Pos.no_pos v]
+          [Mark.add Pos.void v]
           (Expr.make_app f_pred
              (List.init nb_args (fun i ->
                   Expr.etupleaccess ~e:x ~index:i ~size:nb_args emark))
@@ -1148,7 +1174,7 @@ and disambiguate_match_and_build_expression
       let e_binder = Expr.bind [| param_var |] case_body in
       let pos_binder =
         match binding with
-        | None -> [Pos.no_pos]
+        | None -> [Pos.void]
         | Some binding -> [Mark.get binding]
       in
       let case_expr =
@@ -1209,7 +1235,7 @@ and disambiguate_match_and_build_expression
             match_case_expr
         in
         let e_binder = Expr.bind [| payload_var |] case_body in
-        let pos_binder = [Pos.no_pos] in
+        let pos_binder = [Pos.void] in
         (* For each missing cases, binds the wildcard payload. *)
         EnumConstructor.Map.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
@@ -1424,7 +1450,7 @@ let process_rule
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
     (rule : S.rule) : Ast.modul =
-  let def = S.rule_to_def rule in
+  let def = Name_resolution.surface_rule_to_def rule in
   process_def precond scope ctxt modul def
 
 (** Translates assertions *)

@@ -421,8 +421,7 @@ let generate_verification_conditions_code_items
               in
               let combined_assert =
                 conjunction_exprs asserts
-                  (Typed
-                     { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
+                  (Typed { pos = Pos.void; ty = Mark.add Pos.void (TLit TBool) })
               in
               List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
             else []

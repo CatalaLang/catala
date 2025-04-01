@@ -35,7 +35,6 @@ depends: [
   "uutf" {>= "1.0.3"}
   "ubase" {>= "0.05"}
   "unionFind" {>= "20220109"}
-  "visitors" {>= "20200210"}
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
   "crunch" {>= "3.0.0"}

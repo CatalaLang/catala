@@ -31,6 +31,6 @@ $ catala Proof --disable-counterexamples
 │   │
 │ 9 │   definition x equals |2022-01-16|
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
-└─
+└─ Test
 #return code 123#
 ```

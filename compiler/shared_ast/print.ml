@@ -82,6 +82,29 @@ let external_ref fmt er =
   | External_value v -> TopdefName.format fmt v
   | External_scope s -> ScopeName.format fmt s
 
+let attr ppf = function
+  | Pos.Law_pos _ -> ()
+  | Src (path, value, _pos) ->
+    Format.fprintf ppf "#[%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.pp_print_char ppf '.')
+         Format.pp_print_string)
+      (Mark.remove path);
+    (match value with
+    | Unit -> ()
+    | String (str, _) -> Format.fprintf ppf " = %S" str
+    | _ -> Format.fprintf ppf " = <expr>");
+    Format.fprintf ppf "]@ "
+  | DebugPrint { label } ->
+    Format.fprintf ppf "#[debug.print%a]@ "
+      (fun ppf -> function
+        | None -> ()
+        | Some label -> Format.fprintf ppf " = %S" label)
+      label
+  | _ -> Format.fprintf ppf "#[?]@ "
+
+let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
+
 let rec typ_gen
     (ctx : decl_ctx option)
     ~(colors : Ocolor_types.color4 list)
@@ -97,6 +120,7 @@ let rec typ_gen
       pp_color_string (List.hd colors) fmt ")")
     else typ ~colors fmt t
   in
+  attrs fmt (Mark.get ty);
   match Mark.remove ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
@@ -489,12 +513,15 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
+    attrs fmt
+      (match Mark.get e with
+      | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
     (* (* Uncomment for type annotations everywhere *)
      * (fun f ->
      *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
      *      f e
      *      typ_debug
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
+     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.void))
      * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
@@ -823,8 +850,8 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
     l
   in
 
-  let input_typ = TStruct scope_body_input_struct, Pos.no_pos in
-  let output_typ = TStruct scope_body_output_struct, Pos.no_pos in
+  let input_typ = TStruct scope_body_input_struct, Pos.void in
+  let output_typ = TStruct scope_body_output_struct, Pos.void in
 
   let x, body = Bindlib.unbind body in
 

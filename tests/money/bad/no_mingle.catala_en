@@ -18,10 +18,10 @@ $ catala test-scope A
 │
 │  I don't know how to apply operator * on types money and money
 │
-├─➤ tests/money/bad/no_mingle.catala_en:12.24-12.29:
+├─➤ tests/money/bad/no_mingle.catala_en:12.23-12.30:
 │    │
 │ 12 │   definition z equals (x * y)
-│    │                        ‾‾‾‾‾
+│    │                       ‾‾‾‾‾‾‾
 ├─ Article
 │
 │ Type money coming from expression:

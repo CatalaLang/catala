@@ -143,7 +143,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                | States [] -> assert false
              in
              let e' = translate_expr ctx e in
-             let m = Mark.get e in
+             let m = Expr.no_attrs (Mark.get e) in
              let e' =
                match ScopeVar.Map.find_opt v ctx.reentrant_vars with
                | Some (TArrow (targs, _), _) ->
@@ -397,7 +397,7 @@ let rec rule_tree_to_expr
     (def_pos : Pos.t)
     (params : D.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
-  let emark = Untyped { pos = def_pos } in
+  let emark = Expr.no_attrs (Untyped { pos = def_pos }) in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
@@ -470,7 +470,8 @@ let rec rule_tree_to_expr
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
                  ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
-                 ~cons (Mark.get cons)
+                 ~cons
+                 (Expr.no_attrs (Mark.get cons))
                :: acc)
            (translate_and_unbox_list base_just_list)
            (translate_and_unbox_list base_cons_list)
@@ -614,7 +615,7 @@ let translate_rule
     let decl_pos = Mark.get (ScopeVar.get_info var) in
     let scope_def =
       D.ScopeDef.Map.find
-        ((var, Pos.no_pos), D.ScopeDef.Var state)
+        ((var, Pos.void), D.ScopeDef.Var state)
         scope.scope_defs
     in
     let all_def_pos =
@@ -768,7 +769,7 @@ let translate_scope_interface ctx scope =
         | WholeVar ->
           let scope_def =
             D.ScopeDef.Map.find
-              ((var, Pos.no_pos), D.ScopeDef.Var None)
+              ((var, Pos.void), D.ScopeDef.Var None)
               scope.D.scope_defs
           in
           ScopeVar.Map.add
@@ -784,7 +785,7 @@ let translate_scope_interface ctx scope =
             (fun acc (state : StateName.t) ->
               let scope_def =
                 D.ScopeDef.Map.find
-                  ((var, Pos.no_pos), D.ScopeDef.Var (Some state))
+                  ((var, Pos.void), D.ScopeDef.Var (Some state))
                   scope.D.scope_defs
               in
               ScopeVar.Map.add
@@ -802,7 +803,7 @@ let translate_scope_interface ctx scope =
       (fun var _scope_name acc ->
         let scope_def =
           D.ScopeDef.Map.find
-            ((var, Pos.no_pos), D.ScopeDef.Var None)
+            ((var, Pos.void), D.ScopeDef.Var None)
             scope.D.scope_defs
         in
         ScopeVar.Map.add
@@ -893,7 +894,7 @@ let translate_program
                   in
                   match
                     D.ScopeDef.Map.find_opt
-                      ((scope_var, Pos.no_pos), Var state)
+                      ((scope_var, Pos.void), Var state)
                       scdef.D.scope_defs
                   with
                   | Some

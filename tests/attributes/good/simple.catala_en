@@ -1,0 +1,79 @@
+# Some simple attribute tests
+
+## First tests
+
+```catala
+#[attr = "Referring to the scope declaration"]
+declaration scope S:
+  context output bla content integer #
+  output x content money
+  #[attr.unit]
+  output o content money
+  #[attr.expr = false]
+  #[attr.multi = "string"]
+  output o2 content (money, #[attr.typ] integer)
+
+declaration structure Str:
+  #[field.lbl = "psst"]
+  data fld content #[typ] integer
+  data fld2 content #[
+attributes.can
+=
+"be multi- \
+          \  \"line\"
+as well"
+] (integer, date)
+```
+
+```catala-test-inline
+$ catala lcalc --disable-warnings
+type Eoption = | ENone of unit | ESome of any
+
+type S_in = { bla_in: option (integer, source_position); }
+type S = {
+  bla: integer;
+  x: money;
+  o: money;
+  o2: (money, #[attr.typ] integer);
+}
+type Str = {
+  fld: #[typ] integer;
+  fld2: #[attributes.can = "be multi-   \"line\"\nas well"] (integer, date);
+}
+
+let scope s
+  (s_in: S_in {bla_in: option (integer, source_position)})
+  : S {bla: integer; x: money; o: money; o2: (money, #[attr.typ] integer)}
+  =
+  let get bla : option (integer, source_position) = s_in.bla_in in
+  let set bla__1 : integer =
+    match
+      (match bla with
+       | ENone →
+         ESome
+           (match (ENone ()) with
+            | ENone → error NoValue
+            | ESome arg → arg.0, <simple:8.18-21>)
+       | ESome x → ESome x)
+    with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  let set x : money =
+    match (ENone ()) with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  let set o : money =
+    match (ENone ()) with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  let set o2 : (money, #[attr.typ] integer) =
+    match (ENone ()) with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  return { S bla = bla__1; x = x; o = o; o2 = o2; }
+
+```

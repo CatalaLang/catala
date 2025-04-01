@@ -61,7 +61,7 @@ module SEdge = struct
   type t = Pos.t
 
   let compare = compare
-  let default = Pos.no_pos
+  let default = Pos.void
 end
 
 module SDependencies =
@@ -251,7 +251,7 @@ module TEdge = struct
   type t = Pos.t
 
   let compare = compare
-  let default = Pos.no_pos
+  let default = Pos.void
 end
 
 module TDependencies =
