@@ -33,9 +33,11 @@ candidate to fill that slot.
 ### Arbitrary precision numbers
 
 It is probably easier to use Java's arbitrary precision classes (i.e.,
-BigInteger, BigDecimal).
+BigInteger, BigFraction).
 
 Cf. https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html
+    https://commons.apache.org/proper/commons-numbers/commons-numbers-docs/apidocs/org/apache/commons/numbers/fraction/BigFraction.html
+    (^^ not in stdlib !! ^^)
 
 - Catala integers should be BigInteger
 - Money could be BigInteger like in the other backends, but BigDecimal would
@@ -86,11 +88,9 @@ would yield a `S.java` file such as
 ```java
 class S {
 
-  record S_in (CatalaInteger x);
-
   CatalaMoney z;
 
-  S(S_in in) // throws
+  S(CatalaInteger x) // throws
   {
     // body
   }
@@ -99,8 +99,7 @@ class S {
 
 ```java
 // Then used as:
-S.S_in s = new S.S_in(new CatalaInteger(3));
-S scope_s_result = new S(s_in);
+S scope_s_result = new S(new CatalaInteger(3));
 ... scope_s_result.z ...
 ```
 

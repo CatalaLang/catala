@@ -20,5 +20,14 @@ open Shared_ast
 
 val renaming : Renaming.t
 
-val format_program : Format.formatter -> Ast.program -> TypeIdent.t list -> unit
-(** Usage [format_program fmt p type_dependencies_ordering] *)
+val generate_program :
+  output_dir:string ->
+  input_file:Catala_utils.File.t ->
+  Ast.program ->
+  TypeIdent.t list ->
+  unit
+(** Usage
+    [generate_program ~output_dir ~input_file p type_dependencies_ordering]
+
+    [output_dir] specifies where to generate the directory containing the Java
+    code. *)

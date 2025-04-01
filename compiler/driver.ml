@@ -1043,6 +1043,47 @@ module Commands = struct
         $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion)
 
+  let java
+      options
+      includes
+      (output : Global.raw_file option)
+      optimize
+      check_invariants
+      autotest
+      closure_conversion =
+    let prg, type_ordering, _ren_ctx =
+      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
+        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
+        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~renaming:(Some Scalc.To_java.renaming)
+    in
+    let output_dir, input_file =
+      match output, options.Global.input_src with
+      | _, Stdin _ ->
+        Message.error "cannot translate to Java without an input file"
+      | None, (FileName (f : File.t) | Contents (_, (f : File.t))) ->
+        Filename.dirname f, Filename.basename f
+      | Some output_dir, (FileName f | Contents (_, f)) ->
+        options.Global.path_rewrite output_dir, Filename.basename f
+    in
+    Message.debug "Compiling program into Java...";
+    Message.debug "Writing to directory '%s'..." output_dir;
+    Scalc.To_java.generate_program ~output_dir ~input_file prg type_ordering
+
+  let java_cmd =
+    Cmd.v
+      (Cmd.info "java" ~man:Cli.man_base
+         ~doc:"Generates a Java translation of the Catala program.")
+      Term.(
+        const java
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion)
+
   let c options includes output optimize check_invariants autotest =
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
@@ -1183,6 +1224,7 @@ module Commands = struct
       proof_cmd;
       ocaml_cmd;
       python_cmd;
+      java_cmd;
       c_cmd;
       latex_cmd;
       html_cmd;
