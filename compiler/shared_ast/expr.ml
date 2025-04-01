@@ -224,15 +224,11 @@ let set_attrs e attrs =
   let attrs = List.map (fun (k, (v, pos)) -> Src (k, v, pos)) attrs in
   Mark.map_mark (map_mark (fun pos -> Pos.set_attrs pos attrs) (fun ty -> ty)) e
 
-let no_attrs m =
-  map_mark
-    (fun pos ->
-      Pos.set_attrs pos
-        (Pos.get_attrs pos (function
-          | Pos.Law_pos _ as p -> Some p
-          | _ -> None)))
-    (fun ty -> ty)
-    m
+let no_attrs_pos pos =
+  Pos.set_attrs pos
+    (Pos.get_attrs pos (function Pos.Law_pos _ as p -> Some p | _ -> None))
+
+let no_attrs m = map_mark no_attrs_pos (fun ty -> ty) m
 
 let map_mark2
     (type m)

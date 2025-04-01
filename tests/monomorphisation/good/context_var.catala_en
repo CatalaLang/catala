@@ -10,16 +10,17 @@ scope TestXor:
 
 ```catala-test-inline
 $ catala lcalc --monomorphize-types
-type option_1 = | None_1 of unit | Some_1 of tuple_1 {
-                                               elt_0: bool;
-                                               elt_1: source_position
-                                             }
+type option_1 =
+  | None_1 of unit
+  | Some_1 of tuple_1 {elt_0: bool; elt_1: source_position}
 
 type TestXor_in = {
   t_in: option_1[None_1: unit | Some_1:
           tuple_1 {elt_0: bool; elt_1: source_position}];
 }
+
 type TestXor = { t: bool; }
+
 type tuple_1 = { elt_0: bool; elt_1: source_position; }
 
 let scope test_xor
@@ -79,7 +80,7 @@ let scope TestXor2 (test_xor2_in: TestXor2_in): TestXor2 {o: bool} =
   in
   let set o : bool =
     match
-      (Some_1 { tuple_1 elt_0 = t.t; elt_1 = <context_var:69.23-26>; })
+      (Some_1 { tuple_1 elt_0 = t.t; elt_1 = <context_var:70.23-26>; })
     with
     | None_1 → error NoValue
     | Some_1 arg → arg.elt_0

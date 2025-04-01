@@ -8,10 +8,15 @@ declaration scope S:
   context output bla content integer #
   output x content money
   #[attr.unit]
+  #[a]
   output o content money
   #[attr.expr = false]
   #[attr.multi = "string"]
   output o2 content (money, #[attr.typ] integer)
+
+#[struct.attribute]
+declaration scope S2:
+  output x content integer
 
 declaration structure Str:
   #[field.lbl = "psst"]
@@ -23,57 +28,59 @@ attributes.can
           \  \"line\"
 as well"
 ] (integer, date)
+
+#[enum00]
+#[this.is_an = Enum]
+declaration enumeration Enu:
+  -- Foo
+  #[constructor = "Bar"]
+  -- Bar
+
 ```
 
 ```catala-test-inline
-$ catala lcalc --disable-warnings
-type Eoption = | ENone of unit | ESome of any
+$ catala scopelang --disable-warnings
+#[enum00]
+#[this.is_an = <expr>]
+type Enu =
+  | Foo of unit
+  | #[constructor = "Bar"] Bar of unit
 
-type S_in = { bla_in: option (integer, source_position); }
+#[attr = "Referring to the scope declaration"]
 type S = {
   bla: integer;
   x: money;
-  o: money;
+  #[a] #[attr.unit] o: money;
+  #[attr.multi = "string"] #[attr.expr = <expr>]
   o2: (money, #[attr.typ] integer);
 }
+
+#[struct.attribute]
+type S2 = { x: integer; }
+
 type Str = {
-  fld: #[typ] integer;
+  #[field.lbl = "psst"] fld: #[typ] integer;
   fld2: #[attributes.can = "be multi-   \"line\"\nas well"] (integer, date);
 }
 
-let scope s
-  (s_in: S_in {bla_in: option (integer, source_position)})
-  : S {bla: integer; x: money; o: money; o2: (money, #[attr.typ] integer)}
-  =
-  let get bla : option (integer, source_position) = s_in.bla_in in
-  let set bla__1 : integer =
-    match
-      (match bla with
-       | ENone →
-         ESome
-           (match (ENone ()) with
-            | ENone → error NoValue
-            | ESome arg → arg.0, <simple:8.18-21>)
-       | ESome x → ESome x)
-    with
-    | ENone → error NoValue
-    | ESome arg → arg.0
-  in
-  let set x : money =
-    match (ENone ()) with
-    | ENone → error NoValue
-    | ESome arg → arg.0
-  in
-  let set o : money =
-    match (ENone ()) with
-    | ENone → error NoValue
-    | ESome arg → arg.0
-  in
-  let set o2 : (money, #[attr.typ] integer) =
-    match (ENone ()) with
-    | ENone → error NoValue
-    | ESome arg → arg.0
-  in
-  return { S bla = bla__1; x = x; o = o; o2 = o2; }
 
+#[attr = "Referring to the scope declaration"]
+let scope S
+    (bla: ⟨integer⟩|context|output)
+    (x: money|internal|output)
+    (o: money|internal|output)
+    (o2: (money, #[attr.typ] integer)|internal|output)
+  =
+  let bla : integer = reentrant or by default error_empty ⟨false ⊢ ∅⟩;
+  let x : money = error_empty ⟨false ⊢ ∅⟩;
+  #[a]
+  #[attr.unit]
+  let o : money = error_empty ⟨false ⊢ ∅⟩;
+  #[attr.multi = "string"]
+  #[attr.expr = <expr>]
+  let o2 : (money, #[attr.typ] integer) = error_empty ⟨false ⊢ ∅⟩
+
+#[struct.attribute]
+let scope S2 (x: integer|internal|output) =
+  let x : integer = error_empty ⟨false ⊢ ∅⟩
 ```
