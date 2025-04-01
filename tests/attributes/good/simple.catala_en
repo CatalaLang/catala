@@ -13,6 +13,10 @@ declaration scope S:
   #[attr.multi = "string"]
   output o2 content (money, #[attr.typ] integer)
 
+#[struct.attribute]
+declaration scope S2:
+  output x content integer
+
 declaration structure Str:
   #[field.lbl = "psst"]
   data fld content #[typ] integer

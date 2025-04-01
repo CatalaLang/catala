@@ -1542,7 +1542,6 @@ let process_scope_use_item
       ScopeName.Map.add scope_uid new_scope modul.module_scopes
     in
     { modul with module_scopes }
-  | _ -> modul
 
 (** {1 Translating top-level items} *)
 

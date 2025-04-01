@@ -106,6 +106,7 @@ end>
 %type<Ast.uident Mark.pos> addpos(UIDENT)
 %type<Shared_ast.attr_value> attribute_value
 %type<(string list Mark.pos) * Shared_ast.attr_value option> attribute
+%type<Pos.attr list> attributes
 %type<Ast.expression> attr(noattr_expression)
 %type<Ast.base_typ_data Mark.pos> posattr(typ_data)
 %type<Ast.primitive_typ> primitive_typ
@@ -132,15 +133,15 @@ end>
 %type<Ast.expression> condition_consequence
 %type<Ast.scope_var Mark.pos * Ast.lident Mark.pos list Mark.pos option> rule_expr
 %type<bool> rule_consequence
-%type<Ast.rule> rule
+%type<Ast.scope_use_item> rule
 %type<Ast.lident Mark.pos list> definition_parameters
 %type<Ast.lident Mark.pos> label
 %type<Ast.lident Mark.pos> state
 %type<Ast.exception_to> exception_to
-%type<Ast.definition> definition
+%type<Ast.scope_use_item> definition
 %type<Ast.variation_typ> variation_type
 %type<Ast.scope_use_item> assertion
-%type<Ast.scope_use_item Mark.pos> scope_item
+%type<Ast.scope_use_item> scope_item
 %type<Ast.lident Mark.pos * Ast.base_typ Mark.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
 %type<Ast.io_input option> scope_decl_item_attribute_input
@@ -178,14 +179,17 @@ let attribute :=
   RBRACKET ;
   <>
 
+let attributes ==
+| attrs = list(addpos(attribute)) ; {
+  List.map (fun ((akey, val_opt), apos) ->
+    Shared_ast.Src (akey, Option.value ~default:Shared_ast.Unit val_opt, apos)
+  ) attrs
+}
+
 let attr(x) ==
-| attrs = list(addpos(attribute)) ; x_pos=x ; {
+| attrs = attributes ; x_pos = x ; {
   let x, pos = x_pos in
-  x, List.fold_left
-    (fun attrs ((akey, val_opt), apos) ->
-      Pos.add_attr attrs @@
-      Shared_ast.Src (akey, Option.value ~default:Shared_ast.Unit val_opt, apos)
-    ) pos attrs
+  x, List.fold_left Pos.add_attr pos attrs
 }
 
 let posattr(x) ==
@@ -193,7 +197,7 @@ let posattr(x) ==
 
 let list_with_attr(x) :=
 | ~ = posattr(x) ; ~ = list_with_attr(x) ; < (::) >
-| { [] } %prec ATTR_START
+| { [] } %prec top_expr
 
 let primitive_typ :=
 | INTEGER ; { Integer }
@@ -549,7 +553,7 @@ let rule :=
     | None -> match except with Some e -> Mark.get e
     | None -> pos_rule
   in
-  {
+  Rule {
     rule_label = label;
     rule_exception_to = rule_exception;
     rule_parameter = params_applied;
@@ -599,7 +603,7 @@ let definition :=
     | None -> match except with Some _ -> get_pos $loc(except)
     | None -> pos_def
   in
-  {
+  Definition {
     definition_label = label;
     definition_exception_to = def_exception;
     definition_name = name;
@@ -614,50 +618,59 @@ let definition :=
   }
 }
 
+let assertion :=
+| ASSERTION ;
+  cond = option(condition_consequence) ;
+  base = expression ; {
+  Assertion {
+    assertion_condition = cond;
+    assertion_content = base;
+  }
+}
+
 let variation_type :=
 | INCREASING ; { Increasing }
 | DECREASING ; { Decreasing }
 
-let assertion :=
-| cond = option(condition_consequence) ;
-  base = expression ; {
-  (Assertion {
-    assertion_condition = cond;
-    assertion_content = base;
-  })
+let date_rounding :=
+| DATE ; i = LIDENT ; v = addpos(variation_type); {
+  (* Round is a builtin, we need to check which one it is *)
+  match Localisation.lex_builtin i with
+  | Some Round ->
+    DateRounding v
+  | _ ->
+    Message.delayed_error
+      (DateRounding v)
+      ~kind:Parsing ~pos:(get_pos $loc(i))
+      "Expected the form 'date round increasing' or 'date round decreasing'"
 }
+
+let scope_item ==
+| ~ = rule ; <>
+| ~ = definition ; <>
+| ~ = assertion ; <>
+| ~ = date_rounding ; <>
 
 let scope_item_list :=
-| ~ = scope_item ; ~ = scope_item_list ; <(::)>
-| it = scope_item ; { [it] } %prec ATTR_START
-
-let scope_item :=
-| r_pos = posattr(rule) ; {
-  let r, pos = r_pos in
-  Rule r,
-  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info r.rule_id))
-    (Pos.attrs pos)
+| items = list_with_attr(scope_item) ; {
+  List.map (fun (item, apos) ->
+    let set_attrs id =
+      Mark.map_mark (fun pos -> Pos.set_attrs pos (Pos.attrs apos))
+        id
+    in
+    match item with
+    | Rule r ->
+      Rule {r with rule_id =
+            Shared_ast.RuleName.map_info set_attrs r.rule_id},
+      Pos.set_attrs apos []
+    | Definition d ->
+      Definition { d with definition_id =
+                   Shared_ast.RuleName.map_info set_attrs d.definition_id },
+      Pos.set_attrs apos []
+    | Assertion a -> Assertion a, apos
+    | DateRounding r -> DateRounding r, apos
+  ) items
 }
-| d_pos = posattr(definition) ; {
-  let d, pos = d_pos in
-  Definition d,
-  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info d.definition_id))
-    (Pos.attrs pos)
-}
-| ASSERTION ; contents = addpos(assertion) ; <>
-| DATE ; i = LIDENT ; v = addpos(variation_type) ;
-  {
-    (* Round is a builtin, we need to check which one it is *)
-    match Localisation.lex_builtin i with
-    | Some Round ->
-       DateRounding(v), Mark.get v
-    | _ ->
-       Message.delayed_error
-         (DateRounding(v), Mark.get v)
-         ~kind:Parsing ~pos:
-         (get_pos $loc(i))
-         "Expected the form 'date round increasing' or 'date round decreasing'"
-  }
 
 let struct_scope_base :=
 | DATA ; i = lident ;
@@ -801,7 +814,7 @@ let depends_stance ==
 }
 | { None }
 
-let code_item :=
+let code_item ==
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
   COLON ; items = scope_item_list ; {
@@ -848,7 +861,7 @@ let opt_def ==
 | DEFINED_AS; e = expression; <>
 
 let code :=
-| ~ = list(posattr(code_item)) ; <>
+| ~ = list_with_attr(code_item) ; <>
 
 let metadata_block :=
 | BEGIN_METADATA ; option(law_text) ;
