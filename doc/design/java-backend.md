@@ -21,7 +21,7 @@ TODO: determine is `maven` is the best target candidate
 
 For the sake of concurrency, the Catala java runtime will be an
 instance of an object that contains its state (e.g., log stack) so
-that it ensures reentrancy. Initially (?), scope executions will
+that it ensures reentrancy. Scope executions will
 remain sequential.
 
 ### Dates
@@ -37,7 +37,11 @@ BigInteger, BigDecimal).
 
 Cf. https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html
 
-If needed, Apache Commons' `BigFraction` class can probably be vendored.
+- Catala integers should be BigInteger
+- Money could be BigInteger like in the other backends, but BigDecimal would
+  actually be a better fit
+- There doesn't appear to be built-in support for rationals, we may may need
+  Apache Commons' `BigFraction` class, that can probably be vendored.
 
 ## Compilation schemas
 
@@ -75,7 +79,7 @@ E.g.,
 ```catala-metadata
 declaration scope S:
   input x content integer
-  internal y content float
+  internal y content decimal
   output z content money
 ```
 would yield a `S.java` file such as
@@ -100,6 +104,40 @@ non-exposed global functions/structures and public otherwise.
 
 Scopes that are meant to be executed (no input scopes) could also have
 a `main` attached.
+
+#### An other option ?
+
+The following java structure might match the Catala abstractions more closely ;
+but not sure yet if we won't be hitting limitations later on:
+- the class defining the scope and the class defining its output structure are
+  merged into one
+- the constructor of that class:
+  - takes as parameter(s?) the scope input structure
+  - does the actual scope computation
+  - initialises the scope return values, accessible as variables of the object
+- no additional methods may be required ; the scope output vars are read-only
+  and immutable. Internal variables could even be internal variables of the
+  class ? (this might help with introspection / debugging, but might make the
+  object unnecessarily bigger)
+
+```java
+class S {
+
+  private final CatalaRational y;
+  public final CatalaMoney z;
+
+  public S(S_in s_in) {
+    // this.x = s_in.x // might be useful for debugging, like internal vars
+    this.y = ...;
+    this.z = ...;
+  }
+}
+
+// Then used as:
+S scope_s_result = new S(s_in);
+... scope_s_result.z ...
+```
+
 
 ### Global declarations
 
@@ -238,4 +276,4 @@ optimize (e.g., in list operations).
 
 Lambdas are part of Java since 2014, it should be straightforward to
 compile Catala lambdas to Java's ones but we need proper digging to
-determine if there are limitations.
+    determine if there are limitations.
