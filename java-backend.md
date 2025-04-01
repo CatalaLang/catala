@@ -22,7 +22,7 @@ TODO: determine is `maven` is the best target candidate
 For the sake of concurrency, the Catala java runtime will be an
 instance of an object that contains its state (e.g., log stack) so
 that it ensures reentrancy. Initially (?), scope executions will
-remain sequentials.
+remain sequential.
 
 ### Dates
 
@@ -37,6 +37,8 @@ BigInteger, BigDecimal).
 
 Cf. https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html
 
+If needed, Apache Commons' `BigFraction` class can probably be vendored.
+
 ## Compilation schemas
 
 ### Modules
@@ -48,6 +50,8 @@ https://www.w3schools.com/java/java_packages.asp
 It means that a module declaration will yield a package by creating a
 new directory (named after this package). And, each generated class
 will have to begin with the `package module_name;` declaration.
+
+Note: should we allow users to configure a root package? (e.g. `fr.cnaf.` ?
 
 Module usages will be translated as: `import path.package_name.*;`
 
@@ -136,6 +140,67 @@ class E {
         e.contents = i; // <= subtype of CatalaVal
         return e;
     }
+}
+```
+
+Note: we could investigate sealed abstract classes and pattern matching to get type safety and compile-time exhaustiveness checking. But this might be overkill as we get those guarantees from the compiler?
+
+e.g in this case we might have something like this (LLM-generated, sorry)
+
+```java
+sealed abstract class Reimbursement permits NoReimbursement, MoneyReimbursement {
+    // Common methods could go here if needed
+}
+
+final class NoReimbursement extends Reimbursement {
+    // Singleton pattern
+    private static final NoReimbursement INSTANCE = new NoReimbursement();
+    
+    private NoReimbursement() {}
+    
+    public static NoReimbursement getInstance() {
+        return INSTANCE;
+    }
+    
+    @Override
+    public String toString() {
+        return "NoReimbursement";
+    }
+}
+
+final class MoneyReimbursement extends Reimbursement {
+    private final int amount;
+    
+    public MoneyReimbursement(int amount) {
+        this.amount = amount;
+    }
+    
+    public int getAmount() {
+        return amount;
+    }
+    
+    @Override
+    public String toString() {
+        return "MoneyReimbursement(" + amount + ")";
+    }
+}
+
+// Creating instances
+Reimbursement none = NoReimbursement.getInstance();
+Reimbursement money = new MoneyReimbursement(500);
+
+// Using switch expressions with pattern matching
+String description = switch (reimbursement) {
+    case NoReimbursement n -> "No reimbursement provided";
+    case MoneyReimbursement m -> "Reimbursement amount: $" + m.getAmount();
+};
+
+// Processing with switch
+void processReimbursement(Reimbursement r) {
+    switch (r) {
+        case NoReimbursement n -> System.out.println("No action needed");
+        case MoneyReimbursement m -> System.out.println("Processing payment of $" + m.getAmount());
+    };
 }
 ```
 
