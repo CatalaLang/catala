@@ -54,13 +54,14 @@ $ catala test-scope TestBool
 
 ```catala-test-inline
 $ catala Scopelang 
-struct TestBool = {
-  foo: bool
-  bar: integer
-}
 
-let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
-  output) =
+type TestBool = { foo: bool; bar: integer; }
+
+
+let scope TestBool
+    (foo: ⟨bool⟩|context|output)
+    (bar: ⟨integer⟩|context|output)
+  =
   let bar : integer = reentrant or by default
     error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default

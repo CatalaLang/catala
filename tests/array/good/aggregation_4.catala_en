@@ -40,13 +40,17 @@ scope Section121SinglePerson:
 
 ```catala-test-inline
 $ catala lcalc --closure-conversion
-type Eoption = | ENone of unit | ESome of any
+type Eoption =
+  | ENone of unit
+  | ESome of any
 
 type Period = { begin: date; end: date; }
+
 type Section121SinglePerson_in = {
   date_of_sale_or_exchange_in: date;
   property_ownage_in: list of Period {begin: date; end: date};
 }
+
 type Section121SinglePerson = { requirements_ownership_met: bool; }
 
 let topval closure_aggregate_periods_from_last_five_years :

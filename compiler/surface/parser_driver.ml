@@ -347,7 +347,7 @@ let rec parse_source ?resolve_included_file (lexbuf : Sedlexing.lexbuf) :
   let source_file_name = lexbuf_file lexbuf in
   Message.debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
-  let commands = localised_parser language lexbuf in
+  let commands = Parser_state.with_state (localised_parser language) lexbuf in
   let program =
     expand_includes ?resolve_included_file source_file_name commands
   in

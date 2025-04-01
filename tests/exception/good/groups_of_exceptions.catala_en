@@ -62,13 +62,11 @@ $ catala test-scope Test
 
 ```catala-test-inline
 $ catala Scopelang
-struct Foo = {
-  x: integer
-}
 
-struct Test = {
-  x: integer
-}
+type Foo = { x: integer; }
+
+type Test = { x: integer; }
+
 
 let scope Foo (y: integer|input) (x: integer|internal|output) =
   let x : integer =

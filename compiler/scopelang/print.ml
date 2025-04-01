@@ -18,81 +18,68 @@ open Catala_utils
 open Shared_ast
 open Ast
 
-let struc
-    ctx
-    (fmt : Format.formatter)
-    (name : StructName.t)
-    (fields : typ StructField.Map.t) : unit =
-  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
-    StructName.format name Print.punctuation "=" Print.punctuation "{"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-       (fun fmt (field_name, typ) ->
-         Format.fprintf fmt "%a%a %a" StructField.format field_name
-           Print.punctuation ":" (Print.typ ctx) typ))
-    (StructField.Map.bindings fields)
-    Print.punctuation "}"
-
-let enum
-    ctx
-    (fmt : Format.formatter)
-    (name : EnumName.t)
-    (cases : typ EnumConstructor.Map.t) : unit =
-  Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
-    EnumName.format name Print.punctuation "="
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-       (fun fmt (field_name, typ) ->
-         Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
-           EnumConstructor.format field_name Print.punctuation ":"
-           (Print.typ ctx) typ))
-    (EnumConstructor.Map.bindings cases)
-
 let scope ?debug ctx fmt (name, (decl, _pos)) =
-  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
-    Print.keyword "let" Print.keyword "scope" ScopeName.format name
-    (Format.pp_print_list ~pp_sep:Format.pp_print_space
-       (fun fmt (scope_var, svar) ->
-         Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
-           ScopeVar.format scope_var Print.punctuation ":" (Print.typ ctx)
-           svar.svar_in_ty Print.punctuation "|" Print.keyword
-           (match Mark.remove svar.svar_io.Desugared.Ast.io_input with
-           | NoInput -> "internal"
-           | OnlyInput -> "input"
-           | Reentrant -> "context")
-           (if Mark.remove svar.svar_io.Desugared.Ast.io_output then
-              fun fmt () ->
-              Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
-                "output"
-            else fun fmt () -> Format.fprintf fmt "@<0>")
-           () Print.punctuation ")"))
-    (ScopeVar.Map.bindings decl.scope_sig)
-    Print.punctuation "="
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
-       (fun fmt rule ->
-         match rule with
-         | ScopeVarDefinition { var; typ; io; e } ->
-           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword
-             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
-             (Print.typ ctx) typ Print.punctuation "="
-             (fun fmt ->
-               match Mark.remove io.io_input with
-               | Reentrant ->
-                 Print.op_style fmt "reentrant or by default";
-                 Format.pp_print_space fmt ()
-               | _ -> ())
-             (Print.expr ?debug ()) e
-         | SubScopeVarDefinition { var; typ; e; _ } ->
-           Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
-             "let" ScopeVar.format (Mark.remove var) Print.punctuation ":"
-             (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
-         | Assertion e ->
-           Format.fprintf fmt "%a %a" Print.keyword "assert"
-             (Print.expr ?debug ()) e))
-    decl.scope_decl_rules
+  Print.attrs fmt (Mark.get (ScopeName.get_info name));
+  Format.pp_open_vbox fmt 2;
+  Format.pp_open_hvbox fmt 4;
+  Print.keyword fmt "let scope ";
+  ScopeName.format fmt name;
+  Format.pp_print_space fmt ();
+  Format.pp_print_list ~pp_sep:Format.pp_print_space
+    (fun fmt (scope_var, svar) ->
+      Format.pp_open_hovbox fmt 1;
+      Print.punctuation fmt "(";
+      ScopeVar.format fmt scope_var;
+      Print.punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      Print.typ ctx fmt svar.svar_in_ty;
+      Format.pp_print_cut fmt ();
+      Print.punctuation fmt "|";
+      Print.keyword fmt
+        (match Mark.remove svar.svar_io.Desugared.Ast.io_input with
+        | NoInput -> "internal"
+        | OnlyInput -> "input"
+        | Reentrant -> "context");
+      if Mark.remove svar.svar_io.Desugared.Ast.io_output then (
+        Print.punctuation fmt "|";
+        Print.keyword fmt "output");
+      Print.punctuation fmt ")";
+      Format.pp_close_box fmt ())
+    fmt
+    (ScopeVar.Map.bindings decl.scope_sig);
+  Format.pp_print_break fmt 1 (-2);
+  Print.punctuation fmt "=";
+  Format.pp_close_box fmt ();
+  Format.pp_print_space fmt ();
+  Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
+    (fun fmt rule ->
+      match rule with
+      | ScopeVarDefinition { var; typ; io; e } ->
+        Print.attrs fmt (Mark.get (ScopeVar.get_info (fst var)));
+        Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword "let"
+          ScopeVar.format (Mark.remove var) Print.punctuation ":"
+          (Print.typ ctx) typ Print.punctuation "="
+          (fun fmt ->
+            match Mark.remove io.io_input with
+            | Reentrant ->
+              Print.op_style fmt "reentrant or by default";
+              Format.pp_print_space fmt ()
+            | _ -> ())
+          (Print.expr ?debug ()) e
+      | SubScopeVarDefinition { var; typ; e; _ } ->
+        Print.attrs fmt (Mark.get (ScopeVar.get_info (fst var)));
+        Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword "let"
+          ScopeVar.format (Mark.remove var) Print.punctuation ":"
+          (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
+      | Assertion e ->
+        Format.fprintf fmt "%a %a" Print.keyword "assert" (Print.expr ?debug ())
+          e)
+    fmt decl.scope_decl_rules;
+  Format.pp_close_box fmt ()
 
 let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
+  Print.attrs ppf (Mark.get (TopdefName.get_info name));
   Format.pp_open_vbox ppf 2;
   let () =
     Format.pp_open_hovbox ppf 2;
@@ -118,21 +105,15 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     Format.pp_print_cut fmt ()
   in
   Format.pp_open_vbox fmt 0;
-  StructName.Map.iter
-    (fun n s ->
-      struc ctx fmt n s;
-      pp_sep fmt ())
-    ctx.ctx_structs;
-  EnumName.Map.iter
-    (fun n e ->
-      enum ctx fmt n e;
-      pp_sep fmt ())
-    ctx.ctx_enums;
+  Print.decl_ctx ~debug fmt p.program_ctx;
   TopdefName.Map.iter
     (fun name def ->
       print_topdef ctx fmt name def;
       pp_sep fmt ())
     p.program_topdefs;
-  Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
-    (ScopeName.Map.bindings p.program_scopes);
+  ScopeName.Map.format_bindings_i
+    (fun fmt _ name scope_decl ->
+      Format.pp_print_cut fmt ();
+      scope ~debug ctx fmt (name, scope_decl))
+    fmt p.program_scopes;
   Format.pp_close_box fmt ()

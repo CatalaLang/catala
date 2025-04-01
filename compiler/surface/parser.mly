@@ -20,47 +20,9 @@
 %{
   open Catala_utils
 
-  let new_heading, get_heading =
-    let current_heading = ref [] in
-    let current_file = ref "" in
-    let reset (pos, _) =
-      if pos.Lexing.pos_fname <> !current_file then (
-        current_file := pos.Lexing.pos_fname;
-        current_heading := [];
-       )
-    in
-    let new_heading heading lpos =
-      reset lpos;
-      let (title, id, is_archive, precedence) = heading in
-      let upper_headings =
-        List.filter
-          (fun hd -> hd.Ast.law_heading_precedence < precedence)
-          !current_heading
-      in
-      let pos =
-        Pos.overwrite_law_info (Pos.from_lpos lpos)
-          (List.map (fun h -> Mark.remove h.Ast.law_heading_name)
-             upper_headings)
-      in
-      let heading = {
-        Ast.law_heading_name = (title, pos);
-        law_heading_id = id;
-        law_heading_is_archive = is_archive;
-        law_heading_precedence = precedence;
-      } in
-      current_heading := heading :: upper_headings;
-      heading
-    in
-    let get_heading lpos =
-      reset lpos;
-      List.map (fun h -> Mark.remove h.Ast.law_heading_name)
-          !current_heading
-    in
-    new_heading, get_heading
-
   let get_pos lpos =
-    let p = Pos.from_lpos lpos in
-    Pos.overwrite_law_info p (get_heading lpos)
+    Pos.overwrite_law_info (Pos.from_lpos lpos)
+      (Parser_state.get_current_heading ())
 
   let type_from_args
       (args :
@@ -70,6 +32,24 @@
     | None -> Mark.map (fun r -> Ast.Base r) return_typ
     | Some (arg_typ, _) ->
       Mark.add (Mark.get return_typ) (Ast.Func { arg_typ; return_typ })
+
+  let move_attrs ~from =
+    let moved_attrs, kept_attrs =
+      List.partition (function Shared_ast.Src _ -> true | _ -> false)
+        (Pos.attrs from)
+    in
+    let set_attrs target =
+      Mark.map_mark (fun pos -> Pos.add_attrs pos moved_attrs) target
+    in
+    Pos.set_attrs from kept_attrs, set_attrs
+
+  let no_trailing_attrs (x, pending_attrs) =
+    (match pending_attrs with
+     | Shared_ast.Src ((path, _), _, pos) :: _ ->
+       Message.delayed_error () "Unattached trailing atttribute #[%s] ignored"
+         ~pos (String.concat "." path)
+     | _ -> ());
+    x
 %}
 
 %parameter<Localisation: sig
@@ -79,6 +59,8 @@ end>
 (* The token is returned for every line of law text, make them right-associative
    so that we concat them efficiently as much as possible. *)
 %right LAW_TEXT
+
+%right top_decl
 
 %right ATTR_START
 
@@ -105,8 +87,8 @@ end>
 %type<Ast.naked_expression Mark.pos> addpos(naked_expression)
 %type<Ast.uident Mark.pos> addpos(UIDENT)
 %type<Shared_ast.attr_value> attribute_value
-%type<(string list Mark.pos) * Shared_ast.attr_value option> attribute
 %type<Ast.expression> attr(noattr_expression)
+%type<Pos.attr> attribute
 %type<Ast.base_typ_data Mark.pos> posattr(typ_data)
 %type<Ast.primitive_typ> primitive_typ
 %type<Ast.base_typ_data> typ_data
@@ -132,15 +114,15 @@ end>
 %type<Ast.expression> condition_consequence
 %type<Ast.scope_var Mark.pos * Ast.lident Mark.pos list Mark.pos option> rule_expr
 %type<bool> rule_consequence
-%type<Ast.rule> rule
+%type<Ast.scope_use_item> rule
 %type<Ast.lident Mark.pos list> definition_parameters
 %type<Ast.lident Mark.pos> label
 %type<Ast.lident Mark.pos> state
 %type<Ast.exception_to> exception_to
-%type<Ast.definition> definition
+%type<Ast.scope_use_item> definition
 %type<Ast.variation_typ> variation_type
 %type<Ast.scope_use_item> assertion
-%type<Ast.scope_use_item Mark.pos> scope_item
+%type<Ast.scope_use_item> scope_item
 %type<Ast.lident Mark.pos * Ast.base_typ Mark.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
 %type<Ast.io_input option> scope_decl_item_attribute_input
@@ -149,7 +131,7 @@ end>
 %type<Ast.scope_decl_context_io * Ast.lident Mark.pos> scope_decl_item_attribute_mandatory
 %type<Ast.scope_decl_context_item> scope_decl_item
 %type<Ast.enum_decl_case> enum_decl_line
-%type<Ast.code_item> code_item
+%type<Ast.code_item * Pos.attr list> code_item
 %type<Ast.code_block> code
 %type<Ast.code_block * string Mark.pos> metadata_block
 %type<Ast.law_heading> law_heading
@@ -175,25 +157,33 @@ let attribute :=
 | ATTR_START ;
   tag = addpos(separated_nonempty_list(DOT,LIDENT)) ;
   value = option(preceded(EQUAL, attribute_value)) ;
-  RBRACKET ;
-  <>
+  RBRACKET ; {
+  Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
+}
 
 let attr(x) ==
-| attrs = list(addpos(attribute)) ; x_pos=x ; {
-  let x, pos = x_pos in
-  x, List.fold_left
-    (fun attrs ((akey, val_opt), apos) ->
-      Pos.add_attr attrs @@
-      Shared_ast.Src (akey, Option.value ~default:Shared_ast.Unit val_opt, apos)
-    ) pos attrs
+| a = list(attribute) ; ~ = x ; {
+  fst x, Pos.add_attrs (snd x) a
 }
 
 let posattr(x) ==
 | ~ = attr(addpos(x)) ; <>
 
-let list_with_attr(x) :=
-| ~ = posattr(x) ; ~ = list_with_attr(x) ; < (::) >
-| { [] } %prec ATTR_START
+let rev_list_with_attr(x) :=
+| l = rev_list_with_attr(x) ; a = attribute ; {
+  let l, a1 = l in l, a::a1
+}
+| rest = rev_list_with_attr(x) ; x = addpos(x) ; {
+  let prev, attrs = rest in
+  (fst x, Pos.add_attrs (snd x) attrs) :: prev, []
+}
+| { [], [] }
+
+let list_with_attr(x) ==
+| l = rev_list_with_attr(x) ; {
+  let l, pending_attrs = l in
+  List.rev l, List.rev pending_attrs
+}
 
 let primitive_typ :=
 | INTEGER ; { Integer }
@@ -251,15 +241,15 @@ let mbinder ==
 | id = attr(lident) ; { [id] }
 | LPAREN ; ids = separated_nonempty_list(COMMA,attr(lident)) ; RPAREN ; <>
 
-let noattr_expression :=
-| ~ = addpos(naked_expression) ; <>
-(* Required for leading expressions to explicitely apply to the outermost expression *)
+let state_qualifier ==
+| STATE ; state = posattr(LIDENT) ; <>
 
 let expression ==
 | ~ = attr(noattr_expression) ; <>
 
-let state_qualifier ==
-| STATE ; state = posattr(LIDENT) ; <>
+let noattr_expression :=
+| ~ = addpos(naked_expression) ; <>
+(* Required for leading expressions to explicitely apply to the outermost expression *)
 
 let naked_expression ==
 | id = addpos(LIDENT) ; state = option(state_qualifier) ; {
@@ -522,7 +512,7 @@ let match_arm :=
 let condition_consequence :=
 | UNDER_CONDITION ; c = expression ; CONSEQUENCE ; <>
 
-let rule_expr :=
+let rule_expr ==
 | i = posattr(scope_var) ; p = option(posattr(definition_parameters)) ; <>
 
 let rule_consequence :=
@@ -531,9 +521,9 @@ let rule_consequence :=
 }
 
 let rule :=
-| label = option(label) ;
-  except = option(addpos(exception_to)) ;
-  pos_rule = pos(RULE) ;
+| label = ioption(label) ;
+  except = ioption(exception_to) ;
+  _rule = RULE ;
   name_and_param = rule_expr ;
   state = option(state) ;
   cond = option(condition_consequence) ;
@@ -542,14 +532,14 @@ let rule :=
   let cons : bool Mark.pos = consequence in
   let rule_exception = match except with
     | None -> NotAnException
-    | Some x -> Mark.remove x
+    | Some x -> x
   in
   let pos_start =
-    match label with Some l -> Mark.get l
-    | None -> match except with Some e -> Mark.get e
-    | None -> pos_rule
+    match label with Some _ -> get_pos $loc(label)
+    | None -> match except with Some _ -> get_pos $loc(except)
+    | None -> get_pos $loc(_rule)
   in
-  {
+  Rule {
     rule_label = label;
     rule_exception_to = rule_exception;
     rule_parameter = params_applied;
@@ -567,24 +557,24 @@ let definition_parameters :=
 | OF ; args = separated_nonempty_list(COMMA,lident) ; <>
 
 
-let label :=
+let label ==
 | LABEL ; i = lident ; <>
 
 let state :=
 | STATE ; s = lident ; <>
 
-let exception_to :=
-| EXCEPTION ; i = option(lident) ; {
+let exception_to ==
+| EXCEPTION ; i = ioption(lident) ; {
   match i with
   | None -> UnlabeledException
   | Some x -> ExceptionToLabel x
 }
 
 let definition :=
-| label = option(label);
-  except = option(exception_to) ;
-  pos_def = pos(DEFINITION) ;
-  name = addpos(scope_var) ;
+| label = ioption(label) ;
+  except = ioption(exception_to) ;
+  _def = DEFINITION ;
+  name = scope_var ;
   params = option(addpos(definition_parameters)) ;
   state = option(state) ;
   cond = option(condition_consequence) ;
@@ -594,23 +584,36 @@ let definition :=
     | None -> NotAnException
     | Some x -> x
   in
-  let pos_start =
-    match label with Some _ -> get_pos $loc(label)
-    | None -> match except with Some _ -> get_pos $loc(except)
-    | None -> pos_def
+  let name_pos = $loc(name) in
+  let start_pos = match label with
+    | Some _ -> fst $loc(label)
+    | None -> match except with
+      | Some _ -> fst $loc(except)
+      | None -> fst $loc(_def)
   in
-  {
+  let pos = get_pos (start_pos, snd $loc(name)) in
+  Definition {
     definition_label = label;
     definition_exception_to = def_exception;
-    definition_name = name;
+    definition_name = name, get_pos name_pos;
     definition_parameter = params;
     definition_condition = cond;
     definition_id =
       Shared_ast.RuleName.fresh
-        (String.concat "." (List.map (fun i -> Mark.remove i) (Mark.remove name)),
-         Pos.join pos_start (Mark.get name));
+        (String.concat "." (List.map (fun i -> Mark.remove i) name),
+         pos);
     definition_expr = e;
     definition_state = state;
+  }
+}
+
+let assertion :=
+| ASSERTION ;
+  cond = option(condition_consequence) ;
+  base = expression ; {
+  Assertion {
+    assertion_condition = cond;
+    assertion_content = base;
   }
 }
 
@@ -618,46 +621,44 @@ let variation_type :=
 | INCREASING ; { Increasing }
 | DECREASING ; { Decreasing }
 
-let assertion :=
-| cond = option(condition_consequence) ;
-  base = expression ; {
-  (Assertion {
-    assertion_condition = cond;
-    assertion_content = base;
-  })
+let date_rounding :=
+| DATE ; i = LIDENT ; v = addpos(variation_type); {
+  (* Round is a builtin, we need to check which one it is *)
+  match Localisation.lex_builtin i with
+  | Some Round ->
+    DateRounding v
+  | _ ->
+    Message.delayed_error
+      (DateRounding v)
+      ~kind:Parsing ~pos:(get_pos $loc(i))
+      "Expected the form 'date round increasing' or 'date round decreasing'"
 }
 
-let scope_item_list :=
-| ~ = scope_item ; ~ = scope_item_list ; <(::)>
-| it = scope_item ; { [it] } %prec ATTR_START
+let scope_item ==
+| ~ = rule ; <>
+| ~ = definition ; <>
+| ~ = assertion ; <>
+| ~ = date_rounding ; <>
 
-let scope_item :=
-| r_pos = posattr(rule) ; {
-  let r, pos = r_pos in
-  Rule r,
-  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info r.rule_id))
-    (Pos.attrs pos)
-}
-| d_pos = posattr(definition) ; {
-  let d, pos = d_pos in
-  Definition d,
-  Pos.set_attrs (Mark.get (Shared_ast.RuleName.get_info d.definition_id))
-    (Pos.attrs pos)
-}
-| ASSERTION ; contents = addpos(assertion) ; <>
-| DATE ; i = LIDENT ; v = addpos(variation_type) ;
-  {
-    (* Round is a builtin, we need to check which one it is *)
-    match Localisation.lex_builtin i with
-    | Some Round ->
-       DateRounding(v), Mark.get v
-    | _ ->
-       Message.delayed_error
-         (DateRounding(v), Mark.get v)
-         ~kind:Parsing ~pos:
-         (get_pos $loc(i))
-         "Expected the form 'date round increasing' or 'date round decreasing'"
-  }
+let scope_item_list ==
+| items = list_with_attr(scope_item) ; {
+  let items, pending_attrs = items in
+  List.map (fun (item, apos) ->
+    let apos_noattr, set_attrs = move_attrs ~from:apos in
+    match item with
+    | Rule r ->
+      Rule {r with rule_id =
+            Shared_ast.RuleName.map_info set_attrs r.rule_id},
+      apos_noattr
+    | Definition d ->
+      Definition { d with definition_id =
+                   Shared_ast.RuleName.map_info set_attrs d.definition_id },
+      apos_noattr
+    | Assertion a -> Assertion a, apos
+    | DateRounding r -> DateRounding r, apos
+  ) items,
+  pending_attrs
+} %prec ATTR_START
 
 let struct_scope_base :=
 | DATA ; i = lident ;
@@ -670,7 +671,6 @@ let struct_scope :=
 | name_and_typ = struct_scope_base ;
   args = depends_stance; {
   let (name, typ) = name_and_typ in
-  (* let (typ, typ_pos) = typ in *)
   {
     struct_decl_field_name = name;
     struct_decl_field_typ = type_from_args args typ;
@@ -782,7 +782,7 @@ let scope_decl_item :=
 
 let enum_decl_line :=
 | ALT ; c = uident ;
-  t = option(preceded(CONTENT,addpos(typ))) ; {
+  t = option(preceded(CONTENT,posattr(typ))) ; {
   {
     enum_decl_case_name = c;
     enum_decl_case_typ =
@@ -791,7 +791,7 @@ let enum_decl_line :=
 }
 
 let var_content ==
-| ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
+| ~ = lident ; CONTENT ; ty = posattr(typ) ; <>
 let depends_stance ==
 | DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; {
   Some (args, get_pos $sloc)
@@ -805,33 +805,58 @@ let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
   COLON ; items = scope_item_list ; {
+  let items, pending_attrs = items in
   ScopeUse {
     scope_use_name = c;
     scope_use_condition = e;
     scope_use_items = items;
-  }
+  }, pending_attrs
 }
 | DECLARATION ; STRUCT ; c = attr(uident) ;
   COLON ; scopes = list_with_attr(struct_scope) ; {
+  let scopes, pending_attrs = scopes in
   StructDecl {
     struct_decl_name = c;
-    struct_decl_fields = scopes;
-  }
-}
+    struct_decl_fields =
+      List.map (fun (field, pos) ->
+          let pos_noattr, set_attrs = move_attrs ~from:pos in
+          { field with struct_decl_field_name = set_attrs field.struct_decl_field_name },
+          pos_noattr)
+        scopes;
+  }, pending_attrs
+} %prec top_decl
 | DECLARATION ; SCOPE ; c = uident ;
   COLON ; context = list_with_attr(scope_decl_item) ; {
+  let context, pending_attrs = context in
   ScopeDecl {
     scope_decl_name = c;
-    scope_decl_context = context;
-  }
-}
+    scope_decl_context =
+      List.map (fun (ctx, pos) ->
+          let pos_noattr, set_attrs = move_attrs ~from:pos in
+          (match ctx with
+           | ContextData d ->
+               ContextData { d with scope_decl_context_item_name =
+                             set_attrs d.scope_decl_context_item_name }
+           | ContextScope s ->
+               ContextScope { s with scope_decl_context_scope_name =
+                             set_attrs s.scope_decl_context_scope_name }),
+          pos_noattr)
+        context;
+  }, pending_attrs
+} %prec top_decl
 | DECLARATION ; ENUM ; c = uident ;
   COLON ; cases = list_with_attr(enum_decl_line) ; {
+  let cases, pending_attrs = cases in
   EnumDecl {
     enum_decl_name = c;
-    enum_decl_cases = cases;
-  }
-}
+    enum_decl_cases =
+      List.map (fun (case, pos) ->
+          let pos_noattr, set_attrs = move_attrs ~from:pos in
+          { case with enum_decl_case_name = set_attrs case.enum_decl_case_name },
+          pos_noattr)
+        cases;
+  }, pending_attrs
+} %prec top_decl
 | DECLARATION ; name = lident ;
   CONTENT ; ty = addpos(typ) ;
   args = depends_stance ;
@@ -841,14 +866,30 @@ let code_item :=
     topdef_args = args;
     topdef_type = type_from_args args ty;
     topdef_expr;
-  }
+  }, []
 }
 
 let opt_def ==
 | DEFINED_AS; e = expression; <>
 
-let code :=
-| ~ = list(posattr(code_item)) ; <>
+let code ==
+| items = list_with_attr(code_item) ; {
+  let items = no_trailing_attrs items in
+  List.rev @@ no_trailing_attrs @@
+  List.fold_left (fun (acc, pending_attrs) ((item, trailing_attrs), pos) ->
+    let pos = Pos.add_attrs pos pending_attrs in
+    let pos_noattr, set_attrs = move_attrs ~from:pos in
+    let item =
+      match item with
+      | ScopeUse su -> ScopeUse { su with scope_use_name = set_attrs su.scope_use_name }
+      | StructDecl sd -> StructDecl { sd with struct_decl_name = set_attrs sd.struct_decl_name }
+      | ScopeDecl sd -> ScopeDecl { sd with scope_decl_name = set_attrs sd.scope_decl_name }
+      | EnumDecl ed -> EnumDecl { ed with enum_decl_name = set_attrs ed.enum_decl_name }
+      | Topdef td -> Topdef { td with topdef_name = set_attrs td.topdef_name }
+    in
+    (item, pos_noattr) :: acc, trailing_attrs
+  ) ([], []) items
+}
 
 let metadata_block :=
 | BEGIN_METADATA ; option(law_text) ;
@@ -859,7 +900,7 @@ let metadata_block :=
 
 let law_heading :=
 | heading = LAW_HEADING ; {
-  new_heading heading $sloc
+  Parser_state.new_heading heading $sloc
 }
 
 let law_text :=
