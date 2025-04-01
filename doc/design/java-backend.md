@@ -72,8 +72,8 @@ Non-module Catala files can still be generated as a module.
 ### Scopes
 
 Scopes are to be compiled as a single java file named after this
-scope. Additionally, we can make them implement the `Function` Java
-interface with their input and ouput as internal public records (structures).
+scope. The computation would be triggered during object construction
+which could throw an exception if needs be.
 
 E.g.,
 ```catala-metadata
@@ -84,18 +84,24 @@ declaration scope S:
 ```
 would yield a `S.java` file such as
 ```java
-class S implements Function<S.S_in, S.S_out>{
+class S {
 
-  private BigDecimal y;
+  record S_in (CatalaInteger x);
 
-  public record S_in(CatalaInteger x);
-  public record S_out(CatalaMoney m);
+  CatalaMoney z;
 
-  @Override
-  public F_out apply(F_in t) {
-    ...
+  S(S_in in) // throws
+  {
+    // body
   }
 }
+```
+
+```java
+// Then used as:
+S.S_in s = new S.S_in(new CatalaInteger(3));
+S scope_s_result = new S(s_in);
+... scope_s_result.z ...
 ```
 
 For visibility, we can use `private` for internal variables and
@@ -104,39 +110,6 @@ non-exposed global functions/structures and public otherwise.
 
 Scopes that are meant to be executed (no input scopes) could also have
 a `main` attached.
-
-#### An other option ?
-
-The following java structure might match the Catala abstractions more closely ;
-but not sure yet if we won't be hitting limitations later on:
-- the class defining the scope and the class defining its output structure are
-  merged into one
-- the constructor of that class:
-  - takes as parameter(s?) the scope input structure
-  - does the actual scope computation
-  - initialises the scope return values, accessible as variables of the object
-- no additional methods may be required ; the scope output vars are read-only
-  and immutable. Internal variables could even be internal variables of the
-  class ? (this might help with introspection / debugging, but might make the
-  object unnecessarily bigger)
-
-```java
-class S {
-
-  private final CatalaRational y;
-  public final CatalaMoney z;
-
-  public S(S_in s_in) {
-    // this.x = s_in.x // might be useful for debugging, like internal vars
-    this.y = ...;
-    this.z = ...;
-  }
-}
-
-// Then used as:
-S scope_s_result = new S(s_in);
-... scope_s_result.z ...
-```
 
 
 ### Global declarations
@@ -193,13 +166,13 @@ sealed abstract class Reimbursement permits NoReimbursement, MoneyReimbursement 
 final class NoReimbursement extends Reimbursement {
     // Singleton pattern
     private static final NoReimbursement INSTANCE = new NoReimbursement();
-    
+
     private NoReimbursement() {}
-    
+
     public static NoReimbursement getInstance() {
         return INSTANCE;
     }
-    
+
     @Override
     public String toString() {
         return "NoReimbursement";
@@ -208,15 +181,15 @@ final class NoReimbursement extends Reimbursement {
 
 final class MoneyReimbursement extends Reimbursement {
     private final int amount;
-    
+
     public MoneyReimbursement(int amount) {
         this.amount = amount;
     }
-    
+
     public int getAmount() {
         return amount;
     }
-    
+
     @Override
     public String toString() {
         return "MoneyReimbursement(" + amount + ")";
