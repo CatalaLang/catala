@@ -46,4 +46,13 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
     public int hashCode() {
         return this.value.hashCode();
     }
+
+    public CatalaInteger add(CatalaInteger i) {
+        return new CatalaInteger(this.value.add(i.value));
+    }
+
+    public CatalaInteger sub(CatalaInteger i) {
+        return new CatalaInteger(this.value.subtract(i.value));
+    }
+
 }
