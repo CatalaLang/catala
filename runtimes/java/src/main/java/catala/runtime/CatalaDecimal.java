@@ -30,6 +30,19 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     return this.value.compareTo(other.value);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null || getClass() != obj.getClass()) return false;
+    CatalaDecimal other = (CatalaDecimal) obj;
+    return this.value.equals(other.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.value.hashCode();
+  }
+
   public final BigInteger getDenominator(){
     return this.value.getDenominator();
   }

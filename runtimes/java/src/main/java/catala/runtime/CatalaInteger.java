@@ -29,4 +29,17 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
     public int compareTo(CatalaInteger other) {
         return this.value.compareTo(other.value);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        CatalaInteger other = (CatalaInteger) obj;
+        return this.value.equals(other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
 }

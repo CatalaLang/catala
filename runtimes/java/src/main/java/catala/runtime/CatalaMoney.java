@@ -15,6 +15,19 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return this.value;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        CatalaMoney other = (CatalaMoney) obj;
+        return this.value.equals(other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
+
     /**
      * @param other {@inheritDoc}
      * @return {@inheritDoc}
