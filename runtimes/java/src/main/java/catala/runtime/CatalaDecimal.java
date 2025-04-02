@@ -8,7 +8,7 @@ import org.apache.commons.numbers.fraction.BigFraction;
 // and not derive it from BigFraction as BigFraction is not part of 
 // java's stdlib and is currently vendored. (note: should we shadow
 // the package name for BigFraction?)
-public final class CatalaDecimal implements CatalaValue {
+public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecimal> {
   private final BigFraction value;
 
   private /* not sure of this? We might want to avoid let BigFraction escape in the API? */
@@ -19,6 +19,15 @@ public final class CatalaDecimal implements CatalaValue {
   @Override
   public String toString(){
     return this.value.toString();
+  }
+
+  /**
+   * @param other {@inheritDoc}
+   * @return {@inheritDoc}
+   */
+  @Override
+  public int compareTo(CatalaDecimal other){
+    return this.value.compareTo(other.value);
   }
 
   public final BigInteger getDenominator(){
