@@ -217,6 +217,66 @@ void processReimbursement(Reimbursement r) {
 
 The main benefit to this approach might be that it could guide users to write cleaner code at the borders/interfaces of the system (when supplying data for catala computation, or when implementing external modules in java?)
 
+##### New iteration
+
+Depending on Java 21 might be too constraining for people depending on
+their IT dpt to install new jdks, thus we currently on 17 with this
+compilation pattern:
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+  -- Case3 content integer, integer
+```
+
+```java
+public class E {
+
+    public enum Kind {
+        Case1, Case2, Case3
+    };
+
+    private final CatalaValue contents;
+    public final Kind kind;
+
+    private E(Kind k, CatalaValue contents) {
+        this.kind = k;
+        this.contents = contents;
+    }
+
+    public static E makeCase1(CatalaInteger i) {
+        E o = new E(Kind.Case1, i);
+        return o;
+    }
+
+    public static E makeCase2() {
+        E o = new E(Kind.Case2, CatalaUnit.INSTANCE);
+        return o;
+    }
+
+    public static E makeCase3(CatalaValue tup) {
+        E o = new E(Kind.Case3, tup);
+        return o;
+    }
+
+    public <T> T getContentsAs(E.Kind k, Class<T> clazz) {
+        if (this.kind != k) {
+            throw new CatalaException("Invalid enum contents access: expected " + k + ", got " + this.kind);
+        }
+        return (T) this.contents;
+    }
+
+    public CatalaInteger getCase1Contents() {
+        return this.getContentsAs(Kind.Case1, CatalaInteger.class);
+    }
+
+    public CatalaTuple getCase3Contents() {
+        return this.getContentsAs(Kind.Case3, CatalaTuple.class);
+    }
+}
+```
+
 ### Tuples
 
 Two options are possible:
@@ -249,4 +309,10 @@ optimize (e.g., in list operations).
 
 Lambdas are part of Java since 2014, it should be straightforward to
 compile Catala lambdas to Java's ones but we need proper digging to
-    determine if there are limitations.
+determine if there are limitations.
+
+## Experimenting
+
+To view scalc: `catala scalc ~/catala/tests/enum/good/<catala_file> -O`
+To compile to Java: `catala java ~/catala/tests/enum/good/<catala_file> -O -o <output_dir> --debug`
+To compile & view the files: `catala java <path_to_catala_file>/sub_scope.catala_en --debug -O && tail -n +1 <output_dir|OR|path_to_catala_file>/src/main/java/sub_scope/*`

@@ -6,8 +6,11 @@ package catala.runtime.exception;
 // CatalaException would make much sense?
 public class CatalaException extends RuntimeException {
 
-    public CatalaException(String message, Throwable t){
+    public CatalaException(String message, Throwable t) {
         super(message, t);
     }
 
+    public CatalaException(String message) {
+        super(message);
+    }
 }

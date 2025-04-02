@@ -1,7 +1,10 @@
 package catala.runtime;
 
-public sealed interface CatalaValue permits 
+public sealed interface CatalaValue permits
   CatalaDecimal,
   CatalaInteger,
   CatalaMoney,
-  CatalaUnit {}
+  CatalaUnit,
+  CatalaBool,
+  CatalaOption,
+  CatalaTuple {}
