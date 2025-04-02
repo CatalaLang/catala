@@ -2,7 +2,7 @@ package catala.runtime;
 
 import java.time.LocalDate;
 
-public final class CatalaDate implements CatalaValue {
+public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
     private final LocalDate date;
 
@@ -28,5 +28,10 @@ public final class CatalaDate implements CatalaValue {
 
     public final CatalaDate lastDayOfMonth() {
         return new CatalaDate(LocalDate.of(this.date.getYear(), this.date.getMonth(), this.date.lengthOfMonth()));
+    }
+
+    @Override
+    public int compareTo(CatalaDate t) {
+        return this.date.compareTo(t.date);
     }
 }
