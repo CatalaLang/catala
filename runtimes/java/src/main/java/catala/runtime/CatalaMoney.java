@@ -15,6 +15,10 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return this.value;
     }
 
+    public final CatalaMoney negate() {
+        return new CatalaMoney(this.value.negate());
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

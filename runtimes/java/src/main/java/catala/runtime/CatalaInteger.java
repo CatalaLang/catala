@@ -21,6 +21,10 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));
     }
 
+    public final CatalaInteger negate(){
+        return new CatalaInteger(this.value.negate());
+    }
+
     /**
      * @param other {@inheritDoc}
      * @return {@inheritDoc}

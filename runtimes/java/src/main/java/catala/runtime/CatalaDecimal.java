@@ -16,6 +16,11 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     this.value = value;
   }
 
+  public CatalaDecimal negate(){
+    return new CatalaDecimal(this.value.negate());
+  }
+
+  // XXX probably not the display format that we want
   @Override
   public String toString(){
     return this.value.toString();
