@@ -16,6 +16,11 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     this.value = value;
   }
 
+  //keeping this package-level for now
+  CatalaDecimal(int num, int den){
+    this.value = BigFraction.of(num, den);
+  }
+
   public CatalaDecimal negate(){
     return new CatalaDecimal(this.value.negate());
   }
