@@ -4,7 +4,15 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
 
     public final T value;
 
-    public CatalaOption(T in) {
+    public static final CatalaOption<CatalaValue> NONE = new CatalaOption<>(null);
+
+    public static CatalaOption<CatalaValue> some(CatalaValue value){
+        if (value == null)
+            throw new IllegalArgumentException("'CatalaOption.some' requires a non-null value");
+        return new CatalaOption<>(value);
+    };
+
+    private CatalaOption(T in) {
         this.value = in;
     }
 

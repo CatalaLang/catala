@@ -12,6 +12,10 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         this.value = value;
     }
 
+    public CatalaInteger(String value) {
+        this.value = new BigInteger(value);
+    }
+
     public final BigInteger asBigInteger() {
         return this.value;
     }

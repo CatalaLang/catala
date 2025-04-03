@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+module SPrint = Print
 open Catala_utils
 open Shared_ast
 open Ast
@@ -54,7 +55,7 @@ let format_uid_list (fmt : formatter) (uids : Uid.MarkedString.info list) : unit
 
 let format_string_list (fmt : formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
-  fprintf fmt "[%a]"
+  fprintf fmt "new String[]{%a}"
     (pp_print_list ~pp_sep:pp_comma (fun fmt info ->
          fprintf fmt "\"%s\""
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
@@ -153,31 +154,24 @@ let rec format_typ ctx (fmt : formatter) (typ : typ) : unit =
     else fprintf fmt "%a" format_typ t
   in
   match Mark.remove typ with
-  | TLit TUnit -> fprintf fmt "Unit"
-  | TLit TMoney -> fprintf fmt "Money"
-  | TLit TInt -> fprintf fmt "Integer"
-  | TLit TRat -> fprintf fmt "Decimal"
-  | TLit TDate -> fprintf fmt "Date"
-  | TLit TDuration -> fprintf fmt "Duration"
-  | TLit TBool -> fprintf fmt "bool"
+  | TLit TUnit -> fprintf fmt "CatalaUnit"
+  | TLit TMoney -> fprintf fmt "CatalaMoney"
+  | TLit TInt -> fprintf fmt "CatalaInteger"
+  | TLit TRat -> fprintf fmt "CatalaDecimal"
+  | TLit TDate -> fprintf fmt "CatalaDate"
+  | TLit TDuration -> fprintf fmt "CatalaDuration"
+  | TLit TBool -> fprintf fmt "CatalaBool"
   | TLit TPos -> fprintf fmt "SourcePosition"
-  | TTuple ts ->
-    fprintf fmt "Tuple[%a]"
-      (pp_print_list
-         ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-         (fun fmt t -> fprintf fmt "%a" format_typ_with_parens t))
-      ts
+  | TTuple _ -> fprintf fmt "CatalaTuple"
   | TStruct s -> format_struct ctx fmt s
-  | TOption some_typ ->
-    (* We translate the option type with an overloading by Python's [None] *)
-    fprintf fmt "Optional[%a]" format_typ some_typ
+  | TOption some_typ -> fprintf fmt "CatalaOption<%a>" format_typ some_typ
   | TDefault t -> format_typ fmt t
   | TEnum e -> format_enum ctx fmt e
   | TArrow (t1, t2) ->
     fprintf fmt "Callable[[%a], %a]"
       (pp_print_list ~pp_sep:pp_comma format_typ_with_parens)
       t1 format_typ_with_parens t2
-  | TArray t1 -> fprintf fmt "List[%a]" format_typ_with_parens t1
+  | TArray t1 -> fprintf fmt "%a[]" format_typ t1
   | TAny -> fprintf fmt "Any"
   | TClosureEnv -> failwith "unimplemented!"
 
@@ -247,350 +241,6 @@ let format_op (fmt : formatter) (op : operator Mark.pos) : unit =
   | Fold -> pp_print_string fmt "list_fold_left"
   | HandleExceptions -> pp_print_string fmt "handle_exceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
-
-(* let rec format_expression ctx (fmt : formatter) (e : expr) : unit = *)
-(*   match Mark.remove e with *)
-(*   | EVar v -> VarName.format fmt v *)
-(*   | EFunc f -> FuncName.format fmt f *)
-(*   | EStruct { fields = es; name = s } -> *)
-(*     fprintf fmt "%a(%a)" (format_struct ctx) s *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (fun fmt (struct_field, e) -> *)
-(*            fprintf fmt "%a = %a" StructField.format struct_field *)
-(*              (format_expression ctx) e)) *)
-(*       (StructField.Map.bindings es) *)
-(*   | EStructFieldAccess { e1; field; _ } -> *)
-(* fprintf fmt "%a.%a" (format_expression ctx) e1 StructField.format *)
-(*       field *)
-(*   | EInj { cons; name = e_name; _ } *)
-(*     when EnumName.equal e_name Expr.option_enum *)
-(*          && EnumConstructor.equal cons Expr.none_constr -> *)
-(* (\* We translate the option type with an overloading by Python's [None]
-   *\) *)
-(*     fprintf fmt "None" *)
-(*   | EInj { e1 = e; cons; name = e_name; _ } *)
-(*     when EnumName.equal e_name Expr.option_enum *)
-(*          && EnumConstructor.equal cons Expr.some_constr -> *)
-(* (\* We translate the option type with an overloading by Python's [None]
-   *\) *)
-(*     format_expression ctx fmt e *)
-(*   | EInj { e1 = e; cons; name = enum_name; _ } -> *)
-(*     fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name *)
-(*       (format_enum ctx) enum_name EnumConstructor.format cons *)
-(*       (format_expression ctx) e *)
-(*   | EArray es -> *)
-(*     fprintf fmt "[%a]" *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (fun fmt e -> fprintf fmt "%a" (format_expression ctx) e)) *)
-(*       es *)
-(*   | ELit l -> fprintf fmt "%a" format_lit (Mark.copy e l) *)
-(*   | EPosLit -> *)
-(*     let pos = Mark.get e in *)
-(*     fprintf fmt *)
-(* "@[<hov 4>SourcePosition(@,\ *) (* filename=\"%s\",@ start_line=%d,
-   start_column=%d,@ end_line=%d, \ *) (* end_column=%d,@ law_headings=%a@;\ *)
-   (* <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos) *)
-(* (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos) *)
-(*       format_string_list (Pos.get_law_info pos) *)
-(*   | EAppOp { op; args = [arg1; arg2]; _ } -> *)
-(* fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1 *)
-(*       (format_expression ctx) arg2 *)
-(*   | EApp *)
-(*       { *)
-(*         f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _; *)
-(*         args = [arg]; *)
-(*       } *)
-(*     when Global.options.trace <> None -> *)
-(*     fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info *)
-(*       (format_expression ctx) f (format_expression ctx) arg *)
-(*   | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ } *)
-(*     when Global.options.trace <> None -> *)
-(*     fprintf fmt *)
-(* "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \ *) (*
-   output_io=%s),@ %a)" *)
-(*       format_uid_list info *)
-(*       (match var_def_info.log_io_input with *)
-(*       | Runtime.NoInput -> "NoInput" *)
-(*       | Runtime.OnlyInput -> "OnlyInput" *)
-(*       | Runtime.Reentrant -> "Reentrant") *)
-(*       (if var_def_info.log_io_output then "True" else "False") *)
-(*       (format_expression ctx) arg1 *)
-(*   | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ } *)
-(*     when Global.options.trace <> None -> *)
-(*     let pos = Mark.get e in *)
-(*     fprintf fmt *)
-(* "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \ *) (*
-   start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)" *)
-(* (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos) *)
-(*       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list *)
-(*       (Pos.get_law_info pos) (format_expression ctx) arg1 *)
-(*   | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ } *)
-(*     when Global.options.trace <> None -> *)
-(*     fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info *)
-(*       (format_expression ctx) arg1 *)
-(*   | EAppOp { op = Log _, _; args = [arg1]; _ } -> *)
-(*     fprintf fmt "%a" (format_expression ctx) arg1 *)
-(*   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } -> *)
-(*     fprintf fmt "%a %a" format_op op (format_expression ctx) arg1 *)
-(*   | EAppOp *)
-(*       { *)
-(*         op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op; *)
-(*         args = [arg1]; *)
-(*         _; *)
-(*       } -> *)
-(*     fprintf fmt "%a %a" format_op op (format_expression ctx) arg1 *)
-(*   | EAppOp { op; args = [arg1]; _ } -> *)
-(*     fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1 *)
-(*   | EApp { f; args } -> *)
-(*     fprintf fmt "%a(@[<hv 0>%a)@]" (format_expression ctx) f *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (format_expression ctx)) *)
-(*       args *)
-(*   | EAppOp { op; args; _ } -> *)
-(*     fprintf fmt "%a(@[<hv 0>%a)@]" format_op op *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (format_expression ctx)) *)
-(*       args *)
-(*   | ETuple es -> *)
-(*     fprintf fmt "(%a)" *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (fun fmt e -> fprintf fmt "%a" (format_expression ctx) e)) *)
-(*       es *)
-(*   | ETupleAccess { e1; index; _ } -> *)
-(*     fprintf fmt "%a[%d]" (format_expression ctx) e1 index *)
-(*   | EExternal { modname; name } -> *)
-(*     fprintf fmt "%a.%s" VarName.format (Mark.remove modname) *)
-(*       (Mark.remove name) *)
-
-(* let rec format_statement ctx (fmt : formatter) (s : stmt Mark.pos) : unit *)
-(*     = *)
-(*   match Mark.remove s with *)
-(*   | SInnerFuncDef { name; func = { func_params; func_body; _ } } -> *)
-(*     fprintf fmt "@[<v 4>def %a(@[<hov>%a@]):@ %a@]" VarName.format *)
-(*       (Mark.remove name) *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (fun fmt (var, typ) -> *)
-(*            fprintf fmt "%a:%a" VarName.format (Mark.remove var) *)
-(*              (format_typ ctx) typ)) *)
-(*       func_params (format_block ctx) func_body *)
-(*   | SLocalDecl _ -> *)
-(*     assert false (\* We don't need to declare variables in Python *\) *)
-(* | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _
-   } *)
-(*     -> *)
-(*     fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v) *)
-(*       (format_expression ctx) e *)
-(*   | SFatalError { pos_expr; error } -> *)
-(*     fprintf fmt "@[<hov 4>raise %s(%a)@]" *)
-(*       (Runtime.error_to_string error) *)
-(*       (format_expression ctx) pos_expr *)
-(*   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } -> *)
-(*     fprintf fmt "@[<v 4>if %a:@ %a@]@,@[<v 4>else:@ %a@]" *)
-(* (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2 *)
-(*   | SSwitch *)
-(*       { *)
-(*         switch_var; *)
-(*         enum_name = e_name; *)
-(*         switch_cases = *)
-(*           [ *)
-(*             { case_block = case_none; _ }; *)
-(*             { *)
-(*               case_block = case_some; *)
-(*               payload_var_name = case_some_var; *)
-(*               payload_var_typ; *)
-(*             }; *)
-(*           ]; *)
-(*         _; *)
-(*       } *)
-(*     when EnumName.equal e_name Expr.option_enum -> *)
-(* (\* We translate the option type with an overloading by Python's [None]
-   *\) *)
-(* let pos = Mark.get s in *)
-(* fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format switch_var *)
-(*       (format_block ctx) case_none; *)
-(*     fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx) *)
-(* (Utils.subst_block case_some_var (EVar switch_var, pos) payload_var_typ *)
-(*          pos case_some) *)
-(*   | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } -> *)
-(*     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in *)
-(*     let pos = Mark.get s in *)
-(*     let cases = *)
-(*       List.map2 *)
-(*         (fun x (cons, _) -> x, cons) *)
-(*         cases *)
-(*         (EnumConstructor.Map.bindings cons_map) *)
-(*     in *)
-(*     fprintf fmt "@[<hov 4>if %a@]" *)
-(*       (pp_print_list *)
-(*          ~pp_sep:(fun fmt () -> fprintf fmt "@]@\n@[<hov 4>elif ") *)
-(*          (fun fmt (case, cons_name) -> *)
-(*            fprintf fmt "%a.code == %a_Code.%a:@," VarName.format *)
-(*              switch_var (format_enum ctx) e_name EnumConstructor.format *)
-(*              cons_name; *)
-(*            format_block ctx fmt *)
-(*              (Utils.subst_block case.payload_var_name *)
-(* (\* Not a real catala struct, but will print as <var>.value *\) *)
-(*                 ( EStructFieldAccess *)
-(*                     { *)
-(*                       e1 = EVar switch_var, pos; *)
-(*                       field = StructField.fresh ("value", pos); *)
-(*                       name = StructName.fresh [] ("Dummy", pos); *)
-(*                     }, *)
-(*                   pos ) *)
-(*                 case.payload_var_typ pos case.case_block))) *)
-(*       cases *)
-(*   | SReturn e1 -> *)
-(*     fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1 *)
-(*   | SAssert { pos_expr; expr = e1 } -> *)
-(*     fprintf fmt "@[<hv 4>if not (%a):@,raise AssertionFailed(%a)@]" *)
-(*       (format_expression ctx) e1 (format_expression ctx) pos_expr *)
-(*   | SSpecialOp _ -> . *)
-
-(* and format_block ctx (fmt : formatter) (b : block) : unit = *)
-(*   pp_open_vbox fmt 0; *)
-(*   pp_print_list (format_statement ctx) fmt *)
-(*     (List.filter *)
-(* (fun s -> match Mark.remove s with SLocalDecl _ -> false | _ -> true) *)
-(*        b); *)
-(*   pp_close_box fmt () *)
-
-let format_ctx (type_ordering : TypeIdent.t list) (fmt : formatter) ctx : unit =
-  let format_struct_decl fmt (struct_name, struct_fields) =
-    let fields = StructField.Map.bindings struct_fields in
-    fprintf fmt
-      "class %a:@,\
-      \    def __init__(self, %a) -> None:@,\
-       %a@,\
-       @,\
-      \    def __eq__(self, other: object) -> bool:@,\
-      \        if isinstance(other, %a):@,\
-      \            return @[<hov>(%a)@]@,\
-      \        else:@,\
-      \            return False@,\
-       @,\
-      \    def __ne__(self, other: object) -> bool:@,\
-      \        return not (self == other)@,\
-       @,\
-      \    def __str__(self) -> str:@,\
-      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" StructName.format
-      struct_name
-      (pp_print_list
-         ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-         (fun fmt (struct_field, struct_field_type) ->
-           fprintf fmt "%a: %a" StructField.format struct_field (format_typ ctx)
-             struct_field_type))
-      fields
-      (if StructField.Map.is_empty struct_fields then fun fmt _ ->
-         fprintf fmt "        pass"
-       else
-         pp_print_list (fun fmt (struct_field, _) ->
-             fprintf fmt "        self.%a = %a" StructField.format struct_field
-               StructField.format struct_field))
-      fields StructName.format struct_name
-      (if not (StructField.Map.is_empty struct_fields) then
-         pp_print_list
-           ~pp_sep:(fun fmt () -> fprintf fmt " and@ ")
-           (fun fmt (struct_field, _) ->
-             fprintf fmt "self.%a == other.%a" StructField.format struct_field
-               StructField.format struct_field)
-       else fun fmt _ -> fprintf fmt "True")
-      fields StructName.format struct_name
-      (pp_print_list
-         ~pp_sep:(fun fmt () -> fprintf fmt ",")
-         (fun fmt (struct_field, _) ->
-           fprintf fmt "%a={}" StructField.format struct_field))
-      fields
-      (pp_print_list ~pp_sep:pp_comma (fun fmt (struct_field, _) ->
-           fprintf fmt "self.%a" StructField.format struct_field))
-      fields
-  in
-  let format_enum_decl fmt (enum_name, enum_cons) =
-    if EnumConstructor.Map.is_empty enum_cons then
-      failwith "no constructors in the enum"
-    else
-      fprintf fmt
-        "@[<v 4>class %a_Code(Enum):@,\
-         %a@]@,\
-         @,\
-         class %a:@,\
-        \    def __init__(self, code: %a_Code, value: Any) -> None:@,\
-        \        self.code = code@,\
-        \        self.value = value@,\
-         @,\
-         @,\
-        \    def __eq__(self, other: object) -> bool:@,\
-        \        if isinstance(other, %a):@,\
-        \            return self.code == other.code and self.value == \
-         other.value@,\
-        \        else:@,\
-        \            return False@,\
-         @,\
-         @,\
-        \    def __ne__(self, other: object) -> bool:@,\
-        \        return not (self == other)@,\
-         @,\
-        \    def __str__(self) -> str:@,\
-        \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
-        EnumName.format enum_name
-        (pp_print_list (fun fmt (i, enum_cons, _enum_cons_type) ->
-             fprintf fmt "%a = %d" EnumConstructor.format enum_cons i))
-        (List.mapi
-           (fun i (x, y) -> i, x, y)
-           (EnumConstructor.Map.bindings enum_cons))
-        EnumName.format enum_name EnumName.format enum_name EnumName.format
-        enum_name
-  in
-
-  let is_in_type_ordering s =
-    List.exists
-      (fun struct_or_enum ->
-        match struct_or_enum with
-        | TypeIdent.Enum _ -> false
-        | TypeIdent.Struct s' -> s = s')
-      type_ordering
-  in
-  let scope_structs =
-    List.map
-      (fun (s, _) -> TypeIdent.Struct s)
-      (StructName.Map.bindings
-         (StructName.Map.filter
-            (fun s _ -> not (is_in_type_ordering s))
-            ctx.decl_ctx.ctx_structs))
-  in
-  List.iter
-    (fun struct_or_enum ->
-      match struct_or_enum with
-      | TypeIdent.Struct s ->
-        if StructName.path s = [] then
-          fprintf fmt "%a@,@," format_struct_decl
-            (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
-      | TypeIdent.Enum e ->
-        if EnumName.path e = [] then
-          fprintf fmt "%a@,@," format_enum_decl
-            (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
-    (type_ordering @ scope_structs)
-
-(* let format_code_item ctx fmt = function *)
-(*   | SVar { var; expr; typ = _; visibility = _ } -> *)
-(*     fprintf fmt "@[<hv 4>%a = (@,%a@;<0 -4>)@]@," VarName.format var *)
-(*       (format_expression ctx) expr *)
-(*   | SFunc { var; func; visibility = _ } *)
-(*   | SScope { scope_body_var = var; scope_body_func = func; _ } -> *)
-(*     let { Ast.func_params; Ast.func_body; _ } = func in *)
-(*     fprintf fmt "@[<v 4>@[<hov 2>def %a(@,%a@;<0 -2>):@]@ %a@]@," *)
-(*       format_func_name var *)
-(*       (pp_print_list *)
-(*          ~pp_sep:pp_comma *)
-(*          (fun fmt (var, typ) -> *)
-(*            fprintf fmt "%a:%a" VarName.format (Mark.remove var) *)
-(*              (format_typ ctx) typ)) *)
-(*       func_params (format_block ctx) func_body *)
 
 let format_scope_calls ppf (p : Ast.program) =
   let scopes_with_no_input =
@@ -683,7 +333,7 @@ let rec format_typ ppf typ =
   match Mark.remove typ with
   | TLit typ_lit -> format_typ_lit ppf typ_lit
   | TArrow _ -> assert false
-  | TTuple _ -> fprintf ppf "CatalaValue[]"
+  | TTuple _ -> fprintf ppf "CatalaTuple"
   | TStruct sname -> StructName.format ppf sname (* TODO: resolve imports *)
   | TEnum ename -> EnumName.format ppf ename (* TODO: resolve imports *)
   | TOption typ -> fprintf ppf "CatalaOption<%a>" format_typ typ
@@ -725,18 +375,15 @@ let format_lit (fmt : formatter) (l : lit Mark.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     fprintf fmt "new CatalaDuration(%d,%d,%d)" years months days
 
-(* TODO: adapt *)
 let rec format_expression (in_struct as jctx) ctx (fmt : formatter) (e : expr) :
     unit =
   match Mark.remove e with
   | EVar v -> VarName.format fmt v
   | EFunc f -> FuncName.format fmt f
   | EStruct { fields = es; name = s } ->
-    fprintf fmt "%a(%a)" (format_struct ctx) s
-      (pp_print_list ~pp_sep:pp_comma (fun fmt (struct_field, e) ->
-           fprintf fmt "%a = %a" StructField.format struct_field
-             (format_expression jctx ctx)
-             e))
+    fprintf fmt "new %a (%a)" (format_struct ctx) s
+      (pp_print_list ~pp_sep:pp_comma (fun fmt (_struct_field, e) ->
+           fprintf fmt "%a" (format_expression jctx ctx) e))
       (StructField.Map.bindings es)
   | EStructFieldAccess { name; field; _ } when StructName.equal name in_struct
     ->
@@ -759,7 +406,7 @@ let rec format_expression (in_struct as jctx) ctx (fmt : formatter) (e : expr) :
       (format_expression jctx ctx)
       e
   | EArray es ->
-    fprintf fmt "[%a]"
+    fprintf fmt "{%a}"
       (pp_print_list ~pp_sep:pp_comma (fun fmt e ->
            fprintf fmt "%a" (format_expression jctx ctx) e))
       es
@@ -767,12 +414,10 @@ let rec format_expression (in_struct as jctx) ctx (fmt : formatter) (e : expr) :
   | EPosLit ->
     let pos = Mark.get e in
     fprintf fmt
-      "@[<hov 4>SourcePosition(@,\
-       filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
-       end_column=%d,@ law_headings=%a@;\
-       <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+      "@[<hov 4>new SourcePosition(@,\"%s\",@ %d, %d,@ %d, %d,@ %a@;<0 -4>)@]"
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     fprintf fmt "%a.%a(%a)"
       (format_expression jctx ctx)
@@ -843,12 +488,14 @@ let rec format_expression (in_struct as jctx) ctx (fmt : formatter) (e : expr) :
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       args
   | ETuple es ->
-    fprintf fmt "(%a)"
+    fprintf fmt "new CatalaTuple(%a)"
       (pp_print_list ~pp_sep:pp_comma (fun fmt e ->
            fprintf fmt "%a" (format_expression jctx ctx) e))
       es
-  | ETupleAccess { e1; index; _ } ->
-    fprintf fmt "%a[%d]" (format_expression jctx ctx) e1 index
+  | ETupleAccess { e1; index; typ } ->
+    fprintf fmt "(%a)(%a).get(%d)" format_typ typ
+      (format_expression jctx ctx)
+      e1 index
   | EExternal { modname; name } ->
     fprintf fmt "%a.%s" VarName.format (Mark.remove modname) (Mark.remove name)
 
@@ -882,9 +529,28 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
     | _ -> fprintf ppf "@[<hov 2>return %a;@]" (format_expression jctx ctx) expr
     )
   | SInnerFuncDef _ -> fprintf ppf "<todo: SInnerFuncDef>"
-  | SLocalInit _ -> fprintf ppf "<todo: SLocalInit>"
+  | SLocalInit { name; typ; expr } ->
+    fprintf ppf "@[<hov 2>%a %a =@ %a;@]" format_typ typ VarName.format
+      (Mark.remove name)
+      (format_expression jctx ctx)
+      expr
   | SFatalError _ -> fprintf ppf "<todo: SFatalError>"
   | SIfThenElse _ -> fprintf ppf "<todo: SIfThenElse>"
+  | SSwitch
+      {
+        switch_var;
+        switch_var_typ = TOption _, _;
+        enum_name = _;
+        switch_cases = [none; some];
+      } ->
+    let cond_format ppf = fprintf ppf "%a.isNone()" VarName.format switch_var in
+    let cons_format ppf = format_block ?scope jctx ctx ppf none.case_block in
+    let alt_format ppf =
+      fprintf ppf "%a %a = %a.get();@\n" format_typ some.payload_var_typ
+        VarName.format some.payload_var_name VarName.format switch_var;
+      format_block ?scope jctx ctx ppf some.case_block
+    in
+    format_if ppf ~cond_format ~cons_format ~alt_format
   | SSwitch { switch_var; switch_var_typ = _; enum_name; switch_cases } ->
     let format_init_case ppf (var, (typ : typ)) =
       match Mark.remove typ with
@@ -923,6 +589,14 @@ and format_block ?scope jctx ctx ppf (block : Ast.block) =
   fprintf ppf "@[<v>%a@]"
     (pp_print_list ~pp_sep:pp_print_space (format_stmt ?scope jctx ctx))
     block
+
+and format_if
+    ~(cond_format : formatter -> unit)
+    ~(cons_format : formatter -> unit)
+    ~(alt_format : formatter -> unit)
+    ppf =
+  fprintf ppf "@[<v 2>if (%t) {@ %t@]@\n@[<v 2>} else {@ %t@]@\n}" cond_format
+    cons_format alt_format
 
 let format_constructor_body (ctx : Ast.ctx) sbody ppf =
   let in_struct_name =
@@ -975,7 +649,7 @@ let generate_scope ~package ~dir (p : Ast.program) (sbody : Ast.scope_body) =
     "package %s;@\n\
      import catala.runtime.*;@\n\
      @\n\
-     @[<v 4>@[<hov 2>%aclass %a {@]@ @ %t@ %t@]@\n\
+     @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@]@\n\
      }"
     package format_visibility sbody.scope_body_visibility ScopeName.format
     sbody.scope_body_name
@@ -1047,7 +721,8 @@ let generate_ctx ~package ~dir p =
        import catala.runtime.*;@\n\
        import catala.runtime.exception.*;@\n\
        @\n\
-       @[<v 4>@[<hov 2>public class %a {@]@ @ %t@ @ %t@ @ %t@ @ %t@]@\n\
+       @[<v 4>@[<hov 2>public class %a@ implements CatalaValue {@]@ @ %t@ @ \
+       %t@ @ %t@ @ %t@]@\n\
        }"
       package EnumName.format ename format_enum_kind format_enum_params
       format_enum_constrs format_enum_accessors
@@ -1091,7 +766,8 @@ let generate_ctx ~package ~dir p =
       "package %s;@\n\
        import catala.runtime.*;@\n\
        @\n\
-       @[<v 4>@[<hov 2>public class %a {@]@ @ %t@ @ %t@]@\n\
+       @[<v 4>@[<hov 2>public class %a@ implements CatalaValue {@]@ @ %t@ @ \
+       %t@]@\n\
        }"
       package StructName.format sname format_params format_struct_constr
   in
