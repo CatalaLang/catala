@@ -819,5 +819,6 @@ let generate_program
   in
   ignore
   @@ File.process_out "cp" ["-r"; path / "pom.xml"; path / "src"; output_dir];
+  ignore @@ File.process_out "chmod" ["a+w"; "-R"; output_dir];
   generate_ctx ~package:package_name ~dir:prog_dir p;
   List.iter (generate_scope ~package:package_name ~dir:prog_dir p) scopes
