@@ -810,13 +810,14 @@ let generate_program
   in
   (* Copy over the runtime *)
   (* TODO: add --no-runtime option ? *)
+  let catala_bin = Sys.argv.(0) in
+  (* assuming '_build/install/default/bin/catala' *)
+  let ( / ) = Filename.concat in
+  let path =
+    Filename.(
+      dirname catala_bin / ".." / ".." / ".." / "default" / "runtimes" / "java")
+  in
   ignore
-  @@ File.process_out "cp"
-       [
-         "-r";
-         "/home/vincent/catala/runtimes/java/pom.xml";
-         "/home/vincent/catala/runtimes/java/src/";
-         output_dir;
-       ];
+  @@ File.process_out "cp" ["-r"; path / "pom.xml"; path / "src"; output_dir];
   generate_ctx ~package:package_name ~dir:prog_dir p;
   List.iter (generate_scope ~package:package_name ~dir:prog_dir p) scopes
