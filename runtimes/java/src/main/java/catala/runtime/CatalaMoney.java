@@ -65,8 +65,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
      */
     public final CatalaMoney multiply(CatalaDecimal other){
         CatalaDecimal thisDecCents = 
-          CatalaDecimal.ofMoney(this)
-          .multiply(CatalaDecimal.ofInteger(new CatalaInteger(BigInteger.valueOf(100))));
+          CatalaDecimal.ofMoneyAsCents(this);
         CatalaDecimal resDecimal = thisDecCents.multiply(other);
         BigDecimal resBigDecimal = resDecimal.bigDecimalValue(0, RoundingMode.HALF_UP);
         return new CatalaMoney(resBigDecimal.toBigIntegerExact());

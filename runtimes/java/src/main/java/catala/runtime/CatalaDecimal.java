@@ -81,4 +81,8 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
   }
 
+  static final CatalaDecimal ofMoneyAsCents(CatalaMoney cm){
+    return new CatalaDecimal(BigFraction.of(cm.asCents()));
+  }
+
 }
