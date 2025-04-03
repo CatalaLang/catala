@@ -4,9 +4,9 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
 
     public final T value;
 
-    public static final CatalaOption<CatalaValue> NONE = new CatalaOption<>(null);
+    public static final CatalaOption NONE = new CatalaOption<>(null);
 
-    public static CatalaOption<CatalaValue> some(CatalaValue value){
+    public static <T extends CatalaValue> CatalaOption<T> some(T value){
         if (value == null)
             throw new IllegalArgumentException("'CatalaOption.some' requires a non-null value");
         return new CatalaOption<>(value);
