@@ -10,10 +10,14 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         this.date = date;
     }
 
+    public static CatalaDate of(int year, int month, int day){
+        return new CatalaDate(LocalDate.of(year, month, day));
+    }
+
     /**
      * Parses a date in the format '|2024-03-12|'
      */
-    public final CatalaDate parse(CharSequence catalaDateLiteral) {
+    public static final CatalaDate parse(CharSequence catalaDateLiteral) {
         if (catalaDateLiteral.length() != 12
                 || catalaDateLiteral.charAt(0) != '|'
                 || catalaDateLiteral.charAt(11) != '|') {

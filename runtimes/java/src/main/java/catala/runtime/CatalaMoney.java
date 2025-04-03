@@ -53,7 +53,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
     @Override
     public String toString(){
         BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
-        return String.format("%d.%02d", (Object[]) unitsAndCents);
+        return String.format("Money(%d.%02d)", (Object[]) unitsAndCents);
     }
 
     public final CatalaMoney multiply(CatalaInteger other){

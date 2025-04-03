@@ -4,4 +4,8 @@ public class AssertionFailedException extends CatalaException {
     public AssertionFailedException(String message, Throwable t){
         super(message, t);
     }
+
+    public AssertionFailedException(String message){
+        super(message);
+    }
 }
