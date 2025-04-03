@@ -20,47 +20,9 @@
 %{
   open Catala_utils
 
-  let new_heading, get_heading =
-    let current_heading = ref [] in
-    let current_file = ref "" in
-    let reset (pos, _) =
-      if pos.Lexing.pos_fname <> !current_file then (
-        current_file := pos.Lexing.pos_fname;
-        current_heading := [];
-       )
-    in
-    let new_heading heading lpos =
-      reset lpos;
-      let (title, id, is_archive, precedence) = heading in
-      let upper_headings =
-        List.filter
-          (fun hd -> hd.Ast.law_heading_precedence < precedence)
-          !current_heading
-      in
-      let pos =
-        Pos.overwrite_law_info (Pos.from_lpos lpos)
-          (List.map (fun h -> Mark.remove h.Ast.law_heading_name)
-             upper_headings)
-      in
-      let heading = {
-        Ast.law_heading_name = (title, pos);
-        law_heading_id = id;
-        law_heading_is_archive = is_archive;
-        law_heading_precedence = precedence;
-      } in
-      current_heading := heading :: upper_headings;
-      heading
-    in
-    let get_heading lpos =
-      reset lpos;
-      List.map (fun h -> Mark.remove h.Ast.law_heading_name)
-          !current_heading
-    in
-    new_heading, get_heading
-
   let get_pos lpos =
-    let p = Pos.from_lpos lpos in
-    Pos.overwrite_law_info p (get_heading lpos)
+    Pos.overwrite_law_info (Pos.from_lpos lpos)
+      (Parser_state.get_current_heading ())
 
   let type_from_args
       (args :
@@ -105,9 +67,8 @@ end>
 %type<Ast.naked_expression Mark.pos> addpos(naked_expression)
 %type<Ast.uident Mark.pos> addpos(UIDENT)
 %type<Shared_ast.attr_value> attribute_value
-%type<(string list Mark.pos) * Shared_ast.attr_value option> attribute
-%type<Pos.attr list> attributes
 %type<Ast.expression> attr(noattr_expression)
+%type<unit> attribute
 %type<Ast.base_typ_data Mark.pos> posattr(typ_data)
 %type<Ast.primitive_typ> primitive_typ
 %type<Ast.base_typ_data> typ_data
@@ -172,32 +133,37 @@ let attribute_value ==
 | ~ = addpos(STRING); <Shared_ast.String>
 | ~ = expression; <Ast.Expression>
 
-let attribute :=
+let attribute ==
 | ATTR_START ;
   tag = addpos(separated_nonempty_list(DOT,LIDENT)) ;
   value = option(preceded(EQUAL, attribute_value)) ;
-  RBRACKET ;
-  <>
+  RBRACKET ; {
+  Parser_state.push_attribute @@
+  Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
+}
 
-let attributes ==
-| attrs = list(addpos(attribute)) ; {
-  List.map (fun ((akey, val_opt), apos) ->
-    Shared_ast.Src (akey, Option.value ~default:Shared_ast.Unit val_opt, apos)
-  ) attrs
+let bind_attrs(x) ==
+| ~ = x ; {
+  fst x, List.fold_left Pos.add_attr (snd x) (Parser_state.pop_attributes ())
 }
 
 let attr(x) ==
-| attrs = attributes ; x_pos = x ; {
-  let x, pos = x_pos in
-  x, List.fold_left Pos.add_attr pos attrs
-}
+| dig; list(attribute) ; x = bind_attrs(x) ; { Parser_state.climb(); x }
 
 let posattr(x) ==
 | ~ = attr(addpos(x)) ; <>
 
-let list_with_attr(x) :=
-| ~ = posattr(x) ; ~ = list_with_attr(x) ; < (::) >
-| { [] } %prec top_expr
+let rev_list_with_attr(x) :=
+| ~ = rev_list_with_attr(x) ; attribute ; <>
+| rest = rev_list_with_attr(x) ; x = bind_attrs(deeper(addpos(x))) ; { x :: rest }
+| { [] }
+
+let dig := { Parser_state.dig () }
+
+let deeper(x) ==
+| dig ; ~ = x ; { Parser_state.climb (); x }
+
+let list_with_attr(x) == deeper(rev(rev_list_with_attr(x)))
 
 let primitive_typ :=
 | INTEGER ; { Integer }
@@ -255,15 +221,15 @@ let mbinder ==
 | id = attr(lident) ; { [id] }
 | LPAREN ; ids = separated_nonempty_list(COMMA,attr(lident)) ; RPAREN ; <>
 
-let noattr_expression :=
-| ~ = addpos(naked_expression) ; <>
-(* Required for leading expressions to explicitely apply to the outermost expression *)
+let state_qualifier ==
+| STATE ; state = posattr(LIDENT) ; <>
 
 let expression ==
 | ~ = attr(noattr_expression) ; <>
 
-let state_qualifier ==
-| STATE ; state = posattr(LIDENT) ; <>
+let noattr_expression :=
+| ~ = addpos(naked_expression) ; <>
+(* Required for leading expressions to explicitely apply to the outermost expression *)
 
 let naked_expression ==
 | id = addpos(LIDENT) ; state = option(state_qualifier) ; {
@@ -795,7 +761,7 @@ let scope_decl_item :=
 
 let enum_decl_line :=
 | ALT ; c = uident ;
-  t = option(preceded(CONTENT,addpos(typ))) ; {
+  t = option(preceded(CONTENT,posattr(typ))) ; {
   {
     enum_decl_case_name = c;
     enum_decl_case_typ =
@@ -804,7 +770,7 @@ let enum_decl_line :=
 }
 
 let var_content ==
-| ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
+| ~ = lident ; CONTENT ; ty = posattr(typ) ; <>
 let depends_stance ==
 | DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; {
   Some (args, get_pos $sloc)
@@ -814,7 +780,7 @@ let depends_stance ==
 }
 | { None }
 
-let code_item ==
+let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
   COLON ; items = scope_item_list ; {
@@ -823,28 +789,28 @@ let code_item ==
     scope_use_condition = e;
     scope_use_items = items;
   }
-}
+} %prec ATTR_START
 | DECLARATION ; STRUCT ; c = attr(uident) ;
   COLON ; scopes = list_with_attr(struct_scope) ; {
   StructDecl {
     struct_decl_name = c;
     struct_decl_fields = scopes;
   }
-}
+} %prec ATTR_START
 | DECLARATION ; SCOPE ; c = uident ;
   COLON ; context = list_with_attr(scope_decl_item) ; {
   ScopeDecl {
     scope_decl_name = c;
     scope_decl_context = context;
   }
-}
+} %prec ATTR_START
 | DECLARATION ; ENUM ; c = uident ;
   COLON ; cases = list_with_attr(enum_decl_line) ; {
   EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
   }
-}
+} %prec ATTR_START
 | DECLARATION ; name = lident ;
   CONTENT ; ty = addpos(typ) ;
   args = depends_stance ;
@@ -855,12 +821,12 @@ let code_item ==
     topdef_type = type_from_args args ty;
     topdef_expr;
   }
-}
+} %prec ATTR_START
 
 let opt_def ==
 | DEFINED_AS; e = expression; <>
 
-let code :=
+let code ==
 | ~ = list_with_attr(code_item) ; <>
 
 let metadata_block :=
@@ -872,7 +838,7 @@ let metadata_block :=
 
 let law_heading :=
 | heading = LAW_HEADING ; {
-  new_heading heading $sloc
+  Parser_state.new_heading heading $sloc
 }
 
 let law_text :=

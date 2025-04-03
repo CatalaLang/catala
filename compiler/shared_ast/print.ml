@@ -947,8 +947,11 @@ let scope
 let code_item ?(debug = false) id decl_ctx fmt c =
   let name = Format.asprintf "%a" (if debug then var_debug else var) id in
   match c with
-  | ScopeDef (_, b) -> scope ~debug decl_ctx fmt (name, b)
-  | Topdef (_, ty, _vis, e) ->
+  | ScopeDef (n, b) ->
+    attrs fmt (Mark.get (ScopeName.get_info n));
+    scope ~debug decl_ctx fmt (name, b)
+  | Topdef (n, ty, _vis, e) ->
+    attrs fmt (Mark.get (TopdefName.get_info n));
     Format.fprintf fmt
       "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
       "let topval" name op_style ":" (typ decl_ctx) ty op_style "="

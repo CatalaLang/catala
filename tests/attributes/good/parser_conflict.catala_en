@@ -1,0 +1,35 @@
+```catala
+declaration scope S:
+  output x content integer
+  output y content integer
+
+scope S:
+  definition x equals #[attr_exp] 33
+  #[attr_def]
+  definition y equals 44
+
+declaration enumeration E:
+  #[attr] -- Constr
+
+#[attr]
+declaration enumeration F:
+  -- Foo
+```
+
+```catala-test-inline
+$ catala scopelang --dis
+struct S = {
+  x: integer
+  y: integer
+}
+
+enum E = 
+  | Constr: #[attr] unit
+
+enum F = 
+  | Foo: #[attr] unit
+
+let scope S (x: integer|internal|output) (y: integer|internal|output) =
+  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨#[attr_exp] 33⟩⟩ | false ⊢ ∅ ⟩;
+  let y : integer = error_empty ⟨ ⟨true ⊢ ⟨44⟩⟩ | false ⊢ ∅ ⟩
+```

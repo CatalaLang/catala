@@ -8,6 +8,7 @@ declaration scope S:
   context output bla content integer #
   output x content money
   #[attr.unit]
+  #[a]
   output o content money
   #[attr.expr = false]
   #[attr.multi = "string"]

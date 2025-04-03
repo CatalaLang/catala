@@ -46,18 +46,6 @@ source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT YEAR
 
 expected the name of an enum case
 
-source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON YEAR
-##
-## Ends in an error in state: 685.
-##
-## code_item -> DECLARATION ENUM UIDENT COLON . list_with_attr(enum_decl_line) [ SCOPE END_CODE DECLARATION ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## DECLARATION ENUM UIDENT COLON
-##
-
-expected an enum case
-
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT YEAR
 ##
 ## Ends in an error in state: 684.
@@ -502,7 +490,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON YEAR
 ## SCOPE UIDENT option(preceded(UNDER_CONDITION,expression)) COLON
 ##
 
-expected a scope use item: a rule, definition or assertion
+expected the next item in the scope (rule, definition or assertion), or the start of a new top-level declaration
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT YEAR
 ##
@@ -2061,19 +2049,6 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION UIDENT CONS
 ##
 
 expected either 'fulfilled' or 'not fulfilled'
-
-source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT FILLED YEAR
-##
-## Ends in an error in state: 405.
-##
-## scope_item_list -> scope_item . scope_item_list [ SCOPE END_CODE DECLARATION ATTR_START ]
-## scope_item_list -> scope_item . [ SCOPE END_CODE DECLARATION ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## scope_item
-##
-
-expected the next item in the scope, or the start of a new top-level decleration
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
