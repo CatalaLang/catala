@@ -1,13 +1,15 @@
 package catala.runtime;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
 
     // cents
     private final BigInteger value;
 
-    CatalaMoney(BigInteger valueCents) {
+    private CatalaMoney(BigInteger valueCents) {
         this.value = valueCents;
     }
 
@@ -54,6 +56,22 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return String.format("%d.%02d", (Object[]) unitsAndCents);
     }
 
+    public final CatalaMoney multiply(CatalaInteger other){
+        return new CatalaMoney(this.value.multiply(other.asBigInteger()));
+    }
+
+    /**
+     * Rounds to the nearest cent
+     */
+    public final CatalaMoney multiply(CatalaDecimal other){
+        CatalaDecimal thisDecCents = 
+          CatalaDecimal.ofMoney(this)
+          .multiply(CatalaDecimal.ofInteger(new CatalaInteger(BigInteger.valueOf(100))));
+        CatalaDecimal resDecimal = thisDecCents.multiply(other);
+        BigDecimal resBigDecimal = resDecimal.bigDecimalValue(0, RoundingMode.HALF_UP);
+        return new CatalaMoney(resBigDecimal.toBigIntegerExact());
+    }
+
     public static final CatalaMoney ofCents(String cents){
       return new CatalaMoney(new BigInteger(cents));
     }
@@ -62,11 +80,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
       return new CatalaMoney(cents);
     }
 
-    public static final CatalaMoney ofUnits(String units){
-        return new CatalaMoney(new BigInteger(units).multiply(BigInteger.valueOf(100)));
-    }
-
-    public static final CatalaMoney ofUnits(BigInteger units){
-        return new CatalaMoney(units.multiply(BigInteger.valueOf(100)));
+    public static final CatalaMoney ofCents(long cents){
+        return new CatalaMoney(BigInteger.valueOf(cents));
     }
 }

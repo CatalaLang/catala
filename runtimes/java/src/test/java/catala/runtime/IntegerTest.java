@@ -11,6 +11,6 @@ public class IntegerTest {
     public void testOfDecimal() {
         CatalaDecimal dec = new CatalaDecimal(22, 7);
 
-        assertEquals(CatalaInteger.ofDecimal(dec), new CatalaInteger(BigInteger.valueOf(3)));
+        assertEquals(new CatalaInteger(BigInteger.valueOf(3)), CatalaInteger.ofDecimal(dec));
     }
 }

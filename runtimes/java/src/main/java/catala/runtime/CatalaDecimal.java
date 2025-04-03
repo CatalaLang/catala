@@ -1,6 +1,8 @@
 package catala.runtime;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 import org.apache.commons.numbers.fraction.BigFraction;
 
@@ -61,9 +63,22 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     return this.value.getNumerator();
   }
 
+  public final CatalaDecimal multiply(CatalaDecimal other){
+    return new CatalaDecimal(this.value.multiply(other.value));
+  }
+
+  final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode){
+    return this.value.bigDecimalValue(scale, roundingMode);
+  }
+
   // ToRat_int
   public static final CatalaDecimal ofInteger(CatalaInteger ci){
     return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
+  }
+
+  // ToRat_mon
+  public static final CatalaDecimal ofMoney(CatalaMoney cm){
+    return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
   }
 
 }
