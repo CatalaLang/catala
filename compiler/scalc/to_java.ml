@@ -161,7 +161,8 @@ let format_func_name (ppf : formatter) (v : FuncName.t) : unit =
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
   | Log (_entry, _infos) -> assert false
-  | Minus_int | Minus_rat | Minus_mon | Minus_dur -> pp_print_string ppf "sub"
+  | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
+    pp_print_string ppf "subtract"
   | Not -> pp_print_string ppf "not"
   | Length -> pp_print_string ppf "size"
   | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
@@ -194,7 +195,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Or -> pp_print_string ppf "or"
   | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
   | Eq_dur_dur ->
-    pp_print_string ppf "equals"
+    pp_print_string ppf "equalsTo"
   | Xor -> pp_print_string ppf "xor"
   | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
     pp_print_string ppf "lessThan"
@@ -281,16 +282,12 @@ let format_scope_calls ppf (p : Ast.program) =
 (*   format_scope_calls ppf p; *)
 (*   pp_print_flush ppf () *)
 
-let format_params ppf func_params =
-  fprintf ppf "blabla";
-  ignore func_params
-
 let format_visibility ppf = function
   | Private -> () (* TODO? *)
   | Public -> fprintf ppf "public "
 
 let format_typ_lit ppf = function
-  | TBool -> fprintf ppf "boolean"
+  | TBool -> fprintf ppf "CatalaBool"
   | TUnit -> fprintf ppf "CatalaUnit"
   | TInt -> fprintf ppf "CatalaInteger"
   | TRat -> fprintf ppf "CatalaDecimal"
@@ -342,16 +339,16 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
         format_lit
         (Mark.copy l (LInt (Q.den i)))
   | LMoney e ->
-    fprintf ppf "CatalaMoney.from_cents(\"%s\")"
+    fprintf ppf "CatalaMoney.ofCents(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
-    fprintf ppf "new CatalaDate(%d,%d,%d)"
+    fprintf ppf "CatalaDate.of(%d,%d,%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
       (Runtime.integer_to_int (Runtime.month_number_of_date d))
       (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
   | LDuration d ->
     let years, months, days = Runtime.duration_to_years_months_days d in
-    fprintf ppf "new CatalaDuration(%d,%d,%d)" years months days
+    fprintf ppf "CatalaDuration.of(%d,%d,%d)" years months days
 
 let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
     : unit =
@@ -359,11 +356,15 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
   | EVar v -> VarName.format ppf v
   | EFunc f -> FuncName.format ppf f
   | EStruct { fields = es; name = s } -> (
-    if StructName.Set.mem s in_structs then
+    if StructName.Set.mem s in_structs then begin
+      StructName.Set.iter
+        (fun i -> Format.eprintf "%a@." StructName.format i)
+        in_structs;
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
            fprintf ppf "%a" (format_expression jctx ctx) e))
         ppf
         (StructField.Map.bindings es)
+    end
     else
       (* TODO (from_scopelang.ml:310) spurious eta-expansion might be
          removable *)
@@ -381,12 +382,33 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
           else None
         | _ -> None
       in
+      let format_obj_args ppf fields =
+        (* Edge-case on single context variable: same issue as above *)
+        match fields with
+        | [
+         ( field,
+           ( EStructFieldAccess
+               {
+                 field = field';
+                 e1 =
+                   ( EApp
+                       { f = _; args = [(EStruct { name = _; fields; _ }, _)] },
+                     _ );
+                 _;
+               },
+             _ ) );
+        ]
+          when field = field' ->
+          format_expression jctx ctx ppf (snd (StructField.Map.choose fields))
+        | _ ->
+          (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
+               fprintf ppf "%a" (format_expression jctx ctx) e))
+            ppf fields
+      in
       match substitution with
       | Some result_var -> VarName.format ppf result_var
       | None ->
-        fprintf ppf "new %a (%a)" (format_struct ctx) s
-          (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
-               fprintf ppf "%a" (format_expression jctx ctx) e))
+        fprintf ppf "new %a (%a)" (format_struct ctx) s format_obj_args
           (StructField.Map.bindings es))
   | EStructFieldAccess { name; field; _ }
     when StructName.Set.mem name in_structs ->
@@ -405,12 +427,16 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
     fprintf ppf "CatalaOption.some(%a)" (format_expression jctx ctx) e
+  | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
+    fprintf ppf "%a.make%a()" (format_enum ctx) enum_name EnumConstructor.format
+      cons
   | EInj { e1 = e; cons; name = enum_name; _ } ->
-    fprintf ppf "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name
-      (format_enum ctx) enum_name EnumConstructor.format cons
+    fprintf ppf "%a.make%a(%a)" (format_enum ctx) enum_name
+      EnumConstructor.format cons
       (format_expression jctx ctx)
       e
   | EArray es ->
+    (* v TODO v *)
     fprintf ppf "{%a}"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression jctx ctx) e))
@@ -424,7 +450,7 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
   | EAppOp { op; args = [arg1; arg2]; _ } ->
-    fprintf ppf "%a.%a(%a)"
+    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
       (format_expression_with_paren jctx ctx)
       arg1 format_op op
       (format_expression jctx ctx)
@@ -472,7 +498,7 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     fprintf ppf "%a" (format_expression jctx ctx) arg1
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
-    fprintf ppf "%a %a" format_op op (format_expression jctx ctx) arg1
+    fprintf ppf "%a.%a()" (format_expression jctx ctx) arg1 format_op op
   | EAppOp
       {
         op = (Minus_int | Minus_rat | Minus_mon | Minus_dur), _;
@@ -481,29 +507,30 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       } ->
     fprintf ppf "%a.negate()" (format_expression_with_paren jctx ctx) arg1
   | EAppOp { op; args = [arg1]; _ } ->
-    (* TODO: parenthesis ? *)
-    fprintf ppf "%a.%a()" (format_expression jctx ctx) arg1 format_op op
+    fprintf ppf "%a.%a()"
+      (format_expression_with_paren jctx ctx)
+      arg1 format_op op
   | EApp { f; args } ->
-    fprintf ppf "new %a(@[<hv 0>%a)@]"
+    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]"
       (format_expression jctx ctx)
       f
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       args
   | EAppOp { args = []; _ } -> assert false
   | EAppOp { op; args = arg_pos :: arg1 :: args; tys = (TLit TPos, _) :: _ } ->
-    fprintf ppf "%a.%a(@[<hv 0>%a)@]"
+    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a)@]"
       (format_expression_with_paren jctx ctx)
       arg1 format_op op
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       (arg_pos :: args)
   | EAppOp { op; args = arg1 :: args; _ } ->
-    fprintf ppf "%a.%a(@[<hv 0>%a)@]"
+    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a)@]"
       (format_expression jctx ctx)
       arg1 format_op op
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       args
   | ETuple es ->
-    fprintf ppf "new CatalaTuple(%a)"
+    fprintf ppf "new CatalaTuple(@[<hv 0>%a)@]"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression jctx ctx) e))
       es
@@ -525,7 +552,7 @@ and format_expression_with_paren jctx ctx (ppf : formatter) (e : expr) : unit =
 let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
   match Mark.remove stmt with
   | SLocalDecl { name; typ } ->
-    fprintf ppf "@[<hov 2>%a@ %a;@]" format_typ typ VarName.format
+    fprintf ppf "@[<hov 2>%a@ %a = null;@]" format_typ typ VarName.format
       (Mark.remove name)
   | SLocalDef { name; typ = _; expr } ->
     fprintf ppf "@[<hov 2>%a = %a;@]" VarName.format (Mark.remove name)
@@ -557,8 +584,21 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
       (Mark.remove name)
       (format_expression jctx ctx)
       expr
-  | SFatalError _ -> fprintf ppf "<todo: SFatalError>"
-  | SIfThenElse _ -> fprintf ppf "<todo: SIfThenElse>"
+  | SFatalError { pos_expr; error } ->
+    fprintf ppf
+      "throw new CatalaException(\"TODO pos(%a) + runtime errors %s specific \
+       construction\");"
+      (format_expression jctx ctx)
+      pos_expr
+      (Runtime.error_to_string error)
+  | SIfThenElse { if_expr; then_block; else_block } ->
+    format_if ppf
+      ~cond_format:(fun ppf ->
+        fprintf ppf "%a.asBoolean()"
+          (format_expression_with_paren jctx ctx)
+          if_expr)
+      ~cons_format:(fun ppf -> format_block jctx ctx ppf then_block)
+      ~alt_format:(fun ppf -> format_block jctx ctx ppf else_block)
   | SSwitch
       {
         switch_var;
@@ -575,15 +615,19 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
     in
     format_if ppf ~cond_format ~cons_format ~alt_format
   | SSwitch { switch_var; switch_var_typ = _; enum_name; switch_cases } ->
-    let format_init_case ppf (var, (typ : typ)) =
+    let format_init_case ppf (enum_cstr, var, (typ : typ)) =
       match Mark.remove typ with
       | TLit TUnit -> ()
-      | TTuple _ ->
-        fprintf ppf "%a %a = %a.getContents();@ " format_typ typ VarName.format
-          var VarName.format switch_var
       | _ ->
-        fprintf ppf "%a %a = (%a)%a.getContents();@ " format_typ typ
-          VarName.format var format_typ typ VarName.format switch_var
+        let s = VarName.to_string var in
+        if s.[0] >= '0' && s.[0] <= '9' then
+          (* Do not generate invalid initializers *)
+          (* FIXME: wildcard pattern yields weird variable names *)
+          ()
+        else
+          fprintf ppf "%a %a = %a.get%aContents();@ " format_typ typ
+            VarName.format var VarName.format switch_var EnumConstructor.format
+            enum_cstr
     in
     let format_switch_case
         ppf
@@ -593,7 +637,7 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
       in
       fprintf ppf "@[<v 2>case %a:@ %a%a@ break;@]" EnumConstructor.format
         enum_cstr format_init_case
-        (payload_var_name, payload_var_typ)
+        (enum_cstr, payload_var_name, payload_var_typ)
         (format_block ?scope jctx ctx)
         case_block
     in
@@ -601,11 +645,13 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
       EnumName.Map.find enum_name ctx.decl_ctx.ctx_enums
       |> EnumConstructor.Map.keys
     in
-    fprintf ppf "@[<v 2>switch (%a.getKind()) {@ %a@ }@]" VarName.format
-      switch_var
+    fprintf ppf "@[<v 2>switch (%a.kind) {@ %a@ }@]" VarName.format switch_var
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
-  | SAssert _ -> fprintf ppf "<todo: SAssert>"
+  | SAssert { expr; _ } ->
+    fprintf ppf "@[<hov 2>assert@ %a.asBoolean();@]"
+      (format_expression_with_paren jctx ctx)
+      expr
   | SSpecialOp _ -> .
 
 and format_block ?scope jctx ctx ppf (block : Ast.block) =
@@ -621,10 +667,10 @@ and format_if
   fprintf ppf "@[<v 2>if (%t) {@ %t@]@\n@[<v 2>} else {@ %t@]@\n}" cond_format
     cons_format alt_format
 
-let format_constructor_body in_structs (ctx : Ast.ctx) sbody ppf =
-  format_block ~scope:sbody in_structs ctx ppf sbody.scope_body_func.func_body
+let format_constructor_body jctx (ctx : Ast.ctx) sbody ppf =
+  format_block ~scope:sbody jctx ctx ppf sbody.scope_body_func.func_body
 
-let format_constructor in_structs (ctx : Ast.ctx) (sbody : scope_body) ppf =
+let format_constructor jctx (ctx : Ast.ctx) (sbody : scope_body) ppf =
   let in_struct_name =
     match sbody.scope_body_func.func_params with
     | [(_vname, (TStruct sn, _))] -> sn
@@ -637,7 +683,7 @@ let format_constructor in_structs (ctx : Ast.ctx) (sbody : scope_body) ppf =
     fprintf ppf "@[<hov 2>%a%a (@[<hov>%t@]) {@\n%t@]@\n}" format_visibility
       sbody.scope_body_visibility ScopeName.format sbody.scope_body_name
       (format_struct_params in_fields)
-      (format_constructor_body in_structs ctx sbody)
+      (format_constructor_body jctx ctx sbody)
 
 let format_scope_output_parameters (ctx : Ast.ctx) (sbody : scope_body) ppf =
   let out_struct_name =
@@ -657,12 +703,8 @@ let format_scope_output_parameters (ctx : Ast.ctx) (sbody : scope_body) ppf =
       (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
       (StructField.Map.bindings out_fields)
 
-let generate_scope
-    ~package
-    ~dir
-    (p : Ast.program)
-    in_structs
-    (sbody : Ast.scope_body) =
+let generate_scope ~package ~dir (p : Ast.program) jctx (sbody : Ast.scope_body)
+    =
   let open File in
   with_formatter_of_file
     ((dir / ScopeName.to_string sbody.scope_body_name) -.- ext)
@@ -670,13 +712,14 @@ let generate_scope
   fprintf ppf
     "package %s;@\n\
      import catala.runtime.*;@\n\
+     import catala.runtime.exception.*;@\n\
      @\n\
      @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@]@\n\
      }"
     package format_visibility sbody.scope_body_visibility ScopeName.format
     sbody.scope_body_name
     (format_scope_output_parameters p.ctx sbody)
-    (format_constructor in_structs p.ctx sbody)
+    (format_constructor jctx p.ctx sbody)
 
 let generate_ctx ~package ~dir p =
   let ctx = p.ctx in
@@ -793,21 +836,17 @@ let generate_ctx ~package ~dir p =
        }"
       package StructName.format sname format_params format_struct_constr
   in
-  let scope_in_structs =
+  let scope_in_structs, scope_structs =
     ScopeName.Map.fold
-      (fun _sname scope_info acc ->
-        StructName.Set.(add scope_info.in_struct_name acc))
-      ctx.decl_ctx.ctx_scopes StructName.Set.empty
+      (fun _sname scope_info (in_s, out_s) ->
+        ( StructName.Set.(add scope_info.in_struct_name in_s),
+          StructName.Set.(add scope_info.out_struct_name out_s) ))
+      ctx.decl_ctx.ctx_scopes
+      (StructName.Set.empty, StructName.Set.empty)
   in
   let structs_to_generate =
-    let scope_structs =
-      ScopeName.Map.fold
-        (fun _sname scope_info acc ->
-          StructName.Set.(add scope_info.out_struct_name acc))
-        ctx.decl_ctx.ctx_scopes scope_in_structs
-    in
     StructName.Map.filter
-      (fun sname _ -> not (StructName.Set.mem sname scope_structs))
+      (fun sname _ -> not (StructName.Set.mem sname scope_in_structs))
       ctx.decl_ctx.ctx_structs
   in
   StructName.Map.iter
@@ -815,7 +854,7 @@ let generate_ctx ~package ~dir p =
       File.(with_formatter_of_file ((dir / StructName.to_string sname) -.- ext))
       @@ fun ppf -> generate_struct ppf (sname, cstrs))
     structs_to_generate;
-  scope_in_structs
+  scope_in_structs, scope_structs
 
 let generate_program
     ~output_dir
@@ -848,7 +887,9 @@ let generate_program
   ignore
   @@ File.process_out "cp" ["-r"; path / "pom.xml"; path / "src"; output_dir];
   ignore @@ File.process_out "chmod" ["a+w"; "-R"; output_dir];
-  let in_structs = generate_ctx ~package:package_name ~dir:prog_dir p in
+  let in_structs, _scope_structs =
+    generate_ctx ~package:package_name ~dir:prog_dir p
+  in
   List.iter
     (generate_scope ~package:package_name ~dir:prog_dir p in_structs)
     scopes
