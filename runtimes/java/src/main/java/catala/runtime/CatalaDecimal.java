@@ -6,83 +6,122 @@ import java.math.RoundingMode;
 
 import org.apache.commons.numbers.fraction.BigFraction;
 
+import catala.runtime.exception.CatalaException;
+
 // We probably want to keep this class as-is
-// and not derive it from BigFraction as BigFraction is not part of 
+// and not derive it from BigFraction as BigFraction is not part of
 // java's stdlib and is currently vendored. (note: should we shadow
 // the package name for BigFraction?)
 public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecimal> {
-  private final BigFraction value;
 
-  private /* not sure of this? We might want to avoid let BigFraction escape in the API? */
-  CatalaDecimal(BigFraction value){
-    this.value = value;
-  }
+    private final BigFraction value;
 
-  //keeping this package-level for now
-  CatalaDecimal(int num, int den){
-    this.value = BigFraction.of(num, den);
-  }
+    private /* not sure of this? We might want to avoid let BigFraction escape in the API? */ CatalaDecimal(BigFraction value) {
+        this.value = value;
+    }
 
-  public CatalaDecimal negate(){
-    return new CatalaDecimal(this.value.negate());
-  }
+    //keeping this package-level for now
+    CatalaDecimal(int num, int den) {
+        this.value = BigFraction.of(num, den);
+    }
 
-  // XXX probably not the display format that we want
-  @Override
-  public String toString(){
-    return this.value.toString();
-  }
+    public CatalaDecimal(CatalaInteger num, CatalaInteger den) {
+        this.value = BigFraction.of(num.asBigInteger(), den.asBigInteger());
+    }
 
-  /**
-   * @param other {@inheritDoc}
-   * @return {@inheritDoc}
-   */
-  @Override
-  public int compareTo(CatalaDecimal other){
-    return this.value.compareTo(other.value);
-  }
+    public CatalaDecimal negate() {
+        return new CatalaDecimal(this.value.negate());
+    }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
-    CatalaDecimal other = (CatalaDecimal) obj;
-    return this.value.equals(other.value);
-  }
+    // XXX probably not the display format that we want
+    @Override
+    public String toString() {
+        return this.value.toString();
+    }
 
-  @Override
-  public int hashCode() {
-    return this.value.hashCode();
-  }
+    /**
+     * @param other {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int compareTo(CatalaDecimal other) {
+        return this.value.compareTo(other.value);
+    }
 
-  public final BigInteger getDenominator(){
-    return this.value.getDenominator();
-  }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CatalaDecimal other = (CatalaDecimal) obj;
+        return this.value.equals(other.value);
+    }
 
-  public final BigInteger getNumerator(){
-    return this.value.getNumerator();
-  }
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
 
-  public final CatalaDecimal multiply(CatalaDecimal other){
-    return new CatalaDecimal(this.value.multiply(other.value));
-  }
+    public final BigInteger getDenominator() {
+        return this.value.getDenominator();
+    }
 
-  final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode){
-    return this.value.bigDecimalValue(scale, roundingMode);
-  }
+    public final BigInteger getNumerator() {
+        return this.value.getNumerator();
+    }
 
-  // ToRat_int
-  public static final CatalaDecimal ofInteger(CatalaInteger ci){
-    return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
-  }
+    public final CatalaDecimal add(CatalaDecimal other) {
+        return new CatalaDecimal(this.value.add(other.value));
+    }
 
-  // ToRat_mon
-  public static final CatalaDecimal ofMoney(CatalaMoney cm){
-    return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
-  }
+    public final CatalaDecimal add(CatalaInteger other) {
+        return new CatalaDecimal(this.value.add(other.asBigInteger()));
+    }
 
-  static final CatalaDecimal ofMoneyAsCents(CatalaMoney cm){
-    return new CatalaDecimal(BigFraction.of(cm.asCents()));
-  }
+    public final CatalaDecimal subtract(CatalaDecimal other) {
+        return new CatalaDecimal(this.value.subtract(other.value));
+    }
+
+    public final CatalaDecimal subtract(CatalaInteger other) {
+        return new CatalaDecimal(this.value.subtract(other.asBigInteger()));
+    }
+
+    public final CatalaDecimal multiply(CatalaDecimal other) {
+        return new CatalaDecimal(this.value.multiply(other.value));
+    }
+
+    // TODO: add throws
+    public CatalaDecimal divide(SourcePosition pos, CatalaDecimal denum) {
+        try {
+            return new CatalaDecimal(this.value.divide(denum.value));
+        } catch (ArithmeticException e) {
+            throw new CatalaException("division by zero: " + pos);
+        }
+    }
+
+    final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode) {
+        return this.value.bigDecimalValue(scale, roundingMode);
+    }
+
+    // ToRat_int
+    public static final CatalaDecimal ofInteger(CatalaInteger ci) {
+        return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
+    }
+
+    // ToRat_mon
+    public static final CatalaDecimal ofMoney(CatalaMoney cm) {
+        return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
+    }
+
+    static final CatalaDecimal ofMoneyAsCents(CatalaMoney cm) {
+        return new CatalaDecimal(BigFraction.of(cm.asCents()));
+    }
+
+    public final CatalaDecimal divide(CatalaDecimal other) {
+        return new CatalaDecimal(this.value.multiply(other.value));
+    }
 
 }

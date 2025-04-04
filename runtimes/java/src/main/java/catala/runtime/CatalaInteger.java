@@ -2,6 +2,8 @@ package catala.runtime;
 
 import java.math.BigInteger;
 
+import catala.runtime.exception.CatalaException;
+
 // We could make this class extend java.math.BigInteger
 // for consumer friendliness?
 public final class CatalaInteger implements CatalaValue, Comparable<CatalaInteger> {
@@ -64,8 +66,20 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaInteger(this.value.add(i.value));
     }
 
-    public CatalaInteger sub(CatalaInteger i) {
+    public CatalaInteger subtract(CatalaInteger i) {
         return new CatalaInteger(this.value.subtract(i.value));
+    }
+
+    public CatalaInteger multiply(CatalaInteger i) {
+        return new CatalaInteger(this.value.multiply(i.value));
+    }
+
+    // TODO: add throws
+    public CatalaDecimal divide(SourcePosition pos, CatalaInteger denum) {
+        if (denum.value.equals(BigInteger.ZERO)) {
+            throw new CatalaException("division by zero: " + pos);
+        }
+        return new CatalaDecimal(this, denum);
     }
 
 }

@@ -6,4 +6,10 @@ public record SourcePosition(
         int startColumn,
         int endLine,
         int endColumn,
-        String[] law_headings) implements CatalaValue {}
+        String[] law_headings) implements CatalaValue {
+
+    @Override
+    public String toString() {
+        return "in file " + filename + ", from " + startLine + ":" + startColumn + " to " + endLine + ":" + endColumn;
+    }
+}
