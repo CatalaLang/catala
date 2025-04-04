@@ -82,4 +82,23 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaDecimal(this, denum);
     }
 
+    public CatalaBool lessThan(CatalaInteger other){
+        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
+    }
+
+    public CatalaBool lessEqThan(CatalaInteger other){
+        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
+    }
+
+    public CatalaBool greaterThan(CatalaInteger other){
+        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
+    }
+
+    public CatalaBool greaterEqThan(CatalaInteger other){
+        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
+    }
+
+    public CatalaBool equalsTo(CatalaInteger other){
+        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    }
 }

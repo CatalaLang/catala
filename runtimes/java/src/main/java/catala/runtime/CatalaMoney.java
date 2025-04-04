@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import catala.runtime.exception.CatalaException;
+
 public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
 
     // cents
@@ -25,13 +27,17 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
      * Round to the nearest unit (multiple of 100 cents)
      */
     public final CatalaMoney round() {
-       return new CatalaMoney(this.value.divide(BigInteger.valueOf(100)).multiply(BigInteger.valueOf(100)));
+        return new CatalaMoney(this.value.divide(BigInteger.valueOf(100)).multiply(BigInteger.valueOf(100)));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         CatalaMoney other = (CatalaMoney) obj;
         return this.value.equals(other.value);
     }
@@ -51,35 +57,88 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
         return String.format("Money(%d.%02d)", (Object[]) unitsAndCents);
     }
 
-    public final CatalaMoney multiply(CatalaInteger other){
+    public final CatalaMoney subtract(CatalaMoney other) {
+        return new CatalaMoney(this.value.subtract(other.asCents()));
+    }
+
+    public final CatalaMoney add(CatalaMoney other) {
+        return new CatalaMoney(this.value.add(other.asCents()));
+    }
+
+    public final CatalaMoney multiply(CatalaInteger other) {
         return new CatalaMoney(this.value.multiply(other.asBigInteger()));
     }
 
     /**
      * Rounds to the nearest cent
      */
-    public final CatalaMoney multiply(CatalaDecimal other){
-        CatalaDecimal thisDecCents = 
-          CatalaDecimal.ofMoneyAsCents(this);
+    public final CatalaMoney multiply(CatalaDecimal other) {
+        CatalaDecimal thisDecCents
+                = CatalaDecimal.ofMoneyAsCents(this);
         CatalaDecimal resDecimal = thisDecCents.multiply(other);
         BigDecimal resBigDecimal = resDecimal.bigDecimalValue(0, RoundingMode.HALF_UP);
         return new CatalaMoney(resBigDecimal.toBigIntegerExact());
     }
 
-    public static final CatalaMoney ofCents(String cents){
-      return new CatalaMoney(new BigInteger(cents));
+    // Div_mon_mon
+    public final CatalaMoney divide(SourcePosition pos, CatalaMoney other) {
+        if (other.value.equals(BigInteger.ZERO)) {
+            throw new CatalaException("division by zero: " + pos);
+        }
+        return this.multiply(new CatalaDecimal(
+                new CatalaInteger(BigInteger.ONE),
+                new CatalaInteger(other.value)));
     }
 
-    public static final CatalaMoney ofCents(BigInteger cents){
-      return new CatalaMoney(cents);
+    // Div_mon_int
+    public final CatalaMoney divide(SourcePosition pos, CatalaInteger other) {
+        if (other.asBigInteger().equals(BigInteger.ZERO)) {
+            throw new CatalaException("division by zero: " + pos);
+        }
+        return this.multiply(new CatalaDecimal(
+                new CatalaInteger(BigInteger.ONE),
+                other));
     }
 
-    public static final CatalaMoney ofCents(long cents){
+    // Div_mon_rat
+    public final CatalaMoney divide(SourcePosition pos, CatalaDecimal other) {
+        return this.multiply(other.inverse(pos));
+    }
+
+    public static final CatalaMoney ofCents(String cents) {
+        return new CatalaMoney(new BigInteger(cents));
+    }
+
+    public static final CatalaMoney ofCents(BigInteger cents) {
+        return new CatalaMoney(cents);
+    }
+
+    public static final CatalaMoney ofCents(long cents) {
         return new CatalaMoney(BigInteger.valueOf(cents));
+    }
+
+    public CatalaBool lessThan(CatalaMoney other){
+        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
+    }
+
+    public CatalaBool lessEqThan(CatalaMoney other){
+        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
+    }
+
+    public CatalaBool greaterThan(CatalaMoney other){
+        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
+    }
+
+    public CatalaBool greaterEqThan(CatalaMoney other){
+        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
+    }
+
+    public CatalaBool equalsTo(CatalaMoney other){
+        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
 }

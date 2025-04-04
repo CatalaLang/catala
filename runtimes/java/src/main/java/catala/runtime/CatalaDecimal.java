@@ -93,6 +93,13 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(this.value.multiply(other.value));
     }
 
+    public final CatalaDecimal inverse(SourcePosition pos) {
+        if (this.value.getNumerator().equals(BigInteger.ZERO)) {
+            throw new CatalaException("division by zero: " + pos);
+        }
+        return new CatalaDecimal(new CatalaInteger(this.getDenominator()), new CatalaInteger(this.getNumerator()));
+    }
+
     // TODO: add throws
     public CatalaDecimal divide(SourcePosition pos, CatalaDecimal denum) {
         try {
@@ -124,4 +131,23 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(this.value.multiply(other.value));
     }
 
+    public CatalaBool lessThan(CatalaDecimal other){
+        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
+    }
+
+    public CatalaBool lessEqThan(CatalaDecimal other){
+        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
+    }
+
+    public CatalaBool greaterThan(CatalaDecimal other){
+        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
+    }
+
+    public CatalaBool greaterEqThan(CatalaDecimal other){
+        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
+    }
+
+    public CatalaBool equalsTo(CatalaDecimal other){
+        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    }
 }

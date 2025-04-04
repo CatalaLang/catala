@@ -38,4 +38,24 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
     public int compareTo(CatalaDate t) {
         return this.date.compareTo(t.date);
     }
+
+    public CatalaBool lessThan(CatalaDate other){
+        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
+    }
+
+    public CatalaBool lessEqThan(CatalaDate other){
+        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
+    }
+
+    public CatalaBool greaterThan(CatalaDate other){
+        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
+    }
+
+    public CatalaBool greaterEqThan(CatalaDate other){
+        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
+    }
+
+    public CatalaBool equalsTo(CatalaDate other){
+        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    }
 }
