@@ -26,26 +26,6 @@ open Format
 let pp_comma ppf () = fprintf ppf ",@ "
 let ext = "java"
 
-(* let format_lit (ppf : formatter) (l : lit Mark.pos) : unit = *)
-(*   match Mark.remove l with *)
-(*   | LBool true -> pp_print_string ppf "True" *)
-(*   | LBool false -> pp_print_string ppf "False" *)
-(*   | LInt i -> *)
-(* fprintf ppf "integer_of_string(\"%s\")" (Runtime.integer_to_string i) *)
-(* | LUnit -> pp_print_string ppf "Unit()" *)
-(* | LRat i -> fprintf ppf "decimal_of_string(\"%s\")" (Q.to_string i) *)
-(*   | LMoney e -> *)
-(*     fprintf ppf "money_of_cents_string(\"%s\")" *)
-(*       (Runtime.integer_to_string (Runtime.money_to_cents e)) *)
-(*   | LDate d -> *)
-(*     fprintf ppf "date_of_numbers(%d,%d,%d)" *)
-(*       (Runtime.integer_to_int (Runtime.year_of_date d)) *)
-(*       (Runtime.integer_to_int (Runtime.month_number_of_date d)) *)
-(*       (Runtime.integer_to_int (Runtime.day_of_month_of_date d)) *)
-(*   | LDuration d -> *)
-(*     let years, months, days = Runtime.duration_to_years_months_days d in *)
-(*     fprintf ppf "duration_of_numbers(%d,%d,%d)" years months days *)
-
 let format_uid_list (ppf : formatter) (uids : Uid.MarkedString.info list) : unit
     =
   fprintf ppf "[%a]"
@@ -181,65 +161,55 @@ let format_func_name (ppf : formatter) (v : FuncName.t) : unit =
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
   | Log (_entry, _infos) -> assert false
-  | Minus_int | Minus_rat | Minus_mon | Minus_dur -> pp_print_string ppf "-"
-  (* Todo: use the names from [Operator.name] *)
+  | Minus_int | Minus_rat | Minus_mon | Minus_dur -> pp_print_string ppf "sub"
   | Not -> pp_print_string ppf "not"
-  | Length -> pp_print_string ppf "list_length"
-  | ToInt_rat -> pp_print_string ppf "integer_of_decimal"
-  | ToRat_int -> pp_print_string ppf "decimal_of_integer"
-  | ToRat_mon -> pp_print_string ppf "decimal_of_money"
-  | ToMoney_rat -> pp_print_string ppf "money_of_decimal"
-  | GetDay -> pp_print_string ppf "day_of_month_of_date"
-  | GetMonth -> pp_print_string ppf "month_number_of_date"
-  | GetYear -> pp_print_string ppf "year_of_date"
-  | FirstDayOfMonth -> pp_print_string ppf "first_day_of_month"
-  | LastDayOfMonth -> pp_print_string ppf "last_day_of_month"
-  | Round_mon -> pp_print_string ppf "money_round"
-  | Round_rat -> pp_print_string ppf "decimal_round"
-  | Add_int_int -> pp_print_string ppf "add"
-  | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat -> pp_print_string ppf "+"
-  | Add_dat_dur rounding ->
-    fprintf ppf "add_date_duration(%s)"
-      (match rounding with
-      | RoundUp -> "DateRounding.RoundUp"
-      | RoundDown -> "DateRounding.RoundDown"
-      | AbortOnRound -> "DateRounding.AbortOnRound")
+  | Length -> pp_print_string ppf "size"
+  | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
+  | ToInt_rat -> pp_print_string ppf "asInteger"
+  | ToMoney_rat -> pp_print_string ppf "asMoney"
+  | GetDay -> pp_print_string ppf "getDay"
+  | GetMonth -> pp_print_string ppf "getMonth"
+  | GetYear -> pp_print_string ppf "getYear"
+  | FirstDayOfMonth -> pp_print_string ppf "getFirstDayOfMonth"
+  | LastDayOfMonth -> pp_print_string ppf "getLastDayOfMonth"
+  | Round_mon -> pp_print_string ppf "round"
+  | Round_rat -> pp_print_string ppf "round"
+  | Concat -> pp_print_string ppf "append"
+  | Add_rat_rat | Add_mon_mon | Add_dur_dur | Add_int_int ->
+    pp_print_string ppf "add"
+  | Add_dat_dur RoundUp -> fprintf ppf "addDurationRoundUp"
+  | Add_dat_dur RoundDown -> fprintf ppf "addDurationRoundDown"
+  | Add_dat_dur AbortOnRound -> fprintf ppf "addDurationAbortOnRound"
   | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur ->
-    pp_print_string ppf "sub"
-  | Sub_dat_dur rounding ->
-    fprintf ppf "sub_date_duration(%s)"
-      (match rounding with
-      | RoundUp -> "DateRounding.RoundUp"
-      | RoundDown -> "DateRounding.RoundDown"
-      | AbortOnRound -> "DateRounding.AbortOnRound")
+    pp_print_string ppf "subtract"
+  | Sub_dat_dur RoundUp -> fprintf ppf "subDurationRoundUp"
+  | Sub_dat_dur RoundDown -> fprintf ppf "subDurationRoundDown"
+  | Sub_dat_dur AbortOnRound -> fprintf ppf "subDurationAbortOnRound"
   | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int ->
-    pp_print_string ppf "*"
+    pp_print_string ppf "multiply"
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur ->
-    pp_print_string ppf "div"
+    pp_print_string ppf "divide"
   | And -> pp_print_string ppf "and"
   | Or -> pp_print_string ppf "or"
-  | Eq -> pp_print_string ppf "=="
-  | Xor -> pp_print_string ppf "!="
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat -> pp_print_string ppf "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat ->
-    pp_print_string ppf "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat -> pp_print_string ppf ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat ->
-    pp_print_string ppf ">="
-  | Lt_dur_dur -> pp_print_string ppf "lt_duration"
-  | Lte_dur_dur -> pp_print_string ppf "leq_duration"
-  | Gt_dur_dur -> pp_print_string ppf "gt_duration"
-  | Gte_dur_dur -> pp_print_string ppf "geq_duration"
-  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
-    ->
-    pp_print_string ppf "=="
-  | Map -> pp_print_string ppf "list_map"
-  | Map2 -> pp_print_string ppf "list_map2"
-  | Reduce -> pp_print_string ppf "list_reduce"
-  | Filter -> pp_print_string ppf "list_filter"
-  | Fold -> pp_print_string ppf "list_fold_left"
-  | HandleExceptions -> pp_print_string ppf "handle_exceptions"
+  | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
+  | Eq_dur_dur ->
+    pp_print_string ppf "equals"
+  | Xor -> pp_print_string ppf "xor"
+  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
+    pp_print_string ppf "lessThan"
+  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
+    pp_print_string ppf "lessEqThan"
+  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
+    pp_print_string ppf "greaterThan"
+  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
+    pp_print_string ppf "greaterEqThan"
+  | Map -> pp_print_string ppf "map"
+  | Map2 -> pp_print_string ppf "map2"
+  | Reduce -> pp_print_string ppf "reduce"
+  | Filter -> pp_print_string ppf "filter"
+  | Fold -> pp_print_string ppf "fold"
+  | HandleExceptions -> pp_print_string ppf "handleExceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_scope_calls ppf (p : Ast.program) =
@@ -355,14 +325,22 @@ let fields_of_struct ctx sname =
   | None -> StructField.Set.empty
   | Some m -> StructField.Map.keys m |> StructField.Set.of_list
 
-let format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
+let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
-  | LBool true -> pp_print_string ppf "CatalaBool.true"
-  | LBool false -> pp_print_string ppf "CatalaBool.false"
+  | LBool true -> pp_print_string ppf "CatalaBool.TRUE"
+  | LBool false -> pp_print_string ppf "CatalaBool.FALSE"
   | LInt i ->
     fprintf ppf "new CatalaInteger(\"%s\")" (Runtime.integer_to_string i)
   | LUnit -> pp_print_string ppf "null"
-  | LRat i -> fprintf ppf "new CatalaDecimal(\"%s\")" (Q.to_string i)
+  | LRat i ->
+    if Q.den i = Z.one then
+      fprintf ppf "CatalaDecimal.ofInteger(%a)" format_lit
+        (Mark.copy l (LInt (Q.num i)))
+    else
+      fprintf ppf "new CatalaDecimal(%a, %a)" format_lit
+        (Mark.copy l (LInt (Q.num i)))
+        format_lit
+        (Mark.copy l (LInt (Q.den i)))
   | LMoney e ->
     fprintf ppf "CatalaMoney.from_cents(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -447,7 +425,7 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       (Pos.get_law_info pos)
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     fprintf ppf "%a.%a(%a)"
-      (format_expression jctx ctx)
+      (format_expression_with_paren jctx ctx)
       arg1 format_op op
       (format_expression jctx ctx)
       arg2
@@ -497,21 +475,31 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
     fprintf ppf "%a %a" format_op op (format_expression jctx ctx) arg1
   | EAppOp
       {
-        op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
+        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur), _;
         args = [arg1];
         _;
       } ->
-    fprintf ppf "%a %a" format_op op (format_expression jctx ctx) arg1
+    fprintf ppf "%a.negate()" (format_expression_with_paren jctx ctx) arg1
   | EAppOp { op; args = [arg1]; _ } ->
-    fprintf ppf "%a(%a)" format_op op (format_expression jctx ctx) arg1
+    (* TODO: parenthesis ? *)
+    fprintf ppf "%a.%a()" (format_expression jctx ctx) arg1 format_op op
   | EApp { f; args } ->
     fprintf ppf "new %a(@[<hv 0>%a)@]"
       (format_expression jctx ctx)
       f
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       args
-  | EAppOp { op; args; _ } ->
-    fprintf ppf "%a(@[<hv 0>%a)@]" format_op op
+  | EAppOp { args = []; _ } -> assert false
+  | EAppOp { op; args = arg_pos :: arg1 :: args; tys = (TLit TPos, _) :: _ } ->
+    fprintf ppf "%a.%a(@[<hv 0>%a)@]"
+      (format_expression_with_paren jctx ctx)
+      arg1 format_op op
+      (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
+      (arg_pos :: args)
+  | EAppOp { op; args = arg1 :: args; _ } ->
+    fprintf ppf "%a.%a(@[<hv 0>%a)@]"
+      (format_expression jctx ctx)
+      arg1 format_op op
       (pp_print_list ~pp_sep:pp_comma (format_expression jctx ctx))
       args
   | ETuple es ->
@@ -525,6 +513,14 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       e1 index
   | EExternal { modname; name } ->
     fprintf ppf "%a.%s" VarName.format (Mark.remove modname) (Mark.remove name)
+
+and format_expression_with_paren jctx ctx (ppf : formatter) (e : expr) : unit =
+  match Mark.remove e with
+  | EAppOp _ | EInj _ | ETupleAccess _ | EStructFieldAccess _ | EFunc _ | EVar _
+    ->
+    format_expression jctx ctx ppf e
+  | EExternal _ | EPosLit | EApp _ | ELit _ | EArray _ | ETuple _ | EStruct _ ->
+    fprintf ppf "(%a)" (format_expression jctx ctx) e
 
 let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
   match Mark.remove stmt with
