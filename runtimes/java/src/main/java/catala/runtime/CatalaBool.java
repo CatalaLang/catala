@@ -21,4 +21,21 @@ public final class CatalaBool implements CatalaValue {
             return FALSE;
         }
     }
+
+    public CatalaBool and(CatalaBool other){
+        return new CatalaBool(this.value && other.value);
+    }
+
+    public CatalaBool or(CatalaBool other){
+        return new CatalaBool(this.value || other.value);
+    }
+
+    public CatalaBool xor(CatalaBool other){
+        return new CatalaBool(this.value ^ other.value);
+    }
+
+    public CatalaBool equals(CatalaBool other){
+        return new CatalaBool(this.value == other.value);
+    }
+
 }

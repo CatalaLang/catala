@@ -129,10 +129,6 @@ let typ_needs_parens (e : typ) : bool =
 
 let rec format_typ ctx (ppf : formatter) (typ : typ) : unit =
   let format_typ = format_typ ctx in
-  let format_typ_with_parens (ppf : formatter) (t : typ) =
-    if typ_needs_parens t then fprintf ppf "(%a)" format_typ t
-    else fprintf ppf "%a" format_typ t
-  in
   match Mark.remove typ with
   | TLit TUnit -> fprintf ppf "CatalaUnit"
   | TLit TMoney -> fprintf ppf "CatalaMoney"
@@ -147,10 +143,11 @@ let rec format_typ ctx (ppf : formatter) (typ : typ) : unit =
   | TOption some_typ -> fprintf ppf "CatalaOption<%a>" format_typ some_typ
   | TDefault t -> format_typ ppf t
   | TEnum e -> format_enum ctx ppf e
-  | TArrow (t1, t2) ->
-    fprintf ppf "Callable[[%a], %a]"
-      (pp_print_list ~pp_sep:pp_comma format_typ_with_parens)
-      t1 format_typ_with_parens t2
+  | TArrow ([], _) -> assert false
+  | TArrow ([t1], t2) ->
+    fprintf ppf "Function<%a, %a>" format_typ t1 format_typ t2
+  | TArrow (_ :: _ :: _, t2) ->
+    fprintf ppf "Function<CatalaTuple, %a>" format_typ t2
   | TArray t1 -> fprintf ppf "%a[]" format_typ t1
   | TAny -> fprintf ppf "Any"
   | TClosureEnv -> failwith "unimplemented!"
@@ -210,7 +207,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Reduce -> pp_print_string ppf "reduce"
   | Filter -> pp_print_string ppf "filter"
   | Fold -> pp_print_string ppf "fold"
-  | HandleExceptions -> pp_print_string ppf "handleExceptions"
+  | HandleExceptions -> pp_print_string ppf "ConflictException.handleExceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_scope_calls ppf (p : Ast.program) =
@@ -299,7 +296,10 @@ let format_typ_lit ppf = function
 let rec format_typ ppf typ =
   match Mark.remove typ with
   | TLit typ_lit -> format_typ_lit ppf typ_lit
-  | TArrow _ -> assert false
+  | TArrow ([ty], ret_ty) ->
+    fprintf ppf "CatalaFunction<%a,%a>" format_typ ty format_typ ret_ty
+  | TArrow (_args_ty, ret_ty) ->
+    fprintf ppf "CatalaFunction<CatalaTuple,%a>" format_typ ret_ty
   | TTuple _ -> fprintf ppf "CatalaTuple"
   | TStruct sname -> StructName.format ppf sname (* TODO: resolve imports *)
   | TEnum ename -> EnumName.format ppf ename (* TODO: resolve imports *)
@@ -436,7 +436,6 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       (format_expression jctx ctx)
       e
   | EArray es ->
-    (* v TODO v *)
     fprintf ppf "{%a}"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression jctx ctx) e))
@@ -449,6 +448,12 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
+  | EAppOp
+      { op = (HandleExceptions, _) as op; args = [((EArray _, _) as arg)]; _ }
+    ->
+    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaOption[]%a@])" format_op op
+      (format_expression jctx ctx)
+      arg
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
       (format_expression_with_paren jctx ctx)
@@ -535,8 +540,8 @@ let rec format_expression (in_structs as jctx) ctx (ppf : formatter) (e : expr)
            fprintf ppf "%a" (format_expression jctx ctx) e))
       es
   | ETupleAccess { e1; index; typ } ->
-    fprintf ppf "(%a)(%a).get(%d)" format_typ typ
-      (format_expression jctx ctx)
+    fprintf ppf "(%a)(%a.get(%d))" format_typ typ
+      (format_expression_with_paren jctx ctx)
       e1 index
   | EExternal { modname; name } ->
     fprintf ppf "%a.%s" VarName.format (Mark.remove modname) (Mark.remove name)
@@ -549,6 +554,30 @@ and format_expression_with_paren jctx ctx (ppf : formatter) (e : expr) : unit =
   | EExternal _ | EPosLit | EApp _ | ELit _ | EArray _ | ETuple _ | EStruct _ ->
     fprintf ppf "(%a)" (format_expression jctx ctx) e
 
+(**
+package conflicts_module;
+
+import java.util.function.Function;
+
+import catala.runtime.CatalaBool;
+import catala.runtime.CatalaInteger;
+import catala.runtime.CatalaTuple;
+import catala.runtime.CatalaValue;
+
+public class Closure_scøppe implements CatalaValue {
+
+    public Closure_scøppe() {
+        CatalaBool scoppe = null;
+        Function<CatalaTuple, CatalaBool> scoppe__1 = null;
+        scoppe__1 = tup -> {
+            CatalaBool acc = tup.get(0, CatalaBool.class);
+            CatalaInteger x = tup.get(1, CatalaInteger.class);
+            return acc.and(x.greaterThan(new CatalaInteger("2")));
+        };
+
+    }
+}
+*)
 let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
   match Mark.remove stmt with
   | SLocalDecl { name; typ } ->
@@ -578,7 +607,38 @@ let rec format_stmt ?scope jctx (ctx : Ast.ctx) ppf (stmt : Ast.stmt Mark.pos) =
         (StructField.Map.bindings fields)
     | _ -> fprintf ppf "@[<hov 2>return %a;@]" (format_expression jctx ctx) expr
     )
-  | SInnerFuncDef _ -> fprintf ppf "<todo: SInnerFuncDef>"
+  | SInnerFuncDef
+      { name; func = { func_params = [(_, (TLit TUnit, _))]; func_body; _ } } ->
+    fprintf ppf "@[<hov 2>%a = unit -> {@ %a @]};" VarName.format
+      (Mark.remove name)
+      (format_block ?scope jctx ctx)
+      func_body
+  | SInnerFuncDef { name; func = { func_params = [(pname, _)]; func_body; _ } }
+    ->
+    fprintf ppf "@[<hov 2>%a = %a -> {@ %a @]};" VarName.format
+      (Mark.remove name) VarName.format (Mark.remove pname)
+      (format_block ?scope jctx ctx)
+      func_body
+  | SInnerFuncDef
+      { name; func = { func_params = _ :: _ :: _ as params; func_body; _ } } ->
+    let args_name = VarName.fresh ("fargs", Pos.void) in
+    let init_params =
+      List.mapi
+        (fun index (name, typ) ->
+          let expr =
+            ETupleAccess { e1 = EVar args_name, Pos.void; index; typ }, Pos.void
+          in
+          SLocalInit { name; typ; expr }, Pos.void)
+        params
+    in
+    fprintf ppf "@[<hov 2>%a = %a -> {@ %a@\n%a @]};" VarName.format
+      (Mark.remove name) VarName.format args_name
+      (format_block ?scope jctx ctx)
+      init_params
+      (format_block ?scope jctx ctx)
+      func_body
+  | SInnerFuncDef { name = _; func = { func_params = []; func_body = _; _ } } ->
+    assert false
   | SLocalInit { name; typ; expr } ->
     fprintf ppf "@[<hov 2>%a %a =@ %a;@]" format_typ typ VarName.format
       (Mark.remove name)
@@ -865,7 +925,9 @@ let generate_program
   let package_name =
     match p.module_name with
     | None -> Filename.chop_extension input_file
-    | Some (mname, _) -> ModuleName.to_string mname
+    | Some (mname, _) ->
+      (* FIXME: put that in renaming *)
+      String.to_snake_case (ModuleName.to_string mname)
   in
   let prog_dir = output_dir / "src" / "main" / "java" / package_name in
   (* Creates the output directory *)
