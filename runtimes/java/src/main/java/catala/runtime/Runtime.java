@@ -1,7 +1,6 @@
 package catala.runtime;
-   
-        
-public class Runtime{
+
+public class CatalaRuntime{
 
     public record S_output(int x) {};
 

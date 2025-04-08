@@ -22,6 +22,10 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return this.value;
     }
 
+    public final CatalaDecimal asDecimal() {
+        return new CatalaDecimal(this, new CatalaInteger(BigInteger.ONE));
+    }
+
     // ToInt_rat
     public static final CatalaInteger ofDecimal(CatalaDecimal dec) {
         return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));

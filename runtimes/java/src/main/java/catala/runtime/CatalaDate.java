@@ -2,6 +2,8 @@ package catala.runtime;
 
 import java.time.LocalDate;
 
+import catala.runtime.exception.CatalaException;
+
 public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
     private final LocalDate date;
@@ -57,5 +59,9 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
     public CatalaBool equalsTo(CatalaDate other){
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    }
+
+    public CatalaDate addDurationAbortOnRound(SourcePosition pos, CatalaDuration dur){
+        throw new CatalaException("addDurationAbortOnRound not implemented yet");
     }
 }

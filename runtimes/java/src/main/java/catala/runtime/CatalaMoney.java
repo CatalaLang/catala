@@ -19,6 +19,11 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return this.value;
     }
 
+    public final CatalaDecimal asDecimal() {
+        return new CatalaDecimal(new CatalaInteger(this.value),
+                                 new CatalaInteger(BigInteger.ONE));
+    }
+
     public final CatalaMoney negate() {
         return new CatalaMoney(this.value.negate());
     }
