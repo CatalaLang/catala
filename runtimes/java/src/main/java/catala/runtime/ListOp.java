@@ -33,4 +33,12 @@ public final class ListOp {
         return Stream.of(arr).reduce((a, b) -> reducer.apply(a, b)).orElse(dflt.apply(CatalaUnit.INSTANCE));
     }
 
+    public static <T extends CatalaValue, U extends CatalaValue> U foldLeft(BiFunction<T,U,U> folder, U init, T[] arr){
+        U result = init;
+        for (T element : arr) {
+            result = folder.apply(element, result);
+        }
+        return result;
+    }
+
 }
