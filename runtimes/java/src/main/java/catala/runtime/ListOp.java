@@ -1,6 +1,5 @@
 package catala.runtime;
 
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public final class ListOp {
@@ -29,16 +28,25 @@ public final class ListOp {
         return Stream.of(arr).filter(CatalaPredicate.ofCatalaFunction(func)).toArray(size -> (T[]) new CatalaValue[size]);
     }
 
-    public static <T extends CatalaValue> T reduce(BiFunction<T, T, T> reducer, CatalaFunction<CatalaUnit, T> dflt, T[] arr) {
-        return Stream.of(arr).reduce((a, b) -> reducer.apply(a, b)).orElse(dflt.apply(CatalaUnit.INSTANCE));
-    }
-
-    public static <T extends CatalaValue, U extends CatalaValue> U foldLeft(BiFunction<T,U,U> folder, U init, T[] arr){
+    public static <T extends CatalaValue, U extends CatalaValue> U foldLeft(CatalaFunction<CatalaTuple, U> folder, U init, T[] arr) {
         U result = init;
         for (T element : arr) {
-            result = folder.apply(element, result);
+            result = folder.apply(new CatalaTuple(element, result));
         }
         return result;
+    }
+
+    public static <T extends CatalaValue> T reduce(CatalaFunction<CatalaTuple, T> reducer, CatalaFunction<CatalaUnit, T> dflt, T[] arr) {
+        if (arr.length == 0) {
+            return dflt.apply(CatalaUnit.INSTANCE);
+        } else {
+            T result = arr[0];
+            for (int i = 1; i < arr.length; i++) {
+                T elt = arr[i];
+                result = reducer.apply(new CatalaTuple(elt, result));
+            }
+            return result;
+        }
     }
 
 }

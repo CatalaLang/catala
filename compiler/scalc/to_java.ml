@@ -170,7 +170,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     pp_print_string ppf "subtract"
   | Not -> pp_print_string ppf "not"
-  | Length -> pp_print_string ppf "size"
+  | Length -> pp_print_string ppf "length"
   | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
   | ToInt_rat -> pp_print_string ppf "asInteger"
   | ToMoney_rat -> pp_print_string ppf "asMoney"
@@ -215,7 +215,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Map2 -> pp_print_string ppf "map2"
   | Reduce -> pp_print_string ppf "reduce"
   | Filter -> pp_print_string ppf "filter"
-  | Fold -> pp_print_string ppf "fold"
+  | Fold -> pp_print_string ppf "foldLeft"
   | HandleExceptions -> pp_print_string ppf "ConflictException.handleExceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
@@ -361,17 +361,15 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
 
 let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
   (* TODO: adapt to consider globals *)
-  let { in_scope_structs; global_vars; global_funcs; _ } = ctx in
+  let { in_scope_structs; global_vars; global_funcs; in_globals; _ } = ctx in
   match Mark.remove e with
   | EVar v ->
-    if VarName.Set.mem v global_vars then fprintf ppf "Globals.";
+    if VarName.Set.mem v global_vars && not in_globals then
+      fprintf ppf "Globals.";
     VarName.format ppf v
   | EFunc f -> FuncName.format ppf f
   | EStruct { fields = es; name = s } -> (
     if StructName.Set.mem s in_scope_structs then begin
-      StructName.Set.iter
-        (fun i -> Format.eprintf "%a@." StructName.format i)
-        in_scope_structs;
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
            fprintf ppf "%a" (format_expression ctx) e))
         ppf
@@ -411,7 +409,8 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
              _ ) );
         ]
           when field = field' ->
-          format_expression ctx ppf (snd (StructField.Map.choose fields))
+          if StructField.Map.is_empty fields then ()
+          else format_expression ctx ppf (snd (StructField.Map.choose fields))
         | _ ->
           (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
                fprintf ppf "%a" (format_expression ctx) e))
@@ -440,9 +439,11 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a()" (format_enum ctx) enum_name EnumConstructor.format
       cons
-  | EInj { e1 = e; cons; name = enum_name; _ } ->
+  | EInj { e1 = e; cons; name = enum_name; expr_typ = ty; _ } ->
     fprintf ppf "%a.make%a(%a)" (format_enum ctx) enum_name
-      EnumConstructor.format cons (format_expression ctx) e
+      EnumConstructor.format cons
+      (format_expression ~ty ctx)
+      e
   | EArray es ->
     fprintf ppf "new %a{%a}"
       (fun ppf -> function
@@ -460,11 +461,11 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | EAppOp
-      { op = (HandleExceptions, _) as op; args = [((EArray _, _) as arg)]; _ }
+  | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
-    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaOption[]%a@])" format_op op
-      (format_expression ctx) arg
+    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaOption[]{@ %a@ }@])" format_op op
+      (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
+      exprs
   | EAppOp { op = ((Map | Filter | Reduce | Fold | Map2), _) as op; args; tys }
     ->
     (* List operations *)
@@ -472,6 +473,9 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
       (pp_print_list ~pp_sep:pp_comma (fun ppf (e, ty) ->
            format_expression ~ty ctx ppf e))
       (List.combine args tys)
+  | EAppOp { op = (Length, _) as op; args = [arg]; _ } ->
+    fprintf ppf "@[<hov 2>new CatalaInteger(@ %a.%a@]@ )"
+      (format_expression ctx) arg format_op op
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
       (format_expression_with_paren ctx)
@@ -524,7 +528,9 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args } when FuncName.Set.mem fname global_funcs
     ->
-    fprintf ppf "@[<hv 0>Globals.%a(@;<0 -1>%a)@]" FuncName.format fname
+    fprintf ppf "@[<hv 0>%s%a(@;<0 -1>%a)@]"
+      (if in_globals then "" else "Globals.")
+      FuncName.format fname
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f; args } ->
@@ -563,39 +569,15 @@ and format_expression_with_paren ctx (ppf : formatter) (e : expr) : unit =
   | EExternal _ | EPosLit | EApp _ | ELit _ | EArray _ | ETuple _ | EStruct _ ->
     fprintf ppf "(%a)" (format_expression ctx) e
 
-(**
-package conflicts_module;
-
-import java.util.function.Function;
-
-import catala.runtime.CatalaBool;
-import catala.runtime.CatalaInteger;
-import catala.runtime.CatalaTuple;
-import catala.runtime.CatalaValue;
-
-public class Closure_scøppe implements CatalaValue {
-
-    public Closure_scøppe() {
-        CatalaBool scoppe = null;
-        Function<CatalaTuple, CatalaBool> scoppe__1 = null;
-        scoppe__1 = tup -> {
-            CatalaBool acc = tup.get(0, CatalaBool.class);
-            CatalaInteger x = tup.get(1, CatalaInteger.class);
-            return acc.and(x.greaterThan(new CatalaInteger("2")));
-        };
-
-    }
-}
-*)
 let rec format_stmt ?scope (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
-  (* TODO: adapt to consider globals *)
   match Mark.remove stmt with
   | SLocalDecl { name; typ } ->
     fprintf ppf "@[<hov 2>%a@ %a = null;@]" format_typ typ VarName.format
       (Mark.remove name)
-  | SLocalDef { name; typ = _; expr } ->
+  | SLocalDef { name; typ = ty; expr } ->
     fprintf ppf "@[<hov 2>%a = %a;@]" VarName.format (Mark.remove name)
-      (format_expression ctx) expr
+      (format_expression ~ty ctx)
+      expr
   | SReturn expr -> (
     match scope, Mark.remove expr with
     | Some sbody, EStruct { name; fields; _ } ->
@@ -952,34 +934,40 @@ let format_global_methods
 
 let generate_globals ~package ~dir ctx globals =
   let open File in
-  with_formatter_of_file ((dir / "Globals") -.- ext)
-  @@ fun ppf ->
-  let vars, funcs =
-    List.partition_map
-      (let open Either in
-       function
-       | SVar { var; expr; typ; visibility } -> Left (var, expr, typ, visibility)
-       | SFunc { var; func; visibility } -> Right (var, func, visibility)
-       | SScope _ -> assert false)
-      globals
-  in
-  fprintf ppf
-    "package %s;@\n\
-     import catala.runtime.*;@\n\
-     import catala.runtime.exception.*;@\n\
-     @\n\
-     @[<v 4>@[<hov 2>public class Globals@ {@]@ @ %t@ %t@]@\n\
-     }"
-    package
-    (format_global_parameters ctx vars)
-    (format_global_methods ctx funcs);
-  {
-    ctx with
-    global_vars =
-      List.map (fun (var, _, _, _) -> var) vars |> VarName.Set.of_list;
-    global_funcs =
-      List.map (fun (var, _, _) -> var) funcs |> FuncName.Set.of_list;
-  }
+  if globals = [] then (
+    Message.debug "No globals definition to generate";
+    ctx)
+  else
+    with_formatter_of_file ((dir / "Globals") -.- ext)
+    @@ fun ppf ->
+    let vars, funcs =
+      List.partition_map
+        (let open Either in
+         function
+         | SVar { var; expr; typ; visibility } ->
+           Left (var, expr, typ, visibility)
+         | SFunc { var; func; visibility } -> Right (var, func, visibility)
+         | SScope _ -> assert false)
+        globals
+    in
+    let ctx' = { ctx with in_globals = true } in
+    fprintf ppf
+      "package %s;@\n\
+       import catala.runtime.*;@\n\
+       import catala.runtime.exception.*;@\n\
+       @\n\
+       @[<v 4>@[<hov 2>public class Globals@ {@]@ @ %t@ %t@]@\n\
+       }"
+      package
+      (format_global_parameters ctx' vars)
+      (format_global_methods ctx' funcs);
+    {
+      ctx with
+      global_vars =
+        List.map (fun (var, _, _, _) -> var) vars |> VarName.Set.of_list;
+      global_funcs =
+        List.map (fun (var, _, _) -> var) funcs |> FuncName.Set.of_list;
+    }
 
 let generate_items ~package:package_name ~dir:prog_dir ctx p =
   let scopes, globals =
@@ -997,12 +985,17 @@ let generate_program
     (p : Ast.program)
     (_type_ordering : TypeIdent.t list) : unit =
   let open File in
+  let to_valid_id s =
+    match s.[0] with 'A' .. 'Z' | 'a' .. 'z' -> s | _ -> "_" ^ s
+  in
   let package_name =
-    match p.module_name with
-    | None -> Filename.chop_extension input_file
-    | Some (mname, _) ->
-      (* FIXME: put that in renaming *)
-      String.to_snake_case (ModuleName.to_string mname)
+    let mname =
+      match p.module_name with
+      | None -> Filename.chop_extension input_file
+      | Some (mname, _) -> ModuleName.to_string mname
+    in
+    (* FIXME: put that in renaming *)
+    String.to_snake_case mname |> to_valid_id
   in
   let prog_dir = output_dir / "src" / "main" / "java" / package_name in
   (* Creates the output directory *)
