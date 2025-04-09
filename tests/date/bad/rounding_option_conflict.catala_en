@@ -29,15 +29,15 @@ $ catala test-scope Test
 │
 │  You cannot set multiple date rounding modes.
 │
-├─➤ tests/date/bad/rounding_option_conflict.catala_en:10.14-10.24:
+├─➤ tests/date/bad/rounding_option_conflict.catala_en:10.3-10.24:
 │    │
 │ 10 │   date round decreasing
-│    │              ‾‾‾‾‾‾‾‾‾‾
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
-├─➤ tests/date/bad/rounding_option_conflict.catala_en:12.14-12.24:
+├─➤ tests/date/bad/rounding_option_conflict.catala_en:12.3-12.24:
 │    │
 │ 12 │   date round increasing
-│    │              ‾‾‾‾‾‾‾‾‾‾
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

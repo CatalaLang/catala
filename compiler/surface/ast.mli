@@ -227,7 +227,6 @@ type scope_use_item =
   | Rule of rule
   | Definition of definition
   | Assertion of assertion
-  | MetaAssertion of meta_assertion
   | DateRounding of variation_typ Mark.pos
 
 type scope_use = {

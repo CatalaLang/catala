@@ -196,6 +196,9 @@ val set_attrs :
 val take_attr :
   ('a, 'm) gexpr -> (Pos.attr -> 'b option) -> 'b option * ('a, 'm) gexpr
 
+val no_attrs_pos : Pos.t -> Pos.t
+(** Discards the attributes: useful when copying a mark around. *)
+
 val no_attrs : 'm mark -> 'm mark
 (** Discards the attributes: useful when copying a mark around. *)
 

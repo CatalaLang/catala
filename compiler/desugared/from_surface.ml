@@ -735,7 +735,9 @@ let rec translate_expr
         let e_uid, c_uid = EnumName.Map.choose possible_c_uids in
         let c_uid =
           (* Retain the correct position *)
-          EnumConstructor.map_info (fun (v, _) -> v, pos_constructor) c_uid
+          EnumConstructor.map_info
+            (fun (v, p) -> v, Pos.add_attrs pos_constructor (Pos.attrs p))
+            c_uid
         in
         let payload = Option.map rec_helper payload in
         Expr.einj
@@ -766,7 +768,9 @@ let rec translate_expr
         let c_uid =
           EnumName.Map.find e_uid possible_c_uids
           |> (* Retain the correct position *)
-          EnumConstructor.map_info (fun (v, _) -> v, pos_constructor)
+          EnumConstructor.map_info (fun (v, p) ->
+              v, Pos.add_attrs pos_constructor (Pos.attrs p))
+          (* EnumConstructor.map_info (fun (v, _) -> v, pos_constructor) *)
         in
         let payload = Option.map rec_helper payload in
         Expr.einj
@@ -1542,7 +1546,6 @@ let process_scope_use_item
       ScopeName.Map.add scope_uid new_scope modul.module_scopes
     in
     { modul with module_scopes }
-  | _ -> modul
 
 (** {1 Translating top-level items} *)
 

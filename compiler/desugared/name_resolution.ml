@@ -535,7 +535,7 @@ let process_enum_decl
     (ctxt : context)
     (edecl : Surface.Ast.enum_decl) : context =
   let e_uid = get_enum ctxt edecl.enum_decl_name in
-  if List.length edecl.enum_decl_cases = 0 then
+  if edecl.enum_decl_cases = [] then
     Message.error
       ~pos:(Mark.get edecl.enum_decl_name)
       "The enum@ %s@ does@ not@ have@ any@ cases;@ give it some for Catala to \

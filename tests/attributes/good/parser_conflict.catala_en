@@ -1,0 +1,34 @@
+```catala
+declaration scope S:
+  output x content integer
+  output y content integer
+
+scope S:
+  definition x equals #[attr_exp] 33
+  #[attr_def]
+  definition y equals 44
+
+declaration enumeration E:
+  #[attr.field] -- Constr
+
+#[attr.enumdecl]
+declaration enumeration F:
+  -- Foo
+```
+
+```catala-test-inline
+$ catala scopelang --disable-warnings
+type E =
+  | #[attr.field] Constr of unit
+
+#[attr.enumdecl]
+type F =
+  | Foo of unit
+
+type S = { x: integer; y: integer; }
+
+
+let scope S (x: integer|internal|output) (y: integer|internal|output) =
+  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨#[attr_exp] 33⟩⟩ | false ⊢ ∅ ⟩;
+  let y : integer = error_empty ⟨ ⟨true ⊢ ⟨44⟩⟩ | false ⊢ ∅ ⟩
+```

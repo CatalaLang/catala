@@ -120,7 +120,7 @@ let rec typ_gen
       pp_color_string (List.hd colors) fmt ")")
     else typ ~colors fmt t
   in
-  attrs fmt (Mark.get ty);
+  if ctx <> None then attrs fmt (Mark.get ty);
   match Mark.remove ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
@@ -136,17 +136,19 @@ let rec typ_gen
     match ctx with
     | None -> StructName.format fmt s
     | Some ctx ->
+      attrs fmt (Mark.get (StructName.get_info s));
       let fields = StructName.Map.find s ctx.ctx_structs in
       if StructField.Map.is_empty fields then StructName.format fmt s
       else
         Format.fprintf fmt "@[<hv 2>%a %a@,%a@;<0 -2>%a@]" StructName.format s
           (pp_color_string (List.hd colors))
           "{"
-          (StructField.Map.format_bindings
+          (StructField.Map.format_bindings_i
              ~pp_sep:(fun fmt () ->
                op_style fmt ";";
                Format.pp_print_space fmt ())
-             (fun fmt pp_field_name field_typ ->
+             (fun fmt pp_field_name field field_typ ->
+               attrs fmt (Mark.get (StructField.get_info field));
                Format.fprintf fmt "@[<hv 2>%t%a@ %a@]" pp_field_name punctuation
                  ":"
                  (typ ~colors:(List.tl colors))
@@ -158,11 +160,13 @@ let rec typ_gen
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
     | Some ctx ->
+      attrs fmt (Mark.get (EnumName.get_info e));
       let def = EnumName.Map.find e ctx.ctx_enums in
       Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format e punctuation "["
-        (EnumConstructor.Map.format_bindings
+        (EnumConstructor.Map.format_bindings_i
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
-           (fun fmt pp_case mty ->
+           (fun fmt pp_case case mty ->
+             attrs fmt (Mark.get (EnumConstructor.get_info case));
              Format.fprintf fmt "%t%a@ %a" pp_case punctuation ":" (typ ~colors)
                mty))
         def punctuation "]")
@@ -900,13 +904,16 @@ let enum
     decl_ctx
     fmt
     (pp_name : Format.formatter -> unit)
+    name
     (c : typ EnumConstructor.Map.t) =
-  Format.fprintf fmt "@[<h 0>%a %t %a@ %a@]@," keyword "type" pp_name
+  attrs fmt (Mark.get (EnumName.get_info name));
+  Format.fprintf fmt "@[<v 2>%a %t %a@ %a@]@," keyword "type" pp_name
     punctuation "="
-    (EnumConstructor.Map.format_bindings ~pp_sep:Format.pp_print_space
-       (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<hov2>%a %t %a %a@]" punctuation "|" pp_n keyword
-           "of"
+    (EnumConstructor.Map.format_bindings_i ~pp_sep:Format.pp_print_space
+       (fun fmt pp_n n ty ->
+         Format.fprintf fmt "@[<hov2>%a %a%t %a %a@]" punctuation "|" attrs
+           (Mark.get (EnumConstructor.get_info n))
+           pp_n keyword "of"
            (if debug then typ_debug else typ decl_ctx)
            ty))
     c
@@ -916,23 +923,26 @@ let struct_
     decl_ctx
     fmt
     (pp_name : Format.formatter -> unit)
+    name
     (c : typ StructField.Map.t) =
-  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]" keyword "type"
+  attrs fmt (Mark.get (StructName.get_info name));
+  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]@," keyword "type"
     pp_name punctuation "=" punctuation "{"
-    (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
-       (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<h 2>%t%a %a%a@]" pp_n keyword ":"
+    (StructField.Map.format_bindings_i ~pp_sep:Format.pp_print_space
+       (fun fmt pp_n n ty ->
+         Format.fprintf fmt "@[<hov 0>%a@[<h 2>%t%a %a%a@]@]" attrs
+           (Mark.get (StructField.get_info n))
+           pp_n keyword ":"
            (if debug then typ_debug else typ decl_ctx)
            ty punctuation ";"))
     c punctuation "}"
 
-let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
-    : unit =
+let decl_ctx ?(debug = false) (fmt : Format.formatter) (ctx : decl_ctx) : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
-  Format.fprintf fmt "@[<v>%a@,%a@,@,@]"
-    (EnumName.Map.format_bindings (enum ~debug decl_ctx))
+  Format.fprintf fmt "@[<v>%a@,%a@,@]"
+    (EnumName.Map.format_bindings_i (enum ~debug ctx))
     ctx_enums
-    (StructName.Map.format_bindings (struct_ ~debug decl_ctx))
+    (StructName.Map.format_bindings_i (struct_ ~debug ctx))
     ctx_structs
 
 let scope
@@ -947,8 +957,11 @@ let scope
 let code_item ?(debug = false) id decl_ctx fmt c =
   let name = Format.asprintf "%a" (if debug then var_debug else var) id in
   match c with
-  | ScopeDef (_, b) -> scope ~debug decl_ctx fmt (name, b)
-  | Topdef (_, ty, _vis, e) ->
+  | ScopeDef (n, b) ->
+    attrs fmt (Mark.get (ScopeName.get_info n));
+    scope ~debug decl_ctx fmt (name, b)
+  | Topdef (n, ty, _vis, e) ->
+    attrs fmt (Mark.get (TopdefName.get_info n));
     Format.fprintf fmt
       "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
       "let topval" name op_style ":" (typ decl_ctx) ty op_style "="
@@ -964,7 +977,7 @@ let code_item_list ?(debug = false) decl_ctx fmt c =
   Format.pp_close_box fmt ()
 
 let program ?(debug = false) fmt p =
-  decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
+  decl_ctx ~debug fmt p.decl_ctx;
   code_item_list ~debug p.decl_ctx fmt p.code_items
 
 (* - User-facing value printer - *)

@@ -40,6 +40,7 @@ val get_file : t -> string
 val attrs : t -> attr list
 val set_attrs : t -> attr list -> t
 val add_attr : t -> attr -> t
+val add_attrs : t -> attr list -> t
 
 val get_attr : t -> (attr -> 'a option) -> 'a option
 (** Raises [Invalid_argument] if the attribute appears multiple times *)
