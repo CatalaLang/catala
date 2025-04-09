@@ -435,6 +435,8 @@ type attr_value += String of string Mark.pos | Unit
 type Pos.attr +=
   | Src of attr_path * attr_value * Pos.t
   | DebugPrint of { label : string option }
+  | Test
+  | Doc of string
 
 (** {2 Markings} *)
 

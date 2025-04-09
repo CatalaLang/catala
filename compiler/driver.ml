@@ -1306,4 +1306,6 @@ module Plugin = struct
     let name = String.lowercase_ascii name in
     let info = Cmdliner.Cmd.info name ?man ?doc ~docs:Cli.s_plugins in
     Plugin.register_subcommands info cmds
+
+  let register_attribute = Plugin.register_attribute
 end

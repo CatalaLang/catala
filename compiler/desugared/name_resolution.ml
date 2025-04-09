@@ -97,6 +97,132 @@ type context = {
 }
 (** Global context used throughout {!module: Surface.Desugaring} *)
 
+(** {1 Attribute resolution handling} *)
+type attribute_context =
+  | ScopeDecl
+  | StructDecl
+  | EnumDecl
+  | Topdef
+  | ScopeDef
+  | FieldDecl
+  | ConstructorDecl
+  | Expression
+  | Type
+
+let attribute_parsers :
+    (string
+    * string list
+    * attribute_context list
+    * (pos:Pos.t -> attr_value -> Pos.attr option))
+    list
+    ref =
+  ref []
+
+let register_attribute ~plugin ~path ~contexts callback =
+  attribute_parsers := (plugin, path, contexts, callback) :: !attribute_parsers
+
+let handle_extra_attributes context plugin path value pos =
+  match List.find_all (fun (n, _, _, _) -> plugin = n) !attribute_parsers with
+  | [] ->
+    Message.warning ~pos
+      "No plugin registered to handle attribute @{<magenta>#[%s.%s]@}" plugin
+      (String.concat "." path);
+    None
+  | handlers -> (
+    match List.find_all (fun (_, p, _, _) -> path = p) handlers with
+    | [] ->
+      Message.warning ~pos
+        ~suggestion:
+          (List.map (fun (_, p, _, _) -> String.concat "." p) handlers)
+        "Invalid sub-attribute \"%s\" of plugin %s" (String.concat "." path)
+        plugin;
+      None
+    | handlers -> (
+      match
+        List.find_opt (fun (_, _, ctx, _) -> List.mem context ctx) handlers
+      with
+      | None ->
+        Message.warning ~pos
+          "Attribute @{<magenta>#[%s.%s]@} is not allowed in this context"
+          plugin (String.concat "." path);
+        None
+      | Some (_, _, _, callback) -> callback ~pos value))
+
+let translate_attr ~context = function
+  | Src ((p1 :: ps, ppos), v, pos) -> (
+    match p1 with
+    | "debug" -> (
+      match ps with
+      | ["print"] -> (
+        if context <> Expression then (
+          Message.warning ~pos
+            "Attribute @{<magenta>#[debug.print]@} is not allowed in this \
+             context";
+          None)
+        else
+          match v with
+          | Unit -> Some (DebugPrint { label = None })
+          | String (s, _) -> Some (DebugPrint { label = Some s })
+          | Surface.Ast.Expression (_, pos) ->
+            Message.warning ~pos
+              "Invalid value for attribute @{<magenta>#[debug.print]@}";
+            None
+          | _ ->
+            Message.warning ~pos
+              "Invalid value for attribute @{<magenta>#[debug.print]@}";
+            None)
+      | ps ->
+        Message.warning ~pos:ppos ~suggestion:["print"]
+          "Unknown debug attribute \"%s\"" (String.concat "." ps);
+        None)
+    | "test" -> (
+      match ps with
+      | [] ->
+        if v <> Unit then (
+          Message.warning ~pos
+            "The @{<magenta>#[test]@} attribute doesn't allow specifying a \
+             value";
+          None)
+        else if context <> ScopeDecl then (
+          Message.warning ~pos
+            "Attribute @{<magenta>#[test]@} is not allowed in this context";
+          None)
+        else Some Test
+      | ps ->
+        Message.warning ~pos:ppos "Unknown test sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
+    | "doc" -> (
+      match ps with
+      | [] -> (
+        if context = Expression then (
+          Message.warning ~pos
+            "Attribute @{<magenta>#[doc]@} is not allowed in this context";
+          None)
+        else
+          match v with
+          | String (s, _) -> Some (Doc s)
+          | _ ->
+            Message.warning ~pos
+              "Invalid value for the @{<magenta>#[doc]@} attribute: expecting \
+               a string";
+            None)
+      | ps ->
+        Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
+    | plugin ->
+      if ps = [] then (
+        Message.warning ~pos "Unrecognised attribute \"%s\"" p1;
+        None)
+      else handle_extra_attributes context plugin ps v ppos)
+  | attr -> Some attr
+
+let translate_pos context pos =
+  Pos.attrs pos
+  |> List.filter_map (translate_attr ~context)
+  |> Pos.set_attrs pos
+
 (** {1 Helpers} *)
 
 (** Temporary function raising an error message saying that a feature is not
@@ -333,6 +459,7 @@ let rec process_base_typ
     ?(rev_named_path_acc = [])
     (ctxt : context)
     ((typ, typ_pos) : Surface.Ast.base_typ Mark.pos) : typ =
+  let typ_pos = translate_pos Type typ_pos in
   match typ with
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
@@ -495,7 +622,9 @@ let process_struct_decl
       (Mark.remove sdecl.struct_decl_name);
   List.fold_left
     (fun ctxt (fdecl, _) ->
-      let f_uid = StructField.fresh fdecl.Surface.Ast.struct_decl_field_name in
+      let name, pos = fdecl.Surface.Ast.struct_decl_field_name in
+      let pos = translate_pos FieldDecl pos in
+      let f_uid = StructField.fresh (name, pos) in
       let local =
         {
           ctxt.local with
@@ -543,7 +672,9 @@ let process_enum_decl
       (Mark.remove edecl.enum_decl_name);
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
-      let c_uid = EnumConstructor.fresh cdecl.Surface.Ast.enum_decl_case_name in
+      let name, pos = cdecl.Surface.Ast.enum_decl_case_name in
+      let pos = translate_pos ConstructorDecl pos in
+      let c_uid = EnumConstructor.fresh (name, pos) in
       let local =
         {
           ctxt.local with
@@ -735,6 +866,7 @@ let process_name_item
   match Mark.remove item with
   | ScopeDecl decl ->
     let name, pos = decl.scope_decl_name in
+    let pos = translate_pos ScopeDecl pos in
     (* Checks if the name is already used *)
     Option.iter
       (fun use ->
@@ -770,6 +902,7 @@ let process_name_item
     { ctxt with local = { ctxt.local with typedefs }; scopes }
   | StructDecl sdecl ->
     let name, pos = sdecl.struct_decl_name in
+    let pos = translate_pos StructDecl pos in
     Option.iter
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "struct")
@@ -783,11 +916,12 @@ let process_name_item
     { ctxt with local = { ctxt.local with typedefs } }
   | EnumDecl edecl ->
     let name, pos = edecl.enum_decl_name in
+    let pos = translate_pos EnumDecl pos in
     Option.iter
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "enum")
       (Ident.Map.find_opt name ctxt.local.typedefs);
-    let e_uid = EnumName.fresh path edecl.enum_decl_name in
+    let e_uid = EnumName.fresh path (name, pos) in
     let typedefs =
       Ident.Map.add
         (Mark.remove edecl.enum_decl_name)
@@ -796,10 +930,11 @@ let process_name_item
     { ctxt with local = { ctxt.local with typedefs } }
   | ScopeUse _ -> ctxt
   | Topdef def ->
-    let name, _ = def.topdef_name in
+    let name, pos = def.topdef_name in
+    let pos = translate_pos Topdef pos in
     let uid =
       match Ident.Map.find_opt name ctxt.local.topdefs with
-      | None -> TopdefName.fresh path def.topdef_name
+      | None -> TopdefName.fresh path (name, pos)
       | Some uid -> uid
       (* Topdef declaration may appear multiple times as long as their types
          match and only one contains an expression defining it *)
@@ -1088,9 +1223,7 @@ let empty_ctxt =
 (** Derive the context from metadata, in one pass over the declarations *)
 let form_context (surface, mod_uses) surface_modules : context =
   (* Gather struct fields and enum constrs from direct modules: this helps with
-     disambiguation. This is only done towards the root context, because
-     submodules are only interfaces which don't need disambiguation ; and
-     transitive dependencies shouldn't be visible here. *)
+     disambiguation. *)
   let gather_struct_fields_ids ctxt modul_ctxt =
     let constructor_idmap, field_idmap =
       Ident.Map.fold
