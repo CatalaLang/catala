@@ -10,7 +10,7 @@ public final class CatalaBool implements CatalaValue {
         this.value = value;
     }
 
-    public boolean asBoolean() {
+    public final boolean asBoolean() {
         return value;
     }
 
@@ -22,20 +22,25 @@ public final class CatalaBool implements CatalaValue {
         }
     }
 
-    public CatalaBool and(CatalaBool other){
+    public CatalaBool and(CatalaBool other) {
         return new CatalaBool(this.value && other.value);
     }
 
-    public CatalaBool or(CatalaBool other){
+    public CatalaBool or(CatalaBool other) {
         return new CatalaBool(this.value || other.value);
     }
 
-    public CatalaBool xor(CatalaBool other){
+    public CatalaBool xor(CatalaBool other) {
         return new CatalaBool(this.value ^ other.value);
     }
 
-    public CatalaBool equals(CatalaBool other){
-        return new CatalaBool(this.value == other.value);
+    @Override
+    public CatalaBool equalsTo(CatalaValue other) {
+        if (other instanceof CatalaBool catalaBool) {
+            return new CatalaBool(this.value == catalaBool.value);
+        } else {
+            return FALSE;
+        }
     }
 
 }

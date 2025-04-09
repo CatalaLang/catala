@@ -4,6 +4,7 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
 
     public final T value;
 
+    @SuppressWarnings("rawtypes")
     public static final CatalaOption NONE = new CatalaOption<>(null);
 
     public static <T extends CatalaValue> CatalaOption<T> some(T value){
@@ -27,4 +28,14 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
     public T get() {
         return this.value;
     }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue other) {
+        if (other instanceof CatalaOption catalaOption) {
+            return this.equalsTo(catalaOption);
+        } else {
+            return CatalaBool.FALSE;
+        }
+    }
+
 }

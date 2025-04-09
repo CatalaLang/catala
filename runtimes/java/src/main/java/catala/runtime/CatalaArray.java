@@ -46,7 +46,9 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     public CatalaArray<T> filter(CatalaFunction<T, CatalaBool> func) {
-        return new CatalaArray<>(Stream.of(this.values).filter(CatalaPredicate.ofCatalaFunction(func)).toArray(size -> (T[]) new CatalaValue[size]));
+        return new CatalaArray<>(Stream.of(this.values).filter(
+                x -> func.apply(x) == CatalaBool.TRUE
+        ).toArray(size -> (T[]) new CatalaValue[size]));
     }
 
     public <U extends CatalaValue> U foldLeft(CatalaFunction<CatalaTuple, U> folder, U init) {
@@ -74,5 +76,24 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
         return new CatalaArray<>(
                 Stream.concat(Stream.of(this.values),
                         Stream.of(other.values)).toArray(size -> (T[]) new CatalaValue[size]));
+    }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue v) {
+        if (v instanceof CatalaArray catalaArray) {
+            CatalaArray<CatalaValue> va  = catalaArray;
+            if (this.values.length != va.values.length) {
+                return CatalaBool.FALSE;
+            } else {
+                for (int i = 0; i < this.values.length; i++) {
+                    if (!(this.values[i].equalsTo(va.values[i]).asBoolean())) {
+                        return CatalaBool.FALSE;
+                    }
+                }
+                return CatalaBool.TRUE;
+            }
+        } else {
+            return CatalaBool.FALSE;
+        }
     }
 }

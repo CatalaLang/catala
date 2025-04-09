@@ -454,9 +454,6 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       l format_op op
       (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
       args
-  | EAppOp { op = (Length, _) as op; args = [arg]; _ } ->
-    fprintf ppf "@[<hov 2>new CatalaInteger(@ %a.%a@]@ )"
-      (format_expression ctx) arg format_op op
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
       (format_expression_with_paren ctx)
@@ -720,6 +717,14 @@ let format_scope_output_parameters (ctx : Ast.ctx) (sbody : scope_body) ppf =
       (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
       (StructField.Map.bindings out_fields)
 
+let format_comparison ppf =
+  fprintf ppf
+    "@Override@\n\
+     public CatalaBool equalsTo(CatalaValue other) {@\n\
+     //TODO@\n\
+     return CatalaBool.FALSE;@\n\
+     }"
+
 let generate_scope ~package ~dir ctx (p : Ast.program) (sbody : Ast.scope_body)
     =
   let open File in
@@ -731,12 +736,13 @@ let generate_scope ~package ~dir ctx (p : Ast.program) (sbody : Ast.scope_body)
      import catala.runtime.*;@\n\
      import catala.runtime.exception.*;@\n\
      @\n\
-     @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@]@\n\
+     @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@ %t@]@\n\
      }"
     package format_visibility sbody.scope_body_visibility ScopeName.format
     sbody.scope_body_name
     (format_scope_output_parameters p.ctx sbody)
     (format_constructor ctx sbody)
+    format_comparison
 
 let generate_ctx ~package ~dir (p : Ast.program) =
   let ctx = p.ctx in
@@ -804,10 +810,10 @@ let generate_ctx ~package ~dir (p : Ast.program) =
        import catala.runtime.exception.*;@\n\
        @\n\
        @[<v 4>@[<hov 2>public class %a@ implements CatalaValue {@]@ @ %t@ @ \
-       %t@ @ %t@ @ %t@]@\n\
+       %t@ @ %t@ @ %t@ %t@]@\n\
        }"
       package EnumName.format ename format_enum_kind format_enum_params
-      format_enum_constrs format_enum_accessors
+      format_enum_constrs format_enum_accessors format_comparison
   in
   let enums_to_generate =
     EnumName.Map.filter
@@ -849,9 +855,10 @@ let generate_ctx ~package ~dir (p : Ast.program) =
        import catala.runtime.*;@\n\
        @\n\
        @[<v 4>@[<hov 2>public class %a@ implements CatalaValue {@]@ @ %t@ @ \
-       %t@]@\n\
+       %t@ %t@]@\n\
        }"
       package StructName.format sname format_params format_struct_constr
+      format_comparison
   in
   let in_scope_structs, scope_structs =
     ScopeName.Map.fold

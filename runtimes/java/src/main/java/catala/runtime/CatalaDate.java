@@ -12,7 +12,7 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         this.date = date;
     }
 
-    public static CatalaDate of(int year, int month, int day){
+    public static CatalaDate of(int year, int month, int day) {
         return new CatalaDate(LocalDate.of(year, month, day));
     }
 
@@ -41,27 +41,36 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         return this.date.compareTo(t.date);
     }
 
-    public CatalaBool lessThan(CatalaDate other){
+    public CatalaBool lessThan(CatalaDate other) {
         return CatalaBool.fromBoolean(this.compareTo(other) < 0);
     }
 
-    public CatalaBool lessEqThan(CatalaDate other){
+    public CatalaBool lessEqThan(CatalaDate other) {
         return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
     }
 
-    public CatalaBool greaterThan(CatalaDate other){
+    public CatalaBool greaterThan(CatalaDate other) {
         return CatalaBool.fromBoolean(this.compareTo(other) > 0);
     }
 
-    public CatalaBool greaterEqThan(CatalaDate other){
+    public CatalaBool greaterEqThan(CatalaDate other) {
         return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
     }
 
-    public CatalaBool equalsTo(CatalaDate other){
+    public CatalaBool equalsTo(CatalaDate other) {
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
 
-    public CatalaDate addDurationAbortOnRound(SourcePosition pos, CatalaDuration dur){
+    public CatalaDate addDurationAbortOnRound(SourcePosition pos, CatalaDuration dur) {
         throw new CatalaException("addDurationAbortOnRound not implemented yet");
+    }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue v) {
+        if (v instanceof CatalaDate catalaDate) {
+            return CatalaBool.fromBoolean(this.compareTo(catalaDate) == 0);
+        } else {
+            return CatalaBool.FALSE;
+        }
     }
 }

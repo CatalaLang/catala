@@ -61,6 +61,15 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     }
 
     @Override
+    public CatalaBool equalsTo(CatalaValue v) {
+        if (v instanceof CatalaDecimal catalaDecimal) {
+            return CatalaBool.fromBoolean(this.compareTo(catalaDecimal) == 0);
+        } else {
+            return CatalaBool.FALSE;
+        }
+    }
+
+    @Override
     public int hashCode() {
         return this.value.hashCode();
     }
@@ -131,23 +140,23 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(this.value.multiply(other.value));
     }
 
-    public CatalaBool lessThan(CatalaDecimal other){
+    public CatalaBool lessThan(CatalaDecimal other) {
         return CatalaBool.fromBoolean(this.compareTo(other) < 0);
     }
 
-    public CatalaBool lessEqThan(CatalaDecimal other){
+    public CatalaBool lessEqThan(CatalaDecimal other) {
         return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
     }
 
-    public CatalaBool greaterThan(CatalaDecimal other){
+    public CatalaBool greaterThan(CatalaDecimal other) {
         return CatalaBool.fromBoolean(this.compareTo(other) > 0);
     }
 
-    public CatalaBool greaterEqThan(CatalaDecimal other){
+    public CatalaBool greaterEqThan(CatalaDecimal other) {
         return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
     }
 
-    public CatalaBool equalsTo(CatalaDecimal other){
+    public CatalaBool equalsTo(CatalaDecimal other) {
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
 }

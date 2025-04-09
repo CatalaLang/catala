@@ -11,4 +11,10 @@ public final class CatalaUnit implements CatalaValue {
     public final String toString() {
         return "Unit()";
     }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue other) {
+        return CatalaBool.fromBoolean(other instanceof CatalaUnit);
+    }
+
 }

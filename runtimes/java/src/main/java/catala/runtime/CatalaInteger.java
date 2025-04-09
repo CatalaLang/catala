@@ -38,11 +38,11 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));
     }
 
-    public static final CatalaInteger valueOf(long value){
+    public static final CatalaInteger valueOf(long value) {
         return new CatalaInteger(BigInteger.valueOf(value));
     }
 
-    public final CatalaInteger negate(){
+    public final CatalaInteger negate() {
         return new CatalaInteger(this.value.negate());
     }
 
@@ -57,8 +57,12 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         CatalaInteger other = (CatalaInteger) obj;
         return this.value.equals(other.value);
     }
@@ -69,7 +73,7 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return this.value.toString();
     }
 
@@ -93,23 +97,33 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaDecimal(this, denum);
     }
 
-    public CatalaBool lessThan(CatalaInteger other){
+    public CatalaBool lessThan(CatalaInteger other) {
         return CatalaBool.fromBoolean(this.compareTo(other) < 0);
     }
 
-    public CatalaBool lessEqThan(CatalaInteger other){
+    public CatalaBool lessEqThan(CatalaInteger other) {
         return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
     }
 
-    public CatalaBool greaterThan(CatalaInteger other){
+    public CatalaBool greaterThan(CatalaInteger other) {
         return CatalaBool.fromBoolean(this.compareTo(other) > 0);
     }
 
-    public CatalaBool greaterEqThan(CatalaInteger other){
+    public CatalaBool greaterEqThan(CatalaInteger other) {
         return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
     }
 
-    public CatalaBool equalsTo(CatalaInteger other){
+    public CatalaBool equalsTo(CatalaInteger other) {
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue other) {
+        if (other instanceof CatalaInteger catalaInteger) {
+            return this.equalsTo(catalaInteger);
+        } else {
+            return CatalaBool.FALSE;
+        }
+    }
+
 }

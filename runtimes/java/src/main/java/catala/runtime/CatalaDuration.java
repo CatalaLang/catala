@@ -101,4 +101,12 @@ public final class CatalaDuration implements CatalaValue {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) == 0);
     }
 
+    @Override
+    public CatalaBool equalsTo(CatalaValue v) {
+        if (v instanceof CatalaDuration catalaDuration) {
+            return CatalaBool.fromBoolean(this.duration.equals(catalaDuration.duration));
+        } else {
+            return CatalaBool.FALSE;
+        }
+    }
 }

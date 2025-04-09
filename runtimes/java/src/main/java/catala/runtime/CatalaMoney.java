@@ -21,7 +21,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
 
     public final CatalaDecimal asDecimal() {
         return new CatalaDecimal(new CatalaInteger(this.value),
-                                 new CatalaInteger(BigInteger.ONE));
+                new CatalaInteger(BigInteger.ONE));
     }
 
     public final CatalaMoney negate() {
@@ -127,23 +127,33 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return new CatalaMoney(BigInteger.valueOf(cents));
     }
 
-    public CatalaBool lessThan(CatalaMoney other){
+    public CatalaBool lessThan(CatalaMoney other) {
         return CatalaBool.fromBoolean(this.compareTo(other) < 0);
     }
 
-    public CatalaBool lessEqThan(CatalaMoney other){
+    public CatalaBool lessEqThan(CatalaMoney other) {
         return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
     }
 
-    public CatalaBool greaterThan(CatalaMoney other){
+    public CatalaBool greaterThan(CatalaMoney other) {
         return CatalaBool.fromBoolean(this.compareTo(other) > 0);
     }
 
-    public CatalaBool greaterEqThan(CatalaMoney other){
+    public CatalaBool greaterEqThan(CatalaMoney other) {
         return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
     }
 
-    public CatalaBool equalsTo(CatalaMoney other){
+    public CatalaBool equalsTo(CatalaMoney other) {
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
+
+    @Override
+    public CatalaBool equalsTo(CatalaValue other) {
+        if (other instanceof CatalaMoney catalaMoney) {
+            return this.equalsTo(catalaMoney);
+        } else {
+            return CatalaBool.FALSE;
+        }
+    }
+
 }
