@@ -139,31 +139,6 @@ let format_enum = format_qualified (module EnumName)
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ ctx (ppf : formatter) (typ : typ) : unit =
-  let format_typ = format_typ ctx in
-  match Mark.remove typ with
-  | TLit TUnit -> fprintf ppf "CatalaUnit"
-  | TLit TMoney -> fprintf ppf "CatalaMoney"
-  | TLit TInt -> fprintf ppf "CatalaInteger"
-  | TLit TRat -> fprintf ppf "CatalaDecimal"
-  | TLit TDate -> fprintf ppf "CatalaDate"
-  | TLit TDuration -> fprintf ppf "CatalaDuration"
-  | TLit TBool -> fprintf ppf "CatalaBool"
-  | TLit TPos -> fprintf ppf "SourcePosition"
-  | TTuple _ -> fprintf ppf "CatalaTuple"
-  | TStruct s -> format_struct ctx ppf s
-  | TOption some_typ -> fprintf ppf "CatalaOption<%a>" format_typ some_typ
-  | TDefault t -> format_typ ppf t
-  | TEnum e -> format_enum ctx ppf e
-  | TArrow ([], _) -> assert false
-  | TArrow ([t1], t2) ->
-    fprintf ppf "Function<%a, %a>" format_typ t1 format_typ t2
-  | TArrow (_ :: _ :: _, t2) ->
-    fprintf ppf "Function<CatalaTuple, %a>" format_typ t2
-  | TArray t1 -> fprintf ppf "%a[]" format_typ t1
-  | TAny -> failwith "format_typ: TAny unsupported!"
-  | TClosureEnv -> failwith "unimplemented!"
-
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
   | Log (_entry, _infos) -> assert false
@@ -292,19 +267,16 @@ let format_visibility ppf = function
   | Private -> () (* TODO? *)
   | Public -> fprintf ppf "public "
 
-let format_typ_lit ppf = function
-  | TBool -> fprintf ppf "CatalaBool"
-  | TUnit -> fprintf ppf "CatalaUnit"
-  | TInt -> fprintf ppf "CatalaInteger"
-  | TRat -> fprintf ppf "CatalaDecimal"
-  | TMoney -> fprintf ppf "CatalaMoney"
-  | TDate -> fprintf ppf "CatalaDate"
-  | TDuration -> fprintf ppf "CatalaDuration"
-  | TPos -> fprintf ppf "CatalaPosition"
-
 let rec format_typ ppf typ =
   match Mark.remove typ with
-  | TLit typ_lit -> format_typ_lit ppf typ_lit
+  | TLit TBool -> fprintf ppf "CatalaBool"
+  | TLit TUnit -> fprintf ppf "CatalaUnit"
+  | TLit TInt -> fprintf ppf "CatalaInteger"
+  | TLit TRat -> fprintf ppf "CatalaDecimal"
+  | TLit TMoney -> fprintf ppf "CatalaMoney"
+  | TLit TDate -> fprintf ppf "CatalaDate"
+  | TLit TDuration -> fprintf ppf "CatalaDuration"
+  | TLit TPos -> fprintf ppf "CatalaPosition"
   | TArrow ([ty], ret_ty) ->
     fprintf ppf "CatalaFunction<%a,%a>" format_typ ty format_typ ret_ty
   | TArrow (_args_ty, ret_ty) ->
@@ -313,7 +285,7 @@ let rec format_typ ppf typ =
   | TStruct sname -> StructName.format ppf sname (* TODO: resolve imports *)
   | TEnum ename -> EnumName.format ppf ename (* TODO: resolve imports *)
   | TOption typ -> fprintf ppf "CatalaOption<%a>" format_typ typ
-  | TArray typ -> fprintf ppf "%a[]" format_typ typ
+  | TArray typ -> fprintf ppf "CatalaArray<%a>" format_typ typ
   | TDefault typ -> format_typ ppf typ
   | TAny -> fprintf ppf "CatalaValue"
   | TClosureEnv -> assert false
@@ -359,7 +331,16 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     fprintf ppf "CatalaDuration.of(%d,%d,%d)" years months days
 
-let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
+let get_list_and_args_expr (op : Ast.operator Mark.pos) args =
+  let open Shared_ast in
+  match Mark.remove op, args with
+  | (Filter | Map), [f; l] -> l, [f]
+  | (Fold | Reduce), [f; f_dft; l] -> l, [f; f_dft]
+  | Map2, [f; l1; l2] -> l1, [f; l2]
+  | Concat, [l1; l2] -> l1, [l2]
+  | _ -> assert false
+
+let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   (* TODO: adapt to consider globals *)
   let { in_scope_structs; global_vars; global_funcs; in_globals; _ } = ctx in
   match Mark.remove e with
@@ -439,17 +420,11 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a()" (format_enum ctx) enum_name EnumConstructor.format
       cons
-  | EInj { e1 = e; cons; name = enum_name; expr_typ = ty; _ } ->
+  | EInj { e1 = e; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a(%a)" (format_enum ctx) enum_name
-      EnumConstructor.format cons
-      (format_expression ~ty ctx)
-      e
+      EnumConstructor.format cons (format_expression ctx) e
   | EArray es ->
-    fprintf ppf "new %a{%a}"
-      (fun ppf -> function
-        | None -> format_typ ppf (TArray (TAny, Pos.void), Pos.void)
-        | Some ty -> format_typ ppf ty)
-      ty
+    fprintf ppf "new CatalaArray<>(%a)"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
       es
@@ -463,16 +438,22 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
       (Pos.get_law_info pos)
   | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
-    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaOption[]{@ %a@ }@])" format_op op
+    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaArray<CatalaOption>(@ %a@ )@])"
+      format_op op
       (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
       exprs
-  | EAppOp { op = ((Map | Filter | Reduce | Fold | Map2), _) as op; args; tys }
-    ->
-    (* List operations *)
-    fprintf ppf "@[<hv 2>ListOp.%a(@;<0 -1>%a@])" format_op op
-      (pp_print_list ~pp_sep:pp_comma (fun ppf (e, ty) ->
-           format_expression ~ty ctx ppf e))
-      (List.combine args tys)
+  | EAppOp
+      {
+        op = ((Map | Filter | Reduce | Fold | Map2 | Concat), _) as op;
+        args;
+        _;
+      } ->
+    let l, args = get_list_and_args_expr op args in
+    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
+      (format_expression_with_paren ctx)
+      l format_op op
+      (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
+      args
   | EAppOp { op = (Length, _) as op; args = [arg]; _ } ->
     fprintf ppf "@[<hov 2>new CatalaInteger(@ %a.%a@]@ )"
       (format_expression ctx) arg format_op op
@@ -555,7 +536,7 @@ let rec format_expression ?ty ctx (ppf : formatter) (e : expr) : unit =
            fprintf ppf "%a" (format_expression ctx) e))
       es
   | ETupleAccess { e1; index; typ } ->
-    fprintf ppf "(%a)(%a.get(%d))" format_typ typ
+    fprintf ppf "((%a)%a.get(%d))" format_typ typ
       (format_expression_with_paren ctx)
       e1 index
   | EExternal { modname; name } ->
@@ -574,10 +555,9 @@ let rec format_stmt ?scope (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
   | SLocalDecl { name; typ } ->
     fprintf ppf "@[<hov 2>%a@ %a = null;@]" format_typ typ VarName.format
       (Mark.remove name)
-  | SLocalDef { name; typ = ty; expr } ->
+  | SLocalDef { name; expr; _ } ->
     fprintf ppf "@[<hov 2>%a = %a;@]" VarName.format (Mark.remove name)
-      (format_expression ~ty ctx)
-      expr
+      (format_expression ctx) expr
   | SReturn expr -> (
     match scope, Mark.remove expr with
     | Some sbody, EStruct { name; fields; _ } ->
@@ -909,9 +889,7 @@ let format_global_parameters
     ppf =
   let format_global_parameter ppf (name, e, ty, vis) =
     fprintf ppf "@[<hov 2>%astatic final %a %a =@ %a;@]" format_visibility vis
-      format_typ ty VarName.format name
-      (format_expression ~ty ctx)
-      e
+      format_typ ty VarName.format name (format_expression ctx) e
   in
   fprintf ppf "@[<v>%a@]"
     (pp_print_list ~pp_sep:pp_print_double_space format_global_parameter)

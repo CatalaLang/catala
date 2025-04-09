@@ -8,6 +8,9 @@ import catala.runtime.exception.CatalaException;
 // for consumer friendliness?
 public final class CatalaInteger implements CatalaValue, Comparable<CatalaInteger> {
 
+    public final static CatalaInteger ZERO = new CatalaInteger(0);
+    public final static CatalaInteger ONE = new CatalaInteger(1);
+
     private final BigInteger value;
 
     public CatalaInteger(BigInteger value) {
