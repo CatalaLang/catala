@@ -282,32 +282,6 @@ let translate_literal l pos =
            "There is an error in this date, it does not correspond to a \
             correct calendar day.")
 
-let translate_expr_pos pos =
-  let translate_attr = function
-    | Src ((p1 :: ps, ppos), v, pos) as attr -> (
-      match p1 with
-      | "debug" -> (
-        match ps with
-        | ["print"] ->
-          let label =
-            match v with
-            | Unit -> None
-            | String (s, _) -> Some s
-            | S.Expression (_, pos) ->
-              Message.error ~pos "Invalid value for \"#[debug.print]\""
-            | _ -> Message.error ~pos "Invalid value for \"#[debug.print]\""
-          in
-          DebugPrint { label }
-        | ps ->
-          Message.error ~pos:ppos "Unknown debug attribute \"%s\""
-            (String.concat "." ps))
-      | _ ->
-        (* Pass through *)
-        attr)
-    | attr -> attr
-  in
-  Pos.attrs pos |> List.map translate_attr |> Pos.set_attrs pos
-
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -370,7 +344,7 @@ let rec translate_expr
       (* If the input is not a tuple, we assume it's already a list *)
       rec_helper e
   in
-  let pos = translate_expr_pos (Mark.get expr) in
+  let pos = Name_resolution.(translate_pos Expression (Mark.get expr)) in
   let emark = Untyped { pos } in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
@@ -1306,6 +1280,7 @@ let process_rule_parameters
     Ast.expr Var.t Ident.Map.t
     * (Ast.expr Var.t Mark.pos * typ) list Mark.pos option =
   let decl_name, decl_pos = def_key in
+  (* let decl_pos = translate_pos RuleParam decl_pos in *)
   let declared_params = Name_resolution.get_params ctxt decl_name in
   match declared_params, def.S.definition_parameter with
   | None, None -> Ident.Map.empty, None
@@ -1380,6 +1355,7 @@ let process_def
     (def : S.definition) : Ast.modul =
   let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
+  let def = { def with definition_id = RuleName.map_info (Mark.map_mark Name_resolution.(translate_pos ScopeDef)) def.definition_id } in
   let def_key =
     Name_resolution.get_def_key
       (Mark.remove def.definition_name)
@@ -1454,6 +1430,7 @@ let process_rule
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
     (rule : S.rule) : Ast.modul =
+  let rule = { rule with rule_id = RuleName.map_info (Mark.map_mark Name_resolution.(translate_pos ScopeDef)) rule.rule_id } in
   let def = Name_resolution.surface_rule_to_def rule in
   process_def precond scope ctxt modul def
 

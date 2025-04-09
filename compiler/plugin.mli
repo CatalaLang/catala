@@ -35,6 +35,22 @@ val register_subcommands : Cmdliner.Cmd.info -> unit Cmdliner.Cmd.t list -> unit
     term that handles the [--plugins-dirs] flags and performs some
     initialisations. *)
 
+val register_attribute :
+  plugin:string -> path:string list -> contexts:Desugared.Name_resolution.attribute_context list ->
+  (pos:Catala_utils.Pos.t -> Shared_ast.attr_value -> Catala_utils.Pos.attr option) -> unit
+(** Used to register support for a new attribute in Catala programs. Supposing that plugin [foo] is expected to handle an attribute [foo.bar] attached to scope declarations, we could write something like: {[
+      type Pos.attr += FooBar of ...
+      let () =
+        Plugin.register_attribute
+          ~plugin:"foo" ~path:["bar"]
+          ~context:[Desugared.Name_resolution.ScopeDecl]
+        @@ fun ~pos v -> match v with
+        | ... -> Some (FooBar (...))
+        | _ -> Message.delayed_error None ...
+    ]}
+    then, the attribute will be available as [FooBar] in the following passes ; it can be retrieved with [Pos.get_attrs] on the relevant positions.
+*)
+
 (** {2 catala-facing API} *)
 
 val list : unit -> t list

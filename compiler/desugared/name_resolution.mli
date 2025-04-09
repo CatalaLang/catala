@@ -106,6 +106,20 @@ type context = {
 }
 (** Global context used throughout {!module: Surface.Desugaring} *)
 
+(** {1 Attribute handling} *)
+
+type attribute_context =
+  | ScopeDecl | StructDecl | EnumDecl | Topdef | ScopeDef
+  | FieldDecl | ConstructorDecl | Expression | Type
+
+val register_attribute :
+  plugin:string -> path:string list -> contexts:attribute_context list ->
+  (pos:Pos.t -> Shared_ast.attr_value -> Pos.attr option) -> unit
+(** Registers a new callback for the translation of the [#[plugin.path]] attribute. To be called from plugins, together with the extension of the [Pos.attr] type. *)
+
+val translate_pos : attribute_context -> Pos.t -> Pos.t
+(** May trigger warnings on unrecognised attributes *)
+
 (** {1 Helpers} *)
 
 val raise_unsupported_feature : string -> Pos.t -> 'a
