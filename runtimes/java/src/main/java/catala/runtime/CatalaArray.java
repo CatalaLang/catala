@@ -33,9 +33,9 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     public <U extends CatalaValue, R extends CatalaValue> CatalaArray<R> map2(
-            CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
+            SourcePosition pos, CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
         if (this.values.length != other.values.length) {
-            throw new CatalaException("traversing multiple lists of different lengths");
+            throw new CatalaException("traversing multiple lists of different lengths at " + pos);
         }
         int length = this.values.length;
         R[] tuples = (R[]) new CatalaValue[length];

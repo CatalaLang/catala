@@ -1,8 +1,9 @@
 package catala.runtime.exception;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
+import catala.runtime.CatalaArray;
 import catala.runtime.CatalaOption;
 import catala.runtime.CatalaTuple;
 import catala.runtime.SourcePosition;
@@ -17,9 +18,9 @@ public class ConflictException extends CatalaException {
         super(message);
     }
 
-    public static CatalaOption<CatalaTuple> handleExceptions(CatalaOption<CatalaTuple>[] v) {
+    public static CatalaOption<CatalaTuple> handleExceptions(CatalaArray<CatalaOption<CatalaTuple>> v) {
         List<CatalaOption<CatalaTuple>> active_exns
-                = (Arrays.stream(v)
+                = (Stream.of(v.asArray())
                         .filter(exn -> exn.isSome()).toList());
         int len = active_exns.size();
         switch (len) {

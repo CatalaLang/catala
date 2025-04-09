@@ -28,6 +28,18 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         return new CatalaDate(LocalDate.parse(catalaDateLiteral.subSequence(1, 11)));
     }
 
+    public final CatalaInteger getYear(){
+        return new CatalaInteger(this.date.getYear());
+    }
+
+    public final CatalaInteger getMonth(){
+        return new CatalaInteger(this.date.getMonthValue());
+    }
+
+    public final CatalaInteger getDay(){
+        return new CatalaInteger(this.date.getDayOfMonth());
+    }
+
     public final CatalaDate firstDayOfMonth() {
         return new CatalaDate(LocalDate.of(this.date.getYear(), this.date.getMonth(), 1));
     }
@@ -63,6 +75,14 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
     public CatalaDate addDurationAbortOnRound(SourcePosition pos, CatalaDuration dur) {
         throw new CatalaException("addDurationAbortOnRound not implemented yet");
+    }
+
+    public CatalaDate addDurationRoundUp(SourcePosition pos, CatalaDuration dur){
+        throw new CatalaException("addDurationRoundUp not implemented yet");
+    }
+
+    public CatalaDuration subtract(CatalaDate dur) {
+        throw new CatalaException("subtract not implemented yet");
     }
 
     @Override

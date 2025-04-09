@@ -22,6 +22,10 @@ public final class CatalaBool implements CatalaValue {
         }
     }
 
+    public CatalaBool not() {
+        return new CatalaBool(!this.value);
+    }
+
     public CatalaBool and(CatalaBool other) {
         return new CatalaBool(this.value && other.value);
     }

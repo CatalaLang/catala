@@ -102,6 +102,10 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(this.value.multiply(other.value));
     }
 
+    public final CatalaDecimal multiply(CatalaInteger other) {
+        return new CatalaDecimal(this.value.multiply(other.asBigInteger()));
+    }
+
     public final CatalaDecimal inverse(SourcePosition pos) {
         if (this.value.getNumerator().equals(BigInteger.ZERO)) {
             throw new CatalaException("division by zero: " + pos);
@@ -118,6 +122,11 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         }
     }
 
+    public CatalaDecimal round(){
+        return new CatalaDecimal(new CatalaInteger(this.bigDecimalValue(0, RoundingMode.HALF_UP).toBigInteger()),
+                                 new CatalaInteger(1));
+    }
+
     final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode) {
         return this.value.bigDecimalValue(scale, roundingMode);
     }
@@ -130,6 +139,10 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     // ToRat_mon
     public static final CatalaDecimal ofMoney(CatalaMoney cm) {
         return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
+    }
+
+    public final CatalaMoney asMoney() {
+        return CatalaMoney.ofCents(BigInteger.valueOf(100)).multiply(this);
     }
 
     static final CatalaDecimal ofMoneyAsCents(CatalaMoney cm) {
