@@ -5,6 +5,7 @@ declaration enumeration E:
   -- A
   -- B
 
+#[test]
 declaration scope S:
   context output a content E
 ```
@@ -12,6 +13,7 @@ declaration scope S:
 Some law text...
 
 ```catala-metadata
+#[test]
 declaration scope S2:
   context output b content E
 ```

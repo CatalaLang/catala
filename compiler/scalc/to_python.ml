@@ -601,10 +601,8 @@ let format_scope_calls ppf (p : Ast.program) =
               scope_body_name = name;
               scope_body_visibility = _;
             } ->
-          let input_struct =
-            StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
-          in
-          if StructField.Map.is_empty input_struct then (var, name, ts) :: acc
+          if Pos.has_attr (Mark.get (ScopeName.get_info name)) Test then
+            (var, name, ts) :: acc
           else acc
         | SVar _ | SFunc _ | SScope _ -> acc)
       [] p.code_items

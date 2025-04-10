@@ -1,6 +1,7 @@
 ## Test all 'xor' combinations
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope TestXor:
   context output t_xor_t content boolean
   context output t_xor_f content boolean

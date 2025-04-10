@@ -10,6 +10,7 @@ declaration scope Stdlib:
 scope Stdlib:
   definition when equals val * 1 day + |1970-01-01|
 
+#[test]
 declaration scope Test:
   a scope Stdlib
   output val content date

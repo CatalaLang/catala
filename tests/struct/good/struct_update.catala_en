@@ -5,6 +5,7 @@ declaration structure Str:
   data fld2 content money
   data fld3 content date
 
+#[test]
 declaration scope S:
   internal s0 content Str
   output s1 content Str

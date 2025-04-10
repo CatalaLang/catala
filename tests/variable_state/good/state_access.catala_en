@@ -1,6 +1,7 @@
 # Accesses to intermediate variable states
 
 ```catala
+#[test]
 declaration scope A:
   output foo content integer
     state s1

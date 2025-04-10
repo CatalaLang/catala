@@ -1,4 +1,5 @@
 ```catala
+#TODO [test]: support for context vars
 declaration scope Toto:
   context bar content integer
   output foo content integer
@@ -7,6 +8,7 @@ scope Toto:
   definition bar equals 1
   definition foo equals 1212 + bar
 
+#[test]
 declaration scope Titi:
   output fizz content Toto
   output fuzz content Toto

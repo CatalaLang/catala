@@ -3,6 +3,7 @@
 > Module Let_in2
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope S:
   context output a content boolean
 
@@ -95,6 +96,7 @@ let () =
 ```
 
 ```catala
+#[test]
 declaration scope Stest:
   output s scope S
 ```

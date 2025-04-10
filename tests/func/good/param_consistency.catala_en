@@ -32,6 +32,7 @@ $ catala typecheck
 ```
 
 ```catala
+#[test]
 declaration scope T1:
   strue scope S
   sfalse scope S
@@ -56,6 +57,7 @@ $ catala test-scope T1
 ## Multi-argument function
 
 ```catala
+#[test]
 declaration scope S2:
   output f content decimal depends on
     x content integer,
@@ -64,6 +66,7 @@ declaration scope S2:
 scope S2:
   definition f of x, y equals x / y
 
+#[test]
 declaration scope T2:
   s2 scope S2
   output o content decimal

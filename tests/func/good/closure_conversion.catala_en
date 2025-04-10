@@ -56,6 +56,7 @@ declaration scope S2:
 scope S2:
   definition dummy equals false
 
+#[test]
 declaration scope S2Use:
   internal fun content decimal depends on y content integer
   output o content (S2, S2)

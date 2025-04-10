@@ -1,5 +1,6 @@
 ```catala
 
+#[test]
 declaration scope CheckAgeIsLessThan:
   input bday content date
   input today content date
@@ -10,6 +11,7 @@ scope CheckAgeIsLessThan:
   definition r equals bday + age <= today
   date round increasing
 
+#[test]
 declaration scope Test:
   output r content boolean
 

@@ -3,6 +3,7 @@
 > Using Mod_def
 
 ```catala-metadata
+#[test]
 declaration scope S:
   input x content integer
   output o1 content Mod_def.S

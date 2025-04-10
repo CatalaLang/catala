@@ -188,7 +188,8 @@ val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 (** {2 Manipulation of marks} *)
 
-val attrs : ('a, 'm) gexpr -> (attr_path * attr_value Mark.pos) list
+val get_attr : ('a, 'm) gexpr -> (Catala_utils.Pos.attr -> 'b option) -> 'b option
+val get_attrs : ('a, 'm) gexpr -> (Catala_utils.Pos.attr -> 'b option) -> 'b list
 
 val set_attrs :
   ('a, 'm) gexpr -> (attr_path * attr_value Mark.pos) list -> ('a, 'm) gexpr

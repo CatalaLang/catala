@@ -1,6 +1,7 @@
 ## Test
 
 ```catala
+#[test]
 declaration scope A:
   internal x content duration
   output y content boolean

@@ -4,6 +4,7 @@ declaration structure Person:
   data age content integer
   data disabled content boolean
 
+#TODO [test]: support for context vars
 declaration scope Benefit:
   context output person content Person
   context output benefit content money

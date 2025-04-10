@@ -1,6 +1,7 @@
 ## Test
 
 ```catala
+#[test]
 declaration scope A:
   internal x content integer depends on y content boolean
   output z content integer

@@ -1,6 +1,7 @@
 ## Testing monomorphisation on context variables
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope TestXor:
   context output t content boolean
 
@@ -62,6 +63,7 @@ let scope test_xor
 ```
 
 ```catala
+#[test]
 declaration scope TestXor2:
   t scope TestXor
   output o content boolean

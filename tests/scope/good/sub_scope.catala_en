@@ -1,11 +1,13 @@
 ## Article
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope A:
   context output a content integer
   context output b content boolean
   context output a_base content integer
 
+#TODO [test]: support for context vars
 declaration scope B:
   context output a content integer
   context output b content boolean

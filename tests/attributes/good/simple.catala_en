@@ -4,6 +4,7 @@
 
 ```catala
 #[attr = "Referring to the scope declaration"]
+#[test]
 declaration scope S:
   context output bla content integer #
   output x content money
@@ -15,6 +16,7 @@ declaration scope S:
   output o2 content (money, #[attr.typ] integer)
 
 #[struct.attribute]
+#[test]
 declaration scope S2:
   output x content integer
 

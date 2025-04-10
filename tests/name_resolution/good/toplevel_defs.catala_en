@@ -3,6 +3,7 @@
 ```catala
 declaration glob1 content decimal equals 44.12
 
+#[test]
 declaration scope S:
   output a content decimal
   output b content A
@@ -46,6 +47,7 @@ declaration glob3 content decimal
     depends on x content money
     equals decimal of x + 10.
 
+#[test]
 declaration scope S2:
   output a content decimal
 
@@ -67,6 +69,7 @@ declaration glob4 content decimal
     depends on x content money, y content decimal
     equals decimal of x * y + 10.
 
+#[test]
 declaration scope S3:
   output a content decimal
 
@@ -91,6 +94,7 @@ declaration glob5 content decimal equals
     let y equals 1000. in
     x * y
 
+#[test]
 declaration scope S4:
   output a content decimal
 

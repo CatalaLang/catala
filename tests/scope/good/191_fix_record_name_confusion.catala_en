@@ -1,9 +1,11 @@
 ## Article
 
 ```catala
+#[test]
 declaration scope ScopeA:
   output a content boolean
 
+#[test]
 declaration scope ScopeB:
   output a content boolean
   scopeA scope ScopeA

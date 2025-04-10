@@ -7,6 +7,7 @@ declaration structure Foo:
 declaration structure Bar:
   data f content integer
 
+#TODO [test]: support for context vars
 declaration scope A:
   context output x content Foo
   context output y content integer

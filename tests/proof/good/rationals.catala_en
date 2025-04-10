@@ -1,6 +1,7 @@
 ## Test
 
 ```catala
+#[test]
 declaration scope A:
   internal x content decimal
   output y content boolean

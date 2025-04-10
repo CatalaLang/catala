@@ -1,12 +1,14 @@
 ## Article
 
 ```catala
+#[test]
 declaration scope A:
    output x content list of money
 
 scope A:
    definition x equals [$0; $4 + $5; $8 * 0.65]
 
+#[test]
 declaration scope B:
    a scope A
    output max content money

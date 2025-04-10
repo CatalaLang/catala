@@ -1,6 +1,7 @@
 ## Foo
 
 ```catala
+#[test]
 declaration scope Foo:
   output x content integer
 

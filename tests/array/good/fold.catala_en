@@ -1,6 +1,7 @@
 ## Article
 
 ```catala
+#[test]
 declaration scope A:
   output x content list of money
   output y content list of decimal
@@ -9,6 +10,7 @@ scope A:
    definition x equals [$12; $13.50; $11; $100.1; $50.20]
    definition y equals [1.0; 2.0; 3.0; 4.0; 5.9]
 
+#[test]
 declaration scope B:
   a scope A
   output count content integer

@@ -1,6 +1,7 @@
 ## Test
 
 ```catala
+#[test]
 declaration scope A:
   output foo content integer
     state bar

@@ -1,4 +1,5 @@
 ```catala
+#[test]
 declaration scope A:
   output w content integer
   output x content integer

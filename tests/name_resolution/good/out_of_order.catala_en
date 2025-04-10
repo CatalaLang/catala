@@ -1,6 +1,7 @@
 ## Article
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope S:
   context output a content A
   context output b content B

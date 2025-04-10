@@ -1,6 +1,7 @@
 ## Scope calls are not allowed outside of scopes
 
 ```catala
+#[test]
 declaration scope S1:
   output a content decimal
 

@@ -1,6 +1,7 @@
 ## Article
 
 ```catala
+#TODO [test]: support for context vars
 declaration scope TestBool:
   context output foo content boolean
 

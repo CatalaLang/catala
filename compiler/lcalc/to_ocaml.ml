@@ -609,37 +609,33 @@ let format_scope_exec
   Format.pp_close_box fmt ()
 
 let format_scope_exec_args
-    (ctx : decl_ctx)
+    (_ctx : decl_ctx)
     (fmt : Format.formatter)
     (bnd : ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t) =
-  let scopes_with_no_input =
+  let test_scopes =
     String.Map.fold
       (fun strname (var, item) acc ->
         match item with
         | Topdef _ -> acc
-        | ScopeDef (name, body) ->
-          let input_struct =
-            StructName.Map.find body.scope_body_input_struct ctx.ctx_structs
-          in
-          if StructField.Map.is_empty input_struct then
+        | ScopeDef (name, _) ->
+          if Pos.has_attr (Mark.get (ScopeName.get_info name)) Test then
             (var, name, strname) :: acc
           else acc)
       bnd []
     |> List.rev
   in
-  if scopes_with_no_input = [] then
-    Message.warning
-      "No scopes that don't require input were found, the generated executable \
-       won't test any computation."
+  if test_scopes = [] then
+    Message.warning "%a${<magenta>#[test]@}@ attribute@ above@ their@ declaration." Format.pp_print_text
+      "No test scope were found: the generated executable won't test any computation. To mark scopes as tests, ensure they don't require inputs, and add the "
   else
     Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
       (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
            ScopeName.format ppf s))
-      scopes_with_no_input;
+      test_scopes;
   Format.pp_print_string fmt "\nlet entry_scopes = [\n";
   List.iter
     (fun (_, _, name) -> Format.fprintf fmt "  %S;\n" name)
-    scopes_with_no_input;
+    test_scopes;
   Format.pp_print_string fmt "]\n";
 
   Format.pp_print_string fmt
@@ -666,7 +662,7 @@ let commands = if commands = [] then entry_scopes else commands
         \  print_endline \"Scope %s executed successfully.\"\n\
          )@\n"
         name format_var var name)
-    scopes_with_no_input
+    test_scopes
 
 let check_and_reexport_used_modules fmt ~hashf modules =
   List.iter
