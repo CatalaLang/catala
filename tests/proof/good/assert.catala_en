@@ -1,5 +1,5 @@
 ```catala
-declaration scope Foo:
+#[test] declaration scope Foo:
    input current_date content date
    output x content integer
 

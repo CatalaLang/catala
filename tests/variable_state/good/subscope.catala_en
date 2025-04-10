@@ -1,13 +1,13 @@
 ## Test
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   context output foo content integer
     state bar
     state baz
     state fizz
 
-declaration scope B:
+#[test] declaration scope B:
   output foofoo content integer
     state bar
     state baz

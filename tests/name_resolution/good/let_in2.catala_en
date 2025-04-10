@@ -3,7 +3,7 @@
 > Module Let_in2
 
 ```catala
-declaration scope S:
+#[test] declaration scope S:
   context output a content boolean
 
 scope S:
@@ -95,6 +95,6 @@ let () =
 ```
 
 ```catala
-declaration scope Stest:
+#[test] declaration scope Stest:
   output s scope S
 ```

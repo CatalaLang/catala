@@ -1,7 +1,7 @@
 ## Article
 
 ```catala
-declaration scope TestBool:
+#[test] declaration scope TestBool:
   context output foo content boolean
   context output bar content integer
 

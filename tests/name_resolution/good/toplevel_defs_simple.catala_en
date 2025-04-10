@@ -3,7 +3,7 @@
 ```catala
 declaration glob1 content decimal equals 44.12
 
-declaration scope S:
+#[test] declaration scope S:
   output a content boolean
 
 scope S:

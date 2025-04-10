@@ -10,7 +10,7 @@ scope CheckAgeIsLessThan:
   definition r equals bday + age <= today
   date round increasing
 
-declaration scope Test:
+#[test] declaration scope Test:
   output r content boolean
 
 scope Test:

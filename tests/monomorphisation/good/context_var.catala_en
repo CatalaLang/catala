@@ -1,7 +1,7 @@
 ## Testing monomorphisation on context variables
 
 ```catala
-declaration scope TestXor:
+#[test] declaration scope TestXor:
   context output t content boolean
 
 scope TestXor:
@@ -62,7 +62,7 @@ let scope test_xor
 ```
 
 ```catala
-declaration scope TestXor2:
+#[test] declaration scope TestXor2:
   t scope TestXor
   output o content boolean
 

@@ -30,7 +30,7 @@ scope Foo:
     y = 5
   consequence equals 5
 
-declaration scope Test:
+#[test] declaration scope Test:
   f scope Foo
   output x content integer
 

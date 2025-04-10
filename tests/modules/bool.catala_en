@@ -1,6 +1,7 @@
 > Module Bool
 
 ```catala-metadata
+#[test]
 declaration scope A:
   input x content integer
   input add_meaning_of_life content boolean

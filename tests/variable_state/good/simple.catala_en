@@ -1,7 +1,7 @@
 ## Test
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   output foo content integer
     state bar
     state baz

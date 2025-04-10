@@ -5,7 +5,7 @@ declaration structure S:
   data id content integer
   data income content money
 
-declaration scope A:
+#[test] declaration scope A:
    context output x content list of S
 
 scope A:
@@ -15,7 +15,7 @@ scope A:
       S { -- id: 2 -- income: $8 * 0.65 }
    ]
 
-declaration scope B:
+#[test] declaration scope B:
    a scope A
    output max content money
    output min content money

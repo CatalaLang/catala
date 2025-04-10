@@ -1,5 +1,5 @@
 ```catala
-declaration scope Toto:
+#[test] declaration scope Toto:
   context bar content integer
   output foo content integer
 
@@ -7,7 +7,7 @@ scope Toto:
   definition bar equals 1
   definition foo equals 1212 + bar
 
-declaration scope Titi:
+#[test] declaration scope Titi:
   output fizz content Toto
   output fuzz content Toto
   toto scope Toto

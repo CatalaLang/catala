@@ -5,7 +5,7 @@ declaration scope A:
   input x condition
   output y content integer
 
-declaration scope B:
+#[test] declaration scope B:
   a scope A
 
 scope A:

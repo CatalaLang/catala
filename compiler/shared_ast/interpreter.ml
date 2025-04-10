@@ -1090,61 +1090,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         (* At this point, the interpreter seeks to execute the scope but does
            not have a way to retrieve input values from the command line. [taus]
            contain the types of the scope arguments. For [context] arguments, we
-           can provide an empty thunked term. But for [input] arguments of
-           another type, we cannot provide anything so we have to fail. *)
-        let taus = StructName.Map.find s_in ctx.ctx_structs in
-        let application_term =
-          let pos = Expr.mark_pos mark_e in
-          StructField.Map.map
-            (fun ty ->
-              match Mark.remove ty with
-              | TArrow (ty_in, (TOption _, _)) ->
-                (* Context args should return an option *)
-                Expr.make_abs
-                  (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
-                  (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
-                     ~name:Expr.option_enum mark_e
-                    : (_, _) boxed_gexpr)
-                  ty_in pos
-              | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
-                (* ... or a closure if closure conversion is enabled *)
-                Expr.make_tuple
-                  [
-                    Expr.make_abs
-                      (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
-                      (Expr.einj ~e:(Expr.elit LUnit mark_e)
-                         ~cons:Expr.none_constr ~name:Expr.option_enum mark_e)
-                      ty_in (Expr.mark_pos mark_e);
-                    Expr.eappop
-                      ~op:(Operator.ToClosureEnv, pos)
-                      ~args:[Expr.etuple [] mark_e]
-                      ~tys:[TClosureEnv, pos]
-                      mark_e;
-                  ]
-                  mark_e
-              | TOption ty ->
-                Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
-                  ~e:
-                    (Expr.elit LUnit
-                       (Expr.with_ty mark_e (TLit TUnit, Expr.pos e)))
-                  (Expr.with_ty mark_e (TOption ty, Expr.pos e))
-              | _ ->
-                Message.error ~pos:(Mark.get ty)
-                  "This scope needs an input argument of type@ %a@ %a"
-                  Print.typ_debug ty Format.pp_print_text
-                  "to be executed. But the Catala built-in interpreter does \
-                   not have a way to retrieve input values from the command \
-                   line, so it cannot execute this scope. Please create \
-                   another scope that provides the input arguments to this one \
-                   and execute it instead.")
-            taus
-        in
+           can provide an empty term. But for [input] arguments of another type,
+           we cannot provide anything so we have to fail. *)
+        let application_term = Scope.empty_input_struct_lcalc ctx s_in mark_e in
         let to_interpret =
-          Expr.make_app (Expr.box e)
-            [
-              Expr.estruct ~name:s_in ~fields:application_term
-                (Expr.map_ty (fun (_, pos) -> TStruct s_in, pos) mark_e);
-            ]
+          Expr.make_app (Expr.box e) [application_term]
             [TStruct s_in, Expr.pos e]
             (Expr.pos e)
         in
@@ -1185,32 +1135,9 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            contain the types of the scope arguments. For [context] arguments, we
            can provide an empty thunked term. But for [input] arguments of
            another type, we cannot provide anything so we have to fail. *)
-        let taus = StructName.Map.find s_in ctx.ctx_structs in
-        let application_term =
-          StructField.Map.map
-            (fun ty0 ->
-              match Mark.remove ty0 with
-              | TArrow (ty_in, ty_out) ->
-                Expr.make_abs
-                  (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
-                  (Bindlib.box EEmpty, Expr.with_ty mark_e ty_out)
-                  ty_in (Expr.mark_pos mark_e)
-              | TDefault _ -> Bindlib.box EEmpty, Expr.with_ty mark_e ty0
-              | _ ->
-                Message.error ~pos:(Mark.get ty0) "%a" Format.pp_print_text
-                  "This scope needs input arguments to be executed. But the \
-                   Catala built-in interpreter does not have a way to retrieve \
-                   input values from the command line, so it cannot execute \
-                   this scope. Please create another scope that provides the \
-                   input arguments to this one and execute it instead.")
-            taus
-        in
+        let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
         let to_interpret =
-          Expr.make_app (Expr.box e)
-            [
-              Expr.estruct ~name:s_in ~fields:application_term
-                (Expr.map_ty (fun (_, pos) -> TStruct s_in, pos) mark_e);
-            ]
+          Expr.make_app (Expr.box e) [application_term]
             [TStruct s_in, Expr.pos e]
             (Expr.pos e)
         in

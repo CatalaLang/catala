@@ -131,6 +131,74 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
       in
       Expr.make_let_in (Mark.add Pos.void var) typ e next (Expr.pos e))
 
+let empty_input_struct_dcalc ctx in_struct_name mark =
+  let field_tys = StructName.Map.find in_struct_name ctx.ctx_structs in
+  let fields =
+    StructField.Map.map
+      (function
+        | TArrow (ty_in, ty_out), pos ->
+          Expr.make_abs
+            (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
+            (Bindlib.box EEmpty, Expr.with_ty mark ty_out)
+            ty_in pos
+        | (TDefault _, _) as ty -> Expr.eempty (Expr.with_ty mark ty)
+        | _, pos ->
+          Message.error ~pos "%a" Format.pp_print_text
+            "Invalid scope for execution or testing: it defines input \
+             variables. If necessary, a wrapper scope with explicit inputs to \
+             this one can be defined.")
+      field_tys
+  in
+  let ty = TStruct in_struct_name, Expr.mark_pos mark in
+  Expr.estruct ~name:in_struct_name ~fields (Expr.with_ty mark ty)
+
+let empty_input_struct_lcalc ctx in_struct_name mark =
+  let field_tys = StructName.Map.find in_struct_name ctx.ctx_structs in
+  let fields =
+    StructField.Map.map
+      (function
+        | TArrow (ty_in, ((TOption _, _) as tret)), pos ->
+          (* Context args should return an option *)
+          Expr.make_abs
+            (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
+            (Expr.einj
+               ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
+               ~cons:Expr.none_constr ~name:Expr.option_enum
+               (Expr.with_ty mark tret))
+            ty_in pos
+        | TTuple ((TArrow (ty_in, ((TOption _, _) as tret)), _) :: _), pos ->
+          (* ... or a closure if closure conversion is enabled *)
+          Expr.make_tuple
+            [
+              Expr.make_abs
+                (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
+                (Expr.einj
+                   ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
+                   ~cons:Expr.none_constr ~name:Expr.option_enum
+                   (Expr.with_ty mark tret))
+                ty_in pos;
+              Expr.eappop
+                ~op:(Operator.ToClosureEnv, pos)
+                ~args:[Expr.etuple [] (Expr.with_ty mark (TTuple [], pos))]
+                ~tys:[TTuple [], pos]
+                (Expr.with_ty mark (TClosureEnv, pos));
+            ]
+            mark
+        | (TOption _, pos) as ty ->
+          (* lcalc and later *)
+          Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
+            ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
+            (Expr.with_ty mark ty)
+        | _, pos ->
+          Message.error ~pos "%a" Format.pp_print_text
+            "Invalid scope for execution or testing: it defines input \
+             variables. If necessary, a wrapper scope with explicit inputs to \
+             this one can be defined.")
+      field_tys
+  in
+  let ty = TStruct in_struct_name, Expr.mark_pos mark in
+  Expr.estruct ~name:in_struct_name ~fields (Expr.with_ty mark ty)
+
 let free_vars_body_expr scope_lets =
   BoundList.fold_right scope_lets ~init:Expr.free_vars ~f:(fun sl v acc ->
       Var.Set.union (Var.Set.remove v acc) (Expr.free_vars sl.scope_let_expr))
