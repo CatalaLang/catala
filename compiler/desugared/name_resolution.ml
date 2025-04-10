@@ -909,7 +909,7 @@ let process_name_item
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "enum")
       (Ident.Map.find_opt name ctxt.local.typedefs);
-    let e_uid = EnumName.fresh path edecl.enum_decl_name in
+    let e_uid = EnumName.fresh path (name, pos) in
     let typedefs =
       Ident.Map.add
         (Mark.remove edecl.enum_decl_name)

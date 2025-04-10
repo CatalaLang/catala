@@ -45,6 +45,8 @@ let get_attr t f =
   | [a] -> Some a
   | _ :: _ :: _ -> invalid_arg "Pos.get_attr: multiple matching attributes"
 
+let has_attr t a = List.mem a t.attr
+
 let take_attr t f =
   let rec aux acc = function
     | [] -> None, List.rev acc
