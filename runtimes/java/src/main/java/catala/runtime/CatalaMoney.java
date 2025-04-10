@@ -79,6 +79,10 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return new CatalaMoney(this.value.multiply(other.asBigInteger()));
     }
 
+    public final CatalaMoney multiply(CatalaMoney other) {
+        return new CatalaMoney(this.value.multiply(other.value));
+    }
+
     /**
      * Rounds to the nearest cent
      */

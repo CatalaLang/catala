@@ -29,6 +29,10 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         this.value = BigFraction.of(num.asBigInteger(), den.asBigInteger());
     }
 
+    public CatalaInteger asInteger() {
+        return new CatalaInteger(this.value.getNumerator().divide(this.value.getDenominator()));
+    }
+
     public CatalaDecimal negate() {
         return new CatalaDecimal(this.value.negate());
     }
@@ -122,9 +126,9 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         }
     }
 
-    public CatalaDecimal round(){
+    public CatalaDecimal round() {
         return new CatalaDecimal(new CatalaInteger(this.bigDecimalValue(0, RoundingMode.HALF_UP).toBigInteger()),
-                                 new CatalaInteger(1));
+                new CatalaInteger(1));
     }
 
     final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode) {

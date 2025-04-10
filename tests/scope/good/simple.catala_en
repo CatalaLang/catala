@@ -2,10 +2,11 @@
 
 ```catala
 declaration scope Foo:
+  input foo content integer
   output bar content integer
 
 scope Foo:
-  definition bar equals 0
+  definition bar equals foo
 ```
 
 

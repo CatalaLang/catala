@@ -30,7 +30,8 @@ let ext = "java"
 type context = {
   ctx : Ast.ctx;
   in_scope_structs : StructName.Set.t;
-  out_scope_structs : StructName.Set.t;
+  out_scope_structs : ScopeName.t StructName.Map.t;
+  scope_func_names : FuncName.Set.t;
   in_globals : bool;
   global_funcs : FuncName.Set.t;
   global_vars : VarName.Set.t;
@@ -259,18 +260,12 @@ let rec format_typ ppf typ =
   | TAny -> fprintf ppf "CatalaValue"
   | TClosureEnv -> assert false
 
-let format_struct_params (fields : typ StructField.Map.t) ppf =
+let format_struct_params ppf (fields : typ StructField.Map.t) =
   let fields = StructField.Map.bindings fields in
   pp_print_list ~pp_sep:pp_comma
     (fun ppf (sfield, typ) ->
-      fprintf ppf "%a %a" format_typ typ StructField.format sfield)
+      fprintf ppf "final %a %a" format_typ typ StructField.format sfield)
     ppf fields
-
-(* let fields_of_struct ctx sname = *)
-(*   StructName.Map.find_opt sname ctx.decl_ctx.ctx_structs *)
-(*   |> function *)
-(*   | None -> StructField.Set.empty *)
-(*   | Some m -> StructField.Map.keys m |> StructField.Set.of_list *)
 
 let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
@@ -308,9 +303,43 @@ let get_list_and_args_expr (op : Ast.operator Mark.pos) args =
   | Concat, [l1; l2] -> l1, [l2]
   | _ -> assert false
 
+let fill_struct_bindings
+    (ctx : context)
+    struct_name
+    (given : expr StructField.Map.t) =
+  let expected : expr StructField.Map.t =
+    StructName.Map.find struct_name ctx.ctx.decl_ctx.ctx_structs
+    |> StructField.Map.map (fun _ ->
+           ( EInj
+               {
+                 name = Expr.option_enum;
+                 cons = Expr.none_constr;
+                 e1 = ELit LUnit, Pos.void;
+                 expr_typ = TOption (TAny, Pos.void), Pos.void;
+               },
+             Pos.void ))
+  in
+  StructField.Map.(
+    merge
+      (fun _f e g ->
+        match e, g with
+        | None, None -> assert false
+        | Some l, None | _, Some l -> Some l)
+      expected given
+    |> bindings)
+
 let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
-  (* TODO: adapt to consider globals *)
-  let { in_scope_structs; global_vars; global_funcs; in_globals; _ } = ctx in
+  let {
+    in_scope_structs;
+    out_scope_structs;
+    scope_func_names;
+    global_vars;
+    global_funcs;
+    in_globals;
+    _;
+  } =
+    ctx
+  in
   match Mark.remove e with
   | EVar v ->
     if VarName.Set.mem v global_vars && not in_globals then
@@ -320,59 +349,26 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     if FuncName.Set.mem f global_funcs && not in_globals then
       fprintf ppf "Globals.";
     FuncName.format ppf f
-  | EStruct { fields = es; name = s } -> (
+  | EStruct { fields = es; name = s } ->
     if StructName.Set.mem s in_scope_structs then begin
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
-           fprintf ppf "%a" (format_expression ctx) e))
+           format_expression ctx ppf e))
         ppf
+        (fill_struct_bindings ctx s es)
+    end
+    else if StructName.Map.mem s out_scope_structs then begin
+      let sname = StructName.Map.find s out_scope_structs in
+      fprintf ppf "new %a(new %a.%aOut(%a))" ScopeName.format sname
+        ScopeName.format sname ScopeName.format sname
+        (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
+             fprintf ppf "%a" (format_expression ctx) e))
         (StructField.Map.bindings es)
     end
     else
-      (* TODO (from_scopelang.ml:310) spurious eta-expansion might be
-         removable *)
-      let substitution =
-        match StructField.Map.choose es with
-        | _f, (EStructFieldAccess { e1 = EVar v, _; _ }, _) ->
-          if
-            StructField.Map.for_all
-              (fun _ -> function
-                | EStructFieldAccess { e1 = EVar v', _; _ }, _ ->
-                  VarName.equal v v'
-                | _ -> false)
-              es
-          then Some v
-          else None
-        | _ -> None
-      in
-      let format_obj_args ppf fields =
-        (* Edge-case on single context variable: same issue as above *)
-        match fields with
-        | [
-         ( field,
-           ( EStructFieldAccess
-               {
-                 field = field';
-                 e1 =
-                   ( EApp
-                       { f = _; args = [(EStruct { name = _; fields; _ }, _)] },
-                     _ );
-                 _;
-               },
-             _ ) );
-        ]
-          when field = field' ->
-          if StructField.Map.is_empty fields then ()
-          else format_expression ctx ppf (snd (StructField.Map.choose fields))
-        | _ ->
-          (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
-               fprintf ppf "%a" (format_expression ctx) e))
-            ppf fields
-      in
-      match substitution with
-      | Some result_var -> VarName.format ppf result_var
-      | None ->
-        fprintf ppf "new %a (%a)" (format_struct ctx) s format_obj_args
-          (StructField.Map.bindings es))
+      fprintf ppf "new %a (%a)" (format_struct ctx) s
+        (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
+             fprintf ppf "%a" (format_expression ctx) e))
+        (fill_struct_bindings ctx s es)
   | EStructFieldAccess { name; field; _ }
     when StructName.Set.mem name in_scope_structs ->
     StructField.format ppf field
@@ -478,18 +474,19 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args } when FuncName.Set.mem fname global_funcs
     ->
-    fprintf ppf "@[<hv 0>%s%a(@;<0 -1>%a)@]"
+    fprintf ppf "@[<hv 0>%s%a.apply(@;<0 -1>%a)@]"
       (if in_globals then "" else "Globals.")
       FuncName.format fname
-      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
+      (format_currified_args ctx)
       args
-  | EApp { f = (EVar _, _) as f; args } ->
-    fprintf ppf "@[<hv 0>%a.apply(@;<0 -1>%a)@]" (format_expression ctx) f
+  | EApp { f = (EFunc fname, _) as f; args }
+    when FuncName.Set.mem fname scope_func_names ->
+    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" (format_expression ctx) f
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f; args } ->
-    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" (format_expression ctx) f
-      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
+    fprintf ppf "@[<hv 0>%a.apply(%a)@]" (format_expression ctx) f
+      (format_currified_args ctx)
       args
   | EAppOp { args = []; _ } -> assert false
   | EAppOp { op; args = arg_pos :: arg1 :: args; tys = (TLit TPos, _) :: _ } ->
@@ -523,10 +520,23 @@ and format_expression_with_paren ctx (ppf : formatter) (e : expr) : unit =
   | EExternal _ | EPosLit | EApp _ | ELit _ | EArray _ | ETuple _ | EStruct _ ->
     fprintf ppf "(%a)" (format_expression ctx) e
 
-let rec format_stmt ?scope (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
+and format_currified_args ctx ppf = function
+  | [] -> fprintf ppf "CatalaUnit.INSTANCE"
+  | [arg] -> (format_expression ctx) ppf arg
+  | args ->
+    fprintf ppf "new CatalaTuple(%a)"
+      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
+      args
+
+let rec format_stmt
+    ?scope
+    ?switch_return_var
+    (ctx : context)
+    ppf
+    (stmt : Ast.stmt Mark.pos) =
   match Mark.remove stmt with
   | SLocalDecl { name; typ } ->
-    fprintf ppf "@[<hov 2>%a@ %a = null;@]" format_typ typ VarName.format
+    fprintf ppf "@[<hov 2>final %a@ %a;@]" format_typ typ VarName.format
       (Mark.remove name)
   | SLocalDef { name; expr; _ } ->
     fprintf ppf "@[<hov 2>%a = %a;@]" VarName.format (Mark.remove name)
@@ -599,10 +609,7 @@ let rec format_stmt ?scope (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
     let format_switch_case
         ppf
         (enum_cstr, { case_block; payload_var_name; payload_var_typ }) =
-      let case_block =
-        match case_block with (SLocalInit _, _) :: r -> r | x -> x
-      in
-      fprintf ppf "@[<v 2>case %a:@ %a%a@ break;@]" EnumConstructor.format
+      fprintf ppf "@[<v 2>case %a: {@ %a%a@ break;@\n}@]" EnumConstructor.format
         enum_cstr format_init_case
         (enum_cstr, payload_var_name, payload_var_typ)
         (format_block ?scope ctx) case_block
@@ -611,25 +618,41 @@ let rec format_stmt ?scope (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       EnumName.Map.find enum_name ctx.ctx.decl_ctx.ctx_enums
       |> EnumConstructor.Map.keys
     in
-    fprintf ppf "@[<v 2>switch (%a.kind) {@ %a@ }@]" VarName.format switch_var
+    let pp_default_initializer ppf =
+      match switch_return_var with
+      | None -> ()
+      | Some v ->
+        fprintf ppf "@\n@[<v 2>default: {@ %a = null;@ break;@\n}@]"
+          VarName.format (Mark.remove v)
+    in
+    fprintf ppf "@[<v 2>switch (%a.kind) {@ %a%t@ }@]" VarName.format switch_var
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
+      pp_default_initializer
   | SAssert { expr; _ } ->
     fprintf ppf "@[<hov 2>assert@ %a.asBoolean();@]"
       (format_expression_with_paren ctx)
       expr
   | SSpecialOp _ -> .
 
-and format_inner_func_def ?scope ctx ppf = function
-  | name, { func_params = [(_, (TLit TUnit, _))]; func_body; _ } ->
-    fprintf ppf "@[<hov 2>%a = unit -> {@ %a @]}" VarName.format
-      (Mark.remove name) (format_block ?scope ctx) func_body
-  | name, { func_params = [(pname, _)]; func_body; _ } ->
-    fprintf ppf "@[<hov 2>%a = %a -> {@ %a @]}" VarName.format
-      (Mark.remove name) VarName.format (Mark.remove pname)
+and format_inner_func_def ?scope ctx ppf (name, func) =
+  fprintf ppf "@[<hov 2>%a = %a@];" VarName.format (Mark.remove name)
+    (format_inner_func_body ?scope ctx)
+    func
+
+and format_inner_func_body ?scope ctx ppf = function
+  | { func_params = []; func_body; _ }
+  | { func_params = [(_, (TLit TUnit, _))]; func_body; _ } ->
+    fprintf ppf "unit -> {@ %a }" (format_block ?scope ctx) func_body
+  | { func_params = [(pname, _)]; func_body; _ } ->
+    fprintf ppf "%a -> {@ %a }" VarName.format (Mark.remove pname)
       (format_block ?scope ctx) func_body
-  | name, { func_params = _ :: _ :: _ as params; func_body; _ } ->
-    let args_name = VarName.fresh ("fargs", Pos.void) in
+  | { func_params = _ :: _ :: _ as params; func_body; _ } ->
+    let args_name =
+      VarName.fresh ("tup_arg", Pos.void)
+      |> fun x ->
+      VarName.map_info (fun (s, p) -> sprintf "%s_%d" s (VarName.id x), p) x
+    in
     let init_params =
       List.mapi
         (fun index (name, typ) ->
@@ -639,15 +662,19 @@ and format_inner_func_def ?scope ctx ppf = function
           SLocalInit { name; typ; expr }, Pos.void)
         params
     in
-    fprintf ppf "@[<hov 2>%a = %a -> {@ %a@\n%a @]};" VarName.format
-      (Mark.remove name) VarName.format args_name (format_block ?scope ctx)
-      init_params (format_block ?scope ctx) func_body
-  | _name, { func_params = []; func_body = _; _ } -> assert false
+    fprintf ppf "%a -> {@ %a@\n%a }" VarName.format args_name
+      (format_block ?scope ctx) init_params (format_block ?scope ctx) func_body
 
 and format_block ?scope ctx ppf (block : Ast.block) =
   let rec format_stmts = function
     | [] -> ()
     | [stmt] -> format_stmt ?scope ctx ppf stmt
+    | ((SLocalDecl { name; _ }, _) as s1) :: ((SSwitch _, _) as switch) :: r ->
+      format_stmt ctx ppf s1;
+      pp_print_space ppf ();
+      format_stmt ctx ~switch_return_var:name ppf switch;
+      pp_print_space ppf ();
+      format_stmts r
     | (SLocalDecl { name = n, _; typ }, _)
       :: (SLocalDef { name = n2, _; expr; _ }, _)
       :: r
@@ -696,10 +723,14 @@ let format_constructor (ctx : context) (sbody : scope_body) ppf =
   |> function
   | None -> ()
   | Some in_fields ->
-    fprintf ppf "@[<hov 2>%a%a (@[<hov>%t@]) {@\n%t@]@\n}" format_visibility
+    fprintf ppf "@[<hov 2>%a%a (@[<hov>%a@]) {@\n%t@]@\n}" format_visibility
       sbody.scope_body_visibility ScopeName.format sbody.scope_body_name
-      (format_struct_params in_fields)
+      format_struct_params in_fields
       (format_constructor_body ctx sbody)
+
+let format_output_parameter ?(vis = Public) ppf (field_name, typ) =
+  fprintf ppf "@[<h>%afinal@ %a@ %a;@]" format_visibility vis format_typ typ
+    StructField.format field_name
 
 let format_scope_output_parameters (ctx : Ast.ctx) (sbody : scope_body) ppf =
   let out_struct_name =
@@ -711,12 +742,9 @@ let format_scope_output_parameters (ctx : Ast.ctx) (sbody : scope_body) ppf =
   |> function
   | None -> ()
   | Some out_fields ->
-    let format_output_parameter ppf (field_name, typ) =
-      fprintf ppf "@[<h>%afinal@ %a@ %a;@]" format_visibility
-        sbody.scope_body_visibility format_typ typ StructField.format field_name
-    in
     fprintf ppf "@[<v>%a@]@\n"
-      (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
+      (pp_print_list ~pp_sep:pp_print_space
+         (format_output_parameter ~vis:sbody.scope_body_visibility))
       (StructField.Map.bindings out_fields)
 
 let format_comparison ppf =
@@ -727,24 +755,79 @@ let format_comparison ppf =
      return CatalaBool.FALSE;@]@\n\
      }"
 
+let format_struct_constructor_body ppf fields =
+  let fields = StructField.Map.bindings fields in
+  fprintf ppf "@[<v>%a@]"
+    (pp_print_list ~pp_sep:pp_print_space (fun ppf (sfield, _typ) ->
+         fprintf ppf "this.%a = %a;" StructField.format sfield
+           StructField.format sfield))
+    fields
+
+let format_struct_constructor ?(vis = Public) ppf (sname, fields) =
+  if StructField.Map.is_empty fields then ()
+  else
+    fprintf ppf "@[<hov 2>%a%a (@[<hov>%a@]) {@\n%a@]@\n}" format_visibility vis
+      StructName.format sname format_struct_params fields
+      format_struct_constructor_body fields
+
+let format_scope_out_struct_constructor ?(vis = Public) ppf (scope_name, fields)
+    =
+  if StructField.Map.is_empty fields then ()
+  else
+    let format_constr ppf fields =
+      fprintf ppf "@[<hov 2>%a%aOut (@[<hov>%a@]) {@\n%a@]@\n}"
+        format_visibility vis ScopeName.format scope_name format_struct_params
+        fields format_struct_constructor_body fields
+    in
+    fprintf ppf "@[<hov 2>%astatic class %aOut {@\n%a@\n%a@]@\n}@\n@\n"
+      format_visibility vis ScopeName.format scope_name
+      (pp_print_list ~pp_sep:pp_print_space (format_output_parameter ~vis))
+      (StructField.Map.bindings fields)
+      format_constr fields;
+    let format_scope_out_constructor_body ppf fields =
+      let fields = StructField.Map.bindings fields in
+      fprintf ppf "@[<v>%a@]"
+        (pp_print_list ~pp_sep:pp_print_space (fun ppf (sfield, _typ) ->
+             fprintf ppf "this.%a = result.%a;" StructField.format sfield
+               StructField.format sfield))
+        fields
+    in
+    fprintf ppf "@[<hov 2>%a%a (%aOut result) {@\n%a@]@\n}" format_visibility
+      vis ScopeName.format scope_name ScopeName.format scope_name
+      format_scope_out_constructor_body fields
+
 let generate_scope ~package ~dir ctx (p : Ast.program) (sbody : Ast.scope_body)
     =
   let open File in
   with_formatter_of_file
     ((dir / ScopeName.to_string sbody.scope_body_name) -.- ext)
   @@ fun ppf ->
+  let pp_out_struct ppf =
+    match
+      ScopeName.Map.find_opt sbody.scope_body_name ctx.ctx.decl_ctx.ctx_scopes
+    with
+    | None -> ()
+    | Some sname ->
+      let out_sname = sname.out_struct_name in
+      let out_struct =
+        StructName.Map.find out_sname ctx.ctx.decl_ctx.ctx_structs
+      in
+      format_scope_out_struct_constructor ~vis:sbody.scope_body_visibility ppf
+        (sbody.scope_body_name, out_struct)
+  in
   fprintf ppf
     "package %s;@\n\
      import catala.runtime.*;@\n\
      import catala.runtime.exception.*;@\n\
      @\n\
-     @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@ @ %t@]@\n\
+     @[<v 4>@[<hov 2>%aclass %a@ implements CatalaValue {@]@ @ %t@ %t@ @ %t@ @ \
+     %t@]@\n\
      }"
     package format_visibility sbody.scope_body_visibility ScopeName.format
     sbody.scope_body_name
     (format_scope_output_parameters p.ctx sbody)
     (format_constructor ctx sbody)
-    format_comparison
+    pp_out_struct format_comparison
 
 let generate_ctx ~package ~dir (p : Ast.program) =
   let ctx = p.ctx in
@@ -838,37 +921,24 @@ let generate_ctx ~package ~dir (p : Ast.program) =
         (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
         (StructField.Map.bindings fields)
     in
-    let format_struct_constr_body ppf =
-      let fields = StructField.Map.bindings fields in
-      fprintf ppf "@[<v>%a@]"
-        (pp_print_list ~pp_sep:pp_print_space (fun ppf (sfield, _typ) ->
-             fprintf ppf "this.%a = %a;" StructField.format sfield
-               StructField.format sfield))
-        fields
-    in
-    let format_struct_constr ppf =
-      fprintf ppf "@[<hov 2>public %a (@[<hov>%t@]) {@\n%t@]@\n}"
-        StructName.format sname
-        (format_struct_params fields)
-        format_struct_constr_body
-    in
     fprintf ppf
       "package %s;@\n\
        import catala.runtime.*;@\n\
        @\n\
        @[<v 4>@[<hov 2>public class %a@ implements CatalaValue {@]@ @ %t@ @ \
-       %t@ @ %t@]@\n\
+       %a@ @ %t@]@\n\
        }"
-      package StructName.format sname format_params format_struct_constr
-      format_comparison
+      package StructName.format sname format_params
+      (format_struct_constructor ~vis:Public)
+      (sname, fields) format_comparison
   in
   let in_scope_structs, scope_structs =
     ScopeName.Map.fold
-      (fun _sname scope_info (in_s, out_s) ->
+      (fun sname scope_info (in_s, out_s) ->
         ( StructName.Set.(add scope_info.in_struct_name in_s),
-          StructName.Set.(add scope_info.out_struct_name out_s) ))
+          StructName.Map.(add scope_info.out_struct_name sname out_s) ))
       ctx.decl_ctx.ctx_scopes
-      (StructName.Set.empty, StructName.Set.empty)
+      (StructName.Set.empty, StructName.Map.empty)
   in
   let structs_to_generate =
     StructName.Map.filter
@@ -885,6 +955,7 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       ctx;
       in_scope_structs;
       out_scope_structs = scope_structs;
+      scope_func_names = FuncName.Set.empty;
       in_globals = false;
       global_funcs = FuncName.Set.empty;
       global_vars = VarName.Set.empty;
@@ -892,32 +963,23 @@ let generate_ctx ~package ~dir (p : Ast.program) =
   in
   context
 
-let format_global_parameters
-    ctx
-    (vars : (VarName.t * expr * typ * visibility) list)
-    ppf =
-  let format_global_parameter ppf (name, e, ty, vis) =
-    fprintf ppf "@[<hov 2>%astatic final %a %a =@ %a;@]" format_visibility vis
-      format_typ ty VarName.format name (format_expression ctx) e
-  in
-  fprintf ppf "@[<v>%a@]"
-    (pp_print_list ~pp_sep:pp_print_double_space format_global_parameter)
-    vars
+let format_global_parameter ctx ppf (name, e, ty, vis) =
+  fprintf ppf "@[<hov 2>%astatic final %a %a =@ %a;@]" format_visibility vis
+    format_typ ty VarName.format name (format_expression ctx) e
 
-let format_global_methods
-    ctx
-    (funcs : (FuncName.t * func * visibility) list)
-    ppf =
-  let format_global_method ppf (name, f, vis) =
-    fprintf ppf "@[<hov 2>%astatic final %a %a(%a) {@ %a@]@\n}"
-      format_visibility vis format_typ f.func_return_typ FuncName.format name
-      (pp_print_list ~pp_sep:pp_comma (fun ppf (vname, typ) ->
-           fprintf ppf "%a %a" format_typ typ VarName.format (Mark.remove vname)))
-      f.func_params (format_block ctx) f.func_body
+let format_global_method ctx ppf (name, f, vis) =
+  let format_input_types ppf = function
+    | [] -> fprintf ppf "CatalaUnit"
+    | [t] -> format_typ ppf t
+    | l -> format_typ ppf (TTuple l, Pos.void)
   in
-  fprintf ppf "@[<v>%a@]"
-    (pp_print_list ~pp_sep:pp_print_double_space format_global_method)
-    funcs
+
+  fprintf ppf "@[<hov 2>%astatic final CatalaFunction<%a,%a> %a =@ %a;@]"
+    format_visibility vis format_input_types
+    (List.map snd f.func_params)
+    format_typ f.func_return_typ FuncName.format name
+    (format_inner_func_body ctx)
+    f
 
 let generate_globals ~package ~dir ctx globals =
   let open File in
@@ -927,33 +989,37 @@ let generate_globals ~package ~dir ctx globals =
   else
     with_formatter_of_file ((dir / "Globals") -.- ext)
     @@ fun ppf ->
-    let vars, funcs =
-      List.partition_map
-        (let open Either in
-         function
-         | SVar { var; expr; typ; visibility } ->
-           Left (var, expr, typ, visibility)
-         | SFunc { var; func; visibility } -> Right (var, func, visibility)
-         | SScope _ -> assert false)
-        globals
-    in
     let ctx' = { ctx with in_globals = true } in
+    let pp_item ppf = function
+      | SVar { var; expr; typ; visibility } ->
+        format_global_parameter ctx' ppf (var, expr, typ, visibility)
+      | SFunc { var; func; visibility } ->
+        format_global_method ctx' ppf (var, func, visibility)
+      | _ -> assert false
+    in
     fprintf ppf
       "package %s;@\n\
        import catala.runtime.*;@\n\
        import catala.runtime.exception.*;@\n\
        @\n\
-       @[<v 4>@[<hov 2>public class Globals@ {@]@ @ %t@ %t@]@\n\
+       @[<v 4>@[<hov 2>public class Globals@ {@]@ @ %a@]@\n\
        }"
       package
-      (format_global_parameters ctx' vars)
-      (format_global_methods ctx' funcs);
+      (pp_print_list ~pp_sep:pp_print_double_space pp_item)
+      globals;
+    let vars, funcs =
+      List.partition_map
+        (let open Either in
+         function
+         | SVar { var; _ } -> Left var
+         | SFunc { var; _ } -> Right var
+         | SScope _ -> assert false)
+        globals
+    in
     {
       ctx with
-      global_vars =
-        List.map (fun (var, _, _, _) -> var) vars |> VarName.Set.of_list;
-      global_funcs =
-        List.map (fun (var, _, _) -> var) funcs |> FuncName.Set.of_list;
+      global_vars = VarName.Set.of_list vars;
+      global_funcs = FuncName.Set.of_list funcs;
     }
 
 let generate_items ~package:package_name ~dir:prog_dir ctx p =
@@ -962,6 +1028,16 @@ let generate_items ~package:package_name ~dir:prog_dir ctx p =
       (let open Either in
        function SScope body -> Left body | x -> Right x)
       p.code_items
+  in
+  let ctx =
+    List.fold_left
+      (fun ctx { scope_body_var; _ } ->
+        {
+          ctx with
+          scope_func_names =
+            FuncName.Set.add scope_body_var ctx.scope_func_names;
+        })
+      ctx scopes
   in
   let ctx = generate_globals ~package:package_name ~dir:prog_dir ctx globals in
   List.iter (generate_scope ~package:package_name ~dir:prog_dir ctx p) scopes
