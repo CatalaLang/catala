@@ -1703,7 +1703,8 @@ let init_scope_defs
   let add_def _ v scope_def_map =
     let pos =
       match v with
-      | ScopeVar v | SubScope (v, _) -> Mark.get (ScopeVar.get_info v)
+      | ScopeVar v | SubScope (v, _) ->
+        Name_resolution.(translate_pos ScopeDef (Mark.get (ScopeVar.get_info v)))
     in
     let new_def v_sig io =
       {
