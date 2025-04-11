@@ -884,11 +884,10 @@ let generate_ctx ~package ~dir (p : Ast.program) =
     let format_enum_accessors ppf =
       let format_default_accessor ppf =
         fprintf ppf
-          "@[<v 2>public <T> T getContentsAs(%a.Kind k, Class<T> clazz) {@ \
-           @[<v 2>if (this.kind != k) {@ throw new CatalaException(\"Invalid \
-           enum contents access: expected \" + k + \", got \" + this.kind);@]@ \
-           }@ return (T) this.contents;@]@ }"
-          format_enum ename
+          "@[<v 2>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
+           2>if (this.kind != k) {@ throw new CatalaException(\"Invalid enum \
+           contents access: expected \" + k + \", got \" + this.kind);@]@ }@ \
+           return (T) this.contents;@]@ }"
       in
       let format_enum_accessor ppf (cstr, typ) =
         let is_unit =
