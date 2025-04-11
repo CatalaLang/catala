@@ -25,6 +25,13 @@ open Format
 
 let pp_comma ppf () = fprintf ppf ",@ "
 let pp_print_double_space ppf () = fprintf ppf "@ @ "
+
+let pp_print_list_padded ?pp_sep pp ppf l =
+  if l = [] then ()
+  else (
+    pp_print_double_space ppf ();
+    (pp_print_list ?pp_sep pp) ppf l)
+
 let ext = "java"
 
 type context = {
@@ -35,6 +42,9 @@ type context = {
   in_globals : bool;
   global_funcs : FuncName.Set.t;
   global_vars : VarName.Set.t;
+  external_global_funcs : String.Set.t;
+  external_global_vars : String.Set.t;
+  external_scopes : string String.Map.t;
 }
 
 let format_uid_list (ppf : formatter) (uids : Uid.MarkedString.info list) : unit
@@ -124,6 +134,9 @@ let renaming =
 let to_valid_id s =
   match s.[0] with 'A' .. 'Z' | 'a' .. 'z' -> s | _ -> "_" ^ s
 
+let format_module ppf id =
+  fprintf ppf "%s" (String.to_snake_case id |> to_valid_id)
+
 let format_qualified
     (type id)
     (module Id : Uid.Qualified with type t = id)
@@ -133,10 +146,8 @@ let format_qualified
   | [] -> pp_print_string ppf (Id.base s)
   | m :: _ ->
     (* FIXME: put that in renaming *)
-    let mname_s =
-      ModuleName.to_string m |> String.to_snake_case |> to_valid_id
-    in
-    fprintf ppf "%s.%s" mname_s (Id.base s)
+    let mname_s = ModuleName.to_string m in
+    fprintf ppf "%a.%s" format_module mname_s (Id.base s)
 
 let format_struct = format_qualified (module StructName)
 let format_enum = format_qualified (module EnumName)
@@ -363,8 +374,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         (fill_struct_bindings ctx s es)
     end
     else if StructName.Set.mem s out_scope_structs then begin
-      fprintf ppf "new %a(new %a.%aOut(%a))" format_struct s format_struct s
-        format_struct s
+      fprintf ppf "new %a(new %a.%sOut(%a))" format_struct s format_struct s
+        (StructName.base s)
         (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
              fprintf ppf "%a" (format_expression ctx) e))
         (StructField.Map.bindings es)
@@ -483,10 +494,25 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       FuncName.format fname
       (format_currified_args ctx)
       args
+  | EApp { f = EExternal { modname; name }, _; args }
+    when String.Set.mem (Mark.remove name) ctx.external_global_funcs ->
+    fprintf ppf "@[<hv 0>%a.Globals.%s.apply(@;<0 -1>%a)@]" format_module
+      (Mark.remove modname |> VarName.to_string)
+      (Mark.remove name)
+      (format_currified_args ctx)
+      args
   | EApp { f = EFunc fname, _; args }
     when FuncName.Map.mem fname scope_func_names ->
     fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" format_scope
       (FuncName.Map.find fname scope_func_names)
+      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
+      args
+  | EApp { f = EExternal { modname; name }, _; args }
+    when String.Map.mem (Mark.remove name) ctx.external_scopes ->
+    let scope_name = String.Map.find (Mark.remove name) ctx.external_scopes in
+    fprintf ppf "@[<hv 0>new %a.%s(@;<0 -1>%a)@]" format_module
+      (Mark.remove modname |> VarName.to_string)
+      scope_name
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f; args } ->
@@ -514,8 +540,15 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "((%a)%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)
       e1 index
+  | EExternal { modname; name }
+    when String.Set.mem (Mark.remove name) ctx.external_global_vars ->
+    fprintf ppf "%a.Globals.%s" format_module
+      (Mark.remove modname |> VarName.to_string)
+      (Mark.remove name)
   | EExternal { modname; name } ->
-    fprintf ppf "%a.%s" VarName.format (Mark.remove modname) (Mark.remove name)
+    fprintf ppf "%a.Globals.%s" format_module
+      (Mark.remove modname |> VarName.to_string)
+      (Mark.remove name)
 
 and format_expression_with_paren ctx (ppf : formatter) (e : expr) : unit =
   match Mark.remove e with
@@ -837,6 +870,47 @@ let generate_scope ~package ~dir ctx (sbody : Ast.scope_body) =
     (format_constructor ctx sbody)
     pp_out_struct format_comparison
 
+let gather_externals ctx =
+  let external_global_funcs, external_global_vars =
+    TopdefName.Map.fold
+      (fun topdef_name (typ, vis) ((efuncs, evars) as acc) ->
+        if TopdefName.path topdef_name = [] || vis <> Public then acc
+        else
+          let v = TopdefName.base topdef_name in
+          match typ with
+          | TArrow _, _ -> String.Set.add v efuncs, evars
+          | _ -> efuncs, String.Set.add v evars)
+      ctx.ctx.decl_ctx.ctx_topdefs
+      (String.Set.empty, String.Set.empty)
+  in
+  let external_scopes, external_scopes_in, external_scopes_out =
+    ScopeName.Map.fold
+      (fun sname v ((s_acc, in_acc, out_acc) as acc) ->
+        if ScopeName.path sname = [] then acc
+        else
+          ( String.Map.add (ScopeName.base sname)
+              (StructName.base v.out_struct_name)
+              s_acc,
+            StructName.Set.add v.in_struct_name in_acc,
+            StructName.Set.add v.out_struct_name out_acc ))
+      ctx.ctx.decl_ctx.ctx_scopes
+      (String.Map.empty, StructName.Set.empty, StructName.Set.empty)
+  in
+  let in_scope_structs =
+    StructName.Set.union external_scopes_in ctx.in_scope_structs
+  in
+  let out_scope_structs =
+    StructName.Set.union external_scopes_out ctx.out_scope_structs
+  in
+  {
+    ctx with
+    external_scopes;
+    in_scope_structs;
+    out_scope_structs;
+    external_global_vars;
+    external_global_funcs;
+  }
+
 let generate_ctx ~package ~dir (p : Ast.program) =
   let ctx =
     {
@@ -847,8 +921,12 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       in_globals = false;
       global_funcs = FuncName.Set.empty;
       global_vars = VarName.Set.empty;
+      external_global_funcs = String.Set.empty;
+      external_global_vars = String.Set.empty;
+      external_scopes = String.Map.empty;
     }
   in
+  let ctx = gather_externals ctx in
   let generate_enum ppf (ename, cstrs) =
     let format_enum_kind ppf =
       fprintf ppf "@[<hov 2>public enum Kind {@ %a@] }"
@@ -876,9 +954,9 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       in
       fprintf ppf
         "@[<v 2>private %a(Kind k, CatalaValue contents) {@ this.kind = k;@ \
-         this.contents = contents;@ @]}@ @ @[<v>%a@]"
+         this.contents = contents;@ @]}@[<v>%a@]"
         format_enum ename
-        (pp_print_list ~pp_sep:pp_print_space format_enum_make)
+        (pp_print_list_padded ~pp_sep:pp_print_space format_enum_make)
         (EnumConstructor.Map.bindings cstrs)
     in
     let format_enum_accessors ppf =
@@ -890,21 +968,19 @@ let generate_ctx ~package ~dir (p : Ast.program) =
            return (T) this.contents;@]@ }"
       in
       let format_enum_accessor ppf (cstr, typ) =
-        let is_unit =
-          match Mark.remove typ with TLit TUnit -> true | _ -> false
-        in
-        if is_unit then ()
-        else
-          fprintf ppf
-            "@[<v 2>public %a get%aContents() {@ return \
-             this.getContentsAs(Kind.%a, %a.class);@]@\n\
-             }"
-            (format_typ ctx) typ EnumConstructor.format cstr
-            EnumConstructor.format cstr (format_typ ctx) typ
+        fprintf ppf
+          "@[<v 2>public %a get%aContents() {@ return \
+           this.getContentsAs(Kind.%a, %a.class);@]@\n\
+           }"
+          (format_typ ctx) typ EnumConstructor.format cstr
+          EnumConstructor.format cstr (format_typ ctx) typ
       in
-      fprintf ppf "@[<v>%t@\n@\n%a@]" format_default_accessor
-        (pp_print_list ~pp_sep:pp_print_space format_enum_accessor)
-        (EnumConstructor.Map.bindings cstrs)
+      fprintf ppf "@[<v>%t%a@]" format_default_accessor
+        (pp_print_list_padded ~pp_sep:pp_print_space format_enum_accessor)
+        (List.filter
+           (fun (_, typ) ->
+             match Mark.remove typ with TLit TUnit -> false | _ -> true)
+           (EnumConstructor.Map.bindings cstrs))
     in
     fprintf ppf
       "package %s;@\n\
@@ -979,10 +1055,30 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       File.(with_formatter_of_file ((dir / StructName.to_string sname) -.- ext))
       @@ fun ppf -> generate_struct ppf (sname, cstrs))
     structs_to_generate;
-  let context =
-    { ctx with in_scope_structs; out_scope_structs = scope_structs }
+  {
+    ctx with
+    in_scope_structs =
+      StructName.Set.union ctx.in_scope_structs in_scope_structs;
+    out_scope_structs = StructName.Set.union ctx.out_scope_structs scope_structs;
+  }
+
+let format_external_parameter ctx ppf (name, ty, vis) =
+  fprintf ppf
+    "// TO IMPLEMENT@\n@[<hov 2>%astatic final %a %a =@ null; //TO IMPLEMENT@]"
+    format_visibility vis (format_typ ctx) ty TopdefName.format name
+
+let format_external_method ctx ppf (name, (ty_l, ret_ty), vis) =
+  let format_input_types ppf = function
+    | [] -> fprintf ppf "CatalaUnit"
+    | [t] -> (format_typ ctx) ppf t
+    | l -> (format_typ ctx) ppf (TTuple l, Pos.void)
   in
-  context
+  fprintf ppf
+    "// TO IMPLEMENT@\n\
+     @[<hov 2>%astatic final CatalaFunction<%a,%a> %a =@ x -> { throw new \
+     CatalaException(\"External function %a not implemented\"); } ;@]"
+    format_visibility vis format_input_types ty_l (format_typ ctx) ret_ty
+    TopdefName.format name TopdefName.format name
 
 let format_global_parameter ctx ppf (name, e, ty, vis) =
   fprintf ppf "@[<hov 2>%astatic final %a %a =@ %a;@]" format_visibility vis
@@ -994,7 +1090,6 @@ let format_global_method ctx ppf (name, f, vis) =
     | [t] -> (format_typ ctx) ppf t
     | l -> (format_typ ctx) ppf (TTuple l, Pos.void)
   in
-
   fprintf ppf "@[<hov 2>%astatic final CatalaFunction<%a,%a> %a =@ %a;@]"
     format_visibility vis format_input_types
     (List.map snd f.func_params)
@@ -1004,12 +1099,30 @@ let format_global_method ctx ppf (name, f, vis) =
 
 let generate_globals ~package ~dir ctx globals =
   let open File in
-  if globals = [] then (
+  let externals_vars, externals_funcs =
+    Shared_ast.TopdefName.Map.fold
+      (fun topdef_name (typ, vis) ((vars, funcs) as acc) ->
+        if TopdefName.path topdef_name <> [] then acc
+        else
+          match typ with
+          | TArrow (ty_l, ret_ty), _ ->
+            vars, (topdef_name, (ty_l, ret_ty), vis) :: funcs
+          | _ -> (topdef_name, typ, vis) :: vars, funcs)
+      ctx.ctx.decl_ctx.ctx_topdefs ([], [])
+    |> fun (l, r) -> List.rev l, List.rev r
+  in
+  if globals = [] && externals_vars = [] && externals_funcs = [] then (
     Message.debug "No globals definition to generate";
     ctx)
   else
     with_formatter_of_file ((dir / "Globals") -.- ext)
     @@ fun ppf ->
+    let globals, externals_vars, externals_funcs =
+      if globals <> [] then
+        (* Don't generate anything if there are (real) globals *)
+        globals, [], []
+      else [], externals_vars, externals_funcs
+    in
     let ctx' = { ctx with in_globals = true } in
     let pp_item ppf = function
       | SVar { var; expr; typ; visibility } ->
@@ -1023,11 +1136,17 @@ let generate_globals ~package ~dir ctx globals =
        import catala.runtime.*;@\n\
        import catala.runtime.exception.*;@\n\
        @\n\
-       @[<v 4>@[<hov 2>public class Globals@ {@]@ @ %a@]@\n\
+       @[<v 4>@[<hov 2>public class Globals@ {@]%a%a%a@]@\n\
        }"
       package
-      (pp_print_list ~pp_sep:pp_print_double_space pp_item)
-      globals;
+      (pp_print_list_padded ~pp_sep:pp_print_double_space pp_item)
+      globals
+      (pp_print_list_padded ~pp_sep:pp_print_double_space
+         (format_external_parameter ctx'))
+      externals_vars
+      (pp_print_list_padded ~pp_sep:pp_print_double_space
+         (format_external_method ctx'))
+      externals_funcs;
     let vars, funcs =
       List.partition_map
         (let open Either in
@@ -1043,7 +1162,7 @@ let generate_globals ~package ~dir ctx globals =
       global_funcs = FuncName.Set.of_list funcs;
     }
 
-let generate_items ~package:package_name ~dir:prog_dir ctx p =
+let generate_scopes ~package:package_name ~dir:prog_dir ctx p =
   let scopes, globals =
     List.partition_map
       (let open Either in
@@ -1102,4 +1221,4 @@ let generate_program
   @@ File.process_out "cp" ["-r"; path / "pom.xml"; path / "src"; output_dir];
   ignore @@ File.process_out "chmod" ["a+w"; "-R"; output_dir];
   let ctx = generate_ctx ~package:package_name ~dir:prog_dir p in
-  generate_items ~package:package_name ~dir:prog_dir ctx p
+  generate_scopes ~package:package_name ~dir:prog_dir ctx p
