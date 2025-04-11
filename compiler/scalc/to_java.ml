@@ -1063,6 +1063,12 @@ let generate_items ~package:package_name ~dir:prog_dir ctx p =
   let ctx = generate_globals ~package:package_name ~dir:prog_dir ctx globals in
   List.iter (generate_scope ~package:package_name ~dir:prog_dir ctx) scopes
 
+let fresh =
+  let cpt = ref 0 in
+  fun () ->
+    incr cpt;
+    !cpt
+
 let generate_program
     ~output_dir
     ~input_file
@@ -1076,7 +1082,9 @@ let generate_program
       | Some (mname, _) -> ModuleName.to_string mname
     in
     (* FIXME: put that in renaming *)
-    String.to_snake_case mname |> to_valid_id
+    let s = String.to_snake_case mname |> to_valid_id in
+    (* FIXME: doesn't work for module referencing *)
+    if List.mem s java_keywords then sprintf "%s_%d" s (fresh ()) else s
   in
   let prog_dir = output_dir / "src" / "main" / "java" / package_name in
   (* Creates the output directory *)
