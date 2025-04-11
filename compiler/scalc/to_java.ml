@@ -30,8 +30,8 @@ let ext = "java"
 type context = {
   ctx : Ast.ctx;
   in_scope_structs : StructName.Set.t;
-  out_scope_structs : ScopeName.t StructName.Map.t;
-  scope_func_names : FuncName.Set.t;
+  out_scope_structs : StructName.Set.t;
+  scope_func_names : ScopeName.t FuncName.Map.t;
   in_globals : bool;
   global_funcs : FuncName.Set.t;
   global_vars : VarName.Set.t;
@@ -130,8 +130,9 @@ let format_qualified
   match List.rev (Id.path s) with
   | [] -> pp_print_string ppf (Id.base s)
   | m :: _ ->
-    fprintf ppf "%a.%s" VarName.format
-      (ModuleName.Map.find m ctx.ctx.modules)
+    fprintf ppf "%s.%s"
+      (VarName.to_string (ModuleName.Map.find m ctx.ctx.modules)
+      |> String.to_camel_case ~capitalize:false)
       (Id.base s)
 
 let format_struct = format_qualified (module StructName)
@@ -192,46 +193,46 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | HandleExceptions -> pp_print_string ppf "ConflictException.handleExceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
-let _format_scope_calls ppf (p : Ast.program) =
-  let scopes_with_no_input =
-    List.fold_left
-      (fun acc -> function
-        | SScope
-            {
-              scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
-              scope_body_var = var;
-              scope_body_name = name;
-              scope_body_visibility = _;
-            } ->
-          let input_struct =
-            StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
-          in
-          if StructField.Map.is_empty input_struct then (var, name, ts) :: acc
-          else acc
-        | SVar _ | SFunc _ | SScope _ -> acc)
-      [] p.code_items
-    |> List.rev
-  in
-  if scopes_with_no_input = [] then ()
-  else
-    let () =
-      Message.debug "Generating entry points for scopes:@ %a"
-        (pp_print_list ~pp_sep:pp_print_space (fun ppf (_, s, _) ->
-             ScopeName.format ppf s))
-        scopes_with_no_input
-    in
-    fprintf ppf "@,# Automatic Catala tests@,";
-    fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
-    List.iter
-      (fun (var, name, ts) ->
-        fprintf ppf "@,print(\"Executing scope %a...\")" ScopeName.format name;
-        fprintf ppf "@,%a (%a());" FuncName.format var StructName.format ts;
-        fprintf ppf
-          "@,\
-           print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\")"
-          ScopeName.format name)
-      scopes_with_no_input;
-    fprintf ppf "@]@,"
+(* let _format_scope_calls ppf (p : Ast.program) = *)
+(*   let scopes_with_no_input = *)
+(*     List.fold_left *)
+(*       (fun acc -> function *)
+(*         | SScope *)
+(*             { *)
+(* scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ }; *)
+(*               scope_body_var = var; *)
+(*               scope_body_name = name; *)
+(*               scope_body_visibility = _; *)
+(*             } -> *)
+(*           let input_struct = *)
+(*             StructName.Map.find ts p.ctx.decl_ctx.ctx_structs *)
+(*           in *)
+(* if StructField.Map.is_empty input_struct then (var, name, ts) :: acc *)
+(*           else acc *)
+(*         | SVar _ | SFunc _ | SScope _ -> acc) *)
+(*       [] p.code_items *)
+(*     |> List.rev *)
+(*   in *)
+(*   if scopes_with_no_input = [] then () *)
+(*   else *)
+(*     let () = *)
+(*       Message.debug "Generating entry points for scopes:@ %a" *)
+(*         (pp_print_list ~pp_sep:pp_print_space (fun ppf (_, s, _) -> *)
+(*              ScopeName.format ppf s)) *)
+(*         scopes_with_no_input *)
+(*     in *)
+(*     fprintf ppf "@,# Automatic Catala tests@,"; *)
+(*     fprintf ppf "@[<v 2>if __name__ == \"__main__\":"; *)
+(*     List.iter *)
+(*       (fun (var, name, ts) -> *)
+(* fprintf ppf "@,print(\"Executing scope %a...\")" ScopeName.format name; *)
+(* fprintf ppf "@,%a (%a());" FuncName.format var StructName.format ts; *)
+(* fprintf ppf *)
+(* "@,\ *) (* print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed
+   successfully.\")" *)
+(*           ScopeName.format name) *)
+(*       scopes_with_no_input; *)
+(*     fprintf ppf "@]@," *)
 
 let format_visibility ppf = function
   | Private -> () (* nothing => package visibility *)
@@ -356,10 +357,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         ppf
         (fill_struct_bindings ctx s es)
     end
-    else if StructName.Map.mem s out_scope_structs then begin
-      let sname = StructName.Map.find s out_scope_structs in
-      fprintf ppf "new %a(new %a.%aOut(%a))" ScopeName.format sname
-        ScopeName.format sname ScopeName.format sname
+    else if StructName.Set.mem s out_scope_structs then begin
+      fprintf ppf "new %a(new %a.%aOut(%a))" StructName.format s
+        StructName.format s StructName.format s
         (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
              fprintf ppf "%a" (format_expression ctx) e))
         (StructField.Map.bindings es)
@@ -479,9 +479,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       FuncName.format fname
       (format_currified_args ctx)
       args
-  | EApp { f = (EFunc fname, _) as f; args }
-    when FuncName.Set.mem fname scope_func_names ->
-    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" (format_expression ctx) f
+  | EApp { f = EFunc fname, _; args }
+    when FuncName.Map.mem fname scope_func_names ->
+    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" ScopeName.format
+      (FuncName.Map.find fname scope_func_names)
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f; args } ->
@@ -636,18 +637,24 @@ let rec format_stmt
   | SSpecialOp _ -> .
 
 and format_inner_func_def ?scope ctx ppf (name, func) =
-  fprintf ppf "@[<hov 2>%a = %a@];" VarName.format (Mark.remove name)
+  fprintf ppf "@[<hov 2>%a = %a@]" VarName.format (Mark.remove name)
     (format_inner_func_body ?scope ctx)
     func
 
-and format_inner_func_body ?scope ctx ppf = function
+and format_inner_func_body ?scope ctx ppf =
+  let format_var ppf v =
+    if VarName.to_string v = "" then (* wildcard *) fprintf ppf "unit"
+    else VarName.format ppf v
+  in
+  function
   | { func_params = []; func_body; _ }
   | { func_params = [(_, (TLit TUnit, _))]; func_body; _ } ->
     fprintf ppf "unit -> {@ %a }" (format_block ?scope ctx) func_body
   | { func_params = [(pname, _)]; func_body; _ } ->
-    fprintf ppf "%a -> {@ %a }" VarName.format (Mark.remove pname)
+    fprintf ppf "%a -> {@ %a }" format_var (Mark.remove pname)
       (format_block ?scope ctx) func_body
   | { func_params = _ :: _ :: _ as params; func_body; _ } ->
+    Format.eprintf "%s@." __LOC__;
     let args_name =
       VarName.fresh ("tup_arg", Pos.void)
       |> fun x ->
@@ -662,7 +669,7 @@ and format_inner_func_body ?scope ctx ppf = function
           SLocalInit { name; typ; expr }, Pos.void)
         params
     in
-    fprintf ppf "%a -> {@ %a@\n%a }" VarName.format args_name
+    fprintf ppf "%a -> {@ %a@\n%a }" format_var args_name
       (format_block ?scope ctx) init_params (format_block ?scope ctx) func_body
 
 and format_block ?scope ctx ppf (block : Ast.block) =
@@ -799,21 +806,19 @@ let format_scope_out_struct_constructor ?(vis = Public) ppf (scope_name, fields)
 let generate_scope ~package ~dir ctx (p : Ast.program) (sbody : Ast.scope_body)
     =
   let open File in
+  eprintf "scope_out : %a => %a@." ScopeName.format sbody.scope_body_name
+    format_typ sbody.scope_body_func.func_return_typ;
+  let out_struct =
+    match sbody.scope_body_func.func_return_typ with
+    | TStruct name, _ -> StructName.Map.find name ctx.ctx.decl_ctx.ctx_structs
+    | _ -> assert false
+  in
   with_formatter_of_file
     ((dir / ScopeName.to_string sbody.scope_body_name) -.- ext)
   @@ fun ppf ->
   let pp_out_struct ppf =
-    match
-      ScopeName.Map.find_opt sbody.scope_body_name ctx.ctx.decl_ctx.ctx_scopes
-    with
-    | None -> ()
-    | Some sname ->
-      let out_sname = sname.out_struct_name in
-      let out_struct =
-        StructName.Map.find out_sname ctx.ctx.decl_ctx.ctx_structs
-      in
-      format_scope_out_struct_constructor ~vis:sbody.scope_body_visibility ppf
-        (sbody.scope_body_name, out_struct)
+    format_scope_out_struct_constructor ~vis:sbody.scope_body_visibility ppf
+      (sbody.scope_body_name, out_struct)
   in
   fprintf ppf
     "package %s;@\n\
@@ -933,12 +938,22 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       (sname, fields) format_comparison
   in
   let in_scope_structs, scope_structs =
-    ScopeName.Map.fold
-      (fun sname scope_info (in_s, out_s) ->
-        ( StructName.Set.(add scope_info.in_struct_name in_s),
-          StructName.Map.(add scope_info.out_struct_name sname out_s) ))
-      ctx.decl_ctx.ctx_scopes
-      (StructName.Set.empty, StructName.Map.empty)
+    List.fold_left
+      (fun ((in_s, out_s) as acc) -> function
+        | SScope
+            {
+              scope_body_func =
+                {
+                  func_params = [(_, (TStruct in_sname, _))];
+                  func_return_typ = TStruct out_sname, _;
+                  _;
+                };
+              _;
+            } ->
+          StructName.Set.add in_sname in_s, StructName.Set.add out_sname out_s
+        | _ -> acc)
+      (StructName.Set.empty, StructName.Set.empty)
+      p.code_items
   in
   let structs_to_generate =
     StructName.Map.filter
@@ -955,7 +970,7 @@ let generate_ctx ~package ~dir (p : Ast.program) =
       ctx;
       in_scope_structs;
       out_scope_structs = scope_structs;
-      scope_func_names = FuncName.Set.empty;
+      scope_func_names = FuncName.Map.empty;
       in_globals = false;
       global_funcs = FuncName.Set.empty;
       global_vars = VarName.Set.empty;
@@ -1031,11 +1046,13 @@ let generate_items ~package:package_name ~dir:prog_dir ctx p =
   in
   let ctx =
     List.fold_left
-      (fun ctx { scope_body_var; _ } ->
+      (fun ctx { scope_body_var; scope_body_name; _ } ->
         {
           ctx with
           scope_func_names =
-            FuncName.Set.add scope_body_var ctx.scope_func_names;
+            (eprintf "scope funcname: %a@." FuncName.format scope_body_var;
+             FuncName.Map.add scope_body_var scope_body_name
+               ctx.scope_func_names);
         })
       ctx scopes
   in
