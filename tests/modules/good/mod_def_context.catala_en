@@ -5,8 +5,7 @@ or direct scope calls). The main part of the test is in `mod_use_context`.
 > Module Mod_def_context
 
 ```catala-metadata
-#[test]
-declaration scope S:
+#[test] declaration scope S:
   context output ci content integer
   context output cm content money
   context output cfun1 content decimal depends on x content integer
@@ -33,8 +32,7 @@ declaration quarter content decimal
 ```
 
 ```catala
-#[test]
-declaration scope Stest:
+#[test] declaration scope Stest:
   output o1 content S
   output o2 content S
   output x11 content decimal
@@ -85,8 +83,7 @@ $ catala test-scope Stest
 ### Testing subscopes (with and without context override)
 
 ```catala
-#[test]
-declaration scope TestSubDefault:
+#[test] declaration scope TestSubDefault:
   sub scope S
   output ci content integer
   output cm content money
@@ -112,8 +109,7 @@ $ catala test-scope TestSubDefault
 ```
 
 ```catala
-#[test]
-declaration scope TestSubOverride:
+#[test] declaration scope TestSubOverride:
   sub scope S
   output ci content integer
   output cm content money

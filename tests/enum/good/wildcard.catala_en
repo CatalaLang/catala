@@ -10,8 +10,7 @@ declaration enumeration E:
 ### Simple case
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope Simple_case:
+#[test] declaration scope Simple_case:
   context output x content E
   context output y content integer
 
@@ -25,8 +24,7 @@ scope Simple_case:
 ### Simple case 2
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope Simple_case_2:
+#[test] declaration scope Simple_case_2:
   context output x content E
   context output y content integer
 

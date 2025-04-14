@@ -1093,7 +1093,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            can provide an empty term. But for [input] arguments of
            another type, we cannot provide anything so we have to fail. *)
         let application_term =
-          Scope.empty_input_struct_lcalc ctx s mark_e
+          Scope.empty_input_struct_lcalc ctx s_in mark_e
         in
         let to_interpret =
           Expr.make_app (Expr.box e) [application_term]
@@ -1137,9 +1137,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            contain the types of the scope arguments. For [context] arguments, we
            can provide an empty thunked term. But for [input] arguments of
            another type, we cannot provide anything so we have to fail. *)
-        let taus = StructName.Map.find s_in ctx.ctx_structs in
         let application_term =
-          Scope.empty_input_struct_dcalc ctx s mark_e
+          Scope.empty_input_struct_dcalc ctx s_in mark_e
         in
         let to_interpret =
           Expr.make_app (Expr.box e)

@@ -584,57 +584,49 @@ let is_public = function
 
 let format_scope_exec
     (ctx : decl_ctx)
-    (fmt : Format.formatter)
     (bnd : ('m Ast.expr Var.t * _) String.Map.t)
-    scope_name
-    scope_body =
+    (fmt : Format.formatter)
+    (scope_name, scope_body) =
   let scope_name_str = Format.asprintf "%a" ScopeName.format scope_name in
   let scope_var, _ = String.Map.find scope_name_str bnd in
-  let scope_input =
-    StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs
-  in
-  if not (StructField.Map.is_empty scope_input) then
-    Message.error
-      "The scope @{<bold>%s@} defines input variables.@ This is not supported \
-       for a main scope at the moment."
-      scope_name_str;
-  Format.pp_open_vbox fmt 2;
-  Format.pp_print_string fmt "let () =";
+
   (* TODO: dump the output using yojson that should be already available from
      the runtime *)
-  Format.pp_print_space fmt ();
   format_var fmt scope_var;
   Format.pp_print_space fmt ();
-  Format.pp_print_string fmt "()";
-  Format.pp_close_box fmt ()
+  format_expr ctx fmt
+    (Expr.unbox
+       (Scope.empty_input_struct_lcalc ctx scope_body.scope_body_input_struct
+          (Untyped { pos = Pos.void })))
 
 let format_scope_exec_args
-    (_ctx : decl_ctx)
+    (p : 'm Ast.program)
     (fmt : Format.formatter)
     (bnd : ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t) =
   let test_scopes =
     String.Map.fold
-      (fun strname (var, item) acc ->
+      (fun strname (_, item) acc ->
         match item with
         | Topdef _ -> acc
         | ScopeDef (name, _) ->
           if Pos.has_attr (Mark.get (ScopeName.get_info name)) Test then
-            (var, name, strname) :: acc
+            (name, strname) :: acc
           else acc)
       bnd []
     |> List.rev
   in
   if test_scopes = [] then
-    Message.warning "%a${<magenta>#[test]@}@ attribute@ above@ their@ declaration." Format.pp_print_text
-      "No test scope were found: the generated executable won't test any computation. To mark scopes as tests, ensure they don't require inputs, and add the "
+    Message.warning "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration." Format.pp_print_text
+      "No test scope were found: the generated executable won't test any computation. \
+       To mark scopes as tests, ensure they don't require inputs, and add the "
   else
     Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
            ScopeName.format ppf s))
       test_scopes;
   Format.pp_print_string fmt "\nlet entry_scopes = [\n";
   List.iter
-    (fun (_, _, name) -> Format.fprintf fmt "  %S;\n" name)
+    (fun (_, name) -> Format.fprintf fmt "  %S;\n" name)
     test_scopes;
   Format.pp_print_string fmt "]\n";
 
@@ -653,15 +645,16 @@ let commands = if commands = [] then entry_scopes else commands
 
 |};
   List.iter
-    (fun (var, _, name) ->
+    (fun (name, s) ->
       (* Note: this only checks that execution doesn't raise errors or assert
          failures. Adding a printer for the results could be an idea... *)
+      let scope_body = Program.get_scope_body p name in
       Format.fprintf fmt
         "let () = if List.mem %S commands then (\n\
-        \  ignore (%a ());\n\
+        \  ignore (@[<hv>%a@]);\n\
         \  print_endline \"Scope %s executed successfully.\"\n\
          )@\n"
-        name format_var var name)
+        s (format_scope_exec p.decl_ctx bnd) (name, scope_body) s)
     test_scopes
 
 let check_and_reexport_used_modules fmt ~hashf modules =
@@ -742,11 +735,14 @@ let format_program
     match p.module_name, exec_scope with
     | Some (modname, intf_id), None ->
       format_module_registration fmt bnd modname (hashf intf_id.hash)
-        intf_id.is_external
+         intf_id.is_external
     | None, Some scope_name ->
       let scope_body = Program.get_scope_body p scope_name in
-      format_scope_exec p.decl_ctx fmt bnd scope_name scope_body
-    | None, None -> if exec_args then format_scope_exec_args p.decl_ctx fmt bnd
+      Format.fprintf fmt "@[<v 2>let () =@ %a@]"
+        (format_scope_exec p.decl_ctx bnd) (scope_name, scope_body)
+    | None, None ->
+      if exec_args then
+        format_scope_exec_args p fmt bnd
     | Some _, Some _ ->
       Message.error
         "OCaml generation: both module registration and top-level scope \

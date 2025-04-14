@@ -15,8 +15,7 @@ declaration quarter content decimal
 ### Testing direct scope calls (with and without context override)
 
 ```catala
-#[test]
-declaration scope TestCall:
+#[test] declaration scope TestCall:
   output o_default content Mod_def_context.S
   output o_override content Mod_def_context.S
   output x11 content decimal
@@ -81,8 +80,7 @@ $ catala test-scope TestCall
 ### Testing subscopes (with and without context override)
 
 ```catala
-#[test]
-declaration scope TestSubDefault:
+#[test] declaration scope TestSubDefault:
   sub scope Mod_def_context.S
   output ci content integer
   output cm content money
@@ -108,8 +106,7 @@ $ catala test-scope TestSubDefault
 ```
 
 ```catala
-#[test]
-declaration scope TestSubOverride:
+#[test] declaration scope TestSubOverride:
   sub scope Mod_def_context.S
   output ci content integer
   output cm content money

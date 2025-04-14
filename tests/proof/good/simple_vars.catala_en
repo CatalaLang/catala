@@ -1,8 +1,7 @@
 ## Test
 
 ```catala
-#[test]
-declaration scope A:
+#[test] declaration scope A:
   internal x content integer
   internal y content boolean
   output z content integer

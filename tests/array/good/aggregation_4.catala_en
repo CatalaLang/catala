@@ -4,7 +4,6 @@ declaration structure Period:
   data begin content date
   data end content date
 
-#[test]
 declaration scope Section121SinglePerson:
   # Invariant: the periods in the collection are disjoint
   input date_of_sale_or_exchange content date

@@ -1,8 +1,7 @@
 ## Test
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope A:
+#[test] declaration scope A:
   context output f content integer depends on x content integer
 
 declaration scope B:

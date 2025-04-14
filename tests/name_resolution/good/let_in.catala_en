@@ -1,8 +1,7 @@
 ## Article
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope S:
+#[test] declaration scope S:
   context output a content A
   context output b content B
 
@@ -49,8 +48,7 @@ $ catala test-scope S
 ## Check scope of let-in vs scope variable
 
 ```catala
-#[test]
-declaration scope S2:
+#[test] declaration scope S2:
    x scope S
    output y content integer
 

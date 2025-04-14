@@ -1,15 +1,13 @@
 ## Test
 
 ```catala
-#TODO [test]: support for context vars
 declaration scope A:
   context a content integer
   input b content integer
   output c content integer
   internal d content integer
 
-#[test]
-declaration scope B:
+#[test] declaration scope B:
   a scope A
 
 scope A:

@@ -1,8 +1,7 @@
 ## Article
 
 ```catala
-#[test]
-declaration scope A:
+#[test] declaration scope A:
   output x content money
   output y content money
 

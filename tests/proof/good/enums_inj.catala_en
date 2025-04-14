@@ -5,8 +5,7 @@ declaration enumeration E:
   -- C1
   -- C2
 
-#[test]
-declaration scope A:
+#[test] declaration scope A:
   internal x content E
   output y content integer
 

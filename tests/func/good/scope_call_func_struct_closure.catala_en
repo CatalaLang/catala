@@ -13,8 +13,7 @@ declaration scope SubFoo2:
   output y content integer depends on z content integer
 
 
-#TODO [test]: support for context vars
-declaration scope Foo:
+#[test] declaration scope Foo:
   context b content boolean
   internal r content Result
   output z content integer

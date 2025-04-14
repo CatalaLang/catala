@@ -1,15 +1,13 @@
 ## Article
 
 ```catala
-#[test]
-declaration scope A:
+#[test] declaration scope A:
    output x content list of integer
 
 scope A:
    definition x equals [0; 4+5; 8*8]
 
-#[test]
-declaration scope B:
+#[test] declaration scope B:
    a scope A
    output v content integer
    output w content boolean

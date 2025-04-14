@@ -1,14 +1,12 @@
 ## Article
 
 ```catala
-#TODO [test]: support for context vars
 declaration scope Callee:
   context function condition depends on x content integer
   context input_v content integer
   context output output_v condition
 
-#[test]
-declaration scope Caller:
+#[test] declaration scope Caller:
   callee scope Callee
 
 

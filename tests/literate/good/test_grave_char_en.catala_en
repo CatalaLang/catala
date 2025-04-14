@@ -16,8 +16,7 @@ let () = print_endline "Hello world!"
 ```
 
 ```catala
-#[test]
-declaration scope A:
+#[test] declaration scope A:
   context output literate_parsing_is_ok content boolean
 
 scope A:

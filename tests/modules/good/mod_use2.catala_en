@@ -1,8 +1,7 @@
 > Using Mod_middle as M
 
 ```catala
-#[test]
-declaration scope T:
+#[test] declaration scope T:
   t1 scope M.S
 #  input i content Enum1
   output o1 content M.Mod_def.S

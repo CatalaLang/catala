@@ -5,8 +5,7 @@ declaration scope SubFoo:
   output z1 content integer
   output z2 content integer
 
-#[test]
-declaration scope Foo:
+#[test] declaration scope Foo:
   output example content integer
 
 scope SubFoo:

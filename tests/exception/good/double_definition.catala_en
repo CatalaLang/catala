@@ -1,8 +1,7 @@
 ## Foo
 
 ```catala
-#[test]
-declaration scope Foo:
+#[test] declaration scope Foo:
   output x content integer
 
 scope Foo:

@@ -5,8 +5,7 @@ declaration scope S:
   output f content integer depends on y content integer
   input x content boolean
 
-#[test]
-declaration scope T:
+#[test] declaration scope T:
   s scope S
   output y content integer
 

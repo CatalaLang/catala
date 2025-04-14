@@ -21,8 +21,7 @@ declaration grok
   equals
   (mon1 * dec, mon1 / mon2)
 
-#[test]
-declaration scope S:
+#[test] declaration scope S:
   output r1 content list of (money, decimal)
   output r2 content list of (money, decimal)
   output r3 content list of (money, decimal)

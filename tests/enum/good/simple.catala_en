@@ -5,8 +5,7 @@ declaration enumeration E:
   -- Case1 content integer
   -- Case2
 
-#TODO [test]: support for context vars
-declaration scope A:
+#[test] declaration scope A:
   context output x content E
   context output y content integer
 

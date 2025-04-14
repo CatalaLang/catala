@@ -1,12 +1,10 @@
 ## Foo
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope Foo:
+#[test] declaration scope Foo:
   context output x condition
 
-#[test]
-declaration scope Bar:
+#[test] declaration scope Bar:
   foo scope Foo
 
 scope Foo:

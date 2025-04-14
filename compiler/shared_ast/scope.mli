@@ -76,10 +76,10 @@ val input_type : typ -> Runtime.io_input Mark.pos -> typ
     this doesn't take thunking into account (thunking is added during the
     scopelang->dcalc translation) *)
 
-val empty_input_struct_dcalc : decl_ctx -> ScopeName.t -> 'm mark -> (< defaultTerms : Definitions.yes; .. >, 'm) boxed_gexpr
+val empty_input_struct_dcalc : decl_ctx -> StructName.t -> 'm mark -> (< defaultTerms : Definitions.yes; .. >, 'm) boxed_gexpr
 (** See [empty_input_struct_lcalc]. *)
 
-val empty_input_struct_lcalc : decl_ctx -> ScopeName.t -> 'm mark -> (< polymorphic : Definitions.yes; .. >, 'm) boxed_gexpr
+val empty_input_struct_lcalc : decl_ctx -> StructName.t -> 'm mark -> (< polymorphic : Definitions.yes; .. >, 'm) boxed_gexpr
 (** Assuming the given scope doesn't require any input, generate the minimal argument to call it. The scope may have context variables, that will be passed as [None]. The type will be initialised in the given mark: it is only used for position and as witness *)
 
 (** {2 Analysis and tests} *)

@@ -1,6 +1,5 @@
 ```catala
-#[test]
-declaration scope A:
+#[test] declaration scope A:
   output w content integer
 
 scope A:

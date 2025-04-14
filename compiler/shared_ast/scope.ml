@@ -131,8 +131,7 @@ let unfold (ctx : decl_ctx) (s : 'e code_item_list) (main_scope : ScopeName.t) :
       in
       Expr.make_let_in (Mark.add Pos.void var) typ e next (Expr.pos e))
 
-let empty_input_struct_dcalc ctx name mark =
-  let in_struct_name = (ScopeName.Map.find name ctx.ctx_scopes).in_struct_name in
+let empty_input_struct_dcalc ctx in_struct_name mark =
   let field_tys = StructName.Map.find in_struct_name ctx.ctx_structs in
   let fields =
     StructField.Map.map
@@ -153,8 +152,7 @@ let empty_input_struct_dcalc ctx name mark =
   let ty = TStruct in_struct_name, Expr.mark_pos mark in
   Expr.estruct ~name:in_struct_name ~fields (Expr.with_ty mark ty)
 
-let empty_input_struct_lcalc ctx name mark =
-  let in_struct_name = (ScopeName.Map.find name ctx.ctx_scopes).in_struct_name in
+let empty_input_struct_lcalc ctx in_struct_name mark =
   let field_tys = StructName.Map.find in_struct_name ctx.ctx_structs in
   let fields =
     StructField.Map.map

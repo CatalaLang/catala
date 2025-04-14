@@ -9,12 +9,10 @@ declaration structure T:
   data a content S
   data b content S
 
-#TODO [test]: support for context vars
-declaration scope A:
+#[test] declaration scope A:
   context output t content T
 
-#TODO [test]: support for context vars
-declaration scope B:
+#[test] declaration scope B:
   context output t content T
   a scope A
   context output out content integer

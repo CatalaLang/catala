@@ -1,11 +1,9 @@
 ```catala
-#[test]
-declaration scope SubFoo:
+#[test] declaration scope SubFoo:
   input x content integer
   output y content integer
 
-#[test]
-declaration scope Foo:
+#[test] declaration scope Foo:
   output z content integer
 
 scope SubFoo:

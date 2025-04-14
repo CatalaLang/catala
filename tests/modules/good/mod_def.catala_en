@@ -12,8 +12,7 @@ declaration structure Str1:
   data fld1 content Enum1
   data fld2 content integer
 
-#[test]
-declaration scope S:
+#[test] declaration scope S:
   output sr content money
   output e1 content Enum1
 

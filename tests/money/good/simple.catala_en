@@ -1,8 +1,7 @@
 ## Article
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope A:
+#[test] declaration scope A:
   context output x content money
   context output y content money
   context output z content money

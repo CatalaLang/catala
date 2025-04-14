@@ -15,8 +15,7 @@ declaration assert content integer depends on assert__1 content integer
 declaration closure_assert content (Assert_in, Assert__1)
   equals (Assert_in { -- assert: 99 }, Assert__1 { -- assert: 199 })
 
-#[test]
-declaration scope Assert:
+#[test] declaration scope Assert:
   output assert condition
 
 scope Assert:

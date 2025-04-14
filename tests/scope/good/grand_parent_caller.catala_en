@@ -1,18 +1,15 @@
 ## Article
 
 ```catala
-#TODO [test]: support for context vars
-declaration scope A:
+#[test] declaration scope A:
   context output x content integer
 
-#TODO [test]: support for context vars
-declaration scope B:
+#[test] declaration scope B:
   a scope A
   context output y1 content integer
   context output y2 content integer
 
-#TODO [test]: support for context vars
-declaration scope C:
+#[test] declaration scope C:
   b scope B
   context output z1 content integer
   context output z2 content integer
