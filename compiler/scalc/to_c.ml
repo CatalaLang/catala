@@ -713,44 +713,34 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     in
     List.iter (format_statement ctx env fmt) remaining
 
-let format_main (fmt : Format.formatter) (p : Ast.program) =
+let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";
   Format.fprintf fmt "@,catala_init();";
-  let scopes_with_no_input =
-    List.fold_left
-      (fun acc -> function
-        | SScope
-            {
-              scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
-              scope_body_var = var;
-              scope_body_name = name;
-              scope_body_visibility = _;
-            } ->
-          let input_struct =
-            StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
-          in
-          if StructField.Map.is_empty input_struct then (var, name, ts) :: acc
-          else acc
-        | SVar _ | SFunc _ | SScope _ -> acc)
-      [] p.code_items
-    |> List.rev
-  in
-  if scopes_with_no_input <> [] then
-    Message.debug "Generating entry points for scopes:@ %a"
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (_, s, _) ->
-           ScopeName.format ppf s))
-      scopes_with_no_input;
-  List.iter
-    (fun (var, name, _) ->
-      Format.fprintf fmt "@,printf(\"Executing scope %a...\\n\");"
-        ScopeName.format name;
-      Format.fprintf fmt "@,%a (NULL);" FuncName.format var;
-      Format.fprintf fmt
-        "@,\
-         printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
-         successfully.\\n\");"
-        ScopeName.format name)
-    scopes_with_no_input;
+  (if p.tests = [] then
+     Message.warning
+       "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
+       Format.pp_print_text
+       "No test scope were found: the generated executable won't test any \
+        computation. To mark scopes as tests, ensure they don't require \
+        inputs, and add the "
+   else
+     let () =
+       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
+              ScopeName.format ppf s))
+         p.tests
+     in
+     List.iter
+       (fun (name, block) ->
+         Format.fprintf fmt "@,@[<v 2>{ /* Test for scope %a */"
+           ScopeName.format name;
+         format_block ctx env fmt block;
+         Format.fprintf fmt
+           "@,\
+            printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
+            successfully.\\n\");@;\
+            <1 -2>}@]" ScopeName.format name)
+       p.tests);
   Format.fprintf fmt "@,return 0;@;<1 -2>}@]"
 
 let format_program
@@ -795,7 +785,7 @@ let format_program
   format_ctx type_ordering ~ppc ~pph p.ctx.decl_ctx;
   ppboth (fun ppf -> Format.pp_print_cut ppf ());
   let ctx = { decl_ctx = p.ctx.decl_ctx } in
-  let _env =
+  let env =
     List.fold_left
       (fun env code_item ->
         match code_item with
@@ -872,6 +862,6 @@ let format_program
   in
   if p.module_name = None then (
     Format.pp_print_cut ppc ();
-    format_main ppc p);
+    format_main ctx env ppc p);
   Format.fprintf pph "@,#endif /* __%s_H__ */" module_id;
   ppboth (fun ppf -> Format.pp_close_box ppf ())

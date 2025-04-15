@@ -39,14 +39,14 @@ let map_exprs_in_lets :
           (f scope_let.scope_let_expr) ))
     scope_body_expr
 
-let map_last_item ~varf last =
+let map_exports f exports =
   Bindlib.box_list
-  @@ List.map
-       (function EVar v -> Bindlib.box_var (varf v) | _ -> assert false)
-       last
+    (List.map
+       (fun (k, e) -> Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift (f e)))
+       exports)
 
 let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
-  let f v = function
+  let fcode v = function
     | ScopeDef (name, body) ->
       let scope_input_var, scope_lets = Bindlib.unbind body.scope_body_expr in
       let new_body_expr = map_exprs_in_lets ~typ ~f ~varf scope_lets in
@@ -64,7 +64,8 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
           (fun e -> Topdef (name, typ ty, vis, e))
           (Expr.Box.lift (f expr)) )
   in
-  BoundList.map ~f ~last:(map_last_item ~varf) scopes
+  let last = map_exports f in
+  BoundList.map ~f:fcode ~last scopes
 
 let fold_exprs ~f ~init scopes =
   let f acc def _ =

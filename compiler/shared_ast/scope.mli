@@ -47,11 +47,11 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
-val map_last_item :
-  varf:(('a, 'm) naked_gexpr Bindlib.var -> 'e2 Bindlib.var) ->
-  ('a, 'm) naked_gexpr list ->
-  'e2 list Bindlib.box
-(** Helper function to handle the [code_item_list] terminator when manually
+val map_exports :
+  (('a1, 'm1) gexpr -> ('a2, 'm2) gexpr boxed) ->
+  ('a1, 'm1) gexpr code_export list ->
+  ('a2, 'm2) gexpr code_export list Bindlib.box
+(** Helper function to handle the [code_export list] terminator when manually
     mapping on [code_item_list] *)
 
 val fold_exprs :
@@ -80,14 +80,14 @@ val empty_input_struct_dcalc :
   decl_ctx ->
   StructName.t ->
   'm mark ->
-  (< defaultTerms : Definitions.yes ; .. >, 'm) boxed_gexpr
+  (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 (** See [empty_input_struct_lcalc]. *)
 
 val empty_input_struct_lcalc :
   decl_ctx ->
   StructName.t ->
   'm mark ->
-  (< polymorphic : Definitions.yes ; .. >, 'm) boxed_gexpr
+  (< polymorphic : yes ; .. >, 'm) boxed_gexpr
 (** Assuming the given scope doesn't require any input, generate the minimal
     argument to call it. The scope may have context variables, that will be
     passed as [None]. The type will be initialised in the given mark: it is only

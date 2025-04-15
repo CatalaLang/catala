@@ -5,7 +5,7 @@ or direct scope calls). The main part of the test is in `mod_use_context`.
 > Module Mod_def_context
 
 ```catala-metadata
-#[test] declaration scope S:
+declaration scope S:
   context output ci content integer
   context output cm content money
   context output cfun1 content decimal depends on x content integer

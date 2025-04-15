@@ -38,7 +38,7 @@ let map_scopes ~f prg =
             (fun e -> Topdef (name, ty, vis, e))
             (Expr.Box.lift (Expr.rebox expr)) )
     in
-    BoundList.map ~f ~last:(Scope.map_last_item ~varf:Fun.id) prg.code_items
+    BoundList.map ~f ~last:(Scope.map_exports Expr.rebox) prg.code_items
     |> Bindlib.unbox
   in
   { prg with code_items }
@@ -77,7 +77,7 @@ let map_scopes_env ~f prg =
     BoundList.fold_map
       ~init:(fun e -> e)
       ~f
-      ~last:(fun _env last -> (), Scope.map_last_item ~varf:Fun.id last)
+      ~last:(fun _env last -> (), Scope.map_exports Expr.rebox last)
       prg.code_items
     |> snd
     |> Bindlib.unbox
@@ -132,6 +132,19 @@ let get_scope_body { code_items; _ } scope =
   with
   | None, _ -> raise Not_found
   | Some body, _ -> body
+
+let get_mark_witness { code_items; _ } =
+  BoundList.find code_items ~f:(function
+    | Topdef (_, _, _, e) -> Some (Mark.get e)
+    | ScopeDef (_, body) -> (
+      let _, be = Bindlib.unbind body.scope_body_expr in
+      match be with
+      | Last e -> Some (Mark.get e)
+      | bl -> (
+        try
+          Some
+            (BoundList.find bl ~f:(fun sl -> Some (Mark.get sl.scope_let_expr)))
+        with Not_found -> None)))
 
 let untype : 'm. ('a, 'm) gexpr program -> ('a, untyped) gexpr program =
  fun prg -> map_exprs ~f:Expr.untype ~varf:Var.translate prg

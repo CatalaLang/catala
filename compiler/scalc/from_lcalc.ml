@@ -555,7 +555,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
   in
   let program_ctx = { ctxt.program_ctx with A.modules } in
   let ctxt = { ctxt with program_ctx } in
-  let (_, rev_items), _vlist =
+  let (ctxt, rev_items), exports =
     BoundList.fold_left ~init:(ctxt, [])
       ~f:(fun (ctxt, rev_items) code_item var ->
         match code_item with
@@ -690,8 +690,29 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             rev_items ))
       p.code_items
   in
+  let _, rev_tests =
+    List.fold_left
+      (fun (ctxt, acc) -> function
+        | KTest scope, e ->
+          let var, ctxt =
+            fresh_var ~pos:(Expr.pos e) ctxt
+              (ScopeName.to_string scope ^ "_test")
+          in
+          let block, expr, ren_ctx = translate_expr ctxt e in
+          let pos = Mark.get (ScopeName.get_info scope) in
+          let exec =
+            ( A.SLocalInit
+                { name = var, pos; typ = Expr.maybe_ty (Mark.get e); expr },
+              pos )
+          in
+          ( { ctxt with ren_ctx },
+            (scope, RevBlock.rebuild (RevBlock.append block exec)) :: acc )
+        | _ -> ctxt, acc)
+      (ctxt, []) exports
+  in
   {
     ctx = program_ctx;
     code_items = List.rev rev_items;
     module_name = p.module_name;
+    tests = List.rev rev_tests;
   }

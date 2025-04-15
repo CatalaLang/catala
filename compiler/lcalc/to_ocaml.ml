@@ -548,74 +548,39 @@ let format_scope_body_expr
 let format_code_items
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (code_items : 'm Ast.expr code_item_list) :
-    ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t =
+    (code_items : 'm Ast.expr code_item_list) : 'm Ast.expr code_export list =
   Format.pp_open_vbox fmt 0;
-  let var_bindings, _ =
-    BoundList.fold_left
-      ~f:(fun bnd item var ->
+  let exports =
+    BoundList.iter code_items ~f:(fun var item ->
         match item with
         | Topdef (name, typ, _vis, e) ->
+          Format.fprintf fmt "@,(* Toplevel def %a *)" TopdefName.format name;
           Format.fprintf fmt "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
-            format_var var format_typ typ (format_expr ctx) e;
-          String.Map.add (TopdefName.to_string name) (var, item) bnd
+            format_var var format_typ typ (format_expr ctx) e
         | ScopeDef (name, body) ->
           let scope_input_var, scope_body_expr =
             Bindlib.unbind body.scope_body_expr
           in
+          Format.fprintf fmt "@,(* Scope %a *)" ScopeName.format name;
           Format.fprintf fmt
-            "@,@[<hv 2>@[<hov 2>let %a (%a: %a.t) : %a.t =@]@ %a@]@," format_var
-            var format_var scope_input_var format_to_module_name
+            "@,@[<hv 2>@[<hov 2>let %a :@ %a.t -> %a.t =@ fun %a ->@]@ %a@]@,"
+            format_var var format_to_module_name
             (`Sname body.scope_body_input_struct) format_to_module_name
-            (`Sname body.scope_body_output_struct)
+            (`Sname body.scope_body_output_struct) format_var scope_input_var
             (format_scope_body_expr ctx)
-            scope_body_expr;
-          String.Map.add (ScopeName.to_string name) (var, item) bnd)
-      ~init:String.Map.empty code_items
+            scope_body_expr)
   in
   Format.pp_close_box fmt ();
-  var_bindings
+  exports
 
-let is_public = function
-  | ScopeDef (_, { scope_body_visibility = Public; _ })
-  | Topdef (_, _, Public, _) ->
-    true
-  | _ -> false
-
-let format_scope_exec
-    (ctx : decl_ctx)
-    (bnd : ('m Ast.expr Var.t * _) String.Map.t)
-    (fmt : Format.formatter)
-    (scope_name, scope_body) =
-  let scope_name_str = Format.asprintf "%a" ScopeName.format scope_name in
-  let scope_var, _ = String.Map.find scope_name_str bnd in
-
-  (* TODO: dump the output using yojson that should be already available from
-     the runtime *)
-  format_var fmt scope_var;
-  Format.pp_print_space fmt ();
-  format_expr ctx fmt
-    (Expr.unbox
-       (Scope.empty_input_struct_lcalc ctx scope_body.scope_body_input_struct
-          (Untyped { pos = Pos.void })))
-
-let format_scope_exec_args
-    (p : 'm Ast.program)
-    (fmt : Format.formatter)
-    (bnd : ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t) =
-  let test_scopes =
-    String.Map.fold
-      (fun strname (_, item) acc ->
-        match item with
-        | Topdef _ -> acc
-        | ScopeDef (name, _) ->
-          if Pos.has_attr (Mark.get (ScopeName.get_info name)) Test then
-            (name, strname) :: acc
-          else acc)
-      bnd []
-    |> List.rev
+let format_scope_exec_args (p : 'm Ast.program) (fmt : Format.formatter) exports
+    =
+  let tests =
+    List.filter_map
+      (function KTest scope, e -> Some (scope, e) | _ -> None)
+      exports
   in
-  if test_scopes = [] then
+  if tests = [] then
     Message.warning
       "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
       Format.pp_print_text
@@ -626,39 +591,41 @@ let format_scope_exec_args
     Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
       (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
            ScopeName.format ppf s))
-      test_scopes;
-  Format.pp_print_string fmt "\nlet entry_scopes = [\n";
-  List.iter (fun (_, name) -> Format.fprintf fmt "  %S;\n" name) test_scopes;
+      tests;
+  Format.pp_print_string fmt "\nlet test_scopes = [\n";
+  List.iter
+    (fun (scope, _) -> Format.fprintf fmt "  %S;\n" (ScopeName.to_string scope))
+    tests;
   Format.pp_print_string fmt "]\n";
 
   Format.pp_print_string fmt
     {|
 let commands =
   List.map (fun c ->
-      if List.mem c entry_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+      if List.mem c test_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument \
+                       for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
         exit 1
       ))
     (List.tl (Array.to_list Sys.argv))
 
-let commands = if commands = [] then entry_scopes else commands
+let commands = if commands = [] then test_scopes else commands
 
 |};
   List.iter
-    (fun (name, s) ->
+    (fun (scope, e) ->
       (* Note: this only checks that execution doesn't raise errors or assert
          failures. Adding a printer for the results could be an idea... *)
-      let scope_body = Program.get_scope_body p name in
       Format.fprintf fmt
-        "let () = if List.mem %S commands then (\n\
-        \  ignore (@[<hv>%a@]);\n\
-        \  print_endline \"Scope %s executed successfully.\"\n\
-         )@\n"
-        s
-        (format_scope_exec p.decl_ctx bnd)
-        (name, scope_body) s)
-    test_scopes
+        "let () = if List.mem %S commands then (@,\
+        \  let _ = @[<hv>%a@] in@,\
+        \  print_endline \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
+         successfully.\"@,\
+         )@,"
+        (ScopeName.to_string scope)
+        (format_expr p.decl_ctx) e ScopeName.format scope)
+    tests
 
 let check_and_reexport_used_modules fmt ~hashf modules =
   List.iter
@@ -679,12 +646,7 @@ let check_and_reexport_used_modules fmt ~hashf modules =
         ModuleName.format m)
     modules
 
-let format_module_registration
-    fmt
-    (bnd : ('m Ast.expr Var.t * _) String.Map.t)
-    modname
-    hash
-    is_external =
+let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
@@ -694,14 +656,19 @@ let format_module_registration
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
-  Format.pp_print_seq
+  Format.pp_print_list
     ~pp_sep:(fun fmt () ->
       Format.pp_print_char fmt ';';
       Format.pp_print_cut fmt ())
-    (fun fmt (id, (var, _)) ->
-      Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" id format_var var)
+    (fun fmt (name, e) ->
+      Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" name (format_expr ctx) e)
     fmt
-    (Seq.filter (fun (_, (_, it)) -> is_public it) (String.Map.to_seq bnd));
+    (List.filter_map
+       (function
+         | KScope n, e -> Some (ScopeName.to_string n, e)
+         | KTopdef n, e -> Some (TopdefName.to_string n, e)
+         | KTest _, _ -> None)
+       exports);
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
@@ -732,19 +699,25 @@ let format_program
   check_and_reexport_used_modules fmt ~hashf
     (Program.modules_to_list p.decl_ctx.ctx_modules);
   format_ctx type_ordering fmt p.decl_ctx;
-  let bnd = format_code_items p.decl_ctx fmt p.code_items in
+  let exports = format_code_items p.decl_ctx fmt p.code_items in
   Format.pp_print_cut fmt ();
   let () =
     match p.module_name, exec_scope with
     | Some (modname, intf_id), None ->
-      format_module_registration fmt bnd modname (hashf intf_id.hash)
-        intf_id.is_external
+      format_module_registration p.decl_ctx fmt exports modname
+        (hashf intf_id.hash) intf_id.is_external
     | None, Some scope_name ->
-      let scope_body = Program.get_scope_body p scope_name in
-      Format.fprintf fmt "@[<v 2>let () =@ %a@]"
-        (format_scope_exec p.decl_ctx bnd)
-        (scope_name, scope_body)
-    | None, None -> if exec_args then format_scope_exec_args p fmt bnd
+      let scope_exec =
+        try List.assoc (KTest scope_name) exports
+        with Not_found ->
+          Message.error
+            "The@ scope@ %a@ needs@ to@ be@ marked@ as@ as@ \
+             @{<magenta>#[test]@}@ to@ be@ available@ for@ execution."
+            ScopeName.format scope_name
+      in
+      Format.fprintf fmt "@[<v 2>let () =@ %a@]" (format_expr p.decl_ctx)
+        scope_exec
+    | None, None -> if exec_args then format_scope_exec_args p fmt exports
     | Some _, Some _ ->
       Message.error
         "OCaml generation: both module registration and top-level scope \
