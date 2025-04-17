@@ -15,7 +15,14 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-  *)
+*)
+
+(*
+  Note: this file uses the Menhir "new syntax":
+  https://gallium.inria.fr/~fpottier/menhir/manual.html#sec25
+
+  In particular, `<>` returns the variables bound by the rule (single variable or as a tuple); and `~` binds to a same-named variable.
+*)
 
 %{
   open Catala_utils
@@ -167,7 +174,7 @@ let attr(x) ==
 }
 
 let posattr(x) ==
-| ~ = attr(addpos(x)) ; <>
+| attr(addpos(x))
 
 let rev_list_with_attr(x) :=
 | l = rev_list_with_attr(x) ; a = attribute ; {
@@ -206,8 +213,7 @@ let typ_data :=
 
 let typ == t = typ_data ; <Data>
 
-let uident ==
-| ~ = addpos(UIDENT) ; <>
+let uident == addpos(UIDENT)
 
 let lident :=
 | i = LIDENT ; {
@@ -222,8 +228,7 @@ let lident :=
       (i, get_pos $sloc)
 }
 
-let scope_var ==
-| b = separated_nonempty_list(DOT, addpos(LIDENT)) ; <>
+let scope_var == separated_nonempty_list(DOT, addpos(LIDENT))
 
 let quident :=
 | uid = uident ; DOT ; quid = quident ; {
@@ -242,13 +247,11 @@ let mbinder ==
 | LPAREN ; ids = separated_nonempty_list(COMMA,attr(lident)) ; RPAREN ; <>
 
 let state_qualifier ==
-| STATE ; state = posattr(LIDENT) ; <>
+| STATE ; posattr(LIDENT)
 
-let expression ==
-| ~ = attr(noattr_expression) ; <>
+let expression == attr(noattr_expression)
 
-let noattr_expression :=
-| ~ = addpos(naked_expression) ; <>
+let noattr_expression := addpos(naked_expression)
 (* Required for leading expressions to explicitely apply to the outermost expression *)
 
 let naked_expression ==
@@ -297,7 +300,7 @@ let naked_expression ==
 }
 | LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
   <ArrayLit>
-| e = struct_or_enum_inject ; <>
+| struct_or_enum_inject
 | e1 = noattr_expression ;
   OF ;
   args = funcall_args ; {
@@ -554,14 +557,14 @@ let rule :=
 }
 
 let definition_parameters :=
-| OF ; args = separated_nonempty_list(COMMA,lident) ; <>
+| OF ; separated_nonempty_list(COMMA,lident)
 
 
 let label ==
-| LABEL ; i = lident ; <>
+| LABEL ; lident
 
 let state :=
-| STATE ; s = lident ; <>
+| STATE ; lident
 
 let exception_to ==
 | EXCEPTION ; i = ioption(lident) ; {
@@ -635,10 +638,10 @@ let date_rounding :=
 }
 
 let scope_item ==
-| ~ = rule ; <>
-| ~ = definition ; <>
-| ~ = assertion ; <>
-| ~ = date_rounding ; <>
+| rule
+| definition
+| assertion
+| date_rounding
 
 let scope_item_list ==
 | items = list_with_attr(scope_item) ; {
@@ -870,7 +873,7 @@ let code_item :=
 }
 
 let opt_def ==
-| DEFINED_AS; e = expression; <>
+| DEFINED_AS; expression
 
 let code ==
 | items = list_with_attr(code_item) ; {
