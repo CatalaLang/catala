@@ -54,7 +54,8 @@ type 'm ctx = {
   date_rounding : date_rounding;
 }
 
-let mark_tany m pos = Expr.with_ty m (Mark.add pos TAny) ~pos
+let mark_tany m pos =
+  Expr.with_ty m (Mark.add pos TAny) ~pos:(Expr.no_attrs_pos pos)
 
 (* Expression argument is used as a type witness, its type and positions aren't
    used *)
@@ -558,7 +559,7 @@ let translate_rule
   | S.ScopeVarDefinition { var; typ; e; _ }
   | S.SubScopeVarDefinition { var; typ; e; _ } ->
     let scope_var = Mark.remove var in
-    let decl_pos = Mark.get (ScopeVar.get_info scope_var) in
+    let decl_pos = Expr.no_attrs_pos (Mark.get (ScopeVar.get_info scope_var)) in
     let pos_mark, _ = pos_mark_mk e in
     let scope_let_kind, io =
       match rule with
@@ -720,7 +721,7 @@ let translate_scope_decl
   let scope_input_var = Var.make (ScopeName.base scope_name ^ "_in") in
   let scope_input_struct_name = scope_sig.scope_sig_input_struct in
   let scope_return_struct_name = scope_sig.scope_sig_output_struct in
-  let pos_sigma = Mark.get sigma_info in
+  let pos_sigma = Expr.no_attrs_pos (Mark.get sigma_info) in
   let scope_mark =
     (* Find a witness of a mark in the definitions *)
     match sigma.scope_decl_rules with
@@ -832,9 +833,10 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
             | OnlyInput | Reentrant ->
               let info = ScopeVar.get_info dvar in
               let s = Mark.remove info ^ "_in" in
+              let pos = Expr.no_attrs_pos (Mark.get info) in
               Some
                 {
-                  scope_input_name = StructField.fresh (s, Mark.get info);
+                  scope_input_name = StructField.fresh (s, pos);
                   scope_input_io = svar.S.svar_io.Desugared.Ast.io_input;
                   scope_input_typ =
                     Mark.remove

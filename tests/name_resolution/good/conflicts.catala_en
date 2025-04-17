@@ -58,11 +58,16 @@ code hoists a closure or not)
 
 ```catala-test-inline
 $ catala lcalc --closure-conversion
-type Eoption = | ENone of unit | ESome of any
+type Eoption =
+  | ENone of unit
+  | ESome of any
 
 type Assert_in = { assert: integer; }
+
 type Assert__1 = { assert: integer; }
+
 type Assert_in__1 = {  }
+
 type Assert__2 = { assert: bool; }
 
 let topval closure_assert : (closure_env, integer) → integer =

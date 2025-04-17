@@ -50,6 +50,7 @@ val log_entry : Format.formatter -> log_entry -> unit
 val runtime_error : Format.formatter -> Runtime.error -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
+val attrs : Format.formatter -> Pos.t -> unit
 
 val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
 (** Expression printer.
@@ -84,6 +85,7 @@ module ExprDebugParam : EXPR_PARAM
 (** {1 Debugging versions that don't require a context} *)
 
 val typ_debug : Format.formatter -> typ -> unit
+val decl_ctx : ?debug:bool -> Format.formatter -> decl_ctx -> unit
 
 val scope :
   ?debug:bool ->
