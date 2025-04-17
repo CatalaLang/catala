@@ -101,6 +101,7 @@ let attr ppf = function
         | None -> ()
         | Some label -> Format.fprintf ppf " = %S" label)
       label
+  | Test -> Format.fprintf ppf "#[test]@ "
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)

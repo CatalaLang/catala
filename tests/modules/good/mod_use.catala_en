@@ -3,7 +3,7 @@
 > Using Mod_def
 
 ```catala
-declaration scope T2:
+#[test] declaration scope T2:
   t1 scope Mod_def.S
 #  input i content Enum1
   output o1 content Mod_def.Enum1

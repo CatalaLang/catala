@@ -1,9 +1,9 @@
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   output ao content integer
 
-declaration scope S:
+#[test] declaration scope S:
   a scope A
   output so content integer
 
@@ -41,7 +41,7 @@ declaration scope A2:
   input output io content integer
   output x content integer
 
-declaration scope S2:
+#[test] declaration scope S2:
   a scope A2
   b scope A2
   output c1 content integer

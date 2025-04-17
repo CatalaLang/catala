@@ -260,14 +260,11 @@ let rename_vars_in_lets ctx scope_body_expr =
 
 let code_items ctx fty (items : 'e code_item_list) =
   let rec aux ctx = function
-    | Last l ->
-      let l =
-        Bindlib.box_list
-          (List.map
-             (function EVar v -> Bindlib.box_var v | _ -> assert false)
-             l)
-      in
-      Bindlib.box_apply (fun l -> Last l) l, ctx
+    | Last exports ->
+      ( Bindlib.box_apply
+          (fun e -> Last e)
+          (Scope.map_exports (expr ctx) exports),
+        ctx )
     | Cons (ScopeDef (name, body), next_bind) ->
       let scope_body =
         let scope_input_var, scope_lets, ctx =

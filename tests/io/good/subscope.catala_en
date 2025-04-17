@@ -7,7 +7,7 @@ declaration scope A:
   output c content integer
   internal d content integer
 
-declaration scope B:
+#[test] declaration scope B:
   a scope A
 
 scope A:
@@ -34,7 +34,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Dcalc -s B
-let scope B (B_in: B_in): B =
+let scope B (B_in: #[test] B_in): #[test] B =
   let set a : A {c: integer} =
     let result : A =
       A

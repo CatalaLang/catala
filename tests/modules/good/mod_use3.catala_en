@@ -5,7 +5,7 @@ Somehow there is a bug when multiple modules are declared in this order, so this
 test completes mod_use2
 
 ```catala
-declaration scope T:
+#[test] declaration scope T:
   t1 scope Mod_middle.S
 #  input i content Enum1
   output o1 content Mod_def.S

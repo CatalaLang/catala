@@ -1,5 +1,5 @@
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   output o condition
 
 scope A:

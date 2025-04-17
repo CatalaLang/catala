@@ -68,9 +68,13 @@ let run_command ~clean_up_env ?(setenv = []) cmdline =
         Unix.stdout Unix.stderr
     in
     let return_code =
-      match Unix.waitpid [] npid with
-      | _, Unix.WEXITED n -> n
-      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+      let rec wait () =
+        match Unix.waitpid [] npid with
+        | _, Unix.WEXITED n -> n
+        | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+        | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+      in
+      wait ()
     in
     return_code
 

@@ -1,6 +1,7 @@
 > Using Bool
 
 ```catala
+#[test]
 declaration scope A_test:
   output aout scope Bool.A
 

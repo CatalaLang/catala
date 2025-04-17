@@ -1097,7 +1097,14 @@ let scope_body ctx env body =
 
 let scopes ctx env =
   BoundList.fold_map ~init:env
-    ~last:(fun ctx el -> ctx, Scope.map_last_item ~varf:Var.translate el)
+    ~last:(fun env el ->
+      ( env,
+        Scope.map_exports
+          (fun e ->
+            Expr.map_marks
+              ~f:(get_ty_mark ~flags:env.flags)
+              (expr_raw ctx ~env e))
+          el ))
     ~f:(fun env var item ->
       match item with
       | A.ScopeDef (name, body) ->

@@ -5,7 +5,7 @@ declaration enumeration E:
   -- Case1 content integer
   -- Case2
 
-declaration scope A:
+#[test] declaration scope A:
   internal x content E
   output y content integer
 

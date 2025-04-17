@@ -199,11 +199,8 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
-
-let attrs e =
-  Pos.get_attrs (pos e) (function
-    | Src (path, v, pos) -> Some (path, (v, pos))
-    | _ -> None)
+let get_attr e f = Pos.get_attr (pos e) f
+let get_attrs e f = Pos.get_attrs (pos e) f
 
 let set_ty (type m) (ty : typ) (x : ('a, m) marked) : ('a, typed) marked =
   Mark.add

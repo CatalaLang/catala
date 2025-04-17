@@ -10,7 +10,7 @@ declaration scope Stdlib:
 scope Stdlib:
   definition when equals val * 1 day + |1970-01-01|
 
-declaration scope Test:
+#[test] declaration scope Test:
   a scope Stdlib
   output val content date
 
@@ -52,7 +52,8 @@ module Test_in = struct
 end
 
 
-let stdlib (stdlib_in: Stdlib_in.t) : Stdlib__1.t =
+(* Scope Stdlib *)
+let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
   let val__1: integer = stdlib_in.Stdlib_in.val_in in
   let when__1: date =
     match
@@ -74,7 +75,8 @@ let stdlib (stdlib_in: Stdlib_in.t) : Stdlib__1.t =
     | Eoption.ESome arg -> (let x, _ = arg in x) in
   {Stdlib__1.when__1 = when__1}
 
-let test (_: Test_in.t) : Test.t =
+(* Scope Test *)
+let test : Test_in.t -> Test.t = fun _ ->
   let a: Stdlib__1.t =
     (let result : Stdlib__1.t =
        (stdlib
@@ -115,23 +117,24 @@ let test (_: Test_in.t) : Test.t =
   {Test.val__1 = val__1}
 
 
-let entry_scopes = [
+let test_scopes = [
   "Test";
 ]
 
 let commands =
   List.map (fun c ->
-      if List.mem c entry_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+      if List.mem c test_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument \
+                       for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
         exit 1
       ))
     (List.tl (Array.to_list Sys.argv))
 
-let commands = if commands = [] then entry_scopes else commands
+let commands = if commands = [] then test_scopes else commands
 
 let () = if List.mem "Test" commands then (
-  ignore (test ());
-  print_endline "Scope Test executed successfully."
+  let _ = test (()) in
+  print_endline "\x1b[32m[RESULT]\x1b[m Scope Test executed successfully."
 )
 ```

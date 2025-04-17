@@ -6,7 +6,7 @@ declaration scope Callee:
   context input_v content integer
   context output output_v condition
 
-declaration scope Caller:
+#[test] declaration scope Caller:
   callee scope Callee
 
 

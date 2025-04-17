@@ -9,10 +9,10 @@ declaration structure T:
   data a content S
   data b content S
 
-declaration scope A:
+#[test] declaration scope A:
   context output t content T
 
-declaration scope B:
+#[test] declaration scope B:
   context output t content T
   a scope A
   context output out content integer

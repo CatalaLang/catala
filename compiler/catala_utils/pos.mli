@@ -45,6 +45,8 @@ val add_attrs : t -> attr list -> t
 val get_attr : t -> (attr -> 'a option) -> 'a option
 (** Raises [Invalid_argument] if the attribute appears multiple times *)
 
+val has_attr : t -> attr -> bool
+
 val take_attr : t -> (attr -> 'a option) -> 'a option * t
 (** Removes the found attribute if it is present *)
 

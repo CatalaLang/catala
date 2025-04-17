@@ -32,7 +32,7 @@ declaration quarter content decimal
 ```
 
 ```catala
-declaration scope Stest:
+#[test] declaration scope Stest:
   output o1 content S
   output o2 content S
   output x11 content decimal
@@ -83,7 +83,7 @@ $ catala test-scope Stest
 ### Testing subscopes (with and without context override)
 
 ```catala
-declaration scope TestSubDefault:
+#[test] declaration scope TestSubDefault:
   sub scope S
   output ci content integer
   output cm content money
@@ -109,7 +109,7 @@ $ catala test-scope TestSubDefault
 ```
 
 ```catala
-declaration scope TestSubOverride:
+#[test] declaration scope TestSubOverride:
   sub scope S
   output ci content integer
   output cm content money

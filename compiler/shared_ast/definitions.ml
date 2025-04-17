@@ -435,6 +435,8 @@ type attr_value += String of string Mark.pos | Unit
 type Pos.attr +=
   | Src of attr_path * attr_value * Pos.t
   | DebugPrint of { label : string option }
+  | Test
+  | Doc of string
 
 (** {2 Markings} *)
 
@@ -719,11 +721,21 @@ type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
   | Topdef of TopdefName.t * typ * visibility * 'e
 
-type 'e code_item_list = ('e, 'e code_item, 'naked_e list) bound_list
-  constraint 'e = ('naked_e, _) Mark.ed
-(* The bound_list terminator is a naked expression list that is not part of the
-   program: it contains the list of exported variables, so that Bindlib
-   correctly understands these variables as being used *)
+type code_export_kind =
+  | KScope of ScopeName.t
+  | KTopdef of TopdefName.t
+  | KTest of ScopeName.t
+
+type 'e code_export = code_export_kind * 'e constraint 'e = ('a any, _) gexpr
+(** Contains the code for the call to registered test scopes (useful e.g. for
+    crafting a "main" function) *)
+
+type 'e code_item_list = ('e, 'e code_item, 'e code_export list) bound_list
+(* The bound_list is terminated with a list of code_exports. These are
+   expressions that must contain the corresponding bound variables (so that
+   Bindlib correctly understands them as being used), and, in the case of test
+   scopes, should contain the calling expression that may be used in a [main]
+   function. *)
 
 type struct_ctx = typ StructField.Map.t StructName.Map.t
 type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t

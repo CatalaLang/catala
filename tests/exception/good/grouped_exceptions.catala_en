@@ -4,7 +4,7 @@ declaration structure Person:
   data age content integer
   data disabled content boolean
 
-declaration scope Benefit:
+#[test] declaration scope Benefit:
   context output person content Person
   context output benefit content money
 

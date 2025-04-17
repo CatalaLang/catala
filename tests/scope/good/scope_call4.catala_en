@@ -1,5 +1,5 @@
 ```catala
-declaration scope HousingComputation:
+#[test] declaration scope HousingComputation:
   output f1 content integer depends on (x content integer)
   output f2 content integer depends on (x content integer)
   output result1 content integer
@@ -11,7 +11,7 @@ scope HousingComputation:
   definition result1 equals f1 of 1
   definition result2 equals f2 of 1
 
-declaration scope RentComputation:
+#[test] declaration scope RentComputation:
   internal g content integer depends on (x content integer)
   output f1 content integer depends on (x content integer)
   output f2 content integer depends on (x content integer)

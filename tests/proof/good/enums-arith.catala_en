@@ -9,7 +9,7 @@ declaration enumeration S:
     -- A content integer
     -- B content T
 
-declaration scope A:
+#[test] declaration scope A:
   output x content integer
   internal y content S
 

@@ -22,7 +22,7 @@ declaration f2 content decimal
   -- Two of z:
      let (z1, z2) equals z in z1 / 2
 
-declaration scope Test:
+#[test] declaration scope Test:
   output o content (date, decimal)
 
 scope Test:

@@ -1,11 +1,11 @@
 ## Article
 
 ```catala
-declaration scope Callee:
+#[test] declaration scope Callee:
   context input_v content integer depends on b content boolean
   context output output_v content integer
 
-declaration scope Caller:
+#[test] declaration scope Caller:
   sub scope Callee
   context output y content integer
 

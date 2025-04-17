@@ -5,7 +5,7 @@ declaration scope A:
   output o content integer
   input output io content integer
 
-declaration scope B:
+#[test] declaration scope B:
   output a scope A
   output b content integer
 

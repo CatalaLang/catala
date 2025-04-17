@@ -5,7 +5,7 @@ declaration structure S:
   data x content integer
   data y content integer
 
-declaration scope A:
+#[test] declaration scope A:
   context output s content S
   context output z content integer
 

@@ -30,6 +30,7 @@ let register_subcommands info cmds =
   let name = String.lowercase_ascii (Cmd.name (Cmd.v info (Term.const ()))) in
   Hashtbl.replace backend_plugins name (Cmd.group info cmds)
 
+let register_attribute = Desugared.Name_resolution.register_attribute
 let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
 let names () = Hashtbl.to_seq_keys backend_plugins |> List.of_seq
 let load_failures = Hashtbl.create 17

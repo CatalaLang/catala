@@ -737,6 +737,13 @@ let translate_scope_decl
       :: _ ->
       Mark.get e
   in
+  let scope_mark =
+    Expr.with_ty scope_mark
+      ( TArrow
+          ( [TStruct scope_input_struct_name, pos_sigma],
+            (TStruct scope_return_struct_name, pos_sigma) ),
+        pos_sigma )
+  in
   let rules_with_return_expr, ctx =
     translate_rules ctx scope_name sigma.scope_decl_rules sigma_info scope_mark
       scope_sig
@@ -786,16 +793,17 @@ let translate_scope_decl
              (Expr.make_var scope_input_var (mark_tany scope_mark pos_sigma))))
       scope_input_variables next
   in
-  Bindlib.box_apply
-    (fun scope_body_expr ->
-      {
-        scope_body_expr;
-        scope_body_input_struct = scope_input_struct_name;
-        scope_body_output_struct = scope_return_struct_name;
-        scope_body_visibility = sigma.scope_visibility;
-      })
-    (Bindlib.bind_var scope_input_var
-       (input_destructurings rules_with_return_expr))
+  ( Bindlib.box_apply
+      (fun scope_body_expr ->
+        {
+          scope_body_expr;
+          scope_body_input_struct = scope_input_struct_name;
+          scope_body_output_struct = scope_return_struct_name;
+          scope_body_visibility = sigma.scope_visibility;
+        })
+      (Bindlib.bind_var scope_input_var
+         (input_destructurings rules_with_return_expr)),
+    scope_mark )
 
 let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let defs_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
@@ -921,20 +929,57 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. The decl_ctx is filled in left-to-right
      order, then the chained scopes aggregated from the right. *)
-  let rec translate_defs vlist = function
+  let rec translate_defs exports = function
     | [] ->
-      Bindlib.box_apply
-        (fun vl -> Last vl)
-        (Bindlib.box_rev_list (List.map Bindlib.box_var vlist))
-    | def :: next ->
-      let dvar, def =
-        match def with
+      let exports =
+        List.fold_left
+          (fun acc (kind, visibility, var, m) ->
+            let export =
+              match visibility with
+              | Public -> [kind, Expr.evar var m]
+              | Private -> []
+            in
+            let test =
+              match kind with
+              | KTest _ -> assert false
+              | KTopdef _ ->
+                [] (* Idea: we could easily allow topdef tests as well... *)
+              | KScope scope ->
+                let spos = Mark.get (ScopeName.get_info scope) in
+                if ScopeName.path scope = [] && Pos.has_attr spos Test then
+                  let pos = Expr.mark_pos m in
+                  let str =
+                    (ScopeName.Map.find scope decl_ctx.ctx_scopes)
+                      .in_struct_name
+                  in
+                  [
+                    ( KTest scope,
+                      Expr.make_app (Expr.evar var m)
+                        [Scope.empty_input_struct_dcalc decl_ctx str m]
+                        [TStruct str, pos]
+                        pos );
+                  ]
+                else []
+            in
+            export @ test @ acc)
+          [] exports
+      in
+      Bindlib.box_list
+        (List.map
+           (fun (k, e) -> Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift e))
+           exports)
+      |> Bindlib.box_apply (fun exports -> Last exports)
+    | def0 :: next ->
+      let dvar, export, def =
+        match def0 with
         | Scopelang.Dependency.Topdef gname ->
           let expr, ty, vis, _ext =
             TopdefName.Map.find gname prgm.program_topdefs
           in
           let expr = translate_expr ctx expr in
-          ( fst (TopdefName.Map.find gname ctx.toplevel_vars),
+          let var = fst (TopdefName.Map.find gname ctx.toplevel_vars) in
+          ( var,
+            (KTopdef gname, vis, var, Mark.get expr),
             Bindlib.box_apply
               (fun e -> Topdef (gname, ty, vis, e))
               (Expr.Box.lift expr) )
@@ -952,7 +997,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
               ScopeName.Map.find scope_name
                 (ModuleName.Map.find mn prgm.program_modules)
           in
-          let scope_body =
+          let scope_body, scope_mark =
             translate_scope_decl ctx scope_name (Mark.remove scope)
           in
           let scope_var =
@@ -964,11 +1009,15 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
             | External_scope_ref _ -> assert false
           in
           ( scope_var,
+            ( KScope scope_name,
+              (Mark.remove scope).scope_visibility,
+              scope_var,
+              scope_mark ),
             Bindlib.box_apply
               (fun body -> ScopeDef (scope_name, body))
               scope_body )
       in
-      let scope_next = translate_defs (dvar :: vlist) next in
+      let scope_next = translate_defs (export :: exports) next in
       let next_bind = Bindlib.bind_var dvar scope_next in
       Bindlib.box_apply2
         (fun item next_bind -> Cons (item, next_bind))

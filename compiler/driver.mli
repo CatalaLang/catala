@@ -129,4 +129,13 @@ module Plugin : sig
     ?doc:string ->
     unit Cmdliner.Cmd.t list ->
     unit
+
+  val register_attribute :
+    plugin:string ->
+    path:string list ->
+    contexts:Desugared.Name_resolution.attribute_context list ->
+    (pos:Catala_utils.Pos.t ->
+    Shared_ast.attr_value ->
+    Catala_utils.Pos.attr option) ->
+    unit
 end

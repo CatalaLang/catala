@@ -1,5 +1,5 @@
 ```catala
-declaration scope S:
+#[test] declaration scope S:
   output x content integer
 
 scope S:
@@ -45,6 +45,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala scopelang -s S
+#[test]
 let scope S (x: integer|internal|output) =
   let x : integer = error_empty ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩;
   assert (map (λ (i: integer) → i + 2) [1; 2; 3]) = [3; 4; 5];

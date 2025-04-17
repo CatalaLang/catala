@@ -24,7 +24,8 @@ module S_in = struct
 end
 
 
-let s (_: S_in.t) : S.t =
+(* Scope S *)
+let s : S_in.t -> S.t = fun _ ->
   let sr: money =
     match
       (Eoption.ESome
@@ -55,6 +56,7 @@ let s (_: S_in.t) : S.t =
     | Eoption.ESome arg -> (let x, _ = arg in x) in
   {S.sr = sr; S.e1 = e1}
 
+(* Toplevel def half *)
 let half : integer -> decimal =
   fun (x: integer) ->
     o_div_int_int
@@ -63,6 +65,7 @@ let half : integer -> decimal =
        law_headings=["Test modules + inclusions 1"]} x (integer_of_string
       "2")
 
+(* Toplevel def maybe *)
 let maybe : Enum1.t -> Enum1.t =
   fun (_: Enum1.t) -> Enum1.Maybe ()
 

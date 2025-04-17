@@ -1,10 +1,10 @@
 ## Article
 
 ```catala
-declaration scope ScopeA:
+#[test] declaration scope ScopeA:
   output a content boolean
 
-declaration scope ScopeB:
+#[test] declaration scope ScopeB:
   output a content boolean
   scopeA scope ScopeA
 
@@ -53,37 +53,41 @@ module ScopeB_in = struct
 end
 
 
-let scope_a (_: ScopeA_in.t) : ScopeA.t = let a: bool = true in
-                                          {ScopeA.a = a}
+(* Scope ScopeA *)
+let scope_a : ScopeA_in.t -> ScopeA.t = fun _ ->
+  let a: bool = true in
+  {ScopeA.a = a}
 
-let scope_b (_: ScopeB_in.t) : ScopeB.t =
+(* Scope ScopeB *)
+let scope_b : ScopeB_in.t -> ScopeB.t = fun _ ->
   let scope_a__1: ScopeA.t = {ScopeA.a = ((scope_a (())).ScopeA.a)} in
   let a: bool = scope_a__1.ScopeA.a in
   {ScopeB.a = a}
 
 
-let entry_scopes = [
+let test_scopes = [
   "ScopeA";
   "ScopeB";
 ]
 
 let commands =
   List.map (fun c ->
-      if List.mem c entry_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+      if List.mem c test_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument \
+                       for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
         exit 1
       ))
     (List.tl (Array.to_list Sys.argv))
 
-let commands = if commands = [] then entry_scopes else commands
+let commands = if commands = [] then test_scopes else commands
 
 let () = if List.mem "ScopeA" commands then (
-  ignore (scope_a ());
-  print_endline "Scope ScopeA executed successfully."
+  let _ = scope_a (()) in
+  print_endline "\x1b[32m[RESULT]\x1b[m Scope ScopeA executed successfully."
 )
 let () = if List.mem "ScopeB" commands then (
-  ignore (scope_b ());
-  print_endline "Scope ScopeB executed successfully."
+  let _ = scope_b (()) in
+  print_endline "\x1b[32m[RESULT]\x1b[m Scope ScopeB executed successfully."
 )
 ```

@@ -1,10 +1,10 @@
 ## Foo
 
 ```catala
-declaration scope Foo:
+#[test] declaration scope Foo:
   context output x condition
 
-declaration scope Bar:
+#[test] declaration scope Bar:
   foo scope Foo
 
 scope Foo:
