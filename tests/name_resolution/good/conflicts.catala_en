@@ -66,8 +66,10 @@ type Assert_in = { assert: integer; }
 
 type Assert__1 = { assert: integer; }
 
+#[test]
 type Assert_in__1 = {  }
 
+#[test]
 type Assert__2 = { assert: bool; }
 
 let topval closure_assert : (closure_env, integer) → integer =
@@ -76,7 +78,11 @@ let topval closure_assert : (closure_env, integer) → integer =
   
   ((x + 1))
 
-let scope assert (assert_in: Assert_in__1): Assert__2 {assert: bool} =
+#[test]
+let scope assert
+  (assert_in: #[test] Assert_in__1)
+  : #[test] Assert__2 {assert: bool}
+  =
   let set assert : bool =
     match
       (match
@@ -135,12 +141,14 @@ module Assert_in__1 = struct
 end
 
 
+(* Toplevel def closure_assert *)
 let closure_assert : Obj.t -> integer -> integer =
   fun (env: Obj.t) (x: integer) -> (let _ : unit = (o_fromclosureenv env)
     in
     ((o_add_int_int x (integer_of_string "1"))))
 
-let assert__1 (_: Assert_in__1.t) : Assert__2.t =
+(* Scope Assert *)
+let assert__1 : Assert_in__1.t -> Assert__2.t = fun _ ->
   let assert__1: bool =
     match
       (match
@@ -172,32 +180,35 @@ let assert__1 (_: Assert_in__1.t) : Assert__2.t =
     | Eoption.ESome arg -> (let x, _ = arg in x) in
   {Assert__2.assert__1 = assert__1}
 
-let assert__2 : integer -> integer =
+(* Toplevel def assert *)
+let _ : integer -> integer =
   fun (assert__2: integer) -> assert__2
 
-let closure_assert__1 : (Assert_in.t * Assert__1.t) =
+(* Toplevel def closure_assert *)
+let _ : (Assert_in.t * Assert__1.t) =
   (({Assert_in.assert__1 = (integer_of_string "99")}),
     ({Assert__1.assert__1 = (integer_of_string "199")}))
 
 
-let entry_scopes = [
+let test_scopes = [
   "Assert";
 ]
 
 let commands =
   List.map (fun c ->
-      if List.mem c entry_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+      if List.mem c test_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument \
+                       for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
         exit 1
       ))
     (List.tl (Array.to_list Sys.argv))
 
-let commands = if commands = [] then entry_scopes else commands
+let commands = if commands = [] then test_scopes else commands
 
 let () = if List.mem "Assert" commands then (
-  ignore (assert__1 ());
-  print_endline "Scope Assert executed successfully."
+  let _ = assert__1 (()) in
+  print_endline "\x1b[32m[RESULT]\x1b[m Scope Assert executed successfully."
 )
 ```
 

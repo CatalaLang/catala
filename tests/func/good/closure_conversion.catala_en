@@ -72,18 +72,19 @@ scope S2Use:
 ```catala-test-inline
 $ catala Lcalc -O --closure-conversion -s S2Use
 let scope S2Use
-  (s2_use_in: S2Use_in)
-  : S2Use {
-      o:
-        (S2 {
-           dummy: bool;
-           cfun2: ((closure_env, integer) → decimal, closure_env)
-         },
-          S2 {
-            dummy: bool;
-            cfun2: ((closure_env, integer) → decimal, closure_env)
-          })
-    }
+  (s2_use_in: #[test] S2Use_in)
+  : #[test]
+      S2Use {
+        o:
+          (S2 {
+             dummy: bool;
+             cfun2: ((closure_env, integer) → decimal, closure_env)
+           },
+            S2 {
+              dummy: bool;
+              cfun2: ((closure_env, integer) → decimal, closure_env)
+            })
+      }
   =
   let set fun : ((closure_env, integer) → decimal, closure_env) =
     (closure_fun, to_closure_env ())

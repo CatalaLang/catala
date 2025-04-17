@@ -17,18 +17,73 @@ declaration enumeration F:
 ```
 
 ```catala-test-inline
-$ catala scopelang --disable-warnings
+$ catala scopelang
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.enumdecl]
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:14.3-14.16:
+│    │
+│ 14 │ #[attr.enumdecl]
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.field]
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:12.5-12.15:
+│    │
+│ 12 │   #[attr.field] -- Constr
+│    │     ‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  Unrecognised attribute "attr_exp"
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:7.23-7.34:
+│   │
+│ 7 │   definition x equals #[attr_exp] 33
+│   │                       ‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  Unrecognised attribute "attr_def"
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:8.3-8.14:
+│   │
+│ 8 │   #[attr_def]
+│   │   ‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  The enumeration "E" is never used; maybe it's unnecessary?
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:11.25-11.26:
+│    │
+│ 11 │ declaration enumeration E:
+│    │                         ‾
+└─
+┌─[WARNING]─
+│
+│  The enumeration "F" is never used; maybe it's unnecessary?
+│
+├─➤ tests/attributes/good/parser_conflict.catala_en:15.25-15.26:
+│    │
+│ 15 │ declaration enumeration F:
+│    │                         ‾
+└─
 type E =
-  | #[attr.field] Constr of unit
+  | Constr of unit
 
-#[attr.enumdecl]
 type F =
   | Foo of unit
 
+#[test]
 type S = { x: integer; y: integer; }
 
 
+#[test]
 let scope S (x: integer|internal|output) (y: integer|internal|output) =
-  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨#[attr_exp] 33⟩⟩ | false ⊢ ∅ ⟩;
+  let x : integer = error_empty ⟨ ⟨true ⊢ ⟨33⟩⟩ | false ⊢ ∅ ⟩;
   let y : integer = error_empty ⟨ ⟨true ⊢ ⟨44⟩⟩ | false ⊢ ∅ ⟩
 ```

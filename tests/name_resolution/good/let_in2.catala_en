@@ -50,7 +50,8 @@ module S_in = struct
 end
 
 
-let s (s_in: S_in.t) : S.t =
+(* Scope S *)
+let s : S_in.t -> S.t = fun s_in ->
   let a: ((bool * source_position)) Eoption.t = s_in.S_in.a_in in
   let a__1: bool =
     match

@@ -44,6 +44,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Scopelang -s A
+#[test]
 let scope A
     (foo#bar: ⟨integer⟩|context)
     (foo#baz: integer|internal)

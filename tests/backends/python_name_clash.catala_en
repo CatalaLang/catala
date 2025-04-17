@@ -110,14 +110,14 @@ def some_name(some_name_in:SomeNameIn):
 def b(b_in:BIn):
     pos = (SourcePosition(
                filename="tests/backends/python_name_clash.catala_en",
-               start_line=16, start_column=33, end_line=16, end_column=34,
+               start_line=17, start_column=33, end_line=17, end_column=34,
                law_headings=[]))
     result__2 = ((integer_of_string("1"), pos))
     if result__2 is None:
         pos__1 = (SourcePosition(
                       filename="tests/backends/python_name_clash.catala_en",
-                      start_line=16, start_column=14,
-                      end_line=16, end_column=25, law_headings=[]))
+                      start_line=17, start_column=14,
+                      end_line=17, end_column=25, law_headings=[]))
         raise NoValue(pos__1)
     else:
         result__1 = (result__2[0])
@@ -131,8 +131,7 @@ def b(b_in:BIn):
 
 # Automatic Catala tests
 if __name__ == "__main__":
-  print("Executing scope B...")
-  b (BIn());
+  b_test = (b(BIn()))
   print("\x1b[32m[RESULT]\x1b[m Scope B executed successfully.")
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

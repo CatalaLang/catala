@@ -1,5 +1,5 @@
 ```catala
-#[test] declaration scope SubFoo:
+declaration scope SubFoo:
   input x content integer
   output y content integer
 

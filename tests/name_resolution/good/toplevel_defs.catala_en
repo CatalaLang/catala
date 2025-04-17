@@ -124,7 +124,7 @@ let glob5 = glob5_init ()
 
 let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
-let s2 (s2_in: S2_in) =
+let s2 (s2_in: #[test] #[test] S2_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:53.24-43>;
   init a__1 : option (decimal, source_position) =
@@ -137,7 +137,7 @@ let s2 (s2_in: S2_in) =
     a = arg."0";
   return S2 {"a": a}
 
-let s3 (s3_in: S3_in) =
+let s3 (s3_in: #[test] #[test] S3_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:74.24-47>;
   init a__1 : option (decimal, source_position) =
@@ -150,7 +150,7 @@ let s3 (s3_in: S3_in) =
     a = arg."0";
   return S3 {"a": a}
 
-let s4 (s4_in: S4_in) =
+let s4 (s4_in: #[test] #[test] S4_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:98.24-34>;
   init a__1 : option (decimal, source_position) = ESome (glob5 + 1., pos);
@@ -162,7 +162,7 @@ let s4 (s4_in: S4_in) =
     a = arg."0";
   return S4 {"a": a}
 
-let s (s_in: S_in) =
+let s (s_in: #[test] #[test] S_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:18.24-37>;
   init a__1 : option (decimal, source_position) = ESome (glob1 * glob1, pos);
@@ -451,16 +451,12 @@ def s(s_in:SIn):
 
 # Automatic Catala tests
 if __name__ == "__main__":
-  print("Executing scope S2...")
-  s2 (S2In());
+  s2_test = (s2(S2In()))
   print("\x1b[32m[RESULT]\x1b[m Scope S2 executed successfully.")
-  print("Executing scope S3...")
-  s3 (S3In());
+  s3_test = (s3(S3In()))
   print("\x1b[32m[RESULT]\x1b[m Scope S3 executed successfully.")
-  print("Executing scope S4...")
-  s4 (S4In());
+  s4_test = (s4(S4In()))
   print("\x1b[32m[RESULT]\x1b[m Scope S4 executed successfully.")
-  print("Executing scope S...")
-  s (SIn());
+  s_test = (s(SIn()))
   print("\x1b[32m[RESULT]\x1b[m Scope S executed successfully.")
 ```

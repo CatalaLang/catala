@@ -45,7 +45,7 @@ static const Baz* baz (const Baz_in* baz_in)
   const CATALA_ARRAY(CATALA_DEC) c;
   CATALA_ARRAY(CATALA_DEC) const c__3 = catala_malloc(sizeof(catala_array));
   static const catala_code_position pos[1] =
-    {{"tests/backends/simple.catala_en", 27, 23, 27, 28}};
+    {{"tests/backends/simple.catala_en", 28, 23, 28, 28}};
   CATALA_TUPLE(CATALA_ARRAY(CATALA_DEC);CATALA_POSITION) const c__2 =
     catala_malloc(2 * sizeof(tuple_element*));
   const CATALA_OPTION(CATALA_TUPLE(CATALA_ARRAY(CATALA_DEC);CATALA_POSITION))
@@ -57,12 +57,12 @@ static const Baz* baz (const Baz_in* baz_in)
     const Bar* a__4;
     Bar* const a__7 = catala_malloc(sizeof(Bar));
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 16, 23, 16, 25}};
+      {{"tests/backends/simple.catala_en", 17, 23, 17, 25}};
     CATALA_TUPLE(Bar*;CATALA_POSITION) const a__6 =
       catala_malloc(2 * sizeof(tuple_element*));
     const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a__5;
     static const catala_code_position pos__1[1] =
-      {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+      {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
     CATALA_TUPLE(Bar*;CATALA_POSITION) const a__3 =
       catala_malloc(2 * sizeof(tuple_element*));
     a__7->code = Bar__NO;
@@ -74,7 +74,7 @@ static const Baz* baz (const Baz_in* baz_in)
       a__4 = (Bar*)(((CATALA_TUPLE(_))a__5->payload)[0].content);
     } else {
       static const catala_code_position pos__1[1] =
-        {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+        {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
       catala_error(catala_no_value,
         (const catala_code_position **)&pos__1, 1);
       abort();
@@ -87,7 +87,7 @@ static const Baz* baz (const Baz_in* baz_in)
     a__1 = (Bar*)(((CATALA_TUPLE(_))a__2->payload)[0].content);
   } else {
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 11, 11, 11, 12}};
+      {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
     catala_error(catala_no_value, (const catala_code_position **)&pos, 1);
     abort();
   }
@@ -105,7 +105,7 @@ static const Baz* baz (const Baz_in* baz_in)
   }
   if (b__3 == CATALA_TRUE) {
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 25, 22, 25, 26}};
+      {{"tests/backends/simple.catala_en", 26, 22, 26, 26}};
     CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__4 =
       catala_malloc(2 * sizeof(tuple_element*));
     b__4[0].content = catala_new_dec_str("42");
@@ -119,7 +119,7 @@ static const Baz* baz (const Baz_in* baz_in)
   } else {
     CATALA_DEC b__5;
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 19, 5, 21, 54}};
+      {{"tests/backends/simple.catala_en", 20, 5, 22, 54}};
     CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__4 =
       catala_malloc(2 * sizeof(tuple_element*));
     switch (a__1->code) {
@@ -149,7 +149,7 @@ static const Baz* baz (const Baz_in* baz_in)
     b = (CATALA_DEC)(((CATALA_TUPLE(_))b__1->payload)[0].content);
   } else {
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 12, 10, 12, 11}};
+      {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
     catala_error(catala_no_value, (const catala_code_position **)&pos, 1);
     abort();
   }
@@ -164,7 +164,7 @@ static const Baz* baz (const Baz_in* baz_in)
     c = (CATALA_ARRAY(CATALA_DEC))(((CATALA_TUPLE(_))c__1->payload)[0].content);
   } else {
     static const catala_code_position pos__1[1] =
-      {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
+      {{"tests/backends/simple.catala_en", 14, 10, 14, 11}};
     catala_error(catala_no_value, (const catala_code_position **)&pos__1, 1);
     abort();
   }
@@ -177,5 +177,14 @@ static const Baz* baz (const Baz_in* baz_in)
 int main (int argc, char** argv)
 {
   catala_init();
+  { /* Test for scope Baz */
+    const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) top__1 =
+      CATALA_NONE;
+    Baz_in* const top = catala_malloc(sizeof(Baz_in));
+    const Baz* baz_test;
+    top->a_in = top__1;
+    baz_test = baz(top);
+    printf("\x1b[32m[RESULT]\x1b[m Scope Baz executed successfully.\n");
+  }
   return 0;
 }

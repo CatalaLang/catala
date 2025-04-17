@@ -55,9 +55,11 @@ $ catala test-scope TestBool
 ```catala-test-inline
 $ catala Scopelang 
 
+#[test]
 type TestBool = { foo: bool; bar: integer; }
 
 
+#[test]
 let scope TestBool
     (foo: ⟨bool⟩|context|output)
     (bar: ⟨integer⟩|context|output)
