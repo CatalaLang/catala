@@ -1019,7 +1019,6 @@ module Commands = struct
         ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
     in
-
     let output_file, with_output =
       get_output_format options ~ext:".py" output
     in
@@ -1035,6 +1034,49 @@ module Commands = struct
          ~doc:"Generates a Python translation of the Catala program.")
       Term.(
         const python
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion)
+
+  let java
+      options
+      includes
+      (output : Global.raw_file option)
+      optimize
+      check_invariants
+      autotest
+      closure_conversion =
+    let prg, _type_ordering, _ren_ctx =
+      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
+        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
+        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~renaming:(Some Scalc.To_java.renaming)
+    in
+    let output_file, with_output =
+      get_output_format options ~ext:".java" output
+    in
+    Message.debug "Compiling program into Java...";
+    Message.debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    let class_name =
+      match output_file, options.Global.input_src with
+      | Some file, _
+      | None, (FileName (file : File.t) | Contents (_, (file : File.t))) ->
+        Filename.(remove_extension file |> basename)
+      | None, Stdin _ -> "AnonymousClass"
+    in
+    with_output @@ fun ppf -> Scalc.To_java.format_program ~class_name ppf prg
+
+  let java_cmd =
+    Cmd.v
+      (Cmd.info "java" ~man:Cli.man_base
+         ~doc:"Generates a Java translation of the Catala program.")
+      Term.(
+        const java
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
@@ -1183,6 +1225,7 @@ module Commands = struct
       proof_cmd;
       ocaml_cmd;
       python_cmd;
+      java_cmd;
       c_cmd;
       latex_cmd;
       html_cmd;
