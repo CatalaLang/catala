@@ -44,8 +44,8 @@ let to_snake_case (s : string) : string =
     s;
   Buffer.contents out
 
-let to_camel_case (s : string) : string =
-  let last_was_underscore = ref true in
+let to_camel_case ?(capitalize = true) (s : string) : string =
+  let last_was_underscore = ref capitalize in
   let out = Buffer.create (length s) in
   s
   |> to_id
