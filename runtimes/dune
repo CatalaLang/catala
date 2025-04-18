@@ -1,7 +1,7 @@
 (documentation
  (package catala))
 
-(dirs jsoo ocaml python r rescript c)
+(dirs jsoo ocaml python java r rescript c)
 
 ; Installation is done as source under catala lib directory
 ; For dev version this makes it easy to install the proper runtime with just
@@ -27,6 +27,16 @@
  (name runtime-python)
  (deps
   %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_python/src/catala/runtime.py))
+
+(install
+ (files
+  (java/catala_runtime.jar as runtime_java/catala_runtime.jar))
+ (section lib))
+
+(alias
+ (name runtime-java)
+ (deps
+  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime_java/catala_runtime.jar))
 
 ;; ; Rescript runtime -- disabled
 ;;
@@ -55,4 +65,5 @@
  (deps
   (alias runtime-ocaml)
   (alias runtime-python)
+  (alias runtime-java)
   (alias runtime-c)))
