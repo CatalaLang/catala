@@ -112,13 +112,17 @@ let backend =
     & opt
         (enum
            [
-             "interpret", `Interpret; "ocaml", `OCaml; "c", `C; "python", `Python;
+             "interpret", `Interpret;
+             "ocaml", `OCaml;
+             "c", `C;
+             "python", `Python;
+             "java", `Java;
            ])
         `Interpret
     & info ["backend"] ~docv:"BACKEND"
         ~doc:
           "Run the program using the given backend. $(docv) must be one of \
-           $(b,interpret), $(b,ocaml), $(b,c), $(b,python)")
+           $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java)")
 
 let ignore_modules =
   Arg.(

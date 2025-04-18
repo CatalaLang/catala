@@ -25,7 +25,7 @@ val include_dirs : string list Term.t
 val test_flags : string list Term.t
 val runtest_report : string option Term.t
 val runtest_out : string option Term.t
-val backend : [> `C | `Interpret | `OCaml | `Python ] Term.t
+val backend : [> `C | `Interpret | `OCaml | `Python | `Java ] Term.t
 val ignore_modules : bool Term.t
 val run_command : string Term.t
 val vars_override : (string * string) list Term.t

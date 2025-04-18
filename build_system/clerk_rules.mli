@@ -17,7 +17,7 @@
 
 open Catala_utils
 
-type backend = OCaml | Python | C | Tests
+type backend = OCaml | Python | C | Java | Tests
 
 val all_backends : backend list
 
@@ -30,6 +30,7 @@ module Var : sig
   val catala_flags_ocaml : t
   val catala_flags_c : t
   val catala_flags_python : t
+  val catala_flags_java : t
   val ocamlc_exe : t
   val ocamlopt_exe : t
   val ocaml_flags : t
@@ -39,6 +40,10 @@ module Var : sig
   val runtime_c_libs : t
   val python : t
   val runtime_python_dir : t
+  val javac : t
+  val jar : t
+  val java : t
+  val runtime_java_jar : t
   val all_vars : t String.Map.t
 end
 
