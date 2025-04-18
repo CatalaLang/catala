@@ -228,7 +228,7 @@ backend-tests-python: $(CLERK_BIN) $(BACKEND_TESTS) dependencies-python
 	@echo ">> RUNNING BACKEND TESTS FOR python <<"
 	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest
 
-backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python
+backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
@@ -251,7 +251,7 @@ testsuite-base: .FORCE
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: unit-tests backend-tests-ocaml backend-tests-c backend-tests-python
+testsuite: unit-tests backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 	$(CLERK_TEST) doc
 	$(MAKE) testsuite-base
 
