@@ -231,7 +231,7 @@ let print_diff ppf p1 p2 =
     |> printer ppf
 
 let catala_commands_with_output_flag =
-  ["makefile"; "html"; "latex"; "ocaml"; "python"; "r"; "c"]
+  ["makefile"; "html"; "latex"; "ocaml"; "python"; "java"; "r"; "c"]
 
 let pfile ~build_dir f =
   f

@@ -22,9 +22,9 @@ module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
-type backend = OCaml | Python | C | Tests (* | JS *)
+type backend = OCaml | Python | C | Java | Tests (* | JS *)
 
-let all_backends = [OCaml; Python; C; Tests]
+let all_backends = [OCaml; Python; C; Java; Tests]
 
 (** Ninja variable names *)
 module Var = struct
@@ -50,6 +50,7 @@ module Var = struct
   let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
   let catala_flags_c = make "CATALA_FLAGS_C"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
+  let catala_flags_java = make "CATALA_FLAGS_JAVA"
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
@@ -59,6 +60,10 @@ module Var = struct
   let runtime_c_libs = make "RUNTIME_C_LIBS"
   let python = make "PYTHON"
   let runtime_python_dir = make "RUNTIME_PYTHON"
+  let javac = make "JAVAC"
+  let jar = make "jar"
+  let java = make "JAVA"
+  let runtime_java_jar = make "RUNTIME_JAVA_JAR"
   let all_vars = all_vars_ref.contents
 
   (** Rule vars, Used in specific rules *)
@@ -68,6 +73,7 @@ module Var = struct
   let src = make "src"
   let target = make "target"
   let includes = make "includes"
+  let class_path = make "class_path"
 
   (* let scope = make "scope" *)
   let test_id = make "test-id"
@@ -122,6 +128,16 @@ let base_bindings
           | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
         test_flags
   in
+  let catala_flags_java =
+    (if autotest then ["--autotest"] else [])
+    @
+    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
+  in
   let def var value =
     let value =
       match List.assoc_opt (Var.name var) vars_override with
@@ -166,6 +182,15 @@ let base_bindings
          def Var.catala_flags_python (lazy catala_flags_python);
          def Var.python (lazy ["python3"]);
          def Var.runtime_python_dir (lazy [Lazy.force Poll.python_runtime_dir]);
+       ]
+     else [])
+  @ (if List.mem Java enabled_backends then
+       [
+         def Var.catala_flags_java (lazy catala_flags_java);
+         def Var.java (lazy ["java"]);
+         def Var.javac (lazy ["javac"]);
+         def Var.jar (lazy ["jar"]);
+         def Var.runtime_java_jar (lazy [Lazy.force Poll.java_runtime]);
        ]
      else [])
   @
@@ -239,6 +264,15 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
                   !input; "-o"; !output]
         ~description:["<catala>"; "python"; "⇒"; !output];
     ] else []) @
+  (if List.mem Java enabled_backends then [
+      Nj.rule "java"
+        ~command:[!catala_exe; "java"; !catala_flags; !catala_flags_java;
+                  !input; "-o"; !output]
+        ~description:["<catala>"; "java"; "⇒"; !output];
+      Nj.rule "java-class"
+        ~command:[!javac; "-cp"; !runtime_java_jar ^":" ^ !class_path; !input ]
+        ~description:["<catala>"; "java"; "⇒"; !output];
+    ] else []) @
   (if List.mem Tests enabled_backends then
      [Nj.rule "tests"
         ~command:
@@ -280,6 +314,20 @@ let gen_build_statements
       Nj.binding Var.target [target];
       Nj.binding Var.includes include_flags;
     ]
+    @
+    if List.mem Java enabled_backends then
+      let java_class_path =
+        [
+          String.concat ":"
+            ((!Var.builddir / src /../ "")
+            :: List.map
+                 (fun d ->
+                   if Filename.is_relative d then !Var.builddir / d else d)
+                 include_dirs);
+        ]
+      in
+      [Nj.binding Var.class_path java_class_path]
+    else []
   in
   let modules = List.rev item.used_modules in
   let modfile ext ?(mod_ext = ext) modname =
@@ -309,7 +357,7 @@ let gen_build_statements
           ~outputs:[!Var.target ^ "@ml-module"])
       item.module_def
   in
-  let ocaml, c, python =
+  let ocaml, c, python, java =
     if item.extrnal then
       ( Nj.build "copy" ~implicit_in:[catala_src]
           ~inputs:[src -.- "ml"]
@@ -325,7 +373,13 @@ let gen_build_statements
           ],
         Nj.build "copy" ~implicit_in:[catala_src]
           ~inputs:[src -.- "py"]
-          ~outputs:[!Var.target ^ ".py"] )
+          ~outputs:[!Var.target ^ ".py"],
+        List.to_seq
+          [
+            Nj.build "copy" ~implicit_in:[catala_src]
+              ~inputs:[src -.- "java"]
+              ~outputs:[!Var.target ^ ".java"];
+          ] )
     else
       let inputs = [catala_src] in
       let implicit_in =
@@ -340,7 +394,10 @@ let gen_build_statements
           (Nj.build "catala-c" ~inputs ~implicit_in
              ~outputs:[!Var.target ^ ".c"]
              ~implicit_out:[!Var.target ^ ".h"]),
-        Nj.build "python" ~inputs ~implicit_in ~outputs:[!Var.target ^ ".py"] )
+        Nj.build "python" ~inputs ~implicit_in ~outputs:[!Var.target ^ ".py"],
+        Seq.return
+          (Nj.build "java" ~inputs ~implicit_in
+             ~outputs:[!Var.target ^ ".java"]) )
   in
   let ocamlopt =
     let obj =
@@ -370,6 +427,16 @@ let gen_build_statements
         :: List.map (modfile ".h" ~mod_ext:"@c-module") modules)
       ~outputs:[!Var.target ^ ".c.o"]
       ~vars:[Var.includes, [!Var.includes]]
+  in
+  let javac =
+    Nj.build "java-class"
+      ~inputs:[!Var.target ^ ".java"]
+      ~implicit_in:
+        (!Var.catala_exe
+        :: List.map (fun m -> modfile ".java" ~mod_ext:"@java-module" m) modules
+        )
+      ~outputs:[!Var.target ^ ".class"]
+      ~vars:[Var.class_path, [!Var.class_path]]
   in
   let expose_module =
     (* Note: these rules define global (top-level) aliases for module targets of
@@ -402,12 +469,19 @@ let gen_build_statements
                ~inputs:[modfile ".h" !Var.target];
            ]
          else [])
+      @ (if List.mem Python enabled_backends then
+           [
+             Nj.build "phony"
+               ~outputs:[m ^ "@py-module"]
+               ~inputs:[modfile ".py" !Var.target];
+           ]
+         else [])
       @
-      if List.mem Python enabled_backends then
+      if List.mem Java enabled_backends then
         [
           Nj.build "phony"
-            ~outputs:[m ^ "@py-module"]
-            ~inputs:[modfile ".py" !Var.target];
+            ~outputs:[m ^ "@java-module"]
+            ~inputs:[modfile ".java" !Var.target];
         ]
       else []
     | _ -> []
@@ -452,6 +526,7 @@ let gen_build_statements
      else [])
     @ (if List.mem C enabled_backends then [c; Seq.return cc] else [])
     @ (if List.mem Python enabled_backends then [Seq.return python] else [])
+    @ (if List.mem Java enabled_backends then [java; Seq.return javac] else [])
     @ if List.mem Tests enabled_backends then [List.to_seq tests] else []
   in
   Seq.concat (List.to_seq statements_list)

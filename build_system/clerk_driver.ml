@@ -85,11 +85,12 @@ let target_backend t =
     | ".c" | ".h" -> Clerk_rules.C
     | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> Clerk_rules.OCaml
     | ".py" -> Clerk_rules.Python
+    | ".java" | ".class" -> Clerk_rules.Java
     | ".catala_en" | ".catala_fr" | ".catala_pl" -> Clerk_rules.OCaml
     | "" -> Message.error "Target without extension: @{<red>%S@}" t
     | ext ->
       Message.error
-        "Unhandled extension @{<red;bold>%s@}} for target @{<red>%S@}" ext t
+        "Unhandled extension @{<red;bold>%s@} for target @{<red>%S@}" ext t
   in
   match Filename.extension t with
   | ".exe" -> (
@@ -120,6 +121,7 @@ let build_cmd =
             | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> Left t
             | ".c" | ".h" -> Left t (* .o ? *)
             | ".py" -> Left t
+            | ".java" | ".class" -> Left t
             | ".catala_en" | ".catala_fr" | ".catala_pl" -> Left t
             | ".exe" -> Right t
             | _ -> assert false (* @out @test *))
@@ -357,6 +359,7 @@ let run_cmd =
       | `Interpret | `OCaml -> [Clerk_rules.OCaml]
       | `C -> [Clerk_rules.C]
       | `Python -> [Clerk_rules.Python]
+      | `Java -> [Clerk_rules.Java]
     in
     let open File in
     ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
@@ -366,7 +369,11 @@ let run_cmd =
       (List.map
          Clerk_rules.(
            function
-           | OCaml -> "OCaml" | C -> "C" | Python -> "Python" | Tests -> "Tests")
+           | OCaml -> "OCaml"
+           | C -> "C"
+           | Python -> "Python"
+           | Java -> "Java"
+           | Tests -> "Tests")
          enabled_backends);
     let items = List.of_seq items in
     let target_items =
@@ -438,6 +445,7 @@ let run_cmd =
         | `OCaml -> f -.- "cmx"
         | `C -> f -.- "c.o"
         | `Python -> f -.- "py"
+        | `Java -> f -.- "class"
       in
       build_dir / base
     in
@@ -525,6 +533,61 @@ let run_cmd =
         copy_in ~src:(target -.- "py") ~dir:tdir;
         close_out (open_out (tdir / "__init__.py"));
         []
+      | `Java ->
+        let jar_target = target -.- "jar" in
+        (* We copy over the runtime and update the jar with the target
+           classes *)
+        copy ~src:(List.hd (get_var Var.runtime_java_jar)) ~dst:jar_target;
+        let classes =
+          let class_files =
+            target
+            :: List.map
+                 (fun it ->
+                   build_dir
+                   / Filename.dirname it.Scan.file_name
+                   / Option.get it.Scan.module_def
+                   -.- "class")
+                 (link_deps item)
+          in
+          let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
+          (* 'javac' generates one file per inner class. Sadly, we do generate a
+             lot of those. We need to pack those in the jar as well. *)
+          let fetch_inner_classes class_file =
+            let basename = Filename.(basename class_file |> chop_extension) in
+            let dirname = Filename.dirname class_file in
+            let dir_classes =
+              Hashtbl.find_opt h dirname
+              |> function
+              | Some dir_classes -> dir_classes
+              | None ->
+                let dir_contents = Sys.readdir dirname in
+                let dir_classes =
+                  Seq.filter
+                    (String.ends_with ~suffix:".class")
+                    (Array.to_seq dir_contents)
+                  |> List.of_seq
+                in
+                Hashtbl.replace h dirname dir_classes;
+                dir_classes
+            in
+            List.filter_map
+              (fun clazz ->
+                if String.starts_with ~prefix:(basename ^ "$") clazz then
+                  Some (dirname / clazz)
+                else None)
+              dir_classes
+          in
+          List.concat_map
+            (fun class_file -> class_file :: fetch_inner_classes class_file)
+            class_files
+        in
+        let target_main = Filename.basename target |> Filename.chop_extension in
+        get_var Var.jar
+        @ ["--update"; "--file"; jar_target; "--main-class"; target_main]
+        @ List.concat_map
+            (fun clazz ->
+              ["-C"; Filename.dirname clazz; Filename.basename clazz])
+            classes
     in
     let run_artifact src =
       match backend with
@@ -553,6 +616,10 @@ let run_cmd =
         Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
           (String.concat " " cmd);
         run_command ~clean_up_env:false ~setenv:["PYTHONPATH", pythonpath] cmd
+      | `Java ->
+        let cmd = get_var Var.java @ ["-jar"; src -.- "jar"] in
+        Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+        run_command ~clean_up_env:false cmd
     in
     let cmd_exit_code =
       List.fold_left
