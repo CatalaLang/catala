@@ -37,3 +37,4 @@ val ocaml_include_flags : string list Lazy.t
 val ocaml_link_flags : string list Lazy.t
 val c_runtime_dir : File.t Lazy.t
 val python_runtime_dir : File.t Lazy.t
+val java_runtime : File.t Lazy.t
