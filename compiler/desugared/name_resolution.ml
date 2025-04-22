@@ -390,6 +390,7 @@ let process_subscope_decl
     (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
+  let name_pos = translate_pos ScopeDef name_pos in
   let subscope_io =
     {
       Surface.Ast.scope_decl_context_io_output =
@@ -544,6 +545,7 @@ let process_data_decl
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
+  let pos = translate_pos ScopeDef pos in
   let scope_ctxt = get_scope_context ctxt scope in
   match Ident.Map.find_opt name scope_ctxt.var_idmap with
   | Some use ->

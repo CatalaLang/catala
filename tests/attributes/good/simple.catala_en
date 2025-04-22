@@ -47,6 +47,46 @@ declaration enumeration Enu:
 $ catala scopelang
 ┌─[WARNING]─
 │
+│  Unrecognised attribute "a"
+│
+├─➤ tests/attributes/good/simple.catala_en:16.3-16.19:
+│    │
+│ 16 │   #[passthrough.a]
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.unit]
+│
+├─➤ tests/attributes/good/simple.catala_en:15.5-15.26:
+│    │
+│ 15 │   #[passthrough.attr.unit]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.multi]
+│
+├─➤ tests/attributes/good/simple.catala_en:19.5-19.27:
+│    │
+│ 19 │   #[passthrough.attr.multi = "string"]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.expr]
+│
+├─➤ tests/attributes/good/simple.catala_en:18.5-18.26:
+│    │
+│ 18 │   #[passthrough.attr.expr = false]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
 │  In scope "S", the variable "x" is declared but never defined;
 │  did you forget something?
 │
@@ -142,11 +182,11 @@ let scope S
   =
   let bla : integer = reentrant or by default error_empty ⟨false ⊢ ∅⟩;
   let x : money = error_empty ⟨false ⊢ ∅⟩;
-  #[passthrough.a]
-  #[passthrough.attr.unit]
+  #[a]
+  #[attr.unit]
   let o : money = error_empty ⟨false ⊢ ∅⟩;
-  #[passthrough.attr.multi = "string"]
-  #[passthrough.attr.expr = <expr>]
+  #[attr.multi = "string"]
+  #[attr.expr = <expr>]
   let o2 : (money, #[attr.typ] integer) = error_empty ⟨false ⊢ ∅⟩
 
 #[struct.attribute]
@@ -154,4 +194,4 @@ let scope S2 (x: integer|internal|output) =
   let x : integer = error_empty ⟨false ⊢ ∅⟩
 ```
 
-Fixme: there are attributes with "passthrough" remaining, which means that they didn't get processed correctly.
+There should be no mentions of `passthrough` remaining here.
