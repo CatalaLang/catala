@@ -150,6 +150,7 @@ let build_cmd =
                match String.split_on_char ':' line with
                | [] | [""] | "always" :: _ -> None
                | target :: _ -> Some (String.trim target))
+        |> List.rev
       in
       Format.eprintf "Available targets:@.";
       List.iter print_endline targets;
@@ -343,6 +344,111 @@ let ninja_version =
        |> List.map int_of_string
      with Exit | Failure _ -> [])
 
+let linking_dependencies items =
+  let modules =
+    List.fold_left
+      (fun acc it ->
+         match it.Scan.module_def with
+         | Some m -> String.Map.add m it acc
+         | None -> acc)
+      String.Map.empty items
+  in
+  let rem_dups =
+    let rec aux seen = function
+      | it :: r ->
+        if String.Set.mem it.Scan.file_name seen then aux seen r
+        else it :: aux (String.Set.add it.Scan.file_name seen) r
+      | [] -> []
+    in
+    aux String.Set.empty
+  in
+  fun item ->
+    let rec traverse acc item =
+      List.fold_left
+        (fun acc m ->
+           let it = String.Map.find m modules in
+           traverse (it :: acc) it)
+        acc item.Scan.used_modules
+    in
+    rem_dups (traverse [] item)
+
+let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
+  let open File in
+  let get_var = get_var var_bindings in
+  match backend with
+  | `OCaml ->
+    get_var Var.ocamlopt_exe
+    @ get_var Var.ocaml_flags
+    @ get_var Var.runtime_ocaml_libs
+    @ List.map
+      (fun it ->
+         build_dir
+         / Filename.dirname it.Scan.file_name
+         / Option.get it.Scan.module_def
+         ^ ".cmx")
+      (link_deps item)
+    @ [target; "-o"; target -.- "exe"]
+  | `C ->
+    get_var Var.cc_exe
+    @ List.map
+      (fun it ->
+         build_dir
+         / Filename.dirname it.Scan.file_name
+         / Option.get it.Scan.module_def
+         ^ ".c.o")
+      (link_deps item)
+    @ [target]
+    @ get_var Var.c_flags
+    @ ["-o"; target -.- "exe"]
+  | `Python ->
+    (* a "linked" python module is a "Module.py" folder containing the
+       module .py file along with the runtime and all dependencies, plus a
+       __init__.py file *)
+    let tdir = Filename.remove_extension target ^ "_python" in
+    remove tdir;
+    ensure_dir tdir;
+    List.iter
+      (fun it ->
+         let src =
+           build_dir
+           / Filename.dirname it.Scan.file_name
+           / Option.get it.Scan.module_def
+           ^ ".py"
+         in
+         copy_in ~src ~dir:tdir)
+      (link_deps item);
+    copy_in ~src:(target -.- "py") ~dir:tdir;
+    close_out (open_out (tdir / "__init__.py"));
+    []
+
+let run_artifact ~backend ~var_bindings ?scope src =
+  let open File in
+  match backend with
+  | `OCaml ->
+    let cmd = (src -.- "exe") :: Option.to_list scope in
+    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+    run_command ~clean_up_env:false cmd
+  | `C ->
+    let cmd =
+      (src -.- "exe")
+      :: Option.to_list scope (* NOTE: not handled yet by the backend *)
+    in
+    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+    run_command ~clean_up_env:false cmd
+  | `Python ->
+    let cmd =
+      let base = Filename.(basename (remove_extension src)) in
+      get_var var_bindings Var.python @ ["-m"; base ^ "_python." ^ base]
+    in
+    let pythonpath =
+      String.concat ":"
+        ((File.dirname src :: get_var var_bindings Var.runtime_python_dir)
+         @ [Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")])
+    in
+    Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
+      (String.concat " " cmd);
+    run_command ~clean_up_env:false ~setenv:["PYTHONPATH", pythonpath] cmd
+
 let run_cmd =
   let run
       ninja_init
@@ -394,33 +500,6 @@ let run_cmd =
         files_or_folders
     in
     if target_items = [] then Message.error "Nothing to run";
-    let modules =
-      List.fold_left
-        (fun acc it ->
-          match it.Scan.module_def with
-          | Some m -> String.Map.add m it acc
-          | None -> acc)
-        String.Map.empty items
-    in
-    let rem_dups =
-      let rec aux seen = function
-        | it :: r ->
-          if String.Set.mem it.Scan.file_name seen then aux seen r
-          else it :: aux (String.Set.add it.Scan.file_name seen) r
-        | [] -> []
-      in
-      aux String.Set.empty
-    in
-    let link_deps item =
-      let rec traverse acc item =
-        List.fold_left
-          (fun acc m ->
-            let it = String.Map.find m modules in
-            traverse (it :: acc) it)
-          acc item.Scan.used_modules
-      in
-      rem_dups (traverse [] item)
-    in
     let make_target backend item =
       let open File in
       let f =
@@ -444,9 +523,7 @@ let run_cmd =
     let base_targets =
       List.map (fun it -> it, make_target backend it) target_items
     in
-    let multi_targets =
-      match base_targets with _ :: _ :: _ -> true | _ -> false
-    in
+    let link_deps = linking_dependencies items in
     let ninja_cmd =
       let ninja_targets =
         List.fold_left
@@ -469,110 +546,48 @@ let run_cmd =
     Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
     let exit_code = run_command ~clean_up_env:false ninja_cmd in
     if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
-    let get_var = get_var var_bindings in
-    let run_cmd item target =
-      match backend with
+    let multi_targets =
+      match base_targets with _ :: _ :: _ -> true | _ -> false
+    in
+    let iter_commands f =
+      List.fold_left
+        (fun code (item, target) ->
+           if multi_targets then
+             Format.fprintf (Message.err_ppf ()) "@{<blue>>@} @{<cyan>%s@}@."
+               (String.remove_prefix
+                  ~prefix:File.(original_cwd / "")
+                  File.(
+                    Sys.getcwd ()
+                    / String.remove_prefix ~prefix:(build_dir ^ "/") target
+                    -.- ""));
+           max code (f item target))
+        0 base_targets
+    in
+    let exit_code =
+      match (backend : [`Interpret | `C | `OCaml | `Python ]) with
       | `Interpret ->
         let catala_flags =
-          get_var Var.catala_flags
+          get_var var_bindings Var.catala_flags
           @
           match scope with
           | None -> []
           | Some s -> [Printf.sprintf "--scope=%s" s]
         in
-        get_var Var.catala_exe @ [cmd; target] @ catala_flags
-      | `OCaml ->
-        get_var Var.ocamlopt_exe
-        @ get_var Var.ocaml_flags
-        @ get_var Var.runtime_ocaml_libs
-        @ List.map
-            (fun it ->
-              build_dir
-              / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
-              ^ ".cmx")
-            (link_deps item)
-        @ [target; "-o"; target -.- "exe"]
-      | `C ->
-        get_var Var.cc_exe
-        @ List.map
-            (fun it ->
-              build_dir
-              / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
-              ^ ".c.o")
-            (link_deps item)
-        @ [target]
-        @ get_var Var.c_flags
-        @ ["-o"; target -.- "exe"]
-      | `Python ->
-        (* a "linked" python module is a "Module.py" folder containing the
-           module .py file along with the runtime and all dependencies, plus a
-           __init__.py file *)
-        let tdir = Filename.remove_extension target ^ "_python" in
-        remove tdir;
-        ensure_dir tdir;
-        List.iter
-          (fun it ->
-            let src =
-              build_dir
-              / Filename.dirname it.Scan.file_name
-              / Option.get it.Scan.module_def
-              ^ ".py"
-            in
-            copy_in ~src ~dir:tdir)
-          (link_deps item);
-        copy_in ~src:(target -.- "py") ~dir:tdir;
-        close_out (open_out (tdir / "__init__.py"));
-        []
-    in
-    let run_artifact src =
-      match backend with
-      | `Interpret -> 0
-      | `OCaml ->
-        let cmd = (src -.- "exe") :: Option.to_list scope in
-        Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+        let exec = get_var var_bindings Var.catala_exe in
+        iter_commands @@ fun _item target ->
+        let cmd = exec @ [cmd; target] @ catala_flags in
+        Message.debug "Running command: '%s'..." (String.concat " " cmd);
         run_command ~clean_up_env:false cmd
-      | `C ->
-        let cmd =
-          (src -.- "exe")
-          :: Option.to_list scope (* NOTE: not handled yet by the backend *)
-        in
-        Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-        run_command ~clean_up_env:false cmd
-      | `Python ->
-        let cmd =
-          let base = Filename.(basename (remove_extension src)) in
-          get_var Var.python @ ["-m"; base ^ "_python." ^ base]
-        in
-        let pythonpath =
-          String.concat ":"
-            ((File.dirname src :: get_var Var.runtime_python_dir)
-            @ [Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")])
-        in
-        Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
-          (String.concat " " cmd);
-        run_command ~clean_up_env:false ~setenv:["PYTHONPATH", pythonpath] cmd
+      | `C | `OCaml | `Python as backend ->
+        let link_cmd = linking_command ~build_dir ~backend ~var_bindings link_deps in
+        iter_commands @@ fun item target ->
+        let cmd = link_cmd item target in
+        Message.debug "Running command: '%s'..." (String.concat " " cmd);
+        match run_command ~clean_up_env:false cmd with
+        | 0 -> run_artifact ~backend ~var_bindings ?scope target
+        | n -> n
     in
-    let cmd_exit_code =
-      List.fold_left
-        (fun code (item, target) ->
-          if multi_targets then
-            Format.fprintf (Message.err_ppf ()) "@{<blue>>@} @{<cyan>%s@}@."
-              (String.remove_prefix
-                 ~prefix:File.(original_cwd / "")
-                 File.(
-                   Sys.getcwd ()
-                   / String.remove_prefix ~prefix:(build_dir ^ "/") target
-                   -.- ""));
-          let cmd = run_cmd item target in
-          Message.debug "Running command: '%s'..." (String.concat " " cmd);
-          match run_command ~clean_up_env:false cmd with
-          | 0 -> max code (run_artifact target)
-          | n -> max code n)
-        0 base_targets
-    in
-    raise (Catala_utils.Cli.Exit_with cmd_exit_code)
+    raise (Catala_utils.Cli.Exit_with exit_code)
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
