@@ -211,6 +211,11 @@ let translate_attr ~context = function
         Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
           (String.concat "." ps);
         None)
+    | "passthrough" ->
+      (* This special case is used for internal testing: the rest of the
+         attribute is kept as Src. See
+         [tests/attributes/good/simple.catala_en] *)
+      Some (Src ((ps, ppos), v, pos))
     | plugin ->
       if ps = [] then (
         Message.warning ~pos "Unrecognised attribute \"%s\"" p1;

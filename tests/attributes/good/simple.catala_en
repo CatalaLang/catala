@@ -2,26 +2,31 @@
 
 ## First tests
 
+The `passthrough` leading path component for attributes is an escape hatch that
+we use here to test correct propagation of attributes: it is supposed to be
+removed, while leaving the rest of the attribute unchanged (see
+`name_resolution.ml`).
+
 ```catala
-#[attr = "Referring to the scope declaration"]
+#[passthrough.attr = "Referring to the scope declaration"]
 declaration scope S:
   context output bla content integer #
   output x content money
-  #[attr.unit]
-  #[a]
+  #[passthrough.attr.unit]
+  #[passthrough.a]
   output o content money
-  #[attr.expr = false]
-  #[attr.multi = "string"]
-  output o2 content (money, #[attr.typ] integer)
+  #[passthrough.attr.expr = false]
+  #[passthrough.attr.multi = "string"]
+  output o2 content (money, #[passthrough.attr.typ] integer)
 
-#[struct.attribute]
+#[passthrough.struct.attribute]
 declaration scope S2:
   output x content integer
 
 declaration structure Str:
-  #[field.lbl = "psst"]
-  data fld content #[typ] integer
-  data fld2 content #[
+  #[passthrough.field.lbl = "psst"]
+  data fld content #[passthrough.typ] integer
+  data fld2 content #[passthrough.
 attributes.can
 =
 "be multi- \
@@ -29,11 +34,11 @@ attributes.can
 as well"
 ] (integer, date)
 
-#[enum00]
-#[this.is_an = Enum]
+#[passthrough.enum00]
+#[passthrough.this.is_an = Enum]
 declaration enumeration Enu:
   -- Foo
-  #[constructor = "Bar"]
+  #[passthrough.constructor = "Bar"]
   -- Bar
 
 ```
@@ -42,193 +47,13 @@ declaration enumeration Enu:
 $ catala scopelang
 ┌─[WARNING]─
 │
-│  Unrecognised attribute "attr"
-│
-├─➤ tests/attributes/good/simple.catala_en:6.1-6.47:
-│   │
-│ 6 │ #[attr = "Referring to the scope declaration"]
-│   │ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[struct.attribute]
-│
-├─➤ tests/attributes/good/simple.catala_en:17.3-17.19:
-│    │
-│ 17 │ #[struct.attribute]
-│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  Unrecognised attribute "enum00"
-│
-├─➤ tests/attributes/good/simple.catala_en:32.1-32.10:
-│    │
-│ 32 │ #[enum00]
-│    │ ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[this.is_an]
-│
-├─➤ tests/attributes/good/simple.catala_en:33.3-33.13:
-│    │
-│ 33 │ #[this.is_an = Enum]
-│    │   ‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.typ]
-│
-├─➤ tests/attributes/good/simple.catala_en:15.31-15.39:
-│    │
-│ 15 │   output o2 content (money, #[attr.typ] integer)
-│    │                               ‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  Unrecognised attribute "a"
-│
-├─➤ tests/attributes/good/simple.catala_en:11.3-11.7:
-│    │
-│ 11 │   #[a]
-│    │   ‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.unit]
-│
-├─➤ tests/attributes/good/simple.catala_en:10.5-10.14:
-│    │
-│ 10 │   #[attr.unit]
-│    │     ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.multi]
-│
-├─➤ tests/attributes/good/simple.catala_en:14.5-14.15:
-│    │
-│ 14 │   #[attr.multi = "string"]
-│    │     ‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.expr]
-│
-├─➤ tests/attributes/good/simple.catala_en:13.5-13.14:
-│    │
-│ 13 │   #[attr.expr = false]
-│    │     ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.typ]
-│
-├─➤ tests/attributes/good/simple.catala_en:15.31-15.39:
-│    │
-│ 15 │   output o2 content (money, #[attr.typ] integer)
-│    │                               ‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[field.lbl]
-│
-├─➤ tests/attributes/good/simple.catala_en:22.5-22.14:
-│    │
-│ 22 │   #[field.lbl = "psst"]
-│    │     ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  Unrecognised attribute "typ"
-│
-├─➤ tests/attributes/good/simple.catala_en:23.20-23.26:
-│    │
-│ 23 │   data fld content #[typ] integer
-│    │                    ‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attributes.can]
-│
-├─➤ tests/attributes/good/simple.catala_en:25.1-25.15:
-│    │
-│ 25 │ attributes.can
-│    │ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  Unrecognised attribute "constructor"
-│
-├─➤ tests/attributes/good/simple.catala_en:36.3-36.25:
-│    │
-│ 36 │   #[constructor = "Bar"]
-│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  Unrecognised attribute "a"
-│
-├─➤ tests/attributes/good/simple.catala_en:11.3-11.7:
-│    │
-│ 11 │   #[a]
-│    │   ‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.unit]
-│
-├─➤ tests/attributes/good/simple.catala_en:10.5-10.14:
-│    │
-│ 10 │   #[attr.unit]
-│    │     ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.multi]
-│
-├─➤ tests/attributes/good/simple.catala_en:14.5-14.15:
-│    │
-│ 14 │   #[attr.multi = "string"]
-│    │     ‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.expr]
-│
-├─➤ tests/attributes/good/simple.catala_en:13.5-13.14:
-│    │
-│ 13 │   #[attr.expr = false]
-│    │     ‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
 │  In scope "S", the variable "x" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:9.10-9.11:
-│   │
-│ 9 │   output x content money
-│   │          ‾
+├─➤ tests/attributes/good/simple.catala_en:14.10-14.11:
+│    │
+│ 14 │   output x content money
+│    │          ‾
 └─ Some simple attribute tests
    └─ First tests
 ┌─[WARNING]─
@@ -236,9 +61,9 @@ $ catala scopelang
 │  In scope "S", the variable "o" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:12.10-12.11:
+├─➤ tests/attributes/good/simple.catala_en:17.10-17.11:
 │    │
-│ 12 │   output o content money
+│ 17 │   output o content money
 │    │          ‾
 └─ Some simple attribute tests
    └─ First tests
@@ -247,9 +72,9 @@ $ catala scopelang
 │  In scope "S", the variable "o2" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:15.10-15.12:
+├─➤ tests/attributes/good/simple.catala_en:20.10-20.12:
 │    │
-│ 15 │   output o2 content (money, #[attr.typ] integer)
+│ 20 │   output o2 content (money, #[passthrough.attr.typ] integer)
 │    │          ‾‾
 └─ Some simple attribute tests
    └─ First tests
@@ -258,9 +83,9 @@ $ catala scopelang
 │  In scope "S2", the variable "x" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:19.10-19.11:
+├─➤ tests/attributes/good/simple.catala_en:24.10-24.11:
 │    │
-│ 19 │   output x content integer
+│ 24 │   output x content integer
 │    │          ‾
 └─ Some simple attribute tests
    └─ First tests
@@ -268,9 +93,9 @@ $ catala scopelang
 │
 │  The structure "Str" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/simple.catala_en:21.23-21.26:
+├─➤ tests/attributes/good/simple.catala_en:26.23-26.26:
 │    │
-│ 21 │ declaration structure Str:
+│ 26 │ declaration structure Str:
 │    │                       ‾‾‾
 └─ Some simple attribute tests
    └─ First tests
@@ -278,40 +103,55 @@ $ catala scopelang
 │
 │  The enumeration "Enu" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/simple.catala_en:34.25-34.28:
+├─➤ tests/attributes/good/simple.catala_en:39.25-39.28:
 │    │
-│ 34 │ declaration enumeration Enu:
+│ 39 │ declaration enumeration Enu:
 │    │                         ‾‾‾
 └─ Some simple attribute tests
    └─ First tests
+#[enum00]
+#[this.is_an = <expr>]
 type Enu =
   | Foo of unit
-  | Bar of unit
+  | #[constructor = "Bar"] Bar of unit
 
-type S = { bla: integer; x: money; o: money; o2: (money, integer); }
+#[attr = "Referring to the scope declaration"]
+type S = {
+  bla: integer;
+  x: money;
+  #[a] #[attr.unit] o: money;
+  #[attr.multi = "string"] #[attr.expr = <expr>]
+  o2: (money, #[attr.typ] integer);
+}
 
+#[struct.attribute]
 type S2 = { x: integer; }
 
-type Str = { fld: integer; fld2: (integer, date); }
+type Str = {
+  #[field.lbl = "psst"] fld: #[typ] integer;
+  fld2: #[attributes.can = "be multi-   \"line\"\nas well"] (integer, date);
+}
 
 
+#[attr = "Referring to the scope declaration"]
 let scope S
     (bla: ⟨integer⟩|context|output)
     (x: money|internal|output)
     (o: money|internal|output)
-    (o2: (money, integer)|internal|output)
+    (o2: (money, #[attr.typ] integer)|internal|output)
   =
   let bla : integer = reentrant or by default error_empty ⟨false ⊢ ∅⟩;
   let x : money = error_empty ⟨false ⊢ ∅⟩;
-  #[a]
-  #[attr.unit]
+  #[passthrough.a]
+  #[passthrough.attr.unit]
   let o : money = error_empty ⟨false ⊢ ∅⟩;
-  #[attr.multi = "string"]
-  #[attr.expr = <expr>]
-  let o2 : (money, integer) = error_empty ⟨false ⊢ ∅⟩
+  #[passthrough.attr.multi = "string"]
+  #[passthrough.attr.expr = <expr>]
+  let o2 : (money, #[attr.typ] integer) = error_empty ⟨false ⊢ ∅⟩
 
+#[struct.attribute]
 let scope S2 (x: integer|internal|output) =
   let x : integer = error_empty ⟨false ⊢ ∅⟩
 ```
 
-Fixme: the remaining attributes on the scope items definitions should not be still visible here.
+Fixme: there are attributes with "passthrough" remaining, which means that they didn't get processed correctly.
