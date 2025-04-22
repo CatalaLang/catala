@@ -761,8 +761,18 @@ let rec evaluate_expr :
       let o =
         List.fold_left2
           (fun fobj targ arg ->
-            (Obj.obj fobj : Obj.t -> Obj.t)
-              (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
+            let arg =
+              val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg
+            in
+            let f : Obj.t -> Obj.t =
+              if Obj.tag fobj = Obj.first_non_constant_constructor_tag then
+                (* Function is not a closure, but a pair, we assume closure
+                   conversion has been done *)
+                let (f, x0) : ('a -> Obj.t -> Obj.t) * 'a = Obj.obj fobj in
+                f x0
+              else Obj.obj fobj
+            in
+            f arg)
           obj targs args
       in
       runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
