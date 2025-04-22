@@ -61,6 +61,15 @@ module type S = sig
       provided with a formatter for keys (can be used with ["%t"]) and the
       corresponding value. *)
 
+  val format_bindings_i :
+    ?pp_sep:(Format.formatter -> unit -> unit) ->
+    (Format.formatter -> (Format.formatter -> unit) -> key -> 'a -> unit) ->
+    Format.formatter ->
+    'a t ->
+    unit
+  (** Like [format_bindings], but the key is also supplied to the printing
+      function *)
+
   val format :
     ?pp_sep:(Format.formatter -> unit -> unit) ->
     ?pp_bind:(Format.formatter -> unit -> unit) ->
@@ -105,6 +114,11 @@ module Make (Ord : OrderedType) : S with type key = Ord.t = struct
   let format_bindings ?pp_sep pp_bnd ppf t =
     Format.pp_print_list ?pp_sep
       (fun ppf (k, v) -> pp_bnd ppf (fun ppf -> Ord.format ppf k) v)
+      ppf (bindings t)
+
+  let format_bindings_i ?pp_sep pp_bnd ppf t =
+    Format.pp_print_list ?pp_sep
+      (fun ppf (k, v) -> pp_bnd ppf (fun ppf -> Ord.format ppf k) k v)
       ppf (bindings t)
 
   let format
