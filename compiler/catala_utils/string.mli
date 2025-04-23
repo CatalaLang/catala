@@ -65,3 +65,8 @@ val width : string -> int
 (** Returns the width of a given string in screen columns (assuming a monospace
     font). Useful for alignment. This takes unicode (except composite chars) and
     tabs into account, but not escape sequences. *)
+
+val quote : string -> string
+(** [quote s] returns the string [s] prefixed and suffixed by '"'. The following
+    special characters '\\', '"', '\t' and '\n' present in [s] are also escaped
+    by prefixing a '\\' character. *)

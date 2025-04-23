@@ -253,16 +253,6 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
 
-let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
-  let sanitize_quotes = Re.compile (Re.char '"') in
-  Format.fprintf fmt "c(%a)"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%s\""
-           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
-    uids
-
 let rec format_expression
     (ctx : ctx)
     (env : env)

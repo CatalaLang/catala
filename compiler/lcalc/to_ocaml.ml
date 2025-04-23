@@ -20,14 +20,11 @@ open Ast
 module D = Dcalc.Ast
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
-  let sanitize_quotes = Re.compile (Re.char '"') in
   Format.fprintf fmt "@[<hov 2>[%a]@]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%s\""
-           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
-    uids
+       Format.pp_print_string)
+    (List.map String.quote uids)
 
 let format_pos ppf pos =
   Format.fprintf ppf

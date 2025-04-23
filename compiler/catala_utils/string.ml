@@ -88,6 +88,21 @@ let width s =
   in
   aux 0 0
 
+let quote s =
+  let buf = Buffer.create ((2 * length s) + 2) in
+  Buffer.add_char buf '"';
+  iter
+    (function
+      | ('"' | '\\') as c ->
+        Buffer.add_char buf '\\';
+        Buffer.add_char buf c
+      | '\n' -> Buffer.add_string buf "\\n"
+      | '\t' -> Buffer.add_string buf "\\t"
+      | c -> Buffer.add_char buf c)
+    s;
+  Buffer.add_char buf '"';
+  Buffer.contents buf
+
 let format ppf s = Format.pp_print_as ppf (width s) s
 
 module Arg = struct

@@ -52,12 +52,9 @@ let format_uid_list (ppf : formatter) (uids : Uid.MarkedString.info list) : unit
     uids
 
 let format_string_list (ppf : formatter) (uids : string list) : unit =
-  let sanitize_quotes = Re.compile (Re.char '"') in
   fprintf ppf "new String[]{%a}"
-    (pp_print_list ~pp_sep:pp_comma (fun ppf info ->
-         fprintf ppf "\"%s\""
-           (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
-    uids
+    (pp_print_list ~pp_sep:pp_comma pp_print_string)
+    (List.map String.quote uids)
 
 let java_keywords =
   (* list taken from
