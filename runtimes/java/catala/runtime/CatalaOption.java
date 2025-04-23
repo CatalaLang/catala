@@ -14,8 +14,6 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
         return new CatalaOption<>(value);
     }
 
-    ;
-
     private CatalaOption(T in) {
         this.value = in;
     }

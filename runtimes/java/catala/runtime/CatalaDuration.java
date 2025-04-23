@@ -1,7 +1,7 @@
 package catala.runtime;
 
 import catala.dates_calc.Period;
-import catala.runtime.exception.CatalaException;
+import catala.runtime.exception.CatalaError;
 
 public final class CatalaDuration implements CatalaValue {
 
@@ -57,18 +57,16 @@ public final class CatalaDuration implements CatalaValue {
     }
 
     // No override
-    public int compareTo(SourcePosition pos, CatalaDuration t) {
+    public int compareTo(CatalaPosition pos, CatalaDuration t) {
         if (this.getYears() != 0 || t.getYears() != 0) {
             if (this.getMonths() != 0 || t.getMonths() != 0 && this.getDays() != 0 || t.getDays() != 0) {
-                throw new CatalaException("comparing durations in different units (e.g. months vs. days): "
-                        + pos);
+                throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
             }
             return ((Integer) (this.getYears())).compareTo(t.getYears());
         }
         if (this.getMonths() != 0 || t.getMonths() != 0) {
             if (this.getYears() != 0 || t.getYears() != 0 && this.getDays() != 0 || t.getDays() != 0) {
-                throw new CatalaException("comparing durations in different units (e.g. months vs. days): "
-                        + pos);
+                throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
             }
             return ((Integer) (this.getMonths())).compareTo(t.getMonths());
         }
@@ -76,23 +74,23 @@ public final class CatalaDuration implements CatalaValue {
         return ((Integer) (this.getDays())).compareTo(t.getDays());
     }
 
-    public CatalaBool lessThan(SourcePosition pos, CatalaDuration other) {
+    public CatalaBool lessThan(CatalaPosition pos, CatalaDuration other) {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) < 0);
     }
 
-    public CatalaBool lessEqThan(SourcePosition pos, CatalaDuration other) {
+    public CatalaBool lessEqThan(CatalaPosition pos, CatalaDuration other) {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) <= 0);
     }
 
-    public CatalaBool greaterThan(SourcePosition pos, CatalaDuration other) {
+    public CatalaBool greaterThan(CatalaPosition pos, CatalaDuration other) {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) > 0);
     }
 
-    public CatalaBool greaterEqThan(SourcePosition pos, CatalaDuration other) {
+    public CatalaBool greaterEqThan(CatalaPosition pos, CatalaDuration other) {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) >= 0);
     }
 
-    public CatalaBool equalsTo(SourcePosition pos, CatalaDuration other) {
+    public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
         return CatalaBool.fromBoolean(this.compareTo(pos, other) == 0);
     }
 

@@ -1,17 +1,13 @@
 package catala.runtime.exception;
 
 import catala.runtime.CatalaBool;
-import catala.runtime.SourcePosition;
+import catala.runtime.CatalaPosition;
 
-public class CatalaAssertion extends CatalaException {
+public class CatalaAssertion {
 
-    public CatalaAssertion(String message) {
-        super(message);
-    }
-
-    public static void check(SourcePosition pos, CatalaBool b) {
+    public static void check(CatalaPosition pos, CatalaBool b) {
         if (!b.asBoolean()) {
-            throw new CatalaAssertion("Assertion failed: " + pos.toString());
+            throw new CatalaError(CatalaError.Error.AssertionFailed, pos);
         }
     }
 }

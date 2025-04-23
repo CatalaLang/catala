@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   and social benefits computation rules. Copyright (C) 2025 Inria, contributor:
+   Vincent Botbol <vincent.botbol@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -43,13 +43,6 @@ type context = {
   external_global_vars : String.Set.t;
   external_scopes : string String.Map.t;
 }
-
-let format_uid_list (ppf : formatter) (uids : Uid.MarkedString.info list) : unit
-    =
-  fprintf ppf "[%a]"
-    (pp_print_list ~pp_sep:pp_comma (fun ppf info ->
-         fprintf ppf "\"%a\"" Uid.MarkedString.format info))
-    uids
 
 let format_string_list (ppf : formatter) (uids : string list) : unit =
   fprintf ppf "new String[]{%a}"
@@ -188,7 +181,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Reduce -> pp_print_string ppf "reduce"
   | Filter -> pp_print_string ppf "filter"
   | Fold -> pp_print_string ppf "foldLeft"
-  | HandleExceptions -> pp_print_string ppf "ConflictException.handleExceptions"
+  | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_visibility ppf = function
@@ -211,6 +204,8 @@ let rec format_typ ctx ppf typ =
   | TArrow (_args_ty, ret_ty) ->
     fprintf ppf "CatalaFunction<CatalaTuple,%a>" (format_typ ctx) ret_ty
   | TTuple _ -> fprintf ppf "CatalaTuple"
+  | TStruct sname when sname == Expr.source_pos_struct ->
+    pp_print_string ppf "CatalaPosition"
   | TStruct sname -> format_struct ppf sname
   | TEnum ename -> format_enum ppf ename
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
@@ -308,6 +303,11 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     if FuncName.Set.mem f global_funcs && not in_globals then
       fprintf ppf "Globals.";
     FuncName.format ppf f
+  | EStruct { name = s; fields } when s == Expr.source_pos_struct ->
+    fprintf ppf "new CatalaPosition(%a)"
+      (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
+           fprintf ppf "%a" (format_expression ctx) e))
+      (StructField.Map.bindings fields)
   | EStruct { fields = es; name = s } ->
     if StructName.Set.mem s in_scope_structs then begin
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
@@ -323,7 +323,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         (StructField.Map.bindings es)
     end
     else
-      fprintf ppf "new %a (%a)" format_struct s
+      fprintf ppf "new %a(%a)" format_struct s
         (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
              fprintf ppf "%a" (format_expression ctx) e))
         (fill_struct_bindings ctx s es)
@@ -356,7 +356,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EPosLit ->
     let pos = Mark.get e in
     fprintf ppf
-      "@[<hov 4>new SourcePosition(@,\"%s\",@ %d, %d,@ %d, %d,@ %a@;<0 -4>)@]"
+      "@[<hov 4>new CatalaPosition(@,\"%s\",@ %d, %d,@ %d, %d,@ %a@;<0 -4>)@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
@@ -500,7 +500,7 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
     fprintf ppf "@[<hov 4>%a %a =@ %a;@]" (format_typ ctx) typ VarName.format
       (Mark.remove name) (format_expression ctx) expr
   | SFatalError { pos_expr; error } ->
-    fprintf ppf "throw new CatalaException(\"Fatal error '%s': \" + %a);"
+    fprintf ppf "throw new CatalaError(CatalaError.Error.%s, %a);"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
   | SIfThenElse { if_expr; then_block; else_block } ->
@@ -1037,9 +1037,10 @@ let format_enums ctx ppf =
       let format_default_accessor ppf =
         fprintf ppf
           "@[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
-           2>if (this.kind != k) {@ throw new CatalaException(\"Invalid enum \
-           contents access: expected \" + k + \", got \" + this.kind);@]@ }@ \
-           return (T) this.contents;@]@ }"
+           2>if (this.kind != k) {@ throw new \
+           IllegalArgumentException(\"Invalid enum contents access: expected \
+           \" + k + \", got \" + this.kind);@]@ }@ return (T) \
+           this.contents;@]@ }"
       in
       let format_enum_accessor ppf (cstr, typ) =
         fprintf ppf
@@ -1099,7 +1100,7 @@ let format_external_method ctx ppf (name, (ty_l, ret_ty), vis) =
   fprintf ppf
     "// EXTERNAL TO IMPLEMENT@\n\
      @[<hov 4>%astatic final CatalaFunction<%a,%a> %a =@ x -> {@\n\
-     throw new CatalaException(\"External function %a not implemented\");@]@\n\
+     throw new RuntimeException(\"External function %a not implemented\");@]@\n\
      };"
     format_visibility vis format_input_types ty_l (format_typ ctx) ret_ty
     TopdefName.format name TopdefName.format name

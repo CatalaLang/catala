@@ -5,10 +5,10 @@ import java.util.stream.Stream;
 
 import catala.runtime.CatalaArray;
 import catala.runtime.CatalaOption;
+import catala.runtime.CatalaPosition;
 import catala.runtime.CatalaTuple;
-import catala.runtime.SourcePosition;
 
-public class CatalaConflict  {
+public class CatalaConflict {
 
     @SuppressWarnings("unchecked")
     public static CatalaOption<CatalaTuple> handleExceptions(CatalaArray<CatalaOption<CatalaTuple>> v) {
@@ -22,12 +22,10 @@ public class CatalaConflict  {
             case 1:
                 return active_exns.get(0);
             default:
-                for (CatalaOption<CatalaTuple> p_opt : active_exns) {
-                    SourcePosition pos = (SourcePosition) (p_opt.get()).get(1);
-                    msg.append("\n");
-                    msg.append(pos.toString());
-                }
-                throw new CatalaError(msg.toString());
+                List<CatalaPosition> lpos
+                        = active_exns.stream().map(p_opt -> (p_opt.get()).get(1, CatalaPosition.class))
+                                .toList();
+                throw new CatalaError(CatalaError.Error.Conflict, lpos);
         }
     }
 }

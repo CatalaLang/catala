@@ -3,7 +3,7 @@ package catala.runtime;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import catala.runtime.exception.CatalaException;
+import catala.runtime.exception.CatalaError;
 
 public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
 
@@ -37,9 +37,9 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
 
     @SuppressWarnings("unchecked")
     public <U extends CatalaValue, R extends CatalaValue> CatalaArray<R> map2(
-            SourcePosition pos, CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
+            CatalaPosition pos, CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
         if (this.values.length != other.values.length) {
-            throw new CatalaException("traversing multiple lists of different lengths at " + pos);
+            throw new CatalaError(CatalaError.Error.NotSameLength, pos);
         }
         int length = this.values.length;
         R[] tuples = (R[]) new CatalaValue[length];

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-import catala.runtime.exception.CatalaException;
+import catala.runtime.exception.CatalaError;
 
 public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
 
@@ -95,17 +95,17 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
     }
 
     // Div_mon_mon
-    public final CatalaDecimal divide(SourcePosition pos, CatalaMoney other) {
+    public final CatalaDecimal divide(CatalaPosition pos, CatalaMoney other) {
         if (other.value.equals(BigInteger.ZERO)) {
-            throw new CatalaException("division by zero: " + pos);
+            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
         }
         return new CatalaDecimal(new CatalaInteger(this.value), new CatalaInteger(other.value));
     }
 
     // Div_mon_int
-    public final CatalaMoney divide(SourcePosition pos, CatalaInteger other) {
+    public final CatalaMoney divide(CatalaPosition pos, CatalaInteger other) {
         if (other.asBigInteger().equals(BigInteger.ZERO)) {
-            throw new CatalaException("division by zero: " + pos);
+            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
         }
         return this.multiply(new CatalaDecimal(
                 new CatalaInteger(BigInteger.ONE),
@@ -113,7 +113,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
     }
 
     // Div_mon_rat
-    public final CatalaMoney divide(SourcePosition pos, CatalaDecimal other) {
+    public final CatalaMoney divide(CatalaPosition pos, CatalaDecimal other) {
         return this.multiply(other.inverse(pos));
     }
 

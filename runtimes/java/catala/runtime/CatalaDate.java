@@ -3,7 +3,7 @@ package catala.runtime;
 import catala.dates_calc.AmbiguousComputationException;
 import catala.dates_calc.Date;
 import catala.dates_calc.Date.Rounding;
-import catala.runtime.exception.CatalaException;
+import catala.runtime.exception.CatalaError;
 
 public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
@@ -74,35 +74,35 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         return CatalaBool.fromBoolean(this.compareTo(other) == 0);
     }
 
-    public CatalaDate addDurationAbortOnRound(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate addDurationAbortOnRound(CatalaPosition pos, CatalaDuration dur) {
         try {
             return new CatalaDate(this.date.add(dur.period));
         } catch (AmbiguousComputationException e) {
-            throw new CatalaException("Ambiguous date computation involving potential rounding: " + pos);
+            throw new CatalaError(CatalaError.Error.AmbiguousDateRounding, pos);
         }
     }
 
-    public CatalaDate addDurationRoundUp(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate addDurationRoundUp(CatalaPosition pos, CatalaDuration dur) {
         return new CatalaDate(this.date.add(dur.period, Rounding.ROUND_UP));
     }
 
-    public CatalaDate addDurationRoundDown(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate addDurationRoundDown(CatalaPosition pos, CatalaDuration dur) {
         return new CatalaDate(this.date.add(dur.period, Rounding.ROUND_DOWN));
     }
 
-    public CatalaDate subDurationAbortOnRound(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate subDurationAbortOnRound(CatalaPosition pos, CatalaDuration dur) {
         try {
             return new CatalaDate(this.date.add(dur.period.negate()));
         } catch (AmbiguousComputationException e) {
-            throw new CatalaException("Ambiguous date computation involving potential rounding: " + pos);
+            throw new CatalaError(CatalaError.Error.AmbiguousDateRounding, pos);
         }
     }
 
-    public CatalaDate subDurationRoundUp(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate subDurationRoundUp(CatalaPosition pos, CatalaDuration dur) {
         return new CatalaDate(this.date.add(dur.period.negate(), Rounding.ROUND_UP));
     }
 
-    public CatalaDate subDurationRoundDown(SourcePosition pos, CatalaDuration dur) {
+    public CatalaDate subDurationRoundDown(CatalaPosition pos, CatalaDuration dur) {
         return new CatalaDate(this.date.add(dur.period.negate(), Rounding.ROUND_DOWN));
     }
 

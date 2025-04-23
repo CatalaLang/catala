@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 
 import org.apache.commons.numbers.fraction.BigFraction;
 
-import catala.runtime.exception.CatalaException;
+import catala.runtime.exception.CatalaError;
 
 // We probably want to keep this class as-is
 // and not derive it from BigFraction as BigFraction is not part of
@@ -104,19 +104,19 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(this.value.multiply(other.asBigInteger()));
     }
 
-    public final CatalaDecimal inverse(SourcePosition pos) {
+    public final CatalaDecimal inverse(CatalaPosition pos) {
         if (this.value.getNumerator().equals(BigInteger.ZERO)) {
-            throw new CatalaException("division by zero: " + pos);
+            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
         }
         return new CatalaDecimal(new CatalaInteger(this.getDenominator()), new CatalaInteger(this.getNumerator()));
     }
 
     // TODO: add throws
-    public CatalaDecimal divide(SourcePosition pos, CatalaDecimal denum) {
+    public CatalaDecimal divide(CatalaPosition pos, CatalaDecimal denum) {
         try {
             return new CatalaDecimal(this.value.divide(denum.value));
         } catch (ArithmeticException e) {
-            throw new CatalaException("division by zero: " + pos);
+            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
         }
     }
 
