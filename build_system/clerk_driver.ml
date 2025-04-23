@@ -535,9 +535,6 @@ let run_cmd =
         []
       | `Java ->
         let jar_target = target -.- "jar" in
-        (* We copy over the runtime and update the jar with the target
-           classes *)
-        copy ~src:(List.hd (get_var Var.runtime_java_jar)) ~dst:jar_target;
         let classes =
           let class_files =
             target
@@ -581,9 +578,8 @@ let run_cmd =
             (fun class_file -> class_file :: fetch_inner_classes class_file)
             class_files
         in
-        let target_main = Filename.basename target |> Filename.chop_extension in
         get_var Var.jar
-        @ ["--update"; "--file"; jar_target; "--main-class"; target_main]
+        @ ["--create"; "--file"; jar_target]
         @ List.concat_map
             (fun clazz ->
               ["-C"; Filename.dirname clazz; Filename.basename clazz])
@@ -617,7 +613,11 @@ let run_cmd =
           (String.concat " " cmd);
         run_command ~clean_up_env:false ~setenv:["PYTHONPATH", pythonpath] cmd
       | `Java ->
-        let cmd = get_var Var.java @ ["-jar"; src -.- "jar"] in
+        let jars =
+          String.concat ":" (get_var Var.runtime_java_jar @ [src -.- "jar"])
+        in
+        let target_main = Filename.basename src |> Filename.chop_extension in
+        let cmd = get_var Var.java @ ["-cp"; jars; target_main] in
         Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
         run_command ~clean_up_env:false cmd
     in
