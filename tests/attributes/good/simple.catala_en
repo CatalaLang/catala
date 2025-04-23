@@ -2,26 +2,31 @@
 
 ## First tests
 
+The `passthrough` leading path component for attributes is an escape hatch that
+we use here to test correct propagation of attributes: it is supposed to be
+removed, while leaving the rest of the attribute unchanged (see
+`name_resolution.ml`).
+
 ```catala
-#[attr = "Referring to the scope declaration"]
+#[passthrough.attr = "Referring to the scope declaration"]
 declaration scope S:
   context output bla content integer #
   output x content money
-  #[attr.unit]
-  #[a]
+  #[passthrough.attr.unit]
+  #[passthrough.a]
   output o content money
-  #[attr.expr = false]
-  #[attr.multi = "string"]
-  output o2 content (money, #[attr.typ] integer)
+  #[passthrough.attr.expr = false]
+  #[passthrough.attr.multi = "string"]
+  output o2 content (money, #[passthrough.attr.typ] integer)
 
-#[struct.attribute]
+#[passthrough.struct.attribute]
 declaration scope S2:
   output x content integer
 
 declaration structure Str:
-  #[field.lbl = "psst"]
-  data fld content #[typ] integer
-  data fld2 content #[
+  #[passthrough.field.lbl = "psst"]
+  data fld content #[passthrough.typ] integer
+  data fld2 content #[passthrough.
 attributes.can
 =
 "be multi- \
@@ -29,17 +34,121 @@ attributes.can
 as well"
 ] (integer, date)
 
-#[enum00]
-#[this.is_an = Enum]
+#[passthrough.enum00]
+#[passthrough.this.is_an = Enum]
 declaration enumeration Enu:
   -- Foo
-  #[constructor = "Bar"]
+  #[passthrough.constructor = "Bar"]
   -- Bar
 
 ```
 
 ```catala-test-inline
-$ catala scopelang --disable-warnings
+$ catala scopelang
+┌─[WARNING]─
+│
+│  Unrecognised attribute "a"
+│
+├─➤ tests/attributes/good/simple.catala_en:16.3-16.19:
+│    │
+│ 16 │   #[passthrough.a]
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.unit]
+│
+├─➤ tests/attributes/good/simple.catala_en:15.5-15.26:
+│    │
+│ 15 │   #[passthrough.attr.unit]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.multi]
+│
+├─➤ tests/attributes/good/simple.catala_en:19.5-19.27:
+│    │
+│ 19 │   #[passthrough.attr.multi = "string"]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[attr.expr]
+│
+├─➤ tests/attributes/good/simple.catala_en:18.5-18.26:
+│    │
+│ 18 │   #[passthrough.attr.expr = false]
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  In scope "S", the variable "x" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/attributes/good/simple.catala_en:14.10-14.11:
+│    │
+│ 14 │   output x content money
+│    │          ‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  In scope "S", the variable "o" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/attributes/good/simple.catala_en:17.10-17.11:
+│    │
+│ 17 │   output o content money
+│    │          ‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  In scope "S", the variable "o2" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/attributes/good/simple.catala_en:20.10-20.12:
+│    │
+│ 20 │   output o2 content (money, #[passthrough.attr.typ] integer)
+│    │          ‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  In scope "S2", the variable "x" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/attributes/good/simple.catala_en:24.10-24.11:
+│    │
+│ 24 │   output x content integer
+│    │          ‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  The structure "Str" is never used; maybe it's unnecessary?
+│
+├─➤ tests/attributes/good/simple.catala_en:26.23-26.26:
+│    │
+│ 26 │ declaration structure Str:
+│    │                       ‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  The enumeration "Enu" is never used; maybe it's unnecessary?
+│
+├─➤ tests/attributes/good/simple.catala_en:39.25-39.28:
+│    │
+│ 39 │ declaration enumeration Enu:
+│    │                         ‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
 #[enum00]
 #[this.is_an = <expr>]
 type Enu =
@@ -84,3 +193,5 @@ let scope S
 let scope S2 (x: integer|internal|output) =
   let x : integer = error_empty ⟨false ⊢ ∅⟩
 ```
+
+There should be no mentions of `passthrough` remaining here.

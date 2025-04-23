@@ -30,7 +30,7 @@ scope Foo:
     y = 5
   consequence equals 5
 
-declaration scope Test:
+#[test] declaration scope Test:
   f scope Foo
   output x content integer
 
@@ -65,6 +65,7 @@ $ catala Scopelang
 
 type Foo = { x: integer; }
 
+#[test]
 type Test = { x: integer; }
 
 
@@ -75,6 +76,7 @@ let scope Foo (y: integer|input) (x: integer|internal|output) =
         | true ⊢ ⟨ ⟨y = 2 ⊢ ⟨2⟩⟩, ⟨y = 3 ⊢ ⟨3⟩⟩ | false ⊢ ∅ ⟩ ⟩
       | true ⊢ ⟨ ⟨y = 0 ⊢ ⟨0⟩⟩, ⟨y = 1 ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩ ⟩
 
+#[test]
 let scope Test (x: integer|internal|output) (f: Foo {x: integer}|internal) =
   let f : Foo {x: integer} =
     Foo of {"y"= error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩};

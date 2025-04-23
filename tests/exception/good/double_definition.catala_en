@@ -1,7 +1,7 @@
 ## Foo
 
 ```catala
-declaration scope Foo:
+#[test] declaration scope Foo:
   output x content integer
 
 scope Foo:
@@ -56,6 +56,7 @@ $ catala Scopelang -s Foo
 │ 8 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Foo
+#[test]
 let scope Foo (x: integer|internal|output) =
   let x : integer = error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩, ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩
 ```
@@ -84,7 +85,7 @@ $ catala Dcalc -s Foo
 │ 8 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 └─ Foo
-let scope Foo (Foo_in: Foo_in): Foo {x: integer} =
+let scope Foo (Foo_in: #[test] Foo_in): #[test] Foo {x: integer} =
   let set x : integer =
     error_empty ⟨ ⟨ ⟨true ⊢ ⟨1⟩⟩ | true ⊢ ⟨1⟩ ⟩ | false ⊢ ∅ ⟩
   in

@@ -16,7 +16,6 @@
 
 open Catala_utils
 open Shared_ast
-module D = Dcalc.Ast
 module L = Lcalc.Ast
 
 module FuncName =
@@ -112,5 +111,6 @@ type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }
 type program = {
   ctx : ctx;
   code_items : code_item list;
+  tests : (ScopeName.t * block) list;
   module_name : (ModuleName.t * module_intf_id) option;
 }

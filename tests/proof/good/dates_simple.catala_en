@@ -1,7 +1,7 @@
 ## Test
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   internal x content date
   output y content boolean
 

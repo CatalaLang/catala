@@ -16,7 +16,7 @@ let () = print_endline "Hello world!"
 ```
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   context output literate_parsing_is_ok content boolean
 
 scope A:
@@ -81,7 +81,7 @@ let () = print_endline "Hello world!"
 
 \begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}}]
 \```catala
-\PY{k+kr}{declaration} \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
+\PY{n+nv}{test}\PY{o}{]} \PY{k+kr}{declaration} \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
   \PY{k+kd}{context}\PY{+w}{ }\PY{k+kd}{output}\PY{+w}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{content} \PY{k+kt}{boolean}
 
 \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}

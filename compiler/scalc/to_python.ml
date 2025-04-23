@@ -590,47 +590,34 @@ let format_code_item ctx fmt = function
              (format_typ ctx) typ))
       func_params (format_block ctx) func_body
 
-let format_scope_calls ppf (p : Ast.program) =
-  let scopes_with_no_input =
-    List.fold_left
-      (fun acc -> function
-        | SScope
-            {
-              scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ };
-              scope_body_var = var;
-              scope_body_name = name;
-              scope_body_visibility = _;
-            } ->
-          let input_struct =
-            StructName.Map.find ts p.ctx.decl_ctx.ctx_structs
-          in
-          if StructField.Map.is_empty input_struct then (var, name, ts) :: acc
-          else acc
-        | SVar _ | SFunc _ | SScope _ -> acc)
-      [] p.code_items
-    |> List.rev
-  in
-  if scopes_with_no_input = [] then ()
+let format_tests ctx ppf (p : Ast.program) =
+  if p.tests = [] then
+    Message.warning
+      "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
+      Format.pp_print_text
+      "No test scope were found: the generated executable won't test any \
+       computation. To mark scopes as tests, ensure they don't require inputs, \
+       and add the "
   else
     let () =
-      Message.debug "Generating entry points for scopes:@ %a"
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space
-           (fun ppf (_, s, _) -> ScopeName.format ppf s))
-        scopes_with_no_input
+      Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
+             ScopeName.format ppf s))
+        p.tests
     in
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
     List.iter
-      (fun (var, name, ts) ->
-        Format.fprintf ppf "@,print(\"Executing scope %a...\")" ScopeName.format
-          name;
-        Format.fprintf ppf "@,%a (%a());" FuncName.format var StructName.format
-          ts;
+      (fun (name, block) ->
+        Format.pp_print_cut ppf ();
+        (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
+         *   name; *)
+        format_block ctx ppf block;
         Format.fprintf ppf
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\")"
           ScopeName.format name)
-      scopes_with_no_input;
+      p.tests;
     Format.fprintf ppf "@]@,"
 
 let format_program
@@ -658,5 +645,5 @@ let format_program
   format_ctx type_ordering fmt p.ctx;
   Format.pp_print_cut fmt ();
   Format.pp_print_list (format_code_item p.ctx) fmt p.code_items;
-  format_scope_calls fmt p;
+  format_tests p.ctx fmt p;
   Format.pp_print_flush fmt ()

@@ -3,7 +3,7 @@
 > Module Let_in2
 
 ```catala
-declaration scope S:
+#[test] declaration scope S:
   context output a content boolean
 
 scope S:
@@ -50,7 +50,8 @@ module S_in = struct
 end
 
 
-let s (s_in: S_in.t) : S.t =
+(* Scope S *)
+let s : S_in.t -> S.t = fun s_in ->
   let a: ((bool * source_position)) Eoption.t = s_in.S_in.a_in in
   let a__1: bool =
     match
@@ -95,6 +96,6 @@ let () =
 ```
 
 ```catala
-declaration scope Stest:
+#[test] declaration scope Stest:
   output s scope S
 ```

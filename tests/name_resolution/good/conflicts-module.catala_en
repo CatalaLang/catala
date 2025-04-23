@@ -1,10 +1,10 @@
 > Module Conflicts-module
 
 ```catala-metadata
-declaration scope Closure_scøppe:
+#[test] declaration scope Closure_scøppe:
   output scoppe condition
 
-declaration scope Closure_scoppe__1:
+#[test] declaration scope Closure_scoppe__1:
   output scoppe condition
 ```
 
@@ -34,18 +34,32 @@ module Closure_scoppe__1_in = struct
 end
 
 
-let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
+(* Scope Closure_scøppe *)
+let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool = false in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe__1 (_: Closure_scoppe__1_in.t) : Closure_scoppe__1.t =
+(* Scope Closure_scoppe__1 *)
+let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
+  fun _ ->
   let scoppe: bool = false in
   {Closure_scoppe__1.scoppe = scoppe}
 
+(* Toplevel def closure_Closure_scøppe *)
+let closure_closure_scoppe : Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
+  fun (_: Obj.t) (x0: Closure_scoppe_in.t) -> closure_scoppe x0
+
+(* Toplevel def closure_Closure_scoppe__1 *)
+let closure_closure_scoppe__1 : Obj.t -> Closure_scoppe__1_in.t ->
+                                  Closure_scoppe__1.t =
+  fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0
+
 let () =
   Runtime_ocaml.Runtime.register_module "Conflicts-module"
-    [ "Closure_scoppe__1", Obj.repr closure_scoppe__1;
-      "Closure_sc\195\184ppe", Obj.repr closure_scoppe ]
+    [ "Closure_sc\195\184ppe",
+        Obj.repr (closure_closure_scoppe, (o_toclosureenv ()));
+      "Closure_scoppe__1",
+        Obj.repr (closure_closure_scoppe__1, (o_toclosureenv ())) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 
@@ -92,11 +106,13 @@ module Closure_scoppe__1_in = struct
 end
 
 
+(* Toplevel def closure_scoppe *)
 let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
   fun (_: Obj.t) (acc: bool) (x: integer) ->
     acc && (o_gt_int_int x (integer_of_string "2"))
 
-let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
+(* Scope Closure_scøppe *)
+let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool =
      if
       (o_fold (closure_scoppe__2, (o_toclosureenv ())) true
@@ -105,7 +121,7 @@ let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=56; start_column=14; end_line=56; end_column=24;
+              start_line=70; start_column=14; end_line=70; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,
@@ -114,13 +130,26 @@ let closure_scoppe (_: Closure_scoppe_in.t) : Closure_scoppe.t =
               law_headings=[]})) in x) in
   {Closure_scoppe.scoppe = scoppe}
 
-let closure_scoppe__1 (_: Closure_scoppe__1_in.t) : Closure_scoppe__1.t =
+(* Scope Closure_scoppe__1 *)
+let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
+  fun _ ->
   let scoppe: bool = false in
   {Closure_scoppe__1.scoppe = scoppe}
 
+(* Toplevel def closure_Closure_scøppe *)
+let closure_closure_scoppe : Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
+  fun (_: Obj.t) (x0: Closure_scoppe_in.t) -> closure_scoppe x0
+
+(* Toplevel def closure_Closure_scoppe__1 *)
+let closure_closure_scoppe__1 : Obj.t -> Closure_scoppe__1_in.t ->
+                                  Closure_scoppe__1.t =
+  fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0
+
 let () =
   Runtime_ocaml.Runtime.register_module "Conflicts-module"
-    [ "Closure_scoppe__1", Obj.repr closure_scoppe__1;
-      "Closure_sc\195\184ppe", Obj.repr closure_scoppe ]
+    [ "Closure_sc\195\184ppe",
+        Obj.repr (closure_closure_scoppe, (o_toclosureenv ()));
+      "Closure_scoppe__1",
+        Obj.repr (closure_closure_scoppe__1, (o_toclosureenv ())) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

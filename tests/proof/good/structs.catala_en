@@ -9,7 +9,7 @@ declaration structure S:
     data a content integer
     data b content T
 
-declaration scope A:
+#[test] declaration scope A:
   output x content integer
   internal y content S
 

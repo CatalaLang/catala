@@ -1,7 +1,7 @@
 ## Test
 
 ```catala
-declaration scope A:
+#[test] declaration scope A:
   context output f content integer depends on x content integer
 
 declaration scope B:
@@ -49,8 +49,11 @@ $ catala Scopelang -s B
 │ 9 │   a scope A
 │   │   ‾
 └─ Test
-let scope B (b: bool|input) (a: A {f: integer → integer}|internal) =
-  let a : A {f: integer → integer} =
+let scope B
+    (b: bool|input)
+    (a: #[test] A {f: integer → integer}|internal)
+  =
+  let a : #[test] A {f: integer → integer} =
     A of {"f"= (λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩)}
 ```
 
@@ -67,8 +70,8 @@ $ catala Dcalc -s A
 │   │   ‾
 └─ Test
 let scope A
-  (A_in: A_in {f_in: integer → ⟨integer⟩})
-  : A {f: integer → integer}
+  (A_in: #[test] A_in {f_in: integer → ⟨integer⟩})
+  : #[test] A {f: integer → integer}
   =
   let get f : integer → ⟨integer⟩ = A_in.f_in in
   let set f : integer → integer =
@@ -93,7 +96,7 @@ $ catala Dcalc -s B
 └─ Test
 let scope B (B_in: B_in {b_in: bool}): B =
   let get b : bool = B_in.b_in in
-  let set a : A {f: integer → integer} =
+  let set a : #[test] A {f: integer → integer} =
     let result : A =
       A
         { A_in

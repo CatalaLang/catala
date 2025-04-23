@@ -7,7 +7,7 @@ declaration structure Foo:
 declaration structure Bar:
   data f content integer
 
-declaration scope A:
+#[test] declaration scope A:
   internal x content Foo
   output y content integer
 

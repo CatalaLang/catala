@@ -6,7 +6,7 @@ declaration scope S:
   context b content boolean
   context output out content integer
 
-declaration scope R:
+#[test] declaration scope R:
   s scope S
   context output r content integer
 

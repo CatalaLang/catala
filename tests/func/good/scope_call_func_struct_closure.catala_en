@@ -13,7 +13,7 @@ declaration scope SubFoo2:
   output y content integer depends on z content integer
 
 
-declaration scope Foo:
+#[test] declaration scope Foo:
   context b content boolean
   internal r content Result
   output z content integer
@@ -77,8 +77,10 @@ type SubFoo2 = {
   y: ((closure_env, integer) → integer, closure_env);
 }
 
+#[test]
 type Foo_in = { b_in: option (bool, source_position); }
 
+#[test]
 type Foo = { z: integer; }
 
 let topval closure_y : (closure_env, integer) → integer =
@@ -131,9 +133,10 @@ let topval closure_r__1 : (closure_env, integer) → integer =
   in
   code_and_env.0 code_and_env.1 param0
 
+#[test]
 let scope foo
-  (foo_in: Foo_in {b_in: option (bool, source_position)})
-  : Foo {z: integer}
+  (foo_in: #[test] Foo_in {b_in: option (bool, source_position)})
+  : #[test] Foo {z: integer}
   =
   let get b : option (bool, source_position) = foo_in.b_in in
   let set b__1 : bool =

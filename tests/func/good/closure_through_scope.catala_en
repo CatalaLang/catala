@@ -5,7 +5,7 @@ declaration scope S:
   output f content integer depends on y content integer
   input x content boolean
 
-declaration scope T:
+#[test] declaration scope T:
   s scope S
   output y content integer
 
@@ -31,7 +31,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala Lcalc -s T -O --closure-conversion
-let scope T (t_in: T_in): T {y: integer} =
+let scope T (t_in: #[test] T_in): #[test] T {y: integer} =
   let set s__1 : S {f: ((closure_env, integer) → integer, closure_env)} =
     { S f = (closure_s, to_closure_env ()); }
   in
