@@ -793,58 +793,35 @@ let format_enum_to_string ppf =
      return this.kind.toString() + \" \" + this.contents.toString();@]@\n\
      }"
 
-let format_main ctx ppf scopes =
-  let has_no_input sbody =
-    match sbody with
-    | { scope_body_func = { func_params = [(_, (TStruct ts, _))]; _ }; _ } ->
-      let input_struct = StructName.Map.find ts ctx.decl_ctx.ctx_structs in
-      StructField.Map.is_empty input_struct
-    | _ -> false
-  in
-  let scopes_without_inputs = List.filter has_no_input scopes in
-  if scopes_without_inputs = [] then begin
-    pp_print_double_space ppf ();
-    fprintf ppf
-      "@[<v 4>public static void main(String[] args) {@\n\
-       System.out.println(\"\\u001B[33m[RESULT]\\u001B[0m Nothing to \
-       execute...\");@\n\
-       @]@\n\
-       }"
-  end
-  else
-    let no_input_scope_names =
-      List.mapi
-        (fun i { scope_body_name; _ } -> i, scope_body_name)
-        scopes_without_inputs
-    in
-    Message.debug "Generating main for scopes:@ %a"
-      (pp_print_list (fun ppf { scope_body_name; _ } ->
-           ScopeName.format ppf scope_body_name))
-      scopes_without_inputs;
-    let format_verbose ppf (i, scope_name) =
-      fprintf ppf
-        "System.out.println(\"Executing scope %a...\");@\n\
-         %a result%d = new %a();@\n\
-         System.out.println(\"Scope %a executed successfully.\");@\n\
-         System.out.println(\"[RESULT]\");@\n\
-         System.out.println(result%d.toString());"
-        ScopeName.format scope_name ScopeName.format scope_name i
-        ScopeName.format scope_name ScopeName.format scope_name i
-    in
-    let format_compact ppf (_i, scope_name) =
-      fprintf ppf
-        "System.out.println(\"Executing scope %a...\");@\n\
-         new %a();@\n\
-         System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-         successfully.\");"
-        ScopeName.format scope_name ScopeName.format scope_name ScopeName.format
-        scope_name
-    in
-    pp_print_double_space ppf ();
-    fprintf ppf "@[<v 4>public static void main(String[] args) {@\n%a@]@\n}"
-      (pp_print_list ~pp_sep:pp_print_double_space
-         (if Global.options.debug then format_verbose else format_compact))
-      no_input_scope_names
+let format_tests ctx ppf tests =
+  pp_print_double_space ppf ();
+  fprintf ppf "// Automatic Catala tests@\n";
+  fprintf ppf "@[<v 4>public static void main(String[] args) {@\n";
+  (if tests = [] then
+     Message.warning
+       "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
+       Format.pp_print_text
+       "No test scope were found: the generated executable won't test any \
+        computation. To mark scopes as tests, ensure they don't require \
+        inputs, and add the "
+   else
+     let () =
+       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
+              ScopeName.format ppf s))
+         tests
+     in
+     let format_test ppf (scope_name, block) =
+       fprintf ppf "/* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf
+         "%a@\n\
+          System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
+          successfully.\");"
+         (format_block ~toplevel:true ctx)
+         block ScopeName.format scope_name
+     in
+     pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
+  fprintf ppf "@]@\n}"
 
 let format_scope ctx ppf (sbody : Ast.scope_body) =
   let out_struct =
@@ -1178,7 +1155,7 @@ let format_globals ctx ppf globals =
       global_funcs = FuncName.Set.of_list funcs;
     }
 
-let format_code_items ctx ppf (code_items : Ast.code_item list) =
+let format_program ctx ppf { code_items; tests; _ } =
   let scopes, globals =
     List.partition_map
       (let open Either in
@@ -1219,7 +1196,7 @@ let format_code_items ctx ppf (code_items : Ast.code_item list) =
   pp_print_list_padded ~pp_sep:pp_print_double_space
     (fun ppf s -> format_scope ctx ppf s)
     ppf scopes;
-  format_main ctx ppf scopes
+  format_tests ctx ppf tests
 
 let format_program ~class_name ppf (p : Ast.program) : unit =
   Format.pp_open_vbox ppf 0;
@@ -1236,4 +1213,4 @@ let format_program ~class_name ppf (p : Ast.program) : unit =
   pp_print_list pp_print_string ppf header;
   pp_print_newline ppf ();
   fprintf ppf "@[<v 4>public class %s {%a@ @]@\n}@\n" class_name
-    (format_code_items ctx) p.code_items
+    (format_program ctx) p
