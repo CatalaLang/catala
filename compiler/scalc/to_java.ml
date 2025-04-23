@@ -384,39 +384,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
       (format_expression_with_paren ctx)
       arg1 format_op op (format_expression ctx) arg2
-  | EApp
-      {
-        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
-        args = [arg];
-      }
-    when Global.options.trace <> None ->
-    fprintf ppf "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
-      (format_expression ctx) f (format_expression ctx) arg
-  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    fprintf ppf
-      "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
-       output_io=%s),@ %a)"
-      format_uid_list info
-      (match var_def_info.log_io_input with
-      | Runtime.NoInput -> "NoInput"
-      | Runtime.OnlyInput -> "OnlyInput"
-      | Runtime.Reentrant -> "Reentrant")
-      (if var_def_info.log_io_output then "True" else "False")
-      (format_expression ctx) arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    let pos = Mark.get e in
-    fprintf ppf
-      "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    fprintf ppf "log_end_call(%a,@ %a)" format_uid_list info
-      (format_expression ctx) arg1
+  | EAppOp { op = Log _, _; _ } when Global.options.trace <> None ->
+    Message.error "tracing is not yet supported in Java"
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     fprintf ppf "%a" (format_expression ctx) arg1
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
