@@ -1196,7 +1196,7 @@ let load_runtime_modules ~hashf prg =
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
         Dynlink.adapt_filename
-          File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
+          File.((dirname src / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
       in
       (if not (Sys.file_exists obj_file) then
          Message.error

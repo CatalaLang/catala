@@ -44,6 +44,8 @@ let ninja_cmdline ninja_flags nin_file targets =
   @ (if Catala_utils.Global.options.debug then ["-v"] else [])
   @ targets
 
+let lastdirname f = File.(basename (dirname f))
+
 let run_command ~clean_up_env ?(setenv = []) cmdline =
   if cmdline = [] then 0
   else
@@ -78,7 +80,176 @@ let run_command ~clean_up_env ?(setenv = []) cmdline =
     in
     return_code
 
-open Cmdliner
+let original_cwd = Sys.getcwd ()
+
+let iter_commands ~build_dir targets f =
+  let multi_targets = match targets with [] | [_] -> false | _ -> true in
+  List.fold_left
+    (fun code (item, target) ->
+      if multi_targets then
+        Format.fprintf (Message.err_ppf ()) "@{<blue>>@} @{<cyan>%s@}@."
+          (String.remove_prefix
+             ~prefix:File.(original_cwd / "")
+             File.(
+               Sys.getcwd ()
+               / String.remove_prefix ~prefix:(build_dir ^ "/") target
+               -.- ""));
+      max code (f item target))
+    0 targets
+
+let rec get_var =
+  (* replaces ${var} with its value, recursively *)
+  let re_single_var, re_var =
+    let open Re in
+    let re = seq [str "${"; group (rep1 (diff any (char '}'))); char '}'] in
+    compile (whole_string re), compile re
+  in
+  fun var_bindings v ->
+    let s = List.assoc v var_bindings in
+    let get_var = get_var (List.remove_assoc v var_bindings) in
+    List.concat_map
+      (fun s ->
+        match Re.exec_opt re_single_var s with
+        | Some g -> get_var (Var.make (Re.Group.get g 1))
+        | None ->
+          [
+            Re.replace ~all:true re_var
+              ~f:(fun g ->
+                String.concat " " (get_var (Var.make (Re.Group.get g 1))))
+              s;
+          ])
+      s
+
+let linking_dependencies items =
+  let modules =
+    List.fold_left
+      (fun acc it ->
+        match it.Scan.module_def with
+        | Some m -> String.Map.add m it acc
+        | None -> acc)
+      String.Map.empty items
+  in
+  let rem_dups =
+    let rec aux seen = function
+      | it :: r ->
+        if String.Set.mem it.Scan.file_name seen then aux seen r
+        else it :: aux (String.Set.add it.Scan.file_name seen) r
+      | [] -> []
+    in
+    aux String.Set.empty
+  in
+  fun item ->
+    let rec traverse acc item =
+      List.fold_left
+        (fun acc m ->
+          let it = String.Map.find m modules in
+          traverse (it :: acc) it)
+        acc item.Scan.used_modules
+    in
+    rem_dups (traverse [] item)
+
+let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
+  let open File in
+  let get_var = get_var var_bindings in
+  match backend with
+  | `OCaml ->
+    get_var Var.ocamlopt_exe
+    @ get_var Var.ocaml_flags
+    @ get_var Var.runtime_ocaml_libs
+    @ List.map
+        (fun it ->
+          build_dir
+          / Filename.dirname it.Scan.file_name
+          / "ocaml"
+          / Option.get it.Scan.module_def
+          ^ ".cmx")
+        (link_deps item)
+    @ [target -.- "cmx"; "-o"; target -.- "exe"]
+  | `C ->
+    get_var Var.cc_exe
+    @ List.map
+        (fun it ->
+          build_dir
+          / Filename.dirname it.Scan.file_name
+          / "c"
+          / Option.get it.Scan.module_def
+          ^ ".o")
+        (link_deps item)
+    @ [target]
+    @ get_var Var.c_flags
+    @ ["-o"; target -.- "exe"]
+  | `Python ->
+    (* a "linked" python module is a "Module.py" folder containing the module
+       .py file along with the runtime and all dependencies, plus a __init__.py
+       file *)
+    let tdir = Filename.remove_extension target in
+    remove tdir;
+    ensure_dir tdir;
+    List.iter
+      (fun it ->
+        let src =
+          build_dir
+          / Filename.dirname it.Scan.file_name
+          / "python"
+          / Option.get it.Scan.module_def
+          ^ ".py"
+        in
+        copy_in ~src ~dir:tdir)
+      (link_deps item);
+    copy_in ~src:(target -.- "py") ~dir:tdir;
+    close_out (open_out (tdir / "__init__.py"));
+    []
+  | `Java ->
+    let jar_target = target -.- "jar" in
+    let classes =
+      let class_files =
+        target
+        :: List.map
+             (fun it ->
+               build_dir
+               / Filename.dirname it.Scan.file_name
+               / "java"
+               / Option.get it.Scan.module_def
+               -.- "class")
+             (link_deps item)
+      in
+      let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
+      (* 'javac' generates one file per inner class. Sadly, we do generate a lot
+         of those. We need to pack those in the jar as well. *)
+      let fetch_inner_classes class_file =
+        let basename = Filename.(basename class_file |> chop_extension) in
+        let dirname = Filename.dirname class_file in
+        let dir_classes =
+          Hashtbl.find_opt h dirname
+          |> function
+          | Some dir_classes -> dir_classes
+          | None ->
+            let dir_contents = Sys.readdir dirname in
+            let dir_classes =
+              Seq.filter
+                (String.ends_with ~suffix:".class")
+                (Array.to_seq dir_contents)
+              |> List.of_seq
+            in
+            Hashtbl.replace h dirname dir_classes;
+            dir_classes
+        in
+        List.filter_map
+          (fun clazz ->
+            if String.starts_with ~prefix:(basename ^ "$") clazz then
+              Some (dirname / clazz)
+            else None)
+          dir_classes
+      in
+      List.concat_map
+        (fun class_file -> class_file :: fetch_inner_classes class_file)
+        class_files
+    in
+    get_var Var.jar
+    @ ["--create"; "--file"; jar_target]
+    @ List.concat_map
+        (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
+        classes
 
 let target_backend t =
   let aux = function
@@ -94,83 +265,37 @@ let target_backend t =
   in
   match Filename.extension t with
   | ".exe" -> (
-    match Filename.extension (Filename.chop_extension t) with
-    | "" -> Clerk_rules.OCaml
-    | e -> aux e)
+    match lastdirname t with
+    | "c" -> Clerk_rules.C
+    | "python" -> Clerk_rules.Python
+    | "java" -> Clerk_rules.Java
+    | "ocaml" | _ -> Clerk_rules.OCaml)
   | ext -> aux ext
 
-let original_cwd = Sys.getcwd ()
+let make_target ~build_dir ~backend item =
+  let open File in
+  let f =
+    match item.Scan.module_def with
+    | None -> item.Scan.file_name
+    | Some m ->
+      (dirname item.Scan.file_name / m) ^ Filename.extension item.Scan.file_name
+  in
+  let dir = dirname f in
+  let base = basename f in
+  let base =
+    match backend with
+    | `Interpret -> item.Scan.file_name
+    | `Interpret_module -> (
+      (dir / "ocaml" / base)
+      -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
+    | `OCaml -> (dir / "ocaml" / base) -.- "cmx"
+    | `C -> (dir / "c" / base) -.- "o"
+    | `Python -> (dir / "python" / base) -.- "py"
+    | `Java -> (dir / "java" / base) -.- "class"
+  in
+  build_dir / base
 
-let build_cmd =
-  let run ninja_init (targets : string list) (ninja_flags : string list) =
-    let enabled_backends =
-      targets |> List.map target_backend |> List.sort_uniq compare
-    in
-    ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
-    @@ fun ~build_dir ~fix_path ~nin_file ~items:_ ~var_bindings:_ ->
-    if targets <> [] then (
-      let ninja_targets, _clerk_targets =
-        List.partition_map
-          (fun t0 ->
-            let t = fix_path t0 in
-            let t =
-              if String.starts_with ~prefix:(build_dir ^ "/") t then t
-              else File.(build_dir / t)
-            in
-            match Filename.extension t with
-            | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> Left t
-            | ".c" | ".h" -> Left t (* .o ? *)
-            | ".py" -> Left t
-            | ".java" | ".class" -> Left t
-            | ".catala_en" | ".catala_fr" | ".catala_pl" -> Left t
-            | ".exe" -> Right t
-            | _ -> assert false (* @out @test *))
-          targets
-      in
-      let ninja_cmd = ninja_cmdline ninja_flags nin_file ninja_targets in
-      Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
-      let exit_code = run_command ~clean_up_env:false ninja_cmd in
-      if exit_code = 0 then
-        Message.result
-          "@[<v 4>Build successful. The targets can be found in the following \
-           files:@,\
-           %a@]"
-          (Format.pp_print_list (fun ppf f ->
-               Format.fprintf ppf "@{<cyan>%s@}"
-                 (String.remove_prefix
-                    ~prefix:File.(original_cwd / "")
-                    File.(Sys.getcwd () / f))))
-          ninja_targets;
-      raise (Catala_utils.Cli.Exit_with exit_code))
-    else
-      (* List targets command TODO *)
-      let ninja_cmd = ninja_cmdline ninja_flags nin_file ["-t"; "targets"] in
-      let result = File.process_out (List.hd ninja_cmd) (List.tl ninja_cmd) in
-      let targets =
-        String.split_on_char '\n' result
-        |> List.filter_map (fun line ->
-               match String.split_on_char ':' line with
-               | [] | [""] | "always" :: _ -> None
-               | target :: _ -> Some (String.trim target))
-        |> List.rev
-      in
-      Format.eprintf "Available targets:@.";
-      List.iter print_endline targets;
-      0
-  in
-  let doc =
-    "Base build command for individual file targets. Given the corresponding \
-     Catala module is declared, this can be used to build .ml, .cmxs, .c, .py \
-     files, etc. Targets, along with their dependencies, are always written \
-     into $(i,build-dir) (by default $(b,_build)). If a catala extension is \
-     used as target, this compiles all its dependencies."
-  in
-  Cmd.v (Cmd.info ~doc "build")
-    Term.(
-      const run
-      $ Cli.Global.term Clerk_rules.ninja_init
-      $ Cli.targets
-      $ Cli.ninja_flags)
+open Cmdliner
 
 let raw_cmd =
   let run ninja_init (targets : string list) (ninja_flags : string list) =
@@ -212,6 +337,121 @@ let raw_cmd =
   in
   Cmd.v
     (Cmd.info ~doc "raw-target")
+    Term.(
+      const run
+      $ Cli.Global.term Clerk_rules.ninja_init
+      $ Cli.targets
+      $ Cli.ninja_flags)
+
+let build_cmd =
+  let run ninja_init (targets : string list) (ninja_flags : string list) =
+    let enabled_backends =
+      targets |> List.map target_backend |> List.sort_uniq compare
+    in
+    ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
+    @@ fun ~build_dir ~fix_path ~nin_file ~items ~var_bindings ->
+    if targets = [] then Message.error "Please specify a target to build";
+    let open File in
+    let items = List.of_seq items in
+    let link_deps = linking_dependencies items in
+    let targets =
+      List.map
+        (fun t ->
+          let t = fix_path t in
+          if String.starts_with ~prefix:(build_dir ^ Filename.dir_sep) t then t
+          else build_dir / t)
+        targets
+    in
+    let ensure_target_dir dname t =
+      if lastdirname t = dname then t else dirname t / dname / basename t
+    in
+    let ninja_targets, exec_targets =
+      List.partition_map
+        (fun t ->
+          match Filename.extension t with
+          | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" ->
+            Left (ensure_target_dir "ocaml" t)
+          | ".c" | ".h" | ".o" -> Left (ensure_target_dir "c" t)
+          | ".py" -> Left (ensure_target_dir "python" t)
+          | ".java" | ".class" -> Left (ensure_target_dir "java" t)
+          | ".catala_en" | ".catala_fr" | ".catala_pl" -> Left t
+          | ".exe" ->
+            let t, backend =
+              match lastdirname t with
+              | "c" -> t, `C
+              | "python" -> t, `Python
+              | "java" -> t, `Java
+              | "ocaml" | _ -> ensure_target_dir "ocaml" t, `OCaml
+            in
+            let item =
+              try
+                List.find
+                  (fun it ->
+                    (dirname (dirname t) / basename t) -.- ""
+                    = (build_dir / it.Scan.file_name) -.- "")
+                  items
+              with Not_found ->
+                Message.error "No source to make target %a found" File.format t
+            in
+            Right ((item, backend), t)
+          | _ -> assert false)
+        targets
+    in
+    let deps_targets =
+      List.fold_left
+        (fun acc ((item, backend), _) ->
+          let deps = link_deps item in
+          let targets = List.map (make_target ~build_dir ~backend) deps in
+          List.rev_append targets acc)
+        [] exec_targets
+      |> List.rev
+    in
+    let final_exec_targets =
+      List.map
+        (fun ((item, backend), _) -> make_target ~build_dir ~backend item)
+        exec_targets
+    in
+    let final_ninja_targets =
+      List.sort_uniq Stdlib.compare
+        (final_exec_targets @ ninja_targets @ deps_targets)
+    in
+    let ninja_cmd = ninja_cmdline ninja_flags nin_file final_ninja_targets in
+    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+    let exit_code = run_command ~clean_up_env:false ninja_cmd in
+    if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
+    let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
+    let exit_code =
+      iter_commands ~build_dir exec_targets
+      @@ fun (item, backend) target ->
+      let cmd = link_cmd ~backend item target in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      run_command ~clean_up_env:false cmd
+    in
+    if exit_code = 0 then
+      Message.result
+        "@[<v 4>Build successful. The targets can be found in the following \
+         files:@,\
+         %a@]"
+        (Format.pp_print_list (fun ppf f ->
+             Format.fprintf ppf "@{<cyan>%s@}"
+               (String.remove_prefix
+                  ~prefix:File.(original_cwd / "")
+                  File.(Sys.getcwd () / f))))
+        (ninja_targets @ List.map snd exec_targets);
+    raise (Catala_utils.Cli.Exit_with exit_code)
+  in
+  let doc =
+    "Base build command for individual file targets. Given the corresponding \
+     Catala module is declared, this can be used to build .ml, .cmxs, .c, .py \
+     files, etc. Targets, along with their dependencies, are always written \
+     into $(i,build-dir) (by default $(b,_build)). If a catala extension is \
+     used as target, this compiles all its dependencies.\n\n\
+     The format of the targets is $(b,src-dir/BACKEND/file.ext). For example, \
+     to build a C object file from $(b,foo/bar.catala_en), one would run:\n\
+    \  $(b,clerk build foo/c/bar.o)\n\
+     and the resulting file would be in $(b,_build/foo/c/bar.o)."
+  in
+  Cmd.v (Cmd.info ~doc "build")
     Term.(
       const run
       $ Cli.Global.term Clerk_rules.ninja_init
@@ -313,29 +553,6 @@ let test_cmd =
       $ Cli.diff_command
       $ Cli.ninja_flags)
 
-let rec get_var =
-  (* replaces ${var} with its value, recursively *)
-  let re_single_var, re_var =
-    let open Re in
-    let re = seq [str "${"; group (rep1 (diff any (char '}'))); char '}'] in
-    compile (whole_string re), compile re
-  in
-  fun var_bindings v ->
-    let s = List.assoc v var_bindings in
-    let get_var = get_var (List.remove_assoc v var_bindings) in
-    List.concat_map
-      (fun s ->
-        match Re.exec_opt re_single_var s with
-        | Some g -> get_var (Var.make (Re.Group.get g 1))
-        | None ->
-          [
-            Re.replace ~all:true re_var
-              ~f:(fun g ->
-                String.concat " " (get_var (Var.make (Re.Group.get g 1))))
-              s;
-          ])
-      s
-
 let ninja_version =
   lazy
     (try
@@ -345,133 +562,6 @@ let ninja_version =
        |> String.split_on_char '.'
        |> List.map int_of_string
      with Exit | Failure _ -> [])
-
-let linking_dependencies items =
-  let modules =
-    List.fold_left
-      (fun acc it ->
-        match it.Scan.module_def with
-        | Some m -> String.Map.add m it acc
-        | None -> acc)
-      String.Map.empty items
-  in
-  let rem_dups =
-    let rec aux seen = function
-      | it :: r ->
-        if String.Set.mem it.Scan.file_name seen then aux seen r
-        else it :: aux (String.Set.add it.Scan.file_name seen) r
-      | [] -> []
-    in
-    aux String.Set.empty
-  in
-  fun item ->
-    let rec traverse acc item =
-      List.fold_left
-        (fun acc m ->
-          let it = String.Map.find m modules in
-          traverse (it :: acc) it)
-        acc item.Scan.used_modules
-    in
-    rem_dups (traverse [] item)
-
-let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
-  let open File in
-  let get_var = get_var var_bindings in
-  match backend with
-  | `OCaml ->
-    get_var Var.ocamlopt_exe
-    @ get_var Var.ocaml_flags
-    @ get_var Var.runtime_ocaml_libs
-    @ List.map
-        (fun it ->
-          build_dir
-          / Filename.dirname it.Scan.file_name
-          / Option.get it.Scan.module_def
-          ^ ".cmx")
-        (link_deps item)
-    @ [target; "-o"; target -.- "exe"]
-  | `C ->
-    get_var Var.cc_exe
-    @ List.map
-        (fun it ->
-          build_dir
-          / Filename.dirname it.Scan.file_name
-          / Option.get it.Scan.module_def
-          ^ ".c.o")
-        (link_deps item)
-    @ [target]
-    @ get_var Var.c_flags
-    @ ["-o"; target -.- "exe"]
-  | `Python ->
-    (* a "linked" python module is a "Module.py" folder containing the module
-       .py file along with the runtime and all dependencies, plus a __init__.py
-       file *)
-    let tdir = Filename.remove_extension target ^ "_python" in
-    remove tdir;
-    ensure_dir tdir;
-    List.iter
-      (fun it ->
-        let src =
-          build_dir
-          / Filename.dirname it.Scan.file_name
-          / Option.get it.Scan.module_def
-          ^ ".py"
-        in
-        copy_in ~src ~dir:tdir)
-      (link_deps item);
-    copy_in ~src:(target -.- "py") ~dir:tdir;
-    close_out (open_out (tdir / "__init__.py"));
-    []
-  | `Java ->
-    let jar_target = target -.- "jar" in
-    let classes =
-      let class_files =
-        target
-        :: List.map
-             (fun it ->
-               build_dir
-               / Filename.dirname it.Scan.file_name
-               / Option.get it.Scan.module_def
-               -.- "class")
-             (link_deps item)
-      in
-      let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
-      (* 'javac' generates one file per inner class. Sadly, we do generate a lot
-         of those. We need to pack those in the jar as well. *)
-      let fetch_inner_classes class_file =
-        let basename = Filename.(basename class_file |> chop_extension) in
-        let dirname = Filename.dirname class_file in
-        let dir_classes =
-          Hashtbl.find_opt h dirname
-          |> function
-          | Some dir_classes -> dir_classes
-          | None ->
-            let dir_contents = Sys.readdir dirname in
-            let dir_classes =
-              Seq.filter
-                (String.ends_with ~suffix:".class")
-                (Array.to_seq dir_contents)
-              |> List.of_seq
-            in
-            Hashtbl.replace h dirname dir_classes;
-            dir_classes
-        in
-        List.filter_map
-          (fun clazz ->
-            if String.starts_with ~prefix:(basename ^ "$") clazz then
-              Some (dirname / clazz)
-            else None)
-          dir_classes
-      in
-      List.concat_map
-        (fun class_file -> class_file :: fetch_inner_classes class_file)
-        class_files
-    in
-    get_var Var.jar
-    @ ["--create"; "--file"; jar_target]
-    @ List.concat_map
-        (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
-        classes
 
 let run_artifact ~backend ~var_bindings ?scope src =
   let open File in
@@ -490,7 +580,7 @@ let run_artifact ~backend ~var_bindings ?scope src =
   | `Python ->
     let cmd =
       let base = Filename.(basename (remove_extension src)) in
-      get_var var_bindings Var.python @ ["-m"; base ^ "_python." ^ base]
+      get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
     in
     let pythonpath =
       String.concat ":"
@@ -566,29 +656,8 @@ let run_cmd =
         files_or_folders
     in
     if target_items = [] then Message.error "Nothing to run";
-    let make_target backend item =
-      let open File in
-      let f =
-        match item.Scan.module_def with
-        | None -> item.Scan.file_name
-        | Some m ->
-          (dirname item.Scan.file_name / m)
-          ^ Filename.extension item.Scan.file_name
-      in
-      let base =
-        match backend with
-        | `Interpret -> item.Scan.file_name
-        | `Interpret_module -> (
-          f -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
-        | `OCaml -> f -.- "cmx"
-        | `C -> f -.- "c.o"
-        | `Python -> f -.- "py"
-        | `Java -> f -.- "class"
-      in
-      build_dir / base
-    in
     let base_targets =
-      List.map (fun it -> it, make_target backend it) target_items
+      List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
     in
     let link_deps = linking_dependencies items in
     let ninja_cmd =
@@ -600,7 +669,9 @@ let run_cmd =
               String.Set.add t
               @@ List.fold_left
                    (fun acc it ->
-                     String.Set.add (make_target `Interpret_module it) acc)
+                     String.Set.add
+                       (make_target ~build_dir ~backend:`Interpret_module it)
+                       acc)
                    acc (link_deps it))
           String.Set.empty base_targets
       in
@@ -613,23 +684,6 @@ let run_cmd =
     Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
     let exit_code = run_command ~clean_up_env:false ninja_cmd in
     if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
-    let multi_targets =
-      match base_targets with _ :: _ :: _ -> true | _ -> false
-    in
-    let iter_commands f =
-      List.fold_left
-        (fun code (item, target) ->
-          if multi_targets then
-            Format.fprintf (Message.err_ppf ()) "@{<blue>>@} @{<cyan>%s@}@."
-              (String.remove_prefix
-                 ~prefix:File.(original_cwd / "")
-                 File.(
-                   Sys.getcwd ()
-                   / String.remove_prefix ~prefix:(build_dir ^ "/") target
-                   -.- ""));
-          max code (f item target))
-        0 base_targets
-    in
     let exit_code =
       match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
       | `Interpret ->
@@ -641,7 +695,7 @@ let run_cmd =
           | Some s -> [Printf.sprintf "--scope=%s" s]
         in
         let exec = get_var var_bindings Var.catala_exe in
-        iter_commands
+        iter_commands ~build_dir base_targets
         @@ fun _item target ->
         let cmd = exec @ [cmd; target] @ catala_flags in
         Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -650,7 +704,7 @@ let run_cmd =
         let link_cmd =
           linking_command ~build_dir ~backend ~var_bindings link_deps
         in
-        iter_commands
+        iter_commands ~build_dir base_targets
         @@ fun item target ->
         let cmd = link_cmd item target in
         Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -680,7 +734,7 @@ let runtest_cmd =
   let run catala_exe catala_opts include_dirs test_flags report out file =
     let catala_opts =
       List.fold_left
-        (fun opts dir -> "-I" :: dir :: opts)
+        (fun opts dir -> "-I" :: File.(dir / "ocaml") :: opts)
         catala_opts include_dirs
     in
     let test_flags = List.filter (( <> ) "") test_flags in
