@@ -314,6 +314,7 @@ let check_exec t =
       (Filename.quote t)
 
 let dirname = Filename.dirname
+let basename = Filename.basename
 let ( /../ ) a b = parent a / b
 
 let ( -.- ) file ext =
