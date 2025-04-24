@@ -44,9 +44,11 @@ val to_snake_case : string -> string
 (** Converts CamlCase into snake_case after removing Remove all diacritics on
     Latin letters. *)
 
-val to_camel_case : string -> string
+val to_camel_case : ?capitalize:bool -> string -> string
 (** Converts snake_case into CamlCase after removing Remove all diacritics on
-    Latin letters. *)
+    Latin letters.
+
+    If [capitalize] is [false], the first letter is lowercase. Defaults to true. *)
 
 val remove_prefix : prefix:string -> string -> string
 (** [remove_prefix ~prefix str] returns
@@ -63,3 +65,8 @@ val width : string -> int
 (** Returns the width of a given string in screen columns (assuming a monospace
     font). Useful for alignment. This takes unicode (except composite chars) and
     tabs into account, but not escape sequences. *)
+
+val quote : string -> string
+(** [quote s] returns the string [s] prefixed and suffixed by '"'. The following
+    special characters '\\', '"', '\t' and '\n' present in [s] are also escaped
+    by prefixing a '\\' character. *)

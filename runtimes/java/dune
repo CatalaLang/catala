@@ -1,0 +1,10 @@
+(rule
+ (deps
+  (source_tree org)
+  (source_tree catala)
+  (file java.files))
+ (target catala_runtime.jar)
+ (action
+  (progn
+   (run javac @java.files -d _build)
+   (run jar cf %{target} -C _build/ catala -C _build/ org))))

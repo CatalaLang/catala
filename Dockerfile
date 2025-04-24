@@ -15,6 +15,9 @@ ADD --chown=ocaml:ocaml *.opam ./
 ENV OPAMVAR_cataladevmode=1
 ENV OPAMVAR_catalaz3mode=1
 
+# FIXME: openjdk's opam package should handle alpine os
+RUN sudo apk add openjdk21 su-exec
+
 # Get a switch with all the dependencies installed
 # DON'T run 'opam update' here. Instead use a newer parent Docker image
 # (update the 'FROM' line above)

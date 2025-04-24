@@ -44,8 +44,8 @@ let to_snake_case (s : string) : string =
     s;
   Buffer.contents out
 
-let to_camel_case (s : string) : string =
-  let last_was_underscore = ref true in
+let to_camel_case ?(capitalize = true) (s : string) : string =
+  let last_was_underscore = ref capitalize in
   let out = Buffer.create (length s) in
   s
   |> to_id
@@ -87,6 +87,21 @@ let width s =
     else aux (ncols + 1) (i + Uchar.utf_decode_length (get_utf_8_uchar s i))
   in
   aux 0 0
+
+let quote s =
+  let buf = Buffer.create ((2 * length s) + 2) in
+  Buffer.add_char buf '"';
+  iter
+    (function
+      | ('"' | '\\') as c ->
+        Buffer.add_char buf '\\';
+        Buffer.add_char buf c
+      | '\n' -> Buffer.add_string buf "\\n"
+      | '\t' -> Buffer.add_string buf "\\t"
+      | c -> Buffer.add_char buf c)
+    s;
+  Buffer.add_char buf '"';
+  Buffer.contents buf
 
 let format ppf s = Format.pp_print_as ppf (width s) s
 

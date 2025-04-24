@@ -25,7 +25,7 @@ $ catala test-scope S
 │  Unused variable: a does not contribute to computing any of scope S
 │  outputs. Did you forget something?
 │
-├─➤ tests/scope/good/local-capture-subscope.catala_en:7.3-7.4:
+├─➤ tests/scope/good/local_capture_subscope.catala_en:7.3-7.4:
 │   │
 │ 7 │   a scope A
 │   │   ‾

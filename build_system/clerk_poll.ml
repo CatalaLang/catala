@@ -130,3 +130,8 @@ let c_runtime_dir : File.t Lazy.t =
 
 let python_runtime_dir : File.t Lazy.t =
   lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_python" / "src")
+
+let java_runtime : File.t Lazy.t =
+  lazy
+    File.(
+      Lazy.force ocaml_runtime_dir /../ "runtime_java" / "catala_runtime.jar")
