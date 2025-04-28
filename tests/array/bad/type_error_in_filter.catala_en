@@ -9,10 +9,9 @@ declaration scope S:
 
 scope S:
   definition out equals
-    combine acc initially []
-    with (acc ++ list of x among in_n such that x.x > 2)
+    combine all in_n among ll in acc initially []
+    with acc ++ list of x among in_n such that x.x > 2
       # acc ++ filter (x -> x.x > 2) in_n
-    for in_n among ll
 
 declaration scope Test:
   output s scope S
@@ -39,10 +38,10 @@ $ catala dcalc
 │  ─➤ list of any
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                                  ‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
@@ -51,10 +50,10 @@ $ catala dcalc
 │   │                            ‾‾
 │
 │ Type list of any is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
@@ -69,10 +68,10 @@ $ catala test-scope Test
 │  ─➤ list of any
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.34-13.38:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                                  ‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
@@ -81,10 +80,10 @@ $ catala test-scope Test
 │   │                            ‾‾
 │
 │ Type list of any is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

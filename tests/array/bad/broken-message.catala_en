@@ -17,13 +17,13 @@ declaration scope B:
 scope B:
   definition reverse equals
     # Only this case was changed compared to `fold.catala_en`
-    combine acc initially [$0] with
-      (x ++ acc) for x among a.x
-    #  ^ Error should be here (money, while expected list because of `++`)
+    combine all x among a.x in acc initially [$0] with
+      x ++ acc
+   #  ^ Error should be here (money, while expected list because of `++`)
 
   definition ratios1 equals
-    combine (acc1, acc2) initially ([], $1) with
-      (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+    combine all x among a.x in (acc1, acc2) initially ([], $1) with
+      (acc1 ++ [x + acc2], acc2 + x)
 ```
 
 There was an error -- now fixed -- where the issue was pointed on `x+acc2` with
@@ -40,10 +40,10 @@ $ catala Typecheck --check-invariants
 │  ─➤ list of money
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/broken-message.catala_en:21.8-21.9:
+├─➤ tests/array/bad/broken-message.catala_en:21.7-21.8:
 │    │
-│ 21 │       (x ++ acc) for x among a.x
-│    │        ‾
+│ 21 │       x ++ acc
+│    │       ‾
 ├─ Article
 │
 │ Type money is coming from:
@@ -54,10 +54,10 @@ $ catala Typecheck --check-invariants
 ├─ Article
 │
 │ Type list of money is coming from:
-├─➤ tests/array/bad/broken-message.catala_en:21.10-21.12:
+├─➤ tests/array/bad/broken-message.catala_en:21.9-21.11:
 │    │
-│ 21 │       (x ++ acc) for x among a.x
-│    │          ‾‾
+│ 21 │       x ++ acc
+│    │         ‾‾
 └─ Article
 #return code 123#
 ```

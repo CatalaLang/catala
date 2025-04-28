@@ -15,11 +15,13 @@ scope A:
    output z content integer
 
 scope B:
-   definition max equals maximum of (m * 2.0) for m among a.x
-                         or if list empty then $0
-   definition min equals minimum of (m + $5) for m among a.x
-                         or if list empty then $20
-   definition y equals sum money of (m + $1) for m among a.x
+   definition max equals
+     maximum of map each m among a.x to (m * 2.0)
+                or if list empty then $0
+   definition min equals
+     minimum of map each m among a.x to (m + $5)
+                or if list empty then $20
+   definition y equals sum money of map each m among a.x to (m + $1)
    definition z equals number of list of m among a.x such that m >= $8.95
 ```
 
