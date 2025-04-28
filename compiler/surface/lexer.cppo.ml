@@ -167,6 +167,15 @@ module R = Re.Pcre
 #ifndef MR_AMONG
   #define MR_AMONG MS_AMONG
 #endif
+#ifndef MR_MAP_EACH
+  #define MR_MAP_EACH MS_MAP_EACH
+#endif
+#ifndef MR_COMBINE
+  #define MR_COMBINE MS_COMBINE
+#endif
+#ifndef MR_TO
+  #define MR_TO MS_TO
+#endif
 #ifndef MR_SUCH
   #define MR_SUCH MS_SUCH
 #endif
@@ -199,9 +208,6 @@ module R = Re.Pcre
 #endif
 #ifndef MR_BUT_REPLACE
   #define MR_BUT_REPLACE MS_BUT_REPLACE
-#endif
-#ifndef MR_COMBINE
-  #define MR_COMBINE MS_COMBINE
 #endif
 #ifndef MR_INITIALLY
   #define MR_INITIALLY MS_INITIALLY
@@ -303,6 +309,9 @@ let token_list : (string * token) list =
     (MS_EXISTS, EXISTS);
     (MS_IN, IN);
     (MS_AMONG, AMONG);
+    (MS_COMBINE, COMBINE);
+    (MS_MAP_EACH, MAP_EACH);
+    (MS_TO, TO);
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
     (MS_AND, AND);
@@ -314,7 +323,6 @@ let token_list : (string * token) list =
     (MS_IS, IS);
     (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
     (MS_BUT_REPLACE, BUT_REPLACE);
-    (MS_COMBINE, COMBINE);
     (MS_INITIALLY, INITIALLY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
@@ -569,6 +577,15 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_AMONG ->
       L.update_acc lexbuf;
       AMONG
+  | MR_COMBINE ->
+      L.update_acc lexbuf;
+      COMBINE
+  | MR_MAP_EACH ->
+      L.update_acc lexbuf;
+      MAP_EACH
+  | MR_TO ->
+      L.update_acc lexbuf;
+      TO
   | MR_SUCH ->
       L.update_acc lexbuf;
       SUCH
@@ -602,9 +619,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_BUT_REPLACE ->
       L.update_acc lexbuf;
       BUT_REPLACE
-  | MR_COMBINE ->
-      L.update_acc lexbuf;
-      COMBINE
   | MR_INITIALLY ->
       L.update_acc lexbuf;
       INITIALLY
