@@ -79,7 +79,7 @@ end>
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
-%right apply OF CONTAINS FOR SUCH WITH BUT_REPLACE OR_IF_LIST_EMPTY
+%right apply OF CONTAINS WITH BUT_REPLACE OR_IF_LIST_EMPTY
 %right WITH_V
 %right COMMA
 %right unop_expr
@@ -331,23 +331,16 @@ let naked_expression ==
   OF ; coll = expression ; {
   CollectionOp ((AggregateSum { typ = Mark.remove typ }, pos), coll)
 } %prec apply
-| f = noattr_expression ;
-  pos = pos(FOR) ; i = mbinder ;
-  AMONG ; coll = expression ; {
+| pos = pos(MAP_EACH) ; i = mbinder ;
+  AMONG ; coll = expression ;
+  TO ; f = expression ; {
   CollectionOp ((Map {f = i, f}, pos), coll)
-} %prec apply
-| pos = pos(COMBINE) ; acc = mbinder ; INITIALLY ; init = expression ;
-  WITH_V ; map_expr = expression ; {
-  match map_expr with
-  | CollectionOp ((Map { f = i, f }, _), coll), _ ->
-    CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)
-  | _ ->
-     let init, _ = init in
-     Message.delayed_error
-       init (* dummy value *)
-       ~kind:Parsing ~pos:(snd map_expr)
-      "Expected the form '<expr> for <var> among <collection>'"
-} %prec apply
+} %prec top_expr
+| pos = pos(COMBINE) ; ALL ; i = mbinder ; AMONG ; coll = expression ;
+  IN ; acc = mbinder ; INITIALLY ; init = expression ;
+  WITH_V ; f = expression ; {
+  CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)
+} %prec top_expr
 | maxp = addpos(minmax) ;
   OF ; coll = expression ; default = opt_or_if_empty ; {
   let max, pos = maxp in
@@ -391,11 +384,11 @@ let naked_expression ==
   SUCH ; THAT ; f = expression ; {
   CollectionOp ((Filter {f = ids, f}, pos), coll)
 } %prec top_expr
-| fmap = noattr_expression ;
-  pfor = pos(FOR) ; i = mbinder ;
+| pos = pos(MAP_EACH) ; i = mbinder ;
   AMONG ; coll = expression ;
-  psuch = pos(SUCH) ; THAT ; ffilt = expression ; {
-  CollectionOp ((Map {f = i, fmap}, pfor), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), get_pos $loc))
+  psuch = pos(SUCH) ; THAT ; ffilt = expression ;
+  TO ; fmap = expression ; {
+  CollectionOp ((Map {f = i, fmap}, pos), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), get_pos $loc))
 } %prec top_expr
 | pos = pos(CONTENT); OF; ids = mbinder ;
   AMONG ; coll = expression ;
