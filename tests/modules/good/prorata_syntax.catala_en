@@ -14,13 +14,13 @@ declaration individual_tax_amount content list of HouseholdMemberTaxed
   depends on members content list of HouseholdMember,
              tax_to_distribute content money
   equals
-  let revenues equals member.revenue for member among members in
+  let revenues equals map each member among members to member.revenue  in
   let distributed_tax equals Ext.prorata of tax_to_distribute, revenues in
+  map each (member, tax_amount) among (members, distributed_tax) to
   HouseholdMemberTaxed {
     -- member: member
     -- tax: tax_amount
   }
-  for (member, tax_amount) among (members, distributed_tax)
 
 #[test] declaration scope S:
   output result content list of HouseholdMemberTaxed

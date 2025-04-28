@@ -11,7 +11,7 @@ declaration lis3 content list of money equals
   [ $20; $200; $10; $23; $25; $12 ]
 
 declaration tlist content list of (decimal, money, money) equals
-  (a, b, c) for (a, b, c) among (lis1, lis2, lis3)
+  map each (a, b, c) among (lis1, lis2, lis3) to (a, b, c)
 
 declaration grok
   content (money, decimal)
@@ -30,14 +30,16 @@ declaration grok
   output r6 content list of (money, decimal)
 
 scope S:
-  definition r1 equals (grok of x) for x among tlist
-  definition r2 equals (grok of x) for x among (lis1, lis2, lis3)
-  definition r3 equals (grok of (x, y, z)) for (x, y, z) among (lis1, lis2, lis3)
-  definition r4 equals (x * y, y / z) for (x, y, z) among tlist
-  definition r5 equals (x * y, y / z) for (x, y, z) among (lis1, lis2, lis3)
+  definition r1 equals map each x among tlist to (grok of x)
+  definition r2 equals map each x among (lis1, lis2, lis3) to (grok of x)
+  definition r3 equals
+    map each (x, y, z) among (lis1, lis2, lis3) to (grok of (x, y, z))
+  definition r4 equals map each (x, y, z) among tlist to (x * y, y / z)
+  definition r5 equals
+    map each (x, y, z) among (lis1, lis2, lis3) to (x * y, y / z)
   definition r6 equals
-    let lis12 equals (x, y) for (x, y) among (lis1, lis2) in
-    (xy.1 * xy.2, xy.2 / z) for (xy, z) among (lis12, lis3)
+    let lis12 equals map each (x, y) among (lis1, lis2) to (x, y) in
+    map each (xy, z) among (lis12, lis3) to (xy.1 * xy.2, xy.2 / z)
 
 ```
 

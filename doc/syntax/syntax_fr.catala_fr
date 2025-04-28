@@ -211,17 +211,17 @@ déclaration x contenu entier égal à
     pour tout x parmi lst on a x >= 2
   dans
   soit x égal à
-    (x + 2) pour x parmi lst
+    transforme chaque x parmi lst en (x + 2)
   dans
   soit x égal à
     liste de x parmi lst tel que x > 2
   dans
   soit x égal à
-    (x - 2) pour x parmi lst
-      tel que x > 2
+    transforme chaque x parmi lst
+    tel que x > 2 en (x - 2)
   dans
   soit x égal à
-    (x + y) pour (x, y) parmi (lst1, lst2)
+    transforme chaque (x, y) parmi (lst1, lst2) en (x + y)
   dans
   soit x égal à
     lst1 ++ lst2
@@ -242,9 +242,9 @@ déclaration x contenu entier égal à
       ou si liste vide alors -1
   dans
   soit x égal à
-    combinaison de acc initialement 0
-      avec (acc + x)
-      pour x parmi lst
+    combine tout x parmi lst
+    dans acc initialement 0
+    avec (acc + x)
   dans
   0
 ```

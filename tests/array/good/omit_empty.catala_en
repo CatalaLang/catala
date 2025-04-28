@@ -23,12 +23,12 @@ scope A:
    output argmin content S
 
 scope B:
-   definition max equals maximum of m.income for m among a.x
-   definition min equals minimum of m.income for m among a.x
+   definition max equals maximum of map each m among a.x to m.income
+   definition min equals minimum of map each m among a.x to m.income
    definition argmax equals
-     (content of m among a.x such that m.income * 2.0 is maximum)
+     content of m among a.x such that m.income * 2.0 is maximum
    definition argmin equals
-     (content of m among a.x such that m.income + $5 is minimum)
+     content of m among a.x such that m.income + $5 is minimum
 ```
 
 

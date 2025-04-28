@@ -7,7 +7,7 @@
 
 scope B:
    definition x equals [$4; $8 ]
-   definition z equals (m >= $4.95) for m among x
+   definition z equals map each m among x to (m >= $4.95)
 ```
 
 

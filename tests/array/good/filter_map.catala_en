@@ -14,7 +14,7 @@ scope A:
 
 scope B:
    definition y equals list of m among a.x such that m >= $4.95
-   definition z equals (m >= $4.95) for m among a.x
+   definition z equals map each m among a.x to (m >= $4.95)
 ```
 
 
