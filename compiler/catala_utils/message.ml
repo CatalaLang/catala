@@ -288,41 +288,51 @@ module Content = struct
        everywhere there is not a more precise message. If we can't find a
        position without a more precise message, we just take the first position
        in the list to pair with the message. *)
-    Format.pp_print_list ~pp_sep:Format.pp_print_newline
-      (fun ppf elt ->
+    let first_pos_elt =
+      List.find_map
+        (function
+          | Position { pos_message = None; pos } as e -> Some (pos, e)
+          | _ -> None)
+        content
+      |> function
+      | None ->
+        List.find_map
+          (function
+            | Position { pos_message = _; pos } as e -> Some (pos, e)
+            | _ -> None)
+          content
+      | some -> some
+    in
+    List.iter
+      (fun elt ->
         let pos, message =
           match elt with
-          | MainMessage m ->
-            let pos =
-              List.find_map
-                (function
-                  | Position { pos_message = None; pos } -> Some pos | _ -> None)
+          | MainMessage m -> Option.map fst first_pos_elt, Some m
+          | Position { pos_message; pos } ->
+            if
+              List.exists
+                (function MainMessage _ -> true | _ -> false)
                 content
-              |> function
-              | None ->
-                List.find_map
-                  (function
-                    | Position { pos_message = _; pos } -> Some pos | _ -> None)
-                  content
-              | some -> some
-            in
-            pos, Some m
-          | Position { pos_message; pos } -> Some pos, pos_message
+              && Some elt = Option.map snd first_pos_elt
+            then None, None (* Avoid redundant positions *)
+            else Some pos, pos_message
           | Outcome m -> None, Some m
           | Suggestion sl -> None, Some (fun ppf -> Suggestions.format ppf sl)
         in
-        Option.iter
-          (fun pos ->
-            Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
-          pos;
-        Format.fprintf ppf "[%t]" (pp_marker target);
-        match message with
-        | Some message ->
-          Format.pp_print_char ppf ' ';
-          Format.pp_print_string ppf (unformat message)
-        | None -> ())
-      ppf content;
-    Format.pp_print_newline ppf ()
+        if pos = None && message = None then ()
+        else (
+          Option.iter
+            (fun pos ->
+              Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
+            pos;
+          Format.fprintf ppf "[%t]" (pp_marker target);
+          Option.iter
+            (fun message ->
+              Format.pp_print_char ppf ' ';
+              Format.pp_print_string ppf (unformat message))
+            message;
+          Format.pp_print_newline ppf ()))
+      content
 
   let lsp_msg ppf content =
     (* Hypothesis: [MainMessage] is always part of a content list. *)
