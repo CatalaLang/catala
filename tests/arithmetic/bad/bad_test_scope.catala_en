@@ -7,4 +7,6 @@ declaration scope S:
 scope S:
   definition x equals 3
   assertion x = 4
+  assertion x = 3
+  assertion x = 5
 ```
