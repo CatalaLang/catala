@@ -20,14 +20,22 @@
 
 open Catala_utils
 
+type pos = Lexing.position * Lexing.position
+
 type test = {
   success : bool;
   command_line : string list;
-  expected : Lexing.position * Lexing.position;
-  result : Lexing.position * Lexing.position;
+  expected : pos;
+  result : pos;
 }
 
-type file = { name : File.t; successful : int; total : int; tests : test list }
+type file = {
+  name : File.t;
+  successful : int;
+  total : int;
+  tests : test list;
+  scopes : (string * pos list) list;
+}
 
 type disp_flags = {
   mutable files : [ `All | `Failed | `None ];
