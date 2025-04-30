@@ -42,6 +42,7 @@ type options = {
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
   mutable whole_program : bool;
+  mutable bin_dir : string;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -65,6 +66,7 @@ let options =
     stop_on_error = false;
     no_fail_on_assert = false;
     whole_program = false;
+    bin_dir = Filename.current_dir_name;
   }
 
 let enforce_options
@@ -82,6 +84,7 @@ let enforce_options
     ?stop_on_error
     ?no_fail_on_assert
     ?whole_program
+    ?bin_dir
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -97,6 +100,7 @@ let enforce_options
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   Option.iter (fun x -> options.no_fail_on_assert <- x) no_fail_on_assert;
   Option.iter (fun x -> options.whole_program <- x) whole_program;
+  Option.iter (fun x -> options.bin_dir <- x) bin_dir;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
