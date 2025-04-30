@@ -346,7 +346,8 @@ module Content = struct
     let msg = retrieve_message None content in
     Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
 
-  let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+  let emit_raw ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) :
+      unit =
     let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
     | Global.Human -> (
@@ -358,7 +359,7 @@ module Content = struct
 
   let emit_n ?ppf (errs : t list) (target : level) =
     match errs with
-    | [content] -> emit ?ppf content target
+    | [content] -> emit_raw ?ppf content target
     | contents ->
       let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
@@ -367,10 +368,10 @@ module Content = struct
           if i > 0 then Format.pp_print_space ppf ();
           let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
           let pp_marker ?extra_label:_ = pp_marker ~extra_label in
-          emit ~ppf ~pp_marker c target)
+          emit_raw ~ppf ~pp_marker c target)
         contents
 
-  let emit ?ppf (content : t) (target : level) = emit ?ppf content target
+  let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
 end
 
 open Content
@@ -465,7 +466,17 @@ let make
 let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
-let results r = emit (List.flatten (List.map of_result r)) Result
+
+let results ?title r =
+  let pp_marker ?extra_label =
+    let extra_label =
+      match title, extra_label with
+      | Some a, Some b -> Some (String.concat " " [a; b])
+      | o, None | None, o -> o
+    in
+    pp_marker ?extra_label
+  in
+  emit_raw ~pp_marker (List.flatten (List.map of_result r)) Result
 
 let join_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look

@@ -369,44 +369,33 @@ module Commands = struct
     with Ident.Map.Not_found _ ->
       Message.error "There is no scope \"@{<yellow>%s@}\" inside the program."
         scope
+        ~suggestion:(Ident.Map.keys ctx.ctx_scope_index)
 
-  let get_scopelist_uids (ctx : decl_ctx) (scopes : string list) :
-      ScopeName.t list =
+  let get_scopelist_uids prg (scopes : string list) : ScopeName.t list =
     match scopes with
-    | _ :: _ -> List.map (get_scope_uid ctx) scopes
-    | [] -> (
-      let top_scopes =
-        ScopeName.Map.filter (fun n _ -> ScopeName.path n = []) ctx.ctx_scopes
+    | _ :: _ -> List.map (get_scope_uid prg.decl_ctx) scopes
+    | [] ->
+      let exports = BoundList.last prg.code_items in
+      let test_scopes =
+        List.filter_map
+          (function KTest scope, _ -> Some scope | _ -> None)
+          exports
       in
-      let noinput_scopes =
-        ScopeName.Map.filter
-          (fun _ s ->
-            StructName.Map.find s.in_struct_name ctx.ctx_structs
-            |> StructField.Map.is_empty)
-          top_scopes
-      in
-      match
-        ScopeName.Map.cardinal top_scopes, ScopeName.Map.cardinal noinput_scopes
-      with
-      | 0, _ ->
-        Message.warning "The program defines no scopes";
-        []
-      | _, 0 ->
+      if test_scopes = [] then
         Message.warning
-          "The program defines no scopes without input.@ Please specify option \
-           @{<yellow>--scope@} or @{<yellow>-s@} to force the choice of a \
-           scope.@ The program defines the following scopes:@ @[<hv 4>%a@]"
-          (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-          top_scopes;
-        []
-      | _, _ ->
-        let scopes = ScopeName.Map.keys noinput_scopes in
-        Message.debug
-          "Automatically selecting the following scopes because they don't \
-           need input:@ %a"
+          "The program defines no test scopes.@ Please specify option \
+           @{<yellow>--scope@} to explicit what to execute@ or@ mark@ scopes@ \
+           in@ the@ program@ with@ the@ @{<cyan>#[test]@}@ attribute.@ The \
+           program defines the following scopes:@ @[<hv 4>%a@]"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
-          scopes;
-        scopes)
+          (List.filter_map
+             (function KScope n, _ -> Some n | _ -> None)
+             exports)
+      else
+        Message.debug "Will execute the following test scopes:@ %a"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
+          test_scopes;
+      test_scopes
 
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
@@ -756,6 +745,7 @@ module Commands = struct
     if results = [] then Message.result "Computation successful!"
     else
       Message.results
+        ~title:(ScopeName.to_string scope_uid)
         (List.map
            (fun ((var, _), result) ppf ->
              Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
@@ -776,7 +766,7 @@ module Commands = struct
     List.iter
       (print_interpretation_results options Interpreter.interpret_program_dcalc
          prg)
-      (get_scopelist_uids prg.decl_ctx ex_scopes)
+      (get_scopelist_uids prg ex_scopes)
 
   let lcalc
       typed
@@ -859,7 +849,7 @@ module Commands = struct
     List.iter
       (print_interpretation_results options Interpreter.interpret_program_lcalc
          prg)
-      (get_scopelist_uids prg.decl_ctx ex_scopes)
+      (get_scopelist_uids prg ex_scopes)
 
   let interpret_cmd =
     let f
