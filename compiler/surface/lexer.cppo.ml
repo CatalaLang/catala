@@ -900,12 +900,6 @@ let lexer (lexbuf : lexbuf) : token =
 
 (* -- Shallow lexing for dependency extraction -- *)
 
-let line_test_id_re =
-  Re.(compile @@ seq [
-      char '{'; rep space; str "id"; rep space; char '='; rep space;
-      char '"'; group (seq [rep1 (diff any (char '"'))]); char '"';
-    ])
-
 let line_dir_arg_re =
   Re.(compile @@ seq [
       bos; char '>'; rep space; rep1 alpha;
@@ -933,11 +927,13 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
   match !context with
   | `Law ->
     (match%sedlex lexbuf with
-     | "```catala-test-inline", Star hspace, (eol | eof) ->
+     | "```catala", Opt ("-metadata"), Star hspace, (eol | eof) ->
        context := `Code;
+       Some (Utf8.lexeme lexbuf, LINE_ANY)
+     | "```catala-test-inline", Star hspace, (eol | eof) ->
+       context := `Test;
        Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
      | "```", Star any_but_eol, (eol | eof) ->
-       context := `Raw;
        Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
      | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus any_but_eol,
        (eol | eof)  ->
@@ -977,7 +973,7 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
        context := `Law;
        Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
      | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
-       "#[", Star hspace, "test", (Chars " \t\n]"), Star (any_but_eol), (eol | eof) ->
+       "#[", Star hspace, "test", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
        (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
        Some (Utf8.lexeme lexbuf, LINE_TEST_ATTRIBUTE)
      | eof -> None

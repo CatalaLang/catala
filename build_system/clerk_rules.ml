@@ -76,7 +76,6 @@ module Var = struct
   let input = make "in"
   let output = make "out"
   let src = make "src"
-  let target = make "target"
   let class_path = make "class_path"
 
   (* let scope = make "scope" *)
@@ -466,14 +465,15 @@ let gen_build_statements
          [
            Nj.build "phony"
              ~outputs:[m ^ "@ocaml-module"]
-             ~inputs:[module_target !Var.target];
+             ~inputs:[module_target m];
          ]
        else [])
       @ (if List.mem C enabled_backends then
            [
              Nj.build "phony"
                ~outputs:[m ^ "@c-module"]
-               ~inputs:[modfile ".h" !Var.target; modfile ".o" !Var.target];
+               ~inputs:
+                 [modfile ~backend:"c" ".h" m; modfile ~backend:"c" ".o" m];
              (* Nj.build "phony"
               *   ~outputs:[m ^ "@h-module"]
               *   ~inputs:[modfile ".h" !Var.target]; *)
@@ -483,7 +483,7 @@ let gen_build_statements
            [
              Nj.build "phony"
                ~outputs:[m ^ "@py-module"]
-               ~inputs:[modfile ".py" !Var.target];
+               ~inputs:[modfile ~backend:"python" ".py" m];
            ]
          else [])
       @
@@ -491,13 +491,13 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~outputs:[m ^ "@java-module"]
-            ~inputs:[modfile ".java" !Var.target];
+            ~inputs:[modfile ~backend:"java" ".java" m];
         ]
       else []
     | _ -> []
   in
   let tests =
-    if not item.has_inline_tests then []
+    if not (item.has_inline_tests || Lazy.force item.has_scope_tests) then []
     else
       [
         Nj.build "tests" ~inputs:[catala_src]
@@ -553,7 +553,11 @@ let dir_test_rules dir subdirs enabled_backends items =
         (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
         (List.filter_map
            (fun item ->
-             if not item.Scan.has_inline_tests then None
+             if
+               not
+                 (item.Scan.has_inline_tests
+                 || Lazy.force item.Scan.has_scope_tests)
+             then None
              else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
            items)
     in
@@ -602,7 +606,6 @@ let gen_ninja_file
     @+ List.to_seq var_bindings
     @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
     @+ List.to_seq (static_base_rules enabled_backends)
-    @+ Seq.return (Nj.build "phony" ~outputs:["always"])
     @+ Seq.return (Nj.Comment "\n- Project-specific build statements - #")
   in
   let items, main =

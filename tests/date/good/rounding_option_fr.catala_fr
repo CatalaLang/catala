@@ -10,7 +10,7 @@ champ d'application VérificationÂgeInférieurOuÉgalÀ:
   définition r égal à date_naissance + années <= date_courante
   date arrondi croissant
 
-déclaration champ d'application Test:
+#[test] déclaration champ d'application Test:
   résultat r contenu booléen
 
 champ d'application Test:

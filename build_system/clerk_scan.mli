@@ -27,6 +27,7 @@ type item = {
   used_modules : string list;
   included_files : File.t list;
   has_inline_tests : bool;
+  has_scope_tests : bool Lazy.t;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
@@ -44,3 +45,8 @@ val tree : File.t -> (File.t * File.t list * item list) Seq.t
 val test_command_args : string -> string option
 (** Parses a test command-line (in the form "$ catala <args>") and returns the
     arguments as a string, or [None] if there is no match *)
+
+val find_test_scope : lang:Global.backend_lang -> File.t -> bool
+(** Checks if the given file contains #[test] scope annotations, recursively
+    through file includes. The file extension takes precendence over the [~lang]
+    argument. *)

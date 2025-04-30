@@ -62,6 +62,7 @@ type options = private {
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
   mutable whole_program : bool;
+  mutable bin_dir : string;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -86,6 +87,7 @@ val enforce_options :
   ?stop_on_error:bool ->
   ?no_fail_on_assert:bool ->
   ?whole_program:bool ->
+  ?bin_dir:string ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this

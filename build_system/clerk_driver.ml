@@ -689,12 +689,12 @@ let test_cmd =
                 let files =
                   List.fold_left
                     (fun files t ->
-                      if t.success then files
+                      if t.i_success then files
                       else
-                        File.Map.add (fst t.result).Lexing.pos_fname
+                        File.Map.add (fst t.i_result).Lexing.pos_fname
                           (String.remove_prefix
                              ~prefix:File.(build_dir / "")
-                             (fst t.expected).Lexing.pos_fname)
+                             (fst t.i_expected).Lexing.pos_fname)
                           files)
                     File.Map.empty f.tests
                 in
@@ -736,9 +736,8 @@ let test_cmd =
 let runtest_cmd =
   let run catala_exe catala_opts include_dirs test_flags report out file =
     let catala_opts =
-      List.fold_left
-        (fun opts dir -> "-I" :: File.(dir / "ocaml") :: opts)
-        catala_opts include_dirs
+      catala_opts
+      @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
     let test_flags = List.filter (( <> ) "") test_flags in
     Clerk_runtest.run_tests

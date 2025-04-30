@@ -22,26 +22,35 @@ open Catala_utils
 
 type pos = Lexing.position * Lexing.position
 
-type test = {
-  success : bool;
-  command_line : string list;
-  expected : pos;
+type inline_test = {
+  i_success : bool;
+  i_command_line : string list;
+  i_expected : pos;
       (** The precise offsets of the expected result in the source file *)
-  result : pos;  (** Same for the actual result in the destination file *)
+  i_result : pos;  (** Same for the actual result in the destination file *)
+}
+
+type scope_test = {
+  s_success : bool;
+  s_name : string;
+  s_command_line : string list;
+  s_errors : (pos * string) list;
 }
 
 type file = {
   name : File.t;
   successful : int;
   total : int;
-  tests : test list;
-  scopes : (string * pos list) list;
+  tests : inline_test list;
+  scopes : scope_test list;
 }
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
 val read_many : File.t -> file list
-val display : build_dir:File.t -> File.t -> Format.formatter -> test -> unit
+
+val display :
+  build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit
 
 val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)

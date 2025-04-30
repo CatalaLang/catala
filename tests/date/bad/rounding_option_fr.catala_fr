@@ -1,5 +1,5 @@
 ```catala
-déclaration champ d'application Test:
+#[test] déclaration champ d'application Test:
   interne bday contenu date
   interne today contenu date
   résultat ambiguité contenu booléen

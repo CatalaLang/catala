@@ -732,30 +732,62 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.disable_counterexamples)
 
-  let print_interpretation_results options interpreter prg scope_uid =
-    Message.debug "Starting interpretation...";
-    let results = interpreter prg scope_uid in
-    Message.debug "End of interpretation";
-    let results =
-      List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
-    in
-    let language =
-      Cli.file_lang (Global.input_src_file options.Global.input_src)
-    in
-    if results = [] then Message.result "Computation successful!"
-    else
-      Message.results
-        ~title:(ScopeName.to_string scope_uid)
-        (List.map
-           (fun ((var, _), result) ppf ->
-             Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
-               (if options.Global.debug then Print.expr ~debug:false ()
-                else Print.UserFacing.value language)
-               result)
-           results)
+  let print_interpretation_results
+      options
+      ?(quiet = false)
+      interpreter
+      prg
+      scope_uid =
+    try
+      Message.debug "Starting interpretation...";
+      let results = interpreter prg scope_uid in
+      Message.debug "End of interpretation";
+      let results =
+        List.sort
+          (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
+          results
+      in
+      let language =
+        Cli.file_lang (Global.input_src_file options.Global.input_src)
+      in
+      if quiet then
+        (* Caution: this output is parsed by Clerk *)
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
+          ScopeName.format scope_uid
+      else if results = [] then Message.result "Computation successful!"
+      else
+        Message.results
+          ~title:(ScopeName.to_string scope_uid)
+          (List.map
+             (fun ((var, _), result) ppf ->
+               Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+                 (if options.Global.debug then Print.expr ~debug:false ()
+                  else Print.UserFacing.value language)
+                 result)
+             results);
+      true
+    with
+    | Message.CompilerError content ->
+      Message.Content.emit content Error;
+      if quiet then
+        Format.fprintf (Message.std_ppf ()) "%a: @{<red>failed@}@."
+          ScopeName.format scope_uid;
+      false
+    | Message.CompilerErrors contents ->
+      Message.Content.emit_n contents Error;
+      if quiet then
+        Format.fprintf (Message.std_ppf ()) "%a: @{<red>failed@}@."
+          ScopeName.format scope_uid;
+      false
 
-  let interpret_dcalc typed options includes optimize check_invariants ex_scopes
-      =
+  let interpret_dcalc
+      typed
+      options
+      includes
+      optimize
+      check_invariants
+      quiet
+      ex_scopes =
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~typed
@@ -763,10 +795,16 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
       prg;
-    List.iter
-      (print_interpretation_results options Interpreter.interpret_program_dcalc
-         prg)
-      (get_scopelist_uids prg ex_scopes)
+    let success =
+      List.fold_left
+        (fun success scope ->
+          print_interpretation_results ~quiet options
+            Interpreter.interpret_program_dcalc prg scope
+          && success)
+        true
+        (get_scopelist_uids prg ex_scopes)
+    in
+    if not success then raise (Cli.Exit_with 123)
 
   let lcalc
       typed
@@ -837,6 +875,7 @@ module Commands = struct
       includes
       optimize
       check_invariants
+      quiet
       ex_scopes =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest:false
@@ -846,10 +885,16 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
       prg;
-    List.iter
-      (print_interpretation_results options Interpreter.interpret_program_lcalc
-         prg)
-      (get_scopelist_uids prg ex_scopes)
+    let success =
+      List.fold_left
+        (fun success scope ->
+          print_interpretation_results ~quiet options
+            Interpreter.interpret_program_lcalc prg scope
+          && success)
+        true
+        (get_scopelist_uids prg ex_scopes)
+    in
+    if not success then raise (Cli.Exit_with 123)
 
   let interpret_cmd =
     let f
@@ -877,9 +922,9 @@ module Commands = struct
     Cmd.v
       (Cmd.info "interpret" ~man:Cli.man_base
          ~doc:
-           "Runs the interpreter on the Catala program, executing the scope \
-            specified by the $(b,-s) option assuming no additional external \
-            inputs.")
+           "Runs the interpreter on the Catala program, executing the scopes \
+            specified with the $(b,-s) option, or the scopes marked as \
+            $(i,#[test]) if absent.")
       Term.(
         const f
         $ Cli.Flags.lcalc
@@ -892,6 +937,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.quiet
         $ Cli.Flags.ex_scopes)
 
   let ocaml

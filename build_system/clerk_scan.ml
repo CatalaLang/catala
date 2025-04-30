@@ -15,6 +15,7 @@
    the License. *)
 
 open Catala_utils
+module L = Surface.Lexer_common
 
 type item = {
   file_name : File.t;
@@ -23,6 +24,7 @@ type item = {
   used_modules : string list;
   included_files : File.t list;
   has_inline_tests : bool;
+  has_scope_tests : bool Lazy.t;
 }
 
 let catala_suffix_regex =
@@ -46,9 +48,27 @@ let test_command_args =
   fun str ->
     exec_opt re str |> Option.map (fun g -> String.trim (Re.Group.get g 1))
 
+let get_lang file =
+  Option.bind (Re.exec_opt catala_suffix_regex file)
+  @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
+
+let rec find_test_scope ~lang file =
+  (* Note: if efficiency becomes a problem, this could rely on a cached index of
+     file items *)
+  let lang = Option.value (get_lang file) ~default:lang in
+  let rec scan lines =
+    match Seq.uncons lines with
+    | Some ((_, L.LINE_TEST_ATTRIBUTE, _), _) -> true
+    | Some ((_, L.LINE_INCLUDE f, _), lines) ->
+      let f = if Filename.is_relative f then File.(file /../ f) else f in
+      scan lines || find_test_scope ~lang f
+    | Some (_, lines) -> scan lines
+    | None -> false
+  in
+  scan (Surface.Parser_driver.lines file lang)
+
 let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     =
-  let module L = Surface.Lexer_common in
   let rec parse lines n acc =
     match Seq.uncons lines with
     | None -> acc
@@ -63,23 +83,30 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
         { acc with module_def = Some m; extrnal }
       | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
+      | L.LINE_TEST_ATTRIBUTE -> { acc with has_scope_tests = lazy true }
       | _ -> acc)
   in
-  parse
-    (Surface.Parser_driver.lines file lang)
-    1
-    {
-      file_name = file;
-      module_def = None;
-      extrnal = false;
-      used_modules = [];
-      included_files = [];
-      has_inline_tests = false;
-    }
-
-let get_lang file =
-  Option.bind (Re.exec_opt catala_suffix_regex file)
-  @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
+  let item =
+    parse
+      (Surface.Parser_driver.lines file lang)
+      1
+      {
+        file_name = file;
+        module_def = None;
+        extrnal = false;
+        used_modules = [];
+        included_files = [];
+        has_inline_tests = false;
+        has_scope_tests = lazy false;
+      }
+  in
+  let has_scope_tests =
+    lazy
+      ((* If there are includes, they must be checked for test scopes as well *)
+       Lazy.force item.has_scope_tests
+      || List.exists (find_test_scope ~lang) item.included_files)
+  in
+  { item with has_scope_tests }
 
 let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
   File.scan_tree

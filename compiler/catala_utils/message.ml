@@ -122,21 +122,22 @@ let print_time_marker =
 
 let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
-  let tags, str =
+  let color, str =
     match target with
-    | Debug -> [Bold; Fg (C4 magenta)], "DEBUG"
-    | Error -> [Bold; Fg (C4 red)], "ERROR"
-    | Warning -> [Bold; Fg (C4 yellow)], "WARNING"
-    | Result -> [Bold; Fg (C4 green)], "RESULT"
-    | Log -> [Bold; Fg (C4 black)], "LOG"
+    | Debug -> magenta, "DEBUG"
+    | Error -> red, "ERROR"
+    | Warning -> yellow, "WARNING"
+    | Result -> green, "RESULT"
+    | Log -> black, "LOG"
   in
-  let str =
-    match extra_label with
-    | None -> str
-    | Some lbl -> Printf.sprintf "%s %s" str lbl
-  in
-  Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
+  Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag (Fg (C4 color)));
+  Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag Bold);
   Format.pp_print_string ppf str;
+  Format.pp_close_stag ppf ();
+  extra_label
+  |> Option.iter (fun lbl ->
+         Format.pp_print_char ppf ' ';
+         Format.pp_print_string ppf lbl);
   Format.pp_close_stag ppf ()
 
 (**{2 Printers}*)
@@ -282,7 +283,7 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let gnu_msg ~pp_marker ppf target content =
+  let gnu_msg ~pp_marker ?(extra = "") ppf target content =
     (* The top message doesn't come with a position, which is not something the
        GNU standard allows. So we look the position list and put the top message
        everywhere there is not a more precise message. If we can't find a
@@ -365,9 +366,12 @@ module Content = struct
       let len = List.length contents in
       List.iteri
         (fun i c ->
-          if i > 0 then Format.pp_print_space ppf ();
           let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
-          let pp_marker ?extra_label:_ = pp_marker ~extra_label in
+          let pp_marker ?extra_label:l =
+            match l with
+            | None -> pp_marker ~extra_label
+            | Some l -> pp_marker ~extra_label:(l ^ " " ^ extra_label)
+          in
           emit_raw ~ppf ~pp_marker c target)
         contents
 
@@ -555,27 +559,27 @@ let with_delayed_errors
     (f : unit -> 'a) : 'a =
   (match global_errors.errors with
   | None -> global_errors.errors <- Some []
-  | Some _ ->
-    error ~internal:true
-      "delayed error called outside scope: encapsulate using \
-       'with_delayed_errors' first");
+  | Some _ -> error ~internal:true "nested call to 'with_delayed_errors'");
   global_errors.stop_on_error <- stop_on_error;
   let result =
     match f () with
-    | r -> fun () -> r
-    | exception (CompilerError _ as e) ->
+    | r -> Either.Left r
+    | exception CompilerError err ->
       let bt = Printexc.get_raw_backtrace () in
-      fun () -> Printexc.raise_with_backtrace e bt
-    | exception e -> raise e
+      Either.Right (err, bt)
+    | exception e ->
+      global_errors.errors <- None;
+      raise e
   in
-  match global_errors.errors with
-  | None -> error ~internal:true "intertwined delayed error scope"
-  | Some [] ->
-    global_errors.errors <- None;
-    result ()
-  | Some [err] ->
-    global_errors.errors <- None;
-    raise (CompilerError err)
-  | Some errs ->
-    global_errors.errors <- None;
-    raise (CompilerErrors (List.rev errs))
+  let errs = global_errors.errors in
+  global_errors.errors <- None;
+  match errs, result with
+  | (None | Some []), Either.Right (e, bt) ->
+    Printexc.raise_with_backtrace (CompilerError e) bt
+  | None, Either.Left _ ->
+    error ~internal:true "intertwined delayed error scope"
+  | Some [], Either.Left result -> result
+  | Some [err], Either.Left _ -> raise (CompilerError err)
+  | Some errs, Either.Left _ -> raise (CompilerErrors (List.rev errs))
+  | Some errs, Either.Right (err, bt) ->
+    Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt
