@@ -273,63 +273,11 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
         }
         :: !rtests;
       process lines
-  and run_output_test id lines =
-    match get_test_command lines with
-    | None, lines -> process lines
-    | Some (cmd, program, _), lines ->
-      let lines = skip_block lines in
-      let ref_file =
-        File.((filename /../ "output" / Filename.basename filename) -.- id)
-      in
-      if not (Sys.file_exists ref_file) then
-        (* Create the file if it doesn't exist *)
-        File.with_out_channel ref_file ignore;
-      let output = ref_file ^ "@out" in
-      let ipos_start = pos0 ref_file in
-      let ipos_end = ref ipos_start in
-      let report =
-        File.with_in_channel ref_file
-        @@ fun ic ->
-        let expected =
-          Seq.of_dispenser (fun () ->
-              match In_channel.input_line ic with
-              | None -> None
-              | Some s ->
-                let s = s ^ "\n" in
-                let pos_cnum = !ipos_end.pos_cnum + String.length s in
-                ipos_end :=
-                  {
-                    !ipos_end with
-                    Lexing.pos_cnum;
-                    pos_lnum = !ipos_end.pos_lnum + 1;
-                    pos_bol = pos_cnum;
-                  };
-                Some s)
-        in
-        with_output (Some output)
-        @@ fun test_out ->
-        let opos_start = test_out.pos in
-        let success =
-          run_catala_test filename cmd program expected (out_line test_out)
-        in
-        Seq.iter ignore expected;
-        {
-          Clerk_report.success;
-          command_line = Array.to_list cmd @ [filename];
-          result = opos_start, test_out.pos;
-          expected = ipos_start, !ipos_end;
-        }
-      in
-      rtests := report :: !rtests;
-      process lines
   and process lines =
     match Seq.uncons lines with
     | Some ((str, L.LINE_INLINE_TEST, _), lines) ->
       push_line str;
       run_inline_test lines
-    | Some ((str, L.LINE_TEST id, _), lines) ->
-      run_output_test id lines;
-      push_line str
     | Some ((str, _, _), lines) ->
       push_line str;
       process lines

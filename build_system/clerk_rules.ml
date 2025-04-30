@@ -496,34 +496,15 @@ let gen_build_statements
       else []
     | _ -> []
   in
-  let legacy_test_reference test =
-    (src /../ "output" / Filename.basename src) -.- test.Scan.id
-  in
   let tests =
-    let out_tests_references =
-      List.map (fun test -> legacy_test_reference test) item.legacy_tests
-    in
-    let out_tests_prepare =
-      List.map
-        (fun f -> Nj.build "copy" ~inputs:[f] ~outputs:[!Var.builddir / f])
-        out_tests_references
-    in
-    let tests =
-      if (not item.has_inline_tests) && item.legacy_tests = [] then []
-      else
-        [
-          Nj.build "tests" ~inputs:[catala_src]
-            ~implicit_in:
-              ((!Var.clerk_exe :: List.map (modfile "@ocaml-module") modules)
-              @ List.map (( / ) !Var.builddir) out_tests_references)
-            ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"]
-            ~implicit_out:
-              (List.map
-                 (fun o -> (!Var.builddir / o) ^ "@out")
-                 out_tests_references);
-        ]
-    in
-    out_tests_prepare @ tests
+    if not item.has_inline_tests then []
+    else
+      [
+        Nj.build "tests" ~inputs:[catala_src]
+          ~implicit_in:
+            (!Var.clerk_exe :: List.map (modfile "@ocaml-module") modules)
+          ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
+      ]
   in
   let statements_list =
     Seq.return (Nj.comment "")
@@ -572,8 +553,7 @@ let dir_test_rules dir subdirs enabled_backends items =
         (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
         (List.filter_map
            (fun item ->
-             if item.Scan.legacy_tests = [] && not item.Scan.has_inline_tests
-             then None
+             if not item.Scan.has_inline_tests then None
              else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
            items)
     in
