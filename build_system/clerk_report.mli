@@ -20,16 +20,23 @@
 
 open Catala_utils
 
+type pos = Lexing.position * Lexing.position
+
 type test = {
   success : bool;
   command_line : string list;
-  expected : Lexing.position * Lexing.position;
+  expected : pos;
       (** The precise offsets of the expected result in the source file *)
-  result : Lexing.position * Lexing.position;
-      (** Same for the actual result in the destination file *)
+  result : pos;  (** Same for the actual result in the destination file *)
 }
 
-type file = { name : File.t; successful : int; total : int; tests : test list }
+type file = {
+  name : File.t;
+  successful : int;
+  total : int;
+  tests : test list;
+  scopes : (string * pos list) list;
+}
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file

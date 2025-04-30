@@ -346,7 +346,13 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
             successful = (tests.successful + if t.success then 1 else 0);
             tests = t :: tests.tests;
           })
-      { Clerk_report.name = filename; successful = 0; total = 0; tests = [] }
+      {
+        Clerk_report.name = filename;
+        successful = 0;
+        total = 0;
+        tests = [];
+        scopes = [];
+      }
       !rtests
   in
   match report with
