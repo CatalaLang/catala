@@ -16,20 +16,12 @@
 
 open Catala_utils
 
-type expected_output_descr = {
-  tested_filename : string;
-  output_dir : string;
-  id : string;
-  cmd : string list;
-}
-
 type item = {
   file_name : File.t;
   module_def : string option;
   extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
-  legacy_tests : expected_output_descr list;
   has_inline_tests : bool;
 }
 
@@ -60,9 +52,6 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
   let rec parse lines n acc =
     match Seq.uncons lines with
     | None -> acc
-    | Some ((_, L.LINE_TEST id, _), lines) ->
-      let test, lines, n = parse_test id lines (n + 1) in
-      parse lines n { acc with legacy_tests = test :: acc.legacy_tests }
     | Some ((_, line, _), lines) -> (
       parse lines (n + 1)
       @@
@@ -75,37 +64,6 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | _ -> acc)
-  and parse_test id lines n =
-    let test =
-      {
-        id;
-        tested_filename = file;
-        output_dir = File.(file /../ "output" / "");
-        cmd = [];
-      }
-    in
-    let err n =
-      [Format.asprintf "'invalid test syntax at %a:%d'" File.format file n]
-    in
-    match Seq.uncons lines with
-    | Some ((str, L.LINE_ANY, _), lines) -> (
-      match test_command_args str with
-      | Some cmd ->
-        let cmd, lines, n = parse_block lines (n + 1) [cmd] in
-        ( {
-            test with
-            cmd = List.flatten (List.map (String.split_on_char ' ') cmd);
-          },
-          lines,
-          n + 1 )
-      | None -> { test with cmd = err n }, lines, n + 1)
-    | Some (_, lines) -> { test with cmd = err n }, lines, n + 1
-    | None -> { test with cmd = err n }, lines, n
-  and parse_block lines n acc =
-    match Seq.uncons lines with
-    | Some ((_, L.LINE_BLOCK_END, _), lines) -> List.rev acc, lines, n + 1
-    | Some ((str, _, _), lines) -> String.trim str :: acc, lines, n + 1
-    | None -> List.rev acc, lines, n
   in
   parse
     (Surface.Parser_driver.lines file lang)
@@ -116,7 +74,6 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       extrnal = false;
       used_modules = [];
       included_files = [];
-      legacy_tests = [];
       has_inline_tests = false;
     }
 

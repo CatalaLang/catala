@@ -20,27 +20,12 @@
 
 open Catala_utils
 
-type expected_output_descr = {
-  tested_filename : string;  (** Name of the file that's being tested *)
-  output_dir : string;
-      (** Name of the output directory where all expected outputs are stored *)
-  id : string;
-      (** Id of this precise unit test that will be associated to an expected
-          output *)
-  cmd : string list;
-      (** Catala command to launch to run the test, excluding "catala" at the
-          begin, and the name of the file to test *)
-}
-(** Structure describing a single "legacy test", ie test with a separate output
-    file *)
-
 type item = {
   file_name : File.t;
   module_def : string option;
   extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
-  legacy_tests : expected_output_descr list;
   has_inline_tests : bool;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in

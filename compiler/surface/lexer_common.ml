@@ -131,7 +131,6 @@ let token_list_language_agnostic : (string * token) list =
   ]
 
 type line_token =
-  | LINE_TEST of string (* ```catala-test { id = xx } *)
   | LINE_INLINE_TEST (* ```catala-test-inline *)
   | LINE_BLOCK_END (* ``` *)
   | LINE_INCLUDE of string (* > Include foo.catala_en *)

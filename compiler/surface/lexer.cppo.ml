@@ -936,18 +936,7 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
      | "```catala-test-inline", Star hspace, (eol | eof) ->
        context := `Code;
        Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
-     | "```catala-test", Star (any_but_eol), (eol | eof) ->
-       context := `Test;
-       let str = Utf8.lexeme lexbuf in
-       (try
-          let id = Re.Group.get (Re.exec line_test_id_re str) 1 in
-          Some (str, LINE_TEST id)
-        with Not_found ->
-          Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
-            "Ignored invalid test section, must have an explicit \
-             `{ id = \"name\" }` specification";
-          Some (str, LINE_ANY))
-     | "```", Star hspace, (eol | eof) ->
+     | "```", Star any_but_eol, (eol | eof) ->
        context := `Raw;
        Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
      | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus any_but_eol,
