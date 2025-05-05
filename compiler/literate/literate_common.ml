@@ -94,9 +94,7 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
   in
   let return_code = Sys.command cmd in
   if return_code <> 0 then raise_failed_pandoc cmd return_code;
-  let oc = open_in tmp_file_out in
-  let tmp_file_as_string = really_input_string oc (in_channel_length oc) in
-  close_in oc;
+  let tmp_file_as_string = File.contents tmp_file_out in
   Sys.remove tmp_file_in;
   Sys.remove tmp_file_out;
   tmp_file_as_string

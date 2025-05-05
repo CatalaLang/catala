@@ -132,11 +132,11 @@ let find_in_parents ?cwd predicate =
 
 let with_out_channel filename f =
   ensure_dir (Filename.dirname filename);
-  let oc = open_out filename in
+  let oc = open_out_bin filename in
   finally (fun () -> close_out oc) (fun () -> f oc)
 
 let with_in_channel filename f =
-  let oc = open_in filename in
+  let oc = open_in_bin filename in
   finally (fun () -> close_in oc) (fun () -> f oc)
 
 let with_formatter_of_out_channel oc f =
