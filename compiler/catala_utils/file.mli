@@ -120,6 +120,9 @@ val ( / ) : t -> t -> t
     [File.("some" / "relative" / "path")]. As an exception, if the lhs is [.],
     returns the rhs unchanged. *)
 
+val basename : t -> t
+(** [Filename.basename], re-exported for convenience *)
+
 val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
 

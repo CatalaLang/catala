@@ -66,13 +66,16 @@ module Var = struct
   let runtime_java_jar = make "RUNTIME_JAVA_JAR"
   let all_vars = all_vars_ref.contents
 
-  (** Rule vars, Used in specific rules *)
+  (* Definition spreading different rules *)
+
+  let tdir = make "tdir"
+  let includes = make "includes"
+
+  (* Rule vars, Used in specific rules *)
 
   let input = make "in"
   let output = make "out"
   let src = make "src"
-  let target = make "target"
-  let includes = make "includes"
   let class_path = make "class_path"
 
   (* let scope = make "scope" *)
@@ -236,10 +239,12 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
       Nj.rule "ocaml-object"
-        ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
-                  !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
-                  !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
-                  !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input]
+        ~command:[
+          !ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
+          !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
+          !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
+          !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input
+        ]
         ~description:["<ocaml>"; "⇒"; !output];
 
       Nj.rule "ocaml-module"
@@ -295,55 +300,52 @@ let gen_build_statements
   let open File in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
-  let target =
-    match item.module_def with
-    | None -> !Var.builddir / Filename.remove_extension src
-    | Some n -> !Var.builddir / Filename.dirname src / n
+  let dir = File.dirname src in
+  let def_vars =
+    [Nj.binding Var.src [basename (Filename.remove_extension src)]]
   in
-  let include_flags =
+  let include_flags backend =
     "-I"
-    :: (!Var.builddir / src /../ "")
+    :: (!Var.tdir / backend)
     :: List.concat_map
          (fun d ->
-           ["-I"; (if Filename.is_relative d then !Var.builddir / d else d)])
+           [
+             "-I";
+             (if Filename.is_relative d then !Var.builddir / d else d) / backend;
+           ])
          include_dirs
   in
-  let def_vars =
-    [
-      Nj.binding Var.src [src];
-      Nj.binding Var.target [target];
-      Nj.binding Var.includes include_flags;
-    ]
-    @
-    if List.mem Java enabled_backends then
-      let java_class_path =
-        [
-          String.concat ":"
-            ((!Var.builddir / src /../ "")
-            :: List.map
-                 (fun d ->
-                   if Filename.is_relative d then !Var.builddir / d else d)
-                 include_dirs);
-        ]
-      in
-      [Nj.binding Var.class_path java_class_path]
-    else []
+  let target ?backend ext =
+    let ext = if ext.[0] = '@' then ext else "." ^ ext in
+    let bdir =
+      match backend with
+      | None -> fun f -> f ^ ext
+      | Some b -> fun f -> (b / f) ^ ext
+    in
+    match item.module_def with
+    | None -> !Var.tdir / bdir !Var.src
+    | Some n -> !Var.tdir / bdir n
   in
   let modules = List.rev item.used_modules in
-  let modfile ext ?(mod_ext = ext) modname =
+  let modfile ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
-    | Some f -> (!Var.builddir / Filename.dirname f / modname) ^ ext
-    | None -> modname ^ mod_ext
+    | Some _ -> (!Var.tdir / backend / modname) ^ ext
+    | None -> modname ^ "@" ^ backend ^ "-module"
   in
-  let module_target x = modfile "@ml-module" x in
-  let catala_src = !Var.builddir / !Var.src in
+  let module_target x = modfile "@ocaml-module" x in
+  let catala_src = (!Var.tdir / !Var.src) ^ Filename.extension src in
   let include_deps =
-    Nj.build "copy" ~inputs:[!Var.src]
+    Nj.build "copy"
+      ~inputs:[(dir / !Var.src) ^ Filename.extension src]
       ~implicit_in:
-        (List.map (( / ) !Var.builddir) item.included_files
+        (List.map
+           (fun f ->
+             if dir / basename f = f then !Var.tdir / basename f
+             else !Var.builddir / f)
+           item.included_files
         @ List.map
             (fun m ->
-              try !Var.builddir / List.assoc m same_dir_modules
+              try !Var.tdir / basename (List.assoc m same_dir_modules)
               with Not_found -> m ^ "@src")
             modules)
       ~outputs:[catala_src]
@@ -352,33 +354,34 @@ let gen_build_statements
     Option.map
       (fun _ ->
         Nj.build "phony"
-          ~inputs:[!Var.target ^ ".cmi"; !Var.target ^ ".cmxs"]
-          ~implicit_in:(List.map (modfile "@ml-module") modules)
-          ~outputs:[!Var.target ^ "@ml-module"])
+          ~inputs:
+            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmxs"]
+          ~implicit_in:(List.map (modfile "@ocaml-module") modules)
+          ~outputs:[target ~backend:"ocaml" "@ocaml-module"])
       item.module_def
   in
   let ocaml, c, python, java =
     if item.extrnal then
       ( Nj.build "copy" ~implicit_in:[catala_src]
           ~inputs:[src -.- "ml"]
-          ~outputs:[!Var.target ^ ".ml"],
+          ~outputs:[target ~backend:"ocaml" "ml"],
         List.to_seq
           [
             Nj.build "copy" ~implicit_in:[catala_src]
               ~inputs:[src -.- "c"]
-              ~outputs:[!Var.target ^ ".c"];
+              ~outputs:[target ~backend:"c" "c"];
             Nj.build "copy" ~implicit_in:[catala_src]
               ~inputs:[src -.- "h"]
-              ~outputs:[!Var.target ^ ".h"];
+              ~outputs:[target ~backend:"c" "h"];
           ],
         Nj.build "copy" ~implicit_in:[catala_src]
           ~inputs:[src -.- "py"]
-          ~outputs:[!Var.target ^ ".py"],
+          ~outputs:[target ~backend:"python" "py"],
         List.to_seq
           [
             Nj.build "copy" ~implicit_in:[catala_src]
               ~inputs:[src -.- "java"]
-              ~outputs:[!Var.target ^ ".java"];
+              ~outputs:[target ~backend:"java" "java"];
           ] )
     else
       let inputs = [catala_src] in
@@ -389,54 +392,60 @@ let gen_build_statements
         :: (if autotest then List.map module_target modules else [])
       in
       ( Nj.build "catala-ocaml" ~inputs ~implicit_in
-          ~outputs:[!Var.target ^ ".ml"],
+          ~outputs:[target ~backend:"ocaml" "ml"],
         Seq.return
           (Nj.build "catala-c" ~inputs ~implicit_in
-             ~outputs:[!Var.target ^ ".c"]
-             ~implicit_out:[!Var.target ^ ".h"]),
-        Nj.build "python" ~inputs ~implicit_in ~outputs:[!Var.target ^ ".py"],
+             ~outputs:[target ~backend:"c" "c"]
+             ~implicit_out:[target ~backend:"c" "h"]),
+        Nj.build "python" ~inputs ~implicit_in
+          ~outputs:[target ~backend:"python" "py"],
         Seq.return
           (Nj.build "java" ~inputs ~implicit_in
-             ~outputs:[!Var.target ^ ".java"]) )
+             ~outputs:[target ~backend:"java" "java"]) )
   in
   let ocamlopt =
     let obj =
       Nj.build "ocaml-object"
-        ~inputs:[!Var.target ^ ".ml"]
+        ~inputs:[target ~backend:"ocaml" "ml"]
         ~implicit_in:(!Var.catala_exe :: List.map module_target modules)
         ~outputs:
-          (List.map (( ^ ) !Var.target) [".mli"; ".cmi"; ".cmo"; ".cmx"; ".o"])
-        ~vars:[Var.includes, [!Var.includes]]
+          (List.map (target ~backend:"ocaml") ["mli"; "cmi"; "cmo"; "cmx"; "o"])
+        ~vars:[Var.includes, include_flags "ocaml"]
     in
     match item.module_def with
     | Some _ ->
       [
         obj;
         Nj.build "ocaml-module"
-          ~inputs:[!Var.target ^ ".cmx"]
-          ~outputs:[!Var.target ^ ".cmxs"];
+          ~inputs:[target ~backend:"ocaml" "cmx"]
+          ~outputs:[target ~backend:"ocaml" "cmxs"];
       ]
     | None -> [obj]
   in
   let cc =
     Nj.build "c-object"
-      ~inputs:[!Var.target ^ ".c"]
+      ~inputs:[target ~backend:"c" "c"]
       ~implicit_in:
         (!Var.catala_exe
-        :: (!Var.target ^ ".h")
-        :: List.map (modfile ".h" ~mod_ext:"@c-module") modules)
-      ~outputs:[!Var.target ^ ".c.o"]
-      ~vars:[Var.includes, [!Var.includes]]
+        :: target ~backend:"c" "h"
+        :: List.map (modfile ~backend:"c" ".h") modules)
+      ~outputs:[target ~backend:"c" "o"]
+      ~vars:[Var.includes, include_flags "c"]
   in
   let javac =
+    let java_class_path =
+      String.concat ":"
+        (!Var.tdir
+        :: List.map
+             (fun d -> if Filename.is_relative d then !Var.builddir / d else d)
+             include_dirs)
+    in
     Nj.build "java-class"
-      ~inputs:[!Var.target ^ ".java"]
+      ~inputs:[target ~backend:"java" "java"]
       ~implicit_in:
-        (!Var.catala_exe
-        :: List.map (fun m -> modfile ".java" ~mod_ext:"@java-module" m) modules
-        )
-      ~outputs:[!Var.target ^ ".class"]
-      ~vars:[Var.class_path, [!Var.class_path]]
+        (!Var.catala_exe :: List.map (modfile ~backend:"java" ".java") modules)
+      ~outputs:[target ~backend:"java" "class"]
+      ~vars:[Var.class_path, [java_class_path]]
   in
   let expose_module =
     (* Note: these rules define global (top-level) aliases for module targets of
@@ -450,30 +459,30 @@ let gen_build_statements
        rid of these aliases. *)
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.builddir / !Var.src]
+      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[catala_src]
       ::
       (if List.mem OCaml enabled_backends then
          [
            Nj.build "phony"
-             ~outputs:[m ^ "@ml-module"]
-             ~inputs:[module_target !Var.target];
+             ~outputs:[m ^ "@ocaml-module"]
+             ~inputs:[module_target m];
          ]
        else [])
       @ (if List.mem C enabled_backends then
            [
              Nj.build "phony"
                ~outputs:[m ^ "@c-module"]
-               ~inputs:[modfile ".h" !Var.target; modfile ".c.o" !Var.target];
-             Nj.build "phony"
-               ~outputs:[m ^ "@h-module"]
-               ~inputs:[modfile ".h" !Var.target];
+               ~inputs:[modfile ~backend:"c" ".h" m; modfile ~backend:"c" ".o" m];
+             (* Nj.build "phony"
+              *   ~outputs:[m ^ "@h-module"]
+              *   ~inputs:[modfile ".h" !Var.target]; *)
            ]
          else [])
       @ (if List.mem Python enabled_backends then
            [
              Nj.build "phony"
                ~outputs:[m ^ "@py-module"]
-               ~inputs:[modfile ".py" !Var.target];
+               ~inputs:[modfile ~backend:"python" ".py" m];
            ]
          else [])
       @
@@ -481,39 +490,20 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~outputs:[m ^ "@java-module"]
-            ~inputs:[modfile ".java" !Var.target];
+            ~inputs:[modfile ~backend:"java" ".java" m];
         ]
       else []
     | _ -> []
   in
-  let legacy_test_reference test =
-    (src /../ "output" / Filename.basename src) -.- test.Scan.id
-  in
   let tests =
-    let out_tests_references =
-      List.map (fun test -> legacy_test_reference test) item.legacy_tests
-    in
-    let out_tests_prepare =
-      List.map
-        (fun f -> Nj.build "copy" ~inputs:[f] ~outputs:[!Var.builddir / f])
-        out_tests_references
-    in
-    let tests =
-      if (not item.has_inline_tests) && item.legacy_tests = [] then []
-      else
-        [
-          Nj.build "tests" ~inputs:[catala_src]
-            ~implicit_in:
-              ((!Var.clerk_exe :: List.map (modfile "@ml-module") modules)
-              @ List.map (( / ) !Var.builddir) out_tests_references)
-            ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"]
-            ~implicit_out:
-              (List.map
-                 (fun o -> (!Var.builddir / o) ^ "@out")
-                 out_tests_references);
-        ]
-    in
-    out_tests_prepare @ tests
+    if not (item.has_inline_tests || Lazy.force item.has_scope_tests) then []
+    else
+      [
+        Nj.build "tests" ~inputs:[catala_src]
+          ~implicit_in:
+            (!Var.clerk_exe :: List.map (modfile "@ocaml-module") modules)
+          ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
+      ]
   in
   let statements_list =
     Seq.return (Nj.comment "")
@@ -532,6 +522,7 @@ let gen_build_statements
   Seq.concat (List.to_seq statements_list)
 
 let gen_build_statements_dir
+    (dir : string)
     (include_dirs : string list)
     (enabled_backends : backend list)
     (autotest : bool)
@@ -542,10 +533,16 @@ let gen_build_statements_dir
         Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
       items
   in
-  Seq.flat_map
-    (gen_build_statements include_dirs enabled_backends autotest
-       same_dir_modules)
-    (List.to_seq items)
+  let open File in
+  let ( ! ) = Var.( ! ) in
+  Seq.cons (Nj.comment "")
+  @@ Seq.cons (Nj.comment ("--- " ^ dir ^ " ---"))
+  @@ Seq.cons (Nj.comment "")
+  @@ Seq.cons (Nj.binding Var.tdir [!Var.builddir / dir])
+  @@ Seq.flat_map
+       (gen_build_statements include_dirs enabled_backends autotest
+          same_dir_modules)
+       (List.to_seq items)
 
 let dir_test_rules dir subdirs enabled_backends items =
   let open File in
@@ -555,8 +552,7 @@ let dir_test_rules dir subdirs enabled_backends items =
         (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
         (List.filter_map
            (fun item ->
-             if item.Scan.legacy_tests = [] && not item.Scan.has_inline_tests
-             then None
+             if not (item.Scan.has_inline_tests || Lazy.force item.Scan.has_scope_tests) then None
              else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
            items)
     in
@@ -576,7 +572,8 @@ let build_statements include_dirs enabled_backends autotest dir =
      @@ fun (dir, subdirs, items) ->
      ( items,
        Seq.append
-         (gen_build_statements_dir include_dirs enabled_backends autotest items)
+         (gen_build_statements_dir dir include_dirs enabled_backends autotest
+            items)
          (dir_test_rules dir subdirs enabled_backends items) )
 
 let ( @+ ) = Seq.append
@@ -604,7 +601,6 @@ let gen_ninja_file
     @+ List.to_seq var_bindings
     @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
     @+ List.to_seq (static_base_rules enabled_backends)
-    @+ Seq.return (Nj.build "phony" ~outputs:["always"])
     @+ Seq.return (Nj.Comment "\n- Project-specific build statements - #")
   in
   let items, main =

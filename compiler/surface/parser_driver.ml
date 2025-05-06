@@ -304,8 +304,9 @@ let lines (file : File.t) (language : Global.backend_lang) =
   try
     let lexbuf = Sedlexing.Utf8.from_channel input in
     Sedlexing.set_filename lexbuf file;
+    let context = ref `Law in
     let rec aux () =
-      match lex_line lexbuf with
+      match lex_line ~context lexbuf with
       | Some (str, tok) ->
         Seq.Cons ((str, tok, Sedlexing.lexing_bytes_positions lexbuf), aux)
       | None ->

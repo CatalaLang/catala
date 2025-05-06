@@ -179,7 +179,7 @@ let scope foo
 
 ```catala-test-inline
 $ catala Interpret --lcalc -s Foo -O --closure-conversion
-┌─[RESULT]─
+┌─[RESULT]─ Foo ─
 │ z = 11
 └─
 ```

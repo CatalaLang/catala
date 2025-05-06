@@ -49,7 +49,7 @@ scope A:
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ o = false
 └─
 ```

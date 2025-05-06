@@ -31,7 +31,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope Caller
-┌─[RESULT]─
+┌─[RESULT]─ Caller ─
 │ y = 1
 └─
 ```

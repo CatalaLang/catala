@@ -60,7 +60,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope Benefit
-┌─[RESULT]─
+┌─[RESULT]─ Benefit ─
 │ benefit = $2,000.00
 │ person = Person { -- age: 26 -- disabled: true }
 └─

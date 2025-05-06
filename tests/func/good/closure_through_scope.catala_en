@@ -46,7 +46,7 @@ let scope T (t_in: #[test] T_in): #[test] T {y: integer} =
 
 ```catala-test-inline
 $ catala Interpret --lcalc -s T -O --closure-conversion
-┌─[RESULT]─
+┌─[RESULT]─ T ─
 │ y = -2
 └─
 ```
