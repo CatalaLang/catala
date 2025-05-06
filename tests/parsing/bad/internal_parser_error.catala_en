@@ -13,7 +13,7 @@ scope S:
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[ERROR (1/2)]─
+┌─[ERROR]─ 1/2 ─
 │
 │  Expected the form '<expr> for <var> among <collection>'
 │
@@ -24,8 +24,7 @@ $ catala test-scope A
 │ 9 │       -- A : 2
 │   │       ‾‾‾‾‾‾‾‾
 └─ Parser internal error
-
-┌─[ERROR (2/2)]─
+┌─[ERROR]─ 2/2 ─
 │
 │  Syntax error at ")":
 │  » expected a binary operator continuing the expression, or a keyword

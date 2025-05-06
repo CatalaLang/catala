@@ -178,7 +178,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
          group ~name:"col0" @@ rep1 digit; char '-';
          group ~name:"line1" @@ rep1 digit; char '.';
          group ~name:"col1" @@ rep1 digit; str ": [ERROR]"; rep (alt [set " :/"; digit]);
-         group ~name:"message" @@ rep any]
+         group ~name:"message" @@ rep1 any]
     in
     match Re.exec_opt re_error line with
     | Some g ->
@@ -194,7 +194,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
     compile @@ whole_string @@ seq
       [group (rep1 (diff any (char ':'))); str ": "; group(alt [str "passed"; str "failed"])]
   in
-  let _, scopes_results =
+  let errs, scopes_results =
     Seq.fold_left
       (fun (errs, acc) line ->
          match Re.exec_opt re_line line with
@@ -217,7 +217,17 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
     | _, Unix.WEXITED n -> n
     | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
   in
-  return_code = 0, List.rev scopes_results
+  let scopes_results =
+    (* Add a fake results in case some scopes failed to run *)
+    if return_code <> 0 && List.filter (fun t -> not t.Clerk_report.s_success) scopes_results = [] then
+      { Clerk_report.s_name = "compilation";
+        s_success = false;
+        s_command_line = catala_exe :: "interpret" :: filename :: catala_opts @ test_flags;
+        s_errors = errs }
+      :: scopes_results
+    else scopes_results
+  in
+  List.rev scopes_results
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
@@ -371,18 +381,15 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
   let has_test_scopes =
     has_test_scopes || List.exists (Clerk_scan.find_test_scope ~lang) includes
   in
-  let scopes_run_success, scopes_results =
+  let scopes_results =
     if has_test_scopes then
       run_catala_test_scopes test_flags catala_exe catala_opts filename
-    else true, []
+    else []
   in
   let successful_test_scopes, failed_test_scopes =
     List.fold_left (fun (nsucc, nfail) t -> if t.Clerk_report.s_success then (nsucc+1, nfail) else (nsucc, nfail+1)) (0,0) scopes_results
   in
   let num_test_scopes = successful_test_scopes + failed_test_scopes in
-  if scopes_run_success <> (failed_test_scopes = 0) then
-    Message.warning "Inconsistent scope test results: returned %b with %d/%d successful tests"
-      scopes_run_success successful_test_scopes num_test_scopes;
   let tests_report =
     List.fold_left
       Clerk_report.(

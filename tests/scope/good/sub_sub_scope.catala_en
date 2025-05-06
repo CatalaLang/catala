@@ -84,7 +84,7 @@ $ catala test-scope A
 │ 15 │   b scope B
 │    │   ‾
 └─ Article
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ u = true
 │ x = 0
 └─
@@ -112,7 +112,7 @@ $ catala test-scope B
 │ 15 │   b scope B
 │    │   ‾
 └─ Article
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ y = 1
 └─
 ```
@@ -139,7 +139,7 @@ $ catala test-scope C
 │ 15 │   b scope B
 │    │   ‾
 └─ Article
-┌─[RESULT]─
+┌─[RESULT]─ C ─
 │ z = 2
 └─
 ```

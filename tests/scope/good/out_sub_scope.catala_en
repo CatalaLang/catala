@@ -21,7 +21,7 @@ scope B:
 
 ```catala-test-inline
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ a = A { -- o: 99 -- io: 100 }
 │ b = 99
 └─

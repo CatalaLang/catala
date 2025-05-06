@@ -43,14 +43,14 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
 ```
@@ -108,14 +108,14 @@ $ catala Typecheck --check-invariants
 
 \begin{verbatim}
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
 \end{verbatim}
 
 \begin{verbatim}
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
 \end{verbatim}

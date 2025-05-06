@@ -30,7 +30,7 @@ $ catala test-scope S
 │ 7 │   a scope A
 │   │   ‾
 └─
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ so = 42
 └─
 ```
