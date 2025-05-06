@@ -177,7 +177,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
          group ~name:"line0" @@ rep1 digit; char '.';
          group ~name:"col0" @@ rep1 digit; char '-';
          group ~name:"line1" @@ rep1 digit; char '.';
-         group ~name:"col1" @@ rep1 digit; str ": [ERROR"; rep (alt [set " (/)"; digit]); str "] ";
+         group ~name:"col1" @@ rep1 digit; str ": [ERROR]"; rep (alt [set " :/"; digit]);
          group ~name:"message" @@ rep any]
     in
     match Re.exec_opt re_error line with
