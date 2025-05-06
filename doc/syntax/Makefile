@@ -1,3 +1,5 @@
+TARGETS=syntax.pdf syntax_en.pdf syntax_fr.pdf
+
 syntax.pdf: syntax_en.pdf syntax_fr.pdf
 	cpdf $^ -o $@
 
@@ -6,6 +8,6 @@ syntax.pdf: syntax_en.pdf syntax_fr.pdf
 
 clean:
 	latexmk -f -C *.tex
-	rm -rf _minted*
+	rm -rf _minted* $(TARGETS)
 
-.PRECIOUS .SECONDARY: syntax.pdf syntax_en.pdf syntax_fr.pdf
+.PRECIOUS .SECONDARY: $(TARGETS)

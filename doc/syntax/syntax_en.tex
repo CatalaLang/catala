@@ -307,7 +307,7 @@
   \end{catala}
 
   \\
-  
+
   \begin{catala}
     ```catala
     Struct1 { -- fld1: 9 -- fld2: 7% }
@@ -320,7 +320,7 @@
   \end{catala}
 
   \\
-  
+
   \begin{catala}
     ```catala
     Case1 content 12        Case2
@@ -675,7 +675,7 @@
   \\
   \begin{catala}
     ```catala
-    (x + 2) for x among lst
+    map each x among lst to x + 2
     ```
   \end{catala}
   & Mapping
@@ -689,15 +689,16 @@
   \\
   \begin{catala}
     ```catala
-    (x - 2) for x among lst
-      such that x > 2
+    map each x among lst such that x > 2
+      to x - 2
     ```
   \end{catala}
   & Filter + map
   \\
   \begin{catala}
     ```catala
-    (x + y) for (x, y) among (lst1, lst2)
+    map each (x, y) among (lst1, lst2)
+      to x + y
     ```
   \end{catala}
   & Multiple mapping
@@ -742,9 +743,9 @@
   \\
   \begin{catala}
     ```catala
-    combine acc initially 0
-      with (acc + x)
-      for x among lst
+    combine all x among lst
+      in acc initially 0
+      with acc + x
     ```
   \end{catala}
   & Folding
