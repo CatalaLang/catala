@@ -214,7 +214,7 @@ let () = if List.mem "Assert" commands then (
 
 ```catala-test-inline
 $ catala test-scope Assert
-┌─[RESULT]─
+┌─[RESULT]─ Assert ─
 │ assert = false
 └─
 ```

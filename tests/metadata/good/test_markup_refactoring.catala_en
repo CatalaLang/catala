@@ -42,14 +42,14 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope S2
-┌─[RESULT]─
+┌─[RESULT]─ S2 ─
 │ b = B ()
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope S
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ a = A ()
 └─
 ```

@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ x = 84.648,665
 │ x1 = 85.0
 │ y = 4.368,297

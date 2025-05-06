@@ -46,7 +46,7 @@ TestBool
 
 ```catala-test-inline
 $ catala test-scope TestBool
-┌─[RESULT]─
+┌─[RESULT]─ TestBool ─
 │ bar = 1
 │ foo = true
 └─

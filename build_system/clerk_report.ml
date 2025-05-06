@@ -326,7 +326,7 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun t -> not t.i_success) tests
       | `None -> assert false
     in
-    Format.pp_print_break ppf 0 3;
+    if tests <> [] then Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list (display ~build_dir t.name) ppf tests;
     Format.pp_close_box ppf ()
@@ -338,7 +338,7 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun s -> not s.s_success) scopes
       | `None -> assert false
     in
-    Format.pp_print_break ppf 0 3;
+    if scopes <> [] then Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
     Format.pp_close_box ppf ()

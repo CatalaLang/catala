@@ -21,7 +21,7 @@ scope Test:
 
 ```catala-test-inline
 $ catala test-scope Test
-┌─[RESULT]─
+┌─[RESULT]─ Test ─
 │ val = 1970-04-10
 └─
 ```

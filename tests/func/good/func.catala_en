@@ -35,7 +35,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope R
-┌─[RESULT]─
+┌─[RESULT]─ R ─
 │ r = 30
 └─
 ```

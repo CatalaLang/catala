@@ -33,7 +33,7 @@ This was diagnosed to be due to delayed error messages that got skipped.
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-┌─[ERROR]─
+┌─[ERROR]─ 1/2 ─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ money
@@ -58,6 +58,29 @@ $ catala Typecheck --check-invariants
 │    │
 │ 21 │       x ++ acc
 │    │         ‾‾
+└─ Article
+┌─[ERROR]─ 2/2 ─
+│
+│  I don't know how to apply operator + on types list of money and money
+│
+├─➤ tests/array/bad/broken-message.catala_en:26.17-26.25:
+│    │
+│ 26 │       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+│    │                 ‾‾‾‾‾‾‾‾
+├─ Article
+│
+│ Type list of money coming from expression:
+├─➤ tests/array/bad/broken-message.catala_en:21.10-21.12:
+│    │
+│ 21 │       (x ++ acc) for x among a.x
+│    │          ‾‾
+├─ Article
+│
+│ Type money coming from expression:
+├─➤ tests/array/bad/broken-message.catala_en:25.41-25.43:
+│    │
+│ 25 │     combine (acc1, acc2) initially ([], $1) with
+│    │                                         ‾‾
 └─ Article
 #return code 123#
 ```

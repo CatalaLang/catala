@@ -53,7 +53,7 @@ $ catala test-scope A
 │ 6 │   definition w equals 3
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ w = 3
 └─
 ```

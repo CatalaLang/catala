@@ -35,7 +35,7 @@ $ catala interpret -s A --debug
 [DEBUG] 2 (at tests/attributes/good/debug_print.catala_en:11.42-11.43)
 [DEBUG] 10. (at tests/attributes/good/debug_print.catala_en:12.67-12.73)
 [DEBUG] End of interpretation
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ w = 0
 │ x = 4
 │ y = 4

@@ -52,7 +52,7 @@ $ catala test-scope Titi
 │ 13 │   toto scope Toto
 │    │   ‾‾‾‾
 └─
-┌─[RESULT]─
+┌─[RESULT]─ Titi ─
 │ fizz = Toto { -- foo: 1,213 }
 │ fuzz = Toto { -- foo: 1,323 }
 └─

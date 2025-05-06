@@ -30,14 +30,14 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ x = [$0.00; $9.00; $5.20]
 └─
 ```
 
 ```catala-test-inline
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ y = [$9.00; $5.20]
 └─
 ```

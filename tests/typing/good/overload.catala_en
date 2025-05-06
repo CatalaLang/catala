@@ -71,7 +71,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope S
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ o_b = true
 │ o_d = [-13 days]
 │ o_i = -5

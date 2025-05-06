@@ -31,7 +31,7 @@ scope Test:
 
 ```catala-test-inline
 $ catala dcalc
-┌─[ERROR]─
+┌─[ERROR]─ 1/2 ─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
@@ -55,13 +55,22 @@ $ catala dcalc
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
+┌─[ERROR]─ 2/2 ─
+│
+│  Internal error: typing at this point could not be resolved
+│
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 #return code 123#
 ```
 
 
 ```catala-test-inline
 $ catala test-scope Test
-┌─[ERROR]─
+┌─[ERROR]─ 1/2 ─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
@@ -84,6 +93,15 @@ $ catala test-scope Test
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Internal error: typing at this point could not be resolved
+│
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+│    │
+│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
