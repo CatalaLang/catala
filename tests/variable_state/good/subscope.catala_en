@@ -60,7 +60,7 @@ let scope A
 
 ```catala-test-inline
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ foofoo = 4
 │ foofoofoo = 6
 └─

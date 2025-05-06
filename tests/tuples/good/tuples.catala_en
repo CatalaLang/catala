@@ -45,7 +45,7 @@ $ catala typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope Test
-┌─[RESULT]─
+┌─[RESULT]─ Test ─
 │ o = (2001-01-03, 6.0)
 └─
 ```

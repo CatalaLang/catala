@@ -33,7 +33,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-inline
 $ catala test-scope S
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ a = 1,946.574,4
 │ b = A { -- y: true -- z: 2,091.0 }
 └─
@@ -55,7 +55,7 @@ scope S2:
 
 ```catala-test-inline
 $ catala test-scope S2
-┌─[RESULT]─
+┌─[RESULT]─ S2 ─
 │ a = 154.0
 └─
 ```
@@ -76,7 +76,7 @@ scope S3:
 
 ```catala-test-inline
 $ catala test-scope S3
-┌─[RESULT]─
+┌─[RESULT]─ S3 ─
 │ a = 2,480.0
 └─
 ```
@@ -100,7 +100,7 @@ scope S4:
 
 ```catala-test-inline
 $ catala test-scope S4
-┌─[RESULT]─
+┌─[RESULT]─ S4 ─
 │ a = 6,001.0
 └─
 ```
