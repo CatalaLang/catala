@@ -213,17 +213,17 @@ declaration x content integer equals
     for all x among lst we have x > 2
   in
   let x equals
-    map each x among lst to (x + 2)
+    map each x among lst to x + 2
   in
   let x equals
     list of x among lst such that x > 2
   in
   let x equals
     map each x among lst such that x > 2
-    to (x - 2)
+    to x - 2
   in
   let x equals
-    map each (x, y) among (lst1, lst2) to (x + y)
+    map each (x, y) among (lst1, lst2) to x + y
   in
   let x equals
     lst1 ++ lst2
@@ -246,7 +246,7 @@ declaration x content integer equals
   let x equals
     combine all x among lst
     in acc initially 0
-    with (acc + x)
+    with acc + x
   in
   0
 ```
