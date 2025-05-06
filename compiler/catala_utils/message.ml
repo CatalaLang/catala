@@ -178,7 +178,8 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let basic_msg ?(pp_marker = pp_marker) ppf target content =
+  let basic_msg ?header ppf target content =
+    let pp_header ppf = Option.iter (Format.fprintf ppf " %s: ") header in
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list
       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
@@ -190,15 +191,17 @@ module Content = struct
           Pos.format_loc_text ppf pos.pos
         | MainMessage msg ->
           if target = Debug then print_time_marker ppf ();
-          Format.fprintf ppf "@[<hov 2>[%t] %t@]" (pp_marker target) msg
+          Format.fprintf ppf "@[<hov 2>[%t] %t%t@]" (pp_marker target) pp_header
+            msg
         | Outcome msg ->
-          Format.fprintf ppf "@[<hov>[%t]@ %t@]" (pp_marker target) msg
+          Format.fprintf ppf "@[<hov>[%t]@ %t%t@]" (pp_marker target) pp_header
+            msg
         | Suggestion suggestions_list -> Suggestions.format ppf suggestions_list)
       ppf content;
     Format.pp_close_box ppf ();
     Format.pp_print_newline ppf ()
 
-  let fancy_msg ?(pp_marker = pp_marker) ppf target content =
+  let fancy_msg ?header ppf target content =
     let ppf_out_fcts = Format.pp_get_formatter_out_functions ppf () in
     let restore_ppf () =
       Format.pp_print_flush ppf ();
@@ -228,6 +231,7 @@ module Content = struct
       };
     Format.pp_open_vbox ppf 1;
     Format.fprintf ppf "@{<blue>@<2>%s[%t]@<2>%s@}" "┌─" (pp_marker target) "─";
+    Option.iter (fun h -> Format.fprintf ppf " %s @{<blue>─@}" h) header;
     (* Returns true when a finaliser is needed *)
     let print_elt ppf ?(islast = false) = function
       | MainMessage msg ->
@@ -283,7 +287,7 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let gnu_msg ~pp_marker ?(extra = "") ppf target content =
+  let gnu_msg ?header ppf target content =
     (* The top message doesn't come with a position, which is not something the
        GNU standard allows. So we look the position list and put the top message
        everywhere there is not a more precise message. If we can't find a
@@ -327,8 +331,10 @@ module Content = struct
               Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
             pos;
           Format.fprintf ppf "[%t]" (pp_marker target);
+          Option.iter (fun h -> Format.fprintf ppf " %s" h) header;
           Option.iter
             (fun message ->
+              if header <> None then Format.pp_print_char ppf ':';
               Format.pp_print_char ppf ' ';
               Format.pp_print_string ppf (unformat message))
             message;
@@ -347,15 +353,14 @@ module Content = struct
     let msg = retrieve_message None content in
     Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
 
-  let emit_raw ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) :
-      unit =
+  let emit_raw ?ppf ?header (content : t) (target : level) : unit =
     let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
     | Global.Human -> (
       match target with
-      | Debug | Log -> basic_msg ~pp_marker ppf target content
-      | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
-    | GNU -> gnu_msg ~pp_marker ppf target content
+      | Debug | Log -> basic_msg ?header ppf target content
+      | Result | Warning | Error -> fancy_msg ?header ppf target content)
+    | GNU -> gnu_msg ?header ppf target content
     | Lsp -> lsp_msg ppf content
 
   let emit_n ?ppf (errs : t list) (target : level) =
@@ -366,13 +371,8 @@ module Content = struct
       let len = List.length contents in
       List.iteri
         (fun i c ->
-          let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
-          let pp_marker ?extra_label:l =
-            match l with
-            | None -> pp_marker ~extra_label
-            | Some l -> pp_marker ~extra_label:(l ^ " " ^ extra_label)
-          in
-          emit_raw ~ppf ~pp_marker c target)
+          let header = Printf.sprintf "%d/%d" (succ i) len in
+          emit_raw ~ppf ~header c target)
         contents
 
   let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
@@ -472,15 +472,7 @@ let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 
 let results ?title r =
-  let pp_marker ?extra_label =
-    let extra_label =
-      match title, extra_label with
-      | Some a, Some b -> Some (String.concat " " [a; b])
-      | o, None | None, o -> o
-    in
-    pp_marker ?extra_label
-  in
-  emit_raw ~pp_marker (List.flatten (List.map of_result r)) Result
+  emit_raw ?header:title (List.flatten (List.map of_result r)) Result
 
 let join_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
