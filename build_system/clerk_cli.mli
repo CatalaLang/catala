@@ -26,7 +26,6 @@ val test_flags : string list Term.t
 val runtest_report : string option Term.t
 val runtest_out : string option Term.t
 val backend : [> `C | `Interpret | `OCaml | `Python | `Java ] Term.t
-val ignore_modules : bool Term.t
 val run_command : string Term.t
 val vars_override : (string * string) list Term.t
 
@@ -35,10 +34,10 @@ module Global : sig
   val debug : bool Term.t
 
   val term :
-    (config_file:Catala_utils.File.t option ->
+    (autotest:bool ->
+    config_file:Catala_utils.File.t option ->
     catala_exe:Catala_utils.File.t option ->
     catala_opts:string list ->
-    autotest:bool ->
     build_dir:Catala_utils.File.t option ->
     include_dirs:string list ->
     vars_override:(string * string) list ->
