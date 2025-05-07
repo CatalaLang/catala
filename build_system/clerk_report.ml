@@ -49,21 +49,30 @@ type disp_flags = {
   mutable tests : [ `All | `FailedFile | `Failed | `None ];
   mutable diffs : bool;
   mutable diff_command : string option option;
+  mutable fix_path : File.t -> File.t;
 }
 
 let disp_flags =
-  { files = `Failed; tests = `FailedFile; diffs = true; diff_command = None }
+  {
+    files = `Failed;
+    tests = `FailedFile;
+    diffs = true;
+    diff_command = None;
+    fix_path = Fun.id;
+  }
 
 let set_display_flags
     ?(files = disp_flags.files)
     ?(tests = disp_flags.tests)
     ?(diffs = disp_flags.diffs)
     ?(diff_command = disp_flags.diff_command)
+    ?(fix_path = disp_flags.fix_path)
     () =
   disp_flags.files <- files;
   disp_flags.tests <- tests;
   disp_flags.diffs <- diffs;
-  disp_flags.diff_command <- diff_command
+  disp_flags.diff_command <- diff_command;
+  disp_flags.fix_path <- fix_path
 
 let write_to f file =
   File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
@@ -248,24 +257,31 @@ let print_diff ppf p1 p2 =
 let catala_commands_with_output_flag =
   ["makefile"; "html"; "latex"; "ocaml"; "python"; "java"; "r"; "c"]
 
-let pfile ~build_dir f =
-  f
-  |> String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep)
-  |> String.remove_prefix ~prefix:(Sys.getcwd () ^ Filename.dir_sep)
+let pfile =
+  let open File in
+  fun ~build_dir f ->
+    f
+    |> File.remove_prefix (Sys.getcwd ())
+    |> File.remove_prefix build_dir
+    |> File.make_relative_to ~dir:original_cwd
 
 let clean_command_line ~build_dir file cl =
   cl
   |> List.filter_map (fun s ->
-         if s = "--directory=" ^ build_dir then
-           if build_dir = "_build" then None else Some ("--bin=" ^ build_dir)
+         if s = "--directory=" ^ build_dir then None
+         else if String.starts_with ~prefix:"-" s || not (String.contains s '/')
+         then Some s
          else Some (pfile ~build_dir s))
   |> (function
        | catala :: cmd :: args ->
          catala
          :: cmd
-         :: "-I"
-         :: pfile ~build_dir (Filename.dirname file)
-         :: args
+         ::
+         (let rel_bindir =
+            File.make_relative_to ~dir:File.original_cwd build_dir
+          in
+          if rel_bindir = "_build" then [] else ["--bin=" ^ rel_bindir])
+         @ ("-I" :: pfile ~build_dir (Filename.dirname file) :: args)
        | cl -> cl)
   |> function
   | catala :: cmd :: args
@@ -322,7 +338,7 @@ let display_scope ~build_dir file ppf scope_test =
   Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf t =
-  let pfile f = String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep) f in
+  let pfile f = pfile ~build_dir f in
   let print_tests tests =
     let tests =
       match disp_flags.tests with

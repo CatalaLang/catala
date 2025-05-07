@@ -135,11 +135,30 @@ val clean_path : t -> t
     E.g. [../foo/./bar/../baz/] becomes [../foo/baz]. No disk lookup is made by
     this function. *)
 
+val common_prefix : t -> t -> t
+(** Returns the longuest common prefix of two paths, which are first made
+    absolute *)
+
+val remove_prefix : t -> t -> t
+(** [remove_prefix prefix f] removes the [prefix] path from the beginning of [f]
+    ; if [f] doesn't start with [prefix], it is returned unchanged. If [f] is
+    equal to [prefix], [.] is returned. *)
+
+val make_relative_to : dir:t -> t -> t
+(** Makes [f] relative to [dir], using as many [../] as necessary *)
+
 val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
 (** If [to_dir] is a path to a given directory and [f] a path to a file as seen
     from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
     leading to [f] from [to_dir]. The results attempts to be relative to
     [to_dir]. *)
+
+val original_cwd : t
+(** The directory the command was originally run from *)
+
+val rel_original_cwd : unit -> t
+(** Same as [original_cwd], but if it is a subdirectory of the current dir, a
+    relative path is returned *)
 
 val find_in_parents : ?cwd:t -> (t -> bool) -> (t * t) option
 (** Checks for the first directory matching the given predicate from [cwd]

@@ -146,7 +146,7 @@ CATALA_DEC catala_new_dec (const signed long int units,
    not 12.34) */
 CATALA_DEC catala_new_dec_str(const char* val);
 
-CATALA_INT catala_new_money(const signed long int val);
+CATALA_MONEY catala_new_money(const signed long int val);
 
 /* Arg is a null-terminated string */
 CATALA_MONEY catala_new_money_str(const char* val);

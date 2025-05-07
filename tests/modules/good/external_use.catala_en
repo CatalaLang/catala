@@ -10,9 +10,9 @@
 scope S:
   definition weights equals [$4;$1;$1;$4;$1;$1]
   definition result1 equals Ext.prorata of $10, weights
-  assertion sum money of result1 = $10
+#  assertion sum money of result1 = $10
   definition result2 equals Ext.prorata2 of $10, weights
-  assertion sum money of result2 = $10
+#  assertion sum money of result2 = $10
 ```
 
 

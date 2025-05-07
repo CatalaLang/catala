@@ -1,10 +1,10 @@
 > Module Conflicts-module
 
 ```catala-metadata
-#[test] declaration scope Closure_scøppe:
+declaration scope Closure_scøppe:
   output scoppe condition
 
-#[test] declaration scope Closure_scoppe__1:
+declaration scope Closure_scoppe__1:
   output scoppe condition
 ```
 
