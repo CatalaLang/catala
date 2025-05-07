@@ -10,7 +10,7 @@ scope S:
   definition a equals number of (z ++ z) * 2
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck
 ┌─[WARNING]─
 │
@@ -45,7 +45,7 @@ $ catala Typecheck
 
 Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subcommands output the same type error consistently (bug pointed out and fixed in 498429e).
 
-```catala-test-inline
+```catala-test-cli
 $ catala ocaml
 ┌─[WARNING]─
 │

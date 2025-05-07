@@ -10,7 +10,7 @@ scope A:
   definition y under condition (x + x) > 100 day consequence equals true
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

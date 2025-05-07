@@ -22,7 +22,7 @@ declaration structure Individual:
      individual.income * fixed_percentage
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[WARNING]─
 │
@@ -79,7 +79,7 @@ declaration scope Foo:
  ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Foo
 ┌─[WARNING]─
 │

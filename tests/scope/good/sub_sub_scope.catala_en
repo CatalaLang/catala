@@ -32,7 +32,7 @@ scope C:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -62,7 +62,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[WARNING]─
 │
@@ -90,7 +90,7 @@ $ catala test-scope A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
 ┌─[WARNING]─
 │
@@ -117,7 +117,7 @@ $ catala test-scope B
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope C
 ┌─[WARNING]─
 │

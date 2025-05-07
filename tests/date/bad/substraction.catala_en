@@ -6,7 +6,7 @@ scope A:
   definition o equals |2024-01-16| - 0 day <= 0 day
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

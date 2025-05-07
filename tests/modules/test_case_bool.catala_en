@@ -10,7 +10,7 @@ scope A_test:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret -s A_test
 ┌─[ERROR]─
 │

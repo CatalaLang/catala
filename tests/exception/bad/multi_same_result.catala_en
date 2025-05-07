@@ -40,7 +40,7 @@ scope Test:
   definition a.case equals 6
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala dcalc -s A
 let scope A (A_in: A_in {case_in: integer}): A {taux: decimal} =
   let get case : integer = A_in.case_in in
@@ -55,7 +55,7 @@ let scope A (A_in: A_in {case_in: integer}): A {taux: decimal} =
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret -s Test
 ┌─[ERROR]─
 │
@@ -75,7 +75,7 @@ $ catala interpret -s Test
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret --lcalc -s Test
 ┌─[ERROR]─
 │
@@ -95,7 +95,7 @@ $ catala interpret --lcalc -s Test
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret --lcalc -s Test -O
 ┌─[ERROR]─
 │

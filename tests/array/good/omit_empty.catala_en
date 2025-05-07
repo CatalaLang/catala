@@ -32,7 +32,7 @@ scope B:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
 ┌─[RESULT]─ B ─
 │ argmax = S { -- id: 1 -- income: $9.00 }

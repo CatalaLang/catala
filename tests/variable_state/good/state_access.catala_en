@@ -23,7 +23,7 @@ scope A:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ bar = 5

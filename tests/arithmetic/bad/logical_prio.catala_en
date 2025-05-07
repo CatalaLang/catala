@@ -6,7 +6,7 @@ scope S1:
   definition o equals true and (false and true and true) or false
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

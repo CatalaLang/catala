@@ -13,7 +13,7 @@ scope TestBool:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -23,7 +23,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Dcalc 
 let TestBool : TestBool_in → TestBool =
   λ (TestBool_in: TestBool_in) →
@@ -44,7 +44,7 @@ in
 TestBool
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope TestBool
 ┌─[RESULT]─ TestBool ─
 │ bar = 1
@@ -52,7 +52,7 @@ $ catala test-scope TestBool
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Scopelang 
 
 #[test]

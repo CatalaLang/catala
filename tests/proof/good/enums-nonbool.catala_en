@@ -21,7 +21,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -41,7 +41,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │

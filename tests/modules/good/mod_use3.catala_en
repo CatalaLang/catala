@@ -21,7 +21,7 @@ scope T:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -31,7 +31,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope T
 ┌─[RESULT]─ T ─
 │ o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }

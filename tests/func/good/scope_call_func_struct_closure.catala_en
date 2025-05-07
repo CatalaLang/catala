@@ -42,7 +42,7 @@ two closures in Foo.r are different even with optimizations enabled.
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -52,7 +52,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -O --closure-conversion 
 type Eoption =
   | ENone of unit
@@ -177,7 +177,7 @@ let scope foo
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret --lcalc -s Foo -O --closure-conversion
 ┌─[RESULT]─ Foo ─
 │ z = 11

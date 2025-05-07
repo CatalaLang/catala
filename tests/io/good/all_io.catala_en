@@ -19,7 +19,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -29,7 +29,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Dcalc -s A
 let scope A
   (A_in:
@@ -53,7 +53,7 @@ let scope A
   return { A b = b; d = d; f = f; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck
 ┌─[RESULT]─
 │ Typechecking successful!

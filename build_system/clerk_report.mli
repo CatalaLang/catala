@@ -16,7 +16,7 @@
 
 (** This module defines and manipulates Clerk test reports, which can be written
     by `clerk runtest` and read to provide test result summaries. This only
-    concerns inline tests (```catala-test-inline blocks). *)
+    concerns inline tests (```catala-test-cli blocks). *)
 
 open Catala_utils
 

@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This module contains specific commands used to detect and run inline tests
+(** This module contains specific commands used to detect and run cli tests
     in Catala files. The functionality is built into the `clerk runtest`
     subcommand, but is separate from the normal Clerk behaviour: Clerk drives
     Ninja, which in turn might need to evaluate tests as part of some rules and

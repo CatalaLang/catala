@@ -58,7 +58,7 @@ scope Stest:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -68,7 +68,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Stest
 ┌─[RESULT]─ Stest ─
 │ o1 = S { -- ci: 0 -- cm: $0.00 -- cfun1: <function> -- cfun2: <function> }
@@ -98,7 +98,7 @@ scope TestSubDefault:
   definition x12 equals sub.cfun2 of 24
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope TestSubDefault
 ┌─[RESULT]─ TestSubDefault ─
 │ ci = 0
@@ -127,7 +127,7 @@ scope TestSubOverride:
   definition x22 equals sub.cfun2 of 24
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope TestSubOverride
 ┌─[RESULT]─ TestSubOverride ─
 │ ci = 1
