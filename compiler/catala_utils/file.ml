@@ -30,6 +30,17 @@ let finally f k =
     f ();
     r
 
+let original_cwd = Sys.getcwd ()
+
+let remove_prefix prefix f =
+  if String.starts_with ~prefix f && prefix <> "" then
+    String.remove_prefix ~prefix f
+    |> String.remove_prefix ~prefix:Filename.dir_sep
+  else f
+
+let rel_original_cwd () =
+  remove_prefix (Sys.getcwd ()) original_cwd
+
 let temp_file pfx sfx =
   let f = Filename.temp_file pfx sfx in
   if not Global.options.debug then
@@ -83,6 +94,36 @@ let rec ensure_dir dir =
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
 
+let path_to_list path =
+  String.split_on_char dir_sep_char path
+  |> List.filter (function "" | "." -> false | _ -> true)
+
+let make_absolute p =
+  clean_path @@ if Filename.is_relative p then Sys.getcwd () / p else p
+
+let common_prefix f1 f2 =
+  let rec aux p1 p2 = match p1, p2 with
+    | d1::p1, d2::p2 when d1 = d2 -> d1 :: aux p1 p2
+    | _ -> []
+  in
+  "" :: aux (path_to_list (make_absolute f1)) (path_to_list (make_absolute f2))
+  |> String.concat Filename.dir_sep
+
+
+let make_relative_to ~dir:dir0 f0 =
+  let dir = make_absolute dir0 in
+  let f = make_absolute f0 in
+  let prefix = common_prefix dir f in
+  Message.warning "PFX: %s DIR: %s" prefix dir;
+  let dir = remove_prefix prefix dir in
+  Message.warning "PFX: %s DIR: %s %d" prefix dir (List.length (path_to_list dir));
+  let f = remove_prefix prefix f in
+  prefix /
+  String.concat Filename.dir_sep (List.map (fun _ -> Filename.parent_dir_name) (path_to_list dir)) /
+  f
+  |> clean_path
+  |> (fun r -> Message.warning "MRT dir=%s %s ≡> %s" dir0 f0 r; r)
+
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   clean_path
   @@
@@ -90,14 +131,15 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   else
     let f =
       if Filename.is_relative f then f
-      else String.remove_prefix ~prefix:(from_dir / "") f
+      else make_relative_to ~dir:from_dir f
     in
-    if not (Filename.is_relative f) then f
-    else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
-    else
-      let rec aux acc rbase = function
-        | [] -> acc
-        | dir :: p -> (
+    let to_dir =
+      if Filename.is_relative to_dir then to_dir
+      else make_relative_to ~dir:from_dir to_dir
+    in
+    let rec aux acc rbase = function
+      | [] -> acc
+      | dir :: p -> (
           if dir = Filename.parent_dir_name then
             match rbase with
             | base1 :: rbase -> aux (base1 :: acc) rbase p
@@ -106,14 +148,10 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
             match acc with
             | dir1 :: acc when dir1 = dir -> aux acc rbase p
             | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
-      in
-      let path_to_list path =
-        String.split_on_char Filename.dir_sep.[0] path
-        |> List.filter (function "" | "." -> false | _ -> true)
-      in
-      let rbase = List.rev (path_to_list from_dir) in
-      String.concat Filename.dir_sep
-        (aux (path_to_list f) rbase (path_to_list to_dir))
+    in
+    let rbase = List.rev (path_to_list from_dir) in
+    String.concat Filename.dir_sep
+      (aux (path_to_list f) rbase (path_to_list to_dir))
 
 let find_in_parents ?cwd predicate =
   let cwd = match cwd with None -> Sys.getcwd () | Some cwd -> cwd in

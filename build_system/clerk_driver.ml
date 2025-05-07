@@ -96,8 +96,6 @@ let run_command ~clean_up_env ?(setenv = []) cmdline =
     in
     return_code
 
-let original_cwd = Sys.getcwd ()
-
 let iter_commands ~build_dir targets f =
   let multi_targets = match targets with [] | [_] -> false | _ -> true in
   List.fold_left
@@ -645,7 +643,6 @@ let test_cmd =
       (diff_command : string option option)
       (ninja_flags : string list) =
     set_report_verbosity verbosity;
-    Clerk_report.set_display_flags ~diff_command ();
     if backend <> `Interpret then
       if test_flags <> [] then
         Message.error "Test flags can only be supplied with the default @{<yellow>interpret@} backend"
@@ -661,6 +658,7 @@ let test_cmd =
       ~enabled_backends
       ~extra:Seq.empty ~test_flags
     @@ fun ~build_dir ~fix_path ~nin_file ~items ~var_bindings ->
+    Clerk_report.set_display_flags ~diff_command ~fix_path ();
     if backend <> `Interpret then
       let files_or_folders = match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs in
       let exit_code =

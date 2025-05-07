@@ -62,5 +62,6 @@ val set_display_flags :
   ?tests:[ `All | `FailedFile | `Failed | `None ] ->
   ?diffs:bool ->
   ?diff_command:string option option ->
+  ?fix_path : (File.t -> File.t) ->
   unit ->
   unit
