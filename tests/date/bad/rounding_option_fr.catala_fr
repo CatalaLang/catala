@@ -10,7 +10,7 @@ champ d'application Test:
   définition ambiguité égal à bday + 18 an <= today 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Test
 ┌─[ERROR]─
 │

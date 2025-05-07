@@ -12,7 +12,7 @@ scope S:
   definition out equals f1 of 10
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

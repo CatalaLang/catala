@@ -87,7 +87,7 @@ let test_flags =
            WARNING: flag shortcuts are not allowed here (i.e. don't use \
            non-ambiguous prefixes such as $(b,--closure) for \
            $(b,--closure-conversion))\n\
-           NOTE: if this is set, all inline tests that are $(i,not) $(b,catala \
+           NOTE: if this is set, all cli tests that are $(i,not) $(b,catala \
            test-scope) are skipped to avoid redundant testing.")
 
 let runtest_report =

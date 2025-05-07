@@ -36,7 +36,7 @@ scope Middle_case:
 	-- Case1 : 42
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope First_case
 ┌─[ERROR]─
 │
@@ -60,7 +60,7 @@ $ catala test-scope First_case
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Middle_case
 ┌─[ERROR]─
 │

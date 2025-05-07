@@ -121,7 +121,7 @@ scope Amount:
     80 * number_of_advisors
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[ERROR]─
 │

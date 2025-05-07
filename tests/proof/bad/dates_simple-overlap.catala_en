@@ -13,7 +13,7 @@ scope A:
   definition y under condition x >= |2020-01-01| consequence equals false
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

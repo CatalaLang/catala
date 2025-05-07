@@ -80,7 +80,7 @@ scope B:
     with insert of (x, sorted)
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -90,7 +90,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ x = [$12.00; $13.50; $11.00; $100.10; $50.20]
@@ -98,7 +98,7 @@ $ catala test-scope A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
 ┌─[RESULT]─ B ─
 │ count = 5

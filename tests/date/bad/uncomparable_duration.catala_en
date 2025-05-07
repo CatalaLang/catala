@@ -40,7 +40,7 @@ scope Ge:
   definition d equals 1 month >= 2 day
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Ge
 ┌─[ERROR]─
 │
@@ -56,7 +56,7 @@ $ catala test-scope Ge
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Gt
 ┌─[ERROR]─
 │
@@ -72,7 +72,7 @@ $ catala test-scope Gt
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Le
 ┌─[ERROR]─
 │
@@ -88,7 +88,7 @@ $ catala test-scope Le
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Lt
 ┌─[ERROR]─
 │

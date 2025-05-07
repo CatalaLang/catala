@@ -930,7 +930,7 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
      | "```catala", Opt ("-metadata"), Star hspace, (eol | eof) ->
        context := `Code;
        Some (Utf8.lexeme lexbuf, LINE_ANY)
-     | "```catala-test-inline", Star hspace, (eol | eof) ->
+     | "```catala-test-cli", Star hspace, (eol | eof) ->
        context := `Test;
        Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
      | "```", Star any_but_eol, (eol | eof) ->

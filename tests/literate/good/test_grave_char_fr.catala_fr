@@ -29,7 +29,7 @@ int main(void) { return 0; }
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -39,7 +39,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = vrai

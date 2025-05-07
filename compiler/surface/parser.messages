@@ -2645,5 +2645,5 @@ expected one of
 - plain text law in markdown format
 - a catala metadata block started with '```catala-metadata'
 - a catala code block started with '```catala'
-- a catala test block started with '```catala-test-inline' or '```catala-test'
+- a catala test block started with '```catala-test-cli' or '```catala-test'
 - a directive, e.g. '> Include: <filename>'

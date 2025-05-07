@@ -26,7 +26,7 @@ scope S4:
 # Note: there are two cycles in the same SCC here, either may be reported
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

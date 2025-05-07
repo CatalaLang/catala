@@ -10,7 +10,7 @@ scope A:
     to x + y
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

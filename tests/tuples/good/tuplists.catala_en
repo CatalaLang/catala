@@ -43,14 +43,14 @@ scope S:
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[RESULT]─
 │ Typechecking successful!
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ r1 =
@@ -92,7 +92,7 @@ $ catala test-scope S
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala dcalc -O
 let lis1 : list of decimal = [12.; 13.; 14.; 15.; 16.; 17.] in
 let lis2 : list of money =

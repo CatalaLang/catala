@@ -33,7 +33,7 @@ scope Test:
   assertion o = (|2001-01-03|, 6.0)
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -43,7 +43,7 @@ $ catala typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Test
 ┌─[RESULT]─ Test ─
 │ o = (2001-01-03, 6.0)

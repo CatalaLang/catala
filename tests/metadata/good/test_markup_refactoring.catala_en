@@ -30,7 +30,7 @@ scope S2:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -40,14 +40,14 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S2
 ┌─[RESULT]─ S2 ─
 │ b = B ()
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ a = A ()

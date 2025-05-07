@@ -19,7 +19,7 @@ scope A:
     -- Case2 : true consequence equals 2
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

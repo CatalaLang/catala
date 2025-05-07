@@ -25,7 +25,7 @@ scope RentComputation:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -35,7 +35,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret -s RentComputation --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =
@@ -68,7 +68,7 @@ $ catala interpret -s RentComputation --debug
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =

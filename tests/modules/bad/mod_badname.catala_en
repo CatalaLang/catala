@@ -1,7 +1,7 @@
 > Module This_is_not_the_file_name
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

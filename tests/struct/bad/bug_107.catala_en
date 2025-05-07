@@ -16,7 +16,7 @@ scope A:
   definition a equals S { --x : 0 -- y : 1 }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

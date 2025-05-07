@@ -6,7 +6,7 @@ language.
 Tests are declared inside plain Catala files with the following format:
 
 ~~~markdown
-```catala-test-inline
+```catala-test-cli
 $ catala ARGS
 ... output from the catala command ...
 ```
@@ -24,7 +24,7 @@ with optimisations enabled or disabled, with the lcalc interpreter, and so on)
 2. Write your test, and pick a toplevel scope `A` to run.
 3. Add the following section to your file:
       ~~~markdown
-      ```catala-test-inline
+      ```catala-test-cli
       $ catala test-scope A
       ```
       ~~~

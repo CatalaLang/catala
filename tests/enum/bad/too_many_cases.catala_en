@@ -21,7 +21,7 @@ scope A:
     -- Case4 : true
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

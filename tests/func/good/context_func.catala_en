@@ -17,7 +17,7 @@ scope B:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -37,7 +37,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Scopelang -s B
 ┌─[WARNING]─
 │
@@ -57,7 +57,7 @@ let scope B
     A of {"f"= (λ (x: integer) → ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩)}
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Dcalc -s A
 ┌─[WARNING]─
 │
@@ -82,7 +82,7 @@ let scope A
   return { A f = f; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Dcalc -s B
 ┌─[WARNING]─
 │

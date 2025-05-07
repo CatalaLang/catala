@@ -61,7 +61,7 @@ val get_law_heading : Sedlexing.lexbuf -> Tokens.token
 
 (** Simplified tokens for dependency extraction *)
 type line_token =
-  | LINE_INLINE_TEST  (** ```catala-test-inline *)
+  | LINE_INLINE_TEST  (** ```catala-test-cli *)
   | LINE_BLOCK_END  (** ``` *)
   | LINE_INCLUDE of string  (** > Include foo.catala_en *)
   | LINE_MODULE_DEF of string * bool  (** > Module Xxx [external] *)

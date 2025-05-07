@@ -679,10 +679,14 @@ let test_cmd =
             Message.error
               "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
           let ppf = Message.formatter_of_out_channel stdout () in
-          match List.filter (fun f -> f.successful < f.total) reports with
+          match
+            List.filter
+              (fun f -> List.exists (fun t -> not t.i_success) f.tests)
+              reports
+          with
           | [] ->
             Format.fprintf ppf
-              "[@{<green>DONE@}] All tests passed, nothing to reset@."
+              "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
           | need_reset ->
             List.iter
               (fun f ->
@@ -746,7 +750,7 @@ let runtest_cmd =
     0
   in
   let doc =
-    "Mainly for internal purposes. Runs inline tests from a Catala file, and \
+    "Mainly for internal purposes. Runs cli tests from a Catala file, and \
      outputs their results to stdout"
   in
   Cmd.v (Cmd.info ~doc "runtest")

@@ -1,7 +1,7 @@
 > Include: mod_badname.catala_en
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │
