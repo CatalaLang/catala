@@ -519,113 +519,112 @@ let run_artifact ~backend ~var_bindings ?scope src =
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command ~clean_up_env:false cmd
 
+let enable_backends = function
+  | `Interpret | `OCaml -> [Clerk_rules.OCaml]
+  | `C -> [Clerk_rules.C]
+  | `Python -> [Clerk_rules.Python]
+  | `Java -> [Clerk_rules.Java]
+
+let run_tests
+    ~build_dir
+    ~fix_path
+    ~nin_file
+    ~items
+    ~var_bindings
+    ~ninja_flags
+    ~backend
+    ~scope
+    ~cmd
+    files_or_folders =
+  let open File in
+  let items = List.of_seq items in
+  let target_items =
+    List.concat_map
+      (fun file ->
+        let ffile = fix_path file in
+        let is_dir = try Sys.is_directory ffile with Sys_error _ -> false in
+        let filter item =
+          if is_dir then
+            String.starts_with ~prefix:(ffile / "") item.Scan.file_name
+            && Lazy.force item.Scan.has_scope_tests
+          else
+            item.Scan.module_def = Some file
+            || item.Scan.file_name = ffile
+            || Filename.remove_extension item.file_name = ffile
+        in
+        let items = List.filter filter items in
+        if items = [] then
+          Message.error "No source file or module matching %a found" format file;
+        items)
+      files_or_folders
+  in
+  if target_items = [] then Message.error "Nothing to run";
+  let base_targets =
+    List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
+  in
+  let link_deps = linking_dependencies items in
+  let ninja_cmd =
+    let ninja_targets =
+      List.fold_left
+        (fun acc (it, t) ->
+          if String.Set.mem t acc then acc
+          else
+            String.Set.add t
+            @@ List.fold_left
+                 (fun acc it ->
+                   String.Set.add
+                     (make_target ~build_dir ~backend:`Interpret_module it)
+                     acc)
+                 acc (link_deps it))
+        String.Set.empty base_targets
+    in
+    ninja_cmdline ninja_flags nin_file (String.Set.elements ninja_targets)
+  in
+  Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
+  let exit_code = run_command ~clean_up_env:false ninja_cmd in
+  if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
+  let exit_code =
+    match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
+    | `Interpret ->
+      let catala_flags =
+        get_var var_bindings Var.catala_flags
+        @
+        match scope with
+        | None -> []
+        | Some s -> [Printf.sprintf "--scope=%s" s]
+      in
+      let exec = get_var var_bindings Var.catala_exe in
+      iter_commands ~build_dir base_targets
+      @@ fun _item target ->
+      let cmd = exec @ [cmd; target] @ catala_flags in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      run_command ~clean_up_env:false cmd
+    | (`C | `OCaml | `Python | `Java) as backend -> (
+      let link_cmd =
+        linking_command ~build_dir ~backend ~var_bindings link_deps
+      in
+      iter_commands ~build_dir base_targets
+      @@ fun item target ->
+      let cmd = link_cmd item target in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      match run_command ~clean_up_env:false cmd with
+      | 0 -> run_artifact ~backend ~var_bindings ?scope target
+      | n -> n)
+  in
+  exit_code
+
 let run_cmd =
   let run
       ninja_init
       (files_or_folders : File.t list)
       backend
       cmd
-      ignore_modules
       (scope : string option)
       (ninja_flags : string list) =
-    let enabled_backends =
-      match backend with
-      | `Interpret | `OCaml -> [Clerk_rules.OCaml]
-      | `C -> [Clerk_rules.C]
-      | `Python -> [Clerk_rules.Python]
-      | `Java -> [Clerk_rules.Java]
-    in
-    let open File in
-    ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
-    @@ fun ~build_dir ~fix_path ~nin_file ~items ~var_bindings ->
-    Message.debug "Enabled backends: %a"
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
-      (List.map
-         Clerk_rules.(
-           function
-           | OCaml -> "OCaml"
-           | C -> "C"
-           | Python -> "Python"
-           | Java -> "Java"
-           | Tests -> "Tests")
-         enabled_backends);
-    let items = List.of_seq items in
-    let target_items =
-      List.concat_map
-        (fun file ->
-          let ffile = fix_path file in
-          let is_dir = try Sys.is_directory ffile with Sys_error _ -> false in
-          let filter item =
-            if is_dir then
-              item.Scan.module_def = None
-              && String.starts_with ~prefix:(ffile / "") item.file_name
-            else
-              item.Scan.module_def = Some file
-              || item.Scan.file_name = ffile
-              || Filename.remove_extension item.file_name = ffile
-          in
-          match List.filter filter items with
-          | [] ->
-            Message.error "No source file or module matching %a found" format
-              file
-          | targets ->
-            if ignore_modules then
-              List.filter (fun item -> item.Scan.module_def = None) targets
-            else targets)
-        files_or_folders
-    in
-    if target_items = [] then Message.error "Nothing to run";
-    let base_targets =
-      List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
-    in
-    let link_deps = linking_dependencies items in
-    let ninja_cmd =
-      let ninja_targets =
-        List.fold_left
-          (fun acc (it, t) ->
-            if String.Set.mem t acc then acc
-            else
-              String.Set.add t
-              @@ List.fold_left
-                   (fun acc it ->
-                     String.Set.add
-                       (make_target ~build_dir ~backend:`Interpret_module it)
-                       acc)
-                   acc (link_deps it))
-          String.Set.empty base_targets
-      in
-      ninja_cmdline ninja_flags nin_file (String.Set.elements ninja_targets)
-    in
-    Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
-    let exit_code = run_command ~clean_up_env:false ninja_cmd in
-    if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
+    let enabled_backends = enable_backends backend in
     let exit_code =
-      match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
-      | `Interpret ->
-        let catala_flags =
-          get_var var_bindings Var.catala_flags
-          @
-          match scope with
-          | None -> []
-          | Some s -> [Printf.sprintf "--scope=%s" s]
-        in
-        let exec = get_var var_bindings Var.catala_exe in
-        iter_commands ~build_dir base_targets
-        @@ fun _item target ->
-        let cmd = exec @ [cmd; target] @ catala_flags in
-        Message.debug "Running command: '%s'..." (String.concat " " cmd);
-        run_command ~clean_up_env:false cmd
-      | (`C | `OCaml | `Python | `Java) as backend -> (
-        let link_cmd =
-          linking_command ~build_dir ~backend ~var_bindings link_deps
-        in
-        iter_commands ~build_dir base_targets
-        @@ fun item target ->
-        let cmd = link_cmd item target in
-        Message.debug "Running command: '%s'..." (String.concat " " cmd);
-        match run_command ~clean_up_env:false cmd with
-        | 0 -> run_artifact ~backend ~var_bindings ?scope target
-        | n -> n)
+      ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags:[]
+        (run_tests ~backend ~ninja_flags ~cmd ~scope files_or_folders)
     in
     raise (Catala_utils.Cli.Exit_with exit_code)
   in
@@ -641,7 +640,6 @@ let run_cmd =
       $ Cli.files_or_folders
       $ Cli.backend
       $ Cli.run_command
-      $ Cli.ignore_modules
       $ Cli.scope
       $ Cli.ninja_flags)
 
@@ -649,6 +647,7 @@ let test_cmd =
   let run
       ninja_init
       (files_or_folders : string list)
+      (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
       (reset_test_outputs : bool)
       (test_flags : string list)
       verbosity
@@ -657,79 +656,112 @@ let test_cmd =
       (ninja_flags : string list) =
     set_report_verbosity verbosity;
     Clerk_report.set_display_flags ~diff_command ();
-    ninja_init
-      ~enabled_backends:Clerk_rules.[OCaml; Tests]
-      ~extra:Seq.empty ~test_flags
-    @@ fun ~build_dir ~fix_path ~nin_file ~items:_ ~var_bindings:_ ->
-    let targets =
-      let fs = if files_or_folders = [] then ["."] else files_or_folders in
-      List.map File.(fun f -> build_dir / fix_path f) fs
+    if backend <> `Interpret then
+      if test_flags <> [] then
+        Message.error
+          "Test flags can only be supplied with the default \
+           @{<yellow>interpret@} backend"
+      else if reset_test_outputs then
+        Message.error
+          "@{<bold>--reset@} can only be supplied with the default \
+           @{<yellow>interpret@} backend"
+      else if xml then
+        Message.error
+          "Option @{<bold>--xml@} was specified, but the output of a test \
+           report is only supported with the default @{<yellow>interpret@} \
+           backend at the moment";
+    let enabled_backends =
+      (if backend = `Interpret then [Clerk_rules.Tests] else [])
+      @ enable_backends backend
     in
-    let test_targets = List.map (fun f -> f ^ "@test") targets in
-    let ninja_cmd = ninja_cmdline ninja_flags nin_file test_targets in
-    Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
-    match run_command ~clean_up_env:true ninja_cmd with
-    | 0 ->
-      Message.debug "gathering test results...";
-      let open Clerk_report in
-      let reports = List.flatten (List.map read_many test_targets) in
-      if reset_test_outputs then
-        let () =
-          if xml then
-            Message.error
-              "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
-          let ppf = Message.formatter_of_out_channel stdout () in
-          match
-            List.filter
-              (fun f -> List.exists (fun t -> not t.i_success) f.tests)
-              reports
-          with
-          | [] ->
-            Format.fprintf ppf
-              "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
-          | need_reset ->
-            List.iter
-              (fun f ->
-                let files =
-                  List.fold_left
-                    (fun files t ->
-                      if t.i_success then files
-                      else
-                        File.Map.add (fst t.i_result).Lexing.pos_fname
-                          (String.remove_prefix
-                             ~prefix:File.(build_dir / "")
-                             (fst t.i_expected).Lexing.pos_fname)
-                          files)
-                    File.Map.empty f.tests
-                in
-                File.Map.iter
-                  (fun result expected -> File.copy ~src:result ~dst:expected)
-                  files)
-              need_reset;
-            Format.fprintf ppf
-              "[@{<green>DONE@}] @{<yellow;bold>%d@} test files were \
-               @{<yellow>RESET@}@."
-              (List.length need_reset)
-        in
-        raise (Catala_utils.Cli.Exit_with 0)
-      else if (if xml then print_xml else summary) ~build_dir reports then
-        raise (Catala_utils.Cli.Exit_with 0)
-      else raise (Catala_utils.Cli.Exit_with 1)
-    | 1 -> raise (Catala_utils.Cli.Exit_with 10) (* Ninja build failed *)
-    | err -> raise (Catala_utils.Cli.Exit_with err)
+    ninja_init ~enabled_backends ~extra:Seq.empty ~test_flags
+    @@ fun ~build_dir ~fix_path ~nin_file ~items ~var_bindings ->
+    if backend <> `Interpret then
+      let files_or_folders =
+        match files_or_folders with
+        | [] -> [Filename.current_dir_name]
+        | fs -> fs
+      in
+      let exit_code =
+        run_tests ~build_dir ~fix_path ~nin_file ~items ~backend ~ninja_flags
+          ~cmd:"unused" ~scope:None ~var_bindings files_or_folders
+      in
+      raise (Catala_utils.Cli.Exit_with exit_code)
+    else
+      let targets =
+        let fs = if files_or_folders = [] then ["."] else files_or_folders in
+        List.map File.(fun f -> build_dir / fix_path f) fs
+      in
+      let test_targets = List.map (fun f -> f ^ "@test") targets in
+      let ninja_cmd = ninja_cmdline ninja_flags nin_file test_targets in
+      Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
+      match run_command ~clean_up_env:true ninja_cmd with
+      | 0 ->
+        Message.debug "gathering test results...";
+        let open Clerk_report in
+        let reports = List.flatten (List.map read_many test_targets) in
+        if reset_test_outputs then
+          let () =
+            if xml then
+              Message.error
+                "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
+            let ppf = Message.formatter_of_out_channel stdout () in
+            match
+              List.filter
+                (fun f -> List.exists (fun t -> not t.i_success) f.tests)
+                reports
+            with
+            | [] ->
+              Format.fprintf ppf
+                "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
+            | need_reset ->
+              List.iter
+                (fun f ->
+                  let files =
+                    List.fold_left
+                      (fun files t ->
+                        if t.i_success then files
+                        else
+                          File.Map.add (fst t.i_result).Lexing.pos_fname
+                            (String.remove_prefix
+                               ~prefix:File.(build_dir / "")
+                               (fst t.i_expected).Lexing.pos_fname)
+                            files)
+                      File.Map.empty f.tests
+                  in
+                  File.Map.iter
+                    (fun result expected -> File.copy ~src:result ~dst:expected)
+                    files)
+                need_reset;
+              Format.fprintf ppf
+                "[@{<green>DONE@}] @{<yellow;bold>%d@} test files were \
+                 @{<yellow>RESET@}@."
+                (List.length need_reset)
+          in
+          raise (Catala_utils.Cli.Exit_with 0)
+        else if (if xml then print_xml else summary) ~build_dir reports then
+          raise (Catala_utils.Cli.Exit_with 0)
+        else raise (Catala_utils.Cli.Exit_with 1)
+      | 1 -> raise (Catala_utils.Cli.Exit_with 10) (* Ninja build failed *)
+      | err -> raise (Catala_utils.Cli.Exit_with err)
     (* Other Ninja error ? *)
   in
   let doc =
     "Scan the given files or directories for catala tests, build their \
-     requirement and run them all. With $(b,--reset) the expected results are \
-     updated in-place ; otherwise, 0 is returned if the output matches the \
-     reference, or 1 is returned and a diff is printed to stdout"
+     requirement and run them all. If $(b,--backend) is unspecified or \
+     $(b,interpret), both scope tests and CLI tests are run ; $(b,--reset) can \
+     be used to rewrite the expected results of CLI tests to their current \
+     result. For any other $(b,--backend), CLI tests are skipped and scope \
+     tests are compiled to the specified backend with the catala option \
+     $(b,--autotest), and then run, ensuring the consistency of results."
   in
   Cmd.v (Cmd.info ~doc "test")
     Term.(
       const run
-      $ Cli.Global.term Clerk_rules.ninja_init
+      $ Cli.Global.term (fun ~autotest:_ ->
+            Clerk_rules.ninja_init ~autotest:true)
       $ Cli.files_or_folders
+      $ Cli.backend
       $ Cli.reset_test_outputs
       $ Cli.test_flags
       $ Cli.report_verbosity

@@ -291,11 +291,13 @@ let print_command ~build_dir ppf file cmd =
 let display ~build_dir file ppf t =
   Format.pp_open_vbox ppf 2;
   if t.i_success then (
-    Format.fprintf ppf "@{<green>■@} %a passed" (pp_pos ~build_dir) t.i_expected;
+    Format.fprintf ppf "@{<green>■@} %a cli test passed" (pp_pos ~build_dir)
+      t.i_expected;
     if Global.options.debug then
       print_command ~build_dir ppf file t.i_command_line)
   else (
-    Format.fprintf ppf "@{<red>■@} %a failed" (pp_pos ~build_dir) t.i_expected;
+    Format.fprintf ppf "@{<red>■@} %a cli test failed" (pp_pos ~build_dir)
+      t.i_expected;
     print_command ~build_dir ppf file t.i_command_line;
     if disp_flags.diffs then (
       Format.pp_print_cut ppf ();
@@ -304,9 +306,11 @@ let display ~build_dir file ppf t =
 
 let display_scope ~build_dir file ppf scope_test =
   Format.pp_open_vbox ppf 2;
-  if scope_test.s_success then
+  if scope_test.s_success then (
     Format.fprintf ppf "@{<green>■@} scope @{<hi_magenta>%s@} passed"
-      scope_test.s_name
+      scope_test.s_name;
+    if Global.options.debug then
+      print_command ~build_dir ppf file scope_test.s_command_line)
   else (
     Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
       scope_test.s_name;
@@ -349,7 +353,9 @@ let display_file ~build_dir ppf t =
         "@{<green;reverse;ul>  @} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
          passed"
         (pfile t.name) t.successful t.total;
-      if disp_flags.tests = `All then print_tests t.tests;
+      if disp_flags.tests = `All then (
+        print_tests t.tests;
+        print_scopes t.scopes);
       Format.pp_print_cut ppf ()))
   else
     let () =

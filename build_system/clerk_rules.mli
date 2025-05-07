@@ -60,10 +60,10 @@ val base_bindings :
   Ninja_utils.def list
 
 val ninja_init :
+  autotest:bool ->
   config_file:File.t option ->
   catala_exe:File.t option ->
   catala_opts:string list ->
-  autotest:bool ->
   build_dir:File.t option ->
   include_dirs:File.t list ->
   vars_override:(string * string) list ->

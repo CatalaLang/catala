@@ -625,10 +625,10 @@ let gen_ninja_file
 (* Last argument is a continuation taking as arguments the enabled backends,
    [build_dir], the [fix_path] function, and the ninja file name *)
 let ninja_init
+    ~autotest
     ~config_file
     ~catala_exe
     ~catala_opts
-    ~autotest
     ~build_dir
     ~include_dirs
     ~vars_override
