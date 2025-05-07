@@ -22,14 +22,13 @@ scope Section121SinglePerson:
   # - either the 5 years mark is inside the period and we only
   #   cound the half after 5 years
   definition aggregate_periods_from_last_five_years of periods equals
-    sum duration of (
-      if date_of_sale_or_exchange <= period.begin + 5 year then
-        period.end - period.begin
-      else (if date_of_sale_or_exchange >= period.end + 5 year then
-        0 day
-      else ((period.end + 5 year) - date_of_sale_or_exchange))
-    )
-    for period among periods
+    sum duration of
+      map each period among periods to
+        if date_of_sale_or_exchange <= period.begin + 5 year then
+          period.end - period.begin
+        else (if date_of_sale_or_exchange >= period.end + 5 year then
+          0 day
+        else ((period.end + 5 year) - date_of_sale_or_exchange))
 
   rule requirements_ownership_met under condition
     aggregate_periods_from_last_five_years of property_ownage >= 730 day
@@ -106,7 +105,7 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
                in
                (aggregate_periods_from_last_five_years,
                  to_closure_env (date_of_sale_or_exchange)))
-            periods, <aggregation_4:25.5-32.29>))
+            periods, <aggregation_4:25.5-31.65>))
   with
   | ENone → error NoValue
   | ESome arg → arg.0
@@ -146,7 +145,7 @@ let scope section121_single_person
             code_and_env.0 code_and_env.1 property_ownage)
            >= [0 years, 0 months, 730 days]
          then
-           ESome (true, <aggregation_4:36.14-24>)
+           ESome (true, <aggregation_4:35.14-24>)
          else ENone ()
        with
        | ENone → ESome (false, <aggregation_4:13.10-36>)

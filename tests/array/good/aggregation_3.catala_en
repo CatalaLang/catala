@@ -6,15 +6,15 @@ scope S:
     definition x equals 0
 
 # Map
-    assertion (i + 2) for i among [1; 2; 3] = [3; 4; 5]
+    assertion (map each i among [1; 2; 3] to (i + 2))  = [3; 4; 5]
 
 # Filter
     assertion (list of i among [1; 2; 3] such that i >= 2) = [2; 3]
-    assertion ((i + 2) for i among [1; 2; 3] such that i > 2) = [5]
+    assertion (map each i among [1; 2; 3] such that i > 2 to (i + 2) ) = [5]
 
 # Sum
     assertion sum integer of [1; 2; 3] = 6
-    assertion sum integer of (i + 2) for i among [1; 2; 3] = 12
+    assertion sum integer of (map each i among [1; 2; 3] to (i + 2)) = 12
 
 # Count
     assertion number of [1; 2; 3] = 3
@@ -22,7 +22,7 @@ scope S:
 
 # Extremum
     assertion maximum of [1; 2; 3] or if list empty then 10 = 3
-    assertion maximum of (decimal of i) for i among [1; 2; 3] or if list empty then 10. = 3.
+    assertion maximum of map each i among [1; 2; 3] to (decimal of i) or if list empty then 10. = 3.
 
 # Arg extremum
     assertion (content of i among [1; 2; 3]

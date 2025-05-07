@@ -1,0 +1,25 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content list of integer
+
+scope A:
+  definition x equals
+    map each (x,y) among ([1], [2 ; 3])
+    to x + y
+```
+
+```catala-test-inline
+$ catala test-scope A
+┌─[ERROR]─
+│
+│  During evaluation: traversing multiple lists of different lengths.
+│
+├─➤ tests/array/bad/map2.catala_en:9.5-9.13:
+│   │
+│ 9 │     map each (x,y) among ([1], [2 ; 3])
+│   │     ‾‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```

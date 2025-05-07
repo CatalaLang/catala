@@ -76,6 +76,11 @@
 #define MS_IN "w"
 #define MS_AMONG "wśród"
 #define MR_AMONG "w", 0x15B, "r", 0xf3, "d"
+#define MS_COMBINE "połączyć"
+#define MR_COMBINE "po", 0x0142, 0x0105 , "czy", 0x0107
+#define MS_MAP_EACH "plan każdy"
+#define MR_MAP_EACH "plan", space_plus, "ka", 0x017C, "dy"
+#define MS_TO "do"
 #define MS_SUCH "takie że"
 #define MR_SUCH "takie", space_plus, 0x017C, "e"
 #define MS_THAT "to"
@@ -90,8 +95,6 @@
 #define MR_OR_IF_LIST_EMPTY "lub", space_plus, "je", 0x017C, "eli", space_plus, "lista", space_plus, "pusta"
 #define MS_BUT_REPLACE "ale zastąpić"
 #define MR_BUT_REPLACE "ale", space_plus, "zast", 0x0105, "pi", 0x0107
-#define MS_COMBINE "łączyć"
-#define MR_COMBINE 0x0142, 0x0105, "czy", 0x0107
 #define MS_INITIALLY "początkowo"
 #define MR_INITIALLY "pocz", 0X0105, "tkowo"
 #define MS_CARDINAL "liczba"

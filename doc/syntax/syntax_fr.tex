@@ -205,7 +205,7 @@
 \section{Littéraux et types}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  
+
   \begin{catala}
     ```catala
     vrai                faux
@@ -309,7 +309,7 @@
   \end{catala}
 
   \\
-  
+
   \begin{catala}
     ```catala
     Struct1 { -- chp1: 9 -- chp2: 7% }
@@ -322,7 +322,7 @@
   \end{catala}
 
   \\
-  
+
   \begin{catala}
     ```catala
     Cas1 contenu 12        Cas2
@@ -401,7 +401,7 @@
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
 
-  
+
   \begin{catala}
     ```catala
     déclaration structure Struct1:
@@ -681,7 +681,8 @@
   \\
   \begin{catala}
     ```catala
-    (x + 2) pour x parmi lst
+    transforme chaque x parmi lst
+      en x + 2
     ```
   \end{catala}
   & Application un-à-un
@@ -695,18 +696,19 @@
   \\
   \begin{catala}
     ```catala
-    (x - 2) pour x parmi lst
-      tel que x > 2
+    transforme chaque x parmi lst
+      tel que x > 2 en x - 2
     ```
   \end{catala}
   & Filtrage + application
   \\
   \begin{catala}
     ```catala
-    (x + y) pour (x, y) parmi (lst1, lst2)
+    transforme chaque (x, y)
+      parmi (lst1, lst2) en x + y
     ```
   \end{catala}
-  & Multiple mapping
+  & Application multiple
   \\
   \begin{catala}
     ```catala
@@ -748,9 +750,9 @@
   \\
   \begin{catala}
     ```catala
-    combinaison de acc
-      initialement 0 avec acc + x
-      pour x parmi lst
+    combine tout x parmi lst
+      dans acc initialement 0
+      avec (acc + x)
     ```
   \end{catala}
   & Fold

@@ -20,7 +20,7 @@ declaration closure_assert content (Assert_in, Assert__1)
 
 scope Assert:
   definition assert equals
-  let assert equals (x+1) for x among [0] in false
+  let assert equals map each x among [0] to (x+1) in false
 ```
 
 ```catala-test-inline
@@ -94,7 +94,7 @@ let scope assert
                     (assert__2, to_closure_env ()))
                  [0]
              in
-             false, <conflicts:23.3-51>))
+             false, <conflicts:23.3-59>))
        with
        | ENone → ESome (false, <conflicts:19.10-16>)
        | ESome x → ESome x)
@@ -161,7 +161,7 @@ let assert__1 : Assert_in__1.t -> Assert__2.t = fun _ ->
                    ([|(integer_of_string "0")|])) in
               false),
               ({filename="tests/name_resolution/good/conflicts.catala_en";
-                start_line=23; start_column=3; end_line=23; end_column=51;
+                start_line=23; start_column=3; end_line=23; end_column=59;
                 law_headings=[]})))
        with
        | Eoption.ENone _ ->
