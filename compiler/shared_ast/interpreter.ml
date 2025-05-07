@@ -279,11 +279,14 @@ let rec evaluate_operator
     ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray (List.map (fun e' -> eval_application evaluate_expr f [e']) es)
-  | Map2, [f; (EArray es1, _); (EArray es2, _)] ->
-    EArray
-      (List.map2
-         (fun e1 e2 -> eval_application evaluate_expr f [e1; e2])
-         es1 es2)
+  | Map2, [f; (EArray es1, _); (EArray es2, _)] -> (
+    try
+      EArray
+        (List.map2
+           (fun e1 e2 -> eval_application evaluate_expr f [e1; e2])
+           es1 es2)
+    with Invalid_argument _ ->
+      raise Runtime.(Error (NotSameLength, [Expr.pos_to_runtime opos])))
   | Reduce, [_; default; (EArray [], _)] ->
     Mark.remove
       (eval_application evaluate_expr default
