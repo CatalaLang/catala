@@ -653,9 +653,13 @@
   \\
 \end{tabular}
 
+\vspace{-5pt}
+
 \vfill
 
 \section{Opérations sur les listes}
+
+\vspace{-5pt}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
@@ -682,7 +686,7 @@
   \begin{catala}
     ```catala
     transforme chaque x parmi lst
-      en x + 2
+      en x - 2
     ```
   \end{catala}
   & Application un-à-un
@@ -752,10 +756,10 @@
     ```catala
     combine tout x parmi lst
       dans acc initialement 0
-      avec (acc + x)
+      avec acc + x
     ```
   \end{catala}
-  & Fold
+  & Accumulation
   \\
 \end{tabular}
 

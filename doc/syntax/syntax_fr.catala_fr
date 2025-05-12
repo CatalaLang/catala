@@ -212,18 +212,18 @@ déclaration x contenu entier égal à
   dans
   soit x égal à
     transforme chaque x parmi lst
-      en (x + 2)
+      en x + 2
   dans
   soit x égal à
     liste de x parmi lst tel que x > 2
   dans
   soit x égal à
     transforme chaque x parmi lst
-      tel que x > 2 en (x - 2)
+      tel que x > 2 en x - 2
   dans
   soit x égal à
     transforme chaque (x, y)
-      parmi (lst1, lst2) en (x + y)
+      parmi (lst1, lst2) en x + y
   dans
   soit x égal à
     lst1 ++ lst2
@@ -246,7 +246,7 @@ déclaration x contenu entier égal à
   soit x égal à
     combine tout x parmi lst
     dans acc initialement 0
-    avec (acc + x)
+    avec acc + x
   dans
   0
 ```
