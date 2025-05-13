@@ -40,7 +40,6 @@ type context = {
   global_funcs : FuncName.Set.t;
   global_vars : VarName.Set.t;
   external_global_funcs : String.Set.t;
-  external_global_vars : String.Set.t;
   external_scopes : string String.Map.t;
 }
 
@@ -128,6 +127,11 @@ let format_qualified
 let format_struct = format_qualified (module StructName)
 let format_enum = format_qualified (module EnumName)
 let format_scope = format_qualified (module ScopeName)
+
+let format_external_modulename ppf modname =
+  pp_print_string ppf
+    (String.to_snake_case (VarName.to_string (Mark.remove modname))
+    |> String.capitalize_ascii)
 
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
@@ -408,8 +412,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       args
   | EApp { f = EExternal { modname; name }, _; args }
     when String.Set.mem (Mark.remove name) ctx.external_global_funcs ->
-    fprintf ppf "@[<hv 0>%a.Globals.%s.apply(@;<0 -1>%a)@]" VarName.format
-      (Mark.remove modname) (Mark.remove name)
+    fprintf ppf "@[<hv 0>%a.Globals.%s.apply(@;<0 -1>%a)@]"
+      format_external_modulename modname (Mark.remove name)
       (format_currified_args ctx)
       args
   | EApp { f = EFunc fname, _; args }
@@ -421,8 +425,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EApp { f = EExternal { modname; name }, _; args }
     when String.Map.mem (Mark.remove name) ctx.external_scopes ->
     let scope_name = String.Map.find (Mark.remove name) ctx.external_scopes in
-    fprintf ppf "@[<hv 0>new %a.%s(@;<0 -1>%a)@]" VarName.format
-      (Mark.remove modname) scope_name
+    fprintf ppf "@[<hv 0>new %a.%s(@;<0 -1>%a)@]" format_external_modulename
+      modname scope_name
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f; args } ->
@@ -450,12 +454,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "((%a)%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)
       e1 index
-  | EExternal { modname; name }
-    when String.Set.mem (Mark.remove name) ctx.external_global_vars ->
-    fprintf ppf "%a.Globals.%s" VarName.format (Mark.remove modname)
-      (Mark.remove name)
   | EExternal { modname; name } ->
-    fprintf ppf "%a.Globals.%s" VarName.format (Mark.remove modname)
+    fprintf ppf "%a.Globals.%s" format_external_modulename modname
       (Mark.remove name)
 
 and format_expression_with_paren ctx (ppf : formatter) (e : expr) : unit =
@@ -860,17 +860,14 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     format_struct_to_string fields_l
 
 let gather_externals ctx =
-  let external_global_funcs, external_global_vars =
+  let external_global_funcs =
     TopdefName.Map.fold
-      (fun topdef_name (typ, vis) ((efuncs, evars) as acc) ->
+      (fun topdef_name (typ, vis) (efuncs as acc) ->
         if TopdefName.path topdef_name = [] || vis <> Public then acc
         else
           let v = TopdefName.base topdef_name in
-          match typ with
-          | TArrow _, _ -> String.Set.add v efuncs, evars
-          | _ -> efuncs, String.Set.add v evars)
-      ctx.decl_ctx.ctx_topdefs
-      (String.Set.empty, String.Set.empty)
+          match typ with TArrow _, _ -> String.Set.add v efuncs | _ -> efuncs)
+      ctx.decl_ctx.ctx_topdefs String.Set.empty
   in
   let external_scopes, external_scopes_in, external_scopes_out =
     ScopeName.Map.fold
@@ -896,7 +893,6 @@ let gather_externals ctx =
     external_scopes;
     in_scope_structs;
     out_scope_structs;
-    external_global_vars;
     external_global_funcs;
   }
 
@@ -911,7 +907,6 @@ let populate_context (p : Ast.program) : context =
       global_funcs = FuncName.Set.empty;
       global_vars = VarName.Set.empty;
       external_global_funcs = String.Set.empty;
-      external_global_vars = String.Set.empty;
       external_scopes = String.Map.empty;
     }
   in
