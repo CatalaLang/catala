@@ -32,33 +32,12 @@ let finally f k =
 
 let original_cwd = Sys.getcwd ()
 
-let remove_prefix prefix f =
-  if String.starts_with ~prefix f && prefix <> "" then
-    String.remove_prefix ~prefix f
-    |> String.remove_prefix ~prefix:Filename.dir_sep
-  else f
-
-let rel_original_cwd () =
-  remove_prefix (Sys.getcwd ()) original_cwd
-
-let temp_file pfx sfx =
-  let f = Filename.temp_file pfx sfx in
-  if not Global.options.debug then
-    at_exit (fun () -> try Sys.remove f with _ -> ());
-  f
+let dir_sep_char = Filename.dir_sep.[0]
 
 let ( / ) a b =
   if a = Filename.current_dir_name then b
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
-
-let dir_sep_char = Filename.dir_sep.[0]
-
-let rec parent f =
-  let base = Filename.basename f in
-  if base = Filename.parent_dir_name || base = Filename.current_dir_name then
-    parent (Filename.dirname f) / base
-  else Filename.dirname f
 
 let clean_path p =
   let ( / ) a b = if b = "" then a else a / b in
@@ -81,6 +60,32 @@ let clean_path p =
   in
   if p = "" then "." else p
 
+let make_absolute p =
+  clean_path @@ if Filename.is_relative p then Sys.getcwd () / p else p
+
+let remove_prefix prefix f0 =
+  let prefix = make_absolute prefix in
+  let f = make_absolute f0 in
+  let suf = String.remove_prefix ~prefix f in
+  if suf = "" then Filename.current_dir_name
+  else if suf <> f && suf.[0] = dir_sep_char then String.sub suf 1 (String.length suf - 1)
+  else f0
+
+let rel_original_cwd () =
+  remove_prefix (Sys.getcwd ()) original_cwd
+
+let temp_file pfx sfx =
+  let f = Filename.temp_file pfx sfx in
+  if not Global.options.debug then
+    at_exit (fun () -> try Sys.remove f with _ -> ());
+  f
+
+let rec parent f =
+  let base = Filename.basename f in
+  if base = Filename.parent_dir_name || base = Filename.current_dir_name then
+    parent (Filename.dirname f) / base
+  else Filename.dirname f
+
 let exists = Sys.file_exists
 
 let rec ensure_dir dir =
@@ -98,8 +103,9 @@ let path_to_list path =
   String.split_on_char dir_sep_char path
   |> List.filter (function "" | "." -> false | _ -> true)
 
-let make_absolute p =
-  clean_path @@ if Filename.is_relative p then Sys.getcwd () / p else p
+let list_to_path = function
+  | [] -> Filename.current_dir_name
+  | l -> String.concat Filename.dir_sep l
 
 let common_prefix f1 f2 =
   let rec aux p1 p2 = match p1, p2 with
@@ -107,22 +113,17 @@ let common_prefix f1 f2 =
     | _ -> []
   in
   "" :: aux (path_to_list (make_absolute f1)) (path_to_list (make_absolute f2))
-  |> String.concat Filename.dir_sep
-
+  |> list_to_path
 
 let make_relative_to ~dir:dir0 f0 =
   let dir = make_absolute dir0 in
   let f = make_absolute f0 in
   let prefix = common_prefix dir f in
-  Message.warning "PFX: %s DIR: %s" prefix dir;
   let dir = remove_prefix prefix dir in
-  Message.warning "PFX: %s DIR: %s %d" prefix dir (List.length (path_to_list dir));
   let f = remove_prefix prefix f in
-  prefix /
-  String.concat Filename.dir_sep (List.map (fun _ -> Filename.parent_dir_name) (path_to_list dir)) /
+  list_to_path (List.map (fun _ -> Filename.parent_dir_name) (path_to_list dir)) /
   f
   |> clean_path
-  |> (fun r -> Message.warning "MRT dir=%s %s ≡> %s" dir0 f0 r; r)
 
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   clean_path
@@ -150,7 +151,7 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
             | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
     in
     let rbase = List.rev (path_to_list from_dir) in
-    String.concat Filename.dir_sep
+    list_to_path
       (aux (path_to_list f) rbase (path_to_list to_dir))
 
 let find_in_parents ?cwd predicate =
@@ -358,10 +359,6 @@ let ( /../ ) a b = parent a / b
 let ( -.- ) file ext =
   let base = Filename.remove_extension file in
   match ext with "" -> base | ext -> base ^ "." ^ ext
-
-let path_to_list path =
-  String.split_on_char dir_sep_char path
-  |> List.filter (function "" | "." -> false | _ -> true)
 
 let equal a b =
   String.equal (String.lowercase_ascii a) (String.lowercase_ascii b)

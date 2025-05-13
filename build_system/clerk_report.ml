@@ -257,7 +257,6 @@ let pfile =
     f
     |> File.remove_prefix (Sys.getcwd ())
     |> File.remove_prefix build_dir
-    |> (fun r -> prerr_endline r; r)
     |> File.make_relative_to ~dir:original_cwd
 
 let clean_command_line ~build_dir file cl =

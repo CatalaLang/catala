@@ -850,7 +850,7 @@ let format_program
       { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
       p.code_items
   in
-  if p.module_name = None then (
+  if p.tests <> [] then (
     Format.pp_print_cut ppc ();
     format_main ctx env ppc p);
   Format.fprintf pph "@,#endif /* __%s_H__ */" module_id;

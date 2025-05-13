@@ -102,12 +102,7 @@ let iter_commands ~build_dir targets f =
     (fun code (item, target) ->
       if multi_targets then
         Format.fprintf (Message.err_ppf ()) "@{<blue>>@} @{<cyan>%s@}@."
-          (String.remove_prefix
-             ~prefix:File.(original_cwd / "")
-             File.(
-               Sys.getcwd ()
-               / String.remove_prefix ~prefix:(build_dir ^ "/") target
-               -.- ""));
+          File.(make_relative_to ~dir:build_dir target -.- "");
       max code (f item target))
     0 targets
 
@@ -189,7 +184,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
           / Option.get it.Scan.module_def
           ^ ".o")
         (link_deps item)
-    @ [target]
+    @ [target -.- "o"]
     @ get_var Var.c_flags
     @ ["-o"; target -.- "exe"]
   | `Python ->
@@ -448,9 +443,7 @@ let build_cmd =
          %a@]"
         (Format.pp_print_list (fun ppf f ->
              Format.fprintf ppf "@{<cyan>%s@}"
-               (String.remove_prefix
-                  ~prefix:File.(original_cwd / "")
-                  File.(Sys.getcwd () / f))))
+               (make_relative_to ~dir:original_cwd f)))
         (ninja_targets @ List.map snd exec_targets);
     raise (Catala_utils.Cli.Exit_with exit_code)
   in
@@ -560,8 +553,9 @@ let run_tests ~build_dir ~fix_path ~nin_file ~items ~var_bindings ~ninja_flags ~
              String.Set.add t
              @@ List.fold_left
                (fun acc it ->
+                  let backend = match backend with `Interpret -> `Interpret_module | b -> (b :> [`C | `Interpret | `Interpret_module | `Java | `OCaml | `Python]) in
                   String.Set.add
-                    (make_target ~build_dir ~backend:`Interpret_module it)
+                    (make_target ~build_dir ~backend it)
                     acc)
                acc (link_deps it))
         String.Set.empty base_targets
@@ -697,8 +691,7 @@ let test_cmd =
                       if t.i_success then files
                       else
                         File.Map.add (fst t.i_result).Lexing.pos_fname
-                          (String.remove_prefix
-                             ~prefix:File.(build_dir / "")
+                          (File.remove_prefix File.(build_dir / "")
                              (fst t.i_expected).Lexing.pos_fname)
                           files)
                     File.Map.empty f.tests

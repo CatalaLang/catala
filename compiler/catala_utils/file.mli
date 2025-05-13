@@ -139,7 +139,7 @@ val common_prefix : t -> t -> t
 (** Returns the longuest common prefix of two paths, which are first made absolute *)
 
 val remove_prefix : t -> t -> t
-(** [remove_prefix prefix f] removes the [prefix] from the beginning of [f] ; if [f] doesn't start with [prefix], it is unchanged. *)
+(** [remove_prefix prefix f] removes the [prefix] path from the beginning of [f] ; if [f] doesn't start with [prefix], it is returned unchanged. If [f] is equal to [prefix], [.] is returned. *)
 
 val make_relative_to: dir:t -> t -> t
 (** Makes [f] relative to [dir], using as many [../] as necessary *)

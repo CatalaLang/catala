@@ -1193,7 +1193,7 @@ let load_runtime_modules ~hashf prg =
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
         let root = File.common_prefix Global.options.bin_dir src in
-        let dir = File.(dirname @@ Global.options.bin_dir / String.remove_prefix ~prefix:(root/"") src) in
+        let dir = File.(dirname @@ Global.options.bin_dir / File.remove_prefix root src) in
         Dynlink.adapt_filename
           File.(dir / "ocaml" / ModuleName.to_string mname ^ ".cmo")
       in
