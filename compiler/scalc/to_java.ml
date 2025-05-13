@@ -408,8 +408,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       args
   | EApp { f = EExternal { modname; name }, _; args }
     when String.Set.mem (Mark.remove name) ctx.external_global_funcs ->
-    fprintf ppf "@[<hv 0>%a.Globals.%s.apply(@;<0 -1>%a)@]" VarName.format
-      (Mark.remove modname) (Mark.remove name)
+    fprintf ppf "@[<hv 0>%s.Globals.%s.apply(@;<0 -1>%a)@]"
+      (String.to_snake_case (VarName.to_string (Mark.remove modname))
+      |> String.capitalize_ascii)
+      (Mark.remove name)
       (format_currified_args ctx)
       args
   | EApp { f = EFunc fname, _; args }
@@ -450,12 +452,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "((%a)%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)
       e1 index
-  | EExternal { modname; name }
-    when String.Set.mem (Mark.remove name) ctx.external_global_vars ->
-    fprintf ppf "%a.Globals.%s" VarName.format (Mark.remove modname)
-      (Mark.remove name)
   | EExternal { modname; name } ->
-    fprintf ppf "%a.Globals.%s" VarName.format (Mark.remove modname)
+    fprintf ppf "%s.Globals.%s"
+      (String.to_snake_case (VarName.to_string (Mark.remove modname))
+      |> String.capitalize_ascii)
       (Mark.remove name)
 
 and format_expression_with_paren ctx (ppf : formatter) (e : expr) : unit =
