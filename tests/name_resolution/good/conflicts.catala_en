@@ -188,28 +188,6 @@ let _ : integer -> integer =
 let _ : (Assert_in.t * Assert__1.t) =
   (({Assert_in.assert__1 = (integer_of_string "99")}),
     ({Assert__1.assert__1 = (integer_of_string "199")}))
-
-
-let test_scopes = [
-  "Assert";
-]
-
-let commands =
-  List.map (fun c ->
-      if List.mem c test_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument \
-                       for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
-        exit 1
-      ))
-    (List.tl (Array.to_list Sys.argv))
-
-let commands = if commands = [] then test_scopes else commands
-
-let () = if List.mem "Assert" commands then (
-  let _ = assert__1 (()) in
-  print_endline "\x1b[32m[RESULT]\x1b[m Scope Assert executed successfully."
-)
 ```
 
 ```catala-test-cli

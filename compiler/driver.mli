@@ -91,10 +91,11 @@ module Commands : sig
   (** bounded open of the expected output file *)
 
   val get_output_format :
-    ?ext:string ->
     Global.options ->
     Global.raw_file option ->
-    string option * ((Format.formatter -> 'a) -> 'a)
+    ?ext:string ->
+    (string option -> Format.formatter -> 'a) ->
+    'a
 
   val get_scope_uid : Shared_ast.decl_ctx -> string -> Shared_ast.ScopeName.t
 

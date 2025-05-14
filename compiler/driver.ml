@@ -435,19 +435,24 @@ module Commands = struct
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    File.get_out_channel ~source_file:options.Global.input_src ~output_file ?ext
-      ()
+    File.get_main_out_channel ~source_file:options.Global.input_src ~output_file
+      ?ext ()
 
-  let get_output_format ?ext options output_file =
+  let get_output_format options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    File.get_formatter_of_out_channel ~source_file:options.Global.input_src
-      ~output_file ?ext ()
+    fun ?ext f ->
+      let output_file, with_output =
+        File.get_main_out_formatter ~source_file:options.Global.input_src
+          ~output_file ?ext ()
+      in
+      Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
+      with_output (fun ppf -> f output_file ppf)
 
   let makefile options output =
     let prg = Passes.surface options in
     let backend_extensions_list = [".tex"] in
     let source_file = Global.input_src_file options.Global.input_src in
-    let output_file, with_output = get_output options ~ext:".d" output in
+    let output_file, with_output = get_output options ~ext:"d" output in
     Message.debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
     with_output
@@ -472,11 +477,8 @@ module Commands = struct
   let html options output print_only_law wrap_weaved_output =
     let prg = Passes.surface options in
     Message.debug "Weaving literate program into HTML";
-    let output_file, with_output =
-      get_output_format options ~ext:".html" output
-    in
-    with_output
-    @@ fun fmt ->
+    get_output_format options ~ext:"html" output
+    @@ fun output_file fmt ->
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
@@ -507,16 +509,12 @@ module Commands = struct
         extra_files
     in
     Message.debug "Weaving literate program into LaTeX";
-    let output_file, with_output =
-      get_output_format options ~ext:".tex" output
-    in
-    with_output
-    @@ fun fmt ->
+    get_output_format options ~ext:"tex" output
+    @@ fun _output_file fmt ->
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
-    Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
     let weave fmt =
       weave_output fmt prg;
       List.iter
@@ -576,9 +574,8 @@ module Commands = struct
 
   let scopelang options includes output ex_scopes =
     let prg = Passes.scopelang options ~includes in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | _ :: _ ->
       List.iter
@@ -653,9 +650,8 @@ module Commands = struct
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
       let _, scope_uid = Ident.Map.choose prg.decl_ctx.ctx_scope_index in
@@ -824,9 +820,8 @@ module Commands = struct
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
         ~expand_ops ~renaming:(Some Renaming.default)
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | _ :: _ as scopes ->
       List.iter
@@ -947,25 +942,18 @@ module Commands = struct
       optimize
       check_invariants
       autotest
-      closure_conversion
-      ex_scope_opt =
+      closure_conversion =
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".ml" output
-    in
-    with_output
-    @@ fun fmt ->
     Message.debug "Compiling program into OCaml...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
+    get_output_format options output
+    @@ fun output_file fmt ->
     let hashf = Hash.finalise ~closure_conversion ~monomorphize_types:false in
-    Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
+    Lcalc.To_ocaml.format_program output_file fmt prg ~hashf type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -979,8 +967,7 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
-        $ Cli.Flags.closure_conversion
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.closure_conversion)
 
   let scalc
       options
@@ -1002,9 +989,8 @@ module Commands = struct
         ~no_struct_literals ~monomorphize_types ~expand_ops
         ~renaming:(Some Renaming.default)
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.ctx.decl_ctx scope in
@@ -1055,14 +1041,10 @@ module Commands = struct
         ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".py" output
-    in
     Message.debug "Compiling program into Python...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    with_output
-    @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
+    get_output_format options output ~ext:"py"
+    @@ fun _output_file fmt ->
+    Scalc.To_python.format_program fmt prg type_ordering
 
   let python_cmd =
     Cmd.v
@@ -1092,12 +1074,9 @@ module Commands = struct
         ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_java.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".java" output
-    in
     Message.debug "Compiling program into Java...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
+    get_output_format options output ~ext:"java"
+    @@ fun output_file ppf ->
     let class_name =
       match output_file, options.Global.input_src with
       | Some file, _
@@ -1105,7 +1084,7 @@ module Commands = struct
         Filename.(remove_extension file |> basename)
       | None, Stdin _ -> "AnonymousClass"
     in
-    with_output @@ fun ppf -> Scalc.To_java.format_program ~class_name ppf prg
+    Scalc.To_java.format_program ~class_name ppf prg
 
   let java_cmd =
     Cmd.v
@@ -1129,23 +1108,13 @@ module Commands = struct
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
     in
-    let output_file, with_output = get_output_format options ~ext:".c" output in
-    let out_intf, with_output_intf =
-      match output_file with
-      | Some f when prg.module_name <> None ->
-        let f = File.(f -.- "h") in
-        File.get_formatter_of_out_channel ~source_file:options.Global.input_src
-          ~output_file:(Some f) ~ext:".h" ()
-      | _ -> None, fun pp -> pp (Format.make_formatter (fun _ _ _ -> ()) ignore)
-    in
     Message.debug "Compiling program into C...";
-    Message.debug "Writing to %s / %s..."
-      (Option.value ~default:"stdout" output_file)
-      (Option.value ~default:"no interface output" out_intf);
-    with_output
-    @@ fun ppf_src ->
-    with_output_intf
-    @@ fun ppf_intf ->
+    let get_fmt = get_output_format options output in
+    get_fmt ~ext:"c"
+    @@ fun output_file ppf_src ->
+    (if prg.module_name <> None && output_file <> None then get_fmt ~ext:"h"
+     else fun f -> f None (Format.make_formatter (fun _ _ _ -> ()) ignore))
+    @@ fun _out_intf ppf_intf ->
     Scalc.To_c.format_program ~ppf_src ~ppf_intf prg type_ordering
 
   let c_cmd =

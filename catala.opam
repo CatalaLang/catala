@@ -30,9 +30,9 @@ depends: [
   "ocaml" {>= "4.14.0"}
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
-  "re" {>= "1.10"}
+  "re" {>= "1.11"}
   "sedlex" {>= "3.2"}
-  "uutf" {>= "1.0.3"}
+  "uucp" {>= "10"}
   "ubase" {>= "0.05"}
   "unionFind" {>= "20220109"}
   "zarith" {>= "1.12"}

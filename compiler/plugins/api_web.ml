@@ -490,10 +490,8 @@ let run
       ~monomorphize_types ~expand_ops:false
       ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
-  let jsoo_output_file, with_formatter =
-    Driver.Commands.get_output_format options ~ext:"_api_web.ml" output
-  in
-  with_formatter (fun fmt ->
+  Driver.Commands.get_output_format options ~ext:"api_web.ml" output
+    (fun jsoo_output_file fmt ->
       Message.debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
       let modname =

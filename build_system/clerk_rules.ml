@@ -76,6 +76,7 @@ module Var = struct
   let input = make "in"
   let output = make "out"
   let src = make "src"
+  let dst = make "dst"
   let class_path = make "class_path"
 
   (* let scope = make "scope" *)
@@ -300,9 +301,12 @@ let gen_build_statements
   let open File in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
-  let dir = File.dirname src in
+  let dir = dirname src in
   let def_vars =
-    [Nj.binding Var.src [basename (Filename.remove_extension src)]]
+    [
+      Nj.binding Var.src [basename src];
+      Nj.binding Var.dst [basename (Scan.target_file_name item)];
+    ]
   in
   let include_flags backend =
     "-I"
@@ -316,27 +320,29 @@ let gen_build_statements
          include_dirs
   in
   let target ?backend ext =
-    let ext = if ext.[0] = '@' then ext else "." ^ ext in
+    let ext =
+      match ext.[0] with
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
+      | _ -> ext
+    in
     let bdir =
       match backend with
       | None -> fun f -> f ^ ext
       | Some b -> fun f -> (b / f) ^ ext
     in
-    match item.module_def with
-    | None -> !Var.tdir / bdir !Var.src
-    | Some n -> !Var.tdir / bdir n
+    !Var.tdir / bdir !Var.dst
   in
   let modules = List.rev item.used_modules in
   let modfile ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
-    | Some _ -> (!Var.tdir / backend / modname) ^ ext
+    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
     | None -> modname ^ "@" ^ backend ^ "-module"
   in
   let module_target x = modfile "@ocaml-module" x in
-  let catala_src = (!Var.tdir / !Var.src) ^ Filename.extension src in
+  let catala_src = !Var.tdir / !Var.src in
   let include_deps =
     Nj.build "copy"
-      ~inputs:[(dir / !Var.src) ^ Filename.extension src]
+      ~inputs:[dir / !Var.src]
       ~implicit_in:
         (List.map
            (fun f ->
@@ -360,6 +366,7 @@ let gen_build_statements
           ~outputs:[target ~backend:"ocaml" "@ocaml-module"])
       item.module_def
   in
+  let has_scope_tests = Lazy.force item.has_scope_tests in
   let ocaml, c, python, java =
     if item.extrnal then
       ( Nj.build "copy" ~implicit_in:[catala_src]
@@ -391,28 +398,34 @@ let gen_build_statements
         !Var.catala_exe
         :: (if autotest then List.map module_target modules else [])
       in
+      let implicit_out backend ext =
+        if has_scope_tests then [target ~backend ("+main." ^ ext)] else []
+      in
       ( Nj.build "catala-ocaml" ~inputs ~implicit_in
-          ~outputs:[target ~backend:"ocaml" "ml"],
+          ~outputs:[target ~backend:"ocaml" "ml"]
+          ~implicit_out:(implicit_out "ocaml" "ml"),
         Seq.return
           (Nj.build "catala-c" ~inputs ~implicit_in
              ~outputs:[target ~backend:"c" "c"]
-             ~implicit_out:[target ~backend:"c" "h"]),
+             ~implicit_out:(target ~backend:"c" "h" :: implicit_out "c" "c")),
         Nj.build "python" ~inputs ~implicit_in
-          ~outputs:[target ~backend:"python" "py"],
+          ~outputs:[target ~backend:"python" "py"]
+          ~implicit_out:(implicit_out "python" "py"),
         Seq.return
           (Nj.build "java" ~inputs ~implicit_in
-             ~outputs:[target ~backend:"java" "java"]) )
+             ~outputs:[target ~backend:"java" "java"]
+             ~implicit_out:(implicit_out "java" "java")) )
   in
   let ocamlopt =
+    let ocaml_exts = ["mli"; "cmi"; "cmo"; "cmx"; "o"] in
     let obj =
       Nj.build "ocaml-object"
         ~inputs:[target ~backend:"ocaml" "ml"]
         ~implicit_in:(!Var.catala_exe :: List.map module_target modules)
-        ~outputs:
-          (List.map (target ~backend:"ocaml") ["mli"; "cmi"; "cmo"; "cmx"; "o"])
+        ~outputs:(List.map (target ~backend:"ocaml") ocaml_exts)
         ~vars:[Var.includes, include_flags "ocaml"]
     in
-    match item.module_def with
+    (match item.module_def with
     | Some _ ->
       [
         obj;
@@ -420,7 +433,23 @@ let gen_build_statements
           ~inputs:[target ~backend:"ocaml" "cmx"]
           ~outputs:[target ~backend:"ocaml" "cmxs"];
       ]
-    | None -> [obj]
+    | None -> [obj])
+    @
+    if has_scope_tests then
+      [
+        Nj.build "ocaml-object"
+          ~inputs:[target ~backend:"ocaml" "+main.ml"]
+          ~implicit_in:
+            (!Var.catala_exe
+            :: target ~backend:"ocaml" "cmi"
+            :: List.map module_target modules)
+          ~outputs:
+            (List.map
+               (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
+               ocaml_exts)
+          ~vars:[Var.includes, include_flags "ocaml" @ ["-w"; "-24"]];
+      ]
+    else []
   in
   let cc =
     Nj.build "c-object"
@@ -534,6 +563,18 @@ let gen_build_statements_dir
         Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
       items
   in
+  let check_conflicts seen item =
+    let fname = item.Scan.file_name in
+    let s = Scan.target_file_name item in
+    match String.Map.find_opt s seen with
+    | Some f1 ->
+      Message.error
+        "Conflicting file names:@ %S@ and@ %S@ would both generate the same \
+         target file@ %S.@ Please rename one of them."
+        (File.basename f1) (File.basename fname) (File.basename s)
+    | None -> String.Map.add s fname seen
+  in
+  let _names = List.fold_left check_conflicts String.Map.empty items in
   let open File in
   let ( ! ) = Var.( ! ) in
   Seq.cons (Nj.comment "")

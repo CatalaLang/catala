@@ -115,3 +115,10 @@ let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
       | None -> None
       | Some lang -> Some (catala_file f lang))
     dir
+
+let target_file_name t =
+  let open File in
+  let dir = File.dirname t.file_name in
+  match t.module_def with
+  | Some m -> dir / String.to_id m
+  | None -> dir / String.to_id (basename t.file_name -.- "")

@@ -366,7 +366,7 @@ let display_file ~build_dir ppf t =
   if t.successful = t.total then (
     if disp_flags.files = `All then (
       Format.fprintf ppf
-        "@{<green;reverse;ul>  @} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
+        "@{<green;reverse>__@} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
          passed"
         (pfile t.name) t.successful t.total;
       if disp_flags.tests = `All then (
@@ -376,8 +376,8 @@ let display_file ~build_dir ppf t =
   else
     let () =
       match t.successful with
-      | 0 -> Format.fprintf ppf "@{<red;reverse;ul>  @}"
-      | _ -> Format.fprintf ppf "@{<yellow;reverse;ul>  @}"
+      | 0 -> Format.fprintf ppf "@{<red;reverse>__@}"
+      | _ -> Format.fprintf ppf "@{<yellow;reverse>__@}"
     in
     Format.fprintf ppf " @{<cyan>%s@}: " (pfile t.name);
     (function

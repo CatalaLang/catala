@@ -43,7 +43,7 @@ val with_formatter_of_opt_file : t option -> (Format.formatter -> 'a) -> 'a
     from the file [filename_opt] if there is some (see
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
 
-val get_out_channel :
+val get_main_out_channel :
   source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
@@ -53,7 +53,7 @@ val get_out_channel :
     and its corresponding [with_out_channel] function. If the [output_file] is
     equal to [Some "-"] returns a wrapper around [stdout]. *)
 
-val get_formatter_of_out_channel :
+val get_main_out_formatter :
   source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
@@ -62,6 +62,18 @@ val get_formatter_of_out_channel :
 (** [get_output_format ~source_file ~output_file ?ext ()] returns the inferred
     filename and its corresponding [with_formatter_of_out_channel] function. If
     the [output_file] is equal to [Some "-"] returns a wrapper around [stdout]. *)
+
+val with_secondary_out_channel :
+  output_file:t option ->
+  ext:string ->
+  (t option -> Format.formatter -> 'a) ->
+  'a
+(** Used to open additional destination files: the main output file is
+    specified, and a different extension must be provided. If the main output
+    file is [None], stdout output is assumed and this passes None and a null
+    formatter to the callback. [ext] specifies the extension of the output file,
+    it is prefixed with a dot unless it already starts with a non-alphanumeric
+    character. *)
 
 val temp_file : string -> string -> t
 (** Like [Filename.temp_file], but registers the file for deletion at program

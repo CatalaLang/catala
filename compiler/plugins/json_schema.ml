@@ -221,11 +221,8 @@ let run
       ~monomorphize_types ~expand_ops:false
       ~renaming:(Some Lcalc.To_ocaml.renaming)
   in
-  let output_file, with_output =
-    Driver.Commands.get_output_format options ~ext:"_schema.json" output
-  in
-  with_output
-  @@ fun fmt ->
+  Driver.Commands.get_output_format options ~ext:"schema.json" output
+  @@ fun output_file fmt ->
   let scope_uid = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   Message.debug
     "Writing JSON schema corresponding to the scope '%a' to the file %s..."

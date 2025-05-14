@@ -188,18 +188,38 @@ let with_formatter_of_opt_file filename_opt f =
   | None -> finally (fun () -> flush stdout) (fun () -> f Format.std_formatter)
   | Some filename -> with_formatter_of_file filename f
 
-let get_out_channel ~source_file ~output_file ?ext () =
+let ( -.- ) file ext =
+  let base = Filename.remove_extension file in
+  match ext with "" -> base | ext -> base ^ "." ^ ext
+
+let get_main_out_channel ~source_file ~output_file ?ext () =
   match output_file, ext with
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
     let src = Global.input_src_file source_file in
-    let f = Filename.remove_extension src ^ ext in
+    let f = src -.- ext in
     Some f, with_out_channel f
 
-let get_formatter_of_out_channel ~source_file ~output_file ?ext () =
-  let f, with_ = get_out_channel ~source_file ~output_file ?ext () in
+let get_main_out_formatter ~source_file ~output_file ?ext () =
+  let f, with_ = get_main_out_channel ~source_file ~output_file ?ext () in
   f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel oc fmt)
+
+let with_secondary_out_channel ~output_file ~ext f =
+  match output_file with
+  | None | Some "-" ->
+    Message.debug
+      "Ignoring secondary %a output to since main output is to stdout" format
+      ext;
+    f None (Format.make_formatter (fun _ _ _ -> ()) ignore)
+  | Some file ->
+    let file =
+      match ext.[0] with
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> file -.- ext
+      | _ -> Filename.remove_extension file ^ ext
+    in
+    Message.debug "Secondary output to %a" format file;
+    with_formatter_of_file file (fun ppf -> f (Some file) ppf)
 
 let with_temp_file pfx sfx ?contents f =
   let filename = temp_file pfx sfx in
@@ -353,10 +373,6 @@ let check_exec t =
 let dirname = Filename.dirname
 let basename = Filename.basename
 let ( /../ ) a b = parent a / b
-
-let ( -.- ) file ext =
-  let base = Filename.remove_extension file in
-  match ext with "" -> base | ext -> base ^ "." ^ ext
 
 let equal a b =
   String.equal (String.lowercase_ascii a) (String.lowercase_ascii b)

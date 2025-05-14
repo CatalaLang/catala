@@ -107,9 +107,7 @@ let check_exceeding_lines
   content
   |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         let len_s =
-           Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s
-         in
+         let len_s = String.width s in
          if len_s > max_len then
            Message.warning
              ~pos:

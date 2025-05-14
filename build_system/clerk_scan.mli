@@ -50,3 +50,8 @@ val find_test_scope : lang:Global.backend_lang -> File.t -> bool
 (** Checks if the given file contains #[test] scope annotations, recursively
     through file includes. The file extension takes precendence over the [~lang]
     argument. *)
+
+val target_file_name : item -> File.t
+(** Returns the expected name (without extension) for artifacts based on this
+    file: the module name is used if defined, otherwise the original file is
+    used. In both case, it is normalised using [String.to_id]. *)
