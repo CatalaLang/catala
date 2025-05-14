@@ -151,8 +151,8 @@ let linking_dependencies items =
     let rec traverse acc item =
       List.fold_left
         (fun acc m ->
-          let it = String.Map.find m modules in
-          traverse (it :: acc) it)
+           let it = String.Map.find m modules in
+           traverse (it :: acc) it)
         acc item.Scan.used_modules
     in
     rem_dups (traverse [] item)
@@ -167,21 +167,23 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     @ get_var Var.runtime_ocaml_libs
     @ List.map
         (fun it ->
+          let f = Scan.target_file_name it in
           build_dir
-          / Filename.dirname it.Scan.file_name
+          / dirname f
           / "ocaml"
-          / Option.get it.Scan.module_def
+          / basename f
           ^ ".cmx")
         (link_deps item)
-    @ [target -.- "cmx"; "-o"; target -.- "exe"]
+    @ [target -.- "cmx"; Filename.remove_extension target ^ "+main.cmx"; "-o"; target -.- "exe"]
   | `C ->
     get_var Var.cc_exe
     @ List.map
         (fun it ->
+          let f = Scan.target_file_name it in
           build_dir
-          / Filename.dirname it.Scan.file_name
+          / Filename.dirname f
           / "c"
-          / Option.get it.Scan.module_def
+          / f
           ^ ".o")
         (link_deps item)
     @ [target -.- "o"]
@@ -197,10 +199,11 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     List.iter
       (fun it ->
         let src =
+          let f = Scan.target_file_name it in
           build_dir
-          / Filename.dirname it.Scan.file_name
+          / Filename.dirname f
           / "python"
-          / Option.get it.Scan.module_def
+          / f
           ^ ".py"
         in
         copy_in ~src ~dir:tdir)
@@ -215,10 +218,11 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         target
         :: List.map
              (fun it ->
+              let f = Scan.target_file_name it in
                build_dir
-               / Filename.dirname it.Scan.file_name
+               / Filename.dirname f
                / "java"
-               / Option.get it.Scan.module_def
+               / f
                -.- "class")
              (link_deps item)
       in
@@ -284,16 +288,13 @@ let target_backend t =
 let make_target ~build_dir ~backend item =
   let open File in
   let f =
-    match item.Scan.module_def with
-    | None -> item.Scan.file_name
-    | Some m ->
-      (dirname item.Scan.file_name / m) ^ Filename.extension item.Scan.file_name
+    Scan.target_file_name item ^ Filename.extension item.Scan.file_name
   in
   let dir = dirname f in
   let base = basename f in
   let base =
     match backend with
-    | `Interpret -> item.Scan.file_name
+    | `Interpret -> f
     | `Interpret_module -> (
       (dir / "ocaml" / base)
       -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
@@ -396,8 +397,12 @@ let build_cmd =
               try
                 List.find
                   (fun it ->
+                     let item_name = match it.Scan.module_def with
+                       | Some m -> File.dirname it.Scan.file_name / m
+                       | None -> it.Scan.file_name -.- ""
+                     in
                     (dirname (dirname t) / basename t) -.- ""
-                    = (build_dir / it.Scan.file_name) -.- "")
+                    = build_dir / item_name)
                   items
               with Not_found ->
                 Message.error "No source to make target %a found" File.format t
@@ -406,23 +411,15 @@ let build_cmd =
           | _ -> assert false)
         targets
     in
-    let deps_targets =
-      List.fold_left
-        (fun acc ((item, backend), _) ->
-          let deps = link_deps item in
-          let targets = List.map (make_target ~build_dir ~backend) deps in
-          List.rev_append targets acc)
-        [] exec_targets
-      |> List.rev
-    in
-    let final_exec_targets =
+    let object_exec_targets =
       List.map
-        (fun ((item, backend), _) -> make_target ~build_dir ~backend item)
+        (fun ((item, backend), _) ->
+           let t = make_target ~build_dir ~backend item in
+           Filename.remove_extension t ^ "+main" ^ Filename.extension t)
         exec_targets
     in
     let final_ninja_targets =
-      List.sort_uniq Stdlib.compare
-        (final_exec_targets @ ninja_targets @ deps_targets)
+      List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
     in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file final_ninja_targets in
     Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
@@ -530,7 +527,7 @@ let run_tests ~build_dir ~fix_path ~nin_file ~items ~var_bindings ~ninja_flags ~
           else
             item.Scan.module_def = Some file ||
             item.Scan.file_name = ffile ||
-            Filename.remove_extension item.file_name = ffile
+            Filename.remove_extension item.Scan.file_name = ffile
         in
         let items = List.filter filter items in
         if items = [] then
@@ -546,21 +543,29 @@ let run_tests ~build_dir ~fix_path ~nin_file ~items ~var_bindings ~ninja_flags ~
   let link_deps = linking_dependencies items in
   let ninja_cmd =
     let ninja_targets =
-      List.fold_left
-        (fun acc (it, t) ->
-           if String.Set.mem t acc then acc
-           else
-             String.Set.add t
-             @@ List.fold_left
-               (fun acc it ->
-                  let backend = match backend with `Interpret -> `Interpret_module | b -> (b :> [`C | `Interpret | `Interpret_module | `Java | `OCaml | `Python]) in
-                  String.Set.add
-                    (make_target ~build_dir ~backend it)
-                    acc)
-               acc (link_deps it))
-        String.Set.empty base_targets
+      match backend with
+      | `Interpret ->
+        List.fold_left
+          (fun acc (it, t) ->
+             if String.Set.mem t acc then acc
+             else
+               String.Set.add t
+               @@ List.fold_left
+                 (fun acc it ->
+                    String.Set.add
+                      (make_target ~build_dir ~backend:`Interpret_module it)
+                      acc)
+                 acc (link_deps it))
+          String.Set.empty base_targets
+        |> String.Set.elements
+      | _ ->
+        List.map
+          (fun item ->
+             let t = make_target ~build_dir ~backend item in
+             Filename.remove_extension t ^ "+main" ^ Filename.extension t)
+          target_items
     in
-    ninja_cmdline ninja_flags nin_file (String.Set.elements ninja_targets)
+    ninja_cmdline ninja_flags nin_file ninja_targets
   in
   Message.debug "Building dependencies: '%s'..." (String.concat " " ninja_cmd);
   let exit_code = run_command ~clean_up_env:false ninja_cmd in
@@ -660,10 +665,19 @@ let test_cmd =
       in
       raise (Catala_utils.Cli.Exit_with exit_code)
     else
-    let targets =
+    let targets, missing =
       let fs = if files_or_folders = [] then ["."] else files_or_folders in
-      List.map File.(fun f -> build_dir / fix_path f) fs
+      List.partition_map File.(fun f0 ->
+          let f = fix_path f0 in
+          if File.exists f then Either.Left (build_dir / f)
+          else Either.Right f0)
+        fs
     in
+    if missing <> [] then
+      Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
+        (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           Format.pp_print_string)
+        missing;
     let test_targets = List.map (fun f -> f ^ "@test") targets in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file test_targets in
     Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
