@@ -409,7 +409,7 @@ let scan_tree f t =
     |> do_files d
   and do_files d flist =
     let dirs, files =
-      flist |> List.sort (fun a b -> -compare a b) |> List.partition is_dir
+      flist |> List.sort (fun a b -> compare a b) |> List.partition is_dir
     in
     let rec gather_subdirs subdirs_list_acc subdirs_seq () =
       match subdirs_seq () with

@@ -421,7 +421,7 @@ let gen_build_statements
     let obj =
       Nj.build "ocaml-object"
         ~inputs:[target ~backend:"ocaml" "ml"]
-        ~implicit_in:(!Var.catala_exe :: List.map module_target modules)
+        ~implicit_in:(List.map module_target modules)
         ~outputs:(List.map (target ~backend:"ocaml") ocaml_exts)
         ~vars:[Var.includes, include_flags "ocaml"]
     in
@@ -439,10 +439,7 @@ let gen_build_statements
       [
         Nj.build "ocaml-object"
           ~inputs:[target ~backend:"ocaml" "+main.ml"]
-          ~implicit_in:
-            (!Var.catala_exe
-            :: target ~backend:"ocaml" "cmi"
-            :: List.map module_target modules)
+          ~implicit_in:[target ~backend:"ocaml" "cmi"]
           ~outputs:
             (List.map
                (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
@@ -455,11 +452,19 @@ let gen_build_statements
     Nj.build "c-object"
       ~inputs:[target ~backend:"c" "c"]
       ~implicit_in:
-        (!Var.catala_exe
-        :: target ~backend:"c" "h"
-        :: List.map (modfile ~backend:"c" ".h") modules)
+        (target ~backend:"c" "h" :: List.map (modfile ~backend:"c" ".h") modules)
       ~outputs:[target ~backend:"c" "o"]
       ~vars:[Var.includes, include_flags "c"]
+    ::
+    (if has_scope_tests then
+       [
+         Nj.build "c-object"
+           ~inputs:[target ~backend:"c" "+main.c"]
+           ~implicit_in:[target ~backend:"c" "h"]
+           ~outputs:[target ~backend:"c" "+main.o"]
+           ~vars:[Var.includes, include_flags "c"];
+       ]
+     else [])
   in
   let javac =
     let java_class_path =
@@ -471,8 +476,7 @@ let gen_build_statements
     in
     Nj.build "java-class"
       ~inputs:[target ~backend:"java" "java"]
-      ~implicit_in:
-        (!Var.catala_exe :: List.map (modfile ~backend:"java" ".java") modules)
+      ~implicit_in:(List.map (modfile ~backend:"java" ".java") modules)
       ~outputs:[target ~backend:"java" "class"]
       ~vars:[Var.class_path, [java_class_path]]
   in
@@ -544,7 +548,7 @@ let gen_build_statements
     (if List.mem OCaml enabled_backends then
        [Option.to_seq module_deps; Seq.return ocaml; List.to_seq ocamlopt]
      else [])
-    @ (if List.mem C enabled_backends then [c; Seq.return cc] else [])
+    @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
     @ (if List.mem Python enabled_backends then [Seq.return python] else [])
     @ (if List.mem Java enabled_backends then [java; Seq.return javac] else [])
     @ if List.mem Tests enabled_backends then [List.to_seq tests] else []

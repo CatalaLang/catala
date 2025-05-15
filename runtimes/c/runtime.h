@@ -48,13 +48,13 @@ typedef struct catala_code_position
 
 struct catala_error
 {
-  const catala_code_position ** position;
+  const catala_code_position * position;
   int nb_positions;
   catala_error_code code;
 };
 
 void catala_error(catala_error_code code,
-                  const catala_code_position ** pos,
+                  const catala_code_position * pos,
                   const int nb_pos);
 
 /* --- Memory allocations --- */
@@ -342,11 +342,16 @@ const CATALA_EXN(X) handle_exceptions
 
 /* --- Runtime initialisation --- */
 
-void register_error_handler(void (*f)(const struct catala_error *));
+void register_error_handler(void* (*f)(const struct catala_error *));
 
 void catala_init(void);
-/* This must be called once and before any use of the functions above: it
-   performs necessary initialisations of GMP, as well as the setup for our error
-   handling mechanism. */
+/* This must be called before any use of the functions above, to perform
+   necessary initialisations of our memory allocator and GMP */
+
+void* catala_do(void* (*f)(void));
+/* This performs [catala_init], and additionally setups error handling
+   mechanisms for the computation of the provided callback. On error, it will
+   print a message to stderr (with source position when applicable), and return
+   NULL. Use [register_error_handler] to customise this behaviour. */
 
 #endif /* __CATALA_RUNTIME_H__ */

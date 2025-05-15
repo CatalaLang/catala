@@ -181,9 +181,9 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     @ List.map
         (fun it ->
           let f = Scan.target_file_name it in
-          (build_dir / Filename.dirname f / "c" / f) ^ ".o")
+          (build_dir / dirname f / "c" / basename f) ^ ".o")
         (link_deps item)
-    @ [target -.- "o"]
+    @ [Filename.remove_extension target ^ "+main.o"]
     @ get_var Var.c_flags
     @ ["-o"; target -.- "exe"]
   | `Python ->
@@ -197,7 +197,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       (fun it ->
         let src =
           let f = Scan.target_file_name it in
-          (build_dir / Filename.dirname f / "python" / f) ^ ".py"
+          (build_dir / dirname f / "python" / basename f) ^ ".py"
         in
         copy_in ~src ~dir:tdir)
       (link_deps item);
@@ -212,7 +212,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         :: List.map
              (fun it ->
                let f = Scan.target_file_name it in
-               (build_dir / Filename.dirname f / "java" / f) -.- "class")
+               (build_dir / dirname f / "java" / basename f) -.- "class")
              (link_deps item)
       in
       let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
@@ -399,6 +399,15 @@ let build_cmd =
           | _ -> assert false)
         targets
     in
+    let deps_targets =
+      List.fold_left
+        (fun acc ((item, backend), _) ->
+          let deps = link_deps item in
+          let targets = List.map (make_target ~build_dir ~backend) deps in
+          make_target ~build_dir ~backend item :: List.rev_append targets acc)
+        [] exec_targets
+      |> List.rev
+    in
     let object_exec_targets =
       List.map
         (fun ((item, backend), _) ->
@@ -407,7 +416,8 @@ let build_cmd =
         exec_targets
     in
     let final_ninja_targets =
-      List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
+      List.sort_uniq Stdlib.compare
+        (object_exec_targets @ deps_targets @ ninja_targets)
     in
     let ninja_cmd = ninja_cmdline ninja_flags nin_file final_ninja_targets in
     Message.debug "executing '%s'..." (String.concat " " ninja_cmd);
@@ -541,27 +551,32 @@ let run_tests
   let link_deps = linking_dependencies items in
   let ninja_cmd =
     let ninja_targets =
-      match backend with
-      | `Interpret ->
-        List.fold_left
-          (fun acc (it, t) ->
-            if String.Set.mem t acc then acc
-            else
-              String.Set.add t
-              @@ List.fold_left
-                   (fun acc it ->
-                     String.Set.add
-                       (make_target ~build_dir ~backend:`Interpret_module it)
-                       acc)
-                   acc (link_deps it))
-          String.Set.empty base_targets
-        |> String.Set.elements
-      | _ ->
-        List.map
-          (fun item ->
-            let t = make_target ~build_dir ~backend item in
-            Filename.remove_extension t ^ "+main" ^ Filename.extension t)
-          target_items
+      let backend =
+        match backend with
+        | `Interpret -> `Interpret_module
+        | (`C | `OCaml | `Python | `Java) as b -> b
+      in
+      List.fold_left
+        (fun acc (it, t) ->
+          if String.Set.mem t acc then acc
+          else
+            let acc =
+              if backend = `Interpret_module then String.Set.add t acc
+              else
+                let t = make_target ~build_dir ~backend it in
+                String.Set.add t
+                @@ String.Set.add
+                     (Filename.remove_extension t
+                     ^ "+main"
+                     ^ Filename.extension t)
+                     acc
+            in
+            List.fold_left
+              (fun acc it ->
+                String.Set.add (make_target ~build_dir ~backend it) acc)
+              acc (link_deps it))
+        String.Set.empty base_targets
+      |> String.Set.elements
     in
     ninja_cmdline ninja_flags nin_file ninja_targets
   in

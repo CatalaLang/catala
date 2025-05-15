@@ -1109,13 +1109,9 @@ module Commands = struct
         ~renaming:(Some Scalc.To_c.renaming)
     in
     Message.debug "Compiling program into C...";
-    let get_fmt = get_output_format options output in
-    get_fmt ~ext:"c"
-    @@ fun output_file ppf_src ->
-    (if prg.module_name <> None && output_file <> None then get_fmt ~ext:"h"
-     else fun f -> f None (Format.make_formatter (fun _ _ _ -> ()) ignore))
-    @@ fun _out_intf ppf_intf ->
-    Scalc.To_c.format_program ~ppf_src ~ppf_intf prg type_ordering
+    get_output_format options output ~ext:"c"
+    @@ fun output_file ppf ->
+    Scalc.To_c.format_program output_file ppf prg type_ordering
 
   let c_cmd =
     Cmd.v
