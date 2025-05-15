@@ -137,7 +137,8 @@ type desugared =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; custom : no >
+  ; custom : no
+  ; holes : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
    resolvedNames: no], and after name resolution has the opposite; but the
    disambiguation being done by the typer, we don't encode this invariant at the
@@ -157,7 +158,8 @@ type scopelang =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; custom : no >
+  ; custom : no
+  ; holes : no >
 
 type dcalc =
   < monomorphic : yes
@@ -170,7 +172,8 @@ type dcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : yes
-  ; custom : no >
+  ; custom : no
+  ; holes : no >
 
 type lcalc =
   < monomorphic : yes
@@ -183,7 +186,8 @@ type lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : no
-  ; custom : no >
+  ; custom : no
+  ; holes : no >
 
 type 'a any = < .. > as 'a
 (** ['a any] is 'a, but adds the constraint that it should be restricted to
@@ -201,13 +205,31 @@ type dcalc_lcalc_features =
   ; assertions : yes >
 (** Features that are common to Dcalc and Lcalc *)
 
-type 'd dcalc_lcalc = < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no >
+type 'd dcalc_lcalc =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no ; holes : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
 type ('d, 'c) interpr_kind =
   < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c >
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
+
+type 'd dcalc_slicing =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no ; holes : yes >
+
+type slicing_features =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : yes
+  ; custom : no
+  ; holes : yes >
 
 (** {2 Types} *)
 
@@ -640,6 +662,7 @@ and ('a, 'b, 'm) base_gexpr =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
+  | EHole : typ -> ('a, < hole : yes ; .. >, 't) base_gexpr
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr

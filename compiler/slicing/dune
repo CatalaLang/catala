@@ -1,0 +1,13 @@
+(library
+ (name slicing)
+ (public_name catala.slicing)
+ (libraries
+  bindlib
+  unionFind
+  catala_utils
+  re
+  ubase
+  catala.runtime_ocaml
+  catala.dcalc
+  shared_ast
+  scopelang))
