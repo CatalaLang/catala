@@ -1016,6 +1016,7 @@ and typecheck_expr_top_down :
       mark_with_tau_and_unify (ast_to_typ (A.TArrow (targs, tret), Expr.pos e))
     in
     Expr.ecustom obj targs tret mark
+  | A.EHole _ -> assert false
 
 (** {1 API} *)
 

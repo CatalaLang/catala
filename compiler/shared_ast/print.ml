@@ -471,6 +471,7 @@ module Precedence = struct
     | EErrorOnEmpty _ -> App
     | EPos _ -> Contained
     | ECustom _ -> Contained
+    | EHole _ -> assert false
 
   let needs_parens ~context ?(rhs = false) e =
     match expr context, expr e with
@@ -789,6 +790,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         punctuation fmt "}";
         Format.pp_close_box fmt ()
       | ECustom _ -> Format.pp_print_string fmt "<obj>"
+      | EHole _ -> Format.pp_print_string fmt "□"
 
   let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
 end
@@ -1174,6 +1176,7 @@ module UserFacing = struct
     | EErrorOnEmpty _ | EPos _ | ELocation _ | EScopeCall _ | EDStructAmend _
     | EDStructAccess _ ->
       fallback ppf e
+    | EHole _ -> assert false
 
   let expr :
       type a. Global.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =

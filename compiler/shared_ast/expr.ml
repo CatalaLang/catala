@@ -372,6 +372,7 @@ let map
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
+  | EHole _ -> assert false
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
@@ -411,6 +412,7 @@ let shallow_fold
   | EScopeCall { args; _ } ->
     acc |> ScopeVar.Map.fold (fun _ (_p, e) -> f e) args
   | ECustom _ -> acc
+  | EHole _ -> assert false
 
 (* Like [map], but also allows to gather a result bottom-up. *)
 let map_gather
@@ -528,6 +530,7 @@ let map_gather
     in
     acc, escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
+  | EHole _ -> assert false
 
 (* - *)
 
@@ -719,6 +722,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
+  | EHole _, _ -> assert false
 
 let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
  fun e1 e2 ->
@@ -838,7 +842,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmpty , _ -> -1 | _, EEmpty  -> 1
-  | EErrorOnEmpty _, _ -> . | _, EErrorOnEmpty _ -> .
+  | EErrorOnEmpty _, _ -> assert false | _, EErrorOnEmpty _ -> assert false
+  | EHole _,  _ -> assert false
 
 let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
   | EVar v, _ -> Var.Set.singleton v
@@ -902,6 +907,7 @@ let rec size : type a. (a, 't) gexpr -> int =
     EnumConstructor.Map.fold (fun _ e acc -> acc + 1 + size e) cases (size e)
   | EScopeCall { args; _ } ->
     ScopeVar.Map.fold (fun _ (_, e) acc -> acc + 1 + size e) args 1
+  | EHole _ -> assert false
 
 (* - Expression building helpers - *)
 
