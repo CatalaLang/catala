@@ -210,7 +210,7 @@ type 'd dcalc_lcalc =
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
 type ('d, 'c) interpr_kind =
-  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c >
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c ; holes : no >
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
 
