@@ -936,6 +936,27 @@ module Commands = struct
         $ Cli.Flags.quiet
         $ Cli.Flags.ex_scopes)
 
+  let slice_cmd =
+    let f options includes optimize check_invariants ex_scopes =
+      let prg, _ =
+        Passes.dcalc options ~includes ~optimize ~check_invariants
+          ~autotest:false ~typed:Expr.typed
+      in
+      let scopes = get_scopelist_uids prg.decl_ctx ex_scopes in
+      Message.log "J'interprète !";
+      let _ = Slicing.Interpret.interpret prg (List.hd scopes) in
+      Message.log "fini"
+    in
+    Cmd.v
+      (Cmd.info "slice" ~man:Cli.man_base ~doc:"Blabla slice")
+      Term.(
+        const f
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.ex_scopes)
+
   let ocaml
       options
       includes
@@ -1231,6 +1252,7 @@ module Commands = struct
   let commands =
     [
       interpret_cmd;
+      slice_cmd;
       typecheck_cmd;
       proof_cmd;
       ocaml_cmd;
