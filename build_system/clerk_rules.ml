@@ -271,7 +271,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~description:["<catala>"; "python"; "⇒"; !output];
     ] else []) @
   (if List.mem Java enabled_backends then [
-      Nj.rule "java"
+      Nj.rule "catala-java"
         ~command:[!catala_exe; "java"; !catala_flags; !catala_flags_java;
                   !input; "-o"; !output]
         ~description:["<catala>"; "java"; "⇒"; !output];
@@ -409,12 +409,10 @@ let gen_build_statements
              ~outputs:[target ~backend:"c" "c"]
              ~implicit_out:(target ~backend:"c" "h" :: implicit_out "c" "c")),
         Nj.build "python" ~inputs ~implicit_in
-          ~outputs:[target ~backend:"python" "py"]
-          ~implicit_out:(implicit_out "python" "py"),
+          ~outputs:[target ~backend:"python" "py"],
         Seq.return
-          (Nj.build "java" ~inputs ~implicit_in
-             ~outputs:[target ~backend:"java" "java"]
-             ~implicit_out:(implicit_out "java" "java")) )
+          (Nj.build "catala-java" ~inputs ~implicit_in
+             ~outputs:[target ~backend:"java" "java"]) )
   in
   let ocamlopt =
     let ocaml_exts = ["mli"; "cmi"; "cmo"; "cmx"; "o"] in
@@ -469,9 +467,11 @@ let gen_build_statements
   let javac =
     let java_class_path =
       String.concat ":"
-        (!Var.tdir
+        ((!Var.tdir / "java")
         :: List.map
-             (fun d -> if Filename.is_relative d then !Var.builddir / d else d)
+             (fun d ->
+               (if Filename.is_relative d then !Var.builddir / d else d)
+               / "java")
              include_dirs)
     in
     Nj.build "java-class"

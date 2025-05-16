@@ -258,7 +258,7 @@ let target_backend t =
     | ".c" | ".h" -> Clerk_rules.C
     | ".ml" | ".mli" | ".cmi" | ".cmo" | ".cmx" | ".cmxs" -> Clerk_rules.OCaml
     | ".py" -> Clerk_rules.Python
-    | ".java" | ".class" -> Clerk_rules.Java
+    | ".java" | ".class" | ".jar" -> Clerk_rules.Java
     | ".catala_en" | ".catala_fr" | ".catala_pl" -> Clerk_rules.OCaml
     | "" -> Message.error "Target without extension: @{<red>%S@}" t
     | ext ->
@@ -372,13 +372,14 @@ let build_cmd =
           | ".py" -> Left (ensure_target_dir "python" t)
           | ".java" | ".class" -> Left (ensure_target_dir "java" t)
           | ".catala_en" | ".catala_fr" | ".catala_pl" -> Left t
-          | ".exe" ->
+          | (".exe" | ".jar") as ext ->
             let t, backend =
-              match lastdirname t with
-              | "c" -> t, `C
-              | "python" -> t, `Python
-              | "java" -> t, `Java
-              | "ocaml" | _ -> ensure_target_dir "ocaml" t, `OCaml
+              match ext, lastdirname t with
+              | ".exe", "c" -> t, `C
+              | ".exe", "python" -> t, `Python
+              | ".jar", _ -> ensure_target_dir "java" t, `Java
+              | ".exe", ("ocaml" | _) -> ensure_target_dir "ocaml" t, `OCaml
+              | _ -> assert false
             in
             let item =
               try
@@ -412,7 +413,9 @@ let build_cmd =
       List.map
         (fun ((item, backend), _) ->
           let t = make_target ~build_dir ~backend item in
-          Filename.remove_extension t ^ "+main" ^ Filename.extension t)
+          match backend with
+          | `Java | `Python -> t
+          | _ -> Filename.remove_extension t ^ "+main" ^ Filename.extension t)
         exec_targets
     in
     let final_ninja_targets =
@@ -566,9 +569,12 @@ let run_tests
                 let t = make_target ~build_dir ~backend it in
                 String.Set.add t
                 @@ String.Set.add
-                     (Filename.remove_extension t
-                     ^ "+main"
-                     ^ Filename.extension t)
+                     (match backend with
+                     | `Java | `Python -> t
+                     | _ ->
+                       Filename.remove_extension t
+                       ^ "+main"
+                       ^ Filename.extension t)
                      acc
             in
             List.fold_left
