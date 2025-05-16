@@ -186,7 +186,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
           / basename f
           ^ ".o")
         (link_deps item)
-    @ [target -.- "o"; Filename.remove_extension target ^ "+main.o"]
+    @ [Filename.remove_extension target ^ "+main.o"]
     @ get_var Var.c_flags
     @ ["-o"; target -.- "exe"]
   | `Python ->
@@ -413,7 +413,7 @@ let build_cmd =
     in
     let deps_targets =
       List.fold_left
-        (fun acc ((item, backend), t) ->
+        (fun acc ((item, backend), _) ->
           let deps = link_deps item in
           let targets = List.map (make_target ~build_dir ~backend) deps in
           make_target ~build_dir ~backend item ::
