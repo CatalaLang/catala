@@ -62,12 +62,10 @@ open Runtime_ocaml.Runtime
 
 [@@@ocaml.warning "-4-26-27-32-41-42"]
 
+
 module Enum1 = struct
- type t =
-    | Yes of unit
-    | No of unit
-    | Maybe of unit
-  end
+  type t = | Yes of unit | No of unit | Maybe of unit
+end
 
 module S = struct
   type t = {sr: money; e1: Enum1.t}
