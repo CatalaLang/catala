@@ -57,6 +57,9 @@ val interpret_program_lcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
+val addcustom :
+  (('a, 'b) interpr_kind, 'm) gexpr -> (('a, yes) interpr_kind, 'm) gexpr
+
 val delcustom :
   (('a, 'b) interpr_kind, 'm) gexpr -> (('a, no) interpr_kind, 'm) gexpr
 (** Runtime check that the term contains no custom terms (raises
@@ -65,5 +68,17 @@ val delcustom :
 val load_runtime_modules : hashf:(Hash.t -> Hash.full) -> _ program -> unit
 (** Dynlink the runtime modules required by the given program, in order to make
     them callable by the interpreter. This function is affected by
-    [Global.options.bin_dir]. Note: in whole-program, we will only try loading
-    external modules. *)
+    [Global.options.bin_dir]. Note: in whole-program, we will only try
+    loading external modules. *)
+  
+val runtime_to_val :
+  (decl_ctx ->
+  (('d, yes) interpr_kind, 'm) gexpr -> (('d, yes) interpr_kind, 'm) gexpr) ->
+  decl_ctx -> 'm mark -> typ -> Obj.t -> (('d, yes) interpr_kind, 'm) gexpr
+
+val val_to_runtime :
+  (decl_ctx ->
+  (('d, yes) interpr_kind, 'm) gexpr -> (('d, yes) interpr_kind, 'm) gexpr) ->
+  decl_ctx -> typ -> (('d, yes) interpr_kind, 'm) gexpr -> Obj.t
+
+val is_empty_error : ('a, 'm) gexpr -> bool
