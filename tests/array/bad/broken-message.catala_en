@@ -65,22 +65,22 @@ $ catala Typecheck --check-invariants
 │
 ├─➤ tests/array/bad/broken-message.catala_en:26.17-26.25:
 │    │
-│ 26 │       (acc1 ++ [x + acc2], acc2 + x) for x among a.x
+│ 26 │       (acc1 ++ [x + acc2], acc2 + x)
 │    │                 ‾‾‾‾‾‾‾‾
 ├─ Article
 │
 │ Type list of money coming from expression:
-├─➤ tests/array/bad/broken-message.catala_en:21.10-21.12:
+├─➤ tests/array/bad/broken-message.catala_en:21.9-21.11:
 │    │
-│ 21 │       (x ++ acc) for x among a.x
-│    │          ‾‾
+│ 21 │       x ++ acc
+│    │         ‾‾
 ├─ Article
 │
 │ Type money coming from expression:
-├─➤ tests/array/bad/broken-message.catala_en:25.41-25.43:
+├─➤ tests/array/bad/broken-message.catala_en:25.60-25.62:
 │    │
-│ 25 │     combine (acc1, acc2) initially ([], $1) with
-│    │                                         ‾‾
+│ 25 │     combine all x among a.x in (acc1, acc2) initially ([], $1) with
+│    │                                                            ‾‾
 └─ Article
 #return code 123#
 ```

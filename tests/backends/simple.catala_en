@@ -38,7 +38,6 @@ $ catala c
 #include <catala_runtime.h>
 
 
-
 typedef struct Foo {
   CATALA_BOOL x;
   CATALA_DEC y;
@@ -108,8 +107,7 @@ static const Baz* baz (const Baz_in* baz_in)
     } else {
       static const catala_code_position pos__1[1] =
         {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-      catala_error(catala_no_value,
-        (const catala_code_position **)&pos__1, 1);
+      catala_error(catala_no_value, pos__1, 1);
       abort();
     }
     a__3[0].content = a__4;
@@ -121,7 +119,7 @@ static const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-    catala_error(catala_no_value, (const catala_code_position **)&pos, 1);
+    catala_error(catala_no_value, pos, 1);
     abort();
   }
   switch (a__1->code) {
@@ -183,7 +181,7 @@ static const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
-    catala_error(catala_no_value, (const catala_code_position **)&pos, 1);
+    catala_error(catala_no_value, pos, 1);
     abort();
   }
   c__3->size = 2;
@@ -198,7 +196,7 @@ static const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos__1[1] =
       {{"tests/backends/simple.catala_en", 14, 10, 14, 11}};
-    catala_error(catala_no_value, (const catala_code_position **)&pos__1, 1);
+    catala_error(catala_no_value, pos__1, 1);
     abort();
   }
   baz__1->b = b;
@@ -206,19 +204,4 @@ static const Baz* baz (const Baz_in* baz_in)
   return baz__1;
 }
 
-
-int main (int argc, char** argv)
-{
-  catala_init();
-  { /* Test for scope Baz */
-    const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) top__1 =
-      CATALA_NONE;
-    Baz_in* const top = catala_malloc(sizeof(Baz_in));
-    const Baz* baz_test;
-    top->a_in = top__1;
-    baz_test = baz(top);
-    printf("\x1b[32m[RESULT]\x1b[m Scope Baz executed successfully.\n");
-  }
-  return 0;
-}
 ```

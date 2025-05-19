@@ -59,10 +59,10 @@ $ catala dcalc
 │
 │  Internal error: typing at this point could not be resolved
 │
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
@@ -98,10 +98,10 @@ $ catala test-scope Test
 │
 │  Internal error: typing at this point could not be resolved
 │
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.18-13.56:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
-│ 13 │     with (acc ++ list of x among in_n such that x.x > 2)
-│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │     with acc ++ list of x among in_n such that x.x > 2
+│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
