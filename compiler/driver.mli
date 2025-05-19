@@ -72,6 +72,7 @@ module Passes : sig
     keep_special_ops:bool ->
     dead_value_assignment:bool ->
     no_struct_literals:bool ->
+    keep_module_names:bool ->
     monomorphize_types:bool ->
     expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->

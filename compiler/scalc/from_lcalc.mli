@@ -32,6 +32,10 @@ type translation_config = {
       (** When [no_struct_literals] is true, the translation inserts a temporary
           variable to hold the initialization of struct literals. This matches
           what C89 expects. *)
+  keep_module_names : bool;
+      (** Without this flag, references to modules are expected to be variables
+          defined in the preamble of the output. If set, module names are
+          immutable and must be used as is in all references. *)
   renaming_context : Renaming.context;
 }
 

@@ -329,6 +329,7 @@ module Passes = struct
       ~keep_special_ops
       ~dead_value_assignment
       ~no_struct_literals
+      ~keep_module_names
       ~monomorphize_types
       ~expand_ops
       ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
@@ -349,6 +350,7 @@ module Passes = struct
             keep_special_ops;
             dead_value_assignment;
             no_struct_literals;
+            keep_module_names;
             renaming_context;
           }
         prg,
@@ -986,8 +988,8 @@ module Commands = struct
     let prg, _, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
-        ~no_struct_literals ~monomorphize_types ~expand_ops
-        ~renaming:(Some Renaming.default)
+        ~no_struct_literals ~keep_module_names:false ~monomorphize_types
+        ~expand_ops ~renaming:(Some Renaming.default)
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -1038,7 +1040,8 @@ module Commands = struct
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~no_struct_literals:false ~keep_module_names:false
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
     in
     Message.debug "Compiling program into Python...";
@@ -1071,7 +1074,8 @@ module Commands = struct
     let prg, _type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~no_struct_literals:false ~keep_module_names:true
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_java.renaming)
     in
     Message.debug "Compiling program into Java...";
@@ -1105,7 +1109,7 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:false ~expand_ops:true
+        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
     in
     Message.debug "Compiling program into C...";

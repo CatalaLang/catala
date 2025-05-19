@@ -24,6 +24,7 @@ type translation_config = {
   keep_special_ops : bool;
   dead_value_assignment : bool;
   no_struct_literals : bool;
+  keep_module_names : bool;
   renaming_context : Renaming.context;
 }
 
@@ -548,7 +549,12 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     List.fold_left
       (fun (modules, ctxt) (m, _) ->
         let name, pos = ModuleName.get_info m in
-        let vname, ctxt = get_name ctxt name in
+        let vname, ctxt =
+          if config.keep_module_names then
+            ( name,
+              { ctxt with ren_ctx = Renaming.reserve_name ctxt.ren_ctx name } )
+          else get_name ctxt name
+        in
         ModuleName.Map.add m (A.VarName.fresh (vname, pos)) modules, ctxt)
       (ModuleName.Map.empty, ctxt)
       (Program.modules_to_list p.decl_ctx.ctx_modules)
