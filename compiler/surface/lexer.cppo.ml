@@ -398,6 +398,12 @@ let rec lex_string buf lexbuf : token =
     lex_string buf lexbuf
   | '\\', eol, Star hspace ->
     lex_string buf lexbuf
+  | '\\', 'n' ->
+    Buffer.add_char buf '\n';
+    lex_string buf lexbuf
+  | '\\', 't' ->
+    Buffer.add_char buf '\t';
+    lex_string buf lexbuf
   | '\\', any_but_eol ->
     let s = Utf8.lexeme lexbuf in
     Buffer.add_substring buf s 1 (String.length s - 1);
