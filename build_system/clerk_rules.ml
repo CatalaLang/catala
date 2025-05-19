@@ -239,12 +239,15 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
                   !input; "-o"; !output]
         ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
-      Nj.rule "ocaml-object"
+      Nj.rule "ocaml-bytobject"
         ~command:[
-          !ocamlc_exe; "-i"; !ocaml_flags; !includes; !input; ">"; !input^"i"; "&&";
-          !ocamlc_exe; "-opaque"; !ocaml_flags; !includes; !input^"i"; "&&";
-          !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input; "&&";
-          !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !includes; !input
+          !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input
+        ]
+        ~description:["<ocaml>"; "⇒"; !output];
+
+      Nj.rule "ocaml-natobject"
+        ~command:[
+          !ocamlopt_exe; "-c"; !ocaml_flags; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
 
@@ -369,9 +372,15 @@ let gen_build_statements
   let has_scope_tests = Lazy.force item.has_scope_tests in
   let ocaml, c, python, java =
     if item.extrnal then
-      ( Nj.build "copy" ~implicit_in:[catala_src]
-          ~inputs:[src -.- "ml"]
-          ~outputs:[target ~backend:"ocaml" "ml"],
+      ( List.to_seq
+          [
+            Nj.build "copy" ~implicit_in:[catala_src]
+              ~inputs:[src -.- "ml"]
+              ~outputs:[target ~backend:"ocaml" "ml"];
+            Nj.build "copy" ~implicit_in:[catala_src]
+              ~inputs:[src -.- "mli"]
+              ~outputs:[target ~backend:"ocaml" "mli"];
+          ],
         List.to_seq
           [
             Nj.build "copy" ~implicit_in:[catala_src]
@@ -401,9 +410,11 @@ let gen_build_statements
       let implicit_out backend ext =
         if has_scope_tests then [target ~backend ("+main." ^ ext)] else []
       in
-      ( Nj.build "catala-ocaml" ~inputs ~implicit_in
-          ~outputs:[target ~backend:"ocaml" "ml"]
-          ~implicit_out:(implicit_out "ocaml" "ml"),
+      ( Seq.return
+          (Nj.build "catala-ocaml" ~inputs ~implicit_in
+             ~outputs:[target ~backend:"ocaml" "ml"]
+             ~implicit_out:
+               (target ~backend:"ocaml" "mli" :: implicit_out "ocaml" "ml")),
         Seq.return
           (Nj.build "catala-c" ~inputs ~implicit_in
              ~outputs:[target ~backend:"c" "c"]
@@ -415,33 +426,40 @@ let gen_build_statements
              ~outputs:[target ~backend:"java" "java"]) )
   in
   let ocamlopt =
-    let ocaml_exts = ["mli"; "cmi"; "cmo"; "cmx"; "o"] in
     let obj =
-      Nj.build "ocaml-object"
-        ~inputs:[target ~backend:"ocaml" "ml"]
-        ~implicit_in:(List.map module_target modules)
-        ~outputs:(List.map (target ~backend:"ocaml") ocaml_exts)
-        ~vars:[Var.includes, include_flags "ocaml"]
+      [
+        Nj.build "ocaml-bytobject"
+          ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
+          ~implicit_in:(List.map module_target modules)
+          ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
+          ~vars:[Var.includes, include_flags "ocaml"];
+        Nj.build "ocaml-natobject"
+          ~inputs:[target ~backend:"ocaml" "ml"]
+          ~implicit_in:
+            (target ~backend:"ocaml" "cmi" :: List.map module_target modules)
+          ~outputs:(List.map (target ~backend:"ocaml") ["cmx"; "o"])
+          ~vars:[Var.includes, include_flags "ocaml"];
+      ]
     in
     (match item.module_def with
     | Some _ ->
-      [
-        obj;
-        Nj.build "ocaml-module"
-          ~inputs:[target ~backend:"ocaml" "cmx"]
-          ~outputs:[target ~backend:"ocaml" "cmxs"];
-      ]
-    | None -> [obj])
+      obj
+      @ [
+          Nj.build "ocaml-module"
+            ~inputs:[target ~backend:"ocaml" "cmx"]
+            ~outputs:[target ~backend:"ocaml" "cmxs"];
+        ]
+    | None -> obj)
     @
     if has_scope_tests then
       [
-        Nj.build "ocaml-object"
+        Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:"ocaml" "+main.ml"]
           ~implicit_in:[target ~backend:"ocaml" "cmi"]
           ~outputs:
             (List.map
                (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
-               ocaml_exts)
+               ["cmx"; "o"])
           ~vars:[Var.includes, include_flags "ocaml" @ ["-w"; "-24"]];
       ]
     else []
@@ -546,7 +564,7 @@ let gen_build_statements
     :: List.to_seq expose_module
     ::
     (if List.mem OCaml enabled_backends then
-       [Option.to_seq module_deps; Seq.return ocaml; List.to_seq ocamlopt]
+       [Option.to_seq module_deps; ocaml; List.to_seq ocamlopt]
      else [])
     @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
     @ (if List.mem Python enabled_backends then [Seq.return python] else [])

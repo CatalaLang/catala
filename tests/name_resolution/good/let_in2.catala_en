@@ -61,10 +61,8 @@ let s : S_in.t -> S.t = fun s_in ->
            (Eoption.ESome
               ((match
                   (Eoption.ESome
-                     ((let a__2 : bool = false
-                       in
-                       (let a__3 : bool = (a__2 || true) in
-                       a__3)),
+                     ((let a__2 : bool = false in
+                       (let a__3 : bool = (a__2 || true) in a__3)),
                        ({filename="tests/name_resolution/good/let_in2.catala_en";
                          start_line=11; start_column=5;
                          end_line=13; end_column=6; law_headings=["Article"]})))

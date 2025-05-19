@@ -19,6 +19,9 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
+(** Formatting to a list of formatters *)
+let pp dest fmt = Format.kdprintf (fun k -> List.iter k dest) fmt
+
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   Format.fprintf fmt "@[<hov 2>[%a]@]"
     (Format.pp_print_list
@@ -290,7 +293,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
       (`Ename name) format_enum_cons_name cons format_with_parens e
   | EMatch { e; cases; name } ->
-    Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@\n| %a@]"
+    Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@,| %a@]"
       format_with_parens e
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
@@ -319,7 +322,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
          (fun fmt (x, tau, arg) ->
-           Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n"
+           Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@ "
              format_var x format_typ tau format_with_parens arg))
       xs_tau_arg format_with_parens body
   | EAbs { binder; pos = _; tys } ->
@@ -414,18 +417,18 @@ let format_struct_embedding
     ((struct_name, struct_fields) : StructName.t * typ StructField.Map.t) =
   if StructName.path struct_name = [] then
     if StructField.Map.is_empty struct_fields then
-      Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@,@,"
         format_struct_name struct_name format_to_module_name
         (`Sname struct_name)
     else
       Format.fprintf fmt
         "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct(\"%a\",@ \
-         @[<hov 2>[%a]@])@]@\n\
-         @\n"
+         @[<hov 2>[%a]@])@]@,\
+         @,"
         format_struct_name struct_name format_to_module_name
         (`Sname struct_name) StructName.format struct_name
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@,")
            (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format
                struct_field typ_embedding_name struct_field_type
@@ -438,17 +441,17 @@ let format_enum_embedding
     ((enum_name, enum_cases) : EnumName.t * typ EnumConstructor.Map.t) =
   if EnumName.path enum_name = [] then
     if EnumConstructor.Map.is_empty enum_cases then
-      Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@\n@\n"
+      Format.fprintf fmt "let embed_%a (_: %a.t) : runtime_value = Unit@,@,"
         format_enum_name enum_name format_to_module_name (`Ename enum_name)
     else
       Format.fprintf fmt
         "@[<hv 2>@[<hov 2>let embed_%a@ @[<hov 2>(x:@ %a.t)@]@ : runtime_value \
-         =@]@ Enum(\"%a\",@ @[<hov 2>match x with@ %a@])@]@\n\
-         @\n"
+         =@]@ Enum(\"%a\",@ @[<hov 2>match x with@ %a@])@]@,\
+         @,"
         format_enum_name enum_name format_to_module_name (`Ename enum_name)
         EnumName.format enum_name
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
            (fun fmt (enum_cons, enum_cons_type) ->
              Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
                format_enum_cons_name enum_cons EnumConstructor.format enum_cons
@@ -457,18 +460,22 @@ let format_enum_embedding
 
 let format_ctx
     (type_ordering : TypeIdent.t list)
-    (fmt : Format.formatter)
+    (ppml : Format.formatter)
+    (ppi : Format.formatter)
     (ctx : decl_ctx) : unit =
-  let format_struct_decl fmt (struct_name, struct_fields) =
-    if StructField.Map.is_empty struct_fields then
-      Format.fprintf fmt
-        "@[<v 2>module %a = struct@\n@[<hov 2>type t = unit@]@]@\nend@\n"
-        format_to_module_name (`Sname struct_name)
-    else
-      Format.fprintf fmt
+  let format_struct_decl (struct_name, struct_fields) =
+    if StructField.Map.is_empty struct_fields then (
+      Format.fprintf ppml
+        "@[<v 2>module %a = struct@,@[<hov 2>type t = unit@]@]@ end@,"
+        format_to_module_name (`Sname struct_name);
+      Format.fprintf ppi
+        "@[<v 2>module %a : sig@,@[<hov 2>type t = unit@]@]@ end@,"
+        format_to_module_name (`Sname struct_name))
+    else (
+      Format.fprintf ppml
         "@[<v>@[<v 2>module %a = struct@ @[<hv 2>type t = {@,\
          %a@;\
-         <0-2>}@]@]@ end@]@\n"
+         <0-2>}@]@]@ end@]@,"
         format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
@@ -476,21 +483,43 @@ let format_ctx
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         (StructField.Map.bindings struct_fields);
+      Format.fprintf ppi
+        "@[<v>@[<v 2>module %a : sig@ @[<hv 2>type t = {@,\
+         %a@;\
+         <0-2>}@]@]@ end@]@,"
+        format_to_module_name (`Sname struct_name)
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+           (fun fmt (struct_field, struct_field_type) ->
+             Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
+               (None, struct_field) format_typ struct_field_type))
+        (StructField.Map.bindings struct_fields));
     if Global.options.trace <> None then
-      format_struct_embedding fmt (struct_name, struct_fields)
+      format_struct_embedding ppml (struct_name, struct_fields);
+    pp [ppml; ppi] "@,"
   in
-  let format_enum_decl fmt (enum_name, enum_cons) =
-    Format.fprintf fmt
-      "module %a = struct@\n@[<hov 2>@ type t =@\n@[<hov 2>  %a@]@\nend@]@\n"
+  let format_enum_decl (enum_name, enum_cons) =
+    Format.fprintf ppml
+      "@[<hv 2>module %a = struct@ @[<hov 2>type t =@ %a@]@;<1 -2>end@]@,"
       format_to_module_name (`Ename enum_name)
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         (fun fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
+             enum_cons format_typ enum_cons_type))
+      (EnumConstructor.Map.bindings enum_cons);
+    Format.fprintf ppi
+      "module %a : sig@,@[<hov 2>@ type t =@,@[<hov 2>  %a@]@ end@]@,"
+      format_to_module_name (`Ename enum_name)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
          (fun fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons);
     if Global.options.trace <> None then
-      format_enum_embedding fmt (enum_name, enum_cons)
+      format_enum_embedding ppml (enum_name, enum_cons);
+    pp [ppml; ppi] "@,"
   in
   let is_in_type_ordering s =
     List.exists
@@ -513,12 +542,10 @@ let format_ctx
       match struct_or_enum with
       | TypeIdent.Struct s ->
         let def = StructName.Map.find s ctx.ctx_structs in
-        if StructName.path s = [] then
-          Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
+        if StructName.path s = [] then format_struct_decl (s, def)
       | TypeIdent.Enum e ->
         let def = EnumName.Map.find e ctx.ctx_enums in
-        if EnumName.path e = [] then
-          Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
+        if EnumName.path e = [] then format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
 let format_expr ctx fmt e =
@@ -544,22 +571,31 @@ let format_scope_body_expr
 
 let format_code_items
     (ctx : decl_ctx)
-    (fmt : Format.formatter)
+    (ppml : Format.formatter)
+    (ppi : Format.formatter)
     (code_items : 'm Ast.expr code_item_list) : 'm Ast.expr code_export list =
-  Format.pp_open_vbox fmt 0;
+  pp [ppml; ppi] "@[<v>";
   let exports =
     BoundList.iter code_items ~f:(fun var item ->
         match item with
-        | Topdef (name, typ, _vis, e) ->
-          Format.fprintf fmt "@,(* Toplevel def %a *)" TopdefName.format name;
-          Format.fprintf fmt "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
+        | Topdef (name, typ, vis, e) ->
+          if vis = Public then (
+            pp [ppi] "@,(** Toplevel definition %a *)" TopdefName.format name;
+            pp [ppi] "@,@[<hov 2>val %a : %a@]@," format_var var format_typ typ);
+          Format.fprintf ppml "@,(* Toplevel def %a *)" TopdefName.format name;
+          Format.fprintf ppml "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
             format_var var format_typ typ (format_expr ctx) e
         | ScopeDef (name, body) ->
           let scope_input_var, scope_body_expr =
             Bindlib.unbind body.scope_body_expr
           in
-          Format.fprintf fmt "@,(* Scope %a *)" ScopeName.format name;
-          Format.fprintf fmt
+          if body.scope_body_visibility = Public then (
+            pp [ppi] "@,(** Scope %a *)" ScopeName.format name;
+            pp [ppi] "@,@[<hv 2>val %a :@ @[<hv>%a.t ->@ %a.t@]@]@," format_var
+              var format_to_module_name (`Sname body.scope_body_input_struct)
+              format_to_module_name (`Sname body.scope_body_output_struct));
+          Format.fprintf ppml "@,(* Scope %a *)" ScopeName.format name;
+          Format.fprintf ppml
             "@,@[<hv 2>@[<hov 2>let %a :@ %a.t -> %a.t =@ fun %a ->@]@ %a@]@,"
             format_var var format_to_module_name
             (`Sname body.scope_body_input_struct) format_to_module_name
@@ -567,7 +603,7 @@ let format_code_items
             (format_scope_body_expr ctx)
             scope_body_expr)
   in
-  Format.pp_close_box fmt ();
+  pp [ppml; ppi] "@]";
   exports
 
 let format_scope_exec_args
@@ -622,26 +658,25 @@ let commands = if commands = [] then test_scopes else commands
       String.capitalize_ascii
         (File.basename (Filename.remove_extension filename))
   in
-  Format.fprintf fmt "open Runtime_ocaml.Runtime\n";
-  Format.fprintf fmt "open %s\n\n" modname;
+  Format.fprintf fmt "open Runtime_ocaml.Runtime@,";
+  Format.fprintf fmt "open %s@,@," modname;
   List.iter
     (fun (scope, e) ->
       (* Note: this only checks that execution doesn't raise errors or assert
          failures. Adding a printer for the results could be an idea... *)
       Format.fprintf fmt
         "let () = if List.mem %S commands then (@,\
-        \  let _ = @[<hv>%a@] in@,\
-        \  print_endline \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
-         successfully.\"@,\
+        \  let _ = @[<hv>%a@] in@   print_endline \"\\x1b[32m[RESULT]\\x1b[m \
+         Scope %a executed successfully.\"@,\
          )@,"
         (ScopeName.to_string scope)
         (format_expr p.decl_ctx) e ScopeName.format scope)
     tests
 
-let check_and_reexport_used_modules fmt ~hashf modules =
+let check_and_reexport_used_modules ppml ppi ~hashf modules =
   List.iter
     (fun (m, intf_id) ->
-      Format.fprintf fmt
+      pp [ppml]
         "@[<hv 2>let () =@ @[<hov 2>match Runtime_ocaml.Runtime.check_module \
          %S \"%a\"@ with@]@,\
          | Ok () -> ()@,\
@@ -653,7 +688,7 @@ let check_and_reexport_used_modules fmt ~hashf modules =
             Format.pp_print_string ppf Hash.external_placeholder
           else Hash.format ppf h)
         (hashf intf_id.hash) ModuleName.format m;
-      Format.fprintf fmt "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
+      pp [ppml; ppi] "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
         ModuleName.format m)
     modules
 
@@ -700,24 +735,26 @@ let header =
 
 let format_program
     output_file
-    fmt
+    ppml
     ~(hashf : Hash.t -> Hash.full)
     (p : 'm Ast.program)
     (type_ordering : TypeIdent.t list) : unit =
-  Format.pp_open_vbox fmt 0;
-  Format.pp_print_string fmt header;
-  check_and_reexport_used_modules fmt ~hashf
+  File.with_secondary_out_channel ~output_file ~ext:"mli"
+  @@ fun _ ppi ->
+  pp [ppml; ppi] "@[<v>";
+  pp [ppml; ppi] "%s" header;
+  check_and_reexport_used_modules ppml ppi ~hashf
     (Program.modules_to_list p.decl_ctx.ctx_modules);
-  format_ctx type_ordering fmt p.decl_ctx;
-  let exports = format_code_items p.decl_ctx fmt p.code_items in
+  format_ctx type_ordering ppml ppi p.decl_ctx;
+  let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name
   |> Option.iter (fun (modname, intf_id) ->
-         Format.pp_print_cut fmt ();
-         format_module_registration p.decl_ctx fmt exports modname
+         Format.pp_print_cut ppml ();
+         format_module_registration p.decl_ctx ppml exports modname
            (hashf intf_id.hash) intf_id.is_external);
   if List.exists (function KTest _, _ -> true | _ -> false) exports then
     File.with_secondary_out_channel ~output_file ~ext:"+main.ml" (fun _ fmt ->
         format_scope_exec_args p
           (Option.value ~default:"-" output_file)
           fmt exports);
-  Format.pp_close_box fmt ()
+  pp [ppml; ppi] "@]"
