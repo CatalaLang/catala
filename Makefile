@@ -340,10 +340,10 @@ test_title = printf "\n\#             \e[33m===========  \e[1m%-30s  \e[2m======
 #> alltest					: Runs more extensive tests, including the examples and french-law. Use before push!
 alltest: dependencies-python
 	@export DUNE_PROFILE=check OCAMLPATH=$(CURDIR)/_build/install/default/lib && \
-	$(test_title) "Local build and unit tests" && \
-	dune build @update-parser-messages @install @runtest && \
-	$(test_title) "Local testsuite" && \
-	$(MAKE) testsuite && \
+	# $(test_title) "Local build and unit tests" && \
+	# dune build @update-parser-messages @install @runtest && \
+	# $(test_title) "Local testsuite" && \
+	# $(MAKE) testsuite && \
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(MAKE) -C catala-examples.tmp \

@@ -28,7 +28,7 @@ let run includes output optimize check_invariants closure_conversion options =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops:false
       ~dead_value_assignment:true ~no_struct_literals:false
-      ~monomorphize_types:false ~expand_ops:false
+      ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
       ~renaming:(Some Scalc.To_python.renaming)
   in
 
