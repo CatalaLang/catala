@@ -99,4 +99,4 @@ type 'a t =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
-  | EHole : typ -> 'a t
+  | TrHole : typ -> 'a t
