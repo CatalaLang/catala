@@ -2,6 +2,18 @@ open Catala_utils
 open Shared_ast
 open Shared_ast.Interpreter
 open Trace_ast
+open Print_trace
+
+(*
+let convert_expr_to_expr_with_holes :
+type d t. ((d, yes) interpr_kind, t) gexpr -> ((d dcalc_slicing, yes) interpr_kind, t) gexpr =
+fun e -> 
+  let m = Mark.get e in 
+  match Mark.remove e with
+    | ELit l -> Mark.add m (ELit l)
+    | _ -> Mark.add m EEmpty
+*)
+
 
 let evaluate_expr_with_trace :
     type d t.
@@ -348,6 +360,9 @@ let interpret
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in
       let v, tr = evaluate_expr_safe p.decl_ctx p.lang (addcustom e) in
+      print_newline ();
+      print_trace tr;
+      print_newline ();
       match v with
       | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
         begin
@@ -363,6 +378,9 @@ let interpret
             (Expr.pos e)
         in
         let v2, tr2 = evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret) in
+        print_newline ();
+        print_trace tr2;
+        print_newline ();
         match Mark.remove v2
         with
         | EStruct { fields; _ } ->
