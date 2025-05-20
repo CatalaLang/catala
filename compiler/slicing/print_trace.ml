@@ -3,34 +3,35 @@ open Shared_ast
 open Shared_ast.Print
 open Global
 
-let rec print_expr (expr : ('a, 'm) gexpr) =
-  match Mark.remove expr with
+let rec print_expr _ = (*(expr : ('a, 'm) gexpr) =*)
+  (*
+  match expr with
   | ELit l -> print_string (UserFacing.lit_to_string En l)
   | EApp { f; args; tys } ->
       print_string "EApp(";
-      print_expr f;
+      (*print_expr f;*)
       print_string ", [";
-      List.iter (fun arg -> print_expr arg; print_string ", ") args;
+      (*List.iter (fun arg -> print_expr arg; print_string ", ") args;*)
       print_string "])"
   | EAppOp { op; args; tys } ->
       print_string "EAppOp(";
       print_string (operator_to_string (Mark.remove op));
       print_string ", [";
-      List.iter (fun arg -> print_expr arg; print_string ", ") args;
+      (*List.iter (fun arg -> print_expr arg; print_string ", ") args;*)
       print_string "])"
   | EArray arr ->
       print_string "EArray(";
-      List.iter (fun elem -> print_string ", "; print_expr elem) arr;
+      (*List.iter (fun elem -> print_string ", "; print_expr elem) arr;*)
       print_string ")"
   | EVar _ -> print_string "EVar"
   | EAbs { binder; pos; tys } -> print_string "EAbs"
   | EIfThenElse { cond; etrue; efalse } ->
       print_string "EIfThenElse(";
-      print_expr cond;
+      (*print_expr cond;*)
       print_string ", ";
-      print_expr etrue;
+      (*print_expr etrue;*)
       print_string ", ";
-      print_expr efalse;
+      (*print_expr efalse;*)
       print_string ")"
   | EStruct { name; fields } ->
       print_string "EStruct(";
@@ -94,10 +95,12 @@ let rec print_expr (expr : ('a, 'm) gexpr) =
   | ECustom { obj; targs; tret } -> print_string "ECustom"
   | EHole _ -> print_string "□"
   | _ -> assert false
+  *)
+  print_string "□"
 
 let rec print_trace (trace : 'a Trace_ast.t) =
   match trace with
-  | TrExpr e -> print_string "TrExpr(";print_expr e; print_string ")"
+  | TrExpr _ -> print_string "TrExpr(";print_expr (); print_string ")"
   | TrLit l -> 
     (*print_string "TrLit(";*)
     print_string (UserFacing.lit_to_string En l)
