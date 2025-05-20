@@ -298,7 +298,7 @@ let gen_build_statements
   let target =
     match item.module_def with
     | None -> !Var.builddir / Filename.remove_extension src
-    | Some n -> !Var.builddir / Filename.dirname src / n
+    | Some n -> !Var.builddir / Filename.dirname src / Mark.remove n
   in
   let include_flags =
     "-I"
@@ -329,7 +329,7 @@ let gen_build_statements
       [Nj.binding Var.class_path java_class_path]
     else []
   in
-  let modules = List.rev item.used_modules in
+  let modules = List.rev_map Mark.remove item.used_modules in
   let modfile ext ?(mod_ext = ext) modname =
     match List.assoc_opt modname same_dir_modules with
     | Some f -> (!Var.builddir / Filename.dirname f / modname) ^ ext
@@ -340,7 +340,7 @@ let gen_build_statements
   let include_deps =
     Nj.build "copy" ~inputs:[!Var.src]
       ~implicit_in:
-        (List.map (( / ) !Var.builddir) item.included_files
+        (List.map (fun f -> !Var.builddir / Mark.remove f) item.included_files
         @ List.map
             (fun m ->
               try !Var.builddir / List.assoc m same_dir_modules
@@ -450,29 +450,32 @@ let gen_build_statements
        rid of these aliases. *)
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[!Var.builddir / !Var.src]
+      let modname = Mark.remove m in
+      Nj.build "phony"
+        ~outputs:[modname ^ "@src"]
+        ~inputs:[!Var.builddir / !Var.src]
       ::
       (if List.mem OCaml enabled_backends then
          [
            Nj.build "phony"
-             ~outputs:[m ^ "@ml-module"]
+             ~outputs:[modname ^ "@ml-module"]
              ~inputs:[module_target !Var.target];
          ]
        else [])
       @ (if List.mem C enabled_backends then
            [
              Nj.build "phony"
-               ~outputs:[m ^ "@c-module"]
+               ~outputs:[modname ^ "@c-module"]
                ~inputs:[modfile ".h" !Var.target; modfile ".c.o" !Var.target];
              Nj.build "phony"
-               ~outputs:[m ^ "@h-module"]
+               ~outputs:[modname ^ "@h-module"]
                ~inputs:[modfile ".h" !Var.target];
            ]
          else [])
       @ (if List.mem Python enabled_backends then
            [
              Nj.build "phony"
-               ~outputs:[m ^ "@py-module"]
+               ~outputs:[modname ^ "@py-module"]
                ~inputs:[modfile ".py" !Var.target];
            ]
          else [])
@@ -480,7 +483,7 @@ let gen_build_statements
       if List.mem Java enabled_backends then
         [
           Nj.build "phony"
-            ~outputs:[m ^ "@java-module"]
+            ~outputs:[modname ^ "@java-module"]
             ~inputs:[modfile ".java" !Var.target];
         ]
       else []
@@ -539,7 +542,9 @@ let gen_build_statements_dir
   let same_dir_modules =
     List.filter_map
       (fun item ->
-        Option.map (fun name -> name, item.Scan.file_name) item.Scan.module_def)
+        Option.map
+          (fun name -> Mark.remove name, item.Scan.file_name)
+          item.Scan.module_def)
       items
   in
   Seq.flat_map
