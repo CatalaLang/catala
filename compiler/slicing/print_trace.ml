@@ -126,7 +126,16 @@ let rec print_trace (trace : 'a Trace_ast.t) =
       List.iter (fun elem -> print_string ", "; print_trace elem) arr;
       print_string ")"
   | TrVar _ -> print_string "TrVar"
-  | TrAbs { binder; pos; tys } -> print_string "TrAbs"
+  | TrAbs { binder; pos; tys } -> 
+    print_string "TrAbs(";
+    let (vars, body) = Bindlib.unmbind binder in
+    print_string "Binder([";
+    Array.iter (fun var ->
+        print_string (Bindlib.name_of var);
+        print_string ", ") vars;
+    print_string "], ";
+    print_expr body; 
+    print_string "))";
   | TrIfThenElse { trcond; trtrue; trfalse } ->
       print_string "TrIfThenElse(";
       print_trace trcond;
