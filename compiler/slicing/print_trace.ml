@@ -110,7 +110,7 @@ let rec print_expr _ = (*(expr : ('a, 'm) gexpr) =*)
   *)
   print_string "□"
 
-let rec print_trace (trace : 'a Trace_ast.t) =
+let rec print_trace (trace : ('a, 'm) Trace_ast.t) =
   match trace with
   | TrExpr e -> print_string "TrExpr(";print_expr e; print_string ")"
   | TrLit l -> 

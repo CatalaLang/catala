@@ -20,15 +20,15 @@ let evaluate_expr_with_trace :
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, t) gexpr ->
-    ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind) Trace_ast.t =
+    ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
-  let exception FatalError of Runtime.error * t mark * ((d, yes) interpr_kind) Trace_ast.t in
+  let exception FatalError of Runtime.error * t mark * ((d, yes) interpr_kind, t) Trace_ast.t in
   let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, t) gexpr ->
-      ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind) Trace_ast.t =
+      ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
   fun ctx lang e ->
     (*let debug_print, e =
       Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
@@ -344,7 +344,7 @@ let evaluate_expr_safe :
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr * ((d, yes) interpr_kind) Trace_ast.t =
+    ((d, yes) interpr_kind, 't) gexpr * ((d, yes) interpr_kind, 't) Trace_ast.t =
  fun ctx lang e ->
   try evaluate_expr_with_trace ctx lang e
   with Runtime.Error (err, rpos) ->
