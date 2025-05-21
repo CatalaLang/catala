@@ -3,6 +3,18 @@ open Shared_ast
 open Shared_ast.Print
 open Global
 
+let print_container iter f container =
+  print_string "[";
+  let first = ref true in
+  iter (fun x ->
+      if not !first then print_string ", ";
+      first := false;
+      f x) container;
+  print_string "]"
+
+let print_list f lst = print_container List.iter f lst
+
+
 let rec print_expr _ = (*(expr : ('a, 'm) gexpr) =*)
   (*
   match expr with
@@ -100,40 +112,41 @@ let rec print_expr _ = (*(expr : ('a, 'm) gexpr) =*)
 
 let rec print_trace (trace : 'a Trace_ast.t) =
   match trace with
-  | TrExpr _ -> print_string "TrExpr(";print_expr (); print_string ")"
+  | TrExpr e -> print_string "TrExpr(";print_expr e; print_string ")"
   | TrLit l -> 
     (*print_string "TrLit(";*)
     print_string (UserFacing.lit_to_string En l)
     (*;print_string ")"*)
-  | TrApp { trf; trargs; tys; trv } ->
+  | TrApp { trf; trargs; tys = _; trv } ->
       print_string "TrApp(";
       print_trace trf;
-      print_string ", [";
-      List.iter (fun arg -> print_trace arg; print_string ", ") trargs;
-      print_string "], ";
+      print_string ", ";
+      print_list print_trace trargs;
+      print_string ", ";
       print_trace trv;
       print_string ")"
-  | TrAppOp { op; trargs; tys; trv } ->
+  | TrAppOp { op; trargs; tys = _; trv } ->
       print_string "TrAppOp(";
       print_string (operator_to_string (Mark.remove op));
-      print_string ", [";
-      List.iter (fun arg -> print_trace arg; print_string ", ") trargs;
-      print_string "], ";
+      print_string ", ";
+      print_list print_trace trargs;
+      print_string ", ";
       print_trace trv;
       print_string ")"
   | TrArray arr ->
       print_string "TrArray(";
-      List.iter (fun elem -> print_string ", "; print_trace elem) arr;
+      print_list print_trace arr;
       print_string ")"
-  | TrVar _ -> print_string "TrVar"
-  | TrAbs { binder; pos; tys } -> 
+  | TrVar x -> 
+      print_string "TrVar(";
+      print_string (Bindlib.name_of x);
+      print_string ")"
+  | TrAbs { binder; pos = _; tys = _ } -> 
     print_string "TrAbs(";
     let (vars, body) = Bindlib.unmbind binder in
-    print_string "Binder([";
-    Array.iter (fun var ->
-        print_string (Bindlib.name_of var);
-        print_string ", ") vars;
-    print_string "], ";
+    print_string "Binder(";
+    print_container Array.iter (fun x -> print_string(Bindlib.name_of x)) vars;
+    print_string ", ";
     print_expr body; 
     print_string "))";
   | TrIfThenElse { trcond; trtrue; trfalse } ->
@@ -147,13 +160,18 @@ let rec print_trace (trace : 'a Trace_ast.t) =
   | TrStruct { name; fields } ->
       print_string "TrStruct(";
       print_string(StructName.to_string name);
-      print_string ", [";
-      StructField.Map.iter (fun _ tr -> print_trace tr; print_string ", ")
+      print_string ", ";
+      print_container StructField.Map.iter (fun field tr -> 
+        print_string (StructField.to_string field);
+        print_string " -> ";
+        print_trace tr)
         fields;
-      print_string "])"
+      print_string ")"
   | TrInj { name; tr; cons } ->
       print_string "TrInj("; 
       print_string (EnumName.to_string name);
+      print_string ".";
+      print_string (EnumConstructor.to_string cons);
       print_string ", ";
       print_trace tr;
       print_string ")"
@@ -162,13 +180,16 @@ let rec print_trace (trace : 'a Trace_ast.t) =
       print_string (EnumName.to_string name);
       print_string ", ";
       print_trace tr;
-      print_string ", [";
-      EnumConstructor.Map.iter (fun _ tr -> print_trace tr; print_string ", ")
+      print_string ", ";
+      print_container EnumConstructor.Map.iter (fun cons tr ->
+        print_string(EnumConstructor.to_string cons); 
+        print_string " -> ";
+        print_trace tr) 
         cases;
       print_string "])"
   | TrTuple lst ->
       print_string "TrTuple(";
-      List.iter (fun elem -> print_string ", "; print_trace elem) lst;
+      print_list print_trace lst;
       print_string ")"
   | TrTupleAccess { tr; index; size } ->
       Printf.printf "TrTupleAccess(%d, %d, " index size;
@@ -177,6 +198,8 @@ let rec print_trace (trace : 'a Trace_ast.t) =
   | TrStructAccess { name; tr; field } ->
       print_string "TrStructAccess("; 
       print_string (StructName.to_string name);
+      print_string ".";
+      print_string (StructField.to_string field);
       print_string ", ";
       print_trace tr;
       print_string ")"
@@ -187,13 +210,14 @@ let rec print_trace (trace : 'a Trace_ast.t) =
       print_string ")"
   | TrFatalError { err; tr } ->
       print_string "TrFatalError(";
+      print_string (Runtime.error_to_string err);
+      print_string ", ";
       print_trace tr;
       print_string ")"
   | TrDefault { trexcepts; trjust; trcons } ->
       print_string "TrDefault(";
-      print_string "[";
-      List.iter (fun exc -> print_trace exc; print_string ", ") trexcepts;
-      print_string "], ";
+      print_list print_trace trexcepts;
+      print_string ", ";
       print_trace trjust;
       print_string ", ";
       print_trace trcons;
@@ -207,5 +231,5 @@ let rec print_trace (trace : 'a Trace_ast.t) =
       print_string "TrErrorOnEmpty(";
       print_trace tr;
       print_string ")"
-  | TrCustom { obj; targs; tret } -> print_string "TrCustom"
+  | TrCustom { obj = _; targs = _; tret = _ } -> print_string "TrCustom"
   | TrHole _ -> print_string "□"
