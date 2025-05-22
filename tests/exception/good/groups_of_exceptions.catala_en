@@ -1,6 +1,6 @@
 ## Test
 
-```catala
+```catala-metadata
 declaration scope Foo:
   input y content integer
   output x content integer

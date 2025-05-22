@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 #[test] declaration scope Callee:
   context input_v content integer depends on b content boolean
   context output output_v content integer

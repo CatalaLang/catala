@@ -1,7 +1,7 @@
 This test exposes a name clash between the scope function (`ScopeName,`
 rewritten to `scope_name`) and the scope variable `scope_name`.
 
-```catala
+```catala-metadata
 declaration scope SomeNâme:
   input i content integer
   output o content integer

@@ -1,6 +1,6 @@
 ## Test
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   output x content boolean
 

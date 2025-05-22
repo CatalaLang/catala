@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   context output a content integer
   context output b content boolean

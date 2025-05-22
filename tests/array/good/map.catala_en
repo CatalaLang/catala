@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 #[test] declaration scope B:
    output x content list of money
    output z content list of boolean

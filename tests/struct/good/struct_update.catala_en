@@ -1,5 +1,5 @@
 
-```catala
+```catala-metadata
 declaration structure Str:
   data fld1 content integer
   data fld2 content money

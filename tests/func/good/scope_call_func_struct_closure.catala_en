@@ -1,4 +1,4 @@
-```catala
+```catala-metadata
 declaration structure Result:
   data r content integer depends on z content integer
   data q content integer

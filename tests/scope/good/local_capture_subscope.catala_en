@@ -1,5 +1,5 @@
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   output ao content integer
 
@@ -36,7 +36,7 @@ $ catala test-scope S
 ```
 
 
-```catala
+```catala-metadata
 declaration scope A2:
   input output io content integer
   output x content integer

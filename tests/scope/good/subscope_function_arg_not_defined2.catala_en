@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 declaration scope Callee:
   context function condition depends on x content integer
   context input_v content integer

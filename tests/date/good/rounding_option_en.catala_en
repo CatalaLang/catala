@@ -1,4 +1,4 @@
-```catala
+```catala-metadata
 
 declaration scope CheckAgeIsLessThan:
   input bday content date

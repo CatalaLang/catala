@@ -1,7 +1,7 @@
 > Using Prorata_external as Ext
 
 
-```catala
+```catala-metadata
 #[test] declaration scope S:
   internal weights content list of money
   output result1 content list of money
