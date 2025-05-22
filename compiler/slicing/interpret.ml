@@ -26,10 +26,11 @@ fun ctx lang e ->
   let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
+      (((d, yes) interpr_kind, t) naked_gexpr Bindlib.var * ((d, yes) interpr_kind, t) gexpr) list ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, t) gexpr ->
       ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
-  fun ctx lang e ->
+  fun ctx local_ctx lang e ->
     (*let debug_print, e =
       Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
     in*)
@@ -47,10 +48,14 @@ fun ctx lang e ->
         r)
     @@*)
     match Mark.remove e with
-    | EVar _ ->
-        (Message.error ~pos "%a" Format.pp_print_text
-        "free variable found at evaluation (should not happen if term was \
-        well-typed)")
+    | EVar x -> (
+      match List.assoc_opt x local_ctx with
+        | Some v -> v, TrVar x
+        | None -> 
+          Message.error ~pos "%a" Format.pp_print_text
+            "free variable found at evaluation (should not happen if term was \
+            well-typed)"
+      )
     | EExternal { name } ->
       let path =
         match Mark.remove name with
@@ -84,13 +89,14 @@ fun ctx lang e ->
       let o = Runtime.lookup_value runtime_path in
       (runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o), TrExternal { name }
     | EApp { f = e1; args; tys } -> (
-      let e1, trf = evaluate_expr_with_trace_aux ctx lang e1 in
-      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx lang) args) in
+      let e1, trf = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
+      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
       match Mark.remove e1 with
       | EAbs { binder; _ } ->
         if Bindlib.mbinder_arity binder = List.length args then
-          let v, trv = evaluate_expr_with_trace_aux ctx lang
-            (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args))) in 
+          let vars, body = Bindlib.unmbind binder in
+          let local_ctx = (List.combine (Array.to_list vars) args) @ local_ctx in
+          let v, trv = evaluate_expr_with_trace_aux ctx local_ctx lang body in 
             (v, TrApp {trf; trargs; tys; trv})
         else
           Message.error ~pos "wrong function call, expected %d arguments, got %d"
@@ -126,18 +132,17 @@ fun ctx lang e ->
             else ())
           e1)
     | EAppOp { op; args; tys } ->
-      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx lang) args) in
+      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
       let v = evaluate_operator (evaluate_expr ctx lang) op m lang args in
       v, TrAppOp { op; trargs; tys; trv = TrExpr v }
     | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
     | ELit l -> e, TrLit l
-    (*| EPos _ -> e, assert false*)
     | EPos _ -> assert false
     | ECustom { obj; targs; tret } -> e, TrCustom { obj; targs; tret }
     | EEmpty -> e, TrEmpty
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
-      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx lang) es) in
+      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
       (Mark.add m
         (EStruct
           {
@@ -155,7 +160,7 @@ fun ctx lang e ->
           name;
         }
     | EStructAccess { e; name = s; field } -> (
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
       match Mark.remove e with
       | EStruct { fields = es; name } -> (
         if not (StructName.equal s name) then
@@ -178,10 +183,10 @@ fun ctx lang e ->
           (Print.UserFacing.expr lang)
           e StructName.format s)
     | ETuple es -> 
-      let v, trv = List.split(List.map (evaluate_expr_with_trace_aux ctx lang) es) in
+      let v, trv = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
       (Mark.add m (ETuple v)), TrTuple trv
     | ETupleAccess { e = e1; index; size } -> (
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e1 in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
       match e with
       | ETuple es, _ when List.length es = size -> (List.nth es index), TrTupleAccess { tr; index; size }
       | e ->
@@ -191,10 +196,10 @@ fun ctx lang e ->
           (Print.UserFacing.expr lang)
           e size)
     | EInj { e; name; cons } ->
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
       (Mark.add m (EInj { e; name; cons })), TrInj { tr; name; cons }
     | EMatch { e; cases; name } -> (
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
       match Mark.remove e with
       | EInj { e = e1; cons; name = name' } ->
         if not (EnumName.equal name name') then
@@ -215,7 +220,7 @@ fun ctx lang e ->
           EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
         in
         let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-        let v, tv = evaluate_expr_with_trace_aux ctx lang new_e in 
+        let v, tv = evaluate_expr_with_trace_aux ctx local_ctx lang new_e in 
         let trexpr c = TrExpr c in
         let trcases = EnumConstructor.Map.map trexpr cases in
         v, TrMatch {tr; name; cases = EnumConstructor.Map.update cons (fun _ -> Some tv) trcases}
@@ -224,23 +229,23 @@ fun ctx lang e ->
           "Expected a term having a sum type as an argument to a match (should \
           not happen if the term was well-typed")
     | EIfThenElse { cond; etrue; efalse } -> (
-      let cond, trcond = evaluate_expr_with_trace_aux ctx lang cond in
+      let cond, trcond = evaluate_expr_with_trace_aux ctx local_ctx lang cond in
       match Mark.remove cond with
       | ELit (LBool true) -> 
-        let v, trtrue = evaluate_expr_with_trace_aux ctx lang etrue in 
+        let v, trtrue = evaluate_expr_with_trace_aux ctx local_ctx lang etrue in 
         v, TrIfThenElse { trcond; trtrue; trfalse = TrExpr efalse }
       | ELit (LBool false) -> 
-        let v, trfalse = evaluate_expr_with_trace_aux ctx lang efalse in 
+        let v, trfalse = evaluate_expr_with_trace_aux ctx local_ctx lang efalse in 
         v, TrIfThenElse { trcond; trtrue = TrExpr etrue; trfalse }
       | _ ->
         Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this condition (should \
           not happen if the term was well-typed)")
     | EArray es ->
-      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx lang) es) in
+      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
       (Mark.add m (EArray es)), TrArray tres
     | EAssert e' -> (
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e' in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
       match Mark.remove e with
       | ELit (LBool true) -> (Mark.add m (ELit LUnit)), TrAssert tr
       | ELit (LBool false) -> (* Mark.add m (EFatalError AssertionFailed) *)
@@ -251,7 +256,7 @@ fun ctx lang e ->
           not happen if the term was well-typed)")
     | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
     | EErrorOnEmpty e' -> (
-      let e, tr = evaluate_expr_with_trace_aux ctx lang e' in
+      let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
       match e with
       | EEmpty, _ -> (* raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos])) *)
         raise_fatal_error NoValue m (TrErrorOnEmpty tr)
@@ -260,14 +265,14 @@ fun ctx lang e ->
       | e -> e, TrErrorOnEmpty tr
       )
     | EDefault { excepts; just; cons } -> (
-      let excepts, trexcepts = List.split (List.map (evaluate_expr_with_trace_aux ctx lang) excepts) in
+      let excepts, trexcepts = List.split (List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) excepts) in
       let empty_count = List.length (List.filter is_empty_error excepts) in
       match List.length excepts - empty_count with
       | 0 -> (
-        let just, trjust = evaluate_expr_with_trace_aux ctx lang just in
+        let just, trjust = evaluate_expr_with_trace_aux ctx local_ctx lang just in
         match Mark.remove just with
         | ELit (LBool true) -> 
-            let v, trcons = evaluate_expr_with_trace_aux ctx lang cons in
+            let v, trcons = evaluate_expr_with_trace_aux ctx local_ctx lang cons in
             v, TrDefault { trexcepts; trjust; trcons }
         | ELit (LBool false) -> 
             (Mark.copy e EEmpty), TrDefault { trexcepts; trjust; trcons = TrExpr cons }
@@ -288,10 +293,10 @@ fun ctx lang e ->
         raise Runtime.(Error (Conflict, poslist))*)
         raise_fatal_error Conflict m (TrDefault { trexcepts; trjust = TrExpr just; trcons = TrExpr cons })
       )
-    | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx lang e in v, TrPureDefault tr
+    | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
     | _ -> .
   in
-  try evaluate_expr_with_trace_aux ctx lang e
+  try evaluate_expr_with_trace_aux ctx [] lang e
   with 
     | FatalError (err, m, tr) -> (Mark.add m (EFatalError err)), tr
 
@@ -381,8 +386,7 @@ let interpret
         print_newline ();
         print_trace tr2;
         print_newline ();
-        match Mark.remove v2
-        with
+        match Mark.remove v2 with
         | EStruct { fields; _ } ->
           List.map
             (fun (fld, e) -> StructField.get_info fld, e)
