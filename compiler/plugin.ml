@@ -37,7 +37,12 @@ let load_failures = Hashtbl.create 17
 
 let print_failures () =
   if Hashtbl.length load_failures > 0 then
-    Message.warning "@[<v 2>Some plugins could not be loaded:@,%a@]"
+    Message.warning
+      "@[<v>@[<v 2>Some plugins could not be loaded:@,\
+       %a@]@,\
+       @,\
+       @[<hov>This generally means that they were compiled against a \
+       different@ version@ of@ Catala.@]@]"
       (Format.pp_print_seq (fun ppf (n, s) ->
            Format.fprintf ppf "- @{<bold>%s@}: @[<hov>%a@]" n
              Format.pp_print_text s))

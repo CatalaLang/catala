@@ -43,8 +43,11 @@ let binder_vars_used_at_most_once
 (* beta reduction when variables not used, and for variable aliases and
    literal *)
 let simplified_apply f args tys =
-  match f with
-  | EAbs { binder; _ }, _
+  match f, args with
+  | _, [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _)] ->
+    (* Never inline lifted closures *)
+    EApp { f; args; tys }
+  | (EAbs { binder; _ }, _), _
     when binder_vars_used_at_most_once binder
          || List.for_all
               (function (EVar _ | ELit _), _ -> true | _ -> false)

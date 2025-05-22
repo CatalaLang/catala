@@ -1,6 +1,6 @@
 ## Unit testing for wildcard in patterns
 
-```catala
+```catala-metadata
 declaration enumeration E:
   -- Case1 content integer
   -- Case2
