@@ -658,6 +658,7 @@ let commands = if commands = [] then test_scopes else commands
       String.capitalize_ascii
         (File.basename (Filename.remove_extension filename))
   in
+  Format.pp_open_vbox fmt 0;
   Format.fprintf fmt "open Runtime_ocaml.Runtime@,";
   Format.fprintf fmt "open %s@,@," modname;
   List.iter
@@ -671,7 +672,8 @@ let commands = if commands = [] then test_scopes else commands
          )@,"
         (ScopeName.to_string scope)
         (format_expr p.decl_ctx) e ScopeName.format scope)
-    tests
+    tests;
+  Format.pp_close_box fmt ()
 
 let check_and_reexport_used_modules ppml ppi ~hashf modules =
   List.iter

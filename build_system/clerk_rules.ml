@@ -455,7 +455,8 @@ let gen_build_statements
       [
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:"ocaml" "+main.ml"]
-          ~implicit_in:[target ~backend:"ocaml" "cmi"]
+          ~implicit_in:
+            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmx"]
           ~outputs:
             (List.map
                (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))

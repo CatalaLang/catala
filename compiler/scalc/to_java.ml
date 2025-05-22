@@ -793,7 +793,8 @@ let format_enum_to_string ppf =
      return this.kind.toString() + \" \" + this.contents.toString();@]@\n\
      }"
 
-let format_tests ctx ppf tests =
+let format_tests ctx ppf (closures, tests) =
+  assert (closures = []);
   pp_print_double_space ppf ();
   fprintf ppf "// Automatic Catala tests@\n";
   fprintf ppf "@[<v 4>public static void main(String[] args) {@\n";

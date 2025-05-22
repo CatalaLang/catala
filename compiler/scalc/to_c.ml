@@ -385,7 +385,9 @@ let rec format_statement
   match Mark.remove s with
   | SInnerFuncDef _ ->
     Message.error ~pos:(Mark.get s) ~internal:true
-      "This inner functions should have been hoisted in Scalc"
+      "These inner functions should have been hoisted in Scalc: %a"
+      (fun ppf e -> Scalc__Print.format_statement ctx.decl_ctx ppf e)
+      s
   | SLocalInit { name = v, _; typ; expr = EStruct { fields; _ }, _ }
     when StructField.Map.is_empty fields && not (is_dummy_var v) ->
     Format.fprintf fmt "@,@[<hov 2>%a =@ NULL@];"
@@ -704,10 +706,82 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     in
     List.iter (format_statement ctx env fmt) remaining
 
+let format_code_item ctx ~ppc ~pph env = function
+  | SVar { var; expr; typ; visibility } ->
+    (* Global variables are turned into inline functions without parameters that
+       perform lazy evaluation: {[ inline foo_type foo() { static foo_type foo =
+       NULL; return (foo ? foo : foo = foo_init()); } ]} NOTE: "inline" is not
+       defined in C89 *)
+    let pp_intf = if visibility = Public then [pph] else [] in
+    pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a"
+      (if visibility = Public then "" else "static ")
+      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+           Format.pp_print_space fmt ();
+           VarName.format fmt var))
+      typ;
+    pp pp_intf " ();@]@]@,";
+    pp [ppc] " () {@]@,";
+    pp [ppc] "@[<hov 2>static %a = NULL;@]@,"
+      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+           Format.pp_print_space fmt ();
+           VarName.format fmt var))
+      typ;
+    pp [ppc] "@[<hov 2>return CATALA_GET_LAZY(%a, %a);@]"
+      (* This does (foo ? foo : foo = foo_init()), but enabling persistent
+         allocation around the init *)
+      (* FIXME: the proper solution would be to do a deep copy of the allocated
+         object from the Catala heap to the persistent heap instead of switching
+         allocation mode (which could persist intermediate values) *)
+      VarName.format var
+      (format_expression ctx env)
+      expr;
+    pp [ppc] "@;<1 -2>}@]@,";
+    { env with global_vars = VarName.Set.add var env.global_vars }
+  | SFunc { var; func; visibility }
+  | SScope
+      {
+        scope_body_var = var;
+        scope_body_func = func;
+        scope_body_visibility = visibility;
+        _;
+      } ->
+    let { func_params; func_body; func_return_typ } = func in
+    let local_vars =
+      VarName.Set.of_list (List.map (fun (v, _) -> Mark.remove v) func_params)
+    in
+    let pp_intf = if visibility = Public then [pph] else [] in
+    pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a@ @[<hv 1>(%a)@]@]"
+      (if visibility = Public then "" else "static ")
+      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+           Format.pp_print_space fmt ();
+           FuncName.format fmt var))
+      func_return_typ
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (var, typ) ->
+           Format.pp_open_hovbox fmt 2;
+           (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+                Format.pp_print_space fmt ();
+                VarName.format fmt (Mark.remove var)))
+             fmt typ;
+           Format.pp_close_box fmt ()))
+      func_params;
+    pp pp_intf "@];@,";
+    pp [ppc] "@;<1 -2>{%a@]@,}@,"
+      (format_block ctx { env with local_vars })
+      func_body;
+    env
+
 let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
   Format.pp_open_vbox fmt 0;
+  let t_defs, tests = p.tests in
+  let env =
+    List.fold_left
+      (format_code_item ctx ~ppc:fmt ~pph:(Message.ignore_ppf ()))
+      env t_defs
+  in
   Format.fprintf fmt "@,@[<v 2>void* run_tests ()@;<0 -2>{";
-  (if p.tests = [] then
+  (if tests = [] then
      Message.warning
        "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
        Format.pp_print_text
@@ -719,7 +793,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
        Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
               ScopeName.format ppf s))
-         p.tests
+         tests
      in
      List.iter
        (fun (name, block) ->
@@ -731,7 +805,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
             printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
             successfully.\\n\");@;\
             <1 -2>}@]" ScopeName.format name)
-       p.tests);
+       tests);
   Format.fprintf fmt "@,return (void*)1;@;<1 -2>}@]@,";
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";
   Format.fprintf fmt "@,void* result = catala_do(&run_tests);";
@@ -746,7 +820,7 @@ let format_program
   File.with_secondary_out_channel ~output_file ~ext:"h"
   @@ fun _ pph ->
   File.with_secondary_out_channel
-    ~output_file:(if p.tests = [] then None else output_file)
+    ~output_file:(if snd p.tests = [] then None else output_file)
     ~ext:"+main.c"
   @@ fun _ ppmain ->
   let ppall = pp [ppc; pph; ppmain] in
@@ -755,7 +829,7 @@ let format_program
   ppall "@[<v>";
   ppall
     "/* This file has been generated by the Catala compiler, do not edit! */@,";
-  pp [ppc]
+  pp [ppc; ppmain]
     "@,#include <stdio.h>@,#include <stdlib.h>@,#include <catala_runtime.h>@,";
 
   let module_id =
@@ -775,85 +849,16 @@ let format_program
     (Program.modules_to_list p.ctx.decl_ctx.ctx_modules);
   Option.iter
     (pp [ppmain] "@,#include \"%s\"")
-    (Option.map File.basename output_file);
+    (Option.map File.(fun f -> basename f -.- "h") output_file);
 
   (* TODO: check the module hash ? *)
   format_ctx type_ordering ~ppc ~pph p.ctx.decl_ctx;
   ppall "@,";
   let ctx = { decl_ctx = p.ctx.decl_ctx } in
   let env =
-    List.fold_left
-      (fun env code_item ->
-        match code_item with
-        | SVar { var; expr; typ; visibility } ->
-          (* Global variables are turned into inline functions without
-             parameters that perform lazy evaluation: {[ inline foo_type foo() {
-             static foo_type foo = NULL; return (foo ? foo : foo = foo_init());
-             } ]} NOTE: "inline" is not defined in C89 *)
-          let pp_intf = if visibility = Public then [pph] else [] in
-          pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a"
-            (if visibility = Public then "" else "static ")
-            (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
-                 Format.pp_print_space fmt ();
-                 VarName.format fmt var))
-            typ;
-          pp pp_intf " ();@]@]@,";
-          pp [ppc] " () {@]@,";
-          pp [ppc] "@[<hov 2>static %a = NULL;@]@,"
-            (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
-                 Format.pp_print_space fmt ();
-                 VarName.format fmt var))
-            typ;
-          pp [ppc] "@[<hov 2>return CATALA_GET_LAZY(%a, %a);@]"
-            (* This does (foo ? foo : foo = foo_init()), but enabling persistent
-               allocation around the init *)
-            (* FIXME: the proper solution would be to do a deep copy of the
-               allocated object from the Catala heap to the persistent heap
-               instead of switching allocation mode (which could persist
-               intermediate values) *)
-            VarName.format var
-            (format_expression ctx env)
-            expr;
-          pp [ppc] "@;<1 -2>}@]@,";
-          { env with global_vars = VarName.Set.add var env.global_vars }
-        | SFunc { var; func; visibility }
-        | SScope
-            {
-              scope_body_var = var;
-              scope_body_func = func;
-              scope_body_visibility = visibility;
-              _;
-            } ->
-          let { func_params; func_body; func_return_typ } = func in
-          let local_vars =
-            VarName.Set.of_list
-              (List.map (fun (v, _) -> Mark.remove v) func_params)
-          in
-          let pp_intf = if visibility = Public then [pph] else [] in
-          pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a@ @[<hv 1>(%a)@]@]"
-            (if visibility = Public then "" else "static ")
-            (format_typ ~const:true ctx.decl_ctx (fun fmt ->
-                 Format.pp_print_space fmt ();
-                 FuncName.format fmt var))
-            func_return_typ
-            (Format.pp_print_list
-               ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-               (fun fmt (var, typ) ->
-                 Format.pp_open_hovbox fmt 2;
-                 (format_typ ~const:true p.ctx.decl_ctx (fun fmt ->
-                      Format.pp_print_space fmt ();
-                      VarName.format fmt (Mark.remove var)))
-                   fmt typ;
-                 Format.pp_close_box fmt ()))
-            func_params;
-          pp pp_intf "@];@,";
-          pp [ppc] "@;<1 -2>{%a@]@,}@,"
-            (format_block ctx { env with local_vars })
-            func_body;
-          env)
-      { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
-      p.code_items
+    { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
   in
+  let env = List.fold_left (format_code_item ctx ~ppc ~pph) env p.code_items in
   pp [pph] "@,#endif /* __%s_H__ */" module_id;
   format_main ctx env ppmain p;
   ppall "@]"

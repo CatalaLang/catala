@@ -183,7 +183,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
           let f = Scan.target_file_name it in
           (build_dir / dirname f / "c" / basename f) ^ ".o")
         (link_deps item)
-    @ [Filename.remove_extension target ^ "+main.o"]
+    @ [target -.- "o"; Filename.remove_extension target ^ "+main.o"]
     @ get_var Var.c_flags
     @ ["-o"; target -.- "exe"]
   | `Python ->
