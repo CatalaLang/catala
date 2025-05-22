@@ -3,233 +3,192 @@ open Shared_ast
 open Shared_ast.Print
 open Global
 
-let print_container iter f container =
-  print_string "[";
-  let first = ref true in
-  iter (fun x ->
-      if not !first then print_string ", ";
-      first := false;
-      f x) container;
-  print_string "]"
+let string_of_list ?(inline = false) f lst indent =
+  let new_line, spaces = if inline then "","" else "\n", String.make indent ' ' in 
+  Format.asprintf "%s[%s%s%s%s]" spaces new_line (String.concat (", "^new_line) (List.map f lst)) new_line spaces
 
-let print_list f lst = print_container List.iter f lst
+let string_of_container ?(inline = false) iter key_to_string f container indent =
+  let new_line, spaces, add_space = if inline then "","","" else "\n", String.make indent ' ', "  " in 
+  let parts = ref [] in
+  iter 
+    (fun key value ->
+      parts := Format.asprintf "%s%s%s -> %s%s%s" spaces add_space (key_to_string key) new_line add_space (f value) :: !parts) 
+    container;
+  Format.asprintf "%s[%s%s%s%s]" spaces new_line (String.concat ",\n" (List.rev !parts)) new_line spaces
 
-
-let rec print_expr _ = (*(expr : ('a, 'm) gexpr) =*)
-  (*
-  match expr with
-  | ELit l -> print_string (UserFacing.lit_to_string En l)
-  | EApp { f; args; tys } ->
-      print_string "EApp(";
-      (*print_expr f;*)
-      print_string ", [";
-      (*List.iter (fun arg -> print_expr arg; print_string ", ") args;*)
-      print_string "])"
-  | EAppOp { op; args; tys } ->
-      print_string "EAppOp(";
-      print_string (operator_to_string (Mark.remove op));
-      print_string ", [";
-      (*List.iter (fun arg -> print_expr arg; print_string ", ") args;*)
-      print_string "])"
+let rec string_of_expr ?(indent=0) ?(inline=false) (expr : ('a, 'm) gexpr) =
+  let new_line, spaces = if inline then "", "" else "\n", String.make indent ' ' in
+  match Mark.remove expr with
+  | ELit l -> Format.asprintf "%s%s" spaces (UserFacing.lit_to_string En l)
+  | EApp { f; args; tys = _ } ->
+      Format.asprintf "%sEApp(%s%s,%s%s)" spaces new_line
+        (string_of_expr ~indent:(indent + 2) ~inline f)
+        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
+        spaces
+  | EAppOp { op; args; tys = _ } ->
+      Format.asprintf "%sEAppOp(%s,%s%s)" spaces (operator_to_string (Mark.remove op))
+        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
+        spaces
   | EArray arr ->
-      print_string "EArray(";
-      (*List.iter (fun elem -> print_string ", "; print_expr elem) arr;*)
-      print_string ")"
-  | EVar _ -> print_string "EVar"
-  | EAbs { binder; pos; tys } -> print_string "EAbs"
+      Format.asprintf "%sEArray(%s%s%s)" spaces new_line
+        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) arr (indent + 2))
+        spaces
+  | EVar x -> Format.asprintf "%sEVar(%s)" spaces (Bindlib.name_of x)
+  | EAbs { binder; pos = _; tys = _ } ->
+      let (vars, body) = Bindlib.unmbind binder in
+      let add_space = if inline then "" else "    " in
+      Format.asprintf "%sEAbs(%s%s,%s%s)" spaces new_line
+        (string_of_list ~inline (fun x -> Format.asprintf "%s%s%s" spaces add_space (Bindlib.name_of x)) (Array.to_list vars) (indent + 2))
+        (string_of_expr ~indent:(indent + 2) ~inline body)
+        spaces
   | EIfThenElse { cond; etrue; efalse } ->
-      print_string "EIfThenElse(";
-      (*print_expr cond;*)
-      print_string ", ";
-      (*print_expr etrue;*)
-      print_string ", ";
-      (*print_expr efalse;*)
-      print_string ")"
+      Format.asprintf "%sEIfThenElse(%s%s,%s,%s%s)" spaces new_line
+        (string_of_expr ~indent:(indent + 2) ~inline cond)
+        (string_of_expr ~indent:(indent + 2) ~inline etrue)
+        (string_of_expr ~indent:(indent + 2) ~inline efalse)
+        spaces
   | EStruct { name; fields } ->
-      print_string "EStruct(";
-      print_string (StructName.to_string name);
-      print_string ", [";
-      StructField.Map.iter (fun _ e -> print_expr e; print_string ", ") fields;
-      print_string "])"
+      Format.asprintf "%sEStruct(%s,%s%s%s)" spaces (StructName.to_string name) new_line
+        (string_of_container ~inline StructField.Map.iter StructField.to_string (string_of_expr ~indent:(indent + 4) ~inline) fields (indent + 2))
+        spaces
   | EInj { name; e; cons } ->
-      print_string "EInj(";
-      print_string (EnumName.to_string name);
-      print_string ", ";
-      print_expr e;
-      print_string ")"
+      Format.asprintf "%sEInj(%s.%s,%s%s%s)" spaces (EnumName.to_string name) (EnumConstructor.to_string cons) new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
   | EMatch { name; e; cases } ->
-      print_string "EMatch(";
-      print_string (EnumName.to_string name);
-      print_string ", ";
-      print_expr e;
-      print_string ", [";
-      EnumConstructor.Map.iter (fun _ e -> print_expr e; print_string ", ")
-        cases;
-      print_string "])"
+      Format.asprintf "%sEMatch(%s,%s%s,%s%s)" spaces (EnumName.to_string name) new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        (string_of_container ~inline EnumConstructor.Map.iter EnumConstructor.to_string (string_of_expr ~indent:(indent + 4) ~inline) cases (indent + 2))
+        spaces
   | ETuple lst ->
-      print_string "ETuple(";
-      List.iter (fun elem -> print_string ", "; print_expr elem) lst;
-      print_string ")"
+      Format.asprintf "%sETuple(%s%s%s)" spaces new_line
+        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) lst (indent + 2))
+        spaces
   | ETupleAccess { e; index; size } ->
-      Printf.printf "ETupleAccess(%d, %d, " index size;
-      print_expr e;
-      print_string ")"
+      Format.asprintf "%sETupleAccess(%d, %d,%s%s%s)" spaces index size new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
   | EStructAccess { name; e; field } ->
-      print_string "EStructAccess(";
-      print_string (StructName.to_string name);
-      print_string ", ";
-      print_expr e;
-      print_string ")"
-  | EExternal { name } -> print_string "EExternal"
+      Format.asprintf "%sEStructAccess(%s.%s,%s%s%s)" spaces
+        (StructName.to_string name) (StructField.to_string field) new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
+  | EExternal { name } -> Format.asprintf "%sEExternal" spaces (* idk how to get the name as str *)
   | EAssert e ->
-      print_string "EAssert(";
-      print_expr e;
-      print_string ")"
-  | EFatalError _ -> print_string "EFatalError"
-  | EPos pos -> print_string "EPos"
+      Format.asprintf "%sEAssert(%s%s%s)" spaces new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
+  | EFatalError err ->
+      Format.asprintf "%sEFatalError(%s)" spaces (Runtime.error_to_string err)
+  | EPos _ ->
+      Format.asprintf "%sEPos()" spaces
   | EDefault { excepts; just; cons } ->
-      print_string "EDefault([";
-      List.iter (fun exc -> print_expr exc; print_string ", ") excepts;
-      print_string "], ";
-      print_expr just;
-      print_string ", ";
-      print_expr cons;
-      print_string ")"
+      Format.asprintf "%sEDefault(%s%s,%s,%s%s)" spaces new_line
+        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) excepts (indent + 2))
+        (string_of_expr ~indent:(indent + 2) ~inline just)
+        (string_of_expr ~indent:(indent + 2) ~inline cons)
+        spaces
   | EPureDefault e ->
-      print_string "EPureDefault(";
-      print_expr e;
-      print_string ")"
-  | EEmpty -> print_string "∅"
+      Format.asprintf "%sEPureDefault(%s%s%s)" spaces new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
+  | EEmpty -> Format.asprintf "%s∅" spaces
   | EErrorOnEmpty e ->
-      print_string "EErrorOnEmpty(";
-      print_expr e;
-      print_string ")"
-  | ECustom { obj; targs; tret } -> print_string "ECustom"
-  | EHole _ -> print_string "□"
-  | _ -> assert false
-  *)
-  print_string "□"
+      Format.asprintf "%sEErrorOnEmpty(%s%s%s)" spaces new_line
+        (string_of_expr ~indent:(indent + 2) ~inline e)
+        spaces
+  | ECustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sECustom" spaces
+  | _ -> Format.asprintf "%s□" spaces
 
-let rec print_trace (trace : ('a, 'm) Trace_ast.t) =
+
+let rec string_of_trace ?(indent=0) (trace : ('a, 'm) Trace_ast.t) =
+  let spaces = String.make indent ' ' in 
   match trace with
-  | TrExpr e -> print_string "TrExpr(";print_expr e; print_string ")"
-  | TrLit l -> 
-    (*print_string "TrLit(";*)
-    print_string (UserFacing.lit_to_string En l)
-    (*;print_string ")"*)
+  | TrExpr e -> Format.asprintf "%sTrExpr(%s)" spaces (string_of_expr ~inline:true e)
+  | TrLit l -> Format.asprintf "%s%s" spaces (UserFacing.lit_to_string En l)
   | TrApp { trf; trargs; tys = _; trv } ->
-      print_string "TrApp(";
-      print_trace trf;
-      print_string ", ";
-      print_list print_trace trargs;
-      print_string ", ";
-      print_trace trv;
-      print_string ")"
+      Format.asprintf "%sTrApp(\n%s,\n%s,\n%s\n%s)" spaces
+        (string_of_trace ~indent:(indent + 2) trf)
+        (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
+        (string_of_trace ~indent:(indent + 2) trv)
+        spaces
   | TrAppOp { op; trargs; tys = _; trv } ->
-      print_string "TrAppOp(";
-      print_string (operator_to_string (Mark.remove op));
-      print_string ", ";
-      print_list print_trace trargs;
-      print_string ", ";
-      print_trace trv;
-      print_string ")"
+      Format.asprintf "%sTrAppOp(%s,\n%s,\n%s\n%s)" spaces
+        (operator_to_string (Mark.remove op))
+        (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
+        (string_of_trace ~indent:(indent + 2) trv)
+        spaces
   | TrArray arr ->
-      print_string "TrArray(";
-      print_list print_trace arr;
-      print_string ")"
-  | TrVar x -> 
-      print_string "TrVar(";
-      print_string (Bindlib.name_of x);
-      print_string ")"
-  | TrAbs { binder; pos = _; tys = _ } -> 
-    print_string "TrAbs(";
-    let (vars, body) = Bindlib.unmbind binder in
-    print_string "Binder(";
-    print_container Array.iter (fun x -> print_string(Bindlib.name_of x)) vars;
-    print_string ", ";
-    print_expr body; 
-    print_string "))";
+      Format.asprintf "%sTrArray(\n%s\n%s)" spaces
+        (string_of_list (string_of_trace ~indent:(indent + 4)) arr (indent + 2))
+        spaces
+  | TrVar x -> Format.asprintf "%sTrVar(%s)" spaces (Bindlib.name_of x)
+  | TrAbs { binder; pos = _; tys = _ } ->
+      let (vars, body) = Bindlib.unmbind binder in
+      Format.asprintf "%sTrAbs(\n%s  %s,\n%s  %s\n%s)" spaces spaces
+        (string_of_list ~inline:true (fun x -> Format.asprintf "%s" (Bindlib.name_of x)) (Array.to_list vars) (indent + 2))
+        spaces 
+        (string_of_expr ~inline:true body)
+        spaces
   | TrIfThenElse { trcond; trtrue; trfalse } ->
-      print_string "TrIfThenElse(";
-      print_trace trcond;
-      print_string ", ";
-      print_trace trtrue;
-      print_string ", ";
-      print_trace trfalse;
-      print_string ")"
+      Format.asprintf "%sTrIfThenElse(\n%s,\n%s,\n%s\n%s)" spaces
+        (string_of_trace ~indent:(indent + 2) trcond)
+        (string_of_trace ~indent:(indent + 2) trtrue)
+        (string_of_trace ~indent:(indent + 2) trfalse)
+        spaces
   | TrStruct { name; fields } ->
-      print_string "TrStruct(";
-      print_string(StructName.to_string name);
-      print_string ", ";
-      print_container StructField.Map.iter (fun field tr -> 
-        print_string (StructField.to_string field);
-        print_string " -> ";
-        print_trace tr)
-        fields;
-      print_string ")"
+      Format.asprintf "%sTrStruct(%s,\n%s\n%s)" spaces (StructName.to_string name)
+        (string_of_container StructField.Map.iter StructField.to_string (string_of_trace ~indent:(indent + 4)) fields (indent+2))
+        spaces
   | TrInj { name; tr; cons } ->
-      print_string "TrInj("; 
-      print_string (EnumName.to_string name);
-      print_string ".";
-      print_string (EnumConstructor.to_string cons);
-      print_string ", ";
-      print_trace tr;
-      print_string ")"
+      Format.asprintf "%sTrInj(%s.%s,\n%s\n%s)" spaces (EnumName.to_string name) (EnumConstructor.to_string cons)
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
   | TrMatch { name; tr; cases } ->
-      print_string "TrMatch(%s("; 
-      print_string (EnumName.to_string name);
-      print_string ", ";
-      print_trace tr;
-      print_string ", ";
-      print_container EnumConstructor.Map.iter (fun cons tr ->
-        print_string(EnumConstructor.to_string cons); 
-        print_string " -> ";
-        print_trace tr) 
-        cases;
-      print_string "])"
+      Format.asprintf "%sTrMatch(%s,\n%s,\n%s\n%s)" spaces (EnumName.to_string name)
+        (string_of_trace ~indent:(indent + 2) tr)
+        (string_of_container EnumConstructor.Map.iter EnumConstructor.to_string (string_of_trace ~indent:(indent + 4)) cases (indent + 2))
+        spaces
   | TrTuple lst ->
-      print_string "TrTuple(";
-      print_list print_trace lst;
-      print_string ")"
+      Format.asprintf "%sTrTuple(\n%s\n%s)" spaces
+        (string_of_list (string_of_trace ~indent:(indent + 4)) lst (indent + 2))
+        spaces
   | TrTupleAccess { tr; index; size } ->
-      Printf.printf "TrTupleAccess(%d, %d, " index size;
-      print_trace tr;
-      print_string ")"
+      Format.asprintf "%sTrTupleAccess(%d, %d,\n%s\n%s)" spaces index size
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
   | TrStructAccess { name; tr; field } ->
-      print_string "TrStructAccess("; 
-      print_string (StructName.to_string name);
-      print_string ".";
-      print_string (StructField.to_string field);
-      print_string ", ";
-      print_trace tr;
-      print_string ")"
-  | TrExternal { name } -> print_string "TrExternal"
+      Format.asprintf "%sTrStructAccess(%s.%s,\n%s\n%s)" spaces
+        (StructName.to_string name) (StructField.to_string field)
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
+  | TrExternal { name } -> Format.asprintf "%sTrExternal" spaces (* idk how to get the name as str *)
   | TrAssert tr ->
-      print_string "TrAssert(";
-      print_trace tr;
-      print_string ")"
+      Format.asprintf "%sTrAssert(\n%s\n%s)" spaces
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
   | TrFatalError { err; tr } ->
-      print_string "TrFatalError(";
-      print_string (Runtime.error_to_string err);
-      print_string ", ";
-      print_trace tr;
-      print_string ")"
+      Format.asprintf "%sTrFatalError(%s,\n%s\n%s)" spaces (Runtime.error_to_string err)
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
   | TrDefault { trexcepts; trjust; trcons } ->
-      print_string "TrDefault(";
-      print_list print_trace trexcepts;
-      print_string ", ";
-      print_trace trjust;
-      print_string ", ";
-      print_trace trcons;
-      print_string ")"
+      Format.asprintf "%sTrDefault(\n%s,\n%s,\n%s\n%s)" spaces
+        (string_of_list (string_of_trace ~indent:(indent + 4)) trexcepts (indent + 2))
+        (string_of_trace ~indent:(indent + 2) trjust)
+        (string_of_trace ~indent:(indent + 2) trcons)
+        spaces
   | TrPureDefault tr ->
-      print_string "TrPureDefault(";
-      print_trace tr;
-      print_string ")"
-  | TrEmpty -> print_string "∅"
+      Format.asprintf "%sTrPureDefault(\n%s\n%s)" spaces
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
+  | TrEmpty -> Format.asprintf "%s∅" spaces
   | TrErrorOnEmpty tr ->
-      print_string "TrErrorOnEmpty(";
-      print_trace tr;
-      print_string ")"
-  | TrCustom { obj = _; targs = _; tret = _ } -> print_string "TrCustom"
-  | TrHole _ -> print_string "□"
+      Format.asprintf "%sTrErrorOnEmpty(\n%s\n%s)" spaces
+        (string_of_trace ~indent:(indent + 2) tr)
+        spaces
+  | TrCustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sTrCustom" spaces
+  | TrHole _ -> Format.asprintf "%s□" spaces
+
+let print_expr (expr : ('a, 'm) gexpr) = print_string (string_of_expr expr)
+
+let print_trace (trace : ('a, 'm) Trace_ast.t) = print_string (string_of_trace trace)
