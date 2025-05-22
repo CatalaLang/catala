@@ -31,7 +31,7 @@ declaration quarter content decimal
   equals x / 4
 ```
 
-```catala
+```catala-metadata
 #[test] declaration scope Stest:
   output o1 content S
   output o2 content S
@@ -82,7 +82,7 @@ $ catala test-scope Stest
 
 ### Testing subscopes (with and without context override)
 
-```catala
+```catala-metadata
 #[test] declaration scope TestSubDefault:
   sub scope S
   output ci content integer
@@ -108,7 +108,7 @@ $ catala test-scope TestSubDefault
 └─
 ```
 
-```catala
+```catala-metadata
 #[test] declaration scope TestSubOverride:
   sub scope S
   output ci content integer

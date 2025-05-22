@@ -1,6 +1,6 @@
 # Accesses to intermediate variable states
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   output foo content integer
     state s1

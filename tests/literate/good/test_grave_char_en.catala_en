@@ -15,7 +15,7 @@ This allows to:
 let () = print_endline "Hello world!"
 ```
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   context output literate_parsing_is_ok content boolean
 

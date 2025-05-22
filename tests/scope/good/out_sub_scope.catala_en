@@ -1,5 +1,5 @@
 
-```catala
+```catala-metadata
 declaration scope A:
   input i content integer
   output o content integer

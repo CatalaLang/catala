@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 declaration enumeration E:
   -- C1
   -- C2

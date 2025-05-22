@@ -4,7 +4,7 @@
 Somehow there is a bug when multiple modules are declared in this order, so this
 test completes mod_use2
 
-```catala
+```catala-metadata
 #[test] declaration scope T:
   t1 scope Mod_middle.S
 #  input i content Enum1

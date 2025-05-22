@@ -31,7 +31,7 @@ $ catala typecheck
 └─
 ```
 
-```catala
+```catala-metadata
 #[test] declaration scope T1:
   strue scope S
   sfalse scope S
@@ -55,7 +55,7 @@ $ catala test-scope T1
 
 ## Multi-argument function
 
-```catala
+```catala-metadata
 #[test] declaration scope S2:
   output f content decimal depends on
     x content integer,

@@ -1,6 +1,6 @@
 # Test
 
-```catala
+```catala-metadata
 declaration scope A:
   input x condition
   output y content integer

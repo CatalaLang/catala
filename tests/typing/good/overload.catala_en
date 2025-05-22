@@ -1,4 +1,4 @@
-```catala
+```catala-metadata
 #[test] declaration scope S:
   internal i1 content integer
   internal i2 content integer

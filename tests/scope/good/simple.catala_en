@@ -1,6 +1,6 @@
 ## Test
 
-```catala
+```catala-metadata
 #[test] declaration scope Foo:
   output bar content integer
 

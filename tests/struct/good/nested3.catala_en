@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 declaration structure S:
   data x content integer
   data y content boolean

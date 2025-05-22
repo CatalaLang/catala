@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   output x content decimal
   output y content decimal

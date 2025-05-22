@@ -1,4 +1,4 @@
-```catala
+```catala-metadata
 #[test] declaration scope Toto:
   context bar content integer
   output foo content integer
