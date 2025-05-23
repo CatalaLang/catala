@@ -708,7 +708,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           let rec unlet ctxt rev_tdefs = function
             | ( EApp
                   {
-                    tys = [((TArrow ([(TClosureEnv, _); _], _), _) as ty)];
+                    tys = [((TArrow ((TClosureEnv, _) :: _, _), _) as ty)];
                     f = EAbs { binder; _ }, _;
                     args = [closure];
                   },

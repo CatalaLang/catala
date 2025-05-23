@@ -813,11 +813,11 @@ let format_tests ctx ppf (closures, tests) =
          tests
      in
      let format_test ppf (scope_name, block) =
-       fprintf ppf "/* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
        fprintf ppf
          "%a@\n\
           System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-          successfully.\");"
+          successfully.\"); }"
          (format_block ~toplevel:true ctx)
          block ScopeName.format scope_name
      in

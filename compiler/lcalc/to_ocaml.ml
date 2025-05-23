@@ -397,8 +397,9 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       args
   | EAssert e' ->
     Format.fprintf fmt
-      "@[<hov 2>if@ %a@ then@ ()@ else@ raise (Error (%s, [%a]))@]"
-      format_with_parens e'
+      "@[<hov 2>if not@ %a@;\
+       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a]))@]@]" format_with_parens
+      e'
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
   | EFatalError er ->
@@ -676,8 +677,8 @@ let commands = if commands = [] then test_scopes else commands
          failures. Adding a printer for the results could be an idea... *)
       Format.fprintf fmt
         "let () = if List.mem %S commands then (@,\
-        \  let _ = @[<hv>%a@] in@   print_endline \"\\x1b[32m[RESULT]\\x1b[m \
-         Scope %a executed successfully.\"@,\
+        \  @[<hv>@[<hov 2>let _ =@ @[<hv>%a@]@]@ in@ print_endline \
+         \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\"@]@,\
          )@,"
         (ScopeName.to_string scope)
         (format_expr p.decl_ctx) e ScopeName.format scope)

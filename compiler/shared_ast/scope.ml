@@ -215,3 +215,12 @@ let free_vars scopes =
     ~init:(fun _vlist -> Var.Set.empty)
     ~f:(fun item v acc ->
       Var.Set.union (Var.Set.remove v acc) (free_vars_item item))
+
+let get_mark_witness body =
+  let _, be = Bindlib.unbind body.scope_body_expr in
+  match be with
+  | Last e -> Some (Mark.get e)
+  | bl -> (
+    try
+      Some (BoundList.find bl ~f:(fun sl -> Some (Mark.get sl.scope_let_expr)))
+    with Not_found -> None)
