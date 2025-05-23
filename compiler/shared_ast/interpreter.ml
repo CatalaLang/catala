@@ -817,8 +817,10 @@ let rec evaluate_expr :
       | None ->
         Message.error ~pos:(Expr.pos e)
           "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
-           term was well-typed)"
-          StructField.format field StructName.format s)
+           term was well-typed). Fields: %a"
+          StructField.format field StructName.format s
+          (fun ppf -> StructField.Map.format_keys ppf)
+          es)
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \

@@ -136,15 +136,7 @@ let get_scope_body { code_items; _ } scope =
 let get_mark_witness { code_items; _ } =
   BoundList.find code_items ~f:(function
     | Topdef (_, _, _, e) -> Some (Mark.get e)
-    | ScopeDef (_, body) -> (
-      let _, be = Bindlib.unbind body.scope_body_expr in
-      match be with
-      | Last e -> Some (Mark.get e)
-      | bl -> (
-        try
-          Some
-            (BoundList.find bl ~f:(fun sl -> Some (Mark.get sl.scope_let_expr)))
-        with Not_found -> None)))
+    | ScopeDef (_, body) -> Scope.get_mark_witness body)
 
 let untype : 'm. ('a, 'm) gexpr program -> ('a, untyped) gexpr program =
  fun prg -> map_exprs ~f:Expr.untype ~varf:Var.translate prg

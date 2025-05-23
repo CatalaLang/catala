@@ -28,13 +28,16 @@ let scope ctx lang env name scope =
         raise Exit;
       Message.debug "Interpreting scope %a for autotest instrumentation..."
         ScopeName.format name;
+      let mark =
+        Expr.with_pos
+          (Mark.get (ScopeName.get_info name))
+          (Option.get (Scope.get_mark_witness scope))
+      in
       let body_expr =
         Bindlib.subst scope.scope_body_expr
-          (EStruct
-             {
-               name = scope.scope_body_input_struct;
-               fields = StructField.Map.empty;
-             })
+          (Mark.remove
+             (Expr.unbox
+                (Scope.empty_input_struct_dcalc ctx info.in_struct_name mark)))
       in
       let expr = Scope.unfold_body_expr ctx body_expr in
       Interpreter.evaluate_expr ctx lang (Expr.unbox_closed (env expr))
