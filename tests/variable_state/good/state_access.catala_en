@@ -1,6 +1,6 @@
 # Accesses to intermediate variable states
 
-```catala
+```catala-metadata
 #[test] declaration scope A:
   output foo content integer
     state s1
@@ -23,9 +23,9 @@ scope A:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ bar = 5
 │ foo = 6
 └─

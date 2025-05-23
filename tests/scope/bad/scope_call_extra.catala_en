@@ -14,7 +14,7 @@ scope Titi:
   definition fizz equals output of Toto with {--biz: 1}
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala dcalc -s Titi
 ┌─[ERROR]─
 │

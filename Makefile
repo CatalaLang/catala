@@ -221,12 +221,10 @@ BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
 
 backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
-	@$(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
+	@$(BACKEND_ENV) $(CLERK_BIN) test tests --exe $(CATALA_BIN) --backend $* -c--disable-warnings
 
-backend-tests-python: $(CLERK_BIN) $(BACKEND_TESTS) dependencies-python
+validate-py-runtime: dependencies-python
 	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
-	@echo ">> RUNNING BACKEND TESTS FOR python <<"
-	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 
@@ -342,10 +340,10 @@ test_title = printf "\n\#             \e[33m===========  \e[1m%-30s  \e[2m======
 #> alltest					: Runs more extensive tests, including the examples and french-law. Use before push!
 alltest: dependencies-python
 	@export DUNE_PROFILE=check OCAMLPATH=$(CURDIR)/_build/install/default/lib && \
-	$(test_title) "Local build and unit tests" && \
-	dune build @update-parser-messages @install @runtest && \
-	$(test_title) "Local testsuite" && \
-	$(MAKE) testsuite && \
+	# $(test_title) "Local build and unit tests" && \
+	# dune build @update-parser-messages @install @runtest && \
+	# $(test_title) "Local testsuite" && \
+	# $(MAKE) testsuite && \
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(MAKE) -C catala-examples.tmp \

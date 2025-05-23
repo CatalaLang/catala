@@ -1,4 +1,4 @@
-```catala
+```catala-metadata
 #[test] declaration scope S:
   internal i1 content integer
   internal i2 content integer
@@ -59,7 +59,7 @@ scope S:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -69,9 +69,9 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ o_b = true
 │ o_d = [-13 days]
 │ o_i = -5

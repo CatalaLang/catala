@@ -1,6 +1,6 @@
 ## Test
 
-```catala
+```catala-metadata
 declaration enumeration T:
    -- C content boolean
    -- D content integer
@@ -21,7 +21,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -41,7 +41,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │

@@ -24,7 +24,7 @@ scope S2:
   definition a equals if r then Int content (number of sub.z) else Dec content 0.0
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

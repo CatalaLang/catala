@@ -20,28 +20,14 @@
 
 open Catala_utils
 
-type expected_output_descr = {
-  tested_filename : string;  (** Name of the file that's being tested *)
-  output_dir : string;
-      (** Name of the output directory where all expected outputs are stored *)
-  id : string;
-      (** Id of this precise unit test that will be associated to an expected
-          output *)
-  cmd : string list;
-      (** Catala command to launch to run the test, excluding "catala" at the
-          begin, and the name of the file to test *)
-}
-(** Structure describing a single "legacy test", ie test with a separate output
-    file *)
-
 type item = {
   file_name : File.t;
   module_def : string option;
   extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
-  legacy_tests : expected_output_descr list;
   has_inline_tests : bool;
+  has_scope_tests : bool Lazy.t;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
@@ -59,3 +45,13 @@ val tree : File.t -> (File.t * File.t list * item list) Seq.t
 val test_command_args : string -> string option
 (** Parses a test command-line (in the form "$ catala <args>") and returns the
     arguments as a string, or [None] if there is no match *)
+
+val find_test_scope : lang:Global.backend_lang -> File.t -> bool
+(** Checks if the given file contains #[test] scope annotations, recursively
+    through file includes. The file extension takes precendence over the [~lang]
+    argument. *)
+
+val target_file_name : item -> File.t
+(** Returns the expected name (without extension) for artifacts based on this
+    file: the module name is used if defined, otherwise the original file is
+    used. In both case, it is normalised using [String.to_id]. *)

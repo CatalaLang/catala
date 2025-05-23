@@ -43,7 +43,10 @@ val register_attribute :
   Shared_ast.attr_value ->
   Catala_utils.Pos.attr option) ->
   unit
-(** Used to register support for a new attribute in Catala programs. Supposing that plugin [foo] is expected to handle an attribute [foo.bar] attached to scope declarations, we could write something like: {[
+(** Used to register support for a new attribute in Catala programs. Supposing
+    that plugin [foo] is expected to handle an attribute [foo.bar] attached to
+    scope declarations, we could write something like:
+    {[
       type Pos.attr += FooBar of ...
       let () =
         Plugin.register_attribute
@@ -53,8 +56,8 @@ val register_attribute :
         | ... -> Some (FooBar (...))
         | _ -> Message.delayed_error None ...
     ]}
-    then, the attribute will be available as [FooBar] in the following passes ; it can be retrieved with [Pos.get_attrs] on the relevant positions.
-*)
+    then, the attribute will be available as [FooBar] in the following passes ;
+    it can be retrieved with [Pos.get_attrs] on the relevant positions. *)
 
 (** {2 catala-facing API} *)
 

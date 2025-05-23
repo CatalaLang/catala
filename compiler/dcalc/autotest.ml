@@ -19,22 +19,25 @@ open Shared_ast
 
 let scope ctx lang env name scope =
   let info = ScopeName.Map.find name ctx.ctx_scopes in
-  let input_struct = StructName.Map.find info.in_struct_name ctx.ctx_structs in
   let output_struct =
     StructName.Map.find info.out_struct_name ctx.ctx_structs
   in
   match
     begin
-      if not (StructField.Map.is_empty input_struct) then raise Exit;
+      if not (Pos.has_attr (Mark.get (ScopeName.get_info name)) Test) then
+        raise Exit;
       Message.debug "Interpreting scope %a for autotest instrumentation..."
         ScopeName.format name;
+      let mark =
+        Expr.with_pos
+          (Mark.get (ScopeName.get_info name))
+          (Option.get (Scope.get_mark_witness scope))
+      in
       let body_expr =
         Bindlib.subst scope.scope_body_expr
-          (EStruct
-             {
-               name = scope.scope_body_input_struct;
-               fields = StructField.Map.empty;
-             })
+          (Mark.remove
+             (Expr.unbox
+                (Scope.empty_input_struct_dcalc ctx info.in_struct_name mark)))
       in
       let expr = Scope.unfold_body_expr ctx body_expr in
       Interpreter.evaluate_expr ctx lang (Expr.unbox_closed (env expr))

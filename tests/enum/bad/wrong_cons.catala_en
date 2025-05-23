@@ -11,7 +11,7 @@ scope A:
   definition e equals Case2
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck
 ┌─[ERROR]─
 │

@@ -1,6 +1,6 @@
 ## Foo
 
-```catala
+```catala-metadata
 #[test] declaration scope Foo:
   context output x condition
 
@@ -17,7 +17,7 @@ scope Bar:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -27,7 +27,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Bar
 ┌─[RESULT]─
 │ Computation successful!

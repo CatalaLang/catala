@@ -10,7 +10,7 @@ scope A:
   definition list_high_count equals number of list of m among list such that m >= $7
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

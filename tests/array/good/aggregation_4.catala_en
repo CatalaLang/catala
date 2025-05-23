@@ -37,7 +37,7 @@ scope Section121SinglePerson:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala lcalc --closure-conversion
 type Eoption =
   | ENone of unit

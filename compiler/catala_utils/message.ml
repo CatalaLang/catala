@@ -122,21 +122,22 @@ let print_time_marker =
 
 let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
-  let tags, str =
+  let color, str =
     match target with
-    | Debug -> [Bold; Fg (C4 magenta)], "DEBUG"
-    | Error -> [Bold; Fg (C4 red)], "ERROR"
-    | Warning -> [Bold; Fg (C4 yellow)], "WARNING"
-    | Result -> [Bold; Fg (C4 green)], "RESULT"
-    | Log -> [Bold; Fg (C4 black)], "LOG"
+    | Debug -> magenta, "DEBUG"
+    | Error -> red, "ERROR"
+    | Warning -> yellow, "WARNING"
+    | Result -> green, "RESULT"
+    | Log -> black, "LOG"
   in
-  let str =
-    match extra_label with
-    | None -> str
-    | Some lbl -> Printf.sprintf "%s %s" str lbl
-  in
-  Format.pp_open_stag ppf (Ocolor_format.Ocolor_styles_tag tags);
+  Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag (Fg (C4 color)));
+  Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag Bold);
   Format.pp_print_string ppf str;
+  Format.pp_close_stag ppf ();
+  extra_label
+  |> Option.iter (fun lbl ->
+         Format.pp_print_char ppf ' ';
+         Format.pp_print_string ppf lbl);
   Format.pp_close_stag ppf ()
 
 (**{2 Printers}*)
@@ -177,7 +178,8 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let basic_msg ?(pp_marker = pp_marker) ppf target content =
+  let basic_msg ?header ppf target content =
+    let pp_header ppf = Option.iter (Format.fprintf ppf " %s: ") header in
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list
       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
@@ -189,15 +191,17 @@ module Content = struct
           Pos.format_loc_text ppf pos.pos
         | MainMessage msg ->
           if target = Debug then print_time_marker ppf ();
-          Format.fprintf ppf "@[<hov 2>[%t] %t@]" (pp_marker target) msg
+          Format.fprintf ppf "@[<hov 2>[%t] %t%t@]" (pp_marker target) pp_header
+            msg
         | Outcome msg ->
-          Format.fprintf ppf "@[<hov>[%t]@ %t@]" (pp_marker target) msg
+          Format.fprintf ppf "@[<hov>[%t]@ %t%t@]" (pp_marker target) pp_header
+            msg
         | Suggestion suggestions_list -> Suggestions.format ppf suggestions_list)
       ppf content;
     Format.pp_close_box ppf ();
     Format.pp_print_newline ppf ()
 
-  let fancy_msg ?(pp_marker = pp_marker) ppf target content =
+  let fancy_msg ?header ppf target content =
     let ppf_out_fcts = Format.pp_get_formatter_out_functions ppf () in
     let restore_ppf () =
       Format.pp_print_flush ppf ();
@@ -227,6 +231,7 @@ module Content = struct
       };
     Format.pp_open_vbox ppf 1;
     Format.fprintf ppf "@{<blue>@<2>%s[%t]@<2>%s@}" "┌─" (pp_marker target) "─";
+    Option.iter (fun h -> Format.fprintf ppf " %s @{<blue>─@}" h) header;
     (* Returns true when a finaliser is needed *)
     let print_elt ppf ?(islast = false) = function
       | MainMessage msg ->
@@ -282,47 +287,59 @@ module Content = struct
     restore_ppf ();
     Format.pp_print_newline ppf ()
 
-  let gnu_msg ~pp_marker ppf target content =
+  let gnu_msg ?header ppf target content =
     (* The top message doesn't come with a position, which is not something the
        GNU standard allows. So we look the position list and put the top message
        everywhere there is not a more precise message. If we can't find a
        position without a more precise message, we just take the first position
        in the list to pair with the message. *)
-    Format.pp_print_list ~pp_sep:Format.pp_print_newline
-      (fun ppf elt ->
+    let first_pos_elt =
+      List.find_map
+        (function
+          | Position { pos_message = None; pos } as e -> Some (pos, e)
+          | _ -> None)
+        content
+      |> function
+      | None ->
+        List.find_map
+          (function
+            | Position { pos_message = _; pos } as e -> Some (pos, e)
+            | _ -> None)
+          content
+      | some -> some
+    in
+    List.iter
+      (fun elt ->
         let pos, message =
           match elt with
-          | MainMessage m ->
-            let pos =
-              List.find_map
-                (function
-                  | Position { pos_message = None; pos } -> Some pos | _ -> None)
+          | MainMessage m -> Option.map fst first_pos_elt, Some m
+          | Position { pos_message; pos } ->
+            if
+              List.exists
+                (function MainMessage _ -> true | _ -> false)
                 content
-              |> function
-              | None ->
-                List.find_map
-                  (function
-                    | Position { pos_message = _; pos } -> Some pos | _ -> None)
-                  content
-              | some -> some
-            in
-            pos, Some m
-          | Position { pos_message; pos } -> Some pos, pos_message
+              && Some elt = Option.map snd first_pos_elt
+            then None, None (* Avoid redundant positions *)
+            else Some pos, pos_message
           | Outcome m -> None, Some m
           | Suggestion sl -> None, Some (fun ppf -> Suggestions.format ppf sl)
         in
-        Option.iter
-          (fun pos ->
-            Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
-          pos;
-        Format.fprintf ppf "[%t]" (pp_marker target);
-        match message with
-        | Some message ->
-          Format.pp_print_char ppf ' ';
-          Format.pp_print_string ppf (unformat message)
-        | None -> ())
-      ppf content;
-    Format.pp_print_newline ppf ()
+        if pos = None && message = None then ()
+        else (
+          Option.iter
+            (fun pos ->
+              Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
+            pos;
+          Format.fprintf ppf "[%t]" (pp_marker target);
+          Option.iter (fun h -> Format.fprintf ppf " %s" h) header;
+          Option.iter
+            (fun message ->
+              if header <> None then Format.pp_print_char ppf ':';
+              Format.pp_print_char ppf ' ';
+              Format.pp_print_string ppf (unformat message))
+            message;
+          Format.pp_print_newline ppf ()))
+      content
 
   let lsp_msg ppf content =
     (* Hypothesis: [MainMessage] is always part of a content list. *)
@@ -336,31 +353,29 @@ module Content = struct
     let msg = retrieve_message None content in
     Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
 
-  let emit ?ppf ?(pp_marker = pp_marker) (content : t) (target : level) : unit =
+  let emit_raw ?ppf ?header (content : t) (target : level) : unit =
     let ppf = Option.value ~default:(get_ppf target) ppf in
     match Global.options.message_format with
     | Global.Human -> (
       match target with
-      | Debug | Log -> basic_msg ~pp_marker ppf target content
-      | Result | Warning | Error -> fancy_msg ~pp_marker ppf target content)
-    | GNU -> gnu_msg ~pp_marker ppf target content
+      | Debug | Log -> basic_msg ?header ppf target content
+      | Result | Warning | Error -> fancy_msg ?header ppf target content)
+    | GNU -> gnu_msg ?header ppf target content
     | Lsp -> lsp_msg ppf content
 
   let emit_n ?ppf (errs : t list) (target : level) =
     match errs with
-    | [content] -> emit ?ppf content target
+    | [content] -> emit_raw ?ppf content target
     | contents ->
       let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
         (fun i c ->
-          if i > 0 then Format.pp_print_space ppf ();
-          let extra_label = Printf.sprintf "(%d/%d)" (succ i) len in
-          let pp_marker ?extra_label:_ = pp_marker ~extra_label in
-          emit ~ppf ~pp_marker c target)
+          let header = Printf.sprintf "%d/%d" (succ i) len in
+          emit_raw ~ppf ~header c target)
         contents
 
-  let emit ?ppf (content : t) (target : level) = emit ?ppf content target
+  let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
 end
 
 open Content
@@ -455,7 +470,9 @@ let make
 let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
-let results r = emit (List.flatten (List.map of_result r)) Result
+
+let results ?title r =
+  emit_raw ?header:title (List.flatten (List.map of_result r)) Result
 
 let join_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
@@ -534,27 +551,27 @@ let with_delayed_errors
     (f : unit -> 'a) : 'a =
   (match global_errors.errors with
   | None -> global_errors.errors <- Some []
-  | Some _ ->
-    error ~internal:true
-      "delayed error called outside scope: encapsulate using \
-       'with_delayed_errors' first");
+  | Some _ -> error ~internal:true "nested call to 'with_delayed_errors'");
   global_errors.stop_on_error <- stop_on_error;
   let result =
     match f () with
-    | r -> fun () -> r
-    | exception (CompilerError _ as e) ->
+    | r -> Either.Left r
+    | exception CompilerError err ->
       let bt = Printexc.get_raw_backtrace () in
-      fun () -> Printexc.raise_with_backtrace e bt
-    | exception e -> raise e
+      Either.Right (err, bt)
+    | exception e ->
+      global_errors.errors <- None;
+      raise e
   in
-  match global_errors.errors with
-  | None -> error ~internal:true "intertwined delayed error scope"
-  | Some [] ->
-    global_errors.errors <- None;
-    result ()
-  | Some [err] ->
-    global_errors.errors <- None;
-    raise (CompilerError err)
-  | Some errs ->
-    global_errors.errors <- None;
-    raise (CompilerErrors (List.rev errs))
+  let errs = global_errors.errors in
+  global_errors.errors <- None;
+  match errs, result with
+  | (None | Some []), Either.Right (e, bt) ->
+    Printexc.raise_with_backtrace (CompilerError e) bt
+  | None, Either.Left _ ->
+    error ~internal:true "intertwined delayed error scope"
+  | Some [], Either.Left result -> result
+  | Some [err], Either.Left _ -> raise (CompilerError err)
+  | Some errs, Either.Left _ -> raise (CompilerErrors (List.rev errs))
+  | Some errs, Either.Right (err, bt) ->
+    Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt

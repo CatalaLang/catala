@@ -13,7 +13,7 @@ declaration scope A:
   output x content E
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[WARNING]─
 │

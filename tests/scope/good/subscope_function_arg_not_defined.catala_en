@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 #[test] declaration scope Callee:
   context input_v content integer depends on b content boolean
   context output output_v content integer
@@ -19,7 +19,7 @@ scope Caller:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -29,9 +29,9 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Caller
-┌─[RESULT]─
+┌─[RESULT]─ Caller ─
 │ y = 1
 └─
 ```

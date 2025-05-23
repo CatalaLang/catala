@@ -87,7 +87,7 @@ let test_flags =
            WARNING: flag shortcuts are not allowed here (i.e. don't use \
            non-ambiguous prefixes such as $(b,--closure) for \
            $(b,--closure-conversion))\n\
-           NOTE: if this is set, all inline tests that are $(i,not) $(b,catala \
+           NOTE: if this is set, all cli tests that are $(i,not) $(b,catala \
            test-scope) are skipped to avoid redundant testing.")
 
 let runtest_report =
@@ -124,16 +124,6 @@ let backend =
           "Run the program using the given backend. $(docv) must be one of \
            $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java)")
 
-let ignore_modules =
-  Arg.(
-    value
-    & flag
-    & info ["ignore-modules"]
-        ~doc:
-          "Silently ignore the files on the command-line that belong to \
-           modules. May be useful to automatically run stand-alone tests when \
-           using a general glob-pattern.")
-
 let run_command =
   Arg.(
     value
@@ -159,10 +149,10 @@ module Global : sig
   val debug : bool Term.t
 
   val term :
-    (config_file:File.t option ->
+    (autotest:bool ->
+    config_file:File.t option ->
     catala_exe:File.t option ->
     catala_opts:string list ->
-    autotest:bool ->
     build_dir:File.t option ->
     include_dirs:string list ->
     vars_override:(string * string) list ->
@@ -209,10 +199,10 @@ end = struct
     Term.(
       const
         (fun
+          autotest
           config_file
           catala_exe
           catala_opts
-          autotest
           build_dir
           include_dirs
           vars_override
@@ -220,12 +210,12 @@ end = struct
           debug
           ninja_output
         ->
-          f ~config_file ~catala_exe ~catala_opts ~autotest ~build_dir
+          f ~autotest ~config_file ~catala_exe ~catala_opts ~build_dir
             ~include_dirs ~vars_override ~color ~debug ~ninja_output)
+      $ autotest
       $ config_file
       $ catala_exe
       $ catala_opts
-      $ autotest
       $ build_dir
       $ include_dirs
       $ vars_override

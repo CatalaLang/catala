@@ -1,6 +1,6 @@
 ## Article
 
-```catala
+```catala-metadata
 declaration structure S:
   data x content integer
   data y content integer
@@ -19,7 +19,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -29,9 +29,9 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ s = S { -- x: 1 -- y: 2 }
 │ z = 3
 └─

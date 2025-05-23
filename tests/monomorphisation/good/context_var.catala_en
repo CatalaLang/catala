@@ -1,6 +1,6 @@
 ## Testing monomorphisation on context variables
 
-```catala
+```catala-metadata
 #[test] declaration scope TestXor:
   context output t content boolean
 
@@ -8,7 +8,7 @@ scope TestXor:
   definition t equals true
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala lcalc --monomorphize-types
 type option_1 =
   | None_1 of unit
@@ -65,7 +65,7 @@ let scope test_xor
 
 ```
 
-```catala
+```catala-metadata
 #[test] declaration scope TestXor2:
   t scope TestXor
   output o content boolean
@@ -74,7 +74,7 @@ scope TestXor2:
   definition o equals t.t
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala lcalc --monomorphize-types -s TestXor2
 let scope TestXor2
   (test_xor2_in: #[test] TestXor2_in)

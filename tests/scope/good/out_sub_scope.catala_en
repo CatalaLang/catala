@@ -1,5 +1,5 @@
 
-```catala
+```catala-metadata
 declaration scope A:
   input i content integer
   output o content integer
@@ -19,9 +19,9 @@ scope B:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ a = A { -- o: 99 -- io: 100 }
 │ b = 99
 └─

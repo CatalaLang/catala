@@ -12,7 +12,7 @@ scope A:
   definition x under condition y = 4 consequence equals 1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

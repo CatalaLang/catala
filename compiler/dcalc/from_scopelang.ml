@@ -947,6 +947,16 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
               | KScope scope ->
                 let spos = Mark.get (ScopeName.get_info scope) in
                 if ScopeName.path scope = [] && Pos.has_attr spos Test then
+                  let () =
+                    if visibility <> Public then
+                      Message.warning
+                        "Scope %a is@ marked@ as@ @{<magenta>#[test]@},@ but@ \
+                         it@ is@ private.@ Make@ it@ public@ to@ allow@ it@ \
+                         to@ run@ in@ all@ backends.@ Scopes must be declared \
+                         in a @{<blue>```catala-metadata@} section to be \
+                         public."
+                        ScopeName.format scope
+                  in
                   let pos = Expr.mark_pos m in
                   let str =
                     (ScopeName.Map.find scope decl_ctx.ctx_scopes)

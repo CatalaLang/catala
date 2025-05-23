@@ -39,17 +39,11 @@ val format_to_module_name :
 val format_var : Format.formatter -> 'm Var.t -> unit
 
 val format_program :
+  File.t option ->
   Format.formatter ->
-  ?exec_scope:ScopeName.t ->
-  ?exec_args:bool ->
   hashf:(Hash.t -> Hash.full) ->
   'm Ast.program ->
   TypeIdent.t list ->
   unit
-(** Usage [format_program fmt p type_dependencies_ordering]. Either one of these
-    may be set:
-
-    - [exec_scope] will mark the named scope as "main" and execute it at the end
-      of the program. It must have no inputs.
-    - [exec_args] will add support for executing scopes passed on Argv (default
-      true if [exec_scope] is [None] *)
+(** Usage [format_program get_fmt p type_dependencies_ordering]. Either one of
+    these may be set *)

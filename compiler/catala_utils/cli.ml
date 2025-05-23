@@ -253,6 +253,16 @@ module Flags = struct
             "Compile the full chain of module dependencies without requiring a \
              separate module compilation."
 
+    let bin_dir =
+      value
+      & opt (some raw_file) None
+      & info ["bin"] ~docv:"DIR"
+          ~doc:
+            "Directory containing compiled artifacts. This is used to load \
+             shared modules. Defaults to the value of $(b,--directory) if that \
+             is set, or to $(b,_build) otherwise, consistently with the \
+             defaults used by clerk to create these files."
+
     let flags =
       let make
           language
@@ -267,7 +277,8 @@ module Flags = struct
           directory
           stop_on_error
           no_fail_on_assert
-          whole_program : options =
+          whole_program
+          bin_dir : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -300,12 +311,21 @@ module Flags = struct
                      ())),
               Some trace_format )
         in
+        let bin_dir =
+          match bin_dir with
+          | Some d -> path_rewrite d
+          | None -> (
+            match directory with
+            | Some _ -> Filename.current_dir_name
+            | None -> "_build")
+        in
         let trace_format = Option.value trace_format ~default:Human in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
-          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program ()
+          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program
+          ~bin_dir ()
       in
       Term.(
         const make
@@ -321,7 +341,8 @@ module Flags = struct
         $ directory
         $ stop_on_error
         $ no_fail_on_assert
-        $ whole_program)
+        $ whole_program
+        $ bin_dir)
 
     let options =
       let make input_src name directory options : options =
@@ -359,6 +380,11 @@ module Flags = struct
     value
     & flag
     & info ["check-invariants"] ~doc:"Check structural invariants on the AST."
+
+  let quiet =
+    value
+    & flag
+    & info ["quiet"] ~doc:"Only display a short summary of results."
 
   let autotest =
     value
