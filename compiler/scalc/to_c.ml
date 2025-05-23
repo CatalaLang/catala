@@ -860,5 +860,5 @@ let format_program
   in
   let env = List.fold_left (format_code_item ctx ~ppc ~pph) env p.code_items in
   pp [pph] "@,#endif /* __%s_H__ */" module_id;
-  format_main ctx env ppmain p;
+  if snd p.tests <> [] then format_main ctx env ppmain p;
   ppall "@]"

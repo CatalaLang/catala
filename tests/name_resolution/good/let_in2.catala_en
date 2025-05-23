@@ -89,7 +89,7 @@ let s : S_in.t -> S.t = fun s_in ->
 
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"
-    [  ]
+    [ "S", Obj.repr s ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 

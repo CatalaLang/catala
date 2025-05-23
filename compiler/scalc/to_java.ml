@@ -1197,7 +1197,7 @@ let format_program ctx ppf { code_items; tests; _ } =
   pp_print_list_padded ~pp_sep:pp_print_double_space
     (fun ppf s -> format_scope ctx ppf s)
     ppf scopes;
-  format_tests ctx ppf tests
+  if snd tests <> [] then format_tests ctx ppf tests
 
 let format_program ~class_name ppf (p : Ast.program) : unit =
   Format.pp_open_vbox ppf 0;

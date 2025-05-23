@@ -72,7 +72,7 @@ type Assert_in__1 = {  }
 #[test]
 type Assert__2 = { assert: bool; }
 
-let topval closure_assert : (closure_env, integer) → integer =
+let topval closure_assert__1 : (closure_env, integer) → integer =
   λ (env: closure_env) (x: integer) →
   let env__1 : () = from_closure_env env in
   
@@ -83,15 +83,15 @@ let scope assert
   (assert_in: #[test] Assert_in__1)
   : #[test] Assert__2 {assert: bool}
   =
-  let set assert : bool =
+  let set assert__2 : bool =
     match
       (match
          (ESome
-            (let assert__1 : list of integer =
-               map (let assert__2 : (closure_env, integer) → integer =
-                      closure_assert
+            (let assert__3 : list of integer =
+               map (let assert__4 : (closure_env, integer) → integer =
+                      closure_assert__1
                     in
-                    (assert__2, to_closure_env ()))
+                    (assert__4, to_closure_env ()))
                  [0]
              in
              false, <conflicts:23.3-59>))
@@ -102,13 +102,13 @@ let scope assert
     | ENone → error NoValue
     | ESome arg → arg.0
   in
-  return { Assert__2 assert = assert; }
+  return { Assert__2 assert = assert__2; }
 
 let topval assert__1 : integer → integer =
-  λ (assert__1: integer) →
-  assert__1
+  λ (assert__2: integer) →
+  assert__2
 
-let topval closure_assert__1 :
+let topval closure_assert :
   (Assert_in {assert: integer}, Assert__1 {assert: integer}) =
   ({ Assert_in assert = 99; }, { Assert__1 assert = 199; })
 
@@ -142,20 +142,20 @@ end
 
 
 (* Toplevel def closure_assert *)
-let closure_assert : Obj.t -> integer -> integer =
+let closure_assert__1 : Obj.t -> integer -> integer =
   fun (env: Obj.t) (x: integer) -> (let _ : unit = (o_fromclosureenv env) in
     ((o_add_int_int x (integer_of_string "1"))))
 
 (* Scope Assert *)
 let assert__1 : Assert_in__1.t -> Assert__2.t = fun _ ->
-  let assert__1: bool =
+  let assert__3: bool =
     match
       (match
          (Eoption.ESome
             ((let _ : integer array =
                 (o_map
-                   (let assert__2 : Obj.t -> integer -> integer =
-                      closure_assert in (assert__2, (o_toclosureenv ())))
+                   (let assert__4 : Obj.t -> integer -> integer =
+                      closure_assert__1 in (assert__4, (o_toclosureenv ())))
                    ([|(integer_of_string "0")|])) in false),
               ({filename="tests/name_resolution/good/conflicts.catala_en";
                 start_line=23; start_column=3; end_line=23; end_column=59;
@@ -175,14 +175,14 @@ let assert__1 : Assert_in__1.t -> Assert__2.t = fun _ ->
                                                  end_line=19; end_column=16;
                                                  law_headings=[]}])))
     | Eoption.ESome arg -> (let x, _ = arg in x) in
-  {Assert__2.assert__1 = assert__1}
+  {Assert__2.assert__1 = assert__3}
 
 (* Toplevel def assert *)
-let _ : integer -> integer =
-  fun (assert__2: integer) -> assert__2
+let assert__2 : integer -> integer =
+  fun (assert__3: integer) -> assert__3
 
 (* Toplevel def closure_assert *)
-let _ : (Assert_in.t * Assert__1.t) =
+let closure_assert : (Assert_in.t * Assert__1.t) =
   (({Assert_in.assert__1 = (integer_of_string "99")}),
     ({Assert__1.assert__1 = (integer_of_string "199")}))
 ```

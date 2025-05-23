@@ -65,7 +65,7 @@ typedef struct Baz_in {
   const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a_in;
 } Baz_in;
 
-static const Baz* baz (const Baz_in* baz_in)
+const Baz* baz (const Baz_in* baz_in)
 {
   const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a = baz_in->a_in;
   const Bar* a__1;
