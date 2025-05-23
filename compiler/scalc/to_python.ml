@@ -644,5 +644,5 @@ let format_program
   format_ctx type_ordering fmt p.ctx;
   Format.pp_print_cut fmt ();
   Format.pp_print_list (format_code_item p.ctx) fmt p.code_items;
-  format_tests p.ctx fmt p;
+  if snd p.tests <> [] then format_tests p.ctx fmt p;
   Format.pp_print_flush fmt ()

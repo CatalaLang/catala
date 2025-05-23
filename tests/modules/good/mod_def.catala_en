@@ -64,7 +64,7 @@ open Runtime_ocaml.Runtime
 
 
 module Enum1 = struct
-  type t = | Yes of unit | No of unit | Maybe of unit
+  type t = Yes of unit | No of unit | Maybe of unit
 end
 
 module S = struct

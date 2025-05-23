@@ -477,7 +477,9 @@ let gen_build_statements
        [
          Nj.build "c-object"
            ~inputs:[target ~backend:"c" "+main.c"]
-           ~implicit_in:[target ~backend:"c" "h"]
+           ~implicit_in:
+             (target ~backend:"c" "h"
+             :: List.map (modfile ~backend:"c" ".h") modules)
            ~outputs:[target ~backend:"c" "+main.o"]
            ~vars:[Var.includes, include_flags "c"];
        ]
