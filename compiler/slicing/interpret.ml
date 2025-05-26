@@ -26,7 +26,7 @@ fun ctx lang e ->
   let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
-      (((d, yes) interpr_kind, t) naked_gexpr Bindlib.var * ((d, yes) interpr_kind, t) gexpr) list ->
+      (((d, yes) interpr_kind, t) gexpr, 'a) Var.Map.t ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, t) gexpr ->
       ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
@@ -49,7 +49,7 @@ fun ctx lang e ->
     @@*)
     match Mark.remove e with
     | EVar x -> (
-      match List.assoc_opt x local_ctx with
+      match Var.Map.find_opt x local_ctx with
         | Some v -> v, TrVar x
         | None -> 
           Message.error ~pos "%a" Format.pp_print_text
@@ -95,7 +95,7 @@ fun ctx lang e ->
       | EAbs { binder; _ } ->
         if Bindlib.mbinder_arity binder = List.length args then
           let vars, body = Bindlib.unmbind binder in
-          let local_ctx = (List.combine (Array.to_list vars) args) @ local_ctx in
+          let local_ctx = List.fold_left2 (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) local_ctx (Array.to_list vars) args in
           let v, trv = evaluate_expr_with_trace_aux ctx local_ctx lang body in 
             (v, TrApp {trf; trargs; tys; trv})
         else
@@ -296,7 +296,7 @@ fun ctx lang e ->
     | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
     | _ -> .
   in
-  try evaluate_expr_with_trace_aux ctx [] lang e
+  try evaluate_expr_with_trace_aux ctx Var.Map.empty lang e
   with 
     | FatalError (err, m, tr) -> (Mark.add m (EFatalError err)), tr
 
