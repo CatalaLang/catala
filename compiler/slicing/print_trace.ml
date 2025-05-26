@@ -16,7 +16,13 @@ let string_of_container ?(inline = false) iter key_to_string f container indent 
     container;
   Format.asprintf "%s[%s%s%s%s]" spaces new_line (String.concat ",\n" (List.rev !parts)) new_line spaces
 
-let rec string_of_expr ?(indent=0) ?(inline=false) (expr : ('a, 'm) gexpr) =
+let rec string_of_expr:
+    type d t.
+    ?indent:int -> 
+    ?inline:bool -> 
+    (d, t) gexpr ->
+    file =
+fun ?(indent=0) ?(inline=false) expr ->
   let new_line, spaces = if inline then "", "" else "\n", String.make indent ' ' in
   match Mark.remove expr with
   | ELit l -> Format.asprintf "%s%s" spaces (UserFacing.lit_to_string En l)
@@ -98,11 +104,16 @@ let rec string_of_expr ?(indent=0) ?(inline=false) (expr : ('a, 'm) gexpr) =
         (string_of_expr ~indent:(indent + 2) ~inline e)
         spaces
   | ECustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sECustom" spaces
-  (* For typing reasons in the case where EHole is not allowed, the case EHole is hidden in the wildcard *)
-  | _ -> Format.asprintf "%s□" spaces 
+  | EHole _ -> Format.asprintf "%s□" spaces 
+  | _ -> assert false
 
 
-let rec string_of_trace ?(indent=0) (trace : ('a, 'm) Trace_ast.t) =
+let rec string_of_trace :
+    type d t.
+    ?indent:int ->
+    (d, t) Trace_ast.t ->
+    file =
+fun ?(indent=0) trace ->
   let spaces = String.make indent ' ' in 
   match trace with
   | TrExpr e -> Format.asprintf "%sTrExpr(%s)" spaces (string_of_expr ~inline:true e)
