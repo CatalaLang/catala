@@ -98,7 +98,8 @@ let rec string_of_expr ?(indent=0) ?(inline=false) (expr : ('a, 'm) gexpr) =
         (string_of_expr ~indent:(indent + 2) ~inline e)
         spaces
   | ECustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sECustom" spaces
-  | _ -> Format.asprintf "%s□" spaces
+  (* For typing reasons in the case where EHole is not allowed, the case EHole is hidden in the wildcard *)
+  | _ -> Format.asprintf "%s□" spaces 
 
 
 let rec string_of_trace ?(indent=0) (trace : ('a, 'm) Trace_ast.t) =
