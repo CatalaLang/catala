@@ -543,6 +543,14 @@ module Flags = struct
     & opt (some string) None
     & info ["prefix"] ~docv:"PATH"
         ~doc:"Prepend the given path to each of the files in the returned list."
+
+  let subdir =
+    value
+    & opt (some string) None
+    & info ["subdir"] ~docv:"PATH"
+        ~doc:
+          "Append the given subdir at the end of the path of each of the files \
+           in the returned list. Usually matches the name of the backend used."
 end
 
 (* Retrieve current version from dune *)

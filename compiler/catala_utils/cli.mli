@@ -78,6 +78,9 @@ module Flags : sig
 
   val prefix : string option Term.t
   (** for the 'depends' command *)
+
+  val subdir : string option Term.t
+  (** for the 'depends' command *)
 end
 
 (** {2 Command-line application} *)

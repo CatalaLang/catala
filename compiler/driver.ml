@@ -1129,7 +1129,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
-  let depends options includes prefix extension extra_files =
+  let depends options includes prefix subdir extension extra_files =
     let file = Global.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
@@ -1175,6 +1175,11 @@ module Commands = struct
               f)
             else File.(pfx / f)
         in
+        let f =
+          match subdir with
+          | None -> f
+          | Some d -> File.(dirname f / d / basename f)
+        in
         let f = File.clean_path f in
         if extension = [] then Format.pp_print_string ppf f
         else
@@ -1206,6 +1211,7 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.prefix
+        $ Cli.Flags.subdir
         $ Cli.Flags.extension
         $ Cli.Flags.extra_files)
 
