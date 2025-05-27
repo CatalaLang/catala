@@ -393,12 +393,12 @@ module Flags = struct
         ~env:(Cmd.Env.info "CATALA_AUTOTEST")
         ~doc:
           "Insert automatic test assertions in the compiled program. This \
-           detects all scopes that have no input or context variables, runs \
-           the interpreter to pre-compute their values, then adds runtime \
-           assertions to the program that ensure that the actual output of the \
-           scopes match their pre-computed values. If used on a testing \
-           program with a given backend, this guarantees consistency between \
-           the backend and the interpreter."
+           affects scopes marked with the $(i,#[test]) attribute, running the \
+           interpreter to pre-compute their values, then adding runtime \
+           assertions that ensure that the actual output of the scopes match \
+           their pre-computed values. This is meaningful for validating the \
+           different backends, guaranteeing consistency of their results that \
+           of the interpreter."
 
   let no_typing =
     value

@@ -60,11 +60,11 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
       (Eoption.ESome
          ((o_add_dat_dur AbortOnRound
              {filename="tests/name_resolution/good/keywords.catala_en";
-              start_line=15; start_column=38; end_line=15; end_column=39;
+              start_line=11; start_column=38; end_line=11; end_column=39;
               law_headings=[]} (date_of_numbers (1970) (1) (1))
              (o_mult_dur_int (duration_of_numbers (0) (0) (1)) val__1)),
            ({filename="tests/name_resolution/good/keywords.catala_en";
-             start_line=15; start_column=26; end_line=15; end_column=52;
+             start_line=11; start_column=26; end_line=11; end_column=52;
              law_headings=[]})))
     with
     | Eoption.ENone _ -> (raise
@@ -110,8 +110,8 @@ let test : Test_in.t -> Test.t = fun _ ->
     with
     | Eoption.ENone _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                                                 start_line=9; start_column=10;
-                                                 end_line=9; end_column=13;
+                                                 start_line=15; start_column=10;
+                                                 end_line=15; end_column=13;
                                                  law_headings=[]}])))
     | Eoption.ESome arg -> (let x, _ = arg in x) in
   {Test.val__1 = val__1}

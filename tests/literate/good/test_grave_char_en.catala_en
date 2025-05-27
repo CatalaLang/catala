@@ -79,8 +79,7 @@ This is a block of law text containing `. This allows to:
 let () = print_endline "Hello world!"
 \end{verbatim}
 
-\begin{tcolorbox}[colframe=OliveGreen, breakable, title=\textcolor{black}{\texttt{Metadata}},title after break=\textcolor{black}{\texttt{Metadata}},before skip=1em, after skip=1em, left=0.6em, right=0.6em]
-\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}},numbersep=9mm]
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}}]
 \```catala
 \PY{n+nv}{test}\PY{o}{]} \PY{k+kr}{declaration} \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
   \PY{k+kd}{context}\PY{+w}{ }\PY{k+kd}{output}\PY{+w}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{content} \PY{k+kt}{boolean}
@@ -90,7 +89,6 @@ let () = print_endline "Hello world!"
 \```
 \end{Verbatim}
 
-\end{tcolorbox}
 
 Even after \texttt{Catala} code block:
 

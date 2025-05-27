@@ -58,6 +58,12 @@ type Eoption =
   | ENone of unit
   | ESome of any
 
+#[test]
+type Foo_in = { b_in: option (bool, source_position); }
+
+#[test]
+type Foo = { z: integer; }
+
 type Result = {
   r: ((closure_env, integer) → integer, closure_env);
   q: integer;
@@ -76,12 +82,6 @@ type SubFoo2 = {
   x1: integer;
   y: ((closure_env, integer) → integer, closure_env);
 }
-
-#[test]
-type Foo_in = { b_in: option (bool, source_position); }
-
-#[test]
-type Foo = { z: integer; }
 
 let topval closure_y : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
