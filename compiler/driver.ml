@@ -208,8 +208,7 @@ module Passes = struct
     let prg =
       if autotest then (
         Interpreter.load_runtime_modules
-          ~hashf:
-            Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+          ~hashf:Hash.(finalise ~monomorphize_types:false)
           prg;
         Dcalc.Autotest.program prg)
       else prg
@@ -791,7 +790,7 @@ module Commands = struct
         ~typed
     in
     Interpreter.load_runtime_modules
-      ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+      ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
     let success =
       List.fold_left
@@ -880,7 +879,7 @@ module Commands = struct
         ~expand_ops ~renaming:None
     in
     Interpreter.load_runtime_modules
-      ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
+      ~hashf:(Hash.finalise ~monomorphize_types)
       prg;
     let success =
       List.fold_left
@@ -954,7 +953,7 @@ module Commands = struct
     Message.debug "Compiling program into OCaml...";
     get_output_format options output
     @@ fun output_file fmt ->
-    let hashf = Hash.finalise ~closure_conversion ~monomorphize_types:false in
+    let hashf = Hash.finalise ~monomorphize_types:false in
     Lcalc.To_ocaml.format_program output_file fmt prg ~hashf type_ordering
 
   let ocaml_cmd =
