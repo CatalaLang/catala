@@ -662,7 +662,7 @@ and ('a, 'b, 'm) base_gexpr =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
-  | EHole : typ -> ('a, < hole : yes ; .. >, 't) base_gexpr
+  | EHole : typ -> ('a, < holes : yes ; .. >, 't) base_gexpr
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr

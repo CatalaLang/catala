@@ -26,7 +26,7 @@ fun ctx lang e ->
   let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
-      (((d, yes) interpr_kind, t) gexpr, 'a) Var.Map.t ->
+      (((d, yes) interpr_kind, t) gexpr, ((d, yes) interpr_kind, t) gexpr) Var.Map.t ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, t) gexpr ->
       ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
