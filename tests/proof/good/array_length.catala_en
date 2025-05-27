@@ -1,6 +1,6 @@
 ## Test
 
-```catala-metadata
+```catala
 #[test] declaration scope A:
   internal x content list of integer
   output y content boolean

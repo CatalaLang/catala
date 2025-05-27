@@ -1,5 +1,5 @@
 
-```catala-metadata
+```catala
 declaration structure Str:
   data x1 content (integer, date)
 

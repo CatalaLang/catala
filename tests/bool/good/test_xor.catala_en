@@ -1,6 +1,6 @@
 ## Test all 'xor' combinations
 
-```catala-metadata
+```catala
 #[test] declaration scope TestXor:
   context output t_xor_t content boolean
   context output t_xor_f content boolean

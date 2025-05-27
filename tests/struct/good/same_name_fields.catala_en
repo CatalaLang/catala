@@ -1,6 +1,6 @@
 ## Article
 
-```catala-metadata
+```catala
 declaration structure Foo:
   data f content integer
 

@@ -1,6 +1,6 @@
 ## Test
 
-```catala-metadata
+```catala
 declaration structure T:
    data c content boolean
    data d content integer

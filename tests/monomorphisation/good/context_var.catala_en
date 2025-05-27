@@ -1,6 +1,6 @@
 ## Testing monomorphisation on context variables
 
-```catala-metadata
+```catala
 #[test] declaration scope TestXor:
   context output t content boolean
 
@@ -65,7 +65,7 @@ let scope test_xor
 
 ```
 
-```catala-metadata
+```catala
 #[test] declaration scope TestXor2:
   t scope TestXor
   output o content boolean

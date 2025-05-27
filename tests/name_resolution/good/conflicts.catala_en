@@ -2,7 +2,7 @@ This test attemts to stress the renaming engine, and trigger naming conflicts in
 the backends.
 
 
-```catala-metadata
+```catala
 declaration structure Assert_in:
   data assert content integer
 

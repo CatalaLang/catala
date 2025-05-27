@@ -1,6 +1,6 @@
 ## Test
 
-```catala-metadata
+```catala
 declaration scope A:
   context a content integer
   input b content integer

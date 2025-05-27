@@ -1,6 +1,6 @@
 ## Test basic toplevel values defs
 
-```catala-metadata
+```catala
 declaration glob1 content decimal equals 44.12
 
 #[test] declaration scope S:

@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 #[test] declaration scope A:
   output w content integer
 

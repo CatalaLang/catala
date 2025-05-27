@@ -13,7 +13,7 @@ This allows to:
 let () = print_endline "Hello world!"
 ```
 
-```catala-metadata
+```catala
 #[test] déclaration champ d'application A:
   contexte résultat literate_parsing_is_ok contenu booléen
 

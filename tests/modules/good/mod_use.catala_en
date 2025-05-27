@@ -2,7 +2,7 @@
 
 > Using Mod_def
 
-```catala-metadata
+```catala
 #[test] declaration scope T2:
   t1 scope Mod_def.S
 #  input i content Enum1

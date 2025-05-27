@@ -1,6 +1,6 @@
 ## Test
 
-```catala-metadata
+```catala
 declaration enumeration T:
    -- C content boolean
    -- D content integer

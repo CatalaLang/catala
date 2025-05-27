@@ -3,16 +3,16 @@
 declaration scope Stdlib:
   input val content integer
   output when content date
-
-#[test] declaration scope Test:
-  a scope Stdlib
-  output val content date
 ```
 
 
 ```catala
 scope Stdlib:
   definition when equals val * 1 day + |1970-01-01|
+
+#[test] declaration scope Test:
+  a scope Stdlib
+  output val content date
 
 scope Test:
   definition a.val equals 99

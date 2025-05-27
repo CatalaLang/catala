@@ -1,6 +1,6 @@
 ## Test
 
-```catala-metadata
+```catala
 #[test] declaration scope A:
   context output f content integer depends on x content integer
 

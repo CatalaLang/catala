@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 #[test] declaration scope HousingComputation:
   output f content integer depends on x content integer
   output result content integer

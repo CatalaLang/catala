@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 
 déclaration champ d'application VérificationÂgeInférieurOuÉgalÀ:
   entrée date_naissance contenu date

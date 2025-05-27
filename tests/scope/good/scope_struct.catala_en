@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 declaration scope SubFoo:
   input x content integer
   input y content integer

@@ -1,6 +1,6 @@
 ## Article
 
-```catala-metadata
+```catala
 #[test] declaration scope TestBool:
   context output foo content boolean
   context output bar content integer

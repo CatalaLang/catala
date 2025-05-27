@@ -1,7 +1,7 @@
 > Using Prorata_external as Ext
 
 
-```catala-metadata
+```catala
 declaration structure HouseholdMember:
   data birthdate content date
   data revenue content money

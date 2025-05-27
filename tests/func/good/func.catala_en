@@ -1,6 +1,6 @@
 ## Article
 
-```catala-metadata
+```catala
 declaration scope S:
   context f content integer depends on x content integer
   context b content boolean

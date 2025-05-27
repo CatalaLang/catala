@@ -1,6 +1,6 @@
 ## Test basic toplevel values defs
 
-```catala-metadata
+```catala
 declaration glob1 content decimal equals 44.12
 
 #[test] declaration scope S:
@@ -41,7 +41,7 @@ $ catala test-scope S
 
 ## Test toplevel function defs
 
-```catala-metadata
+```catala
 declaration glob3 content decimal
     depends on x content money
     equals decimal of x + 10.
@@ -62,7 +62,7 @@ $ catala test-scope S2
 
 ## Test function def with two args
 
-```catala-metadata
+```catala
 declaration glob4 content decimal
     depends on x content money, y content decimal
     equals decimal of x * y + 10.
@@ -85,7 +85,7 @@ $ catala test-scope S3
 
 (can't define inline functions yet)
 
-```catala-metadata
+```catala
 declaration glob5 content decimal equals
     let x equals decimal of 2 * 3. in
     let y equals 1000. in

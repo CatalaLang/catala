@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 declaration structure Foo:
   data x content boolean
   data y content decimal

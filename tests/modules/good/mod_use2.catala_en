@@ -1,6 +1,6 @@
 > Using Mod_middle as M
 
-```catala-metadata
+```catala
 #[test] declaration scope T:
   t1 scope M.S
 #  input i content Enum1

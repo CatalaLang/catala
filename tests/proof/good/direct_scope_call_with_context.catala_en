@@ -1,4 +1,4 @@
-```catala-metadata
+```catala
 #[test] declaration scope SubFoo:
   context x content integer
   output y content integer
