@@ -360,14 +360,27 @@ let gen_build_statements
       ~outputs:[catala_src]
   in
   let module_deps =
-    Option.map
-      (fun _ ->
-        Nj.build "phony"
-          ~inputs:
-            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmxs"]
-          ~implicit_in:(List.map (modfile "@ocaml-module") modules)
-          ~outputs:[target ~backend:"ocaml" "@ocaml-module"])
-      item.module_def
+    match item.module_def with
+    | None -> []
+    | Some _ ->
+      (if List.mem OCaml enabled_backends then
+         [
+           Nj.build "phony"
+             ~inputs:
+               [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmxs"]
+             ~implicit_in:(List.map (modfile "@ocaml-module") modules)
+             ~outputs:[target ~backend:"ocaml" "@ocaml-module"];
+         ]
+       else [])
+      @
+      if List.mem C enabled_backends then
+        [
+          Nj.build "phony"
+            ~inputs:[target ~backend:"c" "h"]
+            ~implicit_in:(List.map (modfile ~backend:"c" "@c-module") modules)
+            ~outputs:[target ~backend:"c" "@c-module"];
+        ]
+      else []
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
   let ocaml, c, python, java =
@@ -469,7 +482,8 @@ let gen_build_statements
     Nj.build "c-object"
       ~inputs:[target ~backend:"c" "c"]
       ~implicit_in:
-        (target ~backend:"c" "h" :: List.map (modfile ~backend:"c" ".h") modules)
+        (target ~backend:"c" "h"
+        :: List.map (modfile ~backend:"c" "@c-module") modules)
       ~outputs:[target ~backend:"c" "o"]
       ~vars:[Var.includes, include_flags "c"]
     ::
@@ -479,7 +493,7 @@ let gen_build_statements
            ~inputs:[target ~backend:"c" "+main.c"]
            ~implicit_in:
              (target ~backend:"c" "h"
-             :: List.map (modfile ~backend:"c" ".h") modules)
+             :: List.map (modfile ~backend:"c" "@c-module") modules)
            ~outputs:[target ~backend:"c" "+main.o"]
            ~vars:[Var.includes, include_flags "c"];
        ]
@@ -526,11 +540,7 @@ let gen_build_statements
            [
              Nj.build "phony"
                ~outputs:[m ^ "@c-module"]
-               ~inputs:
-                 [modfile ~backend:"c" ".h" m; modfile ~backend:"c" ".o" m];
-             (* Nj.build "phony"
-              *   ~outputs:[m ^ "@h-module"]
-              *   ~inputs:[modfile ".h" !Var.target]; *)
+               ~inputs:[modfile ~backend:"c" ".h" m];
            ]
          else [])
       @ (if List.mem Python enabled_backends then
@@ -565,9 +575,9 @@ let gen_build_statements
     :: List.to_seq def_vars
     :: Seq.return include_deps
     :: List.to_seq expose_module
+    :: List.to_seq module_deps
     ::
-    (if List.mem OCaml enabled_backends then
-       [Option.to_seq module_deps; ocaml; List.to_seq ocamlopt]
+    (if List.mem OCaml enabled_backends then [ocaml; List.to_seq ocamlopt]
      else [])
     @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
     @ (if List.mem Python enabled_backends then [Seq.return python] else [])
