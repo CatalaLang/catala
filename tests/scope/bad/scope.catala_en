@@ -14,7 +14,7 @@ scope A:
   definition b under condition not c consequence equals 0
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

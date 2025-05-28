@@ -21,14 +21,14 @@ scope R:
   definition r equals s.out
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope R
-┌─[RESULT]─
+┌─[RESULT]─ R ─
 │ r = 30
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S
 ┌─[ERROR]─
 │

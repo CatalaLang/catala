@@ -793,7 +793,8 @@ let format_enum_to_string ppf =
      return this.kind.toString() + \" \" + this.contents.toString();@]@\n\
      }"
 
-let format_tests ctx ppf tests =
+let format_tests ctx ppf (closures, tests) =
+  assert (closures = []);
   pp_print_double_space ppf ();
   fprintf ppf "// Automatic Catala tests@\n";
   fprintf ppf "@[<v 4>public static void main(String[] args) {@\n";
@@ -812,11 +813,11 @@ let format_tests ctx ppf tests =
          tests
      in
      let format_test ppf (scope_name, block) =
-       fprintf ppf "/* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
        fprintf ppf
          "%a@\n\
           System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-          successfully.\");"
+          successfully.\"); }"
          (format_block ~toplevel:true ctx)
          block ScopeName.format scope_name
      in
@@ -1196,7 +1197,7 @@ let format_program ctx ppf { code_items; tests; _ } =
   pp_print_list_padded ~pp_sep:pp_print_double_space
     (fun ppf s -> format_scope ctx ppf s)
     ppf scopes;
-  format_tests ctx ppf tests
+  if snd tests <> [] then format_tests ctx ppf tests
 
 let format_program ~class_name ppf (p : Ast.program) : unit =
   Format.pp_open_vbox ppf 0;

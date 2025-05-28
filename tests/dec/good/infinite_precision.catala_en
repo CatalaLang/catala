@@ -16,7 +16,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -26,9 +26,9 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ a =
 │   -0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
 │ x = 84.648,665,652,656,896,23

@@ -644,28 +644,37 @@ let rec hoist_closures_code_item_list
     (lcalc, 'm) gexpr code_item_list Bindlib.box =
   match code_items with
   | Last exports ->
-    let hoisted_closures, rev_exports =
-      List.fold_left
-        (fun (closures, acc) (k, e) ->
-          let name =
-            match k with
-            | KScope n | KTest n -> fst (ScopeName.get_info n)
-            | KTopdef n -> TopdefName.base n
-          in
-          let new_closures, e =
-            hoist_closures_expr flags (new_context name) e
-          in
-          List.rev_append new_closures closures, (k, e) :: acc)
-        ([], []) exports
+    let rev_exports =
+      List.rev_map
+        (fun (k, e) ->
+          match k with
+          | KTopdef _ | KScope _ ->
+            (* These are just holders for variables, they shouldn't require
+               conversion *)
+            k, Expr.rebox e
+          | KTest n ->
+            let name, _ = ScopeName.get_info n in
+            let new_closures, e =
+              hoist_closures_expr flags (new_context name) e
+            in
+            (* The closures need to remain local to the test, because that may
+               be spilled into another file. So we re-embed them using a let-in,
+               to be deconstructed at the last stages of compilation *)
+            ( k,
+              List.fold_left
+                (fun e cl ->
+                  Expr.make_let_in
+                    (cl.name, Expr.pos cl.closure)
+                    cl.ty cl.closure e (Expr.pos cl.closure))
+                e new_closures ))
+        exports
     in
-    hoist_closures_items hoisted_closures
-      (Bindlib.box_apply
-         (fun ex -> Last ex)
-         (Bindlib.box_list
-            (List.rev_map
-               (fun (k, e) ->
-                 Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift e))
-               rev_exports)))
+    Bindlib.box_apply
+      (fun ex -> Last ex)
+      (Bindlib.box_list
+         (List.rev_map
+            (fun (k, e) -> Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift e))
+            rev_exports))
   | Cons (code_item, next_code_items) ->
     let code_item_var, next_code_items = Bindlib.unbind next_code_items in
     let hoisted_closures, new_code_item =

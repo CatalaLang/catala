@@ -817,8 +817,10 @@ let rec evaluate_expr :
       | None ->
         Message.error ~pos:(Expr.pos e)
           "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
-           term was well-typed)"
-          StructField.format field StructName.format s)
+           term was well-typed). Fields: %a"
+          StructField.format field StructName.format s
+          (fun ppf -> StructField.Map.format_keys ppf)
+          es)
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \
@@ -892,8 +894,8 @@ let rec evaluate_expr :
         (match Mark.remove partially_evaluated_assertion_failure_expr with
         | ELit (LBool false) ->
           if Global.options.no_fail_on_assert then
-            Message.warning ~pos "Assertion failed:"
-          else Message.delayed_error ~kind:Generic () ~pos "Assertion failed:"
+            Message.warning ~pos "Assertion failed"
+          else Message.delayed_error ~kind:Generic () ~pos "Assertion failed"
         | _ ->
           if Global.options.no_fail_on_assert then
             Message.warning ~pos "Assertion failed:@ %a"
@@ -1118,11 +1120,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
           List.map
             (fun (fld, e) -> StructField.get_info fld, e)
             (StructField.Map.bindings fields)
-        | exception Runtime.Error (err, rpos) ->
-          Message.error
-            ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
-            "%a" Format.pp_print_text
-            (Runtime.error_message err)
+        (* | exception Runtime.Error (err, rpos) ->
+         *   Message.error
+         *     ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+         *     "%a" Format.pp_print_text
+         *     (Runtime.error_message err) *)
         | _ ->
           Message.error ~pos:(Expr.pos e) ~internal:true "%a"
             Format.pp_print_text
@@ -1162,12 +1164,13 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
             (fun (fld, e) -> StructField.get_info fld, e)
             (StructField.Map.bindings fields)
         | _ ->
-          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+          Message.error ~pos:(Expr.pos e) ~internal:true "%a"
+            Format.pp_print_text
             "The interpretation of a program should always yield a struct \
              corresponding to the scope variables"
       end
       | _ ->
-        Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+        Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
           "The interpreter can only interpret terms starting with functions \
            having thunked arguments")
 
@@ -1195,8 +1198,13 @@ let load_runtime_modules ~hashf prg =
       in
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
+        let root = File.common_prefix Global.options.bin_dir src in
+        let dir =
+          File.(
+            dirname @@ (Global.options.bin_dir / File.remove_prefix root src))
+        in
         Dynlink.adapt_filename
-          File.((dirname src / ModuleName.to_string mname) ^ ".cmo")
+          File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
       in
       (if not (Sys.file_exists obj_file) then
          Message.error

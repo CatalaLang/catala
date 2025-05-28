@@ -13,7 +13,7 @@ scope S:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -23,7 +23,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -O --closure-conversion
 type Eoption =
   | ENone of unit
@@ -69,7 +69,7 @@ scope S2Use:
        output of S2 with { -- cfun2: fun2 })
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -O --closure-conversion -s S2Use
 let scope S2Use
   (s2_use_in: #[test] S2Use_in)

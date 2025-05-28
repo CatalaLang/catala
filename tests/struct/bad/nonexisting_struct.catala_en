@@ -13,7 +13,7 @@ scope A:
   definition y equals x.Fo.f
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
 │

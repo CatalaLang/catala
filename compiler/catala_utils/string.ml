@@ -18,6 +18,23 @@ include Stdlib.String
 
 let to_ascii : string -> string = Ubase.from_utf8
 
+let utf8_seq s =
+  let n = length s in
+  let rec aux i () =
+    if i >= n then Seq.Nil
+    else
+      let decoded = get_utf_8_uchar s i in
+      Seq.Cons
+        ( Uchar.utf_decode_uchar decoded,
+          aux (i + Uchar.utf_decode_length decoded) )
+  in
+  aux 0
+
+let map_utf8 f s =
+  let buf = Buffer.create (length s) in
+  utf8_seq s |> Seq.map f |> Seq.iter (Buffer.add_utf_8_uchar buf);
+  Buffer.contents buf
+
 let to_id s =
   to_ascii s
   |> map (function
@@ -27,11 +44,8 @@ let to_id s =
 let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let begins_with_uppercase (s : string) : bool =
-  "" <> s
-  && is_uppercase_ascii
-       (get
-          (to_ascii (sub s 0 (Uchar.utf_decode_length (get_utf_8_uchar s 0))))
-          0)
+  (not (s = ""))
+  && get_utf_8_uchar s 0 |> Uchar.utf_decode_uchar |> Uucp.Case.is_upper
 
 let to_snake_case (s : string) : string =
   let out = Buffer.create (2 * length s) in

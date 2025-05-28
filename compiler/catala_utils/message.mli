@@ -95,6 +95,7 @@ val pad : int -> string -> Format.formatter -> unit
 
 val std_ppf : unit -> Format.formatter
 val err_ppf : unit -> Format.formatter
+val ignore_ppf : unit -> Format.formatter
 
 val formatter_of_out_channel : out_channel -> unit -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
@@ -120,7 +121,7 @@ val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
 val error : ?kind:lsp_error_kind -> ('a, 'exn) emitter
-val results : Content.message list -> unit
+val results : ?title:string -> Content.message list -> unit
 
 (** Multiple errors *)
 

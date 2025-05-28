@@ -108,6 +108,16 @@ let map f ty =
       | TClosureEnv -> TClosureEnv)
     ty
 
+let shallow_fold f t acc =
+  let lfold tl acc = List.fold_left (fun acc x -> f x acc) acc tl in
+  match Mark.remove t with
+  | TLit _ | TStruct _ | TEnum _ | TAny | TClosureEnv -> acc
+  | TTuple tl -> lfold tl acc
+  | TOption t -> f t acc
+  | TArrow (tl, t) -> lfold tl acc |> f t
+  | TArray t -> f t acc
+  | TDefault t -> f t acc
+
 let rec hash ~strip ty =
   let open Hash.Op in
   match Mark.remove ty with

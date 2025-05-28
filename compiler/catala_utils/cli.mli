@@ -47,6 +47,7 @@ module Flags : sig
   (** Parsers for all flags and options that commands can use *)
 
   val check_invariants : bool Term.t
+  val quiet : bool Term.t
   val autotest : bool Term.t
   val no_typing : bool Term.t
   val wrap_weaved_output : bool Term.t
@@ -76,6 +77,9 @@ module Flags : sig
   (** for the 'depends' command *)
 
   val prefix : string option Term.t
+  (** for the 'depends' command *)
+
+  val subdir : string option Term.t
   (** for the 'depends' command *)
 end
 

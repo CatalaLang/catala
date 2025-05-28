@@ -43,12 +43,16 @@ let map_scopes ~f prg =
   in
   { prg with code_items }
 
-let map_scopes_env ~f prg =
+let map_scopes_env
+    ~f
+    ?(last = fun _ _ -> Scope.map_exports Expr.rebox)
+    ~init
+    prg =
   let code_items =
-    let f env var = function
+    let f (acc, env) var = function
       | ScopeDef (name, body) ->
         let pos = Mark.get (ScopeName.get_info name) in
-        let body1 = f env name body in
+        let acc, body1 = f acc env name body in
         let env child =
           env
           @@ Expr.make_let_in (Mark.add pos var)
@@ -60,7 +64,7 @@ let map_scopes_env ~f prg =
                child pos
         in
         let def = Bindlib.box_apply (fun body -> ScopeDef (name, body)) body1 in
-        env, var, def
+        (acc, env), var, def
       | Topdef (name, ty, vis, expr) ->
         let pos = Mark.get (TopdefName.get_info name) in
         let env child =
@@ -72,12 +76,12 @@ let map_scopes_env ~f prg =
             (fun e -> Topdef (name, ty, vis, e))
             (Expr.Box.lift (Expr.rebox expr))
         in
-        env, var, def
+        (acc, env), var, def
     in
     BoundList.fold_map
-      ~init:(fun e -> e)
+      ~init:(init, fun e -> e)
       ~f
-      ~last:(fun _env last -> (), Scope.map_exports Expr.rebox last)
+      ~last:(fun (acc, env) elast -> (), last acc env elast)
       prg.code_items
     |> snd
     |> Bindlib.unbox
@@ -136,15 +140,7 @@ let get_scope_body { code_items; _ } scope =
 let get_mark_witness { code_items; _ } =
   BoundList.find code_items ~f:(function
     | Topdef (_, _, _, e) -> Some (Mark.get e)
-    | ScopeDef (_, body) -> (
-      let _, be = Bindlib.unbind body.scope_body_expr in
-      match be with
-      | Last e -> Some (Mark.get e)
-      | bl -> (
-        try
-          Some
-            (BoundList.find bl ~f:(fun sl -> Some (Mark.get sl.scope_let_expr)))
-        with Not_found -> None)))
+    | ScopeDef (_, body) -> Scope.get_mark_witness body)
 
 let untype : 'm. ('a, 'm) gexpr program -> ('a, untyped) gexpr program =
  fun prg -> map_exprs ~f:Expr.untype ~varf:Var.translate prg

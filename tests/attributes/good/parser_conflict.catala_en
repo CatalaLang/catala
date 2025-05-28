@@ -16,7 +16,7 @@ declaration enumeration F:
   -- Foo
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala scopelang
 ┌─[WARNING]─
 │

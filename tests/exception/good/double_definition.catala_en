@@ -12,7 +12,7 @@ scope Foo:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -38,7 +38,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Scopelang -s Foo
 ┌─[WARNING]─
 │
@@ -67,7 +67,7 @@ have decided to relax this behavior when translating to Dcalc because the
 consequences of the conflicting exceptions are the same. Hence the
 Dcalc translation below.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Dcalc -s Foo
 ┌─[WARNING]─
 │

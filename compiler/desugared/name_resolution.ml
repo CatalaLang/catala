@@ -788,6 +788,10 @@ let process_scope_decl
         | _ -> acc)
       decl.scope_decl_context []
   in
+  let visibility =
+    if Pos.has_attr (Mark.get (ScopeName.get_info scope_uid)) Test then Public
+    else visibility
+  in
   if output_fields = [] then
     (* we allow scopes without output variables, and still define their (empty)
        output struct for convenience *)
@@ -882,6 +886,7 @@ let process_name_item
     let scope_uid = ScopeName.fresh path (name, pos) in
     let in_struct_name = StructName.fresh path (name ^ "_in", pos) in
     let out_struct_name = StructName.fresh path (name, pos) in
+    let visibility = if Pos.has_attr pos Test then Public else visibility in
     let typedefs =
       Ident.Map.add name
         (TScope

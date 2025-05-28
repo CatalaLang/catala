@@ -16,14 +16,11 @@
 
 (** Formats a statement calculus program into a valid C89 program *)
 
+open Catala_utils
 open Shared_ast
 
 val renaming : Renaming.t
 
 val format_program :
-  ppf_src:Format.formatter ->
-  ppf_intf:Format.formatter ->
-  Ast.program ->
-  TypeIdent.t list ->
-  unit
+  File.t option -> Format.formatter -> Ast.program -> TypeIdent.t list -> unit
 (** Usage [format_program fmt p type_dependencies_ordering] *)

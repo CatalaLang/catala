@@ -44,7 +44,7 @@
  (link_deps
   ../compiler/catala.exe
   (alias ../runtimes/runtimes))
- ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- ckerk test`)
+ ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- clerk test`)
  (modules clerk)
  (package catala))
 

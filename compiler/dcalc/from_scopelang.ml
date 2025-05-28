@@ -908,6 +908,33 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         else acc)
       scopes_parameters decl_ctx.ctx_public_types
   in
+  let ctx_public_types =
+    let open TypeIdent.Set in
+    let rec transitive_closure f fullset curset =
+      if is_empty curset then fullset
+      else
+        let newset = fold (fun nv set -> union set (f nv)) curset empty in
+        let fullset = union fullset curset in
+        transitive_closure f fullset (diff newset fullset)
+    in
+    let rec typ_deps ty acc =
+      match Mark.remove ty with
+      | Shared_ast.TStruct sname ->
+        if StructName.path sname = [] then add (Struct sname) acc else acc
+      | Shared_ast.TEnum ename ->
+        if EnumName.path ename = [] then add (Enum ename) acc else acc
+      | _ -> Type.shallow_fold typ_deps ty acc
+    in
+    transitive_closure
+      (function
+        | Struct sname ->
+          let fields = StructName.Map.find sname ctx_structs in
+          StructField.Map.fold (fun _ -> typ_deps) fields empty
+        | Enum ename ->
+          let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
+          EnumConstructor.Map.fold (fun _ -> typ_deps) constrs empty)
+      empty ctx_public_types
+  in
   let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in
   let toplevel_vars =
     TopdefName.Map.filter_map

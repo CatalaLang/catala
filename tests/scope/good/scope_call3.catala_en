@@ -18,7 +18,7 @@ scope RentComputation:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret -t -s HousingComputation --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =
@@ -91,7 +91,7 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG] ←  HousingComputation.f
 [LOG] ≔  HousingComputation.result: 3
 [DEBUG] End of interpretation
-┌─[RESULT]─
+┌─[RESULT]─ HousingComputation ─
 │ f = λ (x: integer) →
 │   error_empty
 │     ⟨ ⟨true

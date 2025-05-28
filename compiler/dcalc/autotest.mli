@@ -18,21 +18,4 @@
     any undefined inputs. It runs the interpreter to compute their results, then
     inserts assertion in the code that ensure correctness of said results. *)
 
-open Catala_utils
-open Shared_ast
-
-val scope :
-  decl_ctx ->
-  Global.backend_lang ->
-  ((dcalc, 'm) gexpr boxed -> (dcalc, 'm) gexpr boxed) ->
-  ScopeName.t ->
-  (dcalc, 'm) gexpr scope_body ->
-  (dcalc, 'm) gexpr scope_body Bindlib.box
-(** If the given scope has any inputs, does nothing but reboxing. Otherwise,
-    this function runs the interpreter on the scope to determine its outputs,
-    then inserts assertions within the scope.
-
-    NOTE: scopes with context variables are *not* treated at the moment ;
-    functional values are ignored in the equality assertions *)
-
 val program : 'm Ast.program -> 'm Ast.program

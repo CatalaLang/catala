@@ -42,7 +42,7 @@ scope Test:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -52,15 +52,15 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Test
-┌─[RESULT]─
+┌─[RESULT]─ Test ─
 │ x = 2
 └─
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Scopelang
 
 type Foo = { x: integer; }
@@ -83,7 +83,7 @@ let scope Test (x: integer|internal|output) (f: Foo {x: integer}|internal) =
   let x : integer = error_empty ⟨ ⟨true ⊢ ⟨f.x⟩⟩ | false ⊢ ∅ ⟩
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Exceptions -s Foo -v x
 ┌─[RESULT]─
 │ Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".

@@ -16,7 +16,7 @@ scope TestXor:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -26,9 +26,9 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope TestXor
-┌─[RESULT]─
+┌─[RESULT]─ TestXor ─
 │ f_xor_f = false
 │ f_xor_t = true
 │ t_xor_f = true

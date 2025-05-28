@@ -131,12 +131,12 @@ let token_list_language_agnostic : (string * token) list =
   ]
 
 type line_token =
-  | LINE_TEST of string (* ```catala-test { id = xx } *)
-  | LINE_INLINE_TEST (* ```catala-test-inline *)
+  | LINE_INLINE_TEST (* ```catala-test-cli *)
   | LINE_BLOCK_END (* ``` *)
   | LINE_INCLUDE of string (* > Include foo.catala_en *)
   | LINE_MODULE_DEF of string * bool (* > Module Xxx [external] *)
   | LINE_MODULE_USE of string (* > Using Xxx [as Yyy] *)
+  | LINE_TEST_ATTRIBUTE (* any line containing a #[test] attribute *)
   | LINE_ANY (* anything else *)
 
 module type LocalisedLexer = sig
@@ -158,6 +158,9 @@ module type LocalisedLexer = sig
       {!val:lex_law} depending of the current
       {!val:Surface.Lexer_common.context}. *)
 
-  val lex_line : Sedlexing.lexbuf -> (string * line_token) option
+  val lex_line :
+    context:[ `Law | `Code | `Test | `Raw ] ref ->
+    Sedlexing.lexbuf ->
+    (string * line_token) option
   (** Low-level lexer intended for dependency extraction *)
 end

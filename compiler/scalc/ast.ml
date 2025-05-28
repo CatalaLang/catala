@@ -111,6 +111,8 @@ type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }
 type program = {
   ctx : ctx;
   code_items : code_item list;
-  tests : (ScopeName.t * block) list;
+  tests : code_item list * (ScopeName.t * block) list;
+      (** The first element may contain lifted closures. It can be assumed to be
+          empty when closure conversion is disabled. *)
   module_name : (ModuleName.t * module_intf_id) option;
 }

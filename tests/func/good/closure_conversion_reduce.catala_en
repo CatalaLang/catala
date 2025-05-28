@@ -13,7 +13,7 @@ scope S:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -30,7 +30,7 @@ functional operators that directly take closures as arguments. It's closer to
 lambda-calculus and a first step to make it work, clearly we'll turn that flag
 back on and translate to loops at some point.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -s S -O --closure-conversion
 let scope S (s_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = s_in.x_in in
@@ -53,7 +53,7 @@ the closures that are arguments to special operators are let-bound with an
 option. This let-binding is reduced by partial evaluation, which is why the test
 with optimizations on passes.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -s S --closure-conversion
 let scope S (s_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = s_in.x_in in

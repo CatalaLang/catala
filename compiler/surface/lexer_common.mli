@@ -61,13 +61,13 @@ val get_law_heading : Sedlexing.lexbuf -> Tokens.token
 
 (** Simplified tokens for dependency extraction *)
 type line_token =
-  | LINE_TEST of string (* ```catala-test { id = xx } *)
-  | LINE_INLINE_TEST (* ```catala-test-inline *)
-  | LINE_BLOCK_END (* ``` *)
-  | LINE_INCLUDE of string (* > Include foo.catala_en *)
-  | LINE_MODULE_DEF of string * bool (* > Module Xxx [external] *)
-  | LINE_MODULE_USE of string (* > Using Xxx [as Yyy] *)
-  | LINE_ANY (* anything else *)
+  | LINE_INLINE_TEST  (** ```catala-test-cli *)
+  | LINE_BLOCK_END  (** ``` *)
+  | LINE_INCLUDE of string  (** > Include foo.catala_en *)
+  | LINE_MODULE_DEF of string * bool  (** > Module Xxx [external] *)
+  | LINE_MODULE_USE of string  (** > Using Xxx [as Yyy] *)
+  | LINE_TEST_ATTRIBUTE  (** any line containing a #[test] attribute *)
+  | LINE_ANY  (** anything else *)
 
 module type LocalisedLexer = sig
   val token_list : (string * Tokens.token) list
@@ -87,8 +87,11 @@ module type LocalisedLexer = sig
   (** Entry point of the lexer, distributes to {!val:lex_code} or {!val:lex_law}
       depending of the current {!val:Surface.Lexer_common.context}. *)
 
-  val lex_line : Sedlexing.lexbuf -> (string * line_token) option
+  val lex_line :
+    context:[ `Law | `Code | `Test | `Raw ] ref ->
+    Sedlexing.lexbuf ->
+    (string * line_token) option
   (** Low-level lexer intended for dependency extraction. The whole line
       (including ["\n"] is always returned together with the token. [None] for
-      EOF. *)
+      EOF. The call updates the passed context reference as expected *)
 end

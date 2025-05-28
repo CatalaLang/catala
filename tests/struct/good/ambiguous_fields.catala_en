@@ -18,7 +18,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -37,7 +37,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[WARNING]─
 │
@@ -48,7 +48,7 @@ $ catala test-scope A
 │ 7 │ declaration structure Bar:
 │   │                       ‾‾‾
 └─ Article
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ y = 1
 └─
 ```

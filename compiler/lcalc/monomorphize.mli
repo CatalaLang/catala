@@ -19,11 +19,12 @@ open Ast
 
 val program : typed program -> typed program * TypeIdent.t list
 (** This function performs type monomorphization in a Catala program with two
-    main actions: {ul
-    {- transforms tuples into named structs.}
-    {- creates monomorphized instances of [TOption] for every occurence of the type.}
-    {- creates monomorphized instances of [TArray] for every occurence of the type;
-    each instance is a struct with a integer [length] field and a [content] field whose
-    type still is [TArray].}}
-    It also returns the new type ordering for the program.
-*)
+    main actions:
+    - transforms tuples into named structs.
+    - creates monomorphized instances of [TOption] for every occurence of the
+      type.
+    - creates monomorphized instances of [TArray] for every occurence of the
+      type; each instance is a struct with a integer [length] field and a
+      [content] field whose type still is [TArray].
+
+    It also returns the new type ordering for the program. *)

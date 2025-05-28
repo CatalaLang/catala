@@ -27,18 +27,22 @@ val hash : string -> Hash.t
 
 val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their
-    base letter in the Latin alphabet. *)
+    base letter in the Latin alphabet. Anything that is not convertible is
+    replaced by ["?"] *)
 
 val to_id : string -> string
 (** Like [to_ascii], but in addition replaces any non-alphanumeric character by
     [_] *)
 
+val utf8_seq : string -> Uchar.t Seq.t
+val map_utf8 : (Uchar.t -> Uchar.t) -> string -> string
+
 val is_uppercase_ascii : char -> bool
 (** [is_uppercase c] returns if [c] is in the set ['A'...'Z']. *)
 
 val begins_with_uppercase : string -> bool
-(** [begins_with_uppercase s] returns if the first letter of [s]
-    {!is_uppercase_ascii}. If [s] is empty returns false. *)
+(** [begins_with_uppercase s] returns if the first letter of [s] is uppercase.
+    Handles utf8. [false] if [s] is empty. *)
 
 val to_snake_case : string -> string
 (** Converts CamlCase into snake_case after removing Remove all diacritics on

@@ -35,18 +35,15 @@ let map fold_fun kh vh map =
 module Flags : sig
   type nonrec t = private t
 
-  val pass :
-    (t -> 'a) -> closure_conversion:bool -> monomorphize_types:bool -> 'a
-
+  val pass : (t -> 'a) -> monomorphize_types:bool -> 'a
   val of_t : int -> t
 end = struct
   type nonrec t = t
 
-  let pass k ~closure_conversion ~monomorphize_types =
+  let pass k ~monomorphize_types =
     (* Should not affect the call convention or actual interfaces: include,
        optimize, check_invariants, typed *)
-    !(closure_conversion : bool)
-    % !(monomorphize_types : bool)
+    !(monomorphize_types : bool)
     % (* The following may not affect the call convention, but we want it set in
          an homogeneous way *)
     !(Global.options.trace <> None : bool)

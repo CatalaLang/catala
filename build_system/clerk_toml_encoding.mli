@@ -111,8 +111,7 @@ val string_cases : (string * 'a) list -> 'a case list
 ...
     v}
 
-    N.b., the {v [project] v} table could be omitted
-*)
+    N.b., the [project] table could be omitted *)
 
 (** {b Warning}: describing different toplevel tables using the same name will
     raise an error at runtime when the descriptor gets evaluated. *)
