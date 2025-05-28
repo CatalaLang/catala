@@ -95,7 +95,7 @@ fun ctx value trace ->
       when t1 = t2 -> Var.Map.empty, v
     | _, TrVar x -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
-    | _, TrApp { trf = TrAbs {binder; pos; tys} as trf; trargs; tys=tys2; trv } -> 
+    | _, TrApp { trf = TrAbs { binder; pos; tys } as trf; trargs; tys=tys2; trv } -> 
       let local_ctx, e = unevaluate_aux v trv in
       let vars_arr, _ = Bindlib.unmbind binder in
       let vars = Array.to_list vars_arr in
@@ -104,10 +104,13 @@ fun ctx value trace ->
       let binder2 = Bindlib.unbox (Bindlib.bind_mvar vars_arr (Bindlib.box e)) in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
       (List.fold_left join_ctx lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
-    | _, TrAppOp { op; trargs; tys; vargs } -> assert false
+    | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
       (* Could certainely reduce the expression again by watching all the operators more closely *) 
       (* For instance lenght function does not need to know the content of an array *)
       (* Or multiplication by 0 could make the other integer a hole *)
+      let lctxs, args = List.split (List.map2 unevaluate_aux vargs trargs) in 
+      let local_ctx = List.fold_left join_ctx Var.Map.empty lctxs in 
+      local_ctx, Mark.add m (EAppOp { op; args; tys })
     | _, TrStructAccess { name; tr; field } -> 
       let fields_typ = get_fields ctx name in 
       let fields = StructField.Map.mapi (fun f ty -> if f = field then v else (Mark.add m (EHole ty))) fields_typ in
@@ -183,7 +186,9 @@ fun ctx value trace ->
     | _, TrDefault { trexcepts; vexcepts; trjust; trcons } -> (
       match trjust, trcons with
       | (TrExpr _ |TrHole _), _ -> (* The result is obtained from one of the exceptions *)
-        assert false
+        let lctxs,excepts = List.split(List.map2 unevaluate_aux vexcepts trexcepts) in
+        let local_ctx = List.fold_left join_ctx Var.Map.empty lctxs in 
+        local_ctx, Mark.add m (EDefault { excepts; just = Mark.add m (EHole tany); cons = Mark.add m (EHole tany)})
       | _, (TrExpr _ |TrHole _) -> (* The result is obtained from the false justification *)
         let eempty = List.init (List.length trexcepts) (fun _ -> Mark.add m EEmpty) in
         let lctxe, excepts = List.split (List.map2 unevaluate_aux eempty trexcepts) in 
@@ -206,7 +211,14 @@ fun ctx value trace ->
       | NoValue, TrErrorOnEmpty tr -> 
         let local_ctx, e = unevaluate_aux (Mark.add m EEmpty) tr in 
         local_ctx, Mark.add m (EErrorOnEmpty e)
-      | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> assert false
+      | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> 
+        let lctxs,excepts = List.split(List.map2
+          (fun v tr -> if Mark.remove v == EEmpty then Var.Map.empty, Mark.add m (EHole tany) else unevaluate_aux v tr)
+          vexcepts
+          trexcepts
+        ) in
+        let local_ctx = List.fold_left join_ctx Var.Map.empty lctxs in 
+        local_ctx, Mark.add m (EDefault { excepts; just = Mark.add m (EHole tany); cons = Mark.add m (EHole tany)})
       | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
     )
     | _ -> Message.error "The trace does not match the value"
