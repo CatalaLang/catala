@@ -132,9 +132,9 @@ fun ctx lang e ->
             else ())
           e1)
     | EAppOp { op; args; tys } ->
-      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
-      let v = evaluate_operator (evaluate_expr ctx lang) op m lang args in
-      v, TrAppOp { op; trargs; tys; trv = TrExpr v }
+      let vargs, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
+      let v = evaluate_operator (evaluate_expr ctx lang) op m lang vargs in
+      v, TrAppOp { op; trargs; tys; vargs }
     | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
     | ELit l -> e, TrLit l
     | EPos _ -> assert false
@@ -265,23 +265,23 @@ fun ctx lang e ->
       | e -> e, TrErrorOnEmpty tr
       )
     | EDefault { excepts; just; cons } -> (
-      let excepts, trexcepts = List.split (List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) excepts) in
-      let empty_count = List.length (List.filter is_empty_error excepts) in
-      match List.length excepts - empty_count with
+      let vexcepts, trexcepts = List.split (List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) excepts) in
+      let empty_count = List.length (List.filter is_empty_error vexcepts) in
+      match List.length vexcepts - empty_count with
       | 0 -> (
         let just, trjust = evaluate_expr_with_trace_aux ctx local_ctx lang just in
         match Mark.remove just with
         | ELit (LBool true) -> 
             let v, trcons = evaluate_expr_with_trace_aux ctx local_ctx lang cons in
-            v, TrDefault { trexcepts; trjust; trcons }
+            v, TrDefault { trexcepts; vexcepts; trjust; trcons }
         | ELit (LBool false) -> 
-            (Mark.copy e EEmpty), TrDefault { trexcepts; trjust; trcons = TrExpr cons }
+            (Mark.copy e EEmpty), TrDefault { trexcepts; vexcepts; trjust; trcons = TrExpr cons }
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "Default justification has not been reduced to a boolean at \
             evaluation (should not happen if the term was well-typed")
-      | 1 -> (List.find (fun sub -> not (is_empty_error sub)) excepts), 
-              TrDefault { trexcepts; trjust = TrExpr just; trcons = TrExpr cons }
+      | 1 -> (List.find (fun sub -> not (is_empty_error sub)) vexcepts), 
+              TrDefault { trexcepts; vexcepts; trjust = TrExpr just; trcons = TrExpr cons }
       | _ ->
         (*let poslist =
           List.filter_map
@@ -291,7 +291,7 @@ fun ctx lang e ->
             excepts
         in
         raise Runtime.(Error (Conflict, poslist))*)
-        raise_fatal_error Conflict m (TrDefault { trexcepts; trjust = TrExpr just; trcons = TrExpr cons })
+        raise_fatal_error Conflict m (TrDefault { trexcepts; vexcepts; trjust = TrExpr just; trcons = TrExpr cons })
       )
     | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
     | _ -> .
