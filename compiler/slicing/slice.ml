@@ -3,7 +3,7 @@ open Shared_ast
 
 (*let slice_trace (trace_with_holes : ('a, 'm) Trace_ast.t) : 'a program = assert false*)
 
-let get_fields _ = assert false
+let get_fields (ctx:decl_ctx) name = StructName.Map.find name ctx.ctx_structs
 
 let rec join_expr : 
   type d t. 
@@ -28,10 +28,7 @@ fun e1 e2 ->
       (Array.to_list vars2)
     then
       let e = join_expr e1 e2 in 
-      let binder = 
-        Bindlib.bind_mvar vars1 (Bindlib.box e) 
-        |> Bindlib.unbox 
-      in
+      let binder = Bindlib.unbox (Bindlib.bind_mvar vars1 (Bindlib.box e)) in
       Mark.add m (EAbs { binder; pos; tys })
     else
       Message.error "The two functions cannot be joined because the arguments are not the same"
@@ -68,21 +65,22 @@ fun e1 e2 ->
   | EPureDefault e1, EPureDefault e2 -> Mark.add m (EPureDefault (join_expr e1 e2))
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> Mark.add m (EErrorOnEmpty (join_expr e1 e2))
   | _ -> Message.error "The two expressions cannot be joined"
+
+let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2))) ctx1 ctx2  
+
 let tany = (TAny, Pos.void)
 
 let unevaluate :
-  type d t.
+  type t.
   decl_ctx ->
-  Global.backend_lang ->
-  (d dcalc_slicing, t) gexpr ->
-  (d dcalc_slicing, t) Trace_ast.t ->
-  (d dcalc_slicing, t) gexpr =
-fun ctx lang value trace -> 
+  (slicing_features, t) gexpr ->
+  (slicing_features, t) Trace_ast.t ->
+  (slicing_features, t) gexpr =
+fun ctx value trace -> 
   let rec unevaluate_aux :
-    type d t.
-    (d dcalc_slicing, t) gexpr ->
-    (d dcalc_slicing, t) Trace_ast.t ->
-    ((d dcalc_slicing, t) gexpr, (d dcalc_slicing, t) gexpr) Var.Map.t * (d dcalc_slicing, t) gexpr =
+    (slicing_features, t) gexpr ->
+    (slicing_features, t) Trace_ast.t ->
+    ((slicing_features, t) gexpr, (slicing_features, t) gexpr) Var.Map.t * (slicing_features, t) gexpr =
   fun v trace ->
     let m = Mark.get v in
     match Mark.remove v, trace with
@@ -93,10 +91,8 @@ fun ctx lang value trace ->
     (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
       when o1 == o2 && ta1 == ta2 && tr1 == tr2 -> v*)
-    (*| EAbs { binder = b1; pos = p1; tys = t1 }, 
-      TrAbs { binder = b2; pos = p2; tys = t2 }
-      when b1 = b2 && p1 = p2 && t1 = t2 -> Var.Map.empty, v*)
-    | EAbs _, TrAbs _-> Var.Map.empty, v
+    | EAbs { binder = _; pos = _; tys = t1 }, TrAbs { binder = _; pos = _; tys = t2 }
+      when t1 = t2 -> Var.Map.empty, v
     | _, TrVar x -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf = TrAbs {binder; pos; tys} as trf; trargs; tys=tys2; trv } -> 
@@ -105,30 +101,110 @@ fun ctx lang value trace ->
       let vars = Array.to_list vars_arr in
       let values = List.map (fun v -> Var.Map.find v local_ctx) vars in
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
-      let binder2 = 
-         Bindlib.bind_mvar vars_arr (Bindlib.box e) 
-        |> Bindlib.unbox
-      in
+      let binder2 = Bindlib.unbox (Bindlib.bind_mvar vars_arr (Bindlib.box e)) in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
-      (List.fold_left (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2)) )lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
+      (List.fold_left join_ctx lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; trv } -> assert false
-    | _, TrStructAccess { name; tr; field } -> assert false
-    | EStruct { name = n1; fields = f1 }, TrStruct { name = n2; fields = f2 } 
-      when n1 = n2 -> assert false
-    | ETuple v, TrTuple tr when List.length v = List.length tr -> assert false
+    | _, TrStructAccess { name; tr; field } -> 
+      let fields_typ = get_fields ctx name in 
+      let fields = StructField.Map.mapi (fun f ty -> if f = field then v else (Mark.add m (EHole ty))) fields_typ in
+      let estruct = Mark.add m (EStruct { name; fields }) in
+      let local_ctx, e = unevaluate_aux estruct tr in
+      local_ctx, Mark.add m (EStructAccess { name; e; field })
+    | EStruct { name = n1; fields = efields }, TrStruct { name = n2; fields = trfields } 
+      when n1 = n2 ->
+        let fields_with_ctx = StructField.Map.mapi (fun f e -> unevaluate_aux e (StructField.Map.find f trfields)) efields in
+        let local_ctx = StructField.Map.fold (fun _ (ctx,_) lctx -> join_ctx lctx ctx) fields_with_ctx Var.Map.empty in
+        let fields = StructField.Map.map snd fields_with_ctx in
+        local_ctx, Mark.add m (EStruct { name = n1; fields })
+    | ETuple v, TrTuple tr when List.length v = List.length tr -> 
+      let local_ctxs, es = List.split(List.map2 unevaluate_aux v tr) in 
+      let local_ctx = List.fold_left join_ctx Var.Map.empty local_ctxs in 
+      local_ctx, Mark.add m (ETuple es)
     | _, TrTupleAccess { tr; index; size } -> 
       let arr = List.init size (fun i -> if i = index then v else Mark.add m (EHole tany)) in
       let e = Mark.add m (ETuple arr) in 
       let local_ctx, e' = unevaluate_aux e tr in 
       local_ctx, Mark.add m (ETupleAccess { e = e'; index; size })
-    | EInj { name = n1; e; cons = c1 }, TrInj { name = n2; tr; cons = c2 } -> assert false
-    | _, TrMatch { name; tr; cases } -> assert false
-    | _, TrIfThenElse { trcond; trtrue; trfalse } -> assert false
-    | EArray v, TrArray tr -> assert false
-    | ELit LUnit, TrAssert tr -> assert false
-    | _, TrErrorOnEmpty tr -> assert false
-    | _, TrPureDefault tr -> assert false
-    | _, TrDefault { trexcepts; trjust; trcons } -> assert false
-    | EFatalError err1, TrFatalError { err = err2; tr } when err1 = err2 -> assert false
+    | EInj { name = n1; e = v; cons = c1 }, TrInj { name = n2; tr; cons = c2 } 
+      when n1 = n2 && c1 = c2 ->
+        let local_ctx, e = unevaluate_aux v tr in 
+        local_ctx, Mark.add m (EInj { name = n1; e; cons = c1})
+    | _, TrMatch { name; tr; cases } -> 
+      let interesting_cases = EnumConstructor.Map.filter 
+        (fun _ t -> match t with (Trace_ast.TrExpr _ |TrHole _) -> false | _ -> true ) cases in
+      (match EnumConstructor.Map.cardinal interesting_cases with
+      | 0 -> Message.error "No case found to unevaluate the value in the match sequence"
+      | 1 -> 
+        let cons, trc = EnumConstructor.Map.choose interesting_cases in 
+        let lctxc, ec' = unevaluate_aux v trc in 
+        (match Mark.remove ec' with
+        | EApp { f = ec; args = [v']; tys = _} -> 
+          let lctx, e = unevaluate_aux (Mark.add m (EInj { name; e = v'; cons })) tr in 
+          let cases_expr = EnumConstructor.Map.mapi 
+            (fun c _ -> if c = cons then ec else (Mark.add m (EHole tany))) 
+            cases  
+          in
+          (join_ctx lctx lctxc), (Mark.add m (EMatch { name; e; cases = cases_expr})) 
+        | _ -> Message.error "Should not happen if well typed"
+        )
+      | _ -> Message.error "Could not determine the case the value was computed from in the match sequence"
+      )
+    | _, TrIfThenElse { trcond; trtrue; trfalse } -> (
+      match trtrue, trfalse with 
+        | _, (TrExpr _ |TrHole _)-> (*take the true branch*)(
+          let lctxc, cond = unevaluate_aux (Mark.add m (ELit(LBool true))) trcond in
+          let lctxt, etrue = unevaluate_aux v trtrue in
+          (join_ctx lctxc lctxt), Mark.add m (EIfThenElse { cond; etrue; efalse = Mark.add m (EHole tany)})
+          )
+        | (TrExpr _ |TrHole _), _ -> (*take the false branch*)(
+          let lctxc, cond = unevaluate_aux (Mark.add m (ELit(LBool false))) trcond in
+          let lctxf, efalse = unevaluate_aux v trfalse in
+          (join_ctx lctxc lctxf), Mark.add m (EIfThenElse { cond; etrue = Mark.add m (EHole tany); efalse})
+          )
+        | _ -> Message.error "Could not identify whether the result of the condition was true or false" 
+      )
+    | EArray v, TrArray tr when List.length v = List.length tr ->
+      let local_ctxs, es = List.split(List.map2 unevaluate_aux v tr) in 
+      let local_ctx = List.fold_left join_ctx Var.Map.empty local_ctxs in 
+      local_ctx, Mark.add m (EArray es)
+    | ELit LUnit, TrAssert tr -> 
+      let local_ctx, e = unevaluate_aux (Mark.add m (ELit (LBool true))) tr in 
+      local_ctx, Mark.add m (EAssert e)
+    | v', TrErrorOnEmpty tr when v' <> EEmpty -> 
+      let local_ctx, e = unevaluate_aux v tr in 
+      local_ctx, Mark.add m (EErrorOnEmpty e)
+    | _, TrPureDefault tr ->
+      let local_ctx, e = unevaluate_aux v tr in 
+      local_ctx, Mark.add m (EPureDefault e)
+    | _, TrDefault { trexcepts; trjust; trcons } -> (
+      match trjust, trcons with
+      | (TrExpr _ |TrHole _), _ -> (* The result is obtained from one of the exceptions *)
+        assert false
+      | _, (TrExpr _ |TrHole _) -> (* The result is obtained from the false justification *)
+        let eempty = List.init (List.length trexcepts) (fun _ -> Mark.add m EEmpty) in
+        let lctxe, excepts = List.split (List.map2 unevaluate_aux eempty trexcepts) in 
+        let lctxj, just = unevaluate_aux (Mark.add m (ELit(LBool false))) trjust in
+        let local_ctx = List.fold_left join_ctx lctxj lctxe in
+        local_ctx, (Mark.add m (EDefault { excepts; just; cons = Mark.add m (EHole tany) }))
+      | _, _ -> (* The result is obtained from the consequence *)
+        let eempty = List.init (List.length trexcepts) (fun _ -> Mark.add m EEmpty) in
+        let lctxe, excepts = List.split (List.map2 unevaluate_aux eempty trexcepts) in 
+        let lctxj, just = unevaluate_aux (Mark.add m (ELit(LBool true))) trjust in
+        let lctxc, cons = unevaluate_aux v trcons in
+        let local_ctx = List.fold_left join_ctx lctxc (lctxj::lctxe) in
+        local_ctx, (Mark.add m (EDefault { excepts; just; cons }))
+    )
+    | EFatalError err1, TrFatalError { err = err2; tr } when err1 = err2 -> (
+      match err1, tr with
+      | AssertionFailed, TrAssert tr ->
+        let local_ctx, e = unevaluate_aux (Mark.add m (ELit(LBool false))) tr in
+        local_ctx, Mark.add m (EAssert e)
+      | NoValue, TrErrorOnEmpty tr -> 
+        let local_ctx, e = unevaluate_aux (Mark.add m EEmpty) tr in 
+        local_ctx, Mark.add m (EErrorOnEmpty e)
+      | Conflict, TrDefault { trexcepts;  trjust = _; trcons = _ } -> assert false
+      | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
+    )
     | _ -> Message.error "The trace does not match the value"
   in snd (unevaluate_aux value trace)
