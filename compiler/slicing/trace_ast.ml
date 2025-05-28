@@ -18,7 +18,7 @@ type ('a, 'm) t =
       op : 'a operator Mark.pos;
       trargs : ('a, 'm) t list;
       tys : typ list;
-      trv : ('a, 'm) t
+      vargs : ('a, 'm) gexpr list
     }
       -> ('a, 'm) t
   | TrArray : ('a, 'm) t list -> ('a, 'm) t
@@ -81,6 +81,7 @@ type ('a, 'm) t =
   (* Default terms *)
   | TrDefault : {
       trexcepts : ('a, 'm) t list;
+      vexcepts : ('a, 'm) gexpr list;
       trjust : ('a, 'm) t;
       trcons : ('a, 'm) t;
     }

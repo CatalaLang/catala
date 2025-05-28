@@ -124,11 +124,11 @@ fun ?(indent=0) trace ->
         (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
         (string_of_trace ~indent:(indent + 2) trv)
         spaces
-  | TrAppOp { op; trargs; tys = _; trv } ->
+  | TrAppOp { op; trargs; tys = _; vargs } ->
       Format.asprintf "%sTrAppOp(%s,\n%s,\n%s\n%s)" spaces
         (operator_to_string (Mark.remove op))
         (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
-        (string_of_trace ~indent:(indent + 2) trv)
+        (string_of_list (string_of_expr ~inline:true) vargs (indent + 2))
         spaces
   | TrArray arr ->
       Format.asprintf "%sTrArray(\n%s\n%s)" spaces
@@ -183,9 +183,10 @@ fun ?(indent=0) trace ->
       Format.asprintf "%sTrFatalError(%s,\n%s\n%s)" spaces (Runtime.error_to_string err)
         (string_of_trace ~indent:(indent + 2) tr)
         spaces
-  | TrDefault { trexcepts; trjust; trcons } ->
-      Format.asprintf "%sTrDefault(\n%s,\n%s,\n%s\n%s)" spaces
+  | TrDefault { trexcepts; vexcepts; trjust; trcons } ->
+      Format.asprintf "%sTrDefault(\n%s,\n%s,\n%s,\n%s\n%s)" spaces
         (string_of_list (string_of_trace ~indent:(indent + 4)) trexcepts (indent + 2))
+        (string_of_list (string_of_expr ~inline:true) vexcepts (indent + 2))
         (string_of_trace ~indent:(indent + 2) trjust)
         (string_of_trace ~indent:(indent + 2) trcons)
         spaces

@@ -104,7 +104,10 @@ fun ctx value trace ->
       let binder2 = Bindlib.unbox (Bindlib.bind_mvar vars_arr (Bindlib.box e)) in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
       (List.fold_left join_ctx lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
-    | _, TrAppOp { op; trargs; tys; trv } -> assert false
+    | _, TrAppOp { op; trargs; tys; vargs } -> assert false
+      (* Could certainely reduce the expression again by watching all the operators more closely *) 
+      (* For instance lenght function does not need to know the content of an array *)
+      (* Or multiplication by 0 could make the other integer a hole *)
     | _, TrStructAccess { name; tr; field } -> 
       let fields_typ = get_fields ctx name in 
       let fields = StructField.Map.mapi (fun f ty -> if f = field then v else (Mark.add m (EHole ty))) fields_typ in
@@ -177,7 +180,7 @@ fun ctx value trace ->
     | _, TrPureDefault tr ->
       let local_ctx, e = unevaluate_aux v tr in 
       local_ctx, Mark.add m (EPureDefault e)
-    | _, TrDefault { trexcepts; trjust; trcons } -> (
+    | _, TrDefault { trexcepts; vexcepts; trjust; trcons } -> (
       match trjust, trcons with
       | (TrExpr _ |TrHole _), _ -> (* The result is obtained from one of the exceptions *)
         assert false
@@ -203,7 +206,7 @@ fun ctx value trace ->
       | NoValue, TrErrorOnEmpty tr -> 
         let local_ctx, e = unevaluate_aux (Mark.add m EEmpty) tr in 
         local_ctx, Mark.add m (EErrorOnEmpty e)
-      | Conflict, TrDefault { trexcepts;  trjust = _; trcons = _ } -> assert false
+      | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> assert false
       | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
     )
     | _ -> Message.error "The trace does not match the value"
