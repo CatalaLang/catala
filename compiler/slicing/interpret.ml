@@ -364,10 +364,10 @@ let interpret
     Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in
-      let v, tr = evaluate_expr_safe p.decl_ctx p.lang (addcustom e) in
-      print_newline ();
+      let v, _ = evaluate_expr_safe p.decl_ctx p.lang (addcustom e) in
+      (*print_newline ();
       print_trace tr;
-      print_newline ();
+      print_newline ();*)
       match v with
       | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
         begin
@@ -386,6 +386,9 @@ let interpret
         print_newline ();
         print_trace tr2;
         print_newline ();
+        (*let e = Slice.unevaluate ctx v2 tr2 in 
+        print_expr e;
+        print_newline ();*)
         match Mark.remove v2 with
         | EStruct { fields; _ } ->
           List.map
