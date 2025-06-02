@@ -214,8 +214,8 @@ type ('d, 'c) interpr_kind =
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
 
-type 'd dcalc_slicing =
-  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no ; holes : yes >
+type ('d, 'c, 'h) slicing_interpr_kind =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c ; holes : 'h >
 
 type slicing_features =
   < monomorphic : yes
