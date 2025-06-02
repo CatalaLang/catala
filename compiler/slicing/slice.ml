@@ -21,11 +21,7 @@ fun e1 e2 ->
   | EAbs { binder = b1; pos; tys }, EAbs { binder = b2; pos=_; tys=_} ->
     let vars1, e1 = Bindlib.unmbind b1 in
     let vars2, e2 = Bindlib.unmbind b2 in
-    if List.fold_left2 
-      (fun b v1 v2 -> b && Bindlib.eq_vars v1 v2) 
-      true 
-      (Array.to_list vars1) 
-      (Array.to_list vars2)
+    if Array.for_all2 Bindlib.eq_vars vars1 vars2
     then
       let e = join_expr e1 e2 in 
       let binder = Bindlib.unbox (Bindlib.bind_mvar vars1 (Bindlib.box e)) in
@@ -69,6 +65,86 @@ fun e1 e2 ->
 let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2))) ctx1 ctx2  
 
 let tany = (TAny, Pos.void)
+
+let rec transform_op_type_for_slicing : type d. d operator Mark.pos -> slicing_features operator Mark.pos =
+fun _ -> assert false
+
+let transform_expr_type_for_slicing : type d t. (d, t) gexpr -> (slicing_features, t) gexpr =
+fun e -> 
+  let rec aux : ((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) gexpr -> (slicing_features, t) gexpr =
+  fun lctx e ->
+  let m = Mark.get e in
+  let e' = match Mark.remove e with
+    | ELit l -> ELit l
+    | EApp { f; args; tys } -> 
+      EApp { 
+        f = aux lctx f; 
+        args = List.map (aux lctx) args;
+        tys 
+      }
+    | EAppOp { op; args; tys } ->
+      EAppOp {
+        op = transform_op_type_for_slicing op;
+        args = List.map (aux lctx) args;
+        tys
+      }
+    | EArray arr -> EArray (List.map (aux lctx) arr)
+    | EVar x -> EVar (Var.Map.find x lctx)
+    | EAbs { binder; pos; tys } ->
+      (*
+        binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
+        pos : Pos.t list;
+        tys : typ list;
+      }
+        ->*) 
+      (* We need to mbind the new vars*)
+      let vars, e = Bindlib.unmbind binder in 
+      let new_vars = Array.map Var.make (Bindlib.names_of vars) in
+      let new_ctx = List.fold_left2 
+        (fun ctx v v' -> Var.Map.add v v' ctx) 
+        lctx 
+        (Array.to_list vars) 
+        (Array.to_list new_vars) 
+      in
+      let new_e = aux new_ctx e in
+      let new_binder = Bindlib.unbox (Bindlib.bind_mvar new_vars (Bindlib.box new_e)) in 
+      EAbs { binder = new_binder; pos; tys }
+    | EIfThenElse { cond; etrue; efalse } ->
+      EIfThenElse{
+        cond = aux lctx cond;
+        etrue = aux lctx etrue;
+        efalse = aux lctx efalse;
+      }
+    | EStruct { name; fields } -> EStruct { name; fields = StructField.Map.map (aux lctx) fields }
+    | EInj { name; e ; cons } -> EInj { name; e = aux lctx e; cons }
+    | EMatch { name; e; cases } ->
+      EMatch {
+        name;
+        e = aux lctx e;
+        cases = EnumConstructor.Map.map (aux lctx) cases;
+      }
+    | ETuple tpl -> ETuple (List.map (aux lctx) tpl)
+    | ETupleAccess { e; index; size } -> ETupleAccess { e = aux lctx e; index; size }
+    | EStructAccess { name; e; field } -> EStructAccess { name; e = aux lctx e; field }
+    | EExternal { name } -> EExternal { name }
+    | EAssert e -> EAssert (aux lctx e)
+    | EFatalError err -> EFatalError err
+    | EPos pos -> EPos pos
+    | EDefault { excepts; just; cons} ->
+      EDefault { 
+        excepts = List.map (aux lctx) excepts;
+        just = aux lctx just;
+        cons = aux lctx cons
+      }
+    | EPureDefault e -> EPureDefault (aux lctx e)
+    | EEmpty -> EEmpty
+    | EErrorOnEmpty e -> EErrorOnEmpty (aux lctx e)
+    | EHole typ -> EHole typ
+    | _ -> Message.error "Unable to correct type to slice this expression"
+  in
+  Mark.add m e'
+in aux Var.Map.empty e
+
 
 let unevaluate :
   type t.
