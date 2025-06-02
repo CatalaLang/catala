@@ -66,164 +66,17 @@ let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2)))
 
 let tany = (TAny, Pos.void)
 
-let rec change_op_type_for_slicing : type d. d operator Mark.pos -> slicing_features operator Mark.pos =
-fun _ -> assert false
-
-let change_expr_type_for_slicing : type d t. ?ctx:((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) gexpr -> (slicing_features, t) gexpr =
-fun ?(ctx=Var.Map.empty) e -> 
-  let rec aux : ((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) gexpr -> (slicing_features, t) gexpr =
-  fun lctx e ->
-  let m = Mark.get e in
-  let e' = match Mark.remove e with
-    | ELit l -> ELit l
-    | EApp { f; args; tys } -> 
-      EApp { 
-        f = aux lctx f; 
-        args = List.map (aux lctx) args;
-        tys 
-      }
-    | EAppOp { op; args; tys } ->
-      EAppOp {
-        op = change_op_type_for_slicing op;
-        args = List.map (aux lctx) args;
-        tys
-      }
-    | EArray arr -> EArray (List.map (aux lctx) arr)
-    | EVar x -> EVar (Var.Map.find x lctx)
-    | EAbs { binder; pos; tys } ->
-      (*
-        binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
-        pos : Pos.t list;
-        tys : typ list;
-      }
-        ->*) 
-      (* We need to mbind the new vars*)
-      let vars, e = Bindlib.unmbind binder in 
-      let new_vars = Array.map Var.make (Bindlib.names_of vars) in
-      let new_ctx = List.fold_left2 
-        (fun ctx v v' -> Var.Map.add v v' ctx) 
-        lctx 
-        (Array.to_list vars) 
-        (Array.to_list new_vars) 
-      in
-      let new_e = aux new_ctx e in
-      let new_binder = Bindlib.unbox (Bindlib.bind_mvar new_vars (Bindlib.box new_e)) in 
-      EAbs { binder = new_binder; pos; tys }
-    | EIfThenElse { cond; etrue; efalse } ->
-      EIfThenElse{
-        cond = aux lctx cond;
-        etrue = aux lctx etrue;
-        efalse = aux lctx efalse;
-      }
-    | EStruct { name; fields } -> EStruct { name; fields = StructField.Map.map (aux lctx) fields }
-    | EInj { name; e ; cons } -> EInj { name; e = aux lctx e; cons }
-    | EMatch { name; e; cases } ->
-      EMatch {
-        name;
-        e = aux lctx e;
-        cases = EnumConstructor.Map.map (aux lctx) cases;
-      }
-    | ETuple tpl -> ETuple (List.map (aux lctx) tpl)
-    | ETupleAccess { e; index; size } -> ETupleAccess { e = aux lctx e; index; size }
-    | EStructAccess { name; e; field } -> EStructAccess { name; e = aux lctx e; field }
-    | EExternal { name } -> EExternal { name }
-    | EAssert e -> EAssert (aux lctx e)
-    | EFatalError err -> EFatalError err
-    | EPos pos -> EPos pos
-    | EDefault { excepts; just; cons} ->
-      EDefault { 
-        excepts = List.map (aux lctx) excepts;
-        just = aux lctx just;
-        cons = aux lctx cons
-      }
-    | EPureDefault e -> EPureDefault (aux lctx e)
-    | EEmpty -> EEmpty
-    | EErrorOnEmpty e -> EErrorOnEmpty (aux lctx e)
-    | EHole typ -> EHole typ
-    | _ -> Message.error "Unable to correct type to slice this expression"
-  in
-  Mark.add m e'
-in aux ctx e
-
-let change_trace_type_for_slicing : type d t. (d, t) Trace_ast.t -> (slicing_features, t) Trace_ast.t =
-fun tr ->
-  let rec aux : ((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) Trace_ast.t -> (slicing_features, t) Trace_ast.t =
-  fun lctx tr -> match tr with
-    | TrLit l -> TrLit l
-    | TrApp { trf; trargs; tys; trv } -> 
-      TrApp { 
-        trf = aux lctx trf; 
-        trargs = List.map (aux lctx) trargs;
-        tys;
-        trv = aux lctx trv 
-      }
-    | TrAppOp { op; trargs; tys; vargs } ->
-      TrAppOp {
-        op = change_op_type_for_slicing op;
-        trargs = List.map (aux lctx) trargs;
-        tys;
-        vargs = List.map (change_expr_type_for_slicing ~ctx:lctx) vargs
-      }
-    | TrArray arr -> TrArray (List.map (aux lctx) arr)
-    | TrVar x -> TrVar (Var.Map.find x lctx)
-    | TrAbs { binder; pos; tys } ->
-      let vars, e = Bindlib.unmbind binder in 
-      let new_vars = Array.map Var.make (Bindlib.names_of vars) in
-      let new_ctx = List.fold_left2 
-        (fun ctx v v' -> Var.Map.add v v' ctx) 
-        lctx 
-        (Array.to_list vars) 
-        (Array.to_list new_vars) 
-      in
-      let new_e = change_expr_type_for_slicing ~ctx:new_ctx e in
-      let new_binder = Bindlib.unbox (Bindlib.bind_mvar new_vars (Bindlib.box new_e)) in 
-      TrAbs { binder = new_binder; pos; tys }
-    | TrIfThenElse { trcond; trtrue; trfalse } ->
-      TrIfThenElse{
-        trcond = aux lctx trcond;
-        trtrue = aux lctx trtrue;
-        trfalse = aux lctx trfalse;
-      }
-    | TrStruct { name; fields } -> TrStruct { name; fields = StructField.Map.map (aux lctx) fields }
-    | TrInj { name; tr; cons } -> TrInj { name; tr = aux lctx tr; cons }
-    | TrMatch { name; tr; cases } ->
-      TrMatch {
-        name;
-        tr = aux lctx tr;
-        cases = EnumConstructor.Map.map (aux lctx) cases;
-      }
-    | TrTuple tpl -> TrTuple (List.map (aux lctx) tpl)
-    | TrTupleAccess { tr; index; size } -> TrTupleAccess { tr = aux lctx tr; index; size }
-    | TrStructAccess { name; tr; field } -> TrStructAccess { name; tr = aux lctx tr; field }
-    | TrExternal { name } -> TrExternal { name }
-    | TrAssert e -> TrAssert (aux lctx e)
-    | TrFatalError { err; tr } -> TrFatalError { err; tr = aux lctx tr }
-    | TrDefault { trexcepts; trjust; trcons; vexcepts} ->
-      TrDefault { 
-        trexcepts = List.map (aux lctx) trexcepts;
-        trjust = aux lctx trjust;
-        trcons = aux lctx trcons;
-        vexcepts = List.map (change_expr_type_for_slicing ~ctx:lctx) vexcepts;
-      }
-    | TrPureDefault e -> TrPureDefault (aux lctx e)
-    | TrEmpty -> TrEmpty
-    | TrErrorOnEmpty e -> TrErrorOnEmpty (aux lctx e)
-    | TrHole typ -> TrHole typ
-    | _ -> Message.error "Unable to correct type to slice this trace"
-  in aux Var.Map.empty tr
-
-
 let unevaluate :
-  type t.
+  type c t.
   decl_ctx ->
-  (slicing_features, t) gexpr ->
-  (slicing_features, t) Trace_ast.t ->
-  (slicing_features, t) gexpr =
+  ((yes, c, yes) slicing_interpr_kind, t) gexpr ->
+  ((yes, c, yes) slicing_interpr_kind, t) Trace_ast.t ->
+  ((yes, c, yes) slicing_interpr_kind, t) gexpr =
 fun ctx value trace -> 
   let rec unevaluate_aux :
-    (slicing_features, t) gexpr ->
-    (slicing_features, t) Trace_ast.t ->
-    ((slicing_features, t) gexpr, (slicing_features, t) gexpr) Var.Map.t * (slicing_features, t) gexpr =
+    ((yes, c, yes) slicing_interpr_kind, t) gexpr ->
+    ((yes, c, yes) slicing_interpr_kind, t) Trace_ast.t ->
+    (((yes, c, yes) slicing_interpr_kind, t) gexpr, ((yes, c, yes) slicing_interpr_kind, t) gexpr) Var.Map.t * ((yes, c, yes) slicing_interpr_kind, t) gexpr =
   fun v trace ->
     let m = Mark.get v in
     match Mark.remove v, trace with

@@ -4,15 +4,64 @@ open Shared_ast.Interpreter
 open Trace_ast
 open Print_trace
 
-(*
-let convert_expr_to_expr_with_holes :
-type d t. ((d, yes) interpr_kind, t) gexpr -> ((d dcalc_slicing, yes) interpr_kind, t) gexpr =
-fun e -> 
-  let m = Mark.get e in 
-  match Mark.remove e with
-    | ELit l -> Mark.add m (ELit l)
-    | _ -> Mark.add m EEmpty
-*)
+(* Typing shenanigan to add custom terms to the AST type. *)
+let addholes e =
+  let rec f :
+      type d c h.
+      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
+      = function
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EAppOp { op; tys; args }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | (EHole _, _) as e -> Expr.map ~f e
+    | _ -> .
+  in
+  let open struct
+    external id :
+      (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr -> (('d, 'c, yes) slicing_interpr_kind, 't) gexpr
+      = "%identity"
+  end in
+  if false then Expr.unbox (f e)
+    (* We keep the implementation as a typing proof, but bypass the AST
+       traversal for performance. Note that it's not completely 1-1 since the
+       traversal would do a reboxing of all bound variables *)
+  else id e
+
+let delholes e =
+  let rec f :
+      type d c h.
+      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, no) slicing_interpr_kind, 't) gexpr boxed
+      = function
+    | EHole _, _ -> invalid_arg "Hole term remaining in evaluated term"
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  (* /!\ don't be tempted to use the same trick here, the function does one
+     thing: validate at runtime that the term does not contain [ECustom]
+     nodes. *)
+  Expr.unbox (f e)
 
 
 let evaluate_expr_with_trace :
@@ -20,16 +69,16 @@ let evaluate_expr_with_trace :
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, t) gexpr ->
-    ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
+    ((d, yes) interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
-  let exception FatalError of Runtime.error * t mark * ((d, yes) interpr_kind, t) Trace_ast.t in
+  let exception FatalError of Runtime.error * t mark * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t in
   let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
       (((d, yes) interpr_kind, t) gexpr, ((d, yes) interpr_kind, t) gexpr) Var.Map.t ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, t) gexpr ->
-      ((d, yes) interpr_kind, t) gexpr * ((d, yes) interpr_kind, t) Trace_ast.t =
+      ((d, yes) interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
   fun ctx local_ctx lang e ->
     (*let debug_print, e =
       Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
@@ -50,7 +99,7 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> v, TrVar x
+        | Some v -> v, TrVar (Var.translate x)
         | None -> 
           Message.error ~pos "%a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -122,7 +171,7 @@ fun ctx lang e ->
             obj targs args
         in
         let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in 
-        v, TrApp {trf; trargs; tys; trv = TrExpr v}
+        v, TrApp {trf; trargs; tys; trv = TrExpr (addholes v)}
       | _ ->
         Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
           "function has not been reduced to a lambda at evaluation (should not \
@@ -134,8 +183,12 @@ fun ctx lang e ->
     | EAppOp { op; args; tys } ->
       let vargs, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
       let v = evaluate_operator (evaluate_expr ctx lang) op m lang vargs in
-      v, TrAppOp { op; trargs; tys; vargs }
-    | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
+      v, TrAppOp { op = Operator.translate op; trargs; tys; vargs = List.map addholes vargs }
+    | EAbs _ -> (
+      match Mark.remove(addholes e) with
+      | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
+      | _ -> assert false
+    )
     | ELit l -> e, TrLit l
     | EPos _ -> assert false
     | ECustom { obj; targs; tret } -> e, TrCustom { obj; targs; tret }
@@ -221,8 +274,7 @@ fun ctx lang e ->
         in
         let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
         let v, tv = evaluate_expr_with_trace_aux ctx local_ctx lang new_e in 
-        let trexpr c = TrExpr c in
-        let trcases = EnumConstructor.Map.map trexpr cases in
+        let trcases = EnumConstructor.Map.map (fun c -> TrExpr (addholes c)) cases in
         v, TrMatch {tr; name; cases = EnumConstructor.Map.update cons (fun _ -> Some tv) trcases}
       | _ ->
         Message.error ~pos:(Expr.pos e)
@@ -233,10 +285,10 @@ fun ctx lang e ->
       match Mark.remove cond with
       | ELit (LBool true) -> 
         let v, trtrue = evaluate_expr_with_trace_aux ctx local_ctx lang etrue in 
-        v, TrIfThenElse { trcond; trtrue; trfalse = TrExpr efalse }
+        v, TrIfThenElse { trcond; trtrue; trfalse = TrExpr (addholes efalse) }
       | ELit (LBool false) -> 
         let v, trfalse = evaluate_expr_with_trace_aux ctx local_ctx lang efalse in 
-        v, TrIfThenElse { trcond; trtrue = TrExpr etrue; trfalse }
+        v, TrIfThenElse { trcond; trtrue = TrExpr (addholes etrue); trfalse }
       | _ ->
         Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this condition (should \
@@ -273,15 +325,15 @@ fun ctx lang e ->
         match Mark.remove just with
         | ELit (LBool true) -> 
             let v, trcons = evaluate_expr_with_trace_aux ctx local_ctx lang cons in
-            v, TrDefault { trexcepts; vexcepts; trjust; trcons }
+            v, TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust; trcons }
         | ELit (LBool false) -> 
-            (Mark.copy e EEmpty), TrDefault { trexcepts; vexcepts; trjust; trcons = TrExpr cons }
+            (Mark.copy e EEmpty), TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust; trcons = TrExpr (addholes cons) }
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "Default justification has not been reduced to a boolean at \
             evaluation (should not happen if the term was well-typed")
       | 1 -> (List.find (fun sub -> not (is_empty_error sub)) vexcepts), 
-              TrDefault { trexcepts; vexcepts; trjust = TrExpr just; trcons = TrExpr cons }
+              TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust = TrExpr (addholes just); trcons = TrExpr (addholes cons) }
       | _ ->
         (*let poslist =
           List.filter_map
@@ -291,7 +343,7 @@ fun ctx lang e ->
             excepts
         in
         raise Runtime.(Error (Conflict, poslist))*)
-        raise_fatal_error Conflict m (TrDefault { trexcepts; vexcepts; trjust = TrExpr just; trcons = TrExpr cons })
+        raise_fatal_error Conflict m (TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust = TrExpr (addholes just); trcons = TrExpr (addholes cons) })
       )
     | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
     | _ -> .
@@ -349,7 +401,7 @@ let evaluate_expr_safe :
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr * ((d, yes) interpr_kind, 't) Trace_ast.t =
+    ((d, yes) interpr_kind, 't) gexpr * ((d, yes, yes) slicing_interpr_kind, 't) Trace_ast.t =
  fun ctx lang e ->
   try evaluate_expr_with_trace ctx lang e
   with Runtime.Error (err, rpos) ->
@@ -386,9 +438,16 @@ let interpret
         print_newline ();
         print_trace tr2;
         print_newline ();
-        (*let e = Slice.unevaluate ctx v2 tr2 in 
+        print_string "Result :";
+        print_newline();
+        let v2 = addholes v2 in print_expr v2;
+        print_newline();
+        print_string "Slicing program...";
+        print_newline();
+        let e = Slice.unevaluate ctx v2 tr2 in 
+        print_string "Done.\n";
         print_expr e;
-        print_newline ();*)
+        print_newline ();
         match Mark.remove v2 with
         | EStruct { fields; _ } ->
           List.map
