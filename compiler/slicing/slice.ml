@@ -66,11 +66,11 @@ let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2)))
 
 let tany = (TAny, Pos.void)
 
-let rec transform_op_type_for_slicing : type d. d operator Mark.pos -> slicing_features operator Mark.pos =
+let rec change_op_type_for_slicing : type d. d operator Mark.pos -> slicing_features operator Mark.pos =
 fun _ -> assert false
 
-let transform_expr_type_for_slicing : type d t. (d, t) gexpr -> (slicing_features, t) gexpr =
-fun e -> 
+let change_expr_type_for_slicing : type d t. ?ctx:((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) gexpr -> (slicing_features, t) gexpr =
+fun ?(ctx=Var.Map.empty) e -> 
   let rec aux : ((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) gexpr -> (slicing_features, t) gexpr =
   fun lctx e ->
   let m = Mark.get e in
@@ -84,7 +84,7 @@ fun e ->
       }
     | EAppOp { op; args; tys } ->
       EAppOp {
-        op = transform_op_type_for_slicing op;
+        op = change_op_type_for_slicing op;
         args = List.map (aux lctx) args;
         tys
       }
@@ -143,7 +143,74 @@ fun e ->
     | _ -> Message.error "Unable to correct type to slice this expression"
   in
   Mark.add m e'
-in aux Var.Map.empty e
+in aux ctx e
+
+let change_trace_type_for_slicing : type d t. (d, t) Trace_ast.t -> (slicing_features, t) Trace_ast.t =
+fun tr ->
+  let rec aux : ((d, t) gexpr, (slicing_features, t) gexpr Var.t) Var.Map.t -> (d, t) Trace_ast.t -> (slicing_features, t) Trace_ast.t =
+  fun lctx tr -> match tr with
+    | TrLit l -> TrLit l
+    | TrApp { trf; trargs; tys; trv } -> 
+      TrApp { 
+        trf = aux lctx trf; 
+        trargs = List.map (aux lctx) trargs;
+        tys;
+        trv = aux lctx trv 
+      }
+    | TrAppOp { op; trargs; tys; vargs } ->
+      TrAppOp {
+        op = change_op_type_for_slicing op;
+        trargs = List.map (aux lctx) trargs;
+        tys;
+        vargs = List.map (change_expr_type_for_slicing ~ctx:lctx) vargs
+      }
+    | TrArray arr -> TrArray (List.map (aux lctx) arr)
+    | TrVar x -> TrVar (Var.Map.find x lctx)
+    | TrAbs { binder; pos; tys } ->
+      let vars, e = Bindlib.unmbind binder in 
+      let new_vars = Array.map Var.make (Bindlib.names_of vars) in
+      let new_ctx = List.fold_left2 
+        (fun ctx v v' -> Var.Map.add v v' ctx) 
+        lctx 
+        (Array.to_list vars) 
+        (Array.to_list new_vars) 
+      in
+      let new_e = change_expr_type_for_slicing ~ctx:new_ctx e in
+      let new_binder = Bindlib.unbox (Bindlib.bind_mvar new_vars (Bindlib.box new_e)) in 
+      TrAbs { binder = new_binder; pos; tys }
+    | TrIfThenElse { trcond; trtrue; trfalse } ->
+      TrIfThenElse{
+        trcond = aux lctx trcond;
+        trtrue = aux lctx trtrue;
+        trfalse = aux lctx trfalse;
+      }
+    | TrStruct { name; fields } -> TrStruct { name; fields = StructField.Map.map (aux lctx) fields }
+    | TrInj { name; tr; cons } -> TrInj { name; tr = aux lctx tr; cons }
+    | TrMatch { name; tr; cases } ->
+      TrMatch {
+        name;
+        tr = aux lctx tr;
+        cases = EnumConstructor.Map.map (aux lctx) cases;
+      }
+    | TrTuple tpl -> TrTuple (List.map (aux lctx) tpl)
+    | TrTupleAccess { tr; index; size } -> TrTupleAccess { tr = aux lctx tr; index; size }
+    | TrStructAccess { name; tr; field } -> TrStructAccess { name; tr = aux lctx tr; field }
+    | TrExternal { name } -> TrExternal { name }
+    | TrAssert e -> TrAssert (aux lctx e)
+    | TrFatalError { err; tr } -> TrFatalError { err; tr = aux lctx tr }
+    | TrDefault { trexcepts; trjust; trcons; vexcepts} ->
+      TrDefault { 
+        trexcepts = List.map (aux lctx) trexcepts;
+        trjust = aux lctx trjust;
+        trcons = aux lctx trcons;
+        vexcepts = List.map (change_expr_type_for_slicing ~ctx:lctx) vexcepts;
+      }
+    | TrPureDefault e -> TrPureDefault (aux lctx e)
+    | TrEmpty -> TrEmpty
+    | TrErrorOnEmpty e -> TrErrorOnEmpty (aux lctx e)
+    | TrHole typ -> TrHole typ
+    | _ -> Message.error "Unable to correct type to slice this trace"
+  in aux Var.Map.empty tr
 
 
 let unevaluate :
