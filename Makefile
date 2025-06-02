@@ -223,6 +223,8 @@ backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
 	@$(BACKEND_ENV) $(CLERK_BIN) test tests --exe $(CATALA_BIN) --backend $* -c--disable-warnings
 
+backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
+
 validate-py-runtime: dependencies-python
 	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
 
