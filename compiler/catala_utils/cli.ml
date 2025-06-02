@@ -166,12 +166,11 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translate programs. If set as a flag, \
-             outputs\n\
-            \             trace to stdout. If $(docv) is defined, outputs the \
-             trace to a file while interpreting.\n\
-            \             Defining a filename does not affect code generation. \
-             Cannot use .catala extension."
+             logging instructions in translated programs. If set as a flag, \
+             outputs trace to stdout. If $(docv) is defined, outputs the trace \
+             to a file while interpreting.\n\
+             Defining a filename does not affect code generation. Cannot use \
+             .catala extension."
 
     let trace_format =
       value

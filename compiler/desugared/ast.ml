@@ -305,7 +305,12 @@ module Hash = struct
   let modul ?(strip = []) m =
     Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
       (ScopeName.Map.filter
-         (fun _ s -> s.scope_visibility = Public)
+         (fun name s ->
+           Message.debug "<SCOPE> %a: %s" ScopeName.format name
+             (match s.scope_visibility with
+             | Public -> "PUBLIC"
+             | Private -> "private");
+           s.scope_visibility = Public)
          m.module_scopes)
     % Hash.map TopdefName.Map.fold (TopdefName.hash ~strip)
         (fun td -> Type.hash ~strip td.topdef_type)

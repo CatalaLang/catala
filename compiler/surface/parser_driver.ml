@@ -542,10 +542,14 @@ let load_interface ?default_module_name source_file =
             (fun acc -> function
               | Ast.ScopeUse _, _ -> acc
               | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-                e :: acc
+                ( e,
+                  if is_metadata then Shared_ast.Public else Shared_ast.Private
+                )
+                :: acc
               | Ast.Topdef def, m ->
                 if is_metadata then
-                  (Ast.Topdef { def with topdef_expr = None }, m) :: acc
+                  ((Ast.Topdef { def with topdef_expr = None }, m), Public)
+                  :: acc
                 else acc)
             acc code )
     in
