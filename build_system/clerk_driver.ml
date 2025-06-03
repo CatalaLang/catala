@@ -21,7 +21,7 @@ module Cli = Clerk_cli
 module Scan = Clerk_scan
 module Var = Clerk_rules.Var
 
-let ninja_exec = "ninja"
+let ninja_exec = try Sys.getenv "NINJA_BIN" with Not_found -> "ninja"
 
 let cleaned_up_env () =
   let passthrough_vars =

@@ -61,6 +61,7 @@ module Var = struct
   let python = make "PYTHON"
   let runtime_python_dir = make "RUNTIME_PYTHON"
   let javac = make "JAVAC"
+  let javac_flags = make "JAVAC_FLAGS"
   let jar = make "jar"
   let java = make "JAVA"
   let runtime_java_jar = make "RUNTIME_JAVA_JAR"
@@ -194,6 +195,7 @@ let base_bindings
          def Var.java (lazy ["java"]);
          def Var.javac (lazy ["javac"]);
          def Var.jar (lazy ["jar"]);
+         def Var.javac_flags (lazy ["-implicit:none"]);
          def Var.runtime_java_jar (lazy [Lazy.force Poll.java_runtime]);
        ]
      else [])
@@ -279,7 +281,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
                   !input; "-o"; !output]
         ~description:["<catala>"; "java"; "⇒"; !output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; !runtime_java_jar ^":" ^ !class_path; !input ]
+        ~command:[!javac; "-cp"; !runtime_java_jar ^":" ^ !class_path; !javac_flags; !input ]
         ~description:["<catala>"; "java"; "⇒"; !output];
     ] else []) @
   (if List.mem Tests enabled_backends then
@@ -511,7 +513,7 @@ let gen_build_statements
     in
     Nj.build "java-class"
       ~inputs:[target ~backend:"java" "java"]
-      ~implicit_in:(List.map (modfile ~backend:"java" ".java") modules)
+      ~implicit_in:(List.map (modfile ~backend:"java" ".class") modules)
       ~outputs:[target ~backend:"java" "class"]
       ~vars:[Var.class_path, [java_class_path]]
   in
@@ -555,7 +557,7 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~outputs:[m ^ "@java-module"]
-            ~inputs:[modfile ~backend:"java" ".java" m];
+            ~inputs:[modfile ~backend:"java" ".class" m];
         ]
       else []
     | _ -> []
