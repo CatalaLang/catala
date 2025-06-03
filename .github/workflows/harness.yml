@@ -151,7 +151,7 @@ jobs:
       - name: Build examples
         run: |
           cd ~/catala-examples
-          opam --cli=2.1 exec -- make all testsuite install
+          . ~/catala/_python_venv/bin/activate && opam --cli=2.1 exec -- make all testsuite install
       - name: Generate examples test report
         if: ${{ always() }}
         run: |
