@@ -2,15 +2,13 @@ open Catala_utils
 open Shared_ast
 
 type ('a, 'm) t =
-  (* Constructors common to all ASTs *)
   | TrExpr : ('a, 'm) gexpr -> ('a, 'm) t
   | TrLit : lit -> ('a, 'm) t
   | TrApp : {
       trf : ('a, 'm) t;
       trargs : ('a, 'm) t list;
-          (** length may be 1 even if arity > 1 in desugared. scopelang performs
-              detuplification, so length = arity afterwards *)
-      tys : typ list;  (** Set to [[]] before disambiguation *)
+      tys : typ list;
+      vars : ('a, 'm) gexpr Var.t array;
       trv : ('a, 'm) t
     }
       -> ('a, 'm) t
@@ -87,7 +85,6 @@ type ('a, 'm) t =
     }
       -> ('a, 'm) t
   | TrPureDefault : ('a, 'm) t -> ('a, 'm) t
-  (** "return" of a pure term, so that it can be typed as [default] *)
   | TrEmpty : ('a, 'm) t
   | TrErrorOnEmpty : ('a, 'm) t -> ('a, 'm) t
   (* Only used during evaluation *)
