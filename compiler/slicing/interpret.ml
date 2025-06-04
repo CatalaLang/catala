@@ -146,7 +146,7 @@ fun ctx lang e ->
           let vars, body = Bindlib.unmbind binder in
           let local_ctx = List.fold_left2 (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) local_ctx (Array.to_list vars) args in
           let v, trv = evaluate_expr_with_trace_aux ctx local_ctx lang body in 
-            (v, TrApp {trf; trargs; tys; trv})
+            (v, TrApp {trf; trargs; tys; vars = Array.map Var.translate vars; trv})
         else
           Message.error ~pos "wrong function call, expected %d arguments, got %d"
             (Bindlib.mbinder_arity binder)
@@ -171,7 +171,7 @@ fun ctx lang e ->
             obj targs args
         in
         let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in 
-        v, TrApp {trf; trargs; tys; trv = TrExpr (addholes v)}
+        v, TrApp {trf; trargs; tys; vars = [||]; trv = TrExpr (addholes v)}
       | _ ->
         Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
           "function has not been reduced to a lambda at evaluation (should not \
@@ -352,50 +352,6 @@ fun ctx lang e ->
   with 
     | FatalError (err, m, tr) -> (Mark.add m (EFatalError err)), tr
 
-(*
-let evaluate_expr_trace :
-    type d.
-    decl_ctx ->
-    Global.backend_lang ->
-    ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
-  Runtime.reset_log ();
-  evaluate_expr_with_trace ctx lang e
-  (*
-  Fun.protect
-    (fun () -> evaluate_expr_with_trace ctx lang e)
-    ~finally:(fun () ->
-      match Global.options.trace with
-      | None -> ()
-      | Some (lazy ppf) ->
-        let trace = Runtime.retrieve_log () in
-        if trace = [] then
-          (* FIXME: we call evaluate twice: once to generate the scope function
-             and once for the actual call scope call. A proper fix would be to
-             disable the trace for the the first pass. *)
-          ()
-        else
-          let output_trace fmt =
-            match Global.options.trace_format with
-            | Human ->
-              Format.pp_open_vbox ppf 0;
-              ignore @@ List.fold_left (print_log ppf lang) 0 trace;
-              Format.pp_close_box ppf ()
-            | JSON ->
-              Format.fprintf fmt "@[<v 2>[@,";
-              Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
-                Format.pp_print_string fmt
-                (List.map Runtime.Json.raw_event trace);
-              Format.fprintf fmt "]@]@."
-          in
-          Fun.protect
-            (fun () -> output_trace ppf)
-            ~finally:(fun () -> Format.pp_print_flush ppf ()))
-  *)
-*)
-
 let evaluate_expr_safe :
     type d.
     decl_ctx ->
@@ -434,7 +390,8 @@ let interpret
             [TStruct s_in, Expr.pos e]
             (Expr.pos e)
         in
-        let v2, tr2 = evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret) in
+        let e_input = (Expr.unbox to_interpret) in
+        let v2, tr2 = evaluate_expr_safe ctx p.lang e_input in
         print_newline ();
         print_trace tr2;
         print_newline ();
@@ -442,11 +399,17 @@ let interpret
         print_newline();
         let v2 = addholes v2 in print_expr v2;
         print_newline();
-        print_string "Slicing program...";
+        (*print_string "Slicing program...";*)
         print_newline();
-        let e = Slice.unevaluate ctx v2 tr2 in 
-        print_string "Done.\n";
-        print_expr e;
+        let e_output = Slice.unevaluate ctx v2 tr2 in 
+        (*print_string "Done.\n";*)
+        print_string "Input program :\n";
+        print_newline();
+        print_expr ~inline:true e_input;
+        print_newline();
+        print_string "\nOutput program :\n";
+        print_newline(); 
+        print_expr ~inline:true e_output;
         print_newline ();
         match Mark.remove v2 with
         | EStruct { fields; _ } ->

@@ -15,7 +15,7 @@ fun e1 e2 ->
   match Mark.remove e1, Mark.remove e2 with
   | _, EHole _ -> e1
   | EHole _, _ -> e2
-  | ELit l1, ELit l2 when l1 == l2 -> e1
+  | ELit l1, ELit l2 when l1 = l2 -> e1
   | EEmpty, EEmpty -> e1
   | EFatalError err1, EFatalError err2 when err1 = err2 -> e1
   | EAbs { binder = b1; pos; tys }, EAbs { binder = b2; pos=_; tys=_} ->
@@ -66,6 +66,8 @@ let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2)))
 
 let tany = (TAny, Pos.void)
 
+let print_ctx ctx =  List.iter (fun cpl -> let x,e = cpl in (print_string (Bindlib.name_of x); print_string " : "; Print_trace.print_expr e; print_string ", ")) (Var.Map.bindings ctx); print_newline()
+
 let unevaluate :
   type c t.
   decl_ctx ->
@@ -82,22 +84,32 @@ fun ctx value trace ->
     match Mark.remove v, trace with
     | EHole _, _ -> Var.Map.empty, v
     | _, TrExpr _ -> Message.error "This case should not happen, TrExpr cannot be unevaluated"
-    | ELit l1, TrLit l2 when l1 == l2 -> Var.Map.empty, v
+    | ELit l1, TrLit l2 when l1 = l2 -> Var.Map.empty, v
     | EEmpty, TrEmpty -> Var.Map.empty, v
     (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
-      when o1 == o2 && ta1 == ta2 && tr1 == tr2 -> v*)
+      when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
     | EAbs { binder = _; pos = _; tys = t1 }, TrAbs { binder = _; pos = _; tys = t2 }
       when t1 = t2 -> Var.Map.empty, v
     | _, TrVar x -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
-    | _, TrApp { trf = TrAbs { binder; pos; tys } as trf; trargs; tys=tys2; trv } -> 
+    | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
-      let vars_arr, _ = Bindlib.unmbind binder in
-      let vars = Array.to_list vars_arr in
-      let values = List.map (fun v -> Var.Map.find v local_ctx) vars in
+      (*print_string "Local context : "; print_ctx local_ctx;*)
+      (*print_string "Trying to retreive variables from the local context..."; print_newline();*)
+      let values = List.map 
+        (fun v -> match Var.Map.find_opt v local_ctx with 
+          | Some value -> value 
+          (*if the variable is not in the context, then it was not used in the body hence we can assign it a hole*)
+          | None -> Mark.add m (EHole tany) 
+        ) 
+        (Array.to_list vars) 
+      in
+      (*print_string "Done."; print_newline();*)
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
-      let binder2 = Bindlib.unbox (Bindlib.bind_mvar vars_arr (Bindlib.box e)) in
+      let eboxed = Expr.Box.lift (Expr.rebox e) in
+      let boxed_binder = Bindlib.bind_mvar vars eboxed in
+      let binder2 = Bindlib.unbox boxed_binder in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
       (List.fold_left join_ctx lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
@@ -209,7 +221,7 @@ fun ctx value trace ->
         local_ctx, Mark.add m (EErrorOnEmpty e)
       | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> 
         let lctxs,excepts = List.split(List.map2
-          (fun v tr -> if Mark.remove v == EEmpty then Var.Map.empty, Mark.add m (EHole tany) else unevaluate_aux v tr)
+          (fun v tr -> if Mark.remove v = EEmpty then Var.Map.empty, Mark.add m (EHole tany) else unevaluate_aux v tr)
           vexcepts
           trexcepts
         ) in

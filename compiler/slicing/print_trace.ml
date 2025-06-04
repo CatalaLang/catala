@@ -27,82 +27,95 @@ fun ?(indent=0) ?(inline=false) expr ->
   match Mark.remove expr with
   | ELit l -> Format.asprintf "%s%s" spaces (UserFacing.lit_to_string En l)
   | EApp { f; args; tys = _ } ->
-      Format.asprintf "%sEApp(%s%s,%s%s)" spaces new_line
-        (string_of_expr ~indent:(indent + 2) ~inline f)
-        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
-        spaces
+      Format.asprintf "%sEApp(%s%s,%s%s%s%s)" 
+        spaces 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline f) 
+        new_line (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
+        new_line spaces
   | EAppOp { op; args; tys = _ } ->
-      Format.asprintf "%sEAppOp(%s,%s%s)" spaces (operator_to_string (Mark.remove op))
-        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
-        spaces
+      Format.asprintf "%sEAppOp(%s,%s%s%s%s)" 
+        spaces (operator_to_string (Mark.remove op))
+        new_line (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) args (indent + 2))
+        new_line spaces
   | EArray arr ->
-      Format.asprintf "%sEArray(%s%s%s)" spaces new_line
-        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) arr (indent + 2))
-        spaces
+      Format.asprintf "%sEArray(%s%s%s%s)" 
+        spaces 
+        new_line (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) arr (indent + 2))
+        new_line spaces
   | EVar x -> Format.asprintf "%sEVar(%s)" spaces (Bindlib.name_of x)
   | EAbs { binder; pos = _; tys = _ } ->
       let (vars, body) = Bindlib.unmbind binder in
       let add_space = if inline then "" else "    " in
-      Format.asprintf "%sEAbs(%s%s,%s%s)" spaces new_line
-        (string_of_list ~inline (fun x -> Format.asprintf "%s%s%s" spaces add_space (Bindlib.name_of x)) (Array.to_list vars) (indent + 2))
-        (string_of_expr ~indent:(indent + 2) ~inline body)
-        spaces
+      Format.asprintf "%sEAbs(%s%s,%s%s%s%s)" 
+        spaces 
+        new_line (string_of_list ~inline (fun x -> Format.asprintf "%s%s%s" spaces add_space (Bindlib.name_of x)) (Array.to_list vars) (indent + 2))
+        new_line (string_of_expr ~indent:(indent + 2) ~inline body)
+        new_line spaces
   | EIfThenElse { cond; etrue; efalse } ->
-      Format.asprintf "%sEIfThenElse(%s%s,%s,%s%s)" spaces new_line
-        (string_of_expr ~indent:(indent + 2) ~inline cond)
-        (string_of_expr ~indent:(indent + 2) ~inline etrue)
-        (string_of_expr ~indent:(indent + 2) ~inline efalse)
-        spaces
+      Format.asprintf "%sEIfThenElse(%s%s,%s%s,%s%s%s%s)" 
+        spaces 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline cond)
+        new_line (string_of_expr ~indent:(indent + 2) ~inline etrue)
+        new_line (string_of_expr ~indent:(indent + 2) ~inline efalse)
+        new_line spaces
   | EStruct { name; fields } ->
-      Format.asprintf "%sEStruct(%s,%s%s%s)" spaces (StructName.to_string name) new_line
-        (string_of_container ~inline StructField.Map.iter StructField.to_string (string_of_expr ~indent:(indent + 4) ~inline) fields (indent + 2))
-        spaces
+      Format.asprintf "%sEStruct(%s,%s%s%s%s)" 
+        spaces (StructName.to_string name) 
+        new_line (string_of_container ~inline StructField.Map.iter StructField.to_string (string_of_expr ~indent:(indent + 4) ~inline) fields (indent + 2))
+        new_line spaces
   | EInj { name; e; cons } ->
-      Format.asprintf "%sEInj(%s.%s,%s%s%s)" spaces (EnumName.to_string name) (EnumConstructor.to_string cons) new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
+      Format.asprintf "%sEInj(%s.%s,%s%s%s%s)" 
+        spaces (EnumName.to_string name) (EnumConstructor.to_string cons) 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
   | EMatch { name; e; cases } ->
-      Format.asprintf "%sEMatch(%s,%s%s,%s%s)" spaces (EnumName.to_string name) new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        (string_of_container ~inline EnumConstructor.Map.iter EnumConstructor.to_string (string_of_expr ~indent:(indent + 4) ~inline) cases (indent + 2))
-        spaces
+      Format.asprintf "%sEMatch(%s,%s%s,%s%s%s%s)" 
+        spaces (EnumName.to_string name) 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line (string_of_container ~inline EnumConstructor.Map.iter EnumConstructor.to_string (string_of_expr ~indent:(indent + 4) ~inline) cases (indent + 2))
+        new_line spaces
   | ETuple lst ->
-      Format.asprintf "%sETuple(%s%s%s)" spaces new_line
-        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) lst (indent + 2))
-        spaces
+      Format.asprintf "%sETuple(%s%s%s%s)" 
+        spaces 
+        new_line (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) lst (indent + 2))
+        new_line spaces
   | ETupleAccess { e; index; size } ->
-      Format.asprintf "%sETupleAccess(%d, %d,%s%s%s)" spaces index size new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
+      Format.asprintf "%sETupleAccess(index = %d, size = %d,%s%s%s%s)" 
+        spaces index size 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
   | EStructAccess { name; e; field } ->
-      Format.asprintf "%sEStructAccess(%s.%s,%s%s%s)" spaces
-        (StructName.to_string name) (StructField.to_string field) new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
-  | EExternal { name } -> Format.asprintf "%sEExternal" spaces (* idk how to get the name as str *)
+      Format.asprintf "%sEStructAccess(%s.%s,%s%s%s%s)" 
+        spaces (StructName.to_string name) (StructField.to_string field) 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
+  | EExternal _ -> Format.asprintf "%sEExternal" spaces
   | EAssert e ->
-      Format.asprintf "%sEAssert(%s%s%s)" spaces new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
+      Format.asprintf "%sEAssert(%s%s%s%s)" 
+        spaces 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
   | EFatalError err ->
       Format.asprintf "%sEFatalError(%s)" spaces (Runtime.error_to_string err)
   | EPos _ ->
-      Format.asprintf "%sEPos()" spaces
+      Format.asprintf "%sEPos" spaces
   | EDefault { excepts; just; cons } ->
-      Format.asprintf "%sEDefault(%s%s,%s,%s%s)" spaces new_line
-        (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) excepts (indent + 2))
-        (string_of_expr ~indent:(indent + 2) ~inline just)
-        (string_of_expr ~indent:(indent + 2) ~inline cons)
-        spaces
+      Format.asprintf "%sEDefault(%s%s,%s%s,%s%s%s%s)" 
+        spaces 
+        new_line (string_of_list ~inline (string_of_expr ~indent:(indent + 4) ~inline) excepts (indent + 2))
+        new_line (string_of_expr ~indent:(indent + 2) ~inline just)
+        new_line (string_of_expr ~indent:(indent + 2) ~inline cons)
+        new_line spaces
   | EPureDefault e ->
-      Format.asprintf "%sEPureDefault(%s%s%s)" spaces new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
+      Format.asprintf "%sEPureDefault(%s%s%s%s)" 
+        spaces 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
   | EEmpty -> Format.asprintf "%s∅" spaces
   | EErrorOnEmpty e ->
-      Format.asprintf "%sEErrorOnEmpty(%s%s%s)" spaces new_line
-        (string_of_expr ~indent:(indent + 2) ~inline e)
-        spaces
+      Format.asprintf "%sEErrorOnEmpty(%s%s%s%s)" spaces 
+        new_line (string_of_expr ~indent:(indent + 2) ~inline e)
+        new_line spaces
   | ECustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sECustom" spaces
   | EHole _ -> Format.asprintf "%s□" spaces 
   | _ -> assert false
@@ -114,11 +127,11 @@ let rec string_of_trace :
     (d, t) Trace_ast.t ->
     file =
 fun ?(indent=0) trace ->
-  let spaces = String.make indent ' ' in 
+  let spaces = String.make indent ' ' in
   match trace with
   | TrExpr e -> Format.asprintf "%sTrExpr(%s)" spaces (string_of_expr ~inline:true e)
   | TrLit l -> Format.asprintf "%s%s" spaces (UserFacing.lit_to_string En l)
-  | TrApp { trf; trargs; tys = _; trv } ->
+  | TrApp { trf; trargs; tys = _; vars = _; trv } ->
       Format.asprintf "%sTrApp(\n%s,\n%s,\n%s\n%s)" spaces
         (string_of_trace ~indent:(indent + 2) trf)
         (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
@@ -174,7 +187,7 @@ fun ?(indent=0) trace ->
         (StructName.to_string name) (StructField.to_string field)
         (string_of_trace ~indent:(indent + 2) tr)
         spaces
-  | TrExternal { name } -> Format.asprintf "%sTrExternal" spaces (* idk how to get the name as str *)
+  | TrExternal _ -> Format.asprintf "%sTrExternal" spaces
   | TrAssert tr ->
       Format.asprintf "%sTrAssert(\n%s\n%s)" spaces
         (string_of_trace ~indent:(indent + 2) tr)
@@ -202,6 +215,6 @@ fun ?(indent=0) trace ->
   | TrCustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sTrCustom" spaces
   | TrHole _ -> Format.asprintf "%s□" spaces
 
-let print_expr (expr : ('a, 'm) gexpr) = print_string (string_of_expr expr)
+let print_expr ?(inline=false) (expr : ('a, 'm) gexpr) = print_string (string_of_expr ~inline expr)
 
 let print_trace (trace : ('a, 'm) Trace_ast.t) = print_string (string_of_trace trace)

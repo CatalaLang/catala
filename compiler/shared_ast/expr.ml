@@ -187,6 +187,8 @@ let escopecall ~scope ~args mark =
              (fun (pos, e) -> Bindlib.box_apply (fun e -> pos, e) (Box.lift e))
              args))
 
+let ehole mark ty = Mark.add mark (Bindlib.box (EHole ty))
+
 (* - Manipulation of marks - *)
 
 let no_mark : type m. m mark -> m mark = function
@@ -372,7 +374,7 @@ let map
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
-  | EHole _ -> assert false
+  | EHole ty -> ehole m ty
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
