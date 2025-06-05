@@ -471,7 +471,7 @@ module Precedence = struct
     | EErrorOnEmpty _ -> App
     | EPos _ -> Contained
     | ECustom _ -> Contained
-    | EHole _ -> assert false
+    | EHole _ -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
     match expr context, expr e with
