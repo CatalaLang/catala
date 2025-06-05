@@ -394,23 +394,23 @@ let interpret
         let v2, tr2 = evaluate_expr_safe ctx p.lang e_input in
         print_newline ();
         print_trace tr2;
-        print_newline ();
-        print_string "Result :";
-        print_newline();
-        let v2 = addholes v2 in print_expr v2;
-        print_newline();
+        Format.print_newline ();
+        Format.print_string "Result :";
+        Format.print_newline();
+        let v2 = addholes v2 in 
+        print_expr v2;
+        Format.print_newline();
         (*print_string "Slicing program...";*)
-        print_newline();
         let e_output = Slice.unevaluate ctx v2 tr2 in 
         (*print_string "Done.\n";*)
-        print_string "Input program :\n";
-        print_newline();
-        print_expr ~inline:true e_input;
-        print_newline();
-        print_string "\nOutput program :\n";
-        print_newline(); 
-        print_expr ~inline:true e_output;
-        print_newline ();
+        Format.print_string "Input program :\n";
+        Format.print_newline();
+        print_expr e_input;
+        Format.print_newline();
+        Format.print_string "Output program :\n";
+        Format.print_newline(); 
+        print_expr e_output;
+        Format.print_newline();
         match Mark.remove v2 with
         | EStruct { fields; _ } ->
           List.map
