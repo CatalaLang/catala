@@ -215,6 +215,7 @@ fun ?(indent=0) trace ->
   | TrCustom { obj = _; targs = _; tret = _ } -> Format.asprintf "%sTrCustom" spaces
   | TrHole _ -> Format.asprintf "%s□" spaces
 
-let print_expr ?(fmt=Format.std_formatter) (expr : ('a, 'm) gexpr) = Format.fprintf fmt "%a\n" (Print.expr ()) expr
+let print_expr ?(fmt = Message.std_ppf ()) (expr : ('a, 'm) gexpr) =
+  Format.fprintf fmt "%a@." (Print.expr ()) expr
 
 let print_trace (trace : ('a, 'm) Trace_ast.t) = print_string (string_of_trace trace)
