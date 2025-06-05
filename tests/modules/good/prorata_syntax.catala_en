@@ -34,7 +34,7 @@ scope S:
     $300
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -44,9 +44,9 @@ $ catala typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope S
-┌─[RESULT]─
+┌─[RESULT]─ S ─
 │ result =
 │   [
 │     HouseholdMemberTaxed {

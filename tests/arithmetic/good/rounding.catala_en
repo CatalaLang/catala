@@ -47,9 +47,9 @@ scope A:
   assertion (integer of -42.443 = -42)
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ o = false
 └─
 ```

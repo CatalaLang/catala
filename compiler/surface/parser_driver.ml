@@ -304,8 +304,9 @@ let lines (file : File.t) (language : Global.backend_lang) =
   try
     let lexbuf = Sedlexing.Utf8.from_channel input in
     Sedlexing.set_filename lexbuf file;
+    let context = ref `Law in
     let rec aux () =
-      match lex_line lexbuf with
+      match lex_line ~context lexbuf with
       | Some (str, tok) ->
         Seq.Cons ((str, tok, Sedlexing.lexing_bytes_positions lexbuf), aux)
       | None ->
@@ -533,19 +534,24 @@ let load_interface ?default_module_name source_file =
           }
           :: req,
           acc )
-      | Ast.CodeBlock (code, _, true) ->
+      | Ast.CodeBlock (code, _, is_metadata) ->
+        (* Non-metadata blocks are ignored ; except for types that can
+           automatically get exported if required by public or test items *)
         ( req,
           List.fold_left
             (fun acc -> function
               | Ast.ScopeUse _, _ -> acc
               | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-                e :: acc
+                ( e,
+                  if is_metadata then Shared_ast.Public else Shared_ast.Private
+                )
+                :: acc
               | Ast.Topdef def, m ->
-                (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
+                if is_metadata then
+                  ((Ast.Topdef { def with topdef_expr = None }, m), Public)
+                  :: acc
+                else acc)
             acc code )
-      | Ast.CodeBlock (_, _, false) ->
-        (* Non-metadata blocks are ignored *)
-        req, acc
     in
     let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
     List.rev req, Ast.Interface (List.rev acc)

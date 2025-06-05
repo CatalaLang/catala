@@ -4,7 +4,7 @@
 #include <runtime.h>
 #include <assert.h>
 
-void test()
+void* test()
 {
   CATALA_MONEY dollars = catala_new_money_str ("10000");
   CATALA_DEC rate = catala_new_dec_str ("1/3");
@@ -13,12 +13,12 @@ void test()
   CATALA_MONEY result = o_mult_mon_rat(dollars,ratex);
   assert (CATALA_TRUE == o_eq_mon_mon(result, catala_new_money_str("6333")));
   assert (CATALA_FALSE == o_eq_mon_mon(result, catala_new_money_str("6334")));
+  return (void*)1;
 }
 
 int main()
 {
-  catala_init();
-  test();
+  catala_do(&test);
   catala_free_all();
   return 0;
 }

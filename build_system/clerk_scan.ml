@@ -15,13 +15,7 @@
    the License. *)
 
 open Catala_utils
-
-type expected_output_descr = {
-  tested_filename : string;
-  output_dir : string;
-  id : string;
-  cmd : string list;
-}
+module L = Surface.Lexer_common
 
 type item = {
   file_name : File.t;
@@ -29,8 +23,8 @@ type item = {
   extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
-  legacy_tests : expected_output_descr list;
   has_inline_tests : bool;
+  has_scope_tests : bool Lazy.t;
 }
 
 let catala_suffix_regex =
@@ -54,15 +48,30 @@ let test_command_args =
   fun str ->
     exec_opt re str |> Option.map (fun g -> String.trim (Re.Group.get g 1))
 
+let get_lang file =
+  Option.bind (Re.exec_opt catala_suffix_regex file)
+  @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
+
+let rec find_test_scope ~lang file =
+  (* Note: if efficiency becomes a problem, this could rely on a cached index of
+     file items *)
+  let lang = Option.value (get_lang file) ~default:lang in
+  let rec scan lines =
+    match Seq.uncons lines with
+    | Some ((_, L.LINE_TEST_ATTRIBUTE, _), _) -> true
+    | Some ((_, L.LINE_INCLUDE f, _), lines) ->
+      let f = if Filename.is_relative f then File.(file /../ f) else f in
+      scan lines || find_test_scope ~lang f
+    | Some (_, lines) -> scan lines
+    | None -> false
+  in
+  scan (Surface.Parser_driver.lines file lang)
+
 let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     =
-  let module L = Surface.Lexer_common in
   let rec parse lines n acc =
     match Seq.uncons lines with
     | None -> acc
-    | Some ((_, L.LINE_TEST id, _), lines) ->
-      let test, lines, n = parse_test id lines (n + 1) in
-      parse lines n { acc with legacy_tests = test :: acc.legacy_tests }
     | Some ((_, line, _), lines) -> (
       parse lines (n + 1)
       @@
@@ -74,55 +83,30 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
         { acc with module_def = Some m; extrnal }
       | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
+      | L.LINE_TEST_ATTRIBUTE -> { acc with has_scope_tests = lazy true }
       | _ -> acc)
-  and parse_test id lines n =
-    let test =
-      {
-        id;
-        tested_filename = file;
-        output_dir = File.(file /../ "output" / "");
-        cmd = [];
-      }
-    in
-    let err n =
-      [Format.asprintf "'invalid test syntax at %a:%d'" File.format file n]
-    in
-    match Seq.uncons lines with
-    | Some ((str, L.LINE_ANY, _), lines) -> (
-      match test_command_args str with
-      | Some cmd ->
-        let cmd, lines, n = parse_block lines (n + 1) [cmd] in
-        ( {
-            test with
-            cmd = List.flatten (List.map (String.split_on_char ' ') cmd);
-          },
-          lines,
-          n + 1 )
-      | None -> { test with cmd = err n }, lines, n + 1)
-    | Some (_, lines) -> { test with cmd = err n }, lines, n + 1
-    | None -> { test with cmd = err n }, lines, n
-  and parse_block lines n acc =
-    match Seq.uncons lines with
-    | Some ((_, L.LINE_BLOCK_END, _), lines) -> List.rev acc, lines, n + 1
-    | Some ((str, _, _), lines) -> String.trim str :: acc, lines, n + 1
-    | None -> List.rev acc, lines, n
   in
-  parse
-    (Surface.Parser_driver.lines file lang)
-    1
-    {
-      file_name = file;
-      module_def = None;
-      extrnal = false;
-      used_modules = [];
-      included_files = [];
-      legacy_tests = [];
-      has_inline_tests = false;
-    }
-
-let get_lang file =
-  Option.bind (Re.exec_opt catala_suffix_regex file)
-  @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
+  let item =
+    parse
+      (Surface.Parser_driver.lines file lang)
+      1
+      {
+        file_name = file;
+        module_def = None;
+        extrnal = false;
+        used_modules = [];
+        included_files = [];
+        has_inline_tests = false;
+        has_scope_tests = lazy false;
+      }
+  in
+  let has_scope_tests =
+    lazy
+      ((* If there are includes, they must be checked for test scopes as well *)
+       Lazy.force item.has_scope_tests
+      || List.exists (find_test_scope ~lang) item.included_files)
+  in
+  { item with has_scope_tests }
 
 let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
   File.scan_tree
@@ -131,3 +115,10 @@ let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
       | None -> None
       | Some lang -> Some (catala_file f lang))
     dir
+
+let target_file_name t =
+  let open File in
+  let dir = File.dirname t.file_name in
+  match t.module_def with
+  | Some m -> dir / String.to_id m
+  | None -> dir / String.to_id (basename t.file_name -.- "")

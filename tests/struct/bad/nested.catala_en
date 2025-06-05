@@ -12,7 +12,7 @@ scope A:
   definition y equals E.Empty
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
 ┌─[WARNING]─
 │

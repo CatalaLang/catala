@@ -23,7 +23,7 @@ scope Test:
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Test
 ┌─[ERROR]─
 │

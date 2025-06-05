@@ -43,7 +43,7 @@ declaration enumeration Enu:
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala scopelang
 ┌─[WARNING]─
 │

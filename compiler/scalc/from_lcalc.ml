@@ -24,6 +24,7 @@ type translation_config = {
   keep_special_ops : bool;
   dead_value_assignment : bool;
   no_struct_literals : bool;
+  keep_module_names : bool;
   renaming_context : Renaming.context;
 }
 
@@ -548,171 +549,202 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     List.fold_left
       (fun (modules, ctxt) (m, _) ->
         let name, pos = ModuleName.get_info m in
-        let vname, ctxt = get_name ctxt name in
+        let vname, ctxt =
+          if config.keep_module_names then
+            ( name,
+              { ctxt with ren_ctx = Renaming.reserve_name ctxt.ren_ctx name } )
+          else get_name ctxt name
+        in
         ModuleName.Map.add m (A.VarName.fresh (vname, pos)) modules, ctxt)
       (ModuleName.Map.empty, ctxt)
       (Program.modules_to_list p.decl_ctx.ctx_modules)
   in
   let program_ctx = { ctxt.program_ctx with A.modules } in
   let ctxt = { ctxt with program_ctx } in
-  let (ctxt, rev_items), exports =
-    BoundList.fold_left ~init:(ctxt, [])
-      ~f:(fun (ctxt, rev_items) code_item var ->
-        match code_item with
-        | ScopeDef (name, body) ->
-          let scope_input_var, scope_body_expr, outer_ctx =
-            unbind ctxt body.scope_body_expr
-          in
-          let input_pos = Mark.get (ScopeName.get_info name) in
-          let scope_input_var_id, inner_ctx =
-            register_fresh_var ctxt scope_input_var ~pos:input_pos
-          in
-          let new_scope_body =
-            translate_scope_body_expr
-              { inner_ctx with context_name = ScopeName.base name }
-              scope_body_expr
-          in
-          let func_id, outer_ctx =
-            register_fresh_func outer_ctx var ~pos:input_pos
-          in
-          ( outer_ctx,
-            A.SScope
+  let translate_code_item (ctxt, rev_items) code_item var =
+    match code_item with
+    | ScopeDef (name, body) ->
+      let scope_input_var, scope_body_expr, outer_ctx =
+        unbind ctxt body.scope_body_expr
+      in
+      let input_pos = Mark.get (ScopeName.get_info name) in
+      let scope_input_var_id, inner_ctx =
+        register_fresh_var ctxt scope_input_var ~pos:input_pos
+      in
+      let new_scope_body =
+        translate_scope_body_expr
+          { inner_ctx with context_name = ScopeName.base name }
+          scope_body_expr
+      in
+      let func_id, outer_ctx =
+        register_fresh_func outer_ctx var ~pos:input_pos
+      in
+      ( outer_ctx,
+        A.SScope
+          {
+            Ast.scope_body_name = name;
+            Ast.scope_body_var = func_id;
+            scope_body_func =
               {
-                Ast.scope_body_name = name;
-                Ast.scope_body_var = func_id;
-                scope_body_func =
-                  {
-                    A.func_params =
-                      [
-                        ( (scope_input_var_id, input_pos),
-                          (TStruct body.scope_body_input_struct, input_pos) );
-                      ];
-                    A.func_body = new_scope_body;
-                    func_return_typ =
-                      TStruct body.scope_body_output_struct, input_pos;
-                  };
-                scope_body_visibility = body.scope_body_visibility;
-              }
-            :: rev_items )
-        | Topdef (name, topdef_ty, visibility, (EAbs abs, m)) ->
-          (* Toplevel function def *)
-          let (block, expr, _ren_ctx_inner), args_id =
-            let args_a, expr, ctxt_inner = unmbind ctxt abs.binder in
-            let args = Array.to_list args_a in
-            let rargs_id, ctxt_inner =
-              List.fold_left2
-                (fun (rargs_id, ctxt_inner) v ty ->
-                  let pos = Mark.get ty in
-                  let id, ctxt_inner = register_fresh_var ctxt_inner v ~pos in
-                  ((id, pos), ty) :: rargs_id, ctxt_inner)
-                ([], ctxt_inner) args abs.tys
-            in
-            let ctxt_inner =
-              { ctxt_inner with context_name = TopdefName.base name }
-            in
-            translate_expr ctxt_inner expr, List.rev rargs_id
-          in
-          let body_block =
-            RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
-          in
-          let func_id, ctxt_outer =
-            register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
-          in
-          ( ctxt_outer,
-            A.SFunc
+                A.func_params =
+                  [
+                    ( (scope_input_var_id, input_pos),
+                      (TStruct body.scope_body_input_struct, input_pos) );
+                  ];
+                A.func_body = new_scope_body;
+                func_return_typ =
+                  TStruct body.scope_body_output_struct, input_pos;
+              };
+            scope_body_visibility = body.scope_body_visibility;
+          }
+        :: rev_items )
+    | Topdef (name, topdef_ty, visibility, (EAbs abs, m)) ->
+      (* Toplevel function def *)
+      let (block, expr, _ren_ctx_inner), args_id =
+        let args_a, expr, ctxt_inner = unmbind ctxt abs.binder in
+        let args = Array.to_list args_a in
+        let rargs_id, ctxt_inner =
+          List.fold_left2
+            (fun (rargs_id, ctxt_inner) v ty ->
+              let pos = Mark.get ty in
+              let id, ctxt_inner = register_fresh_var ctxt_inner v ~pos in
+              ((id, pos), ty) :: rargs_id, ctxt_inner)
+            ([], ctxt_inner) args abs.tys
+        in
+        let ctxt_inner =
+          { ctxt_inner with context_name = TopdefName.base name }
+        in
+        translate_expr ctxt_inner expr, List.rev rargs_id
+      in
+      let body_block =
+        RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
+      in
+      let func_id, ctxt_outer =
+        register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
+      in
+      ( ctxt_outer,
+        A.SFunc
+          {
+            var = func_id;
+            func =
               {
-                var = func_id;
-                func =
-                  {
-                    A.func_params = args_id;
-                    A.func_body = body_block;
-                    A.func_return_typ =
-                      (match topdef_ty with
-                      | TArrow (_, t2), _ -> t2
-                      | TAny, pos_any -> TAny, pos_any
-                      | _ -> failwith "should not happen");
-                  };
+                A.func_params = args_id;
+                A.func_body = body_block;
+                A.func_return_typ =
+                  (match topdef_ty with
+                  | TArrow (_, t2), _ -> t2
+                  | TAny, pos_any -> TAny, pos_any
+                  | _ -> failwith "should not happen");
+              };
+            visibility;
+          }
+        :: rev_items )
+    | Topdef (name, topdef_ty, visibility, expr) ->
+      (* Toplevel constant def *)
+      let block, expr, _ren_ctx_inner =
+        let ctxt = { ctxt with context_name = TopdefName.base name } in
+        translate_expr ctxt expr
+      in
+      let var_id, ctxt =
+        register_fresh_var ctxt var ~pos:(Mark.get (TopdefName.get_info name))
+      in
+      (* If the evaluation of the toplevel expr requires preliminary statements,
+         we lift its computation into an auxiliary function *)
+      let rev_items, ctxt =
+        if (block :> (A.stmt * Pos.t) list) = [] then
+          ( A.SVar { var = var_id; expr; typ = topdef_ty; visibility }
+            :: rev_items,
+            ctxt )
+        else
+          let pos = Mark.get expr in
+          let func_name, ctxt =
+            get_name ctxt (A.VarName.to_string var_id ^ "_init")
+          in
+          let func_id = A.FuncName.fresh (func_name, pos) in
+          (* The list is being built in reverse order *)
+          (* Note: this pattern is matched in the C backend to make allocations
+             permanent. *)
+          ( A.SVar
+              {
+                var = var_id;
+                expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
+                typ = topdef_ty;
                 visibility;
               }
-            :: rev_items )
-        | Topdef (name, topdef_ty, visibility, expr) ->
-          (* Toplevel constant def *)
-          let block, expr, _ren_ctx_inner =
-            let ctxt = { ctxt with context_name = TopdefName.base name } in
-            translate_expr ctxt expr
-          in
-          let var_id, ctxt =
-            register_fresh_var ctxt var
-              ~pos:(Mark.get (TopdefName.get_info name))
-          in
-          (* If the evaluation of the toplevel expr requires preliminary
-             statements, we lift its computation into an auxiliary function *)
-          let rev_items, ctxt =
-            if (block :> (A.stmt * Pos.t) list) = [] then
-              ( A.SVar { var = var_id; expr; typ = topdef_ty; visibility }
-                :: rev_items,
-                ctxt )
-            else
-              let pos = Mark.get expr in
-              let func_name, ctxt =
-                get_name ctxt (A.VarName.to_string var_id ^ "_init")
-              in
-              let func_id = A.FuncName.fresh (func_name, pos) in
-              (* The list is being built in reverse order *)
-              (* Note: this pattern is matched in the C backend to make
-                 allocations permanent. *)
-              ( A.SVar
-                  {
-                    var = var_id;
-                    expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
-                    typ = topdef_ty;
-                    visibility;
-                  }
-                :: A.SFunc
+            :: A.SFunc
+                 {
+                   var = func_id;
+                   func =
                      {
-                       var = func_id;
-                       func =
-                         {
-                           A.func_params = [];
-                           A.func_body =
-                             RevBlock.rebuild block
-                               ~tail:[A.SReturn expr, Mark.get expr];
-                           A.func_return_typ = topdef_ty;
-                         };
-                       visibility = Private;
-                     }
-                :: rev_items,
-                ctxt )
-          in
-          ( ctxt,
-            (* No need to add func_id since the function will only be called
-               right here *)
-            rev_items ))
-      p.code_items
+                       A.func_params = [];
+                       A.func_body =
+                         RevBlock.rebuild block
+                           ~tail:[A.SReturn expr, Mark.get expr];
+                       A.func_return_typ = topdef_ty;
+                     };
+                   visibility = Private;
+                 }
+            :: rev_items,
+            ctxt )
+      in
+      ( ctxt,
+        (* No need to add func_id since the function will only be called right
+           here *)
+        rev_items )
   in
-  let _, rev_tests =
+  let (ctxt, rev_items), exports =
+    BoundList.fold_left ~init:(ctxt, []) ~f:translate_code_item p.code_items
+  in
+  let _, rev_tdefs, rev_tests =
     List.fold_left
-      (fun (ctxt, acc) -> function
+      (fun (ctxt, rev_tdefs, rev_tests) -> function
         | KTest scope, e ->
           let var, ctxt =
             fresh_var ~pos:(Expr.pos e) ctxt
               (ScopeName.to_string scope ^ "_test")
           in
-          let block, expr, ren_ctx = translate_expr ctxt e in
-          let pos = Mark.get (ScopeName.get_info scope) in
-          let exec =
-            ( A.SLocalInit
-                { name = var, pos; typ = Expr.maybe_ty (Mark.get e); expr },
-              pos )
+          (* The expression here may contain leading closure definitions that
+             should be local to the test *)
+          let rec unlet ctxt rev_tdefs = function
+            | ( EApp
+                  {
+                    tys = [((TArrow ((TClosureEnv, _) :: _, _), _) as ty)];
+                    f = EAbs { binder; _ }, _;
+                    args = [closure];
+                  },
+                m ) ->
+              let pos = Expr.mark_pos m in
+              let vars, body = Bindlib.unmbind binder in
+              let v = vars.(0) in
+              let ctxt, rev_tdefs =
+                translate_code_item (ctxt, rev_tdefs)
+                  (Topdef
+                     ( TopdefName.fresh [] (Bindlib.name_of v, pos),
+                       ty,
+                       Private,
+                       closure ))
+                  v
+              in
+              unlet ctxt rev_tdefs body
+            | e ->
+              let pos = Mark.get (ScopeName.get_info scope) in
+              let block, expr, _ren_ctx = translate_expr ctxt e in
+              let exec =
+                ( A.SLocalInit
+                    { name = var, pos; typ = Expr.maybe_ty (Mark.get e); expr },
+                  pos )
+              in
+              ( ctxt,
+                rev_tdefs,
+                (scope, RevBlock.rebuild (block +> exec)) :: rev_tests )
           in
-          ( { ctxt with ren_ctx },
-            (scope, RevBlock.rebuild (RevBlock.append block exec)) :: acc )
-        | _ -> ctxt, acc)
-      (ctxt, []) exports
+          unlet ctxt rev_tdefs e
+        | _ -> ctxt, rev_tdefs, rev_tests)
+      (ctxt, [], []) exports
   in
   {
     ctx = program_ctx;
     code_items = List.rev rev_items;
     module_name = p.module_name;
-    tests = List.rev rev_tests;
+    tests = List.rev rev_tdefs, List.rev rev_tests;
   }

@@ -42,7 +42,7 @@ two closures in Foo.r are different even with optimizations enabled.
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -52,11 +52,17 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Lcalc -O --closure-conversion 
 type Eoption =
   | ENone of unit
   | ESome of any
+
+#[test]
+type Foo_in = { b_in: option (bool, source_position); }
+
+#[test]
+type Foo = { z: integer; }
 
 type Result = {
   r: ((closure_env, integer) → integer, closure_env);
@@ -76,12 +82,6 @@ type SubFoo2 = {
   x1: integer;
   y: ((closure_env, integer) → integer, closure_env);
 }
-
-#[test]
-type Foo_in = { b_in: option (bool, source_position); }
-
-#[test]
-type Foo = { z: integer; }
 
 let topval closure_y : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
@@ -177,9 +177,9 @@ let scope foo
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret --lcalc -s Foo -O --closure-conversion
-┌─[RESULT]─
+┌─[RESULT]─ Foo ─
 │ z = 11
 └─
 ```

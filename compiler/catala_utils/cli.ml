@@ -166,12 +166,11 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translate programs. If set as a flag, \
-             outputs\n\
-            \             trace to stdout. If $(docv) is defined, outputs the \
-             trace to a file while interpreting.\n\
-            \             Defining a filename does not affect code generation. \
-             Cannot use .catala extension."
+             logging instructions in translated programs. If set as a flag, \
+             outputs trace to stdout. If $(docv) is defined, outputs the trace \
+             to a file while interpreting.\n\
+             Defining a filename does not affect code generation. Cannot use \
+             .catala extension."
 
     let trace_format =
       value
@@ -253,6 +252,16 @@ module Flags = struct
             "Compile the full chain of module dependencies without requiring a \
              separate module compilation."
 
+    let bin_dir =
+      value
+      & opt (some raw_file) None
+      & info ["bin"] ~docv:"DIR"
+          ~doc:
+            "Directory containing compiled artifacts. This is used to load \
+             shared modules. Defaults to the value of $(b,--directory) if that \
+             is set, or to $(b,_build) otherwise, consistently with the \
+             defaults used by clerk to create these files."
+
     let flags =
       let make
           language
@@ -267,7 +276,8 @@ module Flags = struct
           directory
           stop_on_error
           no_fail_on_assert
-          whole_program : options =
+          whole_program
+          bin_dir : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -300,12 +310,21 @@ module Flags = struct
                      ())),
               Some trace_format )
         in
+        let bin_dir =
+          match bin_dir with
+          | Some d -> path_rewrite d
+          | None -> (
+            match directory with
+            | Some _ -> Filename.current_dir_name
+            | None -> "_build")
+        in
         let trace_format = Option.value trace_format ~default:Human in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
-          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program ()
+          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program
+          ~bin_dir ()
       in
       Term.(
         const make
@@ -321,7 +340,8 @@ module Flags = struct
         $ directory
         $ stop_on_error
         $ no_fail_on_assert
-        $ whole_program)
+        $ whole_program
+        $ bin_dir)
 
     let options =
       let make input_src name directory options : options =
@@ -360,6 +380,11 @@ module Flags = struct
     & flag
     & info ["check-invariants"] ~doc:"Check structural invariants on the AST."
 
+  let quiet =
+    value
+    & flag
+    & info ["quiet"] ~doc:"Only display a short summary of results."
+
   let autotest =
     value
     & flag
@@ -367,12 +392,12 @@ module Flags = struct
         ~env:(Cmd.Env.info "CATALA_AUTOTEST")
         ~doc:
           "Insert automatic test assertions in the compiled program. This \
-           detects all scopes that have no input or context variables, runs \
-           the interpreter to pre-compute their values, then adds runtime \
-           assertions to the program that ensure that the actual output of the \
-           scopes match their pre-computed values. If used on a testing \
-           program with a given backend, this guarantees consistency between \
-           the backend and the interpreter."
+           affects scopes marked with the $(i,#[test]) attribute, running the \
+           interpreter to pre-compute their values, then adding runtime \
+           assertions that ensure that the actual output of the scopes match \
+           their pre-computed values. This is meaningful for validating the \
+           different backends, guaranteeing consistency of their results that \
+           of the interpreter."
 
   let no_typing =
     value
@@ -517,6 +542,14 @@ module Flags = struct
     & opt (some string) None
     & info ["prefix"] ~docv:"PATH"
         ~doc:"Prepend the given path to each of the files in the returned list."
+
+  let subdir =
+    value
+    & opt (some string) None
+    & info ["subdir"] ~docv:"PATH"
+        ~doc:
+          "Append the given subdir at the end of the path of each of the files \
+           in the returned list. Usually matches the name of the backend used."
 end
 
 (* Retrieve current version from dune *)

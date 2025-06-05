@@ -15,7 +15,7 @@ scope A:
   definition y under condition x >= 0 consequence equals 1
   
 ```
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

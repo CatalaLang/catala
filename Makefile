@@ -221,12 +221,12 @@ BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
 
 backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
-	@$(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend $* --ignore-modules --autotest
+	@$(BACKEND_ENV) $(CLERK_BIN) test tests --exe $(CATALA_BIN) --backend $* -c--disable-warnings
 
-backend-tests-python: $(CLERK_BIN) $(BACKEND_TESTS) dependencies-python
+backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
+
+validate-py-runtime: dependencies-python
 	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
-	@echo ">> RUNNING BACKEND TESTS FOR python <<"
-	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) run $(BACKEND_TESTS) --exe $(CATALA_BIN) --command interpret --backend python --ignore-modules --autotest
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 

@@ -255,7 +255,7 @@ declaration x content integer equals
 It's normal that the test below returns a resolution or type error, we just want
 to ensure that the *syntax* is correct.
 
-```catala-test-inline
+```catala-test-cli
 $ catala typecheck
 ┌─[ERROR]─
 │

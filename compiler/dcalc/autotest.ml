@@ -17,116 +17,122 @@
 open Catala_utils
 open Shared_ast
 
-let scope ctx lang env name scope =
-  let info = ScopeName.Map.find name ctx.ctx_scopes in
-  let input_struct = StructName.Map.find info.in_struct_name ctx.ctx_structs in
-  let output_struct =
-    StructName.Map.find info.out_struct_name ctx.ctx_structs
-  in
-  match
-    begin
-      if not (StructField.Map.is_empty input_struct) then raise Exit;
-      Message.debug "Interpreting scope %a for autotest instrumentation..."
-        ScopeName.format name;
-      let body_expr =
-        Bindlib.subst scope.scope_body_expr
-          (EStruct
-             {
-               name = scope.scope_body_input_struct;
-               fields = StructField.Map.empty;
-             })
-      in
-      let expr = Scope.unfold_body_expr ctx body_expr in
-      Interpreter.evaluate_expr ctx lang (Expr.unbox_closed (env expr))
-    end
-  with
-  | exception
-      (( Sys.Break | Assert_failure _ | Match_failure _ | Out_of_memory
-       | Stack_overflow ) as e) ->
-    raise e
-  | exception e ->
-    if e <> Exit then
-      Message.warning
-        "Failed to interpret scope %a, will not add automatic tests."
-        ScopeName.format name;
-    (* Just rebox the original scope without changes *)
-    let var, body = Bindlib.unbind scope.scope_body_expr in
-    let body = Scope.map_exprs_in_lets ~f:Expr.rebox ~varf:Fun.id body in
-    Bindlib.bind_var var body
-    |> Bindlib.box_apply (fun scope_body_expr -> { scope with scope_body_expr })
-  | EStruct { fields = output_fields; _ }, _ ->
-    let rec make_assertions acc path ty e =
-      match e with
-      | EStruct { name; fields }, m ->
-        let tys = StructName.Map.find name ctx.ctx_structs in
-        StructField.Map.fold
-          (fun field value acc ->
-            let ty = StructField.Map.find field tys in
-            let path =
-              Expr.estructaccess ~name ~field ~e:path (Expr.with_ty m ty)
-            in
-            make_assertions acc path ty value)
-          fields acc
-      | (_, m) as e ->
-        if Type.has_arrow ctx ty then acc
-        else
-          let pos = Expr.mark_pos m in
-          Message.debug "[autotest] Adding assertion %a.%a = %a"
-            ScopeName.format name Expr.format (Expr.unbox path) Expr.format e;
-          Expr.eassert
-            (Expr.eappop ~op:(Op.Eq, pos)
-               ~args:[path; Expr.box (Interpreter.delcustom e)]
-               ~tys:[ty; ty]
-               (Expr.with_ty m (TLit TBool, pos)))
-            (Expr.with_ty m (TLit TUnit, pos))
-          :: acc
-    in
-    let var, body = Bindlib.unbind scope.scope_body_expr in
-    let body =
-      BoundList.map_last
-        ~f:(fun v scope_let ->
-          ( v,
-            Bindlib.box_apply
-              (fun e -> { scope_let with scope_let_expr = e })
-              Expr.(Box.lift (rebox scope_let.scope_let_expr)) ))
-        ~last:(fun struct_expr ->
-          match struct_expr with
-          | EStruct { fields; _ }, _ ->
-            let assertions =
-              StructField.Map.fold
-                (fun fld def acc ->
-                  make_assertions acc (Expr.rebox def)
-                    (StructField.Map.find fld output_struct)
-                    (StructField.Map.find fld output_fields))
-                fields []
-            in
-            let assertions_let =
-              List.rev_map
-                (fun e ->
-                  let slet =
-                    Bindlib.box_apply
-                      (fun e ->
-                        {
-                          scope_let_kind = Assertion;
-                          scope_let_typ = TLit TUnit, Expr.pos e;
-                          scope_let_expr = e;
-                          scope_let_pos = Expr.pos e;
-                        })
-                      (Expr.Box.lift e)
-                  in
-                  Var.make "_autotest", slet)
-                assertions
-            in
-            BoundList.of_list assertions_let
-              ~last:Expr.(Box.lift (rebox struct_expr))
-          | e ->
-            Message.error ~pos:(Expr.pos e) ~internal:true
-              "Scope body not ending with result structure initialisation")
-        body
-    in
-    Bindlib.bind_var var body
-    |> Bindlib.box_apply (fun scope_body_expr -> { scope with scope_body_expr })
-  | _ ->
-    assert false (* Evaluation is expected to return the scope output struct *)
+let rec make_assertions ctx scope_name acc path ty e =
+  match e with
+  | EStruct { name; fields }, m ->
+    let tys = StructName.Map.find name ctx.ctx_structs in
+    StructField.Map.fold
+      (fun field value acc ->
+        let ty = StructField.Map.find field tys in
+        let path =
+          Expr.estructaccess ~name ~field ~e:path (Expr.with_ty m ty)
+        in
+        make_assertions ctx scope_name acc path ty value)
+      fields acc
+  | (_, m) as e ->
+    if Type.has_arrow ctx ty then acc
+    else
+      let pos = Expr.mark_pos m in
+      Message.debug "[autotest] Adding assertion %a.%a = %a" ScopeName.format
+        scope_name Expr.format (Expr.unbox path) Expr.format e;
+      Expr.eassert
+        (Expr.eappop ~op:(Op.Eq, pos)
+           ~args:[path; Expr.box (Interpreter.delcustom e)]
+           ~tys:[ty; ty]
+           (Expr.with_ty m (TLit TBool, pos)))
+        (Expr.with_ty m (TLit TUnit, pos))
+      :: acc
 
-let program prg = Program.map_scopes_env ~f:(scope prg.decl_ctx prg.lang) prg
+let test_scope_outs ctx lang acc env name scope =
+  let info = ScopeName.Map.find name ctx.ctx_scopes in
+  let acc =
+    match
+      begin
+        if not (Pos.has_attr (Mark.get (ScopeName.get_info name)) Test) then
+          raise Exit;
+        Message.debug "Interpreting scope %a for autotest instrumentation..."
+          ScopeName.format name;
+        let mark =
+          Expr.with_pos
+            (Mark.get (ScopeName.get_info name))
+            (Option.get (Scope.get_mark_witness scope))
+        in
+        let body_expr =
+          Bindlib.subst scope.scope_body_expr
+            (Mark.remove
+               (Expr.unbox
+                  (Scope.empty_input_struct_dcalc ctx info.in_struct_name mark)))
+        in
+        let expr = Scope.unfold_body_expr ctx body_expr in
+        Interpreter.evaluate_expr ctx lang (Expr.unbox_closed (env expr))
+      end
+    with
+    | exception
+        (( Sys.Break | Assert_failure _ | Match_failure _ | Out_of_memory
+         | Stack_overflow ) as e) ->
+      raise e
+    | exception e ->
+      if e <> Exit then
+        Message.warning
+          "Failed to interpret scope %a: cannot add autotests, will generate \
+           an always-failing test program."
+          ScopeName.format name;
+      acc
+    | output_expr -> ScopeName.Map.add name output_expr acc
+  in
+  let var, body = Bindlib.unbind scope.scope_body_expr in
+  let body = Scope.map_exprs_in_lets ~f:Expr.rebox ~varf:Fun.id body in
+  ( acc,
+    Bindlib.bind_var var body
+    |> Bindlib.box_apply (fun scope_body_expr -> { scope with scope_body_expr })
+  )
+
+let program prg =
+  let ctx = prg.decl_ctx in
+  Program.map_scopes_env prg ~f:(test_scope_outs prg.decl_ctx prg.lang)
+    ~init:ScopeName.Map.empty ~last:(fun scope_asserts _env exports ->
+      List.map
+        (function
+          | ((KTopdef _ | KScope _) as export), e ->
+            Bindlib.box_apply
+              (fun e -> export, e)
+              (Expr.Box.lift (Expr.rebox e))
+          | KTest name, scope_apply ->
+            let pos = Mark.get (ScopeName.get_info name) in
+            let struc =
+              (ScopeName.Map.find name ctx.ctx_scopes).out_struct_name
+            in
+            let ty = TStruct struc, pos in
+            let v_result = Var.make (ScopeName.to_string name) in
+            let asserts =
+              match ScopeName.Map.find_opt name scope_asserts with
+              | None ->
+                let m = Mark.get scope_apply in
+                [
+                  Expr.eassert
+                    (Expr.elit (LBool false) (Expr.with_ty m (TLit TBool, pos)))
+                    (Expr.with_ty m (TLit TUnit, pos));
+                ]
+              | Some expected_result ->
+                make_assertions ctx name []
+                  (Expr.make_var v_result (Mark.get expected_result))
+                  ty expected_result
+            in
+            let asserts_expr =
+              Expr.make_multiple_let_in
+                (List.map
+                   (fun _ ->
+                     Var.make ("_test_" ^ ScopeName.to_string name), pos)
+                   asserts)
+                (List.map (fun _ -> TLit TUnit, pos) asserts)
+                asserts
+                (Expr.make_var v_result (Mark.get scope_apply))
+                pos
+            in
+            Expr.make_let_in
+              (v_result, Expr.pos scope_apply)
+              (TStruct struc, pos) (Expr.rebox scope_apply) asserts_expr pos
+            |> Expr.Box.lift
+            |> Bindlib.box_apply (fun e -> KTest name, e))
+        exports
+      |> Bindlib.box_list)

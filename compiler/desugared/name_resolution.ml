@@ -788,6 +788,10 @@ let process_scope_decl
         | _ -> acc)
       decl.scope_decl_context []
   in
+  let visibility =
+    if Pos.has_attr (Mark.get (ScopeName.get_info scope_uid)) Test then Public
+    else visibility
+  in
   if output_fields = [] then
     (* we allow scopes without output variables, and still define their (empty)
        output struct for convenience *)
@@ -854,9 +858,8 @@ let typedef_info = function
 
 (** Process the names of all declaration items *)
 let process_name_item
-    ?(visibility = Public)
     (ctxt : context)
-    (item : Surface.Ast.code_item Mark.pos) : context =
+    (item_vis : Surface.Ast.code_item Mark.pos * visibility) : context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Message.error
       ~fmt_pos:
@@ -870,6 +873,7 @@ let process_name_item
   let path =
     match ctxt.local.current_module with None -> [] | Some p -> [p]
   in
+  let item, visibility = item_vis in
   match Mark.remove item with
   | ScopeDecl decl ->
     let name, pos = decl.scope_decl_name in
@@ -882,6 +886,7 @@ let process_name_item
     let scope_uid = ScopeName.fresh path (name, pos) in
     let in_struct_name = StructName.fresh path (name ^ "_in", pos) in
     let out_struct_name = StructName.fresh path (name, pos) in
+    let visibility = if Pos.has_attr pos Test then Public else visibility in
     let typedefs =
       Ident.Map.add name
         (TScope
@@ -951,30 +956,31 @@ let process_name_item
 
 (** Process a code item that is a declaration *)
 let process_decl_item
-    ?visibility
     (ctxt : context)
-    (item : Surface.Ast.code_item Mark.pos) : context =
+    ((item, visibility) : Surface.Ast.code_item Mark.pos * visibility) : context
+    =
   match Mark.remove item with
-  | ScopeDecl decl -> process_scope_decl ?visibility ctxt decl
-  | StructDecl sdecl -> process_struct_decl ?visibility ctxt sdecl
-  | EnumDecl edecl -> process_enum_decl ?visibility ctxt edecl
+  | ScopeDecl decl -> process_scope_decl ~visibility ctxt decl
+  | StructDecl sdecl -> process_struct_decl ~visibility ctxt sdecl
+  | EnumDecl edecl -> process_enum_decl ~visibility ctxt edecl
   | ScopeUse _ -> ctxt
-  | Topdef def -> process_topdef ?visibility ctxt def
+  | Topdef def -> process_topdef ~visibility ctxt def
 
 (** Process a code block *)
 let process_code_block
-    (process_item : context -> Surface.Ast.code_item Mark.pos -> context)
+    (visibility : visibility)
+    (process_item :
+      context -> Surface.Ast.code_item Mark.pos * visibility -> context)
     (ctxt : context)
     (block : Surface.Ast.code_block) : context =
-  List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
+  List.fold_left
+    (fun ctxt decl -> process_item ctxt (decl, visibility))
+    ctxt block
 
 (** Process a law structure, only considering the code blocks *)
 let rec process_law_structure
     (process_item :
-      ?visibility:visibility ->
-      context ->
-      Surface.Ast.code_item Mark.pos ->
-      context)
+      context -> Surface.Ast.code_item Mark.pos * visibility -> context)
     (ctxt : context)
     (s : Surface.Ast.law_structure) : context =
   match s with
@@ -984,8 +990,8 @@ let rec process_law_structure
       ctxt children
   | Surface.Ast.CodeBlock (block, _, is_meta) ->
     process_code_block
-      (process_item ~visibility:(if is_meta then Public else Private))
-      ctxt block
+      (if is_meta then Public else Private)
+      process_item ctxt block
   | Surface.Ast.ModuleDef (_, is_external) ->
     { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
@@ -1197,8 +1203,9 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
     (process_scope_use_item s_name)
     ctxt suse.Surface.Ast.scope_use_items
 
-let process_use_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
-    context =
+let process_use_item
+    (ctxt : context)
+    ((item, _) : Surface.Ast.code_item Mark.pos * visibility) : context =
   match Mark.remove item with
   | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
   | ScopeUse suse -> process_scope_use ctxt suse
@@ -1300,7 +1307,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                   ctxt module_items
               in
               List.fold_left
-                (process_law_structure (fun ?visibility:_ -> process_use_item))
+                (process_law_structure process_use_item)
                 ctxt module_items
           in
           {
@@ -1326,7 +1333,7 @@ let form_context (surface, mod_uses) surface_modules : context =
   in
   let ctxt =
     List.fold_left
-      (process_law_structure (fun ?visibility:_ -> process_use_item))
+      (process_law_structure process_use_item)
       ctxt surface.Surface.Ast.program_items
   in
   let ctxt = { ctxt with local = gather_struct_fields_ids ctxt ctxt.local } in

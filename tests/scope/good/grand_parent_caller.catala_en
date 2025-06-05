@@ -31,7 +31,7 @@ scope C:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -41,24 +41,24 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ x = 0
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ y1 = 1
 │ y2 = 1
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope C
-┌─[RESULT]─
+┌─[RESULT]─ C ─
 │ z1 = 2
 │ z2 = 2
 └─

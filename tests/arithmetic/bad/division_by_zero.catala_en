@@ -31,7 +31,7 @@ scope Money:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Dec
 ┌─[ERROR]─
 │
@@ -47,7 +47,7 @@ $ catala test-scope Dec
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Int
 ┌─[ERROR]─
 │
@@ -63,7 +63,7 @@ $ catala test-scope Int
 #return code 123#
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Money
 ┌─[ERROR]─
 │

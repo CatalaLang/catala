@@ -16,25 +16,41 @@
 
 (** This module defines and manipulates Clerk test reports, which can be written
     by `clerk runtest` and read to provide test result summaries. This only
-    concerns inline tests (```catala-test-inline blocks). *)
+    concerns inline tests (```catala-test-cli blocks). *)
 
 open Catala_utils
 
-type test = {
-  success : bool;
-  command_line : string list;
-  expected : Lexing.position * Lexing.position;
+type pos = Lexing.position * Lexing.position
+
+type inline_test = {
+  i_success : bool;
+  i_command_line : string list;
+  i_expected : pos;
       (** The precise offsets of the expected result in the source file *)
-  result : Lexing.position * Lexing.position;
-      (** Same for the actual result in the destination file *)
+  i_result : pos;  (** Same for the actual result in the destination file *)
 }
 
-type file = { name : File.t; successful : int; total : int; tests : test list }
+type scope_test = {
+  s_success : bool;
+  s_name : string;
+  s_command_line : string list;
+  s_errors : (pos * string) list;
+}
+
+type file = {
+  name : File.t;
+  successful : int;
+  total : int;
+  tests : inline_test list;
+  scopes : scope_test list;
+}
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
 val read_many : File.t -> file list
-val display : build_dir:File.t -> File.t -> Format.formatter -> test -> unit
+
+val display :
+  build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit
 
 val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
@@ -48,5 +64,6 @@ val set_display_flags :
   ?tests:[ `All | `FailedFile | `Failed | `None ] ->
   ?diffs:bool ->
   ?diff_command:string option option ->
+  ?fix_path:(File.t -> File.t) ->
   unit ->
   unit

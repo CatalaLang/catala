@@ -16,9 +16,9 @@ scope B:
   definition i equal money of (decimal of x)
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[ERROR (1/2)]─
+┌─[ERROR]─ 1/2 ─
 │
 │  Syntax error at "definitoin":
 │  » expected the next item in the scope (rule, definition or assertion), or
@@ -33,8 +33,7 @@ $ catala test-scope A
 │
 │ Maybe you wanted to write: "definition"?
 └─
-
-┌─[ERROR (2/2)]─
+┌─[ERROR]─ 2/2 ─
 │
 │  Syntax error at "equal":
 │  » expected 'under condition' followed by a condition, 'equals' followed by

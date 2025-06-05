@@ -20,7 +20,7 @@ scope Titi:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[WARNING]─
 │
@@ -40,7 +40,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Titi
 ┌─[WARNING]─
 │
@@ -52,7 +52,7 @@ $ catala test-scope Titi
 │ 13 │   toto scope Toto
 │    │   ‾‾‾‾
 └─
-┌─[RESULT]─
+┌─[RESULT]─ Titi ─
 │ fizz = Toto { -- foo: 1,213 }
 │ fuzz = Toto { -- foo: 1,323 }
 └─

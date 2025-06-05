@@ -1,6 +1,6 @@
 ## Unit testing for wildcard in patterns
 
-```catala
+```catala-metadata
 declaration enumeration E:
   -- Case1 content integer
   -- Case2
@@ -38,7 +38,7 @@ scope Simple_case_2:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -48,17 +48,17 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Simple_case_2
-┌─[RESULT]─
+┌─[RESULT]─ Simple_case_2 ─
 │ x = Case3 ()
 │ y = 31
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Simple_case
-┌─[RESULT]─
+┌─[RESULT]─ Simple_case ─
 │ x = Case1 2
 │ y = 31
 └─

@@ -15,7 +15,7 @@ scope A:
 
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -25,7 +25,7 @@ $ catala Typecheck --check-invariants
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[RESULT]─
 │ No errors found during the proof mode run.

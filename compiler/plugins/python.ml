@@ -28,14 +28,13 @@ let run includes output optimize check_invariants closure_conversion options =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops:false
       ~dead_value_assignment:true ~no_struct_literals:false
-      ~monomorphize_types:false ~expand_ops:false
+      ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
       ~renaming:(Some Scalc.To_python.renaming)
   in
 
-  let output_file, with_output = get_output_format options ~ext:".py" output in
   Message.debug "Compiling program into Python...";
-  Message.debug "Writing to %s..." (Option.value ~default:"stdout" output_file);
-  with_output @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
+  get_output_format options ~ext:"py" output
+  @@ fun _ fmt -> Scalc.To_python.format_program fmt prg type_ordering
 
 let term =
   let open Cmdliner.Term in

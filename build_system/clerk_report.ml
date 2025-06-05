@@ -16,39 +16,63 @@
 
 (** This module defines and manipulates Clerk test reports, which can be written
     by `clerk runtest` and read to provide test result summaries. This only
-    concerns inline tests (```catala-test-inline blocks). *)
+    concerns cli tests (```catala-test-cli blocks). *)
 
 open Catala_utils
 
-type test = {
-  success : bool;
-  command_line : string list;
-  expected : Lexing.position * Lexing.position;
-  result : Lexing.position * Lexing.position;
+type pos = Lexing.position * Lexing.position
+
+type inline_test = {
+  i_success : bool;
+  i_command_line : string list;
+  i_expected : pos;
+  i_result : pos;
 }
 
-type file = { name : File.t; successful : int; total : int; tests : test list }
+type scope_test = {
+  s_success : bool;
+  s_name : string;
+  s_command_line : string list;
+  s_errors : (pos * string) list;
+}
+
+type file = {
+  name : File.t;
+  successful : int;
+  total : int;
+  tests : inline_test list;
+  scopes : scope_test list;
+}
 
 type disp_flags = {
   mutable files : [ `All | `Failed | `None ];
   mutable tests : [ `All | `FailedFile | `Failed | `None ];
   mutable diffs : bool;
   mutable diff_command : string option option;
+  mutable fix_path : File.t -> File.t;
 }
 
 let disp_flags =
-  { files = `Failed; tests = `FailedFile; diffs = true; diff_command = None }
+  {
+    files = `Failed;
+    tests = `FailedFile;
+    diffs = true;
+    diff_command = None;
+    fix_path = Fun.id;
+  }
 
 let set_display_flags
     ?(files = disp_flags.files)
     ?(tests = disp_flags.tests)
     ?(diffs = disp_flags.diffs)
     ?(diff_command = disp_flags.diff_command)
+    ?(fix_path = disp_flags.fix_path)
     () =
   disp_flags.files <- files;
   disp_flags.tests <- tests;
   disp_flags.diffs <- diffs;
-  disp_flags.diff_command <- diff_command
+  disp_flags.diff_command <- diff_command;
+  disp_flags.fix_path <- fix_path
 
 let write_to f file =
   File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
@@ -233,19 +257,31 @@ let print_diff ppf p1 p2 =
 let catala_commands_with_output_flag =
   ["makefile"; "html"; "latex"; "ocaml"; "python"; "java"; "r"; "c"]
 
-let pfile ~build_dir f =
-  f
-  |> String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep)
-  |> String.remove_prefix ~prefix:(Sys.getcwd () ^ Filename.dir_sep)
+let pfile =
+  let open File in
+  fun ~build_dir f ->
+    f
+    |> File.remove_prefix (Sys.getcwd ())
+    |> File.remove_prefix build_dir
+    |> File.make_relative_to ~dir:original_cwd
 
 let clean_command_line ~build_dir file cl =
   cl
   |> List.filter_map (fun s ->
          if s = "--directory=" ^ build_dir then None
+         else if String.starts_with ~prefix:"-" s || not (String.contains s '/')
+         then Some s
          else Some (pfile ~build_dir s))
   |> (function
        | catala :: cmd :: args ->
-         catala :: cmd :: "-I" :: Filename.dirname file :: args
+         catala
+         :: cmd
+         ::
+         (let rel_bindir =
+            File.make_relative_to ~dir:File.original_cwd build_dir
+          in
+          if rel_bindir = "_build" then [] else ["--bin=" ^ rel_bindir])
+         @ ("-I" :: pfile ~build_dir (Filename.dirname file) :: args)
        | cl -> cl)
   |> function
   | catala :: cmd :: args
@@ -254,57 +290,94 @@ let clean_command_line ~build_dir file cl =
     (catala :: cmd :: args) @ ["-o -"]
   | cl -> cl
 
+let pp_pos ~build_dir ppf (start, stop) =
+  assert (start.Lexing.pos_fname = stop.Lexing.pos_fname);
+  Format.fprintf ppf "@{<cyan>%s:%d%a@}"
+    (pfile ~build_dir start.Lexing.pos_fname)
+    start.Lexing.pos_lnum
+    (fun ppf n ->
+      if n = start.Lexing.pos_lnum then () else Format.fprintf ppf "-%d" n)
+    stop.Lexing.pos_lnum
+
+let print_command ~build_dir ppf file cmd =
+  Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
+    (clean_command_line ~build_dir file cmd)
+
 let display ~build_dir file ppf t =
-  let pp_pos ppf (start, stop) =
-    assert (start.Lexing.pos_fname = stop.Lexing.pos_fname);
-    Format.fprintf ppf "@{<cyan>%s:%d-%d@}"
-      (pfile ~build_dir start.Lexing.pos_fname)
-      start.Lexing.pos_lnum stop.Lexing.pos_lnum
-  in
-  let print_command () =
-    Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
-      (clean_command_line ~build_dir file t.command_line)
-  in
   Format.pp_open_vbox ppf 2;
-  if t.success then (
-    Format.fprintf ppf "@{<green>■@} %a passed" pp_pos t.expected;
-    if Global.options.debug then print_command ())
+  if t.i_success then (
+    Format.fprintf ppf "@{<green>■@} %a cli test passed" (pp_pos ~build_dir)
+      t.i_expected;
+    if Global.options.debug then
+      print_command ~build_dir ppf file t.i_command_line)
   else (
-    Format.fprintf ppf "@{<red>■@} %a failed" pp_pos t.expected;
-    print_command ();
+    Format.fprintf ppf "@{<red>■@} %a cli test failed" (pp_pos ~build_dir)
+      t.i_expected;
+    print_command ~build_dir ppf file t.i_command_line;
     if disp_flags.diffs then (
       Format.pp_print_cut ppf ();
-      print_diff ppf t.expected t.result));
+      print_diff ppf t.i_expected t.i_result));
+  Format.pp_close_box ppf ()
+
+let display_scope ~build_dir file ppf scope_test =
+  Format.pp_open_vbox ppf 2;
+  if scope_test.s_success then (
+    Format.fprintf ppf "@{<green>■@} scope @{<hi_magenta>%s@} passed"
+      scope_test.s_name;
+    if Global.options.debug then
+      print_command ~build_dir ppf file scope_test.s_command_line)
+  else (
+    Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
+      scope_test.s_name;
+    print_command ~build_dir ppf file scope_test.s_command_line;
+    List.iter
+      (fun (pos, msg) ->
+        Format.fprintf ppf "@,%a %s" (pp_pos ~build_dir) pos msg)
+      scope_test.s_errors);
   Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf t =
-  let pfile f = String.remove_prefix ~prefix:(build_dir ^ Filename.dir_sep) f in
+  let pfile f = pfile ~build_dir f in
   let print_tests tests =
     let tests =
       match disp_flags.tests with
       | `All | `FailedFile -> tests
-      | `Failed -> List.filter (fun t -> not t.success) tests
+      | `Failed -> List.filter (fun t -> not t.i_success) tests
       | `None -> assert false
     in
-    Format.pp_print_break ppf 0 3;
+    if tests <> [] then Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
     Format.pp_print_list (display ~build_dir t.name) ppf tests;
+    Format.pp_close_box ppf ()
+  in
+  let print_scopes scopes =
+    let scopes =
+      match disp_flags.tests with
+      | `All | `FailedFile -> scopes
+      | `Failed -> List.filter (fun s -> not s.s_success) scopes
+      | `None -> assert false
+    in
+    if scopes <> [] then Format.pp_print_break ppf 0 3;
+    Format.pp_open_vbox ppf 0;
+    Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
     Format.pp_close_box ppf ()
   in
   if t.successful = t.total then (
     if disp_flags.files = `All then (
       Format.fprintf ppf
-        "@{<green;reverse;ul>  @} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
+        "@{<green;reverse>__@} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
          passed"
         (pfile t.name) t.successful t.total;
-      if disp_flags.tests = `All then print_tests t.tests;
+      if disp_flags.tests = `All then (
+        print_tests t.tests;
+        print_scopes t.scopes);
       Format.pp_print_cut ppf ()))
   else
     let () =
       match t.successful with
-      | 0 -> Format.fprintf ppf "@{<red;reverse;ul>  @}"
-      | _ -> Format.fprintf ppf "@{<yellow;reverse;ul>  @}"
+      | 0 -> Format.fprintf ppf "@{<red;reverse>__@}"
+      | _ -> Format.fprintf ppf "@{<yellow;reverse>__@}"
     in
     Format.fprintf ppf " @{<cyan>%s@}: " (pfile t.name);
     (function
@@ -312,7 +385,9 @@ let display_file ~build_dir ppf t =
       | n -> Format.fprintf ppf "@{<yellow;bold>%d@}" n)
       t.successful;
     Format.fprintf ppf " / %d tests passed" t.total;
-    if disp_flags.tests <> `None then print_tests t.tests;
+    if disp_flags.tests <> `None then (
+      print_tests t.tests;
+      print_scopes t.scopes);
     Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
@@ -418,7 +493,7 @@ let print_xml ~build_dir tests =
       Format.pp_print_list
         (fun ppf t ->
           Format.fprintf ppf "@[<v 2><testcase line=\"%d\">"
-            (fst t.expected).Lexing.pos_lnum;
+            (fst t.i_expected).Lexing.pos_lnum;
           Format.fprintf ppf
             "@,\
              @[<hv 2><property name=\"description\">@,\
@@ -426,14 +501,40 @@ let print_xml ~build_dir tests =
              <0 -2></property>@]"
             (Format.pp_print_list ~pp_sep:Format.pp_print_space
                Format.pp_print_string)
-            (clean_command_line ~build_dir f.name t.command_line);
-          if not t.success then (
+            (clean_command_line ~build_dir f.name t.i_command_line);
+          if not t.i_success then (
             Format.fprintf ppf
               "@,@[<v 2><failure message=\"Output differs from reference\">@,";
-            print_diff ppf t.expected t.result;
+            print_diff ppf t.i_expected t.i_result;
             Format.fprintf ppf "@]@,</failure>");
           Format.fprintf ppf "@]@,</testcase>")
         ppf f.tests;
+      Format.pp_print_list
+        (fun ppf t ->
+          (match t.s_errors with
+          | ((pos, _), _) :: _ ->
+            Format.fprintf ppf "@[<v 2><testcase name=\"%s\" line=\"%d\">"
+              t.s_name pos.pos_lnum
+          | _ -> Format.fprintf ppf "@[<v 2><testcase name=\"%s\">" t.s_name);
+          Format.fprintf ppf
+            "@,\
+             @[<hv 2><property name=\"description\">@,\
+             @[<hov 2>%a@]@;\
+             <0 -2></property>@]"
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space
+               Format.pp_print_string)
+            (clean_command_line ~build_dir f.name t.s_command_line);
+          if not t.s_success then (
+            Format.fprintf ppf "@,@[<v 2><failure message=\"Scope failed\">@,";
+            Format.pp_print_list
+              (fun ppf (pos, msg) ->
+                pp_pos ~build_dir ppf pos;
+                Format.pp_print_space ppf ();
+                Format.pp_print_string ppf msg)
+              ppf t.s_errors;
+            Format.fprintf ppf "@]@,</failure>");
+          Format.fprintf ppf "@]@,</testcase>")
+        ppf f.scopes;
       Format.fprintf ppf "@]@,</testsuite>")
     ppf tests;
   Format.fprintf ppf "@]@,</testsuites>@,@]@.";

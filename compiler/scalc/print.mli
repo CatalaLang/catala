@@ -14,8 +14,17 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 val format_expr :
   Shared_ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.expr -> unit
+
+val format_statement :
+  Shared_ast.decl_ctx ->
+  ?debug:bool ->
+  Format.formatter ->
+  Ast.stmt Mark.pos ->
+  unit
 
 val format_item :
   Shared_ast.decl_ctx ->

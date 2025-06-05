@@ -72,6 +72,7 @@ module Passes : sig
     keep_special_ops:bool ->
     dead_value_assignment:bool ->
     no_struct_literals:bool ->
+    keep_module_names:bool ->
     monomorphize_types:bool ->
     expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->
@@ -91,10 +92,11 @@ module Commands : sig
   (** bounded open of the expected output file *)
 
   val get_output_format :
-    ?ext:string ->
     Global.options ->
     Global.raw_file option ->
-    string option * ((Format.formatter -> 'a) -> 'a)
+    ?ext:string ->
+    (string option -> Format.formatter -> 'a) ->
+    'a
 
   val get_scope_uid : Shared_ast.decl_ctx -> string -> Shared_ast.ScopeName.t
 

@@ -19,7 +19,7 @@ scope A:
   definition x under condition match y with pattern -- A of a: a < 0 -- B of b: true consequence equals 1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │

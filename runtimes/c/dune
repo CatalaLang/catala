@@ -13,7 +13,7 @@
  (target runtime.o)
  (action
   (system
-   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmp_include_flags} -o %{target}")))
+   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmp_include_flags} -g -o %{target}")))
 
 (rule
  (with-stdout-to

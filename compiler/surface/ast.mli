@@ -325,9 +325,12 @@ type Shared_ast.attr_value += Expression of expression
 type module_items =
   | Code of law_structure list
       (** Used in whole-program to gather all module code *)
-  | Interface of code_block
+  | Interface of (code_item Mark.pos * Shared_ast.visibility) list
       (** Invariant: an interface shall only contain [*Decl] elements, or
-          [Topdef] elements with [topdef_expr = None] (metadata only) *)
+          [Topdef] elements with [topdef_expr = None] (metadata only). The
+          visibility is determined from the presence of the item in a [metadata]
+          block, but might later be promoted due to test annotations or
+          dependencies *)
 
 type module_content = {
   module_modname : program_module;

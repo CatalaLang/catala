@@ -760,6 +760,7 @@ type decl_ctx = {
   ctx_scopes : scope_info ScopeName.Map.t;
   ctx_topdefs : (typ * visibility) TopdefName.Map.t;
   ctx_public_types : TypeIdent.Set.t;
+      (** types that need to be exported in the backend interfaces *)
   ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
       (** needed for disambiguation (desugared -> scope) *)
   ctx_enum_constrs : EnumConstructor.t EnumName.Map.t Ident.Map.t;

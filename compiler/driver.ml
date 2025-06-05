@@ -208,8 +208,7 @@ module Passes = struct
     let prg =
       if autotest then (
         Interpreter.load_runtime_modules
-          ~hashf:
-            Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+          ~hashf:Hash.(finalise ~monomorphize_types:false)
           prg;
         Dcalc.Autotest.program prg)
       else prg
@@ -329,6 +328,7 @@ module Passes = struct
       ~keep_special_ops
       ~dead_value_assignment
       ~no_struct_literals
+      ~keep_module_names
       ~monomorphize_types
       ~expand_ops
       ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
@@ -349,6 +349,7 @@ module Passes = struct
             keep_special_ops;
             dead_value_assignment;
             no_struct_literals;
+            keep_module_names;
             renaming_context;
           }
         prg,
@@ -369,44 +370,33 @@ module Commands = struct
     with Ident.Map.Not_found _ ->
       Message.error "There is no scope \"@{<yellow>%s@}\" inside the program."
         scope
+        ~suggestion:(Ident.Map.keys ctx.ctx_scope_index)
 
-  let get_scopelist_uids (ctx : decl_ctx) (scopes : string list) :
-      ScopeName.t list =
+  let get_scopelist_uids prg (scopes : string list) : ScopeName.t list =
     match scopes with
-    | _ :: _ -> List.map (get_scope_uid ctx) scopes
-    | [] -> (
-      let top_scopes =
-        ScopeName.Map.filter (fun n _ -> ScopeName.path n = []) ctx.ctx_scopes
+    | _ :: _ -> List.map (get_scope_uid prg.decl_ctx) scopes
+    | [] ->
+      let exports = BoundList.last prg.code_items in
+      let test_scopes =
+        List.filter_map
+          (function KTest scope, _ -> Some scope | _ -> None)
+          exports
       in
-      let noinput_scopes =
-        ScopeName.Map.filter
-          (fun _ s ->
-            StructName.Map.find s.in_struct_name ctx.ctx_structs
-            |> StructField.Map.is_empty)
-          top_scopes
-      in
-      match
-        ScopeName.Map.cardinal top_scopes, ScopeName.Map.cardinal noinput_scopes
-      with
-      | 0, _ ->
-        Message.warning "The program defines no scopes";
-        []
-      | _, 0 ->
+      if test_scopes = [] then
         Message.warning
-          "The program defines no scopes without input.@ Please specify option \
-           @{<yellow>--scope@} or @{<yellow>-s@} to force the choice of a \
-           scope.@ The program defines the following scopes:@ @[<hv 4>%a@]"
-          (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-          top_scopes;
-        []
-      | _, _ ->
-        let scopes = ScopeName.Map.keys noinput_scopes in
-        Message.debug
-          "Automatically selecting the following scopes because they don't \
-           need input:@ %a"
+          "The program defines no test scopes.@ Please specify option \
+           @{<yellow>--scope@} to explicit what to execute@ or@ mark@ scopes@ \
+           in@ the@ program@ with@ the@ @{<cyan>#[test]@}@ attribute.@ The \
+           program defines the following scopes:@ @[<hv 4>%a@]"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
-          scopes;
-        scopes)
+          (List.filter_map
+             (function KScope n, _ -> Some n | _ -> None)
+             exports)
+      else
+        Message.debug "Will execute the following test scopes:@ %a"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
+          test_scopes;
+      test_scopes
 
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
@@ -446,19 +436,24 @@ module Commands = struct
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    File.get_out_channel ~source_file:options.Global.input_src ~output_file ?ext
-      ()
+    File.get_main_out_channel ~source_file:options.Global.input_src ~output_file
+      ?ext ()
 
-  let get_output_format ?ext options output_file =
+  let get_output_format options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    File.get_formatter_of_out_channel ~source_file:options.Global.input_src
-      ~output_file ?ext ()
+    fun ?ext f ->
+      let output_file, with_output =
+        File.get_main_out_formatter ~source_file:options.Global.input_src
+          ~output_file ?ext ()
+      in
+      Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
+      with_output (fun ppf -> f output_file ppf)
 
   let makefile options output =
     let prg = Passes.surface options in
     let backend_extensions_list = [".tex"] in
     let source_file = Global.input_src_file options.Global.input_src in
-    let output_file, with_output = get_output options ~ext:".d" output in
+    let output_file, with_output = get_output options ~ext:"d" output in
     Message.debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
     with_output
@@ -483,11 +478,8 @@ module Commands = struct
   let html options output print_only_law wrap_weaved_output =
     let prg = Passes.surface options in
     Message.debug "Weaving literate program into HTML";
-    let output_file, with_output =
-      get_output_format options ~ext:".html" output
-    in
-    with_output
-    @@ fun fmt ->
+    get_output_format options ~ext:"html" output
+    @@ fun output_file fmt ->
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
@@ -518,16 +510,12 @@ module Commands = struct
         extra_files
     in
     Message.debug "Weaving literate program into LaTeX";
-    let output_file, with_output =
-      get_output_format options ~ext:".tex" output
-    in
-    with_output
-    @@ fun fmt ->
+    get_output_format options ~ext:"tex" output
+    @@ fun _output_file fmt ->
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
     in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
-    Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
     let weave fmt =
       weave_output fmt prg;
       List.iter
@@ -587,9 +575,8 @@ module Commands = struct
 
   let scopelang options includes output ex_scopes =
     let prg = Passes.scopelang options ~includes in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | _ :: _ ->
       List.iter
@@ -664,9 +651,8 @@ module Commands = struct
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
       let _, scope_uid = Ident.Map.choose prg.decl_ctx.ctx_scope_index in
@@ -743,40 +729,79 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.disable_counterexamples)
 
-  let print_interpretation_results options interpreter prg scope_uid =
-    Message.debug "Starting interpretation...";
-    let results = interpreter prg scope_uid in
-    Message.debug "End of interpretation";
-    let results =
-      List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
-    in
-    let language =
-      Cli.file_lang (Global.input_src_file options.Global.input_src)
-    in
-    if results = [] then Message.result "Computation successful!"
-    else
-      Message.results
-        (List.map
-           (fun ((var, _), result) ppf ->
-             Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
-               (if options.Global.debug then Print.expr ~debug:false ()
-                else Print.UserFacing.value language)
-               result)
-           results)
+  let print_interpretation_results
+      options
+      ?(quiet = false)
+      interpreter
+      prg
+      scope_uid =
+    try
+      Message.debug "Starting interpretation...";
+      let results = interpreter prg scope_uid in
+      Message.debug "End of interpretation";
+      let results =
+        List.sort
+          (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
+          results
+      in
+      let language =
+        Cli.file_lang (Global.input_src_file options.Global.input_src)
+      in
+      if quiet then
+        (* Caution: this output is parsed by Clerk *)
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
+          ScopeName.format scope_uid
+      else if results = [] then Message.result "Computation successful!"
+      else
+        Message.results
+          ~title:(ScopeName.to_string scope_uid)
+          (List.map
+             (fun ((var, _), result) ppf ->
+               Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+                 (if options.Global.debug then Print.expr ~debug:false ()
+                  else Print.UserFacing.value language)
+                 result)
+             results);
+      true
+    with
+    | Message.CompilerError content ->
+      Message.Content.emit content Error;
+      if quiet then
+        Format.fprintf (Message.std_ppf ()) "%a: @{<red>failed@}@."
+          ScopeName.format scope_uid;
+      false
+    | Message.CompilerErrors contents ->
+      Message.Content.emit_n contents Error;
+      if quiet then
+        Format.fprintf (Message.std_ppf ()) "%a: @{<red>failed@}@."
+          ScopeName.format scope_uid;
+      false
 
-  let interpret_dcalc typed options includes optimize check_invariants ex_scopes
-      =
+  let interpret_dcalc
+      typed
+      options
+      includes
+      optimize
+      check_invariants
+      quiet
+      ex_scopes =
     let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
         ~typed
     in
     Interpreter.load_runtime_modules
-      ~hashf:Hash.(finalise ~closure_conversion:false ~monomorphize_types:false)
+      ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
-    List.iter
-      (print_interpretation_results options Interpreter.interpret_program_dcalc
-         prg)
-      (get_scopelist_uids prg.decl_ctx ex_scopes)
+    let success =
+      List.fold_left
+        (fun success scope ->
+          print_interpretation_results ~quiet options
+            Interpreter.interpret_program_dcalc prg scope
+          && success)
+        true
+        (get_scopelist_uids prg ex_scopes)
+    in
+    if not success then raise (Cli.Exit_with 123)
 
   let lcalc
       typed
@@ -796,9 +821,8 @@ module Commands = struct
         ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
         ~expand_ops ~renaming:(Some Renaming.default)
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scopes with
     | _ :: _ as scopes ->
       List.iter
@@ -847,6 +871,7 @@ module Commands = struct
       includes
       optimize
       check_invariants
+      quiet
       ex_scopes =
     let prg, _, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest:false
@@ -854,12 +879,18 @@ module Commands = struct
         ~expand_ops ~renaming:None
     in
     Interpreter.load_runtime_modules
-      ~hashf:(Hash.finalise ~closure_conversion ~monomorphize_types)
+      ~hashf:(Hash.finalise ~monomorphize_types)
       prg;
-    List.iter
-      (print_interpretation_results options Interpreter.interpret_program_lcalc
-         prg)
-      (get_scopelist_uids prg.decl_ctx ex_scopes)
+    let success =
+      List.fold_left
+        (fun success scope ->
+          print_interpretation_results ~quiet options
+            Interpreter.interpret_program_lcalc prg scope
+          && success)
+        true
+        (get_scopelist_uids prg ex_scopes)
+    in
+    if not success then raise (Cli.Exit_with 123)
 
   let interpret_cmd =
     let f
@@ -887,9 +918,9 @@ module Commands = struct
     Cmd.v
       (Cmd.info "interpret" ~man:Cli.man_base
          ~doc:
-           "Runs the interpreter on the Catala program, executing the scope \
-            specified by the $(b,-s) option assuming no additional external \
-            inputs.")
+           "Runs the interpreter on the Catala program, executing the scopes \
+            specified with the $(b,-s) option, or the scopes marked as \
+            $(i,#[test]) if absent.")
       Term.(
         const f
         $ Cli.Flags.lcalc
@@ -902,6 +933,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
+        $ Cli.Flags.quiet
         $ Cli.Flags.ex_scopes)
 
   let ocaml
@@ -911,25 +943,18 @@ module Commands = struct
       optimize
       check_invariants
       autotest
-      closure_conversion
-      ex_scope_opt =
+      closure_conversion =
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".ml" output
-    in
-    with_output
-    @@ fun fmt ->
     Message.debug "Compiling program into OCaml...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
-    let hashf = Hash.finalise ~closure_conversion ~monomorphize_types:false in
-    Lcalc.To_ocaml.format_program fmt prg ?exec_scope ~hashf type_ordering
+    get_output_format options output
+    @@ fun output_file fmt ->
+    let hashf = Hash.finalise ~monomorphize_types:false in
+    Lcalc.To_ocaml.format_program output_file fmt prg ~hashf type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -943,8 +968,7 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
-        $ Cli.Flags.closure_conversion
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.closure_conversion)
 
   let scalc
       options
@@ -963,12 +987,11 @@ module Commands = struct
     let prg, _, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops ~dead_value_assignment
-        ~no_struct_literals ~monomorphize_types ~expand_ops
-        ~renaming:(Some Renaming.default)
+        ~no_struct_literals ~keep_module_names:false ~monomorphize_types
+        ~expand_ops ~renaming:(Some Renaming.default)
     in
-    let _output_file, with_output = get_output_format options output in
-    with_output
-    @@ fun fmt ->
+    get_output_format options output
+    @@ fun _ fmt ->
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.ctx.decl_ctx scope in
@@ -1016,17 +1039,14 @@ module Commands = struct
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~no_struct_literals:false ~keep_module_names:false
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".py" output
-    in
     Message.debug "Compiling program into Python...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
-    with_output
-    @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
+    get_output_format options output ~ext:"py"
+    @@ fun _output_file fmt ->
+    Scalc.To_python.format_program fmt prg type_ordering
 
   let python_cmd =
     Cmd.v
@@ -1053,15 +1073,13 @@ module Commands = struct
     let prg, _type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~monomorphize_types:false ~expand_ops:false
+        ~no_struct_literals:false ~keep_module_names:true
+        ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_java.renaming)
     in
-    let output_file, with_output =
-      get_output_format options ~ext:".java" output
-    in
     Message.debug "Compiling program into Java...";
-    Message.debug "Writing to %s..."
-      (Option.value ~default:"stdout" output_file);
+    get_output_format options output ~ext:"java"
+    @@ fun output_file ppf ->
     let class_name =
       match output_file, options.Global.input_src with
       | Some file, _
@@ -1069,7 +1087,7 @@ module Commands = struct
         Filename.(remove_extension file |> basename)
       | None, Stdin _ -> "AnonymousClass"
     in
-    with_output @@ fun ppf -> Scalc.To_java.format_program ~class_name ppf prg
+    Scalc.To_java.format_program ~class_name ppf prg
 
   let java_cmd =
     Cmd.v
@@ -1090,27 +1108,13 @@ module Commands = struct
       Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
         ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~monomorphize_types:false ~expand_ops:true
+        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
     in
-    let output_file, with_output = get_output_format options ~ext:".c" output in
-    let out_intf, with_output_intf =
-      match output_file with
-      | Some f when prg.module_name <> None ->
-        let f = File.(f -.- "h") in
-        File.get_formatter_of_out_channel ~source_file:options.Global.input_src
-          ~output_file:(Some f) ~ext:".h" ()
-      | _ -> None, fun pp -> pp (Format.make_formatter (fun _ _ _ -> ()) ignore)
-    in
     Message.debug "Compiling program into C...";
-    Message.debug "Writing to %s / %s..."
-      (Option.value ~default:"stdout" output_file)
-      (Option.value ~default:"no interface output" out_intf);
-    with_output
-    @@ fun ppf_src ->
-    with_output_intf
-    @@ fun ppf_intf ->
-    Scalc.To_c.format_program ~ppf_src ~ppf_intf prg type_ordering
+    get_output_format options output ~ext:"c"
+    @@ fun output_file ppf ->
+    Scalc.To_c.format_program output_file ppf prg type_ordering
 
   let c_cmd =
     Cmd.v
@@ -1125,7 +1129,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
-  let depends options includes prefix extension extra_files =
+  let depends options includes prefix subdir extension extra_files =
     let file = Global.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
@@ -1171,6 +1175,11 @@ module Commands = struct
               f)
             else File.(pfx / f)
         in
+        let f =
+          match subdir with
+          | None -> f
+          | Some d -> File.(dirname f / d / basename f)
+        in
         let f = File.clean_path f in
         if extension = [] then Format.pp_print_string ppf f
         else
@@ -1202,6 +1211,7 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.prefix
+        $ Cli.Flags.subdir
         $ Cli.Flags.extension
         $ Cli.Flags.extra_files)
 

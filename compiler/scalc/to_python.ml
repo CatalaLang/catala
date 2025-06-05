@@ -588,7 +588,9 @@ let format_code_item ctx fmt = function
       func_params (format_block ctx) func_body
 
 let format_tests ctx ppf (p : Ast.program) =
-  if p.tests = [] then
+  let closures, tests = p.tests in
+  assert (closures = []);
+  if tests = [] then
     Message.warning
       "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
       Format.pp_print_text
@@ -600,7 +602,7 @@ let format_tests ctx ppf (p : Ast.program) =
       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
              ScopeName.format ppf s))
-        p.tests
+        tests
     in
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
@@ -614,7 +616,7 @@ let format_tests ctx ppf (p : Ast.program) =
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\")"
           ScopeName.format name)
-      p.tests;
+      tests;
     Format.fprintf ppf "@]@,"
 
 let format_program
@@ -642,5 +644,5 @@ let format_program
   format_ctx type_ordering fmt p.ctx;
   Format.pp_print_cut fmt ();
   Format.pp_print_list (format_code_item p.ctx) fmt p.code_items;
-  format_tests p.ctx fmt p;
+  if snd p.tests <> [] then format_tests p.ctx fmt p;
   Format.pp_print_flush fmt ()

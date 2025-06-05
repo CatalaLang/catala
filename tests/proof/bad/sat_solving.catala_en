@@ -38,7 +38,7 @@ scope A:
 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

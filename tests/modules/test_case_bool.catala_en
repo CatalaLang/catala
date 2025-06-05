@@ -1,7 +1,6 @@
 > Using Bool
 
 ```catala
-#[test]
 declaration scope A_test:
   output aout scope Bool.A
 
@@ -11,7 +10,7 @@ scope A_test:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala interpret -s A_test
 ┌─[ERROR]─
 │

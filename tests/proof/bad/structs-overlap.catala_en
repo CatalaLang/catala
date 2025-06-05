@@ -19,7 +19,7 @@ scope A:
   definition x under condition not (y.a = 0) or not (y.b.c) consequence equals 1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Proof --disable-counterexamples 
 ┌─[WARNING]─
 │

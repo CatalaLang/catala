@@ -18,7 +18,7 @@ class CustomLexer(RegexLexer):
             (u'([^`\\n\\r])', bygroups(Text)),
             (u'(^```catala$)', bygroups(Text), 'code'),
             (u'(^```catala-metadata$)', bygroups(Text), 'code'),
-            (u'(^```catala-test-inline$)', bygroups(Text), 'test'),
+            (u'(^```catala-test-cli$)', bygroups(Text), 'test'),
             ('(\n|\r|\r\n)', Whitespace),
             ('.', Text),
         ],

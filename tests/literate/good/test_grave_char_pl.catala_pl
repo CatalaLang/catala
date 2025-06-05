@@ -27,9 +27,9 @@ Even after `Catala` code block:
 int main(void) { return 0; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope A
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = prawda
 └─
 ```

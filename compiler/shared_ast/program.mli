@@ -32,10 +32,17 @@ val map_scopes :
 
 val map_scopes_env :
   f:
-    (('e boxed -> 'e boxed) ->
+    ('acc ->
+    ('e boxed -> 'e boxed) ->
     ScopeName.t ->
     'e scope_body ->
-    'e scope_body Bindlib.box) ->
+    'acc * 'e scope_body Bindlib.box) ->
+  ?last:
+    ('acc ->
+    ('e boxed -> 'e boxed) ->
+    'e code_export list ->
+    'e code_export list Bindlib.box) ->
+  init:'acc ->
   'e program ->
   'e program
 (** Maps on the scopes in the program, passing along an "environment" in the
@@ -74,5 +81,4 @@ val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 val find_scope : ScopeName.t -> 'e code_item_list -> 'e scope_body
 
 val modules_to_list : module_tree -> (ModuleName.t * module_intf_id) list
-(** Returns a list of used modules, in topological order ; the boolean indicates
-    if the module is external *)
+(** Returns a list of used modules, in topological order *)

@@ -34,7 +34,7 @@ scope B:
 ```
 
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope B
 ┌─[ERROR]─
 │

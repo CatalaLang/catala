@@ -10,7 +10,7 @@ scope Test:
   definition ambiguous equals bday + 18 year <= today 
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala test-scope Test
 ┌─[ERROR]─
 │
