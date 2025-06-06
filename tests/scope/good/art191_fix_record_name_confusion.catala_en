@@ -60,7 +60,10 @@ let scope_a : ScopeA_in.t -> ScopeA.t = fun _ ->
 
 (* Scope ScopeB *)
 let scope_b : ScopeB_in.t -> ScopeB.t = fun _ ->
-  let scope_a__1: ScopeA.t = {ScopeA.a = ((scope_a (())).ScopeA.a)} in
+  let scope_a__1: ScopeA.t =
+    (let result : ScopeA.t = (scope_a (()))
+    in
+    ({ScopeA.a = (result.ScopeA.a)})) in
   let a: bool = scope_a__1.ScopeA.a in
   {ScopeB.a = a}
 ```

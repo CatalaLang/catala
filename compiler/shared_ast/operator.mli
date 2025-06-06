@@ -88,3 +88,11 @@ val resolve_overload :
 (** Some overloads are sugar for an operation with reversed operands, e.g.
     [TRat * TMoney] is using [mult_mon_rat]. [`Reversed] is returned to signify
     this case. *)
+
+(** {2 Utilities} *)
+
+val is_pure : 'a t -> bool
+(** Operators that may print logs, or raise an exceptions, are unpure.
+    Under-approximation: returns [false] for overloaded operators that might be
+    unpure (e.g. addition of date and duration may fail, so this is false for
+    [Add]) *)

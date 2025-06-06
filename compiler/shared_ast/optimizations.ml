@@ -47,8 +47,8 @@ let simplified_apply f args tys =
   | _, [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _)] ->
     (* Never inline lifted closures *)
     EApp { f; args; tys }
-  | _, (EAssert _, _) :: _ ->
-    (* Never skip asserts *)
+  | _, args when List.exists (fun e -> not (Expr.is_pure e)) args ->
+    (* Do not inline unpure expressions *)
     EApp { f; args; tys }
   | (EAbs { binder; _ }, _), _
     when binder_vars_used_at_most_once binder

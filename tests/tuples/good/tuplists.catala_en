@@ -152,13 +152,16 @@ let S : S_in → S =
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
   let r6 : list of (money, decimal) =
+    let lis12 : list of (decimal, money) =
+      map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2
+    in
     map2
       (λ (xy: (decimal, money)) (z: money) →
        let xy_z : ((decimal, money), money) = (xy, z) in
        let xy1 : (decimal, money) = xy_z.0 in
        let z1 : money = xy_z.1 in
        (xy1.1 * xy1.0, xy1.1 / z1))
-      map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2
+      lis12
       lis3
   in
   { S r1 = r1; r2 = r2; r3 = r3; r4 = r4; r5 = r5; r6 = r6; }
