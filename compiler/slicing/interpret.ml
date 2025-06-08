@@ -372,11 +372,11 @@ let interpret
     Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in
-      let v, _ = evaluate_expr_safe p.decl_ctx p.lang (addcustom e) in
+      (*let v, _ = evaluate_expr_safe p.decl_ctx p.lang (addcustom e) in*)
       (*print_newline ();
       print_trace tr;
       print_newline ();*)
-      match v with
+      match Interpreter.evaluate_expr p.decl_ctx p.lang (addcustom e) with
       | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
         begin
         (* At this point, the interpreter seeks to execute the scope but does
@@ -394,6 +394,8 @@ let interpret
         let v2, tr2 = evaluate_expr_safe ctx p.lang e_input in
         print_newline ();
         print_trace tr2;
+        Format.print_newline ();
+        Format_trace.print_trace tr2;
         Format.print_newline ();
         Format.print_string "Result :";
         Format.print_newline();
