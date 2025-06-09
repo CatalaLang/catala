@@ -24,7 +24,9 @@ fun e1 e2 ->
     if Array.for_all2 Bindlib.eq_vars vars1 vars2
     then
       let e = join_expr e1 e2 in 
-      let binder = Bindlib.unbox (Bindlib.bind_mvar vars1 (Bindlib.box e)) in
+      let eboxed = Expr.Box.lift (Expr.rebox e) in
+      let boxed_binder = Bindlib.bind_mvar vars1 eboxed in 
+      let binder = Bindlib.unbox boxed_binder in
       Mark.add m (EAbs { binder; pos; tys })
     else
       Message.error "The two functions cannot be joined because the arguments are not the same"
@@ -95,8 +97,6 @@ fun ctx value trace ->
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
-      (*print_string "Local context : "; print_ctx local_ctx;*)
-      (*print_string "Trying to retreive variables from the local context..."; print_newline();*)
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
           | Some value -> value 
@@ -105,13 +105,12 @@ fun ctx value trace ->
         ) 
         (Array.to_list vars) 
       in
-      (*print_string "Done."; print_newline();*)
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
       let eboxed = Expr.Box.lift (Expr.rebox e) in
       let boxed_binder = Bindlib.bind_mvar vars eboxed in
       let binder2 = Bindlib.unbox boxed_binder in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
-      (List.fold_left join_ctx lctx1 lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
+      (List.fold_left join_ctx local_ctx (lctx1::lctx2)), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
       (* Could certainely reduce the expression again by watching all the operators more closely *) 
       (* For instance lenght function does not need to know the content of an array *)
