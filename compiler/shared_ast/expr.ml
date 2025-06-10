@@ -1020,3 +1020,25 @@ let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in
   make_abs [x, Pos.void] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)
+
+let rec is_pure : type a. (a, 'm) gexpr -> bool =
+ fun e ->
+  let has_debug_print =
+    Global.(options.debug)
+    && get_attr e (function DebugPrint _ -> Some () | _ -> None) <> None
+  in
+  (not has_debug_print)
+  &&
+  match Mark.remove e with
+  | EAppOp { op; args; _ } ->
+    Operator.is_pure (Mark.remove op)
+    && List.fold_left (fun acc e -> acc && is_pure e) true args
+  | EApp { f = EAbs { binder; _ }, _; args; _ } ->
+    List.for_all is_pure args
+    && is_pure
+         (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
+  (* note: if this is too costly, we might over-approximate with [is_pure (snd
+     (Bindlib.unmbind binder))] instead *)
+  | EAbs _ -> true
+  | EApp _ | EScopeCall _ | EAssert _ | EFatalError _ | EErrorOnEmpty _ -> false
+  | _ -> shallow_fold (fun e acc -> acc && is_pure e) e true

@@ -467,6 +467,10 @@ val free_vars : ('a any, 'm) gexpr -> ('a, 'm) gexpr Var.Set.t
 val size : ('a, 'm) gexpr -> int
 (** Used by the optimizer to know when to stop *)
 
+val is_pure : ('a, 'm) gexpr -> bool
+(** If [true], the expression is guaranteed not to have any side-effect
+    (logging, possible failure, or debug print) *)
+
 (** {2 Low-level handling of boxed expressions} *)
 module Box : sig
   (** This module contains helper functions for Bindlib, and wrappers to use
