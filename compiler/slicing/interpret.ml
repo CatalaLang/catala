@@ -403,7 +403,7 @@ let interpret
         print_expr v2;
         Format.print_newline();
         (*print_string "Slicing program...";*)
-        let e_output = Slice.unevaluate ctx v2 tr2 in 
+        let e_output = Slice.slice ctx v2 tr2 in 
         (*print_string "Done.\n";*)
         Format.print_string "Input program :\n";
         Format.print_newline();
