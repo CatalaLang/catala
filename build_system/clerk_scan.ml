@@ -69,7 +69,6 @@ let rec find_test_scope ~lang file =
 
 let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
     =
-  let module L = Surface.Lexer_common in
   let rec parse
       (lines :
         (string * L.line_token * (Lexing.position * Lexing.position)) Seq.t)
@@ -112,7 +111,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       ((* If there are includes, they must be checked for test scopes as well *)
        Lazy.force item.has_scope_tests
       || List.exists
-           (fun f -> find_test_scope ~lang (Mark.remove f))
+           (fun l -> find_test_scope ~lang (Mark.remove l))
            item.included_files)
   in
   { item with has_scope_tests }

@@ -32,6 +32,7 @@ and _ field =
   | Req : { name : string; descr : 'a descr } -> 'a field
   | Opt : { name : string; descr : 'a descr } -> 'a option field
   | Dft : { name : string; descr : 'a descr; default : 'a } -> 'a field
+  | Free : 'a descr -> (string * 'a) field
 
 and _ case =
   | Case : {
@@ -63,32 +64,40 @@ let list d = List d
 let pair a b = Tups (Tup a, Tup b)
 
 let merge_objs l r =
+  let fatal_error e =
+    try e ()
+    with Message.CompilerError content ->
+      (* This is triggered when the descriptor gets evaluated, it's not caught
+         under the driver's main loop: we display it directly as it should be
+         unreachable in a release. *)
+      Message.Content.emit content Error;
+      exit Cmdliner.Cmd.Exit.some_error
+  in
   let rec check_name_clash : type a. S.t -> a descr -> S.t =
    fun acc -> function
     | String | Tup _ | Tups _ | List _ | Union _ -> acc
     | Conv { descr; _ } -> check_name_clash acc descr
-    | Objs (l, r) -> (
+    | Objs (l, r) ->
       let l = check_name_clash S.empty l in
       let r = check_name_clash S.empty r in
       if S.disjoint l r then S.union l r
       else
         let inter = S.inter l r in
-        try
-          Message.error
-            "Invalid TOML encoding: different fields have an identical name %a."
-            Format.(
-              pp_print_list
-                ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-                (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
-            (S.elements inter)
-        with Message.CompilerError content ->
-          (* This is triggered when the descriptor gets evaluated, it's not
-             caught under the driver's main loop: we display it directly as it
-             should be unreachable in a release. *)
-          Message.Content.emit content Error;
-          exit Cmdliner.Cmd.Exit.some_error)
+        fatal_error
+        @@ fun () ->
+        Message.error
+          "Invalid TOML encoding: different fields have an identical name %a."
+          Format.(
+            pp_print_list
+              ~pp_sep:(fun fmt () -> fprintf fmt ", ")
+              (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
+          (S.elements inter)
     | Obj (Req { name; _ }) | Obj (Opt { name; _ }) | Obj (Dft { name; _ }) ->
       S.add name acc
+    | Obj (Free _) ->
+      fatal_error
+      @@ fun () ->
+      Message.error "Invalid TOML encoding: free-name fields can't be combined."
   in
   ignore @@ check_name_clash S.empty (Objs (l, r));
   Objs (l, r)
@@ -98,6 +107,7 @@ let obj2 f2 f1 = merge_objs (obj1 f2) (obj1 f1)
 let obj3 f3 f2 f1 = merge_objs (obj1 f3) (obj2 f2 f1)
 let obj4 f4 f3 f2 f1 = merge_objs (obj2 f4 f3) (obj2 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = merge_objs (obj1 f5) (obj4 f4 f3 f2 f1)
+let binding_list f = List (Obj (Free f))
 
 let merge_tables l r =
   let rec check_name_clash : type a. S.t -> a table_descr -> S.t =
@@ -136,6 +146,7 @@ let table2 f2 f1 = merge_tables f2 f1
 let table3 f3 f2 f1 = merge_tables f3 (table2 f2 f1)
 let table4 f4 f3 f2 f1 = merge_tables (table2 f4 f3) (table2 f2 f1)
 let table5 f5 f4 f3 f2 f1 = merge_tables f5 (table4 f4 f3 f2 f1)
+let table6 f6 f5 f4 f3 f2 f1 = merge_tables (table2 f6 f5) (table4 f4 f3 f2 f1)
 let conv proj inj descr = Conv { proj; inj; descr }
 let conv3 ty = conv (fun (c, b, a) -> c, (b, a)) (fun (c, (b, a)) -> c, b, a) ty
 
@@ -171,9 +182,16 @@ let convt5 ty =
     (fun (e, ((d, c), (b, a))) -> e, d, c, b, a)
     ty
 
+let convt6 ty =
+  convt
+    (fun (f, e, d, c, b, a) -> (f, e), ((d, c), (b, a)))
+    (fun ((f, e), ((d, c), (b, a))) -> f, e, d, c, b, a)
+    ty
+
 let table3 f3 f2 f1 = convt3 (table3 f3 f2 f1)
 let table4 f4 f3 f2 f1 = convt4 (table4 f4 f3 f2 f1)
 let table5 f5 f4 f3 f2 f1 = convt5 (table5 f5 f4 f3 f2 f1)
+let table6 f6 f5 f4 f3 f2 f1 = convt6 (table6 f6 f5 f4 f3 f2 f1)
 let req_field ~name descr = Req { name; descr }
 let opt_field ~name descr = Opt { name; descr }
 let dft_field ~name ~default descr = Dft { name; default; descr }
@@ -321,6 +339,13 @@ let decode_descr (target : target_kind) toml descr =
     | TomlArray arr, Tups (l, r) ->
       let sub_left, sub_right = split_list arr (tups_depth l) in
       loop ~scope (TomlArray sub_left) l, loop ~scope (TomlArray sub_right) r
+    | TomlTable [], List (Obj (Free _)) -> []
+    | TomlTable ((name, v) :: bindings), List (Obj (Free descr1)) ->
+      ( name,
+        loop ~first_obj:false
+          ~scope:{ scope with rev_keys = name :: scope.rev_keys }
+          v descr1 )
+      :: loop ~first_obj:false ~scope (TomlTable bindings) descr
     | _, List _ | _, Tup _ | _, Tups _ ->
       error ~found:toml scope (fun fmt ->
           fprintf fmt "expected @{<bold>an array of values@}")
@@ -500,6 +525,9 @@ let rec encode_descr : type a. a -> a descr -> Otoml.t =
     match v with
     | None -> TomlTable []
     | Some v -> TomlTable [name, encode_descr v descr])
+  | Obj (Free descr) ->
+    let name, content = v in
+    TomlTable [name, encode_descr content descr]
   | Objs (l, r) -> (
     let left, right = v in
     match encode_descr left l, encode_descr right r with

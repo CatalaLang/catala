@@ -15,6 +15,7 @@ node_modules/
 build.ninja
 **/#*
 **/.#*
+*.~*~
 .envrc
 .direnv
 **/__pycache__/

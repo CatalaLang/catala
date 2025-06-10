@@ -144,85 +144,38 @@ let vars_override =
           "Override the given build variable with the given value. Use \
            $(i,clerk list-vars) to list the available variables.")
 
-module Global : sig
-  val color : Catala_utils.Global.when_enum Term.t
-  val debug : bool Term.t
+let config_file =
+  Arg.(
+    value
+    & opt (some file) None
+    & info ["config"] ~docv:"FILE"
+        ~doc:
+          "Clerk configuration file to use, instead of looking up \
+           \"clerk.toml\" in parent directories.")
 
-  val term :
-    (autotest:bool ->
-    config_file:File.t option ->
-    catala_exe:File.t option ->
-    catala_opts:string list ->
-    build_dir:File.t option ->
-    include_dirs:string list ->
-    vars_override:(string * string) list ->
-    color:Global.when_enum ->
-    debug:bool ->
-    ninja_output:File.t option ->
-    'a) ->
-    'a Term.t
-end = struct
-  let config_file =
-    Arg.(
-      value
-      & opt (some file) None
-      & info ["config"] ~docv:"FILE"
-          ~doc:
-            "Clerk configuration file to use, instead of looking up \
-             \"clerk.toml\" in parent directories.")
+let color =
+  Arg.(
+    value
+    & opt ~vopt:Global.Always Cli.when_opt Auto
+    & info ["color"]
+        ~env:(Cmd.Env.info "CATALA_COLOR")
+        ~doc:
+          "Allow output of colored and styled text. Use $(i,auto), to enable \
+           when the standard output is to a terminal, $(i,never) to disable.")
 
-  let color =
-    Arg.(
-      value
-      & opt ~vopt:Global.Always Cli.when_opt Auto
-      & info ["color"]
-          ~env:(Cmd.Env.info "CATALA_COLOR")
-          ~doc:
-            "Allow output of colored and styled text. Use $(i,auto), to enable \
-             when the standard output is to a terminal, $(i,never) to disable.")
+let debug =
+  Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
 
-  let debug =
-    Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
-
-  let ninja_output =
-    Arg.(
-      value
-      & opt (some string) None
-      & info ["o"; "output"] ~docv:"FILE"
-          ~doc:
-            "$(i,FILE) is the file that will contain the build.ninja file \
-             output. If not specified, the build.ninja file is set to \
-             $(i,<builddir>/clerk.ninja) in debug mode, and a temporary file \
-             otherwise")
-
-  let term f =
-    Term.(
-      const
-        (fun
-          autotest
-          config_file
-          catala_exe
-          catala_opts
-          build_dir
-          include_dirs
-          vars_override
-          color
-          debug
-          ninja_output
-        ->
-          f ~autotest ~config_file ~catala_exe ~catala_opts ~build_dir
-            ~include_dirs ~vars_override ~color ~debug ~ninja_output)
-      $ autotest
-      $ config_file
-      $ catala_exe
-      $ catala_opts
-      $ build_dir
-      $ include_dirs
-      $ vars_override
-      $ color
-      $ debug
-      $ ninja_output)
-end
+let ninja_output =
+  Arg.(
+    value
+    & opt (some string) None
+    & info ["o"; "output"] ~docv:"FILE"
+        ~doc:
+          "$(i,FILE) is the file that will contain the build.ninja file \
+           output. If not specified, the build.ninja file is set to \
+           $(i,<builddir>/clerk.ninja) in debug mode, and a temporary file \
+           otherwise")
 
 let files_or_folders =
   Arg.(
@@ -361,3 +314,101 @@ let info =
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "clerk" ~version:Catala_utils.Cli.version ~doc ~exits ~man
+
+(** {2 Initialisation of options} *)
+
+type config = {
+  options : Clerk_config.t;
+  fix_path : File.t -> File.t;
+  ninja_file : File.t option;
+  test_flags : string list;
+}
+
+let init
+    test_flags
+    config_file
+    ninja_file
+    catala_exe
+    catala_opts
+    build_dir
+    include_dirs
+    color
+    debug =
+  let _options = Catala_utils.Global.enforce_options ~debug ~color () in
+  let default_config_file = "clerk.toml" in
+  let set_root_dir dir =
+    Message.debug "Entering directory %a" File.format dir;
+    Sys.chdir dir
+  in
+  (* fix_path adjusts paths specified from the command-line relative to the user
+     cwd to be instead relative to the project root *)
+  let fix_path, config =
+    let from_dir = Sys.getcwd () in
+    match config_file with
+    | None -> (
+      match
+        File.(find_in_parents (fun dir -> exists (dir / default_config_file)))
+      with
+      | Some (root, rel) ->
+        set_root_dir root;
+        ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
+          Clerk_config.read default_config_file )
+      | None -> (
+        match
+          File.(
+            find_in_parents (function dir ->
+                exists (dir / "catala.opam") || exists (dir / ".git")))
+        with
+        | Some (root, rel) ->
+          set_root_dir root;
+          ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
+            Clerk_config.default_config )
+        | None -> Fun.id, Clerk_config.default_config))
+    | Some f ->
+      let root = Filename.dirname f in
+      let config = Clerk_config.read f in
+      set_root_dir root;
+      (fun d -> Catala_utils.File.reverse_path ~from_dir ~to_dir:root d), config
+  in
+  let build_dir =
+    let dir =
+      match build_dir with None -> config.global.build_dir | Some dir -> dir
+    in
+    let d = File.clean_path dir in
+    File.ensure_dir d;
+    d
+    (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
+       default, but Ninja treats relative and absolute paths separately so that
+       you wouldn't then be able to build target _build/foo.ml but would have to
+       write the full path every time *)
+  in
+  {
+    options =
+      {
+        config with
+        global =
+          {
+            build_dir;
+            catala_exe;
+            catala_opts = config.global.catala_opts @ catala_opts;
+            include_dirs = config.global.include_dirs @ include_dirs;
+          };
+      };
+    fix_path;
+    ninja_file;
+    test_flags;
+  }
+
+let init_term ?(allow_test_flags = false) () =
+  let test_flags = if allow_test_flags then test_flags else Term.const [] in
+  Term.(
+    const init
+    $ test_flags
+    $ config_file
+    $ ninja_output
+    $ catala_exe
+    $ catala_opts
+    $ build_dir
+    $ include_dirs
+    $ color
+    $ debug)

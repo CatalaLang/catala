@@ -18,7 +18,7 @@ open Catala_utils
 open Otoml
 
 type backend = ..
-type backend += C | OCaml
+type backend += C | OCaml | Java | Python
 
 let registered_backends = ref []
 
@@ -27,15 +27,18 @@ let register_backend ~name backend =
 
 let () =
   register_backend ~name:"c" C;
-  register_backend ~name:"ocaml" OCaml
+  register_backend ~name:"ocaml" OCaml;
+  register_backend ~name:"java" Java;
+  register_backend ~name:"python" Python
 
 let registered_backends () = !registered_backends
 
 type doc_backend = Html | Latex
 
 type global = {
-  include_dirs : string list;
-  build_dir : string;
+  include_dirs : File.t list;
+  build_dir : File.t;
+  catala_exe : File.t option;
   catala_opts : string list;
 }
 
@@ -59,34 +62,60 @@ type doc = {
   doc_options : string list;
 }
 
+type custom_rule = {
+  backend : backend;
+  in_exts : string list;
+  out_exts : string list;
+  commandline : string list;
+}
+
 type config_file = {
   global : global;
+  variables : (string * string) list;
   modules : module_ list;
   targets : target list;
   docs : doc list;
+  custom_rules : custom_rule list;
 }
 
 type t = config_file
 
 let default_global =
-  { include_dirs = []; catala_opts = []; build_dir = "_build" }
+  {
+    include_dirs = [];
+    catala_exe = None;
+    catala_opts = [];
+    build_dir = "_build";
+  }
 
 let default_config =
-  { global = default_global; modules = []; targets = []; docs = [] }
+  {
+    global = default_global;
+    variables = [];
+    modules = [];
+    targets = [];
+    docs = [];
+    custom_rules = [];
+  }
 
 let project_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { include_dirs; catala_opts; build_dir } ->
-      proj_empty_list include_dirs, proj_empty_list catala_opts, build_dir)
-    (fun (include_dirs, catala_opts, build_dir) ->
+    (fun { include_dirs; catala_exe; catala_opts; build_dir } ->
+      ( proj_empty_list include_dirs,
+        catala_exe,
+        proj_empty_list catala_opts,
+        build_dir ))
+    (fun (include_dirs, catala_exe, catala_opts, build_dir) ->
       {
         include_dirs = inj_empty_list include_dirs;
+        catala_exe;
         catala_opts = inj_empty_list catala_opts;
         build_dir;
       })
-  @@ obj3
+  @@ obj4
        (opt_field ~name:"include_dirs" @@ list string)
+       (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
        (dft_field ~name:"build_dir" ~default:"_build" string)
 
@@ -155,25 +184,50 @@ let doc_encoding =
        @@ union (string_cases ["latex", Latex; "html", Html]))
        (opt_field ~name:"doc_options" @@ list string)
 
+let custom_rule_encoding =
+  let open Clerk_toml_encoding in
+  conv
+    (fun { backend; in_exts; out_exts; commandline } ->
+      backend, in_exts, out_exts, commandline)
+    (fun (backend, in_exts, out_exts, commandline) ->
+      { backend; in_exts; out_exts; commandline })
+  @@ obj4
+       (req_field ~name:"backend"
+       @@ union (string_cases (registered_backends ())))
+       (req_field ~name:"in_exts" @@ list string)
+       (req_field ~name:"out_exts" @@ list string)
+       (req_field ~name:"commandline" @@ list string)
+
+let variables_encoding = Clerk_toml_encoding.(binding_list string)
+
 let raw_config_encoding =
   let open Clerk_toml_encoding in
-  table4
+  table6
     (table_opt ~name:"project" project_encoding)
+    (table_opt ~name:"variables" variables_encoding)
     (multi_table ~name:"module" module_encoding)
     (multi_table ~name:"target" target_encoding)
     (multi_table ~name:"doc" doc_encoding)
+    (multi_table ~name:"rule" custom_rule_encoding)
 
 let config_encoding : config_file Clerk_toml_encoding.t =
   let open Clerk_toml_encoding in
   convt
-    (fun { global; modules; targets; docs } ->
-      Some global, modules, targets, docs)
-    (fun (global, modules, targets, docs) ->
+    (fun { global; variables; modules; targets; docs; custom_rules } ->
+      ( Some global,
+        proj_empty_list variables,
+        modules,
+        targets,
+        docs,
+        custom_rules ))
+    (fun (global, variables, modules, targets, docs, custom_rules) ->
       {
         global = Option.value global ~default:default_global;
+        variables = inj_empty_list variables;
         modules;
         targets;
         docs;
+        custom_rules;
       })
   @@ raw_config_encoding
 

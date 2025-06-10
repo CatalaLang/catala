@@ -85,29 +85,25 @@ module Var = struct
   let ( ! ) = Nj.Var.v
 end
 
-let base_bindings
-    ~catala_exe
-    ~catala_flags:catala_flags0
-    ~build_dir
-    ~include_dirs
-    ?(vars_override = [])
-    ?(test_flags = [])
-    ?(enabled_backends = all_backends)
-    ~autotest
-    () =
+let base_bindings ~autotest ~enabled_backends ~config =
+  let options = config.Clerk_cli.options in
   let includes =
     List.fold_right
       (fun dir flags ->
         if Filename.is_relative dir then
           "-I" :: File.(Var.(!builddir) / dir) :: flags
         else "-I" :: dir :: flags)
-      include_dirs []
+      options.global.include_dirs []
   in
-  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags0 in
+  let catala_flags =
+    ("--directory=" ^ Var.(!builddir)) :: options.global.catala_opts
+  in
+  let test_flags = config.Clerk_cli.test_flags in
+  let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let catala_flags_ocaml =
     (if autotest then ["--autotest"] else [])
     @
-    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    if use_default_flags then ["-O"]
     else
       List.filter
         (function
@@ -117,7 +113,7 @@ let base_bindings
   let catala_flags_c =
     (if autotest then ["--autotest"] else [])
     @
-    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    if use_default_flags then ["-O"]
     else
       List.filter
         (function "-O" | "--optimize" -> true | _ -> false)
@@ -126,7 +122,7 @@ let base_bindings
   let catala_flags_python =
     (if autotest then ["--autotest"] else [])
     @
-    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    if use_default_flags then ["-O"]
     else
       List.filter
         (function
@@ -136,7 +132,7 @@ let base_bindings
   let catala_flags_java =
     (if autotest then ["--autotest"] else [])
     @
-    if test_flags = [] && catala_flags0 = [] then ["-O"]
+    if use_default_flags then ["-O"]
     else
       List.filter
         (function
@@ -145,21 +141,21 @@ let base_bindings
   in
   let def var value =
     let value =
-      match List.assoc_opt (Var.name var) vars_override with
+      match List.assoc_opt (Var.name var) options.variables with
       | Some v -> [v]
       | None -> Lazy.force value
     in
-    Nj.binding var value
+    var, value
   in
   [
     def Var.ninja_required_version (lazy ["1.7"]);
     (* use of implicit outputs *)
-    def Var.builddir (lazy [build_dir]);
+    def Var.builddir (lazy [options.global.build_dir]);
     def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
     def Var.catala_exe
       (lazy
         [
-          (match catala_exe with
+          (match options.global.catala_exe with
           | Some e -> File.check_exec e
           | None -> Lazy.force Poll.catala_exe);
         ]);
@@ -347,7 +343,6 @@ let gen_build_statements
     !Var.tdir / bdir !Var.dst
   in
   let modules = List.rev_map Mark.remove item.used_modules in
-  let included_files = List.map Mark.remove item.included_files in
   let modfile ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
     | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
@@ -360,10 +355,10 @@ let gen_build_statements
       ~inputs:[dir / !Var.src]
       ~implicit_in:
         (List.map
-           (fun f ->
+           (fun (f, _) ->
              if dir / basename f = f then !Var.tdir / basename f
              else !Var.builddir / f)
-           included_files
+           item.included_files
         @ List.map
             (fun m ->
               try !Var.tdir / basename (List.assoc m same_dir_modules)
@@ -537,37 +532,38 @@ let gen_build_statements
        the Clerk level ; this would force an initial scan of the included dirs
        but then we could use the already resolved target files directly and get
        rid of these aliases. *)
-    match Option.map Mark.remove item.module_def with
+    match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Nj.build "phony" ~outputs:[m ^ "@src"] ~inputs:[catala_src]
+      let modname = Mark.remove m in
+      Nj.build "phony" ~outputs:[modname ^ "@src"] ~inputs:[catala_src]
       ::
       (if List.mem OCaml enabled_backends then
          [
            Nj.build "phony"
-             ~outputs:[m ^ "@ocaml-module"]
-             ~inputs:[module_target m];
+             ~outputs:[modname ^ "@ocaml-module"]
+             ~inputs:[module_target modname];
          ]
        else [])
       @ (if List.mem C enabled_backends then
            [
              Nj.build "phony"
-               ~outputs:[m ^ "@c-module"]
-               ~inputs:[modfile ~backend:"c" ".h" m];
+               ~outputs:[modname ^ "@c-module"]
+               ~inputs:[modfile ~backend:"c" ".h" modname];
            ]
          else [])
       @ (if List.mem Python enabled_backends then
            [
              Nj.build "phony"
-               ~outputs:[m ^ "@py-module"]
-               ~inputs:[modfile ~backend:"python" ".py" m];
+               ~outputs:[modname ^ "@py-module"]
+               ~inputs:[modfile ~backend:"python" ".py" modname];
            ]
          else [])
       @
       if List.mem Java enabled_backends then
         [
           Nj.build "phony"
-            ~outputs:[m ^ "@java-module"]
-            ~inputs:[modfile ~backend:"java" ".class" m];
+            ~outputs:[modname ^ "@java-module"]
+            ~inputs:[modfile ~backend:"java" ".class" modname];
         ]
       else []
     | _ -> []
@@ -607,8 +603,9 @@ let gen_build_statements_dir
   let same_dir_modules =
     List.filter_map
       (fun item ->
-        Option.map Mark.remove item.Scan.module_def
-        |> Option.map (fun name -> name, item.Scan.file_name))
+        Option.map
+          (fun name -> Mark.remove name, item.Scan.file_name)
+          item.Scan.module_def)
       items
   in
   let check_conflicts seen item =
@@ -660,166 +657,253 @@ let dir_test_rules dir subdirs enabled_backends items =
       ]
   else Seq.empty
 
-let build_statements include_dirs enabled_backends autotest dir =
-  Scan.tree dir
-  |> Seq.map
-     @@ fun (dir, subdirs, items) ->
-     ( items,
-       Seq.append
-         (gen_build_statements_dir dir include_dirs enabled_backends autotest
-            items)
-         (dir_test_rules dir subdirs enabled_backends items) )
-
-let ( @+ ) = Seq.append
-
-let gen_ninja_file
-    catala_exe
-    catala_flags
-    build_dir
-    include_dirs
-    vars_override
-    test_flags
-    enabled_backends
-    autotest
-    dir =
-  let var_bindings =
-    base_bindings ~catala_exe ~catala_flags ~build_dir ~include_dirs
-      ~vars_override ~test_flags ~enabled_backends ~autotest ()
+let output_ninja_file
+    nin_ppf
+    ~config
+    ~enabled_backends
+    ~autotest
+    ~var_bindings
+    item_tree =
+  let pp nj =
+    Nj.format_def nin_ppf nj;
+    Format.pp_print_cut nin_ppf ()
   in
-  let prologue =
-    Seq.return
-      (Nj.Comment
-         (Printf.sprintf "File generated by Clerk v.%s\n"
-            Catala_utils.Cli.version))
-    @+ Seq.return (Nj.Comment "- Global variables - #\n")
-    @+ List.to_seq var_bindings
-    @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
-    @+ List.to_seq (static_base_rules enabled_backends)
-    @+ Seq.return (Nj.Comment "\n- Project-specific build statements - #")
+  pp
+    (Nj.Comment
+       (Printf.sprintf "File generated by Clerk v.%s\n" Catala_utils.Cli.version));
+  pp (Nj.Comment "- Global variables - #\n");
+  List.iter (fun (var, contents) -> pp (Nj.binding var contents)) var_bindings;
+  pp (Nj.Comment "\n- Base rules - #\n");
+  List.iter pp (static_base_rules enabled_backends);
+  pp (Nj.Comment "\n- Project-specific build statements - #");
+  let rec print_and_get_items seq () =
+    match seq () with
+    | Seq.Cons ((dir, subdirs, items), seq) ->
+      Nj.format nin_ppf
+      @@ gen_build_statements_dir dir
+           config.Clerk_cli.options.global.include_dirs enabled_backends
+           autotest items;
+      Nj.format nin_ppf @@ dir_test_rules dir subdirs enabled_backends items;
+      Seq.append (List.to_seq items) (print_and_get_items seq) ()
+    | Seq.Nil ->
+      pp (Nj.Comment "\n- Global rules and defaults - #\n");
+      if List.mem Tests enabled_backends then
+        pp
+          (Nj.build "phony" ~outputs:["test"]
+             ~inputs:[File.(Var.(!builddir / ".@test"))]);
+      Seq.Nil
   in
-  let items, main =
-    Seq.unzip (build_statements include_dirs enabled_backends autotest dir)
-  in
-  ( (prologue
-    @+ Seq.concat main
-    @+
-    if List.mem Tests enabled_backends then
-      Seq.return (Nj.build "phony" ~outputs:["test"] ~inputs:[".@test"])
-    else Seq.empty),
-    Seq.flat_map List.to_seq items,
-    List.filter_map (function Nj.Binding b -> Some b | _ -> None) var_bindings )
+  Seq.memoize (print_and_get_items (Seq.once item_tree))
 
 (** {1 Driver} *)
 
-(* Last argument is a continuation taking as arguments the enabled backends,
-   [build_dir], the [fix_path] function, and the ninja file name *)
-let ninja_init
+let cleaned_up_env () =
+  let passthrough_vars =
+    ["CATALA_BIN="; "CATALA_INCLUDE="; "CATALA_TEST_FLAGS="]
+  in
+  Unix.environment ()
+  |> Array.to_seq
+  |> Seq.filter (fun s ->
+         (not (String.starts_with ~prefix:"CATALA_" s))
+         || List.exists
+              (fun prefix -> String.starts_with ~prefix s)
+              passthrough_vars
+         ||
+         (Message.warning "Ignoring environment variable %s" s;
+          false))
+  |> Array.of_seq
+
+let ninja_exec = try Sys.getenv "NINJA_BIN" with Not_found -> "ninja"
+
+let ninja_version =
+  lazy
+    (try
+       File.process_out
+         ~check_exit:(function 0 -> () | _ -> raise Exit)
+         ninja_exec ["--version"]
+       |> String.split_on_char '.'
+       |> List.map int_of_string
+     with Exit | Failure _ -> [])
+
+let with_ninja_process
+    ~config
+    ~clean_up_env
+    ~ninja_flags
+    ?(quiet = not Global.options.debug)
+    (callback : Format.formatter -> 'a) =
+  let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
+  let fname =
+    match config.Clerk_cli.ninja_file with
+    | Some fname -> Some fname
+    | None ->
+      if Global.options.debug then
+        Some File.(config.options.global.build_dir / "clerk.ninja")
+      else None
+  in
+  let ninja_process nin_file nin_fd =
+    let args =
+      let ninja_flags =
+        if quiet && Lazy.force ninja_version >= [1; 12] then
+          "--quiet" :: ninja_flags
+        else ninja_flags
+      in
+      ("-f" :: nin_file :: ninja_flags)
+      @ if Catala_utils.Global.options.debug then ["-v"] else []
+    in
+    let cmdline = ninja_exec :: args in
+    Message.debug "executing '%s'..." (String.concat " " cmdline);
+    let npid =
+      Unix.create_process_env ninja_exec (Array.of_list cmdline) env nin_fd
+        Unix.stdout Unix.stderr
+    in
+    let rec wait () =
+      match Unix.waitpid [] npid with
+      | _, Unix.WEXITED n -> n
+      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+      | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+    in
+    ( npid,
+      fun () ->
+        match wait () with 0 -> () | n -> raise (Catala_utils.Cli.Exit_with n) )
+  in
+  match fname with
+  | Some fname ->
+    let ret = File.with_formatter_of_file fname callback in
+    let _, wait = ninja_process fname Unix.stdin in
+    wait ();
+    ret
+  | None when Sys.os_type = "Win32" ->
+    (* ninja requires the name of the file on the cli. No /dev/stdin on
+       Windows *)
+    File.with_temp_file "clerk_build_" ".ninja"
+    @@ fun fname ->
+    let ret = File.with_formatter_of_file fname callback in
+    let _, wait = ninja_process fname Unix.stdin in
+    wait ();
+    ret
+  | None ->
+    let ninja_in, clerk_out = Unix.pipe ~cloexec:true () in
+    let npid, wait = ninja_process "/dev/stdin" ninja_in in
+    let callback_ret =
+      try
+        Unix.close ninja_in;
+        File.with_formatter_of_out_channel
+          (Unix.out_channel_of_descr clerk_out)
+          callback
+      with e ->
+        let bt = Printexc.get_raw_backtrace () in
+        Message.debug "Exception caught, killing the ninja sub-process";
+        Unix.kill npid Sys.sigkill;
+        (try wait () with _ -> ());
+        Unix.close clerk_out;
+        Printexc.raise_with_backtrace e bt
+    in
+    Unix.close clerk_out;
+    wait ();
+    callback_ret
+
+let run_ninja
+    ~config
+    ?(enabled_backends = all_backends)
     ~autotest
-    ~config_file
-    ~catala_exe
-    ~catala_opts
-    ~build_dir
-    ~include_dirs
-    ~vars_override
-    ~color
-    ~debug
-    ~ninja_output :
-    enabled_backends:backend list ->
-    extra:Nj.def Seq.t ->
-    test_flags:string list ->
-    (build_dir:File.t ->
-    fix_path:(File.t -> File.t) ->
-    nin_file:File.t ->
-    items:Scan.item Seq.t ->
-    var_bindings:Nj.Binding.t list ->
-    'a) ->
-    'a =
-  let _options = Catala_utils.Global.enforce_options ~debug ~color () in
-  let default_config_file = "clerk.toml" in
-  let set_root_dir dir =
-    Message.debug "Entering directory %a" File.format dir;
-    Sys.chdir dir
+    ?(clean_up_env = false)
+    ?(ninja_flags = [])
+    callback =
+  let enabled_backends =
+    if autotest then OCaml :: enabled_backends else enabled_backends
   in
-  (* fix_path adjusts paths specified from the command-line relative to the user
-     cwd to be instead relative to the project root *)
-  let fix_path, config =
-    let from_dir = Sys.getcwd () in
-    match config_file with
-    | None -> (
-      match
-        File.(find_in_parents (fun dir -> exists (dir / default_config_file)))
-      with
-      | Some (root, rel) ->
-        set_root_dir root;
-        ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
-          Clerk_config.read default_config_file )
-      | None -> (
-        match
-          File.(
-            find_in_parents (function dir ->
-                exists (dir / "catala.opam") || exists (dir / ".git")))
-        with
-        | Some (root, rel) ->
-          set_root_dir root;
-          ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
-            Clerk_config.default_config )
-        | None -> Fun.id, Clerk_config.default_config))
-    | Some f ->
-      let root = Filename.dirname f in
-      let config = Clerk_config.read f in
-      set_root_dir root;
-      ( (fun d ->
-          let r = Catala_utils.File.reverse_path ~from_dir ~to_dir:root d in
-          Message.debug "%a => %a" File.format d File.format r;
-          r),
-        config )
-  in
-  let build_dir =
-    let dir =
-      match build_dir with None -> config.global.build_dir | Some dir -> dir
-    in
-    let d = File.clean_path dir in
-    File.ensure_dir d;
-    d
-    (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
-       default, but Ninja treats relative and absolute paths separately so that
-       you wouldn't then be able to build target _build/foo.ml but would have to
-       write the full path every time *)
-  in
-  let catala_opts = config.global.catala_opts @ catala_opts in
-  let include_dirs = config.global.include_dirs @ include_dirs in
-  let with_ninja_output k =
-    match ninja_output with
-    | Some f -> k f
-    | None when debug -> k File.(build_dir / "clerk.ninja")
-    | None -> File.with_temp_file "clerk_build_" ".ninja" k
-  in
-  fun ~enabled_backends ~extra ~test_flags k ->
-    Message.debug "building ninja rules...";
-    let enabled_backends =
-      if autotest && not (List.mem OCaml enabled_backends) then
-        OCaml :: enabled_backends
-      else enabled_backends
-    in
-    let build_dir =
-      match test_flags with
-      | [] -> build_dir
-      | flags -> File.((build_dir / "test") ^ String.concat "" flags)
-    in
-    with_ninja_output
-    @@ fun nin_file ->
-    let items, var_bindings =
-      File.with_formatter_of_file nin_file (fun nin_ppf ->
-          let ninja_contents, build_items, var_bindings =
-            gen_ninja_file catala_exe catala_opts build_dir include_dirs
-              vars_override test_flags enabled_backends autotest "."
-          in
-          let ninja_contents =
-            ninja_contents
-            @+ Seq.return (Nj.comment "\n - Command-specific targets - #")
-            @+ extra
-          in
-          Nj.format nin_ppf ninja_contents;
-          build_items, var_bindings)
-    in
-    k ~build_dir ~fix_path ~nin_file ~items ~var_bindings
+  let var_bindings = base_bindings ~config ~enabled_backends ~autotest in
+  with_ninja_process ~config ~clean_up_env ~ninja_flags (fun nin_ppf ->
+      let item_tree = Scan.tree "." in
+      let items =
+        output_ninja_file nin_ppf ~config ~enabled_backends ~autotest
+          ~var_bindings item_tree
+      in
+      let ret = callback nin_ppf (List.of_seq items) var_bindings in
+      Format.pp_print_newline nin_ppf ();
+      ret)
+
+(* let init
+ *     ~config ~enabled_backends ~autotest ~targets callback =
+ *   let enabled_backends =
+ *     if autotest then OCaml :: enabled_backends else enabled_backends
+ *   in
+ *   let enabled_backends =
+ *     List.fold_left (fun acc t -> target_backend t :: acc) enabled_backends targets
+ *     |> List.sort_uniq Stdlib.compare
+ *   in
+ *   let with_ninja_file ~config ~enabled_backends ~autotest item_tree callback =
+ *     let with_ninja_output k =
+ *       match config.Clerk_cli.ninja_file with
+ *       | Some f -> k f
+ *       | None when Global.options.debug -> k File.(config.options.global.build_dir / "clerk.ninja")
+ *       | None -> File.with_temp_file "clerk_build_" ".ninja" k
+ *     in
+ *     let var_bindings =
+ *       base_bindings ~config ~enabled_backends ~autotest
+ *     in
+ *     with_ninja_output @@ fun nin_file ->
+ *     File.with_formatter_of_file nin_file @@ fun nin_ppf -> ()
+ * 
+ * 
+ * 
+ * let with_ninja_process
+ *     ~config ~enabled_backends ~autotest ~targets ~clean_up_env callback =
+ *   init ~config ~enabled_backends ~autotest ~targets
+ *     (fun nin_file nin_ppf items var_bindings ->
+ *        let wait_for_ninja = run_command ~clean_up_env in
+ *        let ret = callback nin_ppf items var_bindings in
+ *        Seq.iter ignore items;
+ *        Format.pp_print_flush nin_ppf ();
+ *        close_out (Format.get *)
+
+(* Last argument is a continuation taking as arguments the enabled backends,
+ *    [build_dir], the [fix_path] function, and the ninja file name *\)
+ * let ninja_init
+ *     ~config
+ *     ~autotest
+ *     ~ninja_output :
+ *     targets: string list ->
+ *     enabled_backends:backend list ->
+ *     test_flags:string list ->
+ *     (extra:(Nj.def Seq.t -> unit) ->
+ *      build_dir:File.t ->
+ *      fix_path:(File.t -> File.t) ->
+ *      nin_file:File.t ->
+ *      items:Scan.item Seq.t ->
+ *      var_bindings:Nj.Binding.t list ->
+ *      'a) ->
+ *     'a =
+ *   let with_ninja_output k =
+ *     match ninja_output with
+ *     | Some f -> k f
+ *     | None when debug -> k File.(build_dir / "clerk.ninja")
+ *     | None -> File.with_temp_file "clerk_build_" ".ninja" k
+ *   in
+ *   fun ~targets ~enabled_backends ~test_flags k ->
+ *     Message.debug "building ninja rules...";
+ *     let enabled_backends =
+ *       if autotest && not (List.mem OCaml enabled_backends) then
+ *         OCaml :: enabled_backends
+ *       else enabled_backends
+ *     in
+ *     let build_dir =
+ *       match test_flags with
+ *       | [] -> build_dir
+ *       | flags -> File.((build_dir / "test") ^ String.concat "" flags)
+ *     in
+ *     with_ninja_output
+ *     @@ fun nin_file ->
+ *     File.with_formatter_of_file nin_file (fun nin_ppf ->
+ *         let ninja_contents, build_items, var_bindings =
+ *           gen_ninja_file catala_exe catala_opts build_dir include_dirs
+ *             vars_override test_flags enabled_backends autotest "."
+ *         in
+ *         Nj.format nin_ppf ninja_contents;
+ *         let extra e =
+ *           Nj.format nin_ppf
+ *             (Seq.cons
+ *                (Nj.comment "\n - Command-specific targets - #")
+ *                e)
+ *         in
+ *         k ~extra ~build_dir ~fix_path ~nin_file ~items:build_items ~var_bindings) *)

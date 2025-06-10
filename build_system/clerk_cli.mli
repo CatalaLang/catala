@@ -16,6 +16,7 @@
    the License. *)
 
 open Cmdliner
+open Catala_utils
 
 val catala_exe : string option Term.t
 val catala_opts : string list Term.t
@@ -28,26 +29,6 @@ val runtest_out : string option Term.t
 val backend : [> `C | `Interpret | `OCaml | `Python | `Java ] Term.t
 val run_command : string Term.t
 val vars_override : (string * string) list Term.t
-
-module Global : sig
-  val color : Catala_utils.Global.when_enum Term.t
-  val debug : bool Term.t
-
-  val term :
-    (autotest:bool ->
-    config_file:Catala_utils.File.t option ->
-    catala_exe:Catala_utils.File.t option ->
-    catala_opts:string list ->
-    build_dir:Catala_utils.File.t option ->
-    include_dirs:string list ->
-    vars_override:(string * string) list ->
-    color:Catala_utils.Global.when_enum ->
-    debug:bool ->
-    ninja_output:Catala_utils.File.t option ->
-    'a) ->
-    'a Term.t
-end
-
 val files_or_folders : string list Term.t
 val files : string list Term.t
 val single_file : string Term.t
@@ -59,3 +40,22 @@ val report_xml : bool Term.t
 val diff_command : string option option Term.t
 val ninja_flags : string list Term.t
 val info : Cmd.info
+
+val color : Global.when_enum Term.t
+(** Already included in [init_term] *)
+
+val debug : bool Term.t
+(** Already included in [init_term] *)
+
+(** {2 Initialisation of options} *)
+
+type config = {
+  options : Clerk_config.t;
+  fix_path : File.t -> File.t;
+  ninja_file : File.t option;
+  test_flags : string list;
+}
+
+val init_term : ?allow_test_flags:bool -> unit -> config Term.t
+(** Reads the supplied command-line flags and configuration file and runs
+    globals initialisation routines *)

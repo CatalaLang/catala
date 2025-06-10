@@ -48,37 +48,22 @@ module Var : sig
 end
 
 val base_bindings :
-  catala_exe:File.t option ->
-  catala_flags:string list ->
-  build_dir:File.t ->
-  include_dirs:File.t list ->
-  ?vars_override:(string * string) list ->
-  ?test_flags:string list ->
+  autotest:bool ->
+  enabled_backends:backend list ->
+  config:Clerk_cli.config ->
+  (Var.t * string list) list
+
+val run_ninja :
+  config:Clerk_cli.config ->
   ?enabled_backends:backend list ->
   autotest:bool ->
-  unit ->
-  Ninja_utils.def list
-
-val ninja_init :
-  autotest:bool ->
-  config_file:File.t option ->
-  catala_exe:File.t option ->
-  catala_opts:string list ->
-  build_dir:File.t option ->
-  include_dirs:File.t list ->
-  vars_override:(string * string) list ->
-  color:Global.when_enum ->
-  debug:bool ->
-  ninja_output:File.t option ->
-  enabled_backends:backend list ->
-  extra:Ninja_utils.def Seq.t ->
-  test_flags:string list ->
-  (build_dir:File.t ->
-  fix_path:(File.t -> File.t) ->
-  nin_file:File.t ->
-  items:Clerk_scan.item Seq.t ->
-  var_bindings:Ninja_utils.Binding.t list ->
-  'a) ->
+  ?clean_up_env:bool ->
+  ?ninja_flags:string list ->
+  (Format.formatter -> Clerk_scan.item list -> (Var.t * string list) list -> 'a) ->
   'a
-(** The last argument is a continuation that will be executed upon the generated
-    ninja file *)
+(** Scan the source tree, run a ninja process, and send to it the expected build
+    instructions. A callback can be supplied to retrieve the source items, and
+    optionally add entries to the ninja file.
+
+    By default, all backends are enabled, the env is not cleaned of CATALA_*
+    variables *)
