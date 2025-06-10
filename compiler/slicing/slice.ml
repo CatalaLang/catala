@@ -24,15 +24,15 @@ fun e1 e2 ->
     if Array.for_all2 Bindlib.eq_vars vars1 vars2
     then
       let e = join_expr e1 e2 in 
-      let eboxed = Expr.Box.lift (Expr.rebox e) in
-      let boxed_binder = Bindlib.bind_mvar vars1 eboxed in 
+      let eboxed = Expr.rebox e in
+      let boxed_binder = Expr.bind vars1 eboxed in 
       let binder = Bindlib.unbox boxed_binder in
       Mark.add m (EAbs { binder; pos; tys })
     else
       Message.error "The two functions cannot be joined because the arguments are not the same"
   | ECustom { obj = o1; targs = _; tret = _ }, ECustom { obj = o2; targs = _; tret = _ } 
     when o1 = o2 -> e1 
-  | EVar x1, EVar x2 when x1 = x2 -> e1 
+  | EVar x1, EVar x2 when Bindlib.eq_vars x1 x2 -> e1 
   | EExternal { name = n1 }, EExternal { name = n2 } when n1 = n2 -> e1
   | EApp { f = f1; args = a1; tys }, EApp { f = f2; args = a2; tys = _} ->
     Mark.add m (EApp { f = join_expr f1 f2; args = List.map2 join_expr a1 a2; tys })
@@ -96,33 +96,19 @@ fun ctx value trace ->
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
-      let vars_list = Array.to_list vars in
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
           | Some value -> value 
           (*if the variable is not in the context, then it was not used in the body hence we can assign it a hole*)
           | None -> Mark.add m (EHole tany) 
         ) 
-        vars_list
+        (Array.to_list vars)
       in
-      (*
-      let rec list_fold_right4 f l1 l2 l3 l4 accu =
-        match (l1, l2, l3, l4) with
-          ([], [], [], []) -> accu
-        | (a1::l1, a2::l2, a3::l3, a4::l4) -> f a1 a2 a3 a4 (list_fold_right4 f l1 l2 l3 l4 accu)
-        | _ -> assert false
-      in
-      let useful_vars, pos, tys = list_fold_right4
-        (fun var p t e (vars, pos, tys) -> match Mark.remove e with EHole _ -> (vars, pos, tys) | _ -> (var::vars, p::pos, t::tys) )
-        vars_list pos tys values ([], [], [])
-      in*)
-      let useful_vars = vars_list in 
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
-      let eboxed = Expr.Box.lift (Expr.rebox e) in
-      let boxed_binder = Bindlib.bind_mvar (Array.of_list useful_vars) eboxed in
+      let eboxed = Expr.rebox e in
+      let boxed_binder = Expr.bind vars eboxed in
       let binder2 = Bindlib.unbox boxed_binder in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
-      (* remove here non useful declarations in e1 *)
       (List.fold_left join_ctx local_ctx (lctx1::lctx2)), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
       (* Could certainely reduce the expression again by watching all the operators more closely *) 
@@ -257,11 +243,6 @@ let del_useless_declarations e =
       ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
       = function
     | EApp { f = EAbs { binder; pos; tys }, mf; args; _ }, m -> (
-      (*let vars, body = Bindlib.unmbind binder in
-      let body = f body in
-      let binder = bind (Array.map Var.translate vars) body in
-      let tys = List.map typ tys in
-      eabs binder pos tys m*)
       let vars, body = Bindlib.unmbind binder in
       let body = Expr.map ~f body in
       let useful_vars, pos, tys, args = list_fold_right4
