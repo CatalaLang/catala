@@ -74,9 +74,8 @@ val get_mark_witness : (_ any, 'm) gexpr program -> 'm mark
 val untype : ('a any, _) gexpr program -> ('a, untyped) gexpr program
 
 val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
-(** Usage: [build_whole_program_expr program main_scope] builds an expression
-    corresponding to the main program and returning the main scope as a
-    function. *)
+(** Usage: [to_expr program main_scope] builds an expression corresponding to
+    the main program and returning the main scope as a function. *)
 
 val find_scope : ScopeName.t -> 'e code_item_list -> 'e scope_body
 
