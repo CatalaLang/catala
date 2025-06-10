@@ -91,25 +91,38 @@ fun ctx value trace ->
     (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
       when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
-    | EAbs { binder = _; pos = _; tys = t1 }, TrAbs { binder = _; pos = _; tys = t2 }
-      when t1 = t2 -> Var.Map.empty, v
+    | EAbs _, TrAbs _ -> Var.Map.empty, v
     | _, TrVar x -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
+      let vars_list = Array.to_list vars in
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
           | Some value -> value 
           (*if the variable is not in the context, then it was not used in the body hence we can assign it a hole*)
           | None -> Mark.add m (EHole tany) 
         ) 
-        (Array.to_list vars) 
+        vars_list
       in
+      (*
+      let rec list_fold_right4 f l1 l2 l3 l4 accu =
+        match (l1, l2, l3, l4) with
+          ([], [], [], []) -> accu
+        | (a1::l1, a2::l2, a3::l3, a4::l4) -> f a1 a2 a3 a4 (list_fold_right4 f l1 l2 l3 l4 accu)
+        | _ -> assert false
+      in
+      let useful_vars, pos, tys = list_fold_right4
+        (fun var p t e (vars, pos, tys) -> match Mark.remove e with EHole _ -> (vars, pos, tys) | _ -> (var::vars, p::pos, t::tys) )
+        vars_list pos tys values ([], [], [])
+      in*)
+      let useful_vars = vars_list in 
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
       let eboxed = Expr.Box.lift (Expr.rebox e) in
-      let boxed_binder = Bindlib.bind_mvar vars eboxed in
+      let boxed_binder = Bindlib.bind_mvar (Array.of_list useful_vars) eboxed in
       let binder2 = Bindlib.unbox boxed_binder in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
+      (* remove here non useful declarations in e1 *)
       (List.fold_left join_ctx local_ctx (lctx1::lctx2)), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
       (* Could certainely reduce the expression again by watching all the operators more closely *) 
@@ -230,3 +243,64 @@ fun ctx value trace ->
     )
     | _ -> Message.error "The trace does not match the value"
   in snd (unevaluate_aux value trace)
+
+let rec list_fold_right4 f l1 l2 l3 l4 accu =
+  match (l1, l2, l3, l4) with
+    ([], [], [], []) -> accu
+  | (a1::l1, a2::l2, a3::l3, a4::l4) -> f a1 a2 a3 a4 (list_fold_right4 f l1 l2 l3 l4 accu)
+  | _ -> assert false
+
+let del_useless_declarations e =
+  let rec f :
+      type d c.
+      ((d, c, yes) slicing_interpr_kind, 't) gexpr -> 
+      ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
+      = function
+    | EApp { f = EAbs { binder; pos; tys }, mf; args; _ }, m -> (
+      (*let vars, body = Bindlib.unmbind binder in
+      let body = f body in
+      let binder = bind (Array.map Var.translate vars) body in
+      let tys = List.map typ tys in
+      eabs binder pos tys m*)
+      let vars, body = Bindlib.unmbind binder in
+      let body = Expr.map ~f body in
+      let useful_vars, pos, tys, args = list_fold_right4
+        (fun var p t e (vars, pos, tys, args) -> match Mark.remove e with 
+          | EHole _ -> (vars, pos, tys, args) 
+          | _ -> (var::vars, p::pos, t::tys, (Expr.map ~f e)::args) )
+        (Array.to_list vars) pos tys args ([], [], [], [])
+      in
+      if useful_vars <> [] then
+        let binder = Expr.bind (Array.of_list useful_vars) body in
+        Expr.eapp ~f:(Expr.eabs binder pos tys mf) ~args ~tys m
+      else 
+        body
+    )
+    | (EHole _, _) as e -> Expr.map ~f e
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  Expr.unbox (f e)
+
+
+let slice :
+type c t.
+  decl_ctx ->
+  ((yes, c, yes) slicing_interpr_kind, t) gexpr ->
+  ((yes, c, yes) slicing_interpr_kind, t) Trace_ast.t ->
+  ((yes, c, yes) slicing_interpr_kind, t) gexpr =
+fun ctx value trace -> 
+  let expr = unevaluate ctx value trace in
+  del_useless_declarations expr
