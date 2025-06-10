@@ -1,9 +1,9 @@
 open Catala_utils
 open Shared_ast
 
-(*let slice_trace (trace_with_holes : ('a, 'm) Trace_ast.t) : 'a program = assert false*)
-
 let get_fields (ctx:decl_ctx) name = StructName.Map.find name ctx.ctx_structs
+
+let bind vars expr = Bindlib.unbox (Expr.bind vars (Expr.rebox expr))
 
 let rec join_expr : 
   type d t. 
@@ -23,11 +23,8 @@ fun e1 e2 ->
     let vars2, e2 = Bindlib.unmbind b2 in
     if Array.for_all2 Bindlib.eq_vars vars1 vars2
     then
-      let e = join_expr e1 e2 in 
-      let eboxed = Expr.rebox e in
-      let boxed_binder = Expr.bind vars1 eboxed in 
-      let binder = Bindlib.unbox boxed_binder in
-      Mark.add m (EAbs { binder; pos; tys })
+      let e = join_expr e1 e2 in
+      Mark.add m (EAbs { binder = bind vars1 e; pos; tys })
     else
       Message.error "The two functions cannot be joined because the arguments are not the same"
   | ECustom { obj = o1; targs = _; tret = _ }, ECustom { obj = o2; targs = _; tret = _ } 
@@ -105,10 +102,7 @@ fun ctx value trace ->
         (Array.to_list vars)
       in
       let lctx2, e2 = List.split(List.map2 unevaluate_aux values trargs) in
-      let eboxed = Expr.rebox e in
-      let boxed_binder = Expr.bind vars eboxed in
-      let binder2 = Bindlib.unbox boxed_binder in
-      let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = binder2 ; pos ; tys})) trf in
+      let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf in
       (List.fold_left join_ctx local_ctx (lctx1::lctx2)), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op; trargs; tys; vargs } -> (* may need to verify that op(vargs) = v *)
       (* Could certainely reduce the expression again by watching all the operators more closely *) 
