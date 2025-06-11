@@ -55,6 +55,7 @@ type error =
   | UncomparableDurations
   | AmbiguousDateRounding
   | IndivisibleDurations
+  | Unreachable
 
 let error_to_string = function
   | AssertionFailed -> "AssertionFailed"
@@ -66,6 +67,7 @@ let error_to_string = function
   | UncomparableDurations -> "UncomparableDurations"
   | AmbiguousDateRounding -> "AmbiguousDateRounding"
   | IndivisibleDurations -> "IndivisibleDurations"
+  | Unreachable -> "Unreachable"
 
 let error_message = function
   | AssertionFailed -> "an assertion doesn't hold"
@@ -83,6 +85,8 @@ let error_message = function
   | AmbiguousDateRounding ->
     "ambiguous date computation, and rounding mode was not specified"
   | IndivisibleDurations -> "dividing durations that are not in days"
+  | Unreachable -> "the evaluation function reached a part of the program \
+    it wasn't supposed to"
 
 exception Error of error * source_position list
 exception Empty

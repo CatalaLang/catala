@@ -42,7 +42,7 @@ let delholes e =
       type d c h.
       ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, no) slicing_interpr_kind, 't) gexpr boxed
       = function
-    | EHole _, _ -> invalid_arg "Hole term remaining in evaluated term"
+    | EHole _, m -> Expr.efatalerror Unreachable m
     | (ECustom _, _) as e -> Expr.map ~f e
     | EAppOp { op; args; tys }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
@@ -58,9 +58,6 @@ let delholes e =
       Expr.map ~f e
     | _ -> .
   in
-  (* /!\ don't be tempted to use the same trick here, the function does one
-     thing: validate at runtime that the term does not contain [ECustom]
-     nodes. *)
   Expr.unbox (f e)
 
 
