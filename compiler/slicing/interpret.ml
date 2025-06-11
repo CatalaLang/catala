@@ -392,8 +392,8 @@ let interpret
         in
         let e_input = (Expr.unbox to_interpret) in
         let v2, tr2 = evaluate_expr_safe ctx p.lang e_input in
-        print_newline ();
-        print_trace tr2;
+        (*print_newline ();
+        print_trace tr2;*)
         Format.print_newline ();
         Format_trace.print_trace tr2;
         Format.print_newline ();
