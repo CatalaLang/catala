@@ -589,7 +589,7 @@ let rec trace_aux :
       Format.pp_print_int fmt index
     | TrLit l -> lit fmt l
     | TrApp { trf = TrAbs _; trv; _ } ->
-      let rec pr bnd_ctx colors fmt = function
+      let pr bnd_ctx colors fmt = function
         | Trace_ast.TrApp { trf = TrAbs { binder; pos = _; tys }; trargs; _ } ->
           let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
           let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
@@ -612,6 +612,7 @@ let rec trace_aux :
       Format.pp_print_cut fmt ();
       Format.fprintf fmt "@[<hv 4>%a@ %a@]"
       punctuation "↳" (tracec colors) trv;
+      Format.pp_print_cut fmt ();
       Format.pp_close_box fmt ()
     | TrAbs { binder; pos = _; tys } ->
       let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
@@ -730,9 +731,10 @@ let rec trace_aux :
     | TrAssert tr' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
         "(" (rhs_tr tracec) tr' punctuation ")"
-    | TrFatalError { err; _ } ->
-      Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
-        (Runtime.error_to_string err)
+    | TrFatalError { err; tr } ->
+      Format.fprintf fmt "@[<hv 2>%a@]@.@[<hov 4>%a@ %a@ @{<red>%s@}@]" 
+        trace tr punctuation "↳"
+        keyword "error" (Runtime.error_to_string err)
     | TrStruct { name; fields } ->
       if StructField.Map.is_empty fields then (
         punctuation fmt "{";
