@@ -281,7 +281,7 @@ let make_target ~build_dir ~backend item =
   let base = basename f in
   let base =
     match backend with
-    | `Interpret -> f
+    | `Interpret -> item.Scan.file_name
     | `Interpret_module -> (
       (dir / "ocaml" / base)
       -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
