@@ -11,19 +11,18 @@ type: software
 authors:
   - given-names: Denis
     family-names: Merigoux
-    email: denis.merigoux@inria.fr
-    affiliation: INRIA
-    orcid: "https://orcid.org/0000-0003-2247-0938"
+    affiliation: Inria
   - given-names: Nicolas
     family-names: Chataing
-    email: nicolas.chataing@ens.fr
-    affiliation: "INRIA, ENS"
+    affiliation: "Inria, ENS"
   - given-names: Emile
     family-names: Rolley
-    email: emile.rolley@tuta.io
   - given-names: Louis
     family-names: Gesbert
-    affiliation: "INRIA, OCamlPro"
+    affiliation: Inria
+  - given-names: Raphaël
+    family-names: Montat
+    affiliation: Inria
   - given-names: Aymeric
     family-names: Fromherz
     affiliation: Inria
@@ -38,8 +37,28 @@ authors:
     family-names: Boiguillé
   - given-name: Vincent
     family-names: Botbol
-    affiliation: "INRIA"
-    email: vincent.botbol@inria.fr
+    affiliation: Inria
+  - given-name: Romain
+    family-names: Primet
+    affiliation: Inria
+  - given-name: Sarah
+    family-names: Lawsky
+    affiliation: "University of Illinois - Urbana Champaign"
+  - given-name: Jonathan
+    family-names: Protzenko
+    affiliation: Microsoft
+  - given-name: Pierre
+    family-names: Goutagny
+    affiliation: Inria
+  - given-name: Liane
+    family-names: Huttner
+    affiliation: "Université Paris-Saclay"
+  - given-name: Samuel
+    family-names: Avril
+    affiliation: Inria
+  - given-name: Marie
+    family-names: Alauzen
+    affiliation: "CNRS, Université Paris-Dauphine"
 repository-code: "https://github.com/CatalaLang/catala"
 url: "https://catala-lang.org/"
 abstract: >-
