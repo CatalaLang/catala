@@ -137,7 +137,7 @@ fun ?(indent=0) trace ->
         (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))
         (string_of_trace ~indent:(indent + 2) trv)
         spaces
-  | TrAppOp { op; trargs; tys = _; vargs } ->
+  | TrAppOp { op; trargs; tys = _; vargs; _ } ->
       Format.asprintf "%sTrAppOp(%s,\n%s,\n%s\n%s)" spaces
         (operator_to_string (Mark.remove op))
         (string_of_list (string_of_trace ~indent:(indent + 4)) trargs (indent + 2))

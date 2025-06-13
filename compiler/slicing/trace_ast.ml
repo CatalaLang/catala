@@ -16,7 +16,8 @@ type ('a, 'm) t =
       op : 'a operator Mark.pos;
       trargs : ('a, 'm) t list;
       tys : typ list;
-      vargs : ('a, 'm) gexpr list
+      vargs : ('a, 'm) gexpr list;
+      traux : ('a, 'm) t list (*trop contains additional traces needed for certain operators such as Map, Fold or Reduce*)
     }
       -> ('a, 'm) t
   | TrArray : ('a, 'm) t list -> ('a, 'm) t

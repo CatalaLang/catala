@@ -4,7 +4,7 @@ open Shared_ast.Interpreter
 open Trace_ast
 open Print_trace
 
-(* Typing shenanigan to add custom terms to the AST type. *)
+(* Typing shenanigan to add hole terms to the AST type. *)
 let addholes e =
   let rec f :
       type d c h.
@@ -136,7 +136,7 @@ fun ctx lang e ->
       (runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o), TrExternal { name }
     | EApp { f = e1; args; tys } -> (
       let e1, trf = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
-      let args, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
+      let args, trargs = evaluate_expr_list_with_trace_aux ctx local_ctx lang args in
       match Mark.remove e1 with
       | EAbs { binder; _ } ->
         if Bindlib.mbinder_arity binder = List.length args then
@@ -178,9 +178,63 @@ fun ctx lang e ->
             else ())
           e1)
     | EAppOp { op; args; tys } ->
-      let vargs, trargs = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) args) in
-      let v = evaluate_operator (evaluate_expr ctx lang) op m lang vargs in
-      v, TrAppOp { op = Operator.translate op; trargs; tys; vargs = List.map addholes vargs }
+      let vargs, trargs = evaluate_expr_list_with_trace_aux ctx local_ctx lang args in
+      let v, traux = 
+        match fst op, vargs with
+        | Map, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] -> 
+          (* In this case we need to know the trace of f(v) for every v in vs*)
+          let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
+          let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
+          let vals, traux = List.split(List.map appf vs) in
+          Mark.add m (EArray vals), traux
+        | Map2, [EAbs {tys = tysf; _},mf as f; (EArray vs1, _); (EArray vs2, _)] -> 
+          (* In this case we need to know the trace of f(v1, v2) for every v1, v2 in vs1, vs2*)
+          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+          let vals, traux = List.split(List.map2 appf vs1 vs2) in
+          Mark.add m (EArray vals), traux
+        | Reduce, [_; EAbs {tys = tysd; _},md as default; (EArray [], _)] ->
+          (* In this case we just need the trace of default() *)
+          let eappd v = Mark.add md (EApp {f=default; args = [v]; tys = tysd}) in
+          let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang (eappd (ELit LUnit, Expr.with_ty m (TLit TUnit, pos))) in
+          v, [tr]
+        | Reduce, [EAbs {tys = tysf; _},mf as f; _; (EArray (v0 :: vn), _)] ->
+          (* In this case we need the trace of f(v) for every v fold from f and v0::vn *)
+          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+          List.fold_left
+            (fun (accv, acctr) v -> let new_v, tr = appf accv v in new_v, tr::acctr)
+            (v0,[]) vn
+        | Filter, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] ->
+          (* In this case we need to keep the trace of f(v) for every v in and its value *)
+          (* In order to store these informations, the list will store alternatively a boolean corresponding to f(v) and its trace *)
+          let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
+          let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
+          let vals, traux = List.fold_right 
+            (fun v (accv, acctr) ->
+              match appf v with
+              | (ELit (LBool true), _), tr -> (v::accv), (TrLit(LBool true)::tr::acctr)
+              | (ELit (LBool false), _),tr -> accv, (TrLit (LBool false)::tr::acctr)
+              | _ -> Message.error
+                    ~pos:(Expr.pos (List.nth args 0))
+                    "%a" Format.pp_print_text
+                    "This predicate evaluated to something else than a boolean \
+                      (should not happen if the term was well-typed)"
+            )
+            vs ([], []) 
+          in
+          Mark.add m (EArray vals), traux
+        | Fold, [EAbs {tys = tysf; _},mf as f; init; (EArray vs, _)] -> 
+          (* In this case we need the trace of f(v) for every v fold from f init and vs *)
+          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+          List.fold_left
+            (fun (accv, acctr) v -> let new_v, tr = appf accv v in new_v, tr::acctr)
+            (init,[]) vs
+        | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
+          evaluate_operator (evaluate_expr ctx lang) op m lang vargs, []
+      in
+      v, TrAppOp { op = Operator.translate op; trargs; tys; vargs = List.map addholes vargs; traux }
     | EAbs _ -> (
       match Mark.remove(addholes e) with
       | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
@@ -192,7 +246,7 @@ fun ctx lang e ->
     | EEmpty -> e, TrEmpty
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
-      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
+      let es, tres = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
       (Mark.add m
         (EStruct
           {
@@ -233,7 +287,7 @@ fun ctx lang e ->
           (Print.UserFacing.expr lang)
           e StructName.format s)
     | ETuple es -> 
-      let v, trv = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
+      let v, trv = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
       (Mark.add m (ETuple v)), TrTuple trv
     | ETupleAccess { e = e1; index; size } -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
@@ -291,7 +345,7 @@ fun ctx lang e ->
           "Expected a boolean literal for the result of this condition (should \
           not happen if the term was well-typed)")
     | EArray es ->
-      let es, tres = List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es) in
+      let es, tres = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
       (Mark.add m (EArray es)), TrArray tres
     | EAssert e' -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
@@ -314,7 +368,7 @@ fun ctx lang e ->
       | e -> e, TrErrorOnEmpty tr
       )
     | EDefault { excepts; just; cons } -> (
-      let vexcepts, trexcepts = List.split (List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) excepts) in
+      let vexcepts, trexcepts = evaluate_expr_list_with_trace_aux ctx local_ctx lang excepts in
       let empty_count = List.length (List.filter is_empty_error vexcepts) in
       match List.length vexcepts - empty_count with
       | 0 -> (
@@ -340,10 +394,19 @@ fun ctx lang e ->
             excepts
         in
         raise Runtime.(Error (Conflict, poslist))*)
-        raise_fatal_error Conflict m (TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust = TrExpr (addholes just); trcons = TrExpr (addholes cons) })
+        raise_fatal_error Conflict m (
+          TrDefault { 
+            trexcepts; 
+            vexcepts = List.map addholes vexcepts; 
+            trjust = TrExpr (addholes just); 
+            trcons = TrExpr (addholes cons) 
+          }
+        )
       )
     | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
     | _ -> .
+  and evaluate_expr_list_with_trace_aux ctx local_ctx lang es = 
+    List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es)
   in
   try evaluate_expr_with_trace_aux ctx Var.Map.empty lang e
   with 
@@ -388,29 +451,25 @@ let interpret
             (Expr.pos e)
         in
         let e_input = (Expr.unbox to_interpret) in
-        let v2, tr2 = evaluate_expr_safe ctx p.lang e_input in
-        (*print_newline ();
-        print_trace tr2;*)
-        Format.print_newline ();
-        Format_trace.print_trace tr2;
-        Format.print_newline ();
-        Format.print_string "Result :";
-        Format.print_newline();
-        let v2 = addholes v2 in 
-        print_expr v2;
-        Format.print_newline();
-        (*print_string "Slicing program...";*)
-        let e_output = Slice.slice ctx v2 tr2 in 
-        (*print_string "Done.\n";*)
         Format.print_string "Input program :\n";
         Format.print_newline();
         print_expr e_input;
         Format.print_newline();
+        let v, tr = evaluate_expr_safe ctx p.lang e_input in
+        Format.print_string "Result :";
+        Format.print_newline();
+        let v = addholes v in 
+        Format_trace.print_expr v;
+        Format.print_newline();
+        Format.print_string "Trace :";
+        Format.print_newline();
+        Format_trace.print_trace tr;
+        let e_output = Slice.slice ctx v tr in 
         Format.print_string "Output program :\n";
         Format.print_newline(); 
-        print_expr e_output;
+        Format_trace.print_expr e_output;
         Format.print_newline();
-        match Mark.remove v2 with
+        match Mark.remove v with
         | EStruct { fields; _ } ->
           List.map
             (fun (fld, e) -> StructField.get_info fld, e)
@@ -419,7 +478,7 @@ let interpret
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "The interpretation of a program should always yield a struct \
              corresponding to the scope variables"
-      end
+        end
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "The interpreter can only interpret terms starting with functions \
