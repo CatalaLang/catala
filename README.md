@@ -4,9 +4,9 @@
 	<big>Catala</big>
   </h3>
   <p align="center">
-   <a href="https://catala-lang.org/ocaml_docs/"><strong>Explore the docs »</strong></a>
+   <a href="https://book.catala-lang.org/"><strong>Explore the docs »</strong></a>
    <br/>
-   <a href="https://catala-lang.org/en/examples/tutorial">View Tutorial</a>
+   <a href="https://book.catala-lang.org/1-0-getting_started.html">Getting started</a>
    •
    <a href="https://github.com/CatalaLang/catala/issues">Report Bug</a>
    •
@@ -15,7 +15,7 @@
    <a href="https://zulip.catala-lang.org/">Join Zulip Chat</a>
   </p>
 
-![CI][ci-link] [![Opam][opam-link]](https://opam.ocaml.org/packages/catala/) [![Licence][licence-link]](https://www.apache.org/licenses/LICENSE-2.0) ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] [![Issues][issues-link]](https://github.com/CatalaLang/catala/issues) [![Contributors][contributors-link]](https://github.com/CatalaLang/catala/graphs/contributors) [![Activity][activity-link]](https://github.com/CatalaLang/catala/pulse)
+![CI][ci-link] [![Opam][opam-link]](https://opam.ocaml.org/packages/catala/) [![Licence][licence-link]](https://www.apache.org/licenses/LICENSE-2.0) ![Tag][tag-link] ![Language][language-link] [![Issues][issues-link]](https://github.com/CatalaLang/catala/issues) [![Contributors][contributors-link]](https://github.com/CatalaLang/catala/graphs/contributors) [![Activity][activity-link]](https://github.com/CatalaLang/catala/pulse)
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
@@ -33,12 +33,8 @@ You can join the Catala community on [Zulip][chat-link]!
 <!-- vim-markdown-toc GitLab -->
 
 * [Concepts](#concepts)
-* [Getting started](#getting-started)
-* [Building and installation](#building-and-installation)
-* [Usage](#usage)
-  * [Catala](#catala)
-  * [Clerk](#clerk)
-* [Tooling](#tooling)
+* [The Catala book](#the-catala-book)
+* [IDE Extensions and Tooling](#ide-extensions-and-tooling)
   * [Syntax highlighting](#syntax-highlighting)
   * [Catala VScode extension](#catala-vscode-extension)
   * [Code formatting](#code-formatting)
@@ -95,79 +91,17 @@ The Catala language is the only programming language to our knowledge that
 embeds default logic as a first-class feature, which is why it is the only
 language perfectly adapted to literate legislative programming.
 
-## Getting started
+## The Catala Book
 
-To get started, the best place is the [tutorial](https://catala-lang.org/en/examples/tutorial)
-of the language. A [French version](https://catala-lang.org/fr/examples/tutoriel)
-is also available but might be out of sync with the latest language features.
+The one-stop-shop for tutorials, installation instructions, FAQ and reference
+guide about Catala is the [Catala book](https://book.catala-lang.org) available
+at:
 
-> **Note:** bleeding-edge version
->
-> If you are interested in the latest development version, pre-built artifacts
-> including binaries and API documentation can be found at
-> https://catalalang.github.io/catala
+<div align="center">
+<a href="https://book.catala-lang.org">https://book.catala-lang.org</a>
+</div>
 
-## Building and installation
-
-Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
-If opam is installed on your machine, simply execute:
-
-    opam install catala
-
-To get the cutting-edge, latest version of Catala, you
-can also do
-
-    opam pin add catala --dev-repo
-
-However, if you wish to get the latest developments of the compiler, you probably
-want to compile it from the sources of this repository or use nix. For that, see
-[the dedicated readme](INSTALL.md).
-
-Note: the `--locked` flag can be added to the above commands to more closely
-mimic known working dev setups. Conversely, `opam lock` should be called to
-regenerate the `catala.opam.locked` file upon modifications of the main opam
-file.
-
-## Usage
-
-### Catala
-
-Use `catala --help` if you have installed it to get more information about the
-command line options available. The man page is also [available
-online](https://catala-lang.org/en/doc/catala). To get the development version
-of the help, run `make help_catala` after `make build`. The `catala` binary
-corresponds to the Catala compiler.
-
-The top-level `Makefile` contains a lot of useful targets to run. To display
-them, use
-
-        make help
-
-### Plugin backends
-
-While the compiler has some builtin backends for Catala (Python,
-Ocaml, Java, etc.), it is also possible to add a custom backend to the
-Catala compiler without having to modify its source code. This plugin
-solution relies on dynamic linking: see [the dedicated
-README](compiler/plugins/README.md).
-
-### Clerk
-
-Use `clerk --help` if you have installed it to get more information about the
-command line options available. To get the development version of the help, run
-`make help_clerk` after `make build`. The `clerk` binary corresponds to the
-Catala build system, responsible for testing among other things.
-
-To get more information about Clerk, see [the dedicated readme](https://github.com/CatalaLang/catala/tree/master/build_system/README.md)
-
-### Catleg
-
-Catleg is a command line utility providing useful integration with
-[LégiFrance](https://legifrance.gouv.fr), the official repository of French
-legal documentation. See the [decidated
-repository](https://github.com/catalaLang/catleg) for more information.
-
-## Tooling
+## IDE Extensions and Tooling
 
 ### Syntax highlighting
 
@@ -195,7 +129,7 @@ Catala. See the [dedicated
 repository](https://github.com/catalaLang/catala-format) for more
 details.
 
-## Documentation
+## Additional documentation items
 
 ### Syntax cheat sheet
 
