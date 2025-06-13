@@ -296,7 +296,12 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~description:["<catala>"; "tests"; "⇐"; !input];
 
       Nj.rule "dir-tests"
-        ~command:["cat"; !input; ">"; !output; ";"]
+        ~command:
+        (if Sys.win32 then
+          ["cmd"; "/c"; "type"; !input; ">"; !output; ";"]
+        else
+          ["cat"; !input; ">"; !output; ";"]
+        )
         ~description:["<test>"; !test_id];
      ]
    else [])
