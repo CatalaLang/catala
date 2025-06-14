@@ -2,7 +2,6 @@ open Catala_utils
 open Shared_ast
 open Shared_ast.Interpreter
 open Trace_ast
-open Print_trace
 
 (* Typing shenanigan to add hole terms to the AST type. *)
 let addholes e =
@@ -59,7 +58,6 @@ let delholes e =
     | _ -> .
   in
   Expr.unbox (f e)
-
 
 let evaluate_expr_with_trace :
     type d t.
@@ -453,7 +451,7 @@ let interpret
         let e_input = (Expr.unbox to_interpret) in
         Format.print_string "Input program :\n";
         Format.print_newline();
-        print_expr e_input;
+        Format_trace.print_expr e_input;
         Format.print_newline();
         let v, tr = evaluate_expr_safe ctx p.lang e_input in
         Format.print_string "Result :";
