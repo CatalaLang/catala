@@ -1,6 +1,51 @@
 open Catala_utils
 open Shared_ast
 
+let rec list_fold_right4 f l1 l2 l3 l4 accu =
+  match (l1, l2, l3, l4) with
+    ([], [], [], []) -> accu
+  | (a1::l1, a2::l2, a3::l3, a4::l4) -> f a1 a2 a3 a4 (list_fold_right4 f l1 l2 l3 l4 accu)
+  | _ -> assert false
+
+let del_useless_declarations e =
+  let rec f :
+      type d c.
+      ((d, c, yes) slicing_interpr_kind, 't) gexpr -> 
+      ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
+      = function
+    | EApp { f = EAbs { binder; pos; tys }, mf; args; _ }, m -> (
+      let vars, body = Bindlib.unmbind binder in
+      let body = f body in
+      let useful_vars, pos, tys, args = list_fold_right4
+        (fun var p t e (vars, pos, tys, args) -> match Mark.remove e with 
+          | EHole _ -> (vars, pos, tys, args) 
+          | _ -> (var::vars, p::pos, t::tys, (f e)::args) )
+        (Array.to_list vars) pos tys args ([], [], [], [])
+      in
+      if useful_vars <> [] then
+        let binder = Expr.bind (Array.of_list useful_vars) body in
+        Expr.eapp ~f:(Expr.eabs binder pos tys mf) ~args ~tys m
+      else 
+        body
+    )
+    | (EHole _, _) as e -> Expr.map ~f e
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  Expr.unbox (f e)
+
 let get_fields (ctx:decl_ctx) name = StructName.Map.find name ctx.ctx_structs
 
 let bind vars expr = Bindlib.unbox (Expr.bind vars (Expr.rebox expr))
@@ -66,7 +111,6 @@ let join_ctx_list ctx_list = List.fold_left join_ctx Var.Map.empty ctx_list
 
 let hole = EHole (TAny, Pos.void)
 let mark_hole m = Mark.add m hole
-
 
 let unevaluate :
   type t.
@@ -309,63 +353,65 @@ fun ctx value trace ->
     | _ -> Message.error "The trace does not match the value"
 
   and unevaluate_list v_list trace_list = List.split (List.map2 unevaluate_aux v_list trace_list)
+  
   and unevaluate_op op tys vargs trargs m = let lctxs, args = unevaluate_list vargs trargs in 
       join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
 
-  in snd (unevaluate_aux value trace)
+  in del_useless_declarations (snd (unevaluate_aux value trace))
 
-let rec list_fold_right4 f l1 l2 l3 l4 accu =
-  match (l1, l2, l3, l4) with
-    ([], [], [], []) -> accu
-  | (a1::l1, a2::l2, a3::l3, a4::l4) -> f a1 a2 a3 a4 (list_fold_right4 f l1 l2 l3 l4 accu)
-  | _ -> assert false
+let print_slicing_things expr value trace sliced_expr = 
+  Format.print_string "Input program :\n";
+  Format.print_newline();
+  Format_trace.print_expr expr;
+  Format.print_newline();
+  Format.print_string "Result :";
+  Format.print_newline();
+  Format_trace.print_expr value;
+  Format.print_newline();
+  Format.print_string "Trace :";
+  Format.print_newline();
+  Format_trace.print_trace trace;
+  Format.print_string "Output program :\n";
+  Format.print_newline(); 
+  Format_trace.print_expr sliced_expr;
+  Format.print_newline()
 
-let del_useless_declarations e =
-  let rec f :
-      type d c.
-      ((d, c, yes) slicing_interpr_kind, 't) gexpr -> 
-      ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
-      = function
-    | EApp { f = EAbs { binder; pos; tys }, mf; args; _ }, m -> (
-      let vars, body = Bindlib.unmbind binder in
-      let body = f body in
-      let useful_vars, pos, tys, args = list_fold_right4
-        (fun var p t e (vars, pos, tys, args) -> match Mark.remove e with 
-          | EHole _ -> (vars, pos, tys, args) 
-          | _ -> (var::vars, p::pos, t::tys, (f e)::args) )
-        (Array.to_list vars) pos tys args ([], [], [], [])
-      in
-      if useful_vars <> [] then
-        let binder = Expr.bind (Array.of_list useful_vars) body in
-        Expr.eapp ~f:(Expr.eabs binder pos tys mf) ~args ~tys m
-      else 
-        body
-    )
-    | (EHole _, _) as e -> Expr.map ~f e
-    | (ECustom _, _) as e -> Expr.map ~f e
-    | EAppOp { op; args; tys }, m ->
-      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
-    | (EDefault _, _) as e -> Expr.map ~f e
-    | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmpty, _) as e -> Expr.map ~f e
-    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
-        _ ) as e ->
-      Expr.map ~f e
-    | _ -> .
-  in
-  Expr.unbox (f e)
+let slice 
+  ?(debug = false)
+  (p : (dcalc, 'm) gexpr program)
+  (s : ScopeName.t) =
+  Message.with_delayed_errors (fun () ->
+      let ctx = p.decl_ctx in
+      let e = Expr.unbox (Program.to_expr p s) in
+      match Interpreter.evaluate_expr p.decl_ctx p.lang (Interpreter.addcustom e) with
+      | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
+        begin
+        (* Get the term to interpret *)
+        let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+        let to_interpret =
+          Expr.make_app (Expr.box e) [application_term]
+            [TStruct s_in, Expr.pos e]
+            (Expr.pos e)
+        in 
+        let e = (Expr.unbox to_interpret) in
 
+        (* Evaluate the expression with trace *)
+        let v, tr = Interpret.evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret) in
 
-let slice :
-type t.
-  decl_ctx ->
-  ((yes, yes, yes) slicing_interpr_kind, t) gexpr ->
-  ((yes, yes, yes) slicing_interpr_kind, t) Trace_ast.t ->
-  ((yes, yes, yes) slicing_interpr_kind, t) gexpr =
-fun ctx value trace -> 
-  let expr = unevaluate ctx value trace in
-  del_useless_declarations expr
+        (* Unevaluate the value with the trace to get a sliced version of the expression *)
+        let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
+        
+        (* Print everything if needed *)
+        if debug then print_slicing_things e v tr sliced_e;
+
+        match Mark.remove v with
+        | EStruct _ -> Interpret.delholes sliced_e
+        | _ ->
+          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+            "The interpretation of a program should always yield a struct \
+             corresponding to the scope variables"
+        end
+      | _ ->
+        Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+          "The interpreter can only interpret terms starting with functions \
+           having thunked arguments")

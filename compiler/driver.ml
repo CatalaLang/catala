@@ -944,7 +944,7 @@ module Commands = struct
       in
       let scopes = get_scopelist_uids prg.decl_ctx ex_scopes in
       Message.log "J'interprète !";
-      let _ = Slicing.Interpret.interpret prg (List.hd scopes) in
+      let _ = Slicing.Slice.slice prg (List.hd scopes) in
       Message.log "fini"
     in
     Cmd.v
