@@ -34,7 +34,7 @@ different modules' interfaces as well as high-level architecture documentation.
 
 ### Installing and using nix
 
-We provide an nix environement to develop the Catala compiler. It is available
+We provide a nix environement to develop the Catala compiler. It is available
 after [installing nix](https://nixos.org/download.html). You can then just
 use `nix develop` to enter the environment.
 
