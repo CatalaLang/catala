@@ -943,9 +943,11 @@ module Commands = struct
           ~autotest:false ~typed:Expr.typed
       in
       let scopes = get_scopelist_uids prg.decl_ctx ex_scopes in
-      Message.log "J'interprète !";
-      let _ = Slicing.Slice.slice prg (List.hd scopes) in
-      Message.log "fini"
+      Message.log "Begin slicing !";
+      let success = Slicing.Slice.test ~debug:true prg (List.hd scopes) in
+      if success then Message.log "Same result with the sliced expression :)"
+      else Message.log "/!\\ The two results are not the same :(";
+      Message.log "End slicing"
     in
     Cmd.v
       (Cmd.info "slice" ~man:Cli.man_base ~doc:"Blabla slice")

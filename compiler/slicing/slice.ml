@@ -360,18 +360,18 @@ fun ctx value trace ->
   in del_useless_declarations (snd (unevaluate_aux value trace))
 
 let print_slicing_things expr value trace sliced_expr = 
-  Format.print_string "Input program :\n";
+  Message.log "Input program :";
   Format.print_newline();
   Format_trace.print_expr expr;
   Format.print_newline();
-  Format.print_string "Result :";
+  Message.log "Result :";
   Format.print_newline();
   Format_trace.print_expr value;
   Format.print_newline();
-  Format.print_string "Trace :";
+  Message.log "Trace :";
   Format.print_newline();
   Format_trace.print_trace trace;
-  Format.print_string "Output program :\n";
+  Message.log "Sliced program :";
   Format.print_newline(); 
   Format_trace.print_expr sliced_expr;
   Format.print_newline()
@@ -381,37 +381,54 @@ let slice
   (p : (dcalc, 'm) gexpr program)
   (s : ScopeName.t) =
   Message.with_delayed_errors (fun () ->
-      let ctx = p.decl_ctx in
-      let e = Expr.unbox (Program.to_expr p s) in
-      match Interpreter.evaluate_expr p.decl_ctx p.lang (Interpreter.addcustom e) with
-      | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
-        begin
-        (* Get the term to interpret *)
-        let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
-        let to_interpret =
-          Expr.make_app (Expr.box e) [application_term]
-            [TStruct s_in, Expr.pos e]
-            (Expr.pos e)
-        in 
-        let e = (Expr.unbox to_interpret) in
+    let ctx = p.decl_ctx in
+    let e = Expr.unbox (Program.to_expr p s) in
+    match Interpreter.evaluate_expr p.decl_ctx p.lang (Interpreter.addcustom e) with
+    | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
+      begin
+      (* Get the term to interpret *)
+      let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+      let to_interpret =
+        Expr.make_app (Expr.box e) [application_term]
+          [TStruct s_in, Expr.pos e]
+          (Expr.pos e)
+      in 
+      let e = (Expr.unbox to_interpret) in
 
-        (* Evaluate the expression with trace *)
-        let v, tr = Interpret.evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret) in
+      (* Evaluate the expression with trace *)
+      let v, tr = Interpret.evaluate_expr_safe ctx p.lang e in
 
-        (* Unevaluate the value with the trace to get a sliced version of the expression *)
-        let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
-        
-        (* Print everything if needed *)
-        if debug then print_slicing_things e v tr sliced_e;
+      (* Unevaluate the value with the trace to get a sliced version of the expression *)
+      let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
+      
+      (* Print everything if needed *)
+      if debug then print_slicing_things e v tr sliced_e;
 
-        match Mark.remove v with
-        | EStruct _ -> Interpret.delholes sliced_e
-        | _ ->
-          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-            "The interpretation of a program should always yield a struct \
-             corresponding to the scope variables"
-        end
+      match Mark.remove v with
+      | EStruct _ -> v,sliced_e
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-          "The interpreter can only interpret terms starting with functions \
-           having thunked arguments")
+          "The interpretation of a program should always yield a struct \
+            corresponding to the scope variables"
+      end
+    | _ ->
+      Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+        "The interpreter can only interpret terms starting with functions \
+          having thunked arguments")
+
+let test 
+  ?(debug = false)
+  (p : (dcalc, 'm) gexpr program)
+  (s : ScopeName.t) =
+  let v, sliced_e = slice ~debug p s in
+  let value, trace = Interpret.evaluate_expr_safe p.decl_ctx p.lang (Interpret.delholes sliced_e) in
+  if debug then (
+    Message.log "Result from sliced program :";
+    Format.print_newline();
+    Format_trace.print_expr value;
+    Format.print_newline();
+    Message.log "Trace of sliced program :";
+    Format.print_newline();
+    Format_trace.print_trace trace;
+  );
+  Expr.equal v value

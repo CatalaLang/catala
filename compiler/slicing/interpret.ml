@@ -355,11 +355,14 @@ fun ctx lang e ->
         Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this assertion (should \
           not happen if the term was well-typed)")
+    
+    | EFatalError Unreachable -> (*It's okay to reach that point but the result should not matter*)
+      e, TrHole (TAny, Pos.void) 
     | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
     | EErrorOnEmpty e' -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
       match e with
-      | EEmpty, _ -> (* raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos])) *)
+      | EEmpty, _ ->
         raise_fatal_error NoValue m (TrErrorOnEmpty tr)
       | exception Runtime.Empty ->
         raise_fatal_error NoValue m (TrErrorOnEmpty tr)
