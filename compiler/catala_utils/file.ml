@@ -355,7 +355,7 @@ let get_command t =
   let cmd, args =
     if Sys.win32 then
       let t_exe =
-        if not (String.ends_with ~suffix:"exe" t) then t ^ ".exe" else t
+        if not (Filename.check_suffix t ".exe") then t ^ ".exe" else t
       in
       "where.exe", [t_exe]
     else "/bin/sh", ["-c"; "command -v " ^ Filename.quote t]
