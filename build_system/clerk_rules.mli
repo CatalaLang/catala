@@ -20,6 +20,7 @@ open Catala_utils
 type backend = OCaml | Python | C | Java | Tests
 
 val all_backends : backend list
+val backend_from_config : Clerk_config.backend -> backend
 
 module Var : sig
   type t = Ninja_utils.Var.t
@@ -34,9 +35,11 @@ module Var : sig
   val ocamlc_exe : t
   val ocamlopt_exe : t
   val ocaml_flags : t
+  val ocaml_include : t
   val runtime_ocaml_libs : t
   val cc_exe : t
   val c_flags : t
+  val c_include : t
   val runtime_c_libs : t
   val python : t
   val runtime_python_dir : t

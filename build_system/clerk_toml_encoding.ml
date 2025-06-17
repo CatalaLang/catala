@@ -20,6 +20,7 @@ module M = Map.Make (String)
 
 type _ descr =
   | String : string descr
+  | Bool : bool descr
   | List : 'a descr -> 'a list descr
   | Union : { cases : 'a case list } -> 'a descr
   | Tup : 'a descr -> 'a descr
@@ -58,6 +59,7 @@ and _ table_descr =
 type 'a t = 'a table_descr
 
 let string = String
+let bool = Bool
 let list d = List d
 
 (* TODO: also provide tuples constructors *)
@@ -75,7 +77,7 @@ let merge_objs l r =
   in
   let rec check_name_clash : type a. S.t -> a descr -> S.t =
    fun acc -> function
-    | String | Tup _ | Tups _ | List _ | Union _ -> acc
+    | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
     | Conv { descr; _ } -> check_name_clash acc descr
     | Objs (l, r) ->
       let l = check_name_clash S.empty l in
@@ -107,6 +109,7 @@ let obj2 f2 f1 = merge_objs (obj1 f2) (obj1 f1)
 let obj3 f3 f2 f1 = merge_objs (obj1 f3) (obj2 f2 f1)
 let obj4 f4 f3 f2 f1 = merge_objs (obj2 f4 f3) (obj2 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = merge_objs (obj1 f5) (obj4 f4 f3 f2 f1)
+let obj6 f6 f5 f4 f3 f2 f1 = merge_objs (obj2 f6 f5) (obj4 f4 f3 f2 f1)
 let binding_list f = List (Obj (Free f))
 
 let merge_tables l r =
@@ -162,9 +165,16 @@ let conv5 ty =
     (fun (e, ((d, c), (b, a))) -> e, d, c, b, a)
     ty
 
+let conv6 ty =
+  conv
+    (fun (f, e, d, c, b, a) -> (f, e), ((d, c), (b, a)))
+    (fun ((f, e), ((d, c), (b, a))) -> f, e, d, c, b, a)
+    ty
+
 let obj3 f3 f2 f1 = conv3 (obj3 f3 f2 f1)
 let obj4 f4 f3 f2 f1 = conv4 (obj4 f4 f3 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = conv5 (obj5 f5 f4 f3 f2 f1)
+let obj6 f6 f5 f4 f3 f2 f1 = conv6 (obj6 f6 f5 f4 f3 f2 f1)
 let convt proj inj descr = ConvT { proj; inj; descr }
 
 let convt3 ty =
@@ -276,34 +286,36 @@ let key_names (descr : _ descr) : S.t =
   in
   loop S.empty descr
 
-let error scope ?found pp =
+let error scope ?found fmt =
   match found with
   | None ->
-    Message.error "While parsing the TOML configuration file, %a:@\n%t."
-      pp_scope scope pp
+    Message.error
+      ("@[<v>While parsing the TOML configuration file, %a:@," ^^ fmt ^^ ".@]")
+      pp_scope scope
   | Some toml ->
     Message.error
-      "While parsing the TOML configuration file, %a:@\nParsed @{<red>%a@}, %t."
-      pp_scope scope pp_toml_type toml pp
+      ("@[<v>While parsing the TOML configuration file, %a:@,\
+        Parsed @{<red>%a@}, "
+      ^^ fmt
+      ^^ ".@]")
+      pp_scope scope pp_toml_type toml
 
 let check_obj scope bindings descr =
   let valid_keys = key_names descr in
   let given_keys = List.map fst bindings |> S.of_list in
   let diff = S.diff given_keys valid_keys in
   if not (S.is_empty diff) then
-    error scope (fun fmt ->
-        Format.fprintf fmt
-          "Detected invalid keys present in table: %a.@\nAllowed keys are: %a"
-          Format.(
-            pp_print_list
-              ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-              (fun fmt s -> Format.fprintf fmt "@{<red>%s@}" s))
-          (S.elements diff)
-          Format.(
-            pp_print_list
-              ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-              pp_print_string)
-          (S.elements valid_keys))
+    error scope
+      "@[<hov 2>Detected invalid keys present in table: %a.@]@,\
+       @[<hov 2>Allowed keys are: %a@]"
+      Format.(
+        pp_print_list
+          ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")
+          (fun fmt s -> fprintf fmt "@{<red>%s@}" s))
+      (S.elements diff)
+      Format.(
+        pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt ",@ ") pp_print_string)
+      (S.elements valid_keys)
 
 let decode_descr (target : target_kind) toml descr =
   let open Otoml in
@@ -321,18 +333,18 @@ let decode_descr (target : target_kind) toml descr =
           cases
       with
       | None ->
-        error scope (fun fmt ->
-            fprintf fmt
-              "@[<v 2>the provided value do not match any of the possible \
-               cases:@ %a@]"
-              (pp_print_list ~pp_sep:pp_print_cut (fun fmt s ->
-                   fprintf fmt "- %s" s))
-              (List.map (fun (Case case) -> case.name) cases))
+        error scope
+          "@[<v 2>the provided value does not match any of the possible \
+           cases:@ %a@]"
+          (pp_print_list ~pp_sep:pp_print_cut (fun fmt s ->
+               fprintf fmt "- %s" s))
+          (List.map (fun (Case case) -> case.name) cases)
       | Some x -> x)
     | TomlString s, String -> s
-    | _, String ->
-      error ~found:toml scope (fun fmt ->
-          fprintf fmt "expected @{<bold>a string@}")
+    | _, String -> error ~found:toml scope "expected @{<bold>a string@}"
+    | TomlBoolean b, Bool -> b
+    | _, Bool ->
+      error ~found:toml scope "expected @{<bold>true@} or @<bold>false@}"
     | TomlArray l, List descr -> List.map (fun x -> loop ~scope x descr) l
     | toml, Conv { inj; descr; _ } -> inj (loop ~scope toml descr)
     | TomlArray [x], Tup d -> loop ~scope x d
@@ -347,16 +359,13 @@ let decode_descr (target : target_kind) toml descr =
           v descr1 )
       :: loop ~first_obj:false ~scope (TomlTable bindings) descr
     | _, List _ | _, Tup _ | _, Tups _ ->
-      error ~found:toml scope (fun fmt ->
-          fprintf fmt "expected @{<bold>an array of values@}")
+      error ~found:toml scope "expected @{<bold>an array of values@}"
     | TomlTable bindings, Obj (Req { name; descr }) -> (
       if first_obj then check_obj scope bindings current;
       match List.assoc_opt name bindings with
       | Some b ->
         loop ~scope:{ scope with rev_keys = name :: scope.rev_keys } b descr
-      | None ->
-        error scope (fun fmt ->
-            fprintf fmt "the required key @{<yellow>%s@} is missing" name))
+      | None -> error scope "the required key @{<yellow>%s@} is missing" name)
     | TomlTable bindings, Obj (Opt { name; descr }) -> (
       if first_obj then check_obj scope bindings current;
       match List.assoc_opt name bindings with
@@ -374,8 +383,7 @@ let decode_descr (target : target_kind) toml descr =
       if first_obj then check_obj scope bindings current;
       loop ~first_obj:false ~scope toml l, loop ~first_obj:false ~scope toml r
     | _, Obj _ | _, Objs _ ->
-      error ~found:toml scope (fun fmt ->
-          fprintf fmt "expected a @{<bold><key> = <value> table@}")
+      error ~found:toml scope "expected a @{<bold><key> = <value> table@}"
   in
   let name =
     match toml with
@@ -504,6 +512,7 @@ let decode (toml : Otoml.t) (descr : _ table_descr) : 'a =
 let rec encode_descr : type a. a -> a descr -> Otoml.t =
  fun v -> function
   | String -> TomlString v
+  | Bool -> TomlBoolean v
   | List descr -> TomlArray (List.map (fun v -> encode_descr v descr) v)
   | Union { cases } -> (
     List.find_map

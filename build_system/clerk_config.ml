@@ -38,8 +38,10 @@ type doc_backend = Html | Latex
 type global = {
   include_dirs : File.t list;
   build_dir : File.t;
+  target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
+  default_targets : string list;
 }
 
 type module_ = {
@@ -49,10 +51,10 @@ type module_ = {
 }
 
 type target = {
-  name : string;
-  entrypoints : string list;
-  backend : backend;
-  backend_options : string list;
+  tname : string;
+  tmodules : string list;
+  backends : backend list;
+  include_runtime : bool;
 }
 
 type doc = {
@@ -71,7 +73,7 @@ type custom_rule = {
 
 type config_file = {
   global : global;
-  variables : (string * string) list;
+  variables : (string * string list) list;
   modules : module_ list;
   targets : target list;
   docs : doc list;
@@ -85,7 +87,9 @@ let default_global =
     include_dirs = [];
     catala_exe = None;
     catala_opts = [];
+    default_targets = [];
     build_dir = "_build";
+    target_dir = "_targets";
   }
 
 let default_config =
@@ -101,23 +105,41 @@ let default_config =
 let project_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { include_dirs; catala_exe; catala_opts; build_dir } ->
+    (fun {
+           include_dirs;
+           catala_exe;
+           catala_opts;
+           default_targets;
+           build_dir;
+           target_dir;
+         } ->
       ( proj_empty_list include_dirs,
         catala_exe,
         proj_empty_list catala_opts,
-        build_dir ))
-    (fun (include_dirs, catala_exe, catala_opts, build_dir) ->
+        proj_empty_list default_targets,
+        build_dir,
+        target_dir ))
+    (fun ( include_dirs,
+           catala_exe,
+           catala_opts,
+           default_targets,
+           build_dir,
+           target_dir ) ->
       {
         include_dirs = inj_empty_list include_dirs;
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
+        default_targets = inj_empty_list default_targets;
         build_dir;
+        target_dir;
       })
-  @@ obj4
+  @@ obj6
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
-       (dft_field ~name:"build_dir" ~default:"_build" string)
+       (opt_field ~name:"default_targets" @@ list string)
+       (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
+       (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
 
 let module_uses =
   let open Clerk_toml_encoding in
@@ -154,21 +176,16 @@ let module_encoding =
 let target_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { name; entrypoints; backend; backend_options } ->
-      name, entrypoints, backend, proj_empty_list backend_options)
-    (fun (name, entrypoints, backend, backend_options) ->
-      {
-        name;
-        entrypoints;
-        backend;
-        backend_options = inj_empty_list backend_options;
-      })
+    (fun { tname; tmodules; backends; include_runtime } ->
+      tname, tmodules, backends, include_runtime)
+    (fun (tname, tmodules, backends, include_runtime) ->
+      { tname; tmodules; backends; include_runtime })
   @@ obj4
        (req_field ~name:"name" @@ string)
-       (req_field ~name:"entrypoints" @@ list string)
-       (req_field ~name:"backend"
-       @@ union (string_cases (registered_backends ())))
-       (opt_field ~name:"backend_options" @@ list string)
+       (req_field ~name:"modules" @@ list string)
+       (req_field ~name:"backends"
+       @@ list (union (string_cases (registered_backends ()))))
+       (dft_field ~name:"include_runtime" ~default:true @@ bool)
 
 let doc_encoding =
   let open Clerk_toml_encoding in
@@ -198,7 +215,7 @@ let custom_rule_encoding =
        (req_field ~name:"out_exts" @@ list string)
        (req_field ~name:"commandline" @@ list string)
 
-let variables_encoding = Clerk_toml_encoding.(binding_list string)
+let variables_encoding = Clerk_toml_encoding.(binding_list (list string))
 
 let raw_config_encoding =
   let open Clerk_toml_encoding in

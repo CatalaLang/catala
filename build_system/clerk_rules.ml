@@ -26,6 +26,13 @@ type backend = OCaml | Python | C | Java | Tests (* | JS *)
 
 let all_backends = [OCaml; Python; C; Java; Tests]
 
+let backend_from_config = function
+  | Clerk_config.OCaml -> OCaml
+  | Clerk_config.Python -> Python
+  | Clerk_config.C -> C
+  | Clerk_config.Java -> Java
+  | _ -> invalid_arg __FUNCTION__
+
 (** Ninja variable names *)
 module Var = struct
   include Nj.Var
@@ -54,9 +61,11 @@ module Var = struct
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
+  let ocaml_include = make "OCAML_INCLUDE"
   let runtime_ocaml_libs = make "RUNTIME_OCAML_LIBS"
   let cc_exe = make "CC"
   let c_flags = make "CFLAGS"
+  let c_include = make "C_INCLUDE_FLAGS"
   let runtime_c_libs = make "RUNTIME_C_LIBS"
   let python = make "PYTHON"
   let runtime_python_dir = make "RUNTIME_PYTHON"
@@ -87,11 +96,15 @@ end
 
 let base_bindings ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
-  let includes =
+  let includes ?backend () =
     List.fold_right
       (fun dir flags ->
         if Filename.is_relative dir then
-          "-I" :: File.(Var.(!builddir) / dir) :: flags
+          "-I"
+          :: File.(
+               Var.(!builddir)
+               / match backend with Some b -> dir / b | None -> dir)
+          :: flags
         else "-I" :: dir :: flags)
       options.global.include_dirs []
   in
@@ -142,7 +155,7 @@ let base_bindings ~autotest ~enabled_backends ~config =
   let def var value =
     let value =
       match List.assoc_opt (Var.name var) options.variables with
-      | Some v -> [v]
+      | Some vl -> vl
       | None -> Lazy.force value
     in
     var, value
@@ -159,13 +172,13 @@ let base_bindings ~autotest ~enabled_backends ~config =
           | Some e -> File.check_exec e
           | None -> Lazy.force Poll.catala_exe);
         ]);
-    def Var.catala_flags (lazy (catala_flags @ includes));
+    def Var.catala_flags (lazy (catala_flags @ includes ()));
     def Var.clerk_flags
       (lazy
         ("-e"
          :: Var.(!catala_exe)
          :: ("--test-flags=" ^ String.concat "," test_flags)
-         :: includes
+         :: includes ()
         @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
   ]
   @ (if List.mem OCaml enabled_backends then
@@ -173,8 +186,10 @@ let base_bindings ~autotest ~enabled_backends ~config =
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
          def Var.ocamlopt_exe (lazy ["ocamlopt"]);
-         def Var.ocaml_flags
-           (lazy (Lazy.force Poll.ocaml_include_flags @ includes));
+         def Var.ocaml_flags (lazy []);
+         def Var.ocaml_include
+           (lazy
+             (Lazy.force Poll.ocaml_include_flags @ includes ~backend:"ocaml" ()));
          def Var.runtime_ocaml_libs (lazy (Lazy.force Poll.ocaml_link_flags));
        ]
      else [])
@@ -202,26 +217,22 @@ let base_bindings ~autotest ~enabled_backends ~config =
       def Var.cc_exe (lazy ["cc"]);
       def Var.runtime_c_libs
         (lazy
-          [
-            "-I" ^ Lazy.force Poll.c_runtime_dir;
-            "-L" ^ Lazy.force Poll.c_runtime_dir;
-            "-lcatala_runtime";
-            "-lgmp";
-          ]);
+          ["-L" ^ Lazy.force Poll.c_runtime_dir; "-lcatala_runtime"; "-lgmp"]);
       def Var.c_flags
         (lazy
-          ([
-             "-std=c89";
-             "-pedantic";
-             "-Wall";
-             "-Wno-unused-function";
-             "-Wno-unused-variable";
-             "-Wno-unused-but-set-variable";
-             "-Werror";
-             "-g";
-             Var.(!runtime_c_libs);
-           ]
-          @ includes));
+          [
+            "-std=c89";
+            "-pedantic";
+            "-Wall";
+            "-Wno-unused-function";
+            "-Wno-unused-variable";
+            "-Wno-unused-but-set-variable";
+            "-Werror";
+            "-g";
+          ]);
+      def Var.c_include
+        (lazy
+          ("-I" :: Lazy.force Poll.c_runtime_dir :: includes ~backend:"c" ()));
     ]
   else []
 
@@ -243,19 +254,19 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
 
       Nj.rule "ocaml-bytobject"
         ~command:[
-          !ocamlc_exe; "-c"; !ocaml_flags; !includes; !input
+          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
 
       Nj.rule "ocaml-natobject"
         ~command:[
-          !ocamlopt_exe; "-c"; !ocaml_flags; !includes; !input
+          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
 
       Nj.rule "ocaml-module"
         ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
+          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; !input; "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
   (if List.mem C enabled_backends then [
@@ -266,7 +277,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
 
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; !includes; "-c"; "-o"; !output]
+        [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
       ~description:["<cc>"; "⇒"; !output];
   ] else []) @
   (if List.mem Python enabled_backends then [
@@ -554,7 +565,7 @@ let gen_build_statements
       @ (if List.mem Python enabled_backends then
            [
              Nj.build "phony"
-               ~outputs:[modname ^ "@py-module"]
+               ~outputs:[modname ^ "@python-module"]
                ~inputs:[modfile ~backend:"python" ".py" modname];
            ]
          else [])
@@ -822,88 +833,3 @@ let run_ninja
       let ret = callback nin_ppf (List.of_seq items) var_bindings in
       Format.pp_print_newline nin_ppf ();
       ret)
-
-(* let init
- *     ~config ~enabled_backends ~autotest ~targets callback =
- *   let enabled_backends =
- *     if autotest then OCaml :: enabled_backends else enabled_backends
- *   in
- *   let enabled_backends =
- *     List.fold_left (fun acc t -> target_backend t :: acc) enabled_backends targets
- *     |> List.sort_uniq Stdlib.compare
- *   in
- *   let with_ninja_file ~config ~enabled_backends ~autotest item_tree callback =
- *     let with_ninja_output k =
- *       match config.Clerk_cli.ninja_file with
- *       | Some f -> k f
- *       | None when Global.options.debug -> k File.(config.options.global.build_dir / "clerk.ninja")
- *       | None -> File.with_temp_file "clerk_build_" ".ninja" k
- *     in
- *     let var_bindings =
- *       base_bindings ~config ~enabled_backends ~autotest
- *     in
- *     with_ninja_output @@ fun nin_file ->
- *     File.with_formatter_of_file nin_file @@ fun nin_ppf -> ()
- * 
- * 
- * 
- * let with_ninja_process
- *     ~config ~enabled_backends ~autotest ~targets ~clean_up_env callback =
- *   init ~config ~enabled_backends ~autotest ~targets
- *     (fun nin_file nin_ppf items var_bindings ->
- *        let wait_for_ninja = run_command ~clean_up_env in
- *        let ret = callback nin_ppf items var_bindings in
- *        Seq.iter ignore items;
- *        Format.pp_print_flush nin_ppf ();
- *        close_out (Format.get *)
-
-(* Last argument is a continuation taking as arguments the enabled backends,
- *    [build_dir], the [fix_path] function, and the ninja file name *\)
- * let ninja_init
- *     ~config
- *     ~autotest
- *     ~ninja_output :
- *     targets: string list ->
- *     enabled_backends:backend list ->
- *     test_flags:string list ->
- *     (extra:(Nj.def Seq.t -> unit) ->
- *      build_dir:File.t ->
- *      fix_path:(File.t -> File.t) ->
- *      nin_file:File.t ->
- *      items:Scan.item Seq.t ->
- *      var_bindings:Nj.Binding.t list ->
- *      'a) ->
- *     'a =
- *   let with_ninja_output k =
- *     match ninja_output with
- *     | Some f -> k f
- *     | None when debug -> k File.(build_dir / "clerk.ninja")
- *     | None -> File.with_temp_file "clerk_build_" ".ninja" k
- *   in
- *   fun ~targets ~enabled_backends ~test_flags k ->
- *     Message.debug "building ninja rules...";
- *     let enabled_backends =
- *       if autotest && not (List.mem OCaml enabled_backends) then
- *         OCaml :: enabled_backends
- *       else enabled_backends
- *     in
- *     let build_dir =
- *       match test_flags with
- *       | [] -> build_dir
- *       | flags -> File.((build_dir / "test") ^ String.concat "" flags)
- *     in
- *     with_ninja_output
- *     @@ fun nin_file ->
- *     File.with_formatter_of_file nin_file (fun nin_ppf ->
- *         let ninja_contents, build_items, var_bindings =
- *           gen_ninja_file catala_exe catala_opts build_dir include_dirs
- *             vars_override test_flags enabled_backends autotest "."
- *         in
- *         Nj.format nin_ppf ninja_contents;
- *         let extra e =
- *           Nj.format nin_ppf
- *             (Seq.cons
- *                (Nj.comment "\n - Command-specific targets - #")
- *                e)
- *         in
- *         k ~extra ~build_dir ~fix_path ~nin_file ~items:build_items ~var_bindings) *)

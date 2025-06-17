@@ -24,10 +24,12 @@ val register_backend : name:string -> backend -> unit
 type doc_backend = Html | Latex
 
 type global = {
-  include_dirs : string list;
-  build_dir : string;
+  include_dirs : File.t list;
+  build_dir : File.t;
+  target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
+  default_targets : string list;
 }
 
 type module_ = {
@@ -37,10 +39,10 @@ type module_ = {
 }
 
 type target = {
-  name : string;
-  entrypoints : string list;
-  backend : backend;
-  backend_options : string list;
+  tname : string;
+  tmodules : string list;
+  backends : backend list;
+  include_runtime : bool;
 }
 
 type doc = {
@@ -60,7 +62,7 @@ type custom_rule = {
 
 type config_file = {
   global : global;
-  variables : (string * string) list;
+  variables : (string * string list) list;
   modules : module_ list;
   targets : target list;
   docs : doc list;

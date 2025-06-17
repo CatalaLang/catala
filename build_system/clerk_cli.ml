@@ -388,6 +388,7 @@ let init
         config with
         global =
           {
+            config.global with
             build_dir;
             catala_exe;
             catala_opts = config.global.catala_opts @ catala_opts;
