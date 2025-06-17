@@ -19,70 +19,11 @@ distributed under the Apache2 license.
 
 ## Writing Catala code
 
-Before writing Catala code, please read the
-[tutorial](https://catala-lang.org/en/examples/tutorial). You can run the
+Before writing Catala code, please read the [Catala book](https://book.catala-lang.org). You can run the
 programs of the tutorial yourself by following the instruction in the [README of
 the `examples` repository](https://github.com/CatalaLang/catala-examples/README.md).
 Then, it is suggested that you create a new example directory again according to
 the instructions of this README.
-
-Let us now present the typical Catala workflow. First, you need to locate
-the legislative text that you want to use as a reference. Then, simply
-copy-paste the text into your source file.
-
-First you will have to format the copy-pasted text using Catala headings
-and articles markers:
-
-```markdown
-## Heading
-
-### Sub-heading (the more '#', the less important)
-
-#### Legislative atom
-```
-
-Please look at the code of other examples to see how to format things properly.
-While formatting the text, don't forget regularly to try and parse your example
-using for instance
-
-```
-make -C examples/foo foo.tex
-make -C examples/foo foo.py
-make -C examples/foo foo.ml
-```
-
-to see if you've made any syntax errors. Once the text formatting is done, you
-can start to annotate each legislative atom (article, provision, etc.) with
-some Catala code. To open up a code section in Catala, simply use
-
-````markdown
-```catala
-# In code sections, comments start with #
-scope Foo:
-  <your code goes here>
-```
-````
-
-While all the code sections are equivalent in terms of execution, you can
-mark some as "metadata" so that they are printed differently on lawyer-facing
-documents. Here's how it works:
-
-````markdown
-```catala-metadata
-declaration structure FooBar:
-  data foo content boolean
-  data bar content money
-
-<your structure/enumeration/scope declarations goes here>
-```
-````
-
-Again, make sure to regularly check that your example is parsing correctly. The
-error message from the compiler should help you debug the syntax if need be. You
-can also live-test the programs you wrote by feeding them to the interpreter
-(see the [README of the `examples`
-repository](https://github.com/CatalaLang/catala-examples/README.md)); this will
-also type-check the programs, which is useful for debugging them.
 
 ## Working on the compiler
 
@@ -93,11 +34,48 @@ different modules' interfaces as well as high-level architecture documentation.
 
 ### Installing and using nix
 
-We provide an nix environement to develop the Catala compiler. It is available
+We provide a nix environement to develop the Catala compiler. It is available
 after [installing nix](https://nixos.org/download.html). You can then just
 use `nix develop` to enter the environment.
 
-### Example: adding a builtin function
+Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
+
+
+### Automatic formatting
+
+Please ensure to submit commits formatted using the included `ocamlformat`
+configuration. The `make build` target should ensure that.
+
+In case the formatting rules or ocamlformat version changed remotely, you can
+use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
+reformat your branch patch by patch before rebasing.
+
+
+### Pull Requests Policies
+
+Pull requests must be approved by, at least, one knowledgable
+contributor before merging.
+
+Unless there exists legitimate reasons, every commit of the pull
+request must compile, and, the final commit must successfully pass the
+CI check.
+
+All requested changes should ideally be included in the PR. However,
+if the PR is merged while there are still open discussions or if there
+are late remarks, it should be addressed as soon as possible in a
+follow-up PR.
+
+As much as possible, offline interactions between the author and
+reviewer(s) leading to a discussion resolution should result in a
+quick summary that documents the decision.
+
+Whenever major changes are requested, both PR's author and reviewer(s)
+may reach an agreement to delay the resolution (e.g., in a future PR)
+in which case it must be documented as an issue in order to properly
+track it.
+
+
+### Contribution example: adding a builtin function
 
 The language provides a limited number of builtin functions, which are sometimes
 needed for things that can't easily be expressed in Catala itself; in case you
@@ -122,7 +100,7 @@ need more, here is how one can be added:
     - in `../runtimes/python/catala/src/catala/runtime.py`
 - Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
 
-### Internationalization of the Catala syntax
+### Contribution example: internationalization of the Catala syntax
 
 The Catala language should be adapted to any legislative text that follows a
 general-to-specifics statutes order. Therefore, there exists multiple versions
@@ -167,45 +145,9 @@ To add support for a new language:
 Feel free to open a pull request for discussion even if you couldn't go through
 all these steps, the `lexer_xx.cppo.ml` file is the important part.
 
-### Example: writing custom backends as plugins
+### Contribution example: writing custom backends as plugins
 
 Catala has support for dynamically-loaded plugins to use as alternative
 backends. See `compiler/plugins` for examples, and [the
 documentation](https://catala-lang.org/ocaml_docs/catala/plugins.html) for more
 detail.
-
-### Automatic formatting
-
-Please ensure to submit commits formatted using the included `ocamlformat`
-configuration. The `make build` target should ensure that.
-
-In case the formatting rules or ocamlformat version changed remotely, you can
-use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
-reformat your branch patch by patch before rebasing.
-
-### Hand-updating packages in the nix part
-
-Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
-
-### Pull Requests Policies
-
-Pull requests must be approved by, at least, one knowledgable
-contributor before merging.
-
-Unless there exists legitimate reasons, every commit of the pull
-request must compile, and, the final commit must successfully pass the
-CI check.
-
-All requested changes should ideally be included in the PR. However,
-if the PR is merged while there are still open discussions or if there
-are late remarks, it should be addressed as soon as possible in a
-follow-up PR.
-
-As much as possible, offline interactions between the author and
-reviewer(s) leading to a discussion resolution should result in a
-quick summary that documents the decision.
-
-Whenever major changes are requested, both PR's author and reviewer(s)
-may reach an agreement to delay the resolution (e.g., in a future PR)
-in which case it must be documented as an issue in order to properly
-track it.
