@@ -564,7 +564,7 @@ let rec trace_aux :
 
     match tr with
     | TrExpr _ -> Format.pp_print_string fmt "□"(*expr_aux bnd_ctx colors fmt e*)
-    | TrVar {var = v; value} -> Format.fprintf fmt "%a ▻ %a" var v (exprc colors) value
+    | TrVar {var = v; value} -> Format.fprintf fmt "%a(▷ %a)" var v (exprc colors) value
     | TrExternal { name } -> external_ref fmt name
     | TrTuple es ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]"

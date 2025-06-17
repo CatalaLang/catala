@@ -100,7 +100,9 @@ fun e1 e2 ->
     Mark.add m (EDefault { excepts = join_expr_list x1 x2; just = join_expr j1 j2; cons = join_expr c1 c2 })
   | EPureDefault e1, EPureDefault e2 -> Mark.add m (EPureDefault (join_expr e1 e2))
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> Mark.add m (EErrorOnEmpty (join_expr e1 e2))
-  | _ -> Message.error "The two expressions cannot be joined"
+  | _ -> 
+    Message.error "@[<v 2>The two expressions cannot be joined@ Expr1 : %a@ Expr2 : %a" 
+    Format_trace.expr e1 Format_trace.expr e2
 
 and join_expr_list : type d t. (d, t) gexpr list -> (d, t) gexpr list -> (d, t) gexpr list =
   fun l1 l2 -> List.map2 join_expr l1 l2
@@ -137,7 +139,7 @@ fun ctx value trace ->
     | EAbs _, TrAbs _ -> Var.Map.empty, v
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
-    | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
+    | _, TrApp { trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
@@ -148,7 +150,14 @@ fun ctx value trace ->
         (Array.to_list vars)
       in
       let lctx2, e2 = unevaluate_list values trargs in
-      let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf in
+      let lctx1, e1 = match trf with
+        | TrAbs { binder = _; pos; tys } -> unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
+        | TrVar { var = _; value = (EAbs { binder = _; pos; tys }, m)} -> 
+          unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
+        | _ -> 
+          Message.error "@[<v 2> The left term is not a function in the application @ Expr : %a@ Trace : %a@]" 
+          Format_trace.expr v Format_trace.trace trace
+      in
       join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
     | _, TrAppOp { op = Length, _ as op; trargs; tys; vargs = [(EArray vs, m)]; _ } -> 
       (* The content of the Array is not relevant so we replace each element by a hole *)
