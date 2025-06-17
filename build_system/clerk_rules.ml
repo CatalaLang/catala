@@ -233,7 +233,11 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
   let open Var in
   [
     Nj.rule "copy"
-      ~command:["cp"; "-f"; !input; !output]
+      ~command:
+        (if Sys.win32 then
+           ["cmd"; "/c"; "copy"; "/Y"; !input; !output]
+         else 
+           ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
   ] @ (if List.mem OCaml enabled_backends then [
       Nj.rule "catala-ocaml"
@@ -292,7 +296,12 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~description:["<catala>"; "tests"; "⇐"; !input];
 
       Nj.rule "dir-tests"
-        ~command:["cat"; !input; ">"; !output; ";"]
+        ~command:
+        (if Sys.win32 then
+          ["cmd"; "/c"; "type"; !input; ">"; !output; ";"]
+        else
+          ["cat"; !input; ">"; !output; ";"]
+        )
         ~description:["<test>"; !test_id];
      ]
    else [])

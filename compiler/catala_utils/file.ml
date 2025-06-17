@@ -309,6 +309,7 @@ let () =
     in
     let count =
       if not Unix.(isatty stdin) then from_env ()
+      else if Sys.win32 then default
       else
         try
           (* terminfo *)
@@ -351,11 +352,18 @@ let check_file f =
   with Unix.Unix_error _ | Sys_error _ -> None
 
 let get_command t =
+  let cmd, args =
+    if Sys.win32 then
+      let t_exe =
+        if not (Filename.check_suffix t ".exe") then t ^ ".exe" else t
+      in
+      "where.exe", [t_exe]
+    else "/bin/sh", ["-c"; "command -v " ^ Filename.quote t]
+  in
   String.trim
   @@ process_out
        ~check_exit:(function 0 -> () | _ -> raise Not_found)
-       "/bin/sh"
-       ["-c"; "command -v " ^ Filename.quote t]
+       cmd args
 
 let check_exec t =
   try
