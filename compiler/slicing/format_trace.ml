@@ -535,7 +535,7 @@ let rec trace_aux :
   let tracec colors tr = traceb bnd_ctx colors tr in
   let trace tr = tracec colors tr in
   let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
-  (*let exprc colors e = exprb bnd_ctx colors e in*)
+  let exprc colors e = exprb bnd_ctx colors e in
   (*let expr e = exprc colors e in*)
   let operator fmt op = operator ~debug:false fmt op in 
   let default_punct = with_color (fun fmt -> Format.pp_print_as fmt 1) in
@@ -564,7 +564,7 @@ let rec trace_aux :
 
     match tr with
     | TrExpr _ -> Format.pp_print_string fmt "□"(*expr_aux bnd_ctx colors fmt e*)
-    | TrVar v -> var fmt v
+    | TrVar {var = v; value} -> Format.fprintf fmt "%a ▻ %a" var v (exprc colors) value
     | TrExternal { name } -> external_ref fmt name
     | TrTuple es ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]"

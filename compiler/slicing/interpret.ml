@@ -94,7 +94,7 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> v, TrVar (Var.translate x)
+        | Some v -> v, TrVar {var = Var.translate x; value = addholes v} 
         | None -> 
           Message.error ~pos "%a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \

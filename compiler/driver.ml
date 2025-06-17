@@ -942,11 +942,11 @@ module Commands = struct
         Passes.dcalc options ~includes ~optimize ~check_invariants
           ~autotest:false ~typed:Expr.typed
       in
-      let scopes = get_scopelist_uids prg.decl_ctx ex_scopes in
+      let scopes = get_scopelist_uids prg ex_scopes in
       Message.log "Begin slicing !";
-      let success = Slicing.Slice.test ~debug:true prg (List.hd scopes) in
+      let success = Slicing.Slice.test ~debug:options.debug prg (List.hd scopes) in
       if success then Message.log "Same result with the sliced expression :)"
-      else Message.log "/!\\ The two results are not the same :(";
+      else Message.error "/!\\ The two results are not the same :(";
       Message.log "End slicing"
     in
     Cmd.v

@@ -1,7 +1,7 @@
 open Catala_utils
 open Shared_ast
 
-type ('a, 'm) t =
+ type ('a, 'm) t =
   | TrExpr : ('a, 'm) gexpr -> ('a, 'm) t
   | TrLit : lit -> ('a, 'm) t
   | TrApp : {
@@ -21,7 +21,11 @@ type ('a, 'm) t =
     }
       -> ('a, 'm) t
   | TrArray : ('a, 'm) t list -> ('a, 'm) t
-  | TrVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, 'm) t
+  | TrVar : {
+      var : ('a, 'm) naked_gexpr Bindlib.var;
+      value : ('a, 'm) gexpr
+    }
+    -> ('a, 'm) t
   | TrAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;

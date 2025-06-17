@@ -135,7 +135,7 @@ fun ctx value trace ->
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
       when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
     | EAbs _, TrAbs _ -> Var.Map.empty, v
-    | _, TrVar x -> Var.Map.singleton x v, Mark.add m (EVar x)
+    | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf = TrAbs { binder = _; pos; tys } as trf; trargs; tys=tys2; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
@@ -350,7 +350,7 @@ fun ctx value trace ->
         local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
       | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
     )
-    | _ -> Message.error "The trace does not match the value"
+    | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
 
   and unevaluate_list v_list trace_list = List.split (List.map2 unevaluate_aux v_list trace_list)
   
@@ -394,12 +394,27 @@ let slice
           (Expr.pos e)
       in 
       let e = (Expr.unbox to_interpret) in
+      Message.log "Input program :";
+      Format.print_newline();
+      Format_trace.print_expr e;
 
       (* Evaluate the expression with trace *)
       let v, tr = Interpret.evaluate_expr_safe ctx p.lang e in
+      Message.log "Result :";
+      Format.print_newline();
+      Format_trace.print_expr v;
+      Format.print_newline();
+      Message.log "Trace :";
+      Format.print_newline();
+      Format_trace.print_trace tr;
 
       (* Unevaluate the value with the trace to get a sliced version of the expression *)
       let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
+
+      Message.log "Sliced program :";
+      Format.print_newline(); 
+      Format_trace.print_expr sliced_e;
+      Format.print_newline();
       
       (* Print everything if needed *)
       if debug then print_slicing_things e v tr sliced_e;
