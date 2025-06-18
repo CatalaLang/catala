@@ -348,7 +348,7 @@ alltest: dependencies-python
 	$(MAKE) testsuite && \
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
-	$(MAKE) -C catala-examples.tmp \
+	$(PY_VENV_ACTIVATE) $(MAKE) -C catala-examples.tmp \
 	  CATALA=$(CURDIR)/_build/install/default/bin/catala \
 	  CLERK=$(CURDIR)/_build/install/default/bin/clerk \
 	  BUILD=../_build/default \

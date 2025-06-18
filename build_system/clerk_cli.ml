@@ -374,9 +374,14 @@ let init
     let dir =
       match build_dir with None -> config.global.build_dir | Some dir -> dir
     in
-    let d = File.clean_path dir in
-    File.ensure_dir d;
-    d
+    let dir =
+      match test_flags with
+      | [] -> dir
+      | flags -> File.((dir / "test") ^ String.concat "" flags)
+    in
+    let dir = File.clean_path dir in
+    File.ensure_dir dir;
+    dir
     (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
        default, but Ninja treats relative and absolute paths separately so that
        you wouldn't then be able to build target _build/foo.ml but would have to
