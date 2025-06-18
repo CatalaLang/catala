@@ -13,7 +13,7 @@ scope A:
 
 ```catala-test-cli
 $ catala test-scope A
-┌─[ERROR]─ 1/2 ─
+┌─[ERROR]─
 │
 │  Syntax error at "x": unexpected token.
 │  Those are valid at this point: "all".
@@ -24,18 +24,6 @@ $ catala test-scope A
 │    │             ‾
 │
 │ Maybe you wanted to write: "all"?
-└─
-┌─[ERROR]─ 2/2 ─
-│
-│  Unclosed block or missing newline at the end of file.
-│  Did you forget a ``` delimiter ?
-│
-├─➤ tests/parsing/bad/unrecoverable_error.catala_en:3.1-4.1:
-│   │
-│ 3 │ ```catala
-│   │ ‾‾‾‾‾‾‾‾‾
-│ 4 │ declaration scope A:
-│   │ 
 └─
 #return code 123#
 ```
