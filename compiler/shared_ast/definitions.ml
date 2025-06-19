@@ -227,7 +227,8 @@ and naked_typ =
   | TDefault of typ
   | TVar of typ_var
       (** Free variables are existentials, bound variables are universals *)
-  | TAny of (typ, typ) Bindlib.binder
+  | TAny of (typ, typ) Bindlib.mbinder
+      (** Universal quantification of variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig
@@ -545,7 +546,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
-      tys : typ list;
+      tys : (typ, typ list) Bindlib.mbinder;
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EIfThenElse : {
@@ -636,6 +637,7 @@ and ('a, 'b, 'm) base_gexpr =
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;
+      (* TODO: change to typ : (typ, typ list * typ) Bindlib.mbinder; *)
       targs : typ list;
       tret : typ;
     }

@@ -139,7 +139,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
             let x = Var.make "_" in
             Expr.make_ghost_abs [x]
               (Expr.efatalerror NoValue m)
-              [Type.any pos]
+              [TLit TUnit, pos]
               pos );
           (* | None x -> raise NoValueProvided *)
           ( Expr.some_constr,

@@ -70,6 +70,8 @@ end
 
 val free_vars : t -> Var.Set.t
 
+val rebox : t -> t Bindlib.box
+
 val quantify : Var.Set.t -> t -> t
 (** Adds [TAny] quantifiers for the given type variables around the type *)
 

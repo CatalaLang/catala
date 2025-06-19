@@ -361,7 +361,15 @@ let map
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
     let binder = bind (Array.map Var.translate vars) body in
-    let tys = List.map typ tys in
+    let tys =
+      let tvars, (targs, tret) = Bindlib.unmbind tys in
+      let boxtyp t = Type.rebox (typ t) in
+      Bindlib.bind_mvar tvars @@
+      Bindlib.box_apply2 (fun targs tret -> targs, tret)
+        (Bindlib.box_list (List.map boxtyp targs))
+        (boxtyp tret)
+      |> Bindlib.unbox
+    in
     eabs binder pos tys m
   | EIfThenElse { cond; etrue; efalse } ->
     eifthenelse (f cond) (f etrue) (f efalse) m
@@ -682,7 +690,10 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ELit l1, ELit l2 -> l1 = l2
   | ( EAbs { binder = b1; pos = _; tys = tys1 },
       EAbs { binder = b2; pos = _; tys = tys2 } ) ->
-    Type.equal_list tys1 tys2 && Bindlib.eq_mbinder equal b1 b2
+    Bindlib.eq_mbinder (fun (targs1, tret1) (targs2, tret2) ->
+        Type.equal_list targs1 targs2 &&
+        Type.equal tret1 tret2) tys1 tys2
+    && Bindlib.eq_mbinder equal b1 b2
   | ( EApp { f = e1; args = args1; tys = tys1 },
       EApp { f = e2; args = args2; tys = tys2 } ) ->
     equal e1 e2 && equal_list args1 args2 && Type.equal_list tys1 tys2
@@ -767,7 +778,10 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     Mark.compare compare_external_ref n1 n2
   | EAbs {binder=binder1; pos = _; tys=typs1},
     EAbs {binder=binder2; pos = _; tys=typs2} ->
-    List.compare Type.compare typs1 typs2 @@< fun () ->
+    let _, (targs1, tret1), (targs2, tret2) = Bindlib.unmbind2 typs1 typs2 in
+    List.compare Type.compare targs1 targs2
+    @@< fun () -> Type.compare tret1 tret2
+    @@< fun () ->
     let _, e1, e2 = Bindlib.unmbind2 binder1 binder2 in
     compare e1 e2
   | EIfThenElse {cond=i1; etrue=t1; efalse=e1},
@@ -933,6 +947,7 @@ let make_abs m_xs e taus pos =
   let mark_split v = Mark.get v, Mark.remove v in
   let pos_xs, xs = List.map mark_split m_xs |> List.split in
   let xs = Array.of_list xs in
+  let vars = List.fo Bindlib.free_vars 
   (* let vars = List.fold_left (fun acc t -> Type.Var.Set.union acc (Type.free_vars t)) Type.Var.Set.empty taus
    * in *)
   let mark =
