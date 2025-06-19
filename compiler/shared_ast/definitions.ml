@@ -214,7 +214,7 @@ type ('d, 'c) interpr_kind =
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 
 type typ = naked_typ Mark.pos
-and typ_var = typ Bindlib.var
+and typ_var = naked_typ Bindlib.var
 
 and naked_typ =
   | TLit of typ_lit
@@ -226,9 +226,8 @@ and naked_typ =
   | TArray of typ
   | TDefault of typ
   | TVar of typ_var
-      (** Free variables are existentials, bound variables are universals *)
-  | TAny of (typ, typ) Bindlib.mbinder
-      (** Universal quantification of variables *)
+  | TAny of (naked_typ, typ) Bindlib.mbinder
+      (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig

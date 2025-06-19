@@ -568,7 +568,11 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
         variables
     in
     let targs = List.map (fun (_, t) -> process_base_typ ~vars ctxt t) arg_typ in
-    Type.quantify (Type.Var.Set.of_list (String.Map.values vars)) (TArrow (targs, process_base_typ ~vars ctxt return_typ), typ_pos)
+    (TArrow (targs, process_base_typ ~vars ctxt return_typ), typ_pos)
+    |> Type.rebox
+    |> Bindlib.bind_mvar (Array.of_list (String.Map.values vars))
+    |> Bindlib.box_apply (fun t -> TAny t, typ_pos)
+    |> Bindlib.unbox
 
 (** Process data declaration *)
 let process_data_decl

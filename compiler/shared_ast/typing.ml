@@ -22,11 +22,9 @@ module A = Definitions
 
 type flags = { fail_on_any : bool; assume_op_types : bool }
 
-type unionfind_typ = naked_typ Mark.pos UnionFind.elem
-(** We do not reuse {!type: A.typ} because we have to include a new [TAny]
-    variant. Indeed, error terms can have any type and this has to be captured
-    by the type sytem. *)
-
+type unionfind_typ = typ UnionFind.elem
+(** The variant is the same as [A.naked_typ], but sandwitched with indirections through unionfind *)
+and typ = naked_typ Mark.pos
 and naked_typ =
   | TLit of A.typ_lit
   | TArrow of unionfind_typ list * unionfind_typ
@@ -36,7 +34,8 @@ and naked_typ =
   | TOption of unionfind_typ
   | TArray of unionfind_typ
   | TDefault of unionfind_typ
-  | TAny of naked_typ Bindlib.var
+  | TVar of naked_typ Bindlib.var
+  | TAny of (naked_typ, unionfind_typ) Bindlib.mbinder
   | TClosureEnv
 
 module Any = struct
@@ -52,13 +51,124 @@ module Any = struct
   module Map = Map.Make(Var)
   module Set = Set.Make(Var)
 
-  let make name = Bindlib.new_var (fun x -> TAny x) name
+  let make name = Bindlib.new_var (fun x -> TVar x) name
   let fresh () = make "ty"
 end
 
+let get_ty uf = UnionFind.get (UnionFind.find uf)
+
+let typ_needs_parens (t : unionfind_typ) : bool =
+  let t = get_ty t in
+  match Mark.remove t with TArrow _ | TArray _ | TAny _ -> true | _ -> false
+
+let with_color f color fmt x =
+  (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
+  Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg (C4 color)));
+  f fmt x;
+  Format.pp_close_stag fmt ()
+
+let pp_color_string = with_color Format.pp_print_string
+
+let rec format_typ
+    ~(bctx : Bindlib.ctxt)
+    ~(colors : Ocolor_types.color4 list)
+    (fmt : Format.formatter)
+    (uf : unionfind_typ): unit  =
+  let format_typ_with_parens
+      ~bctx
+      ~colors
+      (fmt : Format.formatter)
+      (t : unionfind_typ) =
+    if typ_needs_parens t then (
+      Format.pp_open_hvbox fmt 1;
+      pp_color_string (List.hd colors) fmt "(";
+      format_typ ~bctx ~colors:(List.tl colors) fmt t;
+      Format.pp_close_box fmt ();
+      pp_color_string (List.hd colors) fmt ")")
+    else Format.fprintf fmt "%a" (format_typ ~bctx ~colors) t
+  in
+  let ty = UnionFind.get (UnionFind.find uf) in
+  match Mark.remove ty with
+  | TLit l -> Format.fprintf fmt "%a" Print.tlit l
+  | TTuple ts ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+      (pp_color_string (List.hd colors))
+      "("
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
+         (fun fmt t -> format_typ ~bctx fmt ~colors:(List.tl colors) t))
+      ts
+      (pp_color_string (List.hd colors))
+      ")"
+  | TStruct s -> A.StructName.format fmt s
+  | TEnum e -> A.EnumName.format fmt e
+  | TOption t ->
+    Format.fprintf fmt "@[<hov 2>option %a@]"
+      (format_typ_with_parens ~bctx~colors:(List.tl colors))
+      t
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]"
+      (format_typ_with_parens ~bctx ~colors)
+      t1 (format_typ ~bctx ~colors) t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ →@ %a@]"
+      (pp_color_string (List.hd colors))
+      "("
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_typ_with_parens ~bctx ~colors:(List.tl colors)))
+      t1
+      (pp_color_string (List.hd colors))
+      ")" (format_typ ~bctx ~colors) t2
+  | TArray t1 -> (
+    match Mark.remove (get_ty t1) with
+    | TAny _ when not Global.options.debug -> Format.pp_print_string fmt "list"
+    | _ -> Format.fprintf fmt "@[list of@ %a@]" (format_typ ~bctx ~colors) t1)
+  | TDefault t1 ->
+    Format.pp_print_as fmt 1 "⟨";
+    format_typ ~bctx ~colors fmt t1;
+    Format.pp_print_as fmt 1 "⟩"
+  | TVar v -> Any.format fmt v
+  | TAny tb ->
+    let vars, t, bctx = Bindlib.unmbind_in bctx tb in
+    Format.fprintf fmt "@[<h>%a@]%a"
+      (Format.pp_print_list (fun fmt v -> Format.fprintf fmt "∀%a." Any.format v))
+      (Array.to_list vars)
+      (format_typ_with_parens ~bctx ~colors) t
+  | TClosureEnv -> Format.fprintf fmt "closure_env"
+
+let rec colors =
+  let open Ocolor_types in
+  blue :: cyan :: green :: yellow :: red :: magenta :: colors
+
+let dummy_flags = { fail_on_any = false; assume_op_types = false }
+let format_typ fmt naked_typ = format_typ ~bctx:Bindlib.empty_ctxt ~colors fmt naked_typ
+
+let shallow_fold f ty acc =
+  let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
+  Mark.fold
+    (function
+      | TLit _ | TStruct _ | TEnum _ | TClosureEnv | TVar _ -> acc
+      | TTuple tl -> lfold tl acc
+      | TOption ty | TArray ty | TDefault ty -> f ty acc
+      | TArrow (tl, ty) -> lfold tl (f ty acc)
+      | TAny tb ->
+        let _v, ty = Bindlib.unmbind tb in
+        f ty acc)
+    ty
+
+let rec var_occurs v = function
+  | TVar v1, _ -> Any.Var.equal v v1
+  | TAny tb, _ ->
+    let _, ty = Bindlib.unmbind tb in var_occurs v (get_ty ty)
+  | ty ->
+    shallow_fold
+      (fun ty acc -> acc || var_occurs v (get_ty ty))
+      ty false
+
 let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
   let rec aux vars ty =
-    let ty, pos = UnionFind.get (UnionFind.find ty) in
+    let ty, pos = get_ty ty in
     let ( @& ) f bt = Bindlib.box_apply (fun t -> f t, pos) bt in
     match ty with
     | TLit l -> vars, Bindlib.box (A.TLit l, pos)
@@ -83,148 +193,116 @@ let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
     | TDefault t1 ->
       let vars, t1 = aux vars t1 in
       vars, (fun t1 -> A.TDefault t1) @& t1
-    | TAny any ->
+    | TVar v ->
       let vars, var =
-        match Any.Map.find_opt any vars with
+        match Any.Map.find_opt v vars with
         | Some var -> vars, var
         | None ->
           let var = Type.Var.fresh pos in
-          Any.Map.add any var vars, var
+          Any.Map.add v var vars, var
       in
-      vars, Bindlib.box_var var
+      vars, Fun.id @& (Bindlib.box_var var)
+    | TAny tb ->
+      let vs, t = Bindlib.unmbind tb in
+      let vars, vs2 = Array.fold_left_map (fun vars v1 ->
+          let v2 = Type.Var.fresh pos in
+          Any.Map.add v1 v2 vars, v2)
+          vars vs
+      in
+      let vars, t = aux vars t in
+      let vars = Array.fold_left (fun vars v -> Any.Map.remove v vars) vars vs in
+      let tb = Bindlib.bind_mvar vs2 t in
+      vars, (fun tb -> A.TAny tb) @& tb
     | TClosureEnv -> vars, Bindlib.box (A.TClosureEnv, pos)
   in
-  let pos = Mark.get (UnionFind.get (UnionFind.find ty)) in
-  let vars, ty = aux Any.Map.empty ty in
-  let boxed_ty =
-    Any.Map.fold
-      (fun _ v ty ->
-         (* Fixme: don't generalise everything ? *)
-        Bindlib.box_apply (fun t -> A.TAny t, pos) (Bindlib.bind_var v ty))
-      vars ty
-  in
-  assert (Bindlib.is_closed boxed_ty);
-  Bindlib.unbox boxed_ty
+  (* let pos = Mark.get (get_ty ty) in *)
+  let vars, bty = aux Any.Map.empty ty in
+  if not (Any.Map.is_empty vars) then
+    Message.warning "Remaining free vars after conversion to AST!?@ %a"
+      format_typ ty;
+  Bindlib.unbox bty
 
 let ast_to_typ (ty : A.typ) : unionfind_typ =
-  let vars =
-    (* free variables are quantified at the outermost level
-
-       Note: it would be more efficient to gather them out in a single pass
-       instead of using `Type.free_vars` *)
-    Type.Var.Set.fold
-      (fun v vars ->
-        let any = UnionFind.make (TAny (Any.fresh ()), Mark.get ty) in
-        Type.Var.Map.add v any vars)
-      (Type.free_vars ty) Type.Var.Map.empty
-  in
-  let rec aux vars = function
-    | A.TVar v, _ -> Type.Var.Map.find v vars
-    | A.TAny tb, m ->
-      let var, ty = Bindlib.unbind tb in
-      let any = UnionFind.make (TAny (Any.fresh ()), m) in
-      let vars = Type.Var.Map.add var any vars in
-      aux vars ty
-    | ty, m ->
-      let ty =
-        match ty with
-        | A.TLit l -> TLit l
-        | A.TArrow (t1, t2) -> TArrow (List.map (aux vars) t1, aux vars t2)
-        | A.TTuple ts -> TTuple (List.map (aux vars) ts)
-        | A.TStruct s -> TStruct s
-        | A.TEnum e -> TEnum e
-        | A.TOption t -> TOption (aux vars t)
-        | A.TArray t -> TArray (aux vars t)
-        | A.TDefault t -> TDefault (aux vars t)
-        | A.TClosureEnv -> TClosureEnv
-        | A.TVar _ | A.TAny _ -> assert false
+  let rec aux vars (ty, pos) =
+    let ( @& ) f bt = Bindlib.box_apply (fun t -> UnionFind.make (f t, pos)) bt in
+    match ty with
+    | A.TLit l -> vars, Fun.id @& Bindlib.box (TLit l)
+    | A.TTuple ts ->
+      let vars, ts = List.fold_left_map aux vars ts in
+      vars, (fun ts -> TTuple ts) @& Bindlib.box_list ts
+    | A.TStruct s -> vars, Fun.id @& Bindlib.box (TStruct s)
+    | A.TEnum e -> vars, Fun.id @& Bindlib.box (TEnum e)
+    | A.TOption t ->
+      let vars, t = aux vars t in
+      vars, (fun t -> TOption t) @& t
+    | A.TArrow (t1, t2) ->
+      let vars, t1 = List.fold_left_map aux vars t1 in
+      let vars, t2 = aux vars t2 in
+      ( vars,
+        Bindlib.box_apply2
+          (fun t1 t2 -> TArrow (t1, t2), pos)
+          (Bindlib.box_list t1) t2 )
+    | A.TArray t1 ->
+      let vars, t1 = aux vars t1 in
+      vars, (fun t1 -> TArray t1) @& t1
+    | A.TDefault t1 ->
+      let vars, t1 = aux vars t1 in
+      vars, (fun t1 -> TDefault t1) @& t1
+    | A.TVar v ->
+      let vars, var =
+        match Any.Map.find_opt v vars with
+        | Some var -> vars, var
+        | None ->
+          let var = Type.Var.fresh pos in
+          Any.Map.add v var vars, var
       in
-      UnionFind.make (ty, m)
+      vars, Fun.id @& (Bindlib.box_var var)
+    | A.TAny tb ->
+      let vs, t = Bindlib.unmbind tb in
+      let vars, vs2 = Array.fold_left_map (fun vars v1 ->
+          let v2 = Type.Var.fresh pos in
+          Any.Map.add v1 v2 vars, v2)
+          vars vs
+      in
+      let vars, t = aux vars t in
+      let vars = Array.fold_left (fun vars v -> Any.Map.remove v vars) vars vs in
+      let tb = Bindlib.bind_mvar vs2 t in
+      vars, (fun tb -> TAny tb) @& tb
+    | A.TClosureEnv -> vars, Bindlib.box (TClosureEnv, pos)
   in
-  aux vars ty
+  (* let pos = Mark.get (get_ty ty) in *)
+  let vars, bty = aux Any.Map.empty ty in
+  if not (Any.Map.is_empty vars) then
+    Message.warning "Remaining free vars after conversion to AST!?@ %a"
+      format_typ ty;
+  Bindlib.unbox bty
+
+  (* let rec aux vars = function
+   *   | A.TVar v, _ -> Type.Var.Map.find v vars
+   *   | A.TAny tb, m ->
+   *     let var, ty = Bindlib.unbind tb in
+   *     let any = UnionFind.make (TAny (Any.fresh ()), m) in
+   *     let vars = Type.Var.Map.add var any vars in
+   *     aux vars ty
+   *   | ty, m ->
+   *     let ty =
+   *       match ty with
+   *       | A.TLit l -> TLit l
+   *       | A.TArrow (t1, t2) -> TArrow (List.map (aux vars) t1, aux vars t2)
+   *       | A.TTuple ts -> TTuple (List.map (aux vars) ts)
+   *       | A.TStruct s -> TStruct s
+   *       | A.TEnum e -> TEnum e
+   *       | A.TOption t -> TOption (aux vars t)
+   *       | A.TArray t -> TArray (aux vars t)
+   *       | A.TDefault t -> TDefault (aux vars t)
+   *       | A.TClosureEnv -> TClosureEnv
+   *       | A.TVar _ | A.TAny _ -> assert false
+   *     in
+   *     UnionFind.make (ty, m)
+   * in
+   * aux vars ty *)
 
 (** {1 Types and unification} *)
-
-let typ_needs_parens (t : unionfind_typ) : bool =
-  let t = UnionFind.get (UnionFind.find t) in
-  match Mark.remove t with TArrow _ | TArray _ -> true | _ -> false
-
-let with_color f color fmt x =
-  (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
-  Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg (C4 color)));
-  f fmt x;
-  Format.pp_close_stag fmt ()
-
-let pp_color_string = with_color Format.pp_print_string
-
-let rec format_typ
-    (ctx : A.decl_ctx)
-    ~(colors : Ocolor_types.color4 list)
-    (fmt : Format.formatter)
-    (naked_typ : unionfind_typ) : unit =
-  let format_typ = format_typ ctx in
-  let format_typ_with_parens
-      ~colors
-      (fmt : Format.formatter)
-      (t : unionfind_typ) =
-    if typ_needs_parens t then (
-      Format.pp_open_hvbox fmt 1;
-      pp_color_string (List.hd colors) fmt "(";
-      format_typ ~colors:(List.tl colors) fmt t;
-      Format.pp_close_box fmt ();
-      pp_color_string (List.hd colors) fmt ")")
-    else Format.fprintf fmt "%a" (format_typ ~colors) t
-  in
-  let naked_typ = UnionFind.get (UnionFind.find naked_typ) in
-  match Mark.remove naked_typ with
-  | TLit l -> Format.fprintf fmt "%a" Print.tlit l
-  | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
-      (pp_color_string (List.hd colors))
-      "("
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         (fun fmt t -> format_typ fmt ~colors:(List.tl colors) t))
-      ts
-      (pp_color_string (List.hd colors))
-      ")"
-  | TStruct s -> A.StructName.format fmt s
-  | TEnum e -> A.EnumName.format fmt e
-  | TOption t ->
-    Format.fprintf fmt "@[<hov 2>option %a@]"
-      (format_typ_with_parens ~colors:(List.tl colors))
-      t
-  | TArrow ([t1], t2) ->
-    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]"
-      (format_typ_with_parens ~colors)
-      t1 (format_typ ~colors) t2
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@ →@ %a@]"
-      (pp_color_string (List.hd colors))
-      "("
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_typ_with_parens ~colors:(List.tl colors)))
-      t1
-      (pp_color_string (List.hd colors))
-      ")" (format_typ ~colors) t2
-  | TArray t1 -> (
-    match Mark.remove (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ when not Global.options.debug -> Format.pp_print_string fmt "list"
-    | _ -> Format.fprintf fmt "@[list of@ %a@]" (format_typ ~colors) t1)
-  | TDefault t1 ->
-    Format.pp_print_as fmt 1 "⟨";
-    format_typ ~colors fmt t1;
-    Format.pp_print_as fmt 1 "⟩"
-  | TAny v -> Any.format fmt v
-  | TClosureEnv -> Format.fprintf fmt "closure_env"
-
-let rec colors =
-  let open Ocolor_types in
-  blue :: cyan :: green :: yellow :: red :: magenta :: colors
-
-let dummy_flags = { fail_on_any = false; assume_op_types = false }
-let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
 let record_type_error _ctx (A.AnyExpr e) t1 t2 =
   (* We convert union-find types to ast ones otherwise error messages would be
@@ -287,8 +365,8 @@ let rec unify
   let unify = unify ctx in
   (* Message.debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
      t2; *)
-  let t1_repr = UnionFind.get (UnionFind.find t1) in
-  let t2_repr = UnionFind.get (UnionFind.find t2) in
+  let t1_repr = get_ty t1 in
+  let t2_repr = get_ty t2 in
   let record_type_error () = record_type_error ctx (A.AnyExpr e) t1 t2 in
   let () =
     match Mark.remove t1_repr, Mark.remove t2_repr with
@@ -307,8 +385,16 @@ let rec unify
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
     | TDefault t1', TDefault t2' -> unify e t1' t2'
+    | TVar _, TVar _ -> ()
+    | TVar v, t | t, TVar v ->
+      if var_occurs v (t, Mark.get t2_repr) then record_type_error ()
     | TClosureEnv, TClosureEnv -> ()
-    | TAny _, _ | _, TAny _ -> ()
+    | TAny t1b, _ ->
+      let _, t1 = Bindlib.unmbind t1b in
+      unify e t1 t2
+    | _, TAny t2b ->
+      let _, t2 = Bindlib.unmbind t2b in
+      unify e t1 t2
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
         | TArray _ | TDefault _ | TClosureEnv ),
         _ ) ->
@@ -316,7 +402,10 @@ let rec unify
   in
   ignore
   @@ UnionFind.merge
-       (fun t1 t2 -> match Mark.remove t2 with TAny _ -> t1 | _ -> t2)
+       (fun t1 t2 -> match t1, t2 with
+        | t, (TAny _, _) -> t
+        | t, (TVar _, _) -> t
+        | _, t -> t)
        t1 t2
 
 let lit_type (lit : A.lit) : naked_typ =

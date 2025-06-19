@@ -30,7 +30,7 @@ module Var = struct
 
   include Arg
 
-  let fresh pos = Bindlib.new_var (fun v -> TVar v, pos) "ty1"
+  let fresh () = Bindlib.new_var (fun v -> TVar v) "ty1"
 
   module Set = Set.Make (Arg)
   module Map = Map.Make (Arg)
@@ -50,7 +50,7 @@ let rec equal ty1 ty2 =
   | TArray t1, TArray t2 -> equal t1 t2
   | TDefault t1, TDefault t2 -> equal t1 t2
   | TVar tv1, TVar tv2 -> Bindlib.eq_vars tv1 tv2
-  | TAny tb1, TAny tb2 -> Bindlib.eq_binder equal tb1 tb2
+  | TAny tb1, TAny tb2 -> Bindlib.eq_mbinder equal tb1 tb2
   | TClosureEnv, TClosureEnv -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
       | TArray _ | TDefault _ | TVar _ | TAny _ | TClosureEnv ),
@@ -69,7 +69,7 @@ let shallow_fold f ty acc =
       | TOption ty | TArray ty | TDefault ty -> f ty acc
       | TArrow (tl, ty) -> lfold tl (f ty acc)
       | TAny tb ->
-        let _v, ty = Bindlib.unbind tb in
+        let _v, ty = Bindlib.unmbind tb in
         f ty acc)
     ty
 
@@ -77,8 +77,8 @@ let rec free_vars ty =
   match Mark.remove ty with
   | TVar v -> Var.Set.singleton v
   | TAny tb ->
-    let v, ty = Bindlib.unbind tb in
-    Var.Set.remove v (free_vars ty)
+    let vs, ty = Bindlib.unmbind tb in
+    Array.fold_left (fun set v -> Var.Set.remove v set) (free_vars ty) vs
   | _ ->
     shallow_fold
       (fun ty acc -> Var.Set.union acc (free_vars ty))
@@ -86,13 +86,16 @@ let rec free_vars ty =
 
 let rec unquantify = function
   | TAny tb, _ ->
-    let _v, ty = Bindlib.unbind tb in
+    let _v, ty = Bindlib.unmbind tb in
     unquantify ty
   | ty -> ty
 
 let any pos =
-  let v = Var.fresh pos in
-  let tb = Bindlib.bind_var v (Bindlib.box_var v) in
+  let v = Var.fresh () in
+  let tb =
+    Bindlib.bind_mvar [|v|]
+      (Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var v))
+  in
   TAny (Bindlib.unbox tb), pos
 
 let new_var pos = TVar (Var.fresh pos), pos
@@ -103,7 +106,7 @@ let rec unifiable ty1 ty2 =
   | (TVar _, _), (TVar _, _) -> true
   | (TVar tv, _), ty | ty, (TVar tv, _) -> not (Var.Set.mem tv (free_vars ty))
   | (TAny tb, _), ty | ty, (TAny tb, _) ->
-    let _, ty1 = Bindlib.unbind tb in
+    let _, ty1 = Bindlib.unmbind tb in
     unifiable ty1 ty
   | (TLit l1, _), (TLit l2, _) -> equal_tlit l1 l2
   | (TTuple tys1, _), (TTuple tys2, _) -> unifiable_list tys1 tys2
@@ -136,7 +139,7 @@ let rec compare ty1 ty2 =
   | TArray t1, TArray t2 -> compare t1 t2
   | TVar tv1, TVar tv2 -> Bindlib.compare_vars tv1 tv2
   | TAny tb1, TAny tb2 ->
-    let _, ty1, ty2 = Bindlib.unbind2 tb1 tb2 in
+    let _, ty1, ty2 = Bindlib.unmbind2 tb1 tb2 in
     compare ty1 ty2
   | TClosureEnv, TClosureEnv -> 0
   | TLit _, _ -> -1
@@ -178,21 +181,13 @@ let map f ty =
       (f ty)
   | TArray ty -> (fun ty -> TArray ty) @& f ty
   | TDefault ty -> (fun ty -> TDefault ty) @& f ty
-  | TVar tv -> Bindlib.box_var tv
+  | TVar tv -> Bindlib.box_apply (fun v -> v, m) (Bindlib.box_var tv)
   | TAny tb ->
-    let tv, ty = Bindlib.unbind tb in
-    (fun tb -> TAny tb) @& Bindlib.bind_var tv (f ty)
+    let tv, ty = Bindlib.unmbind tb in
+    (fun tb -> TAny tb) @& Bindlib.bind_mvar tv (f ty)
   | TClosureEnv -> Bindlib.box (TClosureEnv, m)
 
 let rec rebox ty = map rebox ty
-
-let quantify vars ty =
-  let pos = Mark.get ty in
-  Var.Set.fold (fun v ty ->
-      Bindlib.box_apply (fun bnd -> TAny bnd, pos)
-        (Bindlib.bind_var v ty))
-    vars (rebox ty)
-  |> Bindlib.unbox
 
 let shallow_fold f t acc =
   let lfold tl acc = List.fold_left (fun acc x -> f x acc) acc tl in
@@ -221,7 +216,7 @@ let hash ~strip ty =
       (* Bindlib.hash_var is not stable across executions *)
       !`TVar % !(Bindlib.name_of tv)
     | TAny tb ->
-      let _, ty, ctx = Bindlib.unbind_in ctx tb in
+      let _, ty, ctx = Bindlib.unmbind_in ctx tb in
       !`TAny % aux ctx ty
     | TClosureEnv -> !`TClosureEnv
   in
