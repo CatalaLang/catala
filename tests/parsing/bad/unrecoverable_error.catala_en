@@ -1,0 +1,29 @@
+## Unrecoverable parsing error
+
+```catala
+declaration scope A:
+  output i content integer
+
+scope A:
+  definition i equals
+    # a token "all" is intentionally missing
+    combine x among [ 1 ; 2 ; 3 ] in acc initially 0 with
+      x + acc
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[ERROR]─
+│
+│  Syntax error at "x": unexpected token.
+│  Those are valid at this point: "all".
+│
+├─➤ tests/parsing/bad/unrecoverable_error.catala_en:10.13-10.14:
+│    │
+│ 10 │     combine x among [ 1 ; 2 ; 3 ] in acc initially 0 with
+│    │             ‾
+│
+│ Maybe you wanted to write: "all"?
+└─
+#return code 123#
+```

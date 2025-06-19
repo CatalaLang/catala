@@ -200,7 +200,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       let dummy_cp = I.input_needed env in
       iterate (-1, dummy_cp) candidates_checkpoints
     in
-    (* We do not consider paths were progress isn't significant *)
+    (* We do not consider paths where progress isn't significant *)
     if best_progress < 2 then None else Some best_cp
 
   (** Main parsing loop *)
@@ -239,6 +239,10 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         match best_effort_checkpoint with
         | None ->
           (* No reasonable solution, aborting *)
+          (* Let's reset the lexer buffer in order to not trigger the unclosed
+             block finalizer: we have at least one error to report *)
+          ignore (Lexer_common.flush_acc ());
+          Lexer_common.context := Law;
           []
         | Some best_effort_checkpoint ->
           loop lexer_buffer token_list lexbuf last_input_needed
