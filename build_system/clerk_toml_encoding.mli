@@ -38,8 +38,10 @@ val encode : 'a -> 'a t -> Otoml.t
 (** Basic constructors *)
 
 val string : string descr
+val bool : bool descr
 val pair : 'a descr -> 'b descr -> ('a * 'b) descr
 val list : 'a descr -> 'a list descr
+val binding_list : 'a descr -> (string * 'a) list descr
 
 (** Object's Field constructors *)
 
@@ -75,6 +77,15 @@ val obj5 :
   'd field ->
   'e field ->
   ('a * 'b * 'c * 'd * 'e) descr
+
+val obj6 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  ('a * 'b * 'c * 'd * 'e * 'f) descr
 
 val merge_objs : 'a descr -> 'b descr -> ('a * 'b) descr
 
@@ -123,6 +134,16 @@ val table2 : 'a t -> 'b t -> ('a * 'b) t
 val table3 : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
 val table4 : 'a t -> 'b t -> 'c t -> 'd t -> ('a * 'b * 'c * 'd) t
 val table5 : 'a t -> 'b t -> 'c t -> 'd t -> 'e t -> ('a * 'b * 'c * 'd * 'e) t
+
+val table6 :
+  'a t ->
+  'b t ->
+  'c t ->
+  'd t ->
+  'e t ->
+  'f t ->
+  ('a * 'b * 'c * 'd * 'e * 'f) t
+
 val merge_tables : 'a t -> 'b t -> ('a * 'b) t
 
 (** Conversion operators *)

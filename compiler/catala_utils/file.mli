@@ -101,6 +101,11 @@ val copy : src:t -> dst:t -> unit
 val copy_in : src:t -> dir:t -> unit
 (** Same as [copy], but copies the file into the given, existing dir. *)
 
+val copy_dir : ?filter:(t -> bool) -> src:t -> dst:t -> unit -> unit
+(** Recursively copy a directory with its contents using [copy]. [filter] is
+    applied to basenames. Empty directories are not created. Does not care for
+    links or attributes, or file reading errors. *)
+
 val remove : t -> unit
 (** Recursively removes files and directories. Dangerous!
 
@@ -137,6 +142,10 @@ val basename : t -> t
 
 val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
+
+val extension : t -> string
+(** Like [Filename.extension], but without the leading dot (doesn't, therefore,
+    differenciate between empty extension and no extension) *)
 
 val parent : t -> t
 (** Similar to [dirname], except it strips the last **non-"." or ".."** element

@@ -255,6 +255,16 @@ let copy ~src ~dst =
 
 let copy_in ~src ~dir = copy ~src ~dst:(dir / Filename.basename src)
 
+let rec copy_dir ?(filter = fun _ -> true) ~src ~dst:dst0 () =
+  Array.iter
+    (fun base ->
+      let src = src / base and dst = dst0 / base in
+      if Sys.is_directory src then copy_dir ~filter ~src ~dst ()
+      else if filter base then (
+        ensure_dir dst0;
+        copy ~src ~dst))
+    (Sys.readdir src)
+
 let rec remove t =
   match Unix.lstat t with
   (* Don't use Sys.file_exists or Sys.is_directory here, they would follow
@@ -380,6 +390,7 @@ let check_exec t =
 
 let dirname = Filename.dirname
 let basename = Filename.basename
+let extension t = String.remove_prefix ~prefix:"." (Filename.extension t)
 let ( /../ ) a b = parent a / b
 
 let equal a b =
