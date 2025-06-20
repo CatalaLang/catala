@@ -214,6 +214,7 @@ type ('d, 'c) interpr_kind =
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 
 type typ = naked_typ Mark.pos
+and typ_var = naked_typ Bindlib.var
 
 and naked_typ =
   | TLit of typ_lit
@@ -224,7 +225,9 @@ and naked_typ =
   | TOption of typ
   | TArray of typ
   | TDefault of typ
-  | TAny
+  | TVar of typ_var
+  | TAny of (naked_typ, typ) Bindlib.mbinder
+      (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig
@@ -542,7 +545,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
-      tys : typ list;
+      tys : (typ, typ list) Bindlib.mbinder;
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EIfThenElse : {
@@ -633,6 +636,7 @@ and ('a, 'b, 'm) base_gexpr =
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;
+      (* TODO: change to typ : (typ, typ list * typ) Bindlib.mbinder; *)
       targs : typ list;
       tret : typ;
     }

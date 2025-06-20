@@ -407,9 +407,11 @@ and translate_assignment
                         vars_tau;
                     func_body = RevBlock.rebuild stmts_body ~tail:[];
                     func_return_typ =
-                      (match Expr.maybe_ty (Mark.get block_expr) with
+                      (match
+                         Type.unquantify (Expr.maybe_ty (Mark.get block_expr))
+                       with
                       | TArrow (_, t2), _ -> t2
-                      | TAny, pos_any -> TAny, pos_any
+                      | TVar _, pos_any -> Type.any pos_any
                       | _ -> assert false);
                   };
               },
@@ -631,9 +633,9 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                 A.func_params = args_id;
                 A.func_body = body_block;
                 A.func_return_typ =
-                  (match topdef_ty with
+                  (match Type.unquantify topdef_ty with
                   | TArrow (_, t2), _ -> t2
-                  | TAny, pos_any -> TAny, pos_any
+                  | TVar _, pos_any -> Type.any pos_any
                   | _ -> failwith "should not happen");
               };
             visibility;

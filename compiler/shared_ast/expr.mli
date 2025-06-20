@@ -67,13 +67,13 @@ val elit : lit -> 'm mark -> ('a any, 'm) boxed_gexpr
 val eabs :
   (('a, 'm) naked_gexpr, ('a, 'm) gexpr) Bindlib.mbinder Bindlib.box ->
   Pos.t list ->
-  typ list ->
+  (typ, typ list) Bindlib.mbinder ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val eabs_ghost :
   (('a, 'm) naked_gexpr, ('a, 'm) gexpr) Bindlib.mbinder Bindlib.box ->
-  typ list ->
+  (typ, typ list) Bindlib.mbinder ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 (** Same as [eabs] but without binders' positions *)
@@ -372,6 +372,7 @@ val make_abs :
   typ list ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
+(** Warning: assumes no polymorphism, no type variables will be quantified *)
 
 val make_ghost_abs :
   ('a, 'm) gexpr Var.var list ->
