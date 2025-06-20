@@ -22,9 +22,9 @@ module A = Definitions
 
 type flags = { fail_on_any : bool; assume_op_types : bool }
 
-type unionfind_typ = typ UnionFind.elem
+type unionfind_typ = naked_typ Mark.pos UnionFind.elem
 (** The variant is the same as [A.naked_typ], but sandwitched with indirections through unionfind *)
-and typ = naked_typ Mark.pos
+
 and naked_typ =
   | TLit of A.typ_lit
   | TArrow of unionfind_typ list * unionfind_typ
@@ -38,8 +38,8 @@ and naked_typ =
   | TAny of (naked_typ, unionfind_typ) Bindlib.mbinder
   | TClosureEnv
 
-module Any = struct
-  module Var = struct
+module TVar = struct
+  module V = struct
     type t = naked_typ Bindlib.var
     let to_string v = Format.sprintf "<%s>" (Bindlib.name_of v)
     let format fmt v = Format.fprintf fmt "<%s>" (Bindlib.name_of v)
@@ -47,15 +47,29 @@ module Any = struct
     let compare v1 v2 =  Bindlib.compare_vars v1 v2
     let hash v = Bindlib.hash_var v
   end
-  include Var
-  module Map = Map.Make(Var)
-  module Set = Set.Make(Var)
+  include V
+  module Map = Map.Make(V)
+  module Set = Set.Make(V)
 
   let make name = Bindlib.new_var (fun x -> TVar x) name
   let fresh () = make "ty"
 end
 
 let get_ty uf = UnionFind.get (UnionFind.find uf)
+
+let make_uf (ty: naked_typ Bindlib.box) (pos: Pos.t)
+  : unionfind_typ Bindlib.box =
+  Bindlib.box_apply (fun t -> UnionFind.make (t, pos)) ty
+
+let make_uf_box (ty: naked_typ) (pos: Pos.t) : unionfind_typ Bindlib.box =
+  Bindlib.box_apply (fun t -> UnionFind.make (t, pos)) (Bindlib.box ty)
+
+let appty ~(pos:Pos.t) fty ty =
+  Bindlib.box_apply (fun t -> UnionFind.make (fty t, pos))
+    ty
+
+let any (pos: Pos.t) : unionfind_typ =
+  UnionFind.make (TVar (TVar.fresh ()), pos)
 
 let typ_needs_parens (t : unionfind_typ) : bool =
   let t = get_ty t in
@@ -128,11 +142,11 @@ let rec format_typ
     Format.pp_print_as fmt 1 "⟨";
     format_typ ~bctx ~colors fmt t1;
     Format.pp_print_as fmt 1 "⟩"
-  | TVar v -> Any.format fmt v
+  | TVar v -> TVar.format fmt v
   | TAny tb ->
     let vars, t, bctx = Bindlib.unmbind_in bctx tb in
     Format.fprintf fmt "@[<h>%a@]%a"
-      (Format.pp_print_list (fun fmt v -> Format.fprintf fmt "∀%a." Any.format v))
+      (Format.pp_print_list (fun fmt v -> Format.fprintf fmt "∀%a." TVar.format v))
       (Array.to_list vars)
       (format_typ_with_parens ~bctx ~colors) t
   | TClosureEnv -> Format.fprintf fmt "closure_env"
@@ -158,7 +172,7 @@ let shallow_fold f ty acc =
     ty
 
 let rec var_occurs v = function
-  | TVar v1, _ -> Any.Var.equal v v1
+  | TVar v1, _ -> TVar.equal v v1
   | TAny tb, _ ->
     let _, ty = Bindlib.unmbind tb in var_occurs v (get_ty ty)
   | ty ->
@@ -195,93 +209,92 @@ let typ_to_ast ~flags:(_flags : flags) (ty : unionfind_typ) : A.typ =
       vars, (fun t1 -> A.TDefault t1) @& t1
     | TVar v ->
       let vars, var =
-        match Any.Map.find_opt v vars with
+        match TVar.Map.find_opt v vars with
         | Some var -> vars, var
         | None ->
-          let var = Type.Var.fresh pos in
-          Any.Map.add v var vars, var
+          let var = Type.Var.fresh () in
+          TVar.Map.add v var vars, var
       in
       vars, Fun.id @& (Bindlib.box_var var)
     | TAny tb ->
       let vs, t = Bindlib.unmbind tb in
       let vars, vs2 = Array.fold_left_map (fun vars v1 ->
-          let v2 = Type.Var.fresh pos in
-          Any.Map.add v1 v2 vars, v2)
+          let v2 = Type.Var.fresh () in
+          TVar.Map.add v1 v2 vars, v2)
           vars vs
       in
       let vars, t = aux vars t in
-      let vars = Array.fold_left (fun vars v -> Any.Map.remove v vars) vars vs in
+      let vars = Array.fold_left (fun vars v -> TVar.Map.remove v vars) vars vs in
       let tb = Bindlib.bind_mvar vs2 t in
       vars, (fun tb -> A.TAny tb) @& tb
     | TClosureEnv -> vars, Bindlib.box (A.TClosureEnv, pos)
   in
   (* let pos = Mark.get (get_ty ty) in *)
-  let vars, bty = aux Any.Map.empty ty in
-  if not (Any.Map.is_empty vars) then
+  let vars, bty = aux TVar.Map.empty ty in
+  if not (TVar.Map.is_empty vars) then
     Message.warning "Remaining free vars after conversion to AST!?@ %a"
       format_typ ty;
   Bindlib.unbox bty
 
 let ast_to_typ (ty : A.typ) : unionfind_typ =
   let rec aux vars (ty, pos) =
-    let ( @& ) f bt = Bindlib.box_apply (fun t -> UnionFind.make (f t, pos)) bt in
     match ty with
-    | A.TLit l -> vars, Fun.id @& Bindlib.box (TLit l)
+    | A.TLit l -> vars, make_uf_box (TLit l) pos
     | A.TTuple ts ->
       let vars, ts = List.fold_left_map aux vars ts in
-      vars, (fun ts -> TTuple ts) @& Bindlib.box_list ts
-    | A.TStruct s -> vars, Fun.id @& Bindlib.box (TStruct s)
-    | A.TEnum e -> vars, Fun.id @& Bindlib.box (TEnum e)
+      vars, appty ~pos (fun ts -> TTuple ts) (Bindlib.box_list ts)
+    | A.TStruct s -> vars, make_uf_box (TStruct s) pos
+    | A.TEnum e -> vars, make_uf_box (TEnum e) pos
     | A.TOption t ->
       let vars, t = aux vars t in
-      vars, (fun t -> TOption t) @& t
+      vars, appty ~pos (fun t -> TOption t) t
     | A.TArrow (t1, t2) ->
       let vars, t1 = List.fold_left_map aux vars t1 in
       let vars, t2 = aux vars t2 in
       ( vars,
         Bindlib.box_apply2
-          (fun t1 t2 -> TArrow (t1, t2), pos)
+          (fun t1 t2 -> UnionFind.make (TArrow (t1, t2), pos))
           (Bindlib.box_list t1) t2 )
     | A.TArray t1 ->
       let vars, t1 = aux vars t1 in
-      vars, (fun t1 -> TArray t1) @& t1
+      vars, appty ~pos (fun t1 -> TArray t1) t1
     | A.TDefault t1 ->
       let vars, t1 = aux vars t1 in
-      vars, (fun t1 -> TDefault t1) @& t1
+      vars, appty ~pos (fun t1 -> TDefault t1) t1
     | A.TVar v ->
       let vars, var =
-        match Any.Map.find_opt v vars with
+        match Type.Var.Map.find_opt v vars with
         | Some var -> vars, var
         | None ->
-          let var = Type.Var.fresh pos in
-          Any.Map.add v var vars, var
+          let var = TVar.fresh () in
+          Type.Var.Map.add v var vars, var
       in
-      vars, Fun.id @& (Bindlib.box_var var)
+      vars, make_uf (Bindlib.box_var var) pos
     | A.TAny tb ->
       let vs, t = Bindlib.unmbind tb in
       let vars, vs2 = Array.fold_left_map (fun vars v1 ->
-          let v2 = Type.Var.fresh pos in
-          Any.Map.add v1 v2 vars, v2)
+          let v2 = TVar.fresh () in
+          Type.Var.Map.add v1 v2 vars, v2)
           vars vs
       in
       let vars, t = aux vars t in
-      let vars = Array.fold_left (fun vars v -> Any.Map.remove v vars) vars vs in
+      let vars = Array.fold_left (fun vars v -> Type.Var.Map.remove v vars) vars vs in
       let tb = Bindlib.bind_mvar vs2 t in
-      vars, (fun tb -> TAny tb) @& tb
-    | A.TClosureEnv -> vars, Bindlib.box (TClosureEnv, pos)
+      vars, appty ~pos (fun tb -> TAny tb) tb
+    | A.TClosureEnv -> vars, make_uf_box TClosureEnv pos
   in
   (* let pos = Mark.get (get_ty ty) in *)
-  let vars, bty = aux Any.Map.empty ty in
-  if not (Any.Map.is_empty vars) then
-    Message.warning "Remaining free vars after conversion to AST!?@ %a"
-      format_typ ty;
+  let vars, bty = aux Type.Var.Map.empty ty in
+  if not (Type.Var.Map.is_empty vars) then
+    Message.warning "Remaining free vars after conversion from AST...@ %a"
+      Type.format ty;
   Bindlib.unbox bty
 
   (* let rec aux vars = function
    *   | A.TVar v, _ -> Type.Var.Map.find v vars
    *   | A.TAny tb, m ->
    *     let var, ty = Bindlib.unbind tb in
-   *     let any = UnionFind.make (TAny (Any.fresh ()), m) in
+   *     let any = UnionFind.make (TAny (Var.fresh ()), m) in
    *     let vars = Type.Var.Map.add var any vars in
    *     aux vars ty
    *   | ty, m ->
@@ -427,17 +440,26 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     unionfind_typ =
   let open Operator in
   let pos = Mark.get op in
-  let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
-  let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
-  let any3 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
-  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
-  let bt = lazy (UnionFind.make (TLit TBool, pos)) in
-  let it = lazy (UnionFind.make (TLit TInt, pos)) in
-  let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
-  let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
-  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
+  let v1, v2, v3 = TVar.fresh (), TVar.fresh (), TVar.fresh () in
+  let vars = [v1; v2; v3] in
+  let any = lazy (make_uf (Bindlib.box_var v1) pos) in
+  let any2 = lazy (make_uf (Bindlib.box_var v2) pos) in
+  let any3 = lazy (make_uf (Bindlib.box_var v3) pos) in
+  let ut = lazy (make_uf_box (TLit TUnit) pos) in
+  let bt = lazy (make_uf_box (TLit TBool) pos) in
+  let it = lazy (make_uf_box (TLit TInt) pos) in
+  let cet = lazy (make_uf_box TClosureEnv pos) in
+  let array a = lazy (appty ~pos (fun t -> TArray t) (Lazy.force a)) in
+  let option a = lazy (
+    appty ~pos (fun t -> TOption t) (Lazy.force a)
+  ) in
   let ( @-> ) x y =
-    lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
+    lazy (
+      Bindlib.box_apply2 (fun args ret ->
+          UnionFind.make (TArrow (args, ret), pos))
+        (Bindlib.box_list (List.map Lazy.force x))
+        (Lazy.force y)
+    )
   in
   let ty =
     match Mark.remove op with
@@ -453,15 +475,24 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Length -> [array any] @-> it
     | HandleExceptions ->
       let pair a b =
-        lazy (UnionFind.make (TTuple [Lazy.force a; Lazy.force b], pos))
+        lazy (
+          Bindlib.box_apply2 (fun a b -> UnionFind.make (TTuple [a; b], pos))
+            (Lazy.force a) (Lazy.force b)
+        )
       in
-      let tpos = lazy (UnionFind.make (TLit A.TPos, pos)) in
+      let tpos = lazy (make_uf_box (TLit A.TPos) pos) in
       let texn = option (pair any tpos) in
       [array texn] @-> texn
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
-  Lazy.force ty
+  let ty = Lazy.force ty in
+  let vars =
+    List.filter (fun v -> Bindlib.occur v ty) vars
+    |> Array.of_list
+  in
+  appty ~pos (fun bnd -> TAny bnd) (Bindlib.bind_mvar vars ty)
+  |> Bindlib.unbox
 
 (* Just returns the return type of the operator, assuming the operand types are
    known. Less trict, but useful on monomorphised code where the operators no
@@ -474,10 +505,10 @@ let polymorphic_op_return_type
   let open Operator in
   let pos = Mark.get op in
   let uf t = UnionFind.make (t, pos) in
-  let any _ = uf (TAny (Any.fresh ())) in
   let return_type tf arity =
-    let tret = any () in
-    unify ctx e tf (UnionFind.make (TArrow (List.init arity any, tret), pos));
+    let tret = any pos in
+    let tfunc = UnionFind.make (TArrow (List.init arity (fun _ -> any pos), tret), pos) in
+    unify ctx e tf tfunc;
     tret
   in
   match Mark.remove op, targs with
@@ -490,16 +521,16 @@ let polymorphic_op_return_type
   | Log (PosRecordIfTrueBool, _), _ -> uf (TLit TBool)
   | Log _, [tau] -> tau
   | Length, _ -> uf (TLit TInt)
-  | HandleExceptions, [_] -> any ()
+  | HandleExceptions, [_] -> any pos
   | ToClosureEnv, _ -> uf TClosureEnv
-  | FromClosureEnv, _ -> any ()
+  | FromClosureEnv, _ -> any pos
   | op, targs ->
     Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
       (Print.operator ?debug:None)
       op
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         (format_typ ctx))
+         format_typ)
       targs
 
 let resolve_overload_ret_type
@@ -525,6 +556,8 @@ module Env = struct
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
+    type_vars : Type.Var.t TVar.Map.t;
+    (* Record the type var mappings for conversion back to AST *)
   }
 
   let empty
@@ -548,6 +581,7 @@ module Env = struct
       scopes = A.ScopeName.Map.empty;
       scopes_input = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
+      type_vars = TVar.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -607,7 +641,7 @@ let rec typecheck_expr_bottom_up :
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ctx env e ->
   typecheck_expr_top_down ctx env
-    (UnionFind.make (add_pos e (TAny (Any.fresh ()))))
+    (any (Expr.pos e))
     e
 
 (** Checks whether the expression can be typed with the provided type *)
@@ -705,7 +739,7 @@ and typecheck_expr_top_down :
       | _ ->
         Message.error ~pos:(Expr.pos e)
           "This expression has type %a, where a structure was expected"
-          (format_typ ctx) (ty e)
+          format_typ (ty e)
     in
     let fields = A.Ident.Map.map (typecheck_expr_bottom_up ctx env) fields in
     (* Note: here we identify the structure name, and type the fields
@@ -719,7 +753,7 @@ and typecheck_expr_top_down :
     let t_struct =
       match name_opt with
       | Some name -> unionfind (TStruct name)
-      | None -> unionfind (TAny (Any.fresh ()))
+      | None -> any (Expr.pos e)
     in
     let e_struct' = typecheck_expr_top_down ctx env t_struct e_struct in
     let name_opt =
@@ -730,7 +764,7 @@ and typecheck_expr_top_down :
         Message.error ~pos:(Expr.pos e)
           "This is not a structure, cannot access field @{<magenta>%s@}@ \
            (found type: %a)"
-          field (format_typ ctx) (ty e_struct')
+          field format_typ (ty e_struct')
     in
     let name, field =
       let candidate_structs =
@@ -866,13 +900,13 @@ and typecheck_expr_top_down :
   | A.EInj { name; cons; e = e_enum }
     when Definitions.EnumName.equal name Expr.option_enum ->
     if Definitions.EnumConstructor.equal cons Expr.some_constr then
-      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let cell_type = any (Expr.pos e) in
       let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
       let e_enum' = typecheck_expr_top_down ctx env cell_type e_enum in
       Expr.einj ~name ~cons ~e:e_enum' mark
     else
       (* None constructor *)
-      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let cell_type = any (Expr.pos e) in
       let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
       let e_enum' =
         typecheck_expr_top_down ctx env (unionfind (TLit TUnit)) e_enum
@@ -888,7 +922,7 @@ and typecheck_expr_top_down :
     Expr.einj ~e:e_enum' ~cons ~name mark
   | A.EMatch { e = e1; name; cases }
     when Definitions.EnumName.equal name Expr.option_enum ->
-    let cell_type = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let cell_type = any (Expr.pos e1) in
     let t_arg = unionfind ~pos:e1 (TOption cell_type) in
     let cases_ty =
       ListLabels.fold_right2
@@ -896,7 +930,7 @@ and typecheck_expr_top_down :
         [unionfind ~pos:e1 (TLit TUnit); cell_type]
         ~f:A.EnumConstructor.Map.add ~init:A.EnumConstructor.Map.empty
     in
-    let t_ret = unionfind ~pos:e (TAny (Any.fresh ())) in
+    let t_ret = any (Expr.pos e) in
     let mark = mark_with_tau_and_unify t_ret in
     let e1' = typecheck_expr_top_down ctx env t_arg e1 in
     let cases =
@@ -914,7 +948,7 @@ and typecheck_expr_top_down :
     Expr.ematch ~e:e1' ~name ~cases mark
   | A.EMatch { e = e1; name; cases } ->
     let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
-    let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let t_ret = any (Expr.pos e1) in
     let mark = mark_with_tau_and_unify t_ret in
     let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum name)) e1 in
     let cases =
@@ -984,7 +1018,7 @@ and typecheck_expr_top_down :
     Expr.eexternal ~name (mark_with_tau_and_unify ty)
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
   | A.ETuple es ->
-    let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in
+    let tys = List.map (fun _ -> any (Expr.pos e)) es in
     let mark = mark_with_tau_and_unify (unionfind (TTuple tys)) in
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
     Expr.etuple es' mark
@@ -994,39 +1028,45 @@ and typecheck_expr_top_down :
     in
     let tuple_ty =
       if size = 0 then (* Unset yet, we resolve it now *)
-        TAny (Any.fresh ())
+        any (Expr.pos e1)
       else if index >= size then out_of_bounds size
       else
+        unionfind ~pos:e1 @@
         TTuple
           (List.init size (fun n ->
                if n = index then tau
-               else unionfind ~pos:e1 (TAny (Any.fresh ()))))
+               else any (Expr.pos e1)))
     in
-    let tuple_ty = unionfind ~pos:e1 tuple_ty in
     let e1' = typecheck_expr_top_down ctx env tuple_ty e1 in
     let size, mark =
       if size <> 0 then size, context_mark
       else
-        match typ_to_ast ~flags tuple_ty with
+        match get_ty tuple_ty with
         | TTuple l, _ -> (
           match List.nth_opt l index with
           | None -> out_of_bounds (List.length l)
-          | Some ty -> List.length l, mark_with_tau_and_unify (ast_to_typ ty))
-        | TAny _, _ -> failwith "Disambiguation failure"
-        | ty ->
+          | Some ty -> List.length l, mark_with_tau_and_unify ty)
+        | TAny _, _ | TVar _, _ -> failwith "Disambiguation failure"
+        | _ ->
           Message.error ~pos:(Expr.pos e1)
             "This expression has type@ %a,@ while a tuple was expected"
-            Print.typ ty
+            format_typ tuple_ty
     in
     Expr.etupleaccess ~e:e1' ~index ~size mark
   | A.EAbs { binder; pos; tys = t_args } ->
+    (* Polymorphism is only allowed, explicitely, on toplevel definitions :
+       if it happens here, the corresponding type variables will already have been set.
+       Consequently, we don't quantify any variables here.
+    *)
+    let _, t_args = Bindlib.unmbind t_args in
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~pos:(Expr.pos e)
         "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
-    let tau_args = List.map ast_to_typ t_args in (* fixme: TAny in fct type ? *)
-    let t_ret = unionfind (TAny (Any.fresh ())) in
+    let tau_args = List.map ast_to_typ t_args in
+    let tret_var = TVar.fresh () in
+    let t_ret = UnionFind.make (TVar tret_var, Expr.pos e) in
     let t_func = unionfind (TArrow (tau_args, t_ret)) in
     let mark = mark_with_tau_and_unify t_func in
     let xs, body = Bindlib.unmbind binder in
@@ -1045,7 +1085,7 @@ and typecheck_expr_top_down :
        right order for the [let-in] form. *)
     let t_args =
       match tys with
-      | [] -> List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args
+      | [] -> List.map (fun _ -> any (Expr.pos e)) args
       | tys -> List.map ast_to_typ tys
     in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
@@ -1115,7 +1155,7 @@ and typecheck_expr_top_down :
     let excepts' = List.map (typecheck_expr_top_down ctx env tau) excepts in
     Expr.edefault ~excepts:excepts' ~just:just' ~cons:cons' context_mark
   | A.EPureDefault e1 ->
-    let inner_ty = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let inner_ty = unionfind ~pos:e1 (TAny (Var.fresh ())) in
     let mark =
       mark_with_tau_and_unify (unionfind ~pos:e1 (TDefault inner_ty))
     in
@@ -1137,13 +1177,13 @@ and typecheck_expr_top_down :
   | A.EFatalError err -> Expr.efatalerror err context_mark
   | A.EPos p -> Expr.epos p (ty_mark (TLit TPos))
   | A.EEmpty ->
-    Expr.eempty (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
+    Expr.eempty (ty_mark (TDefault (any (Expr.pos e))))
   | A.EErrorOnEmpty e1 ->
     let tau' = unionfind (TDefault tau) in
     let e1' = typecheck_expr_top_down ctx env tau' e1 in
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->
-    let cell_type = unionfind (TAny (Any.fresh ())) in
+    let cell_type = any (Expr.pos e) in
     let mark = mark_with_tau_and_unify (unionfind (TArray cell_type)) in
     let es' = List.map (typecheck_expr_top_down ctx env cell_type) es in
     Expr.earray es' mark
@@ -1197,7 +1237,7 @@ let scope_body_expr ctx env ty_out body_expr =
            [unify] parameters, which keeps location of the type as defined
            instead of as inferred. *)
         ( Env.add_var var scope.A.scope_let_typ env,
-          Var.translate var,
+          TVar.translate var,
           Bindlib.box_apply
             (fun scope_let_expr ->
               {

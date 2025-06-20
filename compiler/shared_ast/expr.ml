@@ -947,17 +947,14 @@ let make_abs m_xs e taus pos =
   let mark_split v = Mark.get v, Mark.remove v in
   let pos_xs, xs = List.map mark_split m_xs |> List.split in
   let xs = Array.of_list xs in
-  let vars = List.fo Bindlib.free_vars 
-  (* let vars = List.fold_left (fun acc t -> Type.Var.Set.union acc (Type.free_vars t)) Type.Var.Set.empty taus
-   * in *)
   let mark =
     map_mark
       (fun _ -> pos)
       (fun ety ->
-         (* Type.quantify vars *) (TArrow (taus, ety), pos))
+         (TArrow (taus, ety), pos))
       (Mark.get e)
   in
-  eabs (bind xs e) pos_xs taus mark
+  eabs (bind xs e) pos_xs Bindlib.(unbox (bind_mvar [||] (Bindlib.box taus))) mark
 
 let make_ghost_abs xs e taus pos =
   let xs = List.map (Mark.add Pos.void) xs in

@@ -98,7 +98,7 @@ let any pos =
   in
   TAny (Bindlib.unbox tb), pos
 
-let new_var pos = TVar (Var.fresh pos), pos
+let new_var pos = TVar (Var.fresh ()), pos
 
 (* Similar to [equal], but allows TAny holes *)
 let rec unifiable ty1 ty2 =

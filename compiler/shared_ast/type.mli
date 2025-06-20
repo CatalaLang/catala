@@ -62,7 +62,7 @@ val new_var : Pos.t -> t
 module Var : sig
   type t = var
 
-  val fresh : Pos.t -> t
+  val fresh : unit -> t
 
   module Set : Set.S with type elt = t
   module Map : Catala_utils.Map.S with type key = t
@@ -71,9 +71,6 @@ end
 val free_vars : t -> Var.Set.t
 
 val rebox : t -> t Bindlib.box
-
-val quantify : Var.Set.t -> t -> t
-(** Adds [TAny] quantifiers for the given type variables around the type *)
 
 val unquantify : t -> t
 (** Removes the outermost quantifiers from the given type, if any. The returned
