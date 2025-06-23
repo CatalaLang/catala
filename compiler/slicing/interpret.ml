@@ -59,6 +59,38 @@ let delholes e =
   in
   Expr.unbox (f e)
 
+let substitute_bounded_vars :
+  type c d h.
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr ->
+  ((d, c, h) slicing_interpr_kind, 't) gexpr =
+fun ctx_closure e ->
+  let rec f :
+      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, h) slicing_interpr_kind, 't) gexpr boxed
+      = function
+    | EVar x, _ as e -> (
+      match Var.Map.find_opt x ctx_closure with
+        | Some v -> f v
+        | None -> Expr.map ~f e
+      )
+    | EHole _, _ as e -> Expr.map ~f e
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmpty, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (EPos _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ 
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  Expr.unbox (f e)
+
 let evaluate_expr_with_trace :
     type d t.
     decl_ctx ->
@@ -235,7 +267,10 @@ fun ctx lang e ->
       v, TrAppOp { op = Operator.translate op; trargs; tys; vargs = List.map addholes vargs; traux }
     | EAbs _ -> (
       match Mark.remove(addholes e) with
-      | EAbs { binder; pos; tys } -> e, TrAbs { binder; pos; tys }
+      | EAbs { binder; pos; tys } -> 
+        (* Functions do not carry contexts in Catala so in order to avoid any issues of context 
+           we perform a substitution in the body of the function *)
+        substitute_bounded_vars local_ctx e, TrAbs { binder; pos; tys }
       | _ -> assert false
     )
     | ELit l -> e, TrLit l
@@ -354,8 +389,8 @@ fun ctx lang e ->
       | _ ->
         Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this assertion (should \
-          not happen if the term was well-typed)")
-    
+          not happen if the term was well-typed)"
+    )
     | EFatalError Unreachable -> (*It's okay to reach that point but the result should not matter*)
       e, TrHole (TAny, Pos.void) 
     | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))

@@ -943,11 +943,11 @@ module Commands = struct
           ~autotest:false ~typed:Expr.typed
       in
       let scopes = get_scopelist_uids prg ex_scopes in
-      Message.log "Begin slicing !";
+      if options.debug then Message.log "Begin slicing !";
       let success = Slicing.Slice.test ~debug:options.debug prg (List.hd scopes) in
-      if success then Message.log "Same result with the sliced expression :)"
+      if success then (if options.debug then Message.log "Same result with the sliced expression :)")
       else Message.error "/!\\ The two results are not the same :(";
-      Message.log "End slicing"
+      if options.debug then Message.log "End slicing"
     in
     Cmd.v
       (Cmd.info "slice" ~man:Cli.man_base ~doc:"Blabla slice")

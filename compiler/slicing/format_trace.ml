@@ -588,32 +588,39 @@ let rec trace_aux :
       punctuation fmt ".";
       Format.pp_print_int fmt index
     | TrLit l -> lit fmt l
-    | TrApp { trf = TrAbs _; trv; _ } ->
-      let pr bnd_ctx colors fmt = function
-        | Trace_ast.TrApp { trf = TrAbs { binder; pos = _; tys }; trargs; _ } ->
-          let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-          let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-          let xs_tau_arg =
-            List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau trargs
-          in
-          Format.pp_print_list
-            (fun fmt (x, tau, arg) ->
-              Format.fprintf fmt
-                "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
-                "let" var x punctuation ":" (typ_gen None ~colors) tau
-                punctuation "=" (tracec colors) arg keyword "in")
-            fmt xs_tau_arg;
-          Format.pp_print_cut fmt ();
-          rhs (exprb bnd_ctx) fmt body
-        | tr -> rhs_tr (traceb bnd_ctx) fmt tr
+    | TrApp { trf = TrAbs { binder; tys; _ }; trargs;trv; _ } ->
+      let pr bnd_ctx colors fmt = 
+        let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+        let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+        let xs_tau_arg =
+          List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau trargs
+        in
+        Format.pp_print_list
+          (fun fmt (x, tau, arg) ->
+            Format.fprintf fmt
+              "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
+              "let" var x punctuation ":" (typ_gen None ~colors) tau
+              punctuation "=" (tracec colors) arg keyword "in")
+          fmt xs_tau_arg;
+        Format.pp_print_cut fmt ();
+        rhs (exprb bnd_ctx) fmt body
       in
       Format.pp_open_vbox fmt 0;
-      pr bnd_ctx colors fmt tr;
+      pr bnd_ctx colors fmt;
       Format.pp_print_cut fmt ();
       Format.fprintf fmt "@[<hv 4>%a@ %a@]"
       punctuation "↳" (tracec colors) trv;
       Format.pp_print_cut fmt ();
       Format.pp_close_box fmt ()
+    | TrApp { trf; trargs; trv;  _ } ->
+      Format.fprintf fmt "@[<hv 2>%a@ %a@]@;@[<hv 4>%a@ %a@]" 
+        (lhs_tr tracec) trf
+        (Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+            (rhs_tr tracec)) trargs 
+        punctuation "↳" (tracec colors) trv;
+      Format.pp_print_cut fmt ();
+
     | TrAbs { binder; pos = _; tys } ->
       let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
       let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
@@ -662,12 +669,6 @@ let rec trace_aux :
       Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs_tr tracec) trarg1
     | TrAppOp { op = op, _; trargs; _ } ->
       Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op
-        (Format.pp_print_list
-            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-            (rhs_tr tracec))
-        trargs
-    | TrApp { trf; trargs; _ } ->
-      Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs_tr tracec) trf
         (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
             (rhs_tr tracec))

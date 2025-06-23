@@ -136,10 +136,14 @@ fun ctx value trace ->
     (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
       when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
-    | EAbs _, TrAbs _ -> Var.Map.empty, v
+    | EAbs { binder = substituted_binder; pos; tys }, TrAbs { binder = original_binder ; _} -> 
+      (* There may be variables in the body of the abstraction that have been substituted 
+         so to unevaluate the body properly, we have to return the original binder and the context of what substitutions occured *)
+      (*let vars, substituted_body, original_body = Bindlib.unmbind2 substituted_binder original_binder in *)
+      Var.Map.empty, v
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
-    | _, TrApp { trf; trargs; tys=tys2; vars; trv } ->
+    | _, TrApp { trf; trargs; tys; vars; trv } ->
       let local_ctx, e = unevaluate_aux v trv in
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
@@ -150,15 +154,18 @@ fun ctx value trace ->
         (Array.to_list vars)
       in
       let lctx2, e2 = unevaluate_list values trargs in
-      let lctx1, e1 = match trf with
+      let empty_pos = List.init (List.length tys) (fun _ -> Pos.void) in
+      let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos =  empty_pos; tys})) trf in
+      
+      (*match trf with
         | TrAbs { binder = _; pos; tys } -> unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
         | TrVar { var = _; value = (EAbs { binder = _; pos; tys }, m)} -> 
           unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
         | _ -> 
           Message.error "@[<v 2> The left term is not a function in the application @ Expr : %a@ Trace : %a@]" 
           Format_trace.expr v Format_trace.trace trace
-      in
-      join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys = tys2})
+      in*)
+      join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys})
     | _, TrAppOp { op = Length, _ as op; trargs; tys; vargs = [(EArray vs, m)]; _ } -> 
       (* The content of the Array is not relevant so we replace each element by a hole *)
       let vargs = [Mark.add m (EArray (List.map (fun v -> mark_hole (Mark.get v)) vs))] in
@@ -403,30 +410,30 @@ let slice
           (Expr.pos e)
       in 
       let e = (Expr.unbox to_interpret) in
-      Message.log "Input program :";
-      Format.print_newline();
-      Format_trace.print_expr e;
-
+      if debug then (
+        Message.log "Input program :";
+        Format.print_newline();
+        Format_trace.print_expr e;
+      );
       (* Evaluate the expression with trace *)
       let v, tr = Interpret.evaluate_expr_safe ctx p.lang e in
-      Message.log "Result :";
-      Format.print_newline();
-      Format_trace.print_expr v;
-      Format.print_newline();
-      Message.log "Trace :";
-      Format.print_newline();
-      Format_trace.print_trace tr;
-
+      if debug then (
+        Message.log "Result :";
+        Format.print_newline();
+        Format_trace.print_expr v;
+        Format.print_newline();
+        Message.log "Trace :";
+        Format.print_newline();
+        Format_trace.print_trace tr;
+      );
       (* Unevaluate the value with the trace to get a sliced version of the expression *)
       let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
-
-      Message.log "Sliced program :";
-      Format.print_newline(); 
-      Format_trace.print_expr sliced_e;
-      Format.print_newline();
-      
-      (* Print everything if needed *)
-      if debug then print_slicing_things e v tr sliced_e;
+      if debug then (
+        Message.log "Sliced program :";
+        Format.print_newline(); 
+        Format_trace.print_expr sliced_e;
+        Format.print_newline();
+      );
 
       match Mark.remove v with
       | EStruct _ -> v,sliced_e
