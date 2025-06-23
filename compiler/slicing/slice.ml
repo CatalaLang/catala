@@ -139,7 +139,16 @@ fun ctx value trace ->
     | EAbs { binder = substituted_binder; pos; tys }, TrAbs { binder = original_binder ; _} -> 
       (* There may be variables in the body of the abstraction that have been substituted 
          so to unevaluate the body properly, we have to return the original binder and the context of what substitutions occured *)
-      (*let vars, substituted_body, original_body = Bindlib.unmbind2 substituted_binder original_binder in *)
+      (*
+      Message.log "Function : ";
+      Format_trace.print_expr v;
+      Message.log "Trace Function :";
+      Format_trace.print_trace trace;
+      Format.print_newline();
+
+      let vars, substituted_body, original_body = Bindlib.unmbind2 substituted_binder original_binder in 
+      *)
+      
       Var.Map.empty, v
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })

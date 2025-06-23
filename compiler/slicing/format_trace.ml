@@ -783,3 +783,7 @@ let rec trace_aux :
 let trace ppf tr = trace_aux Bindlib.empty_ctxt colors ppf tr
 
 let print_trace ?(fmt=Message.std_ppf ()) (tr: ('a, 'm) Trace_ast.t) = Format.fprintf fmt "%a@." trace tr
+
+let context ppf ctx = Var.Map.format_keys ppf ctx
+
+let print_context ?(fmt=Message.std_ppf ()) ctx = Format.fprintf fmt "%a@." context ctx 
