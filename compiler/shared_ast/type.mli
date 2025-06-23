@@ -17,7 +17,7 @@
 open Catala_utils
 
 type t = Definitions.typ
-type var = Definitions.typ_var
+type var = t Bindlib.var
 
 val format : Format.formatter -> t -> unit
 
@@ -27,7 +27,9 @@ val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
 
-val map : (t -> t Bindlib.box) -> t -> t Bindlib.box
+type 'a gtyp = 'a Definitions.gtyp
+
+val map : ('a gtyp -> 'b gtyp Bindlib.box) -> 'a gtyp -> 'b gtyp Bindlib.box
 (** Shallow mapping on types *)
 
 val shallow_fold : (t -> 'a -> 'a) -> t -> 'a -> 'a

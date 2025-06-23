@@ -18,7 +18,7 @@ open Catala_utils
 open Definitions
 
 type t = typ
-type var = typ_var
+type var = t Bindlib.var
 
 module Var = struct
   module Arg = struct
@@ -165,7 +165,8 @@ let rec compare ty1 ty2 =
 (* | TClosureEnv, _ -> -1
  * | _, TClosureEnv -> 1 *)
 
-let map f ty =
+let map: 'a 'b. ('a gtyp -> 'b gtyp Bindlib.box) -> 'a gtyp -> 'b gtyp Bindlib.box
+  = fun f ty ->
   let nty, m = ty in
   let ( @& ) f bty = Bindlib.box_apply (fun ty -> f ty, m) bty in
   match nty with
@@ -186,6 +187,7 @@ let map f ty =
     let tv, ty = Bindlib.unmbind tb in
     (fun tb -> TAny tb) @& Bindlib.bind_mvar tv (f ty)
   | TClosureEnv -> Bindlib.box (TClosureEnv, m)
+  | TUnionFind _ -> assert false
 
 let rec rebox ty = map rebox ty
 
