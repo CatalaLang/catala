@@ -101,7 +101,7 @@ let exceptions_graph
              (RuleName.Map.values ex.Dependency.ExceptionVertex.rules)))
     g;
   let tree = build_exception_tree g in
-  Format.printf "%a"
+  Format.fprintf fmt "%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
        (fun fmt tree -> format_exception_tree fmt tree))

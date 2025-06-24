@@ -3,7 +3,7 @@
  (public_name catala.catala_utils)
  (modules
   (:standard \ get_version))
- (libraries unix cmdliner ubase uucp ocolor re))
+ (libraries unix cmdliner ubase uucp ocolor re ocamlgraph))
 
 (executable
  (name get_version)
