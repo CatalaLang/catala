@@ -68,6 +68,8 @@ val check_for_cycle : Ast.scope -> ScopeDependencies.t -> unit
 val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
 (** Builds the dependency graph of a particular scope *)
 
+val scope_dependencies_to_json : ScopeDependencies.t -> Yojson.Safe.t
+
 (** {1 Exceptions dependency graph} *)
 
 module EdgeExceptions : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t list

@@ -359,3 +359,45 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) :
      in
      Message.error ~extra_pos:spans "Cyclic dependency detected between types.");
   List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])
+
+let inter_scope_dependencies_graph_to_json (g : SDependencies.t) : Yojson.Safe.t
+    =
+  let nodes =
+    SDependencies.fold_vertex
+      (fun v acc ->
+        ( string_of_int (SVertex.hash v),
+          `String (Format.asprintf "%a" SVertex.format v) )
+        :: acc)
+      g []
+  in
+  let nodes = `Assoc nodes in
+  let edges =
+    SDependencies.fold_edges
+      (fun v1 v2 acc ->
+        `Assoc ["from", `Int (SVertex.hash v1); "to", `Int (SVertex.hash v2)]
+        :: acc)
+      g []
+  in
+  let edges = `List edges in
+  `Assoc ["nodes", nodes; "edges", edges]
+
+let type_dependencies_graph_to_json (g : TDependencies.t) =
+  let nodes =
+    TDependencies.fold_vertex
+      (fun v acc ->
+        ( string_of_int (TypeIdent.hash v),
+          `String (Format.asprintf "%a" TypeIdent.format v) )
+        :: acc)
+      g []
+  in
+  let nodes = `Assoc nodes in
+  let edges =
+    TDependencies.fold_edges
+      (fun v1 v2 acc ->
+        `Assoc
+          ["from", `Int (TypeIdent.hash v1); "to", `Int (TypeIdent.hash v2)]
+        :: acc)
+      g []
+  in
+  let edges = `List edges in
+  `Assoc ["nodes", nodes; "edges", edges]

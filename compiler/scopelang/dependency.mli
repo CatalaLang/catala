@@ -34,6 +34,7 @@ module SDependencies :
 val build_program_dep_graph : 'm Ast.program -> SDependencies.t
 val check_for_cycle_in_defs : SDependencies.t -> unit
 val get_defs_ordering : SDependencies.t -> vertex list
+val inter_scope_dependencies_graph_to_json : SDependencies.t -> Yojson.Safe.t
 
 (** On the edges, the label is the expression responsible for the use of the
     function *)
@@ -43,3 +44,4 @@ module TDependencies :
 val get_structs_or_enums_in_type : typ -> TypeIdent.Set.t
 val build_type_graph : struct_ctx -> enum_ctx -> TDependencies.t
 val check_type_cycles : struct_ctx -> enum_ctx -> TypeIdent.t list
+val type_dependencies_graph_to_json : TDependencies.t -> Yojson.Safe.t

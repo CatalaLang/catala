@@ -14,9 +14,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val print_exceptions_graph :
+val exceptions_graph :
   Shared_ast.ScopeName.t ->
   Ast.ScopeDef.t ->
+  Format.formatter ->
   Dependency.ExceptionsDependencies.t ->
   unit
 (** Prints the exception graph of a variable to the terminal *)

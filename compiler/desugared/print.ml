@@ -82,9 +82,10 @@ let build_exception_tree exc_graph =
   in
   List.map build_tree base_cases
 
-let print_exceptions_graph
+let exceptions_graph
     (scope : ScopeName.t)
     (var : Ast.ScopeDef.t)
+    (fmt : Format.formatter)
     (g : Dependency.ExceptionsDependencies.t) =
   Message.result
     "Printing the tree of exceptions for the definitions of variable \"%a\" of \
@@ -100,7 +101,7 @@ let print_exceptions_graph
              (RuleName.Map.values ex.Dependency.ExceptionVertex.rules)))
     g;
   let tree = build_exception_tree g in
-  Message.result "@[<v>The exception tree structure is as follows:@,@,%a@]"
+  Format.printf "%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
        (fun fmt tree -> format_exception_tree fmt tree))

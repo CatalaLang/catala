@@ -554,7 +554,8 @@ module Commands = struct
     in
     let scope_uid = get_scope_uid prg.program_ctx ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
-    Desugared.Print.print_exceptions_graph scope_uid variable_uid
+    Message.result "@[<v>The exception tree structure is as follows:@,@,%a@]"
+      (Desugared.Print.exceptions_graph scope_uid variable_uid)
       (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
 
   let exceptions_cmd =
@@ -572,6 +573,59 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable)
+
+  let dependency_graph options includes =
+    let prg_desugared, _ctxt = Passes.desugared options ~includes in
+    let exceptions_graphs =
+      Scopelang.From_desugared.build_exceptions_graph prg_desugared
+    in
+    let intra_scope_dependency_graphs =
+      ScopeName.Map.map
+        (fun s ->
+          Desugared.Dependency.build_scope_dependencies s
+          |> Desugared.Dependency.scope_dependencies_to_json)
+        prg_desugared.program_root.module_scopes
+    in
+    let prg_scopelang =
+      Scopelang.From_desugared.translate_program prg_desugared exceptions_graphs
+    in
+    let types_dependency_graph =
+      Scopelang.Dependency.build_type_graph
+        prg_scopelang.program_ctx.ctx_structs
+        prg_scopelang.program_ctx.ctx_enums
+      |> Scopelang.Dependency.type_dependencies_graph_to_json
+    in
+    let inter_scope_dependencies =
+      Scopelang.Dependency.build_program_dep_graph prg_scopelang
+      |> Scopelang.Dependency.inter_scope_dependencies_graph_to_json
+    in
+    Passes.debug_pass_name "scopelang";
+    let json_output =
+      `Assoc
+        [
+          ( "intra_scopes",
+            `Assoc
+              (List.map
+                 (fun (s_name, g) -> ScopeName.to_string s_name, g)
+                 (ScopeName.Map.bindings intra_scope_dependency_graphs)) );
+          "inter_scopes", inter_scope_dependencies;
+          "types", types_dependency_graph;
+        ]
+    in
+    Yojson.Safe.to_channel stdout json_output
+
+  let dependency_graph_cmd =
+    Cmd.v
+      (Cmd.info "dependency-graph" ~man:Cli.man_base
+         ~doc:
+           "Prints the inter-scope dependency graph (which scope calls which \
+            scope), as well as the intra-scope dependency graphs (which scope \
+            variable uses which scope variable), and the type dependency graph \
+            (which type uses which type), in JSON format.")
+      Term.(
+        const dependency_graph
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs)
 
   let scopelang options includes output ex_scopes =
     let prg = Passes.scopelang options ~includes in
@@ -1245,6 +1299,7 @@ module Commands = struct
       lcalc_cmd;
       scalc_cmd;
       exceptions_cmd;
+      dependency_graph_cmd;
       depends_cmd;
       pygmentize_cmd;
     ]

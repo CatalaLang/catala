@@ -238,6 +238,26 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   g
 
+let scope_dependencies_to_json g =
+  let nodes =
+    ScopeDependencies.fold_vertex
+      (fun v acc ->
+        ( string_of_int (Vertex.hash v),
+          `String (Format.asprintf "%a" Vertex.format v) )
+        :: acc)
+      g []
+  in
+  let nodes = `Assoc nodes in
+  let edges =
+    ScopeDependencies.fold_edges
+      (fun v1 v2 acc ->
+        `Assoc ["from", `Int (Vertex.hash v1); "to", `Int (Vertex.hash v2)]
+        :: acc)
+      g []
+  in
+  let edges = `List edges in
+  `Assoc ["nodes", nodes; "edges", edges]
+
 (** {1 Exceptions dependency graph} *)
 
 (** {2 Graph declaration} *)
