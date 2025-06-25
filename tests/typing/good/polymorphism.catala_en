@@ -1,6 +1,6 @@
 
 ```catala
-declaration f content any type t
+declaration f content anything of type t
   depends on x content t
   equals x
 

@@ -17,29 +17,54 @@
 open Catala_utils
 open Definitions
 
-type t = typ
-type var = t Bindlib.var
+type 'a t = 'a gtyp
+type 'a var = 'a naked_gtyp Bindlib.var
 
-module Var = struct
+let fresh_var () = Bindlib.new_var (fun v -> TVar v) "ty1"
+
+module type VarSig = sig
+  type t
+
+  val fresh : unit -> t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
+  val hash : t -> int
+  val format : Format.formatter -> t -> unit
+
+  val translate : 'a var -> 'b var
+
+  module Set : Set.S with type elt = t
+  module Map : Catala_utils.Map.S with type key = t
+end
+
+module MakeVar(V: sig type t end)
+  : VarSig with type t = V.t naked_gtyp Bindlib.var
+= struct
   module Arg = struct
-    type t = var
+    type t = V.t naked_gtyp Bindlib.var
 
     let compare = Bindlib.compare_vars
     let format ppf v = String.format ppf (Bindlib.name_of v)
+    let equal = Bindlib.eq_vars
+    let hash = Bindlib.hash_var
   end
 
-  include Arg
-
-  let fresh () = Bindlib.new_var (fun v -> TVar v) "ty1"
+  let fresh () = fresh_var ()
+  let translate v =
+    Bindlib.copy_var v (fun v -> TVar v) (Bindlib.name_of v)
 
   module Set = Set.Make (Arg)
   module Map = Map.Make (Arg)
+
+  include Arg
 end
+
+module Var = MakeVar(struct type t = nil end)
 
 let equal_tlit l1 l2 = l1 = l2
 let compare_tlit l1 l2 = Stdlib.compare l1 l2
 
-let rec equal ty1 ty2 =
+let rec equal ?(unionfind = fun _ _ -> assert false) ty1 ty2 =
   match Mark.remove ty1, Mark.remove ty2 with
   | TLit l1, TLit l2 -> equal_tlit l1 l2
   | TTuple tys1, TTuple tys2 -> equal_list tys1 tys2
@@ -52,19 +77,20 @@ let rec equal ty1 ty2 =
   | TVar tv1, TVar tv2 -> Bindlib.eq_vars tv1 tv2
   | TAny tb1, TAny tb2 -> Bindlib.eq_mbinder equal tb1 tb2
   | TClosureEnv, TClosureEnv -> true
+  | TUnionFind x1, TUnionFind x2 -> unionfind x1 x2
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TDefault _ | TVar _ | TAny _ | TClosureEnv ),
+      | TArray _ | TDefault _ | TVar _ | TAny _ | TClosureEnv | TUnionFind _),
       _ ) ->
     false
 
-and equal_list tys1 tys2 =
-  try List.for_all2 equal tys1 tys2 with Invalid_argument _ -> false
+and equal_list ?unionfind tys1 tys2 =
+  try List.for_all2 (equal ?unionfind) tys1 tys2 with Invalid_argument _ -> false
 
 let shallow_fold f ty acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   Mark.fold
     (function
-      | TLit _ | TStruct _ | TEnum _ | TClosureEnv | TVar _ -> acc
+      | TLit _ | TStruct _ | TEnum _ | TClosureEnv | TVar _ | TUnionFind _ -> acc
       | TTuple tl -> lfold tl acc
       | TOption ty | TArray ty | TDefault ty -> f ty acc
       | TArrow (tl, ty) -> lfold tl (f ty acc)
@@ -73,12 +99,13 @@ let shallow_fold f ty acc =
         f ty acc)
     ty
 
-let rec free_vars ty =
+let rec free_vars (ty: nil t) =
   match Mark.remove ty with
   | TVar v -> Var.Set.singleton v
   | TAny tb ->
     let vs, ty = Bindlib.unmbind tb in
     Array.fold_left (fun set v -> Var.Set.remove v set) (free_vars ty) vs
+  | TUnionFind _ -> .
   | _ ->
     shallow_fold
       (fun ty acc -> Var.Set.union acc (free_vars ty))
@@ -91,17 +118,17 @@ let rec unquantify = function
   | ty -> ty
 
 let any pos =
-  let v = Var.fresh () in
+  let v = fresh_var () in
   let tb =
     Bindlib.bind_mvar [|v|]
       (Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var v))
   in
   TAny (Bindlib.unbox tb), pos
 
-let new_var pos = TVar (Var.fresh ()), pos
+let new_var pos = TVar (fresh_var ()), pos
 
 (* Similar to [equal], but allows TAny holes *)
-let rec unifiable ty1 ty2 =
+let rec unifiable (ty1: nil t) (ty2: nil t) =
   match ty1, ty2 with
   | (TVar _, _), (TVar _, _) -> true
   | (TVar tv, _), ty | ty, (TVar tv, _) -> not (Var.Set.mem tv (free_vars ty))
@@ -123,11 +150,12 @@ let rec unifiable ty1 ty2 =
         _ ),
       _ ) ->
     false
+  | _ -> .
 
 and unifiable_list tys1 tys2 =
   try List.for_all2 unifiable tys1 tys2 with Invalid_argument _ -> false
 
-let rec compare ty1 ty2 =
+let rec compare (ty1: nil t) (ty2: nil t) =
   match Mark.remove ty1, Mark.remove ty2 with
   | TLit l1, TLit l2 -> compare_tlit l1 l2
   | TTuple tys1, TTuple tys2 -> List.compare compare tys1 tys2
@@ -162,10 +190,11 @@ let rec compare ty1 ty2 =
   | _, TVar _ -> 1
   | TAny _, _ -> -1
   | _, TAny _ -> 1
-(* | TClosureEnv, _ -> -1
- * | _, TClosureEnv -> 1 *)
+  (* | TClosureEnv, _ -> -1
+   * | _, TClosureEnv -> 1 *\) *)
+  | _ -> .
 
-let map: 'a 'b. ('a gtyp -> 'b gtyp Bindlib.box) -> 'a gtyp -> 'b gtyp Bindlib.box
+let map: type a b. (a t -> b t Bindlib.box) -> a t -> b t Bindlib.box
   = fun f ty ->
   let nty, m = ty in
   let ( @& ) f bty = Bindlib.box_apply (fun ty -> f ty, m) bty in
@@ -182,9 +211,10 @@ let map: 'a 'b. ('a gtyp -> 'b gtyp Bindlib.box) -> 'a gtyp -> 'b gtyp Bindlib.b
       (f ty)
   | TArray ty -> (fun ty -> TArray ty) @& f ty
   | TDefault ty -> (fun ty -> TDefault ty) @& f ty
-  | TVar tv -> Bindlib.box_apply (fun v -> v, m) (Bindlib.box_var tv)
+  | TVar tv -> Bindlib.box_apply (fun v -> v, m) (Bindlib.box_var (Var.translate tv))
   | TAny tb ->
     let tv, ty = Bindlib.unmbind tb in
+    let tv = Array.map Var.translate tv in
     (fun tb -> TAny tb) @& Bindlib.bind_mvar tv (f ty)
   | TClosureEnv -> Bindlib.box (TClosureEnv, m)
   | TUnionFind _ -> assert false
@@ -194,16 +224,16 @@ let rec rebox ty = map rebox ty
 let shallow_fold f t acc =
   let lfold tl acc = List.fold_left (fun acc x -> f x acc) acc tl in
   match Mark.remove t with
-  | TLit _ | TStruct _ | TEnum _ | TAny _ | TVar _ | TClosureEnv -> acc
+  | TLit _ | TStruct _ | TEnum _ | TAny _ | TVar _ | TClosureEnv | TUnionFind _ -> acc
   | TTuple tl -> lfold tl acc
   | TOption t -> f t acc
   | TArrow (tl, t) -> lfold tl acc |> f t
   | TArray t -> f t acc
   | TDefault t -> f t acc
 
-let hash ~strip ty =
+let hash ~strip (ty: nil t) =
   let open Hash.Op in
-  let rec aux ctx ty =
+  let rec aux ctx (ty: nil t) =
     match Mark.remove ty with
     | TLit l -> !`TLit % !(l : typ_lit)
     | TTuple tl -> List.fold_left (fun acc ty -> acc % aux ctx ty) !`TTuple tl
@@ -221,10 +251,11 @@ let hash ~strip ty =
       let _, ty, ctx = Bindlib.unmbind_in ctx tb in
       !`TAny % aux ctx ty
     | TClosureEnv -> !`TClosureEnv
+    | TUnionFind _ -> .
   in
   aux Bindlib.empty_ctxt ty
 
-let rec has_arrow decl_ctx ty =
+let rec has_arrow decl_ctx (ty: nil t) =
   match Mark.remove ty with
   | TArrow _ -> true
   | TLit _ -> false
@@ -239,13 +270,7 @@ let rec has_arrow decl_ctx ty =
       (fun _ -> has_arrow decl_ctx)
       (EnumName.Map.find n decl_ctx.ctx_enums)
   | TOption ty | TArray ty | TDefault ty -> has_arrow decl_ctx ty
+  | TUnionFind _ -> .
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
 let format = Print.typ
-
-module Map = Map.Make (struct
-  type nonrec t = t
-
-  let compare = compare
-  let format = format
-end)

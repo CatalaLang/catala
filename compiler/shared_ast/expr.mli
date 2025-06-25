@@ -177,8 +177,8 @@ val escopecall :
 
 val ecustom :
   Obj.t ->
-  Type.t list ->
-  Type.t ->
+  'a Type.t list ->
+  'a Type.t ->
   'm mark ->
   (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
