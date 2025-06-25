@@ -1,5 +1,6 @@
 open Catala_utils
 open Shared_ast
+open Trace_utils
 
 let rec list_fold_right4 f l1 l2 l3 l4 accu =
   match (l1, l2, l3, l4) with
@@ -436,7 +437,7 @@ let slice
         Format_trace.print_trace tr;
       );
       (* Unevaluate the value with the trace to get a sliced version of the expression *)
-      let sliced_e = unevaluate p.decl_ctx (Interpret.addholes v) tr in
+      let sliced_e = unevaluate p.decl_ctx (addholes v) tr in
       if debug then (
         Message.log "Sliced program :";
         Format.print_newline(); 
@@ -461,7 +462,7 @@ let test
   (p : (dcalc, 'm) gexpr program)
   (s : ScopeName.t) =
   let v, sliced_e = slice ~debug p s in
-  let value, trace = Interpret.evaluate_expr_safe p.decl_ctx p.lang (Interpret.delholes sliced_e) in
+  let value, trace = Interpret.evaluate_expr_safe p.decl_ctx p.lang (delholes sliced_e) in
   if debug then (
     Message.log "Result from sliced program :";
     Format.print_newline();

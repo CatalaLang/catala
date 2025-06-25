@@ -2,62 +2,7 @@ open Catala_utils
 open Shared_ast
 open Shared_ast.Interpreter
 open Trace_ast
-
-(* Typing shenanigan to add hole terms to the AST type. *)
-let addholes e =
-  let rec f :
-      type d c h.
-      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, yes) slicing_interpr_kind, 't) gexpr boxed
-      = function
-    | (ECustom _, _) as e -> Expr.map ~f e
-    | EAppOp { op; tys; args }, m ->
-      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
-    | (EDefault _, _) as e -> Expr.map ~f e
-    | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmpty, _) as e -> Expr.map ~f e
-    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
-        _ ) as e ->
-      Expr.map ~f e
-    | (EHole _, _) as e -> Expr.map ~f e
-    | _ -> .
-  in
-  let open struct
-    external id :
-      (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr -> (('d, 'c, yes) slicing_interpr_kind, 't) gexpr
-      = "%identity"
-  end in
-  if false then Expr.unbox (f e)
-    (* We keep the implementation as a typing proof, but bypass the AST
-       traversal for performance. Note that it's not completely 1-1 since the
-       traversal would do a reboxing of all bound variables *)
-  else id e
-
-let delholes e =
-  let rec f :
-      type d c h.
-      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, no) slicing_interpr_kind, 't) gexpr boxed
-      = function
-    | EHole _, m -> Expr.efatalerror Unreachable m
-    | (ECustom _, _) as e -> Expr.map ~f e
-    | EAppOp { op; args; tys }, m ->
-      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
-    | (EDefault _, _) as e -> Expr.map ~f e
-    | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmpty, _) as e -> Expr.map ~f e
-    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
-        _ ) as e ->
-      Expr.map ~f e
-    | _ -> .
-  in
-  Expr.unbox (f e)
+open Trace_utils
 
 let substitute_bounded_vars :
   type c d h.
@@ -91,6 +36,14 @@ fun ctx_closure e ->
   in
   Expr.unbox (f e)
 
+(* Helpers for Result *)
+
+let ( let* ) = Result.bind
+
+let ok e tr = Ok (e,tr)
+
+let error err m trace = Error (err, m, trace)
+
 let evaluate_expr_with_trace :
     type d t.
     decl_ctx ->
@@ -99,7 +52,7 @@ let evaluate_expr_with_trace :
     ((d, yes) interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
   let exception FatalError of Runtime.error * t mark * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t in
-  let raise_fatal_error err m tr = raise (FatalError (err, m, TrFatalError { err ; tr })) in
+  let raise_fatal_error err m tr = raise (FatalError (err, m, trfatalerror ~err ~tr)) in
   let rec evaluate_expr_with_trace_aux :
       decl_ctx ->
       (((d, yes) interpr_kind, t) gexpr, ((d, yes) interpr_kind, t) gexpr) Var.Map.t ->
@@ -126,7 +79,7 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> v, TrVar {var = Var.translate x; value = addholes v} 
+        | Some v -> v, trvar ~var:(Var.translate x) ~value:(addholes v) 
         | None -> 
           Message.error ~pos "%a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -163,7 +116,7 @@ fun ctx lang e ->
           have different capitalisation rules inherited from the input *)
       in
       let o = Runtime.lookup_value runtime_path in
-      (runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o), TrExternal { name }
+      (runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o), trexternal ~name
     | EApp { f = e1; args; tys } -> (
       let e1, trf = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
       let args, trargs = evaluate_expr_list_with_trace_aux ctx local_ctx lang args in
@@ -171,9 +124,10 @@ fun ctx lang e ->
       | EAbs { binder; _ } ->
         if Bindlib.mbinder_arity binder = List.length args then
           let vars, body = Bindlib.unmbind binder in
-          let local_ctx = List.fold_left2 (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) local_ctx (Array.to_list vars) args in
+          let local_ctx = List.fold_left2 (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) 
+            local_ctx (Array.to_list vars) args in
           let v, trv = evaluate_expr_with_trace_aux ctx local_ctx lang body in 
-            (v, TrApp {trf; trargs; tys; vars = Array.map Var.translate vars; trv})
+            v, trapp ~trf ~trargs ~tys ~vars:(Array.map Var.translate vars) ~trv
         else
           Message.error ~pos "wrong function call, expected %d arguments, got %d"
             (Bindlib.mbinder_arity binder)
@@ -198,7 +152,7 @@ fun ctx lang e ->
             obj targs args
         in
         let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in 
-        v, TrApp {trf; trargs; tys; vars = [||]; trv = TrExpr (addholes v)}
+        v, trapp ~trf ~trargs ~tys ~vars:[||] ~trv:(trexpr (addholes v))
       | _ ->
         Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
           "function has not been reduced to a lambda at evaluation (should not \
@@ -226,7 +180,8 @@ fun ctx lang e ->
         | Reduce, [_; EAbs {tys = tysd; _},md as default; (EArray [], _)] ->
           (* In this case we just need the trace of default() *)
           let eappd v = Mark.add md (EApp {f=default; args = [v]; tys = tysd}) in
-          let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang (eappd (ELit LUnit, Expr.with_ty m (TLit TUnit, pos))) in
+          let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang 
+            (eappd (ELit LUnit, Expr.with_ty m (TLit TUnit, pos))) in
           v, [tr]
         | Reduce, [EAbs {tys = tysf; _},mf as f; _; (EArray (v0 :: vn), _)] ->
           (* In this case we need the trace of f(v) for every v fold from f and v0::vn *)
@@ -243,8 +198,8 @@ fun ctx lang e ->
           let vals, traux = List.fold_right 
             (fun v (accv, acctr) ->
               match appf v with
-              | (ELit (LBool true), _), tr -> (v::accv), (TrLit(LBool true)::tr::acctr)
-              | (ELit (LBool false), _),tr -> accv, (TrLit (LBool false)::tr::acctr)
+              | (ELit (LBool true), _), tr -> (v::accv), (trlit (LBool true)::tr::acctr)
+              | (ELit (LBool false), _),tr -> accv, (trlit (LBool false)::tr::acctr)
               | _ -> Message.error
                     ~pos:(Expr.pos (List.nth args 0))
                     "%a" Format.pp_print_text
@@ -264,38 +219,24 @@ fun ctx lang e ->
         | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
           evaluate_operator (evaluate_expr ctx lang) op m lang vargs, []
       in
-      v, TrAppOp { op = Operator.translate op; trargs; tys; vargs = List.map addholes vargs; traux }
+      v, trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs:(List.map addholes vargs) ~traux
     | EAbs _ -> (
       match Mark.remove(addholes e) with
       | EAbs { binder; pos; tys } -> 
         (* Functions do not carry contexts in Catala so in order to avoid any issues of context 
            we perform a substitution in the body of the function *)
-        substitute_bounded_vars local_ctx e, TrAbs { binder; pos; tys }
+        substitute_bounded_vars local_ctx e, trabs ~binder ~pos ~tys
       | _ -> assert false
     )
-    | ELit l -> e, TrLit l
+    | ELit l -> e, trlit l
     | EPos _ -> assert false
-    | ECustom { obj; targs; tret } -> e, TrCustom { obj; targs; tret }
-    | EEmpty -> e, TrEmpty
+    | ECustom { obj; targs; tret } -> e, trcustom ~obj ~targs ~tret
+    | EEmpty -> e, trempty
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
       let es, tres = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
-      (Mark.add m
-        (EStruct
-          {
-            fields =
-              StructField.Map.of_seq
-                (Seq.zip (List.to_seq fields) (List.to_seq es));
-            name;
-          })
-      ), 
-      TrStruct 
-        {
-          fields =
-            StructField.Map.of_seq
-              (Seq.zip (List.to_seq fields) (List.to_seq tres));
-          name;
-        }
+      let new_fields lst = StructField.Map.of_seq (Seq.zip (List.to_seq fields) (List.to_seq lst)) in
+      Mark.add m (EStruct{ fields = new_fields es; name }), trstruct ~name ~fields:(new_fields tres)
     | EStructAccess { e; name = s; field } -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
       match Mark.remove e with
@@ -307,7 +248,7 @@ fun ctx lang e ->
             "Error during struct access: not the same structs (should not happen \
             if the term was well-typed)";
         match StructField.Map.find_opt field es with
-        | Some e' -> (e', TrStructAccess { name; tr; field })
+        | Some e' -> (e', trstructaccess ~name ~tr ~field)
         | None ->
           Message.error ~pos:(Expr.pos e)
             "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
@@ -321,11 +262,11 @@ fun ctx lang e ->
           e StructName.format s)
     | ETuple es -> 
       let v, trv = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
-      (Mark.add m (ETuple v)), TrTuple trv
+      (Mark.add m (ETuple v)), trtuple trv
     | ETupleAccess { e = e1; index; size } -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e1 in
       match e with
-      | ETuple es, _ when List.length es = size -> (List.nth es index), TrTupleAccess { tr; index; size }
+      | ETuple es, _ when List.length es = size -> (List.nth es index), trtupleaccess ~tr ~index ~size
       | e ->
         Message.error ~pos:(Expr.pos e)
           "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d@ \
@@ -334,7 +275,7 @@ fun ctx lang e ->
           e size)
     | EInj { e; name; cons } ->
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
-      (Mark.add m (EInj { e; name; cons })), TrInj { tr; name; cons }
+      (Mark.add m (EInj { e; name; cons })), trinj ~tr ~name ~cons
     | EMatch { e; cases; name } -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in
       match Mark.remove e with
@@ -358,8 +299,8 @@ fun ctx lang e ->
         in
         let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
         let v, tv = evaluate_expr_with_trace_aux ctx local_ctx lang new_e in 
-        let trcases = EnumConstructor.Map.map (fun c -> TrExpr (addholes c)) cases in
-        v, TrMatch {tr; name; cases = EnumConstructor.Map.update cons (fun _ -> Some tv) trcases}
+        let trcases = EnumConstructor.Map.map (fun c -> trexpr (addholes c)) cases in
+        v, trmatch ~tr ~name ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases)
       | _ ->
         Message.error ~pos:(Expr.pos e)
           "Expected a term having a sum type as an argument to a match (should \
@@ -369,39 +310,39 @@ fun ctx lang e ->
       match Mark.remove cond with
       | ELit (LBool true) -> 
         let v, trtrue = evaluate_expr_with_trace_aux ctx local_ctx lang etrue in 
-        v, TrIfThenElse { trcond; trtrue; trfalse = TrExpr (addholes efalse) }
+        v, trifthenelse ~trcond ~trtrue ~trfalse:(trexpr (addholes efalse))      
       | ELit (LBool false) -> 
         let v, trfalse = evaluate_expr_with_trace_aux ctx local_ctx lang efalse in 
-        v, TrIfThenElse { trcond; trtrue = TrExpr (addholes etrue); trfalse }
+        v, trifthenelse ~trcond ~trtrue:(trexpr (addholes etrue)) ~trfalse
       | _ ->
         Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this condition (should \
           not happen if the term was well-typed)")
     | EArray es ->
       let es, tres = evaluate_expr_list_with_trace_aux ctx local_ctx lang es in
-      (Mark.add m (EArray es)), TrArray tres
+      (Mark.add m (EArray es)), trarray tres
     | EAssert e' -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
       match Mark.remove e with
-      | ELit (LBool true) -> (Mark.add m (ELit LUnit)), TrAssert tr
+      | ELit (LBool true) -> (Mark.add m (ELit LUnit)), trassert tr
       | ELit (LBool false) -> (* Mark.add m (EFatalError AssertionFailed) *)
-        raise_fatal_error AssertionFailed m (TrAssert tr)
+        raise_fatal_error AssertionFailed m (trassert tr)
       | _ ->
         Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this assertion (should \
           not happen if the term was well-typed)"
     )
     | EFatalError Unreachable -> (*It's okay to reach that point but the result should not matter*)
-      e, TrHole (TAny, Pos.void) 
+      e, trhole (TAny, Pos.void) 
     | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
     | EErrorOnEmpty e' -> (
       let e, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e' in
       match e with
       | EEmpty, _ ->
-        raise_fatal_error NoValue m (TrErrorOnEmpty tr)
+        raise_fatal_error NoValue m (trerror_on_empty tr)
       | exception Runtime.Empty ->
-        raise_fatal_error NoValue m (TrErrorOnEmpty tr)
-      | e -> e, TrErrorOnEmpty tr
+        raise_fatal_error NoValue m (trerror_on_empty tr)
+      | e -> e, trerror_on_empty tr
       )
     | EDefault { excepts; just; cons } -> (
       let vexcepts, trexcepts = evaluate_expr_list_with_trace_aux ctx local_ctx lang excepts in
@@ -412,15 +353,16 @@ fun ctx lang e ->
         match Mark.remove just with
         | ELit (LBool true) -> 
             let v, trcons = evaluate_expr_with_trace_aux ctx local_ctx lang cons in
-            v, TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust; trcons }
+            v, trdefault ~trexcepts ~vexcepts:(List.map addholes vexcepts) ~trjust ~trcons
         | ELit (LBool false) -> 
-            (Mark.copy e EEmpty), TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust; trcons = TrExpr (addholes cons) }
+            (Mark.copy e EEmpty), trdefault ~trexcepts ~vexcepts:(List.map addholes vexcepts) ~trjust ~trcons:(trexpr (addholes cons))
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "Default justification has not been reduced to a boolean at \
             evaluation (should not happen if the term was well-typed")
       | 1 -> (List.find (fun sub -> not (is_empty_error sub)) vexcepts), 
-              TrDefault { trexcepts; vexcepts = List.map addholes vexcepts; trjust = TrExpr (addholes just); trcons = TrExpr (addholes cons) }
+              trdefault ~trexcepts ~vexcepts:(List.map addholes vexcepts) 
+                ~trjust:(trexpr (addholes just)) ~trcons:(trexpr (addholes cons))
       | _ ->
         (*let poslist =
           List.filter_map
@@ -431,15 +373,11 @@ fun ctx lang e ->
         in
         raise Runtime.(Error (Conflict, poslist))*)
         raise_fatal_error Conflict m (
-          TrDefault { 
-            trexcepts; 
-            vexcepts = List.map addholes vexcepts; 
-            trjust = TrExpr (addholes just); 
-            trcons = TrExpr (addholes cons) 
-          }
+          trdefault ~trexcepts ~vexcepts:(List.map addholes vexcepts) 
+            ~trjust:(trexpr (addholes just)) ~trcons:(trexpr (addholes cons))
         )
       )
-    | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, TrPureDefault tr
+    | EPureDefault e -> let v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang e in v, trpuredefault tr
     | _ -> .
   and evaluate_expr_list_with_trace_aux ctx local_ctx lang es = 
     List.split(List.map (evaluate_expr_with_trace_aux ctx local_ctx lang) es)
