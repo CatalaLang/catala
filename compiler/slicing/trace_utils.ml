@@ -1,3 +1,4 @@
+open Catala_utils
 open Shared_ast
 open Trace_ast
 
@@ -60,7 +61,11 @@ let delholes e =
   Expr.unbox (f e)
 
 (* Trace constructors *)
-let trexpr e = TrExpr e
+let trhole ty = TrHole ty
+
+let tranyhole = TrHole (TAny, Pos.void)
+
+let trexpr e = TrExpr (addholes e)
 
 let trlit l = TrLit l
 
@@ -68,7 +73,7 @@ let trapp ~trf ~trargs ~tys ~vars ~trv =
   TrApp { trf; trargs; tys; vars; trv }
 
 let trappop ~op ~trargs ~tys ~vargs ~traux =
-  TrAppOp { op; trargs; tys; vargs; traux }
+  TrAppOp { op = Operator.translate op; trargs; tys; vargs; traux }
 
 let trarray ts = TrArray ts
 
@@ -103,15 +108,89 @@ let trassert t = TrAssert t
 let trfatalerror ~err ~tr = TrFatalError { err; tr }
 
 let trdefault ~trexcepts ~vexcepts ~trjust ~trcons =
-  TrDefault { trexcepts; vexcepts; trjust; trcons }
+  TrDefault { trexcepts; vexcepts = (List.map addholes vexcepts); trjust; trcons }
 
 let trpuredefault t = TrPureDefault t
 
 let trempty = TrEmpty
 
-let trerror_on_empty t = TrErrorOnEmpty t
+let trerroronempty t = TrErrorOnEmpty t
 
 let trcustom ~obj ~targs ~tret =
   TrCustom { obj; targs; tret }
 
-let trhole ty = TrHole ty
+(* Helpers for Result *)
+
+let ( let* ) = Result.bind
+
+let ok e tr = Ok (e,tr)
+
+let error err m trace = Error (err, m, trace)
+
+let map_error_trace trace_wrapper r = Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper tr) r
+
+let map_result_with_trace f lst =
+  let rec aux accv acctr rev_prefix = function
+    | [] -> Ok (List.rev accv, List.rev acctr)
+    | x :: xs ->
+      match f x with
+      | Ok (v, tr) -> aux (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
+      | Error (err, m, trfail) ->
+          let rev_prefix_trace = List.map trexpr rev_prefix in
+          let rest_trace = List.map trexpr xs in
+          let full_trace = List.rev_append rev_prefix_trace (trfail::rest_trace) in
+          error err m full_trace
+  in
+  aux [] [] [] lst
+
+let map_result_with_trace2 f l1 l2 =
+  let rec aux accv acctr rev_prefix = function
+    | [], [] -> Ok (List.rev accv, List.rev acctr)
+    | x1 :: xs1, x2 :: xs2 -> (
+      match f x1 x2 with
+      | Ok (v, tr) -> aux (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
+      | Error (err, m, trfail) ->
+        let trace_before = List.map (fun _ -> tranyhole) rev_prefix in
+        let trace_after = List.map (fun _ -> tranyhole) xs1 in
+        let full_trace = List.rev_append trace_before (trfail :: trace_after) in
+        error err m full_trace
+    )
+    | _ -> Message.error "map_result_with_trace2: input lists must have the same length"
+  in
+  aux [] [] [] (l1, l2)
+
+let fold_result_with_trace f acc0 lst =
+  let rec aux acc tracc = function
+    | [] -> Ok (acc, List.rev tracc)
+    | x :: xs ->
+        match f acc x with
+        | Ok (acc', tr) -> aux acc' (tr :: tracc) xs
+        | Error (err, m, trfail) ->
+            let trace_after = List.map (fun _ -> tranyhole) xs in
+            let full_trace = List.rev_append tracc (trfail::trace_after) in
+            error err m full_trace
+  in
+  aux acc0 [] lst
+
+let filter_result_with_trace f lst =
+  let rec aux accv acctr = function
+    | [] -> Ok (List.rev accv, List.rev acctr)
+    | x :: xs ->
+      match f x with
+      | Ok ((ELit (LBool b),_), tr_call) ->
+        let acctr' = (trlit (LBool b) :: tr_call :: acctr) in
+        let accv' = if b then x :: accv else accv in
+        aux accv' acctr' xs
+      | Error (err, m, trfail) ->
+        let rev_prefix_trace = List.map (fun _ -> tranyhole) acctr in
+        let rest_trace = List.init (List.length xs * 2) (fun _ -> tranyhole) in
+        let full_trace = List.rev_append rev_prefix_trace (trfail :: rest_trace) in
+        error err m full_trace
+      | _ -> Message.error
+        "fold_filter_result : This predicate evaluated to something else than a boolean \
+          (should not happen if the term was well-typed)"
+  in
+  aux [] [] lst
+
+
+
