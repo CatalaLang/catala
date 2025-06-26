@@ -76,11 +76,7 @@ open Shared_ast
     }
       -> ('a, 'm) t
   | TrAssert : ('a, 'm) t -> ('a, 'm) t
-  | TrFatalError : {
-      err : Runtime.error;
-      tr : ('a, 'm) t
-    }
-      -> ('a, 'm) t
+  | TrFatalError : Runtime.error -> ('a, 'm) t
   (* Default terms *)
   | TrDefault : {
       trexcepts : ('a, 'm) t list;

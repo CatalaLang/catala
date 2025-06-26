@@ -105,7 +105,7 @@ let trexternal ~name = TrExternal { name }
 
 let trassert t = TrAssert t
 
-let trfatalerror ~err ~tr = TrFatalError { err; tr }
+let trfatalerror err = TrFatalError err
 
 let trdefault ~trexcepts ~vexcepts ~trjust ~trcons =
   TrDefault { trexcepts; vexcepts = (List.map addholes vexcepts); trjust; trcons }
@@ -127,7 +127,8 @@ let ok e tr = Ok (e,tr)
 
 let error err m trace = Error (err, m, trace)
 
-let map_error_trace trace_wrapper r = Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper tr) r
+let map_error_trace trace_wrapper r = 
+  Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper tr) r
 
 let map_result_with_trace f lst =
   let rec aux accv acctr rev_prefix = function

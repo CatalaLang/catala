@@ -942,6 +942,9 @@ module Commands = struct
         Passes.dcalc options ~includes ~optimize ~check_invariants
           ~autotest:false ~typed:Expr.typed
       in
+      Interpreter.load_runtime_modules
+        ~hashf:Hash.(finalise ~monomorphize_types:false)
+        prg;
       let scopes = get_scopelist_uids prg ex_scopes in
       if options.debug then Message.log "Begin slicing !";
       let success = Slicing.Slice.test ~debug:options.debug prg (List.hd scopes) in
