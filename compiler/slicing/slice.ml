@@ -72,26 +72,29 @@ fun e1 e2 ->
   | ECustom { obj = o1; targs = _; tret = _ }, ECustom { obj = o2; targs = _; tret = _ } 
     when o1 = o2 -> e1 
   | EVar _, EVar _ (*when Bindlib.eq_vars x1 x2*) -> e1 
-  | EExternal { name = n1 }, EExternal { name = n2 } when n1 = n2 -> e1
+  | EExternal _, EExternal _ when Expr.equal e1 e2 -> e1
   | EApp { f = f1; args = a1; tys }, EApp { f = f2; args = a2; tys = _} ->
     Mark.add m (EApp { f = join_expr f1 f2; args = join_expr_list a1 a2; tys })
-  | EAppOp { op = op1; args = a1; tys }, EAppOp { op = op2; args = a2; tys = _ } when op1 = op2->
-    Mark.add m (EAppOp {op = op1; args = join_expr_list a1 a2; tys })
+  | EAppOp { op = op1; args = a1; tys }, EAppOp { op = op2; args = a2; tys = _ } 
+    when Mark.equal Operator.equal op1 op2->
+      Mark.add m (EAppOp {op = op1; args = join_expr_list a1 a2; tys })
   | EArray e1, EArray e2 -> Mark.add m (EArray (join_expr_list e1 e2))
   | EIfThenElse { cond = c1; etrue = t1; efalse = f1 }, EIfThenElse { cond = c2; etrue = t2; efalse = f2 } ->
     Mark.add m (EIfThenElse { cond = join_expr c1 c2; etrue = join_expr t1 t2; efalse = join_expr f1 f2 })
-  | EStruct { name = n1; fields = f1 }, EStruct { name = n2; fields = f2 } when n1 = n2 ->
-    let fields = StructField.Map.mapi (fun f e -> join_expr e (StructField.Map.find f f2)) f1 in 
-    Mark.add m (EStruct { name = n1; fields })
+  | EStruct { name = n1; fields = f1 }, EStruct { name = n2; fields = f2 } 
+    when StructName.equal n1 n2 ->
+      let fields = StructField.Map.mapi (fun f e -> join_expr e (StructField.Map.find f f2)) f1 in 
+      Mark.add m (EStruct { name = n1; fields })
   | EStructAccess { name = n1; e = e1; field = f1 }, EStructAccess { name = n2; e = e2; field = f2 } 
-    when n1 = n2 && f1 = f2 ->
+    when StructName.equal n1 n2 && StructField.equal f1 f2 ->
       Mark.add m (EStructAccess { name = n1; e = join_expr e1 e2; field = f1 })
   | EInj { name = n1; e = e1; cons = c1 }, EInj { name = n2; e = e2; cons = c2 }
-    when n1 = n2 && c1 = c2 ->
+    when EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 ->
       Mark.add m (EInj { name = n1; e = join_expr e1 e2; cons = c1 })
-  | EMatch { name = n1; e = e1; cases = c1 }, EMatch { name = n2; e = e2; cases = c2 } when n1 = n2 ->
-    let cases = EnumConstructor.Map.mapi (fun c e -> join_expr e (EnumConstructor.Map.find c c2)) c1 in 
-    Mark.add m (EMatch { name = n1; e = join_expr e1 e2; cases})
+  | EMatch { name = n1; e = e1; cases = c1 }, EMatch { name = n2; e = e2; cases = c2 } 
+    when EnumName.equal n1 n2 ->
+      let cases = EnumConstructor.Map.mapi (fun c e -> join_expr e (EnumConstructor.Map.find c c2)) c1 in 
+      Mark.add m (EMatch { name = n1; e = join_expr e1 e2; cases})
   | ETuple e1, ETuple e2 -> Mark.add m (ETuple (join_expr_list e1 e2))
   | ETupleAccess { e = e1; index = i1; size = s1}, ETupleAccess { e = e2; index = i2; size = s2}
     when i1 = i2 && s1 = s2 ->
@@ -213,14 +216,14 @@ fun ctx value trace ->
       in 
       unevaluate_op op tys [mark_hole mf; sliced_default; sliced_arr] trargs m 
     | _, TrAppOp { op = Reduce, _ as op; trargs; tys; vargs = [EAbs _, mf; _,md; (EArray (_::_), ma) ]; traux} ->
-      let f, v0, sliced_vs = List.fold_left (
-        fun (joined_f, acc, vs) tr ->
+      let f, v0, sliced_vs = List.fold_right (
+        fun tr (joined_f, acc, vs) ->
           match snd (unevaluate_aux acc tr) with
           | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
           | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
           | _ -> assert false
         )
-        (v, mark_hole mf, []) traux
+        traux (mark_hole mf, v, [])
       in
       unevaluate_op op tys [f; mark_hole md; (EArray (v0::sliced_vs), ma)] trargs m 
     | EArray vs, TrAppOp { op = Filter, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _),ma]; traux} -> 
@@ -256,14 +259,14 @@ fun ctx value trace ->
       let sliced_vs = join_relevant_values bools sliced_arr vs in
       unevaluate_op op tys [f; (EArray sliced_vs, ma)] trargs m
     | _, TrAppOp { op = Fold,_ as op; trargs; tys; vargs = [EAbs _, mf; _; (EArray _, ma)]; traux} ->
-      let f, v0, sliced_vs = List.fold_left (
-        fun (joined_f, acc, vs) tr ->
+      let f, v0, sliced_vs = List.fold_right (
+        fun tr (joined_f, acc, vs) ->
           match snd (unevaluate_aux acc tr) with
           | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
           | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
           | _ -> assert false
         )
-        (v, mark_hole mf, []) traux
+        traux (mark_hole mf, v, [])
       in
       unevaluate_op op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
     | _, TrAppOp { op; trargs; tys; vargs; _ } -> 
@@ -275,7 +278,7 @@ fun ctx value trace ->
       let local_ctx, e = unevaluate_aux estruct tr in
       local_ctx, Mark.add m (EStructAccess { name; e; field })
     | EStruct { name = n1; fields = efields }, TrStruct { name = n2; fields = trfields } 
-      when n1 = n2 ->
+      when StructName.equal n1 n2 ->
         let fields_with_ctx = StructField.Map.mapi (fun f e -> unevaluate_aux e (StructField.Map.find f trfields)) efields in
         let local_ctx = StructField.Map.fold (fun _ (ctx,_) lctx -> join_ctx lctx ctx) fields_with_ctx Var.Map.empty in
         let fields = StructField.Map.map snd fields_with_ctx in
@@ -289,7 +292,7 @@ fun ctx value trace ->
       let local_ctx, e' = unevaluate_aux e tr in 
       local_ctx, Mark.add m (ETupleAccess { e = e'; index; size })
     | EInj { name = n1; e = v; cons = c1 }, TrInj { name = n2; tr; cons = c2 } 
-      when n1 = n2 && c1 = c2 ->
+      when EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 ->
         let local_ctx, e = unevaluate_aux v tr in 
         local_ctx, Mark.add m (EInj { name = n1; e; cons = c1})
     | _, TrMatch { name; tr; cases } -> 
