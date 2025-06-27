@@ -153,6 +153,7 @@ fun ctx lang e ->
             (Bindlib.mbinder_arity binder)
             (List.length args)
       | ECustom { obj; targs; tret } ->
+        Message.log "AAAAAAAAAAAAA";
         (* Applies the arguments one by one to the curried form *)
         let o =
           List.fold_left2
