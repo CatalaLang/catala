@@ -99,7 +99,6 @@ let print_topdef ppf name (e, ty, _vis, _is_external) =
 
 let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     unit =
-  let ctx = p.program_ctx in
   let pp_sep fmt () =
     Format.pp_print_cut fmt ();
     Format.pp_print_cut fmt ()

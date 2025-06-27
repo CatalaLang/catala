@@ -231,9 +231,10 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TVar _ -> Format.fprintf fmt "Any"
   | TAny tb ->
-    let _v, typ = Bindlib.unbind tb in
+    let _v, typ = Bindlib.unmbind tb in
     format_typ fmt typ
   | TClosureEnv -> failwith "unimplemented!"
+  | _ -> .
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v

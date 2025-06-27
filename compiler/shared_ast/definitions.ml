@@ -546,7 +546,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
-      tys : (typ, typ list) Bindlib.mbinder;
+      tys : (naked_typ, typ list) Bindlib.mbinder;
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EIfThenElse : {
@@ -637,7 +637,6 @@ and ('a, 'b, 'm) base_gexpr =
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;
-      (* TODO: change to typ : (typ, typ list * typ) Bindlib.mbinder; *)
       targs : typ list;
       tret : typ;
     }

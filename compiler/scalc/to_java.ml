@@ -188,7 +188,7 @@ let format_visibility ppf = function
   | Private -> () (* nothing => package visibility *)
   | Public -> fprintf ppf "public "
 
-let rec format_typ ctx ppf typ =
+let rec format_typ ctx ppf (typ: typ) =
   match Mark.remove typ with
   | TLit TBool -> fprintf ppf "CatalaBool"
   | TLit TUnit -> fprintf ppf "CatalaUnit"
@@ -213,6 +213,7 @@ let rec format_typ ctx ppf typ =
   | TDefault typ -> (format_typ ctx) ppf typ
   | TAny _ | TVar _ -> fprintf ppf "CatalaValue"
   | TClosureEnv -> assert false
+  | _ -> .
 
 let format_struct_params ctx ppf (fields : typ StructField.Map.t) =
   let fields = StructField.Map.bindings fields in

@@ -224,9 +224,10 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
     | TAny tb ->
       (* We suppose here that there aren't multiple parallel binders in the same
          type: in that case two variables could be named the same *)
-      let _v, typ, bctx = Bindlib.unbind_in bctx tb in
+      let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
     | TClosureEnv -> Format.fprintf fmt "Obj.t"
+    | _ -> .
   in
   aux Bindlib.empty_ctxt fmt typ
 
@@ -320,6 +321,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.add (Expr.pos e) l)
   | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ } ->
     let xs, body = Bindlib.unmbind binder in
+    let _, tys = Bindlib.unmbind tys in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "(%a%a)"
@@ -331,6 +333,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       xs_tau_arg format_with_parens body
   | EAbs { binder; pos = _; tys } ->
     let xs, body = Bindlib.unmbind binder in
+    let _, tys = Bindlib.unmbind tys in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
       (Format.pp_print_list

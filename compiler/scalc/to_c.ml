@@ -158,6 +158,7 @@ let rec format_typ
       element_name
   | TAny _ -> assert false
   | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
+  | _ -> .
 
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     unit =

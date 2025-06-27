@@ -237,7 +237,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     stmts, (A.EAppOp { op; args; tys }, Expr.pos expr), ctxt.ren_ctx
-  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; tys = _ } ->
+  | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -344,7 +344,7 @@ and translate_assignment
   | EFatalError error ->
     let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
     RevBlock.make [vposdef; SFatalError { pos_expr; error }, pos], ctxt.ren_ctx
-  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; _ } ->
+  | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -383,6 +383,7 @@ and translate_assignment
   | EAbs { binder; pos = _; tys } ->
     let vars, body, ctxt = unmbind ctxt binder in
     let binder_pos = Expr.pos block_expr in
+    let _, tys = Bindlib.unmbind tys in
     let vars_tau = List.combine (Array.to_list vars) tys in
     let ctxt =
       List.fold_left (register_fresh_arg ~pos:binder_pos) ctxt vars_tau
@@ -437,7 +438,8 @@ and translate_assignment
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
-          | EAbs { binder; pos = _; tys = typ :: _ } ->
+          | EAbs { binder; pos = _; tys } ->
+            let typ = List.hd (snd (Bindlib.unmbind tys)) in
             let vars, body, ctxt = unmbind ctxt binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
@@ -611,7 +613,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
               let pos = Mark.get ty in
               let id, ctxt_inner = register_fresh_var ctxt_inner v ~pos in
               ((id, pos), ty) :: rargs_id, ctxt_inner)
-            ([], ctxt_inner) args abs.tys
+            ([], ctxt_inner) args (snd (Bindlib.unmbind abs.tys))
         in
         let ctxt_inner =
           { ctxt_inner with context_name = TopdefName.base name }

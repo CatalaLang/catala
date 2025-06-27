@@ -172,7 +172,10 @@ let rec typ_gen:
   | TClosureEnv -> base_type fmt "closure_env"
   | TUnionFind x -> unionfind fmt x
 
-let typ ?(colors=colors) = typ_gen ~unionfind:(fun _ _ -> assert false) ~colors Bindlib.empty_ctxt
+let gtyp ?(colors=colors) ?(unionfind=fun _ _ -> assert false) fmt ty =
+  typ_gen ~colors ~unionfind Bindlib.empty_ctxt fmt ty
+
+let typ fmt ty = gtyp fmt ty
 
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
@@ -561,7 +564,7 @@ module ExprGen (C : EXPR_PARAM) = struct
                 Format.fprintf fmt
                   "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
                   "let" var x punctuation ":"
-                  (typ ~colors)
+                  (fun fmt ty -> gtyp ~colors fmt ty)
                   tau punctuation "=" (exprc colors) arg keyword "in")
               fmt xs_tau_arg;
             Format.pp_print_cut fmt ();
@@ -589,7 +592,7 @@ module ExprGen (C : EXPR_PARAM) = struct
                  var fmt x;
                  punctuation fmt ":";
                  Format.pp_print_space fmt ();
-                 typ ~colors fmt tau;
+                 gtyp ~colors fmt tau;
                  Format.pp_close_box fmt ();
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
@@ -797,7 +800,7 @@ module ExprDebug = ExprGen (ExprDebugParam)
 let expr ?(debug = Global.options.debug) () ppf e =
   if debug then ExprDebug.expr ppf e else ExprConcise.expr ppf e
 
-let typ = typ ?colors:None
+let gtyp ?unionfind fmt ty = gtyp ?colors:None ?unionfind fmt ty
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with

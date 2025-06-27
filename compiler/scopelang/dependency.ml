@@ -274,13 +274,14 @@ let rec get_structs_or_enums_in_type (t : typ) : TypeIdent.Set.t =
       (get_structs_or_enums_in_type t2)
   | TClosureEnv | TLit _ | TVar _ -> TypeIdent.Set.empty
   | TAny tb ->
-    let _v, ty = Bindlib.unbind tb in
+    let _v, ty = Bindlib.unmbind tb in
     get_structs_or_enums_in_type ty
   | TOption t1 | TArray t1 | TDefault t1 -> get_structs_or_enums_in_type t1
   | TTuple ts ->
     List.fold_left
       (fun acc t -> TypeIdent.Set.union acc (get_structs_or_enums_in_type t))
       TypeIdent.Set.empty ts
+  | _ -> .
 
 let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
     =

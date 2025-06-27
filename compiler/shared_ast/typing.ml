@@ -245,22 +245,24 @@ let rec typ_to_ast ~flags (ty : typ) : A.typ =
    * Bindlib.unbox bty *)
 
 (* Wraps all `TVar` inside a `TUnionFind`. The crucial part is that, in the returned type, every instance of a given var is in the same unionfind element.  *)
-let ast_to_typ ?(tvars=TVar.Map.empty) (ty : A.typ) : typ =
+let ast_to_typ ?(tvars=Type.Var.Map.empty) (ty : A.typ) : typ =
   let vars = ref tvars in
   let rec aux: A.typ -> typ = function
     | TVar v, pos ->
-      let v = TVar.translate v in
+      let v1 = TVar.translate v in
       let uf =
-        try TVar.Map.find v !vars
-        with Not_found ->
-          let uf = UnionFind.make (TVar v, pos) in
-          vars := TVar.Map.add v uf !vars;
+        try Type.Var.Map.find v !vars
+        with Type.Var.Map.Not_found _ ->
+          let uf = UnionFind.make (TVar v1, pos) in
+          vars := Type.Var.Map.add v uf !vars;
           uf
       in
       TUnionFind (T uf), pos
-    | TAny _bnd, _ -> assert false
-    (* let _, ty = Bindlib.unmbind bnd in
-     * ast_to_typ ty *)
+    | TAny bnd, _ ->
+      let tvars, ty = Bindlib.unmbind bnd in
+      let ret = aux ty in
+      vars := Array.fold_left (fun acc v -> Type.Var.Map.remove v acc) !vars tvars;
+      ret
     | (TLit _ | TStruct _ | TEnum _ | TClosureEnv), _ as ty -> ty
     | TTuple tl, m -> TTuple (List.map aux tl), m
     | TOption ty, m -> TOption (aux ty), m
@@ -1348,20 +1350,25 @@ let scopes ctx env =
         (* polymorphic function case *)
         let tvars, typ = Bindlib.unmbind bnd in
         let tvars_map =
-          Array.fold_left (fun acc v ->
-              let v = TVar.translate v in
-              TVar.Map.add v (UnionFind.make (TVar v, tpos)) acc)
-            TVar.Map.empty tvars
+          Array.fold_left (fun acc va ->
+              let vt = TVar.translate va in
+              Type.Var.Map.add va (UnionFind.make (TVar vt, tpos)) acc)
+            Type.Var.Map.empty tvars
         in
         let typ = ast_to_typ ~tvars:tvars_map typ in
         let e' = typecheck_expr_top_down ctx env typ e in
         let typ = ty e' in
-        TVar.Map.iter (fun v uf ->
-            if not (Type.equal ~unionfind:UnionFind.eq UnionFind.(get (find uf)) (TVar v, tpos))
+        Type.Var.Map.iter (fun v uf ->
+            if not (Type.equal ~unionfind:(fun (T a) (T b) -> UnionFind.eq a b)
+                      UnionFind.(get (find uf))
+                      (TVar (TVar.translate v), tpos))
             then Message.error ~pos:tpos "Not as polymorphic as expected"
             (* FIXME: delayed and better message *)
           ) tvars_map;
-        let typ = Bindlib.bind_mvar tvars (rebox typ) in
+        let tbinder =
+          typ_to_ast ~flags:env.flags typ |> Type.rebox |> Bindlib.bind_mvar tvars |> Bindlib.unbox
+        in
+        let typ = TAny tbinder, (Mark.get typ) in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) (Expr.unbox e') in
         ( Env.add_var var typ env,
           Var.translate var,

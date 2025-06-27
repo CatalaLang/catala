@@ -528,7 +528,7 @@ let rec process_base_typ
           { ctxt with local = mod_ctxt }
           Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
     | Surface.Ast.Var None ->
-      let v = Bindlib.new_var (fun v -> TVar v, typ_pos) "ty" in
+      let v = Bindlib.new_var (fun v -> TVar v) "ty" in
       TVar v, typ_pos
       (* FIXME: this should be an error outside of func types as well ? *)
     | Surface.Ast.Var (Some (id, pos)) ->
@@ -563,8 +563,8 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
         String.Map.empty
         (return_typ::(List.map snd arg_typ))
     in
-    let vars = String.Map.mapi (fun id pos ->
-        Bindlib.new_var (fun v -> TVar v, pos) id)
+    let vars = String.Map.mapi (fun id _pos ->
+        Bindlib.new_var (fun v -> TVar v) id)
         variables
     in
     let targs = List.map (fun (_, t) -> process_base_typ ~vars ctxt t) arg_typ in

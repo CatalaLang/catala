@@ -125,6 +125,12 @@ let any pos =
   in
   TAny (Bindlib.unbox tb), pos
 
+let any_binder () =
+  let v = fresh_var () in
+  let open Bindlib in
+  bind_mvar [|v|] (box_apply (fun v -> [v, Pos.void]) (box_var v))
+  |> unbox
+
 let new_var pos = TVar (fresh_var ()), pos
 
 (* Similar to [equal], but allows TAny holes *)
@@ -221,6 +227,11 @@ let map: type a b. (a t -> b t Bindlib.box) -> a t -> b t Bindlib.box
 
 let rec rebox ty = map rebox ty
 
+let map_binder f bnd =
+  let vs, tl = Bindlib.unmbind bnd in
+  Bindlib.bind_mvar vs (Bindlib.box_list (List.map (fun t -> rebox (f t)) tl))
+  |> Bindlib.unbox
+
 let shallow_fold f t acc =
   let lfold tl acc = List.fold_left (fun acc x -> f x acc) acc tl in
   match Mark.remove t with
@@ -273,4 +284,11 @@ let rec has_arrow decl_ctx (ty: nil t) =
   | TUnionFind _ -> .
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
-let format = Print.typ
+let format = Print.gtyp
+
+module Map = Map.Make (struct
+  type nonrec t = nil t
+
+  let compare = compare
+  let format = format ?unionfind:None
+end)

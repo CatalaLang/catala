@@ -1002,7 +1002,9 @@ let rec translate_expr
           (Array.of_list (List.map Mark.remove vs))
           (translate_binop op pos acc (rec_helper ~local_vars predicate))
       in
-      Expr.eabs mvars vs_marks [Type.any pos; Type.any pos] emark
+      let tv1 = Type.Var.fresh () in
+      let tv2 = Type.Var.fresh () in
+      Expr.eabs mvars vs_marks (Bindlib.unbox (Bindlib.bind_mvar [|tv1; tv2|] (Bindlib.box_apply2 (fun tv1 tv2 -> [tv1, pos; tv2, pos]) (Bindlib.box_var tv1) (Bindlib.box_var tv2)))) emark
     in
     Expr.eappop ~op:(Fold, opos)
       ~tys:[Type.any pos; Type.any pos; Type.any pos]
@@ -1082,10 +1084,11 @@ let rec translate_expr
     in
     let vars = [Mark.ghost acc_var; Mark.add opos param_var] in
     let f =
+      let tv = Type.Var.fresh () in
       Expr.eabs
         (Expr.bind (Array.of_list (List.map Mark.remove vars)) f_body)
         (List.map Mark.get vars)
-        [TLit TBool, pos; Type.any pos]
+        (Bindlib.unbox (Bindlib.bind_mvar [|tv|] (Bindlib.box_apply (fun tv -> [TLit TBool, pos; tv, pos]) (Bindlib.box_var tv))))
         emark
     in
     Expr.eappop ~op:(Fold, opos)
@@ -1113,10 +1116,11 @@ and disambiguate_match_and_build_expression
       e_binder
       pos_binder =
     Expr.eabs e_binder pos_binder
-      [
+      (Bindlib.unbox (Bindlib.bind_mvar [||]
+         (Bindlib.box [
         EnumConstructor.Map.find c_uid
           (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums));
-      ]
+      ])))
       (Mark.get case_body)
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =

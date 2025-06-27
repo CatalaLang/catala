@@ -81,6 +81,7 @@ let merge_defaults
     | EAbs { binder; pos; tys } ->
       let vars, body = Bindlib.unmbind binder in
       let m_body = Mark.get body in
+      let _, targs = Bindlib.unmbind tys in
       let caller =
         let m = Mark.get caller in
         let pos = Expr.mark_pos m in
@@ -91,8 +92,9 @@ let merge_defaults
                  (* we have to correctly propagate types when doing this
                     rewriting *)
                  (Expr.with_ty m_body ~pos:(Expr.mark_pos m_body) ty))
-             (Array.to_list vars) tys)
-          tys pos
+             (Array.to_list vars)
+             targs)
+          targs pos
       in
       let ltrue =
         Expr.elit (LBool true)
@@ -105,7 +107,7 @@ let merge_defaults
         Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons)
       in
       let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) pos in
-      Expr.make_abs vars (Expr.make_erroronempty d) tys (Expr.mark_pos m_callee)
+      Expr.make_abs vars (Expr.make_erroronempty d) targs (Expr.mark_pos m_callee)
     | _ -> assert false
     (* should not happen because there should always be a lambda at the
        beginning of a default with a function type *)

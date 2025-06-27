@@ -225,7 +225,7 @@ let rec transform_closures_expr :
         (free_vars, EnumConstructor.Map.empty)
     in
     free_vars, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; pos; tys }, e1_pos; args; _ } ->
+  | EApp { f = EAbs { binder; pos; tys = tbind }, e1_pos; args; tys } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let free_vars, new_body = (transform_closures_expr ctx) body in
@@ -242,7 +242,9 @@ let rec transform_closures_expr :
     in
     ( free_vars,
       Expr.eapp
-        ~f:(Expr.eabs new_binder pos (List.map translate_type tys) e1_pos)
+        ~f:(Expr.eabs new_binder pos
+              (Type.map_binder translate_type tbind)
+              e1_pos)
         ~args:new_args ~tys m )
   | EAbs { binder; pos = _; tys } ->
     (* Converting the closure. *)
@@ -253,7 +255,8 @@ let rec transform_closures_expr :
     let free_vars =
       Array.fold_left (fun m v -> Var.Map.remove v m) free_vars vars
     in
-    free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
+    free_vars,
+    build_closure ctx (Var.Map.bindings free_vars) body vars (snd (Bindlib.unmbind tys)) m
   | EAppOp
       {
         op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
@@ -518,7 +521,7 @@ let rec hoist_closures_expr :
         (collected_closures, EnumConstructor.Map.empty)
     in
     collected_closures, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; pos; tys }, e1_pos; args; _ } ->
+  | EApp { f = EAbs { binder; pos; tys = tbind }, e1_pos; args; tys } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let collected_closures, new_body =
@@ -535,7 +538,7 @@ let rec hoist_closures_expr :
         args (collected_closures, [])
     in
     ( collected_closures,
-      Expr.eapp ~f:(Expr.eabs new_binder pos tys e1_pos) ~args:new_args ~tys m )
+      Expr.eapp ~f:(Expr.eabs new_binder pos tbind e1_pos) ~args:new_args ~tys m )
   | EAppOp { op = ((Fold | Map | Map2 | Filter | Reduce), _) as op; tys; args }
     when flags.keep_special_ops ->
     (* Special case for some operators: its arguments closures thunks because if
@@ -556,7 +559,7 @@ let rec hoist_closures_expr :
               List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) pos
             in
             let new_arg =
-              Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
+              Expr.make_abs vars new_arg (snd (Bindlib.unmbind tys)) (Expr.mark_pos m_arg)
             in
             new_collected_closures @ collected_closures, new_arg :: new_args
           | _ ->
@@ -570,14 +573,15 @@ let rec hoist_closures_expr :
   | EAbs { binder; pos = posl; tys } ->
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
+    let _, targs = Bindlib.unmbind tys in
     let pos = Expr.mark_pos m in
-    let ty = Expr.maybe_ty ~typ:(TArrow (tys, Type.any pos)) m in
+    let ty = Expr.maybe_ty ~typ:(TArrow (targs, Type.any pos)) m in
     let vars, body = Bindlib.unmbind binder in
     let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) posl in
     let collected_closures, new_body =
       (hoist_closures_expr flags name_context) body
     in
-    let closure = Expr.make_abs vars new_body tys pos in
+    let closure = Expr.make_abs vars new_body targs pos in
     ( { name = closure_var; ty; closure } :: collected_closures,
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _

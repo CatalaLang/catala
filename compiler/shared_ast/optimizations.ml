@@ -44,9 +44,10 @@ let binder_vars_used_at_most_once
    literal *)
 let simplified_apply f args tys =
   match f, args with
-  | _, [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _)] ->
+  | _, [(EAbs { tys ; _ }, _)]
+    when (match Bindlib.unmbind tys with _, (TClosureEnv, _) :: _ -> true | _ -> false) ->
     (* Never inline lifted closures *)
-    EApp { f; args; tys }
+    EApp { f; args; tys = snd (Bindlib.unmbind tys) }
   | _, args when List.exists (fun e -> not (Expr.is_pure e)) args ->
     (* Do not inline unpure expressions *)
     EApp { f; args; tys }
@@ -368,13 +369,19 @@ let test_iota_reduction_1 () =
   let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
   let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
+    let tany () =
+      let v = Type.Var.fresh () in
+      let open Bindlib in
+      bind_mvar [|v|] (box_apply (fun v -> [v, Pos.void]) (box_var v))
+      |> unbox
+    in
     EnumConstructor.Map.of_list
       [
         ( consA,
-          Expr.eabs_ghost (Expr.bind [| x |] injC) [Type.any Pos.void] nomark
+          Expr.eabs_ghost (Expr.bind [| x |] injC) (tany ()) nomark
         );
         ( consB,
-          Expr.eabs_ghost (Expr.bind [| x |] injD) [Type.any Pos.void] nomark
+          Expr.eabs_ghost (Expr.bind [| x |] injD) (tany ()) nomark
         );
       ]
   in
@@ -398,7 +405,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
          ( cons,
            Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
-             [Type.any Pos.void]
+             (Type.any_binder ())
              (Untyped { pos = Pos.void }) ))
 
 let test_iota_reduction_2 () =

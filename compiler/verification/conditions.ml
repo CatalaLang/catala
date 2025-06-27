@@ -111,21 +111,23 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     when List.exists (fun x' -> Var.equal x x') ctx.input_vars ->
     (* scope variables*)
     cons
-  | EAbs { binder; pos = _; tys = [(TLit TUnit, _)] } ->
-    (* context sub-scope variables *)
-    let _, body = Bindlib.unmbind binder in
-    body
-  | EAbs { binder; _ } -> (
-    (* context scope variables *)
-    let _, body = Bindlib.unmbind binder in
-    match Mark.remove body with
-    | EErrorOnEmpty e -> e
-    | _ ->
-      Message.error ~pos:(Expr.pos e)
-        "Internal error: this expression does not have the structure expected \
-         by the VC generator:\n\
-         %a"
-        (Print.expr ()) e)
+  | EAbs { binder; pos = _; tys } ->
+    (match Bindlib.unmbind tys with
+     | _, [(TLit TUnit, _)] ->
+       (* context sub-scope variables *)
+       let _, body = Bindlib.unmbind binder in
+       body
+     | _ -> (
+         (* context scope variables *)
+         let _, body = Bindlib.unmbind binder in
+         match Mark.remove body with
+         | EErrorOnEmpty e -> e
+         | _ ->
+           Message.error ~pos:(Expr.pos e)
+             "Internal error: this expression does not have the structure expected \
+              by the VC generator:\n\
+              %a"
+             (Print.expr ()) e))
   | EErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ -> e
@@ -198,7 +200,9 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                   List.map
                     (fun field ->
                       match Mark.remove field with
-                      | EAbs { binder; pos = _; tys = [(TLit TUnit, _)] } -> (
+                      | EAbs { binder; pos = _; tys }
+                        when (match Bindlib.unmbind tys with _, [(TLit TUnit, _)] -> true | _ -> false)
+ -> (
                         (* Invariant: when calling a function with a thunked
                            emptyerror, this means we're in a direct scope call
                            with a context argument. In that case, we don't apply

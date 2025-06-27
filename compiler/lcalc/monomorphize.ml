@@ -154,6 +154,7 @@ let collect_monomorphized_instances (prg : typed program) :
       Message.error ~internal:true ~pos:(Mark.get typ)
         "Some types in tuples or option have not been resolved by the \
          typechecking before monomorphization."
+    | _ -> .
   in
   let rec collect_expr e acc =
     Expr.shallow_fold collect_expr e (collect_typ acc (Expr.ty e))
@@ -194,6 +195,7 @@ let rec monomorphize_typ
       Mark.get typ )
   | TOption _ ->
     TEnum (Type.Map.find typ monomorphized_instances.options).name, Mark.get typ
+  | _ -> .
 
 let is_some c =
   EnumConstructor.equal Expr.some_constr c

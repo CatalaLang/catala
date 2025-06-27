@@ -20,7 +20,7 @@ open Definitions
 type 'a t = 'a gtyp
 type 'a var = 'a naked_gtyp Bindlib.var
 
-val format : Format.formatter -> 'a t -> unit
+val format : ?unionfind:(Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
 val equal : ?unionfind:('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 val equal_list : ?unionfind:('a -> 'a -> bool) -> 'a t list -> 'a t list -> bool
 val compare : nil t -> nil t -> int
@@ -49,6 +49,13 @@ val has_arrow : Definitions.decl_ctx -> nil t -> bool
 val any : Pos.t -> 'a t
 (** Returns a quantified type variable ([TAny ('a)]) (the returned type is
     closed thus safe to box) *)
+
+val any_binder : unit -> ('a naked_gtyp, 'a t list) Bindlib.mbinder
+(** Returns a directly bound singleton variable list *)
+
+val map_binder :
+  ('a t -> 'a t) -> ('a naked_gtyp, 'a t list) Bindlib.mbinder
+  -> ('a naked_gtyp, 'a t list) Bindlib.mbinder
 
 val new_var : Pos.t -> 'a t
 (** Returns a fresh type variable, without a quantifier. The variable is not
@@ -84,3 +91,5 @@ val unquantify : 'a t -> ' a t
     variables *)
 
 module MakeVar(V: sig type t end): VarSig with type t = V.t naked_gtyp Bindlib.var
+
+module Map : Catala_utils.Map.S with type key = nil t
