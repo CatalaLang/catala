@@ -554,7 +554,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         let rec pr bnd_ctx colors fmt = function
           | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ }, _ ->
             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-            let _tvs, tys = Bindlib.unmbind tys in
+            let _tvs, tys, bnd_ctx = Bindlib.unmbind_in bnd_ctx tys in
             let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
             let xs_tau_arg =
               List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args
@@ -576,8 +576,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_close_box fmt ()
       | EAbs { binder; pos = _; tys } ->
         let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+        let _tvs, tys, bnd_ctx = Bindlib.unmbind_in bnd_ctx tys in
         let expr = exprb bnd_ctx in
-        let _tvs, tys = Bindlib.unmbind tys in
         let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
         Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space
@@ -736,8 +736,8 @@ module ExprGen (C : EXPR_PARAM) = struct
                match case_expr with
                | EAbs { binder; tys; _ }, _ ->
                  let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+                 let _tvs, tys, bnd_ctx = Bindlib.unmbind_in bnd_ctx tys in
                  let expr = exprb bnd_ctx in
-                 let _tvs, tys = Bindlib.unmbind tys in
                  let pp_args fmt =
                    match tys with
                    | [(TLit TUnit, _)] -> ()

@@ -430,11 +430,11 @@ let rec unify
   | TUnionFind (T uf), _ ->
     let ty = unify (UnionFind.get (UnionFind.find uf)) t2 in
     UnionFind.set uf ty;
-    ty
+    TUnionFind (T uf), Mark.get ty
   | _, TUnionFind (T uf) ->
     let ty = unify t1 (UnionFind.get (UnionFind.find uf)) in
     UnionFind.set uf ty;
-    ty
+    TUnionFind (T uf), Mark.get ty
   | TLit tl1, TLit tl2 -> if tl1 <> tl2 then record_type_error (); t2
   | TArrow (targs1, tret1), TArrow (targs2, tret2) ->
     let tret = unify tret1 tret2 in
@@ -713,8 +713,8 @@ and typecheck_expr_top_down :
     (a, m) A.gexpr ->
     (a, typ A.custom) A.boxed_gexpr =
  fun ctx env tau e ->
-  (* Message.debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
-     (format_typ ctx) tau Expr.format e; *)
+  Message.debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
+     format_typ tau Expr.format e;
   let pos_e = Expr.pos e in
   let flags = env.flags in
   let () =
@@ -1118,13 +1118,13 @@ and typecheck_expr_top_down :
        if it happens here, the corresponding type variables will already have been set.
        Consequently, we don't quantify any variables here.
     *)
-    let _, t_args = Bindlib.unmbind t_args in
+    let _, t_args = Bindlib.unmbind t_args in (* <<= UNIFY with tau *)
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~pos:(Expr.pos e)
         "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
-    let tau_args = List.map ast_to_typ t_args in
+    let tau_args = List.map ast_to_typ t_args in (* wrong *)
     let t_ret = any pos_e in
     let t_func = TArrow (tau_args, t_ret), pos_e in
     let mark = mark_with_tau_and_unify t_func in
