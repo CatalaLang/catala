@@ -122,6 +122,7 @@ module Precedence = struct
     | TrLit _ -> Contained (* Todo: unop if < 0 *)
     | TrAppOp { op; _ } -> oper op
     | TrApp _ -> App
+    | TrAppCustom _ -> App
     | TrArray _ -> Contained
     | TrVar _ -> Contained
     | TrExternal _ -> Contained
@@ -619,6 +620,15 @@ let rec trace_aux :
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
             (rhs_tr tracec)) trargs 
         punctuation "↳" (tracec colors) trv;
+      Format.pp_print_cut fmt ();
+
+    | TrAppCustom { trcustom; trargs; v; _ } ->
+      Format.fprintf fmt "@[<hv 2>%a@ %a@]@;@[<hv 4>%a@ %a@]" 
+        (lhs_tr tracec) trcustom
+        (Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+            (rhs_tr tracec)) trargs 
+        punctuation "↳" (exprc colors) v;
       Format.pp_print_cut fmt ();
 
     | TrAbs { binder; pos = _; tys } ->

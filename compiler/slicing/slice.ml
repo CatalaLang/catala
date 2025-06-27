@@ -157,7 +157,14 @@ fun ctx value trace ->
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf; trargs; tys; vars; trv } ->
+      (*
+      Message.log "Application :";
+      Format_trace.print_expr v;
+      Format_trace.print_trace trace;
+      Message.log "-Start Body : ";*)
       let local_ctx, e = unevaluate_aux v trv in
+      (*Message.log "-End Body";
+      Format_trace.print_expr e;*)
       let values = List.map 
         (fun v -> match Var.Map.find_opt v local_ctx with 
           | Some value -> value 
@@ -166,10 +173,20 @@ fun ctx value trace ->
         ) 
         (Array.to_list vars)
       in
+      (*Message.log "-Start Args :";*)
       let lctx2, e2 = unevaluate_list values trargs in
+      (*Message.log "-End Args :";
+      List.iter Format_trace.print_expr e2;*)
       let empty_pos = List.init (List.length tys) (fun _ -> Pos.void) in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos =  empty_pos; tys})) trf in
+      (*Message.log "END application";
+      Format_trace.print_expr @@ Mark.add m (EApp {f = e1; args = e2; tys}) ;
+      Message.log "--";*)
       join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys}) 
+    | _, TrAppCustom { trcustom; custom; trargs; vargs; tys; _} ->
+      let lctx2, e2 = unevaluate_list vargs trargs in
+      let lctx1, e1 = unevaluate_aux custom trcustom in
+      join_ctx_list (lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys})
     | _, TrAppOp { op = Length, _ as op; trargs; tys; vargs = [(EArray vs, m)]; _ } -> 
       (* The content of the Array is not relevant so we replace each element by a hole *)
       let vargs = [Mark.add m (EArray (List.map (fun v -> mark_hole (Mark.get v)) vs))] in
@@ -226,9 +243,9 @@ fun ctx value trace ->
         | t1::t2::q -> split_list (t1::l1) (t2::l2) q
         | _ -> assert false
       in
-      let bools, trbs = split_list [] [] traux in
+      let trbs, bools = split_list [] [] traux in
       let bools = List.map 
-        (fun tb -> match tb with | Trace_ast.TrLit (LBool b) -> b | _ -> assert false) 
+        (fun tb -> match tb with | Trace_ast.TrLit (LBool b) -> b | _ -> Message.error "Bool was expected, got : %a" Format_trace.trace tb) 
         bools 
       in
       let _, sliced_apps = unevaluate_list (List.map (fun b -> ELit(LBool b),m) bools) trbs in
@@ -447,6 +464,6 @@ let test
     Format.print_newline();
     Message.log "Trace of sliced program :";
     Format.print_newline();
-    Format_trace.print_trace trace;
+    Format_trace.print_trace trace;  
   );
   Expr.equal v value

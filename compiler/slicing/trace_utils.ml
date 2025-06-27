@@ -72,8 +72,11 @@ let trlit l = TrLit l
 let trapp ~trf ~trargs ~tys ~vars ~trv =
   TrApp { trf; trargs; tys; vars; trv }
 
+let trappcustom ~trcustom ~custom ~trargs ~vargs ~tys ~v =
+  TrAppCustom { trcustom; custom = addholes custom; trargs; tys; vargs= List.map addholes vargs; v=addholes v }
+
 let trappop ~op ~trargs ~tys ~vargs ~traux =
-  TrAppOp { op = Operator.translate op; trargs; tys; vargs; traux }
+  TrAppOp { op = Operator.translate op; trargs; tys; vargs= List.map addholes vargs; traux }
 
 let trarray ts = TrArray ts
 

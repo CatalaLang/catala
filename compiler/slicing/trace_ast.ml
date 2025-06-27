@@ -12,6 +12,15 @@ open Shared_ast
       trv : ('a, 'm) t
     }
       -> ('a, 'm) t
+  | TrAppCustom : {
+      trcustom : ('a, 'm) t;
+      custom : ('a, 'm) gexpr;
+      trargs : ('a, 'm) t list;
+      vargs : ('a, 'm) gexpr list;
+      tys : typ list;
+      v : ('a, 'm) gexpr
+    }
+      -> ('a, 'm) t
   | TrAppOp : {
       op : 'a operator Mark.pos;
       trargs : ('a, 'm) t list;

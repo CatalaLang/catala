@@ -153,7 +153,6 @@ fun ctx lang e ->
             (Bindlib.mbinder_arity binder)
             (List.length args)
       | ECustom { obj; targs; tret } ->
-        Message.log "AAAAAAAAAAAAA";
         (* Applies the arguments one by one to the curried form *)
         let o =
           List.fold_left2
@@ -172,8 +171,8 @@ fun ctx lang e ->
               f arg)
             obj targs args
         in
-        let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in 
-        ok v @@ trapp ~trf ~trargs ~tys ~vars:[||] ~trv:(trexpr v)
+        let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in
+        ok v @@ trappcustom ~trcustom:trf ~custom:e ~trargs ~tys ~vargs:args ~v
       | _ ->
         Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
           "function has not been reduced to a lambda at evaluation (should not \
@@ -230,13 +229,14 @@ fun ctx lang e ->
         | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
           ok (evaluate_operator (evaluate_expr ctx lang) op m lang vargs) []
       in
-      ok v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs:(List.map addholes vargs) ~traux
+      ok v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
     | EAbs _ -> (
       match Mark.remove(addholes e) with
       | EAbs { binder; pos; tys } -> 
         (* Functions do not carry contexts in Catala so in order to avoid any issues of context 
            we perform a substitution in the body of the function *)
-        ok (substitute_bounded_vars local_ctx e) (trabs ~binder ~pos ~tys)
+        (*ok (substitute_bounded_vars local_ctx e) (trabs ~binder ~pos ~tys)*)
+        ok e @@ trabs ~binder ~pos ~tys
       | _ -> assert false
     )
     | ELit l -> ok e @@ trlit l
