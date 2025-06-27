@@ -1,0 +1,85 @@
+
+```catala
+declaration f content anything of type t
+  depends on x content t
+  equals x
+
+declaration scope S:
+  output a content integer
+  output b content date
+
+scope S:
+  definition a equals f of 12
+  definition b equals f of |2025-01-01|
+```
+
+
+```catala-test-inline
+$ catala test-scope S --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/typing/good/polymorphism.catala_en"
+┌─[WARNING]─
+│
+│  Unclosed block or missing newline at the end of file "tests/typing/good/polymorphism.catala_en".
+│  Did you forget a ``` ?
+│
+└─
+┌─[ERROR]─
+│
+│  Syntax error at "any":
+│  » expected a type.
+│  Those are valid at this point: "money", "date", "(", "boolean",
+│  "duration", "decimal", "text", "integer", "list of".
+│
+├─➤ tests/typing/good/polymorphism.catala_en:3.23-3.26:
+│   │
+│ 3 │ declaration f content any type t
+│   │                       ‾‾‾
+│
+│ Maybe you wanted to write: "money", "date" or "("?
+└─
+Raised at Catala_utils__Message.with_delayed_errors in file "compiler/catala_utils/message.ml", line 554, characters 4-29
+Called from Driver.Passes.surface in file "compiler/driver.ml", line 146, characters 6-73
+Called from Driver.Passes.desugared in file "compiler/driver.ml", line 152, characters 14-29
+Called from Driver.Passes.scopelang in file "compiler/driver.ml", line 166, characters 17-44
+Called from Driver.Passes.dcalc in file "compiler/driver.ml", line 186, characters 14-41
+Called from Driver.Commands.interpret_dcalc in file "compiler/driver.ml", line 756, characters 6-95
+Called from Cmdliner_term.app.(fun) in file "cmdliner_term.ml", line 24, characters 19-24
+Called from Cmdliner_eval.run_parser in file "cmdliner_eval.ml", line 34, characters 37-44
+Called from Cmdliner_eval.eval_value in file "cmdliner_eval.ml", line 202, characters 14-39
+Called from Driver.main in file "compiler/driver.ml", line 1253, characters 8-49
+#return code 123#
+```
+
+```catala
+# declaration scope S2:
+#   output a content date
+
+# scope S2:
+#   definition a equals f of 12
+
+# definition 
+
+# ```
+
+
+# ```catala-test-inline
+# $ catala test-scope S2
+# ┌─[WARNING]─
+# │
+# │  >>> t
+# │
+# └─
+# ┌─[WARNING]─
+# │
+# │  >>> t
+# │
+# └─
+# ┌─[ERROR]─
+# │
+# │  Unexpected error: key 't' not found in map
+# │
+# └─
+# #return code 125#
+```

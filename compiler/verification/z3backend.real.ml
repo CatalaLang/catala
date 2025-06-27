@@ -212,11 +212,13 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   | TArray _ ->
     (* For now, only the length of arrays is modeled *)
     Format.asprintf "(length = %s)" (Expr.to_string e)
-  | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
+  | TAny _ | TVar _ ->
+    failwith "[Z3 model]: Pretty-printing of Any not supported"
   | TClosureEnv ->
     failwith "[Z3 model]: Pretty-printing of closure_env not supported"
   | TDefault _ ->
     failwith "[Z3 model]: Pretty-printing of default terms not supported"
+  | _ -> .
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
     where verification conditions are not satisfied. The context [ctx] is useful
@@ -291,8 +293,9 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
     (* For now, we are only encoding the (symbolic) length of an array.
        Ultimately, the type of an array should also contain its elements *)
     ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TAny -> failwith "[Z3 encoding] TAny type not supported"
+  | TVar _ | TAny _ -> failwith "[Z3 encoding] TAny type not supported"
   | TClosureEnv -> failwith "[Z3 encoding] TClosureEnv type not supported"
+  | _ -> .
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
     Catala enumeration [enum]. If no such sort exists yet, it constructs it by
@@ -424,7 +427,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd
-    | TAny ->
+    | TVar _ | TAny _ ->
       failwith
         "[Z3 Encoding] A function being applied has type TAny, the type was \
          not fully inferred"

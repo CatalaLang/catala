@@ -211,21 +211,29 @@ type ('d, 'c) interpr_kind =
 
 (** {2 Types} *)
 
+type nil = |
+
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 
-type typ = naked_typ Mark.pos
+type !'a gtyp = 'a naked_gtyp Mark.pos
 
-and naked_typ =
+and 'a naked_gtyp =
   | TLit of typ_lit
-  | TArrow of typ list * typ
-  | TTuple of typ list
+  | TArrow of 'a gtyp list * 'a gtyp
+  | TTuple of 'a gtyp list
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TOption of typ
-  | TArray of typ
-  | TDefault of typ
-  | TAny
+  | TOption of 'a gtyp
+  | TArray of 'a gtyp
+  | TDefault of 'a gtyp
+  | TVar of 'a naked_gtyp Bindlib.var
+  | TAny of ('a naked_gtyp, 'a gtyp) Bindlib.mbinder
+      (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
+  | TUnionFind of 'a (** Exclusively used for type inference, normally disabled by setting ['a] to the empty type [nil] *)
+
+type typ = nil gtyp
+type naked_typ = nil naked_gtyp
 
 module TypeIdent : sig
   type t = Struct of StructName.t | Enum of EnumName.t
@@ -444,10 +452,6 @@ type untyped = { pos : Pos.t } [@@caml.unboxed]
 type typed = { pos : Pos.t; ty : typ }
 type 'a custom = { pos : Pos.t; custom : 'a }
 
-(** Using empty markings will ensure terms can't be constructed: used for
-    example in interfaces to ensure that they don't contain any expressions *)
-type nil = |
-
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
     appropriate. The [Custom] case can be used within passes that need to store
@@ -542,7 +546,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
-      tys : typ list;
+      tys : (naked_typ, typ list) Bindlib.mbinder;
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EIfThenElse : {

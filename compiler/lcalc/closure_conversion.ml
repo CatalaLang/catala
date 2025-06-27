@@ -34,24 +34,23 @@ let new_var ?(pfx = "") name_context = Var.make (pfx ^ name_context.prefix)
 
 (** Function types will be transformed in this way throughout, including in
     [decl_ctx] *)
-let rec translate_type t =
-  let pos = Mark.get t in
-  match Mark.remove t with
-  | TArrow (t1, t2) ->
-    ( TTuple
-        [
-          ( TArrow
-              ( (TClosureEnv, Pos.void) :: List.map translate_type t1,
-                translate_type t2 ),
-            Pos.void );
-          TClosureEnv, Pos.void;
-        ],
-      pos )
-  | TDefault t' -> TDefault (translate_type t'), pos
-  | TOption t' -> TOption (translate_type t'), pos
-  | TAny | TClosureEnv | TLit _ | TEnum _ | TStruct _ -> t
-  | TArray ts -> TArray (translate_type ts), pos
-  | TTuple ts -> TTuple (List.map translate_type ts), pos
+let translate_type ty =
+  let rec aux = function
+    | TArrow (t1, t2), pos ->
+      let t1 = Bindlib.box_list (List.map aux t1) in
+      let t2 = aux t2 in
+      Bindlib.box_apply2
+        (fun t1 t2 ->
+          ( TTuple
+              [
+                TArrow ((TClosureEnv, Pos.void) :: t1, t2), pos;
+                TClosureEnv, pos;
+              ],
+            pos ))
+        t1 t2
+    | ty -> Type.map aux ty
+  in
+  Bindlib.unbox (aux ty)
 
 let translate_mark e = Mark.map_mark (Expr.map_ty translate_type) e
 
@@ -226,7 +225,7 @@ let rec transform_closures_expr :
         (free_vars, EnumConstructor.Map.empty)
     in
     free_vars, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; pos; tys }, e1_pos; args; _ } ->
+  | EApp { f = EAbs { binder; pos; tys = tbind }, e1_pos; args; tys } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let free_vars, new_body = (transform_closures_expr ctx) body in
@@ -243,7 +242,9 @@ let rec transform_closures_expr :
     in
     ( free_vars,
       Expr.eapp
-        ~f:(Expr.eabs new_binder pos (List.map translate_type tys) e1_pos)
+        ~f:(Expr.eabs new_binder pos
+              (Type.map_binder translate_type tbind)
+              e1_pos)
         ~args:new_args ~tys m )
   | EAbs { binder; pos = _; tys } ->
     (* Converting the closure. *)
@@ -254,7 +255,8 @@ let rec transform_closures_expr :
     let free_vars =
       Array.fold_left (fun m v -> Var.Map.remove v m) free_vars vars
     in
-    free_vars, build_closure ctx (Var.Map.bindings free_vars) body vars tys m
+    free_vars,
+    build_closure ctx (Var.Map.bindings free_vars) body vars (snd (Bindlib.unmbind tys)) m
   | EAppOp
       {
         op = ((HandleExceptions | Fold | Map | Map2 | Filter | Reduce), _) as op;
@@ -321,7 +323,7 @@ let rec transform_closures_expr :
     in
 
     ( free_vars,
-      Expr.make_let_in (Mark.ghost code_env_var) (TAny, pos) new_e1 call_expr
+      Expr.make_let_in (Mark.ghost code_env_var) (Type.any pos) new_e1 call_expr
         pos )
   | _ -> .
 
@@ -339,7 +341,7 @@ let transform_closures_scope_let ctx scope_body_expr =
             {
               scope_let with
               scope_let_expr;
-              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+              scope_let_typ = Type.any (Mark.get scope_let.scope_let_typ);
             })
           (Expr.Box.lift new_scope_let_expr) ))
     ~last:(fun res ->
@@ -417,7 +419,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+              (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
               (Expr.Box.lift new_expr) ))
       ~last:(fun toplevel_vars exports ->
         ( (),
@@ -519,7 +521,7 @@ let rec hoist_closures_expr :
         (collected_closures, EnumConstructor.Map.empty)
     in
     collected_closures, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; pos; tys }, e1_pos; args; _ } ->
+  | EApp { f = EAbs { binder; pos; tys = tbind }, e1_pos; args; tys } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let collected_closures, new_body =
@@ -536,7 +538,7 @@ let rec hoist_closures_expr :
         args (collected_closures, [])
     in
     ( collected_closures,
-      Expr.eapp ~f:(Expr.eabs new_binder pos tys e1_pos) ~args:new_args ~tys m )
+      Expr.eapp ~f:(Expr.eabs new_binder pos tbind e1_pos) ~args:new_args ~tys m )
   | EAppOp { op = ((Fold | Map | Map2 | Filter | Reduce), _) as op; tys; args }
     when flags.keep_special_ops ->
     (* Special case for some operators: its arguments closures thunks because if
@@ -557,7 +559,7 @@ let rec hoist_closures_expr :
               List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) pos
             in
             let new_arg =
-              Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
+              Expr.make_abs vars new_arg (snd (Bindlib.unmbind tys)) (Expr.mark_pos m_arg)
             in
             new_collected_closures @ collected_closures, new_arg :: new_args
           | _ ->
@@ -571,14 +573,15 @@ let rec hoist_closures_expr :
   | EAbs { binder; pos = posl; tys } ->
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
+    let _, targs = Bindlib.unmbind tys in
     let pos = Expr.mark_pos m in
-    let ty = Expr.maybe_ty ~typ:(TArrow (tys, (TAny, pos))) m in
+    let ty = Expr.maybe_ty ~typ:(TArrow (targs, Type.any pos)) m in
     let vars, body = Bindlib.unmbind binder in
     let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) posl in
     let collected_closures, new_body =
       (hoist_closures_expr flags name_context) body
     in
-    let closure = Expr.make_abs vars new_body tys pos in
+    let closure = Expr.make_abs vars new_body targs pos in
     ( { name = closure_var; ty; closure } :: collected_closures,
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
@@ -712,7 +715,7 @@ let rec hoist_closures_code_item_list
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+            (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
             (Expr.Box.lift new_expr) )
     in
     let next_code_items = hoist_closures_code_item_list flags next_code_items in

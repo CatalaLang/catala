@@ -44,9 +44,10 @@ let binder_vars_used_at_most_once
    literal *)
 let simplified_apply f args tys =
   match f, args with
-  | _, [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _)] ->
+  | _, [(EAbs { tys ; _ }, _)]
+    when (match Bindlib.unmbind tys with _, (TClosureEnv, _) :: _ -> true | _ -> false) ->
     (* Never inline lifted closures *)
-    EApp { f; args; tys }
+    EApp { f; args; tys = snd (Bindlib.unmbind tys) }
   | _, args when List.exists (fun e -> not (Expr.is_pure e)) args ->
     (* Do not inline unpure expressions *)
     EApp { f; args; tys }
@@ -127,7 +128,7 @@ let simplified_match enum_name match_arg cases mark =
                 Expr.map_ty
                   (function
                     | TArrow (args, _), pos -> TArrow (args, ret_ty), pos
-                    | (TAny, _) as t -> t
+                    | (TVar _, _) as t -> t
                     | _ -> assert false)
                   m
               in
@@ -254,7 +255,7 @@ let rec optimize_expr :
             | _ -> "x")
         in
         let mty m =
-          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> Type.any pos) m
         in
         let x = Expr.evar v (mty (Mark.get ls)) in
         Expr.make_ghost_abs [v]
@@ -302,7 +303,7 @@ let rec optimize_expr :
           | _ -> Var.make "x", Var.make "y"
         in
         let mty m =
-          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> Type.any pos) m
         in
         let x1 = Expr.evar v1 (mty (Mark.get ls1)) in
         let x2 = Expr.evar v2 (mty (Mark.get ls2)) in
@@ -368,10 +369,20 @@ let test_iota_reduction_1 () =
   let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
   let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
+    let tany () =
+      let v = Type.Var.fresh () in
+      let open Bindlib in
+      bind_mvar [|v|] (box_apply (fun v -> [v, Pos.void]) (box_var v))
+      |> unbox
+    in
     EnumConstructor.Map.of_list
       [
-        consA, Expr.eabs_ghost (Expr.bind [| x |] injC) [TAny, Pos.void] nomark;
-        consB, Expr.eabs_ghost (Expr.bind [| x |] injD) [TAny, Pos.void] nomark;
+        ( consA,
+          Expr.eabs_ghost (Expr.bind [| x |] injC) (tany ()) nomark
+        );
+        ( consB,
+          Expr.eabs_ghost (Expr.bind [| x |] injD) (tany ()) nomark
+        );
       ]
   in
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
@@ -394,7 +405,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
          ( cons,
            Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
-             [TAny, Pos.void]
+             (Type.any_binder ())
              (Untyped { pos = Pos.void }) ))
 
 let test_iota_reduction_2 () =

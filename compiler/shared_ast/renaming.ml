@@ -172,10 +172,17 @@ let get_ctx cfg =
     constrs = Fun.id;
   }
 
-let rec typ ctx = function
-  | TStruct n, m -> TStruct (ctx.structs n), m
-  | TEnum n, m -> TEnum (ctx.enums n), m
-  | ty -> Type.map (typ ctx) ty
+let typ ctx ty =
+  let rec aux = function
+    | TStruct n, m -> Bindlib.box (TStruct (ctx.structs n), m)
+    | TEnum n, m -> Bindlib.box (TEnum (ctx.enums n), m)
+    | ty -> Type.map aux ty
+  in
+  Bindlib.unbox (aux ty)
+
+let tybind ctx tybinder =
+  let tvars, tbodys = Bindlib.unmbind tybinder in
+  Bindlib.(unbox (bind_mvar tvars (box_list (List.map (fun t -> Type.rebox (typ ctx t)) tbodys))))
 
 (* {2 Handling expressions} *)
 
@@ -191,7 +198,7 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     let vars, body, ctx = unmbind_in ctx binder in
     let body = expr ctx body in
     let binder = Expr.bind vars body in
-    Expr.eabs binder pos (List.map (typ ctx) tys) (fm m)
+    Expr.eabs binder pos (tybind ctx tys) (fm m)
   | ( EApp { f = EAbs { binder; pos; tys = tyabs }, mabs; args; tys = tyapp },
       mapp ) ->
     (* let-in: forward the context to not reuse the name being defined *)
@@ -199,7 +206,7 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     let body = expr ctx body in
     let binder = Expr.bind vars body in
     Expr.eapp
-      ~f:(Expr.eabs binder pos (List.map (typ ctx) tyabs) (fm mabs))
+      ~f:(Expr.eabs binder pos (tybind ctx tyabs) (fm mabs))
       ~args:(List.map (expr ctx) args)
       ~tys:(List.map (typ ctx) tyapp)
       (fm mapp)

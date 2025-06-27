@@ -192,35 +192,44 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
-  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
-    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
-    else Format.fprintf fmt "%a" format_typ t
+let format_typ (fmt : Format.formatter) (typ : typ) : unit =
+  let rec aux bctx fmt typ =
+    let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
+      if typ_needs_parens t then Format.fprintf fmt "(%a)" (aux bctx) t
+      else Format.fprintf fmt "%a" (aux bctx) t
+    in
+    match Mark.remove typ with
+    | TLit l -> Format.fprintf fmt "%a" Print.tlit l
+    | TTuple [] -> Format.fprintf fmt "unit"
+    | TTuple ts ->
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
+           format_typ_with_parens)
+        ts
+    | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
+    | TOption t ->
+      Format.fprintf fmt "@[<hov 2>(%a)@] %a.t" format_typ_with_parens t
+        format_to_module_name (`Ename Expr.option_enum)
+    | TDefault t -> aux bctx fmt t
+    | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
+    | TArrow (t1, t2) ->
+      Format.fprintf fmt "@[<hov 2>%a@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ->@ ")
+           format_typ_with_parens)
+        (t1 @ [t2])
+    | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
+    | TVar v -> Format.fprintf fmt "'%s" (Bindlib.name_of v)
+    | TAny tb ->
+      (* We suppose here that there aren't multiple parallel binders in the same
+         type: in that case two variables could be named the same *)
+      let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
+      aux bctx fmt typ
+    | TClosureEnv -> Format.fprintf fmt "Obj.t"
+    | _ -> .
   in
-  match Mark.remove typ with
-  | TLit l -> Format.fprintf fmt "%a" Print.tlit l
-  | TTuple [] -> Format.fprintf fmt "unit"
-  | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>(%a)@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         format_typ_with_parens)
-      ts
-  | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
-  | TOption t ->
-    Format.fprintf fmt "@[<hov 2>(%a)@] %a.t" format_typ_with_parens t
-      format_to_module_name (`Ename Expr.option_enum)
-  | TDefault t -> format_typ fmt t
-  | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt " ->@ ")
-         format_typ_with_parens)
-      (t1 @ [t2])
-  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
-  | TAny -> Format.fprintf fmt "_"
-  | TClosureEnv -> Format.fprintf fmt "Obj.t"
+  aux Bindlib.empty_ctxt fmt typ
 
 let format_var_str (fmt : Format.formatter) (v : string) : unit =
   Format.pp_print_string fmt v
@@ -312,6 +321,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.add (Expr.pos e) l)
   | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ } ->
     let xs, body = Bindlib.unmbind binder in
+    let _, tys = Bindlib.unmbind tys in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
     Format.fprintf fmt "(%a%a)"
@@ -323,6 +333,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       xs_tau_arg format_with_parens body
   | EAbs { binder; pos = _; tys } ->
     let xs, body = Bindlib.unmbind binder in
+    let _, tys = Bindlib.unmbind tys in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
       (Format.pp_print_list
