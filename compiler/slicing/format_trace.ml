@@ -732,10 +732,9 @@ let rec trace_aux :
     | TrAssert tr' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
         "(" (rhs_tr tracec) tr' punctuation ")"
-    | TrFatalError { err; tr } ->
-      Format.fprintf fmt "@[<hv 2>%a@]@.@[<hov 4>%a@ %a@ @{<red>%s@}@]" 
-        trace tr punctuation "↳"
-        keyword "error" (Runtime.error_to_string err)
+    | TrFatalError err ->
+      Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
+        (Runtime.error_to_string err)
     | TrStruct { name; fields } ->
       if StructField.Map.is_empty fields then (
         punctuation fmt "{";

@@ -1,7 +1,6 @@
 open Catala_utils
 open Shared_ast
 open Shared_ast.Interpreter
-open Trace_ast
 open Trace_utils
 
 let substitute_bounded_vars :
@@ -43,7 +42,7 @@ let evaluate_expr_with_trace :
     ((d, yes) interpr_kind, t) gexpr ->
     ((d, yes) interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
-  let exception FatalError of Runtime.error * t mark * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t in
+  (*let exception FatalError of Runtime.error * t mark * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t in*)
   (*let raise_fatal_error err m tr = raise (FatalError (err, m, trfatalerror ~err ~tr)) in*)
 
   let rec evaluate_expr_list_with_trace_aux :

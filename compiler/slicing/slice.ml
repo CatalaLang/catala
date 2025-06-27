@@ -140,7 +140,7 @@ fun ctx value trace ->
     (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
       TrCustom { obj=o2; targs=ta2; tret=tr2 }
       when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
-    | EAbs { binder = substituted_binder; pos; tys }, TrAbs { binder = original_binder ; _} -> 
+    | EAbs { binder = _; _ }, TrAbs { binder = _original_binder ; _} -> 
       (* There may be variables in the body of the abstraction that have been substituted 
          so to unevaluate the body properly, we have to return the original binder and the context of what substitutions occured *)
       (*
@@ -169,16 +169,7 @@ fun ctx value trace ->
       let lctx2, e2 = unevaluate_list values trargs in
       let empty_pos = List.init (List.length tys) (fun _ -> Pos.void) in
       let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos =  empty_pos; tys})) trf in
-      
-      (*match trf with
-        | TrAbs { binder = _; pos; tys } -> unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
-        | TrVar { var = _; value = (EAbs { binder = _; pos; tys }, m)} -> 
-          unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos; tys})) trf
-        | _ -> 
-          Message.error "@[<v 2> The left term is not a function in the application @ Expr : %a@ Trace : %a@]" 
-          Format_trace.expr v Format_trace.trace trace
-      in*)
-      join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys})
+      join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys}) 
     | _, TrAppOp { op = Length, _ as op; trargs; tys; vargs = [(EArray vs, m)]; _ } -> 
       (* The content of the Array is not relevant so we replace each element by a hole *)
       let vargs = [Mark.add m (EArray (List.map (fun v -> mark_hole (Mark.get v)) vs))] in
@@ -361,24 +352,7 @@ fun ctx value trace ->
         let local_ctx = join_ctx_list (lctxc::lctxj::lctxe) in
         local_ctx, (Mark.add m (EDefault { excepts; just; cons }))
     )
-    | EFatalError err1, TrFatalError { err = err2; tr } when err1 = err2 -> (
-      match err1, tr with
-      | AssertionFailed, TrAssert tr ->
-        let local_ctx, e = unevaluate_aux (Mark.add m (ELit(LBool false))) tr in
-        local_ctx, Mark.add m (EAssert e)
-      | NoValue, TrErrorOnEmpty tr -> 
-        let local_ctx, e = unevaluate_aux (Mark.add m EEmpty) tr in 
-        local_ctx, Mark.add m (EErrorOnEmpty e)
-      | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> 
-        let lctxs,excepts = List.split(List.map2
-          (fun v tr -> if Mark.remove v = EEmpty then Var.Map.empty, mark_hole m else unevaluate_aux v tr)
-          vexcepts
-          trexcepts
-        ) in
-        let local_ctx = join_ctx_list lctxs in 
-        local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
-      | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
-    )
+    | EFatalError err1, TrFatalError err2 when err1 = err2 -> Var.Map.empty, v
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
 
   and unevaluate_list v_list trace_list = List.split (List.map2 unevaluate_aux v_list trace_list)
