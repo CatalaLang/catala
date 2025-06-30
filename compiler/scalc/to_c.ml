@@ -99,7 +99,7 @@ module TypMap = Map.Make (struct
   type t = naked_typ
 
   let compare x y = Type.compare (x, Pos.void) (y, Pos.void)
-  let format fmt x = Print.typ_debug fmt (x, Pos.void)
+  let format fmt x = Print.typ fmt (x, Pos.void)
 end)
 
 (** Formatting to a list of formatters *)
@@ -114,7 +114,7 @@ let rec format_typ
     (fmt : Format.formatter)
     (typ : typ) : unit =
   let sconst = if const then "const " else "" in
-  match Mark.remove typ with
+  match Mark.remove (Type.unquantify typ) with
   | TLit TUnit -> Format.fprintf fmt "CATALA_UNIT%t" element_name
   | TLit TMoney -> Format.fprintf fmt "CATALA_MONEY%t" element_name
   | TLit TInt -> Format.fprintf fmt "CATALA_INT%t" element_name
@@ -153,7 +153,10 @@ let rec format_typ
     Format.fprintf fmt "%sCATALA_ARRAY(%a)%t" sconst
       (format_typ decl_ctx ~const:false ignore)
       t element_name
-  | TAny -> Format.fprintf fmt "%svoid * /* any */%t" sconst element_name
+  | TVar v ->
+    Format.fprintf fmt "%svoid * /* any %s */%t" sconst (Bindlib.name_of v)
+      element_name
+  | TAny _ -> assert false
   | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
 
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
@@ -643,7 +646,7 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
       | _ ->
         Message.error ~internal:true
           "Invalid type for malloc: variable %a, type %a" VarName.format v
-          Print.typ_debug typ
+          Print.typ typ
     in
     (* Postfix [const] declares that the pointer is const, but not its
        contents *)

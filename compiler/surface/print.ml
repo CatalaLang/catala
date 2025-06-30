@@ -32,3 +32,7 @@ let format_primitive_typ (fmt : Format.formatter) (t : primitive_typ) : unit =
          ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
          (fun fmt (uid, _pos) -> Format.pp_print_string fmt uid))
       path (Mark.remove constructor)
+  | Var None -> Format.fprintf fmt "anything"
+  | Var (Some id) ->
+    Format.fprintf fmt "anything@ of@ type@ ";
+    Format.pp_print_string fmt (Mark.remove id)

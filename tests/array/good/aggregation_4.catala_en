@@ -41,19 +41,19 @@ scope Section121SinglePerson:
 $ catala lcalc --closure-conversion
 type Eoption =
   | ENone of unit
-  | ESome of any
+  | ESome of <ty1>
 
 type Period = { begin: date; end: date; }
 
 type Section121SinglePerson_in = {
   date_of_sale_or_exchange_in: date;
-  property_ownage_in: list of Period {begin: date; end: date};
+  property_ownage_in: list of Period;
 }
 
 type Section121SinglePerson = { requirements_ownership_met: bool; }
 
 let topval closure_aggregate_periods_from_last_five_years :
-  (closure_env, Period {begin: date; end: date}) → duration =
+  (closure_env, Period) → duration =
   λ (env: closure_env) (period: Period) →
   let env__1 : (date) = from_closure_env env in
   let date_of_sale_or_exchange : date = env__1.0 in
@@ -82,7 +82,7 @@ let topval closure_aggregate_periods_from_last_five_years__2 :
   ((sum1 + sum2))
 
 let topval closure_aggregate_periods_from_last_five_years__3 :
-  (closure_env, (list of Period {begin: date; end: date})) → duration =
+  (closure_env, (list of Period)) → duration =
   λ (env: closure_env) (periods: list of Period) →
   let env__1 : (date) = from_closure_env env in
   let date_of_sale_or_exchange : date = env__1.0 in
@@ -111,22 +111,17 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
   | ESome arg → arg.0
 
 let scope section121_single_person
-  (section121_single_person_in:
-     Section121SinglePerson_in {
-       date_of_sale_or_exchange_in: date;
-       property_ownage_in: list of Period {begin: date; end: date}
-     })
-  : Section121SinglePerson {requirements_ownership_met: bool}
+  (section121_single_person_in: Section121SinglePerson_in)
+  : Section121SinglePerson
   =
   let get date_of_sale_or_exchange : date =
     section121_single_person_in.date_of_sale_or_exchange_in
   in
-  let get property_ownage : list of Period {begin: date; end: date} =
+  let get property_ownage : list of Period =
     section121_single_person_in.property_ownage_in
   in
   let set aggregate_periods_from_last_five_years :
-      ((closure_env, (list of Period {begin: date; end: date})) → duration,
-        closure_env) =
+      ((closure_env, (list of Period)) → duration, closure_env) =
     let aggregate_periods_from_last_five_years__1 :
         (closure_env, (list of Period)) → duration =
       closure_aggregate_periods_from_last_five_years__3

@@ -40,7 +40,7 @@ let tag_with_log_entry
   if Global.options.trace <> None then
     Expr.eappop
       ~op:(Log (l, markings), Expr.pos e)
-      ~tys:[TAny, Expr.pos e]
+      ~tys:[Type.any (Expr.pos e)]
       ~args:[e] (Mark.get e)
   else e
 

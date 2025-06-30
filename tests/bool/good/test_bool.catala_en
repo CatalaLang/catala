@@ -25,7 +25,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Dcalc 
-let TestBool : TestBool_in → TestBool =
+let TestBool : #[test] #[test] TestBool_in → #[test] TestBool =
   λ (TestBool_in: TestBool_in) →
   let foo : ⟨bool⟩ = TestBool_in.foo_in in
   let bar : ⟨integer⟩ = TestBool_in.bar_in in

@@ -154,7 +154,8 @@ let rec resolve_eq ctx pos ty args m =
          ~tys:[tbool; tbool] m)
       pos
   | TOption _ | TDefault _ -> assert false
-  | TAny -> Message.error ~internal:true "Unknown type for equality resolution"
+  | TVar _ | TAny _ ->
+    Message.error ~internal:true "Unknown type for equality resolution"
 
 let rec expr ctx = function
   | EAppOp { op = Eq, pos; args; tys = [ty; ty2] }, m ->

@@ -188,7 +188,7 @@ let format_visibility ppf = function
   | Private -> () (* nothing => package visibility *)
   | Public -> fprintf ppf "public "
 
-let rec format_typ ctx ppf typ =
+let rec format_typ ctx ppf (typ : typ) =
   match Mark.remove typ with
   | TLit TBool -> fprintf ppf "CatalaBool"
   | TLit TUnit -> fprintf ppf "CatalaUnit"
@@ -211,7 +211,7 @@ let rec format_typ ctx ppf typ =
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
   | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
   | TDefault typ -> (format_typ ctx) ppf typ
-  | TAny -> fprintf ppf "CatalaValue"
+  | TAny _ | TVar _ -> fprintf ppf "CatalaValue"
   | TClosureEnv -> assert false
 
 let format_struct_params ctx ppf (fields : typ StructField.Map.t) =
@@ -269,7 +269,7 @@ let fill_struct_bindings
                  name = Expr.option_enum;
                  cons = Expr.none_constr;
                  e1 = ELit LUnit, Pos.void;
-                 expr_typ = TOption (TAny, Pos.void), Pos.void;
+                 expr_typ = TOption (Type.any Pos.void), Pos.void;
                },
              Pos.void ))
   in

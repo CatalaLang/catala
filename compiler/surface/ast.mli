@@ -41,6 +41,7 @@ type primitive_typ =
   | Text
   | Date
   | Named of path * uident Mark.pos
+  | Var of lident Mark.pos option
 
 type base_typ_data =
   | Primitive of primitive_typ
@@ -212,11 +213,6 @@ type definition = {
 }
 
 type variation_typ = Increasing | Decreasing
-
-type meta_assertion =
-  | FixedBy of scope_var Mark.pos * lident Mark.pos
-  | VariesWith of
-      scope_var Mark.pos * expression * variation_typ Mark.pos option
 
 type assertion = {
   assertion_condition : expression option;

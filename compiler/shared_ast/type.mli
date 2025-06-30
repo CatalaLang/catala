@@ -17,6 +17,7 @@
 open Catala_utils
 
 type t = Definitions.typ
+type var = Definitions.naked_typ Bindlib.var
 
 val format : Format.formatter -> t -> unit
 
@@ -26,7 +27,7 @@ val equal : t -> t -> bool
 val equal_list : t list -> t list -> bool
 val compare : t -> t -> int
 
-val map : (t -> t) -> t -> t
+val map : (t -> t Bindlib.box) -> t -> t Bindlib.box
 (** Shallow mapping on types *)
 
 val shallow_fold : (t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -45,3 +46,33 @@ val arrow_return : t -> t
 
 val has_arrow : Definitions.decl_ctx -> t -> bool
 (** Fails (with [Invalid_argument]) on TAny and TClosureEnv *)
+
+(** Handling of variables *)
+
+module Var : sig
+  include Catala_utils.Map.OrderedType with type t = var
+  module Map : Catala_utils.Map.S with type key = t
+  module Set : Set.S with type elt = t
+  module Hashtbl : Hashtbl.S with type key = t
+
+  val fresh : unit -> t
+end
+
+val free_vars : t -> Var.Set.t
+
+val free_vars_pos : t -> Pos.t Var.Map.t
+(** Only the first position where the variable appeared is kept *)
+
+val rebox : t -> t Bindlib.box
+
+val unquantify : t -> t
+(** Removes the outermost quantifiers from the given type, if any. The returned
+    type is guaranteed to not have the form [TAny _] and may contain free
+    variables *)
+
+val fresh_var : Pos.t -> t
+
+val any : Pos.t -> t
+(** deprecated, TODO replace with fresh_var *)
+
+val universal : Pos.t -> t

@@ -636,7 +636,7 @@ module Commands = struct
       List.iter
         (fun scope ->
           let scope_uid = get_scope_uid prg.program_ctx scope in
-          Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
+          Scopelang.Print.scope ~debug:options.Global.debug fmt
             (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
           Format.pp_print_newline fmt ())
         ex_scopes

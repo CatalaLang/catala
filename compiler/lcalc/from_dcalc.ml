@@ -19,37 +19,33 @@ open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
 
-(** We make use of the strong invriants on the structure of programs:
+(** We make use of the strong invariants on the structure of programs:
     Defaultable values can only appear in certin positions. This information is
     given by the type structure of expressions. In particular this mean we don't
-    need to use the monadic bind while computing arithmetic opertions or
+    need to use the monadic bind while computing arithmetic operations or
     function calls. The resulting function is not more difficult than what we
     had when translating without exceptions.
 
-    The typing translation is to simply trnsform default type into option types. *)
+    The typing translation is to simply transform default type into option
+    types. *)
 
-let rec translate_typ (tau : typ) : typ =
-  Mark.copy tau
-    begin
-      match Mark.remove tau with
-      | TDefault ((_, pos) as t) ->
-        TOption (TTuple [translate_typ t; TLit TPos, pos], pos)
-      | TLit l -> TLit l
-      | TTuple ts -> TTuple (List.map translate_typ ts)
-      | TStruct s -> TStruct s
-      | TEnum en -> TEnum en
-      | TOption _ ->
-        Message.error ~internal:true
-          "The types option should not appear before the dcalc -> lcalc \
-           translation step."
-      | TClosureEnv ->
-        Message.error ~internal:true
-          "The types closure_env should not appear before the dcalc -> lcalc \
-           translation step."
-      | TAny -> TAny
-      | TArray ts -> TArray (translate_typ ts)
-      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
-    end
+let translate_typ (tau : typ) : typ =
+  let rec aux = function
+    | TDefault ((_, pos2) as t), pos1 ->
+      Bindlib.box_apply
+        (fun t -> TOption (TTuple [t; TLit TPos, pos2], pos2), pos1)
+        (aux t)
+    | TOption _, pos ->
+      Message.error ~internal:true ~pos
+        "The type option should not appear before the dcalc -> lcalc \
+         translation step."
+    | TClosureEnv, pos ->
+      Message.error ~internal:true ~pos
+        "The type closure_env should not appear before the dcalc -> lcalc \
+         translation step."
+    | t -> Type.map aux t
+  in
+  Bindlib.unbox (aux tau)
 
 let translate_mark m = Expr.map_ty translate_typ m
 
@@ -66,7 +62,7 @@ let rec translate_default
   let ty_alpha =
     match ty_option with
     | TOption ty, _ -> ty
-    | (TAny, _) as ty -> ty
+    | (TVar _, _) as ty -> ty
     | _ -> assert false
   in
   let mark_alpha = Expr.with_ty mark_default ty_alpha in
@@ -143,8 +139,10 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
         [
           ( Expr.none_constr,
             let x = Var.make "_" in
-            Expr.make_ghost_abs [x] (Expr.efatalerror NoValue m) [TAny, pos] pos
-          );
+            Expr.make_ghost_abs [x]
+              (Expr.efatalerror NoValue m)
+              [TLit TUnit, pos]
+              pos );
           (* | None x -> raise NoValueProvided *)
           ( Expr.some_constr,
             let var = Var.make "arg" in
