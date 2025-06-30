@@ -136,9 +136,6 @@ jobs:
         run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
         # Fewer texmf deps should be required once
         # https://gitlab.alpinelinux.org/alpine/aports/-/issues/16190 is fixed
-      - name: Install Python deps
-        # The Catala Python runtime relies on gmpy2
-        run: pip install gmpy2
       - name: Build Catala extra docs
         run: |
           cd ~/catala
@@ -154,7 +151,7 @@ jobs:
       - name: Build examples
         run: |
           cd ~/catala-examples
-          opam --cli=2.1 exec -- make all testsuite install
+          . ~/catala/_python_venv/bin/activate && opam --cli=2.1 exec -- make all testsuite install
       - name: Generate examples test report
         if: ${{ always() }}
         run: |
