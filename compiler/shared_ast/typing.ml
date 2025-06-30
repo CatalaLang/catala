@@ -1021,36 +1021,28 @@ let scopes ctx env =
         (* polymorphic function case *)
         let tvars, typ = Bindlib.unmbind bnd in
         let e' = typecheck_expr_top_down ctx env typ e in
-        let typ = expr_ty env e' in
-        let tvars =
+        let _tvars =
           Array.fold_left
             (fun acc tv ->
               match get_ty env (TVar tv, tpos) with
-              | TVar tv', _ when not (Type.Var.Set.mem tv' acc) ->
-                Type.Var.Set.add tv' acc
-              | ty ->
-                Message.delayed_error ~kind:Typing () ~pos:(Mark.get ty)
-                  "Type %a is specified as @{<cyan>anything@}, but it appears \
-                   to only work for %a here"
-                  Type.format (TVar tv, tpos) Type.format ty;
-                acc)
+                | TAny _, _ as ty when Type.is_universal ty -> acc
+                | TVar tv', _ when not (Type.Var.Set.mem tv' acc) ->
+                  Type.Var.Set.add tv' acc
+                | ty ->
+                  Message.delayed_error ~kind:Typing () ~pos:(Mark.get ty)
+                    "Type %a is specified as @{<cyan>anything@}, but it appears \
+                     to only work for %a here"
+                    Type.format (TVar tv, tpos) Type.format ty;
+                  acc)
             Type.Var.Set.empty tvars
-          |> Type.Var.Set.to_seq
-          |> Array.of_seq
         in
         (* TODO: cleanup the used type vars from env ? *)
-        let tbinder =
-          get_ty env typ
-          |> Type.rebox
-          |> Bindlib.bind_mvar tvars
-          |> Bindlib.unbox
-        in
-        let typ = TAny tbinder, Mark.get typ in
         let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
+        let typ = TAny bnd, tpos in
         ( Env.add_var var typ env,
           Var.translate var,
           Bindlib.box_apply
-            (fun e -> Topdef (name, Expr.ty e', vis, e))
+            (fun e -> Topdef (name, typ, vis, e))
             (Expr.Box.lift e') )
       | Topdef (name, typ, vis, e) ->
         let e' = expr_raw ctx ~env ~typ e in
