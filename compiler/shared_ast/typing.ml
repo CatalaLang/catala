@@ -189,7 +189,7 @@ let record_type_error env (AnyExpr e) t1 t2 =
      @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" pp_typ t1_repr "─➤" pp_typ t2_repr
 
 (** Raises an error if unification cannot be performed. The position annotation
-    of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
+    of the second [typ] argument is propagated (unless it is [TVar]). *)
 let rec unify
     (env : 'e Env.t)
     (e : ('a, 'm) gexpr as 'e) (* used for error context *)
@@ -1026,11 +1026,11 @@ let scopes ctx env =
         (* polymorphic function case *)
         let tvars, typ = Bindlib.unmbind bnd in
         let e' = typecheck_expr_top_down ctx env typ e in
-        let typ = expr_ty env e' in
-        let tvars =
+        let _tvars =
           Array.fold_left
             (fun acc tv ->
               match get_ty env (TVar tv, tpos) with
+              | (TAny _, _) as ty when Type.is_universal ty -> acc
               | TVar tv', _ when not (Type.Var.Set.mem tv' acc) ->
                 Type.Var.Set.add tv' acc
               | ty ->
@@ -1040,22 +1040,14 @@ let scopes ctx env =
                   Type.format (TVar tv, tpos) Type.format ty;
                 acc)
             Type.Var.Set.empty tvars
-          |> Type.Var.Set.to_seq
-          |> Array.of_seq
         in
         (* TODO: cleanup the used type vars from env ? *)
-        let tbinder =
-          get_ty env typ
-          |> Type.rebox
-          |> Bindlib.bind_mvar tvars
-          |> Bindlib.unbox
-        in
-        let typ = TAny tbinder, Mark.get typ in
         let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
+        let typ = TAny bnd, tpos in
         ( Env.add_var var typ env,
           Var.translate var,
           Bindlib.box_apply
-            (fun e -> Topdef (name, Expr.ty e', vis, e))
+            (fun e -> Topdef (name, typ, vis, e))
             (Expr.Box.lift e') )
       | Topdef (name, typ, vis, e) ->
         let e' = expr_raw ctx ~env ~typ e in

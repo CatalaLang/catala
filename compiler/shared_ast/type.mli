@@ -56,6 +56,8 @@ module Var : sig
   module Hashtbl : Hashtbl.S with type key = t
 
   val fresh : unit -> t
+  val equal : t -> t -> bool
+  val hash : t -> int
 end
 
 val free_vars : t -> Var.Set.t
@@ -76,3 +78,4 @@ val any : Pos.t -> t
 (** deprecated, TODO replace with fresh_var *)
 
 val universal : Pos.t -> t
+val is_universal : t -> bool
