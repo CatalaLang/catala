@@ -1028,7 +1028,7 @@ let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in
-  make_abs [x, Pos.void] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)
+  make_abs [x, Pos.void] (evar x mark) [Type.any (mark_pos mark)] (mark_pos mark)
 
 let rec is_pure : type a. (a, 'm) gexpr -> bool =
  fun e ->

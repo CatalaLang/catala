@@ -568,6 +568,7 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
         variables
     in
     let targs = List.map (fun (_, t) -> process_base_typ ~vars ctxt t) arg_typ in
+    TArrow (targs, process_base_typ ~vars ctxt return_typ), typ_pos
 
 (** Process data declaration *)
 let process_data_decl

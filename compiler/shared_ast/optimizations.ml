@@ -368,19 +368,13 @@ let test_iota_reduction_1 () =
   let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
   let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
-    let tany () =
-      let v = Type.Var.fresh () in
-      let open Bindlib in
-      bind_mvar [|v|] (box_apply (fun v -> [v, Pos.void]) (box_var v))
-      |> unbox
-    in
     EnumConstructor.Map.of_list
       [
         ( consA,
-          Expr.eabs_ghost (Expr.bind [| x |] injC) (tany ()) nomark
+          Expr.eabs_ghost (Expr.bind [| x |] injC) [Type.any Pos.void] nomark
         );
         ( consB,
-          Expr.eabs_ghost (Expr.bind [| x |] injD) (tany ()) nomark
+          Expr.eabs_ghost (Expr.bind [| x |] injD) [Type.any Pos.void] nomark
         );
       ]
   in
@@ -404,7 +398,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
          ( cons,
            Expr.eabs_ghost
              (Expr.bind [| var |] (f var))
-             [TAny, Pos.void]
+             [Type.any Pos.void]
              (Untyped { pos = Pos.void }) ))
 
 let test_iota_reduction_2 () =

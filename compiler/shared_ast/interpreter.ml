@@ -579,7 +579,6 @@ let rec runtime_to_val :
     (* A type variable being an unresolved type, it can't be deconstructed, so
        we can let it pass through. *)
     Obj.obj o, m
-  | TUnionFind _ -> .
 
 and val_to_runtime :
     type d.

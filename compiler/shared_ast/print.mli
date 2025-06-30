@@ -43,7 +43,7 @@ val uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val external_ref : Format.formatter -> external_ref Mark.pos -> unit
-val typ : decl_ctx -> Format.formatter -> typ -> unit
+val typ : Format.formatter -> typ -> unit
 val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit

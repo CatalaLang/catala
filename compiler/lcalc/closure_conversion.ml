@@ -34,24 +34,23 @@ let new_var ?(pfx = "") name_context = Var.make (pfx ^ name_context.prefix)
 
 (** Function types will be transformed in this way throughout, including in
     [decl_ctx] *)
-let rec translate_type t =
-  let pos = Mark.get t in
-  match Mark.remove t with
-  | TArrow (t1, t2) ->
-    ( TTuple
-        [
-          ( TArrow
-              ( (TClosureEnv, Pos.void) :: List.map translate_type t1,
-                translate_type t2 ),
-            Pos.void );
-          TClosureEnv, Pos.void;
-        ],
-      pos )
-  | TDefault t' -> TDefault (translate_type t'), pos
-  | TOption t' -> TOption (translate_type t'), pos
-  | TAny | TClosureEnv | TLit _ | TEnum _ | TStruct _ -> t
-  | TArray ts -> TArray (translate_type ts), pos
-  | TTuple ts -> TTuple (List.map translate_type ts), pos
+let translate_type ty =
+  let rec aux = function
+    | TArrow (t1, t2), pos ->
+      let t1 = Bindlib.box_list (List.map aux t1) in
+      let t2 = aux t2 in
+      Bindlib.box_apply2
+        (fun t1 t2 ->
+          ( TTuple
+              [
+                TArrow ((TClosureEnv, Pos.void) :: t1, t2), pos;
+                TClosureEnv, pos;
+              ],
+            pos ))
+        t1 t2
+    | ty -> Type.map aux ty
+  in
+  Bindlib.unbox (aux ty)
 
 let translate_mark e = Mark.map_mark (Expr.map_ty translate_type) e
 
@@ -572,7 +571,7 @@ let rec hoist_closures_expr :
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
     let pos = Expr.mark_pos m in
-    let ty = Expr.maybe_ty ~typ:(TArrow (tys, (TAny, pos))) m in
+    let ty = Expr.maybe_ty ~typ:(TArrow (tys, (Type.any pos))) m in
     let vars, body = Bindlib.unmbind binder in
     let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) posl in
     let collected_closures, new_body =

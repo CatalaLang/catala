@@ -462,7 +462,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         let _, typ, _ = ScopeVar.Map.find (Mark.remove var) vars in
         match typ with
         | TArrow (_, marked_output_typ) -> Mark.remove marked_output_typ
-        | _ -> TAny
+        | _ -> Mark.remove (Type.any (Mark.get var))
       in
       match Mark.remove f with
       | ELocation (ScopelangScopeVar { name = var }) ->

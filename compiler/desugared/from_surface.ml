@@ -1002,9 +1002,7 @@ let rec translate_expr
           (Array.of_list (List.map Mark.remove vs))
           (translate_binop op pos acc (rec_helper ~local_vars predicate))
       in
-      let tv1 = Type.Var.fresh () in
-      let tv2 = Type.Var.fresh () in
-      Expr.eabs mvars vs_marks (Bindlib.unbox (Bindlib.bind_mvar [|tv1; tv2|] (Bindlib.box_apply2 (fun tv1 tv2 -> [tv1, pos; tv2, pos]) (Bindlib.box_var tv1) (Bindlib.box_var tv2)))) emark
+      Expr.eabs mvars vs_marks [Type.any pos; Type.any pos] emark 
     in
     Expr.eappop ~op:(Fold, opos)
       ~tys:[Type.any pos; Type.any pos; Type.any pos]
@@ -1084,11 +1082,10 @@ let rec translate_expr
     in
     let vars = [Mark.ghost acc_var; Mark.add opos param_var] in
     let f =
-      let tv = Type.Var.fresh () in
       Expr.eabs
         (Expr.bind (Array.of_list (List.map Mark.remove vars)) f_body)
         (List.map Mark.get vars)
-        (Bindlib.unbox (Bindlib.bind_mvar [|tv|] (Bindlib.box_apply (fun tv -> [TLit TBool, pos; tv, pos]) (Bindlib.box_var tv))))
+        [TLit TBool, pos; Type.any pos]
         emark
     in
     Expr.eappop ~op:(Fold, opos)

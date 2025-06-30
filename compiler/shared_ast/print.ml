@@ -557,7 +557,7 @@ module ExprGen (C : EXPR_PARAM) = struct
               (fun fmt (x, tau, arg) ->
                 Format.fprintf fmt
                   "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
-                  "let" var x punctuation ":" (typ_gen None ~colors) tau
+                  "let" var x punctuation ":" (typ ~colors) tau
                   punctuation "=" (exprc colors) arg keyword "in")
               fmt xs_tau_arg;
             Format.pp_print_cut fmt ();
@@ -584,7 +584,7 @@ module ExprGen (C : EXPR_PARAM) = struct
                  var fmt x;
                  punctuation fmt ":";
                  Format.pp_print_space fmt ();
-                 typ_gen None ~colors fmt tau;
+                 typ ~colors fmt tau;
                  Format.pp_close_box fmt ();
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
@@ -799,6 +799,8 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   | CallingSubScope -> keyword fmt "call"
   | DestructuringSubScopeResults -> keyword fmt "sub_get"
   | Assertion -> keyword fmt "assert"
+
+let typ = typ ?colors:None
 
 let[@ocamlformat "disable"]
   scope_body_expr ?(debug = false) ctx fmt b : unit =

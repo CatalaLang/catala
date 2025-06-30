@@ -1,0 +1,8 @@
+```catala
+declaration glob5 content decimal equals
+    let x equals decimal of 2 * 3. in
+    let y equals 1000. in
+    x * y
+```
+
+(\x . (\y . (x * y)) 1000.) ) (decimal of ...)
