@@ -554,8 +554,7 @@ module Commands = struct
     in
     let scope_uid = get_scope_uid prg.program_ctx ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
-    Message.result "@[<v>The exception tree structure is as follows:@,@,%a@]"
-      (Desugared.Print.exceptions_graph scope_uid variable_uid)
+    Desugared.Print.exceptions_graph scope_uid variable_uid
       (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
 
   let exceptions_cmd =
@@ -612,7 +611,8 @@ module Commands = struct
           "types", types_dependency_graph;
         ]
     in
-    Yojson.Safe.to_channel stdout json_output
+    Yojson.Safe.to_channel stdout json_output;
+    print_newline ()
 
   let dependency_graph_cmd =
     Cmd.v
