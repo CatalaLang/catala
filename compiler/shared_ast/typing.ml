@@ -229,7 +229,34 @@ let rec unify
   | TOption t1', TOption t2' -> TOption (unify t1' t2'), pos2
   | TArray t1', TArray t2' -> TArray (unify t1' t2'), pos2
   | TDefault t1', TDefault t2' -> TDefault (unify t1' t2'), pos2
-  | TVar v1, TVar v2 when Bindlib.eq_vars v1 v2 -> t2
+  | TVar v1, TVar v2 -> (
+    if Bindlib.eq_vars v1 v2 then t2
+    else
+      match Env.get_tvar env v1, Env.get_tvar env v2 with
+      | None, None ->
+        Env.set_tvar env v1 t2;
+        t2
+      | Some (TVar v3, _), None when Type.Var.equal v2 v3 -> t2
+      | None, Some (TVar v3, _) when Type.Var.equal v1 v3 -> t1
+      | Some t1, Some t2 ->
+        let t = unify t1 t2 in
+        Env.set_tvar env v1 t;
+        Env.set_tvar env v2 t;
+        t
+      | Some t1, None ->
+        if Type.Var.Set.mem v2 (Type.free_vars t1) then
+          Message.error ~internal:true ~pos:(Expr.pos e)
+            "Recursive type detected: %a = %a" Type.format t1 Type.format t2
+        else (
+          Env.set_tvar env v2 t1;
+          t1)
+      | None, Some t2 ->
+        if Type.Var.Set.mem v1 (Type.free_vars t2) then
+          Message.error ~internal:true ~pos:(Expr.pos e)
+            "Recursive type detected: %a = %a" Type.format t2 Type.format t1
+        else (
+          Env.set_tvar env v1 t2;
+          t2))
   | TVar v1, _ ->
     let t =
       match Env.get_tvar env v1 with None -> t2 | Some t1 -> unify t1 t2
