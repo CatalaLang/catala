@@ -34,7 +34,6 @@ depends: [
   "sedlex" {>= "3.2"}
   "uucp" {>= "10"}
   "ubase" {>= "0.05"}
-  "unionFind" {>= "20220109"}
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
   "yojson" {>= "2.1.2" }
