@@ -89,7 +89,7 @@ let print_log ppf lang level entry =
     logprintf level
       (VarDef
          {
-           log_typ = Mark.remove (Type.new_var Pos.void);
+           log_typ = Mark.remove (Type.fresh_var Pos.void);
            log_io_input = io.Runtime.io_input;
            log_io_output = io.Runtime.io_output;
          })

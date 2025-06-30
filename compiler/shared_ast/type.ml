@@ -20,8 +20,6 @@ open Definitions
 type t = typ
 type var = naked_typ Bindlib.var
 
-let fresh_var () = Bindlib.new_var (fun v -> TVar v) "ty1"
-
 let equal_tlit l1 l2 = l1 = l2
 let compare_tlit l1 l2 = Stdlib.compare l1 l2
 
@@ -96,7 +94,7 @@ module Var = struct
   module Set = Set.Make(Arg)
   module Map = Map.Make(Arg)
 
-  let fresh = fresh_var
+  let fresh () = Bindlib.new_var (fun v -> TVar v) "ty1"
 end
 
 let shallow_fold f ty acc =
@@ -123,27 +121,35 @@ let rec free_vars (ty: t) =
       (fun ty acc -> Var.Set.union acc (free_vars ty))
       ty Var.Set.empty
 
+let rec free_vars_pos = function
+  | TVar v, pos -> Var.Map.singleton v pos
+  | TAny tb, _ ->
+    let vs, ty = Bindlib.unmbind tb in
+    Array.fold_left (fun map v -> Var.Map.remove v map) (free_vars_pos ty) vs
+  | ty ->
+    shallow_fold
+      (fun ty acc -> Var.Map.union (fun _ _ x -> Some x) acc (free_vars_pos ty))
+      ty Var.Map.empty
+
 let rec unquantify = function
   | TAny tb, _ ->
     let _v, ty = Bindlib.unmbind tb in
     unquantify ty
   | ty -> ty
 
-let any pos =
-  let v = fresh_var () in TVar v, pos
-  (* let tb =
-   *   Bindlib.bind_mvar [|v|]
-   *     (Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var v))
-   * in
-   * TAny (Bindlib.unbox tb), pos *)
+let fresh_var pos =
+  TVar (Var.fresh ()), pos
 
-let any_binder () =
-  let v = fresh_var () in
-  let open Bindlib in
-  bind_mvar [|v|] (box_apply (fun v -> [v, Pos.void]) (box_var v))
-  |> unbox
+(* TODO: deprecate and replace with fresh_var *)
+let any = fresh_var
 
-let new_var pos = TVar (fresh_var ()), pos
+let universal pos =
+  let v = Var.fresh () in
+  let tb =
+    Bindlib.bind_mvar [|v|]
+      (Bindlib.box_apply (fun v -> v, pos) (Bindlib.box_var v))
+  in
+  TAny (Bindlib.unbox tb), pos
 
 (* Similar to [equal], but allows TAny holes *)
 let rec unifiable (ty1: t) (ty2: t) =

@@ -47,11 +47,6 @@ val arrow_return : t -> t
 val has_arrow : Definitions.decl_ctx -> t -> bool
 (** Fails (with [Invalid_argument]) on TAny and TClosureEnv *)
 
-val new_var : Pos.t -> t
-(** Returns a fresh type variable, without a quantifier. The variable is not
-    boxed, if binding is needed use [Var.fresh] and [Bindlib.box_var] directly
-    instead*)
-
 (** Handling of variables *)
 
 module Var : sig
@@ -63,6 +58,9 @@ end
 
 val free_vars : t -> Var.Set.t
 
+val free_vars_pos : t -> Pos.t Var.Map.t
+(** Only the first position where the variable appeared is kept *)
+
 val rebox : t -> t Bindlib.box
 
 val unquantify : t -> t
@@ -70,4 +68,8 @@ val unquantify : t -> t
     type is guaranteed to not have the form [TAny _] and may contain free
     variables *)
 
-val any : Pos.t -> t
+val fresh_var : Pos.t -> t
+
+val any : Pos.t -> t (** deprecated, TODO replace with fresh_var *)
+
+val universal : Pos.t -> t

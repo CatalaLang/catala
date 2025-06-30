@@ -191,7 +191,7 @@ let escopecall ~scope ~args mark =
 
 let no_mark : type m. m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.void }
-  | Typed _ -> Typed { pos = Pos.void; ty = Type.new_var Pos.void }
+  | Typed _ -> Typed { pos = Pos.void; ty = Type.fresh_var Pos.void }
   | Custom { custom; pos = _ } -> Custom { pos = Pos.void; custom }
 
 let mark_pos (type m) (m : m mark) : Pos.t =
@@ -273,7 +273,7 @@ let maybe_ty (type m) ?typ (m : m mark) : typ =
   match m with
   | Typed { ty; _ } -> ty
   | Untyped { pos } | Custom { pos; _ } -> (
-    match typ with Some typ -> typ, pos | None -> Type.new_var pos)
+    match typ with Some typ -> typ, pos | None -> Type.fresh_var pos)
 
 let untyped = Untyped { pos = Pos.void }
 let typed = Typed { pos = Pos.void; ty = TLit TUnit, Pos.void }
@@ -971,7 +971,7 @@ let make_app f args tys pos =
                without performing anything; it's only a preliminary check before
                the typer runs *)
             tr
-          | TVar _ -> Type.new_var pos
+          | TVar _ -> Type.fresh_var pos
           | _ ->
             Message.error ~internal:true
               "wrong type: found %a while expecting either an Arrow or Any"
@@ -987,7 +987,7 @@ let make_erroronempty e =
       (fun ty ->
         match Type.unquantify ty with
         | TDefault ty, _ -> ty
-        | TVar _, pos -> Type.new_var pos
+        | TVar _, pos -> Type.fresh_var pos
         | ty ->
           Message.error ~internal:true
             "wrong type: found %a while expecting a TDefault on@;<1 2>%a"

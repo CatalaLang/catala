@@ -1,8 +1,17 @@
 ```catala
-declaration glob5 content decimal equals
+declaration mult content decimal equals
     let x equals decimal of 2 * 3. in
     let y equals 1000. in
     x * y
 ```
 
 (\x . (\y . (x * y)) 1000.) ) (decimal of ...)
+
+
+```catala
+# declaration empty content anything of type t equals []
+
+# declaration t1 content list of decimal equals empty
+
+# declaration t2 content list of money equals empty
+```
