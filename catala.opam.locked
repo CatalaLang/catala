@@ -93,7 +93,6 @@ depends: [
   "topkg" {= "1.0.5"}
   "tyxml" {= "4.6.0" & with-doc}
   "ubase" {= "0.20"}
-  "unionFind" {= "20220122"}
   "uucp" {= "14.0.0"}
   "uunf" {= "15.1.0"}
   "uuseg" {= "14.0.0"}
