@@ -201,6 +201,8 @@ let primitive_typ :=
 | DECIMAL ; { Decimal }
 | DATE ; { Date }
 | c = quident ; { let path, uid = c in Named (path, uid) }
+| WILDCARD; { Var None }
+| WILDCARD; OF_TYPE ; id = lident; { Var (Some id) }
 
 let typ_data :=
 | t = primitive_typ ; <Primitive>

@@ -224,7 +224,9 @@ and naked_typ =
   | TOption of typ
   | TArray of typ
   | TDefault of typ
-  | TAny
+  | TVar of naked_typ Bindlib.var
+  | TAny of (naked_typ, typ) Bindlib.mbinder
+      (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig
@@ -443,10 +445,6 @@ type Pos.attr +=
 type untyped = { pos : Pos.t } [@@caml.unboxed]
 type typed = { pos : Pos.t; ty : typ }
 type 'a custom = { pos : Pos.t; custom : 'a }
-
-(** Using empty markings will ensure terms can't be constructed: used for
-    example in interfaces to ensure that they don't contain any expressions *)
-type nil = |
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when

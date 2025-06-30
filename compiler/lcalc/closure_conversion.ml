@@ -321,7 +321,7 @@ let rec transform_closures_expr :
     in
 
     ( free_vars,
-      Expr.make_let_in (Mark.ghost code_env_var) (TAny, pos) new_e1 call_expr
+      Expr.make_let_in (Mark.ghost code_env_var) (Type.any pos) new_e1 call_expr
         pos )
   | _ -> .
 
@@ -339,7 +339,7 @@ let transform_closures_scope_let ctx scope_body_expr =
             {
               scope_let with
               scope_let_expr;
-              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+              scope_let_typ = Type.any (Mark.get scope_let.scope_let_typ);
             })
           (Expr.Box.lift new_scope_let_expr) ))
     ~last:(fun res ->
@@ -417,7 +417,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+              (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
               (Expr.Box.lift new_expr) ))
       ~last:(fun toplevel_vars exports ->
         ( (),
@@ -712,7 +712,7 @@ let rec hoist_closures_code_item_list
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+            (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
             (Expr.Box.lift new_expr) )
     in
     let next_code_items = hoist_closures_code_item_list flags next_code_items in

@@ -82,9 +82,6 @@ end
 module ExprConciseParam : EXPR_PARAM
 module ExprDebugParam : EXPR_PARAM
 
-(** {1 Debugging versions that don't require a context} *)
-
-val typ_debug : Format.formatter -> typ -> unit
 val decl_ctx : ?debug:bool -> Format.formatter -> decl_ctx -> unit
 
 val scope :

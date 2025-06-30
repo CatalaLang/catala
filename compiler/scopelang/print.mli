@@ -18,7 +18,6 @@ open Catala_utils
 
 val scope :
   ?debug:bool (** [true] for debug printing *) ->
-  Shared_ast.decl_ctx ->
   Format.formatter ->
   Shared_ast.ScopeName.t * 'm Ast.scope_decl Mark.pos ->
   unit
