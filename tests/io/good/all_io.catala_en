@@ -31,11 +31,7 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Dcalc -s A
-let scope A
-  (A_in:
-     A_in {c_in: integer; d_in: integer; e_in: ⟨integer⟩; f_in: ⟨integer⟩})
-  : A {b: integer; d: integer; f: integer}
-  =
+let scope A (A_in: A_in): A =
   let get c : integer = A_in.c_in in
   let get d : integer = A_in.d_in in
   let get e : ⟨integer⟩ = A_in.e_in in

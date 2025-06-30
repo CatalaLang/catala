@@ -43,7 +43,8 @@ val uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val external_ref : Format.formatter -> external_ref Mark.pos -> unit
-val typ : decl_ctx -> Format.formatter -> typ -> unit
+val typ : Format.formatter -> typ -> unit
+val tvar : Format.formatter -> naked_typ Bindlib.var -> unit
 val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
@@ -82,9 +83,6 @@ end
 module ExprConciseParam : EXPR_PARAM
 module ExprDebugParam : EXPR_PARAM
 
-(** {1 Debugging versions that don't require a context} *)
-
-val typ_debug : Format.formatter -> typ -> unit
 val decl_ctx : ?debug:bool -> Format.formatter -> decl_ctx -> unit
 
 val scope :

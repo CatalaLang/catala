@@ -54,15 +54,14 @@ type 'm ctx = {
   date_rounding : date_rounding;
 }
 
-let mark_tany m pos =
-  Expr.with_ty m (Mark.add pos TAny) ~pos:(Expr.no_attrs_pos pos)
+let mark_tany m pos = Expr.with_ty m (Type.any pos) ~pos:(Expr.no_attrs_pos pos)
 
 (* Expression argument is used as a type witness, its type and positions aren't
    used *)
 let pos_mark_mk (type a m) (e : (a, m) gexpr) :
     (Pos.t -> m mark) * ((_, Pos.t) Mark.ed -> m mark) =
   let pos_mark pos =
-    Expr.map_mark (fun _ -> pos) (fun _ -> TAny, pos) (Mark.get e)
+    Expr.map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e)
   in
   let pos_mark_as e = pos_mark (Mark.get e) in
   pos_mark, pos_mark_as
@@ -130,7 +129,7 @@ let tag_with_log_entry
 
   if Global.options.trace <> None then
     let pos = Expr.pos e in
-    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[TAny, pos] ~args:[e] m
+    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[Type.any pos] ~args:[e] m
   else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
@@ -462,7 +461,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         let _, typ, _ = ScopeVar.Map.find (Mark.remove var) vars in
         match typ with
         | TArrow (_, marked_output_typ) -> Mark.remove marked_output_typ
-        | _ -> TAny
+        | _ -> Mark.remove (Type.any (Mark.get var))
       in
       match Mark.remove f with
       | ELocation (ScopelangScopeVar { name = var }) ->
@@ -471,12 +470,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         let typ, _vis =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
         in
-        match Mark.remove typ with
+        match Mark.remove (Type.unquantify typ) with
         | TArrow (_, (tout, _)) -> tout
         | _ ->
           Message.error ~pos:(Expr.pos e)
             "Application of non-function toplevel variable")
-      | _ -> TAny
+      | _ -> Mark.remove (Type.any (Expr.pos f))
     in
     let new_args =
       ListLabels.mapi (List.combine new_args input_typs)

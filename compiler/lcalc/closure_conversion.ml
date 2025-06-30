@@ -34,24 +34,22 @@ let new_var ?(pfx = "") name_context = Var.make (pfx ^ name_context.prefix)
 
 (** Function types will be transformed in this way throughout, including in
     [decl_ctx] *)
-let rec translate_type t =
-  let pos = Mark.get t in
-  match Mark.remove t with
-  | TArrow (t1, t2) ->
-    ( TTuple
-        [
-          ( TArrow
-              ( (TClosureEnv, Pos.void) :: List.map translate_type t1,
-                translate_type t2 ),
-            Pos.void );
-          TClosureEnv, Pos.void;
-        ],
-      pos )
-  | TDefault t' -> TDefault (translate_type t'), pos
-  | TOption t' -> TOption (translate_type t'), pos
-  | TAny | TClosureEnv | TLit _ | TEnum _ | TStruct _ -> t
-  | TArray ts -> TArray (translate_type ts), pos
-  | TTuple ts -> TTuple (List.map translate_type ts), pos
+let translate_type ty =
+  let rec aux = function
+    | TArrow (t1, t2), pos ->
+      let t1 = Bindlib.box_list (List.map aux t1) in
+      let t2 = aux t2 in
+      Bindlib.box_apply2
+        (fun t1 t2 ->
+          ( TTuple
+              [
+                TArrow ((TClosureEnv, Pos.void) :: t1, t2), pos; TClosureEnv, pos;
+              ],
+            pos ))
+        t1 t2
+    | ty -> Type.map aux ty
+  in
+  Bindlib.unbox (aux ty)
 
 let translate_mark e = Mark.map_mark (Expr.map_ty translate_type) e
 
@@ -81,10 +79,7 @@ let build_closure :
   let closure_env_var = Var.make "env" in
   let env_ty = TTuple free_vars_types, pos in
   (* let env = from_closure_env env in let arg0 = env.0 in ... *)
-  let mark_pos (v, (m : m mark)) =
-    match m with
-    | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> Mark.add pos v
-  in
+  let mark_pos (v, (m : m mark)) = Mark.add (Expr.mark_pos m) v in
   let new_closure_body =
     Expr.make_let_in
       (Mark.ghost closure_env_var)
@@ -321,7 +316,7 @@ let rec transform_closures_expr :
     in
 
     ( free_vars,
-      Expr.make_let_in (Mark.ghost code_env_var) (TAny, pos) new_e1 call_expr
+      Expr.make_let_in (Mark.ghost code_env_var) (Type.any pos) new_e1 call_expr
         pos )
   | _ -> .
 
@@ -339,7 +334,7 @@ let transform_closures_scope_let ctx scope_body_expr =
             {
               scope_let with
               scope_let_expr;
-              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+              scope_let_typ = translate_type scope_let.scope_let_typ;
             })
           (Expr.Box.lift new_scope_let_expr) ))
     ~last:(fun res ->
@@ -417,7 +412,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+              (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
               (Expr.Box.lift new_expr) ))
       ~last:(fun toplevel_vars exports ->
         ( (),
@@ -572,7 +567,7 @@ let rec hoist_closures_expr :
     (* this is the closure we want to hoist *)
     let closure_var = new_var ~pfx:"closure_" name_context in
     let pos = Expr.mark_pos m in
-    let ty = Expr.maybe_ty ~typ:(TArrow (tys, (TAny, pos))) m in
+    let ty = Expr.maybe_ty ~typ:(TArrow (tys, Type.any pos)) m in
     let vars, body = Bindlib.unmbind binder in
     let vars = List.map2 (fun v p -> Mark.add p v) (Array.to_list vars) posl in
     let collected_closures, new_body =
@@ -712,7 +707,7 @@ let rec hoist_closures_code_item_list
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, (TAny, Mark.get ty), vis, e))
+            (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
             (Expr.Box.lift new_expr) )
     in
     let next_code_items = hoist_closures_code_item_list flags next_code_items in

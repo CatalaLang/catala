@@ -42,7 +42,7 @@ scope Test:
 
 ```catala-test-cli
 $ catala dcalc -s A
-let scope A (A_in: A_in {case_in: integer}): A {taux: decimal} =
+let scope A (A_in: A_in): A =
   let get case : integer = A_in.case_in in
   let set taux : decimal =
     error_empty
