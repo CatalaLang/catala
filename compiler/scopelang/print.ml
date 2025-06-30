@@ -18,7 +18,7 @@ open Catala_utils
 open Shared_ast
 open Ast
 
-let scope ?debug ctx fmt (name, (decl, _pos)) =
+let scope ?debug fmt (name, (decl, _pos)) =
   Print.attrs fmt (Mark.get (ScopeName.get_info name));
   Format.pp_open_vbox fmt 2;
   Format.pp_open_hvbox fmt 4;
@@ -32,7 +32,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
       ScopeVar.format fmt scope_var;
       Print.punctuation fmt ":";
       Format.pp_print_space fmt ();
-      Print.typ ctx fmt svar.svar_in_ty;
+      Print.typ fmt svar.svar_in_ty;
       Format.pp_print_cut fmt ();
       Print.punctuation fmt "|";
       Print.keyword fmt
@@ -58,8 +58,8 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
       | ScopeVarDefinition { var; typ; io; e } ->
         Print.attrs fmt (Mark.get (ScopeVar.get_info (fst var)));
         Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %t%a@]" Print.keyword "let"
-          ScopeVar.format (Mark.remove var) Print.punctuation ":"
-          (Print.typ ctx) typ Print.punctuation "="
+          ScopeVar.format (Mark.remove var) Print.punctuation ":" Print.typ typ
+          Print.punctuation "="
           (fun fmt ->
             match Mark.remove io.io_input with
             | Reentrant ->
@@ -70,15 +70,15 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
       | SubScopeVarDefinition { var; typ; e; _ } ->
         Print.attrs fmt (Mark.get (ScopeVar.get_info (fst var)));
         Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword "let"
-          ScopeVar.format (Mark.remove var) Print.punctuation ":"
-          (Print.typ ctx) typ Print.punctuation "=" (Print.expr ?debug ()) e
+          ScopeVar.format (Mark.remove var) Print.punctuation ":" Print.typ typ
+          Print.punctuation "=" (Print.expr ?debug ()) e
       | Assertion e ->
         Format.fprintf fmt "%a %a" Print.keyword "assert" (Print.expr ?debug ())
           e)
     fmt decl.scope_decl_rules;
   Format.pp_close_box fmt ()
 
-let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
+let print_topdef ppf name (e, ty, _vis, _is_external) =
   Print.attrs ppf (Mark.get (TopdefName.get_info name));
   Format.pp_open_vbox ppf 2;
   let () =
@@ -88,7 +88,7 @@ let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
     TopdefName.format ppf name;
     Print.punctuation ppf ":";
     Format.pp_print_space ppf ();
-    Print.typ ctx ppf ty;
+    Print.typ ppf ty;
     Format.pp_print_space ppf ();
     Print.punctuation ppf "=";
     Format.pp_close_box ppf ()
@@ -99,7 +99,6 @@ let print_topdef ctx ppf name (e, ty, _vis, _is_external) =
 
 let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     unit =
-  let ctx = p.program_ctx in
   let pp_sep fmt () =
     Format.pp_print_cut fmt ();
     Format.pp_print_cut fmt ()
@@ -108,12 +107,12 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
   Print.decl_ctx ~debug fmt p.program_ctx;
   TopdefName.Map.iter
     (fun name def ->
-      print_topdef ctx fmt name def;
+      print_topdef fmt name def;
       pp_sep fmt ())
     p.program_topdefs;
   ScopeName.Map.format_bindings_i
     (fun fmt _ name scope_decl ->
       Format.pp_print_cut fmt ();
-      scope ~debug ctx fmt (name, scope_decl))
+      scope ~debug fmt (name, scope_decl))
     fmt p.program_scopes;
   Format.pp_close_box fmt ()

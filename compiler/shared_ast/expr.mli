@@ -372,6 +372,7 @@ val make_abs :
   typ list ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
+(** Warning: assumes no polymorphism, no type variables will be quantified *)
 
 val make_ghost_abs :
   ('a, 'm) gexpr Var.var list ->
