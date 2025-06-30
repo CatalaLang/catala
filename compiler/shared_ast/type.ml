@@ -159,6 +159,13 @@ let universal pos =
   in
   TAny (Bindlib.unbox tb), pos
 
+let is_universal = function
+  | TAny tb, _ -> (
+    match Bindlib.unmbind tb with
+    | [| v1 |], (TVar v2, _) -> Var.equal v1 v2
+    | _ -> false)
+  | _ -> false
+
 (* Similar to [equal], but allows TAny holes *)
 let rec unifiable (ty1 : t) (ty2 : t) =
   match ty1, ty2 with
