@@ -17,7 +17,6 @@
 val exceptions_graph :
   Shared_ast.ScopeName.t ->
   Ast.ScopeDef.t ->
-  Format.formatter ->
   Dependency.ExceptionsDependencies.t ->
   unit
 (** Prints the exception graph of a variable to the terminal *)
