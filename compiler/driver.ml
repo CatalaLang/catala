@@ -224,7 +224,7 @@ module Passes = struct
       match typed with
       | Typed _ ->
         Message.debug "Typechecking again...";
-        Typing.program ~internal_check:true prg
+        Typing.program ~internal_check:true (Program.untype prg)
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
@@ -275,7 +275,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~fail_on_any:false ~internal_check:true prg in
+        let prg = Typing.program ~fail_on_any:false ~internal_check:true ((* Program.untype *) prg) in
         if expand_ops then Lcalc.Expand_op.program prg else prg)
       else (
         Message.debug "Performing closure conversion...";

@@ -495,12 +495,12 @@ module ExprGen (C : EXPR_PARAM) = struct
     attrs fmt
       (match Mark.get e with
       | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
-    (* (* Uncomment for type annotations everywhere *)
-     * (fun f ->
+    (* Uncomment for type annotations everywhere *)
+    (* (fun f ->
      *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
      *      f e
-     *      typ_debug
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.void))
+     *      (typ ~colors)
+     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TLit TUnit, Pos.void))
      * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in

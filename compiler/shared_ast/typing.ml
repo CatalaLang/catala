@@ -116,6 +116,32 @@ let get_ty env ty =
   in
   Bindlib.unbox (aux Type.Var.Set.empty ty)
 
+let get_ty_quantified env ty =
+  let vars = ref Type.Var.Set.empty in
+  let rec aux seen = function
+    | TVar v, pos as ty ->
+      (match Env.get_tvar env v with
+       | None ->
+         vars := Type.Var.Set.add v !vars;
+         Type.rebox ty
+       | Some ty' ->
+         if Type.Var.Set.mem v seen then
+           Message.error ~internal:true ~pos "Recursive type detected: %a = %a" Type.format ty Type.format ty'
+         else
+           aux (Type.Var.Set.add v seen) ty')
+    | ty -> Type.map (aux seen) ty
+  in
+  let bty = aux Type.Var.Set.empty ty in
+  if Bindlib.is_closed bty then Bindlib.unbox bty
+  else
+    let vars = Type.Var.Set.filter (fun v -> Bindlib.occur v bty) !vars in
+    let bnd =
+      Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq)
+        bty
+    in
+    (TAny (Bindlib.unbox bnd), Mark.get ty)
+    |> fun r -> Message.debug "> %a" Type.format r; r
+
 (*  match Mark.remove t with
  *   | TUnionFind (T uf) -> get_ty (UnionFind.get (UnionFind.find uf))
  *   | _ -> t
@@ -731,7 +757,7 @@ and typecheck_expr_top_down :
     (* If there already is a type annotation on the given expr, ensure it
        matches (unless it's a type variable) *)
     match Mark.get e with
-    | Untyped _ | Typed { ty = TVar _, _; _ } -> ()
+    | Untyped _ (* | Typed { ty = TVar _, _; _ } *) -> ()
     | Typed { ty; _ } ->
       unify' env e tau ty;
     | Custom _ -> assert false
@@ -1052,7 +1078,7 @@ and typecheck_expr_top_down :
   | EVar v ->
     let tau' =
       match Env.get env v with
-      | Some t -> Type.unquantify t
+      | Some t -> Message.debug "UQ %a" Type.format t; Type.unquantify t
       | None ->
         Message.error ~pos:pos_e "Variable %s not found in the current context"
           (Bindlib.name_of v)
@@ -1267,7 +1293,7 @@ and typecheck_expr_top_down :
 (** {1 API} *)
 
 let get_ty_mark env (Custom { custom = ty; pos }) =
-  Typed { ty = get_ty env ty; pos }
+  Typed { ty = get_ty_quantified env ty; pos }
 
 let expr_raw
     (type a)
@@ -1360,6 +1386,7 @@ let scopes ctx env =
           Bindlib.box_apply (fun body -> ScopeDef (name, body)) body_e )
       | Topdef (name, (TAny bnd, tpos), vis, e) ->
         (* polymorphic function case *)
+        Message.debug "TD> %a : %a" TopdefName.format name Type.format (TAny bnd, tpos);
         let tvars, typ = Bindlib.unmbind bnd in
         (* let tvars_map =
          *   Array.fold_left (fun acc va ->
@@ -1369,15 +1396,20 @@ let scopes ctx env =
          * in *)
         let e' = typecheck_expr_top_down ctx env typ e in
         let typ = expr_ty env e' in
-        Array.iter (fun v ->
-            match Env.get_tvar env v with
-            | Some (TVar _, _) (* FIXME: check that the var is free and not member of tvars *)
-            | None -> ()
-            | Some ty ->
-              Message.delayed_error ~kind:Typing ()
-                ~pos:(Mark.get ty) "Type %a is specified as @{<cyan>anything@}, but it appears to only work for %a here"
-                Type.format (TVar v, tpos) Type.format ty
-          ) tvars;
+        let tvars =
+          Array.fold_left (fun acc tv ->
+              match get_ty env (TVar tv, tpos) with
+              | TVar tv', _
+                when not (Type.Var.Set.mem tv' acc) ->
+                Type.Var.Set.add tv' acc
+              | ty ->
+                Message.delayed_error ~kind:Typing ()
+                  ~pos:(Mark.get ty) "Type %a is specified as @{<cyan>anything@}, but it appears to only work for %a here"
+                  Type.format (TVar tv, tpos) Type.format ty;
+                acc
+          ) Type.Var.Set.empty tvars
+          |> Type.Var.Set.to_seq |> Array.of_seq
+        in
         (* TODO: cleanup the used type vars from env ? *)
         let tbinder =
           get_ty env typ |> Type.rebox |> Bindlib.bind_mvar tvars |> Bindlib.unbox

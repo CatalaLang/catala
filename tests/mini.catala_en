@@ -32,24 +32,42 @@ declaration foo2 content list of integer equals
 ```
 
 ```catala-test-cli
-$ catala scopelang
+$ catala lcalc
+type Eoption =
+  | ENone of unit
+  | ESome of <ty1>
 
 
-let mult: decimal =
-  let x : decimal = (to_rat 2) * 3. in
-  let y : decimal = 1000. in
-  ((x * y))
+let topval mult : decimal =
+  (let x : decimal =
+     (((to_rat (2: integer): decimal)) * (3.: decimal): decimal)
+   in
+   let y : decimal = (1000.: decimal) in
+   ((((x: decimal) * (y: decimal): decimal))):
+   decimal)
 
-let foo1: list of integer =
-  map (λ (x: integer) → x + x) [1]
+let topval foo1 : list of integer =
+  (map ((λ (x: integer) →
+         ((x: integer) + (x: integer): integer):
+         integer → integer))
+     ([(1: integer)]: list of integer):
+   list of integer)
 
-let foo2: list of integer =
-  map (λ (x_y: (integer, integer)) →
-       let x : integer = x_y.0 in
-       let y : integer = x_y.1 in
-       ((x + y)))
-    map2 (λ (x: integer) (y: integer) → (x, y)) [1] [2]
-
+let topval foo2 : list of integer =
+  (map ((λ (x_y: (integer, integer)) →
+         (let x : integer = ((x_y: (integer, integer)).0: integer) in
+          let y : integer = ((x_y: (integer, integer)).1: integer) in
+          ((((x: integer) + (y: integer): integer))):
+          integer):
+         (integer, integer) → integer))
+     (map2
+        ((λ (x: integer) (y: integer) →
+          (((x: integer), (y: integer)): (integer, integer)):
+          (integer, integer) → (integer, integer)))
+        ([(1: integer)]: list of integer)
+        ([(2: integer)]: list of integer):
+      list of (integer, integer)):
+   list of integer)
 
 ```
 
@@ -60,30 +78,183 @@ declaration empty content list of anything of type t depends on x content intege
 declaration t1 content list of decimal equals empty of 0
 
 declaration t2 content list of money equals empty of 0
+
+declaration scope S:
+  context output x content integer
 ```
 
 
 ```catala-test-cli
-$ catala typecheck
-┌─[ERROR]─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ decimal
-│  ─➤ money
-│
-│ While typechecking the following expression:
-├─➤ tests/mini.catala_en:62.45-62.50:
-│ 
-│
-│ Type decimal is coming from:
-├─➤ tests/mini.catala_en:60.32-60.39:
-│    │
-│ 60 │ │ This expression has type (<ty1>, <ty1>) → (<ty1>, <ty1>):
-│    │                                ‾‾‾‾‾‾‾
-│
-│ Type money is coming from:
-├─➤ tests/mini.catala_en:62.32-62.37:
-│ 
-└─
-#return code 123#
+$ catala lcalc --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/mini.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] PROCESS> mult : decimal
+[DEBUG] PROCESS> foo1 : list of integer
+[DEBUG] PROCESS> foo2 : list of integer
+[DEBUG] PROCESS> empty : ∀t_35. integer → list of <t_35>
+[DEBUG] PROCESS> t1 : list of decimal
+[DEBUG] PROCESS> t2 : list of money
+[DEBUG] Disambiguating...
+[DEBUG] ENV mult: decimal
+[DEBUG] ENV foo1: list of integer
+[DEBUG] ENV foo2: list of integer
+[DEBUG] ENV empty: ∀t_38. integer → list of <t_38>
+[DEBUG] ENV t1: list of decimal
+[DEBUG] ENV t2: list of money
+[DEBUG] UQ <ty1_3>
+[DEBUG] UQ <ty1_5>
+[DEBUG] UQ <ty1_12>
+[DEBUG] UQ <ty1_12>
+[DEBUG] UQ <ty1_18>
+[DEBUG] UQ <ty1_17>
+[DEBUG] UQ <ty1_31>
+[DEBUG] UQ <ty1_31>
+[DEBUG] UQ <ty1_24>
+[DEBUG] UQ <ty1_25>
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] UQ decimal
+[DEBUG] UQ decimal
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] > ∀t_167. integer → list of <t_167>
+[DEBUG] > ∀t_169. list of <t_169>
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] UQ S_in
+[DEBUG] UQ ⟨integer⟩
+[DEBUG] UQ integer
+[DEBUG] UQ decimal
+[DEBUG] UQ decimal
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] TD> empty : ∀t_278. integer → list of <t_278>
+[DEBUG] DEF> empty : ∀t_283. integer → list of <t_283>
+[DEBUG] > ∀t_284. integer → list of <t_284>
+[DEBUG] > ∀t_286. list of <t_286>
+[DEBUG] UQ ∀t_288. integer → list of <t_288>
+[DEBUG] UQ ∀t_291. integer → list of <t_291>
+[DEBUG] = LCALC =
+[DEBUG] Retyping lambda calculus...
+[DEBUG] UQ S_in
+[DEBUG] UQ option (integer, source_position)
+[DEBUG] UQ (integer, source_position)
+[DEBUG] UQ (integer, source_position)
+[DEBUG] UQ (integer, source_position)
+[DEBUG] UQ integer
+[DEBUG] UQ decimal
+[DEBUG] UQ decimal
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ (integer, integer)
+[DEBUG] UQ integer
+[DEBUG] UQ integer
+[DEBUG] TD> empty : ∀t_399. integer → list of <t_399>
+[DEBUG] DEF> empty : ∀t_406. integer → list of <t_406>
+[DEBUG] > ∀t_407. integer → list of <t_407>
+[DEBUG] > ∀t_409. list of <t_409>
+[DEBUG] UQ ∀t_411. integer → list of <t_411>
+[DEBUG] UQ ∀t_414. integer → list of <t_414>
+[DEBUG] Writing to stdout
+type Eoption =
+  | ENone of unit
+  | ESome of <ty1_0>
+
+type S_in = { x_in: option (integer, source_position); }
+
+type S = { x: integer; }
+
+let scope s_449 (s_in_450: S_in): S =
+  let get x_451 : option (integer, source_position) =
+    ((s_in_450: S_in).x_in: option (integer, source_position))
+  in
+  let set x__1_452 : integer =
+    (match
+       ((match (x_451: option (integer, source_position)) with
+         | ENone →
+           (ESome
+              (((match
+                   ((ENone ((): unit): option (integer, source_position)))
+                 with
+                 | ENone → (error NoValue: integer)
+                 | ESome arg_455 →
+                   ((arg_455: (integer, source_position)).0: integer):
+                 integer), (<mini:83.18-19>: source_position)):
+               (integer, source_position)):
+            option (integer, source_position))
+         | ESome x__2_456 →
+           (ESome (x__2_456: (integer, source_position)):
+            option (integer, source_position)):
+         option (integer, source_position)))
+     with
+     | ENone → (error NoValue: integer)
+     | ESome arg_458 → ((arg_458: (integer, source_position)).0: integer):
+     integer)
+  in
+  return ({ S x = (x__1_452: integer); }: S)
+
+let topval mult_459 : decimal =
+  (let x_460 : decimal =
+     (((to_rat_int (2: integer): decimal)) *. (3.: decimal): decimal)
+   in
+   let y_461 : decimal = (1000.: decimal) in
+   ((((x_460: decimal) *. (y_461: decimal): decimal))):
+   decimal)
+
+let topval foo1_462 : list of integer =
+  (map ((λ (x_463: integer) →
+         ((x_463: integer) +! (x_463: integer): integer):
+         integer → integer))
+     ([(1: integer)]: list of integer):
+   list of integer)
+
+let topval foo2_464 : list of integer =
+  (map ((λ (x_y_465: (integer, integer)) →
+         (let x_466 : integer = ((x_y_465: (integer, integer)).0: integer) in
+          let y_467 : integer = ((x_y_465: (integer, integer)).1: integer) in
+          ((((x_466: integer) +! (y_467: integer): integer))):
+          integer):
+         (integer, integer) → integer))
+     (map2
+        ((λ (x_468: integer) (y_469: integer) →
+          (((x_468: integer), (y_469: integer)): (integer, integer)):
+          (integer, integer) → (integer, integer)))
+        ([(1: integer)]: list of integer)
+        ([(2: integer)]: list of integer):
+      list of (integer, integer)):
+   list of integer)
+
+let topval empty_470 : ∀t_471. integer → list of <t_471> =
+  (λ (x_472: integer) →
+   ([]: ∀t_473. list of <t_473>):
+   ∀t_474.
+   integer → list of <t_474>)
+
+let topval t2_475 : list of money =
+  ((empty_470: integer → list of money) (0: integer): list of money)
+
+let topval t1_476 : list of decimal =
+  ((empty_470: integer → list of decimal) (0: integer): list of decimal)
+
 ```
