@@ -88,7 +88,9 @@ module Var = struct
   module Arg = struct
     type t = var
     let compare = Bindlib.compare_vars
-    let format ppf tv = Format.fprintf ppf "@{<bold><%s>@}" (Bindlib.name_of tv)
+    let format ppf tv =
+      Format.fprintf ppf "@{<bold><%s%s>@}" (Bindlib.name_of tv)
+        (if Global.options.debug then "_"^ string_of_int (Bindlib.uid_of tv) else "")
   end
   include Arg
   module Set = Set.Make(Arg)

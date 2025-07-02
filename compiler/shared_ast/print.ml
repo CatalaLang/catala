@@ -161,11 +161,12 @@ let rec typ_gen:
     punctuation fmt "⟨";
     typ_gen () fmt t1;
     punctuation fmt "⟩"
-  | TVar tv -> Format.fprintf fmt "@{<bold><%s>@}" (Bindlib.name_of tv)
+  | TVar tv -> Format.fprintf fmt "@{<bold><%s%s>@}" (Bindlib.name_of tv)
+                 (if Global.options.debug then "_"^ string_of_int (Bindlib.uid_of tv) else "")
   | TAny tb ->
     let tvs, ty, bctx = Bindlib.unmbind_in bctx tb in
     if Global.options.debug then
-      Array.iter (fun tv -> Format.fprintf fmt "\\@{<bold>%s@}.@ " (Bindlib.name_of tv)) tvs;
+      Array.iter (fun tv -> Format.fprintf fmt "∀@{<bold>%s@}.@ " (Bindlib.name_of tv)) tvs;
     typ_gen ~bctx () fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
 

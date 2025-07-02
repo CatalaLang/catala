@@ -7,11 +7,142 @@ declaration mult content decimal equals
 
 (\x . (\y . (x * y)) 1000.) ) (decimal of ...)
 
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
 
 ```catala
-# declaration empty content anything of type t equals []
+declaration foo1 content list of integer equals
+  map each x among [1] to x + x
+```
 
-# declaration t1 content list of decimal equals empty
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
 
-# declaration t2 content list of money equals empty
+```catala
+declaration foo2 content list of integer equals
+  map each (x, y) among ([1], [2]) to x + y
+```
+
+```catala-test-cli
+$ catala scopelang
+┌─[ERROR]─ 1/3 ─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ <ty1> → <ty1>
+│  ─➤ (<ty1>, <ty1>) → <ty1>
+│
+│ This expression has type <ty1> → <ty1>:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Expected type (<ty1>, <ty1>) → <ty1> coming from expression:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/3 ─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ (<ty1>, <ty1>) → (<ty1>, <ty1>)
+│  ─➤ ((<ty1>, <ty1>), <ty1>) → (<ty1>, <ty1>)
+│
+│ This expression has type (<ty1>, <ty1>) → (<ty1>, <ty1>):
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Expected type ((<ty1>, <ty1>), <ty1>) → (<ty1>, <ty1>) coming from
+│ expression:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 3/3 ─
+│
+│  Internal Error, please report to https://github.com/CatalaLang/catala/issues.
+│
+│  Recursive type detected: <ty1> = (<ty1>, <ty1>)
+│
+├─➤ tests/mini.catala_en:32.25-32.35:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │                         ‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```
+
+
+```catala
+declaration empty content anything of type t depends on x content integer equals []
+
+declaration t1 content list of decimal equals empty of 0
+
+declaration t2 content list of money equals empty of 0
+```
+
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─ 1/3 ─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ <ty1> → <ty1>
+│  ─➤ (<ty1>, <ty1>) → <ty1>
+│
+│ This expression has type <ty1> → <ty1>:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Expected type (<ty1>, <ty1>) → <ty1> coming from expression:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/3 ─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ (<ty1>, <ty1>) → (<ty1>, <ty1>)
+│  ─➤ ((<ty1>, <ty1>), <ty1>) → (<ty1>, <ty1>)
+│
+│ This expression has type (<ty1>, <ty1>) → (<ty1>, <ty1>):
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Expected type ((<ty1>, <ty1>), <ty1>) → (<ty1>, <ty1>) coming from
+│ expression:
+├─➤ tests/mini.catala_en:32.3-32.44:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 3/3 ─
+│
+│  Internal Error, please report to https://github.com/CatalaLang/catala/issues.
+│
+│  Recursive type detected: <ty1> = (<ty1>, <ty1>)
+│
+├─➤ tests/mini.catala_en:32.25-32.35:
+│    │
+│ 32 │   map each (x, y) among ([1], [2]) to x + y
+│    │                         ‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
 ```

@@ -122,17 +122,20 @@ let uf_content env v pos =
 
 (* Expands all known type variables as much as possible in the given type *)
 let get_ty env ty =
-  let rec aux = function
-    | TVar v, _ as ty ->
+  let rec aux seen = function
+    | TVar v, pos as ty ->
       (match Env.get_unionfind env v with
-       | None -> Message.debug "N"; Type.rebox ty
+       | None -> Type.rebox ty
        | Some uf ->
          let ty' = UnionFind.get (UnionFind.find uf) in
-         if Type.equal ty ty' then (Message.debug "R"; Type.rebox ty)
-         else (Message.debug "T"; aux ty'))
-    | ty -> Message.debug "X %a" Type.format ty; Type.map aux ty
+         if Type.equal ty ty' then Type.rebox ty
+         else if Type.Var.Set.mem v seen then
+           Message.error ~internal:true ~pos "Recursive type detected: %a = %a" Type.format ty Type.format ty'
+         else
+           aux (Type.Var.Set.add v seen) ty')
+    | ty -> Type.map (aux seen) ty
   in
-  Bindlib.unbox (aux ty)
+  Bindlib.unbox (aux Type.Var.Set.empty ty)
 
 (*  match Mark.remove t with
  *   | TUnionFind (T uf) -> get_ty (UnionFind.get (UnionFind.find uf))
@@ -683,7 +686,8 @@ let polymorphic_op_return_type
     let tret = Type.any pos in
     let tfunc = TArrow (List.init arity (fun _ -> Type.any pos), tret), pos in
     unify' env e tf tfunc;
-    tret
+    get_ty env tret
+    |> fun r -> Message.debug "RET: %a   ===>   %a" Type.format tf Type.format r; r
   in
   match Mark.remove op, targs with
   | Fold, [_; tau; _] -> tau
@@ -722,8 +726,8 @@ let resolve_overload_ret_type
 
 let add_pos e ty = Mark.add (Expr.pos e) ty
 
-let ty : (_, typ custom) marked -> typ =
-  fun (_, Custom { custom; _ }) -> custom
+let expr_ty : _ Env.t -> (_, typ custom) marked -> typ =
+  fun env (_, Custom { custom; _ }) -> get_ty env custom
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
@@ -746,8 +750,8 @@ and typecheck_expr_top_down :
     (a, m) gexpr ->
     (a, typ custom) boxed_gexpr =
  fun ctx env tau e ->
-  Message.debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
-     Type.format tau Expr.format e;
+  (* Message.debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
+   *    Type.format tau Expr.format e; *)
   let pos_e = Expr.pos e in
   let flags = env.flags in
   let tau = get_ty env tau in
@@ -825,7 +829,7 @@ and typecheck_expr_top_down :
   | EDStructAmend { name_opt = _; e; fields } ->
     let e = typecheck_expr_top_down ctx env tau e in
     let name =
-      match get_ty env (ty e) with
+      match expr_ty env e with
       | TStruct name, _ -> name
       | TAny _, _ | TVar _, _ -> failwith "Disambiguation failure"
       | ty ->
@@ -849,7 +853,7 @@ and typecheck_expr_top_down :
     in
     let e_struct' = typecheck_expr_top_down ctx env t_struct e_struct in
     let name_opt =
-      match get_ty env (ty e_struct') with
+      match expr_ty env e_struct' with
       | TStruct name, _ -> Some name
       | TAny _, _ | TVar _, _ -> None
       | ty ->
@@ -1166,6 +1170,7 @@ and typecheck_expr_top_down :
     in
     let body' = typecheck_expr_top_down ctx env t_ret body in
     let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
+    Message.debug "TAbs: %a : %a" Expr.format e Type.format (get_ty env t_func);
     Expr.eabs binder' pos (List.map (get_ty env) t_args) mark
   | EApp { f = e1; args; tys } ->
     (* Here we type the arguments first (in order), to ensure we know the types
@@ -1177,7 +1182,6 @@ and typecheck_expr_top_down :
       | tys -> tys
     in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
-    Message.debug "LETIN? %a" Expr.format e1;
     let t_args =
       match t_args, tys with
       | [t], [] -> (
@@ -1210,14 +1214,21 @@ and typecheck_expr_top_down :
             unify' env e (polymorphic_op_return_type env e op t_args) tau;
             List.rev_map (typecheck_expr_bottom_up ctx env) (List.rev args))
           else (
+            Message.debug "APPOP %a : %a" Expr.format e Type.format tau;
             (* Type the operator first, then right-to-left: polymorphic
                operators are required to allow the resolution of all type
                variables this way *)
             unify' env e (polymorphic_op_type op) t_func;
+            Message.debug "APPOP' %a : %a" Expr.format e Type.format (get_ty env t_func);
             (* List.rev_map(2) applies the side effects in order *)
             List.rev_map2
               (typecheck_expr_top_down ctx env)
-              (List.rev t_args) (List.rev args)))
+              (List.rev t_args) (List.rev args)
+            |> fun r -> Message.debug "APPOP” %a : %a" Expr.format e Type.format (get_ty env t_func);
+            Message.debug "ENV: @[<v>%a@]" (Type.Var.Map.format (fun ppf uf -> Format.fprintf ppf "%a    = %a" Type.format (UnionFind.get uf) Type.format (UnionFind.get (UnionFind.find uf)))) env.tvars;
+ r
+
+          ))
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
@@ -1319,7 +1330,7 @@ let scope_body_expr ctx env ty_out body_expr =
         let e0 = scope.scope_let_expr in
         let ty_e = scope.scope_let_typ in
         let e = Expr.unbox (typecheck_expr_bottom_up ctx env e0) in
-        unify' env e0 (ty e) ty_e;
+        unify' env e0 (expr_ty env e) ty_e;
         (* We could use [typecheck_expr_top_down] rather than this manual
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined
@@ -1332,7 +1343,7 @@ let scope_body_expr ctx env ty_out body_expr =
                 scope with
                 scope_let_typ =
                   (match scope.scope_let_typ with
-                  | TAny _, _ -> get_ty env (ty e)
+                  | TAny _, _ -> expr_ty env e
                   | ty -> ty);
                 scope_let_expr;
               })
@@ -1385,7 +1396,7 @@ let scopes ctx env =
          *     Type.Var.Map.empty tvars
          * in *)
         let e' = typecheck_expr_top_down ctx env typ e in
-        let typ = ty e' in
+        let typ = expr_ty env e' in
         Array.iter (fun v ->
             match Env.get_unionfind env v with
             | Some uf when not (UnionFind.is_representative uf) ->
