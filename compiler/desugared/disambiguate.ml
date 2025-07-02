@@ -68,7 +68,9 @@ let program prg =
   let env = Typing.Env.empty prg.program_ctx in
   let env =
     TopdefName.Map.fold
-      (fun name (ty, _vis) env -> Typing.Env.add_toplevel_var name ty env)
+      (fun name (ty, _vis) env ->
+         Message.debug "ENV %a: %a" TopdefName.format name Type.format ty;
+         Typing.Env.add_toplevel_var name ty env)
       prg.program_ctx.ctx_topdefs env
   in
   let env =

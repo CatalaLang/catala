@@ -1621,6 +1621,7 @@ let process_topdef
   in
   let translate_typ t = Name_resolution.process_type ctxt t in
   let typ = translate_typ def.S.topdef_type in
+  Message.debug "PROCESS> %a : %a" TopdefName.format id Type.format typ;
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
     | None, _ -> None

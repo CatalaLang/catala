@@ -53,6 +53,7 @@ module Var : sig
   include Catala_utils.Map.OrderedType with type t = var
   module Map : Catala_utils.Map.S with type key = t
   module Set : Set.S with type elt = t
+  module Hashtbl : Hashtbl.S with type key = t
   val fresh : unit -> t
 end
 

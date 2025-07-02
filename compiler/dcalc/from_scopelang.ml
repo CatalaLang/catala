@@ -471,7 +471,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         let typ, _vis =
           TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
         in
-        match Mark.remove typ with
+        match Mark.remove (Type.unquantify typ) with
         | TArrow (_, (tout, _)) -> tout
         | _ ->
           Message.error ~pos:(Expr.pos e)

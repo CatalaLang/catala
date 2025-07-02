@@ -87,7 +87,9 @@ let format = Print.typ
 module Var = struct
   module Arg = struct
     type t = var
+    let equal = Bindlib.eq_vars
     let compare = Bindlib.compare_vars
+    let hash = Bindlib.hash_var
     let format ppf tv =
       Format.fprintf ppf "@{<bold><%s%s>@}" (Bindlib.name_of tv)
         (if Global.options.debug then "_"^ string_of_int (Bindlib.uid_of tv) else "")
@@ -95,6 +97,7 @@ module Var = struct
   include Arg
   module Set = Set.Make(Arg)
   module Map = Map.Make(Arg)
+  module Hashtbl = Hashtbl.Make (Arg)
 
   let fresh () = Bindlib.new_var (fun v -> TVar v) "ty1"
 end

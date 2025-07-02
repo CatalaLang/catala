@@ -22,8 +22,6 @@ open Definitions
 
 type flags = { fail_on_any : bool; assume_op_types : bool }
 
-type unionfind = typ UnionFind.elem
-
 module Env = struct
   type 'e t = {
     flags : flags;
@@ -34,7 +32,7 @@ module Env = struct
     scopes : typ ScopeVar.Map.t ScopeName.Map.t;
     scopes_input : typ ScopeVar.Map.t ScopeName.Map.t;
     toplevel_vars : typ TopdefName.Map.t;
-    mutable tvars : unionfind Type.Var.Map.t;
+    tvars : Type.t Type.Var.Hashtbl.t;
   }
 
   let empty
@@ -52,7 +50,7 @@ module Env = struct
       scopes = ScopeName.Map.empty;
       scopes_input = ScopeName.Map.empty;
       toplevel_vars = TopdefName.Map.empty;
-      tvars = Type.Var.Map.empty;
+      tvars = Type.Var.Hashtbl.create 47;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -97,39 +95,20 @@ module Env = struct
       env.toplevel_vars;
     Format.pp_close_box ppf ()
 
-  let get_unionfind env v = Type.Var.Map.find_opt v env.tvars
+  let get_tvar env v = Type.Var.Hashtbl.find_opt env.tvars v
 
-  let unionfind env v pos =
-    match get_unionfind env v with
-    | Some uf -> uf
-    | None ->
-      let uf = UnionFind.make (TVar v, pos) in
-      env.tvars <- Type.Var.Map.add v uf env.tvars;
-      uf
-
-  let get_tvar_ty env v pos =
-    match get_unionfind env v with
-    | Some uf -> UnionFind.get (UnionFind.find uf)
-    | None -> TVar v, pos
+  let set_tvar env v ty =
+    Type.Var.Hashtbl.add env.tvars v ty
 end
-
-let uf_content env v pos =
-  let uf = Env.unionfind env v pos in
-  let ty = UnionFind.get (UnionFind.find uf) in
-  uf,
-  if Type.equal ty (TVar v, pos) then None
-  else Some ty
 
 (* Expands all known type variables as much as possible in the given type *)
 let get_ty env ty =
   let rec aux seen = function
     | TVar v, pos as ty ->
-      (match Env.get_unionfind env v with
+      (match Env.get_tvar env v with
        | None -> Type.rebox ty
-       | Some uf ->
-         let ty' = UnionFind.get (UnionFind.find uf) in
-         if Type.equal ty ty' then Type.rebox ty
-         else if Type.Var.Set.mem v seen then
+       | Some ty' ->
+         if Type.Var.Set.mem v seen then
            Message.error ~internal:true ~pos "Recursive type detected: %a = %a" Type.format ty Type.format ty'
          else
            aux (Type.Var.Set.add v seen) ty')
@@ -497,10 +476,8 @@ let rec unify
     (e : ('a, 'm) gexpr as 'e) (* used for error context *)
     (t1 : typ)
     (t2 : typ) : typ =
-  (* Message.debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
-     t2; *)
+  (* Message.debug "Unifying %a and %a" Type.format t1 Type.format t2; *)
   let unify = unify env e in
-  let pos1 = Mark.get t1 in
   let pos2 = Mark.get t2 in
   let record_type_error () = record_type_error env (AnyExpr e) t1 t2 in
   match Mark.remove t1, Mark.remove t2 with
@@ -544,25 +521,21 @@ let rec unify
   | TOption t1', TOption t2' -> TOption (unify t1' t2'), pos2
   | TArray t1', TArray t2' -> TArray (unify t1' t2'), pos2
   | TDefault t1', TDefault t2' -> TDefault (unify t1' t2'), pos2
-  | TVar v1, TVar v2 ->
-    if Bindlib.eq_vars v1 v2 then t2 else
-      (match uf_content env v1 pos1, uf_content env v2 pos2 with
-       | (uf1, None), (uf2, None) -> UnionFind.set (UnionFind.union uf1 uf2) t2; t2
-       | (uf1, Some t1), (uf2, Some t2) -> let t = unify t1 t2 in UnionFind.set (UnionFind.union uf1 uf2) t; t
-       | (uft, Some t), (ufn, None) | (ufn, None), (uft, Some t) ->
-         UnionFind.set (UnionFind.union ufn uft) t; t)
+  | TVar v1, TVar v2 when Bindlib.eq_vars v1 v2 -> t2
   | TVar v1, _ ->
-    let uf, t = match uf_content env v1 pos1 with
-      | uf, Some t1 -> uf, unify t1 t2
-      | uf, None -> uf, t2
+    let t = match Env.get_tvar env v1 with
+      | None -> t2
+      | Some t1 -> unify t1 t2
     in
-    UnionFind.set uf t; t
+    Env.set_tvar env v1 t;
+    t
   | _, TVar v2 ->
-    let uf, t = match uf_content env v2 pos2 with
-      | uf, Some t2 -> uf, unify t1 t2
-      | uf, None -> uf, t1
+    let t = match Env.get_tvar env v2 with
+      | None -> t1
+      | Some t2 -> unify t1 t2
     in
-    UnionFind.set uf t; t
+    Env.set_tvar env v2 t;
+    t
   (* |
    *   (match tvar_resolve env v1, tvar_resolve env v2 with
    *    | Unbound, _ | _, Unbound -> record_type_error (); t2
@@ -754,12 +727,11 @@ and typecheck_expr_top_down :
    *    Type.format tau Expr.format e; *)
   let pos_e = Expr.pos e in
   let flags = env.flags in
-  let tau = get_ty env tau in
   let () =
     (* If there already is a type annotation on the given expr, ensure it
-       matches *)
+       matches (unless it's a type variable) *)
     match Mark.get e with
-    | Untyped _ -> ()
+    | Untyped _ | Typed { ty = TVar _, _; _ } -> ()
     | Typed { ty; _ } ->
       unify' env e tau ty;
     | Custom _ -> assert false
@@ -1080,7 +1052,7 @@ and typecheck_expr_top_down :
   | EVar v ->
     let tau' =
       match Env.get env v with
-      | Some t -> t
+      | Some t -> Type.unquantify t
       | None ->
         Message.error ~pos:pos_e "Variable %s not found in the current context"
           (Bindlib.name_of v)
@@ -1170,7 +1142,7 @@ and typecheck_expr_top_down :
     in
     let body' = typecheck_expr_top_down ctx env t_ret body in
     let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-    Message.debug "TAbs: %a : %a" Expr.format e Type.format (get_ty env t_func);
+    (* Message.debug "TAbs: %a : %a" Expr.format e Type.format (get_ty env t_func); *)
     Expr.eabs binder' pos (List.map (get_ty env) t_args) mark
   | EApp { f = e1; args; tys } ->
     (* Here we type the arguments first (in order), to ensure we know the types
@@ -1214,19 +1186,19 @@ and typecheck_expr_top_down :
             unify' env e (polymorphic_op_return_type env e op t_args) tau;
             List.rev_map (typecheck_expr_bottom_up ctx env) (List.rev args))
           else (
-            Message.debug "APPOP %a : %a" Expr.format e Type.format tau;
+            (* Message.debug "APPOP %a : %a" Expr.format e Type.format tau; *)
             (* Type the operator first, then right-to-left: polymorphic
                operators are required to allow the resolution of all type
                variables this way *)
             unify' env e (polymorphic_op_type op) t_func;
-            Message.debug "APPOP' %a : %a" Expr.format e Type.format (get_ty env t_func);
+            (* Message.debug "APPOP' %a : %a" Expr.format e Type.format (get_ty env t_func); *)
             (* List.rev_map(2) applies the side effects in order *)
             List.rev_map2
               (typecheck_expr_top_down ctx env)
               (List.rev t_args) (List.rev args)
-            |> fun r -> Message.debug "APPOP” %a : %a" Expr.format e Type.format (get_ty env t_func);
-            Message.debug "ENV: @[<v>%a@]" (Type.Var.Map.format (fun ppf uf -> Format.fprintf ppf "%a    = %a" Type.format (UnionFind.get uf) Type.format (UnionFind.get (UnionFind.find uf)))) env.tvars;
- r
+ (*            |> fun r -> Message.debug "APPOP” %a : %a" Expr.format e Type.format (get_ty env t_func);
+  *            Message.debug "ENV: @[<v>%a@]" (Format.pp_print_seq (fun ppf (v, ty) -> Format.fprintf ppf "%a:\t%a" Type.Var.format v Type.format ty)) (Type.Var.Hashtbl.to_seq env.tvars);
+  * r *)
 
           ))
         ~overloaded:(fun op ->
@@ -1398,17 +1370,20 @@ let scopes ctx env =
         let e' = typecheck_expr_top_down ctx env typ e in
         let typ = expr_ty env e' in
         Array.iter (fun v ->
-            match Env.get_unionfind env v with
-            | Some uf when not (UnionFind.is_representative uf) ->
-              Message.error ~pos:tpos "Not as polymorphic as expected"
-            (* FIXME: delayed and better message *)
-            | _ -> ()
+            match Env.get_tvar env v with
+            | Some (TVar _, _) (* FIXME: check that the var is free and not member of tvars *)
+            | None -> ()
+            | Some ty ->
+              Message.delayed_error ~kind:Typing ()
+                ~pos:(Mark.get ty) "Type %a is specified as @{<cyan>anything@}, but it appears to only work for %a here"
+                Type.format (TVar v, tpos) Type.format ty
           ) tvars;
         (* TODO: cleanup the used type vars from env ? *)
         let tbinder =
           get_ty env typ |> Type.rebox |> Bindlib.bind_mvar tvars |> Bindlib.unbox
         in
         let typ = TAny tbinder, (Mark.get typ) in
+        Message.debug "DEF> %a : %a" TopdefName.format name Type.format typ;
         let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
         ( Env.add_var var typ env,
           Var.translate var,

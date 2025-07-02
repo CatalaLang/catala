@@ -166,7 +166,8 @@ let rec typ_gen:
   | TAny tb ->
     let tvs, ty, bctx = Bindlib.unmbind_in bctx tb in
     if Global.options.debug then
-      Array.iter (fun tv -> Format.fprintf fmt "∀@{<bold>%s@}.@ " (Bindlib.name_of tv)) tvs;
+      Array.iter (fun tv -> Format.fprintf fmt "∀@{<bold>%s_%d@}.@ " (Bindlib.name_of tv)
+                     (Bindlib.uid_of tv)) tvs;
     typ_gen ~bctx () fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
 
