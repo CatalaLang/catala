@@ -631,7 +631,7 @@ let rec trace_aux :
         punctuation "↳" (exprc colors) v;
       Format.pp_print_cut fmt ();
 
-    | TrAbs { binder; pos = _; tys } ->
+    | TrAbs { binder; tys; _ } ->
       let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
       let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
       Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"

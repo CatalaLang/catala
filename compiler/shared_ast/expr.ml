@@ -187,7 +187,7 @@ let escopecall ~scope ~args mark =
              (fun (pos, e) -> Bindlib.box_apply (fun e -> pos, e) (Box.lift e))
              args))
 
-let ehole mark ty = Mark.add mark (Bindlib.box (EHole ty))
+let ehole ty mark = Mark.add mark (Bindlib.box (EHole ty))
 
 (* - Manipulation of marks - *)
 
@@ -374,7 +374,7 @@ let map
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
-  | EHole ty -> ehole m ty
+  | EHole ty -> ehole ty m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
@@ -414,7 +414,7 @@ let shallow_fold
   | EScopeCall { args; _ } ->
     acc |> ScopeVar.Map.fold (fun _ (_p, e) -> f e) args
   | ECustom _ -> acc
-  | EHole _ -> assert false
+  | EHole _ -> acc
 
 (* Like [map], but also allows to gather a result bottom-up. *)
 let map_gather
@@ -532,7 +532,7 @@ let map_gather
     in
     acc, escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
-  | EHole _ -> assert false
+  | EHole ty -> acc, ehole ty m
 
 (* - *)
 
