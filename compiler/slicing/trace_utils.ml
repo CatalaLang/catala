@@ -165,6 +165,45 @@ fun ctx_closure e ->
   let ctx, e = f e in
   ctx, Expr.unbox e
 
+let rec is_sub_expr: type d t. (d, t) gexpr -> (d, t) gexpr -> bool =
+fun e1 e2 -> match Mark.remove e1, Mark.remove e2 with 
+  | EHole _, _ -> true
+  | _, EHole _ -> false
+  | ELit l1, ELit l2 -> l1 = l2
+  | EEmpty, EEmpty -> true
+  | EFatalError err1, EFatalError err2 -> err1 = err2
+  | EAbs {binder = b1; _}, EAbs {binder = b2; _} -> 
+    let _, e1, e2 = Bindlib.unmbind2 b1 b2 in is_sub_expr e1 e2
+  | ECustom {obj = o1; _}, ECustom {obj = o2; _} -> o1 = o2
+  | EVar x1, EVar x2 -> Bindlib.eq_vars x1 x2
+  | EExternal _, EExternal _ -> Expr.equal e1 e2
+  | EApp { f = f1; args = a1; _ }, EApp { f = f2; args = a2; _ } ->
+    List.for_all2 is_sub_expr (f1::a1) (f2::a2)
+  | EAppOp { op = op1; args = a1; _ }, EAppOp { op = op2; args = a2; _ } ->
+    Mark.equal Operator.equal op1 op2 && List.for_all2 is_sub_expr a1 a2
+  | EArray e1, EArray e2 -> List.for_all2 is_sub_expr e1 e2
+  | EIfThenElse { cond = c1; etrue = t1; efalse = f1 }, EIfThenElse { cond = c2; etrue = t2; efalse = f2 } ->
+     List.for_all2 is_sub_expr [c1;t1;f1] [c2;t2;f2]
+  | EStruct { name = n1; fields = f1 }, EStruct { name = n2; fields = f2 } ->
+    (* The name StructField.Map.equal is misleading. It is just a forall2 for StructField.Map *)
+    StructName.equal n1 n2 && StructField.Map.equal is_sub_expr f1 f2
+  | EStructAccess { name = n1; e = e1; field = f1 }, EStructAccess { name = n2; e = e2; field = f2 } ->
+    StructName.equal n1 n2 && StructField.equal f1 f2 && is_sub_expr e1 e2
+  | EInj { name = n1; e = e1; cons = c1 }, EInj { name = n2; e = e2; cons = c2 } ->
+    EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 && is_sub_expr e1 e2
+  | EMatch { name = n1; e = e1; cases = c1 }, EMatch { name = n2; e = e2; cases = c2 } ->
+    (* The name EnumConstructor.Map.equal is misleading. It is just a forall2 for EnumConstructor.Map *)
+    EnumName.equal n1 n2 && is_sub_expr e1 e2 && EnumConstructor.Map.equal is_sub_expr c1 c2
+  | ETuple e1, ETuple e2 -> List.for_all2 is_sub_expr e1 e2
+  | ETupleAccess { e = e1; index = i1; size = s1}, ETupleAccess { e = e2; index = i2; size = s2} ->
+    i1 = i2 && s1 = s2 && is_sub_expr e1 e2
+  | EAssert e1, EAssert e2 -> is_sub_expr e1 e2
+  | EDefault { excepts = x1; just = j1; cons = c1 }, EDefault { excepts = x2; just = j2; cons = c2 } ->
+    List.for_all2 is_sub_expr (c1::j1::x1) (c2::j2::x2)
+  | EPureDefault e1, EPureDefault e2 -> is_sub_expr e1 e2
+  | EErrorOnEmpty e1, EErrorOnEmpty e2 -> is_sub_expr e1 e2
+  | _ -> false
+
 (* Helpers for Result *)
 
 let ( let* ) = Result.bind

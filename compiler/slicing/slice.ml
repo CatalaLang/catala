@@ -371,7 +371,7 @@ fun ctx value trace ->
   and unevaluate_op op tys vargs trargs m = let lctxs, args = unevaluate_list vargs trargs in 
       join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
 
-  in del_useless_declarations (snd (unevaluate_aux value trace))
+  in snd (unevaluate_aux value trace)
 
 let print_slicing_things expr value trace sliced_expr = 
   Message.log "Input program :";
@@ -425,7 +425,12 @@ let slice
         Format_trace.print_trace tr;
       );
       (* Unevaluate the value with the trace to get a sliced version of the expression *)
-      let sliced_e = unevaluate p.decl_ctx (addholes v) tr in
+      let uneval_e = unevaluate p.decl_ctx (addholes v) tr in
+      if not @@ is_sub_expr uneval_e (addholes e) then 
+        Message.error "%a@ Input expression : %a@ Sliced expression : %a" Format.pp_print_text
+          "The sliced expression is not a subexpression \
+          of the input one." Format_trace.expr e Format_trace.expr uneval_e;
+      let sliced_e = del_useless_declarations uneval_e in
       if debug then (
         Message.log "Sliced program :";
         Format.print_newline(); 
