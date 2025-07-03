@@ -82,7 +82,10 @@ let trarray ts = TrArray ts
 
 let trvar ~var ~value = TrVar { var; value }
 
-let trabs ~binder ~pos ~tys = TrAbs { binder; pos; tys }
+let trabs ~binder ~pos ~tys ~context = 
+  let ctx_bindings = Var.Map.bindings context in
+  let context = List.fold_left (fun acc (x,v) -> Var.Map.add (Var.translate x) (addholes v) acc) Var.Map.empty ctx_bindings in
+  TrAbs { binder; pos; tys; context }
 
 let trifthenelse ~trcond ~trtrue ~trfalse =
   TrIfThenElse { trcond; trtrue; trfalse }
@@ -121,6 +124,46 @@ let trerroronempty t = TrErrorOnEmpty t
 
 let trcustom ~obj ~targs ~tret =
   TrCustom { obj; targs; tret }
+
+let substitute_bounded_vars :
+  type c d h.
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr ->
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
+  ((d, c, h) slicing_interpr_kind, 't) gexpr =
+fun ctx_closure e ->
+  let join = Var.Map.union (fun _ v _ -> Some v) in
+  let rec f :
+      ((d, c, h) slicing_interpr_kind, 't) gexpr -> 
+      (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
+      ((d, c, h) slicing_interpr_kind, 't) gexpr boxed
+    = function
+    | EVar x, m -> (
+      match Var.Map.find_opt x ctx_closure with
+        | Some v -> 
+          let acc, v' = f v in
+          Var.Map.add x v acc, v'
+        | None -> Var.Map.empty, Expr.evar x m
+      )
+    | EHole _, _ as e -> Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (ECustom _, _) as e -> Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | EAppOp { op; args; tys }, m ->
+      let accs, args = List.split(List.map f args) in
+      List.fold_left join Var.Map.empty accs, Expr.eappop ~tys ~args ~op m
+    | (EDefault _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (EPureDefault _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (EEmpty, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (EErrorOnEmpty _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (EPos _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ 
+        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+       Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | _ -> .
+  in
+  let ctx, e = f e in
+  ctx, Expr.unbox e
 
 (* Helpers for Result *)
 

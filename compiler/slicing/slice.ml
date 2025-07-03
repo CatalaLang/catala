@@ -137,10 +137,7 @@ fun ctx value trace ->
     | _, TrExpr _ -> Message.error "This case should not happen, TrExpr cannot be unevaluated"
     | ELit l1, TrLit l2 when l1 = l2 -> Var.Map.empty, v
     | EEmpty, TrEmpty -> Var.Map.empty, v
-    (*| ECustom { obj=o1; targs=ta1; tret=tr1 }, 
-      TrCustom { obj=o2; targs=ta2; tret=tr2 }
-      when o1 = o2 && ta1 = ta2 && tr1 = tr2 -> v*)
-    | EAbs { binder = _; _ }, TrAbs { binder = _original_binder ; _} -> 
+    | EAbs _, TrAbs { binder; pos; tys; context} -> 
       (* There may be variables in the body of the abstraction that have been substituted 
          so to unevaluate the body properly, we have to return the original binder and the context of what substitutions occured *)
       (*
@@ -152,8 +149,10 @@ fun ctx value trace ->
 
       let vars, substituted_body, original_body = Bindlib.unmbind2 substituted_binder original_binder in 
       *)
+
+      (* Need to introduce a flag system to minimize the slice (the context may add non useful variables)*)
       
-      Var.Map.empty, v
+      context, Mark.add m @@ EAbs{binder; pos; tys}
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf; trargs; tys; vars; trv } ->

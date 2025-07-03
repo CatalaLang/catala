@@ -3,38 +3,6 @@ open Shared_ast
 open Shared_ast.Interpreter
 open Trace_utils
 
-let substitute_bounded_vars :
-  type c d h.
-  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
-  ((d, c, h) slicing_interpr_kind, 't) gexpr ->
-  ((d, c, h) slicing_interpr_kind, 't) gexpr =
-fun ctx_closure e ->
-  let rec f :
-      ((d, c, h) slicing_interpr_kind, 't) gexpr -> ((d, c, h) slicing_interpr_kind, 't) gexpr boxed
-      = function
-    | EVar x, _ as e -> (
-      match Var.Map.find_opt x ctx_closure with
-        | Some v -> f v
-        | None -> Expr.map ~f e
-      )
-    | EHole _, _ as e -> Expr.map ~f e
-    | (ECustom _, _) as e -> Expr.map ~f e
-    | EAppOp { op; args; tys }, m ->
-      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
-    | (EDefault _, _) as e -> Expr.map ~f e
-    | (EPureDefault _, _) as e -> Expr.map ~f e
-    | (EEmpty, _) as e -> Expr.map ~f e
-    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
-    | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ 
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
-        _ ) as e ->
-      Expr.map ~f e
-    | _ -> .
-  in
-  Expr.unbox (f e)
-
 let evaluate_expr_with_trace :
     type d t.
     decl_ctx ->
@@ -236,7 +204,8 @@ fun ctx lang e ->
         (* Functions do not carry contexts in Catala so in order to avoid any issues of context 
            we perform a substitution in the body of the function *)
         (*ok (substitute_bounded_vars local_ctx e) (trabs ~binder ~pos ~tys)*)
-        ok e @@ trabs ~binder ~pos ~tys
+        let context, v = substitute_bounded_vars local_ctx e in
+        ok v @@ trabs ~binder ~pos ~tys ~context
       | _ -> assert false
     )
     | ELit l -> ok e @@ trlit l

@@ -523,6 +523,37 @@ let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
 
 let print_expr ?(fmt=Message.std_ppf ()) (e : ('a, 'm) gexpr) = Format.fprintf fmt "%a@." expr e
 
+let context fmt ctx = 
+  if ctx = Var.Map.empty then (
+    punctuation fmt "{";
+    punctuation fmt "}"
+  )
+  else
+    Format.fprintf fmt "@[<hv 2>%a@ %a@;<1 -2>%a@]" punctuation "{"
+      (Format.pp_print_list  ~pp_sep:Format.pp_print_space 
+        (fun fmt (name,field_expr) ->
+          Format.fprintf fmt "@[<hv 2>%a %a@ %a%a@]" var name
+          punctuation "=" expr field_expr punctuation ";"
+        )
+      )
+      (Var.Map.bindings ctx) punctuation "}"
+
+let print_context ?(fmt=Message.std_ppf ()) ctx = Format.fprintf fmt "%a@." context ctx 
+
+let set fmt set = 
+  if set = Var.Set.empty then (
+    punctuation fmt "{";
+    punctuation fmt "}"
+  )
+  else
+    Format.fprintf fmt "@[<hv 2>%a@ %a@;<1 -2>%a@]" punctuation "{"
+      (Format.pp_print_list  ~pp_sep:Format.pp_print_space 
+        (fun fmt name ->
+          Format.fprintf fmt "@[<hv 2>%a@ %a@]" var name punctuation ";"
+        )
+      )
+      (Var.Set.elements set) punctuation "}"
+
 let rec trace_aux :
     type a t.
     Bindlib.ctxt ->
@@ -792,7 +823,3 @@ let rec trace_aux :
 let trace ppf tr = trace_aux Bindlib.empty_ctxt colors ppf tr
 
 let print_trace ?(fmt=Message.std_ppf ()) (tr: ('a, 'm) Trace_ast.t) = Format.fprintf fmt "%a@." trace tr
-
-let context ppf ctx = Var.Map.format_keys ppf ctx
-
-let print_context ?(fmt=Message.std_ppf ()) ctx = Format.fprintf fmt "%a@." context ctx 

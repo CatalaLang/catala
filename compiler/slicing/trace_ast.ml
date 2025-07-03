@@ -26,7 +26,7 @@ open Shared_ast
       trargs : ('a, 'm) t list;
       tys : typ list;
       vargs : ('a, 'm) gexpr list;
-      traux : ('a, 'm) t list (*trop contains additional traces needed for certain operators such as Map, Fold or Reduce*)
+      traux : ('a, 'm) t list (*traux contains additional traces needed for certain operators such as Map, Fold or Reduce*)
     }
       -> ('a, 'm) t
   | TrArray : ('a, 'm) t list -> ('a, 'm) t
@@ -39,6 +39,7 @@ open Shared_ast
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
       tys : typ list;
+      context : (('a, 'm) gexpr, ('a, 'm) gexpr) Var.Map.t
     }
       -> ('a, 'm) t
   | TrIfThenElse : {
