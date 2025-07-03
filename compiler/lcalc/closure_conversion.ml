@@ -81,8 +81,7 @@ let build_closure :
   let env_ty = TTuple free_vars_types, pos in
   (* let env = from_closure_env env in let arg0 = env.0 in ... *)
   let mark_pos (v, (m : m mark)) =
-    match m with
-    | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> Mark.add pos v
+    Mark.add (Expr.mark_pos m) v
   in
   let new_closure_body =
     Expr.make_let_in
@@ -338,7 +337,7 @@ let transform_closures_scope_let ctx scope_body_expr =
             {
               scope_let with
               scope_let_expr;
-              scope_let_typ = Type.any (Mark.get scope_let.scope_let_typ);
+              scope_let_typ = translate_type scope_let.scope_let_typ;
             })
           (Expr.Box.lift new_scope_let_expr) ))
     ~last:(fun res ->

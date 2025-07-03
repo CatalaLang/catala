@@ -140,7 +140,6 @@ let get_ty_quantified env ty =
         bty
     in
     (TAny (Bindlib.unbox bnd), Mark.get ty)
-    |> fun r -> Message.debug "> %a" Type.format r; r
 
 (*  match Mark.remove t with
  *   | TUnionFind (T uf) -> get_ty (UnionFind.get (UnionFind.find uf))
@@ -686,7 +685,6 @@ let polymorphic_op_return_type
     let tfunc = TArrow (List.init arity (fun _ -> Type.any pos), tret), pos in
     unify' env e tf tfunc;
     get_ty env tret
-    |> fun r -> Message.debug "RET: %a   ===>   %a" Type.format tf Type.format r; r
   in
   match Mark.remove op, targs with
   | Fold, [_; tau; _] -> tau
@@ -1078,7 +1076,7 @@ and typecheck_expr_top_down :
   | EVar v ->
     let tau' =
       match Env.get env v with
-      | Some t -> Message.debug "UQ %a" Type.format t; Type.unquantify t
+      | Some t -> Type.unquantify t
       | None ->
         Message.error ~pos:pos_e "Variable %s not found in the current context"
           (Bindlib.name_of v)
@@ -1386,7 +1384,6 @@ let scopes ctx env =
           Bindlib.box_apply (fun body -> ScopeDef (name, body)) body_e )
       | Topdef (name, (TAny bnd, tpos), vis, e) ->
         (* polymorphic function case *)
-        Message.debug "TD> %a : %a" TopdefName.format name Type.format (TAny bnd, tpos);
         let tvars, typ = Bindlib.unmbind bnd in
         (* let tvars_map =
          *   Array.fold_left (fun acc va ->
@@ -1415,7 +1412,6 @@ let scopes ctx env =
           get_ty env typ |> Type.rebox |> Bindlib.bind_mvar tvars |> Bindlib.unbox
         in
         let typ = TAny tbinder, (Mark.get typ) in
-        Message.debug "DEF> %a : %a" TopdefName.format name Type.format typ;
         let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
         ( Env.add_var var typ env,
           Var.translate var,
