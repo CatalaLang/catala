@@ -61,17 +61,12 @@ fun e1 e2 ->
   | EEmpty, EEmpty -> e1
   | EFatalError err1, EFatalError err2 when err1 = err2 -> e1
   | EAbs { binder = b1; pos; tys }, EAbs { binder = b2; pos=_; tys=_} ->
-    let vars1, e1 = Bindlib.unmbind b1 in
-    let vars2, e2 = Bindlib.unmbind b2 in
-    if Array.length vars1 = Array.length vars2
-    then
-      let e = join_expr e1 e2 in
-      Mark.add m (EAbs { binder = bind vars1 e; pos; tys })
-    else
-      Message.error "The two functions cannot be joined because the arguments are not the same"
+    let vars, e1, e2 = Bindlib.unmbind2 b1 b2 in
+    let e = join_expr e1 e2 in
+    Mark.add m (EAbs { binder = bind vars e; pos; tys })
   | ECustom { obj = o1; targs = _; tret = _ }, ECustom { obj = o2; targs = _; tret = _ } 
     when o1 = o2 -> e1 
-  | EVar _, EVar _ (*when Bindlib.eq_vars x1 x2*) -> e1 
+  | EVar x1, EVar x2 when Bindlib.eq_vars x1 x2 -> e1 
   | EExternal _, EExternal _ when Expr.equal e1 e2 -> e1
   | EApp { f = f1; args = a1; tys }, EApp { f = f2; args = a2; tys = _} ->
     Mark.add m (EApp { f = join_expr f1 f2; args = join_expr_list a1 a2; tys })
