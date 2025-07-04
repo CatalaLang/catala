@@ -27,7 +27,7 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -O --closure-conversion
 type Eoption =
   | ENone of unit
-  | ESome of any
+  | ESome of <ty1>
 
 type S_in = { x_in: bool; }
 
@@ -37,7 +37,7 @@ let topval closure_f : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   if (from_closure_env env).0 then y else - y
 
-let scope s (s_in: S_in {x_in: bool}): S {z: integer} =
+let scope s (s_in: S_in): S =
   let get x : bool = s_in.x_in in
   let set f : ((closure_env, integer) → integer, closure_env) =
     (closure_f, to_closure_env (x))
@@ -71,33 +71,11 @@ scope S2Use:
 
 ```catala-test-cli
 $ catala Lcalc -O --closure-conversion -s S2Use
-let scope S2Use
-  (s2_use_in: #[test] S2Use_in)
-  : #[test]
-      S2Use {
-        o:
-          (S2 {
-             dummy: bool;
-             cfun2: ((closure_env, integer) → decimal, closure_env)
-           },
-            S2 {
-              dummy: bool;
-              cfun2: ((closure_env, integer) → decimal, closure_env)
-            })
-      }
-  =
+let scope S2Use (s2_use_in: S2Use_in): S2Use =
   let set fun : ((closure_env, integer) → decimal, closure_env) =
     (closure_fun, to_closure_env ())
   in
-  let set o :
-      (S2 {
-         dummy: bool;
-         cfun2: ((closure_env, integer) → decimal, closure_env)
-       },
-        S2 {
-          dummy: bool;
-          cfun2: ((closure_env, integer) → decimal, closure_env)
-        }) =
+  let set o : (S2, S2) =
     (let result : S2 = s2 { S2_in cfun2_in = fun; } in
      { S2
        dummy = result.dummy;

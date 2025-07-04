@@ -124,7 +124,7 @@ let glob5 = glob5_init ()
 
 let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
-let s2 (s2_in: #[test] #[test] S2_in) =
+let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:53.24-43>;
   init a__1 : option (decimal, source_position) =
@@ -137,7 +137,7 @@ let s2 (s2_in: #[test] #[test] S2_in) =
     a = arg."0";
   return S2 {"a": a}
 
-let s3 (s3_in: #[test] #[test] S3_in) =
+let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:74.24-47>;
   init a__1 : option (decimal, source_position) =
@@ -150,7 +150,7 @@ let s3 (s3_in: #[test] #[test] S3_in) =
     a = arg."0";
   return S3 {"a": a}
 
-let s4 (s4_in: #[test] #[test] S4_in) =
+let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:98.24-34>;
   init a__1 : option (decimal, source_position) = ESome (glob5 + 1., pos);
@@ -162,7 +162,7 @@ let s4 (s4_in: #[test] #[test] S4_in) =
     a = arg."0";
   return S4 {"a": a}
 
-let s (s_in: #[test] #[test] S_in) =
+let s (s_in: #[test] S_in) =
   decl a : decimal;
   init pos : SourcePosition = <toplevel_defs:18.24-37>;
   init a__1 : option (decimal, source_position) = ESome (glob1 * glob1, pos);
@@ -172,10 +172,9 @@ let s (s_in: #[test] #[test] S_in) =
     fatal NoValue
   | ESome arg →
     a = arg."0";
-  decl b : A {y: bool; z: decimal};
+  decl b : A;
   init pos__1 : SourcePosition = <toplevel_defs:19.24-29>;
-  init b__1 : option (A {y: bool; z: decimal}, source_position) =
-    ESome (glob2, pos__1);
+  init b__1 : option (A, source_position) = ESome (glob2, pos__1);
   switch b__1:
   | ENone _ →
     init pos__2 : SourcePosition = <toplevel_defs:8.10-11>;
