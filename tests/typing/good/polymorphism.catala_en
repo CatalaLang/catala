@@ -1,0 +1,64 @@
+```catala
+declaration empty content list of anything of type t depends on x content integer equals []
+
+declaration t1 content list of decimal equals empty of 0
+
+declaration t2 content list of money equals empty of 0
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala
+declaration impossible content anything of type t
+  depends on unit content anything of type t0
+  equals content of x among [] such that 0 is minimum
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala
+declaration identity content anything of type t
+  depends on x content anything of type t
+  equals x
+
+declaration scope S:
+  output a content integer
+  output b content date
+
+scope S:
+  definition a equals identity of 12
+  definition b equals identity of |2025-01-01|
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ a = 12
+│ b = 2025-01-01
+└─
+```
+
+
+```catala
+declaration pair_to_list content list of anything of type t
+  depends on x content anything of type t,
+             y content anything of type t
+  equals [x; y]
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

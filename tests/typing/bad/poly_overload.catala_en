@@ -1,0 +1,33 @@
+
+```catala
+declaration min content anything of type t
+  depends on x content anything of type t,
+             y content anything of type t
+  equals if x <= y then x else y
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─
+│
+│  I don't know how to apply operator <= on types <ty1> and <ty1>
+│
+├─➤ tests/typing/bad/poly_overload.catala_en:6.13-6.19:
+│   │
+│ 6 │   equals if x <= y then x else y
+│   │             ‾‾‾‾‾‾
+│
+│ Type <ty1> coming from expression:
+├─➤ tests/typing/bad/poly_overload.catala_en:3.13-3.16:
+│   │
+│ 3 │ declaration min content anything of type t
+│   │             ‾‾‾
+│
+│ Type <ty1> coming from expression:
+├─➤ tests/typing/bad/poly_overload.catala_en:3.13-3.16:
+│   │
+│ 3 │ declaration min content anything of type t
+│   │             ‾‾‾
+└─
+#return code 123#
+```
