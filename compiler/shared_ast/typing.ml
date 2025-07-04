@@ -20,7 +20,7 @@
 open Catala_utils
 open Definitions
 
-type flags = { fail_on_any : bool; assume_op_types : bool }
+type flags = { assume_op_types : bool }
 
 module Env = struct
   type 'e t = {
@@ -35,14 +35,11 @@ module Env = struct
     tvars : Type.t Type.Var.Hashtbl.t;
   }
 
-  let empty
-      ?(fail_on_any = true)
-      ?(assume_op_types = false)
-      (decl_ctx : decl_ctx) =
+  let empty ?(assume_op_types = false) (decl_ctx : decl_ctx) =
     (* We fill the environment initially with the structs and enums
        declarations *)
     {
-      flags = { fail_on_any; assume_op_types };
+      flags = { assume_op_types };
       structs = decl_ctx.ctx_structs;
       enums = decl_ctx.ctx_enums;
       vars = Var.Map.empty;
@@ -1042,8 +1039,8 @@ let scopes ctx env =
             (fun e -> Topdef (name, Expr.ty e', vis, e))
             (Expr.Box.lift e') ))
 
-let program ?fail_on_any ?assume_op_types prg =
-  let env = Env.empty ?fail_on_any ?assume_op_types prg.decl_ctx in
+let program ?assume_op_types prg =
+  let env = Env.empty ?assume_op_types prg.decl_ctx in
   let new_env, code_items = scopes prg.decl_ctx env prg.code_items in
   {
     lang = prg.lang;
@@ -1081,7 +1078,7 @@ let program ?fail_on_any ?assume_op_types prg =
       };
   }
 
-let program ?fail_on_any ?assume_op_types ?(internal_check = false) prg =
+let program ?assume_op_types ?(internal_check = false) prg =
   let wrap =
     if internal_check then (fun f ->
       try Message.with_delayed_errors f
@@ -1102,4 +1099,4 @@ let program ?fail_on_any ?assume_op_types ?(internal_check = false) prg =
         Printexc.raise_with_backtrace err bt)
     else fun f -> Message.with_delayed_errors f
   in
-  wrap @@ fun () -> program ?fail_on_any ?assume_op_types prg
+  wrap @@ fun () -> program ?assume_op_types prg
