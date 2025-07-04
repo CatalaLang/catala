@@ -1,0 +1,16 @@
+```catala
+declaration minmax content (anything of type t, anything of type t)
+  depends on lst content list of anything of type t
+  equals
+  combine all element among lst
+    in (min, max) initially (-1, -1)
+  with (if element <= min or min = -1 then element else min, if element >= max then element else max)
+```
+
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

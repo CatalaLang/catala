@@ -53,7 +53,7 @@
 #define MS_DEFINED_AS "wynosi"
 #define MS_MATCH "pasuje"
 #define MS_WILDCARD "cokolwiek"
-#define MS_TYPE "typu"
+#define MS_TYPE "rodzaj"
 #define MS_WITH "ze wzorem"
 #define MR_WITH "ze", space_plus, "wzorem"
 #define MS_UNDER_CONDITION "pod warunkiem"

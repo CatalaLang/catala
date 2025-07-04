@@ -96,37 +96,49 @@ module Env = struct
   let set_tvar env v ty = Type.Var.Hashtbl.add env.tvars v ty
 end
 
-(* Expands all known type variables as much as possible in the given type *)
-let get_ty env ty =
-  let rec aux seen = function
-    | (TVar v, pos) as ty -> (
-      match Env.get_tvar env v with
-      | None -> Type.rebox ty
-      | Some ty' ->
-        if Type.Var.Set.mem v seen then
-          Message.error ~internal:true ~pos "Recursive type detected: %a = %a"
-            Type.format ty Type.format ty'
-        else aux (Type.Var.Set.add v seen) ty')
-    | ty -> Type.map (aux seen) ty
-  in
-  Bindlib.unbox (aux Type.Var.Set.empty ty)
+let unification_error ?pos ?extra_pos ?fmt_pos fmt ty1 ty2 =
+  Message.delayed_error () ~kind:Typing ?pos ?extra_pos ?fmt_pos
+    ("Error during typechecking, incompatible types:@\n\
+      @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
+      @{<blue>@<2>%s@} @[<hov>%a@]"
+    ^^ fmt
+    ^^ "@]")
+    "─➤" Type.format ty1 "─➤" Type.format ty2
 
-let get_ty_quantified env ty =
+(* `eqclass` gathers all current aliases of the type ; `seen` is other type
+   variables that contain `ty` *)
+let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
+  | (TVar v, vpos) as ty -> (
+    match Env.get_tvar env v with
+    | None ->
+      onfreevar v;
+      Type.rebox ty
+    | Some ty' ->
+      if Type.Var.Set.mem v eqclass then
+        Type.rebox (TVar (Type.Var.Set.min_elt eqclass), vpos)
+      else if Type.Var.Set.mem v seen then (
+        unification_error ~pos
+          ~extra_pos:["", vpos]
+          "@,A type cannot contain itself." ty ty';
+        Type.rebox ty)
+      else get_ty_aux env pos (Type.Var.Set.add v eqclass) seen ty')
+  | ty ->
+    Type.map
+      (get_ty_aux env pos Type.Var.Set.empty (Type.Var.Set.union seen eqclass))
+      ty
+
+(* Expands all known type variables as much as possible in the given type *)
+let get_ty env e ty =
+  Bindlib.unbox
+    (get_ty_aux env (Expr.pos e) Type.Var.Set.empty Type.Var.Set.empty ty)
+
+let get_ty_quantified env pos ty =
   let vars = ref Type.Var.Set.empty in
-  let rec aux seen = function
-    | (TVar v, pos) as ty -> (
-      match Env.get_tvar env v with
-      | None ->
-        vars := Type.Var.Set.add v !vars;
-        Type.rebox ty
-      | Some ty' ->
-        if Type.Var.Set.mem v seen then
-          Message.error ~internal:true ~pos "Recursive type detected: %a = %a"
-            Type.format ty Type.format ty'
-        else aux (Type.Var.Set.add v seen) ty')
-    | ty -> Type.map (aux seen) ty
+  let bty =
+    get_ty_aux
+      ~onfreevar:(fun v -> vars := Type.Var.Set.add v !vars)
+      env pos Type.Var.Set.empty Type.Var.Set.empty ty
   in
-  let bty = aux Type.Var.Set.empty ty in
   if Bindlib.is_closed bty then Bindlib.unbox bty
   else
     let vars = Type.Var.Set.filter (fun v -> Bindlib.occur v bty) !vars in
@@ -142,8 +154,8 @@ let record_type_error env (AnyExpr e) t1 t2 =
      hindered as union-find side-effects wrongly unify both types. The delayed
      pretty-printing would yield messages such as: 'incompatible types (integer,
      integer)' *)
-  let t1_repr = get_ty env t1 in
-  let t2_repr = get_ty env t2 in
+  let t1_repr = get_ty env e t1 in
+  let t2_repr = get_ty env e t2 in
   let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
@@ -183,10 +195,7 @@ let record_type_error env (AnyExpr e) t1 t2 =
           t2_pos );
       ]
   in
-  Message.delayed_error ~kind:Typing () ~fmt_pos
-    "Error during typechecking, incompatible types:@\n\
-     @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
-     @{<blue>@<2>%s@} @[<hov>%a@]@]" "─➤" pp_typ t1_repr "─➤" pp_typ t2_repr
+  unification_error ~fmt_pos "" t1_repr t2_repr
 
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [typ] argument is propagated (unless it is [TVar]). *)
@@ -229,12 +238,24 @@ let rec unify
   | TOption t1', TOption t2' -> TOption (unify t1' t2'), pos2
   | TArray t1', TArray t2' -> TArray (unify t1' t2'), pos2
   | TDefault t1', TDefault t2' -> TDefault (unify t1' t2'), pos2
+  | TAny t1b, TAny t2b ->
+    let _, t1, t2 = Bindlib.unmbind2 t1b t2b in
+    unify t1 t2
+  | TAny t1b, _ ->
+    let _, t1 = Bindlib.unmbind t1b in
+    unify t1 t2
+  | _, TAny t2b ->
+    let _, t2 = Bindlib.unmbind t2b in
+    unify t1 t2
   | TVar v1, TVar v2 -> (
     if Bindlib.eq_vars v1 v2 then t2
     else
       match Env.get_tvar env v1, Env.get_tvar env v2 with
       | None, None ->
         Env.set_tvar env v1 t2;
+        t2
+      | Some (TVar v3, _), Some ((TVar v4, _) as t2) when Type.Var.equal v3 v4
+        ->
         t2
       | Some (TVar v3, _), None when Type.Var.equal v2 v3 -> t2
       | None, Some (TVar v3, _) when Type.Var.equal v1 v3 -> t1
@@ -246,14 +267,16 @@ let rec unify
       | Some t1, None ->
         if Type.Var.Set.mem v2 (Type.free_vars t1) then
           Message.error ~internal:true ~pos:(Expr.pos e)
-            "Recursive type detected: %a = %a" Type.format t1 Type.format t2
+            "Recursive type detected: %a(%a) = %a" Type.Var.format v1
+            Type.format t1 Type.format t2
         else (
           Env.set_tvar env v2 t1;
           t1)
       | None, Some t2 ->
         if Type.Var.Set.mem v1 (Type.free_vars t2) then
           Message.error ~internal:true ~pos:(Expr.pos e)
-            "Recursive type detected: %a = %a" Type.format t2 Type.format t1
+            "Recursive type detected: %a(%a) = %a" Type.Var.format v2
+            Type.format t2 Type.format t1
         else (
           Env.set_tvar env v1 t2;
           t2))
@@ -270,12 +293,6 @@ let rec unify
     Env.set_tvar env v2 t;
     t
   | TClosureEnv, TClosureEnv -> t2
-  | TAny t1b, _ ->
-    let _, t1 = Bindlib.unmbind t1b in
-    unify t1 t2
-  | _, TAny t2b ->
-    let _, t2 = Bindlib.unmbind t2b in
-    unify t1 t2
   | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
       | TArray _ | TDefault _ | TClosureEnv ),
       _ ) ->
@@ -355,7 +372,7 @@ let polymorphic_op_return_type
     let tret = Type.any pos in
     let tfunc = TArrow (List.init arity (fun _ -> Type.any pos), tret), pos in
     unify' env e tf tfunc;
-    get_ty env tret
+    get_ty env e tret
   in
   match Mark.remove op, targs with
   | Fold, [_; tau; _] -> tau
@@ -390,8 +407,7 @@ let resolve_overload_ret_type
 
 (** {1 Double-directed typing} *)
 
-let expr_ty : _ Env.t -> (_, typ custom) marked -> typ =
- fun env (_, Custom { custom; _ }) -> get_ty env custom
+let expr_ty env ((_, Custom { custom; _ }) as e) = get_ty env e custom
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
@@ -789,7 +805,7 @@ and typecheck_expr_top_down :
     let size, mark =
       if size <> 0 then size, context_mark
       else
-        match get_ty env tuple_ty with
+        match get_ty env e tuple_ty with
         | TTuple l, _ -> (
           match List.nth_opt l index with
           | None -> out_of_bounds (List.length l)
@@ -806,7 +822,7 @@ and typecheck_expr_top_down :
        it happens here, the corresponding type variables will already have been
        set. Consequently, we don't quantify Type.fresh_var variables here. *)
     if Bindlib.mbinder_arity binder <> List.length t_args then
-      Message.error ~pos:(Expr.pos e)
+      Message.error ~internal:true ~pos:(Expr.pos e)
         "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
@@ -822,7 +838,7 @@ and typecheck_expr_top_down :
     in
     let body' = typecheck_expr_top_down ctx env t_ret body in
     let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-    Expr.eabs binder' pos (List.map (get_ty env) t_args) mark
+    Expr.eabs binder' pos (List.map (get_ty env body) t_args) mark
   | EApp { f = e1; args; tys } ->
     (* Here we type the arguments first (in order), to ensure we know the types
        of the arguments if [f] is [EAbs] before disambiguation. This is also the
@@ -834,13 +850,13 @@ and typecheck_expr_top_down :
     in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
     let t_args =
-      match t_args, tys with
-      | [t], [] -> (
+      match args, t_args, tys with
+      | [e], [t], [] -> (
         (* Handles typing before detuplification: if [tys] was not yet set, we
            are allowed to destruct a tuple into multiple arguments (see
            [Scopelang.from_desugared] for the corresponding code
            transformation) *)
-        match get_ty env t with TTuple tys, _ -> tys | _ -> t_args)
+        match get_ty env e t with TTuple tys, _ -> tys | _ -> t_args)
       | _ ->
         if List.length t_args <> List.length args' then
           Message.error ~pos:(Expr.pos e)
@@ -848,14 +864,17 @@ and typecheck_expr_top_down :
             | EAbs _, _ -> "This binds %d variables, but %d were provided."
             | _ -> "This function application has %d arguments, but expects %d.")
             (List.length t_args) (List.length args');
-
         t_args
     in
     let t_func = TArrow (t_args, tau), Expr.pos e1 in
     let e1' = typecheck_expr_top_down ctx env t_func e1 in
-    Expr.eapp ~f:e1' ~args:args'
-      ~tys:(List.map (get_ty env) t_args)
-      context_mark
+    let tys =
+      match args with
+      | [] -> List.map (get_ty env e) t_args
+      | [e] -> List.map (get_ty env e) t_args
+      | _ -> List.map2 (get_ty env) args t_args
+    in
+    Expr.eapp ~f:e1' ~args:args' ~tys context_mark
   | EAppOp { op; tys = t_args; args } ->
     let t_func = TArrow (t_args, tau), pos_e in
     let args =
@@ -878,7 +897,7 @@ and typecheck_expr_top_down :
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
           unify' env e tau
             (resolve_overload_ret_type ~flags ctx e op
-               (List.map (get_ty env) t_args));
+               (List.map2 (get_ty env) args t_args));
           args')
         ~monomorphic:(fun op ->
           (* Here it doesn't matter but may affect the error messages *)
@@ -890,7 +909,7 @@ and typecheck_expr_top_down :
           List.map2 (typecheck_expr_top_down ctx env) t_args args)
     in
     (* All operator applications are monomorphised at this point *)
-    let tys = List.map (get_ty env) t_args in
+    let tys = List.map2 (get_ty env) args t_args in
     Expr.eappop ~op ~args ~tys context_mark
   | EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ctx env tau cons in
@@ -936,7 +955,7 @@ and typecheck_expr_top_down :
 (** {1 API} *)
 
 let get_ty_mark env (Custom { custom = ty; pos }) =
-  Typed { ty = get_ty_quantified env ty; pos }
+  Typed { ty = get_ty_quantified env pos ty; pos }
 
 let expr_raw
     (type a)
@@ -1029,21 +1048,32 @@ let scopes ctx env =
         let _tvars =
           Array.fold_left
             (fun acc tv ->
-              match get_ty env (TVar tv, tpos) with
+              let acc = Type.Var.Set.add tv acc in
+              match get_ty env e (TVar tv, tpos) with
               | (TAny _, _) as ty when Type.is_universal ty -> acc
-              | TVar tv', _ when not (Type.Var.Set.mem tv' acc) ->
+              | TVar tv', pos ->
+                if Type.Var.Set.mem tv' acc then
+                  Message.delayed_error () ~kind:Typing ~pos
+                    "Function@ %a@ has@ type@ %a,@ which requires that@ %a = \
+                     %a,@ while they are both specified as \
+                     @{<cyan>anything@}.@,"
+                    TopdefName.format name Type.format (expr_ty env e')
+                    Type.format (TVar tv, tpos) Type.format (TVar tv', tpos);
                 Type.Var.Set.add tv' acc
               | ty ->
-                Message.delayed_error ~kind:Typing () ~pos:(Mark.get ty)
-                  "Type %a is specified as @{<cyan>anything@}, but it appears \
-                   to only work for %a here"
-                  Type.format (TVar tv, tpos) Type.format ty;
+                Message.delayed_error () ~kind:Typing ~pos:(Mark.get ty)
+                  "In the definition of function %a, the type %a is specified \
+                   as @{<cyan>anything@}, but it appears to only work for %a \
+                   here"
+                  TopdefName.format name Type.format (TVar tv, tpos) Type.format
+                  ty;
                 acc)
             Type.Var.Set.empty tvars
         in
         (* TODO: cleanup the used type vars from env ? *)
         let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
         let typ = TAny bnd, tpos in
+        Message.debug "=> %a" Type.format typ;
         ( Env.add_var var typ env,
           Var.translate var,
           Bindlib.box_apply
@@ -1075,9 +1105,8 @@ let program ?assume_op_types prg =
                 (fun f_name (t : typ) ->
                   match Mark.remove t with
                   | TAny _ ->
-                    get_ty env
-                      (StructField.Map.find f_name
-                         (StructName.Map.find s_name new_env.structs))
+                    StructField.Map.find f_name
+                      (StructName.Map.find s_name new_env.structs)
                   | _ -> t)
                 fields)
             prg.decl_ctx.ctx_structs;
@@ -1088,9 +1117,8 @@ let program ?assume_op_types prg =
                 (fun cons_name (t : typ) ->
                   match Mark.remove t with
                   | TAny _ ->
-                    get_ty env
-                      (EnumConstructor.Map.find cons_name
-                         (EnumName.Map.find e_name new_env.enums))
+                    EnumConstructor.Map.find cons_name
+                      (EnumName.Map.find e_name new_env.enums)
                   | _ -> t)
                 cons)
             prg.decl_ctx.ctx_enums;
