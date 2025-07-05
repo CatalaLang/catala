@@ -34,12 +34,16 @@ open Shared_ast
       var : ('a, 'm) naked_gexpr Bindlib.var;
       value : ('a, 'm) gexpr
     }
-    -> ('a, 'm) t
+      -> ('a, 'm) t
   | TrAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       pos : Pos.t list;
       tys : typ list;
-      context : (('a, 'm) gexpr, ('a, 'm) gexpr) Var.Map.t
+    }
+      -> ('a, 'm) t
+  | TrContextClosure : {
+      context : (('a, 'm) gexpr, ('a, 'm) gexpr) Var.Map.t;
+      tr : ('a, 'm) t
     }
       -> ('a, 'm) t
   | TrIfThenElse : {

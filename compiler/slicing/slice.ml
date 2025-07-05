@@ -121,113 +121,112 @@ let unevaluate :
   ((yes, yes, yes) slicing_interpr_kind, t) gexpr =
 fun ctx value trace -> 
   let rec unevaluate_aux :
+    context_closure : (((yes, yes, yes) slicing_interpr_kind, t) gexpr, ((yes, yes, yes) slicing_interpr_kind, t) gexpr) Var.Map.t ->
     ((yes, yes, yes) slicing_interpr_kind, t) gexpr ->
     ((yes, yes, yes) slicing_interpr_kind, t) Trace_ast.t ->
     (((yes, yes, yes) slicing_interpr_kind, t) gexpr, ((yes, yes, yes) slicing_interpr_kind, t) gexpr) Var.Map.t * 
     ((yes, yes, yes) slicing_interpr_kind, t) gexpr =
-  fun v trace ->
+  fun ~context_closure v trace ->
+    let unevaluate_auxb = unevaluate_aux ~context_closure in
+    let unevaluate_listb= unevaluate_list ~context_closure in
+    let unevaluate_opb  = unevaluate_op ~context_closure in
     let m = Mark.get v in
+    (*Format.fprintf (Message.std_ppf ()) "@.Value : %a@.Trace : %a@." Format_trace.expr v Format_trace.trace trace;*)
+    (*Format.open_hovbox 2;*)
+    let rho, e = 
     match Mark.remove v, trace with
     | EHole _, _ -> Var.Map.empty, v
     | _, TrExpr _ -> Message.error "This case should not happen, TrExpr cannot be unevaluated"
     | ELit l1, TrLit l2 when l1 = l2 -> Var.Map.empty, v
     | EEmpty, TrEmpty -> Var.Map.empty, v
-    | EAbs _, TrAbs { binder; pos; tys; context} -> 
+    | EAbs {tys = t1; _}, TrAbs {binder; pos; tys= t2; _} when Type.equal_list t1 t2 -> 
       (* There may be variables in the body of the abstraction that have been substituted 
-         so to unevaluate the body properly, we have to return the original binder and the context of what substitutions occured *)
-      (*
-      Message.log "Function : ";
-      Format_trace.print_expr v;
-      Message.log "Trace Function :";
-      Format_trace.print_trace trace;
-      Format.print_newline();
-
-      let vars, substituted_body, original_body = Bindlib.unmbind2 substituted_binder original_binder in 
-      *)
-
-      (* Need to introduce a flag system to minimize the slice (the context may add non useful variables)*)
-      
-      context, Mark.add m @@ EAbs{binder; pos; tys}
+         so to unevaluate the body properly, we have to return the original binder (the one in the trace). 
+         If further context is needed, it should have been handled by a TrContextClosure *)
+      let original_e = Mark.add m @@ EAbs{binder; pos; tys = t2} in
+      if is_sub_expr v original_e then
+        (*if the value is a sub expression of the original expression,
+          then the content of the abstraction has been sliced in v so we return it*)
+        Var.Map.empty, v
+      else
+        (* Otherwise, the value contains substitutions so we return the original value *)
+        Var.Map.empty, original_e
+    | _, TrContextClosure { context; tr } -> 
+      (* Add some sort of permanent context *)
+      unevaluate_aux ~context_closure:(join_ctx context_closure context) v tr
     | _, TrVar {var = x; _} -> Var.Map.singleton x v, Mark.add m (EVar x)
     | _, TrExternal { name } -> Var.Map.empty, Mark.add m (EExternal { name })
     | _, TrApp { trf; trargs; tys; vars; trv } ->
-      (*
-      Message.log "Application :";
-      Format_trace.print_expr v;
-      Format_trace.print_trace trace;
-      Message.log "-Start Body : ";*)
-      let local_ctx, e = unevaluate_aux v trv in
-      (*Message.log "-End Body";
-      Format_trace.print_expr e;*)
+      let local_ctx, e = unevaluate_auxb v trv in
       let values = List.map 
-        (fun v -> match Var.Map.find_opt v local_ctx with 
+        (fun v -> match Var.Map.find_opt v context_closure with 
+          (* We first search the variable in the context closure *)
           | Some value -> value 
-          (*if the variable is not in the context, then it was not used in the body hence we can assign it a hole*)
-          | None -> mark_hole m 
+          | None -> (
+            (* Then in the context raised by the value if not found *)
+            match Var.Map.find_opt v local_ctx with
+            | Some value -> value
+            (*if the variable is not in the context, then it was not used in the body hence we can assign it a hole*)
+            | None -> mark_hole m 
+          )
         ) 
         (Array.to_list vars)
       in
-      (*Message.log "-Start Args :";*)
-      let lctx2, e2 = unevaluate_list values trargs in
-      (*Message.log "-End Args :";
-      List.iter Format_trace.print_expr e2;*)
+      let lctx2, e2 = unevaluate_listb values trargs in
       let empty_pos = List.init (List.length tys) (fun _ -> Pos.void) in
-      let lctx1, e1 = unevaluate_aux (Mark.add m (EAbs { binder = bind vars e; pos =  empty_pos; tys})) trf in
-      (*Message.log "END application";
-      Format_trace.print_expr @@ Mark.add m (EApp {f = e1; args = e2; tys}) ;
-      Message.log "--";*)
+      let lctx1, e1 = unevaluate_auxb (Mark.add m (EAbs { binder = bind vars e; pos =  empty_pos; tys})) trf in
       join_ctx_list (local_ctx::lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys}) 
     | _, TrAppCustom { trcustom; custom; trargs; vargs; tys; _} ->
-      let lctx2, e2 = unevaluate_list vargs trargs in
-      let lctx1, e1 = unevaluate_aux custom trcustom in
+      let lctx2, e2 = unevaluate_listb vargs trargs in
+      let lctx1, e1 = unevaluate_auxb custom trcustom in
       join_ctx_list (lctx1::lctx2), Mark.add m (EApp {f = e1; args = e2; tys})
     | _, TrAppOp { op = Length, _ as op; trargs; tys; vargs = [(EArray vs, m)]; _ } -> 
       (* The content of the Array is not relevant so we replace each element by a hole *)
       let vargs = [Mark.add m (EArray (List.map (fun v -> mark_hole (Mark.get v)) vs))] in
-      unevaluate_op op tys vargs trargs m 
+      unevaluate_opb op tys vargs trargs m 
     | EArray vs, TrAppOp { op = Map, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _, ma)]; traux } -> 
       (* We slice the expression further *)
-      let _, sliced_apps = unevaluate_list vs traux in
+      let _, sliced_apps = unevaluate_listb vs traux in
       let f, sliced_vs = List.fold_right 
         (fun app (joined_f, vs) -> match app with 
           | EApp {f; args = [v]; _}, _ -> (join_expr f joined_f), v::vs
           | EHole _, _ -> joined_f, mark_hole ma :: vs
-          | _ -> assert false
+          | e -> Message.error "Application expected, got %a" Format_trace.expr e
         )
         sliced_apps (mark_hole mf, [])
       in
-      unevaluate_op op tys [f; (EArray sliced_vs, ma)] trargs m 
+      unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m 
     | EArray vs, TrAppOp { op = Map2, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _, m1); (EArray _, m2)]; traux } ->
-      let _, sliced_apps = unevaluate_list vs traux in
+      let _, sliced_apps = unevaluate_listb vs traux in
       let f, sliced_vs1, sliced_vs2 = List.fold_right 
         (fun app (joined_f, vs1, vs2) -> match app with 
           | EApp {f; args = [v1; v2]; _}, _ -> (join_expr f joined_f), v1::vs1, v2::vs2
           | EHole _, _ -> joined_f, mark_hole m1 :: vs1, mark_hole m2 ::vs2
-          | _ -> assert false
+          | e -> Message.error "Application expected, got %a" Format_trace.expr e
         )
         sliced_apps
         (mark_hole mf, [], [])
       in
-      unevaluate_op op tys [f; (EArray sliced_vs1, m1); (EArray sliced_vs2, m2)] trargs m
+      unevaluate_opb op tys [f; (EArray sliced_vs1, m1); (EArray sliced_vs2, m2)] trargs m
     | _ , TrAppOp { op = Reduce, _ as op; trargs; tys; vargs = [_,mf; EAbs _, md; (EArray [], ma) as arr]; traux = [tr]} ->
-      let _, sliced_app = unevaluate_aux v tr in
+      let _, sliced_app = unevaluate_auxb v tr in
       let sliced_default, sliced_arr = match sliced_app with
-        | EApp {f; args = [ELit LUnit, _]; _}, _ -> f, arr
+        | EApp {f; args = [(ELit LUnit|EHole _), _]; _}, _ -> f, arr
         | EHole _, _ -> mark_hole md, mark_hole ma
-        | _ -> assert false
+        | e -> Message.error "Application expected, got %a" Format_trace.expr e
       in 
-      unevaluate_op op tys [mark_hole mf; sliced_default; sliced_arr] trargs m 
+      unevaluate_opb op tys [mark_hole mf; sliced_default; sliced_arr] trargs m 
     | _, TrAppOp { op = Reduce, _ as op; trargs; tys; vargs = [EAbs _, mf; _,md; (EArray (_::_), ma) ]; traux} ->
       let f, v0, sliced_vs = List.fold_right (
         fun tr (joined_f, acc, vs) ->
-          match snd (unevaluate_aux acc tr) with
+          match snd (unevaluate_auxb acc tr) with
           | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
           | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
-          | _ -> assert false
+          | e ->  Message.error "Application expected, got %a" Format_trace.expr e
         )
         traux (mark_hole mf, v, [])
       in
-      unevaluate_op op tys [f; mark_hole md; (EArray (v0::sliced_vs), ma)] trargs m 
+      unevaluate_opb op tys [f; mark_hole md; (EArray (v0::sliced_vs), ma)] trargs m 
     | EArray vs, TrAppOp { op = Filter, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _),ma]; traux} -> 
       (* This case is particular because we have to slice each element of the array depending on 
         how they behave with the filter function and then join the values with the sliced result *)
@@ -242,7 +241,7 @@ fun ctx value trace ->
         (fun tb -> match tb with | Trace_ast.TrLit (LBool b) -> b | _ -> Message.error "Bool was expected, got : %a" Format_trace.trace tb) 
         bools 
       in
-      let _, sliced_apps = unevaluate_list (List.map (fun b -> ELit(LBool b),m) bools) trbs in
+      let _, sliced_apps = unevaluate_listb (List.map (fun b -> ELit(LBool b),m) bools) trbs in
       let f, sliced_arr = List.fold_right 
         (fun app (joined_f, vs) -> match app with 
           | EApp {f; args = [v]; _}, _ -> (join_expr f joined_f), v::vs
@@ -259,43 +258,43 @@ fun ctx value trace ->
         | _ -> assert false
       in 
       let sliced_vs = join_relevant_values bools sliced_arr vs in
-      unevaluate_op op tys [f; (EArray sliced_vs, ma)] trargs m
+      unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m
     | _, TrAppOp { op = Fold,_ as op; trargs; tys; vargs = [EAbs _, mf; _; (EArray _, ma)]; traux} ->
       let f, v0, sliced_vs = List.fold_right (
         fun tr (joined_f, acc, vs) ->
-          match snd (unevaluate_aux acc tr) with
+          match snd (unevaluate_auxb acc tr) with
           | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
           | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
           | _ -> assert false
         )
         traux (mark_hole mf, v, [])
       in
-      unevaluate_op op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
+      unevaluate_opb op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
     | _, TrAppOp { op; trargs; tys; vargs; _ } -> 
-      unevaluate_op op tys vargs trargs m 
-    | _, TrStructAccess { name; tr; field } -> 
+      unevaluate_opb op tys vargs trargs m 
+    | _, TrStructAccess { name; tr; field } ->
       let fields_typ = get_fields ctx name in 
       let fields = StructField.Map.mapi (fun f ty -> if f = field then v else (Mark.add m (EHole ty))) fields_typ in
       let estruct = Mark.add m (EStruct { name; fields }) in
-      let local_ctx, e = unevaluate_aux estruct tr in
+      let local_ctx, e = unevaluate_auxb estruct tr in
       local_ctx, Mark.add m (EStructAccess { name; e; field })
     | EStruct { name = n1; fields = efields }, TrStruct { name = n2; fields = trfields } 
       when StructName.equal n1 n2 ->
-        let fields_with_ctx = StructField.Map.mapi (fun f e -> unevaluate_aux e (StructField.Map.find f trfields)) efields in
+        let fields_with_ctx = StructField.Map.mapi (fun f e -> unevaluate_auxb e (StructField.Map.find f trfields)) efields in
         let local_ctx = StructField.Map.fold (fun _ (ctx,_) lctx -> join_ctx lctx ctx) fields_with_ctx Var.Map.empty in
         let fields = StructField.Map.map snd fields_with_ctx in
         local_ctx, Mark.add m (EStruct { name = n1; fields })
     | ETuple vs, TrTuple trs when List.length vs = List.length trs -> 
-      let local_ctxs, es = unevaluate_list vs trs in 
+      let local_ctxs, es = unevaluate_listb vs trs in 
       join_ctx_list local_ctxs, Mark.add m (ETuple es)
     | _, TrTupleAccess { tr; index; size } -> 
       let arr = List.init size (fun i -> if i = index then v else mark_hole m) in
       let e = Mark.add m (ETuple arr) in 
-      let local_ctx, e' = unevaluate_aux e tr in 
+      let local_ctx, e' = unevaluate_auxb e tr in 
       local_ctx, Mark.add m (ETupleAccess { e = e'; index; size })
     | EInj { name = n1; e = v; cons = c1 }, TrInj { name = n2; tr; cons = c2 } 
       when EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 ->
-        let local_ctx, e = unevaluate_aux v tr in 
+        let local_ctx, e = unevaluate_auxb v tr in 
         local_ctx, Mark.add m (EInj { name = n1; e; cons = c1})
     | _, TrMatch { name; tr; cases } -> 
       let interesting_cases = EnumConstructor.Map.filter 
@@ -304,10 +303,10 @@ fun ctx value trace ->
       | 0 -> Message.error "No case found to unevaluate the value in the match sequence"
       | 1 -> 
         let cons, trc = EnumConstructor.Map.choose interesting_cases in 
-        let lctxc, ec' = unevaluate_aux v trc in 
+        let lctxc, ec' = unevaluate_auxb v trc in 
         (match Mark.remove ec' with
         | EApp { f = ec; args = [v']; tys = _} -> 
-          let lctx, e = unevaluate_aux (Mark.add m (EInj { name; e = v'; cons })) tr in 
+          let lctx, e = unevaluate_auxb (Mark.add m (EInj { name; e = v'; cons })) tr in 
           let cases_expr = EnumConstructor.Map.mapi 
             (fun c _ -> if c = cons then ec else (mark_hole m)) 
             cases  
@@ -320,58 +319,59 @@ fun ctx value trace ->
     | _, TrIfThenElse { trcond; trtrue; trfalse } -> (
       match trtrue, trfalse with 
         | _, (TrExpr _ |TrHole _)-> (*take the true branch*)(
-          let lctxc, cond = unevaluate_aux (Mark.add m (ELit(LBool true))) trcond in
-          let lctxt, etrue = unevaluate_aux v trtrue in
+          let lctxc, cond = unevaluate_auxb (Mark.add m (ELit(LBool true))) trcond in
+          let lctxt, etrue = unevaluate_auxb v trtrue in
           (join_ctx lctxc lctxt), Mark.add m (EIfThenElse { cond; etrue; efalse = mark_hole m})
           )
         | (TrExpr _ |TrHole _), _ -> (*take the false branch*)(
-          let lctxc, cond = unevaluate_aux (Mark.add m (ELit(LBool false))) trcond in
-          let lctxf, efalse = unevaluate_aux v trfalse in
+          let lctxc, cond = unevaluate_auxb (Mark.add m (ELit(LBool false))) trcond in
+          let lctxf, efalse = unevaluate_auxb v trfalse in
           (join_ctx lctxc lctxf), Mark.add m (EIfThenElse { cond; etrue = mark_hole m; efalse})
           )
         | _ -> Message.error "Could not identify whether the result of the condition was true or false" 
       )
     | EArray vs, TrArray trs when List.length vs = List.length trs ->
-      let local_ctxs, es = unevaluate_list vs trs in 
+      let local_ctxs, es = unevaluate_listb vs trs in 
       join_ctx_list local_ctxs, Mark.add m (EArray es)
     | ELit LUnit, TrAssert tr -> 
-      let local_ctx, e = unevaluate_aux (Mark.add m (ELit (LBool true))) tr in 
+      let local_ctx, e = unevaluate_auxb (Mark.add m (ELit (LBool true))) tr in 
       local_ctx, Mark.add m (EAssert e)
     | v', TrErrorOnEmpty tr when v' <> EEmpty -> 
-      let local_ctx, e = unevaluate_aux v tr in 
+      let local_ctx, e = unevaluate_auxb v tr in 
       local_ctx, Mark.add m (EErrorOnEmpty e)
     | _, TrPureDefault tr ->
-      let local_ctx, e = unevaluate_aux v tr in 
+      let local_ctx, e = unevaluate_auxb v tr in 
       local_ctx, Mark.add m (EPureDefault e)
     | _, TrDefault { trexcepts; vexcepts; trjust; trcons } -> (
       match trjust, trcons with
       | (TrExpr _ |TrHole _), _ -> (* The result is obtained from one of the exceptions *)
-        let lctxs,excepts = unevaluate_list vexcepts trexcepts in
+        let lctxs,excepts = unevaluate_listb vexcepts trexcepts in
         let local_ctx = join_ctx_list lctxs in 
         local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
       | _, (TrExpr _ |TrHole _) -> (* The result is obtained from the false justification *)
         let eempty = List.init (List.length trexcepts) (fun _ -> Mark.add m EEmpty) in
-        let lctxe, excepts = unevaluate_list eempty trexcepts in 
-        let lctxj, just = unevaluate_aux (Mark.add m (ELit(LBool false))) trjust in
+        let lctxe, excepts = unevaluate_listb eempty trexcepts in 
+        let lctxj, just = unevaluate_auxb (Mark.add m (ELit(LBool false))) trjust in
         let local_ctx = join_ctx_list (lctxj::lctxe) in
         local_ctx, (Mark.add m (EDefault { excepts; just; cons = mark_hole m }))
       | _, _ -> (* The result is obtained from the consequence *)
         let eempty = List.init (List.length trexcepts) (fun _ -> Mark.add m EEmpty) in
-        let lctxe, excepts = unevaluate_list eempty trexcepts in 
-        let lctxj, just = unevaluate_aux (Mark.add m (ELit(LBool true))) trjust in
-        let lctxc, cons = unevaluate_aux v trcons in
+        let lctxe, excepts = unevaluate_listb eempty trexcepts in 
+        let lctxj, just = unevaluate_auxb (Mark.add m (ELit(LBool true))) trjust in
+        let lctxc, cons = unevaluate_auxb v trcons in
         let local_ctx = join_ctx_list (lctxc::lctxj::lctxe) in
         local_ctx, (Mark.add m (EDefault { excepts; just; cons }))
     )
     | EFatalError err1, TrFatalError err2 when err1 = err2 -> Var.Map.empty, v
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
+    in (*Format.close_box ();*) rho, e
 
-  and unevaluate_list v_list trace_list = List.split (List.map2 unevaluate_aux v_list trace_list)
+  and unevaluate_list ~context_closure v_list trace_list = List.split (List.map2 (unevaluate_aux ~context_closure) v_list trace_list)
   
-  and unevaluate_op op tys vargs trargs m = let lctxs, args = unevaluate_list vargs trargs in 
+  and unevaluate_op ~context_closure op tys vargs trargs m = let lctxs, args = unevaluate_list ~context_closure vargs trargs in 
       join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
 
-  in snd (unevaluate_aux value trace)
+  in snd (unevaluate_aux ~context_closure:Var.Map.empty value trace)
 
 let print_slicing_things expr value trace sliced_expr = 
   Message.log "Input program :";

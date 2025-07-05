@@ -17,6 +17,7 @@ let addholes e =
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (EPos _, _) as e -> Expr.map ~f e
+    | EFatalError Runtime.Unreachable, m -> Expr.map ~f @@ Mark.add m (EHole (TAny, Pos.void))
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -82,10 +83,12 @@ let trarray ts = TrArray ts
 
 let trvar ~var ~value = TrVar { var; value }
 
-let trabs ~binder ~pos ~tys ~context = 
+let trabs ~binder ~pos ~tys = TrAbs { binder; pos; tys }
+
+let trcontextclosure ~context ~tr = 
   let ctx_bindings = Var.Map.bindings context in
   let context = List.fold_left (fun acc (x,v) -> Var.Map.add (Var.translate x) (addholes v) acc) Var.Map.empty ctx_bindings in
-  TrAbs { binder; pos; tys; context }
+  TrContextClosure { context; tr }
 
 let trifthenelse ~trcond ~trtrue ~trfalse =
   TrIfThenElse { trcond; trtrue; trfalse }
@@ -208,33 +211,35 @@ fun e1 e2 -> match Mark.remove e1, Mark.remove e2 with
 
 let ( let* ) = Result.bind
 
-let ok e tr = Ok (e,tr)
+let ok map v tr = Ok (map,v,tr)
 
 let error err m trace = Error (err, m, trace)
 
 let map_error_trace trace_wrapper r = 
   Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper tr) r
 
+let union_map m1 m2 = Var.Map.union (fun _ v _ -> Some v) m1 m2
+
 let map_result_with_trace f lst =
-  let rec aux accv acctr rev_prefix = function
-    | [] -> Ok (List.rev accv, List.rev acctr)
+  let rec aux accmap accv acctr rev_prefix = function
+    | [] -> Ok (accmap, List.rev accv, List.rev acctr)
     | x :: xs ->
       match f x with
-      | Ok (v, tr) -> aux (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
+      | Ok (map, v, tr) -> aux (union_map accmap map) (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
       | Error (err, m, trfail) ->
           let rev_prefix_trace = List.map trexpr rev_prefix in
           let rest_trace = List.map trexpr xs in
           let full_trace = List.rev_append rev_prefix_trace (trfail::rest_trace) in
           error err m full_trace
   in
-  aux [] [] [] lst
+  aux Var.Map.empty [] [] [] lst
 
 let map_result_with_trace2 f l1 l2 =
-  let rec aux accv acctr rev_prefix = function
-    | [], [] -> Ok (List.rev accv, List.rev acctr)
+  let rec aux accmap accv acctr rev_prefix = function
+    | [], [] -> Ok (accmap, List.rev accv, List.rev acctr)
     | x1 :: xs1, x2 :: xs2 -> (
       match f x1 x2 with
-      | Ok (v, tr) -> aux (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
+      | Ok (map, v, tr) -> aux (union_map accmap map) (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
       | Error (err, m, trfail) ->
         let trace_before = List.map (fun _ -> tranyhole) rev_prefix in
         let trace_after = List.map (fun _ -> tranyhole) xs1 in
@@ -243,30 +248,30 @@ let map_result_with_trace2 f l1 l2 =
     )
     | _ -> Message.error "map_result_with_trace2: input lists must have the same length"
   in
-  aux [] [] [] (l1, l2)
+  aux Var.Map.empty [] [] [] (l1, l2)
 
 let fold_result_with_trace f acc0 lst =
-  let rec aux acc tracc = function
-    | [] -> Ok (acc, List.rev tracc)
+  let rec aux accmap acc tracc = function
+    | [] -> Ok (accmap, acc, List.rev tracc)
     | x :: xs ->
         match f acc x with
-        | Ok (acc', tr) -> aux acc' (tr :: tracc) xs
+        | Ok (map, acc', tr) -> aux (union_map accmap map) acc' (tr :: tracc) xs
         | Error (err, m, trfail) ->
             let trace_after = List.map (fun _ -> tranyhole) xs in
             let full_trace = List.rev_append tracc (trfail::trace_after) in
             error err m full_trace
   in
-  aux acc0 [] lst
+  aux Var.Map.empty acc0 [] lst
 
 let filter_result_with_trace f lst =
-  let rec aux accv acctr = function
-    | [] -> Ok (List.rev accv, List.rev acctr)
+  let rec aux accmap accv acctr = function
+    | [] -> Ok (accmap, List.rev accv, List.rev acctr)
     | x :: xs ->
       match f x with
-      | Ok ((ELit (LBool b),_), tr_call) ->
+      | Ok (map, (ELit (LBool b),_), tr_call) ->
         let acctr' = (trlit (LBool b) :: tr_call :: acctr) in
         let accv' = if b then x :: accv else accv in
-        aux accv' acctr' xs
+        aux (union_map accmap map) accv' acctr' xs
       | Error (err, m, trfail) ->
         let rev_prefix_trace = List.map (fun _ -> tranyhole) acctr in
         let rest_trace = List.init (List.length xs * 2) (fun _ -> tranyhole) in
@@ -276,7 +281,7 @@ let filter_result_with_trace f lst =
         "fold_filter_result : This predicate evaluated to something else than a boolean \
           (should not happen if the term was well-typed)"
   in
-  aux [] [] lst
+  aux Var.Map.empty [] [] lst
 
 
 

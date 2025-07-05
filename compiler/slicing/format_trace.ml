@@ -127,6 +127,7 @@ module Precedence = struct
     | TrVar _ -> Contained
     | TrExternal _ -> Contained
     | TrAbs _ -> Abs
+    | TrContextClosure _ -> Contained
     | TrIfThenElse _ -> Contained
     | TrStruct _ -> Contained
     | TrInj _ -> App
@@ -630,7 +631,7 @@ let rec trace_aux :
         Format.pp_print_list
           (fun fmt (x, tau, arg) ->
             Format.fprintf fmt
-              "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
+              "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2> %a@]" keyword
               "let" var x punctuation ":" (typ_gen None ~colors) tau
               punctuation "=" (tracec colors) arg keyword "in")
           fmt xs_tau_arg;
@@ -682,6 +683,7 @@ let rec trace_aux :
                 Format.pp_close_box fmt ();
                 punctuation fmt ")"))
         xs_tau punctuation "→" (rhs (exprb bnd_ctx)) body
+    | TrContextClosure { context=ctx; tr } -> Format.fprintf fmt "@[<hv 0>%a (ρ : %a)@]" trace tr context ctx
     | TrAppOp { op = ((Map | Filter) as op), _; trargs = [trarg1; trarg2]; _ } ->
       Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs_tr tracec) trarg1
         (rhs_tr tracec) trarg2
