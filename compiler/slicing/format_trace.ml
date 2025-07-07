@@ -254,14 +254,15 @@ let rec typ_gen
 
 let rec expr_aux :
     type a t.
+    cut_app : int option ->
     Bindlib.ctxt ->
     Ocolor_types.color4 list ->
     Format.formatter ->
     (a, t) gexpr ->
     unit =
-  fun bnd_ctx colors fmt e ->
-
-  let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
+  fun ~cut_app bnd_ctx colors fmt e ->
+  let decr cut_app = Option.bind cut_app (fun n -> if n <= 0 then Some 0 else Some (n-1)) in
+  let exprb bnd_ctx colors e = expr_aux ~cut_app bnd_ctx colors e in
   let exprc colors e = exprb bnd_ctx colors e in
   let expr e = exprc colors e in
   let operator fmt op = operator ~debug:false fmt op in 
@@ -303,7 +304,7 @@ let rec expr_aux :
       Format.pp_print_int fmt index
     | ELit l -> lit fmt l
     | EApp { f = EAbs _, _; _ } ->
-      let rec pr bnd_ctx colors fmt = function
+      let rec pr cut_app bnd_ctx colors fmt = function
         | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ }, _ ->
           let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
           let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
@@ -315,14 +316,22 @@ let rec expr_aux :
               Format.fprintf fmt
                 "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
                 "let" var x punctuation ":" (typ_gen None ~colors) tau
-                punctuation "=" (exprc colors) arg keyword "in")
+                punctuation "=" (
+                  if cut_app = Some 0 then 
+                    fun fmt _ -> Format.pp_print_string fmt "..."
+                  else 
+                    expr_aux ~cut_app:(decr cut_app) bnd_ctx colors
+                ) arg keyword "in")
             fmt xs_tau_arg;
           Format.pp_print_cut fmt ();
-          rhs (pr bnd_ctx) fmt body
+          if cut_app = Some 0 then 
+            Format.pp_print_string fmt "..."
+          else 
+            rhs (pr (decr cut_app) bnd_ctx) fmt body
         | e -> rhs (exprb bnd_ctx) fmt e
       in
       Format.pp_open_vbox fmt 0;
-      pr bnd_ctx colors fmt e;
+      pr cut_app bnd_ctx colors fmt e;
       Format.pp_close_box fmt ()
     | EAbs { binder; pos = _; tys } ->
       let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
@@ -520,7 +529,8 @@ let rec expr_aux :
     | ECustom _ -> Format.pp_print_string fmt "<obj>"
     | EHole _ -> Format.pp_print_string fmt "□"
 
-let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
+let expr_with_cut ~cut_app ppf e = expr_aux ~cut_app Bindlib.empty_ctxt colors ppf e
+let expr ppf e = expr_with_cut ~cut_app:None ppf e
 
 let print_expr ?(fmt=Message.std_ppf ()) (e : ('a, 'm) gexpr) = Format.fprintf fmt "%a@." expr e
 
@@ -567,7 +577,7 @@ let rec trace_aux :
   let traceb bnd_ctx colors tr = trace_aux bnd_ctx colors tr in
   let tracec colors tr = traceb bnd_ctx colors tr in
   let trace tr = tracec colors tr in
-  let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
+  let exprb bnd_ctx colors e = expr_aux ~cut_app:(Some 1) bnd_ctx colors e in
   let exprc colors e = exprb bnd_ctx colors e in
   (*let expr e = exprc colors e in*)
   let operator fmt op = operator ~debug:false fmt op in 
@@ -791,9 +801,21 @@ let rec trace_aux :
                 Format.fprintf fmt "@[<hv 2>%t %a@ %a%a@]" pp_field_name
                   punctuation "=" (lhs_tr tracec) field_expr punctuation ";"))
           fields punctuation "}"
-    | TrStructAccess { tr; field; _ } ->
-      Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs_tr tracec) tr punctuation "."
+    | TrStructAccess { tr; field; _ } ->(
+      match tr with 
+      | TrVar{var = v; value = EStruct{fields; name},_} -> (
+        match StructField.Map.find_opt field fields with
+        | Some e' -> Format.fprintf fmt "@[<hv 2>%a%a@,%a (▷ %a)@]" var v punctuation "."
+        StructField.format field (exprc colors) e'
+        | None ->
+          Message.error
+            "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
+            term was well-typed)"
+            StructField.format field StructName.format name
+        )
+      | _ -> Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs_tr tracec) tr punctuation "."
         StructField.format field
+    )
     | TrInj { tr; cons; _ } ->
       Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
         (paren (*~rhs:false*) tracec) tr
