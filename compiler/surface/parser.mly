@@ -79,7 +79,7 @@ end>
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
-%right apply OF CONTAINS WITH BUT_REPLACE OR_IF_LIST_EMPTY
+%right apply OF CONTAINS WITH BUT_REPLACE OR_IF_LIST_EMPTY WILDCARD
 %right WITH_V
 %right COMMA
 %right unop_expr
@@ -202,7 +202,7 @@ let primitive_typ :=
 | DATE ; { Date }
 | c = quident ; { let path, uid = c in Named (path, uid) }
 | WILDCARD; { Var None }
-| WILDCARD; OF_TYPE ; id = lident; { Var (Some id) }
+| WILDCARD; OF; TYPE ; id = lident; { Var (Some id) }
 
 let typ_data :=
 | t = primitive_typ ; <Primitive>
