@@ -977,7 +977,39 @@ let check_expr ctx ?env ?typ e =
 
 (* Infer the type of an expression *)
 let expr ctx ?(env = Env.empty ctx) ?typ e =
-  Expr.map_marks ~f:(get_ty_mark env) (expr_raw ctx ~env ?typ e)
+  match typ with
+  | Some (TAny bnd, tpos) ->
+    (* polymorphic function case *)
+    let tvars, typ = Bindlib.unmbind bnd in
+    let e' = typecheck_expr_top_down ctx env typ e in
+    let _tvars =
+      Array.fold_left
+        (fun acc tv ->
+          let acc = Type.Var.Set.add tv acc in
+          match get_ty env e (TVar tv, tpos) with
+          | TVar tv', _ when Type.Var.equal tv tv' -> acc
+          | (TAny _, _) as ty when Type.is_universal ty -> acc
+          | TVar tv', pos ->
+            if Type.Var.Set.mem tv' acc then
+              Message.delayed_error () ~kind:Typing ~pos
+                "This function@ has type %a,@ which requires that@ %a = %a,@ \
+                 while they are both specified as @{<cyan>anything@}.@,"
+                Type.format (expr_ty env e') Type.format (TVar tv, tpos)
+                Type.format (TVar tv', tpos);
+            Type.Var.Set.add tv' acc
+          | ty ->
+            Message.delayed_error () ~kind:Typing ~pos:(Mark.get ty)
+              "In this function definition, the type@ %a@ is@ specified@ as@ \
+               @{<cyan>anything@},@ but it appears to only work for@ %a@ here"
+              Type.format (TVar tv, tpos) Type.format ty;
+            acc)
+        Type.Var.Set.empty tvars
+    in
+    (* TODO: cleanup the used type vars from env ? *)
+    let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
+    let typ = TAny bnd, tpos in
+    Expr.set_ty typ e'
+  | _ -> Expr.map_marks ~f:(get_ty_mark env) (expr_raw ctx ~env ?typ e)
 
 let scope_body_expr ctx env ty_out body_expr =
   let _env, ret =
@@ -1041,51 +1073,12 @@ let scopes ctx env =
         ( Env.add_var var ty_scope env,
           Var.translate var,
           Bindlib.box_apply (fun body -> ScopeDef (name, body)) body_e )
-      | Topdef (name, (TAny bnd, tpos), vis, e) ->
-        (* polymorphic function case *)
-        let tvars, typ = Bindlib.unmbind bnd in
-        let e' = typecheck_expr_top_down ctx env typ e in
-        let _tvars =
-          Array.fold_left
-            (fun acc tv ->
-              let acc = Type.Var.Set.add tv acc in
-              match get_ty env e (TVar tv, tpos) with
-              | (TAny _, _) as ty when Type.is_universal ty -> acc
-              | TVar tv', pos ->
-                if Type.Var.Set.mem tv' acc then
-                  Message.delayed_error () ~kind:Typing ~pos
-                    "Function@ %a@ has@ type@ %a,@ which requires that@ %a = \
-                     %a,@ while they are both specified as \
-                     @{<cyan>anything@}.@,"
-                    TopdefName.format name Type.format (expr_ty env e')
-                    Type.format (TVar tv, tpos) Type.format (TVar tv', tpos);
-                Type.Var.Set.add tv' acc
-              | ty ->
-                Message.delayed_error () ~kind:Typing ~pos:(Mark.get ty)
-                  "In the definition of function %a, the type %a is specified \
-                   as @{<cyan>anything@}, but it appears to only work for %a \
-                   here"
-                  TopdefName.format name Type.format (TVar tv, tpos) Type.format
-                  ty;
-                acc)
-            Type.Var.Set.empty tvars
-        in
-        (* TODO: cleanup the used type vars from env ? *)
-        let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
-        let typ = TAny bnd, tpos in
-        Message.debug "=> %a" Type.format typ;
+      | Topdef (name, typ, vis, e) ->
+        let e' = expr ctx ~env ~typ e in
         ( Env.add_var var typ env,
           Var.translate var,
           Bindlib.box_apply
             (fun e -> Topdef (name, typ, vis, e))
-            (Expr.Box.lift e') )
-      | Topdef (name, typ, vis, e) ->
-        let e' = expr_raw ctx ~env ~typ e in
-        let e' = Expr.map_marks ~f:(get_ty_mark env) e' in
-        ( Env.add_var var typ env,
-          Var.translate var,
-          Bindlib.box_apply
-            (fun e -> Topdef (name, Expr.ty e', vis, e))
             (Expr.Box.lift e') ))
 
 let program ?assume_op_types prg =
