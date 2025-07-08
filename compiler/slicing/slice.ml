@@ -110,8 +110,14 @@ let join_ctx ctx1 ctx2 = (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2)))
 
 let join_ctx_list ctx_list = List.fold_left join_ctx Var.Map.empty ctx_list
 
+let enrich_with_ctx context (ctx, e) = join_ctx ctx context, e 
+
+let enrich_with_ctx_list context_list (ctx, e) = join_ctx_list (ctx::context_list), e
+
 let hole = EHole (TAny, Pos.void)
 let mark_hole m = Mark.add m hole
+
+(*let step_by_step = ref false*)
 
 let unevaluate :
   type t.
@@ -130,8 +136,7 @@ fun ctx value trace ->
     let unevaluate_auxb = unevaluate_aux ~context_closure in
     let unevaluate_listb= unevaluate_list ~context_closure in
     let unevaluate_opb  = unevaluate_op ~context_closure in
-    let m = Mark.get v in
-    (*Format.fprintf (Message.std_ppf ()) "@.Value : %a@.Trace : %a@." Format_trace.expr v Format_trace.trace trace;*)
+    let m = Mark.get v in    
     (*Format.open_hovbox 2;*)
     let rho, e = 
     match Mark.remove v, trace with
@@ -186,7 +191,7 @@ fun ctx value trace ->
       unevaluate_opb op tys vargs trargs m 
     | EArray vs, TrAppOp { op = Map, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _, ma)]; traux } -> 
       (* We slice the expression further *)
-      let _, sliced_apps = unevaluate_listb vs traux in
+      let contexts, sliced_apps = unevaluate_listb vs traux in
       let f, sliced_vs = List.fold_right 
         (fun app (joined_f, vs) -> match app with 
           | EApp {f; args = [v]; _}, _ -> (join_expr f joined_f), v::vs
@@ -195,9 +200,9 @@ fun ctx value trace ->
         )
         sliced_apps (mark_hole mf, [])
       in
-      unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m 
+      enrich_with_ctx_list contexts @@ unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m 
     | EArray vs, TrAppOp { op = Map2, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _, m1); (EArray _, m2)]; traux } ->
-      let _, sliced_apps = unevaluate_listb vs traux in
+      let contexts, sliced_apps = unevaluate_listb vs traux in
       let f, sliced_vs1, sliced_vs2 = List.fold_right 
         (fun app (joined_f, vs1, vs2) -> match app with 
           | EApp {f; args = [v1; v2]; _}, _ -> (join_expr f joined_f), v1::vs1, v2::vs2
@@ -207,26 +212,26 @@ fun ctx value trace ->
         sliced_apps
         (mark_hole mf, [], [])
       in
-      unevaluate_opb op tys [f; (EArray sliced_vs1, m1); (EArray sliced_vs2, m2)] trargs m
+      enrich_with_ctx_list contexts @@ unevaluate_opb op tys [f; (EArray sliced_vs1, m1); (EArray sliced_vs2, m2)] trargs m
     | _ , TrAppOp { op = Reduce, _ as op; trargs; tys; vargs = [_,mf; EAbs _, md; (EArray [], ma) as arr]; traux = [tr]} ->
-      let _, sliced_app = unevaluate_auxb v tr in
+      let context, sliced_app = unevaluate_auxb v tr in
       let sliced_default, sliced_arr = match sliced_app with
         | EApp {f; args = [(ELit LUnit|EHole _), _]; _}, _ -> f, arr
         | EHole _, _ -> mark_hole md, mark_hole ma
         | e -> Message.error "Application expected, got %a" Format_trace.expr e
       in 
-      unevaluate_opb op tys [mark_hole mf; sliced_default; sliced_arr] trargs m 
+      enrich_with_ctx context @@ unevaluate_opb op tys [mark_hole mf; sliced_default; sliced_arr] trargs m 
     | _, TrAppOp { op = Reduce, _ as op; trargs; tys; vargs = [EAbs _, mf; _,md; (EArray (_::_), ma) ]; traux} ->
-      let f, v0, sliced_vs = List.fold_right (
-        fun tr (joined_f, acc, vs) ->
-          match snd (unevaluate_auxb acc tr) with
-          | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
-          | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
-          | e ->  Message.error "Application expected, got %a" Format_trace.expr e
+      let context, f, v0, sliced_vs = List.fold_right (
+        fun tr (context, joined_f, acc, vs) ->
+          match unevaluate_auxb acc tr with
+          | ctx, (EApp {f; args = [acc0; v]; _}, _) -> join_ctx context ctx, join_expr joined_f f, acc0, (v::vs)
+          | _, (EHole _, m) -> context, joined_f, mark_hole m, ((mark_hole m)::vs)
+          | _, e ->  Message.error "Application expected, got %a" Format_trace.expr e
         )
-        traux (mark_hole mf, v, [])
+        traux (Var.Map.empty, mark_hole mf, v, [])
       in
-      unevaluate_opb op tys [f; mark_hole md; (EArray (v0::sliced_vs), ma)] trargs m 
+      enrich_with_ctx context @@ unevaluate_opb op tys [f; mark_hole md; (EArray (v0::sliced_vs), ma)] trargs m 
     | EArray vs, TrAppOp { op = Filter, _ as op; trargs; tys; vargs = [EAbs _,mf; (EArray _),ma]; traux} -> 
       (* This case is particular because we have to slice each element of the array depending on 
         how they behave with the filter function and then join the values with the sliced result *)
@@ -241,7 +246,7 @@ fun ctx value trace ->
         (fun tb -> match tb with | Trace_ast.TrLit (LBool b) -> b | _ -> Message.error "Bool was expected, got : %a" Format_trace.trace tb) 
         bools 
       in
-      let _, sliced_apps = unevaluate_listb (List.map (fun b -> ELit(LBool b),m) bools) trbs in
+      let contexts, sliced_apps = unevaluate_listb (List.map (fun b -> ELit(LBool b),m) bools) trbs in
       let f, sliced_arr = List.fold_right 
         (fun app (joined_f, vs) -> match app with 
           | EApp {f; args = [v]; _}, _ -> (join_expr f joined_f), v::vs
@@ -258,18 +263,18 @@ fun ctx value trace ->
         | _ -> assert false
       in 
       let sliced_vs = join_relevant_values bools sliced_arr vs in
-      unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m
+      enrich_with_ctx_list contexts @@ unevaluate_opb op tys [f; (EArray sliced_vs, ma)] trargs m
     | _, TrAppOp { op = Fold,_ as op; trargs; tys; vargs = [EAbs _, mf; _; (EArray _, ma)]; traux} ->
-      let f, v0, sliced_vs = List.fold_right (
-        fun tr (joined_f, acc, vs) ->
-          match snd (unevaluate_auxb acc tr) with
-          | EApp {f; args = [acc0; v]; _}, _ -> join_expr joined_f f, acc0, (v::vs)
-          | EHole _, m -> joined_f, mark_hole m, ((mark_hole m)::vs)
-          | _ -> assert false
+      let context, f, v0, sliced_vs = List.fold_right (
+        fun tr (context, joined_f, acc, vs) ->
+          match unevaluate_auxb acc tr with
+          | ctx, (EApp {f; args = [acc0; v]; _}, _) -> join_ctx context ctx, join_expr joined_f f, acc0, (v::vs)
+          | _, (EHole _, m) -> context, joined_f, mark_hole m, ((mark_hole m)::vs)
+          | _, e ->  Message.error "Application expected, got %a" Format_trace.expr e
         )
-        traux (mark_hole mf, v, [])
+        traux (Var.Map.empty, mark_hole mf, v, [])
       in
-      unevaluate_opb op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
+      enrich_with_ctx context @@ unevaluate_opb op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
     | _, TrAppOp { op; trargs; tys; vargs; _ } -> 
       unevaluate_opb op tys vargs trargs m 
     | _, TrStructAccess { name; tr; field } ->
@@ -364,7 +369,23 @@ fun ctx value trace ->
     )
     | EFatalError err1, TrFatalError err2 when err1 = err2 -> Var.Map.empty, v
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
-    in (*Format.close_box ();*) rho, e
+    in (*Format.close_box ();*) 
+    (*let () = 
+    if !step_by_step then (
+      ignore @@ input_line stdin;
+      Format.fprintf (Message.std_ppf ()) "@.Context closure : %a@.Value : %a@.Trace : %a@." 
+        Format_trace.context context_closure Format_trace.expr v Format_trace.trace trace;  
+      Format.fprintf (Message.std_ppf ()) "Raised Context : %a@." Format_trace.context rho;
+    ) else match trace with
+      | TrVar {var; _} when Bindlib.name_of var = "période_mouvementée" -> 
+        step_by_step := true; 
+        ignore @@ input_line stdin;
+        Format.fprintf (Message.std_ppf ()) "@.Context closure : %a@.Value : %a@.Trace : %a@." 
+          Format_trace.context context_closure Format_trace.expr v Format_trace.trace trace;
+        Format.fprintf (Message.std_ppf ()) "Raised Context : %a@." Format_trace.context rho;
+      | _ -> ()
+    in*)
+    rho, e
 
   and unevaluate_list ~context_closure v_list trace_list = List.split (List.map2 (unevaluate_aux ~context_closure) v_list trace_list)
   

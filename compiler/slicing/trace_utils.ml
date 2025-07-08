@@ -61,6 +61,11 @@ let delholes e =
   in
   Expr.unbox (f e)
 
+let translate_context translate_value context = 
+  let ctx_bindings = Var.Map.bindings context in List.fold_left 
+    (fun acc (x,v) -> Var.Map.add (Var.translate x) (translate_value v) acc) 
+    Var.Map.empty ctx_bindings
+
 (* Trace constructors *)
 let trhole ty = TrHole ty
 
@@ -86,9 +91,10 @@ let trvar ~var ~value = TrVar { var; value }
 let trabs ~binder ~pos ~tys = TrAbs { binder; pos; tys }
 
 let trcontextclosure ~context ~tr = 
-  let ctx_bindings = Var.Map.bindings context in
-  let context = List.fold_left (fun acc (x,v) -> Var.Map.add (Var.translate x) (addholes v) acc) Var.Map.empty ctx_bindings in
-  TrContextClosure { context; tr }
+  if context = Var.Map.empty then 
+    tr 
+  else
+    TrContextClosure { context = translate_context addholes context; tr }
 
 let trifthenelse ~trcond ~trtrue ~trfalse =
   TrIfThenElse { trcond; trtrue; trfalse }
