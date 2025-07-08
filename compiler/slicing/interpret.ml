@@ -171,12 +171,22 @@ fun ctx lang e ->
           let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
           let* new_ctx, vals, traux = map_result_with_trace appf vs in
           ok new_ctx (Mark.add m (EArray vals)) traux
+        | Map, [EFatalError Unreachable,_ ; (EArray vs, _)] -> 
+          (* There are cases where there is a hole instead of the first agument to map Hole to all values in the array *)
+          let vals = List.map (fun (_,mv)-> Mark.add mv (EFatalError Unreachable)) vs in 
+          let traux = List.map (fun _ -> tranyhole) vs in
+          ok Var.Map.empty (Mark.add m (EArray vals)) traux
         | Map2, [EAbs {tys = tysf; _},mf as f; (EArray vs1, _); (EArray vs2, _)] -> 
           (* In this case we need to know the trace of f(v1, v2) for every v1, v2 in vs1, vs2*)
           let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
           let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
           let* new_ctx, vals, traux = map_result_with_trace2 appf vs1 vs2 in
           ok new_ctx (Mark.add m (EArray vals)) traux
+        | Map2, [EFatalError Unreachable,_ ; (EArray vs1, _); (EArray vs2, _);] -> 
+          (* There are cases where there is a hole instead of the first agument to map Hole to all values in the arrays *)
+          let vals = List.map2 (fun (_,mv) _ -> Mark.add mv (EFatalError Unreachable)) vs1 vs2 in 
+          let traux = List.map (fun _ -> tranyhole) vs1 in
+          ok Var.Map.empty (Mark.add m (EArray vals)) traux
         | Reduce, [_; EAbs {tys = tysd; _},md as default; (EArray [], _)] ->
           (* In this case we just need the trace of default() *)
           let eappd v = Mark.add md (EApp {f=default; args = [v]; tys = tysd}) in
@@ -190,6 +200,9 @@ fun ctx lang e ->
           let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
           let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
           fold_result_with_trace appf v0 vn
+        | Reduce, [_; _; (EArray [v0], _)] -> 
+          (* Need to add this case if there is only one element since slicing will replace the other arguments by holes*)
+          ok Var.Map.empty v0 []
         | Filter, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] ->
           (* In this case we need to keep the trace of f(v) for every v in and its value *)
           (* In order to store these informations, the list will store alternatively a boolean corresponding to f(v) and its trace *)
@@ -197,11 +210,19 @@ fun ctx lang e ->
           let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
           let* new_ctx, vals, traux = filter_result_with_trace appf vs in
           ok new_ctx (Mark.add m (EArray vals)) traux
+        | Filter, [_ ; (EArray [], _)] ->
+          (* Need to add this case for slicing reasons similar to the others *)
+          ok Var.Map.empty (Mark.add m (EArray [])) []
         | Fold, [EAbs {tys = tysf; _},mf as f; init; (EArray vs, _)] -> 
           (* In this case we need the trace of f(v) for every v fold from f init and vs *)
           let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
           let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
           fold_result_with_trace appf init vs
+        | Fold, [_; init; (EArray [], _)] -> 
+          (* Need to add this case if the list is empty since it would will replace the other arguments by holes*)
+          ok Var.Map.empty init []
+        | (Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
+          Message.error "Invalid argument for operator %a@.Expr : %a" (Print.operator ~debug:false) op Format_trace.expr e
         | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
           ok Var.Map.empty (evaluate_operator (evaluate_expr ctx lang) op m lang vargs) []
       in
