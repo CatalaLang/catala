@@ -105,7 +105,7 @@ let topval assert__1 : integer → integer =
   λ (assert__1: integer) →
   assert__1
 
-let topval closure_assert__1 : (Assert_in__1, Assert__1) =
+let topval closure_assert__1 : <ty1> =
   ({ Assert_in__1 assert = 99; }, { Assert__1 assert = 199; })
 
 ```
@@ -178,7 +178,7 @@ let _ : integer -> integer =
   fun (assert__2: integer) -> assert__2
 
 (* Toplevel def closure_assert *)
-let _ : (Assert_in__1.t * Assert__1.t) =
+let _ : 'ty1 =
   (({Assert_in__1.assert__1 = (integer_of_string "99")}),
     ({Assert__1.assert__1 = (integer_of_string "199")}))
 ```

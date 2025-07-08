@@ -33,6 +33,7 @@ module Env = struct
     scopes_input : typ ScopeVar.Map.t ScopeName.Map.t;
     toplevel_vars : typ TopdefName.Map.t;
     tvars : Type.t Type.Var.Hashtbl.t;
+    printed_errors : unit Pos.Map.t ref;
   }
 
   let empty ?(assume_op_types = false) (decl_ctx : decl_ctx) =
@@ -48,6 +49,7 @@ module Env = struct
       scopes_input = ScopeName.Map.empty;
       toplevel_vars = TopdefName.Map.empty;
       tvars = Type.Var.Hashtbl.create 47;
+      printed_errors = ref Pos.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -96,14 +98,25 @@ module Env = struct
   let set_tvar env v ty = Type.Var.Hashtbl.add env.tvars v ty
 end
 
-let unification_error ?pos ?extra_pos ?fmt_pos fmt ty1 ty2 =
-  Message.delayed_error () ~kind:Typing ?pos ?extra_pos ?fmt_pos
-    ("Error during typechecking, incompatible types:@\n\
-      @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
-      @{<blue>@<2>%s@} @[<hov>%a@]"
-    ^^ fmt
-    ^^ "@]")
-    "─➤" Type.format ty1 "─➤" Type.format ty2
+let unification_error env ~pos ?fmt_pos fmt ty1 ty2 =
+  if List.exists (fun p -> Pos.Map.mem p !(env.Env.printed_errors)) pos then ()
+  else
+    let extra_pos =
+      match fmt_pos with
+      | Some _ -> None
+      | None -> Some (List.map (fun p -> "", p) pos)
+    in
+    Message.delayed_error () ~kind:Typing ?extra_pos ?fmt_pos
+      ("Error during typechecking, incompatible types:@\n\
+        @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
+        @{<blue>@<2>%s@} @[<hov>%a@]"
+      ^^ fmt
+      ^^ "@]")
+      "─➤" Type.format ty1 "─➤" Type.format ty2;
+    env.printed_errors :=
+      List.fold_left
+        (fun acc p -> Pos.Map.add p () acc)
+        !(env.Env.printed_errors) pos
 
 (* `eqclass` gathers all current aliases of the type ; `seen` is other type
    variables that contain `ty` *)
@@ -117,9 +130,8 @@ let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
       if Type.Var.Set.mem v eqclass then
         Type.rebox (TVar (Type.Var.Set.min_elt eqclass), vpos)
       else if Type.Var.Set.mem v seen then (
-        unification_error ~pos
-          ~extra_pos:["", vpos]
-          "@,A type cannot contain itself." ty ty';
+        unification_error env ~pos:[pos; vpos] "@,A type cannot contain itself."
+          ty ty';
         Type.rebox ty)
       else get_ty_aux env pos (Type.Var.Set.add v eqclass) seen ty')
   | ty ->
@@ -195,7 +207,10 @@ let record_type_error env (AnyExpr e) t1 t2 =
           t2_pos );
       ]
   in
-  unification_error ~fmt_pos "" t1_repr t2_repr
+  unification_error env ~pos:[e_pos; t1_pos] ~fmt_pos "" t1_repr t2_repr
+(* ~pos is used to avoid duplicated messages. Since [t2_pos] generally is the
+   position of the type definition, we choose not to include it there to keep
+   more messages *)
 
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [typ] argument is propagated (unless it is [TVar]). *)

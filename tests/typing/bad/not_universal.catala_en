@@ -18,7 +18,17 @@ declaration rectype content list of anything of type t
 
 ```catala-test-cli
 $ catala typecheck
-┌─[ERROR]─ 1/4 ─
+┌─[ERROR]─ 1/3 ─
+│
+│  This function has type <t> → <t>, which requires that <t1> = <t>,
+│  while they are both specified as anything.
+│
+├─➤ tests/typing/bad/not_universal.catala_en:2.47-2.48:
+│   │
+│ 2 │ declaration identity content anything of type t
+│   │                                               ‾
+└─
+┌─[ERROR]─ 2/3 ─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ <t>
@@ -35,130 +45,15 @@ $ catala typecheck
 │ 14 │ declaration rectype content list of anything of type t
 │    │                                                      ‾
 └─
-┌─[ERROR]─ 2/4 ─
+┌─[ERROR]─ 3/3 ─
 │
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
+│  In this function definition, the type <t> is specified as anything,
+│  but it appears to only work for list of <t> here
 │
-├─➤ tests/typing/bad/not_universal.catala_en:14.13-14.20:
+├─➤ tests/typing/bad/not_universal.catala_en:14.29-14.55:
 │    │
 │ 14 │ declaration rectype content list of anything of type t
-│    │             ‾‾‾‾‾‾‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-┌─[ERROR]─ 3/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.13-14.20:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │             ‾‾‾‾‾‾‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-┌─[ERROR]─ 4/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:16.10-16.11:
-│    │
-│ 16 │   equals x
-│    │          ‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-#return code 123#
-```
-
-
-```catala-test-cli
-$ catala test-scope S2
-┌─[ERROR]─ 1/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:16.10-16.11:
-│    │
-│ 16 │   equals x
-│    │          ‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-┌─[ERROR]─ 2/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.13-14.20:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │             ‾‾‾‾‾‾‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-┌─[ERROR]─ 3/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.13-14.20:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │             ‾‾‾‾‾‾‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
-└─
-┌─[ERROR]─ 4/4 ─
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ <t>
-│  ─➤ list of <t>
-│  A type cannot contain itself.
-│
-├─➤ tests/typing/bad/not_universal.catala_en:16.10-16.11:
-│    │
-│ 16 │   equals x
-│    │          ‾
-│
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
-│    │
-│ 14 │ declaration rectype content list of anything of type t
-│    │                                                      ‾
+│    │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
