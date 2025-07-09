@@ -3,6 +3,8 @@ open Shared_ast
 open Shared_ast.Interpreter
 open Trace_utils
 
+let hole_result m = ok Var.Map.empty (Mark.add m (EFatalError Unreachable)) tranyhole
+
 let evaluate_expr_with_trace :
     type d t.
     decl_ctx ->
@@ -149,6 +151,7 @@ fun ctx lang e ->
         in
         let v = runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o in
         ok Var.Map.empty v @@ trappcustom ~trcustom:trf ~custom:e ~trargs ~tys ~vargs:args ~v
+      | EFatalError Unreachable -> hole_result m
       | _ ->
         Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
           "function has not been reduced to a lambda at evaluation (should not \
@@ -165,6 +168,8 @@ fun ctx lang e ->
       let* ctxaux, v, traux = 
         map_error_trace (fun traux -> trappop ~op ~trargs ~tys ~vargs:[] ~traux) @@
         match fst op, vargs with
+        | Length, [(EArray es, _)] ->
+          ok Var.Map.empty (Mark.add m @@ ELit (LInt (Runtime.integer_of_int (List.length es)))) []
         | Map, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] -> 
           (* In this case we need to know the trace of f(v) for every v in vs*)
           let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
@@ -221,10 +226,13 @@ fun ctx lang e ->
         | Fold, [_; init; (EArray [], _)] -> 
           (* Need to add this case if the list is empty since it would will replace the other arguments by holes*)
           ok Var.Map.empty init []
-        | (Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
+        | (Length | Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
           Message.error "Invalid argument for operator %a@.Expr : %a" (Print.operator ~debug:false) op Format_trace.expr e
         | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
-          ok Var.Map.empty (evaluate_operator (evaluate_expr ctx lang) op m lang vargs) []
+          let v = if List.exists (fun v -> match Mark.remove v with EFatalError Unreachable -> true |_ -> false) vargs then 
+            Mark.add m @@ EFatalError Unreachable 
+          else evaluate_operator (evaluate_expr ctx lang) op m lang vargs in
+          ok Var.Map.empty v []
       in
       ok (union_map new_ctx ctxaux) v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
     | EAbs _ -> (
@@ -268,6 +276,7 @@ fun ctx lang e ->
             "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
             term was well-typed)"
             StructField.format field StructName.format s)
+      | EFatalError Unreachable -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos e)
           "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \
@@ -285,9 +294,10 @@ fun ctx lang e ->
         evaluate_expr_with_trace_aux ctx local_ctx lang e1 
         |> map_error_trace (fun tr -> trtupleaccess ~tr ~index ~size)
       in
-      match e with
-      | ETuple es, _ when List.length es = size -> ok new_ctx (List.nth es index) (trtupleaccess ~tr ~index ~size)
-      | e ->
+      match Mark.remove e with
+      | ETuple es when List.length es = size -> ok new_ctx (List.nth es index) (trtupleaccess ~tr ~index ~size)
+      | EFatalError Unreachable -> hole_result m
+      | _ ->
         Message.error ~pos:(Expr.pos e)
           "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d@ \
           (should not happen if the term was well-typed)"
@@ -330,6 +340,7 @@ fun ctx lang e ->
           |> map_error_trace (fun tv -> trmatch ~name ~tr ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases))
         in 
         ok (union_map ctx_cases new_ctx) v @@ trmatch ~tr ~name ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases)
+      | EFatalError Unreachable -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos e)
           "Expected a term having a sum type as an argument to a match (should \
@@ -352,6 +363,7 @@ fun ctx lang e ->
           |> map_error_trace (fun trfalse -> trifthenelse ~trcond ~trtrue:(trexpr etrue) ~trfalse)
         in 
         ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond ~trtrue:(trexpr etrue) ~trfalse
+      | EFatalError Unreachable -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this condition (should \
@@ -377,7 +389,7 @@ fun ctx lang e ->
           not happen if the term was well-typed)"
     )
     | EFatalError Unreachable -> (*It's okay to reach that point but the result should not matter*)
-      ok Var.Map.empty e tranyhole
+      hole_result m
     | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
     | EErrorOnEmpty e' -> (
       let* new_ctx, e, tr = 
