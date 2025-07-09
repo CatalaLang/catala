@@ -263,11 +263,11 @@ fun ctx lang e ->
             in
             ok Var.Map.empty v []
           with 
-          | Runtime.Error (DivisionByZero|UncomparableDurations|AmbiguousDateRounding as err, _) -> raise @@ FatalError (err,m)
+          | Runtime.Error (DivisionByZero|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, _) -> raise @@ FatalError (err,m)
       in 
       ok (union_map new_ctx ctxaux) v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
       with
-      | FatalError (DivisionByZero|NotSameLength|UncomparableDurations|AmbiguousDateRounding as err, m) -> 
+      | FatalError (DivisionByZero|NotSameLength|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, m) -> 
         raise_soft_fatal_error err m @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux:[]
       )
       
