@@ -413,8 +413,10 @@ fun ctx value trace ->
                                   trargs = [_; _] as trargs; tys; vargs = [_; _] as vargs; _ } ->
         let lctxs, args = unevaluate_listb vargs trargs in
         join_ctx_list lctxs, Mark.add m @@ EAppOp {op; args; tys}
-      | UncomparableDurations, TrAppOp{ op; _} ->
-        Message.error "%s" (Operator.name (fst op))
+      | AmbiguousDateRounding, TrAppOp { op = (Add_dat_dur _|Sub_dat_dur _), _ as op;
+                                trargs = [_; _] as trargs; tys; vargs = [_; _] as vargs; _ } ->
+        let lctxs, args = unevaluate_listb vargs trargs in
+        join_ctx_list lctxs, Mark.add m @@ EAppOp {op; args; tys}
       | _ -> Message.error "The %a in the execution could not be handled by the unevaluation function@. Trace : %a" Format_trace.expr v Format_trace.trace trace
     )
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace

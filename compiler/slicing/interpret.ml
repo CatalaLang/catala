@@ -180,8 +180,11 @@ fun ctx lang e ->
     | EAppOp { op; args; tys } ->
       let* new_ctx, vargs, trargs = 
         evaluate_expr_list_with_trace_aux ctx local_ctx lang args
-        |> map_error_trace (fun _ trargs -> trappop ~op ~trargs ~tys ~vargs:[] ~traux:[])
-      in 
+        |>let mhole = Mark.add m (EHole (TAny, Pos.void)) in
+          map_error_trace (fun err trargs -> 
+            let merror = Mark.add m (EFatalError err) in
+            trappop ~op ~trargs ~tys ~vargs:(List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trargs) ~traux:[])
+        in 
       (try
       let* ctxaux, v, traux = 
         map_error_trace (fun _ traux -> trappop ~op ~trargs ~tys ~vargs ~traux) 
@@ -260,11 +263,11 @@ fun ctx lang e ->
             in
             ok Var.Map.empty v []
           with 
-          | Runtime.Error (DivisionByZero|UncomparableDurations as err, _) -> raise @@ FatalError (err,m)
+          | Runtime.Error (DivisionByZero|UncomparableDurations|AmbiguousDateRounding as err, _) -> raise @@ FatalError (err,m)
       in 
       ok (union_map new_ctx ctxaux) v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
       with
-      | FatalError (DivisionByZero|NotSameLength|UncomparableDurations as err, m) -> 
+      | FatalError (DivisionByZero|NotSameLength|UncomparableDurations|AmbiguousDateRounding as err, m) -> 
         raise_soft_fatal_error err m @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux:[]
       )
       
