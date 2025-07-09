@@ -412,7 +412,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           ( Var.Map.add var ty toplevel_vars,
             var,
             Bindlib.box_apply
-              (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
+              (fun e -> Topdef (name, ty, vis, e))
               (Expr.Box.lift new_expr) ))
       ~last:(fun toplevel_vars exports ->
         ( (),
@@ -707,7 +707,7 @@ let rec hoist_closures_code_item_list
         in
         ( new_hoisted_closures,
           Bindlib.box_apply
-            (fun e -> Topdef (name, Type.any (Mark.get ty), vis, e))
+            (fun e -> Topdef (name, ty, vis, e))
             (Expr.Box.lift new_expr) )
     in
     let next_code_items = hoist_closures_code_item_list flags next_code_items in
