@@ -288,7 +288,7 @@ fun ctx value trace ->
         )
         traux (Var.Map.empty, mark_hole mf, v, [])
       in
-      enrich_with_ctx context @@ unevaluate_opb op tys [f; v0; (EArray sliced_vs, ma)] trargs m 
+      enrich_with_ctx context @@ unevaluate_opb op tys [f; v0; (EArray sliced_vs, ma)] trargs m
     | _, TrAppOp { op; trargs; tys; vargs; _ } -> 
       unevaluate_opb op tys vargs trargs m 
     | _, TrStructAccess { name; tr; field } ->
@@ -396,7 +396,12 @@ fun ctx value trace ->
           trexcepts
         ) in
         let local_ctx = join_ctx_list lctxs in 
-        local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
+        local_ctx, Mark.add m @@ EDefault { excepts; just = mark_hole m; cons = mark_hole m}
+      | DivisionByZero, TrAppOp { op = (Div_int_int|Div_rat_rat|Div_mon_mon|Div_mon_int|Div_mon_rat|Div_dur_dur),_ as op; 
+                                  trargs = [_; _] as trargs; tys; vargs = [_; _] as vargs; _ } ->
+        let lctxs, args = unevaluate_listb vargs trargs in
+        join_ctx_list lctxs, Mark.add m @@ EAppOp {op; args; tys}
+        
       | _ -> Message.error "The %a in the execution could not be handled by the unevaluation function@. Trace : %a" Format_trace.expr v Format_trace.trace trace
     )
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
@@ -424,7 +429,7 @@ fun ctx value trace ->
   
   and unevaluate_op ~context_closure op tys vargs trargs m = 
     let lctxs, args = unevaluate_list ~context_closure vargs trargs in 
-    join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
+    join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys }) 
 
   in snd (unevaluate_aux ~context_closure:Var.Map.empty value trace)
 

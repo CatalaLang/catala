@@ -183,7 +183,12 @@ fun ctx lang e ->
         |> map_error_trace (fun _ trargs -> trappop ~op ~trargs ~tys ~vargs:[] ~traux:[])
       in 
       let* ctxaux, v, traux = 
-        map_error_trace (fun _ traux -> trappop ~op ~trargs ~tys ~vargs:[] ~traux) @@
+        map_error_trace (fun err traux -> 
+          let trace_wrapper = match err with
+          | Runtime.DivisionByZero -> (fun tr -> trfatalerror ~err ~tr)
+          | _ -> fun tr -> tr 
+          in  trace_wrapper @@ trappop ~op ~trargs ~tys ~vargs ~traux
+        ) @@
         match fst op, vargs with
         | Length, [(EArray es, _)] ->
           ok Var.Map.empty (Mark.add m @@ ELit (LInt (Runtime.integer_of_int (List.length es)))) []
@@ -246,11 +251,16 @@ fun ctx lang e ->
         | (Length | Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
           Message.error "Invalid argument for operator %a@.Expr : %a" (Print.operator ~debug:false) op Format_trace.expr e
         | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
-          let v = if List.exists (fun v -> match Mark.remove v with EFatalError Unreachable -> true |_ -> false) vargs then 
-            Mark.add m @@ EFatalError Unreachable 
-          else evaluate_operator (evaluate_expr ctx lang) op m lang vargs in
-          ok Var.Map.empty v []
-      in
+          try
+            let v = if List.exists (fun v -> match Mark.remove v with EFatalError Unreachable -> true |_ -> false) vargs then 
+              Mark.add m @@ EFatalError Unreachable 
+            else 
+              evaluate_operator (evaluate_expr ctx lang) op m lang vargs 
+            in
+            ok Var.Map.empty v []
+          with 
+          | Runtime.Error (DivisionByZero as err, _) -> error err m []
+      in 
       ok (union_map new_ctx ctxaux) v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
     | EAbs _ -> (
       match Mark.remove(addholes e) with
@@ -421,7 +431,10 @@ fun ctx lang e ->
     | EDefault { excepts; just; cons } -> (
       let* ctxexcepts, vexcepts, trexcepts = 
         evaluate_expr_list_with_trace_aux ctx local_ctx lang excepts 
-        |> map_error_trace (fun _ trexcepts -> trdefault ~trexcepts ~vexcepts:[] ~trjust:(trexpr just) ~trcons:(trexpr cons))
+        |> let mhole = Mark.add m (EHole (TAny, Pos.void)) in
+        map_error_trace (fun err trexcepts -> 
+          let merror = Mark.add m (EFatalError err) in
+          trdefault ~trexcepts ~vexcepts:(List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trexcepts) ~trjust:(trexpr just) ~trcons:(trexpr cons))
       in
       let empty_count = List.length (List.filter is_empty_error vexcepts) in
       match List.length vexcepts - empty_count with
