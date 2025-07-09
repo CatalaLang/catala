@@ -401,6 +401,13 @@ fun ctx value trace ->
                                   trargs = [_; _] as trargs; tys; vargs = [_; _] as vargs; _ } ->
         let lctxs, args = unevaluate_listb vargs trargs in
         join_ctx_list lctxs, Mark.add m @@ EAppOp {op; args; tys}
+
+      | NotSameLength, TrAppOp {op = (Map2, _) as op; trargs; 
+                                tys; vargs = [_, mf; EArray vs1, m1; EArray vs2, m2]; _} -> 
+        let hole_list lst = List.map (fun (_,m) -> mark_hole m) lst in
+        let vargs = [mark_hole mf; EArray (hole_list vs1), m1; EArray (hole_list vs2), m2] in
+        let lctxs, args = unevaluate_listb vargs trargs in
+        join_ctx_list lctxs, Mark.add m @@ EAppOp {op; args; tys}
         
       | _ -> Message.error "The %a in the execution could not be handled by the unevaluation function@. Trace : %a" Format_trace.expr v Format_trace.trace trace
     )

@@ -252,7 +252,7 @@ let map_result_with_trace2 f l1 l2 =
         let full_trace = List.rev_append trace_before (trfail :: trace_after) in
         error err m full_trace
     )
-    | _ -> Message.error "map_result_with_trace2: input lists must have the same length"
+    | _ -> raise (Invalid_argument "map_result_with_trace2")
   in
   aux Var.Map.empty [] [] [] (l1, l2)
 
