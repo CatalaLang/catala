@@ -138,6 +138,20 @@ fun ctx value trace ->
     let unevaluate_opb  = unevaluate_op ~context_closure in
     let m = Mark.get v in    
     (*Format.open_hovbox 2;*)
+    (*let () = 
+    Message.log "Begin";
+    if !step_by_step then (
+      ignore @@ input_line stdin;
+      Format.fprintf (Message.std_ppf ()) "@.Context closure : %a@.Value : %a@.Trace : %a@." 
+        Format_trace.context context_closure Format_trace.expr v Format_trace.trace trace;
+    ) else match trace with
+      | TrVar {var; _} when Bindlib.name_of var = "période_mouvementée" -> 
+        step_by_step := true; 
+        ignore @@ input_line stdin;
+        Format.fprintf (Message.std_ppf ()) "@.Context closure : %a@.Value : %a@.Trace : %a@." 
+          Format_trace.context context_closure Format_trace.expr v Format_trace.trace trace;
+      | _ -> ()
+    in*)
     let rho, e = 
     match Mark.remove v, trace with
     | EHole _, _ -> Var.Map.empty, v
@@ -383,11 +397,12 @@ fun ctx value trace ->
         ) in
         let local_ctx = join_ctx_list lctxs in 
         local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
-      | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
+      | _ -> Message.error "The %a in the execution could not be handled by the unevaluation function@. Trace : %a" Format_trace.expr v Format_trace.trace trace
     )
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
     in (*Format.close_box ();*) 
     (*let () = 
+    Message.log "End";
     if !step_by_step then (
       ignore @@ input_line stdin;
       Format.fprintf (Message.std_ppf ()) "@.Context closure : %a@.Value : %a@.Trace : %a@." 
@@ -404,10 +419,12 @@ fun ctx value trace ->
     in*)
     rho, e
 
-  and unevaluate_list ~context_closure v_list trace_list = List.split (List.map2 (unevaluate_aux ~context_closure) v_list trace_list)
+  and unevaluate_list ~context_closure v_list trace_list = 
+    List.split (List.map2 (unevaluate_aux ~context_closure) v_list trace_list)
   
-  and unevaluate_op ~context_closure op tys vargs trargs m = let lctxs, args = unevaluate_list ~context_closure vargs trargs in 
-      join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
+  and unevaluate_op ~context_closure op tys vargs trargs m = 
+    let lctxs, args = unevaluate_list ~context_closure vargs trargs in 
+    join_ctx_list lctxs, Mark.add m (EAppOp { op; args; tys })
 
   in snd (unevaluate_aux ~context_closure:Var.Map.empty value trace)
 
@@ -477,7 +494,7 @@ let slice
       );
 
       match Mark.remove v with
-      | EStruct _ -> v,sliced_e
+      | EStruct _ | EFatalError _ -> v,sliced_e
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "The interpretation of a program should always yield a struct \

@@ -222,7 +222,7 @@ let ok map v tr = Ok (map,v,tr)
 let error err m trace = Error (err, m, trace)
 
 let map_error_trace trace_wrapper r = 
-  Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper tr) r
+  Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper err tr) r
 
 let union_map m1 m2 = Var.Map.union (fun _ v _ -> Some v) m1 m2
 
