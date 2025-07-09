@@ -367,7 +367,24 @@ fun ctx value trace ->
         let local_ctx = join_ctx_list (lctxc::lctxj::lctxe) in
         local_ctx, (Mark.add m (EDefault { excepts; just; cons }))
     )
-    | EFatalError err1, TrFatalError err2 when err1 = err2 -> Var.Map.empty, v
+    | EFatalError err1, TrFatalError { err = err2; tr } when err1 = err2 -> (
+      match err1, tr with
+      | AssertionFailed, TrAssert tr ->
+        let local_ctx, e = unevaluate_auxb (Mark.add m (ELit(LBool false))) tr in
+        local_ctx, Mark.add m (EAssert e)
+      | NoValue, TrErrorOnEmpty tr -> 
+        let local_ctx, e = unevaluate_auxb (Mark.add m EEmpty) tr in 
+        local_ctx, Mark.add m (EErrorOnEmpty e)
+      | Conflict, TrDefault { trexcepts; vexcepts; trjust = _; trcons = _ } -> 
+        let lctxs,excepts = List.split(List.map2
+          (fun v tr -> if Mark.remove v = EEmpty then Var.Map.empty, mark_hole m else unevaluate_auxb v tr)
+          vexcepts
+          trexcepts
+        ) in
+        let local_ctx = join_ctx_list lctxs in 
+        local_ctx, Mark.add m (EDefault { excepts; just = mark_hole m; cons = mark_hole m})
+      | _ -> Message.error "This error in the execution could not be handled by the unevaluation function"
+    )
     | _ -> Message.error "@[<v 2>The trace does not match the value@ Expr : %a@ Trace : %a@]" Format_trace.expr v Format_trace.trace trace
     in (*Format.close_box ();*) 
     (*let () = 

@@ -13,7 +13,7 @@ let evaluate_expr_with_trace :
     ((d, yes) interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
   (*let exception FatalError of Runtime.error * t mark * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t in*)
-  (*let raise_fatal_error err m tr = raise (FatalError (err, m, trfatalerror ~err ~tr)) in*)
+  let raise_soft_fatal_error err m tr = Error (err, m, trfatalerror ~err ~tr) in
 
   let rec evaluate_expr_list_with_trace_aux :
     decl_ctx ->
@@ -382,7 +382,7 @@ fun ctx lang e ->
       match Mark.remove e with
       | ELit (LBool true) -> ok new_ctx (Mark.add m (ELit LUnit)) @@ trassert tr
       | ELit (LBool false) -> (* Mark.add m (EFatalError AssertionFailed) *)
-        error Runtime.AssertionFailed m (trassert tr)
+        raise_soft_fatal_error Runtime.AssertionFailed m (trassert tr)
       | _ ->
         Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
           "Expected a boolean literal for the result of this assertion (should \
@@ -398,7 +398,7 @@ fun ctx lang e ->
       in
       match e with
       | EEmpty, _ | exception Runtime.Empty ->
-        error Runtime.NoValue m (trerroronempty tr)
+        raise_soft_fatal_error Runtime.NoValue m (trerroronempty tr)
       | e -> ok new_ctx e @@ trerroronempty tr
     )
     | EDefault { excepts; just; cons } -> (
@@ -437,9 +437,7 @@ fun ctx lang e ->
             excepts
         in
         raise Runtime.(Error (Conflict, poslist))*)
-        error Runtime.Conflict m 
-          @@ trdefault ~trexcepts ~vexcepts ~trjust:(trexpr just) ~trcons:(trexpr cons)
-        
+        raise_soft_fatal_error Conflict m @@ trdefault ~trexcepts ~vexcepts ~trjust:(trexpr just) ~trcons:(trexpr cons)
       )
     | EPureDefault e -> 
       let* new_ctx, v, tr = 

@@ -120,7 +120,7 @@ let trexternal ~name = TrExternal { name }
 
 let trassert t = TrAssert t
 
-let trfatalerror err = TrFatalError err
+let trfatalerror ~err ~tr = TrFatalError {err; tr}
 
 let trdefault ~trexcepts ~vexcepts ~trjust ~trcons =
   TrDefault { trexcepts; vexcepts = (List.map addholes vexcepts); trjust; trcons }
