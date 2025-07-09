@@ -1,0 +1,28 @@
+```catala
+declaration foo content integer
+  equals
+  let a equals (1, 2) in 0
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ integer → any
+│  ─➤ (integer, integer) → any
+│
+│ This expression has type integer → any:
+├─➤ tests/tuples/good/letin.catala_en:4.3-4.27:
+│   │
+│ 4 │   let a equals (1, 2) in 0
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Expected type (integer, integer) → any coming from expression:
+├─➤ tests/tuples/good/letin.catala_en:4.3-4.27:
+│   │
+│ 4 │   let a equals (1, 2) in 0
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```
