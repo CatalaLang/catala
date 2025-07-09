@@ -595,7 +595,12 @@ let rec translate_expr
     let taus = List.map (fun x -> TAny, Mark.get x) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
     let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) taus pos in
-    Expr.eapp ~f ~args:[rec_helper e1] ~tys:[] emark
+    let tys =
+      match xs with
+      | [(_, pos)] -> [TAny, pos] (* No detuplification in this case *)
+      | _ -> [] (* This is an "exploding" let-in, enable detuplification *)
+    in
+    Expr.eapp ~f ~args:[rec_helper e1] ~tys emark
   | StructReplace (e, fields) ->
     let fields =
       List.fold_left
