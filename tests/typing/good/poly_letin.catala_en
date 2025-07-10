@@ -1,0 +1,40 @@
+```catala
+declaration identity content anything of type a
+  depends on x content anything of type a
+  equals x
+
+declaration foo content money
+  equals
+  let y equals identity of 12 in
+  y
+```
+
+
+```catala-test-cli
+$ catala lcalc
+┌─[ERROR]─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ integer
+│  ─➤ money
+│
+│ While typechecking the following expression:
+├─➤ tests/typing/good/poly_letin.catala_en:9.3-9.4:
+│   │
+│ 9 │   y
+│   │   ‾
+│
+│ Type integer is coming from:
+├─➤ tests/typing/good/poly_letin.catala_en:8.28-8.30:
+│   │
+│ 8 │   let y equals identity of 12 in
+│   │                            ‾‾
+│
+│ Type money is coming from:
+├─➤ tests/typing/good/poly_letin.catala_en:6.25-6.30:
+│   │
+│ 6 │ declaration foo content money
+│   │                         ‾‾‾‾‾
+└─
+#return code 123#
+```

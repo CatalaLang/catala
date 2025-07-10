@@ -72,6 +72,13 @@ val unquantify : t -> t
     type is guaranteed to not have the form [TAny _] and may contain free
     variables *)
 
+val unbind : t -> Var.t list * t
+(** Recursively unbinds nested quantifiers and merges their variables (this is
+    similar to [unquantify], but also returns the bound variables) *)
+
+val forall : Var.t list -> t Bindlib.box -> Pos.t -> t
+(** The opposite of [unbind]: constructs a [TAny] quantified type *)
+
 val fresh_var : Pos.t -> t
 
 val any : Pos.t -> t

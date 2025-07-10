@@ -91,11 +91,7 @@ module Var = struct
     let equal = Bindlib.eq_vars
     let compare = Bindlib.compare_vars
     let hash = Bindlib.hash_var
-
-    let format ppf tv =
-      Format.fprintf ppf "@{<bold><%s%s>@}" (Bindlib.name_of tv)
-        (if Global.options.debug then "_" ^ string_of_int (Bindlib.uid_of tv)
-         else "")
+    let format = Print.tvar
   end
 
   include Arg
@@ -103,7 +99,7 @@ module Var = struct
   module Map = Map.Make (Arg)
   module Hashtbl = Hashtbl.Make (Arg)
 
-  let fresh () = Bindlib.new_var (fun v -> TVar v) "ty1"
+  let fresh () = Bindlib.new_var (fun v -> TVar v) "'1"
 end
 
 let shallow_fold f ty acc =
@@ -145,6 +141,16 @@ let rec unquantify = function
     let _v, ty = Bindlib.unmbind tb in
     unquantify ty
   | ty -> ty
+
+let rec unbind = function
+  | TAny bnd, _ ->
+    let vars1, t = Bindlib.unmbind bnd in
+    let vars2, t = unbind t in
+    Array.to_list vars1 @ vars2, t
+  | t -> [], t
+
+let forall vars t pos =
+  TAny (Bindlib.unbox (Bindlib.bind_mvar (Array.of_list vars) t)), pos
 
 let fresh_var pos = TVar (Var.fresh ()), pos
 

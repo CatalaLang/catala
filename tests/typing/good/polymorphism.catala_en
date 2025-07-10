@@ -62,3 +62,102 @@ $ catala typecheck
 │ Typechecking successful!
 └─
 ```
+
+```catala
+declaration many_vars content (list of anything of type a,
+                               list of anything of type b,
+                               list of anything of type c,
+                               list of anything of type d,
+                               list of anything of type c,
+                               list of anything of type b,
+                               list of anything of type e)
+  depends on dummy content anything of type b
+  equals ([], [], [], [], [], [], [])
+
+declaration foo content list of date equals
+  let vs equals many_vars of 0 in
+  vs.3 ++ vs.5
+```
+
+```catala-test-cli
+$ catala lcalc
+type Eoption =
+  | ENone of unit
+  | ESome of <ty1>
+
+type S_in = {  }
+
+type S = { a: integer; b: date; }
+
+let topval empty : integer → list of <t> =
+  λ (x: integer) →
+  []
+
+let topval impossible : <t0> → <t> =
+  λ (unit: <t0>) →
+  (let weights : list of (<t>, integer) =
+     map (λ (x: <t>) → (x, let x__1 : <t> = x in
+                           0)) []
+   in
+   reduce
+     (λ (x1: (<t>, integer)) (x2: (<t>, integer)) →
+      if x1.1 < x2.1 then x1 else x2)
+     (λ () → let x : <t> = error ListEmpty in
+             (x, let x__1 : <t> = x in
+                 0))
+     weights).0
+
+let topval identity : <t> → <t> =
+  λ (x: <t>) →
+  x
+
+let topval pair_to_list : (<t>, <t>) → list of <t> =
+  λ (x: <t>) (y: <t>) →
+  [x; y]
+
+let topval many_vars :
+  <b> →
+    (list of <a>,
+     list of <b>,
+     list of <c>,
+     list of <d>,
+     list of <c>,
+     list of <b>,
+     list of <e>) =
+  λ (dummy: <b>) →
+  ([], [], [], [], [], [], [])
+
+let topval t2 : list of money =
+  empty 0
+
+let topval t1 : list of decimal =
+  empty 0
+
+let scope s (s_in: S_in): S =
+  let set a : integer =
+    match (ESome (identity 12, <polymorphism:39.23-37>)) with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  let set b : date =
+    match (ESome (identity 2025-01-01, <polymorphism:40.23-47>)) with
+    | ENone → error NoValue
+    | ESome arg → arg.0
+  in
+  return { S a = a; b = b; }
+
+let topval foo : list of date =
+  let vs :
+      (list of <a>,
+       list of integer,
+       list of date,
+       list of <d>,
+       list of date,
+       list of integer,
+       list of <e>) =
+    many_vars 0
+  in
+  vs.2 ++ vs.4
+
+```
+

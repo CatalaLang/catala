@@ -118,6 +118,10 @@ let unification_error env ~pos ?fmt_pos fmt ty1 ty2 =
         (fun acc p -> Pos.Map.add p () acc)
         !(env.Env.printed_errors) pos
 
+let tvar_witness tvset = Type.Var.Set.max_elt tvset
+(* anonymous type variables start with "'", so this is guaranteed to give us a
+   user-supplied name if any *)
+
 (* `eqclass` gathers all current aliases of the type ; `seen` is other type
    variables that contain `ty` *)
 let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
@@ -128,7 +132,7 @@ let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
       Type.rebox ty
     | Some ty' ->
       if Type.Var.Set.mem v eqclass then
-        Type.rebox (TVar (Type.Var.Set.min_elt eqclass), vpos)
+        Type.rebox (TVar (tvar_witness eqclass), vpos)
       else if Type.Var.Set.mem v seen then (
         unification_error env ~pos:[pos; vpos] "@,A type cannot contain itself."
           ty ty';
@@ -444,7 +448,7 @@ and typecheck_expr_top_down :
     (a, typ custom) boxed_gexpr =
  fun ctx env tau e ->
   (* Message.debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
-   *    Type.format tau Expr.format e; *)
+   *    Type.format (get_ty env e tau) Expr.format e; *)
   let pos_e = Expr.pos e in
   let flags = env.flags in
   let () =
@@ -1005,10 +1009,12 @@ let expr ctx ?(env = Env.empty ctx) ?typ e =
           | TVar tv', _ when Type.Var.equal tv tv' -> acc
           | (TAny _, _) as ty when Type.is_universal ty -> acc
           | TVar tv', pos ->
-            if Type.Var.Set.mem tv' acc then
-              Message.delayed_error () ~kind:Typing ~pos
-                "This function@ has type %a,@ which requires that@ %a = %a,@ \
-                 while they are both specified as @{<cyan>anything@}.@,"
+            if Type.Var.Set.mem tv' acc || Array.mem tv' tvars then
+              Message.delayed_error () ~kind:Typing ~pos:(Expr.pos e')
+                ~extra_pos:["", pos]
+                "@[<hv>@[<hov>This function has type@ @]%a@ @[<hov>which \
+                 requires that@ %a = %a,@]@ @[<hov>while@ they@ are@ both@ \
+                 specified@ as@ \"@{<cyan>anything@}\".@]@]@,"
                 Type.format (expr_ty env e') Type.format (TVar tv, tpos)
                 Type.format (TVar tv', tpos);
             Type.Var.Set.add tv' acc
@@ -1148,7 +1154,7 @@ let program ?assume_op_types ?(internal_check = false) prg =
               (List.map Message.Content.to_internal_error errs)
           | _ -> assert false
         in
-        Message.debug "Faulty intermediate program:@ %a"
+        Message.debug "@[<v>Faulty intermediate program:@,%a@]"
           (Print.program ~debug:true)
           prg;
         Printexc.raise_with_backtrace err bt)
