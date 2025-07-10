@@ -107,7 +107,12 @@ let attr ppf = function
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
 
 let tvar ppf tv =
-  Format.fprintf ppf "@{<bold><%s%s>@}" (Bindlib.name_of tv)
+  let name = Bindlib.name_of tv in
+  let name =
+    if name.[0] = '\'' then "ty" ^ String.sub name 1 (String.length name - 1)
+    else name
+  in
+  Format.fprintf ppf "@{<bold;yellow><%s%s>@}" name
     (if Global.options.debug then "_" ^ string_of_int (Bindlib.uid_of tv)
      else "")
 
@@ -132,7 +137,7 @@ let rec typ_gen :
   match Mark.remove ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
-    Format.pp_open_hvbox fmt 2;
+    Format.pp_open_hvbox fmt 1;
     pp_color_string (List.hd colors) fmt "(";
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
@@ -165,14 +170,13 @@ let rec typ_gen :
     punctuation fmt "⟨";
     typ_gen () fmt t1;
     punctuation fmt "⟩"
-  | TVar tv ->
-    Format.fprintf fmt "@{<bold><%s%s>@}" (Bindlib.name_of tv)
-      (if Global.options.debug then "_" ^ string_of_int (Bindlib.uid_of tv)
-       else "")
+  | TVar tv -> tvar fmt tv
   | TAny tb ->
     let tvs, ty, bctx = Bindlib.unmbind_in bctx tb in
     if Global.options.debug then
-      Array.iter (Format.fprintf fmt "∀%a.@ " tvar) tvs;
+      Format.fprintf fmt "∀ %a .@ "
+        (Format.pp_print_seq ~pp_sep:Format.pp_print_space tvar)
+        (Array.to_seq tvs);
     typ_gen ~bctx () fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
 
@@ -501,10 +505,12 @@ module ExprGen (C : EXPR_PARAM) = struct
       | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
     (* Uncomment for type annotations everywhere *)
     (* (fun f ->
-     *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
-     *      f e
-     *      (typ ~colors)
-     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TLit TUnit, Pos.void))
+     *    match Mark.get e with
+     *    | Typed {ty; _} ->
+     *      Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
+     *        f e
+     *        (typ ~colors) ty
+     *    | _ -> f fmt e)
      * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
