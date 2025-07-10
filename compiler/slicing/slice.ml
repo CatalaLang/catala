@@ -491,6 +491,7 @@ let slice
         Message.log "Input program :";
         Format.print_newline();
         Format_trace.print_expr e;
+        Format.print_newline();
       );
       (* Evaluate the expression with trace *)
       let v, tr = Interpret.evaluate_expr_safe ctx p.lang e in
@@ -502,6 +503,7 @@ let slice
         Message.log "Trace :";
         Format.print_newline();
         Format_trace.print_trace tr;
+        Format.print_newline();
       );
       (* Unevaluate the value with the trace to get a sliced version of the expression *)
       let uneval_e = unevaluate p.decl_ctx (addholes v) tr in
@@ -542,6 +544,7 @@ let test
     Format.print_newline();
     Message.log "Trace of sliced program :";
     Format.print_newline();
-    Format_trace.print_trace trace;  
+    Format_trace.print_trace trace;
+    Format.print_newline();  
   );
   Expr.equal v value

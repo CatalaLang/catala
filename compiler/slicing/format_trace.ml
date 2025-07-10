@@ -653,7 +653,6 @@ let rec trace_aux :
       Format.pp_print_cut fmt ();
       Format.fprintf fmt "@[<hv 4>%a@ %a@]"
       punctuation "↳" (tracec colors) trv;
-      Format.pp_print_cut fmt ();
       Format.pp_close_box fmt ()
     | TrApp { trf; trargs; trv;  _ } ->
       Format.fprintf fmt "@[<hv 2>%a@ %a@]@;@[<hv 4>%a@ %a@]" 
@@ -661,8 +660,7 @@ let rec trace_aux :
         (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
             (rhs_tr tracec)) trargs 
-        punctuation "↳" (tracec colors) trv;
-      Format.pp_print_cut fmt ();
+        punctuation "↳" (tracec colors) trv
 
     | TrAppCustom { trcustom; trargs; v; _ } ->
       Format.fprintf fmt "@[<hv 2>%a@ %a@]@;@[<hv 4>%a@ %a@]" 
@@ -670,8 +668,7 @@ let rec trace_aux :
         (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
             (rhs_tr tracec)) trargs 
-        punctuation "↳" (exprc colors) v;
-      Format.pp_print_cut fmt ();
+        punctuation "↳" (exprc colors) v
 
     | TrAbs { binder; tys; _ } ->
       let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in

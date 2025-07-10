@@ -5,7 +5,6 @@ open Trace_utils
 
 let hole_result m = ok Var.Map.empty (Mark.add m (EFatalError Unreachable)) tranyhole
 
-let find_error_in_list trs = List.find(fun tr -> match tr with (Trace_ast.TrExpr _ | TrHole _) -> false | _ -> true) trs
 let find_error_var_ty vts trs =
   List.find (fun (_, tr) ->
     match tr with
@@ -13,6 +12,7 @@ let find_error_var_ty vts trs =
     | _ -> true
   ) (List.combine vts trs)
   |> fst
+  
 let evaluate_expr_with_trace :
     type d t.
     decl_ctx ->
@@ -184,7 +184,7 @@ fun ctx lang e ->
           map_error_trace (fun err trargs -> 
             let merror = Mark.add m (EFatalError err) in
             trappop ~op ~trargs ~tys ~vargs:(List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trargs) ~traux:[])
-        in 
+      in 
       (try
       let* ctxaux, v, traux = 
         map_error_trace (fun _ traux -> trappop ~op ~trargs ~tys ~vargs ~traux) 
