@@ -3,7 +3,6 @@
  (public_name catala.dcalc)
  (libraries
   bindlib
-  unionFind
   catala_utils
   re
   ubase

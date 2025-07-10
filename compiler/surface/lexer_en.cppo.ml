@@ -46,6 +46,7 @@
 #define MS_DEFINED_AS "equals"
 #define MS_MATCH "match"
 #define MS_WILDCARD "anything"
+#define MS_TYPE "type"
 #define MS_WITH "with pattern"
 #define MR_WITH "with", space_plus, "pattern"
 #define MS_UNDER_CONDITION "under condition"

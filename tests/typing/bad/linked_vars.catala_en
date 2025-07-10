@@ -1,0 +1,79 @@
+```catala
+declaration many_vars content (list of anything of type a,
+                               list of anything of type b,
+                               list of anything of type c,
+                               list of anything of type d,
+                               list of anything of type c,
+                               list of anything of type b,
+                               list of anything of type e)
+  depends on dummy content anything of type b
+  equals ([], [], [dummy], [], [], [], [])
+```
+
+```catala
+declaration many_vars2 content (list of anything of type a,
+                                list of anything of type b,
+                                list of anything of type c,
+                                list of anything of type d,
+                                list of anything of type c,
+                                list of anything of type b,
+                                list of anything of type e)
+  depends on dummy content anything of type b
+  equals ([], [], [], [], [], [], [])
+
+declaration foo content list of date equals
+  let vs equals many_vars2 of 0 in
+  vs.3 ++ vs.4 ++ vs.2
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─ 1/2 ─
+│
+│  This function has type <c> →
+│                           (list of <a>,
+│                            list of <c>,
+│                            list of <c>,
+│                            list of <d>,
+│                            list of <c>,
+│                            list of <c>,
+│                            list of <e>)
+│  which requires that <b> = <c>,
+│  while they are both specified as "anything".
+│
+├─➤ tests/typing/bad/linked_vars.catala_en:2.13-2.22:
+│   │
+│ 2 │ declaration many_vars content (list of anything of type a,
+│   │             ‾‾‾‾‾‾‾‾‾
+│
+├─➤ tests/typing/bad/linked_vars.catala_en:4.57-4.58:
+│   │
+│ 4 │                                list of anything of type c,
+│   │                                                         ‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ date
+│  ─➤ integer
+│
+│ While typechecking the following expression:
+├─➤ tests/typing/bad/linked_vars.catala_en:26.3-26.23:
+│    │
+│ 26 │   vs.3 ++ vs.4 ++ vs.2
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Type date is coming from:
+├─➤ tests/typing/bad/linked_vars.catala_en:24.33-24.37:
+│    │
+│ 24 │ declaration foo content list of date equals
+│    │                                 ‾‾‾‾
+│
+│ Type integer is coming from:
+├─➤ tests/typing/bad/linked_vars.catala_en:25.31-25.32:
+│    │
+│ 25 │   let vs equals many_vars2 of 0 in
+│    │                               ‾
+└─
+#return code 123#
+```

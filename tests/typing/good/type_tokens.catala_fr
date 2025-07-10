@@ -1,0 +1,22 @@
+```catala
+déclaration énumération TypePensionRetraiteRente:
+  -- PensionsRetraitesRentes
+
+déclaration champ d'application TraitementsSalairesDéclarant:
+  interne abattement_selon_158_5_a contenu booléen
+    dépend de type_retraite contenu TypePensionRetraiteRente
+
+champ d'application TraitementsSalairesDéclarant:
+  définition abattement_selon_158_5_a de type_retraite égal à vrai
+```
+
+An earlier version was lexing `de type` as a single keyword ; that would lead to
+an error here where `de type` was lexed as the keyword. (see also related
+issue \#830)
+
+```catala-test-cli
+$ catala typecheck --disable-warnings
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

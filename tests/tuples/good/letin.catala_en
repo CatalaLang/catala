@@ -1,0 +1,12 @@
+```catala
+declaration foo content integer
+  equals
+  let a equals (1, 2) in 0
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
