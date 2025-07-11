@@ -114,9 +114,6 @@ let enrich_with_ctx context (ctx, e) = join_ctx ctx context, e
 
 let enrich_with_ctx_list context_list (ctx, e) = join_ctx_list (ctx::context_list), e
 
-let hole = EHole (TAny, Pos.void)
-let mark_hole m = Mark.add m hole
-
 (*let step_by_step = ref false*)
 
 let unevaluate :

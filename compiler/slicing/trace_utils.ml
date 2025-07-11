@@ -61,6 +61,8 @@ let delholes e =
   in
   Expr.unbox (f e)
 
+let hole = EHole (TAny, Pos.void)
+let mark_hole m = Mark.add m hole
 (* Trace constructors *)
 let trexpr e = TrExpr e
 
