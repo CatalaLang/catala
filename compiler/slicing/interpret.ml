@@ -110,11 +110,16 @@ fun ctx lang e ->
     | EApp { f = e1; args; tys } -> (
       let* ctxf, e1, trf = 
         evaluate_expr_with_trace_aux ctx local_ctx lang e1
-        |> map_error_trace (fun _ trf -> trapp ~trf ~trargs:(List.map trexpr args) ~tys ~vars:[||] ~trv:trf) 
+        |>(* When there is an error in the definition of the function, we cannot have access to the name of its arguments 
+             So we create temporary ones (that will be removed by the slicer anyway since it is assigned a hole)*)
+          let vars = Array.of_list (List.mapi (fun i _ -> Var.make ("tmp"^(string_of_int i))) args) in
+          map_error_trace (fun _ trf -> trapp ~trf ~trargs:(List.map trexpr args) ~tys ~vars ~trv:trf) 
       in
       let* ctxargs, args, trargs = 
         evaluate_expr_list_with_trace_aux ctx local_ctx lang args
-        |>let vars = match Mark.remove e1 with
+        |> (* To keep the subexpression invariant, I need to let the error behave differently depending on whether 
+              the function is a lambda abstraction or a custom or a hole *)
+          let vars = match Mark.remove e1 with
             | EAbs { binder; _} -> Array.map Var.translate @@ fst (Bindlib.unmbind binder)
             | _ -> [|Var.make "arg"|] 
           in 
@@ -183,7 +188,8 @@ fun ctx lang e ->
         |>let mhole = Mark.add m (EHole (TAny, Pos.void)) in
           map_error_trace (fun err trargs -> 
             let merror = Mark.add m (EFatalError err) in
-            trappop ~op ~trargs ~tys ~vargs:(List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trargs) ~traux:[])
+            let vargs = List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trargs in
+            trappop ~op ~trargs ~tys ~vargs ~traux:[])
       in 
       (try
       let* ctxaux, v, traux = 

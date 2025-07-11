@@ -536,8 +536,8 @@ let test
   (p : (dcalc, 'm) gexpr program)
   (s : ScopeName.t) =
   let v, sliced_e = slice ~debug p s in
-  let value, trace = Interpret.evaluate_expr_safe p.decl_ctx p.lang (delholes sliced_e) in
-  if debug then (
+  let value, _ = Interpret.evaluate_expr_safe p.decl_ctx p.lang (delholes sliced_e) in
+  (*if debug then (
     Message.log "Result from sliced program :";
     Format.print_newline();
     Format_trace.print_expr value;
@@ -545,6 +545,6 @@ let test
     Message.log "Trace of sliced program :";
     Format.print_newline();
     Format_trace.print_trace trace;
-    Format.print_newline();  
-  );
+    Format.print_newline()
+  );*)
   Expr.equal v value
