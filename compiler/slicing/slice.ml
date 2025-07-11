@@ -486,7 +486,7 @@ let slice
           [TStruct s_in, Expr.pos e]
           (Expr.pos e)
       in 
-      let e = (Expr.unbox to_interpret) in
+      let e = addholes (Expr.unbox to_interpret) in
       if debug then (
         Message.log "Input program :";
         Format.print_newline();
@@ -536,7 +536,7 @@ let test
   (p : (dcalc, 'm) gexpr program)
   (s : ScopeName.t) =
   let v, sliced_e = slice ~debug p s in
-  let value, _ = Interpret.evaluate_expr_safe p.decl_ctx p.lang (delholes sliced_e) in
+  let value, _ = Interpret.evaluate_expr_safe p.decl_ctx p.lang sliced_e in
   (*if debug then (
     Message.log "Result from sliced program :";
     Format.print_newline();

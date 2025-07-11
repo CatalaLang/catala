@@ -486,15 +486,15 @@ let rec evaluate_operator
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
 let rec runtime_to_val :
-    type d.
+    type d h.
     (decl_ctx ->
-    ((d, _) interpr_kind, 'm) gexpr ->
-    ((d, _) interpr_kind, 'm) gexpr) ->
+    ((d, _, h) slicing_interpr_kind, 'm) gexpr ->
+    ((d, _, h) slicing_interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     'm mark ->
     typ ->
     Obj.t ->
-    (((d, yes) interpr_kind as 'a), 'm) gexpr =
+    (((d, yes, h) slicing_interpr_kind as 'a), 'm) gexpr =
  fun eval_expr ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
@@ -577,11 +577,11 @@ let rec runtime_to_val :
 and val_to_runtime :
     type d.
     (decl_ctx ->
-    ((d, _) interpr_kind, 'm) gexpr ->
-    ((d, _) interpr_kind, 'm) gexpr) ->
+    ((d, _, _) slicing_interpr_kind, 'm) gexpr ->
+    ((d, _, _) slicing_interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     typ ->
-    ((d, _) interpr_kind, 'm) gexpr ->
+    ((d, _, _) slicing_interpr_kind, 'm) gexpr ->
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with

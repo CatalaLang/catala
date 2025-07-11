@@ -21,7 +21,7 @@ open Catala_utils
 open Definitions
 
 val evaluate_operator :
-  ((((_, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
+  ((((_, _, _) slicing_interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
   'm mark ->
   Global.backend_lang ->
@@ -73,12 +73,12 @@ val load_runtime_modules : hashf:(Hash.t -> Hash.full) -> _ program -> unit
   
 val runtime_to_val :
   (decl_ctx ->
-  (('d, yes) interpr_kind, 'm) gexpr -> (('d, yes) interpr_kind, 'm) gexpr) ->
-  decl_ctx -> 'm mark -> typ -> Obj.t -> (('d, yes) interpr_kind, 'm) gexpr
+  (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr -> (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr) ->
+  decl_ctx -> 'm mark -> typ -> Obj.t -> (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr
 
 val val_to_runtime :
   (decl_ctx ->
-  (('d, yes) interpr_kind, 'm) gexpr -> (('d, yes) interpr_kind, 'm) gexpr) ->
-  decl_ctx -> typ -> (('d, yes) interpr_kind, 'm) gexpr -> Obj.t
+  (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr -> (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr) ->
+  decl_ctx -> typ -> (('d, yes, 'h) slicing_interpr_kind, 'm) gexpr -> Obj.t
 
 val is_empty_error : ('a, 'm) gexpr -> bool
