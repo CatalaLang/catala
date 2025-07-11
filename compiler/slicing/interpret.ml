@@ -20,12 +20,7 @@ let rec evaluate_expr_with_trace :
     ((d, yes, yes) slicing_interpr_kind, t) gexpr ->
     ((d, yes, yes) slicing_interpr_kind, t) gexpr * ((d, yes, yes) slicing_interpr_kind, t) Trace_ast.t =
 fun ctx lang e ->
-  (* These functions require to not have holes in the argument of the function *)
-  (* So here is a temporary fix. *)
   let evaluate_expr ctx lang e = fst (evaluate_expr_with_trace ctx lang e) in
-  (*let runtime_to_val eval ctx m ty o = addholes @@ Interpreter.runtime_to_val eval ctx m ty o in
-  let evaluate_operator eval op m lang vargs = addholes @@ Interpreter.evaluate_operator eval (Operator.translate op) m lang (List.map delholes vargs) in
-  *)
   let exception FatalError of Runtime.error * t mark in
   let raise_soft_fatal_error err m tr = Error (err, m, trfatalerror ~err ~tr) in
 
@@ -75,7 +70,7 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> ok (Var.Map.singleton x v) v @@ trvar ~var:(Var.translate x) ~value:(addholes v)
+        | Some v -> ok (Var.Map.singleton x v) v @@ trvar ~var:x ~value:v
         | None -> 
           Message.error ~pos "%a@ Variable : %a@ Context : %a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -126,7 +121,7 @@ fun ctx lang e ->
         |> (* To keep the subexpression invariant, I need to let the error behave differently depending on whether 
               the function is a lambda abstraction or a custom or a hole *)
           let vars = match Mark.remove e1 with
-            | EAbs { binder; _} -> Array.map Var.translate @@ fst (Bindlib.unmbind binder)
+            | EAbs { binder; _} -> fst (Bindlib.unmbind binder)
             | _ -> [|Var.make "arg"|] 
           in 
           map_error_trace (fun err trargs ->
@@ -143,7 +138,6 @@ fun ctx lang e ->
             (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) 
             local_ctx (Array.to_list vars) args 
           in
-          let vars = Array.map Var.translate vars in
           let* new_ctx, v, trv = 
             evaluate_expr_with_trace_aux ctx (union_map local_ctx ctxargs) lang body 
             |> map_error_trace (fun _ trv -> trapp ~trf ~trargs ~tys ~vars ~trv)
@@ -243,7 +237,7 @@ fun ctx lang e ->
           let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
           let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
           fold_result_with_trace appf v0 vn
-        | Reduce, [_; _; (EArray [v0], _)] -> 
+        | Reduce, [EHole _,_; _; (EArray [v0], _)] -> 
           (* Need to add this case if there is only one element since slicing will replace the other arguments by holes*)
           ok Var.Map.empty v0 []
         | Filter, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] ->
@@ -253,7 +247,7 @@ fun ctx lang e ->
           let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
           let* new_ctx, vals, traux = filter_result_with_trace appf vs in
           ok new_ctx (Mark.add m (EArray vals)) traux
-        | Filter, [_ ; (EArray [], _)] ->
+        | Filter, [EHole _,_; (EArray [], _)] ->
           (* Need to add this case for slicing reasons similar to the others *)
           ok Var.Map.empty (Mark.add m (EArray [])) []
         | Fold, [EAbs {tys = tysf; _},mf as f; init; (EArray vs, _)] -> 
@@ -277,21 +271,17 @@ fun ctx lang e ->
           with 
           | Runtime.Error (DivisionByZero|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, _) -> raise @@ FatalError (err,m)
       in 
-      ok (union_map new_ctx ctxaux) v @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux
+      ok (union_map new_ctx ctxaux) v @@ trappop ~op ~trargs ~tys ~vargs ~traux
       with
       | FatalError (DivisionByZero|NotSameLength|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, m) -> 
-        raise_soft_fatal_error err m @@ trappop ~op:(Operator.translate op) ~trargs ~tys ~vargs ~traux:[]
+        raise_soft_fatal_error err m @@ trappop ~op ~trargs ~tys ~vargs ~traux:[]
       )
       
-    | EAbs _ -> (
-      match Mark.remove(addholes e) with
-      | EAbs { binder; pos; tys } -> 
+    | EAbs { binder; pos; tys } ->
         (* Functions do not carry contexts in Catala and it would be pretty complicated to
           recover the original expression if we perform substitutions so we will only do them
           at the final value if needed *)
         ok local_ctx e @@ trabs ~binder ~pos ~tys 
-      | _ -> assert false
-    )
     | ELit l -> ok Var.Map.empty e @@ trlit l
     | EPos _ -> assert false
     | ECustom { obj; targs; tret } -> ok local_ctx e @@ trcustom ~obj ~targs ~tret
