@@ -1,13 +1,9 @@
 TARGETS=syntax.pdf syntax_en.pdf syntax_fr.pdf
 
-syntax.pdf: syntax_en.pdf syntax_fr.pdf
-	cpdf $^ -o $@
+all: syntax.pdf
 
-%.pdf: %.tex logo.pdf
-	latexmk -xelatex -halt-on-error -shell-escape $<
+%.pdf: %.typ
+	typst compile $<
 
 clean:
-	latexmk -f -C *.tex
 	rm -rf _minted* $(TARGETS)
-
-.PRECIOUS .SECONDARY: $(TARGETS)
