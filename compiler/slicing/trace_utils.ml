@@ -2,7 +2,7 @@ open Catala_utils
 open Shared_ast
 open Trace_ast
 
-(* Typing shenanigan to add hole terms to the AST type. *)
+(* Typing shenanigan to handle hole terms in the AST type. *)
 let addholes e =
   let rec f :
       type d c h.
@@ -61,17 +61,8 @@ let delholes e =
   in
   Expr.unbox (f e)
 
-let translate_context translate_value context = 
-  let ctx_bindings = Var.Map.bindings context in List.fold_left 
-    (fun acc (x,v) -> Var.Map.add (Var.translate x) (translate_value v) acc) 
-    Var.Map.empty ctx_bindings
-
 (* Trace constructors *)
-let trhole ty = TrHole ty
-
-let tranyhole = TrHole (TAny, Pos.void)
-
-let trexpr e = TrExpr (addholes e)
+let trexpr e = TrExpr e
 
 let trlit l = TrLit l
 
@@ -79,10 +70,10 @@ let trapp ~trf ~trargs ~tys ~vars ~trv =
   TrApp { trf; trargs; tys; vars; trv }
 
 let trappcustom ~trcustom ~custom ~trargs ~vargs ~tys ~v =
-  TrAppCustom { trcustom; custom = addholes custom; trargs; tys; vargs= List.map addholes vargs; v=addholes v }
+  TrAppCustom { trcustom; custom; trargs; tys; vargs; v }
 
 let trappop ~op ~trargs ~tys ~vargs ~traux =
-  TrAppOp { op = Operator.translate op; trargs; tys; vargs= List.map addholes vargs; traux }
+  TrAppOp { op; trargs; tys; vargs; traux }
 
 let trarray ts = TrArray ts
 
@@ -91,10 +82,8 @@ let trvar ~var ~value = TrVar { var; value }
 let trabs ~binder ~pos ~tys = TrAbs { binder; pos; tys }
 
 let trcontextclosure ~context ~tr = 
-  if context = Var.Map.empty then 
-    tr 
-  else
-    TrContextClosure { context = translate_context addholes context; tr }
+  if context = Var.Map.empty then tr 
+  else TrContextClosure { context; tr }
 
 let trifthenelse ~trcond ~trtrue ~trfalse =
   TrIfThenElse { trcond; trtrue; trfalse }
@@ -123,7 +112,7 @@ let trassert t = TrAssert t
 let trfatalerror ~err ~tr = TrFatalError {err; tr}
 
 let trdefault ~trexcepts ~vexcepts ~trjust ~trcons =
-  TrDefault { trexcepts; vexcepts = (List.map addholes vexcepts); trjust; trcons }
+  TrDefault { trexcepts; vexcepts; trjust; trcons }
 
 let trpuredefault t = TrPureDefault t
 
@@ -131,8 +120,11 @@ let trempty = TrEmpty
 
 let trerroronempty t = TrErrorOnEmpty t
 
-let trcustom ~obj ~targs ~tret =
-  TrCustom { obj; targs; tret }
+let trcustom ~obj ~targs ~tret = TrCustom { obj; targs; tret }
+
+let trhole ty = TrHole ty
+
+let tranyhole = TrHole (TAny, Pos.void)
 
 let substitute_bounded_vars :
   type c d h.
