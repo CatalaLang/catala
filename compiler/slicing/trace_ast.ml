@@ -26,7 +26,9 @@ open Shared_ast
       trargs : ('a, 'm) t list;
       tys : typ list;
       vargs : ('a, 'm) gexpr list;
-      traux : ('a, 'm) t list (*traux contains additional traces needed for certain operators such as Map, Fold or Reduce*)
+      traux : ('a, 'm) t list 
+      (*traux contains additional traces needed for certain
+       operators such as Map, Fold or Reduce*)
     }
       -> ('a, 'm) t
   | TrArray : ('a, 'm) t list -> ('a, 'm) t
@@ -76,15 +78,12 @@ open Shared_ast
       size : int;
     }
       -> ('a, 'm) t
-  (* Early stages *)
   | TrStructAccess : {
       name : StructName.t;
       tr : ('a, 'm) t;
       field : StructField.t;
     }
       -> ('a, 'm) t
-      (** Resolved struct/enums, after name resolution in [desugared] *)
-  (* Lambda-like *)
   | TrExternal : {
       name : external_ref Mark.pos;
     }
@@ -94,7 +93,6 @@ open Shared_ast
       err : Runtime.error;
       tr : ('a, 'm) t
     } -> ('a, 'm) t
-  (* Default terms *)
   | TrDefault : {
       trexcepts : ('a, 'm) t list;
       vexcepts : ('a, 'm) gexpr list;
@@ -105,14 +103,10 @@ open Shared_ast
   | TrPureDefault : ('a, 'm) t -> ('a, 'm) t
   | TrEmpty : ('a, 'm) t
   | TrErrorOnEmpty : ('a, 'm) t -> ('a, 'm) t
-  (* Only used during evaluation *)
   | TrCustom : {
       obj : Obj.t;
       targs : typ list;
       tret : typ;
     }
       -> ('a, 'm) t
-      (** A function of the given type, as a runtime OCaml object. The specified
-          types for arguments and result must be the Catala types corresponding
-          to the runtime types of the function. *)
   | TrHole : typ -> ('a, 'm) t

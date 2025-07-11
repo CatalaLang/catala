@@ -2,6 +2,10 @@ open Catala_utils
 open Shared_ast
 open Trace_ast
 
+
+let hole = EHole (TAny, Pos.void)
+let mark_hole m = Mark.add m hole
+
 (* Typing shenanigan to handle hole terms in the AST type. *)
 let addholes e =
   let rec f :
@@ -17,7 +21,7 @@ let addholes e =
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (EPos _, _) as e -> Expr.map ~f e
-    | EFatalError Runtime.Unreachable, m -> Expr.map ~f @@ Mark.add m (EHole (TAny, Pos.void))
+    | EFatalError Runtime.Unreachable, m -> Expr.map ~f @@ mark_hole m
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
@@ -28,7 +32,8 @@ let addholes e =
   in
   let open struct
     external id :
-      (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr -> (('d, 'c, yes) slicing_interpr_kind, 't) gexpr
+      (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr -> 
+        (('d, 'c, yes) slicing_interpr_kind, 't) gexpr
       = "%identity"
   end in
   if false then Expr.unbox (f e)
@@ -61,8 +66,6 @@ let delholes e =
   in
   Expr.unbox (f e)
 
-let hole = EHole (TAny, Pos.void)
-let mark_hole m = Mark.add m hole
 (* Trace constructors *)
 let trexpr e = TrExpr e
 
@@ -130,15 +133,20 @@ let tranyhole = TrHole (TAny, Pos.void)
 
 let substitute_bounded_vars :
   type c d h.
-  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
   ((d, c, h) slicing_interpr_kind, 't) gexpr ->
-  (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
   ((d, c, h) slicing_interpr_kind, 't) gexpr =
 fun ctx_closure e ->
   let join = Var.Map.union (fun _ v _ -> Some v) in
+  let expr_map_gather ~f e = 
+    Expr.map_gather ~acc:Var.Map.empty ~join ~f e in
   let rec f :
       ((d, c, h) slicing_interpr_kind, 't) gexpr -> 
-      (((d, c, h) slicing_interpr_kind, 't) gexpr, ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
+      (((d, c, h) slicing_interpr_kind, 't) gexpr, 
+      ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t *
       ((d, c, h) slicing_interpr_kind, 't) gexpr boxed
     = function
     | EVar x, m -> (
@@ -148,21 +156,21 @@ fun ctx_closure e ->
           Var.Map.add x v acc, v'
         | None -> Var.Map.empty, Expr.evar x m
       )
-    | EHole _, _ as e -> Expr.map_gather ~acc:Var.Map.empty ~join ~f e
-    | (ECustom _, _) as e -> Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | EHole _, _ as e -> expr_map_gather ~f e
+    | (ECustom _, _) as e -> expr_map_gather ~f e
     | EAppOp { op; args; tys }, m ->
       let accs, args = List.split(List.map f args) in
       List.fold_left join Var.Map.empty accs, Expr.eappop ~tys ~args ~op m
-    | (EDefault _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
-    | (EPureDefault _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
-    | (EEmpty, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
-    | (EErrorOnEmpty _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
-    | (EPos _, _) as e ->  Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+    | (EDefault _, _) as e ->  expr_map_gather ~f e
+    | (EPureDefault _, _) as e ->  expr_map_gather ~f e
+    | (EEmpty, _) as e ->  expr_map_gather ~f e
+    | (EErrorOnEmpty _, _) as e ->  expr_map_gather ~f e
+    | (EPos _, _) as e ->  expr_map_gather ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ 
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
         | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
         _ ) as e ->
-       Expr.map_gather ~acc:Var.Map.empty ~join ~f e
+       expr_map_gather ~f e
     | _ -> .
   in
   let ctx, e = f e in
@@ -185,23 +193,32 @@ fun e1 e2 -> match Mark.remove e1, Mark.remove e2 with
   | EAppOp { op = op1; args = a1; _ }, EAppOp { op = op2; args = a2; _ } ->
     Mark.equal Operator.equal op1 op2 && List.for_all2 is_sub_expr a1 a2
   | EArray e1, EArray e2 -> List.for_all2 is_sub_expr e1 e2
-  | EIfThenElse { cond = c1; etrue = t1; efalse = f1 }, EIfThenElse { cond = c2; etrue = t2; efalse = f2 } ->
-     List.for_all2 is_sub_expr [c1;t1;f1] [c2;t2;f2]
+  | EIfThenElse { cond = c1; etrue = t1; efalse = f1 }, 
+    EIfThenElse { cond = c2; etrue = t2; efalse = f2 } ->
+    List.for_all2 is_sub_expr [c1;t1;f1] [c2;t2;f2]
   | EStruct { name = n1; fields = f1 }, EStruct { name = n2; fields = f2 } ->
-    (* The name StructField.Map.equal is misleading. It is just a forall2 for StructField.Map *)
+    (* The name StructField.Map.equal is misleading, 
+       it is just a forall2 for StructField.Map *)
     StructName.equal n1 n2 && StructField.Map.equal is_sub_expr f1 f2
-  | EStructAccess { name = n1; e = e1; field = f1 }, EStructAccess { name = n2; e = e2; field = f2 } ->
+  | EStructAccess { name = n1; e = e1; field = f1 }, 
+    EStructAccess { name = n2; e = e2; field = f2 } ->
     StructName.equal n1 n2 && StructField.equal f1 f2 && is_sub_expr e1 e2
-  | EInj { name = n1; e = e1; cons = c1 }, EInj { name = n2; e = e2; cons = c2 } ->
+  | EInj { name = n1; e = e1; cons = c1 }, 
+    EInj { name = n2; e = e2; cons = c2 } ->
     EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 && is_sub_expr e1 e2
-  | EMatch { name = n1; e = e1; cases = c1 }, EMatch { name = n2; e = e2; cases = c2 } ->
-    (* The name EnumConstructor.Map.equal is misleading. It is just a forall2 for EnumConstructor.Map *)
-    EnumName.equal n1 n2 && is_sub_expr e1 e2 && EnumConstructor.Map.equal is_sub_expr c1 c2
+  | EMatch { name = n1; e = e1; cases = c1 }, 
+    EMatch { name = n2; e = e2; cases = c2 } ->
+    (* The name EnumConstructor.Map.equal is misleading,
+       it is just a forall2 for EnumConstructor.Map *)
+    EnumName.equal n1 n2 && is_sub_expr e1 e2 && 
+    EnumConstructor.Map.equal is_sub_expr c1 c2
   | ETuple e1, ETuple e2 -> List.for_all2 is_sub_expr e1 e2
-  | ETupleAccess { e = e1; index = i1; size = s1}, ETupleAccess { e = e2; index = i2; size = s2} ->
+  | ETupleAccess { e = e1; index = i1; size = s1}, 
+    ETupleAccess { e = e2; index = i2; size = s2} ->
     i1 = i2 && s1 = s2 && is_sub_expr e1 e2
   | EAssert e1, EAssert e2 -> is_sub_expr e1 e2
-  | EDefault { excepts = x1; just = j1; cons = c1 }, EDefault { excepts = x2; just = j2; cons = c2 } ->
+  | EDefault { excepts = x1; just = j1; cons = c1 }, 
+    EDefault { excepts = x2; just = j2; cons = c2 } ->
     List.for_all2 is_sub_expr (c1::j1::x1) (c2::j2::x2)
   | EPureDefault e1, EPureDefault e2 -> is_sub_expr e1 e2
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> is_sub_expr e1 e2
@@ -225,12 +242,13 @@ let map_result_with_trace f lst =
     | [] -> Ok (accmap, List.rev accv, List.rev acctr)
     | x :: xs ->
       match f x with
-      | Ok (map, v, tr) -> aux (union_map accmap map) (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
+      | Ok (map, v, tr) -> aux (union_map accmap map) 
+        (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
       | Error (err, m, trfail) ->
-          let rev_prefix_trace = List.map trexpr rev_prefix in
-          let rest_trace = List.map trexpr xs in
-          let full_trace = List.rev_append rev_prefix_trace (trfail::rest_trace) in
-          error err m full_trace
+          let rev_prefix_tr = List.map trexpr rev_prefix in
+          let rest_tr = List.map trexpr xs in
+          let full_tr = List.rev_append rev_prefix_tr (trfail::rest_tr) in
+          error err m full_tr
   in
   aux Var.Map.empty [] [] [] lst
 
@@ -239,12 +257,14 @@ let map_result_with_trace2 f l1 l2 =
     | [], [] -> Ok (accmap, List.rev accv, List.rev acctr)
     | x1 :: xs1, x2 :: xs2 -> (
       match f x1 x2 with
-      | Ok (map, v, tr) -> aux (union_map accmap map) (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
+      | Ok (map, v, tr) -> aux (union_map accmap map) 
+        (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
       | Error (err, m, trfail) ->
-        let trace_before = List.map (fun _ -> tranyhole) rev_prefix in
-        let trace_after = List.map (fun _ -> tranyhole) xs1 in
-        let full_trace = List.rev_append trace_before (trfail :: trace_after) in
-        error err m full_trace
+        let rev_prefix_tr = List.map (fun _ -> tranyhole) rev_prefix in
+        let rest_tr = List.map (fun _ -> tranyhole) xs1 in
+        let full_tr
+         = List.rev_append rev_prefix_tr (trfail :: rest_tr) in
+        error err m full_tr
     )
     | _ -> raise (Invalid_argument "map_result_with_trace2")
   in
@@ -255,11 +275,12 @@ let fold_result_with_trace f acc0 lst =
     | [] -> Ok (accmap, acc, List.rev tracc)
     | x :: xs ->
         match f acc x with
-        | Ok (map, acc', tr) -> aux (union_map accmap map) acc' (tr :: tracc) xs
+        | Ok (map, acc', tr) -> 
+          aux (union_map accmap map) acc' (tr :: tracc) xs
         | Error (err, m, trfail) ->
-            let trace_after = List.map (fun _ -> tranyhole) xs in
-            let full_trace = List.rev_append tracc (trfail::trace_after) in
-            error err m full_trace
+            let rest_tr = List.map (fun _ -> tranyhole) xs in
+            let full_tr = List.rev_append tracc (trfail::rest_tr) in
+            error err m full_tr
   in
   aux Var.Map.empty acc0 [] lst
 
@@ -273,13 +294,13 @@ let filter_result_with_trace f lst =
         let accv' = if b then x :: accv else accv in
         aux (union_map accmap map) accv' acctr' xs
       | Error (err, m, trfail) ->
-        let rev_prefix_trace = List.map (fun _ -> tranyhole) acctr in
-        let rest_trace = List.init (List.length xs * 2) (fun _ -> tranyhole) in
-        let full_trace = List.rev_append rev_prefix_trace (trfail :: rest_trace) in
-        error err m full_trace
+        let rev_prefix_tr = List.map (fun _ -> tranyhole) acctr in
+        let rest_tr = List.init (List.length xs * 2) (fun _ -> tranyhole) in
+        let full_tr = List.rev_append rev_prefix_tr (trfail :: rest_tr) in
+        error err m full_tr
       | _ -> Message.error
-        "fold_filter_result : This predicate evaluated to something else than a boolean \
-          (should not happen if the term was well-typed)"
+        "fold_filter_result : This predicate evaluated to something else\ 
+         than a boolean (should not happen if the term was well-typed)"
   in
   aux Var.Map.empty [] [] lst
 

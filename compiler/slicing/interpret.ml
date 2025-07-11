@@ -45,7 +45,113 @@ fun ctx lang e ->
       in the list, it should return a list with holes everywhere except 
       the unique element where it found an error *)
     map_result_with_trace (evaluate_expr_with_trace_aux ctx local_ctx lang) es
-  
+
+  and evaluate_op_with_trace_aux ctx local_ctx lang op args tys m =
+    let* new_ctx, vargs, trargs = 
+      evaluate_expr_list_with_trace_aux ctx local_ctx lang args
+      |>let mhole = mark_hole m in
+        map_error_trace (fun err trargs -> 
+          let merror = Mark.add m (EFatalError err) in
+          let vargs = List.map (fun tr -> match tr with 
+            | Trace_ast.TrExpr _ | TrHole _ -> mhole 
+            | _ -> merror
+          ) trargs in
+          trappop ~op ~trargs ~tys ~vargs ~traux:[])
+    in 
+    (try
+    let* ctxaux, v, traux = 
+      map_error_trace (fun _ traux -> trappop ~op ~trargs ~tys ~vargs ~traux) 
+      @@
+      match fst op, vargs with
+      | Map, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] -> 
+        (* In this case we need to know the trace of f(v) for every v in vs*)
+        let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
+        let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
+        let* new_ctx, vals, traux = map_result_with_trace appf vs in
+        ok new_ctx (Mark.add m (EArray vals)) traux
+      | Map, [EHole _,_ ; (EArray vs, _)] -> 
+        (* There are cases where there is a hole instead of the first 
+            agument to map Hole to all values in the array *)
+        let vals = List.map (fun (_,mv)-> mark_hole mv) vs in 
+        let traux = List.map (fun _ -> tranyhole) vs in
+        ok Var.Map.empty (Mark.add m (EArray vals)) traux
+      | Map2, [EAbs {tys = tysf; _},mf as f; (EArray vs1, _); (EArray vs2, _)] -> 
+        (* In this case we need to know the trace of f(v1, v2) 
+            for every v1, v2 in vs1, vs2 *)
+        let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+        let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+        (try 
+          let* new_ctx, vals, traux = map_result_with_trace2 appf vs1 vs2 in
+          ok new_ctx (Mark.add m (EArray vals)) traux
+        with Invalid_argument _ -> raise @@ FatalError (Runtime.NotSameLength,m))
+      | Map2, [EHole _,_ ; (EArray vs1, _); (EArray vs2, _);] -> 
+        (* There are cases where there is a hole instead of the first 
+            agument to map Hole to all values in the arrays *)
+        (try 
+          let vals = List.map2 (fun (_,mv) _ -> mark_hole mv) vs1 vs2 in 
+          let traux = List.map (fun _ -> tranyhole) vs1 in
+          ok Var.Map.empty (Mark.add m (EArray vals)) traux
+        with Invalid_argument _ -> raise @@ FatalError (Runtime.NotSameLength,m))
+      | Reduce, [_; EAbs {tys = tysd; _},md as default; (EArray [], _)] ->
+        (* In this case we just need the trace of default() *)
+        let eappd v = Mark.add md (EApp {f=default; args = [v]; tys = tysd}) in
+        let* new_ctx, v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang 
+          (eappd (ELit LUnit, Expr.with_ty m (TLit TUnit, Expr.mark_pos m))) 
+          |> map_error_trace (fun _ tr -> [tr])
+        in
+        ok new_ctx v [tr]
+      | Reduce, [EAbs {tys = tysf; _},mf as f; _; (EArray (v0 :: vn), _)] ->
+        (* In this case we need the trace of f(v) for every v fold from f and v0::vn *)
+        let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+        let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+        fold_result_with_trace appf v0 vn
+      | Reduce, [EHole _,_; _; (EArray [v0], _)] -> 
+        (* Need to add this case if there is only one element since 
+            slicing will replace the other arguments by holes *)
+        ok Var.Map.empty v0 []
+      | Filter, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] ->
+        (* In this case we need to keep the trace of f(v) for every v in and its value *)
+        (* In order to store these informations, the list will store alternatively a 
+          boolean corresponding to f(v) and its trace *)
+        let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
+        let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
+        let* new_ctx, vals, traux = filter_result_with_trace appf vs in
+        ok new_ctx (Mark.add m (EArray vals)) traux
+      | Filter, [EHole _,_; (EArray [], _)] ->
+        (* Need to add this case for slicing reasons similar to the others *)
+        ok Var.Map.empty (Mark.add m (EArray [])) []
+      | Fold, [EAbs {tys = tysf; _},mf as f; init; (EArray vs, _)] -> 
+        (* In this case we need the trace of f(v) for every v fold from f init and vs *)
+        let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
+        let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
+        fold_result_with_trace appf init vs
+      | Fold, [EHole _,_; init; (EArray [], _)] -> 
+        ok Var.Map.empty init []
+      | (Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
+        Message.error "Invalid argument for operator %a@.Expr : %a" 
+        (Print.operator ~debug:false) op Format_trace.expr e
+      | _ -> (* The other cases do not need to carry any additional trace 
+                so we just evaluate them normally*)
+        try
+          let v = if List.exists (function EHole _,_ -> true |_ -> false) vargs then 
+            mark_hole m 
+          else 
+            evaluate_operator (evaluate_expr ctx lang) op m lang vargs 
+          in
+          ok Var.Map.empty v []
+        with 
+        | Runtime.Error (
+            DivisionByZero|UncomparableDurations
+            |AmbiguousDateRounding|IndivisibleDurations as err, _
+          ) -> raise @@ FatalError (err,m)
+    in 
+    ok (union_map new_ctx ctxaux) v @@ trappop ~op ~trargs ~tys ~vargs ~traux
+    with
+    | FatalError (
+        DivisionByZero|NotSameLength|UncomparableDurations|
+        AmbiguousDateRounding|IndivisibleDurations as err, m
+        ) -> raise_soft_fatal_error err m @@ trappop ~op ~trargs ~tys ~vargs ~traux:[]
+    )
   and evaluate_expr_with_trace_aux :
       decl_ctx ->
       (((d, yes, yes) slicing_interpr_kind, t) gexpr, 
@@ -208,108 +314,7 @@ fun ctx lang e ->
             if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
             else ())
           e1)
-    | EAppOp { op; args; tys } ->
-      let* new_ctx, vargs, trargs = 
-        evaluate_expr_list_with_trace_aux ctx local_ctx lang args
-        |>let mhole = mark_hole m in
-          map_error_trace (fun err trargs -> 
-            let merror = Mark.add m (EFatalError err) in
-            let vargs = List.map (fun tr -> match tr with 
-              | Trace_ast.TrExpr _ | TrHole _ -> mhole 
-              | _ -> merror
-            ) trargs in
-            trappop ~op ~trargs ~tys ~vargs ~traux:[])
-      in 
-      (try
-      let* ctxaux, v, traux = 
-        map_error_trace (fun _ traux -> trappop ~op ~trargs ~tys ~vargs ~traux) 
-        @@
-        match fst op, vargs with
-        | Length, [(EArray es, _)] -> ok Var.Map.empty 
-          (Mark.add m @@ ELit (LInt (Runtime.integer_of_int (List.length es)))) []
-        | Map, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] -> 
-          (* In this case we need to know the trace of f(v) for every v in vs*)
-          let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
-          let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
-          let* new_ctx, vals, traux = map_result_with_trace appf vs in
-          ok new_ctx (Mark.add m (EArray vals)) traux
-        | Map, [EHole _ ,_ ; (EArray vs, _)] -> 
-          (* There are cases where there is a hole instead of the first 
-             agument to map Hole to all values in the array *)
-          let vals = List.map (fun (_,mv)-> mark_hole mv) vs in 
-          let traux = List.map (fun _ -> tranyhole) vs in
-          ok Var.Map.empty (Mark.add m (EArray vals)) traux
-        | Map2, [EAbs {tys = tysf; _},mf as f; (EArray vs1, _); (EArray vs2, _)] -> 
-          (* In this case we need to know the trace of f(v1, v2) 
-             for every v1, v2 in vs1, vs2 *)
-          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
-          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
-          (try 
-            let* new_ctx, vals, traux = map_result_with_trace2 appf vs1 vs2 in
-            ok new_ctx (Mark.add m (EArray vals)) traux
-          with Invalid_argument _ -> raise @@ FatalError (Runtime.NotSameLength,m))
-        | Map2, [EHole _,_ ; (EArray vs1, _); (EArray vs2, _);] -> 
-          (* There are cases where there is a hole instead of the first 
-             agument to map Hole to all values in the arrays *)
-          (try 
-            let vals = List.map2 (fun (_,mv) _ -> mark_hole mv) vs1 vs2 in 
-            let traux = List.map (fun _ -> tranyhole) vs1 in
-            ok Var.Map.empty (Mark.add m (EArray vals)) traux
-          with Invalid_argument _ -> raise @@ FatalError (Runtime.NotSameLength,m))
-        | Reduce, [_; EAbs {tys = tysd; _},md as default; (EArray [], _)] ->
-          (* In this case we just need the trace of default() *)
-          let eappd v = Mark.add md (EApp {f=default; args = [v]; tys = tysd}) in
-          let* new_ctx, v, tr = evaluate_expr_with_trace_aux ctx local_ctx lang 
-            (eappd (ELit LUnit, Expr.with_ty m (TLit TUnit, pos))) 
-            |> map_error_trace (fun _ tr -> [tr])
-          in
-          ok new_ctx v [tr]
-        | Reduce, [EAbs {tys = tysf; _},mf as f; _; (EArray (v0 :: vn), _)] ->
-          (* In this case we need the trace of f(v) for every v fold from f and v0::vn *)
-          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
-          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
-          fold_result_with_trace appf v0 vn
-        | Reduce, [EHole _,_; _; (EArray [v0], _)] -> 
-          (* Need to add this case if there is only one element since 
-             slicing will replace the other arguments by holes *)
-          ok Var.Map.empty v0 []
-        | Filter, [EAbs {tys = tysf; _},mf as f; (EArray vs, _)] ->
-          (* In this case we need to keep the trace of f(v) for every v in and its value *)
-          (* In order to store these informations, the list will store alternatively a boolean corresponding to f(v) and its trace *)
-          let eappf v = Mark.add mf (EApp {f; args = [v]; tys = tysf}) in
-          let appf v = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v) in
-          let* new_ctx, vals, traux = filter_result_with_trace appf vs in
-          ok new_ctx (Mark.add m (EArray vals)) traux
-        | Filter, [EHole _,_; (EArray [], _)] ->
-          (* Need to add this case for slicing reasons similar to the others *)
-          ok Var.Map.empty (Mark.add m (EArray [])) []
-        | Fold, [EAbs {tys = tysf; _},mf as f; init; (EArray vs, _)] -> 
-          (* In this case we need the trace of f(v) for every v fold from f init and vs *)
-          let eappf v1 v2 = Mark.add mf (EApp {f; args = [v1; v2]; tys = tysf}) in
-          let appf v1 v2 = evaluate_expr_with_trace_aux ctx local_ctx lang (eappf v1 v2) in
-          fold_result_with_trace appf init vs
-        | Fold, [EHole _,_; init; (EArray [], _)] -> 
-          (* Need to add this case if the list is empty since it would will replace the other arguments by holes*)
-          ok Var.Map.empty init []
-        | (Length | Map | Map2 | Reduce | Filter | Fold) as op, _ -> 
-          Message.error "Invalid argument for operator %a@.Expr : %a" (Print.operator ~debug:false) op Format_trace.expr e
-        | _ -> (* The other cases do not need to carry any additional trace so we just evaluate them normally*)
-          try
-            let v = if List.exists (fun v -> match Mark.remove v with EHole _ -> true |_ -> false) vargs then 
-              mark_hole m 
-            else 
-              evaluate_operator (evaluate_expr ctx lang) op m lang vargs 
-            in
-            ok Var.Map.empty v []
-          with 
-          | Runtime.Error (DivisionByZero|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, _) -> raise @@ FatalError (err,m)
-      in 
-      ok (union_map new_ctx ctxaux) v @@ trappop ~op ~trargs ~tys ~vargs ~traux
-      with
-      | FatalError (DivisionByZero|NotSameLength|UncomparableDurations|AmbiguousDateRounding|IndivisibleDurations as err, m) -> 
-        raise_soft_fatal_error err m @@ trappop ~op ~trargs ~tys ~vargs ~traux:[]
-      )
-      
+    | EAppOp { op; args; tys } -> evaluate_op_with_trace_aux ctx local_ctx lang op args tys m 
     | EAbs { binder; pos; tys } ->
         (* Functions do not carry contexts in Catala and it would be pretty complicated to
           recover the original expression if we perform substitutions so we will only do them
@@ -321,12 +326,14 @@ fun ctx lang e ->
     | EEmpty -> ok Var.Map.empty e trempty
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
-      let new_fields lst = StructField.Map.of_seq (Seq.zip (List.to_seq fields) (List.to_seq lst)) in
+      let new_fields lst = StructField.Map.of_seq 
+        (Seq.zip (List.to_seq fields) (List.to_seq lst)) in
       let* new_ctx, es, tres = 
         evaluate_expr_list_with_trace_aux ctx local_ctx lang es 
         |> map_error_trace (fun _ tres -> trstruct ~name ~fields:(new_fields tres))
       in
-      ok new_ctx (Mark.add m (EStruct{ fields = new_fields es; name })) @@ trstruct ~name ~fields:(new_fields tres)
+      ok new_ctx (Mark.add m (EStruct{ fields = new_fields es; name })) 
+      @@ trstruct ~name ~fields:(new_fields tres)
     | EStructAccess { e; name = s; field } -> (
       let* new_ctx, e, tr = 
         evaluate_expr_with_trace_aux ctx local_ctx lang e 
@@ -366,7 +373,8 @@ fun ctx lang e ->
         |> map_error_trace (fun _ tr -> trtupleaccess ~tr ~index ~size)
       in
       match Mark.remove e with
-      | ETuple es when List.length es = size -> ok new_ctx (List.nth es index) (trtupleaccess ~tr ~index ~size)
+      | ETuple es when List.length es = size -> 
+        ok new_ctx (List.nth es index) (trtupleaccess ~tr ~index ~size)
       | EHole _ -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos e)
@@ -408,9 +416,11 @@ fun ctx lang e ->
         let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
         let* new_ctx, v, tv = 
           evaluate_expr_with_trace_aux ctx local_ctx lang new_e 
-          |> map_error_trace (fun _ tv -> trmatch ~name ~tr ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases))
+          |> map_error_trace (fun _ tv -> trmatch ~name ~tr 
+            ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases))
         in 
-        ok (union_map ctx_cases new_ctx) v @@ trmatch ~tr ~name ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases)
+        ok (union_map ctx_cases new_ctx) v @@ trmatch ~tr ~name 
+          ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases)
       | EHole _ -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos e)
@@ -419,21 +429,26 @@ fun ctx lang e ->
     | EIfThenElse { cond; etrue; efalse } -> (
       let* ctxcond, cond, trcond = 
         evaluate_expr_with_trace_aux ctx local_ctx lang cond 
-        |> map_error_trace (fun _ trcond -> trifthenelse ~trcond ~trtrue:(trexpr etrue) ~trfalse:(trexpr efalse))
+        |> map_error_trace (fun _ trcond -> trifthenelse ~trcond 
+          ~trtrue:(trexpr etrue) ~trfalse:(trexpr efalse))
       in
       match Mark.remove cond with
       | ELit (LBool true) -> 
         let* new_ctx, v, trtrue = 
           evaluate_expr_with_trace_aux ctx local_ctx lang etrue 
-          |> map_error_trace (fun _ trtrue -> trifthenelse ~trcond ~trtrue ~trfalse:(trexpr efalse))
+          |> map_error_trace (fun _ trtrue -> trifthenelse ~trcond 
+            ~trtrue ~trfalse:(trexpr efalse))
         in 
-        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond ~trtrue ~trfalse:(trexpr efalse)     
+        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond 
+          ~trtrue ~trfalse:(trexpr efalse)     
       | ELit (LBool false) -> 
         let* new_ctx, v, trfalse = 
           evaluate_expr_with_trace_aux ctx local_ctx lang efalse 
-          |> map_error_trace (fun _ trfalse -> trifthenelse ~trcond ~trtrue:(trexpr etrue) ~trfalse)
+          |> map_error_trace (fun _ trfalse -> trifthenelse ~trcond 
+            ~trtrue:(trexpr etrue) ~trfalse)
         in 
-        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond ~trtrue:(trexpr etrue) ~trfalse
+        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond 
+          ~trtrue:(trexpr etrue) ~trfalse
       | EHole _ -> hole_result m
       | _ ->
         Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
@@ -476,24 +491,32 @@ fun ctx lang e ->
         |> let mhole = mark_hole m in
         map_error_trace (fun err trexcepts -> 
           let merror = Mark.add m (EFatalError err) in
-          trdefault ~trexcepts ~vexcepts:(List.map (fun tr -> match tr with Trace_ast.TrExpr _ | TrHole _ -> mhole | _ -> merror) trexcepts) ~trjust:(trexpr just) ~trcons:(trexpr cons))
+          let vexcepts = List.map (function 
+            | Trace_ast.TrExpr _ | TrHole _ -> mhole 
+            | _ -> merror
+          ) trexcepts in
+          trdefault ~trexcepts ~vexcepts ~trjust:(trexpr just) ~trcons:(trexpr cons))
       in
       let empty_count = List.length (List.filter is_empty_error vexcepts) in
       match List.length vexcepts - empty_count with
       | 0 -> (
         let* ctxjust, just, trjust = 
           evaluate_expr_with_trace_aux ctx local_ctx lang just 
-          |> map_error_trace (fun _ trjust -> trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons))
+          |> map_error_trace (fun _ trjust -> 
+            trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons))
         in
         match Mark.remove just with
         | ELit (LBool true) -> 
             let* ctxcons, v, trcons = 
               evaluate_expr_with_trace_aux ctx local_ctx lang cons 
-              |> map_error_trace (fun _ trcons -> trdefault ~trexcepts ~vexcepts ~trjust ~trcons)
+              |> map_error_trace (fun _ trcons -> 
+                trdefault ~trexcepts ~vexcepts ~trjust ~trcons)
             in
-            ok (union_map ctxexcepts @@ union_map ctxjust ctxcons) v @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons
+            ok (union_map ctxexcepts @@ union_map ctxjust ctxcons) v 
+            @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons
         | ELit (LBool false) -> 
-            ok (union_map ctxexcepts ctxjust) (Mark.copy e EEmpty) @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons)
+            ok (union_map ctxexcepts ctxjust) (Mark.copy e EEmpty) 
+            @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons)
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "Default justification has not been reduced to a boolean at \
@@ -509,7 +532,8 @@ fun ctx lang e ->
             excepts
         in
         raise Runtime.(Error (Conflict, poslist))*)
-        raise_soft_fatal_error Conflict m @@ trdefault ~trexcepts ~vexcepts ~trjust:(trexpr just) ~trcons:(trexpr cons)
+        raise_soft_fatal_error Conflict m 
+        @@ trdefault ~trexcepts ~vexcepts ~trjust:(trexpr just) ~trcons:(trexpr cons)
       )
     | EPureDefault e -> 
       let* new_ctx, v, tr = 

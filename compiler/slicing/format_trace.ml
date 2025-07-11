@@ -261,7 +261,9 @@ let rec expr_aux :
     (a, t) gexpr ->
     unit =
   fun ~cut_app bnd_ctx colors fmt e ->
-  let decr cut_app = Option.bind cut_app (fun n -> if n <= 0 then Some 0 else Some (n-1)) in
+  let decr cut_app = Option.bind cut_app (
+    fun n -> if n <= 0 then Some 0 else Some (n-1)
+  ) in
   let exprb bnd_ctx colors e = expr_aux ~cut_app bnd_ctx colors e in
   let exprc colors e = exprb bnd_ctx colors e in
   let expr e = exprc colors e in
@@ -529,10 +531,12 @@ let rec expr_aux :
     | ECustom _ -> Format.pp_print_string fmt "<obj>"
     | EHole _ -> Format.pp_print_string fmt "□"
 
-let expr_with_cut ~cut_app ppf e = expr_aux ~cut_app Bindlib.empty_ctxt colors ppf e
+let expr_with_cut ~cut_app ppf e = 
+  expr_aux ~cut_app Bindlib.empty_ctxt colors ppf e
 let expr ppf e = expr_with_cut ~cut_app:None ppf e
 
-let print_expr ?(fmt=Message.std_ppf ()) (e : ('a, 'm) gexpr) = Format.fprintf fmt "%a@." expr e
+let print_expr ?(fmt=Message.std_ppf ()) (e : ('a, 'm) gexpr) = 
+  Format.fprintf fmt "%a@." expr e
 
 let context fmt ctx = 
   if ctx = Var.Map.empty then (
@@ -549,7 +553,8 @@ let context fmt ctx =
       )
       (Var.Map.bindings ctx) punctuation "}"
 
-let print_context ?(fmt=Message.std_ppf ()) ctx = Format.fprintf fmt "%a@." context ctx 
+let print_context ?(fmt=Message.std_ppf ()) ctx = 
+  Format.fprintf fmt "%a@." context ctx 
 
 let set fmt set = 
   if set = Var.Set.empty then (
@@ -606,8 +611,9 @@ let rec trace_aux :
   let rhs_tr ex = paren_tr ~rhs:true ex in
 
     match tr with
-    | TrExpr _ -> Format.pp_print_string fmt "□"(*expr_aux bnd_ctx colors fmt e*)
-    | TrVar {var = v; value} -> Format.fprintf fmt "%a(▷ %a)" var v (exprc colors) value
+    | TrExpr _ -> Format.pp_print_string fmt "□"
+    | TrVar {var = v; value} -> Format.fprintf fmt "%a(▷ %a)" 
+      var v (exprc colors) value
     | TrExternal { name } -> external_ref fmt name
     | TrTuple es ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]"
@@ -690,7 +696,8 @@ let rec trace_aux :
                 Format.pp_close_box fmt ();
                 punctuation fmt ")"))
         xs_tau punctuation "→" (rhs (exprb bnd_ctx)) body
-    | TrContextClosure { context=ctx; tr } -> Format.fprintf fmt "@[<hv 0>%a (ρ : %a)@]" trace tr context ctx
+    | TrContextClosure { context=ctx; tr } -> 
+      Format.fprintf fmt "@[<hv 0>%a (ρ : %a)@]" trace tr context ctx
     | TrAppOp { op = ((Map | Filter) as op), _; trargs = [trarg1; trarg2]; _ } ->
       Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs_tr tracec) trarg1
         (rhs_tr tracec) trarg2
@@ -803,7 +810,8 @@ let rec trace_aux :
       match tr with 
       | TrVar{var = v; value = EStruct{fields; name},_} -> (
         match StructField.Map.find_opt field fields with
-        | Some e' -> Format.fprintf fmt "@[<hv 2>%a%a@,%a (▷ %a)@]" var v punctuation "."
+        | Some e' -> 
+          Format.fprintf fmt "@[<hv 2>%a%a@,%a (▷ %a)@]" var v punctuation "."
         StructField.format field (exprc colors) e'
         | None ->
           Message.error
@@ -844,4 +852,5 @@ let rec trace_aux :
 
 let trace ppf tr = trace_aux Bindlib.empty_ctxt colors ppf tr
 
-let print_trace ?(fmt=Message.std_ppf ()) (tr: ('a, 'm) Trace_ast.t) = Format.fprintf fmt "%a@." trace tr
+let print_trace ?(fmt=Message.std_ppf ()) (tr: ('a, 'm) Trace_ast.t) = 
+  Format.fprintf fmt "%a@." trace tr
