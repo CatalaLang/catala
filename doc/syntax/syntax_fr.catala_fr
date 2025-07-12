@@ -23,15 +23,13 @@ déclaration x contenu décimal égal à 65536,262144
 déclaration x contenu décimal égal à 37%
 déclaration x contenu argent égal à 1 234 567,89€
 déclaration x contenu date égal à |2024-04-01|
-déclaration x contenu durée égal à 254 jour + 4 mois + 1 an
+déclaration x contenu durée égal à 254 jour + -4 mois + 1 an
 déclaration x contenu liste de entier égal à [ 12; 24; 36 ]
 déclaration x contenu (date,argent,décimal) égal à (|2024-04-01|, 30€, 1%)
-déclaration champ d'application S:
-  résultat f contenu décimal dépend de
+déclaration f contenu décimal dépend de
     x contenu argent,
     y contenu décimal
-champ d'application S:
-  définition f de x, y égal à x * y / 12,0€
+  égal à y * x / 12,0€
 
 déclaration x contenu Struct1 égal à Struct1 { -- chp1: 9 -- chp2: 7% }
 déclaration x contenu Énum1 égal à Case1 contenu 12
@@ -261,9 +259,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:92.28-92.34:
+├─➤ doc/syntax/syntax_fr.catala_fr:90.28-90.34:
 │    │
-│ 92 │   sub1 champ d'application Scope0
+│ 90 │   sub1 champ d'application Scope0
 │    │                            ‾‾‾‾‾‾
 └─ Déclaration des métadonnées
 #return code 123#

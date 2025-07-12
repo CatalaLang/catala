@@ -1,6 +1,6 @@
 #set page(paper: "a4", flipped: true, margin: 1cm)
-#set text(font: "DejaVu Sans", size: 7pt)
-#show raw: text.with(font: "DejaVu Sans Mono", size: 7pt)
+#set text(font: "Inter 18pt", size: 7pt)
+#show raw: text.with(font: "Annotation Mono", size: 7pt)
 
 #import "catala_syntax_hl.typ": setup
 #show: setup
@@ -23,7 +23,7 @@
 #let syntax-doc(title, ..args) = [
   #let lines = args.pos().chunks(2).map(x => (x.at(0), text(style:"oblique",x.at(1))))
   = #title
-  #v(0.8em)
+  #v(0.9em)
   #grid(columns: (65%, 35%),
       row-gutter: 0.8em,
       ..lines.flatten())
@@ -79,7 +79,7 @@ money
 date
 ```,
 ```catala-en-code
-254 day      4 month      1 year
+254 day      -4 month      1 year
 ```,
 ```catala-en-code
 duration
@@ -98,7 +98,7 @@ list of integer
 ```,
 ```catala-en-code
 f of x, y equals
-  x * y / $12.0
+  y * x / $12.0
 ```,
 ```catala-en-code
 decimal depends on
@@ -249,11 +249,8 @@ definition var1
 ```catala-en-code
 rule var2
   under condition var1 >= 2
-  consequence fulfilled
+  consequence ·not· fulfilled
 ```, [Rule (definition for conditions)],
-```catala-en-code
-  consequence not fulfilled
-```, [Negative rule],
 ```catala-en-code
 definition f of x, y equals ...
 ```, [Function def. or rule],
@@ -267,15 +264,14 @@ exception lbl1 definition var1 ...
 exception definition var1 ...
 ```, [Exception to implicit],
 ```catala-en-code
-definition var1
-  state before
+definition var1 state before
   equals ...
 ```, [State definition],
 ```catala-en-code
 assertion ...
 ```, [Assertion],
 ```catala-en-code
-date round decreasing
+date round in·decreasing
 ```, [Date rounding mode]
 )
 
@@ -331,7 +327,7 @@ combine all x among lst
 #grid(
     columns: (1fr, 1fr, 1fr),
     gutter: 0pt,
-    stroke: (x, y) => if x > 0 { (left: 0.1pt + black) },
+    stroke: (x, y) => if x > 0 { (left: 0.2pt + black) },
     inset: (x, y) => if x > 0 { (left: 6pt) } + if x < 2 { (right: 6pt) },
     [ #prog_lit #v(1fr) #lit_types #v(1fr) #operators ],
     grid.vline(),
