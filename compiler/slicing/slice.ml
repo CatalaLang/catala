@@ -515,23 +515,6 @@ fun ctx value trace ->
     
   in snd (unevaluate_aux ~context_closure:Var.Map.empty value trace)
 
-let print_slicing_things expr value trace sliced_expr = 
-  Message.log "Input program :";
-  Format.print_newline();
-  Format_trace.print_expr expr;
-  Format.print_newline();
-  Message.log "Result :";
-  Format.print_newline();
-  Format_trace.print_expr value;
-  Format.print_newline();
-  Message.log "Trace :";
-  Format.print_newline();
-  Format_trace.print_trace trace;
-  Message.log "Sliced program :";
-  Format.print_newline(); 
-  Format_trace.print_expr sliced_expr;
-  Format.print_newline()
-
 let slice 
   ?(debug = false)
   (p : (dcalc, 'm) gexpr program)

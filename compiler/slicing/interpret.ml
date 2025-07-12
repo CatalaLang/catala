@@ -3,8 +3,6 @@ open Shared_ast
 open Shared_ast.Interpreter
 open Trace_utils
 
-let hole_result m = ok Var.Map.empty (mark_hole m) tranyhole
-
 let find_error_var_ty vts trs =
   List.find (fun (_, tr) ->
     match tr with
@@ -12,6 +10,88 @@ let find_error_var_ty vts trs =
     | _ -> true
   ) (List.combine vts trs)
   |> fst
+
+(* Helpers for Result *)
+
+let ( let* ) = Result.bind
+
+let ok map v tr = Ok (map,v,tr)
+
+let error err m trace = Error (err, m, trace)
+
+let hole_result m = ok Var.Map.empty (mark_hole m) tranyhole
+
+let map_error_trace trace_wrapper r = 
+  Result.map_error (fun (err, m, tr) -> err, m, trace_wrapper err tr) r
+
+let union_map m1 m2 = Var.Map.union (fun _ v _ -> Some v) m1 m2
+
+let map_result_with_trace f lst =
+  let rec aux accmap accv acctr rev_prefix = function
+    | [] -> Ok (accmap, List.rev accv, List.rev acctr)
+    | x :: xs ->
+      match f x with
+      | Ok (map, v, tr) -> aux (union_map accmap map) 
+        (v :: accv) (tr :: acctr) (x :: rev_prefix) xs
+      | Error (err, m, trfail) ->
+          let rev_prefix_tr = List.map trexpr rev_prefix in
+          let rest_tr = List.map trexpr xs in
+          let full_tr = List.rev_append rev_prefix_tr (trfail::rest_tr) in
+          error err m full_tr
+  in
+  aux Var.Map.empty [] [] [] lst
+
+let map_result_with_trace2 f l1 l2 =
+  let rec aux accmap accv acctr rev_prefix = function
+    | [], [] -> Ok (accmap, List.rev accv, List.rev acctr)
+    | x1 :: xs1, x2 :: xs2 -> (
+      match f x1 x2 with
+      | Ok (map, v, tr) -> aux (union_map accmap map) 
+        (v :: accv) (tr :: acctr) ((x1, x2) :: rev_prefix) (xs1, xs2)
+      | Error (err, m, trfail) ->
+        let rev_prefix_tr = List.map (fun _ -> tranyhole) rev_prefix in
+        let rest_tr = List.map (fun _ -> tranyhole) xs1 in
+        let full_tr
+         = List.rev_append rev_prefix_tr (trfail :: rest_tr) in
+        error err m full_tr
+    )
+    | _ -> raise (Invalid_argument "map_result_with_trace2")
+  in
+  aux Var.Map.empty [] [] [] (l1, l2)
+
+let fold_result_with_trace f acc0 lst =
+  let rec aux accmap acc tracc = function
+    | [] -> Ok (accmap, acc, List.rev tracc)
+    | x :: xs ->
+        match f acc x with
+        | Ok (map, acc', tr) -> 
+          aux (union_map accmap map) acc' (tr :: tracc) xs
+        | Error (err, m, trfail) ->
+            let rest_tr = List.map (fun _ -> tranyhole) xs in
+            let full_tr = List.rev_append tracc (trfail::rest_tr) in
+            error err m full_tr
+  in
+  aux Var.Map.empty acc0 [] lst
+
+let filter_result_with_trace f lst =
+  let rec aux accmap accv acctr = function
+    | [] -> Ok (accmap, List.rev accv, List.rev acctr)
+    | x :: xs ->
+      match f x with
+      | Ok (map, (ELit (LBool b),_), tr_call) ->
+        let acctr' = (trlit (LBool b) :: tr_call :: acctr) in
+        let accv' = if b then x :: accv else accv in
+        aux (union_map accmap map) accv' acctr' xs
+      | Error (err, m, trfail) ->
+        let rev_prefix_tr = List.map (fun _ -> tranyhole) acctr in
+        let rest_tr = List.init (List.length xs * 2) (fun _ -> tranyhole) in
+        let full_tr = List.rev_append rev_prefix_tr (trfail :: rest_tr) in
+        error err m full_tr
+      | _ -> Message.error
+        "fold_filter_result : This predicate evaluated to something else\ 
+         than a boolean (should not happen if the term was well-typed)"
+  in
+  aux Var.Map.empty [] [] lst
   
 let rec evaluate_expr_with_trace :
     type d t.
