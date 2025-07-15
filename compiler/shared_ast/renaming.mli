@@ -84,6 +84,7 @@ val program :
   namespaced_fields:bool ->
   namespaced_constrs:bool ->
   prefix_module:bool ->
+  reserved_module_names:bool ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
   ?f_field:(string -> string) ->
@@ -103,6 +104,9 @@ val program :
     if [prefix_module] is true, the qualifying module name is inserted within
     the ident string, separated with a [.] dot. This happens before
     sanitization.
+
+    if [reserved_module_names] is true, idents that have the same name a used
+    module will be renamed.
 
     The [f_*] optional arguments sanitize the different kinds of ids. The
     default is what is used for OCaml: project to ASCII, capitalise structs,
