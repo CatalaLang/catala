@@ -13,6 +13,13 @@ Utile aussi pour vérifier la coloration syntaxique.
 # > Inclusion: foo.catala_en
 ```
 
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
 # Littéraux et types
 
 ```catala
@@ -84,6 +91,7 @@ déclaration énumération Énum1:
   -- Cas1 contenu entier
   -- Cas2
 
+#[test]
 déclaration champ d'application Scope1:
   interne var1 contenu entier
   interne var2 condition
@@ -259,10 +267,8 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:90.28-90.34:
-│    │
-│ 90 │   sub1 champ d'application Scope0
-│    │                            ‾‾‾‾‾‾
+├─➤ doc/syntax/syntax_fr.catala_fr:98.28-98.34:
+│ 
 └─ Déclaration des métadonnées
 #return code 123#
 ```

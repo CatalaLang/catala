@@ -1,11 +1,11 @@
 #set page(paper: "a4", flipped: true, margin: 1cm)
 #set text(font: "Inter 18pt", size: 7pt)
-#show raw: text.with(font: "Annotation Mono", weight: "medium", size: 7pt)
+#show raw: set text(font: "Annotation Mono", weight: "medium", size: 7pt)
 
 #import "catala_syntax_hl.typ": setup
 #show: setup
 
-#show heading: text.with(size: 9pt)
+#show heading: set text(size: 9pt)
 
 #place(top+left, image("logo.svg", width: 30pt))
 
@@ -20,14 +20,19 @@
 
 #v(1em)
 
-#let syntax-doc(title, ..args) = [
-  #let lines = args.pos().chunks(2).map(x => (x.at(0), text(style:"oblique",x.at(1))))
-  = #title
-  #v(0.8em)
-  #grid(columns: (65%, 35%),
+#let syntax-doc(title, ..args) = {
+  let lines = args.pos().chunks(2).map(x => (
+      grid.cell(align: horizon, x.at(0)),
+      grid.cell(stroke: (left: 1pt + luma(200)),
+                         inset: (left: 0.5em),
+                         align: horizon,
+          text(style:"oblique",x.at(1)))))
+  [= #title]
+  v(0.8em)
+  grid(columns: (65%, 35%),
       row-gutter: 0.9em,
       ..lines.flatten())
-]
+}
 
 #let prog_lit = syntax-doc([Programmation littéraire],
 ```catala-fr
@@ -38,10 +43,11 @@
 # Article 1 | JORFARTI000012345678
 # Article 2 | LEGIARTI000012345678
 # Décision 3 | CETATEXT000012345678
-```, [Référence au journal officiel],
-raw("```catala      ```catala-metadata\n```            ```",
-    lang: "catala"),
-[Bloc de code / métadonnées],
+```, [Référence au journal officiel], {
+show raw: text.with(size: 0.9em)
+raw("```catala       ```catala-metadata\n```             ```",
+    lang: "catala")
+}, [Bloc de code / métadonnées],
 ```catala-fr
 > Module Mdl
 ```, [Déclaration de module],
@@ -50,7 +56,11 @@ raw("```catala      ```catala-metadata\n```            ```",
 ```, [Import de module],
 ```catala-fr
 > Inclusion: foo.catala_en
-```, [Inclusion textuelle]
+```, [Inclusion textuelle],
+{
+    show raw: text.with(size: 0.9em)
+    raw("```catala-test-cli\n$ catala interpret --scope Scope1\n```")
+}, [Test intégré],
 )
 
 #let lit_types = syntax-doc([Littéraux et types],
@@ -78,9 +88,7 @@ décimal
 ```catala-fr-code
 argent
 ```,
-```catala-fr-code
-|2024-04-01|
-```,
+raw(lang: "catala-fr-code", "|"+datetime.today().display()+"|"),
 ```catala-fr-code
 date
 ```,
@@ -97,7 +105,7 @@ durée
 liste de entier
 ```,
 ```catala-fr-code
-(|2024-04-01|, 30€, 1%)
+(|2012-02-03|, 30€, 1%)
 ```,
 ```catala-fr-code
 (date,argent,décimal)
@@ -150,10 +158,6 @@ arrondi de 9,99€
 accès_année de ...
 premier_jour_du_mois de ...
 ```, [Éléments de dates],
-```catala-fr-code
-a +! b   a +. b   a +€ b   a +^ b
-# entier décimal  argent   durée
-```, [Opérateurs à types explicites]
 )
 
 #let metadata = syntax-doc([Déclaration des métadonnées],
@@ -167,6 +171,9 @@ déclaration énumération Énum1:
   -- Cas1 contenu entier
   -- Cas2
 ```, [Déclaration d'énumération],
+```catala-fr-code
+#[test]
+```, [Annot. champ de test],
 ```catala-fr-code
 déclaration champ d'application Chp1:
   interne var1 contenu entier
@@ -335,11 +342,9 @@ combine tout x parmi lst
 #grid(
     columns: (1fr, 1fr, 1fr),
     gutter: 0pt,
-    stroke: (x, y) => if x > 0 { (left: 0.2pt + black) },
+    stroke: (x, y) => if x > 0 { (left: 0.1pt + black) },
     inset: (x, y) => if x > 0 { (left: 6pt) } + if x < 2 { (right: 6pt) },
     [ #prog_lit #v(1fr) #lit_types #v(1fr) #operators ],
-    grid.vline(),
     [ #metadata #v(1fr) #expressions ],
-    grid.vline(),
     [ #scope #v(1fr) #lists ]
 )
