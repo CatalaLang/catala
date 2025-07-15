@@ -21,7 +21,7 @@
   [= #title]
   v(0.8em)
   grid(columns: (65%, 35%),
-      row-gutter: 0.9em,
+      row-gutter: 0.8em,
       ..lines.flatten())
 }
 

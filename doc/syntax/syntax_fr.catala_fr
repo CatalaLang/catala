@@ -3,7 +3,7 @@ Vérification que les exemples du cheat-sheet son corrects.
 Ce fichier doit correspondre à syntax_fr.tex et suivre ses mises à jour.
 Utile aussi pour vérifier la coloration syntaxique.
 
-# Programmation littéraire
+# Programmation littéraire | JORFARTI000012345678
 
 (On ne va pas jusqu'à définir de faux modules juste pour tester ces 3 cas)
 
@@ -20,7 +20,7 @@ $ catala typecheck
 └─
 ```
 
-# Littéraux et types
+# Littéraux et types | CETATEXT000012345678
 
 ```catala
 déclaration x contenu booléen égal à vrai
@@ -32,6 +32,7 @@ déclaration x contenu argent égal à 1 234 567,89€
 déclaration x contenu date égal à |2024-04-01|
 déclaration x contenu durée égal à 254 jour + -4 mois + 1 an
 déclaration x contenu liste de entier égal à [ 12; 24; 36 ]
+déclaration x contenu liste de n'importe quel dépend de a contenu entier égal à []
 déclaration x contenu (date,argent,décimal) égal à (|2024-04-01|, 30€, 1%)
 déclaration f contenu décimal dépend de
     x contenu argent,
@@ -91,7 +92,7 @@ déclaration énumération Énum1:
   -- Cas1 contenu entier
   -- Cas2
 
-#[test]
+# #[test]
 déclaration champ d'application Scope1:
   interne var1 contenu entier
   interne var2 condition
@@ -267,9 +268,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:98.28-98.34:
+├─➤ doc/syntax/syntax_fr.catala_fr:99.28-99.34:
 │    │
-│ 98 │   sub1 champ d'application Scope0
+│ 99 │   sub1 champ d'application Scope0
 │    │                            ‾‾‾‾‾‾
 └─ Déclaration des métadonnées
 #return code 123#
