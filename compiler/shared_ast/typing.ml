@@ -80,12 +80,15 @@ module Env = struct
   let dump ppf env =
     let pp_sep = Format.pp_print_space in
     Format.pp_open_vbox ppf 0;
-    (* Format.fprintf ppf "structs: @[<hov>%a@]@,"
-     *   (StructName.Map.format_keys ~pp_sep) env.structs;
-     * Format.fprintf ppf "enums: @[<hov>%a@]@,"
-     *   (EnumName.Map.format_keys ~pp_sep) env.enums;
-     * Format.fprintf ppf "vars: @[<hov>%a@]@,"
-     *   (Var.Map.format_keys ~pp_sep) env.vars; *)
+    Format.fprintf ppf "structs: @[<hov>%a@]@,"
+      (StructName.Map.format_keys ~pp_sep)
+      env.structs;
+    Format.fprintf ppf "enums: @[<hov>%a@]@,"
+      (EnumName.Map.format_keys ~pp_sep)
+      env.enums;
+    Format.fprintf ppf "vars: @[<hov>%a@]@,"
+      (Var.Map.format_keys ~pp_sep)
+      env.vars;
     Format.fprintf ppf "scopes: @[<hov>%a@]@,"
       (ScopeName.Map.format_keys ~pp_sep)
       env.scopes;
@@ -119,12 +122,13 @@ let unification_error env ~pos ?fmt_pos fmt ty1 ty2 =
         !(env.Env.printed_errors) pos
 
 let tvar_witness tvset = Type.Var.Set.max_elt tvset
-(* anonymous type variables start with "'", so this is guaranteed to give us a
-   user-supplied name if any *)
+(* anonymous type variables start with "'", so the above is guaranteed to give
+   us a user-supplied name if any (quote is before letters in ASCII) *)
 
-(* `eqclass` gathers all current aliases of the type ; `seen` is other type
-   variables that contain `ty` *)
-let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
+(* See [get_ty]. `eqclass` gathers all aliases of the current type ; `seen` is
+   other type variables that contain `ty` and is used to detect recursivity. *)
+let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen :
+    typ -> typ Bindlib.box = function
   | (TVar v, vpos) as ty -> (
     match Env.get_tvar env v with
     | None ->
@@ -143,11 +147,22 @@ let rec get_ty_aux ?(onfreevar = fun _ -> ()) env pos eqclass seen = function
       (get_ty_aux env pos Type.Var.Set.empty (Type.Var.Set.union seen eqclass))
       ty
 
-(* Expands all known type variables as much as possible in the given type *)
+(* Main function for resolving a type to its expanded, canonical form: this
+   expands all known type variables as much as possible. It relies on the
+   hashtable maintained in [env] and is at the core of the unification
+   procedure.
+
+   This must always be called before exploring a type, or you may be returned
+   intermediate type variables. *)
 let get_ty env e ty =
   Bindlib.unbox
     (get_ty_aux env (Expr.pos e) Type.Var.Set.empty Type.Var.Set.empty ty)
 
+(* Like [get_ty], but automatically generalises all free type variables found
+   remaining: for typing possibly polymorphic functions.
+
+   Precondition: the type must not contain type variables that could be
+   constrained somewhere else in the program, obviously. *)
 let get_ty_quantified env pos ty =
   let vars = ref Type.Var.Set.empty in
   let bty =
