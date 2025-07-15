@@ -106,16 +106,16 @@ let linking_dependencies items =
         | None -> acc)
       String.Map.empty items
   in
-  let rem_dups =
+  let rem_dups l =
     let rec aux seen = function
       | it :: r ->
         if String.Set.mem it.Scan.file_name seen then aux seen r
         else it :: aux (String.Set.add it.Scan.file_name seen) r
       | [] -> []
     in
-    aux String.Set.empty
+    aux String.Set.empty l
   in
-  fun acc item ->
+  fun item ->
     let rec traverse acc item =
       List.fold_left
         (fun acc m ->
@@ -123,7 +123,7 @@ let linking_dependencies items =
           traverse (it :: acc) it)
         acc item.Scan.used_modules
     in
-    rem_dups (traverse acc item)
+    rem_dups (traverse [] item)
 
 let backend_extensions =
   [
@@ -514,7 +514,7 @@ let build_cmd : int Cmd.t =
       let deps_targets =
         List.fold_left
           (fun acc ((item, backend), _) ->
-            let deps = link_deps [] item in
+            let deps = link_deps item in
             let targets = List.map (make_target ~build_dir ~backend) deps in
             make_target ~build_dir ~backend item :: List.rev_append targets acc)
           []
@@ -540,7 +540,7 @@ let build_cmd : int Cmd.t =
       Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
       ninja_targets, exec_targets, var_bindings, link_deps, install_targets
     in
-    let link_cmd = linking_command ~build_dir ~var_bindings (link_deps []) in
+    let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
     let exit_code =
       iter_commands ~build_dir exec_targets
       @@ fun (item, backend) target ->
@@ -720,7 +720,7 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
           List.fold_left
             (fun acc it ->
               String.Set.add (make_target ~build_dir ~backend it) acc)
-            acc (link_deps [] it))
+            acc (link_deps it))
       String.Set.empty base_targets
     |> String.Set.elements
   in
@@ -744,7 +744,7 @@ let run_tests config backend cmd scope (test_targets, link_deps, var_bindings) =
     run_command cmd
   | (`C | `OCaml | `Python | `Java) as backend -> (
     let link_cmd =
-      linking_command ~build_dir ~backend ~var_bindings (link_deps [])
+      linking_command ~build_dir ~backend ~var_bindings link_deps
     in
     iter_commands ~build_dir test_targets
     @@ fun item target ->
