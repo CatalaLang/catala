@@ -128,7 +128,7 @@ let linking_dependencies items =
 let backend_extensions =
   [
     Clerk_rules.C, ["c"; "h"; "o"];
-    Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "cmxs"];
+    Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"; "class"; "jar"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
@@ -367,6 +367,102 @@ let raw_cmd : int Cmd.t =
       $ Cli.targets
       $ Cli.ninja_flags)
 
+let build_custom_target
+    ~(config : Cli.config)
+    ~ninja_flags
+    (target : Clerk_config.target) =
+  Message.debug "Building target @{<cyan>[%s]@}" target.tname;
+  let target_dir = config.Cli.options.global.target_dir in
+  let build_dir = config.Cli.options.global.build_dir in
+  let enabled_backends =
+    List.map Clerk_rules.backend_from_config target.backends
+    |> List.sort_uniq Stdlib.compare
+  in
+  let install_targets =
+    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
+    @@ fun nin_ppf items _var_bindings ->
+    let find_module_item module_name =
+      try
+        List.find
+          (fun it ->
+            match it.Scan.module_def with
+            | Some m -> module_name = Mark.remove m
+            | None -> false)
+          items
+      with Not_found ->
+        let all_module_names =
+          List.filter_map
+            (function
+              | { Scan.module_def = Some m; _ } -> Some (Mark.remove m)
+              | _ -> None)
+            items
+        in
+        Message.error
+          "Did not find module @{<yellow>\"%s\"@} used in target \
+           @{<cyan>[%s]@}.@ %a"
+          module_name target.tname Suggestions.format
+          Suggestions.(best_candidates all_module_names module_name)
+    in
+    let module_items = List.map find_module_item target.tmodules in
+    let get_deps = linking_dependencies items in
+    let all_modules_deps =
+      module_items @ List.concat_map get_deps module_items
+    in
+    let all_target_files =
+      List.concat_map
+        (fun bk ->
+          List.concat_map
+            (fun module_item ->
+              let open File in
+              let base =
+                build_dir
+                / dirname module_item.Scan.file_name
+                / backend_subdir bk
+                / (Option.get module_item.module_def |> Mark.remove)
+              in
+              List.assoc bk backend_extensions
+              |> List.map (fun ext -> (module_item, target, bk), base -.- ext))
+            all_modules_deps)
+        enabled_backends
+      |> List.sort_uniq (fun ((l, _, _), _) ((r, _, _), _) ->
+             String.compare l.Scan.file_name r.Scan.file_name)
+    in
+    let all_targets =
+      List.fold_left
+        (fun acc ((item, _target, backend), _f) ->
+          let target =
+            make_target ~build_dir ~backend:(rules_backend backend) item
+          in
+          Message.debug "Making target %s" target;
+          target :: acc)
+        [] all_target_files
+      |> List.rev
+    in
+    Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
+    all_target_files
+  in
+  let open File in
+  List.iter
+    (fun ((_i, ct, bk), src) ->
+      let dir = target_dir / ct.Clerk_config.tname / backend_subdir bk in
+      ensure_dir dir;
+      copy_in ~dir ~src)
+    install_targets;
+  if target.Clerk_config.include_runtime then
+    target.Clerk_config.backends
+    |> List.iter (fun bk ->
+           let bk = Clerk_rules.backend_from_config bk in
+           let src =
+             match bk with
+             | Clerk_rules.OCaml -> Clerk_poll.ocaml_runtime_dir
+             | Clerk_rules.C -> Clerk_poll.c_runtime_dir
+             | Clerk_rules.Python -> Clerk_poll.python_runtime_dir
+             | Clerk_rules.Java -> Clerk_poll.java_runtime
+             | Clerk_rules.Tests -> assert false
+           in
+           copy_dir () ~src:(Lazy.force src)
+             ~dst:(target_dir / target.Clerk_config.tname / backend_subdir bk))
+
 let build_cmd : int Cmd.t =
   let run config autotest (targets : string list) (ninja_flags : string list) =
     let open File in
@@ -416,20 +512,16 @@ let build_cmd : int Cmd.t =
           | Some custom -> Right custom)
         targets
     in
+    List.iter
+      (fun t -> build_custom_target ~config ~ninja_flags t)
+      custom_targets;
     let enabled_backends =
       List.fold_left
         (fun acc t -> target_backend config.options t :: acc)
         [] direct_targets
     in
-    let enabled_backends =
-      List.fold_left
-        (fun acc ct ->
-          List.map Clerk_rules.backend_from_config ct.Clerk_config.backends
-          @ acc)
-        enabled_backends custom_targets
-    in
     let enabled_backends = List.sort_uniq Stdlib.compare enabled_backends in
-    let ninja_targets, exec_targets, var_bindings, link_deps, install_targets =
+    let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
@@ -482,48 +574,6 @@ let build_cmd : int Cmd.t =
               | None -> assert false))
           direct_targets
       in
-      let install_targets =
-        custom_targets
-        |> List.map (fun ct ->
-               ct.Clerk_config.tmodules
-               |> List.map (fun m ->
-                      let item =
-                        List.find
-                          (fun it ->
-                            match it.Scan.module_def with
-                            | Some (m1, _) -> m1 = m
-                            | _ -> false)
-                          items
-                      in
-                      ct.Clerk_config.backends
-                      |> List.map (fun bk ->
-                             let bk = Clerk_rules.backend_from_config bk in
-                             let base =
-                               build_dir
-                               / dirname item.Scan.file_name
-                               / backend_subdir bk
-                               / m
-                             in
-                             List.assoc bk backend_extensions
-                             |> List.map (fun ext ->
-                                    (item, ct, bk), base -.- ext))
-                      |> List.flatten)
-               |> List.flatten)
-        |> List.flatten
-      in
-      let deps_targets =
-        List.fold_left
-          (fun acc ((item, backend), _) ->
-            let deps = link_deps item in
-            let targets = List.map (make_target ~build_dir ~backend) deps in
-            make_target ~build_dir ~backend item :: List.rev_append targets acc)
-          []
-          (exec_targets
-          @ List.map
-              (fun ((item, _, bk), t) -> (item, rules_backend bk), t)
-              install_targets)
-        |> List.rev
-      in
       let object_exec_targets =
         List.map
           (fun ((item, backend), _) ->
@@ -534,11 +584,11 @@ let build_cmd : int Cmd.t =
           exec_targets
       in
       let final_ninja_targets =
-        List.sort_uniq Stdlib.compare
-          (object_exec_targets @ deps_targets @ ninja_targets)
+        List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
-      ninja_targets, exec_targets, var_bindings, link_deps, install_targets
+      if final_ninja_targets <> [] then
+        Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
+      ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
     let exit_code =
@@ -548,47 +598,27 @@ let build_cmd : int Cmd.t =
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
       run_command cmd
     in
-    if exit_code = 0 then (
-      if install_targets = [] then
-        Message.result
-          "@[<v 4>Build successful. The targets can be found in the following \
-           files:@,\
-           %a@]"
-          (Format.pp_print_list (fun ppf f ->
-               Format.fprintf ppf "@{<cyan>%s@}"
-                 (make_relative_to ~dir:original_cwd f)))
-          (ninja_targets @ List.map snd exec_targets)
-      else
-        let tdir = config.Cli.options.global.target_dir in
-        custom_targets
-        |> List.iter (fun ct -> remove (tdir / ct.Clerk_config.tname));
-        install_targets
-        |> List.iter (fun ((_, ct, bk), src) ->
-               let dir = tdir / ct.Clerk_config.tname / backend_subdir bk in
-               ensure_dir dir;
-               copy_in ~dir ~src);
-        custom_targets
-        |> List.iter (fun ct ->
-               if ct.Clerk_config.include_runtime then
-                 ct.Clerk_config.backends
-                 |> List.iter (fun bk ->
-                        let bk = Clerk_rules.backend_from_config bk in
-                        let src =
-                          match bk with
-                          | Clerk_rules.OCaml -> Clerk_poll.ocaml_runtime_dir
-                          | Clerk_rules.C -> Clerk_poll.c_runtime_dir
-                          | Clerk_rules.Python -> Clerk_poll.python_runtime_dir
-                          | Clerk_rules.Java -> Clerk_poll.java_runtime
-                          | Clerk_rules.Tests -> assert false
-                        in
-                        copy_dir () ~src:(Lazy.force src)
-                          ~dst:(tdir / ct.Clerk_config.tname / backend_subdir bk)));
-        Message.result
-          "@[<v 4>Build successful. The targets are present at:@,%a@]"
-          (Format.pp_print_list (fun ppf f ->
-               Format.fprintf ppf "@{<cyan>%s@}"
-                 (make_relative_to ~dir:original_cwd f)))
-          (List.map (fun t -> tdir / t.Clerk_config.tname) custom_targets));
+    (if exit_code = 0 then
+       let install_targets = ninja_targets @ List.map snd exec_targets in
+       if install_targets <> [] then
+         Message.result
+           "@[<v 4>Build successful. The targets can be found in the following \
+            files:@,\
+            %a@]"
+           (Format.pp_print_list (fun ppf f ->
+                Format.fprintf ppf "@{<cyan>%s@}"
+                  (make_relative_to ~dir:original_cwd f)))
+           install_targets
+       else
+         let target_dir = config.Cli.options.global.target_dir in
+         Message.result
+           "@[<v 4>Build successful. The targets are present at:@,%a@]"
+           (Format.pp_print_list (fun ppf f ->
+                Format.fprintf ppf "@{<cyan>%s@}"
+                  (make_relative_to ~dir:original_cwd f)))
+           (List.map
+              (fun t -> target_dir / t.Clerk_config.tname)
+              custom_targets));
     raise (Catala_utils.Cli.Exit_with exit_code)
   in
   let doc =
