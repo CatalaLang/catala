@@ -1,13 +1,16 @@
-TARGETS=syntax.pdf syntax_en.pdf syntax_fr.pdf
+TARGETS = syntax.pdf syntax_en.pdf syntax_fr.pdf
 
-syntax.pdf: syntax_en.pdf syntax_fr.pdf
-	cpdf $^ -o $@
+TYPST_FLAGS = --font-path fonts/ --ignore-system-fonts
 
-%.pdf: %.tex logo.pdf
-	latexmk -xelatex -halt-on-error -shell-escape $<
+all: syntax.pdf
+
+%.pdf: $(wildcard *.typ)
+	typst compile $(TYPST_FLAGS) $*.typ
 
 clean:
-	latexmk -f -C *.tex
 	rm -rf _minted* $(TARGETS)
 
-.PRECIOUS .SECONDARY: $(TARGETS)
+watch:
+	typst watch $(TYPST_FLAGS) syntax.typ
+
+.PHONY: all clean watch

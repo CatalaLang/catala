@@ -1,0 +1,345 @@
+#set page(paper: "a4", flipped: true, margin: 1cm)
+#set text(font: "Inter 18pt", size: 7pt)
+#show raw: text.with(font: "Annotation Mono", weight: "medium", size: 7pt)
+
+#import "catala_syntax_hl.typ": setup
+#show: setup
+
+#show heading: text.with(size: 9pt)
+
+#place(top+left, image("logo.svg", width: 30pt))
+
+#place(top+right)[v0.10.0 · Révision \#3 · ⓒ 2025]
+
+#box(height:30pt, width:100%, align(horizon+center)[
+#upper(text(size:15pt)[La syntaxe de Catala])
+#h(30pt)
+#text(size: 9pt)[version française]
+])
+
+
+#v(1em)
+
+#let syntax-doc(title, ..args) = [
+  #let lines = args.pos().chunks(2).map(x => (x.at(0), text(style:"oblique",x.at(1))))
+  = #title
+  #v(0.8em)
+  #grid(columns: (65%, 35%),
+      row-gutter: 0.9em,
+      ..lines.flatten())
+]
+
+#let prog_lit = syntax-doc([Programmation littéraire],
+```catala-fr
+# Titre
+### Sous-sous-titre
+```, [En-têtes],
+```catala-fr
+# Article 1 | JORFARTI000012345678
+# Article 2 | LEGIARTI000012345678
+# Décision 3 | CETATEXT000012345678
+```, [Référence au journal officiel],
+raw("```catala      ```catala-metadata\n```            ```",
+    lang: "catala"),
+[Bloc de code / métadonnées],
+```catala-fr
+> Module Mdl
+```, [Déclaration de module],
+```catala-fr
+> Usage de Mdl en tant que M
+```, [Import de module],
+```catala-fr
+> Inclusion: foo.catala_en
+```, [Inclusion textuelle]
+)
+
+#let lit_types = syntax-doc([Littéraux et types],
+```catala-fr-code
+vrai                faux
+```,
+```catala-fr-code
+booléen
+```,
+```catala-fr-code
+65536
+```,
+```catala-fr-code
+entier
+```,
+```catala-fr-code
+65536,262144        37%
+```,
+```catala-fr-code
+décimal
+```,
+```catala-fr-code
+1 234 567,89€
+```,
+```catala-fr-code
+argent
+```,
+```catala-fr-code
+|2024-04-01|
+```,
+```catala-fr-code
+date
+```,
+```catala-fr-code
+254 jour     -4 mois     1 an
+```,
+```catala-fr-code
+durée
+```,
+```catala-fr-code
+[ 12; 24; 36 ]
+```,
+```catala-fr-code
+liste de entier
+```,
+```catala-fr-code
+(|2024-04-01|, 30€, 1%)
+```,
+```catala-fr-code
+(date,argent,décimal)
+```,
+```catala-fr-code
+f de x, y égal à
+  y * x / 12,0€
+```,
+```catala-fr-code
+décimal dépend de
+  x contenu argent,
+  y contenu décimal
+```,
+```catala-fr-code
+Struct1 { -- chp1: 9 -- chp2: 7% }
+```,
+```catala-fr-code
+Struct1
+```,
+```catala-fr-code
+Cas1 contenu 12        Cas2
+```,
+```catala-fr-code
+Énum1
+```
+)
+
+#let operators = syntax-doc([Opérations],
+```catala-fr-code
+non a         a et b
+a ou b        # "ou à défaut"
+a ou bien b   # ou exclusif
+```, [Opérateurs logiques],
+```catala-fr-code
+- a          a + b        a - b
+a * b        a / b
+```, [Arithmétique],
+```catala-fr-code
+a = b        a < b        a <= b
+a != b       a > b        a >= b
+```, [Comparaisons],
+```catala-fr-code
+décimal de 44
+argent de 23,15
+```, [Conversions],
+```catala-fr-code
+arrondi de 9,99€
+```, [Arrondis],
+```catala-fr-code
+accès_année de ...
+premier_jour_du_mois de ...
+```, [Éléments de dates],
+```catala-fr-code
+a +! b   a +. b   a +€ b   a +^ b
+# entier décimal  argent   durée
+```, [Opérateurs à types explicites]
+)
+
+#let metadata = syntax-doc([Déclaration des métadonnées],
+```catala-fr-code
+déclaration structure Struct1:
+  donnée chp1 contenu entier
+  donnée chp2 contenu décimal
+```, [Déclaration de structure],
+```catala-fr-code
+déclaration énumération Énum1:
+  -- Cas1 contenu entier
+  -- Cas2
+```, [Déclaration d'énumération],
+```catala-fr-code
+déclaration champ d'application Chp1:
+  interne var1 contenu entier
+  interne var2 condition
+  sub1 champ d'application Chp0
+```, [Déclaration de champ d'application],
+```catala-fr-code
+  interne var1 contenu ...
+  résultat var3 contenu ...
+  entrée var4 contenu ...
+  entrée résultat var5 contenu ...
+  contexte var6 contenu ...
+  contexte résultat var7 contenu ...
+  résultat sub2
+    champ d'application Scope0
+```, [Qualificateurs d'entrée-sortie],
+```catala-fr-code
+  interne var1 contenu ...
+    état avant
+    état après
+```, [Transitions d'état],
+```catala-fr-code
+déclaration const contenu décimal
+  égal à 17,1
+```, [Définition globale],
+```catala-fr-code
+déclaration carré contenu décimal
+  dépend de x contenu décimal
+  égal à x * x
+```, [Définition de fonction globale],
+)
+
+#let expressions = syntax-doc([Expressions],
+```catala-fr-code
+soit x égal à 36 - 5 dans ...
+```, [Définition locale],
+```catala-fr-code
+selon expr sous forme
+-- Cas1 de x : ...
+-- Cas2 : ...
+-- n'importe quel : ...
+```, [Filtrage par motif],
+```catala-fr-code
+expr sous forme Cas1
+expr sous forme Cas1 de x
+     et x >= 2
+```, [Test de filtrage avec variable optionnelle],
+```catala-fr-code
+struc1 mais en remplaçant
+  { -- chp2: 8% }
+```, [Remplacement de champs],
+```catala-fr-code
+struc1.chp2         tuple1.2
+sub1.var0
+```, [Champ, élément de \ n-uplet, s/s-variable],
+```catala-fr-code
+f de 44,50€, 1/3
+```, [Appel de fonction],
+```catala-fr-code
+résultat de Chp1
+  avec { -- chp1: 9 -- chp2: 15% }
+```, [Appel direct de champ d'application],
+```catala-fr-code
+si ... alors ... sinon ...
+```, [Branchement],
+```catala-fr-code
+var1 état avant
+```, [Accès à un état]
+)
+
+#let scope = syntax-doc([Définition de champ d'application],
+```catala-fr-code
+champ d'application Chp1: ...
+```, [Utilisation],
+```catala-fr-code
+champ d'application Chp1
+  sous condition var1 >= 2: ...
+```, [Avec condition générale],
+```catala-fr-code
+définition var1 égal à ...
+```, [Déf. inconditionnelle],
+```catala-fr-code
+définition var1
+  sous condition ...
+  conséquence égal à ...
+```, [Définition conditionnelle],
+```catala-fr-code
+règle var2
+  sous condition var1 >= 2
+  conséquence ·non· rempli
+```, [Règle\ (définition de condition)],
+```catala-fr-code
+définition f de x, y égal à ...
+```, [Déf./règle fonction],
+```catala-fr-code
+étiquette étq1 définition var1 ...
+```, [Déf./règle étiquetée],
+```catala-fr-code
+exception étq1 définition var1 ...
+```, [Exc. à déf. étiquetée],
+```catala-fr-code
+exception définition var1 ...
+```, [Exception à implicite],
+```catala-fr-code
+définition var1 état avant
+  égal à ...
+```, [Définition d'états],
+```catala-fr-code
+assertion ...
+```, [Assertion],
+```catala-fr-code
+date arrondi dé·croissant
+```, [Mode arrondi dates]
+)
+
+#let lists = syntax-doc([Opérations sur les listes],
+```catala-fr-code
+lst contient 3
+```, [Test de présence],
+```catala-fr-code
+existe x parmi lst tel que x > 2
+```, [Test d'existence],
+```catala-fr-code
+pour tout x parmi lst on a x > 2
+```, [Test pour tout],
+```catala-fr-code
+transforme chaque x parmi lst
+  en x - 2
+```, [Application un-à-un],
+```catala-fr-code
+liste de x parmi lst tel que x > 2
+```, [Filtrage],
+```catala-fr-code
+transforme chaque x parmi lst
+  tel que x > 2 en x - 2
+```, [Filtrage + application],
+```catala-fr-code
+transforme chaque (x, y)
+  parmi (lst1, lst2) en x + y
+```, [Application multiple],
+```catala-fr-code
+lst1 ++ lst2
+```, [Réunion],
+```catala-fr-code
+somme entier de lst
+```, [Agrégation],
+```catala-fr-code
+nombre de lst
+```, [Comptage],
+```catala-fr-code
+maximum de lst
+  ou si liste vide alors -1
+```, [Extremum\ (optionnel: défaut)],
+```catala-fr-code
+contenu de x parmi lst
+  tel que x * x est minimum
+  ou si liste vide alors -1
+```, [Élément selon extremum\ (optionnel: défaut)],
+```catala-fr-code
+combine tout x parmi lst
+  dans acc initialement 0
+  avec acc + x
+```, [Accumulation]
+)
+
+#grid(
+    columns: (1fr, 1fr, 1fr),
+    gutter: 0pt,
+    stroke: (x, y) => if x > 0 { (left: 0.2pt + black) },
+    inset: (x, y) => if x > 0 { (left: 6pt) } + if x < 2 { (right: 6pt) },
+    [ #prog_lit #v(1fr) #lit_types #v(1fr) #operators ],
+    grid.vline(),
+    [ #metadata #v(1fr) #expressions ],
+    grid.vline(),
+    [ #scope #v(1fr) #lists ]
+)
