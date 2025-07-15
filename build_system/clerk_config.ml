@@ -44,12 +44,6 @@ type global = {
   default_targets : string list;
 }
 
-type module_ = {
-  name : string;
-  module_uses : [ `Simple of string | `With_alias of string * string ] list;
-  includes : string list;
-}
-
 type target = {
   tname : string;
   tmodules : string list;
@@ -74,7 +68,6 @@ type custom_rule = {
 type config_file = {
   global : global;
   variables : (string * string list) list;
-  modules : module_ list;
   targets : target list;
   docs : doc list;
   custom_rules : custom_rule list;
@@ -96,7 +89,6 @@ let default_config =
   {
     global = default_global;
     variables = [];
-    modules = [];
     targets = [];
     docs = [];
     custom_rules = [];
@@ -140,38 +132,6 @@ let project_encoding =
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
-
-let module_uses =
-  let open Clerk_toml_encoding in
-  let case_module =
-    case ~info:{|"<module_name>"|}
-      ~proj:(function `Simple n -> Some n | _ -> None)
-      ~inj:(fun n -> Some (`Simple n))
-      string
-  in
-  let case_module_alias =
-    case ~info:{|["<module_name>", "<module_alias>"]|}
-      ~proj:(function `With_alias (n, a) -> Some (n, a) | _ -> None)
-      ~inj:(fun (n, a) -> Some (`With_alias (n, a)))
-    @@ pair string string
-  in
-  union [case_module; case_module_alias]
-
-let module_encoding =
-  let open Clerk_toml_encoding in
-  conv
-    (fun { name; module_uses; includes } ->
-      name, proj_empty_list module_uses, proj_empty_list includes)
-    (fun (name, module_uses, includes) ->
-      {
-        name;
-        module_uses = inj_empty_list module_uses;
-        includes = inj_empty_list includes;
-      })
-  @@ obj3
-       (req_field ~name:"name" @@ string)
-       (opt_field ~name:"module_uses" @@ list module_uses)
-       (opt_field ~name:"includes" @@ list string)
 
 let target_encoding =
   let open Clerk_toml_encoding in
@@ -219,10 +179,9 @@ let variables_encoding = Clerk_toml_encoding.(binding_list (list string))
 
 let raw_config_encoding =
   let open Clerk_toml_encoding in
-  table6
+  table5
     (table_opt ~name:"project" project_encoding)
     (table_opt ~name:"variables" variables_encoding)
-    (multi_table ~name:"module" module_encoding)
     (multi_table ~name:"target" target_encoding)
     (multi_table ~name:"doc" doc_encoding)
     (multi_table ~name:"rule" custom_rule_encoding)
@@ -230,18 +189,12 @@ let raw_config_encoding =
 let config_encoding : config_file Clerk_toml_encoding.t =
   let open Clerk_toml_encoding in
   convt
-    (fun { global; variables; modules; targets; docs; custom_rules } ->
-      ( Some global,
-        proj_empty_list variables,
-        modules,
-        targets,
-        docs,
-        custom_rules ))
-    (fun (global, variables, modules, targets, docs, custom_rules) ->
+    (fun { global; variables; targets; docs; custom_rules } ->
+      Some global, proj_empty_list variables, targets, docs, custom_rules)
+    (fun (global, variables, targets, docs, custom_rules) ->
       {
         global = Option.value global ~default:default_global;
         variables = inj_empty_list variables;
-        modules;
         targets;
         docs;
         custom_rules;
