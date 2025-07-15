@@ -417,11 +417,10 @@ let polymorphic_op_return_type
 
 let resolve_overload_ret_type
     ~flags:_
-    (ctx : decl_ctx)
     _e
     (op : Operator.overloaded operator Mark.pos)
     tys : typ =
-  let op_ty = Operator.overload_type ctx op tys in
+  let op_ty = Operator.overload_type op tys in
   Type.arrow_return op_ty
 
 (** {1 Double-directed typing} *)
@@ -915,7 +914,7 @@ and typecheck_expr_top_down :
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
           unify' env e tau
-            (resolve_overload_ret_type ~flags ctx e op
+            (resolve_overload_ret_type ~flags e op
                (List.map2 (get_ty env) args t_args));
           args')
         ~monomorphic:(fun op ->

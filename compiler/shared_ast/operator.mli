@@ -69,7 +69,7 @@ val translate : 'a no_overloads t Mark.pos -> 'b no_overloads t Mark.pos
 val monomorphic_type : monomorphic t Mark.pos -> typ
 val resolved_type : resolved t Mark.pos -> typ
 
-val overload_type : decl_ctx -> overloaded t Mark.pos -> typ list -> typ
+val overload_type : overloaded t Mark.pos -> typ list -> typ
 (** The type for typing overloads is different since the types of the operands
     are required in advance.
 
@@ -81,7 +81,6 @@ val overload_type : decl_ctx -> overloaded t Mark.pos -> typ list -> typ
 (** {2 Overload handling} *)
 
 val resolve_overload :
-  decl_ctx ->
   overloaded t Mark.pos ->
   typ list ->
   < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ]

@@ -200,7 +200,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
       ~monomorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~polymorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~overloaded:(fun op ->
-        match Operator.resolve_overload ctx.decl_ctx op tys with
+        match Operator.resolve_overload op tys with
         | op, `Straight -> Expr.eappop ~op ~tys ~args m
         | op, `Reversed ->
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)

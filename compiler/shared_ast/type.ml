@@ -80,7 +80,7 @@ let rec compare (ty1 : t) (ty2 : t) =
   | TAny _, _ -> -1
   | _, TAny _ -> 1
 (* | TClosureEnv, _ -> -1
- * | _, TClosureEnv -> 1 *\) *)
+ * | _, TClosureEnv -> 1 *)
 
 let format = Print.typ
 

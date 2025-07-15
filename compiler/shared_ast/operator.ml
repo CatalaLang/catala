@@ -566,10 +566,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
       _ ) ->
     raise Not_found
 
-let resolve_overload
-    _ctx
-    ((op, pos) : overloaded t Mark.pos)
-    (operands : typ list) :
+let resolve_overload ((op, pos) : overloaded t Mark.pos) (operands : typ list) :
     < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ] =
   try
     let operands =
@@ -597,8 +594,8 @@ let resolve_overload
          Print.typ)
       operands
 
-let overload_type ctx (op : overloaded t Mark.pos) (operands : typ list) : typ =
-  let rop = fst (resolve_overload ctx op operands) in
+let overload_type (op : overloaded t Mark.pos) (operands : typ list) : typ =
+  let rop = fst (resolve_overload op operands) in
   resolved_type rop
 
 let is_pure : type a. a t -> bool = function
