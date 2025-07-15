@@ -131,7 +131,7 @@ let backend_extensions =
     Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "cmxs"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"; "class"; "jar"];
-    Clerk_rules.OCaml, ["catala_en"; "catala_fr"; "catala_pl"];
+    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
   ]
 
 let extensions_backend =
