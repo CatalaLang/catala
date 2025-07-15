@@ -143,7 +143,7 @@ let target_encoding =
   @@ obj4
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
-       (req_field ~name:"backends"
+       (dft_field ~name:"backends" ~default:[OCaml]
        @@ list (union (string_cases (registered_backends ()))))
        (dft_field ~name:"include_runtime" ~default:true @@ bool)
 
