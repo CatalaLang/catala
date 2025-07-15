@@ -58,7 +58,7 @@ let collect_monomorphized_instances (prg : typed program) :
     match Mark.remove (Type.unquantify typ) with
     | TTuple args
       when List.for_all
-             (function (TAny _ | TVar _), _ -> false | _ -> true)
+             (function (TForAll _ | TVar _), _ -> false | _ -> true)
              args ->
       let new_acc =
         {
@@ -116,7 +116,8 @@ let collect_monomorphized_instances (prg : typed program) :
     | TDefault t -> collect_typ acc t
     | TArrow (args, ret) ->
       List.fold_left collect_typ (collect_typ acc ret) args
-    | TOption t when match t with (TAny _ | TVar _), _ -> false | _ -> true ->
+    | TOption t when match t with (TForAll _ | TVar _), _ -> false | _ -> true
+      ->
       let new_acc =
         {
           acc with
@@ -148,7 +149,7 @@ let collect_monomorphized_instances (prg : typed program) :
       in
       collect_typ new_acc t
     | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> acc
-    | TAny _ -> assert false
+    | TForAll _ -> assert false
     | TVar _ -> (* TODO ? *) acc
     | TOption _ | TTuple _ ->
       Message.error ~internal:true ~pos:(Mark.get typ)
@@ -178,7 +179,7 @@ let rec monomorphize_typ
     (typ : typ) : typ =
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> typ
-  | TAny _ | TVar _ -> assert false (* TODO *)
+  | TForAll _ | TVar _ -> assert false (* TODO *)
   | TArray _ ->
     ( TStruct (Type.Map.find typ monomorphized_instances.arrays).name,
       Mark.get typ )

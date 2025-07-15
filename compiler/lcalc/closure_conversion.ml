@@ -438,12 +438,12 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
   in
   (* Now we need to further tweak [decl_ctx] because some of the user-defined
      types can have closures in them and these closured might have changed type.
-     So we reset them to [TAny] and leave the typechecker to figure it out. This
-     will not yield any type unification conflicts because of the special type
-     [TClosureEnv]. Indeed, consider the following closure: [let f = if ... then
-     fun v -> x + v else fun v -> v]. To be typed correctly once converted, this
-     closure needs an existential type, this is what [TClosureEnv] is for. This
-     kind of situation is difficult to produce using the Catala surface
+     So we reset them to [TForAll] and leave the typechecker to figure it out.
+     This will not yield any type unification conflicts because of the special
+     type [TClosureEnv]. Indeed, consider the following closure: [let f = if ...
+     then fun v -> x + v else fun v -> v]. To be typed correctly once converted,
+     this closure needs an existential type, this is what [TClosureEnv] is for.
+     This kind of situation is difficult to produce using the Catala surface
      language: it can only happen if you store a closure which is the output of
      a scope inside a user-defined data structure, and if you do it in two
      different places in the code with two closures that don't have the same

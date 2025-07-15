@@ -171,7 +171,7 @@ let rec typ_gen :
     typ_gen () fmt t1;
     punctuation fmt "⟩"
   | TVar tv -> tvar fmt tv
-  | TAny tb ->
+  | TForAll tb ->
     let tvs, ty, bctx = Bindlib.unmbind_in bctx tb in
     if Global.options.debug then
       Format.fprintf fmt "∀ %a .@ "

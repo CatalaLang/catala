@@ -18,8 +18,8 @@
 
 (** Resolving operators from the surface syntax proceeds in three steps:
 
-    - During desugaring, the operators may remain untyped (with [TAny]) or, if
-      they have an explicit type suffix (e.g. the [$] for "money" in [+$]),
+    - During desugaring, the operators may remain untyped (with [TForAll]) or,
+      if they have an explicit type suffix (e.g. the [$] for "money" in [+$]),
       their operands types are already explicited in the [EOp] expression node.
 
     - {!module:Shared_ast.Typing} will then enforce these constraints in

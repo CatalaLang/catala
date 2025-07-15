@@ -20,8 +20,8 @@ open Ast
 
 let expr ctx env e =
   (* The typer takes care of disambiguating: this consists in: - ensuring
-     [EAbs.tys] doesn't contain any [TAny] - [EDStructAccess.name_opt] is always
-     [Some] *)
+     [EAbs.tys] doesn't contain any [TForAll] - [EDStructAccess.name_opt] is
+     always [Some] *)
   (* Intermediate unboxings are fine since the [check_expr] will rebox in
      depth *)
   Typing.check_expr ctx ~env (Expr.unbox e)

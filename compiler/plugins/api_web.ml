@@ -80,7 +80,7 @@ module To_jsoo = struct
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.any Js.t"
-    | TAny tb ->
+    | TForAll tb ->
       let _v, typ = Bindlib.unmbind tb in
       format_typ fmt typ
     | TArrow (t1, t2) ->
@@ -125,7 +125,7 @@ module To_jsoo = struct
          (%a x))"
         format_to_js t
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
-    | TAny tb ->
+    | TForAll tb ->
       let _v, typ = Bindlib.unmbind tb in
       format_to_js fmt typ
     | TArrow _ | TClosureEnv -> ()
@@ -162,7 +162,7 @@ module To_jsoo = struct
          x)@]@])@]@])@]"
         format_of_js t
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
-    | TAny tb ->
+    | TForAll tb ->
       let _v, typ = Bindlib.unmbind tb in
       format_of_js fmt typ
     | TArrow _ | TClosureEnv -> Format.fprintf fmt ""

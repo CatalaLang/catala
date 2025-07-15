@@ -221,7 +221,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
         (t1 @ [t2])
     | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
     | TVar v -> Format.fprintf fmt "'%s" (Bindlib.name_of v)
-    | TAny tb ->
+    | TForAll tb ->
       (* We suppose here that there aren't multiple parallel binders in the same
          type: in that case two variables could be named the same *)
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in

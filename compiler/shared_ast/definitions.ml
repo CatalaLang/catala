@@ -225,7 +225,7 @@ and naked_typ =
   | TArray of typ
   | TDefault of typ
   | TVar of naked_typ Bindlib.var
-  | TAny of (naked_typ, typ) Bindlib.mbinder
+  | TForAll of (naked_typ, typ) Bindlib.mbinder
       (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 

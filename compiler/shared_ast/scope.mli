@@ -36,7 +36,7 @@ val map_exprs_in_lets :
     [~varf] is usually the identity function or [Var.translate] when the map
     sends the expression to a new flavor of the shared AST. If [~reset_types] is
     activated, then the resulting types in the scope let left-hand-sides will be
-    reset to [TAny]. *)
+    reset to [TForAll]. *)
 
 val map_exprs :
   ?typ:(typ -> typ) ->

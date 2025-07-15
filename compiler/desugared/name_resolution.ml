@@ -580,7 +580,7 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
     if String.Map.is_empty vars then ty
     else
       let ty = Type.rebox ty in
-      ( TAny
+      ( TForAll
           Bindlib.(
             unbox (bind_mvar (Array.of_list (String.Map.values vars)) ty)),
         typ_pos )

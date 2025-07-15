@@ -212,7 +212,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   | TArray _ ->
     (* For now, only the length of arrays is modeled *)
     Format.asprintf "(length = %s)" (Expr.to_string e)
-  | TAny _ | TVar _ ->
+  | TForAll _ | TVar _ ->
     failwith "[Z3 model]: Pretty-printing of Any not supported"
   | TClosureEnv ->
     failwith "[Z3 model]: Pretty-printing of closure_env not supported"
@@ -292,7 +292,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
     (* For now, we are only encoding the (symbolic) length of an array.
        Ultimately, the type of an array should also contain its elements *)
     ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TVar _ | TAny _ -> failwith "[Z3 encoding] TAny type not supported"
+  | TVar _ | TForAll _ -> failwith "[Z3 encoding] TForAll type not supported"
   | TClosureEnv -> failwith "[Z3 encoding] TClosureEnv type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
@@ -425,9 +425,9 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd
-    | TVar _ | TAny _ ->
+    | TVar _ | TForAll _ ->
       failwith
-        "[Z3 Encoding] A function being applied has type TAny, the type was \
+        "[Z3 Encoding] A function being applied has type TForAll, the type was \
          not fully inferred"
     | _ ->
       failwith

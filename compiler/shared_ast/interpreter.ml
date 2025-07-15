@@ -572,7 +572,7 @@ let rec runtime_to_val :
       match runtime_to_val eval_expr ctx m ty o with
       | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
       | _ -> assert false))
-  | TAny tb ->
+  | TForAll tb ->
     let _v, ty = Bindlib.unmbind tb in
     runtime_to_val eval_expr ctx m ty o
   | TVar _ ->
@@ -683,7 +683,7 @@ and val_to_runtime :
       in
       Obj.repr
         (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))
-  | TAny tb, _ ->
+  | TForAll tb, _ ->
     let _v, ty = Bindlib.unmbind tb in
     val_to_runtime eval_expr ctx ty v
   | TVar _, v ->

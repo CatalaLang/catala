@@ -211,7 +211,7 @@ let rec format_typ ctx ppf (typ : typ) =
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
   | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
   | TDefault typ -> (format_typ ctx) ppf typ
-  | TAny _ | TVar _ -> fprintf ppf "CatalaValue"
+  | TForAll _ | TVar _ -> fprintf ppf "CatalaValue"
   | TClosureEnv -> assert false
 
 let format_struct_params ctx ppf (fields : typ StructField.Map.t) =

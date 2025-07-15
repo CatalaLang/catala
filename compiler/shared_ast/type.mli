@@ -39,13 +39,13 @@ val hash : strip:Uid.Path.t -> t -> Hash.t
 val unifiable : t -> t -> bool
 
 val unifiable_list : t list -> t list -> bool
-(** Similar to [equal], but allows TAny holes *)
+(** Similar to [equal], but allows TForAll holes *)
 
 val arrow_return : t -> t
 (** Returns the last member in nested [TArrow] types *)
 
 val has_arrow : Definitions.decl_ctx -> t -> bool
-(** Fails (with [Invalid_argument]) on TAny and TClosureEnv *)
+(** Fails (with [Invalid_argument]) on TForAll and TClosureEnv *)
 
 (** Handling of variables *)
 
@@ -69,7 +69,7 @@ val rebox : t -> t Bindlib.box
 
 val unquantify : t -> t
 (** Removes the outermost quantifiers from the given type, if any. The returned
-    type is guaranteed to not have the form [TAny _] and may contain free
+    type is guaranteed to not have the form [TForAll _] and may contain free
     variables *)
 
 val unbind : t -> Var.t list * t
@@ -77,7 +77,7 @@ val unbind : t -> Var.t list * t
     similar to [unquantify], but also returns the bound variables) *)
 
 val forall : Var.t list -> t Bindlib.box -> Pos.t -> t
-(** The opposite of [unbind]: constructs a [TAny] quantified type *)
+(** The opposite of [unbind]: constructs a [TForAll] quantified type *)
 
 val fresh_var : Pos.t -> t
 

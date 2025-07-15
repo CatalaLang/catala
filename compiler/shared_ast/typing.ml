@@ -176,7 +176,7 @@ let get_ty_quantified env pos ty =
     let bnd =
       Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq) bty
     in
-    TAny (Bindlib.unbox bnd), Mark.get ty
+    TForAll (Bindlib.unbox bnd), Mark.get ty
 
 (** {1 Types and unification} *)
 
@@ -272,13 +272,13 @@ let rec unify
   | TOption t1', TOption t2' -> TOption (unify t1' t2'), pos2
   | TArray t1', TArray t2' -> TArray (unify t1' t2'), pos2
   | TDefault t1', TDefault t2' -> TDefault (unify t1' t2'), pos2
-  | TAny t1b, TAny t2b ->
+  | TForAll t1b, TForAll t2b ->
     let _, t1, t2 = Bindlib.unmbind2 t1b t2b in
     unify t1 t2
-  | TAny t1b, _ ->
+  | TForAll t1b, _ ->
     let _, t1 = Bindlib.unmbind t1b in
     unify t1 t2
-  | _, TAny t2b ->
+  | _, TForAll t2b ->
     let _, t2 = Bindlib.unmbind t2b in
     unify t1 t2
   | TVar v1, TVar v2 -> (
@@ -539,7 +539,7 @@ and typecheck_expr_top_down :
     let name =
       match expr_ty env e with
       | TStruct name, _ -> name
-      | TAny _, _ | TVar _, _ -> failwith "Disambiguation failure"
+      | TForAll _, _ | TVar _, _ -> failwith "Disambiguation failure"
       | ty ->
         Message.error ~pos:(Expr.pos e)
           "This expression has type %a, where a structure was expected"
@@ -563,7 +563,7 @@ and typecheck_expr_top_down :
     let name_opt =
       match expr_ty env e_struct' with
       | TStruct name, _ -> Some name
-      | TAny _, _ | TVar _, _ -> None
+      | TForAll _, _ | TVar _, _ -> None
       | ty ->
         Message.error ~pos:(Expr.pos e)
           "This is not a structure, cannot access field @{<magenta>%s@}@ \
@@ -843,7 +843,7 @@ and typecheck_expr_top_down :
           match List.nth_opt l index with
           | None -> out_of_bounds (List.length l)
           | Some ty -> List.length l, mark_with_tau_and_unify ty)
-        | TAny _, _ | TVar _, _ -> failwith "Disambiguation failure"
+        | TForAll _, _ | TVar _, _ -> failwith "Disambiguation failure"
         | ty ->
           Message.error ~pos:(Expr.pos e1)
             "This expression has type@ %a,@ while a tuple was expected"
@@ -1011,7 +1011,7 @@ let check_expr ctx ?env ?typ e =
 (* Infer the type of an expression *)
 let expr ctx ?(env = Env.empty ctx) ?typ e =
   match typ with
-  | Some (TAny bnd, tpos) ->
+  | Some (TForAll bnd, tpos) ->
     (* polymorphic function case *)
     let tvars, typ = Bindlib.unmbind bnd in
     let e' = typecheck_expr_top_down ctx env typ e in
@@ -1021,7 +1021,7 @@ let expr ctx ?(env = Env.empty ctx) ?typ e =
           let acc = Type.Var.Set.add tv acc in
           match get_ty env e (TVar tv, tpos) with
           | TVar tv', _ when Type.Var.equal tv tv' -> acc
-          | (TAny _, _) as ty when Type.is_universal ty -> acc
+          | (TForAll _, _) as ty when Type.is_universal ty -> acc
           | TVar tv', pos ->
             if Type.Var.Set.mem tv' acc || Array.mem tv' tvars then
               Message.delayed_error () ~kind:Typing ~pos:(Expr.pos e')
@@ -1042,7 +1042,7 @@ let expr ctx ?(env = Env.empty ctx) ?typ e =
     in
     (* TODO: cleanup the used type vars from env ? *)
     let e' = Expr.map_marks ~f:(get_ty_mark env) (Expr.unbox e') in
-    let typ = TAny bnd, tpos in
+    let typ = TForAll bnd, tpos in
     Expr.set_ty typ e'
   | _ -> Expr.map_marks ~f:(get_ty_mark env) (expr_raw ctx ~env ?typ e)
 
@@ -1070,7 +1070,7 @@ let scope_body_expr ctx env ty_out body_expr =
                 scope with
                 scope_let_typ =
                   (match scope.scope_let_typ with
-                  | TAny _, _ -> expr_ty env e
+                  | TForAll _, _ -> expr_ty env e
                   | ty -> ty);
                 scope_let_expr;
               })
@@ -1132,7 +1132,7 @@ let program ?assume_op_types prg =
               StructField.Map.mapi
                 (fun f_name (t : typ) ->
                   match Mark.remove t with
-                  | TAny _ ->
+                  | TForAll _ ->
                     StructField.Map.find f_name
                       (StructName.Map.find s_name new_env.structs)
                   | _ -> t)
@@ -1144,7 +1144,7 @@ let program ?assume_op_types prg =
               EnumConstructor.Map.mapi
                 (fun cons_name (t : typ) ->
                   match Mark.remove t with
-                  | TAny _ ->
+                  | TForAll _ ->
                     EnumConstructor.Map.find cons_name
                       (EnumName.Map.find e_name new_env.enums)
                   | _ -> t)

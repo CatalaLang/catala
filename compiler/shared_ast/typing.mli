@@ -57,7 +57,7 @@ val expr :
     If the input expression already has type annotations, the full inference is
     still done, but with unification with the existing annotations at every
     step. This can be used for double-checking after AST transformations and
-    filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
+    filling the gaps ([TForAll]) if any. Use [Expr.untype] first if this is not
     what you want.
 
     Note that typing also transparently performs the following changes to the
@@ -73,8 +73,8 @@ val expr :
     - resolution of function application input types on the [EApp] nodes, when
       that was originally empty ([[]]): this documents the arity of the function
       application, taking de-tuplification into account.
-    - [TAny] appearing within nodes are refined to more precise types, e.g. on
-      `EAbs` nodes (but be careful with this, it may only work for specific
+    - [TForAll] appearing within nodes are refined to more precise types, e.g.
+      on `EAbs` nodes (but be careful with this, it may only work for specific
       structures of generated code) *)
 
 val check_expr :
@@ -86,7 +86,7 @@ val check_expr :
 (** Same as [expr], but doesn't annotate the returned expression. Equivalent to
     [Typing.expr |> Expr.untype], but more efficient. This can be useful for
     type-checking and disambiguation (some AST nodes are updated with missing
-    information, e.g. any [TAny] appearing in the AST is replaced) *)
+    information, e.g. any [TForAll] appearing in the AST is replaced) *)
 
 val program :
   ?assume_op_types:bool ->
