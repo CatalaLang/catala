@@ -247,7 +247,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       ~command:
         (if Sys.win32 then
            ["cmd"; "/c"; "copy"; "/Y"; !input; !output]
-         else 
+         else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
   ] @ (if List.mem OCaml enabled_backends then [
