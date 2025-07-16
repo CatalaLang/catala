@@ -266,7 +266,7 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> ok (Var.Map.singleton x v) v @@ trvar ~var:x ~value:v
+        | Some v -> ok Var.Map.empty v @@ trvar ~var:x ~value:v
         | None -> 
           Message.error ~pos "%a@ Variable : %a@ Context : %a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -402,7 +402,7 @@ fun ctx lang e ->
         ok local_ctx e @@ trabs ~binder ~pos ~tys 
     | ELit l -> ok Var.Map.empty e @@ trlit l
     | EPos _ -> assert false
-    | ECustom { obj; targs; tret } -> ok local_ctx e @@ trcustom ~obj ~targs ~tret
+    | ECustom { obj; targs; tret } -> ok Var.Map.empty e @@ trcustom ~obj ~targs ~tret
     | EEmpty -> ok Var.Map.empty e trempty
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
@@ -470,7 +470,7 @@ fun ctx lang e ->
       ok new_ctx (Mark.add m (EInj { e; name; cons })) @@ trinj ~tr ~name ~cons
     | EMatch { e; cases; name } -> (
       let trcases = EnumConstructor.Map.map (fun c -> trexpr c) cases in
-      let* ctx_cases, e, tr = 
+      let* ctx_e, e, tr = 
         evaluate_expr_with_trace_aux ctx local_ctx lang e 
         |> map_error_trace (fun _ tr -> trmatch ~name ~tr ~cases:trcases)
       in
@@ -499,7 +499,7 @@ fun ctx lang e ->
           |> map_error_trace (fun _ tv -> trmatch ~name ~tr 
             ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases))
         in 
-        ok (union_map ctx_cases new_ctx) v @@ trmatch ~tr ~name 
+        ok (union_map ctx_e new_ctx) v @@ trmatch ~tr ~name 
           ~cases:(EnumConstructor.Map.update cons (fun _ -> Some tv) trcases)
       | EHole _ -> hole_result m
       | _ ->
@@ -507,7 +507,7 @@ fun ctx lang e ->
           "Expected a term having a sum type as an argument to a match (should \
           not happen if the term was well-typed")
     | EIfThenElse { cond; etrue; efalse } -> (
-      let* ctxcond, cond, trcond = 
+      let* _, cond, trcond = 
         evaluate_expr_with_trace_aux ctx local_ctx lang cond 
         |> map_error_trace (fun _ trcond -> trifthenelse ~trcond 
           ~trtrue:(trexpr etrue) ~trfalse:(trexpr efalse))
@@ -519,7 +519,7 @@ fun ctx lang e ->
           |> map_error_trace (fun _ trtrue -> trifthenelse ~trcond 
             ~trtrue ~trfalse:(trexpr efalse))
         in 
-        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond 
+        ok new_ctx v @@ trifthenelse ~trcond 
           ~trtrue ~trfalse:(trexpr efalse)     
       | ELit (LBool false) -> 
         let* new_ctx, v, trfalse = 
@@ -527,7 +527,7 @@ fun ctx lang e ->
           |> map_error_trace (fun _ trfalse -> trifthenelse ~trcond 
             ~trtrue:(trexpr etrue) ~trfalse)
         in 
-        ok (union_map ctxcond new_ctx) v @@ trifthenelse ~trcond 
+        ok new_ctx v @@ trifthenelse ~trcond 
           ~trtrue:(trexpr etrue) ~trfalse
       | EHole _ -> hole_result m
       | _ ->
@@ -541,12 +541,12 @@ fun ctx lang e ->
       in
       ok new_ctx (Mark.add m (EArray es)) @@ trarray tres
     | EAssert e' -> (
-      let* new_ctx, e, tr = 
+      let* _, e, tr = 
         evaluate_expr_with_trace_aux ctx local_ctx lang e' 
         |> map_error_trace (fun _ -> trassert)
       in
       match Mark.remove e with
-      | ELit (LBool true) -> ok new_ctx (Mark.add m (ELit LUnit)) @@ trassert tr
+      | ELit (LBool true) -> ok Var.Map.empty (Mark.add m (ELit LUnit)) @@ trassert tr
       | ELit (LBool false) -> (* Mark.add m (EFatalError AssertionFailed) *)
         raise_soft_fatal_error Runtime.AssertionFailed m (trassert tr)
       | _ ->
@@ -580,7 +580,7 @@ fun ctx lang e ->
       let empty_count = List.length (List.filter is_empty_error vexcepts) in
       match List.length vexcepts - empty_count with
       | 0 -> (
-        let* ctxjust, just, trjust = 
+        let* _, just, trjust = 
           evaluate_expr_with_trace_aux ctx local_ctx lang just 
           |> map_error_trace (fun _ trjust -> 
             trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons))
@@ -592,10 +592,10 @@ fun ctx lang e ->
               |> map_error_trace (fun _ trcons -> 
                 trdefault ~trexcepts ~vexcepts ~trjust ~trcons)
             in
-            ok (union_map ctxexcepts @@ union_map ctxjust ctxcons) v 
+            ok ctxcons v 
             @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons
         | ELit (LBool false) -> 
-            ok (union_map ctxexcepts ctxjust) (Mark.copy e EEmpty) 
+            ok Var.Map.empty (Mark.copy e EEmpty) 
             @@ trdefault ~trexcepts ~vexcepts ~trjust ~trcons:(trexpr cons)
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
