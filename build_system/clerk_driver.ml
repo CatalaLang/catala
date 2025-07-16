@@ -130,7 +130,7 @@ let backend_extensions =
     Clerk_rules.C, ["c"; "h"; "o"];
     Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"];
     Clerk_rules.Python, ["py"];
-    Clerk_rules.Java, ["java"; "class"; "jar"];
+    Clerk_rules.Java, ["java"; "class"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
   ]
 
@@ -364,10 +364,10 @@ let raw_cmd : int Cmd.t =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
-      $ Cli.targets
+      $ Cli.files
       $ Cli.ninja_flags)
 
-let build_custom_target
+let build_clerk_target
     ~(config : Cli.config)
     ~ninja_flags
     (target : Clerk_config.target) =
@@ -424,8 +424,8 @@ let build_custom_target
               |> List.map (fun ext -> (module_item, target, bk), base -.- ext))
             all_modules_deps)
         enabled_backends
-      |> List.sort_uniq (fun ((l, _, _), _) ((r, _, _), _) ->
-             String.compare l.Scan.file_name r.Scan.file_name)
+      |> List.sort_uniq (fun ((_, _, _), l) ((_, _, _), r) ->
+             String.compare l r)
     in
     let all_targets =
       List.fold_left
@@ -442,9 +442,10 @@ let build_custom_target
     all_target_files
   in
   let open File in
+  let prefix_dir = target_dir / target.tname in
   List.iter
-    (fun ((_i, ct, bk), src) ->
-      let dir = target_dir / ct.Clerk_config.tname / backend_subdir bk in
+    (fun ((_item, _target, bk), src) ->
+      let dir = prefix_dir / backend_subdir bk in
       ensure_dir dir;
       copy_in ~dir ~src)
     install_targets;
@@ -457,64 +458,41 @@ let build_custom_target
              | Clerk_rules.OCaml -> Clerk_poll.ocaml_runtime_dir
              | Clerk_rules.C -> Clerk_poll.c_runtime_dir
              | Clerk_rules.Python -> Clerk_poll.python_runtime_dir
-             | Clerk_rules.Java -> Clerk_poll.java_runtime
+             | Clerk_rules.Java -> Lazy.map File.dirname Clerk_poll.java_runtime
              | Clerk_rules.Tests -> assert false
            in
            copy_dir () ~src:(Lazy.force src)
-             ~dst:(target_dir / target.Clerk_config.tname / backend_subdir bk))
+             ~dst:(prefix_dir / backend_subdir bk));
+  target, prefix_dir
 
-let build_cmd : int Cmd.t =
-  let run config autotest (targets : string list) (ninja_flags : string list) =
-    let open File in
-    let targets =
-      match targets with
-      | _ :: _ -> targets
-      | [] -> (
-        match config.Cli.options.global.default_targets with
-        | _ :: _ as tl ->
-          Message.debug "Building default targets:@ %a"
-            (Format.pp_print_list ~pp_sep:Format.pp_print_space
-               Format.pp_print_string)
-            tl;
-          tl
-        | [] -> (
-          match
-            List.map (fun t -> t.Clerk_config.tname) config.Cli.options.targets
-          with
-          | _ :: _ as tl ->
-            Message.debug "Building all targets:@ %a"
-              (Format.pp_print_list ~pp_sep:Format.pp_print_space
-                 Format.pp_print_string)
-              tl;
-            tl
-          | [] ->
-            Message.error
-              "Please specify a target to build, or set 'default_targets' in \
-               @{<cyan>clerk.toml@}"))
+type targets = { clerk_targets : Config.target list; others : string list }
+
+let classify_targets config (targets : string list) : targets =
+  let classify_target t =
+    List.find_opt (fun ct -> t = ct.Config.tname) config.Cli.options.targets
+    |> function Some t -> Either.Left t | None -> Either.Right t
+  in
+
+  let clerk_targets, others = List.partition_map classify_target targets in
+  { clerk_targets; others }
+
+let build_direct_targets
+    (config : Cli.config)
+    ~ninja_flags
+    ~autotest
+    direct_targets =
+  let open File in
+  if direct_targets = [] then []
+  else
+    let direct_targets =
+      let build_dir = config.Cli.options.global.build_dir in
+      List.map
+        (fun t ->
+          if String.starts_with ~prefix:(build_dir ^ Filename.dir_sep) t then t
+          else File.(build_dir / t))
+        direct_targets
     in
     let build_dir = config.Cli.options.global.build_dir in
-    let direct_targets, custom_targets =
-      List.partition_map
-        (fun t ->
-          let t = config.Cli.fix_path t in
-          match
-            List.find_opt
-              (fun ct -> t = ct.Clerk_config.tname)
-              config.Cli.options.targets
-          with
-          | None ->
-            let t =
-              if String.starts_with ~prefix:(build_dir ^ Filename.dir_sep) t
-              then t
-              else build_dir / t
-            in
-            Left t
-          | Some custom -> Right custom)
-        targets
-    in
-    List.iter
-      (fun t -> build_custom_target ~config ~ninja_flags t)
-      custom_targets;
     let enabled_backends =
       List.fold_left
         (fun acc t -> target_backend config.options t :: acc)
@@ -598,46 +576,107 @@ let build_cmd : int Cmd.t =
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
       run_command cmd
     in
-    (if exit_code = 0 then
-       let install_targets = ninja_targets @ List.map snd exec_targets in
-       if install_targets <> [] then
-         Message.result
-           "@[<v 4>Build successful. The targets can be found in the following \
-            files:@,\
-            %a@]"
-           (Format.pp_print_list (fun ppf f ->
-                Format.fprintf ppf "@{<cyan>%s@}"
-                  (make_relative_to ~dir:original_cwd f)))
-           install_targets
-       else
-         let target_dir = config.Cli.options.global.target_dir in
-         Message.result
-           "@[<v 4>Build successful. The targets are present at:@,%a@]"
-           (Format.pp_print_list (fun ppf f ->
-                Format.fprintf ppf "@{<cyan>%s@}"
-                  (make_relative_to ~dir:original_cwd f)))
-           (List.map
-              (fun t -> target_dir / t.Clerk_config.tname)
-              custom_targets));
-    raise (Catala_utils.Cli.Exit_with exit_code)
+    if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
+    ninja_targets
+
+let build_cmd : int Cmd.t =
+  let run
+      config
+      autotest
+      (clerk_targets_or_files : string list)
+      (ninja_flags : string list) =
+    let open File in
+    let { clerk_targets; others = direct_targets } =
+      classify_targets config clerk_targets_or_files
+    in
+    let clerk_targets, direct_targets =
+      match clerk_targets_or_files with
+      | _ :: _ -> clerk_targets, direct_targets
+      | [] -> (
+        match config.Cli.options.global.default_targets with
+        | _ :: _ as tl ->
+          Message.debug "Building default targets:@ %a"
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space
+               Format.pp_print_string)
+            tl;
+          let { clerk_targets; others } =
+            classify_targets config config.Cli.options.global.default_targets
+          in
+          if others <> [] then
+            Message.error "Unknown default targets:@ %a"
+              (Format.pp_print_list ~pp_sep:Format.pp_print_space
+                 Format.pp_print_string)
+              others;
+          clerk_targets, []
+        | [] -> (
+          match
+            List.map (fun t -> t.Config.tname) config.Cli.options.targets
+          with
+          | _ :: _ as tl ->
+            Message.debug "Building all targets:@ %a"
+              (Format.pp_print_list ~pp_sep:Format.pp_print_space
+                 Format.pp_print_string)
+              tl;
+            config.Cli.options.targets, []
+          | [] ->
+            Message.error
+              "Please specify a target to build, or set 'default_targets' in \
+               @{<cyan>clerk.toml@}"))
+    in
+    (* Building Clerk named targets separately *)
+    let clerk_targets_result =
+      List.map
+        (fun t -> build_clerk_target ~config ~ninja_flags t)
+        clerk_targets
+    in
+    let direct_targets_result =
+      build_direct_targets config ~ninja_flags ~autotest direct_targets
+    in
+    Message.result
+      "@[<v 4>Build successful. The targets can be found in the following \
+       files:@,\
+       %a%t%a@]"
+      (Format.pp_print_list (fun ppf (t, f) ->
+           Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}"
+             t.Clerk_config.tname
+             (make_relative_to ~dir:original_cwd f)))
+      clerk_targets_result
+      (fun fmt ->
+        if clerk_targets_result <> [] && direct_targets <> [] then
+          Format.pp_print_cut fmt ())
+      (Format.pp_print_list (fun ppf f ->
+           Format.fprintf ppf "@{<cyan>%s@}"
+             (make_relative_to ~dir:original_cwd f)))
+      direct_targets_result;
+    raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
-    "Base build command for individual file targets. Given the corresponding \
-     Catala module is declared, this can be used to build .ml, .cmxs, .c, .py \
-     files, etc. Targets, along with their dependencies, are always written \
-     into $(i,build-dir) (by default $(b,_build)). If a catala extension is \
-     used as target, this compiles all its dependencies.\n\n\
-     The format of the targets is $(b,src-dir/BACKEND/file.ext). For example, \
-     to build a C object file from $(b,foo/bar.catala_en), one would run:\n\
-    \  $(b,clerk build foo/c/bar.o)\n\
-     and the resulting file would be in $(b,_build/foo/c/bar.o)."
+    "Build command for either $(i,individual files) or $(i,clerk targets). For \
+     $(i,individual files), and given the corresponding Catala module is \
+     declared, this can be used to build .ml, .cmxs, .c, .py files, etc. These \
+     files, along with their dependencies, are written into $(i,build-dir) (by \
+     default $(b,_build)). If a catala extension is used as target, this \
+     compiles all its dependencies. The format of the targets is \
+     $(b,src-dir/BACKEND/file.ext). For example, to build a C object file from \
+     $(b,foo/bar.catala_en), one would run:\n\
+     $(b,clerk build foo/c/bar.o)\n\
+     and the resulting file would be in $(b,_build/foo/c/bar.o). When given \
+     $(i,clerk targets), that are defined in a $(b,clerk.toml) configuration \
+     file, it will build all their required dependencies for all their specified \
+     backends along with their source files and copy them over to the \
+     $(i,target-dir) (by default $(b,_target)). For instance, $(b,clerk build \
+     my-target) will generate a directory $(b,target-dir/my-target/c/) that \
+     contains all necessary files to export the target as a self contained \
+     library. When no arguments are given, $(b,clerk build) will build all the \
+     defined $(i,clerk targets) found in the $(b,clerk.toml) or the project's \
+     default targets if any."
   in
   Cmd.v (Cmd.info ~doc "build")
     Term.(
       const run
       $ Cli.init_term ()
       $ Cli.autotest
-      $ Cli.targets
+      $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
 let setup_report_format ?fix_path verbosity diff_command =
