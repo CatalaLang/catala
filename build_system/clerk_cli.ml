@@ -42,7 +42,7 @@ let autotest =
     & flag
     & info ["autotest"]
         ~doc:
-          "When compiling to the backends, enable the Catala $(i--autotest) \
+          "When compiling to the backends, enable the Catala $(i,--autotest) \
            option that runs an evaluation of test scopes (understood as scopes \
            that need no input) and instruments their compiled version with \
            assertions that the results match. This shouldn't be specified \
@@ -211,14 +211,12 @@ let scope =
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
 
-let targets =
+let clerk_targets_or_files =
   Arg.(
     value
     & pos_all string []
-    & info [] ~docv:"TARGETS"
-        ~doc:
-          "Flags or targets to forward to Ninja directly (use $(b,-- \
-           ninja_flags) to separate Ninja flags from Clerk flags)")
+    & info [] ~docv:"TARGET(S)"
+        ~doc:"Clerk target(s) or individual file(s) to process")
 
 let report_verbosity =
   Arg.(
