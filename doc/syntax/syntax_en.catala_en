@@ -268,7 +268,7 @@ $ catala typecheck
 │
 ├─➤ doc/syntax/syntax_en.catala_en:99.14-99.20:
 │    │
-│ 99 │   output var3 content integer
+│ 99 │   sub1 scope Scope0
 │    │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#

@@ -1,39 +1,9 @@
-#set page(paper: "a4", flipped: true, margin: 1cm)
-#set text(font: "Inter 18pt", size: 7pt)
-#show raw: set text(font: "Annotation Mono", size: 7pt)
+#import "cheat-sheet.typ"
 
 #import "catala_syntax_hl.typ": setup
 #show: setup
 
-#show heading: set text(size: 9pt)
-
-#place(top+left, image("logo.svg", width: 30pt))
-
-#place(top+right)[v0.10.0 · Revision \#3 · ⓒ 2025]
-
-#box(height:30pt, width:100%, align(horizon+center)[
-#upper(text(size:15pt)[The Catala Syntax])
-#h(30pt)
-#text(size: 9pt)[english version]
-])
-
-#v(1em)
-
-#let syntax-doc(title, ..args) = {
-  let lines = args.pos().chunks(2).map(x => (
-      grid.cell(align: horizon, x.at(0)),
-      grid.cell(stroke: (left: 1pt + luma(200)),
-                         inset: (left: 0.5em),
-                         align: horizon,
-          text(style:"oblique",x.at(1)))))
-  [= #title]
-  v(0.8em)
-  grid(columns: (65%, 35%),
-      row-gutter: 0.9em,
-      ..lines.flatten())
-}
-
-#let prog_lit = syntax-doc([Literate programming],
+#let prog_lit = cheat-sheet.syntax-doc([Literate programming],
 ```catala-en
 # Title
 ### Sub-subtitle
@@ -55,7 +25,7 @@ raw("```catala      ```catala-metadata\n```            ```"),
 }, [Command-line interface test],
 )
 
-#let lit_types = syntax-doc([Literals and types],
+#let lit_types = cheat-sheet.syntax-doc([Literals and types],
 ```catala-en-code
 true                false
 ```,
@@ -125,7 +95,7 @@ decimal depends on
 ```,
 )
 
-#let operators = syntax-doc([Operators and built-ins],
+#let operators = cheat-sheet.syntax-doc([Operators and built-ins],
 
 ```catala-en-code
 not a        a and b
@@ -153,7 +123,7 @@ first_day_of_month of ...
 ```, [Date parts],
 )
 
-#let metadata = syntax-doc([Metadata declaration],
+#let metadata = cheat-sheet.syntax-doc([Metadata declaration],
 ```catala-en-code
 declaration structure Struct1:
   data fld1 content integer
@@ -198,7 +168,7 @@ declaration square content decimal
 ```, [Global function definition],
 )
 
-#let expressions = syntax-doc([Expressions],
+#let expressions = cheat-sheet.syntax-doc([Expressions],
 ```catala-en-code
 let x equals 36 - 5 in ...
 ```, [Local definition],
@@ -235,7 +205,7 @@ var1 state before
 ```, [Variable state access]
 )
 
-#let scope = syntax-doc([Scope definition],
+#let scope = cheat-sheet.syntax-doc([Scope definition],
 ```catala-en-code
 scope Scope1: ...
 ```, [Scope use],
@@ -280,7 +250,7 @@ date round in·decreasing
 ```, [Date rounding mode]
 )
 
-#let lists = syntax-doc([List operations],
+#let lists = cheat-sheet.syntax-doc([List operations],
 ```catala-en-code
 lst contains 3
 ```, [Presence test],
@@ -329,12 +299,9 @@ combine all x among lst
 ```, [Folding]
 )
 
-#grid(
-    columns: (1fr, 1fr, 1fr),
-    gutter: 0pt,
-    stroke: (x, y) => if x > 0 { (left: 0.1pt + black) },
-    inset: (x, y) => if x > 0 { (left: 6pt) } + if x < 2 { (right: 6pt) },
-    [ #prog_lit #v(1fr) #lit_types #v(1fr) #operators ],
-    [ #metadata #v(1fr) #expressions ],
-    [ #scope #v(1fr) #lists ]
+#cheat-sheet.layout(
+    [The Catala Syntax], [english version],
+    (prog_lit, lit_types, operators),
+    (metadata, expressions),
+    (scope, lists)
 )
