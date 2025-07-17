@@ -203,6 +203,26 @@ let config_encoding : config_file Clerk_toml_encoding.t =
       })
   @@ raw_config_encoding
 
+let pp_target_names fmt ts =
+  Format.(
+    pp_print_list
+      ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")
+      (fun fmt tname -> fprintf fmt "@{<cyan>[%s]@}" tname))
+    fmt ts
+
+let validate path (config : config_file) : unit =
+  let _, dups =
+    List.fold_left
+      (fun (s, dups) { tname; _ } ->
+        if String.Set.mem tname s then s, String.Set.add tname dups
+        else String.Set.add tname s, dups)
+      (String.Set.empty, String.Set.empty)
+      config.targets
+  in
+  if not (String.Set.is_empty dups) then
+    Message.error "Multiple targets with a same name found in '%s':@ %a"
+      (File.clean_path path) pp_target_names (String.Set.elements dups)
+
 let read f =
   let toml =
     try Parser.from_file f
@@ -211,7 +231,9 @@ let read f =
         ~pos:(Pos.from_info f li col li (col + 1))
         "Error in Clerk configuration:@ %a" Format.pp_print_text msg
   in
-  Clerk_toml_encoding.decode toml config_encoding
+  let config = Clerk_toml_encoding.decode toml config_encoding in
+  validate f config;
+  config
 
 let write f config =
   let toml = Clerk_toml_encoding.encode config config_encoding in
