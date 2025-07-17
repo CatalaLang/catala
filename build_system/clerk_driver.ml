@@ -309,6 +309,13 @@ let rules_backend = function
   | Clerk_rules.Java -> `Java
   | Clerk_rules.Tests -> `Interpret
 
+let string_of_backend = function
+  | `OCaml -> "ocaml"
+  | `C -> "c"
+  | `Python -> "python"
+  | `Java -> "java"
+  | `Interpret -> "interpret"
+
 let make_target ~build_dir ~backend item =
   let open File in
   let f = Scan.target_file_name item ^ Filename.extension item.Scan.file_name in
@@ -723,11 +730,10 @@ let run_artifact ~backend ~var_bindings ?scope src =
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
 
-let enable_backends = function
-  | `Interpret | `OCaml -> [Clerk_rules.OCaml]
-  | `C -> [Clerk_rules.C]
-  | `Python -> [Clerk_rules.Python]
-  | `Java -> [Clerk_rules.Java]
+let enable_backend =
+  let open Clerk_rules in
+  function
+  | `Interpret | `OCaml -> OCaml | `C -> C | `Python -> Python | `Java -> Java
 
 let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
     =
@@ -736,16 +742,16 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
   let target_items =
     List.concat_map
       (fun file ->
-        let ffile = config.Cli.fix_path file in
-        let is_dir = try Sys.is_directory ffile with Sys_error _ -> false in
+        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
         let filter item =
           if is_dir then
-            String.starts_with ~prefix:(ffile / "") item.Scan.file_name
+            String.starts_with ~prefix:(file / "") item.Scan.file_name
             && Lazy.force item.Scan.has_scope_tests
           else
-            Option.map Mark.remove item.Scan.module_def = Some file
-            || item.Scan.file_name = ffile
-            || Filename.remove_extension item.Scan.file_name = ffile
+            Option.map Mark.remove item.Scan.module_def
+            = Some (File.basename file)
+            || item.Scan.file_name = file
+            || Filename.remove_extension item.Scan.file_name = file
         in
         let items = List.filter filter items in
         if items = [] then
@@ -827,7 +833,9 @@ let run_cmd =
       cmd
       (scope : string option)
       (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~config ~enabled_backends:(enable_backends backend)
+    let files_or_folders = List.map config.Cli.fix_path files_or_folders in
+    Clerk_rules.run_ninja ~config
+      ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false
       (build_test_deps ~config ~backend files_or_folders)
     |> run_tests config backend cmd scope
@@ -847,10 +855,45 @@ let run_cmd =
       $ Cli.scope
       $ Cli.ninja_flags)
 
+let check_clerk_targets_tests backend clerk_targets =
+  (* Check targets specific backend support *)
+  let enabled_backend = enable_backend backend in
+  let pp_target_list fmt ts =
+    Format.(
+      pp_print_list
+        ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")
+        (fun fmt t -> fprintf fmt "@{<cyan>[%s]@}" t.Config.tname))
+      fmt ts
+  in
+  (if backend = `Interpret then ()
+   else
+     List.filter
+       (fun t ->
+         List.map Clerk_rules.backend_from_config t.Config.backends
+         |> List.mem enabled_backend
+         |> not)
+       clerk_targets
+     |> function
+     | [] -> ()
+     | t ->
+       Message.error
+         "Backend @{<bold>%s@} is not supported by the following target(s): %a"
+         (string_of_backend backend)
+         pp_target_list t);
+  (* Check that targets have tests *)
+  List.filter (fun t -> t.Config.ttests = []) clerk_targets
+  |> function
+  | [] -> ()
+  | [t] ->
+    Message.error "Target %a has no @{<bold>tests@} attached" pp_target_list [t]
+  | ts ->
+    Message.error "Targets { %a } have no @{<bold>tests@} attached"
+      pp_target_list ts
+
 let test_cmd =
   let run
       config
-      (files_or_folders : string list)
+      (clerk_targets_or_files_or_folders : string list)
       (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
       (reset_test_outputs : bool)
       verbosity
@@ -873,9 +916,20 @@ let test_cmd =
           "Option @{<bold>--xml@} was specified, but the output of a test \
            report is only supported with the default @{<yellow>interpret@} \
            backend at the moment";
+    let { clerk_targets; others = files_or_folders } =
+      classify_targets config clerk_targets_or_files_or_folders
+    in
+    let () = check_clerk_targets_tests backend clerk_targets in
+    let files_or_folders =
+      List.concat_map
+        (fun t -> List.map File.clean_path t.Config.ttests)
+        clerk_targets
+      @ List.map config.Cli.fix_path files_or_folders
+      |> List.sort_uniq String.compare
+    in
     let enabled_backends =
-      (if backend = `Interpret then [Clerk_rules.Tests] else [])
-      @ enable_backends backend
+      enable_backend backend
+      :: (if backend = `Interpret then [Clerk_rules.Tests] else [])
     in
     if backend <> `Interpret then
       let files_or_folders =
@@ -889,13 +943,15 @@ let test_cmd =
       |> run_tests config backend "" None
     else
       let targets, missing =
-        let fs = if files_or_folders = [] then ["."] else files_or_folders in
+        let fs =
+          if files_or_folders = [] then [Filename.current_dir_name]
+          else files_or_folders
+        in
         List.partition_map
           File.(
-            fun f0 ->
-              let f = config.Cli.fix_path f0 in
+            fun f ->
               if File.exists f then Either.Left (build_dir / f)
-              else Either.Right f0)
+              else Either.Right f)
           fs
       in
       if missing <> [] then
@@ -904,11 +960,13 @@ let test_cmd =
              ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
              Format.pp_print_string)
           missing;
-      let test_targets = List.map (fun f -> f ^ "@test") targets in
-      let _ =
+      let test_targets =
         Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
           ~autotest:false ~clean_up_env:true (fun nin_ppf _items _vars ->
-            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets)))
+            (* FIXME: remove and warn about files that have no @tests rule *)
+            let test_targets = List.map (fun f -> f ^ "@test") targets in
+            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
+            test_targets)
       in
       let open Clerk_report in
       let reports = List.flatten (List.map read_many test_targets) in
@@ -956,19 +1014,21 @@ let test_cmd =
       else raise (Catala_utils.Cli.Exit_with 1)
   in
   let doc =
-    "Scan the given files or directories for catala tests, build their \
-     requirement and run them all. If $(b,--backend) is unspecified or \
-     $(b,interpret), both scope tests and CLI tests are run ; $(b,--reset) can \
-     be used to rewrite the expected results of CLI tests to their current \
-     result. For any other $(b,--backend), CLI tests are skipped and scope \
-     tests are compiled to the specified backend with the catala option \
-     $(b,--autotest), and then run, ensuring the consistency of results."
+    "Scan the given files, directories or clerk targets for catala tests, \
+     build their requirements and run them all. If $(b,--backend) is \
+     unspecified or $(b,interpret), both scope tests and CLI tests are run ; \
+     $(b,--reset) can be used to rewrite the expected results of CLI tests to \
+     their current result. For any other $(b,--backend), CLI tests are skipped \
+     and scope tests are compiled to the specified backend with the catala \
+     option $(b,--autotest), and then run, ensuring the consistency of \
+     results. When clerk targets are provided, only their specifically defined \
+     tests will be executed."
   in
   Cmd.v (Cmd.info ~doc "test")
     Term.(
       const run
       $ Cli.init_term ~allow_test_flags:true ()
-      $ Cli.files_or_folders
+      $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backend
       $ Cli.reset_test_outputs
       $ Cli.report_verbosity
@@ -989,8 +1049,8 @@ let runtest_cmd =
     0
   in
   let doc =
-    "Mainly for internal purposes. Runs cli tests from a Catala file, and \
-     outputs their results to stdout"
+    "Mainly for internal purposes. Runs cli tests and annotated test scopes \
+     from a Catala file, and outputs their results to stdout"
   in
   Cmd.v (Cmd.info ~doc "runtest")
     Term.(
