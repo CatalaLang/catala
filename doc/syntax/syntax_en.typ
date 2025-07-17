@@ -1,35 +1,9 @@
-#set page(paper: "a4", flipped: true, margin: 1cm)
-#set text(font: "Inter 18pt", size: 7pt)
-#show raw: text.with(font: "Annotation Mono", size: 7pt)
+#import "cheat-sheet.typ"
 
 #import "catala_syntax_hl.typ": setup
 #show: setup
 
-#show heading: text.with(size: 9pt)
-
-#place(top+left, image("logo.svg", width: 30pt))
-
-#place(top+right)[v0.10.0 · Revision \#3 · ⓒ 2025]
-
-#box(height:30pt, width:100%, align(horizon+center)[
-#upper(text(size:15pt)[The Catala Syntax])
-#h(30pt)
-#text(size: 9pt)[english version]
-])
-
-
-#v(1em)
-
-#let syntax-doc(title, ..args) = [
-  #let lines = args.pos().chunks(2).map(x => (x.at(0), text(style:"oblique",x.at(1))))
-  = #title
-  #v(0.9em)
-  #grid(columns: (65%, 35%),
-      row-gutter: 0.8em,
-      ..lines.flatten())
-]
-
-#let prog_lit = syntax-doc([Literate programming],
+#let prog_lit = cheat-sheet.syntax-doc([Literate programming],
 ```catala-en
 # Title
 ### Sub-subtitle
@@ -44,10 +18,14 @@ raw("```catala      ```catala-metadata\n```            ```"),
 ```, [Module import+alias],
 ```catala-en
 > Include: foo.catala_en,
-```, [File inclusion]
+```, [File inclusion],
+{
+    show raw: text.with(size: 0.9em)
+    raw("```catala-test-cli\n$ catala interpret --scope Scope1\n```")
+}, [Command-line interface test],
 )
 
-#let lit_types = syntax-doc([Literals and types],
+#let lit_types = cheat-sheet.syntax-doc([Literals and types],
 ```catala-en-code
 true                false
 ```,
@@ -72,9 +50,7 @@ $1,234,567.89
 ```catala-en-code
 money
 ```,
-```catala-en-code
-|2024-04-01|
-```,
+raw(lang: "catala-fr-code", "|"+datetime.today().display()+"|"),
 ```catala-en-code
 date
 ```,
@@ -91,19 +67,10 @@ duration
 list of integer
 ```,
 ```catala-en-code
-(|2024-04-01|, $30, 1%)
+(|2012-02-03|, $30, 1%)
 ```,
 ```catala-en-code
 (date,money,decimal)
-```,
-```catala-en-code
-f of x, y equals
-  y * x / $12.0
-```,
-```catala-en-code
-decimal depends on
-  x content money,
-  y content decimal
 ```,
 ```catala-en-code
 Struct1 { -- fld1: 9 -- fld2: 7% }
@@ -116,10 +83,19 @@ Case1 content 12        Case2
 ```,
 ```catala-en-code
 Enum1
-```
+```,
+```catala-en-code
+f of x, y equals
+  y * x / $12.0
+```,
+```catala-en-code
+decimal depends on
+  x content money,
+  y content decimal
+```,
 )
 
-#let operators = syntax-doc([Operators and built-ins],
+#let operators = cheat-sheet.syntax-doc([Operators and built-ins],
 
 ```catala-en-code
 not a        a and b
@@ -145,13 +121,9 @@ round of $9.99
 get_month of ...
 first_day_of_month of ...
 ```, [Date parts],
-```catala-en-code
-a +! b   a +. b   a +$ b   a +^ b
-# int.   decimal  money    duration
-```, [Explicitly typed operators]
 )
 
-#let metadata = syntax-doc([Metadata declaration],
+#let metadata = cheat-sheet.syntax-doc([Metadata declaration],
 ```catala-en-code
 declaration structure Struct1:
   data fld1 content integer
@@ -162,6 +134,9 @@ declaration enumeration Enum1:
   -- Case1 content integer
   -- Case2
 ```, [Enumeration declaration],
+```catala-fr-code
+#[test]
+```, [Test scope annotation],
 ```catala-en-code
 declaration scope Scope1:
   internal var1 content integer
@@ -193,7 +168,7 @@ declaration square content decimal
 ```, [Global function definition],
 )
 
-#let expressions = syntax-doc([Expressions],
+#let expressions = cheat-sheet.syntax-doc([Expressions],
 ```catala-en-code
 let x equals 36 - 5 in ...
 ```, [Local definition],
@@ -230,7 +205,7 @@ var1 state before
 ```, [Variable state access]
 )
 
-#let scope = syntax-doc([Scope definition],
+#let scope = cheat-sheet.syntax-doc([Scope definition],
 ```catala-en-code
 scope Scope1: ...
 ```, [Scope use],
@@ -275,7 +250,7 @@ date round in·decreasing
 ```, [Date rounding mode]
 )
 
-#let lists = syntax-doc([List operations],
+#let lists = cheat-sheet.syntax-doc([List operations],
 ```catala-en-code
 lst contains 3
 ```, [Presence test],
@@ -324,14 +299,9 @@ combine all x among lst
 ```, [Folding]
 )
 
-#grid(
-    columns: (1fr, 1fr, 1fr),
-    gutter: 0pt,
-    stroke: (x, y) => if x > 0 { (left: 0.2pt + black) },
-    inset: (x, y) => if x > 0 { (left: 6pt) } + if x < 2 { (right: 6pt) },
-    [ #prog_lit #v(1fr) #lit_types #v(1fr) #operators ],
-    grid.vline(),
-    [ #metadata #v(1fr) #expressions ],
-    grid.vline(),
-    [ #scope #v(1fr) #lists ]
+#cheat-sheet.layout(
+    [The Catala Syntax], [english version],
+    (prog_lit, lit_types, operators),
+    (metadata, expressions),
+    (scope, lists)
 )

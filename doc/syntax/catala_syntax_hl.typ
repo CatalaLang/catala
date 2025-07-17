@@ -34,7 +34,8 @@
     uid: (fill: palette.bluegreen, weight: bold),
     field: (style: "oblique"),
     comment: (fill: palette.brick, style: "oblique"),
-    state: (fill: palette.lime, style: "oblique")
+    annotation: (fill: palette.brick, weight: bold),
+    state: (fill: palette.lime, style: "oblique"),
 )
 
 #let show-catala-fr-code(txt) = {
@@ -79,7 +80,8 @@
     show regex("\b\p{Ll}[\pL\d_']*[.]\p{Ll}[\pL\d_']*\b"): txt => {
         show regex("[.].*"): text.with(..style.field); txt
     }
-    show regex("#.*"): override.with(style.comment)
+    show regex("#[^\[].*"): override.with(style.comment)
+    show regex("#\[[^\]]+\]"): override.with(style.annotation)
     txt
 }
 

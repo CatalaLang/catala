@@ -14,6 +14,12 @@ cases)
 # > Include: foo.catala_en
 ```
 
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
 
 # Litterals and types
 
@@ -86,6 +92,7 @@ declaration enumeration Enum1:
   -- Case1 content integer
   -- Case2
 
+#[test]
 declaration scope Scope1:
   internal var1 content integer
   internal var2 condition
@@ -259,9 +266,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:92.14-92.20:
+├─➤ doc/syntax/syntax_en.catala_en:99.14-99.20:
 │    │
-│ 92 │   sub1 scope Scope0
+│ 99 │   sub1 scope Scope0
 │    │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#
