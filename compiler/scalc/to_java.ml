@@ -135,6 +135,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     pp_print_string ppf "subtract"
   | Not -> pp_print_string ppf "not"
+  | Impossible -> pp_print_string ppf "impossible"
   | Length -> pp_print_string ppf "length"
   | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
   | ToInt_rat -> pp_print_string ppf "asInteger"

@@ -81,6 +81,7 @@ type error =
   | AmbiguousDateRounding
       (** ambiguous date computation, and rounding mode was not specified *)
   | IndivisibleDurations  (** Dividing durations that are not in days *)
+  | Impossible  (** The "impossible" keyword was reached *)
 
 val error_to_string : error -> string
 (** Returns the capitalized tag of the error as a string *)
@@ -351,6 +352,7 @@ module Oper : sig
   (* The types **must** match with Shared_ast.Operator.*_type ; but for the
      added first argument [pos] for any operator that might trigger an error. *)
   val o_not : bool -> bool
+  val o_impossible : source_position -> 'a
   val o_length : 'a array -> integer
   val o_toint_rat : decimal -> integer
   val o_torat_int : integer -> decimal

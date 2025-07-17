@@ -48,6 +48,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
   | Not -> Format.pp_print_string fmt "not"
+  | Impossible -> Format.pp_print_string fmt "impossible"
   | Length -> Format.pp_print_string fmt "list_length"
   | ToInt_rat -> Format.pp_print_string fmt "integer_of_decimal"
   | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"

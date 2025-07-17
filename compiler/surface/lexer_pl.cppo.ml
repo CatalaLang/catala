@@ -98,6 +98,8 @@
 #define MR_BUT_REPLACE "ale", space_plus, "zast", 0x0105, "pi", 0x0107
 #define MS_INITIALLY "początkowo"
 #define MR_INITIALLY "pocz", 0X0105, "tkowo"
+#define MS_IMPOSSIBLE "niemożliwe"
+#define MR_IMPOSSIBLE "niemo", 0x017C, "liwe"
 #define MS_CARDINAL "liczba"
 #define MS_YEAR "rok"
 #define MS_MONTH "miesiąc"

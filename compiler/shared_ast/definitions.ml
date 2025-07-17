@@ -328,6 +328,7 @@ module Op = struct
     | FirstDayOfMonth : < monomorphic ; .. > t
     | LastDayOfMonth : < monomorphic ; .. > t
     (* * polymorphic *)
+    | Impossible : < polymorphic ; .. > t
     | Length : < polymorphic ; .. > t
     | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
     | ToClosureEnv : < polymorphic ; .. > t
