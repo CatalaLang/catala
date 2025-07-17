@@ -60,7 +60,7 @@ code hoists a closure or not)
 $ catala lcalc --closure-conversion
 type Eoption =
   | ENone of unit
-  | ESome of <ty1>
+  | ESome of <any type>
 
 #[test]
 type Assert_in = {  }

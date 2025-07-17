@@ -56,7 +56,7 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -O --closure-conversion 
 type Eoption =
   | ENone of unit
-  | ESome of <ty1>
+  | ESome of <any type>
 
 #[test]
 type Foo_in = { b_in: option (bool, source_position); }

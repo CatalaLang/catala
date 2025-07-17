@@ -233,13 +233,13 @@ let record_type_error env (AnyExpr e) t1 t2 =
 
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [typ] argument is propagated (unless it is [TVar]). *)
-let rec unify
+let rec union
     (env : 'e Env.t)
     (e : ('a, 'm) gexpr as 'e) (* used for error context *)
     (t1 : typ)
     (t2 : typ) : typ =
   (* Message.debug "Unifying %a and %a" Type.format t1 Type.format t2; *)
-  let unify = unify env e in
+  let union = union env e in
   let pos2 = Mark.get t2 in
   let record_type_error () = record_type_error env (AnyExpr e) t1 t2 in
   match Mark.remove t1, Mark.remove t2 with
@@ -247,9 +247,9 @@ let rec unify
     if tl1 <> tl2 then record_type_error ();
     t2
   | TArrow (targs1, tret1), TArrow (targs2, tret2) ->
-    let tret = unify tret1 tret2 in
+    let tret = union tret1 tret2 in
     let targs =
-      try List.map2 unify targs1 targs2
+      try List.map2 union targs1 targs2
       with Invalid_argument _ ->
         record_type_error ();
         targs2
@@ -257,7 +257,7 @@ let rec unify
     TArrow (targs, tret), pos2
   | TTuple ts1, TTuple ts2 ->
     let ts =
-      try List.map2 unify ts1 ts2
+      try List.map2 union ts1 ts2
       with Invalid_argument _ ->
         record_type_error ();
         ts2
@@ -269,18 +269,18 @@ let rec unify
   | TEnum e1, TEnum e2 ->
     if not (EnumName.equal e1 e2) then record_type_error ();
     t2
-  | TOption t1', TOption t2' -> TOption (unify t1' t2'), pos2
-  | TArray t1', TArray t2' -> TArray (unify t1' t2'), pos2
-  | TDefault t1', TDefault t2' -> TDefault (unify t1' t2'), pos2
+  | TOption t1', TOption t2' -> TOption (union t1' t2'), pos2
+  | TArray t1', TArray t2' -> TArray (union t1' t2'), pos2
+  | TDefault t1', TDefault t2' -> TDefault (union t1' t2'), pos2
   | TForAll t1b, TForAll t2b ->
     let _, t1, t2 = Bindlib.unmbind2 t1b t2b in
-    unify t1 t2
+    union t1 t2
   | TForAll t1b, _ ->
     let _, t1 = Bindlib.unmbind t1b in
-    unify t1 t2
+    union t1 t2
   | _, TForAll t2b ->
     let _, t2 = Bindlib.unmbind t2b in
-    unify t1 t2
+    union t1 t2
   | TVar v1, TVar v2 -> (
     if Bindlib.eq_vars v1 v2 then t2
     else
@@ -294,7 +294,7 @@ let rec unify
       | Some (TVar v3, _), None when Type.Var.equal v2 v3 -> t2
       | None, Some (TVar v3, _) when Type.Var.equal v1 v3 -> t1
       | Some t1, Some t2 ->
-        let t = unify t1 t2 in
+        let t = union t1 t2 in
         Env.set_tvar env v1 t;
         Env.set_tvar env v2 t;
         t
@@ -316,13 +316,13 @@ let rec unify
           t2))
   | TVar v1, _ ->
     let t =
-      match Env.get_tvar env v1 with None -> t2 | Some t1 -> unify t1 t2
+      match Env.get_tvar env v1 with None -> t2 | Some t1 -> union t1 t2
     in
     Env.set_tvar env v1 t;
     t
   | _, TVar v2 ->
     let t =
-      match Env.get_tvar env v2 with None -> t1 | Some t2 -> unify t1 t2
+      match Env.get_tvar env v2 with None -> t1 | Some t2 -> union t1 t2
     in
     Env.set_tvar env v2 t;
     t
@@ -333,12 +333,12 @@ let rec unify
     record_type_error ();
     t2
 
-let unify'
+let unify
     (env : 'e Env.t)
     (e : ('a, 'm) gexpr as 'e) (* used for error context *)
     (t1 : typ)
     (t2 : typ) : unit =
-  ignore (unify env e t1 t2)
+  ignore (union env e t1 t2)
 
 let lit_type (lit : lit) : naked_typ =
   match lit with
@@ -405,7 +405,7 @@ let polymorphic_op_return_type
   let return_type tf arity =
     let tret = Type.any pos in
     let tfunc = TArrow (List.init arity (fun _ -> Type.any pos), tret), pos in
-    unify' env e tf tfunc;
+    unify env e tf tfunc;
     get_ty env e tret
   in
   match Mark.remove op, targs with
@@ -470,13 +470,13 @@ and typecheck_expr_top_down :
        matches (unless it's a type variable) *)
     match Mark.get e with
     | Untyped _ (* | Typed { ty = TVar _, _; _ } *) -> ()
-    | Typed { ty; _ } -> unify' env e tau ty
+    | Typed { ty; _ } -> unify env e tau ty
     | Custom _ -> assert false
   in
   let context_mark = Custom { custom = tau; pos = pos_e } in
   let mark_with_tau_and_unify ty =
     (* Unify with the supplied type first, and return the mark *)
-    Custom { custom = unify env e ty tau; pos = pos_e }
+    Custom { custom = union env e ty tau; pos = pos_e }
   in
   match Mark.remove e with
   | ELocation loc ->
@@ -914,13 +914,13 @@ and typecheck_expr_top_down :
       Operator.kind_dispatch (Mark.set pos_e op)
         ~polymorphic:(fun op ->
           if env.flags.assume_op_types then (
-            unify' env e (polymorphic_op_return_type env e op t_args) tau;
+            unify env e (polymorphic_op_return_type env e op t_args) tau;
             List.rev_map (typecheck_expr_bottom_up ctx env) (List.rev args))
           else (
             (* Type the operator first, then right-to-left: polymorphic
                operators are required to allow the resolution of all type
                variables this way *)
-            unify' env e (polymorphic_op_type op) t_func;
+            unify env e (polymorphic_op_type op) t_func;
             (* List.rev_map(2) applies the side effects in order *)
             List.rev_map2
               (typecheck_expr_top_down ctx env)
@@ -928,17 +928,17 @@ and typecheck_expr_top_down :
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
-          unify' env e tau
+          unify env e tau
             (resolve_overload_ret_type ~flags e op
                (List.map2 (get_ty env) args t_args));
           args')
         ~monomorphic:(fun op ->
           (* Here it doesn't matter but may affect the error messages *)
-          unify' env e (Operator.monomorphic_type op) t_func;
+          unify env e (Operator.monomorphic_type op) t_func;
           List.map2 (typecheck_expr_top_down ctx env) t_args args)
         ~resolved:(fun op ->
           (* This case should not fail *)
-          unify' env e (Operator.resolved_type op) t_func;
+          unify env e (Operator.resolved_type op) t_func;
           List.map2 (typecheck_expr_top_down ctx env) t_args args)
     in
     (* All operator applications are monomorphised at this point *)
@@ -1057,7 +1057,7 @@ let scope_body_expr ctx env ty_out body_expr =
         let e0 = scope.scope_let_expr in
         let ty_e = scope.scope_let_typ in
         let e = Expr.unbox (typecheck_expr_bottom_up ctx env e0) in
-        unify' env e0 (expr_ty env e) ty_e;
+        unify env e0 (expr_ty env e) ty_e;
         (* We could use [typecheck_expr_top_down] rather than this manual
            unification, but we get better messages with this order of the
            [unify] parameters, which keeps location of the type as defined

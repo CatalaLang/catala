@@ -41,7 +41,7 @@ scope Section121SinglePerson:
 $ catala lcalc --closure-conversion
 type Eoption =
   | ENone of unit
-  | ESome of <ty1>
+  | ESome of <any type>
 
 type Period = { begin: date; end: date; }
 

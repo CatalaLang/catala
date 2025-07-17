@@ -109,7 +109,9 @@ let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
 let tvar ppf tv =
   let name = Bindlib.name_of tv in
   let name =
-    if name.[0] = '\'' then "ty" ^ String.sub name 1 (String.length name - 1)
+    if name.[0] = '\'' then
+      let num = String.sub name 1 (String.length name - 1) in
+      if num = "1" then "any type" else "any type (" ^ num ^ ")"
     else name
   in
   Format.fprintf ppf "@{<bold;yellow><%s%s>@}" name

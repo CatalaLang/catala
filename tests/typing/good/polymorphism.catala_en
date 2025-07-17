@@ -83,7 +83,7 @@ declaration foo content list of date equals
 $ catala lcalc
 type Eoption =
   | ENone of unit
-  | ESome of <ty1>
+  | ESome of <any type>
 
 type S_in = {  }
 
