@@ -20,6 +20,7 @@ module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Scan = Clerk_scan
 module Var = Clerk_rules.Var
+module Config = Clerk_config
 
 let lastdirname f = File.(basename (dirname f))
 
@@ -155,7 +156,7 @@ let subdir_backend_list =
 let backend_subdir bk = List.assoc bk backend_subdir_list
 
 let rule_subdir rule =
-  backend_subdir (Clerk_rules.backend_from_config rule.Clerk_config.backend)
+  backend_subdir (Clerk_rules.backend_from_config rule.Config.backend)
 
 let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
@@ -262,16 +263,12 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
              (fun it ->
                let f = Scan.target_file_name it in
                let f = dirname f / rule_subdir rule / basename f in
-               List.map
-                 (fun ext -> (build_dir / f) -.- ext)
-                 rule.Clerk_config.in_exts)
+               List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.in_exts)
              (link_deps item @ [item])) )
       :: ( Var.make "dst",
            let f = Scan.target_file_name item in
            let f = dirname f / rule_subdir rule / basename f in
-           List.map
-             (fun ext -> (build_dir / f) -.- ext)
-             rule.Clerk_config.out_exts )
+           List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts )
       :: var_bindings
     in
     List.flatten
@@ -281,7 +278,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
              get_var var_bindings
                (Var.make (String.sub s 1 (String.length s - 1)))
            else [expand_vars var_bindings s])
-         rule.Clerk_config.commandline
+         rule.Config.commandline
 
 let target_backend config t =
   let aux ext =
@@ -291,10 +288,10 @@ let target_backend config t =
       else
         match
           List.find_opt
-            (fun rule -> List.mem ext rule.Clerk_config.out_exts)
-            config.Clerk_config.custom_rules
+            (fun rule -> List.mem ext rule.Config.out_exts)
+            config.Config.custom_rules
         with
-        | Some rule -> Clerk_rules.backend_from_config rule.Clerk_config.backend
+        | Some rule -> Clerk_rules.backend_from_config rule.Config.backend
         | None ->
           Message.error
             "Unhandled extension @{<red;bold>%s@} for target @{<red>%S@}" ext t)
@@ -328,7 +325,7 @@ let make_target ~build_dir ~backend item =
     | `Python -> (dir / "python" / base) -.- "py"
     | `Java -> (dir / "java" / base) -.- "class"
     | `Custom rule ->
-      (dir / rule_subdir rule / base) -.- List.hd rule.Clerk_config.in_exts
+      (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
   build_dir / base
 
@@ -370,7 +367,7 @@ let raw_cmd : int Cmd.t =
 let build_clerk_target
     ~(config : Cli.config)
     ~ninja_flags
-    (target : Clerk_config.target) =
+    (target : Config.target) =
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
@@ -449,8 +446,8 @@ let build_clerk_target
       ensure_dir dir;
       copy_in ~dir ~src)
     install_targets;
-  if target.Clerk_config.include_runtime then
-    target.Clerk_config.backends
+  if target.Config.include_runtime then
+    target.Config.backends
     |> List.iter (fun bk ->
            let bk = Clerk_rules.backend_from_config bk in
            let src =
@@ -542,7 +539,7 @@ let build_direct_targets
             | None, ext -> (
               match
                 List.find_opt
-                  (fun rule -> List.mem ext rule.Clerk_config.out_exts)
+                  (fun rule -> List.mem ext rule.Config.out_exts)
                   config.options.custom_rules
               with
               | Some rule ->
@@ -637,8 +634,7 @@ let build_cmd : int Cmd.t =
        files:@,\
        %a%t%a@]"
       (Format.pp_print_list (fun ppf (t, f) ->
-           Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}"
-             t.Clerk_config.tname
+           Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
              (make_relative_to ~dir:original_cwd f)))
       clerk_targets_result
       (fun fmt ->
