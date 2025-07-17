@@ -218,6 +218,13 @@ let clerk_targets_or_files =
     & info [] ~docv:"TARGET(S)"
         ~doc:"Clerk target(s) or individual file(s) to process")
 
+let clerk_targets_or_files_or_folders =
+  Arg.(
+    value
+    & pos_all string []
+    & info [] ~docv:"TARGET(S)"
+        ~doc:"Clerk target(s), individual file(s) or folder(s) to process")
+
 let report_verbosity =
   Arg.(
     value
