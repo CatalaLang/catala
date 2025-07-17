@@ -235,7 +235,7 @@ val fold_marks :
 
 val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
 (** Returns the corresponding type on a typed expr, or [typ] (defaulting to
-    [TAny]) at the current position on an untyped one *)
+    [TForAll]) at the current position on an untyped one *)
 
 val untyped : untyped mark
 (** Type witness for untyped marks *)
@@ -372,6 +372,7 @@ val make_abs :
   typ list ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
+(** Warning: assumes no polymorphism, no type variables will be quantified *)
 
 val make_ghost_abs :
   ('a, 'm) gexpr Var.var list ->

@@ -31,11 +31,11 @@ scope Test:
 
 ```catala-test-cli
 $ catala dcalc
-┌─[ERROR]─ 1/2 ─
+┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
-│  ─➤ list of any
+│  ─➤ list of <any type>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
@@ -49,16 +49,7 @@ $ catala dcalc
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
-│ Type list of any is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
-│    │
-│ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
-┌─[ERROR]─ 2/2 ─
-│
-│  Internal error: typing at this point could not be resolved
-│
+│ Type list of <any type> is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
@@ -70,11 +61,11 @@ $ catala dcalc
 
 ```catala-test-cli
 $ catala test-scope Test
-┌─[ERROR]─ 1/2 ─
+┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
 │  ─➤ St
-│  ─➤ list of any
+│  ─➤ list of <any type>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
@@ -88,16 +79,7 @@ $ catala test-scope Test
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
-│ Type list of any is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
-│    │
-│ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
-┌─[ERROR]─ 2/2 ─
-│
-│  Internal error: typing at this point could not be resolved
-│
+│ Type list of <any type> is coming from:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2

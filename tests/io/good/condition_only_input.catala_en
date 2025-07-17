@@ -28,8 +28,8 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Dcalc -s B
-let scope B (B_in: #[test] B_in): #[test] B =
-  let set a : A {y: integer} =
+let scope B (B_in: B_in): B =
+  let set a : A =
     let result : A =
       A { A_in x_in = error_empty ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩; }
     in

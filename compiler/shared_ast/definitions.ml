@@ -224,7 +224,9 @@ and naked_typ =
   | TOption of typ
   | TArray of typ
   | TDefault of typ
-  | TAny
+  | TVar of naked_typ Bindlib.var
+  | TForAll of (naked_typ, typ) Bindlib.mbinder
+      (** Universal quantification of type variables *)
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig

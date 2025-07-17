@@ -111,7 +111,7 @@ let tlist : list of (decimal, money, money) =
     lis1
     map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
 in
-let S : S_in → S =
+let S : #[test] #[test] S_in → #[test] S =
   λ (S_in: S_in) →
   let r1 : list of (money, decimal) =
     map (λ (x: (decimal, money, money)) → grok x.0 x.1 x.2) tlist

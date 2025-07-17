@@ -25,7 +25,7 @@ scope Assert:
 
 ```catala-test-cli
 $ catala dcalc
-let Assert : Assert_in → Assert =
+let Assert : #[test] #[test] Assert_in → #[test] Assert =
   λ (Assert_in: Assert_in) →
   let assert : bool =
     error_empty
@@ -60,7 +60,7 @@ code hoists a closure or not)
 $ catala lcalc --closure-conversion
 type Eoption =
   | ENone of unit
-  | ESome of any
+  | ESome of <any type>
 
 #[test]
 type Assert_in = {  }
@@ -79,10 +79,7 @@ let topval closure_assert : (closure_env, integer) → integer =
   ((x + 1))
 
 #[test]
-let scope assert
-  (assert_in: #[test] Assert_in)
-  : #[test] Assert {assert: bool}
-  =
+let scope assert (assert_in: Assert_in): Assert =
   let set assert__1 : bool =
     match
       (match
@@ -108,8 +105,7 @@ let topval assert__1 : integer → integer =
   λ (assert__1: integer) →
   assert__1
 
-let topval closure_assert__1 :
-  (Assert_in__1 {assert: integer}, Assert__1 {assert: integer}) =
+let topval closure_assert__1 : (Assert_in__1, Assert__1) =
   ({ Assert_in__1 assert = 99; }, { Assert__1 assert = 199; })
 
 ```

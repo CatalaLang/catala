@@ -463,6 +463,7 @@ let is_type_cond ((typ, _) : Surface.Ast.typ) =
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
     ?(rev_named_path_acc = [])
+    ~vars
     (ctxt : context)
     ((typ, typ_pos) : Surface.Ast.base_typ Mark.pos) : typ =
   let typ_pos = translate_pos Type typ_pos in
@@ -470,14 +471,14 @@ let rec process_base_typ
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
     ( TArray
-        (process_base_typ ~rev_named_path_acc ctxt
+        (process_base_typ ~rev_named_path_acc ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.TTuple tl) ->
     ( TTuple
         (List.map
            (fun t ->
-             process_base_typ ~rev_named_path_acc ctxt
+             process_base_typ ~rev_named_path_acc ~vars ctxt
                (Surface.Ast.Data (Mark.remove t), Mark.get t))
            tl),
       typ_pos )
@@ -523,18 +524,66 @@ let rec process_base_typ
             :: rev_named_path_acc
           | None -> rev_named_path_acc
         in
-        process_base_typ ~rev_named_path_acc
+        process_base_typ ~rev_named_path_acc ~vars
           { ctxt with local = mod_ctxt }
-          Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos)))
+          Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
+    | Surface.Ast.Var None ->
+      let v = Bindlib.new_var (fun v -> TVar v) "ty" in
+      TVar v, typ_pos
+      (* FIXME: this should be an error outside of func types as well ? *)
+    | Surface.Ast.Var (Some (id, pos)) -> (
+      match String.Map.find_opt id vars with
+      | Some v -> TVar v, pos
+      | None ->
+        Message.error ~pos
+          "Specifying type `anything` is not allowed at this point"))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
     =
+  let merge = String.Map.union (fun _ pos _ -> Some pos) in
   match naked_typ with
-  | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
+  | Surface.Ast.Base base_typ ->
+    process_base_typ ~vars:String.Map.empty ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    let targs = List.map (fun (_, t) -> process_base_typ ctxt t) arg_typ in
-    TArrow (targs, process_base_typ ctxt return_typ), typ_pos
+    let rec get_vars = function
+      | Surface.Ast.Primitive (Var (Some (id, pos))), _ ->
+        String.Map.singleton id pos
+      | Surface.Ast.Collection ty, _ -> get_vars ty
+      | Surface.Ast.TTuple ls, _ ->
+        List.fold_right
+          (fun ty acc -> merge acc (get_vars ty))
+          ls String.Map.empty
+      | _ -> String.Map.empty
+    in
+    let variables =
+      List.fold_left
+        (fun acc ty ->
+          let vs =
+            match ty with
+            | Surface.Ast.Condition, _ -> String.Map.empty
+            | Surface.Ast.Data dty, pos -> get_vars (dty, pos)
+          in
+          merge acc vs)
+        String.Map.empty
+        (return_typ :: List.map snd arg_typ)
+    in
+    let vars =
+      String.Map.mapi
+        (fun id _pos -> Bindlib.new_var (fun v -> TVar v) id)
+        variables
+    in
+    let targs =
+      List.map (fun (_, t) -> process_base_typ ~vars ctxt t) arg_typ
+    in
+    let ty = TArrow (targs, process_base_typ ~vars ctxt return_typ), typ_pos in
+    if String.Map.is_empty vars then ty
+    else
+      let ty = Type.rebox ty in
+      ( TForAll
+          Bindlib.(
+            unbox (bind_mvar (Array.of_list (String.Map.values vars)) ty)),
+        typ_pos )
 
 (** Process data declaration *)
 let process_data_decl

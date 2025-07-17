@@ -275,7 +275,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~fail_on_any:false ~internal_check:true prg in
+        let prg = Typing.program ~internal_check:true prg in
         if expand_ops then Lcalc.Expand_op.program prg else prg)
       else (
         Message.debug "Performing closure conversion...";
@@ -289,8 +289,7 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
-        Typing.program ~fail_on_any:false ~internal_check:true
-          ~assume_op_types:true prg)
+        Typing.program ~internal_check:true ~assume_op_types:true prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (
@@ -298,8 +297,7 @@ module Passes = struct
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
         Message.debug "Retyping lambda calculus...";
         let prg =
-          Typing.program ~fail_on_any:false ~assume_op_types:true
-            ~internal_check:true prg
+          Typing.program ~assume_op_types:true ~internal_check:true prg
         in
         prg, type_ordering)
       else prg, type_ordering
@@ -636,7 +634,7 @@ module Commands = struct
       List.iter
         (fun scope ->
           let scope_uid = get_scope_uid prg.program_ctx scope in
-          Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
+          Scopelang.Print.scope ~debug:options.Global.debug fmt
             (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
           Format.pp_print_newline fmt ())
         ex_scopes

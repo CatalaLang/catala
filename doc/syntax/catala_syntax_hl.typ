@@ -6,9 +6,9 @@
     orange: rgb("#e94").darken(20%),
     yellow: rgb("#ed0").darken(30%),
     lime: rgb("#9d5").darken(30%),
-    bluegreen: rgb("#4d8").darken(25%),
+    bluegreen: rgb("#4d8").darken(30%),
     sea: rgb("#2cb").darken(20%),
-    azur: rgb("#0bc").darken(20%),
+    azur: rgb("#0bc").darken(30%),
     blue: rgb("#09c").darken(10%),
     marine: rgb("#36b"),
     violet: rgb("#639"),
@@ -36,6 +36,7 @@
     comment: (fill: palette.brick, style: "oblique"),
     annotation: (fill: palette.brick, weight: bold),
     state: (fill: palette.lime, style: "oblique"),
+    typevar: (fill: palette.plum, style: "oblique"),
 )
 
 #let show-catala-fr-code(txt) = {
@@ -71,6 +72,11 @@
         txt
     }
     show regex("\b(contexte|entrée|résultat|interne|état|date\s+arrondi(\s+dé)?|(dé)?croissant|soit|dans|dépend\s+de|contenu|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à)\b"): override.with(style.keyword + (style: "normal", weight: normal))
+    show regex("\bn'importe\s+quel\s+de\s+type\s+\w+\b"): txt => {
+      show regex(".*\s+"): override.with(style.keyword + (style: "normal", weight: normal))
+      show regex("\w+$"): override.with(style.typevar)
+      txt
+    }
     show regex("\bdonnée\s+\w+\b"): txt => {
         show regex("\s+.*"): text.with(..style.field)
         txt
@@ -117,10 +123,15 @@
         show "anything": override.with(style.keyword + (style: "normal"))
         txt
     }
-    show regex("\b(context|input|output|internal|state|date\s+round|(de|in)?creasing|let|in|depends\s+on|content|under\s+condition|condition|data|consequence|fulfilled|equals)\b"): override.with(style.keyword + (style: "normal", weight: normal))
+    show regex("\b(context|input|output|internal|state|date\s+round|(de|in)?creasing|let|in|depends\s+on|content|under\s+condition|condition|data|consequence|fulfilled|equals|anything\s+of\s+type)\b"): override.with(style.keyword + (style: "normal", weight: normal))
     show regex("\bdata\s+\w+\b"): txt => {
         show regex("\s+.*"): text.with(..style.field)
         txt
+    }
+    show regex("\banything\s+of\s+type\s+\w+\b"): txt => {
+      show regex(".*\s+"): override.with(style.keyword + (style: "normal", weight: normal))
+      show regex("\w+$"): override.with(style.typevar)
+      txt
     }
     show regex("\b((list\s+of)|(or\s+if\s+list\s+empty\s+then)|(combine\s+all))\b"): override.with(style.keyword + (weight: normal))
     show regex("\bstate\s+\w+\b"): text.with(..style.state)

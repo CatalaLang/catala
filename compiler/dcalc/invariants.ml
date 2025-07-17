@@ -142,10 +142,10 @@ let rec check_typ_no_default ctx ty =
     List.for_all (check_typ_no_default ctx) args && check_typ_no_default ctx res
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
-  | TAny ->
+  | TVar _ | TForAll _ ->
     Message.error ~internal:true
-      "Some Dcalc invariants are invalid: TAny was found whereas it should be \
-       fully resolved."
+      "Some Dcalc invariants are invalid: TForAll was found whereas it should \
+       be fully resolved."
   | TClosureEnv ->
     Message.error ~internal:true
       "Some Dcalc invariants are invalid: TClosureEnv was found whereas it \
@@ -188,7 +188,7 @@ let invariant_typing_defaults () : string * invariant_expr =
     fun ctx e ->
       if check_type_root ctx (Expr.ty e) then Pass
       else (
-        Message.warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
+        Message.warning "typing error %a@." Print.typ (Expr.ty e);
         Fail) )
 
 let check_all_invariants prgm =

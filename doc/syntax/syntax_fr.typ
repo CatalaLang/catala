@@ -74,6 +74,14 @@ durée
 liste de entier
 ```,
 ```catala-fr-code
+[]
+```,
+```catala-fr-code
+liste de
+  n'importe quel
+  de type t
+```,
+```catala-fr-code
 (|2012-02-03|, 30€, 1%)
 ```,
 ```catala-fr-code

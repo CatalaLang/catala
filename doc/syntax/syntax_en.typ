@@ -67,6 +67,13 @@ duration
 list of integer
 ```,
 ```catala-en-code
+[]
+```,
+```catala-en-code
+list of
+ anything of type t
+```,
+```catala-en-code
 (|2012-02-03|, $30, 1%)
 ```,
 ```catala-en-code

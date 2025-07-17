@@ -89,7 +89,7 @@ let print_log ppf lang level entry =
     logprintf level
       (VarDef
          {
-           log_typ = TAny;
+           log_typ = TVar (Type.Var.fresh ());
            log_io_input = io.Runtime.io_input;
            log_io_output = io.Runtime.io_output;
          })
@@ -572,7 +572,13 @@ let rec runtime_to_val :
       match runtime_to_val eval_expr ctx m ty o with
       | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
       | _ -> assert false))
-  | TAny -> assert false
+  | TForAll tb ->
+    let _v, ty = Bindlib.unmbind tb in
+    runtime_to_val eval_expr ctx m ty o
+  | TVar _ ->
+    (* A type variable being an unresolved type, it can't be deconstructed, so
+       we can let it pass through. *)
+    Obj.obj o, m
 
 and val_to_runtime :
     type d.
@@ -677,6 +683,13 @@ and val_to_runtime :
       in
       Obj.repr
         (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))
+  | TForAll tb, _ ->
+    let _v, ty = Bindlib.unmbind tb in
+    val_to_runtime eval_expr ctx ty v
+  | TVar _, v ->
+    (* A type variable being an unresolved type, it can't be deconstructed, so
+       we can let it pass through. *)
+    Obj.repr v
   | TClosureEnv, v ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
@@ -684,7 +697,7 @@ and val_to_runtime :
     Obj.repr v
   | _ ->
     Message.error ~internal:true
-      "Could not convert value of type %a@ to@ runtime:@ %a" (Print.typ ctx) ty
+      "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
 let rec evaluate_expr :

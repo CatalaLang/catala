@@ -22,13 +22,8 @@ open Definitions
 module Env : sig
   type 'e t
 
-  val empty : ?fail_on_any:bool -> ?assume_op_types:bool -> decl_ctx -> 'e t
-  (** The [~fail_on_any] labeled parameter controls the behavior of the typer in
-      the case where polymorphic expressions are still found after typing: if
-      [false], it allows them (giving them [TAny] and losing typing
-      information); if set to [true] (the default), it aborts.
-
-      The [~assume_op_types] flag (default false) ignores the expected built-in
+  val empty : ?assume_op_types:bool -> decl_ctx -> 'e t
+  (** The [~assume_op_types] flag (default false) ignores the expected built-in
       types of polymorphic operators, and will assume correct the type
       information included in [EAppOp] nodes. This is useful after
       monomorphisation, which changes the expected types for these operators. *)
@@ -62,7 +57,7 @@ val expr :
     If the input expression already has type annotations, the full inference is
     still done, but with unification with the existing annotations at every
     step. This can be used for double-checking after AST transformations and
-    filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
+    filling the gaps ([TForAll]) if any. Use [Expr.untype] first if this is not
     what you want.
 
     Note that typing also transparently performs the following changes to the
@@ -78,10 +73,9 @@ val expr :
     - resolution of function application input types on the [EApp] nodes, when
       that was originally empty ([[]]): this documents the arity of the function
       application, taking de-tuplification into account.
-    - [TAny] appearing within nodes are refined to more precise types, e.g. on
-      `EAbs` nodes (but be careful with this, it may only work for specific
-      structures of generated code ; having [~fail_on_any:true] set in the
-      environment (this is the default) checks that it didn't cause problems) *)
+    - [TForAll] appearing within nodes are refined to more precise types, e.g.
+      on `EAbs` nodes (but be careful with this, it may only work for specific
+      structures of generated code) *)
 
 val check_expr :
   decl_ctx ->
@@ -92,10 +86,9 @@ val check_expr :
 (** Same as [expr], but doesn't annotate the returned expression. Equivalent to
     [Typing.expr |> Expr.untype], but more efficient. This can be useful for
     type-checking and disambiguation (some AST nodes are updated with missing
-    information, e.g. any [TAny] appearing in the AST is replaced) *)
+    information, e.g. any [TForAll] appearing in the AST is replaced) *)
 
 val program :
-  ?fail_on_any:bool ->
   ?assume_op_types:bool ->
   ?internal_check:bool ->
   ('a, 'm) gexpr program ->

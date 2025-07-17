@@ -61,6 +61,7 @@
 #define MS_MATCH "selon"
 #define MS_WILDCARD "n'importe quel"
 #define MR_WILDCARD "n'importe", space_plus, "quel"
+#define MS_TYPE "type"
 #define MS_WITH "sous forme"
 #define MR_WITH "sous", space_plus, "forme"
 #define MS_UNDER_CONDITION "sous condition"

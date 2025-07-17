@@ -566,10 +566,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
       _ ) ->
     raise Not_found
 
-let resolve_overload
-    ctx
-    ((op, pos) : overloaded t Mark.pos)
-    (operands : typ list) :
+let resolve_overload ((op, pos) : overloaded t Mark.pos) (operands : typ list) :
     < resolved : yes ; .. > t Mark.pos * [ `Straight | `Reversed ] =
   try
     let operands =
@@ -580,26 +577,45 @@ let resolve_overload
     in
     let op, direction = resolve_overload_aux op operands in
     (op, pos), direction
-  with Not_found ->
-    Message.error
-      ~extra_pos:
-        (("", pos)
-        :: List.map
+  with Not_found -> (
+    let poly_ops =
+      List.filter (function TVar _, _ -> true | _ -> false) operands
+    in
+    match poly_ops with
+    | poly_op :: _ ->
+      Message.error ~pos
+        ~fmt_pos:
+          [
+            ( (fun ppf ->
+                Format.fprintf ppf
+                  "Undetermined type@ %a@ coming@ from@ expression:" Print.typ
+                  poly_op),
+              Mark.get poly_op );
+          ]
+        "In this application of operator %a,@ the@ type@ of@ an@ operand@ is@ \
+         unknown"
+        (Print.operator ~debug:true)
+        op
+    | [] ->
+      Message.error ~pos
+        ~fmt_pos:
+          (List.map
              (fun ty ->
-               ( Format.asprintf "Type %a coming from expression:"
-                   (Print.typ ctx) ty,
+               ( (fun ppf ->
+                   Format.fprintf ppf "Type %a@ coming@ from@ expression:"
+                     Print.typ ty),
                  Mark.get ty ))
              operands)
-      "I don't know how to apply operator %a on types %a"
-      (Print.operator ~debug:true)
-      op
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf " and@ ")
-         (Print.typ ctx))
-      operands
+        "I don't know how to apply operator %a on types@ %a"
+        (Print.operator ~debug:true)
+        op
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf " and@ ")
+           Print.typ)
+        operands)
 
-let overload_type ctx (op : overloaded t Mark.pos) (operands : typ list) : typ =
-  let rop = fst (resolve_overload ctx op operands) in
+let overload_type (op : overloaded t Mark.pos) (operands : typ list) : typ =
+  let rop = fst (resolve_overload op operands) in
   resolved_type rop
 
 let is_pure : type a. a t -> bool = function

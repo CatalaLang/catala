@@ -237,7 +237,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     stmts, (A.EAppOp { op; args; tys }, Expr.pos expr), ctxt.ren_ctx
-  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; tys = _ } ->
+  | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -344,7 +344,7 @@ and translate_assignment
   | EFatalError error ->
     let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
     RevBlock.make [vposdef; SFatalError { pos_expr; error }, pos], ctxt.ren_ctx
-  | EApp { f = EAbs { binder; pos = _; tys }, binder_mark; args; _ } ->
+  | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body, ctxt = unmbind ctxt binder in
@@ -407,9 +407,11 @@ and translate_assignment
                         vars_tau;
                     func_body = RevBlock.rebuild stmts_body ~tail:[];
                     func_return_typ =
-                      (match Expr.maybe_ty (Mark.get block_expr) with
+                      (match
+                         Type.unquantify (Expr.maybe_ty (Mark.get block_expr))
+                       with
                       | TArrow (_, t2), _ -> t2
-                      | TAny, pos_any -> TAny, pos_any
+                      | TVar _, pos_any -> Type.any pos_any
                       | _ -> assert false);
                   };
               },
@@ -631,9 +633,9 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                 A.func_params = args_id;
                 A.func_body = body_block;
                 A.func_return_typ =
-                  (match topdef_ty with
+                  (match Type.unquantify topdef_ty with
                   | TArrow (_, t2), _ -> t2
-                  | TAny, pos_any -> TAny, pos_any
+                  | TVar _, pos_any -> Type.any pos_any
                   | _ -> failwith "should not happen");
               };
             visibility;

@@ -113,6 +113,9 @@ module R = Re.Pcre
 #ifndef MR_WILDCARD
   #define MR_WILDCARD MS_WILDCARD
 #endif
+#ifndef MR_TYPE
+  #define MR_TYPE MS_TYPE
+#endif
 #ifndef MR_WITH
   #define MR_WITH MS_WITH
 #endif
@@ -291,6 +294,7 @@ let token_list : (string * token) list =
     (MS_DEFINED_AS, DEFINED_AS);
     (MS_MATCH, MATCH);
     (MS_WILDCARD, WILDCARD);
+    (MS_TYPE, TYPE);
     (MS_WITH, WITH);
     (MS_UNDER_CONDITION, UNDER_CONDITION);
     (MS_IF, IF);
@@ -529,6 +533,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_WILDCARD ->
       L.update_acc lexbuf;
       WILDCARD
+  | MR_TYPE ->
+      L.update_acc lexbuf;
+      TYPE
   | MR_UNDER_CONDITION ->
       L.update_acc lexbuf;
       UNDER_CONDITION

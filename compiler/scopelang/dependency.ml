@@ -272,7 +272,10 @@ let rec get_structs_or_enums_in_type (t : typ) : TypeIdent.Set.t =
       |> List.map get_structs_or_enums_in_type
       |> List.fold_left TypeIdent.Set.union TypeIdent.Set.empty)
       (get_structs_or_enums_in_type t2)
-  | TClosureEnv | TLit _ | TAny -> TypeIdent.Set.empty
+  | TClosureEnv | TLit _ | TVar _ -> TypeIdent.Set.empty
+  | TForAll tb ->
+    let _v, ty = Bindlib.unmbind tb in
+    get_structs_or_enums_in_type ty
   | TOption t1 | TArray t1 | TDefault t1 -> get_structs_or_enums_in_type t1
   | TTuple ts ->
     List.fold_left

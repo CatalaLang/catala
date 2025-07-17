@@ -33,6 +33,7 @@ declaration x content money equals $1,234,567.89
 declaration x content date equals |2024-04-01|
 declaration x content duration equals 254 day + -4 month + 1 year
 declaration x content list of integer equals [ 12; 24; 36 ]
+declaration x content list of anything of type t depends on a content integer equals []
 declaration x content (date,money,decimal) equals (|2024-04-01|, $30, 1%)
 declaration f content decimal depends on
     x content money,
@@ -92,7 +93,7 @@ declaration enumeration Enum1:
   -- Case1 content integer
   -- Case2
 
-#[test]
+# #[test]
 declaration scope Scope1:
   internal var1 content integer
   internal var2 condition
@@ -266,10 +267,10 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:99.14-99.20:
-│    │
-│ 99 │   sub1 scope Scope0
-│    │              ‾‾‾‾‾‾
+├─➤ doc/syntax/syntax_en.catala_en:100.14-100.20:
+│     │
+│ 100 │   sub1 scope Scope0
+│     │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#
 ```
