@@ -35,7 +35,7 @@ type global = {
 type target = {
   tname : string;
   tmodules : string list;
-  tests : File.t list;
+  ttests : File.t list;
   backends : backend list;
   include_runtime : bool;
 }
