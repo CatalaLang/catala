@@ -25,9 +25,20 @@ scope Assert:
 
 ```catala-test-cli
 $ catala dcalc
-let Assert : #[test] #[test] Assert_in → #[test] Assert =
-  λ (Assert_in: Assert_in) →
-  let assert : bool =
+
+type Assert_in = { assert: integer; }
+
+type Assert__1 = { assert: integer; }
+
+#[test]
+type Assert_in = {  }
+
+#[test]
+type Assert = { assert: bool; }
+
+#[test]
+let scope Assert (Assert_in: Assert_in): Assert =
+  let set assert : bool =
     error_empty
       ⟨ ⟨ ⟨true
            ⊢ ⟨let assert : list of integer =
@@ -37,13 +48,15 @@ let Assert : #[test] #[test] Assert_in → #[test] Assert =
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
-  { Assert assert = assert; }
-in
-let assert : integer → integer = λ (assert__1: integer) → assert__1 in
-let closure_assert : (Assert_in, Assert__1) =
+  return { Assert assert = assert; }
+
+let topval assert : integer → integer =
+  λ (assert__1: integer) →
+  assert__1
+
+let topval closure_assert : (Assert_in, Assert__1) =
   ({ Assert_in assert = 99; }, { Assert__1 assert = 199; })
-in
-Assert
+
 ```
 
 

@@ -94,29 +94,45 @@ $ catala test-scope S
 
 ```catala-test-cli
 $ catala dcalc -O
-let lis1 : list of decimal = [12.; 13.; 14.; 15.; 16.; 17.] in
-let lis2 : list of money =
+
+#[test]
+type S_in = {  }
+
+#[test]
+type S = {
+  r1: list of (money, decimal);
+  r2: list of (money, decimal);
+  r3: list of (money, decimal);
+  r4: list of (money, decimal);
+  r5: list of (money, decimal);
+  r6: list of (money, decimal);
+}
+
+let topval lis1 : list of decimal =
+  [12.; 13.; 14.; 15.; 16.; 17.]
+
+let topval lis2 : list of money =
   [¤10.00; ¤1.00; ¤100.00; ¤42.00; ¤17.00; ¤10.00]
-in
-let lis3 : list of money =
+
+let topval lis3 : list of money =
   [¤20.00; ¤200.00; ¤10.00; ¤23.00; ¤25.00; ¤12.00]
-in
-let grok : (decimal, money, money) → (money, decimal) =
+
+let topval grok : (decimal, money, money) → (money, decimal) =
   λ (dec: decimal) (mon1: money) (mon2: money) →
   (mon1 * dec, mon1 / mon2)
-in
-let tlist : list of (decimal, money, money) =
+
+let topval tlist : list of (decimal, money, money) =
   map2
     (λ (a: decimal) (b_c: (money, money)) → (a, b_c.0, b_c.1))
     lis1
     map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
-in
-let S : #[test] #[test] S_in → #[test] S =
-  λ (S_in: S_in) →
-  let r1 : list of (money, decimal) =
+
+#[test]
+let scope S (S_in: S_in): S =
+  let set r1 : list of (money, decimal) =
     map (λ (x: (decimal, money, money)) → grok x.0 x.1 x.2) tlist
   in
-  let r2 : list of (money, decimal) =
+  let set r2 : list of (money, decimal) =
     map2
       (λ (x: decimal) (zip: (money, money)) →
        let x1 : (decimal, money, money) = (x, zip.0, zip.1) in
@@ -124,7 +140,7 @@ let S : #[test] #[test] S_in → #[test] S =
       lis1
       map2 (λ (x: money) (zip: money) → (x, zip)) lis2 lis3
   in
-  let r3 : list of (money, decimal) =
+  let set r3 : list of (money, decimal) =
     map2
       (λ (x: decimal) (y_z: (money, money)) →
        let x_y_z : (decimal, money, money) = (x, y_z.0, y_z.1) in
@@ -132,7 +148,7 @@ let S : #[test] #[test] S_in → #[test] S =
       lis1
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
-  let r4 : list of (money, decimal) =
+  let set r4 : list of (money, decimal) =
     map (λ (x_y_z: (decimal, money, money)) →
          let x : decimal = x_y_z.0 in
          let y : money = x_y_z.1 in
@@ -140,7 +156,7 @@ let S : #[test] #[test] S_in → #[test] S =
          (y * x, y / z))
       tlist
   in
-  let r5 : list of (money, decimal) =
+  let set r5 : list of (money, decimal) =
     map2
       (λ (x: decimal) (y_z: (money, money)) →
        let x_y_z : (decimal, money, money) = (x, y_z.0, y_z.1) in
@@ -151,7 +167,7 @@ let S : #[test] #[test] S_in → #[test] S =
       lis1
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
-  let r6 : list of (money, decimal) =
+  let set r6 : list of (money, decimal) =
     let lis12 : list of (decimal, money) =
       map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2
     in
@@ -164,7 +180,6 @@ let S : #[test] #[test] S_in → #[test] S =
       lis12
       lis3
   in
-  { S r1 = r1; r2 = r2; r3 = r3; r4 = r4; r5 = r5; r6 = r6; }
-in
-S
+  return { S r1 = r1; r2 = r2; r3 = r3; r4 = r4; r5 = r5; r6 = r6; }
+
 ```
