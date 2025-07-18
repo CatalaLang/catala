@@ -901,129 +901,127 @@ let check_clerk_targets_tests backend clerk_targets =
     Message.error "Targets { %a } have no @{<bold>tests@} attached"
       pp_target_list ts
 
-let test_cmd =
-  let run
-      config
-      (clerk_targets_or_files_or_folders : string list)
-      (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
-      (reset_test_outputs : bool)
-      verbosity
-      xml
-      (diff_command : string option option)
-      (ninja_flags : string list) =
-    let build_dir = config.Cli.options.global.build_dir in
-    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
-    if backend <> `Interpret then
-      if config.Cli.test_flags <> [] then
-        Message.error
-          "Test flags can only be supplied with the default \
-           @{<yellow>interpret@} backend"
-      else if reset_test_outputs then
-        Message.error
-          "@{<bold>--reset@} can only be supplied with the default \
-           @{<yellow>interpret@} backend"
-      else if xml then
-        Message.error
-          "Option @{<bold>--xml@} was specified, but the output of a test \
-           report is only supported with the default @{<yellow>interpret@} \
-           backend at the moment";
-    let { clerk_targets; others = files_or_folders } =
-      classify_targets config clerk_targets_or_files_or_folders
-    in
-    let () = check_clerk_targets_tests backend clerk_targets in
-    let files_or_folders =
-      List.concat_map
-        (fun t -> List.map File.clean_path t.Config.ttests)
-        clerk_targets
-      @ List.map config.Cli.fix_path files_or_folders
-      |> List.sort_uniq String.compare
-    in
-    let enabled_backends =
-      enable_backend backend
-      :: (if backend = `Interpret then [Clerk_rules.Tests] else [])
-    in
-    if backend <> `Interpret then
-      let files_or_folders =
-        match files_or_folders with
-        | [] -> [Filename.current_dir_name]
-        | fs -> fs
-      in
-      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
-        ~autotest:false ~clean_up_env:true
-        (build_test_deps ~config ~backend files_or_folders)
-      |> run_tests config backend "" None
-    else
-      let targets, missing =
-        let fs =
-          if files_or_folders = [] then [Filename.current_dir_name]
-          else files_or_folders
-        in
-        List.partition_map
-          File.(
-            fun f ->
-              if File.exists f then Either.Left (build_dir / f)
-              else Either.Right f)
-          fs
-      in
-      if missing <> [] then
-        Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-             Format.pp_print_string)
-          missing;
-      let test_targets =
-        Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
-          ~autotest:false ~clean_up_env:true (fun nin_ppf _items _vars ->
-            (* FIXME: remove and warn about files that have no @tests rule *)
-            let test_targets = List.map (fun f -> f ^ "@test") targets in
-            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
-            test_targets)
-      in
-      let open Clerk_report in
-      let reports = List.flatten (List.map read_many test_targets) in
-      if reset_test_outputs then
-        let () =
-          if xml then
-            Message.error
-              "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
-          let ppf = Message.formatter_of_out_channel stdout () in
-          match
-            List.filter
-              (fun f -> List.exists (fun t -> not t.i_success) f.tests)
-              reports
-          with
-          | [] ->
-            Format.fprintf ppf
-              "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
-          | need_reset ->
-            List.iter
-              (fun f ->
-                let files =
-                  List.fold_left
-                    (fun files t ->
-                      if t.i_success then files
-                      else
-                        File.Map.add (fst t.i_result).Lexing.pos_fname
-                          (File.remove_prefix
-                             File.(build_dir / "")
-                             (fst t.i_expected).Lexing.pos_fname)
-                          files)
-                    File.Map.empty f.tests
-                in
-                File.Map.iter
-                  (fun result expected -> File.copy ~src:result ~dst:expected)
-                  files)
-              need_reset;
-            Format.fprintf ppf
-              "[@{<green>DONE@}] @{<yellow;bold>%d@} test files were \
-               @{<yellow>RESET@}@."
-              (List.length need_reset)
-        in
-        raise (Catala_utils.Cli.Exit_with 0)
-      else if (if xml then print_xml else summary) ~build_dir reports then
-        raise (Catala_utils.Cli.Exit_with 0)
-      else raise (Catala_utils.Cli.Exit_with 1)
+let run_clerk_test
+    config
+    (clerk_targets_or_files_or_folders : string list)
+    (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
+    (reset_test_outputs : bool)
+    verbosity
+    xml
+    (diff_command : string option option)
+    (ninja_flags : string list) : int =
+  let build_dir = config.Cli.options.global.build_dir in
+  setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+  if backend <> `Interpret then
+    if config.Cli.test_flags <> [] then
+      Message.error
+        "Test flags can only be supplied with the default \
+         @{<yellow>interpret@} backend"
+    else if reset_test_outputs then
+      Message.error
+        "@{<bold>--reset@} can only be supplied with the default \
+         @{<yellow>interpret@} backend"
+    else if xml then
+      Message.error
+        "Option @{<bold>--xml@} was specified, but the output of a test report \
+         is only supported with the default @{<yellow>interpret@} backend at \
+         the moment";
+  let { clerk_targets; others = files_or_folders } =
+    classify_targets config clerk_targets_or_files_or_folders
   in
+  let () = check_clerk_targets_tests backend clerk_targets in
+  let files_or_folders =
+    List.concat_map
+      (fun t -> List.map File.clean_path t.Config.ttests)
+      clerk_targets
+    @ List.map config.Cli.fix_path files_or_folders
+    |> List.sort_uniq String.compare
+  in
+  let enabled_backends =
+    enable_backend backend
+    :: (if backend = `Interpret then [Clerk_rules.Tests] else [])
+  in
+  if backend <> `Interpret then
+    let files_or_folders =
+      match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
+    in
+    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
+      ~clean_up_env:true
+      (build_test_deps ~config ~backend files_or_folders)
+    |> run_tests config backend "" None
+  else
+    let targets, missing =
+      let fs =
+        if files_or_folders = [] then [Filename.current_dir_name]
+        else files_or_folders
+      in
+      List.partition_map
+        File.(
+          fun f ->
+            if File.exists f then Either.Left (build_dir / f)
+            else Either.Right f)
+        fs
+    in
+    if missing <> [] then
+      Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           Format.pp_print_string)
+        missing;
+    let test_targets =
+      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
+        ~autotest:false ~clean_up_env:true (fun nin_ppf _items _vars ->
+          (* FIXME: remove and warn about files that have no @tests rule *)
+          let test_targets = List.map (fun f -> f ^ "@test") targets in
+          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
+          test_targets)
+    in
+    let open Clerk_report in
+    let reports = List.flatten (List.map read_many test_targets) in
+    if reset_test_outputs then
+      let () =
+        if xml then
+          Message.error
+            "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
+        let ppf = Message.formatter_of_out_channel stdout () in
+        match
+          List.filter
+            (fun f -> List.exists (fun t -> not t.i_success) f.tests)
+            reports
+        with
+        | [] ->
+          Format.fprintf ppf
+            "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
+        | need_reset ->
+          List.iter
+            (fun f ->
+              let files =
+                List.fold_left
+                  (fun files t ->
+                    if t.i_success then files
+                    else
+                      File.Map.add (fst t.i_result).Lexing.pos_fname
+                        (File.remove_prefix
+                           File.(build_dir / "")
+                           (fst t.i_expected).Lexing.pos_fname)
+                        files)
+                  File.Map.empty f.tests
+              in
+              File.Map.iter
+                (fun result expected -> File.copy ~src:result ~dst:expected)
+                files)
+            need_reset;
+          Format.fprintf ppf
+            "[@{<green>DONE@}] @{<yellow;bold>%d@} test files were \
+             @{<yellow>RESET@}@."
+            (List.length need_reset)
+      in
+      raise (Catala_utils.Cli.Exit_with 0)
+    else if (if xml then print_xml else summary) ~build_dir reports then
+      raise (Catala_utils.Cli.Exit_with 0)
+    else raise (Catala_utils.Cli.Exit_with 1)
+
+let test_cmd =
   let doc =
     "Scan the given files, directories or clerk targets for catala tests, \
      build their requirements and run them all. If $(b,--backend) is \
@@ -1037,7 +1035,7 @@ let test_cmd =
   in
   Cmd.v (Cmd.info ~doc "test")
     Term.(
-      const run
+      const run_clerk_test
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backend
@@ -1073,6 +1071,63 @@ let runtest_cmd =
       $ Cli.runtest_report
       $ Cli.runtest_out
       $ Cli.single_file)
+
+let ci_cmd =
+  let run config verbosity xml (diff_command : string option option) =
+    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+    let stop_on_failure f =
+      try
+        let ret = f () in
+        match ret with 0 -> () | n -> raise (Catala_utils.Cli.Exit_with n)
+      with
+      | Catala_utils.Cli.Exit_with 0 -> ()
+      | exn -> raise exn
+    in
+    stop_on_failure (fun () ->
+        Message.debug "Running @{<bold>clerk test@} on whole project";
+        let root_dir =
+          Filename.current_dir_name
+          (* Post-[Cli.init], we are expected to be in the project's root dir *)
+        in
+        run_clerk_test config [root_dir] `Interpret false verbosity xml
+          diff_command []);
+    let targets = config.Cli.options.targets in
+    if targets = [] then raise (Catala_utils.Cli.Exit_with 0);
+    List.iter
+      (fun t ->
+        let _ = build_clerk_target ~config ~ninja_flags:[] t in
+        List.iter
+          (fun bk ->
+            let bk_rule = rules_backend (Clerk_rules.backend_from_config bk) in
+            stop_on_failure
+            @@ fun () ->
+            Message.debug
+              "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
+              t.tname
+              (string_of_backend bk_rule);
+            run_clerk_test config [t.tname] bk_rule false verbosity xml
+              diff_command [])
+          t.backends)
+      targets;
+    raise (Catala_utils.Cli.Exit_with 0)
+  in
+  let doc =
+    "Scan the project and run all possible actions. This includes the \
+     interpretation of all catala tests and CLI tests (equivalent to running \
+     the $(i,clerk test) command), and also, the build of all clerk targets \
+     (equivalent to running the $(i,clerk build) command) alongside the \
+     execution of their tests against all their defined backend. This command \
+     is useful for the execution of continuous integrations (CIs) where all \
+     build and test actions are often meant to be executed. Run with \
+     $(b,--debug) for the full log of events."
+  in
+  Cmd.v (Cmd.info ~doc "ci")
+    Term.(
+      const run
+      $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.report_verbosity
+      $ Cli.report_xml
+      $ Cli.diff_command)
 
 let report_cmd =
   let run color debug verbosity xml diff_command build_dir files =
@@ -1128,6 +1183,7 @@ let main_cmd =
       test_cmd;
       run_cmd;
       clean_cmd;
+      ci_cmd;
       runtest_cmd;
       report_cmd;
       raw_cmd;
