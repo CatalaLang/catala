@@ -1,0 +1,28 @@
+> Module Op
+
+# Core operations
+
+```catala-metadata
+declaration o_length content integer
+  depends on x content list of anything
+```
+
+
+# Date operations
+
+```catala-metadata
+declaration o_firstDayOfMonth content date
+  depends on x content date
+
+declaration o_lastDayOfMonth content date
+  depends on x content date
+
+declaration o_getDay content integer
+  depends on x content date
+
+declaration o_getMonth content integer
+  depends on x content date
+
+declaration o_getYear content integer
+  depends on x content date
+```

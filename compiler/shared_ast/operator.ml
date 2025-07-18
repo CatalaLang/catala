@@ -20,6 +20,7 @@ include Definitions.Op
 
 let name : type a. a t -> string = function
   | Not -> "o_not"
+  | Impossible -> "o_impossible"
   | Length -> "o_length"
   | GetDay -> "o_getDay"
   | GetMonth -> "o_getMonth"
@@ -159,6 +160,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Add_dat_dur l, Add_dat_dur r -> Stdlib.compare l r
   | Sub_dat_dur l, Sub_dat_dur r -> Stdlib.compare l r
   | Not, Not
+  | Impossible, Impossible
   | Length, Length
   | GetDay, GetDay
   | GetMonth, GetMonth
@@ -247,6 +249,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | HandleExceptions, HandleExceptions
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | Not, _ -> -1 | _, Not -> 1
+  | Impossible, _ -> -1 | _, Impossible -> 1
   | Length, _ -> -1 | _, Length -> 1
   | GetDay, _ -> -1 | _, GetDay -> 1
   | GetMonth, _ -> -1 | _, GetMonth -> 1
@@ -358,8 +361,8 @@ let kind_dispatch :
       | And | Or | Xor ),
       _ ) as op ->
     monomorphic op
-  | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
-      | HandleExceptions | FromClosureEnv | ToClosureEnv ),
+  | ( ( Log _ | Impossible | Length | Eq | Map | Map2 | Concat | Filter | Reduce
+      | Fold | HandleExceptions | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     polymorphic op
   | ( ( Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt
@@ -393,20 +396,20 @@ type 'a no_overloads =
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
   | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Map | Map2
-      | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
-      | Minus_dur | ToInt_rat | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat
-      | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
-      | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-      | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
-      | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
-      | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
-      | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
-      | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
-      | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int
-      | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | FromClosureEnv
-      | ToClosureEnv ),
+      | And | Or | Xor | HandleExceptions | Log _ | Impossible | Length | Eq
+      | Map | Map2 | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat
+      | Minus_mon | Minus_dur | ToInt_rat | ToRat_int | ToRat_mon | ToMoney_rat
+      | Round_rat | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon
+      | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon
+      | Sub_dat_dat | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat
+      | Mult_mon_int | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
+      | Div_mon_mon | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt_int_int
+      | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int
+      | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int
+      | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int
+      | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo
+      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
+      | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     op
 
@@ -628,15 +631,15 @@ let is_pure : type a. a t -> bool = function
     false
   | Log _ -> false
   | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-  | Length | ToClosureEnv | FromClosureEnv | Minus | Minus_int | Minus_rat
-  | Minus_mon | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon
-  | ToMoney | ToMoney_rat | Round | Round_rat | Round_mon | And | Or | Xor | Map
-  | Concat | Filter | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur
-  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult
-  | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lte_int_int
-  | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Gt_int_int | Gt_rat_rat
-  | Gt_mon_mon | Gt_dat_dat | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-  | Gte_dat_dat | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-  | Reduce | Fold | HandleExceptions ->
+  | Impossible | Length | ToClosureEnv | FromClosureEnv | Minus | Minus_int
+  | Minus_rat | Minus_mon | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int
+  | ToRat_mon | ToMoney | ToMoney_rat | Round | Round_rat | Round_mon | And | Or
+  | Xor | Map | Concat | Filter | Add_int_int | Add_rat_rat | Add_mon_mon
+  | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+  | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_int
+  | Mult_mon_rat | Mult_dur_int | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+  | Lt_dat_dat | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
+  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gte_int_int
+  | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Eq_boo_boo | Eq_int_int
+  | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Reduce | Fold | HandleExceptions ->
     true

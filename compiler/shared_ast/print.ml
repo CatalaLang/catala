@@ -209,6 +209,7 @@ let operator_to_string : type a. a Op.t -> string =
   let open Op in
   function
   | Not -> "~"
+  | Impossible -> "impossible"
   | Length -> "length"
   | GetDay -> "get_day"
   | GetMonth -> "get_month"
@@ -309,6 +310,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
   function
   | Not -> "~"
+  | Impossible -> "impossible"
   | Length -> "length"
   | GetDay -> "get_day"
   | GetMonth -> "get_month"
@@ -397,8 +399,8 @@ module Precedence = struct
     | EAppOp { op; _ } -> (
       match Mark.remove op with
       | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
-      | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
+      | Impossible | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon
+      | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
       | ToMoney_rat | Round | Round_rat | Round_mon ->
         App
       | And -> Op And

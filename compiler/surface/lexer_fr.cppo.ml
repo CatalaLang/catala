@@ -103,6 +103,7 @@
 #define MS_BUT_REPLACE "mais en remplaçant"
 #define MR_BUT_REPLACE "mais", space_plus, "en", space_plus, "rempla", 0xE7, "ant"
 #define MS_INITIALLY "initialement"
+#define MS_IMPOSSIBLE "impossible"
 #define MS_CARDINAL "nombre"
 #define MS_YEAR "an"
 #define MS_MONTH "mois"

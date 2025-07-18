@@ -251,6 +251,8 @@ let rec evaluate_operator
   Mark.add m
   @@
   match op, args with
+  | Impossible, [(ELit LUnit, _)] ->
+    raise Runtime.(Error (Impossible, [Expr.pos_to_runtime opos]))
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
   | Log (entry, infos), [(e, _)] when Global.options.trace <> None -> (
@@ -315,7 +317,9 @@ let rec evaluate_operator
       (List.fold_left
          (fun acc e' -> eval_application evaluate_expr f [acc; e'])
          init es)
-  | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
+  | ( ( Impossible | Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold
+      | Reduce ),
+      _ ) ->
     err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
   | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))

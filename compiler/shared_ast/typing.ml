@@ -381,6 +381,7 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     | Concat -> [array any; array any] @-> array any
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
+    | Impossible -> [lazy (TLit TUnit, pos)] @-> any
     | Length -> [array any] @-> it
     | HandleExceptions ->
       let pair a b = lazy (TTuple [Lazy.force a; Lazy.force b], pos) in

@@ -86,6 +86,7 @@
 #define MS_BUT_REPLACE "but replace"
 #define MR_BUT_REPLACE "but", space_plus, "replace"
 #define MS_INITIALLY "initially"
+#define MS_IMPOSSIBLE "impossible"
 #define MS_CARDINAL "number"
 #define MS_YEAR "year"
 #define MS_MONTH "month"
