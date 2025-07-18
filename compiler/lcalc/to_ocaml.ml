@@ -136,7 +136,6 @@ let renaming =
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:true ~constant_binder_name:(Some "_")
     ~namespaced_fields:true ~namespaced_constrs:true ~prefix_module:false
-    ~reserved_module_names:false
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with

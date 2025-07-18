@@ -489,23 +489,12 @@ let program
     ~namespaced_fields
     ~namespaced_constrs
     ~prefix_module
-    ~reserved_module_names
     ?(f_var = String.to_snake_case)
     ?(f_struct = cap)
     ?(f_field = uncap)
     ?(f_enum = cap)
     ?(f_constr = cap)
     p =
-  let reserved =
-    if not reserved_module_names then reserved
-    else
-      (match p.module_name with
-      | None -> []
-      | Some (m, _) -> [ModuleName.to_string m])
-      @ (ModuleName.Map.keys p.decl_ctx.ctx_modules
-        |> List.map ModuleName.to_string)
-      @ reserved
-  in
   let cfg =
     {
       reserved;
@@ -710,7 +699,6 @@ let program
     ~namespaced_fields
     ~namespaced_constrs
     ~prefix_module
-    ~reserved_module_names
     ?f_var
     ?f_struct
     ?f_field
@@ -720,8 +708,8 @@ let program
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
-        ~namespaced_fields ~namespaced_constrs ~prefix_module
-        ~reserved_module_names ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
+        ~namespaced_fields ~namespaced_constrs ~prefix_module ?f_var ?f_struct
+        ?f_field ?f_enum ?f_constr p
   end in
   (module M : Renaming)
 
@@ -731,4 +719,4 @@ let default =
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
     ~f_constr:Fun.id ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false ~reserved_module_names:false
+    ~prefix_module:false
