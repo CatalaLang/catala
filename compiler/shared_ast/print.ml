@@ -731,6 +731,8 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
           StructField.format field
+      | EInj { e = ELit LUnit, _; cons; _ } ->
+        Format.fprintf fmt "@[<hv 2>%a@]" EnumConstructor.format cons
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
           (paren ~rhs:false exprc) e
@@ -899,9 +901,13 @@ let enum
     punctuation "="
     (EnumConstructor.Map.format_bindings_i ~pp_sep:Format.pp_print_space
        (fun fmt pp_n n ty ->
-         Format.fprintf fmt "@[<hov2>%a %a%t %a %a@]" punctuation "|" attrs
+         Format.fprintf fmt "@[<hov2>%a %a%t%a@]" punctuation "|" attrs
            (Mark.get (EnumConstructor.get_info n))
-           pp_n keyword "of" typ ty))
+           pp_n
+           (fun ppf -> function
+             | TLit TUnit, _ -> ()
+             | ty -> Format.fprintf ppf " %a %a" keyword "of" typ ty)
+           ty))
     c
 
 let struct_
@@ -1144,6 +1150,8 @@ module UserFacing = struct
              Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld
                (value ~fallback lang) e))
         fields
+    | EInj { name = _; cons; e = ELit LUnit, _ } ->
+      Format.fprintf ppf "@[<hov 2>%a@]" EnumConstructor.format cons
     | EInj { name = _; cons; e } ->
       Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
         (value ~fallback lang) e

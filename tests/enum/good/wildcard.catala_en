@@ -51,7 +51,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope Simple_case_2
 ┌─[RESULT]─ Simple_case_2 ─
-│ x = Case3 ()
+│ x = Case3
 │ y = 31
 └─
 ```

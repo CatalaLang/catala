@@ -55,7 +55,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala Lcalc -O --closure-conversion 
 type Eoption =
-  | ENone of unit
+  | ENone
   | ESome of <any type>
 
 #[test]

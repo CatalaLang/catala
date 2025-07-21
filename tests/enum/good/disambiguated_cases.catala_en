@@ -36,7 +36,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
-│ e = Case1 ()
+│ e = Case1
 │ f = Case1 2
 │ x = 2
 └─

@@ -82,7 +82,7 @@ declaration foo content list of date equals
 ```catala-test-cli
 $ catala lcalc
 type Eoption =
-  | ENone of unit
+  | ENone
   | ESome of <any type>
 
 type S_in = {  }

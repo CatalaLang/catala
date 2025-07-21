@@ -152,8 +152,8 @@ $ catala scopelang
 #[enum00]
 #[this.is_an = <expr>]
 type Enu =
-  | Foo of unit
-  | #[constructor = "Bar"] Bar of unit
+  | Foo
+  | #[constructor = "Bar"] Bar
 
 #[attr = "Referring to the scope declaration"]
 type S = {

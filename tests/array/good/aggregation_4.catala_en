@@ -40,7 +40,7 @@ scope Section121SinglePerson:
 ```catala-test-cli
 $ catala lcalc --closure-conversion
 type Eoption =
-  | ENone of unit
+  | ENone
   | ESome of <any type>
 
 type Period = { begin: date; end: date; }
@@ -141,7 +141,7 @@ let scope section121_single_person
            >= [0 years, 0 months, 730 days]
          then
            ESome (true, <aggregation_4:35.14-24>)
-         else ENone ()
+         else ENone
        with
        | ENone → ESome (false, <aggregation_4:13.10-36>)
        | ESome x → ESome x)

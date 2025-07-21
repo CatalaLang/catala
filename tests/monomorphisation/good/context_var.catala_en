@@ -11,7 +11,7 @@ scope TestXor:
 ```catala-test-cli
 $ catala lcalc --monomorphize-types
 type option_1 =
-  | None_1 of unit
+  | None_1
   | Some_1 of tuple_1
 
 #[test]
@@ -62,7 +62,7 @@ scope TestXor2:
 $ catala lcalc --monomorphize-types -s TestXor2
 let scope TestXor2 (test_xor2_in: TestXor2_in): TestXor2 =
   let set t : TestXor =
-    let result : TestXor = test_xor { TestXor_in t_in = None_1 (); } in
+    let result : TestXor = test_xor { TestXor_in t_in = None_1; } in
     let result__1 : TestXor = { TestXor t = result.t; } in
     if true then result__1 else result__1
   in

@@ -72,7 +72,7 @@ code hoists a closure or not)
 ```catala-test-cli
 $ catala lcalc --closure-conversion
 type Eoption =
-  | ENone of unit
+  | ENone
   | ESome of <any type>
 
 #[test]
