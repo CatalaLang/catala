@@ -25,23 +25,29 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Dcalc 
-let TestBool : #[test] #[test] TestBool_in → #[test] TestBool =
-  λ (TestBool_in: TestBool_in) →
-  let foo : ⟨bool⟩ = TestBool_in.foo_in in
-  let bar : ⟨integer⟩ = TestBool_in.bar_in in
-  let bar1 : integer =
+
+#[test]
+type TestBool_in = { foo_in: ⟨bool⟩; bar_in: ⟨integer⟩; }
+
+#[test]
+type TestBool = { foo: bool; bar: integer; }
+
+#[test]
+let scope TestBool (TestBool_in: TestBool_in): TestBool =
+  let get foo : ⟨bool⟩ = TestBool_in.foo_in in
+  let get bar : ⟨integer⟩ = TestBool_in.bar_in in
+  let set bar : integer =
     error_empty ⟨ bar | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
-  let foo1 : bool =
+  let set foo : bool =
     error_empty
       ⟨ foo
       | true
         ⊢ ⟨error_empty
-             ⟨ ⟨bar1 >= 0 ⊢ ⟨true⟩⟩, ⟨bar1 < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+             ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
-  { TestBool foo = foo1; bar = bar1; }
-in
-TestBool
+  return { TestBool foo = foo; bar = bar; }
+
 ```
 
 ```catala-test-cli

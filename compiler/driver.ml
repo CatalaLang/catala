@@ -707,11 +707,8 @@ module Commands = struct
     @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
-      let _, scope_uid = Ident.Map.choose prg.decl_ctx.ctx_scope_index in
-      let prg_dcalc_expr = Expr.unbox (Program.to_expr prg scope_uid) in
-      Format.fprintf fmt "%a\n"
-        (Print.expr ~debug:options.Global.debug ())
-        prg_dcalc_expr
+      Print.program ~debug:options.Global.debug fmt prg;
+      Format.pp_print_newline fmt ()
     | scopes ->
       List.iter
         (fun scope ->
