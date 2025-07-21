@@ -251,7 +251,6 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
                   !input; "-o"; !output]
         ~description:["<catala>"; "ocaml"; "⇒"; !output];
-
       Nj.rule "ocaml-bytobject"
         ~command:[
           !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; !includes; !input
@@ -266,7 +265,8 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
 
       Nj.rule "ocaml-module"
         ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; !input; "-o"; !output]
+          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; !input;
+           "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
   (if List.mem C enabled_backends then [
@@ -461,13 +461,14 @@ let gen_build_statements
       [
         Nj.build "ocaml-bytobject"
           ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
-          ~implicit_in:(List.map module_target modules)
+          ~implicit_in:(List.map module_target modules @ [!Var.catala_exe])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
           ~vars:[Var.includes, include_flags "ocaml"];
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:"ocaml" "ml"]
           ~implicit_in:
-            (target ~backend:"ocaml" "cmi" :: List.map module_target modules)
+            ((target ~backend:"ocaml" "cmi" :: List.map module_target modules)
+            @ [!Var.catala_exe])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmx"; "o"])
           ~vars:[Var.includes, include_flags "ocaml"];
       ]
