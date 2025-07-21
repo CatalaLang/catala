@@ -207,6 +207,7 @@ let primitive_typ :=
 let typ_data :=
 | t = primitive_typ ; <Primitive>
 | LIST ; t = posattr(typ_data) ; <Collection>
+| OPTION ; t = posattr(typ_data) ; <Option>
 | LPAREN ; tl = separated_nonempty_list(COMMA,posattr(typ_data)) ; RPAREN ; {
   match tl with
   | [t, _] -> t

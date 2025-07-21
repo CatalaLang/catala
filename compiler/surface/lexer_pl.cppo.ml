@@ -29,6 +29,7 @@
 #define MR_INCREASING "rosn", 0x0105, "cy"
 #define MS_OF "z"
 #define MS_LIST "lista"
+#define MS_OPTION "Opcjonalny"
 #define MS_CONTAINS "zawiera"
 #define MS_ENUM "enumeracja"
 #define MS_INTEGER "całkowita"

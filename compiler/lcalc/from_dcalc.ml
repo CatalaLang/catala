@@ -173,17 +173,5 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .
 
-let add_option_type ctx =
-  {
-    ctx with
-    ctx_enums =
-      EnumName.Map.add Expr.option_enum Expr.option_enum_config ctx.ctx_enums;
-  }
-
-let add_option_type_program prg =
-  { prg with decl_ctx = add_option_type prg.decl_ctx }
-
 let translate_program (prg : 'm D.program) : 'm A.program =
-  Program.map_exprs
-    (add_option_type_program prg)
-    ~typ:translate_typ ~varf:Var.translate ~f:translate_expr
+  Program.map_exprs prg ~typ:translate_typ ~varf:Var.translate ~f:translate_expr

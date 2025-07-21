@@ -450,17 +450,17 @@ let rec evaluate_operator
             if EnumConstructor.equal cons Expr.some_constr then
               match e with
               | ETuple [e; (EPos p, _)], _ ->
-                Runtime.Eoption.ESome (e, Expr.pos_to_runtime p)
+                Runtime.Optional.Present (e, Expr.pos_to_runtime p)
               | _ -> err ()
-            else Runtime.Eoption.ENone ()
+            else Runtime.Optional.Absent ()
           | _ -> err ())
         exps
     in
     match Runtime.handle_exceptions (Array.of_list exps) with
-    | Runtime.Eoption.ENone () ->
+    | Runtime.Optional.Absent () ->
       EInj
         { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
-    | Runtime.Eoption.ESome (e, rpos) ->
+    | Runtime.Optional.Present (e, rpos) ->
       let p = Expr.runtime_to_pos rpos in
       EInj
         {
@@ -566,9 +566,9 @@ let rec runtime_to_val :
   | TDefault ty -> (
     (* This case is only valid for ASTs including default terms; but the typer
        isn't aware so we need some additional dark arts. *)
-    match (Obj.obj o : 'a Runtime.Eoption.t) with
-    | Runtime.Eoption.ENone () -> Obj.magic EEmpty, m
-    | Runtime.Eoption.ESome o -> (
+    match (Obj.obj o : 'a Runtime.Optional.t) with
+    | Runtime.Optional.Absent () -> Obj.magic EEmpty, m
+    | Runtime.Optional.Present o -> (
       match runtime_to_val eval_expr ctx m ty o with
       | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
       | _ -> assert false))
@@ -673,7 +673,7 @@ and val_to_runtime :
     (* In dcalc, this is an expression. in the runtime (lcalc), this is an
        option(pair(expression, pos)) *)
     match v with
-    | EEmpty, _ -> Obj.repr (Runtime.Eoption.ENone ())
+    | EEmpty, _ -> Obj.repr (Runtime.Optional.Absent ())
     | EPureDefault e, m | ((_, m) as e) ->
       let e = eval_expr ctx e in
       let pos = Expr.pos e in
@@ -682,7 +682,7 @@ and val_to_runtime :
         ETuple [e; EPos pos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
       in
       Obj.repr
-        (Runtime.Eoption.ESome (val_to_runtime eval_expr ctx ty with_pos)))
+        (Runtime.Optional.Present (val_to_runtime eval_expr ctx ty with_pos)))
   | TForAll tb, _ ->
     let _v, ty = Bindlib.unmbind tb in
     val_to_runtime eval_expr ctx ty v

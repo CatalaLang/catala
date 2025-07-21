@@ -1,0 +1,70 @@
+```catala
+declaration scope S:
+  output o content Optional of (integer, money)
+
+#[test]
+scope S:
+  definition o equals Present content (12, $13)
+```
+
+
+```catala-test-cli
+$ catala test-scope S
+┌─[WARNING]─
+│
+│  The constructor "Absent" of enumeration "Optional" is never used;
+│  maybe it's unnecessary?
+│
+├No position information
+└─
+┌─[RESULT]─ S ─
+│ o = Present (12, $13.00)
+└─
+```
+
+
+```catala
+declaration scope S2:
+  output o content Optional of list of Optional of boolean
+
+declaration option_join content Optional of anything of type t
+  depends on left_opt content Optional of anything of type t,
+             right_opt content Optional of anything of type t
+  equals match left_opt with pattern
+    -- Present of x : Present content x
+    -- Absent : right_opt
+
+declaration option_dft content anything of type t
+  depends on opt content Optional of anything of type t,
+             default content anything of type t
+  equals
+  match opt with pattern
+  -- Present of x : x
+  -- Absent : default
+
+#[test]
+scope S2:
+  definition o equals
+    let x equals Absent in
+    let y equals option_join of (x, Absent) in
+    let z equals option_join of (y, Present content true) in
+    Present content [Present content (option_dft of (z, false));
+                     Present content (option_dft of (y, true))]
+```
+
+
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+
+```catala-test-cli
+$ catala test-scope S2
+┌─[RESULT]─ S2 ─
+│ o = Present [Present true; Present true]
+└─
+```

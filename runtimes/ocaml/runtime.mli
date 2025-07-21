@@ -44,8 +44,8 @@ type source_position = {
   law_headings : string list;
 }
 
-module Eoption : sig
-  type 'a t = ENone of unit | ESome of 'a
+module Optional : sig
+  type 'a t = Absent of unit | Present of 'a
 end
 
 (** This type characterizes the three levels of visibility for a given scope
@@ -343,7 +343,7 @@ val duration_to_string : duration -> string
 (**{1 Defaults} *)
 
 val handle_exceptions :
-  ('a * source_position) Eoption.t array -> ('a * source_position) Eoption.t
+  ('a * source_position) Optional.t array -> ('a * source_position) Optional.t
 (** @raise Error Conflict *)
 
 (**{1 Operators} *)

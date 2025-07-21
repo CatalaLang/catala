@@ -474,6 +474,11 @@ let rec process_base_typ
         (process_base_typ ~rev_named_path_acc ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
+  | Surface.Ast.Data (Surface.Ast.Option t) ->
+    ( TOption
+        (process_base_typ ~rev_named_path_acc ~vars ctxt
+           (Surface.Ast.Data (Mark.remove t), Mark.get t)),
+      typ_pos )
   | Surface.Ast.Data (Surface.Ast.TTuple tl) ->
     ( TTuple
         (List.map
@@ -549,7 +554,7 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
     let rec get_vars = function
       | Surface.Ast.Primitive (Var (Some (id, pos))), _ ->
         String.Map.singleton id pos
-      | Surface.Ast.Collection ty, _ -> get_vars ty
+      | (Surface.Ast.Collection ty | Surface.Ast.Option ty), _ -> get_vars ty
       | Surface.Ast.TTuple ls, _ ->
         List.fold_right
           (fun ty acc -> merge acc (get_vars ty))
@@ -1261,26 +1266,34 @@ let process_use_item
 
 (** {1 API} *)
 
-let empty_module_ctxt =
+let empty_module_ctxt lang =
   {
     current_module = None;
     typedefs = Ident.Map.empty;
     field_idmap = Ident.Map.empty;
-    constructor_idmap = Ident.Map.empty;
+    constructor_idmap =
+      (let present = EnumName.Map.singleton Expr.option_enum Expr.some_constr in
+       let absent = EnumName.Map.singleton Expr.option_enum Expr.none_constr in
+       Ident.Map.of_list
+         (match lang with
+         | Global.En -> ["Present", present; "Absent", absent]
+         | Global.Fr -> ["Présent", present; "Absent", absent]
+         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]));
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
     is_external = false;
   }
 
-let empty_ctxt =
+let empty_ctxt lang =
   {
     scopes = ScopeName.Map.empty;
     topdefs = TopdefName.Map.empty;
     var_typs = ScopeVar.Map.empty;
     structs = StructName.Map.empty;
-    enums = EnumName.Map.empty;
+    enums =
+      EnumName.Map.singleton Expr.option_enum (Expr.option_enum_config, Private);
     modules = ModuleName.Map.empty;
-    local = empty_module_ctxt;
+    local = empty_module_ctxt lang;
   }
 
 (** Derive the context from metadata, in one pass over the declarations *)
@@ -1310,6 +1323,8 @@ let form_context (surface, mod_uses) surface_modules : context =
     in
     { modul_ctxt with constructor_idmap; field_idmap }
   in
+  let empty_ctxt = empty_ctxt surface.Surface.Ast.program_lang in
+  let empty_module_ctxt = empty_ctxt.local in
   let rec process_modules ctxt mod_uses =
     (* Recursing on [mod_uses] rather than folding on [modules] ensures a
        topological traversal. *)

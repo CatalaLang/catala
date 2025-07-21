@@ -29,8 +29,8 @@ type date_rounding = Dates_calc.Dates.date_rounding =
 
 type duration = Dates_calc.Dates.period
 
-module Eoption = struct
-  type 'a t = ENone of unit | ESome of 'a
+module Optional = struct
+  type 'a t = Absent of unit | Present of 'a
 end
 
 type io_input = NoInput | OnlyInput | Reentrant
@@ -780,23 +780,23 @@ module EventParser = struct
     ctx.events
 end
 
-let handle_exceptions (exceptions : ('a * source_position) Eoption.t array) :
-    ('a * source_position) Eoption.t =
+let handle_exceptions (exceptions : ('a * source_position) Optional.t array) :
+    ('a * source_position) Optional.t =
   let len = Array.length exceptions in
   let rec filt_except i =
     if i < len then
       match exceptions.(i) with
-      | Eoption.ESome _ as new_val -> new_val :: filt_except (i + 1)
-      | Eoption.ENone () -> filt_except (i + 1)
+      | Optional.Present _ as new_val -> new_val :: filt_except (i + 1)
+      | Optional.Absent () -> filt_except (i + 1)
     else []
   in
   match filt_except 0 with
-  | [] -> Eoption.ENone ()
+  | [] -> Optional.Absent ()
   | [res] -> res
   | res ->
     error Conflict
       (List.map
-         (function Eoption.ESome (_, pos) -> pos | _ -> assert false)
+         (function Optional.Present (_, pos) -> pos | _ -> assert false)
          res)
 
 (* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
