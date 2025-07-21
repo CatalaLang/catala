@@ -545,7 +545,7 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       let format_break ppf =
         let has_return =
           Utils.find_block
-            (function SReturn _, _ -> true | _ -> false)
+            (function SReturn _, _ | SFatalError _, _ -> true | _ -> false)
             case_block
           |> Option.is_some
         in
@@ -553,7 +553,7 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
           pp_print_space ppf ();
           fprintf ppf "break;")
       in
-      fprintf ppf "@[<v 4>case %a: {@ %a%a%t@\n}@]" EnumConstructor.format
+      fprintf ppf "@[<v 4>case %a: {@ %a%a%t@;<1 -4>}@]" EnumConstructor.format
         enum_cstr format_init_case
         (enum_cstr, payload_var_name, payload_var_typ)
         (format_block ctx) case_block format_break
@@ -562,34 +562,14 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       EnumName.Map.find enum_name ctx.decl_ctx.ctx_enums
       |> EnumConstructor.Map.keys
     in
-    let switch_return_var =
-      let local_definitions =
-        List.fold_left
-          (fun acc switch_case ->
-            let local_defs =
-              Utils.filter_map_block
-                (function
-                  | SLocalDef { name; _ }, _ -> Some (Mark.remove name)
-                  | _ -> None)
-                switch_case.case_block
-              |> VarName.Set.of_list
-            in
-            match acc with
-            | None -> Some local_defs
-            | Some acc -> Some (VarName.Set.inter acc local_defs))
-          None switch_cases
-      in
-      Option.bind local_definitions (fun ldefs ->
-          match VarName.Set.elements ldefs with [var] -> Some var | _ -> None)
-    in
     let pp_default_initializer ppf =
-      match switch_return_var with
-      | None -> fprintf ppf "@\n@[<v 4>default: {@ return null;\n}@]"
-      | Some v ->
-        fprintf ppf "@\n@[<v 4>default: {@ %a = null;@ break;@\n}@]"
-          VarName.format v
+      fprintf ppf
+        "@\n\
+         @[<v 4>default: {@ throw new RuntimeException(\"Unreachable case\");@;\
+         <1 -4>}@]"
     in
-    fprintf ppf "@[<v 4>switch (%a.kind) {@ %a%t@ }@]" VarName.format switch_var
+    fprintf ppf "@[<v 4>switch (%a.kind) {@ %a%t@;<1 -4>}@]" VarName.format
+      switch_var
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
       pp_default_initializer
@@ -672,7 +652,7 @@ and format_if
     ~(cons_format : formatter -> unit)
     ~(alt_format : formatter -> unit)
     ppf =
-  fprintf ppf "@[<v 4>if (%t) {@ %t@]@\n@[<v 4>} else {@ %t@]@\n}" cond_format
+  fprintf ppf "@[<v 4>if (%t) {@ %t@;<1 -4>} else {@ %t@;<1 -4>}@]" cond_format
     cons_format alt_format
 
 let format_constructor_body (ctx : context) sbody ppf =
@@ -688,7 +668,7 @@ let format_constructor (ctx : context) (sbody : scope_body) ppf =
   |> function
   | None -> ()
   | Some in_fields ->
-    fprintf ppf "@[<hov 4>%a%a (@[<hov>%a@]) {@\n%t@]@\n}" format_visibility
+    fprintf ppf "@[<hv 4>%a%a (@[<hov>%a@]) {@\n%t@;<1 -4>}@]" format_visibility
       sbody.scope_body_visibility format_scope sbody.scope_body_name
       (format_struct_params ctx) in_fields
       (format_constructor_body ctx sbody)
@@ -998,16 +978,15 @@ let format_enums ctx ppf =
           if is_unit then () else fprintf ppf "%a v" (format_typ ctx) typ
         in
         fprintf ppf
-          "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, %s);@]@\n\
-           }"
-          format_enum ename EnumConstructor.format cstr format_arg format_enum
-          ename EnumConstructor.format cstr
+          "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, %s);@;\
+           <1 -4>}@]" format_enum ename EnumConstructor.format cstr format_arg
+          format_enum ename EnumConstructor.format cstr
           (if is_unit then "CatalaUnit.INSTANCE" else "v")
       in
       fprintf ppf
         "@[<v 4>private %a(Kind k, CatalaValue contents) {@ this.kind = k;@ \
-         this.contents = contents;@ @]}@[<v>%a@]"
-        format_enum ename
+         this.contents = contents;@;\
+         <1 -4>}@]%a" format_enum ename
         (pp_print_list_padded ~pp_sep:pp_print_space format_enum_make)
         (EnumConstructor.Map.bindings cstrs)
     in
@@ -1017,8 +996,9 @@ let format_enums ctx ppf =
           "@[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
            2>if (this.kind != k) {@ throw new \
            IllegalArgumentException(\"Invalid enum contents access: expected \
-           \" + k + \", got \" + this.kind);@]@ }@ return (T) \
-           this.contents;@]@ }"
+           \" + k + \", got \" + this.kind);@;\
+           <1 -2>}@]@ return (T) this.contents;@;\
+           <1 -4>}@]"
       in
       let format_enum_accessor ppf (cstr, typ) =
         fprintf ppf
@@ -1037,13 +1017,13 @@ let format_enums ctx ppf =
     in
     let format_fields_comparison ppf =
       fprintf ppf
-        "@[<v 4>if (this.kind == v.kind) {@\n\
+        "@[<v 4>if (this.kind == v.kind) {@,\
          return @[<v 4>this.getContentsAs(this.kind, \
          CatalaValue.class).equalsTo(@\n\
-         v.getContentsAs(v.kind,CatalaValue.class));@]@\n\
-         @[<v 4>} else {@\n\
-         return CatalaBool.FALSE;@]@]@\n\
-         }"
+         v.getContentsAs(v.kind,CatalaValue.class));@]@;\
+         <1 -4>} else {@,\
+         return CatalaBool.FALSE;@;\
+         <1 -4>}@]"
     in
     fprintf ppf
       "@[<v 4>public static class %a@ implements CatalaValue {@ @ %t@ @ %t@ @ \

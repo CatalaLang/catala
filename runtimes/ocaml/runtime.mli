@@ -81,6 +81,7 @@ type error =
   | AmbiguousDateRounding
       (** ambiguous date computation, and rounding mode was not specified *)
   | IndivisibleDurations  (** Dividing durations that are not in days *)
+  | Impossible  (** The "impossible" keyword was reached *)
 
 val error_to_string : error -> string
 (** Returns the capitalized tag of the error as a string *)

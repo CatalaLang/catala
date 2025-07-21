@@ -215,6 +215,9 @@ module R = Re.Pcre
 #ifndef MR_INITIALLY
   #define MR_INITIALLY MS_INITIALLY
 #endif
+#ifndef MR_IMPOSSIBLE
+  #define MR_IMPOSSIBLE MS_IMPOSSIBLE
+#endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
 #endif
@@ -328,6 +331,7 @@ let token_list : (string * token) list =
     (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
     (MS_BUT_REPLACE, BUT_REPLACE);
     (MS_INITIALLY, INITIALLY);
+    (MS_IMPOSSIBLE, IMPOSSIBLE);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -635,6 +639,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_INITIALLY ->
       L.update_acc lexbuf;
       INITIALLY
+  | MR_IMPOSSIBLE ->
+      L.update_acc lexbuf;
+      IMPOSSIBLE
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL

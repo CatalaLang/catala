@@ -16,7 +16,8 @@ public class CatalaError extends RuntimeException {
         NotSameLength,
         UncomparableDurations,
         AmbiguousDateRounding,
-        IndivisibleDurations;
+        IndivisibleDurations,
+        Impossible;
 
         @Override
         public String toString() {
@@ -39,6 +40,8 @@ public class CatalaError extends RuntimeException {
                     return "ambiguous date computation, and rounding mode was not specified";
                 case IndivisibleDurations:
                     return "dividing durations that are not in days";
+                case Impossible:
+                    return "\"impossible\" computation reached";
             }
             return "";
         }

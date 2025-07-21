@@ -915,6 +915,9 @@ void* catala_do(void* (*f)(void))
     case catala_indivisible_durations:
       error_kind = "Division of incompatible durations";
       break;
+    case catala_impossible:
+      error_kind = "\"impossible\" computation reached";
+      break;
     case catala_malloc_error:
       error_kind = "Out of memory";
       break;

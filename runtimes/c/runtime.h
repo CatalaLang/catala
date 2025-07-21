@@ -34,6 +34,7 @@ typedef enum catala_error_code
   catala_uncomparable_durations,
   catala_ambiguous_date_rounding,
   catala_indivisible_durations,
+  catala_impossible,
   catala_malloc_error
 } catala_error_code;
 

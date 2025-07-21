@@ -288,6 +288,9 @@ let naked_expression ==
       ~pos:pos_n "Tuple indices must be >= 1";
   TupleAccess (e, (n, pos_n))
 }
+| IMPOSSIBLE ; {
+  Builtin Impossible
+}
 | CARDINAL ; {
   Builtin Cardinal
 }
