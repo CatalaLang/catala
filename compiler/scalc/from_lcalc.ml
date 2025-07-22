@@ -458,7 +458,7 @@ and translate_assignment
       +> ( A.SSwitch
              {
                switch_var;
-               switch_var_typ = typ;
+               switch_var_typ = Type.unquantify typ;
                enum_name = name;
                switch_cases = List.rev new_cases;
              },

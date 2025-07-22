@@ -1,8 +1,8 @@
 ```catala
+#[test]
 declaration scope S:
   output o content Optional of (integer, money)
 
-#[bla]
 scope S:
   definition o equals Present content (12, $13)
 ```

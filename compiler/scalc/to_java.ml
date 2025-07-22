@@ -189,6 +189,7 @@ let format_visibility ppf = function
   | Public -> fprintf ppf "public "
 
 let rec format_typ ctx ppf (typ : typ) =
+  let typ = Type.unquantify typ in
   match Mark.remove typ with
   | TLit TBool -> fprintf ppf "CatalaBool"
   | TLit TUnit -> fprintf ppf "CatalaUnit"
@@ -211,7 +212,8 @@ let rec format_typ ctx ppf (typ : typ) =
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
   | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
   | TDefault typ -> (format_typ ctx) ppf typ
-  | TForAll _ | TVar _ -> fprintf ppf "CatalaValue"
+  | TVar _ -> fprintf ppf "CatalaValue"
+  | TForAll _ -> assert false
   | TClosureEnv -> assert false
 
 let format_struct_params ctx ppf (fields : typ StructField.Map.t) =
@@ -1037,7 +1039,7 @@ let format_enums ctx ppf =
   let enums_to_generate =
     EnumName.Map.filter
       (fun ename _ ->
-        EnumName.path ename = [] && EnumName.to_string ename <> "Eoption")
+        EnumName.path ename = [] && not (EnumName.equal ename Expr.option_enum))
       ctx.decl_ctx.ctx_enums
     |> EnumName.Map.bindings
   in

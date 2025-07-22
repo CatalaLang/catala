@@ -569,7 +569,7 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
           Format.fprintf fmt "%a@,@," format_struct_decl
             (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
       | TypeIdent.Enum e ->
-        if EnumName.path e = [] then
+        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
           Format.fprintf fmt "%a@,@," format_enum_decl
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
     (type_ordering @ scope_structs)
