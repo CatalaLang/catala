@@ -488,21 +488,27 @@ let build_direct_targets
   let open File in
   if direct_targets = [] then []
   else
+    let build_dir = config.Cli.options.global.build_dir in
     let direct_targets =
-      let build_dir = config.Cli.options.global.build_dir in
       List.map
         (fun t ->
-          if String.starts_with ~prefix:(build_dir ^ Filename.dir_sep) t then t
+          let is_module = File.extension t = "" in
+          if
+            String.starts_with ~prefix:(build_dir ^ Filename.dir_sep) t
+            || is_module
+          then t
           else File.(build_dir / t))
         direct_targets
     in
-    let build_dir = config.Cli.options.global.build_dir in
     let enabled_backends =
       List.fold_left
-        (fun acc t -> target_backend config.options t :: acc)
+        (fun acc t ->
+          match File.extension t with
+          | "" -> Clerk_rules.OCaml :: acc
+          | _ -> target_backend config.options t :: acc)
         [] direct_targets
+      |> List.sort_uniq Stdlib.compare
     in
-    let enabled_backends = List.sort_uniq Stdlib.compare enabled_backends in
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
@@ -530,6 +536,7 @@ let build_direct_targets
         List.partition_map
           (fun t ->
             let ext = File.extension t in
+            let is_module = ext = "" in
             match List.assoc_opt ext extensions_backend, ext with
             | Some bk, _ -> Left (ensure_target_dir (backend_subdir bk) t)
             | None, ("catala_en" | "catala_fr" | "catala_pl") -> Left t
@@ -553,7 +560,55 @@ let build_direct_targets
                 let tdir = rule_subdir rule in
                 let t = ensure_target_dir tdir t in
                 Right ((find_item t, `Custom rule), t)
-              | None -> assert false))
+              | None when is_module -> begin
+                let is_toplevel_module =
+                  File.dirname t = Filename.current_dir_name
+                in
+                let kind =
+                  List.find_map
+                    (function
+                      | { Scan.module_def = Some m; file_name; _ } ->
+                        if Mark.remove m = File.basename t then
+                          let is_in_included_dirs =
+                            List.exists
+                              (fun d -> File.dirname file_name = d)
+                              config.options.Config.global.include_dirs
+                          in
+                          match is_toplevel_module, is_in_included_dirs with
+                          | true, true -> Some (`Found t)
+                          | true, false -> Some (`Not_included file_name)
+                          | false, true ->
+                            if File.dirname file_name = File.dirname t then
+                              Some (`Found (File.basename t))
+                            else None
+                          | false, _ ->
+                            Some
+                              (`Found
+                                File.(
+                                  build_dir / dirname t / "ocaml" / basename t))
+                        else None
+                      | _ -> None)
+                    items
+                in
+                match kind with
+                | Some (`Found t) -> Left (t ^ "@ocaml-module")
+                | Some (`Not_included fn) ->
+                  Message.error
+                    "Module found in %s however it was not declared in \
+                     'include_dirs'.@\n\
+                     Try 'clerk build %s' instead or add the '%s' directory to \
+                     'include_dirs'."
+                    fn (File.dirname fn) (File.dirname fn)
+                | None ->
+                  if is_toplevel_module then
+                    Message.error "No module %s found in the clerk project." t
+                  else
+                    Message.error
+                      "No file found that declares a module %s for the \
+                       provided path."
+                      (File.basename t)
+              end
+              | None -> Message.error "Unknown target %s" t))
           direct_targets
       in
       let object_exec_targets =
