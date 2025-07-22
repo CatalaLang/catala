@@ -29,7 +29,7 @@ val with_in_channel : t -> (in_channel -> 'a) -> 'a
 (** {2 Formatter wrappers} *)
 
 val with_formatter_of_out_channel :
-  out_channel -> (Format.formatter -> 'a) -> 'a
+  ?nocolor:bool -> out_channel -> (Format.formatter -> 'a) -> 'a
 (** [with_formatter_of_out_channel oc f] creates an flushes the formatter used
     in [f] from the given out_channel [oc]. *)
 

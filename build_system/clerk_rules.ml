@@ -172,7 +172,11 @@ let base_bindings ~autotest ~enabled_backends ~config =
           | Some e -> File.check_exec e
           | None -> Lazy.force Poll.catala_exe);
         ]);
-    def Var.catala_flags (lazy (catala_flags @ includes ()));
+    def Var.catala_flags
+      (lazy
+        (catala_flags
+        @ (if Message.has_color stderr then ["--color=always"] else [])
+        @ includes ()));
     def Var.clerk_flags
       (lazy
         ("-e"

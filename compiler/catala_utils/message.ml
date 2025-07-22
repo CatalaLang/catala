@@ -54,12 +54,13 @@ let has_color oc =
 (* Here we create new formatters to stderr/stdout that remain separate from the
    ones used by [Format.printf] / [Format.eprintf] (which remain unchanged) *)
 
-let formatter_of_out_channel oc =
+let formatter_of_out_channel ?(nocolor = false) oc =
   let tty = lazy Unix.(isatty (descr_of_out_channel oc)) in
   let ppf =
     lazy
       (let ppf = Format.formatter_of_out_channel oc in
-       if has_color_raw ~tty then color_formatter ppf else unstyle_formatter ppf)
+       if (not nocolor) && has_color_raw ~tty then color_formatter ppf
+       else unstyle_formatter ppf)
   in
   fun () ->
     let ppf = Lazy.force ppf in
