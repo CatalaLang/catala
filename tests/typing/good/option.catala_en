@@ -2,7 +2,7 @@
 declaration scope S:
   output o content Optional of (integer, money)
 
-#[test]
+#[bla]
 scope S:
   definition o equals Present content (12, $13)
 ```
@@ -10,13 +10,6 @@ scope S:
 
 ```catala-test-cli
 $ catala test-scope S
-┌─[WARNING]─
-│
-│  The constructor "Absent" of enumeration "Optional" is never used;
-│  maybe it's unnecessary?
-│
-├No position information
-└─
 ┌─[RESULT]─ S ─
 │ o = Present (12, $13.00)
 └─
@@ -24,6 +17,7 @@ $ catala test-scope S
 
 
 ```catala
+#[test]
 declaration scope S2:
   output o content Optional of list of Optional of boolean
 
@@ -42,7 +36,6 @@ declaration option_dft content anything of type t
   -- Present of x : x
   -- Absent : default
 
-#[test]
 scope S2:
   definition o equals
     let x equals Absent in

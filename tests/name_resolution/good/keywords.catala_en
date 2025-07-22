@@ -57,7 +57,7 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
   let val__1: integer = stdlib_in.Stdlib_in.val_in in
   let when__1: date =
     match
-      (Eoption.ESome
+      (Optional.Present
          ((o_add_dat_dur AbortOnRound
              {filename="tests/name_resolution/good/keywords.catala_en";
               start_line=11; start_column=38; end_line=11; end_column=39;
@@ -67,12 +67,12 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
              start_line=11; start_column=26; end_line=11; end_column=52;
              law_headings=[]})))
     with
-    | Eoption.ENone _ -> (raise
+    | Optional.Absent _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                                                  start_line=5; start_column=10;
                                                  end_line=5; end_column=14;
                                                  law_headings=[]}])))
-    | Eoption.ESome arg -> (let x, _ = arg in x) in
+    | Optional.Present arg -> (let x, _ = arg in x) in
   {Stdlib__1.when__1 = when__1}
 
 (* Scope Test *)
@@ -82,19 +82,19 @@ let test : Test_in.t -> Test.t = fun _ ->
        (stdlib
           ({Stdlib_in.val_in =
               (match
-                 (Eoption.ESome
+                 (Optional.Present
                     ((integer_of_string "99"),
                       ({filename="tests/name_resolution/good/keywords.catala_en";
                         start_line=18; start_column=27;
                         end_line=18; end_column=29; law_headings=[]})))
                with
-               | Eoption.ENone _ -> (raise
+               | Optional.Absent _ -> (raise
                    (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                                                             start_line=18; start_column=14;
                                                             end_line=18; end_column=19;
                                                             law_headings=
                                                             []}])))
-               | Eoption.ESome arg -> (let x, _ = arg in x))}))
+               | Optional.Present arg -> (let x, _ = arg in x))}))
     in
     (let result__1 : Stdlib__1.t =
        ({Stdlib__1.when__1 = (result.Stdlib__1.when__1)})
@@ -102,17 +102,17 @@ let test : Test_in.t -> Test.t = fun _ ->
     ( if true then result__1 else result__1))) in
   let val__1: date =
     match
-      (Eoption.ESome
+      (Optional.Present
          ((a.Stdlib__1.when__1),
            ({filename="tests/name_resolution/good/keywords.catala_en";
              start_line=19; start_column=25; end_line=19; end_column=31;
              law_headings=[]})))
     with
-    | Eoption.ENone _ -> (raise
+    | Optional.Absent _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                                                  start_line=15; start_column=10;
                                                  end_line=15; end_column=13;
                                                  law_headings=[]}])))
-    | Eoption.ESome arg -> (let x, _ = arg in x) in
+    | Optional.Present arg -> (let x, _ = arg in x) in
   {Test.val__1 = val__1}
 ```

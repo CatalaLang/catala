@@ -20,7 +20,7 @@ module D = Dcalc.Ast
 module A = Ast
 
 (** We make use of the strong invariants on the structure of programs:
-    Defaultable values can only appear in certin positions. This information is
+    Defaultable values can only appear in certain positions. This information is
     given by the type structure of expressions. In particular this mean we don't
     need to use the monadic bind while computing arithmetic operations or
     function calls. The resulting function is not more difficult than what we
@@ -35,10 +35,6 @@ let translate_typ (tau : typ) : typ =
       Bindlib.box_apply
         (fun t -> TOption (TTuple [t; TLit TPos, pos2], pos2), pos1)
         (aux t)
-    | TOption _, pos ->
-      Message.error ~internal:true ~pos
-        "The type option should not appear before the dcalc -> lcalc \
-         translation step."
     | TClosureEnv, pos ->
       Message.error ~internal:true ~pos
         "The type closure_env should not appear before the dcalc -> lcalc \

@@ -39,9 +39,6 @@ scope Section121SinglePerson:
 
 ```catala-test-cli
 $ catala lcalc --closure-conversion
-type Eoption =
-  | ENone
-  | ESome of <any type>
 
 type Period = { begin: date; end: date; }
 
@@ -87,7 +84,7 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
   let env__1 : (date) = from_closure_env env in
   let date_of_sale_or_exchange : date = env__1.0 in
   match
-    (ESome
+    (Present
        (reduce
           let aggregate_periods_from_last_five_years :
               (closure_env, duration, duration) → duration =
@@ -107,8 +104,8 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
                  to_closure_env (date_of_sale_or_exchange)))
             periods, <aggregation_4:25.5-31.65>))
   with
-  | ENone → error NoValue
-  | ESome arg → arg.0
+  | Absent → error NoValue
+  | Present arg → arg.0
 
 let scope section121_single_person
   (section121_single_person_in: Section121SinglePerson_in)
@@ -140,14 +137,14 @@ let scope section121_single_person
             code_and_env.0 code_and_env.1 property_ownage)
            >= [0 years, 0 months, 730 days]
          then
-           ESome (true, <aggregation_4:35.14-24>)
-         else ENone
+           Present (true, <aggregation_4:35.14-24>)
+         else Absent
        with
-       | ENone → ESome (false, <aggregation_4:13.10-36>)
-       | ESome x → ESome x)
+       | Absent → Present (false, <aggregation_4:13.10-36>)
+       | Present x → Present x)
     with
-    | ENone → error NoValue
-    | ESome arg → arg.0
+    | Absent → error NoValue
+    | Present arg → arg.0
   in
   return { Section121SinglePerson
            requirements_ownership_met = requirements_ownership_met;

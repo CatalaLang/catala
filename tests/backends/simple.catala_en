@@ -38,6 +38,19 @@ $ catala c
 #include <catala_runtime.h>
 
 
+enum Optional__code {
+  Absent,
+  Present
+};
+
+typedef struct Optional {
+  enum Optional__code code;
+  union {
+    CATALA_UNIT Absent;
+    const void * /* any '1 */ Present;
+  } payload;
+} Optional;
+
 typedef struct Foo {
   CATALA_BOOL x;
   CATALA_DEC y;
