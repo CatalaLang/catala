@@ -1262,7 +1262,16 @@ let process_use_item
     ((item, _) : Surface.Ast.code_item Mark.pos * visibility) : context =
   match Mark.remove item with
   | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
-  | ScopeUse suse -> process_scope_use ctxt suse
+  | ScopeUse suse -> (
+    let pos = Mark.get suse.scope_use_name in
+    match
+      Pos.get_attrs pos (function Src (_, _, pos) -> Some pos | _ -> None)
+    with
+    | pos :: _ ->
+      Message.error ~pos "%a" Format.pp_print_text
+        "No attributes are allowed at this point. They should be put in front \
+         of the scope declaration."
+    | [] -> process_scope_use ctxt suse)
 
 (** {1 API} *)
 
