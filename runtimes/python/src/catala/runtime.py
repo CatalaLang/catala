@@ -97,6 +97,11 @@ class IndivisibleDurations(CatalaError):
         super().__init__("dividing durations that are not in days",
                          [source_position])
 
+class Impossible(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("\"impossible\" computation reached",
+                         [source_position])
+
 # ============
 # Type classes
 # ============

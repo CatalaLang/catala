@@ -14,7 +14,7 @@ $ catala typecheck
 ```
 
 ```catala
-declaration impossible content anything of type t
+declaration not_possible content anything of type t
   depends on unit content anything of type t0
   equals content of x among [] such that 0 is minimum
 ```
@@ -93,7 +93,7 @@ let topval empty : integer → list of <t> =
   λ (x: integer) →
   []
 
-let topval impossible : <t0> → <t> =
+let topval not_possible : <t0> → <t> =
   λ (unit: <t0>) →
   (let weights : list of (<t>, integer) =
      map (λ (x: <t>) → (x, let x__1 : <t> = x in

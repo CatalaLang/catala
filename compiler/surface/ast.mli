@@ -102,6 +102,7 @@ type binop =
 type unop = Not | Minus of op_kind
 
 type builtin_expression =
+  | Impossible
   | Cardinal
   | ToInteger
   | ToDecimal

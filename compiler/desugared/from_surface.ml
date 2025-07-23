@@ -522,7 +522,7 @@ let rec translate_expr
     in
     Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path)
       emark
-  | FunCall ((Builtin b, pos), [arg]) ->
+  | FunCall ((Builtin b, pos), [arg]) when b <> S.Impossible ->
     let op, ty =
       match b with
       | S.ToInteger -> Op.ToInt, Mark.remove (Type.any pos)
@@ -535,8 +535,10 @@ let rec translate_expr
       | S.GetYear -> Op.GetYear, TLit TDate
       | S.FirstDayOfMonth -> Op.FirstDayOfMonth, TLit TDate
       | S.LastDayOfMonth -> Op.LastDayOfMonth, TLit TDate
+      | S.Impossible -> assert false
     in
     Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark
+  | S.Builtin Impossible -> Expr.efatalerror Runtime.Impossible emark
   | S.Builtin _ ->
     Message.error ~pos "Invalid use of built-in: needs one operand."
   | FunCall (f, args) ->
