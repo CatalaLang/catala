@@ -737,6 +737,7 @@ let ninja_version =
        File.process_out
          ~check_exit:(function 0 -> () | _ -> raise Exit)
          ninja_exec ["--version"]
+       |> String.trim
        |> String.split_on_char '.'
        |> List.map int_of_string
      with Exit | Failure _ -> [])
