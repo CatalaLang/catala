@@ -23,7 +23,7 @@ module L = Lcalc.Ast
 open Format
 
 let pp_comma ppf () = fprintf ppf ",@ "
-let pp_print_double_space ppf () = fprintf ppf "\n@ "
+let pp_print_double_space ppf () = fprintf ppf "@ @ "
 
 let pp_print_list_padded ?pp_sep pp ppf l =
   if l = [] then ()
@@ -288,7 +288,7 @@ let poly_cast ctx ppf e fmt =
   match Mark.remove e with
   | EApp { poly = true; typ; _ } ->
     fprintf ppf
-      ("@[<hv 2>CatalaValue.<%a>cast(@," ^^ fmt ^^ ")@]")
+      ("@[<hv 2>CatalaValue.<%a>cast@;<0 -1>(" ^^ fmt ^^ ")@]")
       (format_typ ctx) typ
   | _ -> fprintf ppf fmt
 
@@ -351,14 +351,15 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EInj { e1 = e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
-    fprintf ppf "CatalaOption.some(%a)" (format_expression ctx) e
+    fprintf ppf "@[<hv 2>CatalaOption.some@;<0 -1>(%a)@]"
+      (format_expression ctx) e
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a()" format_enum enum_name EnumConstructor.format cons
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a(%a)" format_enum enum_name EnumConstructor.format
       cons (format_expression ctx) e
   | EArray es ->
-    fprintf ppf "new CatalaArray<>(%a)"
+    fprintf ppf "@[<hv 2>new CatalaArray<>@;<0 -1>(%a)@]"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
       es
@@ -366,13 +367,13 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EPosLit ->
     let pos = Mark.get e in
     fprintf ppf
-      "@[<hov 4>new CatalaPosition(@,\"%s\",@ %d, %d,@ %d, %d,@ %a@;<0 -4>)@]"
+      "new CatalaPosition@[<hov 1>@;<0 -1>(\"%s\",@ %d, %d,@ %d, %d,@ %a)@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
   | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
-    fprintf ppf "@[<hv 2>%a(@;<0 -1>new CatalaArray<>(@ %a@ )@])" format_op op
+    fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
       (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
       exprs
   | EAppOp { op = Concat, _; args = [(EArray [], _); e2]; _ } ->
@@ -385,13 +386,13 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         _;
       } ->
     let l, args = get_list_and_args_expr op args in
-    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
+    fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a@])"
       (format_expression_with_paren ctx)
       l format_op op
       (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
       args
   | EAppOp { op; args = [arg1; arg2]; _ } ->
-    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a@])"
+    fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a@])"
       (format_expression_with_paren ctx)
       arg1 format_op op (format_expression ctx) arg2
   | EAppOp { op = Log _, _; _ } when Global.options.trace <> None ->
@@ -411,27 +412,27 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args; _ }
     when FuncName.Set.mem fname global_funcs ->
-    poly_cast ctx ppf e "@[<hv 2>%s%a.apply(@,%a)@]"
+    poly_cast ctx ppf e "@[<hv 2>%s%a.apply@;<0 -1>(%a)@]"
       (if in_globals then "" else "Globals.")
       FuncName.format fname
       (format_currified_args ctx)
       args
   | EApp { f = EExternal { modname; name }, _; args; _ }
     when String.Set.mem (Mark.remove name) ctx.external_global_funcs ->
-    poly_cast ctx ppf e "@[<hv 2>%a.Globals.%s.apply(@,%a)@]" VarName.format
-      (Mark.remove modname) (Mark.remove name)
+    poly_cast ctx ppf e "@[<hv 2>%a.Globals.%s.apply@;<0 -1>(%a)@]"
+      VarName.format (Mark.remove modname) (Mark.remove name)
       (format_currified_args ctx)
       args
   | EApp { f = EFunc fname, _; args; _ }
     when FuncName.Map.mem fname scope_func_names ->
-    fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" format_scope
+    fprintf ppf "@[<hv 2>new %a@;<0 -1>(%a)@]" format_scope
       (FuncName.Map.find fname scope_func_names)
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | EApp { f = EExternal { modname; name }, _; args; _ }
     when String.Map.mem (Mark.remove name) ctx.external_scopes ->
     let scope_name = String.Map.find (Mark.remove name) ctx.external_scopes in
-    fprintf ppf "@[<hv 0>new %a.%s(@;<0 -1>%a)@]" VarName.format
+    fprintf ppf "@[<hv 0>new %a.%s@;<0 -1>(%a)@]" VarName.format
       (Mark.remove modname) scope_name
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
@@ -441,18 +442,18 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       args
   | EAppOp { args = []; _ } -> assert false
   | EAppOp { op; args = arg_pos :: arg1 :: args; tys = (TLit TPos, _) :: _ } ->
-    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a)@]"
+    fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a)@]"
       (format_expression_with_paren ctx)
       arg1 format_op op
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       (arg_pos :: args)
   | EAppOp { op; args = arg1 :: args; _ } ->
-    fprintf ppf "@[<hv 2>%a.%a(@;<0 -1>%a)@]" (format_expression ctx) arg1
+    fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a)@]" (format_expression ctx) arg1
       format_op op
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
   | ETuple es ->
-    fprintf ppf "new CatalaTuple(@[<hv 0>%a)@]"
+    fprintf ppf "@[<hv 2>new CatalaTuple@;<0 -1>(%a)@]"
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
       es
@@ -480,7 +481,7 @@ and format_currified_args ctx ppf = function
   | [] -> fprintf ppf "CatalaUnit.INSTANCE"
   | [arg] -> (format_expression ctx) ppf arg
   | args ->
-    fprintf ppf "new CatalaTuple(%a)"
+    fprintf ppf "@[<hov 4>new CatalaTuple@;<0 -1>(%a)@]"
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
 
@@ -678,9 +679,9 @@ let format_constructor (ctx : context) (sbody : scope_body) ppf =
   |> function
   | None -> ()
   | Some in_fields ->
-    fprintf ppf "@[<hv 4>%a%a (@[<hov>%a@]) {@\n%t@;<1 -4>}@]" format_visibility
-      sbody.scope_body_visibility format_scope sbody.scope_body_name
-      (format_struct_params ctx) in_fields
+    fprintf ppf "@[<v 4>@[<hov 4>%a%a@ (@[<hov>%a@])@;<1 -4>{@]@,%t@;<1 -4>}@]"
+      format_visibility sbody.scope_body_visibility format_scope
+      sbody.scope_body_name (format_struct_params ctx) in_fields
       (format_constructor_body ctx sbody)
 
 let format_output_parameter ?(vis = Public) ctx ppf (field_name, typ) =
@@ -759,7 +760,8 @@ let format_fields_comparison ppf (fields : string list) =
     | [] -> fprintf ppf "CatalaBool.TRUE"
     | [h] -> format_field_comparison ppf h
     | h :: t ->
-      fprintf ppf "%a.and(@,%a)" format_field_comparison h pp_conjunction t
+      fprintf ppf "%a.and@;<0 -1>(%a)" format_field_comparison h pp_conjunction
+        t
   in
   fprintf ppf "return @[<hov 4>%a;@]" pp_conjunction fields
 
