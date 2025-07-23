@@ -23,7 +23,7 @@ module L = Lcalc.Ast
 open Format
 
 let pp_comma ppf () = fprintf ppf ",@ "
-let pp_print_double_space ppf () = fprintf ppf "@ @ "
+let pp_print_double_space ppf () = fprintf ppf "\n@ "
 
 let pp_print_list_padded ?pp_sep pp ppf l =
   if l = [] then ()
@@ -284,6 +284,14 @@ let fill_struct_bindings
       expected given
     |> bindings)
 
+let poly_cast ctx ppf e fmt =
+  match Mark.remove e with
+  | EApp { poly = true; typ; _ } ->
+    fprintf ppf
+      ("@[<hv 2>CatalaValue.<%a>cast(@," ^^ fmt ^^ ")@]")
+      (format_typ ctx) typ
+  | _ -> fprintf ppf fmt
+
 let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   let {
     in_scope_structs;
@@ -401,34 +409,34 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.negate()" (format_expression_with_paren ctx) arg1
   | EAppOp { op; args = [arg1]; _ } ->
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
-  | EApp { f = EFunc fname, _; args } when FuncName.Set.mem fname global_funcs
-    ->
-    fprintf ppf "@[<hv 0>%s%a.apply(@;<0 -1>%a)@]"
+  | EApp { f = EFunc fname, _; args; _ }
+    when FuncName.Set.mem fname global_funcs ->
+    poly_cast ctx ppf e "@[<hv 2>%s%a.apply(@,%a)@]"
       (if in_globals then "" else "Globals.")
       FuncName.format fname
       (format_currified_args ctx)
       args
-  | EApp { f = EExternal { modname; name }, _; args }
+  | EApp { f = EExternal { modname; name }, _; args; _ }
     when String.Set.mem (Mark.remove name) ctx.external_global_funcs ->
-    fprintf ppf "@[<hv 0>%a.Globals.%s.apply(@;<0 -1>%a)@]" VarName.format
+    poly_cast ctx ppf e "@[<hv 2>%a.Globals.%s.apply(@,%a)@]" VarName.format
       (Mark.remove modname) (Mark.remove name)
       (format_currified_args ctx)
       args
-  | EApp { f = EFunc fname, _; args }
+  | EApp { f = EFunc fname, _; args; _ }
     when FuncName.Map.mem fname scope_func_names ->
     fprintf ppf "@[<hv 0>new %a(@;<0 -1>%a)@]" format_scope
       (FuncName.Map.find fname scope_func_names)
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
-  | EApp { f = EExternal { modname; name }, _; args }
+  | EApp { f = EExternal { modname; name }, _; args; _ }
     when String.Map.mem (Mark.remove name) ctx.external_scopes ->
     let scope_name = String.Map.find (Mark.remove name) ctx.external_scopes in
     fprintf ppf "@[<hv 0>new %a.%s(@;<0 -1>%a)@]" VarName.format
       (Mark.remove modname) scope_name
       (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       args
-  | EApp { f; args } ->
-    fprintf ppf "@[<hv 0>%a.apply(%a)@]" (format_expression ctx) f
+  | EApp { f; args; _ } ->
+    poly_cast ctx ppf e "@[<hv 0>%a.apply(%a)@]" (format_expression ctx) f
       (format_currified_args ctx)
       args
   | EAppOp { args = []; _ } -> assert false

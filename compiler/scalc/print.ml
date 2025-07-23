@@ -96,9 +96,9 @@ let rec format_expr
   | EAppOp { op = op, _; args = [arg1]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
-  | EApp { f; args = [] } ->
+  | EApp { f; args = []; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ ()@]" format_expr f
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")

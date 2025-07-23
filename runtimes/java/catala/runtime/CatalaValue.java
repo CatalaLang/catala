@@ -6,4 +6,8 @@ public interface CatalaValue {
 
     @Override
     public String toString();
+
+    public static <T> T cast(CatalaValue v) {
+        return (T) v;
+    }
 }

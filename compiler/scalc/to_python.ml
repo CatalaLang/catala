@@ -298,6 +298,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       {
         f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
         args = [arg];
+        _;
       }
     when Global.options.trace <> None ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
@@ -340,7 +341,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     Format.fprintf fmt "%a(@[<hv 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")

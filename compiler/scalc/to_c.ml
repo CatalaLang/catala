@@ -326,7 +326,7 @@ let rec format_expression
       (Format.pp_print_list format_expression ~pp_sep:(fun ppf () ->
            Format.fprintf ppf ",@ "))
       args
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     let format_fun fmt = function
       | EExternal { name; _ }, _ ->
         Format.pp_print_string fmt (Mark.remove name)

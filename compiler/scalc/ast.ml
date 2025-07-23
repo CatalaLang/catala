@@ -56,7 +56,9 @@ and naked_expr =
   | EArray of expr list
   | ELit of lit
   | EPosLit
-  | EApp of { f : expr; args : expr list }
+  | EApp of { f : expr; args : expr list; typ : typ; poly : bool }
+      (** [typ] is the return type ; [poly] indicates if the function return is
+          polymorphic (in which case the return value might need a cast) *)
   | EAppOp of { op : operator Mark.pos; args : expr list; tys : typ list }
   | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
