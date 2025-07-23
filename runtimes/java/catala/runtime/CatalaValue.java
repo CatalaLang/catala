@@ -7,7 +7,8 @@ public interface CatalaValue {
     @Override
     public String toString();
 
-    public static <T> T cast(CatalaValue v) {
+    @SuppressWarnings("unchecked")
+    public static <T extends CatalaValue> T cast(CatalaValue v) {
         return (T) v;
     }
 }

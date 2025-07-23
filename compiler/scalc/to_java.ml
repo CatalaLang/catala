@@ -347,7 +347,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EInj { cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
-    fprintf ppf "CatalaOption.NONE"
+    fprintf ppf "CatalaOption.none()"
   | EInj { e1 = e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
@@ -367,10 +367,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EPosLit ->
     let pos = Mark.get e in
     fprintf ppf
-      "new CatalaPosition@[<hov 1>@;<0 -1>(\"%s\",@ %d, %d,@ %d, %d,@ %a)@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+      "@[<hv 2>new CatalaPosition@;\
+       <0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d,@ %a@])@]" (Pos.get_file pos)
+      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+      (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
   | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
     fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
@@ -458,7 +458,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
            fprintf ppf "%a" (format_expression ctx) e))
       es
   | ETupleAccess { e1; index; typ } ->
-    fprintf ppf "((%a)%a.get(%d))" (format_typ ctx) typ
+    fprintf ppf "CatalaValue.<%a>cast@;<0 -1>(%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)
       e1 index
   | EExternal { modname; name }
@@ -1005,7 +1005,8 @@ let format_enums ctx ppf =
     let format_enum_accessors ppf =
       let format_default_accessor ppf =
         fprintf ppf
-          "@[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
+          "@@SuppressWarnings(\"unchecked\")@,\
+           @[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
            2>if (this.kind != k) {@ throw new \
            IllegalArgumentException(\"Invalid enum contents access: expected \
            \" + k + \", got \" + this.kind);@;\
