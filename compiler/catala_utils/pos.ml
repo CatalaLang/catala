@@ -180,145 +180,143 @@ let rec pad_fmt n s ppf =
 
 let format_loc_text_parts (pos : t) =
   let filename = get_file pos in
-  if filename = "" then
-    ( (fun ppf -> Format.pp_print_string ppf "No position information"),
-      ignore,
-      None )
-  else
-    let pr_head ppf =
-      Format.fprintf ppf "@{<blue>─➤ @{<bold>%s:@}@}@," (to_string_short pos)
-    in
-    let pr_context =
-      try
-        let sline = get_start_line pos in
-        let eline = get_end_line pos in
-        let ic, input_line_opt =
-          let from_contents =
-            match Global.options.input_src with
-            | Contents (str, uri) when uri = filename -> Some str
-            | _ -> None
+  let pr_head ppf =
+    Format.fprintf ppf "@{<blue>─➤ @{<bold>%s:@}@}@," (to_string_short pos)
+  in
+  let pr_context =
+    try
+      let sline = get_start_line pos in
+      let eline = get_end_line pos in
+      let ic, input_line_opt =
+        let from_contents =
+          match Global.options.input_src with
+          | Contents (str, uri) when uri = filename -> Some str
+          | _ -> None
+        in
+        match from_contents with
+        | Some str ->
+          let line_index = ref 0 in
+          let lines = String.split_on_char '\n' str in
+          let input_line_opt () : string option =
+            match List.nth_opt lines !line_index with
+            | Some l ->
+              line_index := !line_index + 1;
+              Some l
+            | None -> None
           in
-          match from_contents with
-          | Some str ->
-            let line_index = ref 0 in
-            let lines = String.split_on_char '\n' str in
-            let input_line_opt () : string option =
-              match List.nth_opt lines !line_index with
-              | Some l ->
-                line_index := !line_index + 1;
-                Some l
-              | None -> None
-            in
-            None, input_line_opt
-          | None -> (
-            try
-              let ic = open_in filename in
-              let input_line_opt () : string option =
-                try Some (input_line ic) with End_of_file -> None
-              in
-              Some ic, input_line_opt
-            with Sys_error _ -> None, fun () -> None)
-        in
-        let include_extra_count = 0 in
-        let rec get_lines (n : int) : (int * string) list =
-          match input_line_opt () with
-          | Some line ->
-            if n < sline - include_extra_count then get_lines (n + 1)
-            else if
-              n >= sline - include_extra_count
-              && n <= eline + include_extra_count
-            then (n, line) :: get_lines (n + 1)
-            else []
-          | None -> []
-        in
-        let pos_lines = get_lines 1 in
-        let nspaces = int_of_float (log10 (float_of_int eline)) + 1 in
-        (match ic with None -> () | Some ic -> close_in ic);
-        let line_matched_substrings =
+          None, input_line_opt
+        | None -> (
           try
-            List.map
-              (fun (line_no, line) ->
-                let line_indent = indent_number line in
-                let match_start_index =
-                  utf8_byte_index line
-                    (if line_no = sline then get_start_column pos - 1
-                     else line_indent)
-                in
-                let match_end_index =
-                  if line_no = eline then
-                    utf8_byte_index line (get_end_column pos - 1)
-                  else String.length line
-                in
-                ( line_no,
-                  line,
-                  String.sub line 0 match_start_index,
-                  String.sub line match_start_index
-                    (max 0 (match_end_index - match_start_index)) ))
-              pos_lines
-          with Invalid_argument _ ->
-            (* Index out of bounds, can happen if the file was changed since
-               initially read *)
-            []
-        in
-        let print_matched_line
-            ppf
-            (line_no, line, unmatched_prefix, matched_substring) =
-          let match_start_col = String.width unmatched_prefix in
-          let match_num_cols = String.width matched_substring in
-          Format.fprintf ppf "@{<blue>%*d │@} %a" nspaces line_no
-            (fun ppf -> Format.pp_print_as ppf (String.width line))
-            line;
-          Format.pp_print_cut ppf ();
-          if line_no >= sline && line_no <= eline then
-            Format.fprintf ppf "@{<blue>%*s │@} %*s@{<bold;red>%t@}" nspaces ""
-              match_start_col ""
-              (pad_fmt match_num_cols "‾")
-        in
-        if line_matched_substrings <> [] then (fun ppf ->
-          Format.fprintf ppf "@{<blue> %*s│@}@," nspaces "";
-          Format.pp_print_list print_matched_line ppf line_matched_substrings)
-        else ignore
-      with Sys_error _ -> ignore
-    in
-    let pr_legal =
-      let legal_pos_lines =
-        List.rev_map
-          (fun s ->
-            Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-              ~subst:(fun _ -> " ")
-              s)
-          (get_law_info pos)
+            let ic = open_in filename in
+            let input_line_opt () : string option =
+              try Some (input_line ic) with End_of_file -> None
+            in
+            Some ic, input_line_opt
+          with Sys_error _ -> None, fun () -> None)
       in
-      let rec pp_legal nspaces leg ppf =
-        match leg with
-        | [last] ->
-          Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└─" last
-        | l :: lines ->
-          Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└┬" l;
-          pp_legal (nspaces + 1) lines ppf
-        | [] -> ()
+      let include_extra_count = 0 in
+      let rec get_lines (n : int) : (int * string) list =
+        match input_line_opt () with
+        | Some line ->
+          if n < sline - include_extra_count then get_lines (n + 1)
+          else if
+            n >= sline - include_extra_count && n <= eline + include_extra_count
+          then (n, line) :: get_lines (n + 1)
+          else []
+        | None -> []
       in
-      match legal_pos_lines with
-      | [] -> None
-      | fst :: rest ->
-        Some
-          (fun ppf ->
-            Format.fprintf ppf "@{<blue>%s@}" fst;
-            pp_legal 0 rest ppf)
+      let pos_lines = get_lines 1 in
+      let nspaces = int_of_float (log10 (float_of_int eline)) + 1 in
+      (match ic with None -> () | Some ic -> close_in ic);
+      let line_matched_substrings =
+        try
+          List.map
+            (fun (line_no, line) ->
+              let line_indent = indent_number line in
+              let match_start_index =
+                utf8_byte_index line
+                  (if line_no = sline then get_start_column pos - 1
+                   else line_indent)
+              in
+              let match_end_index =
+                if line_no = eline then
+                  utf8_byte_index line (get_end_column pos - 1)
+                else String.length line
+              in
+              ( line_no,
+                line,
+                String.sub line 0 match_start_index,
+                String.sub line match_start_index
+                  (max 0 (match_end_index - match_start_index)) ))
+            pos_lines
+        with Invalid_argument _ ->
+          (* Index out of bounds, can happen if the file was changed since
+             initially read *)
+          []
+      in
+      let print_matched_line
+          ppf
+          (line_no, line, unmatched_prefix, matched_substring) =
+        let match_start_col = String.width unmatched_prefix in
+        let match_num_cols = String.width matched_substring in
+        Format.fprintf ppf "@{<blue>%*d │@} %a" nspaces line_no
+          (fun ppf -> Format.pp_print_as ppf (String.width line))
+          line;
+        Format.pp_print_cut ppf ();
+        if line_no >= sline && line_no <= eline then
+          Format.fprintf ppf "@{<blue>%*s │@} %*s@{<bold;red>%t@}" nspaces ""
+            match_start_col ""
+            (pad_fmt match_num_cols "‾")
+      in
+      if line_matched_substrings <> [] then (fun ppf ->
+        Format.fprintf ppf "@{<blue> %*s│@}@," nspaces "";
+        Format.pp_print_list print_matched_line ppf line_matched_substrings)
+      else ignore
+    with Sys_error _ -> ignore
+  in
+  let pr_legal =
+    let legal_pos_lines =
+      List.rev_map
+        (fun s ->
+          Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+            ~subst:(fun _ -> " ")
+            s)
+        (get_law_info pos)
     in
-    pr_head, pr_context, pr_legal
+    let rec pp_legal nspaces leg ppf =
+      match leg with
+      | [last] ->
+        Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└─" last
+      | l :: lines ->
+        Format.fprintf ppf "@,@{<blue>%*s@<2>%s %s@}" nspaces "" "└┬" l;
+        pp_legal (nspaces + 1) lines ppf
+      | [] -> ()
+    in
+    match legal_pos_lines with
+    | [] -> None
+    | fst :: rest ->
+      Some
+        (fun ppf ->
+          Format.fprintf ppf "@{<blue>%s@}" fst;
+          pp_legal 0 rest ppf)
+  in
+  pr_head, pr_context, pr_legal
 
 let format_loc_text ppf t =
-  let pr_head, pr_context, pr_legal = format_loc_text_parts t in
-  Format.pp_open_vbox ppf 0;
-  pr_head ppf;
-  pr_context ppf;
-  Option.iter
-    (fun f ->
-      Format.pp_print_cut ppf ();
-      f ppf)
-    pr_legal;
-  Format.pp_close_box ppf ()
+  if get_file t = "" then (
+    if Global.options.debug then
+      Format.pp_print_string ppf " (no position information)")
+  else
+    let pr_head, pr_context, pr_legal = format_loc_text_parts t in
+    Format.pp_open_vbox ppf 0;
+    pr_head ppf;
+    pr_context ppf;
+    Option.iter
+      (fun f ->
+        Format.pp_print_cut ppf ();
+        f ppf)
+      pr_legal;
+    Format.pp_close_box ppf ()
 
 let void : t =
   let zero_pos =

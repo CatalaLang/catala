@@ -54,9 +54,6 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Lcalc -O --closure-conversion 
-type Eoption =
-  | ENone of unit
-  | ESome of <any type>
 
 #[test]
 type Foo_in = { b_in: option (bool, source_position); }
@@ -126,8 +123,8 @@ let scope foo (foo_in: Foo_in): Foo =
   let get b : option (bool, source_position) = foo_in.b_in in
   let set b__1 : bool =
     match b with
-    | ENone → (true, <scope_call_func_struct_closure:17.11-12>).0
-    | ESome x → x.0
+    | Absent → (true, <scope_call_func_struct_closure:17.11-12>).0
+    | Present x → x.0
   in
   let set r : Result =
     if b__1 then

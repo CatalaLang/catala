@@ -562,8 +562,10 @@ let format_ctx
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then format_struct_decl (s, def)
       | TypeIdent.Enum e ->
-        let def = EnumName.Map.find e ctx.ctx_enums in
-        if EnumName.path e = [] then format_enum_decl (e, def))
+        if EnumName.equal e Expr.option_enum then ()
+        else
+          let def = EnumName.Map.find e ctx.ctx_enums in
+          if EnumName.path e = [] then format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
 let format_expr ctx fmt e =

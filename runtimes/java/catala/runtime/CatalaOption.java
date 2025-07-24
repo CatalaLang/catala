@@ -4,8 +4,13 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
 
     public final T value;
 
-    @SuppressWarnings("rawtypes")
     public static final CatalaOption NONE = new CatalaOption<>(null);
+
+    public static final <T extends CatalaValue> CatalaOption<T> none() {
+        @SuppressWarnings("unchecked")
+        CatalaOption<T> t = (CatalaOption<T>) NONE;
+        return t;
+    }
 
     public static <T extends CatalaValue> CatalaOption<T> some(T value) {
         if (value == null) {

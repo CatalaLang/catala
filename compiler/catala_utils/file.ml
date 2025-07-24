@@ -176,12 +176,13 @@ let with_in_channel filename f =
   let oc = open_in_bin filename in
   finally (fun () -> close_in oc) (fun () -> f oc)
 
-let with_formatter_of_out_channel oc f =
-  let fmt = Message.formatter_of_out_channel oc () in
+let with_formatter_of_out_channel ?nocolor oc f =
+  let fmt = Message.formatter_of_out_channel ?nocolor oc () in
   finally (fun () -> Format.pp_print_flush fmt ()) @@ fun () -> f fmt
 
 let with_formatter_of_file filename f =
-  with_out_channel filename (fun oc -> with_formatter_of_out_channel oc f)
+  with_out_channel filename (fun oc ->
+      with_formatter_of_out_channel ~nocolor:true oc f)
 
 let with_formatter_of_opt_file filename_opt f =
   match filename_opt with
@@ -203,7 +204,8 @@ let get_main_out_channel ~source_file ~output_file ?ext () =
 
 let get_main_out_formatter ~source_file ~output_file ?ext () =
   let f, with_ = get_main_out_channel ~source_file ~output_file ?ext () in
-  f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel oc fmt)
+  let nocolor = match output_file with Some "-" | None -> false | _ -> true in
+  f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel ~nocolor oc fmt)
 
 let with_secondary_out_channel ~output_file ~ext f =
   match output_file with

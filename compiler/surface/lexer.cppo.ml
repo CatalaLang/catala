@@ -59,6 +59,9 @@ module R = Re.Pcre
 #ifndef MR_LIST
   #define MR_LIST MS_LIST
 #endif
+#ifndef MR_OPTION
+  #define MR_OPTION MS_OPTION
+#endif
 #ifndef MR_CONTAINS
   #define MR_CONTAINS MS_CONTAINS
 #endif
@@ -279,6 +282,7 @@ let token_list : (string * token) list =
     (MS_INCREASING, INCREASING);
     (MS_OF, OF);
     (MS_LIST, LIST);
+    (MS_OPTION, OPTION);
     (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
     (MS_INTEGER, INTEGER);
@@ -480,6 +484,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_LIST ->
       L.update_acc lexbuf;
       LIST
+  | MR_OPTION ->
+      L.update_acc lexbuf;
+      OPTION
   | MR_CONTAINS ->
       L.update_acc lexbuf;
       CONTAINS

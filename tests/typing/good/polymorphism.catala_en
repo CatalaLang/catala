@@ -81,9 +81,6 @@ declaration foo content list of date equals
 
 ```catala-test-cli
 $ catala lcalc
-type Eoption =
-  | ENone of unit
-  | ESome of <any type>
 
 type S_in = {  }
 
@@ -135,14 +132,14 @@ let topval t1 : list of decimal =
 
 let scope s (s_in: S_in): S =
   let set a : integer =
-    match (ESome (identity 12, <polymorphism:39.23-37>)) with
-    | ENone → error NoValue
-    | ESome arg → arg.0
+    match (Present (identity 12, <polymorphism:39.23-37>)) with
+    | Absent → error NoValue
+    | Present arg → arg.0
   in
   let set b : date =
-    match (ESome (identity 2025-01-01, <polymorphism:40.23-47>)) with
-    | ENone → error NoValue
-    | ESome arg → arg.0
+    match (Present (identity 2025-01-01, <polymorphism:40.23-47>)) with
+    | Absent → error NoValue
+    | Present arg → arg.0
   in
   return { S a = a; b = b; }
 

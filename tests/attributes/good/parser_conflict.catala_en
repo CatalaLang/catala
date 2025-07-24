@@ -73,10 +73,10 @@ $ catala scopelang
 │    │                         ‾
 └─
 type E =
-  | Constr of unit
+  | Constr
 
 type F =
-  | Foo of unit
+  | Foo
 
 #[test]
 type S = { x: integer; y: integer; }

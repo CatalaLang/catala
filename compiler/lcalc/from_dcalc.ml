@@ -20,7 +20,7 @@ module D = Dcalc.Ast
 module A = Ast
 
 (** We make use of the strong invariants on the structure of programs:
-    Defaultable values can only appear in certin positions. This information is
+    Defaultable values can only appear in certain positions. This information is
     given by the type structure of expressions. In particular this mean we don't
     need to use the monadic bind while computing arithmetic operations or
     function calls. The resulting function is not more difficult than what we
@@ -35,10 +35,6 @@ let translate_typ (tau : typ) : typ =
       Bindlib.box_apply
         (fun t -> TOption (TTuple [t; TLit TPos, pos2], pos2), pos1)
         (aux t)
-    | TOption _, pos ->
-      Message.error ~internal:true ~pos
-        "The type option should not appear before the dcalc -> lcalc \
-         translation step."
     | TClosureEnv, pos ->
       Message.error ~internal:true ~pos
         "The type closure_env should not appear before the dcalc -> lcalc \
@@ -173,17 +169,5 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .
 
-let add_option_type ctx =
-  {
-    ctx with
-    ctx_enums =
-      EnumName.Map.add Expr.option_enum Expr.option_enum_config ctx.ctx_enums;
-  }
-
-let add_option_type_program prg =
-  { prg with decl_ctx = add_option_type prg.decl_ctx }
-
 let translate_program (prg : 'm D.program) : 'm A.program =
-  Program.map_exprs
-    (add_option_type_program prg)
-    ~typ:translate_typ ~varf:Var.translate ~f:translate_expr
+  Program.map_exprs prg ~typ:translate_typ ~varf:Var.translate ~f:translate_expr

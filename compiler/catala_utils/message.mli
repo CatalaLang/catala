@@ -97,7 +97,8 @@ val std_ppf : unit -> Format.formatter
 val err_ppf : unit -> Format.formatter
 val ignore_ppf : unit -> Format.formatter
 
-val formatter_of_out_channel : out_channel -> unit -> Format.formatter
+val formatter_of_out_channel :
+  ?nocolor:bool -> out_channel -> unit -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
     [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)

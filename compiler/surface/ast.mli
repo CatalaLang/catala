@@ -46,6 +46,7 @@ type primitive_typ =
 type base_typ_data =
   | Primitive of primitive_typ
   | Collection of base_typ_data Mark.pos
+  | Option of base_typ_data Mark.pos
   | TTuple of base_typ_data Mark.pos list
 
 type base_typ = Condition | Data of base_typ_data

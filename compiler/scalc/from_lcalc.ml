@@ -35,6 +35,7 @@ type 'm ctxt = {
   config : translation_config;
   program_ctx : A.ctx;
   ren_ctx : Renaming.context;
+  poly_funcs : 'm L.expr Var.Set.t;
 }
 
 (** Blocks are constructed as reverse ordered lists. This module abstracts this
@@ -82,10 +83,13 @@ let register_fresh_var ~pos ctxt x =
   let var_dict = Var.Map.add x v ctxt.var_dict in
   v, { ctxt with var_dict }
 
-let register_fresh_func ~pos ctxt x =
+let register_fresh_func ~pos ~poly ctxt x =
   let f = A.FuncName.fresh (Bindlib.name_of x, pos) in
   let func_dict = Var.Map.add x f ctxt.func_dict in
-  f, { ctxt with func_dict }
+  let poly_funcs =
+    if poly then Var.Set.add x ctxt.poly_funcs else ctxt.poly_funcs
+  in
+  f, { ctxt with func_dict; poly_funcs }
 
 let register_fresh_arg ~pos ctxt (x, _) =
   let _, ctxt = register_fresh_var ~pos ctxt x in
@@ -266,9 +270,28 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     let args_stmts, new_args, ren_ctx =
       translate_expr_list { ctxt with ren_ctx } args
     in
+    let poly =
+      match Mark.remove f with
+      | EExternal { name = External_value name, _ } ->
+        let typ, _ =
+          TopdefName.Map.find name ctxt.program_ctx.decl_ctx.ctx_topdefs
+        in
+        not
+          (Type.Var.Set.is_empty
+             (Type.free_vars (Type.arrow_return (Type.unquantify typ))))
+      | EVar v -> Var.Set.mem v ctxt.poly_funcs
+      | _ -> false
+    in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     ( f_stmts ++ args_stmts,
-      (A.EApp { f = new_f; args = new_args }, Expr.pos expr),
+      ( A.EApp
+          {
+            f = new_f;
+            args = new_args;
+            typ = Expr.maybe_ty (Mark.get expr);
+            poly;
+          },
+        Expr.pos expr ),
       ren_ctx )
   | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr), ctxt.ren_ctx
   | EPos p ->
@@ -458,7 +481,7 @@ and translate_assignment
       +> ( A.SSwitch
              {
                switch_var;
-               switch_var_typ = typ;
+               switch_var_typ = Type.unquantify typ;
                enum_name = name;
                switch_cases = List.rev new_cases;
              },
@@ -545,6 +568,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       config;
       program_ctx = { A.decl_ctx = p.decl_ctx; modules = ModuleName.Map.empty };
       ren_ctx = config.renaming_context;
+      poly_funcs = Var.Set.empty;
     }
   in
   let modules, ctxt =
@@ -579,7 +603,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           scope_body_expr
       in
       let func_id, outer_ctx =
-        register_fresh_func outer_ctx var ~pos:input_pos
+        register_fresh_func outer_ctx var ~pos:input_pos ~poly:false
       in
       ( outer_ctx,
         A.SScope
@@ -621,8 +645,13 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       let body_block =
         RevBlock.rebuild block ~tail:[A.SReturn expr, Mark.get expr]
       in
+      let poly =
+        not
+          (Type.Var.Set.is_empty
+             (Type.free_vars (Type.arrow_return (Type.unquantify topdef_ty))))
+      in
       let func_id, ctxt_outer =
-        register_fresh_func ctxt var ~pos:(Expr.mark_pos m)
+        register_fresh_func ctxt var ~pos:(Expr.mark_pos m) ~poly
       in
       ( ctxt_outer,
         A.SFunc
@@ -669,7 +698,15 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
           ( A.SVar
               {
                 var = var_id;
-                expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
+                expr =
+                  ( A.EApp
+                      {
+                        f = EFunc func_id, pos;
+                        args = [];
+                        typ = topdef_ty;
+                        poly = false;
+                      },
+                    pos );
                 typ = topdef_ty;
                 visibility;
               }

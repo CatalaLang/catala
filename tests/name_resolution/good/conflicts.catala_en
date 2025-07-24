@@ -71,9 +71,6 @@ code hoists a closure or not)
 
 ```catala-test-cli
 $ catala lcalc --closure-conversion
-type Eoption =
-  | ENone of unit
-  | ESome of <any type>
 
 #[test]
 type Assert_in = {  }
@@ -96,7 +93,7 @@ let scope assert (assert_in: Assert_in): Assert =
   let set assert__1 : bool =
     match
       (match
-         (ESome
+         (Present
             (let assert__2 : list of integer =
                map (let assert__3 : (closure_env, integer) → integer =
                       closure_assert
@@ -106,11 +103,11 @@ let scope assert (assert_in: Assert_in): Assert =
              in
              false, <conflicts:23.3-59>))
        with
-       | ENone → ESome (false, <conflicts:19.10-16>)
-       | ESome x → ESome x)
+       | Absent → Present (false, <conflicts:19.10-16>)
+       | Present x → Present x)
     with
-    | ENone → error NoValue
-    | ESome arg → arg.0
+    | Absent → error NoValue
+    | Present arg → arg.0
   in
   return { Assert assert = assert__1; }
 
@@ -160,7 +157,7 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
   let assert__2: bool =
     match
       (match
-         (Eoption.ESome
+         (Optional.Present
             ((let _ : integer array =
                 (o_map
                    (let assert__3 : Obj.t -> integer -> integer =
@@ -170,20 +167,20 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
                 start_line=23; start_column=3; end_line=23; end_column=59;
                 law_headings=[]})))
        with
-       | Eoption.ENone _ ->
-           (Eoption.ESome
+       | Optional.Absent _ ->
+           (Optional.Present
               (false,
                 ({filename="tests/name_resolution/good/conflicts.catala_en";
                   start_line=19; start_column=10; end_line=19; end_column=16;
                   law_headings=[]})))
-       | Eoption.ESome x -> (Eoption.ESome x))
+       | Optional.Present x -> (Optional.Present x))
     with
-    | Eoption.ENone _ -> (raise
+    | Optional.Absent _ -> (raise
         (Runtime_ocaml.Runtime.Error (NoValue, [{filename="tests/name_resolution/good/conflicts.catala_en";
                                                  start_line=19; start_column=10;
                                                  end_line=19; end_column=16;
                                                  law_headings=[]}])))
-    | Eoption.ESome arg -> (let x, _ = arg in x) in
+    | Optional.Present arg -> (let x, _ = arg in x) in
   {Assert.assert__1 = assert__2}
 
 (* Toplevel def assert *)

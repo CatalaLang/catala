@@ -35,7 +35,7 @@ let rec get_vars e =
     List.fold_left
       (fun acc e -> VarName.Set.union acc (get_vars e))
       VarName.Set.empty el
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     List.fold_left
       (fun acc e -> VarName.Set.union acc (get_vars e))
       (get_vars f) args
@@ -55,8 +55,14 @@ let rec subst_expr v e within_expr =
   | ETupleAccess ta -> ETupleAccess { ta with e1 = subst_expr v e ta.e1 }, m
   | EInj i -> EInj { i with e1 = subst_expr v e i.e1 }, m
   | EArray el -> EArray (List.map (subst_expr v e) el), m
-  | EApp { f; args } ->
-    EApp { f = subst_expr v e f; args = List.map (subst_expr v e) args }, m
+  | EApp app ->
+    ( EApp
+        {
+          app with
+          f = subst_expr v e app.f;
+          args = List.map (subst_expr v e) app.args;
+        },
+      m )
   | EAppOp ao -> EAppOp { ao with args = List.map (subst_expr v e) ao.args }, m
 
 let rec subst_stmt v e stmt =

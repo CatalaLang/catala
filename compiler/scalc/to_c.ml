@@ -228,7 +228,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
           let def = StructName.Map.find s ctx.ctx_structs in
           pp ppfs "@,%a" format_struct_decl (s, def)
       | TypeIdent.Enum e ->
-        if EnumName.path e = [] then
+        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
           let def = EnumName.Map.find e ctx.ctx_enums in
           pp ppfs "@,%a" format_enum_decl (e, def))
     (type_ordering @ scope_structs)
@@ -326,7 +326,7 @@ let rec format_expression
       (Format.pp_print_list format_expression ~pp_sep:(fun ppf () ->
            Format.fprintf ppf ",@ "))
       args
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     let format_fun fmt = function
       | EExternal { name; _ }, _ ->
         Format.pp_print_string fmt (Mark.remove name)

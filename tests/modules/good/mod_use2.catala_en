@@ -30,7 +30,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope T
 ┌─[RESULT]─ T ─
-│ o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
+│ o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe }
 │ o2 = $2,500.00
 │ o3 = $132.00
 └─
@@ -43,8 +43,8 @@ The following tests multiple inclusion of the same module (Mod_def is used throu
 ```catala-test-cli
 $ catala test-scope T2
 ┌─[RESULT]─ T2 ─
-│ o1 = No ()
-│ o2 = Maybe ()
+│ o1 = No
+│ o2 = Maybe
 │ o3 = $1,000.00
 │ o4 = 5.0
 └─

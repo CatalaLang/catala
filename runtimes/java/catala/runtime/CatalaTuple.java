@@ -8,6 +8,7 @@ public final class CatalaTuple implements CatalaValue {
         this.values = values;
     }
 
+    @SuppressWarnings("unchecked")
     public final CatalaValue get(int index) {
         return this.values[index];
     }

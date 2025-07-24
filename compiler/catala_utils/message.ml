@@ -54,12 +54,13 @@ let has_color oc =
 (* Here we create new formatters to stderr/stdout that remain separate from the
    ones used by [Format.printf] / [Format.eprintf] (which remain unchanged) *)
 
-let formatter_of_out_channel oc =
+let formatter_of_out_channel ?(nocolor = false) oc =
   let tty = lazy Unix.(isatty (descr_of_out_channel oc)) in
   let ppf =
     lazy
       (let ppf = Format.formatter_of_out_channel oc in
-       if has_color_raw ~tty then color_formatter ppf else unstyle_formatter ppf)
+       if (not nocolor) && has_color_raw ~tty then color_formatter ppf
+       else unstyle_formatter ppf)
   in
   fun () ->
     let ppf = Lazy.force ppf in
@@ -238,30 +239,39 @@ module Content = struct
         Format.fprintf ppf "@,@[<v 2>@,@[<hov>%t@]@]" msg;
         if islast then Format.pp_print_cut ppf ();
         true
-      | Position pos -> (
+      | Position pos ->
         Format.pp_print_cut ppf ();
-        Option.iter
-          (fun msg -> Format.fprintf ppf "@[<v 1>@,@[<hov 2>%t@]@]" msg)
-          pos.pos_message;
-        Format.pp_print_break ppf 0 (-1);
-        let pr_head, pr_context, pr_legal = Pos.format_loc_text_parts pos.pos in
-        Format.pp_open_vbox ppf 2;
-        Format.fprintf ppf "@{<blue>@<1>%s@}%t" "├" pr_head;
-        pr_context ppf;
-        Format.pp_close_box ppf ();
-        match pr_legal with
-        | None -> true
-        | Some pr_legal ->
+        if Pos.get_file pos.pos = "" then (
           Format.pp_print_break ppf 0 (-1);
-          if islast then (
-            restore_ppf ();
-            Format.pp_open_vbox ppf 3;
-            Format.fprintf ppf "@{<blue>@<3>%s@}%t" "└─ " pr_legal)
-          else (
-            Format.pp_open_vbox ppf 3;
-            Format.fprintf ppf "@{<blue>@<3>%s@}%t" "├─ " pr_legal);
+          restore_ppf ();
+          Format.fprintf ppf "@{<blue>@<3>%s@}%s" "└─"
+            (if Global.options.debug then " (no position information)" else "");
+          false)
+        else (
+          Option.iter
+            (fun msg -> Format.fprintf ppf "@[<v 1>@,@[<hov 2>%t@]@]" msg)
+            pos.pos_message;
+          Format.pp_print_break ppf 0 (-1);
+          let pr_head, pr_context, pr_legal =
+            Pos.format_loc_text_parts pos.pos
+          in
+          Format.pp_open_vbox ppf 2;
+          Format.fprintf ppf "@{<blue>@<1>%s@}%t" "├" pr_head;
+          pr_context ppf;
           Format.pp_close_box ppf ();
-          not islast)
+          match pr_legal with
+          | None -> true
+          | Some pr_legal ->
+            Format.pp_print_break ppf 0 (-1);
+            if islast then (
+              restore_ppf ();
+              Format.pp_open_vbox ppf 3;
+              Format.fprintf ppf "@{<blue>@<3>%s@}%t" "└─ " pr_legal)
+            else (
+              Format.pp_open_vbox ppf 3;
+              Format.fprintf ppf "@{<blue>@<3>%s@}%t" "├─ " pr_legal);
+            Format.pp_close_box ppf ();
+            not islast)
       | Outcome msg ->
         Format.fprintf ppf "@;<0 1>@[<v 1>@[<hov 2>%t@]@]" msg;
         true

@@ -279,13 +279,13 @@ let typed = Typed { pos = Pos.void; ty = TLit TUnit, Pos.void }
 
 (* - Predefined types (option) - *)
 
-let option_enum = EnumName.fresh [] ("Eoption", Pos.void)
+let option_enum = EnumName.fresh [] ("Optional", Pos.void)
 let option_struct = StructName.fresh [] ("Soption", Pos.void)
 
 (* Warning: order of these definitions is important, binary injection assumes
    that None is first *)
-let none_constr = EnumConstructor.fresh ("ENone", Pos.void)
-let some_constr = EnumConstructor.fresh ("ESome", Pos.void)
+let none_constr = EnumConstructor.fresh ("Absent", Pos.void)
+let some_constr = EnumConstructor.fresh ("Present", Pos.void)
 
 (* Enums don't have type variables at the moment, so the correctness is handled
    by the specific TOption type; the below definition is used as placeholder in

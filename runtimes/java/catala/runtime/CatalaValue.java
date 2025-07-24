@@ -6,4 +6,9 @@ public interface CatalaValue {
 
     @Override
     public String toString();
+
+    @SuppressWarnings("unchecked")
+    public static <T extends CatalaValue> T cast(CatalaValue v) {
+        return (T) v;
+    }
 }
