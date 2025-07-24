@@ -807,7 +807,7 @@ module ExprDebug = ExprGen (ExprDebugParam)
 let expr ?(debug = Global.options.debug) () ppf e =
   if debug then ExprDebug.expr ppf e else ExprConcise.expr ppf e
 
-let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
+let scope_let_kind ?debug:(_debug = true) fmt k =
   match k with
   | DestructuringInputStruct -> keyword fmt "get"
   | ScopeVarDefinition -> keyword fmt "set"
@@ -819,12 +819,12 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
 let typ = typ ?colors:None
 
 let[@ocamlformat "disable"]
-  scope_body_expr ?(debug = false) ctx fmt b : unit =
+  scope_body_expr ?(debug = false) fmt b : unit =
   let print_scope_let x sl =
     Format.fprintf fmt
       "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,"
       keyword "let"
-      (scope_let_kind ~debug ctx) sl.scope_let_kind
+      (scope_let_kind ~debug) sl.scope_let_kind
       (if debug then var_debug else var) x
       punctuation ":"
       typ sl.scope_let_typ
@@ -835,7 +835,7 @@ let[@ocamlformat "disable"]
   let last = BoundList.iter ~f:print_scope_let b in
   Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) last
 
-let scope_body ?(debug = false) ctx fmt (n, l) : unit =
+let scope_body ?(debug = false) fmt (n, l) : unit =
   let {
     scope_body_input_struct;
     scope_body_output_struct;
@@ -885,7 +885,7 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
 
     Format.pp_print_cut fmt ();
 
-    scope_body_expr ~debug ctx fmt body;
+    scope_body_expr ~debug fmt body;
     Format.pp_close_box fmt ()
   in
   ()
@@ -937,37 +937,36 @@ let decl_ctx ?(debug = false) (fmt : Format.formatter) (ctx : decl_ctx) : unit =
 
 let scope
     ?(debug : bool = false)
-    (ctx : decl_ctx)
     (fmt : Format.formatter)
     ((n, s) : string * 'm scope_body) : unit =
   Format.pp_open_vbox fmt 0;
-  scope_body ~debug ctx fmt (n, s);
+  scope_body ~debug fmt (n, s);
   Format.pp_close_box fmt ()
 
-let code_item ?(debug = false) id decl_ctx fmt c =
-  let name = Format.asprintf "%a" (if debug then var_debug else var) id in
+let code_item ?(debug = false) name fmt c =
   match c with
   | ScopeDef (n, b) ->
     attrs fmt (Mark.get (ScopeName.get_info n));
-    scope ~debug decl_ctx fmt (name, b)
+    scope ~debug fmt (name, b)
   | Topdef (n, ty, _vis, e) ->
     attrs fmt (Mark.get (TopdefName.get_info n));
     Format.fprintf fmt
       "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
       "let topval" name op_style ":" typ ty op_style "=" (expr ~debug ()) e
 
-let code_item_list ?(debug = false) decl_ctx fmt c =
+let code_item_list ?(debug = false) fmt c =
   Format.pp_open_vbox fmt 0;
   Format.pp_print_seq
-    (fun fmt (x, item) ->
-      code_item ~debug x decl_ctx fmt item;
+    (fun fmt (id, item) ->
+      let name = Format.asprintf "%a" (if debug then var_debug else var) id in
+      code_item ~debug name fmt item;
       Format.pp_print_cut fmt ())
     fmt (BoundList.to_seq c);
   Format.pp_close_box fmt ()
 
 let program ?(debug = false) fmt p =
   decl_ctx ~debug fmt p.decl_ctx;
-  code_item_list ~debug p.decl_ctx fmt p.code_items
+  code_item_list ~debug fmt p.code_items
 
 (* - User-facing value printer - *)
 

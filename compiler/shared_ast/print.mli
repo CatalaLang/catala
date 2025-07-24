@@ -86,11 +86,7 @@ module ExprDebugParam : EXPR_PARAM
 val decl_ctx : ?debug:bool -> Format.formatter -> decl_ctx -> unit
 
 val scope :
-  ?debug:bool ->
-  decl_ctx ->
-  Format.formatter ->
-  string * ('a, 'm) gexpr scope_body ->
-  unit
+  ?debug:bool -> Format.formatter -> string * ('a, 'm) gexpr scope_body -> unit
 
 val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 

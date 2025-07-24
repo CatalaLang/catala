@@ -713,7 +713,7 @@ module Commands = struct
       List.iter
         (fun scope ->
           let scope_uid = get_scope_uid prg.decl_ctx scope in
-          Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
+          Print.scope ~debug:options.Global.debug fmt
             ( scope,
               BoundList.find
                 ~f:(function
@@ -877,7 +877,7 @@ module Commands = struct
       List.iter
         (fun scope ->
           let scope_uid = get_scope_uid prg.decl_ctx scope in
-          Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
+          Print.scope ~debug:options.Global.debug fmt
             (scope, Program.get_scope_body prg scope_uid);
           Format.pp_print_newline fmt ())
         scopes
