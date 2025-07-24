@@ -19,12 +19,12 @@ that offers full support for UTF-8. This support enables users of non-English
 languages to use their favorite diacritics and symbols in their code.
 
 While the parser of Catala is unique, the lexer has a general structure in
-{lexer.cppo.ml} that is parametrised with the cppo macros defined for English,
-French and Polish in the respective {lexer_*.cppo.ml}.
+[lexer.cppo.ml] that is parametrised with the cppo macros defined for English,
+French and Polish in the respective [lexer_*.cppo.ml].
 
 Relevant modules:
 
-{!modules: Surface.Lexer_common Surface.Lexer Surface.Lexer_en Surface.Lexer_fr Surface.Lexer_pl}
+{!modules: Surface.Lexer_common Surface.Lexer_en Surface.Lexer_fr Surface.Lexer_pl}
 
 Note that an additional, simplified "line-lexer" is also provided alongside the
 main one: it is faster and more resilient, and used by the build system to

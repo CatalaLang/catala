@@ -18,8 +18,6 @@ presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
 {!module: Lcalc.From_dcalc} compiles the default term of the
 default calculus
 
-{!modules: Lcalc.Compile_with_exceptions Lcalc.Compile_without_exceptions}
-
 {1 Other optional transformations}
 
 {2 Closure conversion }

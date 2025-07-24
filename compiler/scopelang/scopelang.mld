@@ -27,5 +27,5 @@ The {!module:Scopelang.From_desugared} pass performs a few important transformat
 - de-tuplification of function calls
 
 The rest of the pass is performed on the scopelang ast:
-- {!module:Dependency} analyses inter-scope dependencies as well as the well-foundedness of types
+- {!module:Scopelang.Dependency} analyses inter-scope dependencies as well as the well-foundedness of types
 - This is also where the main, full typing of the program takes place

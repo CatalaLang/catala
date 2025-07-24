@@ -69,7 +69,7 @@ val get_scope_body :
   ((_ any, 't) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
 
 val get_mark_witness : (_ any, 'm) gexpr program -> 'm mark
-(** @raise [Not_found] on an empty program *)
+(** Raises Not_found on an empty program *)
 
 val untype : ('a any, _) gexpr program -> ('a, untyped) gexpr program
 

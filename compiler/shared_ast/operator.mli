@@ -73,7 +73,7 @@ val overload_type : overloaded t Mark.pos -> typ list -> typ
 (** The type for typing overloads is different since the types of the operands
     are required in advance.
 
-    @raise a detailed user error if no matching operator can be found *)
+    Raises a detailed user error if no matching operator can be found *)
 
 (** Polymorphic operators are typed directly within [Typing], since their types
     may contain type variables that can't be expressed outside of it*)

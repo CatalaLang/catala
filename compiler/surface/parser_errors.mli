@@ -17,4 +17,4 @@
 (** Interface of the module auto-generated based on "parser.messages". *)
 
 val message : int -> string
-(** @raise [Not_found] *)
+(** Raises Not_found *)
