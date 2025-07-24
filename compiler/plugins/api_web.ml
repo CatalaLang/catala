@@ -121,8 +121,8 @@ module To_jsoo = struct
         elts
     | TOption t ->
       Format.fprintf fmt
-        "(function Eoption.ENone () -> Js.null | Eoption.ESome x -> Js.some \
-         (%a x))"
+        "(function Optional.Absent () -> Js.null | Optional.Present x -> \
+         Js.some (%a x))"
         format_to_js t
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
     | TForAll tb ->
@@ -157,8 +157,8 @@ module To_jsoo = struct
         elts
     | TOption t ->
       Format.fprintf fmt
-        "@[<hv 2>(fun o ->@ @[<hv 2>Js.Opt.case o@ (fun () -> Eoption.ENone \
-         ())@ @[<hov 2>(fun x ->@ @[<hov 2>Eoption.ESome@ @[<hv 2>(%a@ \
+        "@[<hv 2>(fun o ->@ @[<hv 2>Js.Opt.case o@ (fun () -> Optional.Absent \
+         ())@ @[<hov 2>(fun x ->@ @[<hov 2>Optional.Present@ @[<hv 2>(%a@ \
          x)@]@])@]@])@]"
         format_of_js t
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
@@ -290,79 +290,86 @@ module To_jsoo = struct
     in
     let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructor.Map.t))
         =
-      (* if EnumName.path enum_name <> [] then () else *)
-      let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
-      let fmt_module_enum_name fmt () =
-        To_ocaml.format_to_module_name fmt (`Ename enum_name)
-      in
-      let fmt_to_js fmt _ =
-        Format.fprintf fmt "%a"
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun fmt (cname, typ) ->
-               Format.fprintf fmt
-                 "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
-                  val kind = Js.string \"%a\"@\n\
-                  val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a arg))@]@\n\
-                  end@]"
-                 format_enum_cons_name cname format_enum_cons_name cname
-                 format_to_js typ))
-          (EnumConstructor.Map.bindings enum_cons)
-      in
-      let fmt_of_js fmt _ =
-        Format.fprintf fmt
-          "@[<hov 2>match@ %a##.kind@ |> Js.to_string@ with@]@\n\
-           @[<hv>%a@\n\
-           @[<hv 2>| cons ->@ @[<hov 2>failwith@ @[<hov 2>(Printf.sprintf@ \
-           \"Unexpected '%%s' kind for the enumeration '%a.t'\"@ cons)@]@]@]@]"
-          fmt_enum_name ()
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun fmt (cname, typ) ->
-               match Mark.remove typ with
-               | TTuple _ ->
-                 Message.error ~pos:(Mark.get typ)
-                   "Tuples aren't yet supported in the conversion to JS..."
-               | TLit TUnit ->
-                 Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
-                   format_enum_cons_name cname fmt_module_enum_name ()
-                   format_enum_cons_name cname
-               | _ ->
+      if
+        (* EnumName.path enum_name <> [] || *)
+        EnumName.equal enum_name Expr.option_enum
+      then ()
+      else
+        let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
+        let fmt_module_enum_name fmt () =
+          To_ocaml.format_to_module_name fmt (`Ename enum_name)
+        in
+        let fmt_to_js fmt _ =
+          Format.fprintf fmt "%a"
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+               (fun fmt (cname, typ) ->
                  Format.fprintf fmt
-                   "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.coerce %a##.payload))"
-                   format_enum_cons_name cname fmt_module_enum_name ()
-                   format_enum_cons_name cname format_of_js typ fmt_enum_name ()))
-          (EnumConstructor.Map.bindings enum_cons)
-          fmt_module_enum_name ()
-      in
+                   "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
+                    val kind = Js.string \"%a\"@\n\
+                    val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a \
+                    arg))@]@\n\
+                    end@]"
+                   format_enum_cons_name cname format_enum_cons_name cname
+                   format_to_js typ))
+            (EnumConstructor.Map.bindings enum_cons)
+        in
+        let fmt_of_js fmt _ =
+          Format.fprintf fmt
+            "@[<hov 2>match@ %a##.kind@ |> Js.to_string@ with@]@\n\
+             @[<hv>%a@\n\
+             @[<hv 2>| cons ->@ @[<hov 2>failwith@ @[<hov 2>(Printf.sprintf@ \
+             \"Unexpected '%%s' kind for the enumeration '%a.t'\"@ \
+             cons)@]@]@]@]"
+            fmt_enum_name ()
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+               (fun fmt (cname, typ) ->
+                 match Mark.remove typ with
+                 | TTuple _ ->
+                   Message.error ~pos:(Mark.get typ)
+                     "Tuples aren't yet supported in the conversion to JS..."
+                 | TLit TUnit ->
+                   Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
+                     format_enum_cons_name cname fmt_module_enum_name ()
+                     format_enum_cons_name cname
+                 | _ ->
+                   Format.fprintf fmt
+                     "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.coerce %a##.payload))"
+                     format_enum_cons_name cname fmt_module_enum_name ()
+                     format_enum_cons_name cname format_of_js typ fmt_enum_name
+                     ()))
+            (EnumConstructor.Map.bindings enum_cons)
+            fmt_module_enum_name ()
+        in
 
-      let fmt_conv_funs fmt _ =
+        let fmt_conv_funs fmt _ =
+          Format.fprintf fmt
+            "@[<hov 2>let %a_to_js@ : %a.t -> %a Js.t@ = function@\n\
+             %a@]@\n\
+             @\n\
+             @[<hov 2>let %a_of_js@ @[<hov 2>(%a@ : %a Js.t)@]@ : %a.t =@ %a@]@\n"
+            fmt_enum_name () fmt_module_enum_name () fmt_enum_name () fmt_to_js
+            () fmt_enum_name () fmt_enum_name () fmt_enum_name ()
+            fmt_module_enum_name () fmt_of_js ()
+        in
         Format.fprintf fmt
-          "@[<hov 2>let %a_to_js@ : %a.t -> %a Js.t@ = function@\n\
-           %a@]@\n\
+          "@[<v 2>class type %a =@ @[<v 2>object@ @[<hov 2>method kind :@ \
+           Js.js_string Js.t Js.readonly_prop@\n\
+           @[<v 2>(** Expects one of:@\n\
+           %a *)@]@]@\n\
            @\n\
-           @[<hov 2>let %a_of_js@ @[<hov 2>(%a@ : %a Js.t)@]@ : %a.t =@ %a@]@\n"
-          fmt_enum_name () fmt_module_enum_name () fmt_enum_name () fmt_to_js ()
-          fmt_enum_name () fmt_enum_name () fmt_enum_name ()
-          fmt_module_enum_name () fmt_of_js ()
-      in
-      Format.fprintf fmt
-        "@[<v 2>class type %a =@ @[<v 2>object@ @[<hov 2>method kind :@ \
-         Js.js_string Js.t Js.readonly_prop@\n\
-         @[<v 2>(** Expects one of:@\n\
-         %a *)@]@]@\n\
-         @\n\
-         @[<hov 2>method payload :@ Js.Unsafe.any Js.t Js.readonly_prop@]@]@\n\
-         end@]@\n\
-         @\n\
-         %a@\n"
-        format_enum_name enum_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun fmt (enum_cons, _) ->
-             Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
-        (EnumConstructor.Map.bindings enum_cons)
-        fmt_conv_funs ()
+           @[<hov 2>method payload :@ Js.Unsafe.any Js.t Js.readonly_prop@]@]@\n\
+           end@]@\n\
+           @\n\
+           %a@\n"
+          format_enum_name enum_name
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+             (fun fmt (enum_cons, _) ->
+               Format.fprintf fmt "- \"%a\"" format_enum_cons_name enum_cons))
+          (EnumConstructor.Map.bindings enum_cons)
+          fmt_conv_funs ()
     in
     let is_in_type_ordering s =
       List.exists
