@@ -564,7 +564,7 @@ let gen_build_statements
            [
              Nj.build "phony"
                ~outputs:[modname ^ "@c-module"]
-               ~inputs:[modfile ~backend:"c" ".h" modname];
+               ~inputs:[modfile ~backend:"c" "@c-module" modname];
            ]
          else [])
       @ (if List.mem Python enabled_backends then
