@@ -12,7 +12,7 @@ declaration enumeration E:
 scope A:
   definition x equals Case1 content 2
   definition y equals match x with pattern
-    -- Case1 of i : 42
+    -- Case1 content i : 42
     -- Case2 : 43
 ```
 

@@ -15,8 +15,8 @@ declaration enumeration S:
 
 scope A:
   definition y equals B content (D content 1)
-  definition x under condition match y with pattern -- A of a: a >= 0 -- B of b: false consequence equals 0
-  definition x under condition match y with pattern -- A of a: a < 0 -- B of b: true consequence equals 1
+  definition x under condition match y with pattern -- A content a: a >= 0 -- B content b: false consequence equals 0
+  definition x under condition match y with pattern -- A content a: a < 0 -- B content b: true consequence equals 1
 ```
 
 

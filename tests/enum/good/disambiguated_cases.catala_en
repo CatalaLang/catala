@@ -17,7 +17,7 @@ scope A:
   definition e equals E.Case1
   definition f equals F.Case1 content 2
   definition x equals match f with pattern
-    -- F.Case1 of i : i
+    -- F.Case1 content i : i
     -- Case2 : 3
 ```
 

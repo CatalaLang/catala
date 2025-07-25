@@ -32,7 +32,7 @@ scope Simple_case_2:
   definition x equals Case3
   definition y equals match x with pattern
     -- Case2 : 42
-    -- Case1 of i : i
+    -- Case1 content i : i
     -- anything : 31
 ```
 

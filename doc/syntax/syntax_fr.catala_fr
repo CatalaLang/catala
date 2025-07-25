@@ -126,7 +126,7 @@ déclaration x contenu entier égal à
   dans
   soit x égal à
     selon expr sous forme
-    -- Cas1 de x : 0
+    -- Cas1 contenu x : 0
     -- Cas2 : 0
     -- n'importe quel : 0
   dans

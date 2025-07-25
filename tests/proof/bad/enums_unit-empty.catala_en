@@ -12,10 +12,10 @@ declaration scope A:
 scope A:
   definition x equals Case1 content 2
   definition y under condition match x with pattern
-    -- Case1 of i : i > 0
+    -- Case1 content i : i > 0
     -- Case2 : false consequence equals 2
   definition y under condition match x with pattern
-    -- Case1 of i : false
+    -- Case1 content i : false
     -- Case2 : true consequence equals 2
 ```
 

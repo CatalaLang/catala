@@ -15,11 +15,11 @@ declaration f2 content decimal
              en content En
   equals
   match en with pattern
-  -- One of str1:
+  -- One content str1:
      let a equals str.x1.1 in
      let (b, w) equals str1.x1 in
      a / b
-  -- Two of z:
+  -- Two content z:
      let (z1, z2) equals z in z1 / 2
 
 #[test] declaration scope Test:
