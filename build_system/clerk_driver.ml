@@ -129,7 +129,7 @@ let linking_dependencies items =
 let backend_extensions =
   [
     Clerk_rules.C, ["c"; "h"; "o"];
-    Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"];
+    Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"; "cmxs"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"; "class"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
@@ -433,12 +433,16 @@ let build_clerk_target
     in
     let all_targets =
       List.fold_left
-        (fun acc ((item, _target, backend), _f) ->
+        (fun acc ((item, _target, backend), f) ->
           let target =
             make_target ~build_dir ~backend:(rules_backend backend) item
           in
-          Message.debug "Making target %s" target;
-          target :: acc)
+          let targets =
+            if backend = OCaml then [target; File.(target -.- "cmxs")]
+            else [target]
+          in
+          Message.debug "Building file: %s" f;
+          targets @ acc)
         [] all_target_files
       |> List.rev
     in
