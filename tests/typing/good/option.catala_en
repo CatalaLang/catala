@@ -1,7 +1,7 @@
 ```catala
 #[test]
 declaration scope S:
-  output o content Optional of (integer, money)
+  output o content optional of (integer, money)
 
 scope S:
   definition o equals Present content (12, $13)
@@ -19,21 +19,21 @@ $ catala test-scope S
 ```catala
 #[test]
 declaration scope S2:
-  output o content Optional of list of Optional of boolean
+  output o content optional of list of optional of boolean
 
-declaration option_join content Optional of anything of type t
-  depends on left_opt content Optional of anything of type t,
-             right_opt content Optional of anything of type t
+declaration option_join content optional of anything of type t
+  depends on left_opt content optional of anything of type t,
+             right_opt content optional of anything of type t
   equals match left_opt with pattern
-    -- Present of x : Present content x
+    -- Present content x : Present content x
     -- Absent : right_opt
 
 declaration option_dft content anything of type t
-  depends on opt content Optional of anything of type t,
+  depends on opt content optional of anything of type t,
              default content anything of type t
   equals
   match opt with pattern
-  -- Present of x : x
+  -- Present content x : x
   -- Absent : default
 
 scope S2:

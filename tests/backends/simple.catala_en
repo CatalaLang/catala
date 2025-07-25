@@ -19,7 +19,7 @@ scope Baz:
   definition b equals
     match a with pattern
     -- No: 0.0
-    -- Yes of foo: foo.y + if foo.x then 1.0 else 0.0
+    -- Yes content foo: foo.y + if foo.x then 1.0 else 0.0
 
   exception definition b under condition
     a with pattern No
@@ -150,7 +150,7 @@ const Baz* baz (const Baz_in* baz_in)
   } else {
     CATALA_DEC b__5;
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 20, 5, 22, 54}};
+      {{"tests/backends/simple.catala_en", 20, 5, 22, 59}};
     CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__4 =
       catala_malloc(2 * sizeof(tuple_element*));
     switch (a__1->code) {
