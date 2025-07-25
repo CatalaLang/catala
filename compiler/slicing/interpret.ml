@@ -266,7 +266,10 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> ok Var.Map.empty v @@ trvar ~var:x ~value:v
+        | Some v -> 
+          (* We return the local_context with the value since v could be a 
+            lambda abstaction with bond variables defined in the context *)
+          ok local_ctx v @@ trvar ~var:x ~value:v
         | None -> 
           Message.error ~pos "%a@ Variable : %a@ Context : %a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -344,19 +347,18 @@ fun ctx lang e ->
       | EAbs { binder; _ } ->
         if Bindlib.mbinder_arity binder = List.length args then
           let vars, body = Bindlib.unmbind binder in
-          let local_ctx = List.fold_left2 
+          let whole_ctx = union_map ctxargs @@ List.fold_left2 
             (fun ctx var arg -> Var.Map.update var (fun _ -> Some arg) ctx) 
-            local_ctx (Array.to_list vars) args 
+            ctxf (Array.to_list vars) args 
           in
           let* new_ctx, v, trv = 
-            evaluate_expr_with_trace_aux ctx (union_map local_ctx ctxargs) lang body 
+            evaluate_expr_with_trace_aux ctx whole_ctx lang body 
             |> map_error_trace (fun _ trv -> trapp ~trf ~trargs ~tys ~vars ~trv)
           in 
           (* We add a context closure here for when there are scope calls *)
           (* It is the part that slows the interpret the most. *)
           (* It could certainly be optimized by handling substitutions differently *)
-          let whole_ctx = (union_map new_ctx @@ union_map ctxf ctxargs) in
-          let reduced_ctx, _ = substitute_bounded_vars whole_ctx v in
+          let reduced_ctx, _ = substitute_bounded_vars new_ctx v in
           let tr = trapp ~trf ~trargs ~tys ~vars ~trv in
           ok reduced_ctx v @@ trcontextclosure ~context:reduced_ctx ~tr
         else
