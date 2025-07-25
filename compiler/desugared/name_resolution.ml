@@ -533,12 +533,11 @@ let rec process_base_typ
           { ctxt with local = mod_ctxt }
           Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
     | Surface.Ast.Var None ->
-      let v = Bindlib.new_var (fun v -> TVar v) "ty" in
-      TVar v, typ_pos
-      (* FIXME: this should be an error outside of func types as well ? *)
+      Message.error ~pos:typ_pos
+        "Specifying type `anything` is not allowed at this point"
     | Surface.Ast.Var (Some (id, pos)) -> (
       match String.Map.find_opt id vars with
-      | Some v -> TVar v, pos
+      | Some (v, pos) -> TVar v, pos
       | None ->
         Message.error ~pos
           "Specifying type `anything` is not allowed at this point"))
@@ -546,49 +545,53 @@ let rec process_base_typ
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
     =
-  let merge = String.Map.union (fun _ pos _ -> Some pos) in
   match naked_typ with
   | Surface.Ast.Base base_typ ->
     process_base_typ ~vars:String.Map.empty ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    let rec get_vars = function
-      | Surface.Ast.Primitive (Var (Some (id, pos))), _ ->
-        String.Map.singleton id pos
-      | (Surface.Ast.Collection ty | Surface.Ast.Option ty), _ -> get_vars ty
-      | Surface.Ast.TTuple ls, _ ->
-        List.fold_right
-          (fun ty acc -> merge acc (get_vars ty))
-          ls String.Map.empty
-      | _ -> String.Map.empty
+    let rec get_vars ((count, vars) as acc) ty =
+      match ty with
+      | Surface.Ast.Primitive (Var (Some (name, npos))), pos ->
+        if Ident.Map.mem name vars then acc, ty
+        else
+          let var = Bindlib.new_var (fun v -> TVar v) name in
+          ( (count, Ident.Map.add name (var, npos) vars),
+            (Surface.Ast.Primitive (Var (Some (name, npos))), pos) )
+      | Surface.Ast.Primitive (Var None), pos ->
+        let name = Printf.sprintf "'%d" count in
+        (* note these idents can't conflict with the user-supplied ones *)
+        let var = Bindlib.new_var (fun v -> TVar v) name in
+        ( (count + 1, Ident.Map.add name (var, pos) vars),
+          (Surface.Ast.Primitive (Var (Some (name, pos))), pos) )
+      | Surface.Ast.Collection ty, pos ->
+        let acc, ty = get_vars acc ty in
+        acc, (Surface.Ast.Collection ty, pos)
+      | Surface.Ast.TTuple ls, pos ->
+        let acc, ls = List.fold_left_map get_vars acc ls in
+        acc, (Surface.Ast.TTuple ls, pos)
+      | Surface.Ast.Option ty, pos ->
+        let acc, ty = get_vars acc ty in
+        acc, (Surface.Ast.Option ty, pos)
+      | Surface.Ast.Primitive _, _ -> acc, ty
     in
-    let variables =
-      List.fold_left
-        (fun acc ty ->
-          let vs =
-            match ty with
-            | Surface.Ast.Condition, _ -> String.Map.empty
-            | Surface.Ast.Data dty, pos -> get_vars (dty, pos)
-          in
-          merge acc vs)
-        String.Map.empty
-        (return_typ :: List.map snd arg_typ)
+    let get_vars_base acc = function
+      | Surface.Ast.Condition, pos -> acc, (Surface.Ast.Condition, pos)
+      | Surface.Ast.Data ty, pos ->
+        let acc, (ty, pos) = get_vars acc (ty, pos) in
+        acc, (Surface.Ast.Data ty, pos)
     in
-    let vars =
-      String.Map.mapi
-        (fun id _pos -> Bindlib.new_var (fun v -> TVar v) id)
-        variables
-    in
-    let targs =
-      List.map (fun (_, t) -> process_base_typ ~vars ctxt t) arg_typ
-    in
+    let _arg_names, arg_ty = List.split arg_typ in
+    let acc, return_typ = get_vars_base (1, Ident.Map.empty) return_typ in
+    let (_, vars), arg_typ = List.fold_left_map get_vars_base acc arg_ty in
+    let targs = List.map (process_base_typ ~vars ctxt) arg_typ in
     let ty = TArrow (targs, process_base_typ ~vars ctxt return_typ), typ_pos in
-    if String.Map.is_empty vars then ty
+    if Ident.Map.is_empty vars then ty
     else
       let ty = Type.rebox ty in
-      ( TForAll
-          Bindlib.(
-            unbox (bind_mvar (Array.of_list (String.Map.values vars)) ty)),
-        typ_pos )
+      let vars =
+        Ident.Map.values vars |> List.map Mark.remove |> Array.of_list
+      in
+      TForAll Bindlib.(unbox (bind_mvar vars ty)), typ_pos
 
 (** Process data declaration *)
 let process_data_decl

@@ -23,6 +23,7 @@ $ catala typecheck
 │  This function has type <t> → <t>
 │  which requires that <t1> = <t>,
 │  while they are both specified as "anything".
+│  You may want to give them the same explicit name ("anything of type t")
 │
 ├─➤ tests/typing/bad/not_universal.catala_en:2.13-2.21:
 │   │
