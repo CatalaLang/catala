@@ -1,0 +1,46 @@
+```catala
+declaration bar content anything depends on x content anything equals x
+
+declaration foo content anything of type t1 depends on x content anything of type t2 equals x
+```
+
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─ 1/2 ─
+│
+│  This function has type <any type> → <any type>
+│  which requires that <any type (2)> = <any type>,
+│  while they are both specified as "anything".
+│  You may want to give them the same explicit name ("anything of type t")
+│
+├─➤ tests/typing/bad/impossible.catala_en:2.13-2.16:
+│   │
+│ 2 │ declaration bar content anything depends on x content anything equals x
+│   │             ‾‾‾
+│
+├─➤ tests/typing/bad/impossible.catala_en:2.25-2.33:
+│   │
+│ 2 │ declaration bar content anything depends on x content anything equals x
+│   │                         ‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  This function has type <t1> → <t1>
+│  which requires that <t2> = <t1>,
+│  while they are both specified as "anything".
+│  You may want to give them the same explicit name ("anything of type t")
+│
+├─➤ tests/typing/bad/impossible.catala_en:4.13-4.16:
+│   │
+│ 4 │ declaration foo content anything of type t1 depends on x content anything of type t2 equals x
+│   │             ‾‾‾
+│
+├─➤ tests/typing/bad/impossible.catala_en:4.42-4.44:
+│   │
+│ 4 │ declaration foo content anything of type t1 depends on x content anything of type t2 equals x
+│   │                                          ‾‾
+└─
+#return code 123#
+```
+

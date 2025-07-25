@@ -1028,7 +1028,9 @@ let expr ctx ?(env = Env.empty ctx) ?typ e =
                 ~extra_pos:["", pos]
                 "@[<hv>@[<hov>This function has type@ @]%a@ @[<hov>which \
                  requires that@ %a = %a,@]@ @[<hov>while@ they@ are@ both@ \
-                 specified@ as@ \"@{<cyan>anything@}\".@]@]@,"
+                 specified@ as@ \"@{<cyan>anything@}\".@]@]@ You may want to \
+                 give them the same explicit name@ (\"@{<cyan>anything of type \
+                 t@}\")"
                 Type.format (expr_ty env e') Type.format (TVar tv, tpos)
                 Type.format (TVar tv', tpos);
             Type.Var.Set.add tv' acc

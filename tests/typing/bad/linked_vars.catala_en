@@ -40,6 +40,7 @@ $ catala typecheck
 │                            list of <e>)
 │  which requires that <b> = <c>,
 │  while they are both specified as "anything".
+│  You may want to give them the same explicit name ("anything of type t")
 │
 ├─➤ tests/typing/bad/linked_vars.catala_en:2.13-2.22:
 │   │

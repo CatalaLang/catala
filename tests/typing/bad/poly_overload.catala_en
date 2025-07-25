@@ -4,6 +4,10 @@ declaration min content anything of type t
   depends on x content anything of type t,
              y content anything of type t
   equals if x <= y then x else y
+
+declaration foo content integer equals
+  3 + impossible
+
 ```
 
 ```catala-test-cli
