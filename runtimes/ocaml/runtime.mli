@@ -323,7 +323,8 @@ val date_to_string : date -> string
 
 val date_of_numbers : int -> int -> int -> date
 (** Usage: [date_of_numbers year month day].
-    @raise Failure on invalid inputs *)
+
+    Raises Failure on invalid inputs *)
 
 val first_day_of_month : date -> date
 val last_day_of_month : date -> date
@@ -376,7 +377,7 @@ module Oper : sig
 
   val o_map2 :
     source_position -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
-  (** @raise [NotSameLength] *)
+  (** @raise Runtime.NotSameLength *)
 
   val o_reduce : ('a -> 'a -> 'a) -> (unit -> 'a) -> 'a array -> 'a
   val o_concat : 'a array -> 'a array -> 'a array
@@ -456,6 +457,6 @@ val check_module : string -> hash -> (unit, hash) result
 (** Returns [Ok] if it has been registered with the correct hash, [Error h] if
     there is a hash mismatch.
 
-    @raise Not_found if the module does not exist at all *)
+    Raises Not_found if the module does not exist at all *)
 
 val lookup_value : string list * string -> Obj.t

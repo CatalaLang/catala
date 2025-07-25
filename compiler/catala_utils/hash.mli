@@ -65,7 +65,7 @@ val to_string : full -> string
 val format : Format.formatter -> full -> unit
 
 val of_string : string -> full
-(** @raise Failure *)
+(** Raises Failure *)
 
 val external_placeholder : string
 (** It's inconvenient to need hash updates on external modules. This string is

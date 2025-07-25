@@ -14,11 +14,14 @@ Related modules:
 
 {!modules: Catala_utils.Uid}
 
-{1 Source code positions}
+{1 Source code positions and attributes}
 
 This module is used throughout the compiler to annotate the abstract syntax
 trees with information about the position of the element in the original source
 code. These annotations are critical to produce readable error messages.
+
+The positions also include attribute information, as an extensible variant
+defined in the same module.
 
 Related modules:
 
@@ -37,8 +40,42 @@ Related modules:
 
 {!modules: Catala_utils.Message}
 
+{1 AST marks}
+
+Throughout we use values with a "mark", which most often contains position
+information, or more in the case of AST nodes. Such values are simply pairs
+[payload, mark], but the following module provides some helper to work with them
+(e.g. to do mark-agnostic comparisons).
+
+Related modules:
+
+{!modules: Catala_utils.Mark}
+
+{1 Globals}
+
+For some global flags, like the debug option, having a global reference is more
+convenient than passing the information everywhere. This is all gathered in the
+single global value [Global.options] (and forbidden in other modules).
+
+Related modules:
+
+{!modules: Catala_utils.Global}
+
+{1 Maps}
+
+The [Map] module is an overlay on the OCaml stdlib [Map] that provides some
+extensions and convenience functions.
+
+Note of warning: the [Not_found] exception is specialised for every instance of
+the functor. This is useful to automatically report {b what} element was not
+found, but be careful with catching [Stdlib.Not_found], which won't work.
+
+Related modules:
+
+{!modules: Catala_utils.Map}
+
 {1 Other utilies}
 
 Related modules:
 
-{!modules: Catala_utils.File Catala_utils.Mark Catala_utils.Cli Catala_utils.String Catala_utils.Suggestions}
+{!modules: Catala_utils.File Catala_utils.Cli Catala_utils.String Catala_utils.Suggestions Catala_utils.Graphs Catala_utils.Hash Catala_utils.Version}

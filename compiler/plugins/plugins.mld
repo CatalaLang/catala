@@ -1,17 +1,16 @@
 {0 Example backend plugins }
 
 This directory contains backend plugins that demonstrate how those can be
-written and used with Catala. They probably don't provide much value otherwise.
+written and used with Catala.
 
 Use [make plugins] from the root of the source tree to build them.
 
 A plugin is created by writing an OCaml module that calls
-[Driver.Plugin.register_lcalc] or [Driver.Plugin.register_scalc] and that links
+[Driver.Plugin.register] and that links
 against [catala.driver]. Here is an example dune stanza to compile it:
 {v
-(executable
+(library
  (name my-plugin)
- (modes plugin)
  (modules my_plugin_main_module)
  (libraries catala.driver))
 v}
@@ -46,7 +45,7 @@ different to using the normal Catala Python output mode.
 This plugin generates a [js_of_ocaml] wrapper from the [lcalc] representation
 of a Catala program.
 
-It start by generating the OCaml module before generating the [_api_web.ml]
+It starts by generating the OCaml module before generating the [_api_web.ml]
 one, which contains all the class types and conversion functions between the
 OCaml types and their corresponding JS objects. At the end the module exposes
 all methods in a JS lib [<module_name>Lib].

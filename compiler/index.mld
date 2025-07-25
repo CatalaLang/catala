@@ -8,66 +8,78 @@ framework, and is structured around many intermediate representations connected
 by successive translations passes.
 
 Here is the recap picture of the different intermediate representations of the
-Catala compiler (made with an {{: https://textik.com/#c1c1fecda5209492} ASCII diagram tool}):
+Catala compiler. This process is gathered inside {!module: Driver}.
 
 {v
-                                     +---------------+
-                                     |               |
-                                     |  Surface AST  |
-                                     |               |
-                                     +---------------+
+                             |
+surface/                     |   Parsing
+  .                          |   Separate code from legislation
+  .                          v
+                     +---------------+
+                     |               |
+                     |  Surface AST  |----------> HTML, pdf
+                     |               |
+                     +---------------+
+                             |
+                             v
+desugared/                   |   Name resolution
+  .                          |   Remove syntactic sugar
+  .                          |   Disambiguation
+                             v
+                   +------------------+
+                   |                  |
+                   |  Desugared AST   |
+                   |                  |
+                   +------------------+
+                             |
+                             |   Build rule trees for each definition
+                             |   Intra-scope dependency analysis
+                             v
+scopelang/                   |   Overload resolution
+  .                          |   Thunking of subscope arguments
+  .                          v
+                  +--------------------+
+                  |                    |
+                  | Scope language AST |
+                  |                    |
+                  +--------------------+
+                             |
+                             |   Inter-scope dependency analysis
+                             |   Typing
+                             v
+dcalc/                       |   Convert scopes into functions
+  .                          v
+  .              +----------------------+
+                 |                      |
+                 | Default calculus AST |-------> (interpret)
+                 |                      |
+                 +----------------------+
+                             |
+                             |   Invariant checks
+                             |   Automatic backend test generation
+                             v
+lcalc/                       |   Compile the default terms
+  .                          v
+  .              +----------------------+
+                 |                      |
+                 | Lambda calculus AST  |----+--> (interpret)
+                 |                      |    |
+                 +----------------------+    +--> OCaml
+                             |
+                             |   Expansion of structural operators
+                             |   (optional) closure conversion
+                             |   (optional) monomorphisation
+                             |   Collision-free renaming
+                             v
+scalc/                       |   Turn expressions into statements
+  .                          v
+  .            +--------------------------+
+               |                          |
+               |  Statement calculus AST  |--+--> Python
+               |                          |  |
+               +--------------------------+  +--> C
                                              |
-                                             |
-         * Separate code from legislation    |
-         * Remove syntactic sugars           |
-                                             v
-                                   +------------------+
-                                   |                  |
-                                   |  Desugared AST   |
-                                   |                  |
-                                   +------------------+
-                                             |
-                                             |
- * Build rule trees for each definition      |
- * Order variable computations inside scope  |
-                                             v
-                                  +--------------------+
-                                  |                    |
-                                  | Scope language AST |
-                                  |                    |
-                                  +--------------------+
-                                             |
-                                             |
-        * Convert scopes into functions      |
-        * Thunking of subscope arguments     |
-                                             |
-                                             v
-                                 +----------------------+
-                                 |                      |
-                                 | Default calculus AST |
-                                 |                      |
-                                 +----------------------+
-                                             |
-                                             |
-                                             |
-       * Compile the default term            |
-                                             |
-                                             v
-                                 +----------------------+
-                                 |                      |
-                                 | Lambda calculus AST  |
-                                 |                      |
-                                 +----------------------+
-                                             |
-                                             |
-        * Turn expressions into statements   |
-                                             |
-                                             v
-                               +--------------------------+
-                               |                          |
-                               |  Statement calculus AST  |
-                               |                          |
-                               +--------------------------+
+                                             +--> Java
 v}
 
 {1 List of top-level modules }

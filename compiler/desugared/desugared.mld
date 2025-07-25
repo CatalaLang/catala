@@ -10,7 +10,27 @@ The module describing the abstract syntax tree is:
 
 {!modules: Desugared.Ast}
 
-{1 Translation to the scope language}
+Desugaring proceeds in three main steps:
+- Name resolution ([Name_resolution.form_context])
+- Conversion to the [Desugared] AST, including dependency checks
+- Disambiguation (resolution of constructors to their enums, etc.)
+
+{1 Name resolution and translation }
+
+The desugaring consists of translating {!module: Surface.Ast} to
+{!module: Desugared.Ast} of the {{: desugared.html} desugared representation}.
+The translation is implemented in
+{!module:Desugared.From_surface}, but it relies on a helper module to perform the
+name resolution: {!module:Desugared.Name_resolution}. Indeed, in
+{!module: Surface.Ast}, the variables identifiers are just [string], whereas in
+{!module: Desugared.Ast} they have been turned into well-categorized types
+with an unique identifier like {!type:Shared_ast.ScopeName.t}.
+
+Relevant modules:
+
+{!modules: Desugared.Name_resolution Desugared.From_surface}
+
+{1 Towards the scope language}
 
 Before the translation to the {{: scopelang.html} scope language},
 {!module: Desugared.Dependency} checks that within
@@ -21,10 +41,6 @@ produce an ordered list of the scope definitions compatible with the
 computation order. All the graph computations are done using the
 {{:http://ocamlgraph.lri.fr/} Ocamlgraph} library.
 
-The other important piece of work performed by
-{!module:Scopelang.From_desugared} is the construction of the default trees
-(see {!Shared_ast.EDefault}) from the list of prioritized rules.
-
 Related modules:
 
-{!modules: Desugared.Dependency Scopelang.From_desugared}
+{!modules: Desugared.Dependency Desugared.Disambiguate}

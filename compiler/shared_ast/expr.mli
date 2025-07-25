@@ -227,11 +227,11 @@ val map_mark2 :
   'm mark ->
   'm mark ->
   'm mark
-(** @raise Invalid_arg on custom marks*)
+(** Raises Invalid_arg on custom marks*)
 
 val fold_marks :
   (Pos.t list -> Pos.t) -> (typed list -> typ) -> 'm mark list -> 'm mark
-(** @raise Invalid_arg on custom marks*)
+(** Raises Invalid_arg on custom marks*)
 
 val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
 (** Returns the corresponding type on a typed expr, or [typ] (defaulting to

@@ -116,7 +116,6 @@ val position_to_js :
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the
-    {!Runtime_ocaml.Runtime.NoValueProvided},
-    {!Runtime_ocaml.Runtime.ConflictError}
+    {!Runtime_ocaml.Runtime.NoValue}, {!Runtime_ocaml.Runtime.Conflict}
     {!Runtime_ocaml.Runtime.AssertionFailed} exceptions by raising a JS error if
     needed.*)
