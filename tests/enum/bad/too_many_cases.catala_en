@@ -15,8 +15,8 @@ declaration scope A:
 
 scope A:
   definition out equals match e with pattern
-    -- Case1 of i : i = 0
-    -- Case2 of b : b
+    -- Case1 content i : i = 0
+    -- Case2 content b : b
     -- Case3 : false
     -- Case4 : true
 ```

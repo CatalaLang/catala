@@ -493,12 +493,12 @@ let binop ==
 | XOR ; { Xor }
 
 let constructor_binding :=
-| uid = addpos(quident) ; OF ; lid = lident ; {
+| uid = addpos(quident) ; CONTENT ; lid = lident ; {
   ([uid], Some lid)
 }
 | uid = addpos(quident) ; {
   ([uid], None)
-} %prec apply
+}
 
 let match_arm :=
 | WILDCARD ; COLON ; ~ = expression ; <WildCard>

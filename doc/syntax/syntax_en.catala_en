@@ -127,7 +127,7 @@ declaration x content integer equals
   in
   let x equals
     match expr with pattern
-       -- Case1 of x : 0
+       -- Case1 content x : 0
        -- Case2 : 0
        -- anything : 0
   in
@@ -135,7 +135,7 @@ declaration x content integer equals
     expr with pattern Case1
   in
   let x equals
-    expr with pattern Case1 of x
+    expr with pattern Case1 content x
     and x >= 2
   in
   let x equals
