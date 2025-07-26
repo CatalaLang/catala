@@ -32,15 +32,10 @@ type global = {
   default_targets : string list;
 }
 
-type module_ = {
-  name : string;
-  module_uses : [ `Simple of string | `With_alias of string * string ] list;
-  includes : string list;
-}
-
 type target = {
   tname : string;
   tmodules : string list;
+  ttests : File.t list;
   backends : backend list;
   include_runtime : bool;
 }
@@ -63,7 +58,6 @@ type custom_rule = {
 type config_file = {
   global : global;
   variables : (string * string list) list;
-  modules : module_ list;
   targets : target list;
   docs : doc list;
   custom_rules : custom_rule list;
