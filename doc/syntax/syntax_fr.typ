@@ -68,6 +68,24 @@ date
 durée
 ```,
 ```catala-fr-code
+Cas1 contenu 12        Cas2
+```,
+```catala-fr-code
+Énum1
+```,
+```catala-fr-code
+Struct1 { -- chp1: 9 -- chp2: 7% }
+```,
+```catala-fr-code
+Struct1
+```,
+```catala-fr-code
+Présent contenu 34€    Absent
+```,
+```catala-fr-code
+optionnel de argent
+```,
+```catala-fr-code
 [ 12; 24; 36 ]
 ```,
 ```catala-fr-code
@@ -96,18 +114,6 @@ décimal dépend de
   x contenu argent,
   y contenu décimal
 ```,
-```catala-fr-code
-Struct1 { -- chp1: 9 -- chp2: 7% }
-```,
-```catala-fr-code
-Struct1
-```,
-```catala-fr-code
-Cas1 contenu 12        Cas2
-```,
-```catala-fr-code
-Énum1
-```
 )
 
 #let operators = cheat-sheet.syntax-doc([Opérations],
@@ -193,6 +199,9 @@ selon expr sous forme
 -- Cas2 : ...
 -- n'importe quel : ...
 ```, [Filtrage par motif],
+```catala-fr-code
+impossible
+```, [Calcul inaccessible],
 ```catala-fr-code
 expr sous forme Cas1
 expr sous forme Cas1 contenu x

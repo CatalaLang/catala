@@ -31,6 +31,8 @@ déclaration x contenu décimal égal à 37%
 déclaration x contenu argent égal à 1 234 567,89€
 déclaration x contenu date égal à |2024-04-01|
 déclaration x contenu durée égal à 254 jour + -4 mois + 1 an
+déclaration x contenu optionnel de argent égal à Présent contenu 34€
+déclaration x contenu optionnel de argent égal à Absent
 déclaration x contenu liste de entier égal à [ 12; 24; 36 ]
 déclaration x contenu liste de n'importe quel dépend de a contenu entier égal à []
 déclaration x contenu (date,argent,décimal) égal à (|2024-04-01|, 30€, 1%)
@@ -130,6 +132,7 @@ déclaration x contenu entier égal à
     -- Cas2 : 0
     -- n'importe quel : 0
   dans
+  soit x égal à impossible dans
   soit x égal à
     expr sous forme Cas1
   dans
@@ -268,10 +271,10 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:99.28-99.34:
-│    │
-│ 99 │   sub1 champ d'application Scope0
-│    │                            ‾‾‾‾‾‾
+├─➤ doc/syntax/syntax_fr.catala_fr:101.28-101.34:
+│     │
+│ 101 │   sub1 champ d'application Scope0
+│     │                            ‾‾‾‾‾‾
 └─ Déclaration des métadonnées
 #return code 123#
 ```

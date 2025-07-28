@@ -32,6 +32,8 @@ declaration x content decimal equals 37%
 declaration x content money equals $1,234,567.89
 declaration x content date equals |2024-04-01|
 declaration x content duration equals 254 day + -4 month + 1 year
+declaration x content optional of money equals Present content $34
+declaration x content optional of money equals Absent
 declaration x content list of integer equals [ 12; 24; 36 ]
 declaration x content list of anything of type t depends on a content integer equals []
 declaration x content (date,money,decimal) equals (|2024-04-01|, $30, 1%)
@@ -131,6 +133,7 @@ declaration x content integer equals
        -- Case2 : 0
        -- anything : 0
   in
+  let x equals impossible in
   let x equals
     expr with pattern Case1
   in
@@ -267,9 +270,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:100.14-100.20:
+├─➤ doc/syntax/syntax_en.catala_en:102.14-102.20:
 │     │
-│ 100 │   sub1 scope Scope0
+│ 102 │   sub1 scope Scope0
 │     │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#
