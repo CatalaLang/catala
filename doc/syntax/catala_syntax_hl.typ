@@ -53,8 +53,8 @@
     show regex("\b(déclaration|règle|définition|étiquette|exception|type|assertion)\b"): override.with(style.struct_keyword)
     show regex("\b(champ\s+d'application|structure|énumération)\b"): override.with(style.struct_keyword)
     show regex("\b(si|alors|sinon|selon|sous\s+forme|mais\s+en\s+remplaçant|n'importe\s+quel)\b"): override.with(style.keyword)
-    show regex("\b(non|et|ou|bien|accès_\w+|arrondi|(premier|dernier)_jour_du_mois|pour\s+tout|on\s+a|parmi|transforme|en|chaque|contient|existe|tel\s+que|somme|nombre|maximum|minimum|avec|initialement)\b"): text.with(..style.keyword)
-    show regex("\b(booléen|entier|décimal|argent|date|durée|liste)\b"): text.with(..style.type)
+    show regex("\b(non|et|ou|bien|accès_\w+|arrondi|(premier|dernier)_jour_du_mois|pour\s+tout|on\s+a|parmi|transforme|en|chaque|contient|existe|tel\s+que|somme|nombre|maximum|minimum|avec|initialement|impossible)\b"): text.with(..style.keyword)
+    show regex("\b(booléen|entier|décimal|argent|date|durée|liste|optionnel)\b"): text.with(..style.type)
     show regex("\b\p{Lu}[\pL\d_']*\b"): text.with(..style.uid)
     show regex("[-=><+*/!]+[!.€^]?|\bde\b"): override.with(style.operator)
     show regex("[:;,\[\](){}.]"): text.with(..style.punctuation)
@@ -81,7 +81,7 @@
         show regex("\s+.*"): text.with(..style.field)
         txt
     }
-    show regex("\b((liste\s+de)|(ou\s+si\s+liste\s+vide\s+alors)|(combine\s+tout))\b"): override.with(style.keyword + (weight: normal))
+    show regex("\b((liste\s+de)|(optionnel\s+de)|(ou\s+si\s+liste\s+vide\s+alors)|(combine\s+tout))\b"): override.with(style.keyword + (weight: normal))
     show regex("\bétat\s+\w+\b"): text.with(..style.state)
     show regex("\b\p{Ll}[\pL\d_']*[.]\p{Ll}[\pL\d_']*\b"): txt => {
         show regex("[.].*"): text.with(..style.field); txt
@@ -104,9 +104,9 @@
     }
     show regex("\b(declaration|rule|definition|label|exception|type|assertion)\b"): override.with(style.struct_keyword)
     show regex("\b(scope|structure|enumeration)\b"): override.with(style.struct_keyword)
-    show regex("\b(not|and|or|xor|get_\w+|round|(first|last)_day_of_month|for\s+all|we\s+have|among|map\s+each|to|contains|exists|such\s+that|sum|number|maximum|minimum|with|initially)\b"): text.with(..style.keyword)
+    show regex("\b(not|and|or|xor|get_\w+|round|(first|last)_day_of_month|for\s+all|we\s+have|among|map\s+each|to|contains|exists|such\s+that|sum|number|maximum|minimum|with|initially|impossible)\b"): text.with(..style.keyword)
     show regex("\b(if|then|else|match|(with\s+pattern)|but\s+replace|anything)\b"): override.with(style.keyword)
-    show regex("\b(boolean|integer|decimal|money|date|duration|list)\b"): text.with(..style.type)
+    show regex("\b(boolean|integer|decimal|money|date|duration|list|optional)\b"): text.with(..style.type)
     show regex("\b\p{Lu}[\pL\d_']*\b"): text.with(..style.uid)
     show regex("[-=><+*/!]+[!.$^]?|\bof\b"): text.with(..style.operator)
     show regex("[:;,\[\](){}.]"): text.with(..style.punctuation)
@@ -133,7 +133,7 @@
       show regex("\w+$"): override.with(style.typevar)
       txt
     }
-    show regex("\b((list\s+of)|(or\s+if\s+list\s+empty\s+then)|(combine\s+all))\b"): override.with(style.keyword + (weight: normal))
+    show regex("\b((list\s+of)|(optional\s+of)|(or\s+if\s+list\s+empty\s+then)|(combine\s+all))\b"): override.with(style.keyword + (weight: normal))
     show regex("\bstate\s+\w+\b"): text.with(..style.state)
     show regex("\b\p{Ll}[\pL\d_']*[.]\p{Ll}[\pL\d_']*\b"): txt => {
         show regex("[.].*"): text.with(..style.field); txt

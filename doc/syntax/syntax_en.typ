@@ -61,6 +61,24 @@ date
 duration
 ```,
 ```catala-en-code
+Case1 content 12        Case2
+```,
+```catala-en-code
+Enum1
+```,
+```catala-en-code
+Struct1 { -- fld1: 9 -- fld2: 7% }
+```,
+```catala-en-code
+Struct1
+```,
+```catala-en-code
+Present content $34     Absent
+```,
+```catala-en-code
+optional of money
+```,
+```catala-en-code
 [ 12; 24; 36 ]
 ```,
 ```catala-en-code
@@ -78,18 +96,6 @@ list of
 ```,
 ```catala-en-code
 (date,money,decimal)
-```,
-```catala-en-code
-Struct1 { -- fld1: 9 -- fld2: 7% }
-```,
-```catala-en-code
-Struct1
-```,
-```catala-en-code
-Case1 content 12        Case2
-```,
-```catala-en-code
-Enum1
 ```,
 ```catala-en-code
 f of x, y equals
@@ -181,13 +187,16 @@ let x equals 36 - 5 in ...
 ```, [Local definition],
 ```catala-en-code
 match expr with pattern
--- Case1 of x : ...
+-- Case1 content x : ...
 -- Case2 : ...
 -- anything : ...
 ```, [Pattern matching],
 ```catala-en-code
+impossible
+```, [Unreachable code],
+```catala-en-code
 expr with pattern Case1
-expr with pattern Case1 of x
+expr with pattern Case1 content x
      and x >= 2
 ```, [Pattern test\  and optional binding],
 ```catala-en-code

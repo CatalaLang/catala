@@ -12,7 +12,7 @@ declaration scope A:
 scope A:
   definition x equals Case2
   definition y equals match x with pattern
-    -- Case1 of i : 42
+    -- Case1 content i : 42
     -- Case2 : impossible
 ```
 
