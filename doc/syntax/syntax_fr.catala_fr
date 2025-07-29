@@ -97,20 +97,17 @@ déclaration énumération Énum1:
 # #[test]
 déclaration champ d'application Scope1:
   interne var1 contenu entier
+    état avant
+    état après
   interne var2 condition
-  sub1 champ d'application Scope0
+  sub1 champ d'application Chp0
 
-  interne var1 contenu entier
   résultat var3 contenu entier
   entrée var4 contenu entier
   entrée résultat var5 contenu entier
   contexte var6 contenu entier
   contexte résultat var7 contenu entier
-  résultat sub2 champ d'application Scope0
-
-  interne var1 contenu entier
-    état avant
-    état après
+  résultat sub2 champ d'application Chp0
 
 déclaration const contenu décimal
   égal à 17,1
@@ -129,10 +126,10 @@ déclaration x contenu entier égal à
   soit x égal à
     selon expr sous forme
     -- Cas1 contenu x : 0
-    -- Cas2 : 0
     -- n'importe quel : 0
   dans
   soit x égal à impossible dans
+  soit x égal à #[debug.print = "message"] 0 dans
   soit x égal à
     expr sous forme Cas1
   dans
@@ -269,12 +266,12 @@ to ensure that the *syntax* is correct.
 $ catala typecheck
 ┌─[ERROR]─
 │
-│  No scope named Scope0 found
+│  No scope named Chp0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:101.28-101.34:
+├─➤ doc/syntax/syntax_fr.catala_fr:103.28-103.32:
 │     │
-│ 101 │   sub1 champ d'application Scope0
-│     │                            ‾‾‾‾‾‾
+│ 103 │   sub1 champ d'application Chp0
+│     │                            ‾‾‾‾
 └─ Déclaration des métadonnées
 #return code 123#
 ```
