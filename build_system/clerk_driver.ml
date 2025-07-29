@@ -568,8 +568,9 @@ let build_direct_targets
                 let is_toplevel_module =
                   File.dirname t = Filename.current_dir_name
                 in
-                let kind =
-                  List.find_map
+                let in_same_dir x = File.dirname x = File.dirname t in
+                let found_l, not_included_l =
+                  List.filter_map
                     (function
                       | { Scan.module_def = Some m; file_name; _ } ->
                         if Mark.remove m = File.basename t then
@@ -582,7 +583,7 @@ let build_direct_targets
                           | true, true -> Some (`Found t)
                           | true, false -> Some (`Not_included file_name)
                           | false, true ->
-                            if File.dirname file_name = File.dirname t then
+                            if in_same_dir file_name then
                               Some (`Found (File.basename t))
                             else None
                           | false, _ ->
@@ -593,17 +594,35 @@ let build_direct_targets
                         else None
                       | _ -> None)
                     items
+                  |> List.partition_map (function
+                       | `Found x -> Either.Left x
+                       | `Not_included x -> Right x)
                 in
-                match kind with
-                | Some (`Found t) -> Left (t ^ "@ocaml-module")
-                | Some (`Not_included fn) ->
+                let found_l =
+                  let in_same_dir_l = List.find_all in_same_dir found_l in
+                  match in_same_dir_l with
+                  | [] -> found_l
+                  | _ :: _ -> in_same_dir_l
+                in
+                match found_l, not_included_l with
+                | [t], _ -> Left (t ^ "@ocaml-module")
+                | _ :: _ :: _, _ ->
+                  Message.error
+                    "Found multiple files that satisfy the module %s: %a. @\n\
+                     Fix the include_dirs or change the module names." t
+                    Format.(
+                      pp_print_list
+                        ~pp_sep:(fun fmt () -> fprintf fmt ", ")
+                        pp_print_string)
+                    found_l
+                | [], fn :: _ ->
                   Message.error
                     "Module found in %s however it was not declared in \
                      'include_dirs'.@\n\
                      Try 'clerk build %s' instead or add the '%s' directory to \
                      'include_dirs'."
                     fn (File.dirname fn) (File.dirname fn)
-                | None ->
+                | [], [] ->
                   if is_toplevel_module then
                     Message.error "No module %s found in the clerk project." t
                   else
@@ -724,14 +743,14 @@ let build_cmd : int Cmd.t =
      $(b,clerk build foo/c/bar.o)\n\
      and the resulting file would be in $(b,_build/foo/c/bar.o). When given \
      $(i,clerk targets), that are defined in a $(b,clerk.toml) configuration \
-     file, it will build all their required dependencies for all their specified \
-     backends along with their source files and copy them over to the \
-     $(i,target-dir) (by default $(b,_target)). For instance, $(b,clerk build \
-     my-target) will generate a directory $(b,target-dir/my-target/c/) that \
-     contains all necessary files to export the target as a self contained \
-     library. When no arguments are given, $(b,clerk build) will build all the \
-     defined $(i,clerk targets) found in the $(b,clerk.toml) or the project's \
-     default targets if any."
+     file, it will build all their required dependencies for all their \
+     specified backends along with their source files and copy them over to \
+     the $(i,target-dir) (by default $(b,_target)). For instance, $(b,clerk \
+     build my-target) will generate a directory $(b,target-dir/my-target/c/) \
+     that contains all necessary files to export the target as a self \
+     contained library. When no arguments are given, $(b,clerk build) will \
+     build all the defined $(i,clerk targets) found in the $(b,clerk.toml) or \
+     the project's default targets if any."
   in
   Cmd.v (Cmd.info ~doc "build")
     Term.(
