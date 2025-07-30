@@ -872,42 +872,68 @@ and typecheck_expr_top_down :
     let body' = typecheck_expr_top_down ctx env t_ret body in
     let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
     Expr.eabs binder' pos (List.map (get_ty env body) t_args) mark
-  | EApp { f = e1; args; tys } ->
-    (* Here we type the arguments first (in order), to ensure we know the types
-       of the arguments if [f] is [EAbs] before disambiguation. This is also the
-       right order for the [let-in] form. *)
+  | EApp { f = (EAbs _, _) as e1; args; tys = t_args } ->
+    (* let-in: there may not be any implicit arguments, and detuplification has
+       been done during desugaring. The type of the function body may need to be
+       inferred from its arguments *)
     let t_args =
-      match tys with
-      | [] -> List.map (fun _ -> Type.fresh_var (Expr.pos e)) args
-      | tys -> tys
+      match t_args with
+      | [] -> List.map (fun e -> Type.fresh_var (Expr.pos e)) args
+      | _ -> t_args
     in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
-    let t_args =
-      match args, t_args, tys with
-      | [e], [t], [] -> (
-        (* Handles typing before detuplification: if [tys] was not yet set, we
-           are allowed to destruct a tuple into multiple arguments (see
-           [Scopelang.from_desugared] for the corresponding code
-           transformation) *)
-        match get_ty env e t with TTuple tys, _ -> tys | _ -> t_args)
-      | _ ->
-        if List.length t_args <> List.length args' then
-          Message.error ~pos:(Expr.pos e)
-            (match e1 with
-            | EAbs _, _ -> "This binds %d variables, but %d were provided."
-            | _ -> "This function application has %d arguments, but expects %d.")
-            (List.length t_args) (List.length args');
-        t_args
-    in
     let t_func = TArrow (t_args, tau), Expr.pos e1 in
     let e1' = typecheck_expr_top_down ctx env t_func e1 in
-    let tys =
-      match args with
-      | [] -> List.map (get_ty env e) t_args
-      | [e] -> List.map (get_ty env e) t_args
-      | _ -> List.map2 (get_ty env) args t_args
-    in
+    let tys = List.map2 (get_ty env) args t_args in
     Expr.eapp ~f:e1' ~args:args' ~tys context_mark
+  | EApp { f = e1; args; tys } ->
+    (* Non-letin application: the arguments may need to be detuplified ; the
+       type of the function should be checked for implicit arguments *)
+    let e1 = typecheck_expr_bottom_up ctx env e1 in
+    let func_ty = expr_ty env e1 in
+    let tau_args_all, t_ret =
+      match Type.unquantify func_ty with
+      | TArrow (tau_args, t_ret), _ -> tau_args, t_ret
+      | _ ->
+        Message.error ~pos:(Expr.pos e1)
+          "This is not a function and can't be applied.@ It has type %a"
+          Type.format func_ty
+    in
+    if tys <> [] then List.iter2 (unify env e) tys tau_args_all;
+    let tau_args_implicit, tau_args =
+      List.partition
+        (fun ty -> Pos.has_attr (Mark.get ty) ImplicitPosArg)
+        (if tys = [] then tau_args_all else tys)
+    in
+    let args' = List.map (typecheck_expr_bottom_up ctx env) args in
+    let ty_args = List.map (expr_ty env) args' in
+    let args_tys =
+      (* Handles typing before detuplification *)
+      match args, ty_args, tau_args with
+      | [e], [(TTuple tys, _)], _ :: _ :: _ -> List.map (fun ty -> e, ty) tys
+      | _ -> List.combine args ty_args
+    in
+    let tys =
+      try
+        List.map2 (fun (arg, ty) tau -> union env arg ty tau) args_tys tau_args
+      with Invalid_argument _ ->
+        Message.error ~pos:(Expr.pos e)
+          "This function application has %d arguments, but expects %d."
+          (List.length ty_args) (List.length tau_args)
+    in
+    let tys =
+      let rec insert_implicit tau_args_all tys =
+        match tau_args_all, tys with
+        | tau :: tau_args_all, tys
+          when Pos.has_attr (Mark.get tau) ImplicitPosArg ->
+          tau :: insert_implicit tau_args_all tys
+        | _ :: tau_args_all, ty :: tys -> ty :: insert_implicit tau_args_all tys
+        | [], [] -> []
+        | _ -> assert false
+      in
+      if tau_args_implicit = [] then tys else insert_implicit tau_args_all tys
+    in
+    Expr.eapp ~f:e1 ~args:args' ~tys (mark_with_tau_and_unify t_ret)
   | EAppOp { op; tys = t_args; args } ->
     let t_func = TArrow (t_args, tau), pos_e in
     let args =

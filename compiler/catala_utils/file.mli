@@ -101,10 +101,13 @@ val copy : src:t -> dst:t -> unit
 val copy_in : src:t -> dir:t -> unit
 (** Same as [copy], but copies the file into the given, existing dir. *)
 
-val copy_dir : ?filter:(t -> bool) -> src:t -> dst:t -> unit -> unit
+val copy_dir :
+  ?filter:(t -> bool) -> ?newer_only:bool -> src:t -> dst:t -> unit -> unit
 (** Recursively copy a directory with its contents using [copy]. [filter] is
     applied to basenames. Empty directories are not created. Does not care for
-    links or attributes, or file reading errors. *)
+    links or attributes, or file reading errors. If [newer_only] is set to
+    [true], on files for which the destination already exists, the copy is only
+    done if it is older than the source *)
 
 val remove : t -> unit
 (** Recursively removes files and directories. Dangerous!

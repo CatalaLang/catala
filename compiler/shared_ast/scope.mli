@@ -69,7 +69,7 @@ val unfold : decl_ctx -> 'e code_item_list -> ScopeName.t -> 'e boxed
 val typ : _ scope_body -> typ
 (** builds the arrow type for the specified scope *)
 
-val input_type : typ -> Runtime.io_input Mark.pos -> typ
+val input_type : typ -> Catala_runtime.io_input Mark.pos -> typ
 (** Returns the correct input type for scope input variables: this is [typ] for
     non-reentrant variables, but for reentrant variables, it is nested in a
     [TDefault], which only applies to the return type on functions. Note that

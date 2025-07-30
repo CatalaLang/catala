@@ -1,4 +1,4 @@
-> Module Stdlib
+> Module StdlibXxx
 
 ```catala-metadata
 # This file is part of the Catala compiler, a specification language for tax
@@ -25,10 +25,15 @@ automatically linked and always accessible.
 
 **NOTE: work in progress, this is not the case yet**
 
+
+
+round: money decimal
+conversions: int <-> decimal <-> money
+             date / duration <-> int*int*int
+
 ## Periods of time
 
-A period is a starting date and a duration. Therefore, it is a given amount of
-time between two known dates.
+A period is a starting date and a duration. Equivalently, it can be defined as a starting date and an end date.
 
 ```catala-metadata
 

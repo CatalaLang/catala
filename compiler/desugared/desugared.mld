@@ -14,6 +14,8 @@ Desugaring proceeds in three main steps:
 - Name resolution ([Name_resolution.form_context])
 - Conversion to the [Desugared] AST, including dependency checks
 - Disambiguation (resolution of constructors to their enums, etc.)
+- de-tuplification of function calls and injection of implicit position
+  arguments
 
 {1 Name resolution and translation }
 

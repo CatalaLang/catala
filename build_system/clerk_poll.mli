@@ -38,3 +38,9 @@ val ocaml_link_flags : string list Lazy.t
 val c_runtime_dir : File.t Lazy.t
 val python_runtime_dir : File.t Lazy.t
 val java_runtime : File.t Lazy.t
+
+val catala_source_tree_root : File.t option Lazy.t
+(** Set if, and only if the current build happens from within the Catala
+    compiler source tree itself. This requires some specific options and
+    includes for correct bootstrapping, and running the tests without requiring
+    an installation first. *)

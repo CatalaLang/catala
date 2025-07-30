@@ -65,6 +65,7 @@ module Flags : sig
   val dead_value_assignment : bool Term.t
   val no_struct_literals : bool Term.t
   val include_dirs : raw_file list Term.t
+  val stdlib_dir : File.t Lazy.t option Term.t
   val disable_counterexamples : bool Term.t
 
   val extra_files : file list Term.t

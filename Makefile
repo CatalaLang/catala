@@ -78,10 +78,7 @@ CLERK_BIN = _build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
-	dune build \
-		$(COMPILER_DIR)/catala.exe \
-		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe
+	dune build @all
 
 $(CATALA_BIN): .FORCE
 	dune build @catala

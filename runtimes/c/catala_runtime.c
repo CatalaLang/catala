@@ -24,7 +24,7 @@
 #include <assert.h>
 
 #include <dates_calc.h>
-#include "runtime.h"
+#include "catala_runtime.h"
 
 __thread int catala_persistent_malloc_mode_on = 0;
 

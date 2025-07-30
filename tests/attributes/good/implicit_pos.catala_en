@@ -40,7 +40,7 @@ scope S:
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ x = 33
-│ y = <implicit_pos:30.23-32>
-│ z = (<implicit_pos:33.20-34>, 44)
+│ y = <implicit_pos:30.23-27>
+│ z = (<implicit_pos:33.20-24>, 44)
 └─
 ```

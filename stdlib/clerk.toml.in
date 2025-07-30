@@ -1,0 +1,15 @@
+[project]
+build_dir = "_clerk_build"
+target_dir = "."
+catala_exe = "../compiler/catala.exe"
+catala_opts = ["--stdlib"]
+
+[[target]]
+name = "catala_stdlib"
+backends = ["ocaml", "c", "python", "java"]
+modules = ["Catala_stdlib"]
+include_runtime = false
+include_sources = true
+
+[variables]
+# Completed by dune into `clerk.toml`

@@ -16,7 +16,7 @@
 
 open Catala_utils
 open Shared_ast
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 open Ast
@@ -860,7 +860,9 @@ let format_program
   List.iter
     (fun (m, _intf_id) ->
       pp [ppc; pph] "@,#include <%s.h>" (ModuleName.to_string m))
-    (Program.modules_to_list p.ctx.decl_ctx.ctx_modules);
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.ctx.decl_ctx.ctx_modules));
   Option.iter
     (pp [ppmain] "@,#include \"%s\"")
     (Option.map File.(fun f -> basename f -.- "h") output_file);

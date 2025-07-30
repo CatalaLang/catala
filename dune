@@ -1,4 +1,4 @@
-(dirs runtimes compiler build_system tests)
+(dirs runtimes compiler build_system tests stdlib)
 
 (data_only_dirs syntax_highlighting)
 
@@ -62,6 +62,14 @@
   %{bin:catala}
   %{bin:clerk}
   (alias runtimes/runtimes)))
+
+(alias
+ (name all)
+ (deps
+  %{bin:catala}
+  %{bin:clerk}
+  (alias compiler/plugins/plugins)
+  (alias stdlib/stdlib)))
 
 ;; This garbles Clerk output, prefer to run from Makefile
 ;; (rule

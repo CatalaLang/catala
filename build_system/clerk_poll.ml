@@ -27,13 +27,22 @@ open Catala_utils
 let root = lazy (Sys.getcwd ())
 
 (** Scans for a parent directory being the root of the Catala source repo *)
-let catala_project_root : File.t option Lazy.t =
+let catala_source_tree_root : File.t option Lazy.t =
+  let isroot d =
+    File.(exists (d / "catala.opam") && exists (d / "dune-project"))
+  in
   root
   |> Lazy.map
      @@ fun root ->
-     if File.(exists (root / "catala.opam") && exists (root / "dune-project"))
-     then Some root
-     else None
+     if isroot root then Some root
+     else
+       let deep_build_dir =
+         File.find_in_parents ~cwd:root (fun d ->
+             File.basename d = "_build" && isroot (File.parent d))
+       in
+       match deep_build_dir with
+       | Some (d, _) -> Some (File.parent d)
+       | None -> None
 
 let exec_dir : File.t = Catala_utils.Cli.exec_dir
 let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
@@ -43,7 +52,7 @@ let catala_exe : File.t Lazy.t =
     (let f = File.(exec_dir / "catala") in
      if Sys.file_exists f then Unix.realpath f
      else
-       match catala_project_root with
+       match catala_source_tree_root with
        | (lazy (Some root)) ->
          Unix.realpath
            File.(root / "_build" / "default" / "compiler" / "catala.exe")
@@ -67,24 +76,21 @@ let ocaml_libdir : File.t Lazy.t =
 let ocaml_runtime_dir : File.t Lazy.t =
   lazy
     (let d =
-       match Lazy.force catala_project_root with
+       match Lazy.force catala_source_tree_root with
        | Some root ->
          (* Relative dir when running from catala source *)
          File.(
-           root
-           / "_build"
-           / "install"
-           / "default"
-           / "lib"
-           / "catala"
-           / "runtime_ocaml")
+           clean_path @@ (root / "_build" / "default" / "runtimes" / "ocaml"))
        | None -> (
          match
            File.check_directory
-             File.(exec_dir /../ "lib" / "catala" / "runtime_ocaml")
+             File.(exec_dir /../ "lib" / "catala" / "runtime" / "ocaml")
          with
-         | Some d -> d
-         | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime_ocaml"))
+         | Some d -> File.clean_path d
+         | None ->
+           File.(
+             clean_path
+               (Lazy.force ocaml_libdir / "catala" / "runtime" / "ocaml")))
      in
      match File.check_directory d with
      | Some dir ->
@@ -116,8 +122,25 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
          link_libs
      in
      let includes, libs = List.split includes_libs in
-     ( List.concat includes @ ["-I"; Lazy.force ocaml_runtime_dir],
-       libs @ [File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa")] ))
+     ( (List.concat includes
+       @
+       let runtime = Lazy.force ocaml_runtime_dir in
+       match catala_source_tree_root with
+       | (lazy (Some root)) ->
+         [
+           "-I";
+           runtime;
+           "-I";
+           File.(
+             runtime
+             / ".runtime.objs"
+             / "byte" (* dune nonsense, the cmi is hidden there *));
+           "-I";
+           File.(
+             root / "_build" / "default" / "stdlib" / "catala_stdlib" / "ocaml");
+         ]
+       | _ -> ["-I"; runtime]),
+       libs @ ["runtime.cmxa"; "catala_stdlib.cmxa"] ))
 
 let ocaml_include_flags : string list Lazy.t =
   lazy (fst (Lazy.force ocaml_include_and_lib_flags))
@@ -126,12 +149,10 @@ let ocaml_link_flags : string list Lazy.t =
   lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 
 let c_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_c")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "c")
 
 let python_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_python" / "src")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "python" / "src")
 
 let java_runtime : File.t Lazy.t =
-  lazy
-    File.(
-      Lazy.force ocaml_runtime_dir /../ "runtime_java" / "catala_runtime.jar")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "java" / "catala_runtime.jar")

@@ -21,7 +21,7 @@
 open Catala_utils
 open Definitions
 open Op
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 
 (** {1 Helpers} *)
 
@@ -318,21 +318,13 @@ let rec evaluate_operator
   | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
     err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
-  | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
-  | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))
-  | GetYear, [(ELit (LDate d), _)] -> ELit (LInt (o_getYear d))
-  | FirstDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_firstDayOfMonth d))
-  | LastDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_lastDayOfMonth d))
   | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_and b1 b2))
   | Or, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_or b1 b2))
   | Xor, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_xor b1 b2))
-  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor ),
-      _ ) ->
-    err ()
+  | (Not | And | Or | Xor), _ -> err ()
   | Minus_int, [(ELit (LInt x), _)] -> ELit (LInt (o_minus_int x))
   | Minus_rat, [(ELit (LRat x), _)] -> ELit (LRat (o_minus_rat x))
   | Minus_mon, [(ELit (LMoney x), _)] -> ELit (LMoney (o_minus_mon x))
@@ -1213,13 +1205,15 @@ let load_runtime_modules ~hashf prg =
       in
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
-        let root = File.common_prefix Global.options.bin_dir src in
-        let dir =
-          File.(
-            dirname @@ (Global.options.bin_dir / File.remove_prefix root src))
+        let dir = File.dirname src in
+        let f =
+          Dynlink.adapt_filename
+            File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
         in
-        Dynlink.adapt_filename
-          File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
+        if Sys.file_exists f then f
+        else
+          let root = File.common_prefix Global.options.bin_dir dir in
+          File.(Global.options.bin_dir / File.remove_prefix root f)
       in
       (if not (Sys.file_exists obj_file) then
          Message.error

@@ -36,17 +36,14 @@ module Var : sig
   val ocamlopt_exe : t
   val ocaml_flags : t
   val ocaml_include : t
-  val runtime_ocaml_libs : t
+  val runtime : t
   val cc_exe : t
   val c_flags : t
   val c_include : t
-  val runtime_c_libs : t
   val python : t
-  val runtime_python_dir : t
   val javac : t
   val jar : t
   val java : t
-  val runtime_java_jar : t
   val all_vars : t String.Map.t
 end
 
