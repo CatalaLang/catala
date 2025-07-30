@@ -5,11 +5,13 @@
   context output x content date
   context output y content date
   context output z content duration
+  output t content money
 
 scope A:
   definition x equals |2019-01-01|
   definition y equals |2002-09-30|
   definition z equals x - y
+  definition t equals Stdlib.positive of - $44
 ```
 
 
@@ -25,10 +27,36 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-cli
-$ catala test-scope A
-┌─[RESULT]─ A ─
-│ x = 2019-01-01
-│ y = 2002-09-30
-│ z = [5937 days]
+$ catala test-scope A --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/date/good/simple.catala_en"
+[DEBUG] Loading module interfaces...
+[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/lib/stdlib1.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Loading shared modules... Stdlib1
+┌─[ERROR]─
+│
+│  While loading compiled module from "_build/default/stdlib/lib/ocaml/Stdlib1.cmxs":
+│    execution of module initializers in the shared library failed: Not_found
+│
 └─
+Raised at Catala_utils__Message.error.(fun) in file "compiler/catala_utils/message.ml", line 527, characters 6-29
+Called from Shared_ast__Interpreter.load_runtime_modules.load in file "compiler/shared_ast/interpreter.ml", line 1233, characters 11-195
+Called from Stdlib__List.iter in file "list.ml", line 110, characters 12-15
+Called from Driver.Commands.interpret_dcalc in file "compiler/driver.ml", line 841, characters 4-101
+Called from Cmdliner_term.app.(fun) in file "cmdliner_term.ml", line 24, characters 19-24
+Called from Cmdliner_eval.run_parser in file "cmdliner_eval.ml", line 35, characters 37-44
+Called from Cmdliner_eval.eval_value in file "cmdliner_eval.ml", line 203, characters 14-39
+Called from Driver.main in file "compiler/driver.ml", line 1377, characters 8-49
+#return code 123#
 ```

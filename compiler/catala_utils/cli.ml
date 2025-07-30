@@ -16,6 +16,7 @@
    the License. *)
 
 open Global
+module G = Global
 
 (* Manipulation of types used by flags & options *)
 
@@ -371,6 +372,53 @@ module Flags = struct
       in
       Term.(const make $ input_src $ name_flag $ directory $ flags)
   end
+
+  let stdlib_dir =
+    let arg =
+      Arg.(
+        value
+        & opt ~vopt:(Some None) (some (some dir)) None
+        & info ["stdlib"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_STDLIB")
+            ~doc:
+              "Specifies where the standard library will be found. By default, \
+               this is auto-detected. Use without argument to ${b,disable} \
+               loading of the stdlib.")
+    in
+    let finalise = function
+      | Some (Some dir) -> Some (lazy dir)
+      | Some None -> None
+      | None ->
+        let stdlib_dir () =
+          let exedir = File.dirname Sys.executable_name in
+          let candidate =
+            File.(
+              exedir / Filename.parent_dir_name / "lib" / "catala" / "stdlib")
+          in
+          match File.check_directory candidate with
+          | Some d -> d
+          | None -> (
+            (* Lookup Stdlib dir within the catala source tree *)
+            match
+              if File.basename exedir <> "compiler" then None
+              else
+                File.check_directory
+                  File.(
+                    dirname Sys.executable_name
+                    / Filename.parent_dir_name
+                    / "stdlib"
+                    / "lib")
+            with
+            | Some d -> d
+            | None ->
+              Message.error
+                "Could not locate the Catala Stdlib in@ %a.@ Please@ check@ \
+                 your@ installation"
+                File.format candidate)
+        in
+        Some (lazy (stdlib_dir ()))
+    in
+    Term.(const finalise $ arg)
 
   let include_dirs =
     let arg =

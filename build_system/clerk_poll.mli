@@ -32,6 +32,7 @@ val ocaml_libdir : File.t Lazy.t
 val ocaml_runtime_dir : File.t Lazy.t
 (** Locates the directory containing the OCaml runtime to link to *)
 
+val stdlib_dir : File.t Lazy.t
 val ocaml_include_and_lib_flags : (string list * string list) Lazy.t
 val ocaml_include_flags : string list Lazy.t
 val ocaml_link_flags : string list Lazy.t

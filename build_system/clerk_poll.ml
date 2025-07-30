@@ -97,6 +97,8 @@ let ocaml_runtime_dir : File.t Lazy.t =
           the root of a compiled source tree.@]"
          d)
 
+let stdlib_dir = lazy File.(Lazy.force ocaml_runtime_dir /../ "stdlib")
+
 let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
   lazy
     (let link_libs = ["zarith"; "dates_calc"] in
@@ -116,8 +118,18 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
          link_libs
      in
      let includes, libs = List.split includes_libs in
-     ( List.concat includes @ ["-I"; Lazy.force ocaml_runtime_dir],
-       libs @ [File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa")] ))
+     ( List.concat includes
+       @ [
+           "-I";
+           Lazy.force ocaml_runtime_dir;
+           "-I";
+           File.(Lazy.force stdlib_dir / "ocaml");
+         ],
+       libs
+       @ [
+           File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa");
+           "Stdlib1.cmxa";
+         ] ))
 
 let ocaml_include_flags : string list Lazy.t =
   lazy (fst (Lazy.force ocaml_include_and_lib_flags))

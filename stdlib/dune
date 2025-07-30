@@ -1,0 +1,13 @@
+(rule
+ (deps clerk.toml stdlib1.catala_en)
+ (targets (dir lib))
+ (action
+  (run %{bin:clerk} build Stdlib1 --exe=%{bin:catala} -c--stdlib --build-dir=lib)))
+
+(alias
+ (name stdlib)
+ (deps (glob_files_rec lib)))
+
+(install
+ (dirs (lib as stdlib))
+ (section lib))

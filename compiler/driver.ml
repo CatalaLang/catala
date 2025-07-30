@@ -29,13 +29,29 @@ let modname_of_file f =
 let load_modules
     options
     includes
+    ~stdlib
     ?(more_includes = [])
     ?(allow_notmodules = false)
-    program =
+    program :
+    ModuleName.t Ident.Map.t
+    * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
+  let stdlib_root_module = "Stdlib1" in
+  if stdlib <> None || program.Surface.Ast.program_used_modules <> [] then
+    Message.debug "Loading module interfaces...";
   (* Recurse into program modules, looking up files in [using] and loading
      them *)
-  if program.Surface.Ast.program_used_modules <> [] then
-    Message.debug "Loading module interfaces...";
+  let stdlib_includes =
+    match stdlib with
+    | Some (lazy dir) -> File.Tree.build dir
+    | None -> File.Tree.empty
+  in
+  let stdlib_use file =
+    let pos = Pos.from_info file 1 1 1 1 in
+    {
+      Surface.Ast.mod_use_name = stdlib_root_module, pos;
+      Surface.Ast.mod_use_alias = "Stdlib", pos;
+    }
+  in
   let includes =
     List.map options.Global.path_rewrite includes @ more_includes
     |> List.map File.Tree.build
@@ -44,22 +60,38 @@ let load_modules
   let err_req_pos chain =
     List.map (fun mpos -> "Module required from", mpos) chain
   in
-  let find_module req_chain (mname, mpos) =
+  let find_module in_stdlib req_chain (mname, mpos) =
     let required_from_file = Pos.get_file mpos in
+    let includes = if in_stdlib then stdlib_includes else includes in
     let includes =
       File.Tree.union includes
         (File.Tree.build (File.dirname required_from_file))
+    in
+    let not_found () =
+      Message.error
+        ~extra_pos:(err_req_pos (mpos :: req_chain))
+        "Required module not found: @{<blue>%s@}" mname
     in
     match
       List.filter_map
         (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
         extensions
     with
-    | [] ->
-      Message.error
-        ~extra_pos:(err_req_pos (mpos :: req_chain))
-        "Required module not found: @{<blue>%s@}" mname
-    | [f] -> f
+    | [] when (not in_stdlib) && stdlib <> None -> (
+      match File.Tree.lookup stdlib_includes (mname ^ ".catala_en") with
+      | Some f -> f, true
+      | None ->
+        if mname = stdlib_root_module then
+          Message.error
+            "The standard library could not be found at@ %a,@ please@ check@ \
+             your@ Catala@ installation.@ You can use the command-line flag \
+             @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ non-standard@ location."
+            File.format
+            File.(Sys.getcwd () / Lazy.force (Option.get stdlib))
+        else not_found ())
+    (* TODO: choose file depending on current language *)
+    | [] -> not_found ()
+    | [f] -> f, false
     | ms ->
       Message.error
         ~extra_pos:(err_req_pos (mpos :: req_chain))
@@ -67,14 +99,16 @@ let load_modules
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
         ms
   in
-  let rec aux req_chain seen uses :
+  let rec aux is_stdlib req_chain seen uses :
       (ModuleName.t * Surface.Ast.module_content * ModuleName.t Ident.Map.t)
       option
       File.Map.t
       * ModuleName.t Ident.Map.t =
     List.fold_left
       (fun (seen, use_map) use ->
-        let f = find_module req_chain use.Surface.Ast.mod_use_name in
+        let f, is_stdlib =
+          find_module is_stdlib req_chain use.Surface.Ast.mod_use_name
+        in
         match File.Map.find_opt f seen with
         | Some (Some (modname, _, _)) ->
           ( seen,
@@ -107,11 +141,16 @@ let load_modules
             ModuleName.fresh
               module_content.Surface.Ast.module_modname.module_name
           in
+          let submodules =
+            if is_stdlib || stdlib = None then
+              module_content.Surface.Ast.module_submodules
+            else stdlib_use f :: module_content.Surface.Ast.module_submodules
+          in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
-            aux
+            aux is_stdlib
               (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-              seen module_content.Surface.Ast.module_submodules
+              seen submodules
           in
           ( File.Map.add f (Some (modname, module_content, sub_use_map)) seen,
             Ident.Map.add
@@ -126,10 +165,15 @@ let load_modules
       File.Map.singleton file None
     | None -> File.Map.empty
   in
-  let file_module_map, root_uses =
-    aux [] seen program.Surface.Ast.program_used_modules
+  let root_used_modules =
+    match stdlib with
+    | None -> program.Surface.Ast.program_used_modules
+    | Some _ ->
+      stdlib_use (List.hd program.Surface.Ast.program_source_files)
+      :: program.Surface.Ast.program_used_modules
   in
-  let modules =
+  let file_module_map, root_uses = aux false [] seen root_used_modules in
+  let modules_map =
     File.Map.fold
       (fun _ info acc ->
         match info with
@@ -138,7 +182,7 @@ let load_modules
           ModuleName.Map.add mname (intf, use_map) acc)
       file_module_map ModuleName.Map.empty
   in
-  root_uses, modules
+  root_uses, modules_map
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
@@ -152,10 +196,10 @@ module Passes = struct
     debug_pass_name "surface";
     Surface.Parser_driver.parse_top_level_file options.Global.input_src
 
-  let desugared options ~includes :
+  let desugared options ~includes ~stdlib :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg = surface options in
-    let mod_uses, modules = load_modules options includes prg in
+    let mod_uses, modules = load_modules options includes ~stdlib prg in
     debug_pass_name "desugared";
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
@@ -168,8 +212,8 @@ module Passes = struct
     Desugared.Linting.lint_program prg;
     prg, ctx
 
-  let scopelang options ~includes : untyped Scopelang.Ast.program =
-    let prg, _ = desugared options ~includes in
+  let scopelang options ~includes ~stdlib : untyped Scopelang.Ast.program =
+    let prg, _ = desugared options ~includes ~stdlib in
     debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -183,13 +227,14 @@ module Passes = struct
       type ty.
       Global.options ->
       includes:Global.raw_file list ->
+      stdlib:File.t Lazy.t option ->
       optimize:bool ->
       check_invariants:bool ->
       autotest:bool ->
       typed:ty mark ->
       ty Dcalc.Ast.program * TypeIdent.t list =
-   fun options ~includes ~optimize ~check_invariants ~autotest ~typed ->
-    let prg = scopelang options ~includes in
+   fun options ~includes ~stdlib ~optimize ~check_invariants ~autotest ~typed ->
+    let prg = scopelang options ~includes ~stdlib in
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -244,6 +289,7 @@ module Passes = struct
       (type ty)
       options
       ~includes
+      ~stdlib
       ~optimize
       ~check_invariants
       ~autotest
@@ -255,7 +301,8 @@ module Passes = struct
       ~renaming :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
     let prg, type_ordering =
-      dcalc options ~includes ~optimize ~check_invariants ~autotest ~typed
+      dcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
+        ~typed
     in
     debug_pass_name "lcalc";
     let prg =
@@ -319,6 +366,7 @@ module Passes = struct
   let scalc
       options
       ~includes
+      ~stdlib
       ~optimize
       ~check_invariants
       ~autotest
@@ -331,7 +379,7 @@ module Passes = struct
       ~expand_ops
       ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
-      lcalc options ~includes ~optimize ~check_invariants ~autotest
+      lcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops
         ~monomorphize_types ~expand_ops ~renaming
     in
@@ -544,8 +592,8 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output
         $ Cli.Flags.extra_files)
 
-  let exceptions options includes ex_scope ex_variable =
-    let prg, ctxt = Passes.desugared options ~includes in
+  let exceptions options includes stdlib ex_scope ex_variable =
+    let prg, ctxt = Passes.desugared options ~includes ~stdlib in
     Passes.debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -568,11 +616,12 @@ module Commands = struct
         const exceptions
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable)
 
-  let dependency_graph options includes =
-    let prg_desugared, _ctxt = Passes.desugared options ~includes in
+  let dependency_graph options includes stdlib =
+    let prg_desugared, _ctxt = Passes.desugared options ~includes ~stdlib in
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg_desugared
     in
@@ -623,10 +672,11 @@ module Commands = struct
       Term.(
         const dependency_graph
         $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs)
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir)
 
-  let scopelang options includes output ex_scopes =
-    let prg = Passes.scopelang options ~includes in
+  let scopelang options includes stdlib output ex_scopes =
+    let prg = Passes.scopelang options ~includes ~stdlib in
     get_output_format options output
     @@ fun _ fmt ->
     match ex_scopes with
@@ -653,11 +703,12 @@ module Commands = struct
         const scopelang
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.ex_scopes)
 
-  let typecheck options check_invariants includes =
-    let prg = Passes.scopelang options ~includes in
+  let typecheck options check_invariants includes stdlib =
+    let prg = Passes.scopelang options ~includes ~stdlib in
     Message.debug "Typechecking...";
     let _type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -688,20 +739,22 @@ module Commands = struct
         const typecheck
         $ Cli.Flags.Global.options
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.include_dirs)
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir)
 
   let dcalc
       typed
       options
       includes
+      stdlib
       output
       optimize
       ex_scopes
       check_invariants
       autotest =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest
-        ~typed
+      Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -739,6 +792,7 @@ module Commands = struct
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scopes
@@ -748,13 +802,14 @@ module Commands = struct
   let proof
       options
       includes
+      stdlib
       optimize
       ex_scope_opt
       check_invariants
       disable_counterexamples =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
-        ~typed:Expr.typed
+      Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest:false ~typed:Expr.typed
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
     let vcs =
@@ -773,6 +828,7 @@ module Commands = struct
         const proof
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
         $ Cli.Flags.check_invariants
@@ -830,13 +886,14 @@ module Commands = struct
       typed
       options
       includes
+      stdlib
       optimize
       check_invariants
       quiet
       ex_scopes =
     let prg, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~autotest:false
-        ~typed
+      Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest:false ~typed
     in
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~monomorphize_types:false)
@@ -856,6 +913,7 @@ module Commands = struct
       typed
       options
       includes
+      stdlib
       output
       optimize
       check_invariants
@@ -866,9 +924,9 @@ module Commands = struct
       expand_ops
       ex_scopes =
     let prg, _, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
-        ~closure_conversion ~keep_special_ops ~typed ~monomorphize_types
-        ~expand_ops ~renaming:(Some Renaming.default)
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops ~typed
+        ~monomorphize_types ~expand_ops ~renaming:(Some Renaming.default)
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -900,6 +958,7 @@ module Commands = struct
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -918,14 +977,15 @@ module Commands = struct
       expand_ops
       options
       includes
+      stdlib
       optimize
       check_invariants
       quiet
       ex_scopes =
     let prg, _, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest:false
-        ~closure_conversion ~keep_special_ops ~monomorphize_types ~typed
-        ~expand_ops ~renaming:None
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest:false ~closure_conversion ~keep_special_ops
+        ~monomorphize_types ~typed ~expand_ops ~renaming:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
@@ -980,6 +1040,7 @@ module Commands = struct
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
@@ -988,14 +1049,15 @@ module Commands = struct
   let ocaml
       options
       includes
+      stdlib
       output
       optimize
       check_invariants
       autotest
       closure_conversion =
     let prg, type_ordering, _ =
-      Passes.lcalc options ~includes ~optimize ~check_invariants ~autotest
-        ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
@@ -1014,6 +1076,7 @@ module Commands = struct
         const ocaml
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -1023,6 +1086,7 @@ module Commands = struct
   let scalc
       options
       includes
+      stdlib
       output
       optimize
       check_invariants
@@ -1035,8 +1099,8 @@ module Commands = struct
       expand_ops
       ex_scope_opt =
     let prg, _, _ =
-      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
-        ~closure_conversion ~keep_special_ops ~dead_value_assignment
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
         ~expand_ops ~renaming:(Some Renaming.default)
     in
@@ -1066,6 +1130,7 @@ module Commands = struct
         const scalc
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -1081,16 +1146,17 @@ module Commands = struct
   let python
       options
       includes
+      stdlib
       output
       optimize
       check_invariants
       autotest
       closure_conversion =
     let prg, type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
-        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~keep_module_names:false
-        ~monomorphize_types:false ~expand_ops:false
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:true ~no_struct_literals:false
+        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_python.renaming)
     in
     Message.debug "Compiling program into Python...";
@@ -1107,6 +1173,7 @@ module Commands = struct
         const python
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -1116,16 +1183,17 @@ module Commands = struct
   let java
       options
       includes
+      stdlib
       (output : Global.raw_file option)
       optimize
       check_invariants
       autotest
       closure_conversion =
     let prg, _type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
-        ~closure_conversion ~keep_special_ops:false ~dead_value_assignment:true
-        ~no_struct_literals:false ~keep_module_names:true
-        ~monomorphize_types:false ~expand_ops:false
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:true ~no_struct_literals:false
+        ~keep_module_names:true ~monomorphize_types:false ~expand_ops:false
         ~renaming:(Some Scalc.To_java.renaming)
     in
     Message.debug "Compiling program into Java...";
@@ -1149,16 +1217,17 @@ module Commands = struct
         const java
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion)
 
-  let c options includes output optimize check_invariants autotest =
+  let c options includes stdlib output optimize check_invariants autotest =
     let prg, type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~optimize ~check_invariants ~autotest
-        ~closure_conversion:true ~keep_special_ops:false
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
         ~keep_module_names:false ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Scalc.To_c.renaming)
@@ -1177,12 +1246,13 @@ module Commands = struct
         const c
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
-  let depends options includes prefix subdir extension extra_files =
+  let depends options includes stdlib prefix subdir extension extra_files =
     let file = Global.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
@@ -1204,7 +1274,8 @@ module Commands = struct
         }
     in
     let mod_uses, modules =
-      load_modules options includes ~more_includes ~allow_notmodules:true prg
+      load_modules options includes ~stdlib ~more_includes
+        ~allow_notmodules:true prg
     in
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
@@ -1263,6 +1334,7 @@ module Commands = struct
         const depends
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
         $ Cli.Flags.prefix
         $ Cli.Flags.subdir
         $ Cli.Flags.extension

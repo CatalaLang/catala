@@ -490,6 +490,7 @@ end
 
 let run
     includes
+    stdlib
     output
     optimize
     check_invariants
@@ -501,7 +502,7 @@ let run
     Global.enforce_options ~trace:(Some (lazy Format.std_formatter)) ()
   in
   let prg, type_ordering, _ =
-    Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
+    Driver.Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops ~typed:Expr.typed
       ~monomorphize_types ~expand_ops:false
       ~renaming:(Some Lcalc.To_ocaml.renaming)
@@ -526,6 +527,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Cli.Flags.include_dirs
+  $ Cli.Flags.stdlib_dir
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants

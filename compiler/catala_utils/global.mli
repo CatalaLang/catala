@@ -64,6 +64,7 @@ type options = private {
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
+  mutable no_stdlib : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -90,6 +91,7 @@ val enforce_options :
   ?whole_program:bool ->
   ?bin_dir:string ->
   ?gen_external:bool ->
+  ?no_stdlib:bool ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this

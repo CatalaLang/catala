@@ -266,9 +266,9 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 (* -- Plugin registration -- *)
 
-let run includes optimize check_invariants ex_scope options =
+let run includes stdlib optimize check_invariants ex_scope options =
   let prg, _ =
-    Driver.Passes.dcalc options ~includes ~optimize ~check_invariants
+    Driver.Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
       ~autotest:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
@@ -282,6 +282,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Cli.Flags.include_dirs
+  $ Cli.Flags.stdlib_dir
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
   $ Cli.Flags.ex_scope

@@ -22,10 +22,17 @@
 
 open Catala_utils
 
-let run includes output optimize check_invariants closure_conversion options =
+let run
+    includes
+    stdlib
+    output
+    optimize
+    check_invariants
+    closure_conversion
+    options =
   let open Driver.Commands in
   let prg, type_ordering, _ =
-    Driver.Passes.scalc options ~includes ~optimize ~check_invariants
+    Driver.Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops:false
       ~dead_value_assignment:true ~no_struct_literals:false
       ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
@@ -40,6 +47,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Cli.Flags.include_dirs
+  $ Cli.Flags.stdlib_dir
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
