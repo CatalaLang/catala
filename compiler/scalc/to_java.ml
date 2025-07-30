@@ -17,7 +17,7 @@
 open Catala_utils
 open Shared_ast
 open Ast
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 open Format
@@ -139,11 +139,6 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
   | ToInt_rat -> pp_print_string ppf "asInteger"
   | ToMoney_rat -> pp_print_string ppf "asMoney"
-  | GetDay -> pp_print_string ppf "getDay"
-  | GetMonth -> pp_print_string ppf "getMonth"
-  | GetYear -> pp_print_string ppf "getYear"
-  | FirstDayOfMonth -> pp_print_string ppf "getFirstDayOfMonth"
-  | LastDayOfMonth -> pp_print_string ppf "getLastDayOfMonth"
   | Round_mon -> pp_print_string ppf "round"
   | Round_rat -> pp_print_string ppf "round"
   | Concat -> pp_print_string ppf "append"
@@ -523,15 +518,24 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
   | SSwitch
       {
         switch_var;
-        switch_var_typ = TOption _, _;
+        switch_var_typ = TOption typ, _;
         enum_name = _;
         switch_cases = [none; some];
       } ->
     let cond_format ppf = fprintf ppf "%a.isNone()" VarName.format switch_var in
     let cons_format ppf = format_block ctx ppf none.case_block in
     let alt_format ppf =
-      fprintf ppf "%a %a = %a.get();@\n" (format_typ ctx) some.payload_var_typ
-        VarName.format some.payload_var_name VarName.format switch_var;
+      (match Mark.remove typ with
+      | TLit TUnit -> ()
+      | _ ->
+        let s = VarName.to_string some.payload_var_name in
+        if s = "" || (s.[0] >= '0' && s.[0] <= '9') then
+          (* Do not generate invalid initializers: it might be the case when
+             considering a wildcard var *)
+          ()
+        else
+          fprintf ppf "%a %s = %a.get();@\n" (format_typ ctx) typ s
+            VarName.format switch_var);
       format_block ctx ppf some.case_block
     in
     format_if ppf ~cond_format ~cons_format ~alt_format

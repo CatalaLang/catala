@@ -44,6 +44,7 @@ type options = {
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
+  mutable no_stdlib : bool;
 }
 
 (* Note: we force that the global options (ie options common to all commands)
@@ -69,6 +70,7 @@ let options =
     whole_program = false;
     bin_dir = Filename.current_dir_name;
     gen_external = false;
+    no_stdlib = false;
   }
 
 let enforce_options
@@ -88,6 +90,7 @@ let enforce_options
     ?whole_program
     ?bin_dir
     ?gen_external
+    ?no_stdlib
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
   Option.iter (fun x -> options.language <- x) language;
@@ -105,6 +108,7 @@ let enforce_options
   Option.iter (fun x -> options.whole_program <- x) whole_program;
   Option.iter (fun x -> options.bin_dir <- x) bin_dir;
   Option.iter (fun x -> options.gen_external <- x) gen_external;
+  Option.iter (fun x -> options.no_stdlib <- x) no_stdlib;
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f

@@ -20,7 +20,7 @@ open Dcalc
 open Ast
 open Z3
 module StringMap = String.Map
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 
 type context = {
   ctx_z3 : Z3.context;
@@ -118,7 +118,7 @@ let date_to_int (d : Runtime.date) : int =
 
 (** [date_of_year] translates a [year], represented as an integer into an OCaml
     date corresponding to Jan 1st of the same year *)
-let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
+let _date_of_year (year : int) = Runtime.date_of_numbers year 1 1
 
 (** Returns the date (as a string) corresponding to nb days after the base day,
     defined here as Jan 1, 1900 **)
@@ -434,7 +434,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
-let is_leap_year = Runtime.is_leap_year
+let _is_leap_year = Runtime.is_leap_year
 (* Replace with [Dates_calc.Dates.is_leap_year] when existing *)
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
@@ -464,73 +464,44 @@ let rec translate_op :
   match op, args with
   | Fold, _ ->
     failwith "[Z3 encoding] ternary operator application not supported"
-    (* Special case for GetYear comparisons *)
-  | ( Lt_int_int,
-      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
-    let n = Runtime.integer_to_int n in
-    let ctx, e1 = translate_expr ctx e1 in
-    let e2 =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
-    in
-    (* e2 corresponds to the first day of the year n. GetYear e1 < e2 can thus
-       be directly translated as < in the Z3 encoding using the number of
-       days *)
-    ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-  | ( Lte_int_int,
-      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
-    let ctx, e1 = translate_expr ctx e1 in
-    let nb_days = if is_leap_year n then 365 else 364 in
-    let n = Runtime.integer_to_int n in
-    (* We want that the year corresponding to e1 is smaller or equal to n. We
-       encode this as the day corresponding to e1 is smaller or equal than the
-       last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
-       year, Jan 1st + 364 else *)
-    let e2 =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-        (date_to_int (date_of_year n) + nb_days)
-    in
-    ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-  | ( Gt_int_int,
-      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
-    let ctx, e1 = translate_expr ctx e1 in
-    let nb_days = if is_leap_year n then 365 else 364 in
-    let n = Runtime.integer_to_int n in
-    (* We want that the year corresponding to e1 is greater to n. We encode this
-       as the day corresponding to e1 is greater than the last day of the year
-       [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st + 364
-       else *)
-    let e2 =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-        (date_to_int (date_of_year n) + nb_days)
-    in
-    ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-  | ( Gte_int_int,
-      [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
-    let n = Runtime.integer_to_int n in
-    let ctx, e1 = translate_expr ctx e1 in
-    let e2 =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
-    in
-    (* e2 corresponds to the first day of the year n. GetYear e1 >= e2 can thus
-       be directly translated as >= in the Z3 encoding using the number of
-       days *)
-    ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-  | Eq, [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
-    let n = Runtime.integer_to_int n in
-    let ctx, e1 = translate_expr ctx e1 in
-    let min_date =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
-    in
-    let max_date =
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-        (date_to_int (date_of_year (n + 1)))
-    in
-    ( ctx,
-      Boolean.mk_and ctx.ctx_z3
-        [
-          Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
-          Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
-        ] )
+  (* Special case for GetYear comparisons *)
+  (* FIXME: getYear is no longer an operator but an stdlib function*)
+  (* | ( Lt_int_int, [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit
+     (LInt n), _)] ) -> let n = Runtime.integer_to_int n in let ctx, e1 =
+     translate_expr ctx e1 in let e2 = Arithmetic.Integer.mk_numeral_i
+     ctx.ctx_z3 (date_to_int (date_of_year n)) in (* e2 corresponds to the first
+     day of the year n. GetYear e1 < e2 can thus be directly translated as < in
+     the Z3 encoding using the number of days *) ctx, Arithmetic.mk_lt
+     ctx.ctx_z3 e1 e2 | ( Lte_int_int, [(EAppOp { op = GetYear, _; args = [e1];
+     _ }, _); (ELit (LInt n), _)] ) -> let ctx, e1 = translate_expr ctx e1 in
+     let nb_days = if is_leap_year n then 365 else 364 in let n =
+     Runtime.integer_to_int n in (* We want that the year corresponding to e1 is
+     smaller or equal to n. We encode this as the day corresponding to e1 is
+     smaller or equal than the last day of the year [n], which is Jan 1st + 365
+     days if [n] is a leap year, Jan 1st + 364 else *) let e2 =
+     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n) +
+     nb_days) in ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2 | ( Gt_int_int, [(EAppOp
+     { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) -> let ctx,
+     e1 = translate_expr ctx e1 in let nb_days = if is_leap_year n then 365 else
+     364 in let n = Runtime.integer_to_int n in (* We want that the year
+     corresponding to e1 is greater to n. We encode this as the day
+     corresponding to e1 is greater than the last day of the year [n], which is
+     Jan 1st + 365 days if [n] is a leap year, Jan 1st + 364 else *) let e2 =
+     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n) +
+     nb_days) in ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2 | ( Gte_int_int,
+     [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
+     let n = Runtime.integer_to_int n in let ctx, e1 = translate_expr ctx e1 in
+     let e2 = Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int
+     (date_of_year n)) in (* e2 corresponds to the first day of the year n.
+     GetYear e1 >= e2 can thus be directly translated as >= in the Z3 encoding
+     using the number of days *) ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2 | Eq,
+     [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
+     let n = Runtime.integer_to_int n in let ctx, e1 = translate_expr ctx e1 in
+     let min_date = Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int
+     (date_of_year n)) in let max_date = Arithmetic.Integer.mk_numeral_i
+     ctx.ctx_z3 (date_to_int (date_of_year (n + 1))) in ( ctx, Boolean.mk_and
+     ctx.ctx_z3 [ Arithmetic.mk_ge ctx.ctx_z3 e1 min_date; Arithmetic.mk_lt
+     ctx.ctx_z3 e1 max_date; ] ) *)
   | And, _ -> app Boolean.mk_and
   | Or, _ -> app Boolean.mk_or
   | Xor, _ -> app2 Boolean.mk_xor
@@ -575,23 +546,6 @@ let rec translate_op :
   | ToMoney_rat, _ ->
     failwith
       "[Z3 encoding] application of unary operator ToMoney_rat not supported"
-  | GetDay, _ ->
-    failwith "[Z3 encoding] application of unary operator GetDay not supported"
-  | GetMonth, _ ->
-    failwith
-      "[Z3 encoding] application of unary operator GetMonth not supported"
-  | GetYear, _ ->
-    failwith
-      "[Z3 encoding] GetYear operator only supported in comparisons with \
-       literal"
-  | FirstDayOfMonth, _ ->
-    failwith
-      "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
-       with literal"
-  | LastDayOfMonth, _ ->
-    failwith
-      "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
-       with literal"
   | Round_rat, _ ->
     failwith "[Z3 encoding] Round_rat operator  not implemented yet"
   | Round_mon, _ ->

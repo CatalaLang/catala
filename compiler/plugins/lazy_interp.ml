@@ -221,7 +221,7 @@ let rec lazy_eval :
         error e "Assert failure (%a)" Expr.format e
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
   | EFatalError err, m ->
-    error e0 "%a" Format.pp_print_text (Runtime.error_message err)
+    error e0 "%a" Format.pp_print_text (Catala_runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
   | _ -> .
 
@@ -266,9 +266,9 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 (* -- Plugin registration -- *)
 
-let run includes optimize check_invariants ex_scope options =
+let run includes stdlib optimize check_invariants ex_scope options =
   let prg, _ =
-    Driver.Passes.dcalc options ~includes ~optimize ~check_invariants
+    Driver.Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
       ~autotest:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
@@ -282,6 +282,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Cli.Flags.include_dirs
+  $ Cli.Flags.stdlib_dir
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
   $ Cli.Flags.ex_scope

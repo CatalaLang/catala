@@ -19,7 +19,7 @@ open Catala_utils
 module S = Surface.Ast
 module SurfacePrint = Surface.Print
 open Shared_ast
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
 
@@ -537,25 +537,7 @@ let rec translate_expr
     Message.error ~pos "Invalid use of built-in: needs one operand."
   | FunCall (f, args) ->
     let args = List.map rec_helper args in
-    let f = rec_helper f in
-    let args =
-      let rec add_implicit_pos_arg args targs =
-        match targs, args with
-        | ty :: tys, args when Pos.has_attr (Mark.get ty) ImplicitPosArg ->
-          Expr.epos pos emark :: add_implicit_pos_arg args tys
-        | _ :: tys, arg :: args -> arg :: add_implicit_pos_arg args tys
-        | _ -> args (* Arity checked later on*)
-      in
-      match Expr.unbox f with
-      | ELocation (ToplevelVar { name; _ }), _ -> (
-        match
-          TopdefName.Map.find (Mark.remove name) ctxt.Name_resolution.topdefs
-        with
-        | (TArrow (targs, _), _), _ -> add_implicit_pos_arg args targs
-        | _ -> args (* Typing check done later on *))
-      | _ -> args
-    in
-    Expr.eapp ~f ~args ~tys:[] emark
+    Expr.eapp ~f:(rec_helper f) ~args ~tys:[] emark
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope.";
@@ -612,15 +594,13 @@ let rec translate_expr
           Ident.Map.add (Mark.remove x) (Mark.remove v) local_vars)
         local_vars xs m_xs
     in
-    let taus = List.map (fun x -> Type.any (Mark.get x)) xs in
+    let tys = List.map (fun x -> Type.any (Mark.get x)) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
-    let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) taus pos in
-    let tys =
-      match xs with
-      | [(_, pos)] -> [Type.any pos] (* No detuplification in this case *)
-      | _ -> [] (* This is an "exploding" let-in, enable detuplification *)
-    in
-    Expr.eapp ~f ~args:[rec_helper e1] ~tys emark
+    let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) tys pos in
+    Expr.detuplify_application
+      [rec_helper e1]
+      tys
+      (fun args -> Expr.eapp ~f ~args ~tys emark)
   | StructReplace (e, fields) ->
     let fields =
       List.fold_left
@@ -844,11 +824,10 @@ let rec translate_expr
         pos
     in
     let f_pred =
-      (* Detuplification (TODO: check if we couldn't fit this in the general
-         detuplification later) *)
-      match List.length param_names with
-      | 1 -> f_pred
-      | nb_args ->
+      (* Detuplification *)
+      match param_names with
+      | [_] -> f_pred
+      | _ ->
         let v =
           Var.make (String.concat "_" (List.map Mark.remove param_names))
         in
@@ -856,10 +835,8 @@ let rec translate_expr
         let tys = List.map (fun _ -> Type.any pos) param_names in
         Expr.make_abs
           [Mark.add Pos.void v]
-          (Expr.make_app f_pred
-             (List.init nb_args (fun i ->
-                  Expr.etupleaccess ~e:x ~index:i ~size:nb_args emark))
-             tys pos)
+          (Expr.detuplify_application [x] tys (fun args ->
+               Expr.make_app f_pred args tys pos))
           [Type.any pos]
           pos
     in

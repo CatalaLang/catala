@@ -16,6 +16,7 @@
 
 open Catala_utils
 open Shared_ast
+module Runtime = Catala_runtime
 
 module Style = struct
   type color = Graph.Graphviz.color
@@ -1837,6 +1838,7 @@ let inline_used_modules global_options =
 
 let run
     (includes : Global.raw_file list)
+    stdlib
     optimize
     ex_scope
     explain_options
@@ -1846,7 +1848,7 @@ let run
       inline_used_modules global_options
   in
   let prg, _ =
-    Driver.Passes.dcalc global_options ~includes ~optimize
+    Driver.Passes.dcalc global_options ~includes ~stdlib ~optimize
       ~check_invariants:false ~autotest:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg
@@ -1918,6 +1920,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Cli.Flags.include_dirs
+  $ Cli.Flags.stdlib_dir
   $ Cli.Flags.optimize
   $ Cli.Flags.ex_scope
   $ options

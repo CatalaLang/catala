@@ -1,0 +1,53 @@
+> Module Date_en
+
+> Using Date_internal as D
+
+```catala-metadata
+## Returns the earlier of two dates
+declaration min content date
+  depends on x content date,
+             y content date
+  equals
+  if x <= y then x else y
+
+## Returns the latter of two dates
+declaration max content date
+  depends on x content date,
+             y content date
+  equals
+  if x >= y then x else y
+
+declaration of_year_month_day content date
+  depends on #[implicit_position_argument] pos content code_location,
+             dyear content integer,
+             dmonth content integer,
+             dday content integer
+  equals D.of_ymd of pos, dyear, dmonth, dday
+
+declaration to_year_month_day content (integer, integer, integer)
+  depends on d content date
+  equals
+  D.to_ymd of d
+
+declaration last_day_of_month content date
+  depends on d content date
+  equals D.last_day_of_month of d
+
+declaration get_year content integer
+  depends on d content date
+  equals (to_year_month_day of d).1
+
+declaration get_month content integer
+  depends on d content date
+  equals (to_year_month_day of d).2
+
+declaration get_day content integer
+  depends on d content date
+  equals (to_year_month_day of d).3
+
+declaration first_day_of_month content date
+  depends on d content date
+  equals
+  let ymd equals to_year_month_day of d in
+  of_year_month_day of (ymd.1, ymd.2, 1)
+```

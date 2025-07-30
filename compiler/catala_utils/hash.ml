@@ -44,9 +44,9 @@ end = struct
     (* Should not affect the call convention or actual interfaces: include,
        optimize, check_invariants, typed *)
     !(monomorphize_types : bool)
-    % (* The following may not affect the call convention, but we want it set in
-         an homogeneous way *)
-    !(Global.options.trace <> None : bool)
+    (* % (\* The following may not affect the call convention, but we want it set in
+     *      an homogeneous way *\)
+     * !(Global.options.trace <> None : bool) *)
     % !(Global.options.max_prec_digits : int)
     |> k
 

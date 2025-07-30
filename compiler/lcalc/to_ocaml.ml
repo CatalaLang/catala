@@ -18,6 +18,7 @@ open Catala_utils
 open Shared_ast
 open Ast
 module D = Dcalc.Ast
+module Runtime = Catala_runtime
 
 (** Formatting to a list of formatters *)
 let pp dest fmt = Format.kdprintf (fun k -> List.iter k dest) fmt
@@ -126,7 +127,8 @@ let ocaml_keywords =
     "while";
     "with";
     "Stdlib";
-    "Runtime";
+    (* Catala lib elements *)
+    "Catala_runtime";
     "Oper";
   ]
 
@@ -413,8 +415,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
   | EFatalError er ->
-    Format.fprintf fmt "raise@ (Runtime_ocaml.Runtime.Error (%a, [%a]))"
-      Print.runtime_error er format_pos (Expr.pos e)
+    Format.fprintf fmt "raise@ (Error (%a, [%a]))" Print.runtime_error er
+      format_pos (Expr.pos e)
   | EPos p -> format_pos fmt p
   | _ -> .
 
@@ -681,7 +683,7 @@ let commands = if commands = [] then test_scopes else commands
         (File.basename (Filename.remove_extension filename))
   in
   Format.pp_open_vbox fmt 0;
-  Format.fprintf fmt "open Runtime_ocaml.Runtime@,";
+  Format.fprintf fmt "open Catala_runtime@,";
   Format.fprintf fmt "open %s@,@," modname;
   List.iter
     (fun (scope, e) ->
@@ -701,8 +703,8 @@ let check_and_reexport_used_modules ppml ppi ~hashf modules =
   List.iter
     (fun (m, intf_id) ->
       pp [ppml]
-        "@[<hv 2>let () =@ @[<hov 2>match Runtime_ocaml.Runtime.check_module \
-         %S \"%a\"@ with@]@,\
+        "@[<hv 2>let () =@ @[<hov 2>match Catala_runtime.check_module %S \
+         \"%a\"@ with@]@,\
          | Ok () -> ()@,\
          @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
          need recompiling\"@]@]@,"
@@ -714,15 +716,16 @@ let check_and_reexport_used_modules ppml ppi ~hashf modules =
         (hashf intf_id.hash) ModuleName.format m;
       pp [ppml; ppi] "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
         ModuleName.format m)
-    modules
+    modules;
+  if modules <> [] then pp [ppml; ppi] "@,"
 
 let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module \"%a\""
-    ModuleName.format modname;
+  Format.fprintf fmt "Catala_runtime.register_module \"%a\"" ModuleName.format
+    modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
@@ -767,8 +770,8 @@ let header () =
   in
   comment
   ^ "\n\n\
-     open Runtime_ocaml.Runtime\n\n\
-     [@@@ocaml.warning \"-4-26-27-32-41-42\"]\n\n"
+     open Catala_runtime\n\n\
+     [@@@ocaml.warning \"-4-26-27-32-33-34-37-41-42-69\"]\n\n"
 
 let format_program
     output_file
@@ -781,7 +784,9 @@ let format_program
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
   check_and_reexport_used_modules ppml ppi ~hashf
-    (Program.modules_to_list p.decl_ctx.ctx_modules);
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name

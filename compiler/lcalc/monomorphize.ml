@@ -281,7 +281,7 @@ let rec monomorphize_expr
           StructField.Map.of_list
             [
               ( array_instance.len_field,
-                ( ELit (LInt (Runtime.integer_of_int (List.length elts))),
+                ( ELit (LInt (Catala_runtime.integer_of_int (List.length elts))),
                   Expr.with_ty m (TLit TInt, Expr.mark_pos m) ) );
               ( array_instance.content_field,
                 (e, Expr.with_ty m (TArray (f_ty elt_ty), Expr.mark_pos m)) );

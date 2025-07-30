@@ -44,6 +44,15 @@ let tag_with_log_entry
       ~args:[e] (Mark.get e)
   else e
 
+(* Once implicit arguments have been inserted, the tag should be removed because
+   it changes the behaviour of the typer on function applications*)
+let untag_implicit_args targs =
+  List.map (Mark.map_mark (fun pos -> Pos.rem_attr pos ImplicitPosArg)) targs
+
+let untag_implicit_args_arrow = function
+  | TArrow (targs, tret), pos -> TArrow (untag_implicit_args targs, tret), pos
+  | ty -> ty
+
 let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
   let m = Mark.get e in
   match Mark.remove e with
@@ -57,6 +66,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
           { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
+    let tys = untag_implicit_args tys in
     Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) pos tys m
   | ELocation (DesugaredScopeVar { name; state = None }) ->
     Expr.elocation
@@ -165,35 +175,27 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              ScopeVar.Map.add v' (p, e') args')
            args ScopeVar.Map.empty)
       m
-  | EApp { f; tys; args } -> (
-    (* Detuplification of function arguments *)
+  | EApp { f; tys; args } ->
+    (* Detuplification of function arguments, insertion of implicit arguments *)
     let pos = Expr.pos f in
     let f = translate_expr ctx f in
-    match args, tys with
-    | [arg], [_] -> Expr.eapp ~f ~tys m ~args:[translate_expr ctx arg]
-    | [(ETuple args, _)], _ ->
-      assert (List.length args = List.length tys);
-      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args)
-    | [((EVar _, _) as arg)], ts ->
-      let size = List.length ts in
-      let args =
-        let e = translate_expr ctx arg in
-        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+    let is_implicit ty = Pos.has_attr (Mark.get ty) ImplicitPosArg in
+    let tys_implicit, tys_explicit = List.partition is_implicit tys in
+    let add_implicit_args args =
+      let rec aux args tys =
+        match tys, args with
+        | ty :: tys, args when is_implicit ty -> Expr.epos pos m :: aux args tys
+        | _ :: tys, arg :: args -> arg :: aux args tys
+        | [], [] -> []
+        | _ -> assert false
       in
-      Expr.eapp ~f ~tys m ~args
-    | [arg], ts ->
-      let size = List.length ts in
-      let v = Var.make "args" in
-      let e = Expr.evar v (Mark.get arg) in
-      let args =
-        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
-      in
-      Expr.make_let_in (Mark.ghost v) (TTuple ts, pos) (translate_expr ctx arg)
-        (Expr.eapp ~f ~tys m ~args)
-        pos
-    | args, tys ->
-      assert (List.length args = List.length tys);
-      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args))
+      if tys_implicit = [] then args else aux args tys
+    in
+    let tys = untag_implicit_args tys in
+    Expr.detuplify_application
+      (List.map (translate_expr ctx) args)
+      tys_explicit
+      (fun args -> Expr.eapp ~f ~tys m ~args:(add_implicit_args args))
   | EAppOp { op; tys; args } ->
     let args = List.map (translate_expr ctx) args in
     Operator.kind_dispatch op
@@ -899,7 +901,8 @@ let translate_program
                   with
                   | Some
                       {
-                        scope_def_io = { io_input = Runtime.Reentrant, _; _ };
+                        scope_def_io =
+                          { io_input = Catala_runtime.Reentrant, _; _ };
                         scope_def_typ;
                         _;
                       } ->
@@ -960,7 +963,12 @@ let translate_program
           { out_str with out_struct_fields })
         desugared.program_ctx.ctx_scopes
     in
-    { desugared.program_ctx with ctx_scopes }
+    let ctx_topdefs =
+      TopdefName.Map.map
+        (fun (typ, vis) -> untag_implicit_args_arrow typ, vis)
+        desugared.program_ctx.ctx_topdefs
+    in
+    { desugared.program_ctx with ctx_scopes; ctx_topdefs }
   in
   let ctx = { ctx with decl_ctx } in
   let program_modules =
@@ -985,6 +993,7 @@ let translate_program
               topdef_external = ext;
               _;
             } ->
+            let ty = untag_implicit_args_arrow ty in
             Some (Expr.unbox (translate_expr ctx e), ty, vis, ext)
           | { D.topdef_expr = None; topdef_external = true; _ } -> None
           | {
