@@ -1,0 +1,79 @@
+# Catala built-in operators
+
+The following are normally inserted by the Catala compiler as the concrete
+implementations of the surface operators like `+`.
+
+
+```catala-metadata
+
+# Boolean operators
+declaration not content boolean
+  depends on x content boolean
+
+declaration and content boolean
+  depends on x content boolean,
+             y content boolean
+
+declaration or content boolean
+  depends on x content boolean,
+             y content boolean
+
+declaration xor content boolean
+  depends on x content boolean,
+             y content boolean
+
+# Conversions
+declaration rational_to_integer content integer
+  depends on x content decimal
+
+declaration integer_to_decimal content decimal
+  depends on x content integer
+
+declaration money_to_decimal content decimal
+  depends on x content money
+
+declaration money_to_integer content integer
+  depends on x content money
+
+# Dates
+#[add_position_argument]
+declaration year_month_day_to_date content date
+  depends on year content integer,
+             month content integer,
+             day content integer
+
+declaration date_to_year_month_day content (integer, integer, integer)
+  depends on x content date
+
+declaration date_get_year content integer
+  depends on x content date
+  equals (date_to_year_month_day of x).1
+
+declaration date_get_month content integer
+  depends on x content date
+  equals (date_to_year_month_day of x).2
+
+declaration date_get_day content integer
+  depends on x content date
+  equals (date_to_year_month_day of x).3
+
+declaration first_day_of_month content date
+  depends on x content date
+
+declaration last_day_of_month content date
+  depends on x content date
+
+# Durations
+
+#[add_position_argument]
+declaration duration_to_days content integer
+  depends on x content duration
+
+# Lists
+
+declaration map content list of anything of type elt2
+  depends on (f content anything of type elt2 depends on anything of type elt1),
+    lst content list of anything of type elt1
+
+
+```
