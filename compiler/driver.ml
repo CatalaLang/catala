@@ -937,7 +937,7 @@ module Commands = struct
         $ Cli.Flags.ex_scopes)
 
   let slice_cmd =
-    let f options includes optimize check_invariants ex_scopes =
+    let f options includes optimize check_invariants ex_scopes bench =
       let prg, _ =
         Passes.dcalc options ~includes ~optimize ~check_invariants
           ~autotest:false ~typed:Expr.typed
@@ -947,10 +947,42 @@ module Commands = struct
         prg;
       let scopes = get_scopelist_uids prg ex_scopes in
       if options.debug then Message.log "Begin slicing !";
-      let success = Slicing.Slice.test ~debug:options.debug prg (List.hd scopes) in
-      if success then (if options.debug then Message.log "Same result with the sliced expression :)")
-      else Message.error "/!\\ The two results are not the same :(";
-      if options.debug then Message.log "End slicing"
+      if bench then
+        let l =
+          List.fold_left
+            (fun acc scope ->
+              let delta, original, sliced =
+                Slicing.Slice.slice_bench prg scope
+              in
+              (delta, original, sliced, scope) :: acc)
+            [] scopes
+        in
+        let pp_bench fmt (delta, original, sliced, scopename) =
+          let before = Expr.size original in
+          let after = Expr.size sliced in
+          Format.fprintf fmt "%a, %a, %d, %d, %.2f%%" ScopeName.format scopename
+            Ptime.Span.pp delta before after
+            (100. *. float after /. float before)
+        in
+        Message.result
+          "@[<v>Scope, Exec. time, #before, #after, pct_reduc.@\n%a@]"
+          Format.(pp_print_list ~pp_sep:pp_print_cut pp_bench)
+          l
+      else
+        let success =
+          Slicing.Slice.test ~debug:options.debug prg (List.hd scopes)
+        in
+        if success then (
+          if options.debug then
+            Message.log "Same result with the sliced expression :)")
+        else Message.error "/!\\ The two results are not the same :(";
+        if options.debug then Message.log "End slicing"
+    in
+    let bench =
+      let open Arg in
+      value
+      & flag
+      & info ["bench"; "B"] ~env:(Cmd.Env.info "CATALA_BENCH") ~doc:"Run bench."
     in
     Cmd.v
       (Cmd.info "slice" ~man:Cli.man_base ~doc:"Blabla slice")
@@ -960,7 +992,8 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scopes)
+        $ Cli.Flags.ex_scopes
+        $ bench)
 
   let ocaml
       options

@@ -6,6 +6,7 @@
   unionFind
   catala_utils
   re
+  ptime.clock.os
   ubase
   catala.runtime_ocaml
   catala.dcalc

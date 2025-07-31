@@ -909,7 +909,7 @@ let rec size : type a. (a, 't) gexpr -> int =
     EnumConstructor.Map.fold (fun _ e acc -> acc + 1 + size e) cases (size e)
   | EScopeCall { args; _ } ->
     ScopeVar.Map.fold (fun _ (_, e) acc -> acc + 1 + size e) args 1
-  | EHole _ -> assert false
+  | EHole _ -> 1
 
 (* - Expression building helpers - *)
 
