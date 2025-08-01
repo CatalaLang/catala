@@ -20,7 +20,7 @@ open Dcalc
 open Ast
 open Z3
 module StringMap = String.Map
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Runtime
 
 type context = {
   ctx_z3 : Z3.context;

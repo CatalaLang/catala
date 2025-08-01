@@ -15,7 +15,7 @@
    the License. *)
 
 (** A {{:http://ocsigen.org/js_of_ocaml/latest/manual/overview} js_of_ocaml}
-    wrapper around the {!module: Runtime_ocaml.Runtime}. *)
+    wrapper around the {!module: Runtime}. *)
 
 open Js_of_ocaml
 
@@ -31,8 +31,8 @@ class type code_location = object
   method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
 end
 
-(** Wrapper for the {!type: Runtime_ocaml.Runtime.raw_event} -- directly
-    collected during the program execution.*)
+(** Wrapper for the {!type: Runtime.raw_event} -- directly collected during the
+    program execution.*)
 class type raw_event = object
   method eventType : Js.js_string Js.t Js.prop
   (** There is four type of raw log events:
@@ -61,19 +61,19 @@ class type raw_event = object
   method sourcePosition : code_location Js.t Js.optdef Js.prop
 
   method loggedIOJson : Js.js_string Js.t Js.prop
-  (** Serialzed [Runtime_ocaml.Runtime.io_log] corresponding to a
-      `VariableDefinition` raw event. *)
+  (** Serialzed [Runtime.io_log] corresponding to a `VariableDefinition` raw
+      event. *)
 
   method loggedValueJson : Js.js_string Js.t Js.prop
-  (** Serialized [Runtime_ocaml.Runtime.runtime_value] corresponding to a
-      'VariableDefinition' raw event. *)
+  (** Serialized [Runtime.runtime_value] corresponding to a 'VariableDefinition'
+      raw event. *)
 end
 
-(** Wrapper for the {!type: Runtime_ocaml.Runtime.event} -- structured log event
-    parsed from the {!raw_event} ones. *)
+(** Wrapper for the {!type: Runtime.event} -- structured log event parsed from
+    the {!raw_event} ones. *)
 class type event = object
   method data : Js.js_string Js.t Js.prop
-  (** Serialized [Runtime_ocaml.Runtime.event]. *)
+  (** Serialized [Runtime.event]. *)
 end
 
 class type event_manager = object
@@ -87,15 +87,15 @@ val event_manager : event_manager Js.t
 
 (** {1 Duration} *)
 
-(** Simple JSOO wrapper around {!type: Runtime_ocaml.Runtime.duration}.*)
+(** Simple JSOO wrapper around {!type: Runtime.duration}.*)
 class type duration = object
   method years : int Js.readonly_prop
   method months : int Js.readonly_prop
   method days : int Js.readonly_prop
 end
 
-val duration_of_js : duration Js.t -> Runtime_ocaml.Runtime.duration
-val duration_to_js : Runtime_ocaml.Runtime.duration -> duration Js.t
+val duration_of_js : duration Js.t -> Runtime.duration
+val duration_to_js : Runtime.duration -> duration Js.t
 
 (** {1 Date conversion} *)
 
@@ -103,16 +103,15 @@ val duration_to_js : Runtime_ocaml.Runtime.duration -> duration Js.t
     {{:https://www.iso.org/iso-8601-date-and-time-format.html} ISO8601 format}:
     'YYYY-MM-DD'. *)
 
-val date_of_js : Js.js_string Js.t -> Runtime_ocaml.Runtime.date
-val date_to_js : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
+val date_of_js : Js.js_string Js.t -> Runtime.date
+val date_to_js : Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
-val position_of_js : code_location Js.t -> Runtime_ocaml.Runtime.code_location
-val position_to_js : Runtime_ocaml.Runtime.code_location -> code_location Js.t
+val position_of_js : code_location Js.t -> Runtime.code_location
+val position_to_js : Runtime.code_location -> code_location Js.t
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the
-    {!Runtime_ocaml.Runtime.NoValue}, {!Runtime_ocaml.Runtime.Conflict}
-    {!Runtime_ocaml.Runtime.AssertionFailed} exceptions by raising a JS error if
-    needed.*)
+    {!Runtime.NoValue}, {!Runtime.Conflict} {!Runtime.AssertionFailed}
+    exceptions by raising a JS error if needed.*)

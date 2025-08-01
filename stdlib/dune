@@ -1,13 +1,31 @@
 (rule
+ (target clerk.toml)
+ (action
+  (with-stdout-to %{target}
+    (progn
+      (echo "[project]\n")
+      (echo "include_dirs = [ \".\" ]\n")
+      (echo "\n")
+      (echo "[variables]\n")
+      (echo "CATALA_STDLIB = []\n")
+      (echo "RUNTIME_OCAML_LIBS = [\"%{lib:zarith:zarith.cmxa}\", \"%{lib:dates_calc:dates_calc.cmxa}\", \"%{lib-private:runtime:runtime.cmxa}\"]\n")
+      ; Yes, we use sed. dune is really NOT helping here.
+      (pipe-stdout
+       (echo "OCAML_INCLUDE = [\"-I\", \"%{libexec:zarith:zarith.cmxa}\", \"-I\", \"%{libexec:dates_calc:dates_calc.cmxa}\", \"-I\", \"%{lib-private:runtime:runtime.cmxa}/.runtime.objs/byte\"]\n")
+       (run sed "s%/[^/]*\\.cmxa%%g"))
+      ))))
+
+(rule
  (deps clerk.toml stdlib1.catala_en)
+ (alias stdlib)
  (targets (dir lib))
  (action
-  (run %{bin:clerk} build Stdlib1 --exe=%{bin:catala} -c--stdlib --build-dir=lib)))
+  (run ../build_system/clerk.exe build Stdlib1 --exe=../compiler/catala.exe -c--stdlib --build-dir=lib)))
 
 (alias
  (name stdlib)
  (deps (glob_files_rec lib)))
 
 (install
- (dirs (lib as stdlib))
+ (files (glob_files_rec (lib/ocaml/* with_prefix runtime/ocaml)))
  (section lib))

@@ -1,4 +1,4 @@
-open Runtime_ocaml.Runtime
+open Runtime
 
 val prorata : money -> money array -> money array
 

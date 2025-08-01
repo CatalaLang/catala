@@ -21,7 +21,6 @@
 open Catala_utils
 open Definitions
 open Op
-module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 

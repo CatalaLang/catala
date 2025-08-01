@@ -732,27 +732,36 @@ let build_cmd : int Cmd.t =
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
-    "Build command for either $(i,individual files) or $(i,clerk targets). For \
-     $(i,individual files), and given the corresponding Catala module is \
-     declared, this can be used to build .ml, .cmxs, .c, .py files, etc. These \
-     files, along with their dependencies, are written into $(i,build-dir) (by \
-     default $(b,_build)). If a catala extension is used as target, this \
-     compiles all its dependencies. The format of the targets is \
-     $(b,src-dir/BACKEND/file.ext). For example, to build a C object file from \
-     $(b,foo/bar.catala_en), one would run:\n\
-     $(b,clerk build foo/c/bar.o)\n\
-     and the resulting file would be in $(b,_build/foo/c/bar.o). When given \
-     $(i,clerk targets), that are defined in a $(b,clerk.toml) configuration \
-     file, it will build all their required dependencies for all their \
-     specified backends along with their source files and copy them over to \
-     the $(i,target-dir) (by default $(b,_target)). For instance, $(b,clerk \
-     build my-target) will generate a directory $(b,target-dir/my-target/c/) \
-     that contains all necessary files to export the target as a self \
-     contained library. When no arguments are given, $(b,clerk build) will \
-     build all the defined $(i,clerk targets) found in the $(b,clerk.toml) or \
-     the project's default targets if any."
+    "Build command for either $(i,individual files) or $(i,clerk targets)."
   in
-  Cmd.v (Cmd.info ~doc "build")
+  let man =
+    [
+      `S Manpage.s_description;
+      `P
+        "For $(i,individual files), and given the corresponding Catala module \
+         is declared, this can be used to build .ml, .cmxs, .c, .py files, \
+         etc. These files, along with their dependencies, are written into \
+         $(i,build-dir) (by default $(b,_build)). If a file with a catala \
+         extension is used as target, this compiles all its dependencies. The \
+         format of the targets is $(b,src-dir/BACKEND/file.ext). For example, \
+         to build a C object file from $(b,foo/bar.catala_en), one would run:";
+      `Pre "clerk build foo/c/bar.o";
+      `P
+        "and the resulting file would be in $(b,_build/foo/c/bar.o). When \
+         given $(i,clerk targets), that are defined in a $(b,clerk.toml) \
+         configuration file, it will build all their required dependencies for \
+         all their specified backends along with their source files and copy \
+         them over to the $(i,target-dir) (by default $(b,_target)).";
+      `P
+        "For instance, $(b,clerk build my-target) will generate a directory \
+         $(b,target-dir/my-target/c/) that contains all necessary files to \
+         export the target as a self contained library. When no arguments are \
+         given, $(b,clerk build) will build all the defined $(i,clerk targets) \
+         found in the $(b,clerk.toml) or the project's default targets if any.";
+    ]
+  in
+  Cmd.v
+    (Cmd.info ~doc ~man "build")
     Term.(
       const run
       $ Cli.init_term ()
