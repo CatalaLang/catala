@@ -77,14 +77,15 @@ let ocaml_runtime_dir : File.t Lazy.t =
            / "default"
            / "lib"
            / "catala"
-           / "runtime_ocaml")
+           / "runtime"
+           / "ocaml")
        | None -> (
          match
            File.check_directory
-             File.(exec_dir /../ "lib" / "catala" / "runtime_ocaml")
+             File.(exec_dir /../ "lib" / "catala" / "runtime")
          with
          | Some d -> d
-         | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime_ocaml"))
+         | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime"))
      in
      match File.check_directory d with
      | Some dir ->

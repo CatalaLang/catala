@@ -21,7 +21,6 @@
 (* Doesn't define values, so OK to have without an mli *)
 
 open Catala_utils
-module Runtime = Runtime_ocaml.Runtime
 module ModuleName = Uid.Module
 
 module ScopeName =

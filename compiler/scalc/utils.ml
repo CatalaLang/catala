@@ -17,7 +17,6 @@
 open Catala_utils
 open Shared_ast
 open Ast
-module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 
