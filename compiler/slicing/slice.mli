@@ -48,5 +48,5 @@ val slice_bench :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   Ptime.span
-  * (Shared_ast.dcalc, 'm) Shared_ast.gexpr
+  * ((yes, yes, yes) slicing_interpr_kind, 'm) gexpr
   * ((yes, yes, yes) slicing_interpr_kind, 'm) gexpr

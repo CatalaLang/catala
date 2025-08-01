@@ -612,12 +612,12 @@ let slice_bench (p : (dcalc, 'm) gexpr program) (s : ScopeName.t) =
   in
   Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
-      let e_original = Expr.unbox (Program.to_expr p s) in
+      let e_input = Expr.unbox (Program.to_expr p s) in
       time_it
       @@ fun () ->
       match
         Interpreter.evaluate_expr p.decl_ctx p.lang
-          (Interpreter.addcustom e_original)
+          (Interpreter.addcustom e_input)
       with
       | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
         begin
@@ -633,22 +633,22 @@ let slice_bench (p : (dcalc, 'm) gexpr program) (s : ScopeName.t) =
         let v, tr = Interpret.evaluate_expr_safe ctx p.lang e in
         (* Unevaluate the value with the trace to get a sliced version of the
            expression *)
-        let uneval_e = unevaluate p.decl_ctx (addholes v) tr in
-        if not @@ is_sub_expr uneval_e (addholes e) then
+        let uneval_e = unevaluate p.decl_ctx v tr in
+        if not @@ is_sub_expr uneval_e e then
           Message.error "%a@ Input expression : %a@ Sliced expression : %a"
             Format.pp_print_text
             "The sliced expression is not a subexpression of the input one."
             Format_trace.expr e Format_trace.expr uneval_e;
         let sliced_e = del_useless_declarations uneval_e in
         match Mark.remove v with
-        | EStruct _ | EFatalError _ -> e_original, sliced_e
+        | EStruct _ | EFatalError _ -> e, sliced_e
         | _ ->
           Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
             "The interpretation of a program should always yield a struct \
              corresponding to the scope variables"
       end
       | _ ->
-        Message.error ~pos:(Expr.pos e_original) "%a" Format.pp_print_text
+        Message.error ~pos:(Expr.pos e_input) "%a" Format.pp_print_text
           "The interpreter can only interpret terms starting with functions \
            having thunked arguments")
 
@@ -687,8 +687,8 @@ let slice ?(debug = false) (p : (dcalc, 'm) gexpr program) (s : ScopeName.t) =
           Format.print_newline ());
         (* Unevaluate the value with the trace to get a sliced version of the
            expression *)
-        let uneval_e = unevaluate p.decl_ctx (addholes v) tr in
-        if not @@ is_sub_expr uneval_e (addholes e) then
+        let uneval_e = unevaluate p.decl_ctx v tr in
+        if not @@ is_sub_expr uneval_e e then
           Message.error "%a@ Input expression : %a@ Sliced expression : %a"
             Format.pp_print_text
             "The sliced expression is not a subexpression of the input one."
