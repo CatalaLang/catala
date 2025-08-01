@@ -70,22 +70,15 @@ let ocaml_runtime_dir : File.t Lazy.t =
        match Lazy.force catala_project_root with
        | Some root ->
          (* Relative dir when running from catala source *)
-         File.(
-           root
-           / "_build"
-           / "install"
-           / "default"
-           / "lib"
-           / "catala"
-           / "runtime"
-           / "ocaml")
+         File.(root / "_build" / "default" / "runtimes" / "ocaml")
        | None -> (
          match
            File.check_directory
-             File.(exec_dir /../ "lib" / "catala" / "runtime")
+             File.(exec_dir /../ "lib" / "catala" / "runtime" / "ocaml")
          with
          | Some d -> d
-         | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime"))
+         | None ->
+           File.(Lazy.force ocaml_libdir / "catala" / "runtime" / "ocaml"))
      in
      match File.check_directory d with
      | Some dir ->
@@ -97,8 +90,6 @@ let ocaml_runtime_dir : File.t Lazy.t =
           that either catala is correctly installed,@ or you are running from \
           the root of a compiled source tree.@]"
          d)
-
-let stdlib_dir = lazy File.(Lazy.force ocaml_runtime_dir /../ "stdlib")
 
 let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
   lazy
@@ -119,18 +110,25 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
          link_libs
      in
      let includes, libs = List.split includes_libs in
-     ( List.concat includes
-       @ [
+     ( (List.concat includes
+       @
+       let runtime = Lazy.force ocaml_runtime_dir in
+       if String.ends_with runtime ~suffix:"_build/default/runtimes/ocaml" then
+         (* hack to handle in-catala source tree builds, for testing without a
+            properly installed runtime + stdlib *)
+         [
            "-I";
-           Lazy.force ocaml_runtime_dir;
+           runtime;
            "-I";
-           File.(Lazy.force stdlib_dir / "ocaml");
-         ],
-       libs
-       @ [
-           File.(Lazy.force ocaml_runtime_dir / "runtime_ocaml.cmxa");
-           "Stdlib1.cmxa";
-         ] ))
+           File.(
+             runtime
+             / ".runtime.objs"
+             / "byte" (* dune nonsense, the cmi is hidden there *));
+           "-I";
+           File.(dirname runtime /../ "stdlib" / "lib" / "ocaml");
+         ]
+       else ["-I"; runtime]),
+       libs @ ["runtime.cmxa"; "Stdlib1.cmx"] ))
 
 let ocaml_include_flags : string list Lazy.t =
   lazy (fst (Lazy.force ocaml_include_and_lib_flags))
@@ -139,12 +137,10 @@ let ocaml_link_flags : string list Lazy.t =
   lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 
 let c_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_c")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "c")
 
 let python_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force ocaml_runtime_dir /../ "runtime_python" / "src")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "python" / "src")
 
 let java_runtime : File.t Lazy.t =
-  lazy
-    File.(
-      Lazy.force ocaml_runtime_dir /../ "runtime_java" / "catala_runtime.jar")
+  lazy File.(Lazy.force ocaml_runtime_dir /../ "java" / "catala_runtime.jar")

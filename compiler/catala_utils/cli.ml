@@ -391,24 +391,24 @@ module Flags = struct
       | None ->
         let stdlib_dir () =
           let exedir = File.dirname Sys.executable_name in
-          let candidate =
-            File.(
-              exedir / Filename.parent_dir_name / "lib" / "catala" / "stdlib")
-          in
-          match File.check_directory candidate with
+          (* Lookup Stdlib dir within the catala source tree first *)
+          match
+            if File.basename exedir <> "compiler" then None
+            else
+              File.check_directory
+                File.(
+                  dirname Sys.executable_name
+                  / Filename.parent_dir_name
+                  / "stdlib"
+                  / "lib")
+          with
           | Some d -> d
           | None -> (
-            (* Lookup Stdlib dir within the catala source tree *)
-            match
-              if File.basename exedir <> "compiler" then None
-              else
-                File.check_directory
-                  File.(
-                    dirname Sys.executable_name
-                    / Filename.parent_dir_name
-                    / "stdlib"
-                    / "lib")
-            with
+            let candidate =
+              File.(
+                exedir / Filename.parent_dir_name / "lib" / "catala" / "runtime")
+            in
+            match File.check_directory candidate with
             | Some d -> d
             | None ->
               Message.error

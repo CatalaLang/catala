@@ -80,4 +80,3 @@
 ;;   (alias install))
 ;;  (action
 ;;   (run %{bin:clerk} test --exe %{bin:catala} tests)))
-

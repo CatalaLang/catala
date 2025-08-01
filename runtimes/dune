@@ -13,16 +13,18 @@
   (ocaml/runtime.cma as runtime/ocaml/runtime.cma)
   (ocaml/runtime.cmxa as runtime/ocaml/runtime.cmxa)
   (ocaml/runtime.a as runtime/ocaml/runtime.a))
- (section lib)
- )
+ (section lib))
 
 (install
  (files
-  (jsoo/.runtime_jsoo.objs/byte/runtime_jsoo.cmi as runtime/jsoo/runtime_jsoo.cmi)
-  (jsoo/.runtime_jsoo.objs/jsoo/default/runtime_jsoo.cma.js as runtime/jsoo/runtime_jsoo.cma.js)
+  (jsoo/.runtime_jsoo.objs/byte/runtime_jsoo.cmi
+   as
+   runtime/jsoo/runtime_jsoo.cmi)
+  (jsoo/.runtime_jsoo.objs/jsoo/default/runtime_jsoo.cma.js
+   as
+   runtime/jsoo/runtime_jsoo.cma.js)
   (jsoo/runtime_jsoo.cma as runtime/jsoo/runtime_jsoo.cma))
- (section lib)
- )
+ (section lib))
 
 ; Python runtime
 
@@ -71,8 +73,8 @@
 (alias
  (name runtimes)
  (deps
-  runtime
-  runtime_jsoo
+  ocaml/runtime.cmxa
+  jsoo/.runtime_jsoo.objs/jsoo/default/runtime_jsoo.cma.js
   (alias runtime-python)
   (alias runtime-java)
   (alias runtime-c)))

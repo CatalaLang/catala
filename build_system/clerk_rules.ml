@@ -58,7 +58,6 @@ module Var = struct
   let catala_flags_c = make "CATALA_FLAGS_C"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
   let catala_flags_java = make "CATALA_FLAGS_JAVA"
-  let stdlib_dir = make "CATALA_STDLIB"
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
@@ -185,7 +184,6 @@ let base_bindings ~autotest ~enabled_backends ~config =
          :: ("--test-flags=" ^ String.concat "," test_flags)
          :: includes ()
         @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
-    def Var.stdlib_dir (lazy [Lazy.force Poll.stdlib_dir]);
   ]
   @ (if List.mem OCaml enabled_backends then
        [

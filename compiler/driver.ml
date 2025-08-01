@@ -83,11 +83,12 @@ let load_modules
       | None ->
         if mname = stdlib_root_module then
           Message.error
-            "The standard library could not be found at@ %a,@ please@ check@ \
-             your@ Catala@ installation.@ You can use the command-line flag \
-             @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ non-standard@ location."
-            File.format
-            File.(Sys.getcwd () / Lazy.force (Option.get stdlib))
+            "The standard library module @{<magenta>%s@}@ could@ not@ be@ \
+             found@ at@ %a,@ please@ check@ your@ Catala@ installation.@ You \
+             can use the command-line flag @{<yellow>--stdlib=DIR@}@ to@ \
+             specify@ a@ non-standard@ location."
+            mname File.format
+            (Lazy.force (Option.get stdlib))
         else not_found ())
     (* TODO: choose file depending on current language *)
     | [] -> not_found ()

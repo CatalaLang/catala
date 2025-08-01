@@ -40,7 +40,8 @@
 
 (alias
  (name plugins)
- (deps (glob_files *.cmxs)))
+ (deps
+  (glob_files *.cmxs)))
 
 (documentation
  (package catala)

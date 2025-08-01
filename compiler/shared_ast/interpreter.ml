@@ -1212,13 +1212,15 @@ let load_runtime_modules ~hashf prg =
       in
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
-        let root = File.common_prefix Global.options.bin_dir src in
-        let dir =
-          File.(
-            dirname @@ (Global.options.bin_dir / File.remove_prefix root src))
+        let dir = File.dirname src in
+        let f =
+          Dynlink.adapt_filename
+            File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
         in
-        Dynlink.adapt_filename
-          File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
+        if Sys.file_exists f then f
+        else
+          let root = File.common_prefix Global.options.bin_dir dir in
+          File.(Global.options.bin_dir / File.remove_prefix root f)
       in
       (if not (Sys.file_exists obj_file) then
          Message.error
