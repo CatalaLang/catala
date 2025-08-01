@@ -31,8 +31,8 @@ class type source_position = object
   method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
 end
 
-(** Wrapper for the {!type: Runtime.raw_event} -- directly
-    collected during the program execution.*)
+(** Wrapper for the {!type: Runtime.raw_event} -- directly collected during the
+    program execution.*)
 class type raw_event = object
   method eventType : Js.js_string Js.t Js.prop
   (** There is four type of raw log events:
@@ -61,16 +61,16 @@ class type raw_event = object
   method sourcePosition : source_position Js.t Js.optdef Js.prop
 
   method loggedIOJson : Js.js_string Js.t Js.prop
-  (** Serialzed [Runtime.io_log] corresponding to a
-      `VariableDefinition` raw event. *)
+  (** Serialzed [Runtime.io_log] corresponding to a `VariableDefinition` raw
+      event. *)
 
   method loggedValueJson : Js.js_string Js.t Js.prop
-  (** Serialized [Runtime.runtime_value] corresponding to a
-      'VariableDefinition' raw event. *)
+  (** Serialized [Runtime.runtime_value] corresponding to a 'VariableDefinition'
+      raw event. *)
 end
 
-(** Wrapper for the {!type: Runtime.event} -- structured log event
-    parsed from the {!raw_event} ones. *)
+(** Wrapper for the {!type: Runtime.event} -- structured log event parsed from
+    the {!raw_event} ones. *)
 class type event = object
   method data : Js.js_string Js.t Js.prop
   (** Serialized [Runtime.event]. *)
@@ -108,14 +108,10 @@ val date_to_js : Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
-val position_of_js :
-  source_position Js.t -> Runtime.source_position
-
-val position_to_js :
-  Runtime.source_position -> source_position Js.t
+val position_of_js : source_position Js.t -> Runtime.source_position
+val position_to_js : Runtime.source_position -> source_position Js.t
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the
-    {!Runtime.NoValue}, {!Runtime.Conflict}
-    {!Runtime.AssertionFailed} exceptions by raising a JS error if
-    needed.*)
+    {!Runtime.NoValue}, {!Runtime.Conflict} {!Runtime.AssertionFailed}
+    exceptions by raising a JS error if needed.*)

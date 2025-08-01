@@ -22,7 +22,14 @@
 
 open Catala_utils
 
-let run includes stdlib output optimize check_invariants closure_conversion options =
+let run
+    includes
+    stdlib
+    output
+    optimize
+    check_invariants
+    closure_conversion
+    options =
   let open Driver.Commands in
   let prg, type_ordering, _ =
     Driver.Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants

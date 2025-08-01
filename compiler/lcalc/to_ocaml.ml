@@ -411,8 +411,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
   | EFatalError er ->
-    Format.fprintf fmt "raise@ (Runtime.Error (%a, [%a]))"
-      Print.runtime_error er format_pos (Expr.pos e)
+    Format.fprintf fmt "raise@ (Runtime.Error (%a, [%a]))" Print.runtime_error
+      er format_pos (Expr.pos e)
   | EPos p -> format_pos fmt p
   | _ -> .
 
@@ -699,8 +699,8 @@ let check_and_reexport_used_modules ppml ppi ~hashf modules =
   List.iter
     (fun (m, intf_id) ->
       pp [ppml]
-        "@[<hv 2>let () =@ @[<hov 2>match Runtime.check_module \
-         %S \"%a\"@ with@]@,\
+        "@[<hv 2>let () =@ @[<hov 2>match Runtime.check_module %S \"%a\"@ \
+         with@]@,\
          | Ok () -> ()@,\
          @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
          need recompiling\"@]@]@,"
@@ -719,8 +719,7 @@ let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Runtime.register_module \"%a\""
-    ModuleName.format modname;
+  Format.fprintf fmt "Runtime.register_module \"%a\"" ModuleName.format modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
