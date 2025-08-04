@@ -188,16 +188,16 @@ let typ ?(colors = colors) fmt ty = typ_gen ~colors Bindlib.empty_ctxt fmt ty
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
   | LBool b -> lit_style fmt (string_of_bool b)
-  | LInt i -> lit_style fmt (Runtime.integer_to_string i)
+  | LInt i -> lit_style fmt (Catala_runtime.integer_to_string i)
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits
-         i)
+      (Catala_runtime.decimal_to_string
+         ~max_prec_digits:Global.options.max_prec_digits i)
   | LMoney e ->
-    lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
-  | LDate d -> lit_style fmt (Runtime.date_to_string d)
-  | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
+    lit_style fmt (Format.asprintf "¤%s" (Catala_runtime.money_to_string e))
+  | LDate d -> lit_style fmt (Catala_runtime.date_to_string d)
+  | LDuration d -> lit_style fmt (Catala_runtime.duration_to_string d)
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
@@ -372,7 +372,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
       (if debug then operator_to_string op else operator_to_shorter_string op)
 
 let runtime_error ppf err =
-  Format.fprintf ppf "@{<red>%s@}" (Runtime.error_to_string err)
+  Format.fprintf ppf "@{<red>%s@}" (Catala_runtime.error_to_string err)
 
 let var_debug fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -703,7 +703,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           "(" (rhs exprc) e' punctuation ")"
       | EFatalError err ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
-          (Runtime.error_to_string err)
+          (Catala_runtime.error_to_string err)
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -1074,13 +1074,13 @@ module UserFacing = struct
      and some others not, adding confusion. *)
 
   let date (lang : Global.backend_lang) ppf d =
-    let y, m, d = Runtime.date_to_years_months_days d in
+    let y, m, d = Catala_runtime.date_to_years_months_days d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
     | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
   let duration (lang : Global.backend_lang) ppf dr =
-    let y, m, d = Runtime.duration_to_years_months_days dr in
+    let y, m, d = Catala_runtime.duration_to_years_months_days dr in
     let rec filter0 = function
       | (0, _) :: (_ :: _ as r) -> filter0 r
       | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r

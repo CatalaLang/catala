@@ -19,7 +19,7 @@ open Catala_utils
 module S = Surface.Ast
 module SurfacePrint = Surface.Print
 open Shared_ast
-module Runtime = Runtime
+module Runtime = Catala_runtime
 
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
 

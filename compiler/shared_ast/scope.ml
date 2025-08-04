@@ -102,9 +102,9 @@ let unfold_body_expr (_ctx : decl_ctx) (scope_let : 'e scope_body_expr) =
 
 let input_type ty io =
   match io, ty with
-  | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
+  | (Catala_runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
     TArrow (args, (TDefault ret, iopos)), tpos
-  | (Runtime.Reentrant, iopos), (ty, tpos) -> TDefault (ty, tpos), iopos
+  | (Catala_runtime.Reentrant, iopos), (ty, tpos) -> TDefault (ty, tpos), iopos
   | _, ty -> ty
 
 let to_expr (ctx : decl_ctx) (body : 'e scope_body) : 'e boxed =

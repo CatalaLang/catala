@@ -280,13 +280,13 @@ end
 
 (** {2 Constants and operators} *)
 
-type date = Runtime.date
-type date_rounding = Runtime.date_rounding
-type duration = Runtime.duration
+type date = Catala_runtime.date
+type date_rounding = Catala_runtime.date_rounding
+type duration = Catala_runtime.duration
 
 type var_def_log = {
   log_typ : naked_typ;
-  log_io_input : Runtime.io_input;
+  log_io_input : Catala_runtime.io_input;
   log_io_output : bool;
 }
 
@@ -469,9 +469,9 @@ type ('a, 'm) marked = ('a, 'm mark) Mark.ed
 (** Literals are the same throughout compilation. *)
 type lit =
   | LBool of bool
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
+  | LInt of Catala_runtime.integer
+  | LRat of Catala_runtime.decimal
+  | LMoney of Catala_runtime.money
   | LUnit
   | LDate of date
   | LDuration of duration
@@ -611,7 +611,7 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
-  | EFatalError : Runtime.error -> ('a, < .. >, 'm) base_gexpr
+  | EFatalError : Catala_runtime.error -> ('a, < .. >, 'm) base_gexpr
   | EPos : Pos.t -> ('a, < .. >, 'm) base_gexpr
       (** Position literal, used along returned exceptions. Note that it's only
           used in lcalc, so it could have [< defaultTerms: no; ..>], but since

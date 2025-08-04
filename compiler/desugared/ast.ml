@@ -115,7 +115,10 @@ module ExprMap = Map.Make (struct
   let format = Expr.format
 end)
 
-type io = { io_output : bool Mark.pos; io_input : Runtime.io_input Mark.pos }
+type io = {
+  io_output : bool Mark.pos;
+  io_input : Catala_runtime.io_input Mark.pos;
+}
 
 type exception_situation =
   | BaseCase
@@ -278,7 +281,7 @@ module Hash = struct
     | States s -> !`States % Hash.list StateName.hash s
 
   let io x =
-    !(Mark.remove x.io_input : Runtime.io_input)
+    !(Mark.remove x.io_input : Catala_runtime.io_input)
     % !(Mark.remove x.io_output : bool)
 
   let scope_decl ~strip d =

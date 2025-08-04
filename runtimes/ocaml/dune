@@ -3,4 +3,4 @@
  (public_name catala.runtime_ocaml)
  (wrapped false)
  (libraries dates_calc zarith zarith_stubs_js)
- (modules runtime))
+ (modules catala_runtime))

@@ -35,7 +35,7 @@ let load_modules
     program :
     ModuleName.t Ident.Map.t
     * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
-  let stdlib_root_module = "Stdlib1" in
+  let stdlib_root_module lang = "Stdlib_" ^ Cli.language_code lang in
   if stdlib <> None || program.Surface.Ast.program_used_modules <> [] then
     Message.debug "Loading module interfaces...";
   (* Recurse into program modules, looking up files in [using] and loading
@@ -46,9 +46,10 @@ let load_modules
     | None -> File.Tree.empty
   in
   let stdlib_use file =
-    let pos = Pos.from_info file 1 1 1 1 in
+    let pos = Pos.from_info file 0 0 0 0 in
+    let lang = Cli.file_lang file in
     {
-      Surface.Ast.mod_use_name = stdlib_root_module, pos;
+      Surface.Ast.mod_use_name = stdlib_root_module lang, pos;
       Surface.Ast.mod_use_alias = "Stdlib", pos;
     }
   in
@@ -67,32 +68,25 @@ let load_modules
       File.Tree.union includes
         (File.Tree.build (File.dirname required_from_file))
     in
-    let not_found () =
-      Message.error
-        ~extra_pos:(err_req_pos (mpos :: req_chain))
-        "Required module not found: @{<blue>%s@}" mname
-    in
     match
       List.filter_map
         (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
         extensions
     with
-    | [] when (not in_stdlib) && stdlib <> None -> (
-      match File.Tree.lookup stdlib_includes (mname ^ ".catala_en") with
-      | Some f -> f, true
-      | None ->
-        if mname = stdlib_root_module then
-          Message.error
-            "The standard library module @{<magenta>%s@}@ could@ not@ be@ \
-             found@ at@ %a,@ please@ check@ your@ Catala@ installation.@ You \
-             can use the command-line flag @{<yellow>--stdlib=DIR@}@ to@ \
-             specify@ a@ non-standard@ location."
-            mname File.format
-            (Lazy.force (Option.get stdlib))
-        else not_found ())
-    (* TODO: choose file depending on current language *)
-    | [] -> not_found ()
-    | [f] -> f, false
+    | [] ->
+      if in_stdlib then
+        Message.error
+          "The standard library module @{<magenta>%s@}@ could@ not@ be@ found@ \
+           at@ %a,@ please@ check@ your@ Catala@ installation.@ You can use \
+           the command-line flag @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ \
+           non-standard@ location."
+          mname File.format
+          (Lazy.force (Option.get stdlib))
+      else
+        Message.error
+          ~extra_pos:(err_req_pos (mpos :: req_chain))
+          "Required module not found: @{<blue>%s@}" mname
+    | [f] -> f
     | ms ->
       Message.error
         ~extra_pos:(err_req_pos (mpos :: req_chain))
@@ -107,9 +101,7 @@ let load_modules
       * ModuleName.t Ident.Map.t =
     List.fold_left
       (fun (seen, use_map) use ->
-        let f, is_stdlib =
-          find_module is_stdlib req_chain use.Surface.Ast.mod_use_name
-        in
+        let f = find_module is_stdlib req_chain use.Surface.Ast.mod_use_name in
         match File.Map.find_opt f seen with
         | Some (Some (modname, _, _)) ->
           ( seen,
@@ -142,38 +134,44 @@ let load_modules
             ModuleName.fresh
               module_content.Surface.Ast.module_modname.module_name
           in
-          let submodules =
-            if is_stdlib || stdlib = None then
-              module_content.Surface.Ast.module_submodules
-            else stdlib_use f :: module_content.Surface.Ast.module_submodules
-          in
           let seen = File.Map.add f None seen in
+          let seen, stdlib_use_map =
+            if is_stdlib || stdlib = None then seen, Ident.Map.empty
+            else
+              aux true
+                (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
+                seen
+                [stdlib_use f]
+          in
           let seen, sub_use_map =
             aux is_stdlib
               (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-              seen submodules
+              seen module_content.Surface.Ast.module_submodules
           in
-          ( File.Map.add f (Some (modname, module_content, sub_use_map)) seen,
+          let file_use_map =
+            (* Uses from the stdlib are "flattened" to the parent module, but
+               can still be overriden *)
+            Ident.Map.union (fun _ _ m -> Some m) stdlib_use_map sub_use_map
+          in
+          ( File.Map.add f (Some (modname, module_content, file_use_map)) seen,
             Ident.Map.add
               (Mark.remove use.Surface.Ast.mod_use_alias)
               modname use_map ))
       (seen, Ident.Map.empty) uses
   in
-  let seen =
+  let file =
     match program.Surface.Ast.program_module with
-    | Some m ->
-      let file = Pos.get_file (Mark.get m.module_name) in
-      File.Map.singleton file None
-    | None -> File.Map.empty
+    | Some m -> Pos.get_file (Mark.get m.module_name)
+    | None -> List.hd program.Surface.Ast.program_source_files
   in
-  let root_used_modules =
-    match stdlib with
-    | None -> program.Surface.Ast.program_used_modules
-    | Some _ ->
-      stdlib_use (List.hd program.Surface.Ast.program_source_files)
-      :: program.Surface.Ast.program_used_modules
+  let seen = File.Map.singleton file None in
+  let seen, stdlib_use_map =
+    if stdlib = None then seen, Ident.Map.empty
+    else aux true [Pos.from_info file 0 0 0 0] seen [stdlib_use file]
   in
-  let file_module_map, root_uses = aux false [] seen root_used_modules in
+  let file_module_map, root_uses =
+    aux false [] seen program.Surface.Ast.program_used_modules
+  in
   let modules_map =
     File.Map.fold
       (fun _ info acc ->

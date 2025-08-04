@@ -899,7 +899,8 @@ let translate_program
                   with
                   | Some
                       {
-                        scope_def_io = { io_input = Runtime.Reentrant, _; _ };
+                        scope_def_io =
+                          { io_input = Catala_runtime.Reentrant, _; _ };
                         scope_def_typ;
                         _;
                       } ->

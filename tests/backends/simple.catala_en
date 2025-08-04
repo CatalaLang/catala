@@ -37,6 +37,7 @@ $ catala c
 #include <stdlib.h>
 #include <catala_runtime.h>
 
+#include <Stdlib1.h>
 
 typedef struct Foo {
   CATALA_BOOL x;

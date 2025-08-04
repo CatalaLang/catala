@@ -107,6 +107,7 @@ $ catala test-scope S4
 
 ```catala-test-cli
 $ catala scalc
+module stdlib1 = Stdlib1
 let glob1 = 44.12
 
 let glob3 (x: money) = return to_rat x + 10.
@@ -191,6 +192,7 @@ $ catala python
 from catala.runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
+from . import Stdlib1 as stdlib1
 
 class A:
     def __init__(self, y: bool, z: Decimal) -> None:
