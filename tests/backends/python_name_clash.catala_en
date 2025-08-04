@@ -24,6 +24,7 @@ $ catala python
 from catala.runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
+from . import Stdlib1 as stdlib1
 
 class SomeName:
     def __init__(self, o: Integer) -> None:

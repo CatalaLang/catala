@@ -44,19 +44,12 @@ $ catala test-scope A --debug
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
 [DEBUG] Loading shared modules... Stdlib1
-┌─[ERROR]─
-│
-│  While loading compiled module from "_build/default/stdlib/lib/ocaml/Stdlib1.cmxs":
-│    execution of module initializers in the shared library failed: Not_found
-│
+[DEBUG] Starting interpretation...
+[DEBUG] End of interpretation
+┌─[RESULT]─ A ─
+│ t = ¤0.00
+│ x = 2019-01-01
+│ y = 2002-09-30
+│ z = [0 years, 0 months, 5937 days]
 └─
-Raised at Catala_utils__Message.error.(fun) in file "compiler/catala_utils/message.ml", line 527, characters 6-29
-Called from Shared_ast__Interpreter.load_runtime_modules.load in file "compiler/shared_ast/interpreter.ml", line 1233, characters 11-195
-Called from Stdlib__List.iter in file "list.ml", line 110, characters 12-15
-Called from Driver.Commands.interpret_dcalc in file "compiler/driver.ml", line 841, characters 4-101
-Called from Cmdliner_term.app.(fun) in file "cmdliner_term.ml", line 24, characters 19-24
-Called from Cmdliner_eval.run_parser in file "cmdliner_eval.ml", line 35, characters 37-44
-Called from Cmdliner_eval.eval_value in file "cmdliner_eval.ml", line 203, characters 14-39
-Called from Driver.main in file "compiler/driver.ml", line 1377, characters 8-49
-#return code 123#
 ```

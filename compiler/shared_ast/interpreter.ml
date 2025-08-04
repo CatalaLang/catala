@@ -22,6 +22,8 @@ open Catala_utils
 open Definitions
 open Op
 
+module Runtime = Catala_runtime
+
 (** {1 Helpers} *)
 
 let is_empty_error : type a. (a, 'm) gexpr -> bool =

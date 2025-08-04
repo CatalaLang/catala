@@ -90,7 +90,7 @@ val eassert :
   'm mark ->
   ((< assertions : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val efatalerror : Runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
+val efatalerror : Catala_runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
 val epos : Pos.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val eappop :
@@ -258,8 +258,8 @@ val source_pos_struct : StructName.t
 (** Fake structure (there is no corresponding decl) used for categorising
     [PosLit] terms in scalc *)
 
-val pos_to_runtime : Pos.t -> Runtime.source_position
-val runtime_to_pos : Runtime.source_position -> Pos.t
+val pos_to_runtime : Pos.t -> Catala_runtime.source_position
+val runtime_to_pos : Catala_runtime.source_position -> Pos.t
 
 (** Manipulation of marked expressions *)
 
