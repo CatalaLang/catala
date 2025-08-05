@@ -498,6 +498,7 @@ let rec translate_expr
       "Access to intermediate states is only allowed for variables of the \
        current scope."
   | Ident (path, name, None) -> (
+    Message.debug "PA> [%s]" (String.concat "." (List.map Mark.remove path));
     let _, ctxt = Name_resolution.module_ctx ctxt path in
     match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
     | Some v ->

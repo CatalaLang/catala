@@ -94,8 +94,8 @@ class type duration = object
   method days : int Js.readonly_prop
 end
 
-val duration_of_js : duration Js.t -> Runtime.duration
-val duration_to_js : Runtime.duration -> duration Js.t
+val duration_of_js : duration Js.t -> Catala_runtime.duration
+val duration_to_js : Catala_runtime.duration -> duration Js.t
 
 (** {1 Date conversion} *)
 
@@ -103,15 +103,16 @@ val duration_to_js : Runtime.duration -> duration Js.t
     {{:https://www.iso.org/iso-8601-date-and-time-format.html} ISO8601 format}:
     'YYYY-MM-DD'. *)
 
-val date_of_js : Js.js_string Js.t -> Runtime.date
-val date_to_js : Runtime.date -> Js.js_string Js.t
+val date_of_js : Js.js_string Js.t -> Catala_runtime.date
+val date_to_js : Catala_runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
-val position_of_js : code_location Js.t -> Runtime.code_location
-val position_to_js : Runtime.code_location -> code_location Js.t
+val position_of_js : code_location Js.t -> Catala_runtime.code_location
+val position_to_js : Catala_runtime.code_location -> code_location Js.t
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the
-    {!Runtime.NoValue}, {!Runtime.Conflict} {!Runtime.AssertionFailed}
-    exceptions by raising a JS error if needed.*)
+    {!Catala_runtime.NoValue}, {!Catala_runtime.Conflict}
+    {!Catala_runtime.AssertionFailed} exceptions by raising a JS error if
+    needed.*)

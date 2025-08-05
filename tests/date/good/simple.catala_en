@@ -5,19 +5,28 @@
   context output x content date
   context output y content date
   context output z content duration
-  output t content money
+  output t content date
 
 scope A:
   definition x equals |2019-01-01|
   definition y equals |2002-09-30|
   definition z equals x - y
-  definition t equals Stdlib.positive of - $44
+  definition t equals Date.last_day_of_month of x
 ```
 
 
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[todo.add_position_argument]
+│
+├─➤ /home/lg/inria/catala/_build/default/stdlib/lib/date_en.catala_en:6.3-6.29:
+│   │
+│ 6 │ #[todo.add_position_argument]
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 ┌─[RESULT]─
 │ All invariant checks passed
 └─
@@ -32,10 +41,24 @@ $ catala test-scope A --debug
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/date/good/simple.catala_en"
 [DEBUG] Loading module interfaces...
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/lib/stdlib1.catala_en"
+[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/lib/stdlib_en.catala_en"
+[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/lib/date_en.catala_en"
+[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/lib/date_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
+┌─[WARNING]─
+│
+│  No plugin registered to handle attribute #[todo.add_position_argument]
+│
+├─➤ /home/lg/inria/catala/_build/default/stdlib/lib/date_en.catala_en:6.3-6.29:
+│   │
+│ 6 │ #[todo.add_position_argument]
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+[DEBUG] <Date = Date_en; Stdlib = Stdlib_en>
 [DEBUG] Desugaring...
+[DEBUG] PA> [Date]
+[DEBUG] <Date = Date_en; Stdlib = Stdlib_en>
 [DEBUG] Disambiguating...
 [DEBUG] Linting...
 [DEBUG] = SCOPELANG =
@@ -43,11 +66,11 @@ $ catala test-scope A --debug
 [DEBUG] Typechecking...
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
-[DEBUG] Loading shared modules... Stdlib1
+[DEBUG] Loading shared modules... Date_internal Date_en Stdlib_en
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─ A ─
-│ t = ¤0.00
+│ t = 2002-09-30
 │ x = 2019-01-01
 │ y = 2002-09-30
 │ z = [0 years, 0 months, 5937 days]

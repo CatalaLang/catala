@@ -16,6 +16,7 @@
 
 open Catala_utils
 open Shared_ast
+module Runtime = Catala_runtime
 
 module Style = struct
   type color = Graph.Graphviz.color

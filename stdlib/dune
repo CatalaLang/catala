@@ -17,15 +17,17 @@
      (run sed "s%/[^/]*\\.cmxa%%g"))))))
 
 (rule
- (deps clerk.toml stdlib1.catala_en)
+ (deps (:src stdlib_en.catala_en)
+       clerk.toml
+       (source_tree .))
  (alias stdlib)
  (targets
   (dir lib))
  (action
   (run
    %{dep:../build_system/clerk.exe}
-   build
-   Stdlib1
+   build --debug
+   Stdlib_en Stdlib_fr Stdlib_pl
    --exe=%{dep:../compiler/catala.exe}
    -c--stdlib
    --build-dir=lib)))

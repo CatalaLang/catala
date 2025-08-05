@@ -164,24 +164,35 @@ let load_modules
     | Some m -> Pos.get_file (Mark.get m.module_name)
     | None -> List.hd program.Surface.Ast.program_source_files
   in
-  let seen = File.Map.singleton file None in
-  let seen, stdlib_use_map =
-    if stdlib = None then seen, Ident.Map.empty
-    else aux true [Pos.from_info file 0 0 0 0] seen [stdlib_use file]
-  in
-  let file_module_map, root_uses =
-    aux false [] seen program.Surface.Ast.program_used_modules
-  in
-  let modules_map =
+  let modules_map file_map =
     File.Map.fold
       (fun _ info acc ->
         match info with
         | None -> acc
         | Some (mname, intf, use_map) ->
           ModuleName.Map.add mname (intf, use_map) acc)
-      file_module_map ModuleName.Map.empty
+      file_map ModuleName.Map.empty
   in
-  root_uses, modules_map
+  let seen, stdlib_uses =
+    if stdlib = None then File.Map.empty, Ident.Map.empty
+    else
+      let stdlib_files, stdlib_use_map =
+        aux true [Pos.from_info file 0 0 0 0] File.Map.empty [stdlib_use file]
+      in
+      let stdlib_modules = modules_map stdlib_files in
+      let _, (_, stdlib_uses) =
+        (* Uses from the stdlib are "flattened" to the parent module, but can
+           still be overriden *)
+        ModuleName.Map.choose stdlib_modules
+      in
+      ( stdlib_files,
+        Ident.Map.union (fun _ _ m -> Some m) stdlib_uses stdlib_use_map )
+  in
+  let file_module_map, root_uses =
+    aux false [] seen program.Surface.Ast.program_used_modules
+  in
+  ( Ident.Map.union (fun _ _ m -> Some m) stdlib_uses root_uses,
+    modules_map file_module_map )
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes

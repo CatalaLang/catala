@@ -1,4 +1,4 @@
-open Runtime
+open Catala_runtime
 open Oper
 
 [@@@ocaml.warning "-4-26-27-32-41-42"]
@@ -34,7 +34,7 @@ let prorata2 : money -> (money array) -> (money array) =
   a
 
 let () =
-  Runtime.register_module "Prorata_external"
+  Catala_runtime.register_module "Prorata_external"
     [ "prorata", Obj.repr prorata;
       "prorata2", Obj.repr prorata2 ]
     "*external*"

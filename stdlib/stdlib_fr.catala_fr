@@ -1,4 +1,4 @@
-> Module Stdlib_en
+> Module Stdlib_fr
 
 ```catala-metadata
 # This file is part of the Catala compiler, a specification language for tax
@@ -18,10 +18,8 @@
 # the License.
 ```
 
-> Using Date_en as Date
-
 ```catala-metadata
-declaration positive content money depends on x content money
-  equals
-  if x < $0 then $0 else x
+déclaration positif contenu argent dépend de x contenu argent
+  égal à
+  si x < 0€ alors 0€ sinon x
 ```
