@@ -221,7 +221,7 @@ let rec lazy_eval :
         error e "Assert failure (%a)" Expr.format e
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
   | EFatalError err, m ->
-    error e0 "%a" Format.pp_print_text (Runtime.error_message err)
+    error e0 "%a" Format.pp_print_text (Catala_runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
   | _ -> .
 

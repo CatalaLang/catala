@@ -15,7 +15,7 @@
    the License. *)
 
 open Js_of_ocaml
-module R_ocaml = Runtime
+module R_ocaml = Catala_runtime
 
 class type source_position = object
   method fileName : Js.js_string Js.t Js.prop

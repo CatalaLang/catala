@@ -353,11 +353,6 @@ let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
   | MR_Round, eof -> Some Round
-  | MR_GetDay, eof -> Some GetDay
-  | MR_GetMonth, eof -> Some GetMonth
-  | MR_GetYear, eof -> Some GetYear
-  | MR_FirstDayOfMonth -> Some FirstDayOfMonth
-  | MR_LastDayOfMonth -> Some LastDayOfMonth
   | _ -> None
 
 (** Regexp matching any digit character.

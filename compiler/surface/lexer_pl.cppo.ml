@@ -129,16 +129,6 @@
 
 #define MS_Round "zaokrąglony"
 #define MR_Round "zaokr", 0x0105, "glony"
-#define MS_GetDay "dostęp_dzień"
-#define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
-#define MS_GetMonth "dostęp_miesiąc"
-#define MR_GetMonth "dost", 0x0119, "p_miesi", 0x0105, "c"
-#define MS_GetYear "dostęp_rok"
-#define MR_GetYear "dost", 0x0119, "p_rok"
-#define MS_FirstDayOfMonth "pierwszy_dzień_miesiąca"
-#define MR_FirstDayOfMonth "pierwszy_dzie", 0x144, "_miesi", 0x0105, "ca"
-#define MS_LastDayOfMonth "ostatni_dzień_miesiąca"
-#define MR_LastDayOfMonth "ostatni_dzie", 0x144, "_miesi", 0x0105, "ca"
 
 (* Directives *)
 

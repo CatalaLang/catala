@@ -9,7 +9,7 @@
 
 (install
  (files
-  (ocaml/.runtime.objs/byte/runtime.cmi as runtime/ocaml/runtime.cmi)
+  (ocaml/.runtime.objs/byte/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi)
   (ocaml/runtime.cma as runtime/ocaml/runtime.cma)
   (ocaml/runtime.cmxa as runtime/ocaml/runtime.cmxa)
   (ocaml/runtime.a as runtime/ocaml/runtime.a))
