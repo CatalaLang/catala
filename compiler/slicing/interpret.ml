@@ -269,7 +269,8 @@ fun ctx lang e ->
         | Some v -> 
           (* We return the local_context with the value since v could be a 
             lambda abstaction with bond variables defined in the context *)
-          ok local_ctx v @@ trvar ~var:x ~value:v
+          let reduced_ctx, _ = substitute_bounded_vars local_ctx v in
+          ok reduced_ctx v @@ trvar ~var:x ~value:v
         | None -> 
           Message.error ~pos "%a@ Variable : %a@ Context : %a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -358,9 +359,8 @@ fun ctx lang e ->
           (* We add a context closure here for when there are scope calls *)
           (* It is the part that slows the interpret the most. *)
           (* It could certainly be optimized by handling substitutions differently *)
-          let reduced_ctx, _ = substitute_bounded_vars new_ctx v in
-          let tr = trapp ~trf ~trargs ~tys ~vars ~trv in
-          ok reduced_ctx v @@ trcontextclosure ~context:reduced_ctx ~tr
+          let _, vsubst = substitute_bounded_vars new_ctx v in
+          ok Var.Map.empty vsubst @@ trapp ~trf ~trargs ~tys ~vars ~trv
         else
           Message.error ~pos "wrong function call, expected %d arguments, got %d"
             (Bindlib.mbinder_arity binder)
@@ -628,8 +628,7 @@ fun ctx lang e ->
   match evaluate_expr_with_trace_aux ctx Var.Map.empty lang e
   with 
     | Ok (ctx, v, tr) ->
-      let reduced_ctx, v = substitute_bounded_vars ctx v in 
-      v, trcontextclosure ~context:reduced_ctx ~tr
+      let _, v = substitute_bounded_vars ctx v in v, tr
     | Error (err, m, tr) -> Mark.add m (EFatalError err), tr
 
 let evaluate_expr_safe :

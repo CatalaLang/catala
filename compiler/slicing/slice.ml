@@ -137,10 +137,124 @@ let join_ctx ctx1 ctx2 =
   (Var.Map.union (fun _ v1 v2 -> Some (join_expr v1 v2))) ctx1 ctx2
 
 let join_ctx_list ctx_list = List.fold_left join_ctx Var.Map.empty ctx_list
+
 let enrich_with_ctx context (ctx, e) = join_ctx ctx context, e
 
 let enrich_with_ctx_list context_list (ctx, e) =
   join_ctx_list (ctx :: context_list), e
+
+let rec unsubstitute : 
+    type d t. (d, t) gexpr -> (d, t) gexpr -> 
+    ((d, t) gexpr, (d, t) gexpr) Var.Map.t * (d, t) gexpr =
+    (* Unsubstitute e1 e2 returns an expression that have the same kind of 
+    structure as e1 but with some of its values replaced by some variables of e2.
+    For instance if e1 := 5+□ and e2 := x+y, then unsubstitute e1 e2 = ([x -> 5], x+□)
+    *)
+ fun e1 e2 -> 
+  let m = Mark.get e1 in
+  match Mark.remove e1, Mark.remove e2 with
+  | EHole _, _ -> Var.Map.empty, e1
+  | EVar x1, EVar x2 when Bindlib.eq_vars x1 x2 -> Var.Map.empty, e1
+  | _, EVar x2 -> Var.Map.singleton x2 e1, e2
+  | ELit l1, ELit l2 when l1 = l2 -> Var.Map.empty,e1
+  | EEmpty, EEmpty -> Var.Map.empty,e1
+  | EFatalError err1, EFatalError err2 when err1 = err2 -> Var.Map.empty,e1
+  | EAbs { binder = b1; pos; tys }, EAbs { binder = b2; pos = _; tys = _ } ->
+    let vars, e1, e2 = Bindlib.unmbind2 b1 b2 in
+    let ctx, e = unsubstitute e1 e2 in
+    ctx,Mark.add m (EAbs { binder = bind vars e; pos; tys })
+  | ECustom { obj = o1; _ }, ECustom { obj = o2; _ } when o1 = o2 -> Var.Map.empty,e1
+  | EExternal _, EExternal _ when Expr.equal e1 e2 -> Var.Map.empty,e1
+  | EApp { f = f1; args = a1; tys }, EApp { f = f2; args = a2; _ } ->
+    let ctxf, f = unsubstitute f1 f2 in
+    let ctxargs, args = unsubstitute_list a1 a2 in
+    join_ctx_list (ctxf::ctxargs), Mark.add m (EApp { f; args; tys })
+  | EAppOp { op = op1; args = a1; tys }, EAppOp { op = op2; args = a2; _ }
+    when Mark.equal Operator.equal op1 op2 ->
+    let ctxargs, args = unsubstitute_list a1 a2 in
+    join_ctx_list ctxargs, Mark.add m (EAppOp { op = op1; args; tys })
+  | EArray e1, EArray e2 -> 
+    let ctxs, es = unsubstitute_list e1 e2 in
+    join_ctx_list ctxs, Mark.add m (EArray es)
+  | ( EIfThenElse { cond = c1; etrue = t1; efalse = f1 },
+      EIfThenElse { cond = c2; etrue = t2; efalse = f2 } ) ->
+    let ctxc, cond = unsubstitute c1 c2 in
+    let ctxt, etrue = unsubstitute t1 t2 in
+    let ctxf, efalse = unsubstitute f1 f2 in
+    join_ctx_list [ctxc; ctxt; ctxf],
+    Mark.add m @@ EIfThenElse { cond; etrue; efalse }
+  | EStruct { name = n1; fields = f1 }, EStruct { name = n2; fields = f2 }
+    when StructName.equal n1 n2 ->
+    let fields_with_ctx =
+      StructField.Map.mapi
+        (fun f e -> unsubstitute e (StructField.Map.find f f2))
+        f1
+    in
+    let lctx =
+      StructField.Map.fold
+        (fun _ (ctx, _) lctx -> join_ctx lctx ctx)
+        fields_with_ctx Var.Map.empty
+    in
+    let fields = StructField.Map.map snd fields_with_ctx in
+    lctx, Mark.add m (EStruct { name = n1; fields })
+  | ( EStructAccess { name = n1; e = e1; field = f1 },
+      EStructAccess { name = n2; e = e2; field = f2 } )
+    when StructName.equal n1 n2 && StructField.equal f1 f2 ->
+    let ctx, e = unsubstitute e1 e2 in 
+    ctx, Mark.add m (EStructAccess { name = n1; e; field = f1 })
+  | EInj { name = n1; e = e1; cons = c1 }, EInj { name = n2; e = e2; cons = c2 }
+    when EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 ->
+    let ctx, e = unsubstitute e1 e2 in 
+    ctx, Mark.add m (EInj { name = n1; e; cons = c1 })
+  | ( EMatch { name = n1; e = e1; cases = c1 },
+      EMatch { name = n2; e = e2; cases = c2 } )
+    when EnumName.equal n1 n2 ->
+    let cases_with_ctx =
+      EnumConstructor.Map.mapi
+        (fun c e -> unsubstitute e (EnumConstructor.Map.find c c2))
+        c1
+    in
+    let lctx =
+      EnumConstructor.Map.fold
+        (fun _ (ctx, _) lctx -> join_ctx lctx ctx)
+        cases_with_ctx Var.Map.empty
+    in
+    let cases = EnumConstructor.Map.map snd cases_with_ctx in
+    let ctx, e = unsubstitute e1 e2 in
+    join_ctx ctx lctx, Mark.add m (EMatch { name = n1; e; cases })
+  | ETuple e1, ETuple e2 ->
+    let ctxs, es = unsubstitute_list e1 e2 in
+    join_ctx_list ctxs, Mark.add m (ETuple es)
+  | ( ETupleAccess { e = e1; index = i1; size = s1 },
+      ETupleAccess { e = e2; index = i2; size = s2 } )
+    when i1 = i2 && s1 = s2 ->
+    let ctx, e = unsubstitute e1 e2 in
+    ctx, Mark.add m (ETupleAccess { e; index = i1; size = s1 })
+  | EAssert e1, EAssert e2 -> 
+    let ctx, e = unsubstitute e1 e2 in
+    ctx, Mark.add m (EAssert e)
+  | ( EDefault { excepts = x1; just = j1; cons = c1 },
+      EDefault { excepts = x2; just = j2; cons = c2 } ) ->
+    let ctxs, excepts = unsubstitute_list x1 x2 in
+    let ctxj, just = unsubstitute j1 j2 in
+    let ctxc, cons = unsubstitute c1 c2 in
+    join_ctx_list (ctxc::ctxj::ctxs),
+    Mark.add m @@ EDefault { excepts; just; cons }
+  | EPureDefault e1, EPureDefault e2 ->
+    let ctx, e = unsubstitute e1 e2 in
+    ctx, Mark.add m (EPureDefault e)
+  | EErrorOnEmpty e1, EErrorOnEmpty e2 ->
+    let ctx, e = unsubstitute e1 e2 in
+    ctx, Mark.add m (EErrorOnEmpty e)
+  | _ ->
+    Message.error
+      "@[<v 2>The two expressions cannot be joined@ Expr1 : %a@ Expr2 : %a"
+      Format_trace.expr e1 Format_trace.expr e2
+
+and unsubstitute_list :
+    type d t. (d, t) gexpr list -> (d, t) gexpr list -> 
+    ((d, t) gexpr,  (d, t) gexpr) Var.Map.t list * (d, t) gexpr list =
+ fun l1 l2 -> List.split @@ List.map2 unsubstitute l1 l2
 
 let unevaluate :
     type t.
@@ -314,19 +428,14 @@ let unevaluate :
     | EEmpty, TrEmpty -> Var.Map.empty, v
     | EAbs { tys = t1; _ }, TrAbs { binder; pos; tys = t2; _ }
       when Type.equal_list t1 t2 ->
-      (* There may be variables in the body of the abstraction that have been
-         substituted so to unevaluate the body properly, we have to return the
-         original binder (the one in the trace). If further context is needed,
-         it should have been handled by a TrContextClosure *)
+      (* Substitutions have been performed to obtain the value v. 
+        So in order to get back to the original program, 
+        the original expression has been stored in the trace.
+        Now to get a sliced version of the original abstraction,
+        we "unsubstitute" the sliced values in v by the variables 
+        that were present in the original expression. *)
       let original_e = Mark.add m @@ EAbs { binder; pos; tys = t2 } in
-      if is_sub_expr v original_e then
-        (*if the value is a sub expression of the original expression, then the
-          content of the abstraction has been sliced in v so we return it*)
-        Var.Map.empty, v
-      else
-        (* Otherwise, the value contains substitutions so we return the original
-           value *)
-        Var.Map.empty, original_e
+      unsubstitute v original_e
     | _, TrContextClosure { context; tr } ->
       (* Add some sort of permanent context *)
       unevaluate_aux ~context_closure:(join_ctx context_closure context) v tr
