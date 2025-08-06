@@ -12,7 +12,7 @@ WORKDIR catala
 ADD --chown=ocaml:ocaml *.opam ./
 
 # trigger the selection of catala dev tools in opam
-ENV OPAMVAR_cataladevmode=1
+ENV OPAMWITHDEVSETUP=1
 ENV OPAMVAR_catalaz3mode=1
 
 # FIXME: openjdk's opam package should handle alpine os

@@ -21,13 +21,13 @@ OPAM = opam --cli=2.1
 
 dependencies-ocaml:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	$(OPAM) install . --with-doc --with-test --update-invariant --depext-only --with-dev-setup
+	$(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only --with-dev-setup
+	OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only --with-dev-setup
 
 PY_VENV_DIR = _python_venv
 

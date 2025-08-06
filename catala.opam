@@ -6,13 +6,15 @@ description:
   "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information"
 maintainer: "contact@catala-lang.org"
 authors: [
-  "Denis Merigoux"
+  "Vincent Botbol"
   "Nicolas Chataing"
-  "Emile Rolley"
+  "Alain Delaët-Tixeuil"
   "Louis Gesbert"
   "Aymeric Fromherz"
-  "Alain Delaët-Tixeuil"
+  "Denis Merigoux"
   "Raphaël Monat"
+  "Romain Primet"
+  "Emile Rolley"
 ]
 license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
@@ -41,13 +43,13 @@ depends: [
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
   "odoc" {with-doc}
-  "ocamlformat" {cataladevmode & = "0.26.0"}
-  "obelisk" {cataladevmode}
-  "conf-npm" {cataladevmode}
-  "conf-python-3-dev" {cataladevmode}
-  "conf-openjdk" {cataladevmode}
-  "cpdf" {cataladevmode}
-  "conf-pandoc" {cataladevmode}
+  "ocamlformat" {with-dev-setup & = "0.26.0"}
+  "obelisk" {with-dev-setup}
+  "conf-npm" {with-dev-setup}
+  "conf-python-3-dev" {with-dev-setup}
+  "conf-openjdk" # Needed because we distribute the Java backend as a .tar file
+  "cpdf" {with-dev-setup}
+  "conf-pandoc" {with-dev-setup}
   "z3" {catalaz3mode}
   "conf-ninja"
   "otoml" {>= "1.0"}
@@ -71,7 +73,7 @@ build: [
 dev-repo: "git+https://github.com/CatalaLang/catala"
 depexts: [
   ["groff"] { with-doc }
-  ["python3-pip"] {cataladevmode & os-family = "debian"}
-  ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
-  ["python-pygments"] {cataladevmode & os-family = "arch"}
+  ["python3-pip"] {with-dev-setup & os-family = "debian"}
+  ["py3-pip" "py3-pygments"] {with-dev-setup & os-distribution = "alpine"}
+  ["python-pygments"] {with-dev-setup & os-family = "arch"}
 ]
