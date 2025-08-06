@@ -1,8 +1,12 @@
+# This Dockerfile is only meant for the CI of the development of the
+# Catala compiler itself. If you want a Docker image for the base
+# of the CI of your Catala project, you should head over to
+# https://gitlab.inria.fr/verifisc/docker-catala/container_registry/1606.
 #
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2025-02-02 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2025-07-27 AS dev-build-context
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
@@ -12,7 +16,6 @@ WORKDIR catala
 ADD --chown=ocaml:ocaml *.opam ./
 
 # trigger the selection of catala dev tools in opam
-ENV OPAMWITHDEVSETUP=1
 ENV OPAMVAR_catalaz3mode=1
 
 # FIXME: openjdk's opam package should handle alpine os
@@ -21,7 +24,7 @@ RUN sudo apk add openjdk21 su-exec
 # Get a switch with all the dependencies installed
 # DON'T run 'opam update' here. Instead use a newer parent Docker image
 # (update the 'FROM' line above)
-RUN opam --cli=2.2 switch create . --deps-only --with-test --with-doc && \
+RUN opam --cli=2.2 switch create . --deps-only --with-test --with-doc --with-dev-setup && \
     opam clean
 
 #
