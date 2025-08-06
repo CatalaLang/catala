@@ -21,6 +21,11 @@ ENV OPAMVAR_catalaz3mode=1
 # FIXME: openjdk's opam package should handle alpine os
 RUN sudo apk add openjdk21 su-exec
 
+# FIXME: pygments is in catala.opam's depexts but the depexts don't handle
+# the --with-dev-setup option, hence theye're never installed by the command
+# below...
+RUN sudo apk add py3-pip py3-pygments
+
 # Get a switch with all the dependencies installed
 # DON'T run 'opam update' here. Instead use a newer parent Docker image
 # (update the 'FROM' line above)
