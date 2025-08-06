@@ -128,7 +128,7 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
            File.(dirname runtime /../ "stdlib" / "lib" / "ocaml");
          ]
        else ["-I"; runtime]),
-       libs @ ["runtime.cmxa"; "Stdlib1.cmx"] ))
+       libs @ ["runtime.cmxa"; "catala_stdlib.cmxa"] ))
 
 let ocaml_include_flags : string list Lazy.t =
   lazy (fst (Lazy.force ocaml_include_and_lib_flags))

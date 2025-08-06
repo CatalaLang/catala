@@ -860,7 +860,9 @@ let format_program
   List.iter
     (fun (m, _intf_id) ->
       pp [ppc; pph] "@,#include <%s.h>" (ModuleName.to_string m))
-    (Program.modules_to_list p.ctx.decl_ctx.ctx_modules);
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.ctx.decl_ctx.ctx_modules));
   Option.iter
     (pp [ppmain] "@,#include \"%s\"")
     (Option.map File.(fun f -> basename f -.- "h") output_file);

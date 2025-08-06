@@ -4,10 +4,7 @@
   (with-stdout-to
    %{target}
    (progn
-    (echo "[project]\n")
-    (echo "include_dirs = [ \".\" ]\n")
-    (echo "\n")
-    (echo "[variables]\n")
+    (cat clerk.toml.in)
     (echo
      "RUNTIME_OCAML_LIBS = [\"%{lib:zarith:zarith.cmxa}\", \"%{lib:dates_calc:dates_calc.cmxa}\", \"%{lib-private:runtime:runtime.cmxa}\"]\n")
     ; Yes, we use sed. dune is really NOT helping here.
@@ -26,8 +23,7 @@
  (action
   (run
    %{dep:../build_system/clerk.exe}
-   build --debug
-   Stdlib_en Stdlib_fr Stdlib_pl
+   build catala_stdlib.cmxa catala_stdlib.class
    --exe=%{dep:../compiler/catala.exe}
    -c--stdlib
    --build-dir=lib)))

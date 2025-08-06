@@ -211,11 +211,6 @@ let operator_to_string : type a. a Op.t -> string =
   function
   | Not -> "~"
   | Length -> "length"
-  | GetDay -> "get_day"
-  | GetMonth -> "get_month"
-  | GetYear -> "get_year"
-  | FirstDayOfMonth -> "first_day_of_month"
-  | LastDayOfMonth -> "last_day_of_month"
   | ToInt -> "to_int"
   | ToInt_rat -> "to_int_rat"
   | ToRat -> "to_rat"
@@ -311,11 +306,6 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   function
   | Not -> "~"
   | Length -> "length"
-  | GetDay -> "get_day"
-  | GetMonth -> "get_month"
-  | GetYear -> "get_year"
-  | FirstDayOfMonth -> "first_day_of_month"
-  | LastDayOfMonth -> "last_day_of_month"
   | ToInt | ToInt_rat -> "to_int"
   | ToRat_int | ToRat_mon | ToRat -> "to_rat"
   | ToMoney_rat | ToMoney -> "to_mon"
@@ -397,9 +387,8 @@ module Precedence = struct
     | ELit _ -> Contained (* Todo: unop if < 0 *)
     | EAppOp { op; _ } -> (
       match Mark.remove op with
-      | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
-      | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
+      | Not | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon
+      | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
       | ToMoney_rat | Round | Round_rat | Round_mon ->
         App
       | And -> Op And

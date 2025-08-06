@@ -782,7 +782,9 @@ let format_program
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
   check_and_reexport_used_modules ppml ppi ~hashf
-    (Program.modules_to_list p.decl_ctx.ctx_modules);
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name

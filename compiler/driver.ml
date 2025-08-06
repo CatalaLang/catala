@@ -22,6 +22,8 @@ open Shared_ast
     {!type: Global.backend_lang} string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
+let has_localised_stdlib = function Global.En | Global.Fr -> true | _ -> false
+
 let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
@@ -35,7 +37,10 @@ let load_modules
     program :
     ModuleName.t Ident.Map.t
     * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
-  let stdlib_root_module lang = "Stdlib_" ^ Cli.language_code lang in
+  let stdlib_root_module lang =
+    let lang = if has_localised_stdlib lang then lang else Global.En in
+    "Stdlib_" ^ Cli.language_code lang
+  in
   if stdlib <> None || program.Surface.Ast.program_used_modules <> [] then
     Message.debug "Loading module interfaces...";
   (* Recurse into program modules, looking up files in [using] and loading
@@ -63,10 +68,11 @@ let load_modules
   in
   let find_module in_stdlib req_chain (mname, mpos) =
     let required_from_file = Pos.get_file mpos in
-    let includes = if in_stdlib then stdlib_includes else includes in
     let includes =
-      File.Tree.union includes
-        (File.Tree.build (File.dirname required_from_file))
+      if in_stdlib then stdlib_includes
+      else
+        File.Tree.union includes
+          (File.Tree.build (File.dirname required_from_file))
     in
     match
       List.filter_map

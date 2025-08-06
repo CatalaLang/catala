@@ -381,9 +381,6 @@ let get_scope ctxt id =
     Message.error ~pos:(Mark.get id) "No scope named %s found" (Mark.remove id)
 
 let get_modname ctxt (id, pos) =
-  Message.debug "<%a>"
-    (Ident.Map.format ModuleName.format)
-    ctxt.local.used_modules;
   match Ident.Map.find_opt id ctxt.local.used_modules with
   | None -> Message.error ~pos "Module \"@{<blue>%s@}\" not found" id
   | Some modname -> modname
@@ -1451,5 +1448,4 @@ let form_context (surface, mod_uses) surface_modules : context =
       ctxt surface.Surface.Ast.program_items
   in
   let ctxt = { ctxt with local = gather_struct_fields_ids ctxt ctxt.local } in
-  Message.debug "<%a>" (Ident.Map.format ModuleName.format) mod_uses;
   ctxt

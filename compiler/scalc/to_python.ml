@@ -53,11 +53,6 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
   | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
   | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
-  | GetDay -> Format.pp_print_string fmt "day_of_month_of_date"
-  | GetMonth -> Format.pp_print_string fmt "month_number_of_date"
-  | GetYear -> Format.pp_print_string fmt "year_of_date"
-  | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
-  | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
   | Round_mon -> Format.pp_print_string fmt "money_round"
   | Round_rat -> Format.pp_print_string fmt "decimal_round"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat ->
@@ -651,10 +646,11 @@ let format_program
   in
   Format.pp_print_list Format.pp_print_string fmt header;
   ModuleName.Map.iter
-    (fun m v ->
+    (fun m _ ->
       Format.fprintf fmt "from . import %a as %a@," ModuleName.format m
-        VarName.format v)
-    p.ctx.modules;
+        VarName.format
+        (ModuleName.Map.find m p.ctx.modules))
+    p.ctx.decl_ctx.ctx_modules;
   Format.pp_print_cut fmt ();
   format_ctx type_ordering fmt p.ctx;
   Format.pp_print_cut fmt ();

@@ -321,11 +321,6 @@ module Op = struct
     (* unary *)
     (* * monomorphic *)
     | Not : < monomorphic ; .. > t
-    | GetDay : < monomorphic ; .. > t
-    | GetMonth : < monomorphic ; .. > t
-    | GetYear : < monomorphic ; .. > t
-    | FirstDayOfMonth : < monomorphic ; .. > t
-    | LastDayOfMonth : < monomorphic ; .. > t
     (* * polymorphic *)
     | Length : < polymorphic ; .. > t
     | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
