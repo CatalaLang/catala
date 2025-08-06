@@ -131,7 +131,7 @@ let trhole ty = TrHole ty
 
 let tranyhole = TrHole (TAny, Pos.void)
 
-let substitute_bounded_vars :
+let substitute_bound_vars_with_ctx :
   type c d h.
   (((d, c, h) slicing_interpr_kind, 't) gexpr, 
   ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
@@ -175,6 +175,51 @@ fun ctx_closure e ->
   in
   let ctx, e = f e in
   ctx, Expr.unbox e
+
+let substitute_bound_vars :
+  type c d h.
+  (((d, c, h) slicing_interpr_kind, 't) gexpr, 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr) Var.Map.t -> 
+  ((d, c, h) slicing_interpr_kind, 't) gexpr ->
+  ((d, c, h) slicing_interpr_kind, 't) gexpr =
+  (* Performs substitution of variables in the context*)
+fun ctx_closure e ->
+    let rec f :
+        ((d, c, h) slicing_interpr_kind, 't) gexpr ->
+        ((d, c, h) slicing_interpr_kind, 't) gexpr boxed
+      = function
+      | EVar x, m -> (
+        match Var.Map.find_opt x ctx_closure with
+          | Some v -> f v
+          | None -> Expr.evar x m
+        )
+      | EHole _, _ as e -> Expr.map ~f e
+      | (ECustom _, _) as e -> Expr.map ~f e
+      | EAppOp { op; args; tys }, m ->
+        Expr.eappop ~tys ~args:(List.map f args) ~op m
+      | (EDefault _, _) as e ->  Expr.map ~f e
+      | (EPureDefault _, _) as e ->  Expr.map ~f e
+      | (EEmpty, _) as e ->  Expr.map ~f e
+      | (EErrorOnEmpty _, _) as e ->  Expr.map ~f e
+      | (EPos _, _) as e ->  Expr.map ~f e
+      | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ 
+          | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
+          | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+          _ ) as e ->
+        Expr.map ~f e
+      | _ -> .
+    in
+    Expr.unbox @@ f e
+
+let min_context :
+  (('a, 't) gexpr, 
+  ('a, 't) gexpr) Var.Map.t -> 
+  ('a, 't) gexpr ->
+  (('a, 't) gexpr, 
+  ('a, 't) gexpr) Var.Map.t =
+  fun ctx_closure e ->
+  let free = Expr.free_vars e in
+  Var.Map.fold (fun x v acc -> if Var.Set.mem x free then Var.Map.add x v acc else acc) ctx_closure Var.Map.empty
 
 let rec is_sub_expr: type d t. (d, t) gexpr -> (d, t) gexpr -> bool =
 fun e1 e2 -> match Mark.remove e1, Mark.remove e2 with 

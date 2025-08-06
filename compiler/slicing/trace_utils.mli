@@ -1,66 +1,68 @@
+open Shared_ast
+
 (* Generic hole *)
-val hole : ('a, < holes : Shared_ast.yes; .. >, 'b) Shared_ast.base_gexpr
+val hole : ('a, < holes : yes; .. >, 'b) base_gexpr
 
 val mark_hole :
   'a ->
-  (('b, < holes : Shared_ast.yes; .. >, 'c) Shared_ast.base_gexpr, 'a)
+  (('b, < holes : yes; .. >, 'c) base_gexpr, 'a)
   Catala_utils.Mark.ed
 
 (* Typing shenanigan to handle hole terms in the AST type. *)
 val addholes :
-  (('a, 'b, 'c) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr ->
-  (('a, 'b, Shared_ast.yes) Shared_ast.slicing_interpr_kind, 't)
+  (('a, 'b, 'c) slicing_interpr_kind, 't) gexpr ->
+  (('a, 'b, yes) slicing_interpr_kind, 't)
   Shared_ast__Definitions.gexpr
   (** Modify the typing of the expression to enable holes *)
 
 val delholes :
-  (('a, 'b, 'c) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr ->
-  (('a, 'b, Shared_ast.no) Shared_ast.slicing_interpr_kind, 't)
+  (('a, 'b, 'c) slicing_interpr_kind, 't) gexpr ->
+  (('a, 'b, no) slicing_interpr_kind, 't)
   Shared_ast__Definitions.gexpr
   (** Modify the typing of the expression to disable holes *)
 
 (* Trace AST constructor *)
-val trexpr : ('a, 'b) Shared_ast.gexpr -> ('a, 'b) Trace_ast.t
+val trexpr : ('a, 'b) gexpr -> ('a, 'b) Trace_ast.t
 
-val trlit : Shared_ast.lit -> ('a, 'b) Trace_ast.t
+val trlit : lit -> ('a, 'b) Trace_ast.t
 
 val trapp :
   trf:('a, 'b) Trace_ast.t ->
   trargs:('a, 'b) Trace_ast.t list ->
-  tys:Shared_ast.typ list ->
-  vars:('a, 'b) Shared_ast.gexpr Shared_ast.Var.t array ->
+  tys:typ list ->
+  vars:('a, 'b) gexpr Var.t array ->
   trv:('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
 val trappcustom :
   trcustom:('a, 'b) Trace_ast.t ->
-  custom:('a, 'b) Shared_ast.gexpr ->
+  custom:('a, 'b) gexpr ->
   trargs:('a, 'b) Trace_ast.t list ->
-  vargs:('a, 'b) Shared_ast.gexpr list ->
-  tys:Shared_ast.typ list ->
-  v:('a, 'b) Shared_ast.gexpr -> ('a, 'b) Trace_ast.t
+  vargs:('a, 'b) gexpr list ->
+  tys:typ list ->
+  v:('a, 'b) gexpr -> ('a, 'b) Trace_ast.t
 
 val trappop :
-  op:'a Shared_ast.operator Catala_utils.Mark.pos ->
+  op:'a operator Catala_utils.Mark.pos ->
   trargs:('a, 'b) Trace_ast.t list ->
-  tys:Shared_ast.typ list ->
-  vargs:('a, 'b) Shared_ast.gexpr list ->
+  tys:typ list ->
+  vargs:('a, 'b) gexpr list ->
   traux:('a, 'b) Trace_ast.t list -> ('a, 'b) Trace_ast.t
 
 val trarray : ('a, 'b) Trace_ast.t list -> ('a, 'b) Trace_ast.t
 
 val trvar :
-  var:('a, 'b) Shared_ast.naked_gexpr Bindlib.var ->
-  value:('a, 'b) Shared_ast.gexpr -> ('a, 'b) Trace_ast.t
+  var:('a, 'b) naked_gexpr Bindlib.var ->
+  value:('a, 'b) gexpr -> ('a, 'b) Trace_ast.t
 
 val trabs :
-  binder:(('a, 'a, 'b) Shared_ast.base_gexpr, ('a, 'b) Shared_ast.gexpr)
+  binder:(('a, 'a, 'b) base_gexpr, ('a, 'b) gexpr)
          Bindlib.mbinder ->
   pos:Catala_utils.Pos.t list ->
-  tys:Shared_ast.typ list -> ('a, 'b) Trace_ast.t
+  tys:typ list -> ('a, 'b) Trace_ast.t
 
 val trcontextclosure :
-  context:(('a, 'b) Shared_ast.gexpr, ('a, 'b) Shared_ast.gexpr)
-          Shared_ast.Var.Map.t ->
+  context:(('a, 'b) gexpr, ('a, 'b) gexpr)
+          Var.Map.t ->
   tr:('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
 val trifthenelse :
@@ -69,19 +71,19 @@ val trifthenelse :
   trfalse:('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
 val trstruct :
-  name:Shared_ast.StructName.t ->
-  fields:('a, 'b) Trace_ast.t Shared_ast.StructField.Map.t ->
+  name:StructName.t ->
+  fields:('a, 'b) Trace_ast.t StructField.Map.t ->
   ('a, 'b) Trace_ast.t
 
 val trinj :
-  name:Shared_ast.EnumName.t ->
+  name:EnumName.t ->
   tr:('a, 'b) Trace_ast.t ->
-  cons:Shared_ast.EnumConstructor.t -> ('a, 'b) Trace_ast.t
+  cons:EnumConstructor.t -> ('a, 'b) Trace_ast.t
 
 val trmatch :
-  name:Shared_ast.EnumName.t ->
+  name:EnumName.t ->
   tr:('a, 'b) Trace_ast.t ->
-  cases:('a, 'b) Trace_ast.t Shared_ast.EnumConstructor.Map.t ->
+  cases:('a, 'b) Trace_ast.t EnumConstructor.Map.t ->
   ('a, 'b) Trace_ast.t
 
 val trtuple : ('a, 'b) Trace_ast.t list -> ('a, 'b) Trace_ast.t
@@ -90,12 +92,12 @@ val trtupleaccess :
   tr:('a, 'b) Trace_ast.t -> index:int -> size:int -> ('a, 'b) Trace_ast.t
 
 val trstructaccess :
-  name:Shared_ast.StructName.t ->
+  name:StructName.t ->
   tr:('a, 'b) Trace_ast.t ->
-  field:Shared_ast.StructField.t -> ('a, 'b) Trace_ast.t
+  field:StructField.t -> ('a, 'b) Trace_ast.t
 
 val trexternal :
-  name:Shared_ast.external_ref Catala_utils.Mark.pos -> ('a, 'b) Trace_ast.t
+  name:external_ref Catala_utils.Mark.pos -> ('a, 'b) Trace_ast.t
 
 val trassert : ('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
@@ -105,7 +107,7 @@ val trfatalerror :
 
 val trdefault :
   trexcepts:('a, 'b) Trace_ast.t list ->
-  vexcepts:('a, 'b) Shared_ast.gexpr list ->
+  vexcepts:('a, 'b) gexpr list ->
   trjust:('a, 'b) Trace_ast.t ->
   trcons:('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
@@ -117,25 +119,40 @@ val trerroronempty : ('a, 'b) Trace_ast.t -> ('a, 'b) Trace_ast.t
 
 val trcustom :
   obj:Obj.t ->
-  targs:Shared_ast.typ list -> tret:Shared_ast.typ -> ('a, 'b) Trace_ast.t
+  targs:typ list -> tret:typ -> ('a, 'b) Trace_ast.t
 
-val trhole : Shared_ast.typ -> ('a, 'b) Trace_ast.t
+val trhole : typ -> ('a, 'b) Trace_ast.t
 
 val tranyhole : ('a, 'b) Trace_ast.t
 
-val substitute_bounded_vars :
-  ((('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr,
-   (('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr)
-  Shared_ast.Var.Map.t ->
-  (('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr ->
-  ((('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr,
-   (('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr)
-  Shared_ast.Var.Map.t *
-  (('d, 'c, 'h) Shared_ast.slicing_interpr_kind, 't) Shared_ast.gexpr
-  (** Substitutes all variables in the expression by their value in the 
-      context and return the submap containing all the substituted variables
-      with the substituted expression *)
+val substitute_bound_vars_with_ctx:
+  ((('d, 'c, 'h) slicing_interpr_kind, 't) gexpr,
+   (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr)
+  Var.Map.t ->
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr ->
+  ((('d, 'c, 'h) slicing_interpr_kind, 't) gexpr,
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr)
+  Var.Map.t *
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr 
+
+val substitute_bound_vars :
+  ((('d, 'c, 'h) slicing_interpr_kind, 't) gexpr,
+   (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr)
+  Var.Map.t ->
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr ->
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr
+  (** Substitutes all variables in the expression by their value in the context *)
+
+val min_context :
+  ((('d, 'c, 'h) slicing_interpr_kind, 't) gexpr,
+   (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr)
+  Var.Map.t ->
+  (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr ->
+  ((('d, 'c, 'h) slicing_interpr_kind, 't) gexpr,
+   (('d, 'c, 'h) slicing_interpr_kind, 't) gexpr)
+  Var.Map.t
+  (** Return the submap of the context containing only the free variables of the expression *)
 
 val is_sub_expr :
-  ('d, 't) Shared_ast.gexpr -> ('d, 't) Shared_ast.gexpr -> bool
+  ('d, 't) gexpr -> ('d, 't) gexpr -> bool
   (** Test whether the first argument is a sub expression of the second one*)

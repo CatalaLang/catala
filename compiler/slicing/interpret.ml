@@ -266,11 +266,12 @@ fun ctx lang e ->
     match Mark.remove e with
     | EVar x -> (
       match Var.Map.find_opt x local_ctx with
-        | Some v -> 
+        | Some v ->
           (* We return the local_context with the value since v could be a 
             lambda abstaction with bond variables defined in the context *)
-          let reduced_ctx, _ = substitute_bounded_vars local_ctx v in
-          ok reduced_ctx v @@ trvar ~var:x ~value:v
+          (*let reduced_ctx = min_context local_ctx v in
+          ok reduced_ctx v @@ trvar ~var:x ~value:v*)
+          ok Var.Map.empty v @@ trvar ~var:x ~value:v
         | None -> 
           Message.error ~pos "%a@ Variable : %a@ Context : %a" Format.pp_print_text
             "free variable found at evaluation (should not happen if term was \
@@ -359,8 +360,8 @@ fun ctx lang e ->
           (* We add a context closure here for when there are scope calls *)
           (* It is the part that slows the interpret the most. *)
           (* It could certainly be optimized by handling substitutions differently *)
-          let _, vsubst = substitute_bounded_vars new_ctx v in
-          ok Var.Map.empty vsubst @@ trapp ~trf ~trargs ~tys ~vars ~trv
+          (*let vsubst = substitute_bound_vars new_ctx v in*)
+          ok new_ctx v @@ trapp ~trf ~trargs ~tys ~vars ~trv
         else
           Message.error ~pos "wrong function call, expected %d arguments, got %d"
             (Bindlib.mbinder_arity binder)
@@ -401,7 +402,8 @@ fun ctx lang e ->
         (* Functions do not carry contexts in Catala and it would be pretty complicated to
           recover the original expression if we perform substitutions so we will only do them
           at the final value if needed *)
-        ok local_ctx e @@ trabs ~binder ~pos ~tys 
+        let vsubst = substitute_bound_vars local_ctx e in
+        ok Var.Map.empty vsubst @@ trabs ~binder ~pos ~tys 
     | ELit l -> ok Var.Map.empty e @@ trlit l
     | EPos _ -> assert false
     | ECustom { obj; targs; tret } -> ok Var.Map.empty e @@ trcustom ~obj ~targs ~tret
@@ -627,8 +629,7 @@ fun ctx lang e ->
   in
   match evaluate_expr_with_trace_aux ctx Var.Map.empty lang e
   with 
-    | Ok (ctx, v, tr) ->
-      let _, v = substitute_bounded_vars ctx v in v, tr
+    | Ok (_, v, tr) -> v, tr
     | Error (err, m, tr) -> Mark.add m (EFatalError err), tr
 
 let evaluate_expr_safe :
