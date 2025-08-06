@@ -1,0 +1,5 @@
+This dummy module is only a helper to pack all localised standard libraries into
+the same backend library.
+
+> Using Stdlib_en
+> Using Stdlib_fr

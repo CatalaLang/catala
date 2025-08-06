@@ -108,11 +108,6 @@ type builtin_expression =
   | ToInteger
   | ToDecimal
   | ToMoney
-  | GetDay
-  | GetMonth
-  | GetYear
-  | LastDayOfMonth
-  | FirstDayOfMonth
   | Round
 
 type literal_date = {

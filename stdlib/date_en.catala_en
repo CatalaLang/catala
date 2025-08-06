@@ -3,7 +3,7 @@
 > Using Date_internal as D
 
 ```catala-metadata
-#[todo.add_position_argument]
+# #[todo.add_position_argument]
 declaration of_year_month_day content date
   depends on dyear content integer,
              dmonth content integer,

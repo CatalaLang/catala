@@ -118,7 +118,7 @@ let date_to_int (d : Runtime.date) : int =
 
 (** [date_of_year] translates a [year], represented as an integer into an OCaml
     date corresponding to Jan 1st of the same year *)
-let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
+let _date_of_year (year : int) = Runtime.date_of_numbers year 1 1
 
 (** Returns the date (as a string) corresponding to nb days after the base day,
     defined here as Jan 1, 1900 **)
@@ -434,7 +434,7 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
-let is_leap_year = Runtime.is_leap_year
+let _is_leap_year = Runtime.is_leap_year
 (* Replace with [Dates_calc.Dates.is_leap_year] when existing *)
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
@@ -465,6 +465,8 @@ let rec translate_op :
   | Fold, _ ->
     failwith "[Z3 encoding] ternary operator application not supported"
     (* Special case for GetYear comparisons *)
+  (* FIXME: getYear is no longer an operator but an stdlib function*)
+(*
   | ( Lt_int_int,
       [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let n = Runtime.integer_to_int n in
@@ -531,6 +533,7 @@ let rec translate_op :
           Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
           Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
         ] )
+*)
   | And, _ -> app Boolean.mk_and
   | Or, _ -> app Boolean.mk_or
   | Xor, _ -> app2 Boolean.mk_xor
@@ -575,23 +578,6 @@ let rec translate_op :
   | ToMoney_rat, _ ->
     failwith
       "[Z3 encoding] application of unary operator ToMoney_rat not supported"
-  | GetDay, _ ->
-    failwith "[Z3 encoding] application of unary operator GetDay not supported"
-  | GetMonth, _ ->
-    failwith
-      "[Z3 encoding] application of unary operator GetMonth not supported"
-  | GetYear, _ ->
-    failwith
-      "[Z3 encoding] GetYear operator only supported in comparisons with \
-       literal"
-  | FirstDayOfMonth, _ ->
-    failwith
-      "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
-       with literal"
-  | LastDayOfMonth, _ ->
-    failwith
-      "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
-       with literal"
   | Round_rat, _ ->
     failwith "[Z3 encoding] Round_rat operator  not implemented yet"
   | Round_mon, _ ->

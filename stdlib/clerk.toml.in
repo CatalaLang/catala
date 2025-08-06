@@ -1,0 +1,12 @@
+[project]
+include_dirs = [ "." ]
+
+# Used to generate catala_stdlib.cmxa
+[[rule]]
+in_exts = ["cmx"]
+out_exts = ["cmxa"]
+backend = "ocaml"
+commandline = ["$OCAMLOPT_EXE", "$OCAML_FLAGS", "$src", "-a", "-o", "$dst"]
+
+[variables]
+# Completed by dune into `clerk.toml`

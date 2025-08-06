@@ -132,7 +132,7 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
        libs
        @ [
            "runtime.cmxa";
-           "Stdlib1.cmx";
+           "catala_stdlib.cmxa";
          ] ))
 
 let ocaml_include_flags : string list Lazy.t =

@@ -531,11 +531,6 @@ let rec translate_expr
       | S.ToMoney -> Op.ToMoney, Mark.remove (Type.any pos)
       | S.Round -> Op.Round, Mark.remove (Type.any pos)
       | S.Cardinal -> Op.Length, TArray (Type.any pos)
-      | S.GetDay -> Op.GetDay, TLit TDate
-      | S.GetMonth -> Op.GetMonth, TLit TDate
-      | S.GetYear -> Op.GetYear, TLit TDate
-      | S.FirstDayOfMonth -> Op.FirstDayOfMonth, TLit TDate
-      | S.LastDayOfMonth -> Op.LastDayOfMonth, TLit TDate
       | S.Impossible -> assert false
     in
     Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark

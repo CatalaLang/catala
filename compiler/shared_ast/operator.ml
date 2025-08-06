@@ -21,11 +21,6 @@ include Definitions.Op
 let name : type a. a t -> string = function
   | Not -> "o_not"
   | Length -> "o_length"
-  | GetDay -> "o_getDay"
-  | GetMonth -> "o_getMonth"
-  | GetYear -> "o_getYear"
-  | FirstDayOfMonth -> "o_firstDayOfMonth"
-  | LastDayOfMonth -> "o_lastDayOfMonth"
   | Log _ -> "o_log"
   | Minus -> "o_minus"
   | Minus_int -> "o_minus_int"
@@ -160,11 +155,6 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Sub_dat_dur l, Sub_dat_dur r -> Stdlib.compare l r
   | Not, Not
   | Length, Length
-  | GetDay, GetDay
-  | GetMonth, GetMonth
-  | GetYear, GetYear
-  | FirstDayOfMonth, FirstDayOfMonth
-  | LastDayOfMonth, LastDayOfMonth
   | Minus, Minus
   | Minus_int, Minus_int
   | Minus_rat, Minus_rat
@@ -248,11 +238,6 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
-  | GetDay, _ -> -1 | _, GetDay -> 1
-  | GetMonth, _ -> -1 | _, GetMonth -> 1
-  | GetYear, _ -> -1 | _, GetYear -> 1
-  | FirstDayOfMonth, _ -> -1 | _, FirstDayOfMonth -> 1
-  | LastDayOfMonth, _ -> -1 | _, LastDayOfMonth -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
   | Minus, _ -> -1 | _, Minus -> 1
   | Minus_int, _ -> -1 | _, Minus_int -> 1
@@ -354,8 +339,7 @@ let kind_dispatch :
  fun ~polymorphic ~monomorphic ?(overloaded = fun _ -> assert false)
      ?(resolved = fun _ -> assert false) op ->
   match op with
-  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor ),
+  | ( ( Not | And | Or | Xor ),
       _ ) as op ->
     monomorphic op
   | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
@@ -392,7 +376,7 @@ type 'a no_overloads =
 
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
-  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
+  | ( ( Not
       | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Map | Map2
       | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
       | Minus_dur | ToInt_rat | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat
@@ -414,11 +398,6 @@ let monomorphic_type ((op : monomorphic t), pos) =
   let args, ret =
     match op with
     | Not -> [TBool], TBool
-    | GetDay -> [TDate], TInt
-    | GetMonth -> [TDate], TInt
-    | GetYear -> [TDate], TInt
-    | FirstDayOfMonth -> [TDate], TDate
-    | LastDayOfMonth -> [TDate], TDate
     | And -> [TBool; TBool], TBool
     | Or -> [TBool; TBool], TBool
     | Xor -> [TBool; TBool], TBool
@@ -627,7 +606,7 @@ let is_pure : type a. a t -> bool = function
        overloaded counterparts: those are the ones that can raise *)
     false
   | Log _ -> false
-  | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
+  | Not
   | Length | ToClosureEnv | FromClosureEnv | Minus | Minus_int | Minus_rat
   | Minus_mon | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon
   | ToMoney | ToMoney_rat | Round | Round_rat | Round_mon | And | Or | Xor | Map
