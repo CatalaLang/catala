@@ -1,0 +1,95 @@
+# Ghid de sintaxă Catala
+
+## Utilizarea limbajului Catala
+
+### Declararea unei enumerări
+
+```catala-metadata
+declarație enumerare Culoare:
+  -- Roșu
+  -- Verde
+  -- Albastru
+```
+
+### Declararea unei structuri
+
+```catala-metadata
+declarație structură Persoană:
+  date nume conținut text
+  date vârstă conținut întreg
+  date salariu conținut bani
+```
+
+### Definirea unui scop
+
+```catala
+scop CalculVenit:
+  intrare persoană conținut Persoană
+  intern venit_brut conținut bani
+  ieșire venit_net conținut bani
+
+  definiție venit_brut egal persoană.salariu
+
+  regulă venit_net în condiția 
+    venit_brut <= 2000 RON
+  consecință egal venit_brut
+
+  regulă venit_net în condiția
+    venit_brut > 2000 RON
+  consecință egal venit_brut *. 0,9
+```
+
+### Operații de bază
+
+```catala
+scop Exemple:
+  intern x conținut întreg
+  intern y conținut întreg
+  intern sumă conținut întreg
+  intern diferență conținut întreg
+  intern produs conținut întreg
+  intern rezultat_boolean conținut boolean
+
+  definiție x egal 10
+  definiție y egal 5
+  
+  definiție sumă egal x + y
+  definiție diferență egal x - y
+  definiție produs egal x * y
+  
+  definiție rezultat_boolean egal
+    dacă x > y atunci adevărat altfel fals
+```
+
+### Lucrul cu date calendaristice
+
+```catala
+scop ExempluDate:
+  intern data_nașterii conținut dată
+  intern vârstă conținut durată
+  intern adult conținut boolean
+
+  definiție data_nașterii egal |2000-01-15|
+  
+  definiție vârstă egal 
+    obține_an de |2024-01-15| - obține_an de data_nașterii
+
+  definiție adult egal vârstă >= 18
+```
+
+### Liste și operații
+
+```catala
+scop ExempluListe:
+  intern numere conținut listă de întreg
+  intern sumă_totală conținut întreg
+  intern maxim_valoare conținut întreg
+
+  definiție numere egal [1; 2; 3; 4; 5]
+  
+  definiție sumă_totală egal 
+    sumă întreg de numere
+
+  definiție maxim_valoare egal
+    maxim întreg în numere sau dacă lista este goală -1
+```
