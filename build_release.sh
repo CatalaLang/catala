@@ -1,4 +1,6 @@
 #! /usr/bin/env sh
+# FIXME: this is not working anymore, we need to recreate the base Docker
+# image.
 
 set -ue
 
@@ -26,7 +28,7 @@ CUSTOM_LINKING_CATALA_NOZ3="(-cclib -static -cclib -no-pie)"
 CUSTOM_LINKING_CLERK="(-cclib -static -cclib -no-pie)"
 
 git archive HEAD --prefix catala/ | \
-docker run --rm -i registry.gitlab.inria.fr/verifisc/docker-catala:ocaml.4.14-z3static.4.11.2 \
+docker run --rm -i registry.gitlab.inria.fr/catala/ci-images:ocaml.4.14-z3static.4.11.2 \
   sh -uexc \
     '{ tar x &&
        cd catala &&
