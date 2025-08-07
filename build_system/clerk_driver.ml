@@ -136,10 +136,12 @@ let backend_extensions =
   ]
 
 let extensions_backend =
-  List.flatten
-    (List.map
-       (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
-       backend_extensions)
+  ("cmxa", Clerk_rules.OCaml)
+  :: ("class", Clerk_rules.Java)
+  :: List.flatten
+       (List.map
+          (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
+          backend_extensions)
 
 let backend_subdir_list =
   [
@@ -382,7 +384,7 @@ let build_clerk_target
     List.map Clerk_rules.backend_from_config target.backends
     |> List.sort_uniq Stdlib.compare
   in
-  let install_targets =
+  let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
@@ -433,7 +435,7 @@ let build_clerk_target
     in
     let all_targets =
       List.fold_left
-        (fun acc ((item, _target, backend), f) ->
+        (fun acc ((item, _target, backend), _) ->
           let target =
             make_target ~build_dir ~backend:(rules_backend backend) item
           in
@@ -441,18 +443,43 @@ let build_clerk_target
             if backend = OCaml then [target; File.(target -.- "cmxs")]
             else [target]
           in
-          Message.debug "Building file: %s" f;
           targets @ acc)
         [] all_target_files
       |> List.rev
     in
+    let install_targets =
+      List.map (fun ((_item, _target, bk), file) -> bk, file) all_target_files
+    in
+    let all_targets, install_targets =
+      (* Link modules into an OCaml library *)
+      let open File in
+      if List.mem Config.OCaml target.backends then (
+        let lib =
+          (build_dir / backend_subdir OCaml / target.tname) -.- "cmxa"
+        in
+        let inputs =
+          List.map
+            (fun module_item ->
+              build_dir
+              / dirname module_item.Scan.file_name
+              / backend_subdir OCaml
+              / (Option.get module_item.module_def |> Mark.remove)
+              -.- "cmx")
+            all_modules_deps
+        in
+        Nj.format nin_ppf
+          (List.to_seq
+             [Nj.build "ocaml-lib" ~inputs ~outputs:[lib]; Nj.comment ""]);
+        all_targets @ [lib], install_targets @ [OCaml, lib; OCaml, lib -.- "a"])
+      else all_targets, install_targets
+    in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
-    all_target_files
+    install_targets, all_modules_deps
   in
   let open File in
   let prefix_dir = target_dir / target.tname in
   List.iter
-    (fun ((_item, _target, bk), src) ->
+    (fun (bk, src) ->
       let dir = prefix_dir / backend_subdir bk in
       ensure_dir dir;
       copy_in ~dir ~src)
@@ -471,6 +498,11 @@ let build_clerk_target
            in
            copy_dir () ~src:(Lazy.force src)
              ~dst:(prefix_dir / backend_subdir bk));
+  if target.Config.include_sources then
+    all_modules_deps
+    |> List.map (fun it -> it.Scan.file_name)
+    |> List.sort_uniq compare
+    |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src);
   target, prefix_dir
 
 type targets = { clerk_targets : Config.target list; others : string list }

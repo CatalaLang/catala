@@ -1,12 +1,15 @@
 [project]
-include_dirs = [ "." ]
+build_dir = "_clerk_build"
+target_dir = "."
+catala_exe = "../compiler/catala.exe"
+catala_opts = ["--stdlib"]
 
-# Used to generate catala_stdlib.cmxa
-[[rule]]
-in_exts = ["cmx"]
-out_exts = ["cmxa"]
-backend = "ocaml"
-commandline = ["$OCAMLOPT_EXE", "$OCAML_FLAGS", "$src", "-a", "-o", "$dst"]
+[[target]]
+name = "catala_stdlib"
+backends = ["ocaml", "c"]
+modules = ["Catala_stdlib"]
+include_runtime = false
+include_sources = true
 
 [variables]
 # Completed by dune into `clerk.toml`

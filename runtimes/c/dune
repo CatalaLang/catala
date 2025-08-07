@@ -9,11 +9,11 @@
   (run ./discover.exe gmp_flags)))
 
 (rule
- (deps runtime.c runtime.h dates_calc.h)
+ (deps catala_runtime.c catala_runtime.h dates_calc.h)
  (target runtime.o)
  (action
   (system
-   "%{cc} --std=c89 -Wall -Werror -pedantic -c runtime.c -I . %{read-strings:gmp_include_flags} -g -o %{target}")))
+   "%{cc} --std=c89 -Wall -Werror -pedantic -c catala_runtime.c -I . %{read-strings:gmp_include_flags} -g -o %{target}")))
 
 (rule
  (with-stdout-to
@@ -22,7 +22,7 @@
 
 (rule
  (deps runtime.o)
- (target catala_runtime.a)
+ (target libcatala_runtime.a)
  (action
   (run
    %{read-strings:ar_bin_name}
@@ -48,7 +48,7 @@
    -pedantic
    %{dep:runtime-test.c}
    -I.
-   %{dep:catala_runtime.a}
+   %{dep:libcatala_runtime.a}
    -lgmp
    -o
    %{target})))

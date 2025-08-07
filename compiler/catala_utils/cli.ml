@@ -400,7 +400,7 @@ module Flags = struct
                   dirname Sys.executable_name
                   / Filename.parent_dir_name
                   / "stdlib"
-                  / "lib")
+                  / "catala_stdlib")
           with
           | Some d -> d
           | None -> (

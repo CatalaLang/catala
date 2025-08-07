@@ -216,12 +216,25 @@ let base_bindings ~autotest ~enabled_backends ~config =
      else [])
   @
   if List.mem C enabled_backends then
+    let dirs =
+      lazy
+        (let runtime = Lazy.force Poll.c_runtime_dir in
+         if String.ends_with runtime ~suffix:"_build/default/runtimes/c" then
+           (* hack to handle in-catala source tree builds, for testing without a
+              properly installed runtime + stdlib *)
+           [
+             runtime;
+             File.(dirname runtime /../ "stdlib" / "catala_stdlib" / "c");
+           ]
+         else [runtime])
+    in
     [
       def Var.catala_flags_c (lazy catala_flags_c);
       def Var.cc_exe (lazy ["cc"]);
       def Var.runtime_c_libs
         (lazy
-          ["-L" ^ Lazy.force Poll.c_runtime_dir; "-lcatala_runtime"; "-lgmp"]);
+          (List.map (fun d -> "-L" ^ d) (Lazy.force dirs)
+          @ ["-lcatala_runtime"; "-lgmp"]));
       def Var.c_flags
         (lazy
           [
@@ -236,7 +249,8 @@ let base_bindings ~autotest ~enabled_backends ~config =
           ]);
       def Var.c_include
         (lazy
-          ("-I" :: Lazy.force Poll.c_runtime_dir :: includes ~backend:"c" ()));
+          (List.map (fun d -> "-I" ^ d) (Lazy.force dirs)
+          @ includes ~backend:"c" ()));
     ]
   else []
 
@@ -253,7 +267,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
   ] @ (if List.mem OCaml enabled_backends then [
       Nj.rule "catala-ocaml"
         ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
-                  !input; "-o"; !output]
+                  "-o"; !output; "--"; !input]
         ~description:["<catala>"; "ocaml"; "⇒"; !output];
       Nj.rule "ocaml-bytobject"
         ~command:[
@@ -272,11 +286,17 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
           [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; !input;
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
+
+      Nj.rule "ocaml-lib"
+        ~command:
+          [!ocamlopt_exe; !ocaml_flags; "-a"; !input;
+           "-o"; !output]
+        ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
       ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
-                !input; "-o"; !output]
+                "-o"; !output; "--"; !input]
       ~description:["<catala>"; "c"; "⇒"; !output];
 
     Nj.rule "c-object"
@@ -287,13 +307,13 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
   (if List.mem Python enabled_backends then [
       Nj.rule "python"
         ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
-                  !input; "-o"; !output]
+                  "-o"; !output; "--"; !input]
         ~description:["<catala>"; "python"; "⇒"; !output];
     ] else []) @
   (if List.mem Java enabled_backends then [
       Nj.rule "catala-java"
         ~command:[!catala_exe; "java"; !catala_flags; !catala_flags_java;
-                  !input; "-o"; !output]
+                  "-o"; !output; "--"; !input]
         ~description:["<catala>"; "java"; "⇒"; !output];
       Nj.rule "java-class"
         ~command:[!javac; "-cp"; !runtime_java_jar ^":" ^ !class_path; !javac_flags; !input ]
