@@ -28,12 +28,22 @@ let root = lazy (Sys.getcwd ())
 
 (** Scans for a parent directory being the root of the Catala source repo *)
 let catala_project_root : File.t option Lazy.t =
+  let isroot d =
+    File.(exists (d / "catala.opam") && exists (d / "dune-project"))
+  in
   root
   |> Lazy.map
      @@ fun root ->
-     if File.(exists (root / "catala.opam") && exists (root / "dune-project"))
+     if isroot root
      then Some root
-     else None
+     else
+       let deep_build_dir =
+         File.find_in_parents ~cwd:root (fun d ->
+             File.basename d = "_build" && isroot (File.parent d))
+       in
+       match deep_build_dir with
+       | Some (d, _) -> Some (File.parent d)
+       | None -> None
 
 let exec_dir : File.t = Catala_utils.Cli.exec_dir
 let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
@@ -123,7 +133,7 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
           [
             "-I"; runtime;
             "-I"; File.(runtime / ".runtime.objs" / "byte" (* dune nonsense, the cmi is hidden there *));
-            "-I"; File.(dirname runtime /../ "stdlib"/"lib"/"ocaml")
+            "-I"; File.(dirname runtime /../ "stdlib"/"catala_stdlib"/"ocaml")
           ]
         else [
           "-I"; runtime;

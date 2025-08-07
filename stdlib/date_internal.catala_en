@@ -5,13 +5,13 @@ declaration of_ymd content date
   depends on dyear content integer,
              dmonth content integer,
              dday content integer
-  equals impossible
+#  equals impossible
 
 declaration to_ymd content (integer, integer, integer)
   depends on d content date
-  equals impossible
+#  equals impossible
 
 declaration last_day_of_month content date
   depends on d content date
-  equals impossible
+#  equals impossible
 ```
