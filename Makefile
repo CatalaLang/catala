@@ -276,8 +276,6 @@ WEBSITE_ASSETS_LOCAL_BASE = grammar.html catala.html clerk.html
 WEBSITE_ASSETS_LOCAL = $(addprefix _build/default/,$(WEBSITE_ASSETS_BASE))
 
 WEBSITE_ASSETS_EXAMPLES_BASE = \
-  tutorial_en/tutorial_en.html \
-  tutoriel_fr/tutoriel_fr.html \
   us_tax_code/us_tax_code.html \
   allocations_familiales/Allocations_familiales.html \
   allocations_familiales/Allocations_familiales_schema.json \
