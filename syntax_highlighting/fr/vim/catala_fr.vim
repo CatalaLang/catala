@@ -24,7 +24,7 @@ syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôê
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn match Keyword contained "\<\(contexte\|entrée\|résultat\|interne\|champ\s\+d'application\|liste\s\+de\|optionnel\s\+de\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|type\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|état\|étiquette\|exception\|n'importe\s\+quel\|liste\s+vide\)\>"
-syn match Statement contained "\<\(selon\|sous\s\+forme\|mais\s\+en\s\+remplaçant\|fixé\|par\|décroissant\|croissant\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\|parmi\|est\s+maximum\|est\s+minimum\|combine\|transforme\s+chaque\|en\|initialement\|impossible\)\>"
+syn match Statement contained "\<\(selon\|sous\s\+forme\|mais\s\+en\s\+remplaçant\|fixé\|par\|inférieur\|supérieur\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\|parmi\|est\s+maximum\|est\s+minimum\|combine\|transforme\s+chaque\|en\|initialement\|impossible\)\>"
 syn keyword Conditional contained si alors sinon
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
@@ -33,7 +33,7 @@ syn keyword Boolean contained vrai faux
 " (EmileRolley) NOTE: maybe special characters such as '€' should be encoded differently.
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+€\|+\|-\.\|-@\|-\^\|-€\|-\|\*\.\|\*@\|\*\^\|\*€\|\*\|/\.\|/@\|/€\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>€\|>=€\|<=€\|<€\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|non\|ou\s\+bien\|ou\|et\|€\|%\|an\|mois\|jour\)"
 syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
-syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
+syn keyword Type contained entier booléen date durée argent position_source décimal décret loi nombre somme
 
 syn region ctxt contained
       \ matchgroup=Keyword start="\<\(contexte\|entrée\|résultat\|interne\)\(|\s\+résultat\)"
