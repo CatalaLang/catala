@@ -169,6 +169,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
     (* Detuplification of function arguments *)
     let pos = Expr.pos f in
     let f = translate_expr ctx f in
+
     match args, tys with
     | [arg], [_] -> Expr.eapp ~f ~tys m ~args:[translate_expr ctx arg]
     | [(ETuple args, _)], _ ->

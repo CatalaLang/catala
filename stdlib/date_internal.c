@@ -4,11 +4,11 @@
 
 
 CATALA_DATE DateInternal__of_ymd
-    (CATALA_INT dyear, CATALA_INT dmonth, CATALA_INT dday)
+    (CATALA_POSITION pos, CATALA_INT dyear, CATALA_INT dmonth, CATALA_INT dday)
 {
-  static const catala_code_position pos[1] =
+  static const catala_code_position pos1[1] =
     {{"stdlib/date_internal.catala_en", 8, 10, 8, 20}};
-  catala_error(catala_impossible, pos, 1);
+  catala_error(catala_impossible, pos1, 1);
   abort();
 }
 

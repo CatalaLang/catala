@@ -2,16 +2,14 @@
 
 ```catala-metadata
 declaration of_ymd content date
-  depends on dyear content integer,
+  depends on pos content code_location,
+             dyear content integer,
              dmonth content integer,
              dday content integer
-#  equals impossible
 
 declaration to_ymd content (integer, integer, integer)
   depends on d content date
-#  equals impossible
 
 declaration last_day_of_month content date
   depends on d content date
-#  equals impossible
 ```

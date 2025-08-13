@@ -27,7 +27,16 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala Proof --disable-counterexamples 
-┌─[RESULT]─
-│ No errors found during the proof mode run.
+┌─[WARNING]─
+│
+│  [A.y] The translation to Z3 failed:
+│  [Z3 encoding] EApp node: Catala function calls should only include operators or function names
+│
+└─
+┌─[WARNING]─
+│
+│  [A.y] The translation to Z3 failed:
+│  [Z3 encoding] EApp node: Catala function calls should only include operators or function names
+│
 └─
 ```

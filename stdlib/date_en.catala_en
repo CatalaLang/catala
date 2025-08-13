@@ -3,16 +3,17 @@
 > Using Date_internal as D
 
 ```catala-metadata
-# #[todo.add_position_argument]
 declaration of_year_month_day content date
-  depends on dyear content integer,
+  depends on #[implicit_position_argument] pos content code_location,
+             dyear content integer,
              dmonth content integer,
              dday content integer
-  equals D.of_ymd of dyear, dmonth, dday
+  equals D.of_ymd of pos, dyear, dmonth, dday
 
 declaration to_year_month_day content (integer, integer, integer)
   depends on d content date
-  equals D.to_ymd of d
+  equals
+  D.to_ymd of d
 
 declaration last_day_of_month content date
   depends on d content date

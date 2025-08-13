@@ -832,8 +832,16 @@ let run_artifact ~backend ~var_bindings ?scope src =
       get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
     in
     let pythonpath =
+      let in_catala_tree_stdlib =
+        match Clerk_poll.catala_source_tree_root with
+        | (lazy (Some root)) ->
+          Message.warning "ISB";
+          [root / "_build" / "default" / "stdlib" / "catala_stdlib" / "python"]
+        | _ -> []
+      in
       String.concat ":"
         ((File.dirname src :: get_var var_bindings Var.runtime_python_dir)
+        @ in_catala_tree_stdlib
         @ [Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")])
     in
     Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath

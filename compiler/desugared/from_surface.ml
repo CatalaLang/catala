@@ -536,27 +536,74 @@ let rec translate_expr
   | S.Builtin Impossible -> Expr.efatalerror Runtime.Impossible emark
   | S.Builtin _ ->
     Message.error ~pos "Invalid use of built-in: needs one operand."
-  | FunCall (f, args) ->
-    let args = List.map rec_helper args in
+  | FunCall (f, args) -> (
+    let explicit_args = List.map rec_helper args in
     let f = rec_helper f in
-    let args =
-      let rec add_implicit_pos_arg args targs =
-        match targs, args with
-        | ty :: tys, args when Pos.has_attr (Mark.get ty) ImplicitPosArg ->
-          Expr.epos pos emark :: add_implicit_pos_arg args tys
-        | _ :: tys, arg :: args -> arg :: add_implicit_pos_arg args tys
-        | _ -> args (* Arity checked later on*)
-      in
+    let pos = Expr.pos f in
+    let fty =
       match Expr.unbox f with
-      | ELocation (ToplevelVar { name; _ }), _ -> (
-        match
+      | ELocation (ToplevelVar { name; _ }), _ ->
+        let ty, _vis =
           TopdefName.Map.find (Mark.remove name) ctxt.Name_resolution.topdefs
-        with
-        | (TArrow (targs, _), _), _ -> add_implicit_pos_arg args targs
-        | _ -> args (* Typing check done later on *))
-      | _ -> args
+        in
+        Some ty
+      | ELocation (DesugaredScopeVar { name; _ }), _ ->
+        Some
+          (ScopeVar.Map.find (Mark.remove name) ctxt.Name_resolution.var_typs)
+            .var_sig_typ
+      | _ -> None
     in
-    Expr.eapp ~f ~args ~tys:[] emark
+    match fty with
+    | Some (TArrow (tys, _), _) -> (
+      let is_implicit ty = Pos.has_attr (Mark.get ty) ImplicitPosArg in
+      let add_implicit_args args =
+        let rec aux args tys =
+          match tys, args with
+          | ty :: tys, args when is_implicit ty ->
+            Expr.epos pos emark :: aux args tys
+          | _ :: tys, arg :: args -> arg :: aux args tys
+          | _ -> args (* Arity checked later on*)
+        in
+        aux args tys
+      in
+      let explicit_tys = List.filter (fun ty -> not (is_implicit ty)) tys in
+      (* Proceed with detuplification *)
+      match explicit_args, explicit_tys with
+      | [arg], [_] -> Expr.eapp ~f ~tys emark ~args:(add_implicit_args [arg])
+      | [arg], explicit_tys -> (
+        match Expr.unbox arg with
+        | ETuple explicit_args, _ ->
+          (* Literal tuple is directly exploded *)
+          Expr.eapp ~f ~tys emark
+            ~args:(add_implicit_args (List.map Expr.rebox explicit_args))
+        | EVar _, _ ->
+          (* Explicit variable is indexed to instanciate each argument *)
+          let size = List.length explicit_tys in
+          let explicit_args =
+            List.init size (fun index ->
+                Expr.etupleaccess ~e:arg ~size ~index emark)
+          in
+          Expr.eapp ~f ~tys emark ~args:(add_implicit_args explicit_args)
+        | _ ->
+          (* Anything else is put in an intermediate variable and treated like
+             the case above *)
+          let size = List.length explicit_tys in
+          let v = Var.make "args" in
+          let explicit_args =
+            let e = Expr.evar v (Mark.get arg) in
+            List.init size (fun index ->
+                Expr.etupleaccess ~e ~size ~index emark)
+          in
+          Expr.make_let_in (Mark.ghost v) (TTuple explicit_tys, pos) arg
+            (Expr.eapp ~f ~tys emark ~args:(add_implicit_args explicit_args))
+            pos)
+      | explicit_args, _ ->
+        Expr.eapp ~f ~tys emark ~args:(add_implicit_args explicit_args))
+    | _ ->
+      Message.debug
+        "Error desugaring fun call: not a function, leaving as is, the typer \
+         will report";
+      Expr.eapp ~f ~args:explicit_args ~tys:[] emark)
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope.";

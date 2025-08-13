@@ -7,15 +7,6 @@ declaration foo content anything of type t1 depends on x content anything of typ
 
 ```catala-test-cli
 $ catala typecheck
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[todo.add_position_argument]
-│
-├─➤ /home/lg/inria/catala/_build/default/stdlib/lib/date_en.catala_en:6.3-6.29:
-│   │
-│ 6 │ #[todo.add_position_argument]
-│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
 ┌─[ERROR]─ 1/2 ─
 │
 │  This function has type <any type> → <any type>

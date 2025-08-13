@@ -219,14 +219,12 @@ let base_bindings ~autotest ~enabled_backends ~config =
     let dirs =
       lazy
         (let runtime = Lazy.force Poll.c_runtime_dir in
-         if String.ends_with runtime ~suffix:"_build/default/runtimes/c" then
-           (* hack to handle in-catala source tree builds, for testing without a
-              properly installed runtime + stdlib *)
-           [
-             runtime;
-             File.(dirname runtime /../ "stdlib" / "catala_stdlib" / "c");
-           ]
-         else [runtime])
+         runtime
+         ::
+         (match Poll.catala_source_tree_root with
+         | (lazy (Some _)) ->
+           [File.(dirname runtime /../ "stdlib" / "catala_stdlib" / "c")]
+         | _ -> []))
     in
     [
       def Var.catala_flags_c (lazy catala_flags_c);

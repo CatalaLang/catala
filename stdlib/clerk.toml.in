@@ -6,7 +6,7 @@ catala_opts = ["--stdlib"]
 
 [[target]]
 name = "catala_stdlib"
-backends = ["ocaml", "c"]
+backends = ["ocaml", "c", "python"]
 modules = ["Catala_stdlib"]
 include_runtime = false
 include_sources = true
