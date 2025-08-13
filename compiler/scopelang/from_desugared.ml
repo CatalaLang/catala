@@ -983,6 +983,7 @@ let translate_program
               topdef_type = ty;
               topdef_visibility = vis;
               topdef_external = ext;
+              _;
             } ->
             Some (Expr.unbox (translate_expr ctx e), ty, vis, ext)
           | { D.topdef_expr = None; topdef_external = true; _ } -> None

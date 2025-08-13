@@ -1668,17 +1668,23 @@ let process_topdef
           ]
         (msg ^^ " for %a.") TopdefName.format id
     in
+    let topdef_arg_names =
+      match def.topdef_args with
+      | None -> []
+      | Some l -> List.map fst (Mark.remove l)
+    in
     TopdefName.Map.update id
       (fun def0 ->
         match def0, expr_opt with
         | None, Some _ when is_module_external ->
-          err "Unexpected definition in an external module"
+          err "Unexpected definition contents in an external module"
         | None, eopt ->
           Some
             {
               Ast.topdef_expr = eopt;
               topdef_visibility;
               topdef_type = typ;
+              topdef_arg_names;
               topdef_external = is_module_external;
             }
         | Some def0, eopt -> (
@@ -1699,6 +1705,7 @@ let process_topdef
                   Ast.topdef_expr;
                   topdef_visibility;
                   topdef_type = typ;
+                  topdef_arg_names;
                   topdef_external = false;
                 }
             | None, (Some _ as topdef_expr) ->
@@ -1903,6 +1910,7 @@ let translate_program
                 Ast.topdef_expr = None;
                 topdef_visibility;
                 topdef_type;
+                topdef_arg_names = [];
                 topdef_external = mctx.is_external;
               }
               acc)
@@ -2030,6 +2038,67 @@ let translate_program
         List.fold_left (process_structure ctxt) desugared.program_root
           surface.S.program_items;
     }
+  in
+  let desugared =
+    match Global.options.gen_external, ctxt.local.is_external with
+    | true, false ->
+      let modname, _ = Option.get desugared.program_module_name in
+      Message.error
+        ~pos:(Mark.get (ModuleName.get_info modname))
+        "Flag @{<cyan>--gen-external@} was supplied, but %a is not marked as \
+         external"
+        ModuleName.format modname
+    | false, false -> desugared
+    | false, true ->
+      let modname, _ = Option.get desugared.program_module_name in
+      Message.error
+        ~pos:(Mark.get (ModuleName.get_info modname))
+        "@[<v>@[<hov>This module is marked as \"@{<cyan>external@}\", which \
+         means@ that@ its@ implementation@ in@ the@ backend@ language@ is@ \
+         expected@ to@ be@ supplied@ by@ the@ user@ rather@ than@ compiled.@]@,\
+         @,\
+         @[<hov 2>@{<bold>Hint:@} You may want to use the flag \
+         @{<cyan>--gen-external@}@ to@ generate@ a@ template@ \
+         implementation.@]@]"
+    | true, true ->
+      {
+        desugared with
+        program_root =
+          {
+            desugared.program_root with
+            module_topdefs =
+              TopdefName.Map.mapi
+                (fun name topdef ->
+                  let typ, _visibility =
+                    TopdefName.Map.find name ctxt.topdefs
+                  in
+                  let pos = Mark.get (TopdefName.get_info name) in
+                  let impossible =
+                    EFatalError Runtime.Impossible, Untyped { pos }
+                  in
+                  let expr =
+                    match topdef.Ast.topdef_arg_names, typ with
+                    | [], _ -> impossible
+                    | args, (TArrow (targs, _), _) ->
+                      let body =
+                        Expr.bind
+                          (Array.of_list
+                             (List.map (fun (s, _) -> Var.make s) args))
+                          (Expr.box impossible)
+                      in
+                      Expr.eabs body (List.map Mark.get args) targs
+                        (Untyped { pos })
+                      |> Expr.unbox
+                    | _ -> impossible
+                  in
+                  {
+                    topdef with
+                    Ast.topdef_expr = Some expr;
+                    topdef_external = false;
+                  })
+                desugared.program_root.module_topdefs;
+          };
+      }
   in
   let desugared =
     if Global.options.whole_program then

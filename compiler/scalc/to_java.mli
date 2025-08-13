@@ -16,11 +16,12 @@
 
 (** Formats a lambda calculus program into a valid Java program *)
 
+open Catala_utils
 open Shared_ast
 
 val renaming : Renaming.t
 
 val format_program :
-  class_name:string -> Format.formatter -> Ast.program -> unit
-(** Usage [format_program ~class_name p] where [class_name] must be a valid Java
-    identifier. *)
+  class_name:string -> File.t option -> Format.formatter -> Ast.program -> unit
+(** Usage [format_program ~class_name file ppf p] where [class_name] must be a
+    valid Java identifier. *)

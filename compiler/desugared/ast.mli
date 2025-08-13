@@ -129,6 +129,7 @@ type scope = {
 type topdef = {
   topdef_expr : expr option;  (** Always [None] outside of the root module *)
   topdef_type : typ;
+  topdef_arg_names : string Mark.pos list;
   topdef_visibility : visibility;
       (** Necessarily [Public] outside of the root module *)
   topdef_external : bool;

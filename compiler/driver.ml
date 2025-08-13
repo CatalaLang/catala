@@ -1001,6 +1001,7 @@ module Commands = struct
     in
     Message.debug "Compiling program into OCaml...";
     get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.ml" else "ml")
     @@ fun output_file fmt ->
     let hashf = Hash.finalise ~monomorphize_types:false in
     Lcalc.To_ocaml.format_program output_file fmt prg ~hashf type_ordering
@@ -1093,9 +1094,10 @@ module Commands = struct
         ~renaming:(Some Scalc.To_python.renaming)
     in
     Message.debug "Compiling program into Python...";
-    get_output_format options output ~ext:"py"
-    @@ fun _output_file fmt ->
-    Scalc.To_python.format_program fmt prg type_ordering
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.py" else "py")
+    @@ fun output_file fmt ->
+    Scalc.To_python.format_program output_file fmt prg type_ordering
 
   let python_cmd =
     Cmd.v
@@ -1127,7 +1129,8 @@ module Commands = struct
         ~renaming:(Some Scalc.To_java.renaming)
     in
     Message.debug "Compiling program into Java...";
-    get_output_format options output ~ext:"java"
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.java" else "java")
     @@ fun output_file ppf ->
     let class_name =
       match output_file, options.Global.input_src with
@@ -1136,7 +1139,7 @@ module Commands = struct
         Filename.(remove_extension file |> basename)
       | None, Stdin _ -> "AnonymousClass"
     in
-    Scalc.To_java.format_program ~class_name ppf prg
+    Scalc.To_java.format_program ~class_name output_file ppf prg
 
   let java_cmd =
     Cmd.v
@@ -1161,7 +1164,8 @@ module Commands = struct
         ~renaming:(Some Scalc.To_c.renaming)
     in
     Message.debug "Compiling program into C...";
-    get_output_format options output ~ext:"c"
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.c" else "c")
     @@ fun output_file ppf ->
     Scalc.To_c.format_program output_file ppf prg type_ordering
 

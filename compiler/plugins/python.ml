@@ -34,7 +34,7 @@ let run includes output optimize check_invariants closure_conversion options =
 
   Message.debug "Compiling program into Python...";
   get_output_format options ~ext:"py" output
-  @@ fun _ fmt -> Scalc.To_python.format_program fmt prg type_ordering
+  @@ fun file fmt -> Scalc.To_python.format_program file fmt prg type_ordering
 
 let term =
   let open Cmdliner.Term in
