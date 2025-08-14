@@ -258,8 +258,8 @@ val source_pos_struct : StructName.t
 (** Fake structure (there is no corresponding decl) used for categorising
     [PosLit] terms in scalc *)
 
-val pos_to_runtime : Pos.t -> Runtime.source_position
-val runtime_to_pos : Runtime.source_position -> Pos.t
+val pos_to_runtime : Pos.t -> Runtime.code_location
+val runtime_to_pos : Runtime.code_location -> Pos.t
 
 (** Manipulation of marked expressions *)
 

@@ -36,7 +36,7 @@ end
 type io_input = NoInput | OnlyInput | Reentrant
 type io_log = { io_input : io_input; io_output : bool }
 
-type source_position = {
+type code_location = {
   filename : string;
   start_line : int;
   start_column : int;
@@ -87,7 +87,7 @@ let error_message = function
   | IndivisibleDurations -> "dividing durations that are not in days"
   | Impossible -> "\"impossible\" computation reached"
 
-exception Error of error * source_position list
+exception Error of error * code_location list
 exception Empty
 
 let error err pos = raise (Error (err, pos))
@@ -273,7 +273,7 @@ type raw_event =
   | BeginCall of information
   | EndCall of information
   | VariableDefinition of information * io_log * runtime_value
-  | DecisionTaken of source_position
+  | DecisionTaken of code_location
 
 type event =
   | VarComputation of var_def
@@ -285,7 +285,7 @@ type event =
     }
 
 and var_def = {
-  pos : source_position option;
+  pos : code_location option;
   name : information;
   io : io_log;
   value : runtime_value;
@@ -372,7 +372,7 @@ module BufferedJson = struct
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
 
-  let source_position buf pos =
+  let code_location buf pos =
     Printf.bprintf buf {|{"filename":%a|} quote pos.filename;
     Printf.bprintf buf {|,"start_line":%d|} pos.start_line;
     Printf.bprintf buf {|,"start_column":%d|} pos.start_column;
@@ -398,7 +398,7 @@ module BufferedJson = struct
         name (list var_def) inputs (list event) body
 
   and var_def buf def =
-    Option.iter (Printf.bprintf buf {|{"pos":%a|} source_position) def.pos;
+    Option.iter (Printf.bprintf buf {|{"pos":%a|} code_location) def.pos;
     Printf.bprintf buf {|,"name":%a|} information def.name;
     Printf.bprintf buf {|,"io":%a|} io_log def.io;
     Printf.bprintf buf {|,"value":%a|} runtime_value def.value;
@@ -429,8 +429,8 @@ module BufferedJson = struct
          }|}
         (String.concat "." name) io_log io runtime_value value
     | DecisionTaken source_pos ->
-      Printf.bprintf buf {|{"event": "DecisionTaken", "pos": %a}|}
-        source_position source_pos
+      Printf.bprintf buf {|{"event": "DecisionTaken", "pos": %a}|} code_location
+        source_pos
 end
 
 module Json = struct
@@ -780,8 +780,8 @@ module EventParser = struct
     ctx.events
 end
 
-let handle_exceptions (exceptions : ('a * source_position) Optional.t array) :
-    ('a * source_position) Optional.t =
+let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
+    ('a * code_location) Optional.t =
   let len = Array.length exceptions in
   let rec filt_except i =
     if i < len then

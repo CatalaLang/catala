@@ -506,7 +506,7 @@ let rec runtime_to_val :
   | TLit TDate -> ELit (LDate (Obj.obj o)), m
   | TLit TDuration -> ELit (LDuration (Obj.obj o)), m
   | TLit TPos ->
-    let rpos : Runtime.source_position = Obj.obj o in
+    let rpos : Runtime.code_location = Obj.obj o in
     let p =
       Pos.from_info rpos.filename rpos.start_line rpos.start_column
         rpos.end_line rpos.end_column
@@ -599,7 +599,7 @@ and val_to_runtime :
   | TLit TDate, ELit (LDate t) -> Obj.repr t
   | TLit TDuration, ELit (LDuration d) -> Obj.repr d
   | TLit TPos, EPos p ->
-    let rpos : Runtime.source_position =
+    let rpos : Runtime.code_location =
       {
         Runtime.filename = Pos.get_file p;
         start_line = Pos.get_start_line p;

@@ -22,7 +22,7 @@ open Js_of_ocaml
 (** {1 Log events} *)
 
 (** Information about the position of the log inside the Catala source file. *)
-class type source_position = object
+class type code_location = object
   method fileName : Js.js_string Js.t Js.prop
   method startLine : int Js.prop
   method endLine : int Js.prop
@@ -58,7 +58,7 @@ class type raw_event = object
         letter [Subscope_name] or, the [input] (resp. [output]) string -- which
         corresponds to the input (resp. the output) of a function. *)
 
-  method sourcePosition : source_position Js.t Js.optdef Js.prop
+  method sourcePosition : code_location Js.t Js.optdef Js.prop
 
   method loggedIOJson : Js.js_string Js.t Js.prop
   (** Serialzed [Runtime_ocaml.Runtime.io_log] corresponding to a
@@ -108,11 +108,8 @@ val date_to_js : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
-val position_of_js :
-  source_position Js.t -> Runtime_ocaml.Runtime.source_position
-
-val position_to_js :
-  Runtime_ocaml.Runtime.source_position -> source_position Js.t
+val position_of_js : code_location Js.t -> Runtime_ocaml.Runtime.code_location
+val position_to_js : Runtime_ocaml.Runtime.code_location -> code_location Js.t
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the

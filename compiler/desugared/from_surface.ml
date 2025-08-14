@@ -537,7 +537,25 @@ let rec translate_expr
     Message.error ~pos "Invalid use of built-in: needs one operand."
   | FunCall (f, args) ->
     let args = List.map rec_helper args in
-    Expr.eapp ~f:(rec_helper f) ~args ~tys:[] emark
+    let f = rec_helper f in
+    let args =
+      let rec add_implicit_pos_arg args targs =
+        match targs, args with
+        | ty :: tys, args when Pos.has_attr (Mark.get ty) ImplicitPosArg ->
+          Expr.epos pos emark :: add_implicit_pos_arg args tys
+        | _ :: tys, arg :: args -> arg :: add_implicit_pos_arg args tys
+        | _ -> args (* Arity checked later on*)
+      in
+      match Expr.unbox f with
+      | ELocation (ToplevelVar { name; _ }), _ -> (
+        match
+          TopdefName.Map.find (Mark.remove name) ctxt.Name_resolution.topdefs
+        with
+        | (TArrow (targs, _), _), _ -> add_implicit_pos_arg args targs
+        | _ -> args (* Typing check done later on *))
+      | _ -> args
+    in
+    Expr.eapp ~f ~args ~tys:[] emark
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope.";
@@ -1679,7 +1697,11 @@ let process_topdef
     let topdef_arg_names =
       match def.topdef_args with
       | None -> []
-      | Some l -> List.map fst (Mark.remove l)
+      | Some l ->
+        List.map
+          (fun (arg, _ty) ->
+            Mark.map_mark Name_resolution.(translate_pos FunctionArgument) arg)
+          (Mark.remove l)
     in
     TopdefName.Map.update id
       (fun def0 ->
