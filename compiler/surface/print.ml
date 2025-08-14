@@ -24,8 +24,9 @@ let format_primitive_typ (fmt : Format.formatter) (t : primitive_typ) : unit =
   | Boolean -> Format.pp_print_string fmt "boolean"
   | Money -> Format.pp_print_string fmt "money"
   | Duration -> Format.pp_print_string fmt "duration"
-  | Text -> Format.pp_print_string fmt "text"
   | Date -> Format.pp_print_string fmt "date"
+  | Position -> Format.pp_print_string fmt "position"
+  | External s -> Format.pp_print_string fmt s
   | Named (path, constructor) ->
     Format.fprintf fmt "%a.%s"
       (Format.pp_print_list

@@ -269,7 +269,7 @@ definition var1 state before
 assertion ...
 ```, [Assertion],
 ```catala-en-code
-date round in·decreasing
+date round down·up
 ```, [Date rounding mode]
 )
 

@@ -277,7 +277,7 @@ définition var1 état avant
 assertion ...
 ```, [Assertion],
 ```catala-fr-code
-date arrondi dé·croissant
+date arrondi inf·supérieur
 ```, [Mode arrondi dates]
 )
 

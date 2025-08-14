@@ -23,8 +23,9 @@
 #define MR_DEPENDS "depends", space_plus, "on"
 #define MS_DECLARATION "declaration"
 #define MS_CONTEXT "context"
-#define MS_DECREASING "decreasing"
-#define MS_INCREASING "increasing"
+(* the following two could be de-tokenised *)
+#define MS_DECREASING "down"
+#define MS_INCREASING "up"
 #define MS_OF "of"
 #define MS_LIST "list of"
 #define MR_LIST "list", space_plus, "of"
@@ -32,13 +33,6 @@
 #define MR_OPTION "optional", space_plus, "of"
 #define MS_CONTAINS "contains"
 #define MS_ENUM "enumeration"
-#define MS_INTEGER "integer"
-#define MS_MONEY "money"
-#define MS_TEXT "text"
-#define MS_DECIMAL "decimal"
-#define MS_DATE "date"
-#define MS_DURATION "duration"
-#define MS_BOOLEAN "boolean"
 #define MS_SUM "sum"
 #define MS_FILLED "fulfilled"
 #define MS_DEFINITION "definition"
@@ -88,8 +82,6 @@
 #define MS_BUT_REPLACE "but replace"
 #define MR_BUT_REPLACE "but", space_plus, "replace"
 #define MS_INITIALLY "initially"
-#define MS_IMPOSSIBLE "impossible"
-#define MS_CARDINAL "number"
 #define MS_YEAR "year"
 #define MS_MONTH "month"
 #define MS_DAY "day"
@@ -107,14 +99,26 @@
 #define MR_MONEY_DELIM ','
 #define MR_MONEY_SUFFIX ""
 
-(* Builtins *)
+(* Builtin types *)
+
+#define MS_INTEGER "integer"
+#define MS_MONEY "money"
+#define MS_DECIMAL "decimal"
+#define MS_DATE "date"
+#define MS_DURATION "duration"
+#define MS_BOOLEAN "boolean"
+#define MS_POSITION "code_location"
+
+(* Builtin constructors *)
+
+#define MS_PRESENT "Present"
+#define MS_ABSENT "Absent"
+
+(* Builtin functions *)
 
 #define MS_Round "round"
-#define MS_GetDay "get_day"
-#define MS_GetMonth "get_month"
-#define MS_GetYear "get_year"
-#define MS_FirstDayOfMonth "first_day_of_month"
-#define MS_LastDayOfMonth "last_day_of_month"
+#define MS_Impossible "impossible"
+#define MS_Cardinal "number"
 
 (* Directives *)
 

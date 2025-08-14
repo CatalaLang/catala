@@ -74,8 +74,8 @@ module R = Re.Pcre
 #ifndef MR_MONEY
   #define MR_MONEY MS_MONEY
 #endif
-#ifndef MR_TEXT
-  #define MR_TEXT MS_TEXT
+#ifndef MR_POSITION
+  #define MR_POSITION MS_POSITION
 #endif
 #ifndef MR_DECIMAL
   #define MR_DECIMAL MS_DECIMAL
@@ -218,11 +218,11 @@ module R = Re.Pcre
 #ifndef MR_INITIALLY
   #define MR_INITIALLY MS_INITIALLY
 #endif
-#ifndef MR_IMPOSSIBLE
-  #define MR_IMPOSSIBLE MS_IMPOSSIBLE
+#ifndef MR_Impossible
+  #define MR_Impossible MS_Impossible
 #endif
-#ifndef MR_CARDINAL
-  #define MR_CARDINAL MS_CARDINAL
+#ifndef MR_Cardinal
+  #define MR_Cardinal MS_Cardinal
 #endif
 #ifndef MR_YEAR
   #define MR_YEAR MS_YEAR
@@ -242,21 +242,6 @@ module R = Re.Pcre
 #ifndef MR_Round
   #define MR_Round MS_Round
 #endif
-#ifndef MR_GetDay
-  #define MR_GetDay MS_GetDay
-#endif
-#ifndef MR_GetMonth
-  #define MR_GetMonth MS_GetMonth
-#endif
-#ifndef MR_GetYear
-  #define MR_GetYear MS_GetYear
-#endif
-#ifndef MR_FirstDayOfMonth
-  #define MR_FirstDayOfMonth MS_FirstDayOfMonth
-#endif
-#ifndef MR_LastDayOfMonth
-  #define MR_LastDayOfMonth MS_LastDayOfMonth
-#endif
 #ifndef MR_INPUT
   #define MR_INPUT MS_INPUT
 #endif
@@ -268,6 +253,12 @@ module R = Re.Pcre
 #endif
 #ifndef MR_MONEY_OP_SUFFIX
   #define MR_MONEY_OP_SUFFIX MS_MONEY_OP_SUFFIX
+#endif
+#ifndef MR_PRESENT
+  #define MR_PRESENT MS_PRESENT
+#endif
+#ifndef MR_ABSENT
+  #define MR_ABSENT MS_ABSENT
 #endif
 
 let token_list : (string * token) list =
@@ -285,13 +276,7 @@ let token_list : (string * token) list =
     (MS_OPTION, OPTION);
     (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
-    (MS_INTEGER, INTEGER);
-    (MS_MONEY, MONEY);
-    (MS_TEXT, TEXT);
-    (MS_DECIMAL, DECIMAL);
     (MS_DATE, DATE);
-    (MS_DURATION, DURATION);
-    (MS_BOOLEAN, BOOLEAN);
     (MS_SUM, SUM);
     (MS_FILLED, FILLED);
     (MS_DEFINITION, DEFINITION);
@@ -335,8 +320,6 @@ let token_list : (string * token) list =
     (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
     (MS_BUT_REPLACE, BUT_REPLACE);
     (MS_INITIALLY, INITIALLY);
-    (MS_IMPOSSIBLE, IMPOSSIBLE);
-    (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
     (MS_DAY, DAY);
@@ -348,16 +331,35 @@ let token_list : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
-(** Localised builtin functions *)
+(** Localised builtin functions (takes an lident) *)
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
+  | MR_Impossible, eof -> Some Impossible
+  | MR_Cardinal, eof -> Some Cardinal
   | MR_Round, eof -> Some Round
-  | MR_GetDay, eof -> Some GetDay
-  | MR_GetMonth, eof -> Some GetMonth
-  | MR_GetYear, eof -> Some GetYear
-  | MR_FirstDayOfMonth -> Some FirstDayOfMonth
-  | MR_LastDayOfMonth -> Some LastDayOfMonth
+  | MR_INTEGER, eof -> Some ToInteger
+  | MR_DECIMAL, eof -> Some ToDecimal
+  | MR_MONEY, eof -> Some ToMoney
+  | _ -> None
+
+let lex_primitive_type (s : string) : Ast.primitive_typ option =
+  let lexbuf = Utf8.from_string s in
+  match%sedlex lexbuf with
+  | MR_INTEGER, eof -> Some Integer
+  | MR_DECIMAL, eof -> Some Decimal
+  | MR_BOOLEAN, eof -> Some Boolean
+  | MR_MONEY, eof -> Some Money
+  | MR_DURATION, eof -> Some Duration
+  | MR_DATE, eof -> Some Date
+  | MR_POSITION, eof -> Some Position
+  | _ -> None
+
+let lex_builtin_constr (s : string) : Ast.builtin_constr option =
+  let lexbuf = Utf8.from_string s in
+  match%sedlex lexbuf with
+  | MR_PRESENT, eof -> Some Present
+  | MR_ABSENT, eof -> Some Absent
   | _ -> None
 
 (** Regexp matching any digit character.
@@ -493,27 +495,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_ENUM ->
       L.update_acc lexbuf;
       ENUM
-  | MR_INTEGER ->
-      L.update_acc lexbuf;
-      INTEGER
-  | MR_MONEY ->
-      L.update_acc lexbuf;
-      MONEY
-  | MR_TEXT ->
-      L.update_acc lexbuf;
-      TEXT
-  | MR_DECIMAL ->
-      L.update_acc lexbuf;
-      DECIMAL
   | MR_DATE ->
       L.update_acc lexbuf;
       DATE
-  | MR_DURATION ->
-      L.update_acc lexbuf;
-      DURATION
-  | MR_BOOLEAN ->
-      L.update_acc lexbuf;
-      BOOLEAN
   | MR_SUM ->
       L.update_acc lexbuf;
       SUM
@@ -646,12 +630,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_INITIALLY ->
       L.update_acc lexbuf;
       INITIALLY
-  | MR_IMPOSSIBLE ->
-      L.update_acc lexbuf;
-      IMPOSSIBLE
-  | MR_CARDINAL ->
-      L.update_acc lexbuf;
-      CARDINAL
   | MR_TRUE ->
       L.update_acc lexbuf;
       TRUE

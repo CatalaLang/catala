@@ -1,6 +1,6 @@
-source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT TEXT YEAR
+source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 805.
+## Ends in an error in state: 796.
 ##
 ## code_item -> DECLARATION ENUM UIDENT COLON rev_list_with_attr(enum_decl_line) . [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## rev_list_with_attr(enum_decl_line) -> rev_list_with_attr(enum_decl_line) . attribute [ SCOPE END_CODE DECLARATION ATTR_START ALT ]
@@ -14,7 +14,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 808.
+## Ends in an error in state: 799.
 ##
 ## option(preceded(CONTENT,posattr(typ))) -> CONTENT . list(attribute) typ_data [ SCOPE END_CODE DECLARATION ATTR_START ALT ]
 ##
@@ -26,7 +26,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT YEAR
 ##
-## Ends in an error in state: 807.
+## Ends in an error in state: 798.
 ##
 ## enum_decl_line -> ALT UIDENT . option(preceded(CONTENT,posattr(typ))) [ SCOPE END_CODE DECLARATION ATTR_START ALT ]
 ##
@@ -38,7 +38,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT YEAR
 ##
-## Ends in an error in state: 806.
+## Ends in an error in state: 797.
 ##
 ## enum_decl_line -> ALT . UIDENT option(preceded(CONTENT,posattr(typ))) [ SCOPE END_CODE DECLARATION ATTR_START ALT ]
 ##
@@ -50,7 +50,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT YEAR
 ##
-## Ends in an error in state: 803.
+## Ends in an error in state: 794.
 ##
 ## code_item -> DECLARATION ENUM UIDENT . COLON rev_list_with_attr(enum_decl_line) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -62,7 +62,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 802.
+## Ends in an error in state: 793.
 ##
 ## code_item -> DECLARATION ENUM . UIDENT COLON rev_list_with_attr(enum_decl_line) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -74,7 +74,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON YEAR
 ##
-## Ends in an error in state: 614.
+## Ends in an error in state: 605.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT COLON rev_list_with_attr(scope_decl_item) . [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## rev_list_with_attr(scope_decl_item) -> rev_list_with_attr(scope_decl_item) . attribute [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -88,7 +88,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 612.
+## Ends in an error in state: 603.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT . COLON rev_list_with_attr(scope_decl_item) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -100,7 +100,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 611.
+## Ends in an error in state: 602.
 ##
 ## code_item -> DECLARATION SCOPE . UIDENT COLON rev_list_with_attr(scope_decl_item) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -114,7 +114,7 @@ expected the name of the scope you are declaring
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 598.
+## Ends in an error in state: 588.
 ##
 ## struct_scope -> struct_scope_base DEPENDS . separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ATTR_START ]
 ## struct_scope -> struct_scope_base DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ATTR_START ]
@@ -127,7 +127,7 @@ expected the type of the parameter of this struct data function
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT YEAR
 ##
-## Ends in an error in state: 597.
+## Ends in an error in state: 587.
 ##
 ## struct_scope -> struct_scope_base . DEPENDS separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ATTR_START ]
 ## struct_scope -> struct_scope_base . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ATTR_START ]
@@ -141,7 +141,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION YEAR
 ##
-## Ends in an error in state: 595.
+## Ends in an error in state: 585.
 ##
 ## struct_scope_base -> CONDITION . lident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -153,7 +153,7 @@ expected the name of this struct condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 578.
+## Ends in an error in state: 568.
 ##
 ## struct_scope_base -> DATA lident CONTENT . list(attribute) typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -165,7 +165,7 @@ expected the type of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT YEAR
 ##
-## Ends in an error in state: 577.
+## Ends in an error in state: 567.
 ##
 ## struct_scope_base -> DATA lident . CONTENT list(attribute) typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -177,7 +177,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA YEAR
 ##
-## Ends in an error in state: 576.
+## Ends in an error in state: 566.
 ##
 ## struct_scope_base -> DATA . lident CONTENT list(attribute) typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -189,7 +189,7 @@ expected the name of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON YEAR
 ##
-## Ends in an error in state: 575.
+## Ends in an error in state: 565.
 ##
 ## code_item -> DECLARATION STRUCT list(attribute) UIDENT COLON rev_list_with_attr(struct_scope) . [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## rev_list_with_attr(struct_scope) -> rev_list_with_attr(struct_scope) . attribute [ SCOPE END_CODE DECLARATION DATA CONDITION ATTR_START ]
@@ -203,7 +203,7 @@ expected struct data or condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT YEAR
 ##
-## Ends in an error in state: 573.
+## Ends in an error in state: 563.
 ##
 ## code_item -> DECLARATION STRUCT list(attribute) UIDENT . COLON rev_list_with_attr(struct_scope) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -215,7 +215,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 571.
+## Ends in an error in state: 561.
 ##
 ## code_item -> DECLARATION STRUCT . list(attribute) UIDENT COLON rev_list_with_attr(struct_scope) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -227,7 +227,7 @@ expected the struct name
 
 source_file: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 570.
+## Ends in an error in state: 560.
 ##
 ## code_item -> DECLARATION . STRUCT list(attribute) UIDENT COLON rev_list_with_attr(struct_scope) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## code_item -> DECLARATION . SCOPE UIDENT COLON rev_list_with_attr(scope_decl_item) [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -242,9 +242,9 @@ source_file: BEGIN_CODE DECLARATION YEAR
 
 expected the kind of the declaration (struct, scope or enum)
 
-source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION CARDINAL THEN
+source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION LIDENT THEN
 ##
-## Ends in an error in state: 563.
+## Ends in an error in state: 553.
 ##
 ## assertion -> ASSERTION option(condition_consequence) list(attribute) noattr_expression . [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION DATE CONTAINS BUT_REPLACE ATTR_START ASSERTION AND ]
@@ -271,14 +271,21 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION CARDINAL THEN
 ## The known suffix of the stack is as follows:
 ## ASSERTION option(condition_consequence) list(attribute) noattr_expression
 ##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 82, spurious reduction of production option(state_qualifier) ->
+## In state 88, spurious reduction of production noattr_expression -> LIDENT option(state_qualifier)
+##
 
 expected a new scope use item
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION TRUE THEN
 ##
-## Ends in an error in state: 450.
+## Ends in an error in state: 440.
 ##
-## condition_consequence -> UNDER_CONDITION list(attribute) noattr_expression . CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH MAP_EACH LPAREN LIST LIDENT LET LBRACKET INT_LITERAL INTEGER IMPOSSIBLE IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CONTENT COMBINE CARDINAL ATTR_START ]
+## condition_consequence -> UNDER_CONDITION list(attribute) noattr_expression . CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MINUS MINIMUM MAXIMUM MATCH MAP_EACH LPAREN LIST LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DATE_LITERAL CONTENT COMBINE ATTR_START ]
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS CONSEQUENCE BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS CONSEQUENCE BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS CONSEQUENCE BUT_REPLACE AND ]
@@ -308,9 +315,9 @@ expected a consequence for this definition under condition
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION YEAR
 ##
-## Ends in an error in state: 448.
+## Ends in an error in state: 438.
 ##
-## condition_consequence -> UNDER_CONDITION . list(attribute) noattr_expression CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH MAP_EACH LPAREN LIST LIDENT LET LBRACKET INT_LITERAL INTEGER IMPOSSIBLE IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CONTENT COMBINE CARDINAL ATTR_START ]
+## condition_consequence -> UNDER_CONDITION . list(attribute) noattr_expression CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MINUS MINIMUM MAXIMUM MATCH MAP_EACH LPAREN LIST LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DATE_LITERAL CONTENT COMBINE ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
 ## UNDER_CONDITION
@@ -320,7 +327,7 @@ expected an expression for this condition
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION YEAR
 ##
-## Ends in an error in state: 560.
+## Ends in an error in state: 550.
 ##
 ## assertion -> ASSERTION . option(condition_consequence) list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -332,7 +339,7 @@ expected an expression that shoud be asserted during execution
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 552.
+## Ends in an error in state: 542.
 ##
 ## definition -> DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS . list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -344,7 +351,7 @@ expected an expression for the definition
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT OF LIDENT DECREASING
 ##
-## Ends in an error in state: 461.
+## Ends in an error in state: 451.
 ##
 ## separated_nonempty_list(COMMA,lident) -> lident . [ UNDER_CONDITION STATE NOT FILLED DEFINED_AS ]
 ## separated_nonempty_list(COMMA,lident) -> lident . COMMA separated_nonempty_list(COMMA,lident) [ UNDER_CONDITION STATE NOT FILLED DEFINED_AS ]
@@ -357,7 +364,7 @@ expected an expression for defining this function, introduced by the 'equals' ke
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 547.
+## Ends in an error in state: 537.
 ##
 ## definition -> DEFINITION . separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -369,7 +376,7 @@ expected the name of the variable you want to define
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON EXCEPTION LIDENT YEAR
 ##
-## Ends in an error in state: 531.
+## Ends in an error in state: 521.
 ##
 ## definition -> EXCEPTION lident . DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## rule -> EXCEPTION lident . RULE list(attribute) separated_nonempty_list(DOT,addpos(LIDENT)) option(posattr(definition_parameters)) option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
@@ -382,7 +389,7 @@ expected a rule or a definition after the exception declaration
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON EXCEPTION YEAR
 ##
-## Ends in an error in state: 515.
+## Ends in an error in state: 505.
 ##
 ## definition -> EXCEPTION . DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## definition -> EXCEPTION . lident DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
@@ -397,7 +404,7 @@ expected the label to which the exception is referring back
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON LABEL LIDENT DEFINED_AS
 ##
-## Ends in an error in state: 466.
+## Ends in an error in state: 456.
 ##
 ## definition -> LABEL lident . DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## definition -> LABEL lident . EXCEPTION DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
@@ -414,7 +421,7 @@ expected a rule or a definition after the label declaration
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON LABEL YEAR
 ##
-## Ends in an error in state: 465.
+## Ends in an error in state: 455.
 ##
 ## definition -> LABEL . lident DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## definition -> LABEL . lident EXCEPTION DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
@@ -431,7 +438,7 @@ expected the name of the label
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT DOT YEAR
 ##
-## Ends in an error in state: 440.
+## Ends in an error in state: 430.
 ##
 ## separated_nonempty_list(DOT,addpos(LIDENT)) -> LIDENT DOT . separated_nonempty_list(DOT,addpos(LIDENT)) [ UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS ATTR_START ]
 ##
@@ -443,7 +450,7 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT NOT FALSE
 ##
-## Ends in an error in state: 455.
+## Ends in an error in state: 445.
 ##
 ## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -455,7 +462,7 @@ expected the filled keyword the this rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT OF YEAR
 ##
-## Ends in an error in state: 459.
+## Ends in an error in state: 449.
 ##
 ## definition_parameters -> OF . separated_nonempty_list(COMMA,lident) [ UNDER_CONDITION STATE NOT FILLED DEFINED_AS ]
 ##
@@ -467,7 +474,7 @@ expected the name of the parameter for this dependent variable
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT YEAR
 ##
-## Ends in an error in state: 439.
+## Ends in an error in state: 429.
 ##
 ## separated_nonempty_list(DOT,addpos(LIDENT)) -> LIDENT . [ UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS ATTR_START ]
 ## separated_nonempty_list(DOT,addpos(LIDENT)) -> LIDENT . DOT separated_nonempty_list(DOT,addpos(LIDENT)) [ UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS ATTR_START ]
@@ -480,7 +487,7 @@ expected 'under condition' followed by a condition, 'equals' followed by the def
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE YEAR
 ##
-## Ends in an error in state: 437.
+## Ends in an error in state: 427.
 ##
 ## rule -> RULE . list(attribute) separated_nonempty_list(DOT,addpos(LIDENT)) option(posattr(definition_parameters)) option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -492,7 +499,7 @@ expected the name of the variable subject to the rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON YEAR
 ##
-## Ends in an error in state: 436.
+## Ends in an error in state: 426.
 ##
 ## code_item -> SCOPE UIDENT option(preceded(UNDER_CONDITION,expression)) COLON rev_list_with_attr(scope_item) . [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## rev_list_with_attr(scope_item) -> rev_list_with_attr(scope_item) . attribute [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
@@ -523,7 +530,7 @@ expected a payload for the enum case constructor, or the rest of the expression 
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT YEAR
 ##
-## Ends in an error in state: 314.
+## Ends in an error in state: 304.
 ##
 ## noattr_expression -> EXISTS list(attribute) lident . AMONG list(attribute) noattr_expression SUCH THAT list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -535,7 +542,7 @@ expected the "in" keyword to continue this existential test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS YEAR
 ##
-## Ends in an error in state: 124.
+## Ends in an error in state: 116.
 ##
 ## noattr_expression -> EXISTS . list(attribute) lident AMONG list(attribute) noattr_expression SUCH THAT list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> EXISTS . LPAREN separated_nonempty_list(COMMA,attr(lident)) RPAREN AMONG list(attribute) noattr_expression SUCH THAT list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -548,7 +555,7 @@ expected an identifier that will designate the existential witness for the test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT YEAR
 ##
-## Ends in an error in state: 327.
+## Ends in an error in state: 317.
 ##
 ## noattr_expression -> FOR ALL list(attribute) lident . AMONG list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -560,7 +567,7 @@ expected the "in" keyword for the rest of the universal test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL YEAR
 ##
-## Ends in an error in state: 117.
+## Ends in an error in state: 109.
 ##
 ## noattr_expression -> FOR ALL . list(attribute) lident AMONG list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> FOR ALL . LPAREN separated_nonempty_list(COMMA,attr(lident)) RPAREN AMONG list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -573,7 +580,7 @@ expected an identifier for the bound variable of the universal test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR YEAR
 ##
-## Ends in an error in state: 116.
+## Ends in an error in state: 108.
 ##
 ## noattr_expression -> FOR . ALL list(attribute) lident AMONG list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> FOR . ALL LPAREN separated_nonempty_list(COMMA,attr(lident)) RPAREN AMONG list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -586,7 +593,7 @@ expected the "all" keyword to mean the "for all" construction of the universal t
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF TRUE SEMICOLON
 ##
-## Ends in an error in state: 334.
+## Ends in an error in state: 324.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -618,7 +625,7 @@ expected the "then" keyword as the conditional expression is complete
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF YEAR
 ##
-## Ends in an error in state: 114.
+## Ends in an error in state: 106.
 ##
 ## noattr_expression -> IF . list(attribute) noattr_expression THEN list(attribute) noattr_expression ELSE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -630,7 +637,7 @@ expected an expression for the test of the conditional
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 433.
+## Ends in an error in state: 423.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS COLON BUT_REPLACE AND ]
@@ -661,16 +668,16 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION INT_LITERAL WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 106, spurious reduction of production option(addpos(unit_literal)) ->
-## In state 111, spurious reduction of production literal -> INT_LITERAL option(addpos(unit_literal))
-## In state 164, spurious reduction of production noattr_expression -> literal
+## In state 100, spurious reduction of production option(addpos(unit_literal)) ->
+## In state 105, spurious reduction of production literal -> INT_LITERAL option(addpos(unit_literal))
+## In state 154, spurious reduction of production noattr_expression -> literal
 ##
 
 expected a unit for this literal, or a valid operator to complete the expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LPAREN TRUE THEN
 ##
-## Ends in an error in state: 370.
+## Ends in an error in state: 360.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS COMMA BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS COMMA BUT_REPLACE AND ]
@@ -703,7 +710,7 @@ unmatched parenthesis that should have been closed by here
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LPAREN YEAR
 ##
-## Ends in an error in state: 78.
+## Ends in an error in state: 72.
 ##
 ## noattr_expression -> LPAREN . separated_nonempty_list(COMMA,expression) RPAREN [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -715,7 +722,7 @@ expected an expression inside the parenthesis
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET TRUE THEN
 ##
-## Ends in an error in state: 341.
+## Ends in an error in state: 331.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SEMICOLON RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH SEMICOLON RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -748,7 +755,7 @@ expected a semicolon or a right square bracket after the list element
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET YEAR
 ##
-## Ends in an error in state: 101.
+## Ends in an error in state: 95.
 ##
 ## noattr_expression -> LBRACKET . loption(separated_nonempty_list(SEMICOLON,expression)) RBRACKET [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -760,7 +767,7 @@ expected a list element
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH TRUE WITH ALT YEAR
 ##
-## Ends in an error in state: 401.
+## Ends in an error in state: 391.
 ##
 ## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -773,7 +780,7 @@ expected the name of the constructor for the enum case in the pattern matching
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH TRUE WITH YEAR
 ##
-## Ends in an error in state: 400.
+## Ends in an error in state: 390.
 ##
 ## noattr_expression -> noattr_expression WITH . constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> MATCH list(attribute) noattr_expression WITH . nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -786,7 +793,7 @@ expected a pattern matching case
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH YEAR
 ##
-## Ends in an error in state: 70.
+## Ends in an error in state: 64.
 ##
 ## noattr_expression -> MATCH . list(attribute) noattr_expression WITH nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -834,7 +841,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 852.
+## Ends in an error in state: 843.
 ##
 ## rev_list_with_attr(code_item) -> rev_list_with_attr(code_item) . attribute [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## rev_list_with_attr(code_item) -> rev_list_with_attr(code_item) . code_item [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -899,8 +906,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 830, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 831, spurious reduction of production option(law_text) -> law_text
+## In state 821, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 822, spurious reduction of production option(law_text) -> law_text
 ## In state 6, spurious reduction of production rev_list_with_attr(code_item) ->
 ##
 
@@ -991,9 +998,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DOT YEAR
 
 expected the structure or enumeration type of the definition under the given module.
 
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM BOOLEAN YEAR
+source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM LIDENT YEAR
 ##
-## Ends in an error in state: 44.
+## Ends in an error in state: 39.
 ##
 ## noattr_expression -> SUM primitive_typ . OF list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1005,7 +1012,7 @@ expected 'of' then the list on which to operate
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF YEAR
 ##
-## Ends in an error in state: 45.
+## Ends in an error in state: 40.
 ##
 ## noattr_expression -> SUM primitive_typ OF . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1017,7 +1024,7 @@ expected the list on which to operate the sum
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT YEAR
 ##
-## Ends in an error in state: 47.
+## Ends in an error in state: 42.
 ##
 ## noattr_expression -> OUTPUT . OF quident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> OUTPUT . OF quident WITH_V LBRACE list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1030,7 +1037,7 @@ expected 'of' then a scope to be applied
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF YEAR
 ##
-## Ends in an error in state: 48.
+## Ends in an error in state: 43.
 ##
 ## noattr_expression -> OUTPUT OF . quident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> OUTPUT OF . quident WITH_V LBRACE list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1043,7 +1050,7 @@ expected a scope to be applied
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT STATE
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 44.
 ##
 ## noattr_expression -> OUTPUT OF quident . [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> OUTPUT OF quident . WITH_V LBRACE list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1063,7 +1070,7 @@ binary operator to be applied on the results of the call
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V YEAR
 ##
-## Ends in an error in state: 50.
+## Ends in an error in state: 45.
 ##
 ## noattr_expression -> OUTPUT OF quident WITH_V . LBRACE list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1075,7 +1082,7 @@ expected the arguments to the scope call ('{ --var: ... }')
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V LBRACE YEAR
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 46.
 ##
 ## noattr_expression -> OUTPUT OF quident WITH_V LBRACE . list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1087,7 +1094,7 @@ expected a list of variable-value bindings in the form `-- var_name : <expressio
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V LBRACE ALT YEAR
 ##
-## Ends in an error in state: 52.
+## Ends in an error in state: 47.
 ##
 ## list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field list(preceded(ALT,struct_content_field)) [ RBRACE ]
 ##
@@ -1099,7 +1106,7 @@ expected a variable name, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT YEAR
 ##
-## Ends in an error in state: 55.
+## Ends in an error in state: 50.
 ##
 ## struct_content_field -> lident . COLON list(attribute) noattr_expression [ RBRACE ALT ]
 ##
@@ -1111,7 +1118,7 @@ expected a colon, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT COLON YEAR
 ##
-## Ends in an error in state: 56.
+## Ends in an error in state: 51.
 ##
 ## struct_content_field -> lident COLON . list(attribute) noattr_expression [ RBRACE ALT ]
 ##
@@ -1123,7 +1130,7 @@ expected an expression, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION NOT YEAR
 ##
-## Ends in an error in state: 58.
+## Ends in an error in state: 53.
 ##
 ## noattr_expression -> NOT . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1135,7 +1142,7 @@ expected a boolean expression to apply 'not' on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINUS YEAR
 ##
-## Ends in an error in state: 62.
+## Ends in an error in state: 56.
 ##
 ## noattr_expression -> MINUS . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1147,7 +1154,7 @@ expected a numeric expression to apply '-' on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM YEAR
 ##
-## Ends in an error in state: 64.
+## Ends in an error in state: 58.
 ##
 ## noattr_expression -> MINIMUM . OF list(attribute) noattr_expression OR_IF_LIST_EMPTY THEN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> MINIMUM . OF list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1160,7 +1167,7 @@ expected 'of' then the list to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF YEAR
 ##
-## Ends in an error in state: 65.
+## Ends in an error in state: 59.
 ##
 ## noattr_expression -> MINIMUM OF . list(attribute) noattr_expression OR_IF_LIST_EMPTY THEN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> MINIMUM OF . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1173,7 +1180,7 @@ expected an expression defining the list to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM YEAR
 ##
-## Ends in an error in state: 67.
+## Ends in an error in state: 61.
 ##
 ## noattr_expression -> MAXIMUM . OF list(attribute) noattr_expression OR_IF_LIST_EMPTY THEN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> MAXIMUM . OF list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1186,7 +1193,7 @@ expected 'of' then the list to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF YEAR
 ##
-## Ends in an error in state: 68.
+## Ends in an error in state: 62.
 ##
 ## noattr_expression -> MAXIMUM OF . list(attribute) noattr_expression OR_IF_LIST_EMPTY THEN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> MAXIMUM OF . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1199,7 +1206,7 @@ expected an expression defining the list to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT YEAR
 ##
-## Ends in an error in state: 88.
+## Ends in an error in state: 82.
 ##
 ## noattr_expression -> LIDENT . option(state_qualifier) [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1211,7 +1218,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET YEAR
 ##
-## Ends in an error in state: 95.
+## Ends in an error in state: 89.
 ##
 ## noattr_expression -> LET . list(attribute) lident DEFINED_AS list(attribute) noattr_expression IN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> LET . LPAREN separated_nonempty_list(COMMA,attr(lident)) RPAREN DEFINED_AS list(attribute) noattr_expression IN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1224,7 +1231,7 @@ expected 'var equals expression' after 'let'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 350.
+## Ends in an error in state: 340.
 ##
 ## noattr_expression -> LET list(attribute) lident DEFINED_AS . list(attribute) noattr_expression IN list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1236,7 +1243,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG YEAR
 ##
-## Ends in an error in state: 328.
+## Ends in an error in state: 318.
 ##
 ## noattr_expression -> FOR ALL list(attribute) lident AMONG . list(attribute) noattr_expression WE_HAVE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1248,7 +1255,7 @@ expected an expression describing the list to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE YEAR
 ##
-## Ends in an error in state: 150.
+## Ends in an error in state: 140.
 ##
 ## noattr_expression -> quident LBRACE . nonempty_list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1260,7 +1267,7 @@ expected a list of field bindings of the form '-- fld : expression'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT YEAR
 ##
-## Ends in an error in state: 151.
+## Ends in an error in state: 141.
 ##
 ## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field [ RBRACE ]
 ## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field nonempty_list(preceded(ALT,struct_content_field)) [ RBRACE ]
@@ -1273,7 +1280,7 @@ expected a 'fldname : expression' binding
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 156.
+## Ends in an error in state: 146.
 ##
 ## option(preceded(CONTENT,expression)) -> CONTENT . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1329,7 +1336,7 @@ expected an expression defining the enumeration case content
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTENT FALSE YEAR
 ##
-## Ends in an error in state: 158.
+## Ends in an error in state: 148.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1361,7 +1368,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 317.
+## Ends in an error in state: 307.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -1393,7 +1400,7 @@ expected 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH YEAR
 ##
-## Ends in an error in state: 318.
+## Ends in an error in state: 308.
 ##
 ## noattr_expression -> EXISTS list(attribute) lident AMONG list(attribute) noattr_expression SUCH . THAT list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1405,7 +1412,7 @@ expected the form 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH THAT YEAR
 ##
-## Ends in an error in state: 319.
+## Ends in an error in state: 309.
 ##
 ## noattr_expression -> EXISTS list(attribute) lident AMONG list(attribute) noattr_expression SUCH THAT . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1417,7 +1424,7 @@ expected an expression, following the form 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH THAT FALSE YEAR
 ##
-## Ends in an error in state: 321.
+## Ends in an error in state: 311.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1449,7 +1456,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 330.
+## Ends in an error in state: 320.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH WE_HAVE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH WE_HAVE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -1481,7 +1488,7 @@ expected 'we have <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG UIDENT WE_HAVE YEAR
 ##
-## Ends in an error in state: 331.
+## Ends in an error in state: 321.
 ##
 ## noattr_expression -> FOR ALL list(attribute) lident AMONG list(attribute) noattr_expression WE_HAVE . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1493,7 +1500,7 @@ expected the form 'we have <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG UIDENT WE_HAVE FALSE YEAR
 ##
-## Ends in an error in state: 333.
+## Ends in an error in state: 323.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1525,7 +1532,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN YEAR
 ##
-## Ends in an error in state: 335.
+## Ends in an error in state: 325.
 ##
 ## noattr_expression -> IF list(attribute) noattr_expression THEN . list(attribute) noattr_expression ELSE list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1537,7 +1544,7 @@ expected an expression, followed by 'else <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN FALSE YEAR
 ##
-## Ends in an error in state: 337.
+## Ends in an error in state: 327.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL ELSE DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL ELSE DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -1569,7 +1576,7 @@ expected 'else <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN UIDENT ELSE YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 328.
 ##
 ## noattr_expression -> IF list(attribute) noattr_expression THEN list(attribute) noattr_expression ELSE . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1581,7 +1588,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN UIDENT ELSE FALSE YEAR
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 330.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1613,7 +1620,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET UIDENT SEMICOLON YEAR
 ##
-## Ends in an error in state: 342.
+## Ends in an error in state: 332.
 ##
 ## separated_nonempty_list(SEMICOLON,expression) -> list(attribute) noattr_expression SEMICOLON . separated_nonempty_list(SEMICOLON,expression) [ RBRACKET ]
 ##
@@ -1625,7 +1632,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 352.
+## Ends in an error in state: 342.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER IN GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER IN GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -1657,7 +1664,7 @@ expected the keyword 'in'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS UIDENT IN YEAR
 ##
-## Ends in an error in state: 353.
+## Ends in an error in state: 343.
 ##
 ## noattr_expression -> LET list(attribute) lident DEFINED_AS list(attribute) noattr_expression IN . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1669,7 +1676,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS UIDENT IN FALSE YEAR
 ##
-## Ends in an error in state: 355.
+## Ends in an error in state: 345.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1701,7 +1708,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH FALSE YEAR
 ##
-## Ends in an error in state: 399.
+## Ends in an error in state: 389.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ]
@@ -1733,7 +1740,7 @@ expected 'with pattern -- <pattern> : <expression> ...'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD YEAR
 ##
-## Ends in an error in state: 402.
+## Ends in an error in state: 392.
 ##
 ## match_arm -> WILDCARD . COLON list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1745,7 +1752,7 @@ expected ':' followed by an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD COLON YEAR
 ##
-## Ends in an error in state: 403.
+## Ends in an error in state: 393.
 ##
 ## match_arm -> WILDCARD COLON . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1757,7 +1764,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD COLON FALSE YEAR
 ##
-## Ends in an error in state: 405.
+## Ends in an error in state: 395.
 ##
 ## match_arm -> WILDCARD COLON list(attribute) noattr_expression . [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1789,7 +1796,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT XOR
 ##
-## Ends in an error in state: 408.
+## Ends in an error in state: 398.
 ##
 ## match_arm -> constructor_binding . COLON list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1801,14 +1808,14 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDEN
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 34, spurious reduction of production quident -> UIDENT
-## In state 171, spurious reduction of production constructor_binding -> quident
+## In state 161, spurious reduction of production constructor_binding -> quident
 ##
 
 expected a colon followed by an expression, as in '-- Case : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT COLON YEAR
 ##
-## Ends in an error in state: 409.
+## Ends in an error in state: 399.
 ##
 ## match_arm -> constructor_binding COLON . list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
@@ -1820,7 +1827,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT COLON FALSE YEAR
 ##
-## Ends in an error in state: 411.
+## Ends in an error in state: 401.
 ##
 ## match_arm -> constructor_binding COLON list(attribute) noattr_expression . [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1852,7 +1859,7 @@ expected a binary operator, or the next case in the form '-- NextCase : <express
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINUS FALSE YEAR
 ##
-## Ends in an error in state: 423.
+## Ends in an error in state: 413.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1884,7 +1891,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION NOT FALSE YEAR
 ##
-## Ends in an error in state: 424.
+## Ends in an error in state: 414.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1916,7 +1923,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT COLON FALSE YEAR
 ##
-## Ends in an error in state: 425.
+## Ends in an error in state: 415.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL DOT DIV CONTAINS BUT_REPLACE AND ALT ]
@@ -1948,7 +1955,7 @@ expected another field in the form '-- <var>: <expression>', or a closing '}' br
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF FALSE YEAR
 ##
-## Ends in an error in state: 428.
+## Ends in an error in state: 418.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
@@ -1980,7 +1987,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 561.
+## Ends in an error in state: 551.
 ##
 ## assertion -> ASSERTION option(condition_consequence) . list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -1992,7 +1999,7 @@ expected either 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 452.
+## Ends in an error in state: 442.
 ##
 ## rule -> RULE list(attribute) separated_nonempty_list(DOT,addpos(LIDENT)) option(posattr(definition_parameters)) option(state) option(condition_consequence) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -2004,7 +2011,7 @@ expected either 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT STATE YEAR
 ##
-## Ends in an error in state: 444.
+## Ends in an error in state: 434.
 ##
 ## state -> STATE . lident [ UNDER_CONDITION STATE SCOPE OUTPUT NOT LIDENT INTERNAL INPUT FILLED END_CODE DEFINED_AS DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2016,7 +2023,7 @@ expected an identifier defining the name of the state
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT STATE LIDENT YEAR
 ##
-## Ends in an error in state: 447.
+## Ends in an error in state: 437.
 ##
 ## rule -> RULE list(attribute) separated_nonempty_list(DOT,addpos(LIDENT)) option(posattr(definition_parameters)) option(state) . option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -2028,7 +2035,7 @@ expected 'equals' then an expression defining the rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT STATE LIDENT YEAR
 ##
-## Ends in an error in state: 550.
+## Ends in an error in state: 540.
 ##
 ## definition -> DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) . option(condition_consequence) DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -2040,7 +2047,7 @@ expected 'equals' then an expression defining the rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 551.
+## Ends in an error in state: 541.
 ##
 ## definition -> DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) . DEFINED_AS list(attribute) noattr_expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
@@ -2052,7 +2059,7 @@ expected 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 554.
+## Ends in an error in state: 544.
 ##
 ## definition -> DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS list(attribute) noattr_expression . [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION DATE CONTAINS BUT_REPLACE ATTR_START ASSERTION AND ]
@@ -2084,7 +2091,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 732.
+## Ends in an error in state: 723.
 ##
 ## scope_decl_item -> CONTEXT . OUTPUT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT . OUTPUT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2109,7 +2116,7 @@ expected a variable name, optionally preceded by 'output'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON INTERNAL YEAR
 ##
-## Ends in an error in state: 640.
+## Ends in an error in state: 631.
 ##
 ## scope_decl_item -> INTERNAL . OUTPUT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> INTERNAL . OUTPUT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2134,7 +2141,7 @@ expected a variable name
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT YEAR
 ##
-## Ends in an error in state: 756.
+## Ends in an error in state: 747.
 ##
 ## scope_decl_item -> CONTEXT lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2152,7 +2159,7 @@ expected either 'condition', or 'content' followed by the expected variable type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 759.
+## Ends in an error in state: 750.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2164,9 +2171,9 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YE
 
 expected a type
 
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT BOOLEAN YEAR
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 760.
+## Ends in an error in state: 751.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2181,7 +2188,7 @@ for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 761.
+## Ends in an error in state: 752.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2194,7 +2201,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 762.
+## Ends in an error in state: 753.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2206,7 +2213,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 763.
+## Ends in an error in state: 754.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2218,16 +2225,16 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 34, spurious reduction of production quident -> UIDENT
-## In state 43, spurious reduction of production primitive_typ -> quident
-## In state 589, spurious reduction of production typ_data -> primitive_typ
-## In state 605, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data
+## In state 38, spurious reduction of production primitive_typ -> quident
+## In state 579, spurious reduction of production typ_data -> primitive_typ
+## In state 596, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument specification
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 764.
+## Ends in an error in state: 755.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2239,7 +2246,7 @@ expected a 'state' declaration for the preceding declaration, or the next declar
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION STATE LIDENT YEAR
 ##
-## Ends in an error in state: 625.
+## Ends in an error in state: 616.
 ##
 ## list(state) -> state . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2252,7 +2259,7 @@ declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 766.
+## Ends in an error in state: 757.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2264,16 +2271,16 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 34, spurious reduction of production quident -> UIDENT
-## In state 43, spurious reduction of production primitive_typ -> quident
-## In state 589, spurious reduction of production typ_data -> primitive_typ
-## In state 605, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data
+## In state 38, spurious reduction of production primitive_typ -> quident
+## In state 579, spurious reduction of production typ_data -> primitive_typ
+## In state 596, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION YEAR
 ##
-## Ends in an error in state: 769.
+## Ends in an error in state: 760.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONDITION . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2287,7 +2294,7 @@ expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS YEAR
 ##
-## Ends in an error in state: 770.
+## Ends in an error in state: 761.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2300,7 +2307,7 @@ expected the form 'depends on <ident> content <type>'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 771.
+## Ends in an error in state: 762.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2312,7 +2319,7 @@ expected the form 'depends on (<ident> content <type> [, <ident> content <type> 
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 772.
+## Ends in an error in state: 763.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2324,16 +2331,16 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 34, spurious reduction of production quident -> UIDENT
-## In state 43, spurious reduction of production primitive_typ -> quident
-## In state 589, spurious reduction of production typ_data -> primitive_typ
-## In state 605, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data
+## In state 38, spurious reduction of production primitive_typ -> quident
+## In state 579, spurious reduction of production typ_data -> primitive_typ
+## In state 596, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument declaration (', <ident> content <type>')
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 773.
+## Ends in an error in state: 764.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2345,7 +2352,7 @@ expected the next definition in scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT YEAR
 ##
-## Ends in an error in state: 779.
+## Ends in an error in state: 770.
 ##
 ## scope_decl_item -> lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
@@ -2363,7 +2370,7 @@ expected the form '<ident> scope <Scope_name>', or a scope variable declaration
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE YEAR
 ##
-## Ends in an error in state: 780.
+## Ends in an error in state: 771.
 ##
 ## scope_decl_item -> lident SCOPE . quident [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2375,7 +2382,7 @@ expected a scope name
 
 source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
-## Ends in an error in state: 814.
+## Ends in an error in state: 805.
 ##
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -2389,7 +2396,7 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 815.
+## Ends in an error in state: 806.
 ##
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -2401,9 +2408,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 
 expected a type
 
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT BOOLEAN YEAR
+source_file: BEGIN_CODE DECLARATION LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 816.
+## Ends in an error in state: 807.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -2418,7 +2425,7 @@ expected 'equals <expression>', optionally preceded by 'depends on <var> content
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 817.
+## Ends in an error in state: 808.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
@@ -2431,7 +2438,7 @@ expected a variable name, following the form 'depends on <var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 818.
+## Ends in an error in state: 809.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -2443,7 +2450,7 @@ expected a variable name, following the form 'depends on (<var> content <type>, 
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 819.
+## Ends in an error in state: 810.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -2455,9 +2462,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 34, spurious reduction of production quident -> UIDENT
-## In state 43, spurious reduction of production primitive_typ -> quident
-## In state 589, spurious reduction of production typ_data -> primitive_typ
-## In state 605, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data
+## In state 38, spurious reduction of production primitive_typ -> quident
+## In state 579, spurious reduction of production typ_data -> primitive_typ
+## In state 596, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected ')', or ',' followed by another argument declaration in the form '<var>
@@ -2465,7 +2472,7 @@ content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 820.
+## Ends in an error in state: 811.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . option(opt_def) [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -2477,7 +2484,7 @@ expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS YEAR
 ##
-## Ends in an error in state: 821.
+## Ends in an error in state: 812.
 ##
 ## option(opt_def) -> DEFINED_AS . list(attribute) noattr_expression [ SCOPE END_CODE DECLARATION ATTR_START ]
 ##
@@ -2489,58 +2496,58 @@ expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT YEAR
 ##
-## Ends in an error in state: 602.
+## Ends in an error in state: 593.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
-## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident . CONTENT list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident . CONTENT list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
-## lident
+## list(attribute) lident
 ##
 
 expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 603.
+## Ends in an error in state: 594.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT . list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT . list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
-## lident CONTENT
+## list(attribute) lident CONTENT
 ##
 
 expected a type
 
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT BOOLEAN YEAR
+source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 605.
+## Ends in an error in state: 596.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
-## lident CONTENT list(attribute) typ_data
+## list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT COMMA YEAR
 ##
-## Ends in an error in state: 606.
+## Ends in an error in state: 597.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT list(attribute) typ_data COMMA . separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
+## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data COMMA . separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
-## lident CONTENT list(attribute) typ_data COMMA
+## list(attribute) lident CONTENT list(attribute) typ_data COMMA
 ##
 
 expected the definition of another argument in the form '<var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 823.
+## Ends in an error in state: 814.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE DOT DIV DECLARATION CONTAINS BUT_REPLACE ATTR_START AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE DOT DIV DECLARATION CONTAINS BUT_REPLACE ATTR_START AND ]
@@ -2572,7 +2579,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 832.
+## Ends in an error in state: 823.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . directive END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -2584,7 +2591,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 842.
+## Ends in an error in state: 833.
 ##
 ## directive -> LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
@@ -2596,7 +2603,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 843.
+## Ends in an error in state: 834.
 ##
 ## directive -> LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
@@ -2608,7 +2615,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 844.
+## Ends in an error in state: 835.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -2621,7 +2628,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 849.
+## Ends in an error in state: 840.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE directive . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -2633,7 +2640,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 854.
+## Ends in an error in state: 845.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

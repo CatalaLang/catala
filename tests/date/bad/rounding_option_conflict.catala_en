@@ -7,9 +7,9 @@ declaration scope CheckAgeIsLessThan:
   output r content boolean
 
 scope CheckAgeIsLessThan:
-  date round decreasing
+  date round down
   definition r equals bday + age <= today
-  date round increasing
+  date round up
 
 declaration scope Test:
   output r content boolean

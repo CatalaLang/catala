@@ -28,9 +28,10 @@
 #define MS_DECLARATION "déclaration"
 #define MR_DECLARATION "d", 0xE9, "claration"
 #define MS_CONTEXT "contexte"
-#define MS_DECREASING "décroissant"
-#define MR_DECREASING "d", 0xE9, "croissant"
-#define MS_INCREASING "croissant"
+#define MS_DECREASING "inférieur"
+#define MR_DECREASING "inf", 0xE9, "rieur"
+#define MS_INCREASING "supérieur"
+#define MR_INCREASING "sup", 0xE9, "rieur"
 #define MS_OF "de"
 #define MS_LIST "liste de"
 #define MR_LIST "liste", space_plus, "de"
@@ -39,16 +40,6 @@
 #define MS_CONTAINS "contient"
 #define MS_ENUM "énumération"
 #define MR_ENUM 0xE9, "num", 0xE9, "ration"
-#define MS_INTEGER "entier"
-#define MS_MONEY "argent"
-#define MS_TEXT "texte"
-#define MS_DECIMAL "décimal"
-#define MR_DECIMAL "d", 0xE9, "cimal"
-#define MS_DATE "date"
-#define MS_DURATION "durée"
-#define MR_DURATION "dur", 0xE9, "e"
-#define MS_BOOLEAN "booléen"
-#define MR_BOOLEAN "bool", 0xE9, "en"
 #define MS_SUM "somme"
 #define MS_FILLED "rempli"
 #define MS_DEFINITION "définition"
@@ -105,8 +96,6 @@
 #define MS_BUT_REPLACE "mais en remplaçant"
 #define MR_BUT_REPLACE "mais", space_plus, "en", space_plus, "rempla", 0xE7, "ant"
 #define MS_INITIALLY "initialement"
-#define MS_IMPOSSIBLE "impossible"
-#define MS_CARDINAL "nombre"
 #define MS_YEAR "an"
 #define MS_MONTH "mois"
 #define MS_DAY "jour"
@@ -128,17 +117,29 @@
 #define MR_MONEY_DELIM ' '
 #define MR_MONEY_SUFFIX Star hspace, 0x20AC
 
-(* Builtins *)
+(* Builtin types *)
+
+#define MS_INTEGER "entier"
+#define MS_MONEY "argent"
+#define MS_DECIMAL "décimal"
+#define MR_DECIMAL "d", 0xE9, "cimal"
+#define MS_DATE "date"
+#define MS_DURATION "durée"
+#define MR_DURATION "dur", 0xE9, "e"
+#define MS_BOOLEAN "booléen"
+#define MR_BOOLEAN "bool", 0xE9, "en"
+#define MS_POSITION "position_source"
+
+(* Builtin constructors *)
+
+#define MS_PRESENT "Pr", 0xE9, "sent"
+#define MS_ABSENT "Absent"
+
+(* Builtin functions *)
 
 #define MS_Round "arrondi"
-#define MS_GetDay "accès_jour"
-#define MR_GetDay "acc", 0xE8, "s_jour"
-#define MS_GetMonth "accès_mois"
-#define MR_GetMonth "acc", 0xE8, "s_mois"
-#define MS_GetYear "accès_année"
-#define MR_GetYear "acc", 0xE8, "s_ann", 0xE9, "e"
-#define MS_FirstDayOfMonth "premier_jour_du_mois"
-#define MS_LastDayOfMonth "dernier_jour_du_mois"
+#define MS_Impossible "impossible"
+#define MS_Cardinal "nombre"
 
 (* Directives *)
 
