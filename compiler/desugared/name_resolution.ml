@@ -108,6 +108,7 @@ type attribute_context =
   | ConstructorDecl
   | Expression
   | Type
+  | FunctionArgument
 
 let attribute_parsers :
     (string
@@ -209,6 +210,25 @@ let translate_attr ~context = function
             None)
       | ps ->
         Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
+    | "implicit_position_argument" -> (
+      match ps with
+      | [] ->
+        if context <> FunctionArgument then (
+          Message.warning ~pos
+            "Attribute @{<magenta>#[implicit_position_argument]@} is not \
+             allowed in this context";
+          None)
+        else if v <> Unit then (
+          Message.warning ~pos
+            "The @{<magenta>#[implicit_position_argument]@} attribute doesn't \
+             allow specifying a value";
+          None)
+        else Some ImplicitPosArg
+      | ps ->
+        Message.warning ~pos:ppos
+          "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
     | "passthrough" ->
@@ -777,6 +797,25 @@ let process_topdef ?(visibility = Public) ctxt def =
   let uid =
     Ident.Map.find (Mark.remove def.Surface.Ast.topdef_name) ctxt.local.topdefs
   in
+  let ty = process_type ctxt def.Surface.Ast.topdef_type in
+  let ty =
+    match ty, def.Surface.Ast.topdef_args with
+    | (TArrow (targs, tret), pos), Some (argnames, _) ->
+      ( TArrow
+          ( List.map2
+              (fun ty ((_, npos), _) ->
+                if
+                  Pos.has_attr
+                    (translate_pos FunctionArgument npos)
+                    ImplicitPosArg
+                then
+                  Mark.map_mark (fun pos -> Pos.add_attr pos ImplicitPosArg) ty
+                else ty)
+              targs argnames,
+            tret ),
+        pos )
+    | ty, _ -> ty
+  in
   {
     ctxt with
     topdefs =
@@ -787,7 +826,7 @@ let process_topdef ?(visibility = Public) ctxt def =
             | Some (_, Private), Private | None, Private -> Private
             | Some (_, Public), _ | _, Public -> Public
           in
-          Some (process_type ctxt def.Surface.Ast.topdef_type, visibility))
+          Some (ty, visibility))
         ctxt.topdefs;
   }
 

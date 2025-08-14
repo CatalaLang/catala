@@ -118,6 +118,7 @@ type attribute_context =
   | ConstructorDecl
   | Expression
   | Type
+  | FunctionArgument
 
 val register_attribute :
   plugin:string ->
