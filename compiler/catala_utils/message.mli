@@ -66,7 +66,13 @@ end
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
 
-type lsp_error_kind = Lexing | Parsing | Typing | Generic | Warning
+type lsp_error_kind =
+  | Lexing
+  | Parsing
+  | Typing
+  | Generic
+  | Warning
+  | AssertFailure
 
 type lsp_error = {
   kind : lsp_error_kind;
