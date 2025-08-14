@@ -38,8 +38,9 @@ type primitive_typ =
   | Boolean
   | Money
   | Duration
-  | Text
   | Date
+  | Position
+  | External of lident
   | Named of path * uident Mark.pos
   | Var of lident Mark.pos option
 
@@ -50,6 +51,11 @@ type base_typ_data =
   | TTuple of base_typ_data Mark.pos list
 
 type base_typ = Condition | Data of base_typ_data
+type builtin_constr = Present | Absent
+
+type enum_constr =
+  | CBuiltin of builtin_constr
+  | CConstr of path * uident Mark.pos
 
 type func_typ = {
   arg_typ : (lident Mark.pos * base_typ Mark.pos) list;
@@ -79,9 +85,7 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Mark.pos list;
 }
 
-type match_case_pattern =
-  (path * uident Mark.pos) Mark.pos list * lident Mark.pos option
-
+type match_case_pattern = enum_constr Mark.pos list * lident Mark.pos option
 type op_kind = KPoly | KInt | KDec | KMoney | KDate | KDuration
 
 type binop =
@@ -108,11 +112,6 @@ type builtin_expression =
   | ToInteger
   | ToDecimal
   | ToMoney
-  | GetDay
-  | GetMonth
-  | GetYear
-  | LastDayOfMonth
-  | FirstDayOfMonth
   | Round
 
 type literal_date = {
@@ -175,7 +174,7 @@ and naked_expression =
   | LetIn of lident Mark.pos list * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
-  | EnumInject of (path * uident Mark.pos) Mark.pos * expression option
+  | EnumInject of enum_constr Mark.pos * expression option
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
   | StructReplace of expression * (lident Mark.pos * expression) list

@@ -201,7 +201,8 @@ champ d'application Chp1
 
   assertion 0
 
-  date arrondi décroissant
+  date arrondi inférieur
+  date arrondi supérieur
 ```
 
 # Opérations sur les listes

@@ -203,7 +203,8 @@ scope Scope1
 
   assertion 0
 
-  date round decreasing
+  date round down
+  date round up
 ```
 
 # List operations
