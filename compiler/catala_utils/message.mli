@@ -83,6 +83,9 @@ type lsp_error = {
 
 val register_lsp_error_notifier : (lsp_error -> unit) -> unit
 
+val register_lsp_error_absorber : (lsp_error -> bool) -> unit
+(** The raised error is absorbed if the hook returns [false] *)
+
 (** {1 Some formatting helpers}*)
 
 val unformat : (Format.formatter -> unit) -> string
