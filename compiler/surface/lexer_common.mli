@@ -75,7 +75,13 @@ module type LocalisedLexer = sig
       tokens whose string varies with the input language. *)
 
   val lex_builtin : string -> Ast.builtin_expression option
-  (** Simple lexer for builtins *)
+  (** Simple lexer for builtins (from an lident) *)
+
+  val lex_primitive_type : string -> Ast.primitive_typ option
+  (** Simple lexer for builtin primitive types (from an lident) *)
+
+  val lex_builtin_constr : string -> Ast.builtin_constr option
+  (** Simple lexer for builtin constructors (from an uident) *)
 
   val lex_code : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used in a code block *)

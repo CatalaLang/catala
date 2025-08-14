@@ -154,62 +154,61 @@ let raise_error_cons_not_found
 
 let rec disambiguate_constructor
     (ctxt : Name_resolution.context)
-    (constructor0 : (S.path * S.uident Mark.pos) Mark.pos list)
+    (constructor0 : S.enum_constr Mark.pos list)
     (pos : Pos.t) : EnumName.t * EnumConstructor.t =
-  let path, constructor =
-    match constructor0 with
-    | [c] -> Mark.remove c
-    | _ ->
-      Message.error ~pos
-        "The deep pattern matching syntactic sugar is not yet supported."
-  in
-  let possible_c_uids =
-    try Ident.Map.find (Mark.remove constructor) ctxt.local.constructor_idmap
-    with Ident.Map.Not_found _ -> raise_error_cons_not_found ctxt constructor
-  in
-  let possible_c_uids =
-    (* Eliminate candidates from other modules if there exists some from the
-       current one *)
-    let current_module =
-      EnumName.Map.filter
-        (fun struc _ ->
-          EnumName.path struc = []
-          || Global.options.whole_program
-             &&
-             match ctxt.local.current_module with
-             | None -> false
-             | Some m -> EnumName.path struc = [m])
-        possible_c_uids
+  match constructor0 with
+  | [(CBuiltin Present, _)] -> Expr.option_enum, Expr.some_constr
+  | [(CBuiltin Absent, _)] -> Expr.option_enum, Expr.none_constr
+  | [] | _ :: _ :: _ ->
+    Message.error ~pos
+      "The deep pattern matching syntactic sugar is not yet supported."
+  | [(CConstr (path, constructor), _)] -> (
+    let possible_c_uids =
+      try Ident.Map.find (Mark.remove constructor) ctxt.local.constructor_idmap
+      with Ident.Map.Not_found _ ->
+        raise_error_cons_not_found ctxt constructor
     in
-    if EnumName.Map.is_empty current_module then possible_c_uids
-    else current_module
-  in
-  match path with
-  | [] ->
-    if EnumName.Map.cardinal possible_c_uids > 1 then
-      Message.error ~pos:(Mark.get constructor)
-        "This constructor name is ambiguous, it can belong to@ %a.@ \
-         Disambiguate it by prefixing it with the enum name."
-        (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
-             Format.pp_print_string fmt " or "))
-        possible_c_uids;
-    EnumName.Map.choose possible_c_uids
-  | [enum] -> (
-    (* The path is fully qualified *)
-    let e_uid = Name_resolution.get_enum ctxt enum in
-    try
-      let c_uid = EnumName.Map.find e_uid possible_c_uids in
-      e_uid, c_uid
-    with EnumName.Map.Not_found _ ->
-      Message.error ~pos "Enum %s@ does@ not@ contain@ case@ %s."
-        (Mark.remove enum) (Mark.remove constructor))
-  | mod_id :: path ->
-    let constructor =
-      List.map (Mark.map (fun (_, c) -> path, c)) constructor0
+    let possible_c_uids =
+      (* Eliminate candidates from other modules if there exists some from the
+         current one *)
+      let current_module =
+        EnumName.Map.filter
+          (fun struc _ ->
+            EnumName.path struc = []
+            || Global.options.whole_program
+               &&
+               match ctxt.local.current_module with
+               | None -> false
+               | Some m -> EnumName.path struc = [m])
+          possible_c_uids
+      in
+      if EnumName.Map.is_empty current_module then possible_c_uids
+      else current_module
     in
-    disambiguate_constructor
-      (Name_resolution.get_module_ctx ctxt mod_id)
-      constructor pos
+    match path with
+    | [] ->
+      if EnumName.Map.cardinal possible_c_uids > 1 then
+        Message.error ~pos:(Mark.get constructor)
+          "This constructor name is ambiguous, it can belong to@ %a.@ \
+           Disambiguate it by prefixing it with the enum name."
+          (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
+               Format.pp_print_string fmt " or "))
+          possible_c_uids;
+      EnumName.Map.choose possible_c_uids
+    | [enum] -> (
+      (* The path is fully qualified *)
+      let e_uid = Name_resolution.get_enum ctxt enum in
+      try
+        let c_uid = EnumName.Map.find e_uid possible_c_uids in
+        e_uid, c_uid
+      with EnumName.Map.Not_found _ ->
+        Message.error ~pos "Enum %s@ does@ not@ contain@ case@ %s."
+          (Mark.remove enum) (Mark.remove constructor))
+    | mod_id :: path ->
+      let constructor = [S.CConstr (path, constructor), pos] in
+      disambiguate_constructor
+        (Name_resolution.get_module_ctx ctxt mod_id)
+        constructor pos)
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
@@ -530,11 +529,6 @@ let rec translate_expr
       | S.ToMoney -> Op.ToMoney, Mark.remove (Type.any pos)
       | S.Round -> Op.Round, Mark.remove (Type.any pos)
       | S.Cardinal -> Op.Length, TArray (Type.any pos)
-      | S.GetDay -> Op.GetDay, TLit TDate
-      | S.GetMonth -> Op.GetMonth, TLit TDate
-      | S.GetYear -> Op.GetYear, TLit TDate
-      | S.FirstDayOfMonth -> Op.FirstDayOfMonth, TLit TDate
-      | S.LastDayOfMonth -> Op.LastDayOfMonth, TLit TDate
       | S.Impossible -> assert false
     in
     Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark
@@ -679,7 +673,21 @@ let rec translate_expr
               expected_s_fields));
 
     Expr.estruct ~name:s_uid ~fields:s_fields emark
-  | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
+  | EnumInject ((CBuiltin ((Present | Absent) as c), cpos), payload) ->
+    let payload = Option.map rec_helper payload in
+    let e_uid, c_uid =
+      match c with
+      | Present -> Expr.option_enum, Expr.some_constr
+      | Absent -> Expr.option_enum, Expr.none_constr
+    in
+    Expr.einj
+      ~e:
+        (match payload with
+        | Some e' -> e'
+        | None -> Expr.elit LUnit (Untyped { pos = cpos }))
+      ~cons:c_uid ~name:e_uid emark
+  | EnumInject ((CConstr (path, (constructor, pos_constructor)), _), payload)
+    -> (
     let get_possible_c_uids ctxt =
       try
         let possible =

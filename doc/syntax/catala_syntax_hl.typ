@@ -71,7 +71,7 @@
         show regex("n'importe\s+quel"): override.with(style.keyword + (style: "normal"))
         txt
     }
-    show regex("\b(contexte|entrée|résultat|interne|état|date\s+arrondi(\s+dé)?|(dé)?croissant|soit|dans|dépend\s+de|contenu|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à)\b"): override.with(style.keyword + (style: "normal", weight: normal))
+    show regex("\b(contexte|entrée|résultat|interne|état|date\s+arrondi(\s+dé)?|inf|(inf|sup)érieur|soit|dans|dépend\s+de|contenu|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à)\b"): override.with(style.keyword + (style: "normal", weight: normal))
     show regex("\bn'importe\s+quel\s+de\s+type\s+\w+\b"): txt => {
       show regex(".*\s+"): override.with(style.keyword + (style: "normal", weight: normal))
       show regex("\w+$"): override.with(style.typevar)
@@ -123,7 +123,7 @@
         show "anything": override.with(style.keyword + (style: "normal"))
         txt
     }
-    show regex("\b(context|input|output|internal|state|date\s+round|(de|in)?creasing|let|in|depends\s+on|content|under\s+condition|condition|data|consequence|fulfilled|equals|anything\s+of\s+type)\b"): override.with(style.keyword + (style: "normal", weight: normal))
+    show regex("\b(context|input|output|internal|state|date\s+round|up|down|let|in|depends\s+on|content|under\s+condition|condition|data|consequence|fulfilled|equals|anything\s+of\s+type)\b"): override.with(style.keyword + (style: "normal", weight: normal))
     show regex("\bdata\s+\w+\b"): txt => {
         show regex("\s+.*"): text.with(..style.field)
         txt

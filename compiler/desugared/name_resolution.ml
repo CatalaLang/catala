@@ -495,7 +495,10 @@ let rec process_base_typ
     | Surface.Ast.Duration -> TLit TDuration, typ_pos
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
-    | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
+    | Surface.Ast.Position -> TLit TPos, typ_pos
+    | Surface.Ast.External name ->
+      (* External types will be supported at some point *)
+      Message.error ~pos:typ_pos "Unrecognised type name '@{<red>%s@}'" name
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       let path = List.rev rev_named_path_acc in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
@@ -1278,19 +1281,12 @@ let process_use_item
 
 (** {1 API} *)
 
-let empty_module_ctxt lang =
+let empty_module_ctxt _lang =
   {
     current_module = None;
     typedefs = Ident.Map.empty;
     field_idmap = Ident.Map.empty;
-    constructor_idmap =
-      (let present = EnumName.Map.singleton Expr.option_enum Expr.some_constr in
-       let absent = EnumName.Map.singleton Expr.option_enum Expr.none_constr in
-       Ident.Map.of_list
-         (match lang with
-         | Global.En -> ["Present", present; "Absent", absent]
-         | Global.Fr -> ["Présent", present; "Absent", absent]
-         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]));
+    constructor_idmap = Ident.Map.empty;
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
     is_external = false;
