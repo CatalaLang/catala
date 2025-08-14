@@ -46,13 +46,13 @@ module S = struct
 end
 
 module S_in = struct
-  type t = {a_in: ((bool * source_position)) Optional.t}
+  type t = {a_in: ((bool * code_location)) Optional.t}
 end
 
 
 (* Scope S *)
 let s : S_in.t -> S.t = fun s_in ->
-  let a: ((bool * source_position)) Optional.t = s_in.S_in.a_in in
+  let a: ((bool * code_location)) Optional.t = s_in.S_in.a_in in
   let a__1: bool =
     match
       (match a

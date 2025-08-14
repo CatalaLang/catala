@@ -69,7 +69,7 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TMoney -> "money"
     | TDuration -> "duration"
     | TDate -> "date"
-    | TPos -> "source_position")
+    | TPos -> "code_location")
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
@@ -102,6 +102,7 @@ let attr ppf = function
         | Some label -> Format.fprintf ppf " = %S" label)
       label
   | Test -> Format.fprintf ppf "#[test]@ "
+  | ImplicitPosArg -> Format.fprintf ppf "#[implicit_position_argument]@ "
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
@@ -1158,9 +1159,10 @@ module UserFacing = struct
     | EEmpty -> Format.pp_print_string ppf "ø"
     | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
+    | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | EPos _ | ELocation _ | EScopeCall _ | EDStructAmend _
+    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
     | EDStructAccess _ ->
       fallback ppf e
 

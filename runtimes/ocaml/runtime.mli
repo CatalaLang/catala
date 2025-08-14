@@ -35,7 +35,7 @@ type date_rounding = Dates_calc.Dates.date_rounding =
   | RoundDown
   | AbortOnRound
 
-type source_position = {
+type code_location = {
   filename : string;
   start_line : int;
   start_column : int;
@@ -89,7 +89,7 @@ val error_to_string : error -> string
 val error_message : error -> string
 (** Returns a short explanation message about the error *)
 
-exception Error of error * source_position list
+exception Error of error * code_location list
 exception Empty
 
 (** {1 Value Embedding} *)
@@ -153,7 +153,7 @@ type raw_event =
   | EndCall of information  (** End of a subscope or a function call. *)
   | VariableDefinition of information * io_log * runtime_value
       (** Definition of a variable or a function argument. *)
-  | DecisionTaken of source_position  (** Source code position of an event. *)
+  | DecisionTaken of code_location  (** Source code position of an event. *)
 
 (** {3 The structured events} *)
 
@@ -207,7 +207,7 @@ type event =
     }
 
 and var_def = {
-  pos : source_position option;
+  pos : code_location option;
   name : information;
   io : io_log;
   value : runtime_value;
@@ -242,7 +242,7 @@ val log_end_call : string list -> 'a -> 'a
 val log_variable_definition :
   string list -> io_log -> ('a -> runtime_value) -> 'a -> 'a
 
-val log_decision_taken : source_position -> bool -> bool
+val log_decision_taken : code_location -> bool -> bool
 
 (** {3 Pretty printers} *)
 
@@ -344,7 +344,7 @@ val duration_to_string : duration -> string
 (**{1 Defaults} *)
 
 val handle_exceptions :
-  ('a * source_position) Optional.t array -> ('a * source_position) Optional.t
+  ('a * code_location) Optional.t array -> ('a * code_location) Optional.t
 (** @raise Error Conflict *)
 
 (**{1 Operators} *)
@@ -376,7 +376,7 @@ module Oper : sig
   val o_map : ('a -> 'b) -> 'a array -> 'b array
 
   val o_map2 :
-    source_position -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
+    code_location -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
   (** @raise Runtime.NotSameLength *)
 
   val o_reduce : ('a -> 'a -> 'a) -> (unit -> 'a) -> 'a array -> 'a
@@ -385,56 +385,50 @@ module Oper : sig
   val o_add_int_int : integer -> integer -> integer
   val o_add_rat_rat : decimal -> decimal -> decimal
   val o_add_mon_mon : money -> money -> money
-
-  val o_add_dat_dur :
-    date_rounding -> source_position -> date -> duration -> date
-
+  val o_add_dat_dur : date_rounding -> code_location -> date -> duration -> date
   val o_add_dur_dur : duration -> duration -> duration
   val o_sub_int_int : integer -> integer -> integer
   val o_sub_rat_rat : decimal -> decimal -> decimal
   val o_sub_mon_mon : money -> money -> money
   val o_sub_dat_dat : date -> date -> duration
-
-  val o_sub_dat_dur :
-    date_rounding -> source_position -> date -> duration -> date
-
+  val o_sub_dat_dur : date_rounding -> code_location -> date -> duration -> date
   val o_sub_dur_dur : duration -> duration -> duration
   val o_mult_int_int : integer -> integer -> integer
   val o_mult_rat_rat : decimal -> decimal -> decimal
   val o_mult_mon_int : money -> integer -> money
   val o_mult_mon_rat : money -> decimal -> money
   val o_mult_dur_int : duration -> integer -> duration
-  val o_div_int_int : source_position -> integer -> integer -> decimal
-  val o_div_rat_rat : source_position -> decimal -> decimal -> decimal
-  val o_div_mon_mon : source_position -> money -> money -> decimal
-  val o_div_mon_int : source_position -> money -> integer -> money
-  val o_div_mon_rat : source_position -> money -> decimal -> money
-  val o_div_dur_dur : source_position -> duration -> duration -> decimal
+  val o_div_int_int : code_location -> integer -> integer -> decimal
+  val o_div_rat_rat : code_location -> decimal -> decimal -> decimal
+  val o_div_mon_mon : code_location -> money -> money -> decimal
+  val o_div_mon_int : code_location -> money -> integer -> money
+  val o_div_mon_rat : code_location -> money -> decimal -> money
+  val o_div_dur_dur : code_location -> duration -> duration -> decimal
   val o_lt_int_int : integer -> integer -> bool
   val o_lt_rat_rat : decimal -> decimal -> bool
   val o_lt_mon_mon : money -> money -> bool
-  val o_lt_dur_dur : source_position -> duration -> duration -> bool
+  val o_lt_dur_dur : code_location -> duration -> duration -> bool
   val o_lt_dat_dat : date -> date -> bool
   val o_lte_int_int : integer -> integer -> bool
   val o_lte_rat_rat : decimal -> decimal -> bool
   val o_lte_mon_mon : money -> money -> bool
-  val o_lte_dur_dur : source_position -> duration -> duration -> bool
+  val o_lte_dur_dur : code_location -> duration -> duration -> bool
   val o_lte_dat_dat : date -> date -> bool
   val o_gt_int_int : integer -> integer -> bool
   val o_gt_rat_rat : decimal -> decimal -> bool
   val o_gt_mon_mon : money -> money -> bool
-  val o_gt_dur_dur : source_position -> duration -> duration -> bool
+  val o_gt_dur_dur : code_location -> duration -> duration -> bool
   val o_gt_dat_dat : date -> date -> bool
   val o_gte_int_int : integer -> integer -> bool
   val o_gte_rat_rat : decimal -> decimal -> bool
   val o_gte_mon_mon : money -> money -> bool
-  val o_gte_dur_dur : source_position -> duration -> duration -> bool
+  val o_gte_dur_dur : code_location -> duration -> duration -> bool
   val o_gte_dat_dat : date -> date -> bool
   val o_eq_boo_boo : bool -> bool -> bool
   val o_eq_int_int : integer -> integer -> bool
   val o_eq_rat_rat : decimal -> decimal -> bool
   val o_eq_mon_mon : money -> money -> bool
-  val o_eq_dur_dur : source_position -> duration -> duration -> bool
+  val o_eq_dur_dur : code_location -> duration -> duration -> bool
   val o_eq_dat_dat : date -> date -> bool
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
   val o_toclosureenv : 'a -> Obj.t

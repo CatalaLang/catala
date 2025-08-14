@@ -1,0 +1,44 @@
+## Test
+
+```catala
+#[test] declaration scope A:
+  internal x content date
+  output y content boolean
+
+scope A:
+  definition x equals |2022-01-16|
+  definition y under condition get_year of x < 2010 consequence equals true
+  definition y under condition get_year of x >= 2010 and get_year of x < 2015 consequence equals false
+  definition y under condition get_year of x >= 2015 and get_year of x < 2020 consequence equals true
+  definition y under condition get_year of x >= 2020 consequence equals false
+```
+
+
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[ERROR]─
+│
+│  "get_year": unknown identifier for a local, scope-wide or global variable
+│
+├─➤ tests/proof/good/dates_get_year.catala_en:10.32-10.40:
+│    │
+│ 10 │   definition y under condition get_year of x < 2010 consequence equals true
+│    │                                ‾‾‾‾‾‾‾‾
+└─ Test
+#return code 123#
+```
+
+```catala-test-cli
+$ catala Proof --disable-counterexamples 
+┌─[ERROR]─
+│
+│  "get_year": unknown identifier for a local, scope-wide or global variable
+│
+├─➤ tests/proof/good/dates_get_year.catala_en:10.32-10.40:
+│    │
+│ 10 │   definition y under condition get_year of x < 2010 consequence equals true
+│    │                                ‾‾‾‾‾‾‾‾
+└─ Test
+#return code 123#
+```

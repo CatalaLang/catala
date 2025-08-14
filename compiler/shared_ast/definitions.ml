@@ -439,6 +439,7 @@ type Pos.attr +=
   | DebugPrint of { label : string option }
   | Test
   | Doc of string
+  | ImplicitPosArg
 
 (** {2 Markings} *)
 
