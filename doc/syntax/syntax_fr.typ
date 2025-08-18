@@ -28,7 +28,7 @@ raw("```catala       ```catala-metadata\n```             ```",
 ```, [Inclusion textuelle],
 {
     show raw: text.with(size: 0.9em)
-    raw("```catala-test-cli\n$ catala interpret --scope Scope1\n```")
+    raw("```catala-test-cli\n$ catala interpret --scope Chp1\n```")
 }, [Test intégré],
 )
 
@@ -159,25 +159,29 @@ déclaration énumération Énum1:
 ```, [Annot. champ de test],
 ```catala-fr-code
 déclaration champ d'application Chp1:
-  interne var1 contenu entier
-  interne var2 condition
-  sub1 champ d'application Chp0
-```, [Déclaration de champ d'application],
+```, [Déclaration de champ],
 ```catala-fr-code
-  interne var1 contenu ...
+  interne var1 contenu entier
+```, [Variable de champ],
+```catala-fr-code
+    état avant
+    état après
+```, [Transitions d'état],
+```catala-fr-code
+  interne var2 condition
+```, [Condition],
+```catala-fr-code
+  sub1 champ d'application Chp0
+```, [s/s champ],
+```catala-fr-code
   résultat var3 contenu ...
   entrée var4 contenu ...
   entrée résultat var5 contenu ...
   contexte var6 contenu ...
   contexte résultat var7 contenu ...
   résultat sub2
-    champ d'application Scope0
+    champ d'application Chp0
 ```, [Qualificateurs d'entrée-sortie],
-```catala-fr-code
-  interne var1 contenu ...
-    état avant
-    état après
-```, [Transitions d'état],
 ```catala-fr-code
 déclaration const contenu décimal
   égal à 17,1
@@ -196,12 +200,14 @@ soit x égal à 36 - 5 dans ...
 ```catala-fr-code
 selon expr sous forme
 -- Cas1 contenu x : ...
--- Cas2 : ...
 -- n'importe quel : ...
 ```, [Filtrage par motif],
 ```catala-fr-code
 impossible
 ```, [Calcul inaccessible],
+```catala-fr-code
+#[debug.print = "message"] expr
+```, [Annot. de débug],
 ```catala-fr-code
 expr sous forme Cas1
 expr sous forme Cas1 contenu x
@@ -233,7 +239,7 @@ var1 état avant
 #let scope = cheat-sheet.syntax-doc([Définition de champ d'application],
 ```catala-fr-code
 champ d'application Chp1: ...
-```, [Utilisation],
+```, [Définition des membres],
 ```catala-fr-code
 champ d'application Chp1
   sous condition var1 >= 2: ...
@@ -326,7 +332,7 @@ combine tout x parmi lst
 )
 
 #cheat-sheet.layout(
-    [La syntaxe de Catala], [version française],
+    [La syntaxe de Catala], [_français_],
     (prog_lit, lit_types, operators),
     (metadata, expressions),
     (scope, lists)

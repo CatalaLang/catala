@@ -98,20 +98,17 @@ declaration enumeration Enum1:
 # #[test]
 declaration scope Scope1:
   internal var1 content integer
+    state before
+    state after
   internal var2 condition
   sub1 scope Scope0
 
-  internal var1 content integer
   output var3 content integer
   input var4 content integer
   input output var5 content integer
   context var6 content integer
   context output var7 content integer
   output sub2 scope Scope0
-
-  internal var1 content integer
-    state before
-    state after
 
 declaration const content decimal
   equals 17.1
@@ -134,6 +131,7 @@ declaration x content integer equals
        -- anything : 0
   in
   let x equals impossible in
+  let x equals #[debug.print = "message"] 0 in
   let x equals
     expr with pattern Case1
   in
@@ -270,9 +268,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:102.14-102.20:
+├─➤ doc/syntax/syntax_en.catala_en:104.14-104.20:
 │     │
-│ 102 │   sub1 scope Scope0
+│ 104 │   sub1 scope Scope0
 │     │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#

@@ -152,12 +152,21 @@ declaration enumeration Enum1:
 ```, [Test scope annotation],
 ```catala-en-code
 declaration scope Scope1:
-  internal var1 content integer
-  internal var2 condition
-  sub1 scope Scope0
 ```, [Scope declaration],
 ```catala-en-code
-  internal var1 content ...
+  internal var1 content integer
+```, [Scope variable],
+```catala-en-code
+    state before
+    state after
+```, [State transitions],
+```catala-en-code
+  internal var2 condition
+```, [Condition],
+```catala-en-code
+  sub1 scope Scope0
+```, [Sub-scope declaration],
+```catala-en-code
   output var3 content ...
   input var4 content ...
   input output var5 content ...
@@ -165,11 +174,6 @@ declaration scope Scope1:
   context output var7 content ...
   output sub2 scope Scope0
 ```, [Input-output qualifiers],
-```catala-en-code
-  internal var1 content ...
-    state before
-    state after
-```, [State transitions declaration],
 ```catala-en-code
 declaration const content decimal
   equals 17.1
@@ -194,6 +198,9 @@ match expr with pattern
 ```catala-en-code
 impossible
 ```, [Unreachable code],
+```catala-en-code
+#[debug.print = "message"] expr
+```, [Debug annotation],
 ```catala-en-code
 expr with pattern Case1
 expr with pattern Case1 content x
@@ -224,7 +231,7 @@ var1 state before
 #let scope = cheat-sheet.syntax-doc([Scope definition],
 ```catala-en-code
 scope Scope1: ...
-```, [Scope use],
+```, [Defining scope contents],
 ```catala-en-code
 scope Scope1
   under condition var1 >= 2: ...
@@ -316,7 +323,7 @@ combine all x among lst
 )
 
 #cheat-sheet.layout(
-    [The Catala Syntax], [english version],
+    [The Catala Syntax], [_english_],
     (prog_lit, lit_types, operators),
     (metadata, expressions),
     (scope, lists)

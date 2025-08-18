@@ -21,7 +21,7 @@
 #let normal = "medium"
 
 #let style = (
-    title: (fill: palette.violet, weight: bold),
+    title: (fill: palette.brick, weight: bold),
     directive: (fill: palette.violet),
     fence: (fill: palette.grey),
     struct_keyword: (fill: palette.marine, weight: bold),
@@ -34,7 +34,7 @@
     uid: (fill: palette.bluegreen, weight: bold),
     field: (style: "oblique"),
     comment: (fill: palette.brick, style: "oblique"),
-    annotation: (fill: palette.brick, weight: bold),
+    annotation: (fill: palette.violet, weight: normal),
     state: (fill: palette.lime, style: "oblique"),
     typevar: (fill: palette.plum, style: "oblique"),
 )
@@ -58,7 +58,7 @@
     show regex("\b\p{Lu}[\pL\d_']*\b"): text.with(..style.uid)
     show regex("[-=><+*/!]+[!.€^]?|\bde\b"): override.with(style.operator)
     show regex("[:;,\[\](){}.]"): text.with(..style.punctuation)
-    show regex("(\b|-)([0-9]+(,[0-9]*)?[%€]?)"): txt => {
+    show regex("(\b|-)([0-9]+(,[0-9]+)?[%€]?)"): txt => {
         show text: text.with(..style.literal)
         show regex("[^-0-9,]"): text.with(weight: bold)
         txt
@@ -87,7 +87,7 @@
         show regex("[.].*"): text.with(..style.field); txt
     }
     show regex("#[^\[].*"): override.with(style.comment)
-    show regex("#\[[^\]]+\]"): override.with(style.annotation)
+    show regex("#\[[^\]]+\]"): override.with(style.annotation + (style: "normal"))
     txt
 }
 
@@ -110,7 +110,7 @@
     show regex("\b\p{Lu}[\pL\d_']*\b"): text.with(..style.uid)
     show regex("[-=><+*/!]+[!.$^]?|\bof\b"): text.with(..style.operator)
     show regex("[:;,\[\](){}.]"): text.with(..style.punctuation)
-    show regex("(\b|\$-?|-)[0-9][0-9,]*(\.[0-9,]*[0-9])?%?"): txt => {
+    show regex("(\b|\$-?|-)[0-9]([0-9,]*[0-9])?(\.[0-9,]*[0-9])?%?"): txt => {
         show text: text.with(..style.literal)
         show regex("[^-0-9,]"): text.with(weight: bold)
         txt
@@ -139,6 +139,7 @@
         show regex("[.].*"): text.with(..style.field); txt
     }
     show regex("#.*"): override.with(style.comment)
+    show regex("#\[[^\]]+\]"): override.with(style.annotation + (style: "normal"))
     txt
 }
 
