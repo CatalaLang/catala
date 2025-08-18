@@ -154,6 +154,7 @@ let rec unsubstitute :
   let m = Mark.get e1 in
   match Mark.remove e1, Mark.remove e2 with
   | EHole _, _ -> Var.Map.empty, e1
+  | _, EHole _ -> Var.Map.empty, e2
   | EVar x1, EVar x2 when Bindlib.eq_vars x1 x2 -> Var.Map.empty, e1
   | _, EVar x2 -> Var.Map.singleton x2 e1, e2
   | ELit l1, ELit l2 when l1 = l2 -> Var.Map.empty,e1
@@ -248,7 +249,7 @@ let rec unsubstitute :
     ctx, Mark.add m (EErrorOnEmpty e)
   | _ ->
     Message.error
-      "@[<v 2>The two expressions cannot be joined@ Expr1 : %a@ Expr2 : %a"
+      "@[<v 2>Cannot perform unsubstitution@ Expr1 : %a@ Expr2 : %a"
       Format_trace.expr e1 Format_trace.expr e2
 
 and unsubstitute_list :
@@ -435,7 +436,11 @@ let unevaluate :
         we "unsubstitute" the sliced values in v by the variables 
         that were present in the original expression. *)
       let original_e = Mark.add m @@ EAbs { binder; pos; tys = t2 } in
-      unsubstitute v original_e
+      if is_sub_expr v original_e then
+        (* Unsubstitution can be slow so we avoid doing it when it is not necessary *)
+        Var.Map.empty, v
+      else
+        unsubstitute v original_e
     | _, TrContextClosure { context; tr } ->
       (* Add some sort of permanent context *)
       unevaluate_aux ~context_closure:(join_ctx context_closure context) v tr
