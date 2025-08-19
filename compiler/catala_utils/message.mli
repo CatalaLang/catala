@@ -66,7 +66,13 @@ end
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
 
-type lsp_error_kind = Lexing | Parsing | Typing | Generic | Warning
+type lsp_error_kind =
+  | Lexing
+  | Parsing
+  | Typing
+  | Generic
+  | Warning
+  | AssertFailure
 
 type lsp_error = {
   kind : lsp_error_kind;
@@ -76,6 +82,9 @@ type lsp_error = {
 }
 
 val register_lsp_error_notifier : (lsp_error -> unit) -> unit
+
+val register_lsp_error_absorber : (lsp_error -> bool) -> unit
+(** The raised error is absorbed if the hook returns [false] *)
 
 (** {1 Some formatting helpers}*)
 

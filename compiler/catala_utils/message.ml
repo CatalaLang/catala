@@ -398,7 +398,13 @@ open Content
 exception CompilerError of Content.t
 exception CompilerErrors of Content.t list
 
-type lsp_error_kind = Lexing | Parsing | Typing | Generic | Warning
+type lsp_error_kind =
+  | Lexing
+  | Parsing
+  | Typing
+  | Generic
+  | Warning
+  | AssertFailure
 
 type lsp_error = {
   kind : lsp_error_kind;
@@ -408,7 +414,15 @@ type lsp_error = {
 }
 
 let global_error_hook = ref None
-let register_lsp_error_notifier f = global_error_hook := Some f
+
+let register_lsp_error_notifier f =
+  global_error_hook :=
+    Some
+      (fun err ->
+        f err;
+        true)
+
+let register_lsp_error_absorber f = global_error_hook := Some f
 
 (** {1 Error printing} *)
 
@@ -512,7 +526,7 @@ let warning
         (fun f ->
           let message ppf = Content.emit ~ppf m Warning in
           let pos = join_pos ~pos ~fmt_pos ~extra_pos in
-          f { kind = Warning; message; pos; suggestion })
+          ignore (f { kind = Warning; message; pos; suggestion }))
         !global_error_hook;
       emit m x)
 
@@ -525,7 +539,7 @@ let error ?(kind = Generic) : ('a, 'exn) emitter =
         (fun f ->
           let message ppf = Content.emit ~ppf m Error in
           let pos = join_pos ~pos ~fmt_pos ~extra_pos in
-          f { kind; message; pos; suggestion })
+          ignore (f { kind; message; pos; suggestion }))
         !global_error_hook;
       raise (CompilerError m))
 
@@ -543,21 +557,25 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
      fmt ->
   make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
     fmt ~level:Error ~cont:(fun m _ ->
-      Option.iter
-        (fun f ->
+      let register_error =
+        match !global_error_hook with
+        | Some f ->
           let message ppf = Content.emit ~ppf m Error in
           let pos = join_pos ~pos ~fmt_pos ~extra_pos in
-          f { kind; message; pos; suggestion })
-        !global_error_hook;
-      if global_errors.stop_on_error then raise (CompilerError m);
-      match global_errors.errors with
-      | None ->
-        error ~internal:true
-          "delayed error called outside scope: encapsulate using \
-           'with_delayed_errors' first"
-      | Some l ->
-        global_errors.errors <- Some (m :: l);
-        x)
+          f { kind; message; pos; suggestion }
+        | None -> true
+      in
+      if register_error then (
+        if global_errors.stop_on_error then raise (CompilerError m);
+        match global_errors.errors with
+        | None ->
+          error ~internal:true
+            "delayed error called outside scope: encapsulate using \
+             'with_delayed_errors' first"
+        | Some l ->
+          global_errors.errors <- Some (m :: l);
+          x)
+      else x)
 
 let with_delayed_errors
     ?(stop_on_error = Global.options.stop_on_error)

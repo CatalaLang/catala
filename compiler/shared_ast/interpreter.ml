@@ -908,14 +908,16 @@ let rec evaluate_expr :
         | ELit (LBool false) ->
           if Global.options.no_fail_on_assert then
             Message.warning ~pos "Assertion failed"
-          else Message.delayed_error ~kind:Generic () ~pos "Assertion failed"
+          else
+            Message.delayed_error ~kind:AssertFailure () ~pos "Assertion failed"
         | _ ->
           if Global.options.no_fail_on_assert then
             Message.warning ~pos "Assertion failed:@ %a"
               (Print.UserFacing.expr lang)
               partially_evaluated_assertion_failure_expr
           else
-            Message.delayed_error ~kind:Generic () ~pos "Assertion failed:@ %a"
+            Message.delayed_error ~kind:AssertFailure () ~pos
+              "Assertion failed:@ %a"
               (Print.UserFacing.expr lang)
               partially_evaluated_assertion_failure_expr);
         Mark.add m (ELit LUnit)
