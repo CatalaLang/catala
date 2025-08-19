@@ -442,6 +442,16 @@ val remove_logging_calls :
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
+val detuplify_application :
+  ('a any, 'm) boxed_gexpr list ->
+  typ list ->
+  (('a, 'm) boxed_gexpr list -> ('a, 'm) boxed_gexpr) ->
+  ('a, 'm) boxed_gexpr
+(** [detyplify_application args arg_typs mkapp] reconstructs a function
+    application using [mkapp], but transforming [args] into its individual tuple
+    elements in the case where [arg_typs] expects multiple arguments but [args]
+    is a single tuple *)
+
 (** {2 Formatting} *)
 
 val format : Format.formatter -> ('a, 'm) gexpr -> unit

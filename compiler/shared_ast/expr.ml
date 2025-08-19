@@ -1054,3 +1054,34 @@ let rec is_pure : type a. (a, 'm) gexpr -> bool =
   | EAbs _ -> true
   | EApp _ | EScopeCall _ | EAssert _ | EFatalError _ | EErrorOnEmpty _ -> false
   | _ -> shallow_fold (fun e acc -> acc && is_pure e) e true
+
+let detuplify_application args tys mkapp =
+  match args, tys with
+  | [arg], [_] -> mkapp [arg]
+  | [arg], tys -> (
+    match unbox arg with
+    | ETuple args, _ ->
+      (* Literal tuple is directly exploded *)
+      mkapp (List.map rebox args)
+    | EVar _, _ ->
+      (* Explicit variable is indexed to instanciate each argument *)
+      let size = List.length tys in
+      let args =
+        List.init size (fun index ->
+            etupleaccess ~e:arg ~size ~index (Mark.get arg))
+      in
+      mkapp args
+    | _ ->
+      (* Anything else is put in an intermediate variable and treated like the
+         case above *)
+      let size = List.length tys in
+      let v = Var.make "args" in
+      let args =
+        let e = evar v (Mark.get arg) in
+        List.init size (fun index ->
+            etupleaccess ~e ~size ~index (Mark.get arg))
+      in
+      make_let_in (Mark.ghost v)
+        (TTuple tys, pos arg)
+        arg (mkapp args) (pos arg))
+  | args, _ -> mkapp args

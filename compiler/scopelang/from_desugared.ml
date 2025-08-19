@@ -165,36 +165,29 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              ScopeVar.Map.add v' (p, e') args')
            args ScopeVar.Map.empty)
       m
-  | EApp { f; tys; args } -> (
-    (* Detuplification of function arguments *)
+  | EApp { f; tys; args } ->
+    (* Detuplification of function arguments, insertion of implicit arguments *)
     let pos = Expr.pos f in
     let f = translate_expr ctx f in
-
-    match args, tys with
-    | [arg], [_] -> Expr.eapp ~f ~tys m ~args:[translate_expr ctx arg]
-    | [(ETuple args, _)], _ ->
-      assert (List.length args = List.length tys);
-      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args)
-    | [((EVar _, _) as arg)], ts ->
-      let size = List.length ts in
-      let args =
-        let e = translate_expr ctx arg in
-        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+    let is_implicit ty = Pos.has_attr (Mark.get ty) ImplicitPosArg in
+    let tys_implicit, tys_explicit = List.partition is_implicit tys in
+    let add_implicit_args args =
+      let rec aux args tys =
+        match tys, args with
+        | ty :: tys, args when is_implicit ty -> Expr.epos pos m :: aux args tys
+        | _ :: tys, arg :: args -> arg :: aux args tys
+        | [], [] -> []
+        | _ -> assert false
       in
-      Expr.eapp ~f ~tys m ~args
-    | [arg], ts ->
-      let size = List.length ts in
-      let v = Var.make "args" in
-      let e = Expr.evar v (Mark.get arg) in
-      let args =
-        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
-      in
-      Expr.make_let_in (Mark.ghost v) (TTuple ts, pos) (translate_expr ctx arg)
-        (Expr.eapp ~f ~tys m ~args)
-        pos
-    | args, tys ->
-      assert (List.length args = List.length tys);
-      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args))
+      if tys_implicit = [] then args else aux args tys
+    in
+    let tys =
+      List.map (Mark.map_mark (fun pos -> Pos.rem_attr pos ImplicitPosArg)) tys
+    in
+    Expr.detuplify_application
+      (List.map (translate_expr ctx) args)
+      tys_explicit
+      (fun args -> Expr.eapp ~f ~tys m ~args:(add_implicit_args args))
   | EAppOp { op; tys; args } ->
     let args = List.map (translate_expr ctx) args in
     Operator.kind_dispatch op
