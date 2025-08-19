@@ -16,9 +16,11 @@
 
 (** Formats a lambda calculus program into a valid Python program *)
 
+open Catala_utils
 open Shared_ast
 
 val renaming : Renaming.t
 
-val format_program : Format.formatter -> Ast.program -> TypeIdent.t list -> unit
-(** Usage [format_program fmt p type_dependencies_ordering] *)
+val format_program :
+  File.t option -> Format.formatter -> Ast.program -> TypeIdent.t list -> unit
+(** Usage [format_program file fmt p type_dependencies_ordering] *)

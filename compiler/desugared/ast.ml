@@ -252,6 +252,7 @@ type scope = {
 type topdef = {
   topdef_expr : expr option;
   topdef_type : typ;
+  topdef_arg_names : string Mark.pos list;
   topdef_visibility : visibility;
   topdef_external : bool;
 }

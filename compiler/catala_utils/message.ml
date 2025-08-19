@@ -46,7 +46,10 @@ let has_color_raw ~(tty : bool Lazy.t) =
   match Global.options.color with
   | Global.Never -> false
   | Always -> true
-  | Auto -> Lazy.force tty
+  | Auto -> (
+    match Sys.getenv_opt "NO_COLOR" with
+    | None | Some "" -> Lazy.force tty
+    | _ -> false)
 
 let has_color oc =
   has_color_raw ~tty:(lazy Unix.(isatty (descr_of_out_channel oc)))

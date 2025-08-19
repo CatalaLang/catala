@@ -63,6 +63,7 @@ type options = private {
   mutable no_fail_on_assert : bool;
   mutable whole_program : bool;
   mutable bin_dir : string;
+  mutable gen_external : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -88,6 +89,7 @@ val enforce_options :
   ?no_fail_on_assert:bool ->
   ?whole_program:bool ->
   ?bin_dir:string ->
+  ?gen_external:bool ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this

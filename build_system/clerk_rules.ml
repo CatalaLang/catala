@@ -407,33 +407,68 @@ let gen_build_statements
   let has_scope_tests = Lazy.force item.has_scope_tests in
   let ocaml, c, python, java =
     if item.extrnal then
-      ( List.to_seq
-          [
-            Nj.build "copy" ~implicit_in:[catala_src]
-              ~inputs:[src -.- "ml"]
-              ~outputs:[target ~backend:"ocaml" "ml"];
-            Nj.build "copy" ~implicit_in:[catala_src]
-              ~inputs:[src -.- "mli"]
-              ~outputs:[target ~backend:"ocaml" "mli"];
-          ],
-        List.to_seq
-          [
-            Nj.build "copy" ~implicit_in:[catala_src]
-              ~inputs:[src -.- "c"]
-              ~outputs:[target ~backend:"c" "c"];
-            Nj.build "copy" ~implicit_in:[catala_src]
-              ~inputs:[src -.- "h"]
-              ~outputs:[target ~backend:"c" "h"];
-          ],
-        Nj.build "copy" ~implicit_in:[catala_src]
-          ~inputs:[src -.- "py"]
-          ~outputs:[target ~backend:"python" "py"],
-        List.to_seq
-          [
-            Nj.build "copy" ~implicit_in:[catala_src]
-              ~inputs:[src -.- "java"]
-              ~outputs:[target ~backend:"java" "java"];
-          ] )
+      let ocaml =
+        if not (List.mem OCaml enabled_backends) then Seq.empty
+        else
+          let ml, mli = src -.- "ml", src -.- "mli" in
+          let missing = List.filter (fun f -> not (File.exists f)) [ml; mli] in
+          if missing <> [] then
+            Message.error
+              ~pos:(Mark.get (Option.get item.module_def))
+              "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ but@ \
+               the@ following@ files@ are@ missing:@ %a@]@,\
+               @,\
+               @[<hov 2>@{<bold>Hint:@} to generate a template, you can use:@ \
+               @{<magenta>catala ocaml --gen-external %s@}@]@]"
+              (Mark.remove (Option.get item.module_def))
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+                 File.format)
+              missing src;
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "ml"]
+                ~outputs:[target ~backend:"ocaml" "ml"];
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "mli"]
+                ~outputs:[target ~backend:"ocaml" "mli"];
+            ]
+      in
+      let c =
+        if not (List.mem C enabled_backends) then Seq.empty
+        else
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "c"]
+                ~outputs:[target ~backend:"c" "c"];
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "h"]
+                ~outputs:[target ~backend:"c" "h"];
+            ]
+      in
+      let python =
+        if not (List.mem Python enabled_backends) then Seq.empty
+        else
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "py"]
+                ~outputs:[target ~backend:"python" "py"];
+            ]
+      in
+      let java =
+        if not (List.mem Java enabled_backends) then Seq.empty
+        else
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src]
+                ~inputs:[src -.- "java"]
+                ~outputs:[target ~backend:"java" "java"];
+            ]
+      in
+      ocaml, c, python, java
     else
       let inputs = [catala_src] in
       let implicit_in =
@@ -454,8 +489,9 @@ let gen_build_statements
           (Nj.build "catala-c" ~inputs ~implicit_in
              ~outputs:[target ~backend:"c" "c"]
              ~implicit_out:(target ~backend:"c" "h" :: implicit_out "c" "c")),
-        Nj.build "python" ~inputs ~implicit_in
-          ~outputs:[target ~backend:"python" "py"],
+        Seq.return
+          (Nj.build "python" ~inputs ~implicit_in
+             ~outputs:[target ~backend:"python" "py"]),
         Seq.return
           (Nj.build "catala-java" ~inputs ~implicit_in
              ~outputs:[target ~backend:"java" "java"]) )
@@ -604,7 +640,7 @@ let gen_build_statements
     (if List.mem OCaml enabled_backends then [ocaml; List.to_seq ocamlopt]
      else [])
     @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
-    @ (if List.mem Python enabled_backends then [Seq.return python] else [])
+    @ (if List.mem Python enabled_backends then [python] else [])
     @ (if List.mem Java enabled_backends then [java; Seq.return javac] else [])
     @ if List.mem Tests enabled_backends then [List.to_seq tests] else []
   in
