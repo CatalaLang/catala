@@ -69,7 +69,7 @@ scope S2:
   output o content decimal
 
 scope T2:
-  definition o equals 10. * s2.f of 12, 3
+  definition o equals 10.0 * s2.f of 12, 3
 ```
 
 ```catala-test-cli

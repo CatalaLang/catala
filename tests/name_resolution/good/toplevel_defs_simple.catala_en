@@ -7,7 +7,7 @@ declaration glob1 content decimal equals 44.12
   output a content boolean
 
 scope S:
-   definition a equals glob1 >= 30.
+   definition a equals glob1 >= 30.0
 ```
 
 

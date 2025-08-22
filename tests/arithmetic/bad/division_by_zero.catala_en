@@ -17,7 +17,7 @@ declaration scope Dec:
   output i content decimal
 
 scope Dec:
-  definition i equals 1. / 0.
+  definition i equals 1.0 / 0.0
 ```
 
 ### with money
@@ -38,10 +38,10 @@ $ catala test-scope Dec
 │  During evaluation: a value is being used as denominator in a division and
 │  it computed to zero.
 │
-├─➤ tests/arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:20.29-20.32:
 │    │
-│ 20 │   definition i equals 1. / 0.
-│    │                            ‾‾
+│ 20 │   definition i equals 1.0 / 0.0
+│    │                             ‾‾‾
 └─ `Division_by_zero` exception management
    └─ with decimals
 #return code 123#

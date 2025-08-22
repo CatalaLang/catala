@@ -12,7 +12,7 @@ declaration structure A:
    data z content decimal
 
 declaration glob2 content A equals
-    A { --y: glob1 >= 30. --z: 123. * 17. }
+    A { --y: glob1 >= 30.0 --z: 123.0 * 17.0 }
 
 scope S:
    definition a equals glob1 * glob1
@@ -44,13 +44,13 @@ $ catala test-scope S
 ```catala
 declaration glob3 content decimal
     depends on x content money
-    equals decimal of x + 10.
+    equals decimal of x + 10.0
 
 #[test] declaration scope S2:
   output a content decimal
 
 scope S2:
-   definition a equals glob3 of $44 + 100.
+   definition a equals glob3 of $44 + 100.0
 ```
 
 ```catala-test-cli
@@ -65,13 +65,13 @@ $ catala test-scope S2
 ```catala
 declaration glob4 content decimal
     depends on x content money, y content decimal
-    equals decimal of x * y + 10.
+    equals decimal of x * y + 10.0
 
 #[test] declaration scope S3:
   output a content decimal
 
 scope S3:
-   definition a equals 50. + glob4 of $44, 55.
+   definition a equals 50.0 + glob4 of $44, 55.0
 ```
 
 ```catala-test-cli
@@ -87,15 +87,15 @@ $ catala test-scope S3
 
 ```catala
 declaration glob5 content decimal equals
-    let x equals decimal of 2 * 3. in
-    let y equals 1000. in
+    let x equals decimal of 2 * 3.0 in
+    let y equals 1000.0 in
     x * y
 
 #[test] declaration scope S4:
   output a content decimal
 
 scope S4:
-   definition a equals glob5 + 1.
+   definition a equals glob5 + 1.0
 ```
 
 ```catala-test-cli
@@ -126,7 +126,7 @@ let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:53.24-43>;
+  init pos : SourcePosition = <toplevel_defs:53.24-44>;
   init a__1 : option (decimal, source_position) =
     Present (glob3 ¤44.00 + 100., pos);
   switch a__1:
@@ -139,7 +139,7 @@ let s2 (s2_in: #[test] S2_in) =
 
 let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:74.24-47>;
+  init pos : SourcePosition = <toplevel_defs:74.24-49>;
   init a__1 : option (decimal, source_position) =
     Present (50. + glob4 ¤44.00 55., pos);
   switch a__1:
@@ -152,7 +152,7 @@ let s3 (s3_in: #[test] S3_in) =
 
 let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:98.24-34>;
+  init pos : SourcePosition = <toplevel_defs:98.24-35>;
   init a__1 : option (decimal, source_position) = Present (glob5 + 1., pos);
   switch a__1:
   | Absent _ →
@@ -366,7 +366,7 @@ glob2 = (
 def s2(s2_in:S2In):
     pos = (SourcePosition(
                filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=53, start_column=24, end_line=53, end_column=43,
+               start_line=53, start_column=24, end_line=53, end_column=44,
                law_headings=["Test toplevel function defs"]))
     a__1 = (((glob3(money_of_cents_string("4400")) +
         decimal_of_string("100")),
@@ -385,7 +385,7 @@ def s2(s2_in:S2In):
 def s3(s3_in:S3In):
     pos = (SourcePosition(
                filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=74, start_column=24, end_line=74, end_column=47,
+               start_line=74, start_column=24, end_line=74, end_column=49,
                law_headings=["Test function def with two args"]))
     a__1 = (((decimal_of_string("50") +
         glob4(money_of_cents_string("4400"), decimal_of_string("55"))),
@@ -404,7 +404,7 @@ def s3(s3_in:S3In):
 def s4(s4_in:S4In):
     pos = (SourcePosition(
                filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=98, start_column=24, end_line=98, end_column=34,
+               start_line=98, start_column=24, end_line=98, end_column=35,
                law_headings=["Test inline defs in toplevel defs"]))
     a__1 = (((glob5 + decimal_of_string("1")), pos))
     if a__1 is None:

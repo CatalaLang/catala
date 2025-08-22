@@ -22,7 +22,7 @@ scope S:
 
 # Extremum
     assertion maximum of [1; 2; 3] or if list empty then 10 = 3
-    assertion maximum of map each i among [1; 2; 3] to (decimal of i) or if list empty then 10. = 3.
+    assertion maximum of map each i among [1; 2; 3] to (decimal of i) or if list empty then 10.0 = 3.0
 
 # Arg extremum
     assertion (content of i among [1; 2; 3]

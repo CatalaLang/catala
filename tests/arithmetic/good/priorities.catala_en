@@ -9,7 +9,7 @@ scope A:
   definition w equals 4 - 2 - 2
   definition x equals 4 - (2 - 2)
   definition y equals 4 - 2 - -2
-  definition z equals 200 / 2 * 4. - 50. / - (5. - 20 / 2)
+  definition z equals 200 / 2 * 4.0 - 50.0 / - (5.0 - 20 / 2)
 ```
 
 
