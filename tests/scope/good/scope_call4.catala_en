@@ -53,18 +53,8 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─ RentComputation ─
-│ f1 = λ (x: integer) →
-│   error_empty
-│     ⟨ ⟨true
-│        ⊢ ⟨let x1 : integer = x + 1 in
-│           error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
-│     | false ⊢ ∅ ⟩
-│ f2 = λ (x: integer) →
-│   error_empty
-│     ⟨ ⟨true
-│        ⊢ ⟨let x1 : integer = x + 1 in
-│           error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
-│     | false ⊢ ∅ ⟩
+│ f1 = λ (x: integer) → error_empty ⟨ ⟨true ⊢ ⟨g (x + 1)⟩⟩ | false ⊢ ∅ ⟩
+│ f2 = λ (x: integer) → error_empty ⟨ ⟨true ⊢ ⟨g (x + 1)⟩⟩ | false ⊢ ∅ ⟩
 └─
 ```
 
@@ -90,9 +80,7 @@ $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─ RentComputation ─
-│ f1 = λ (x: integer) → let x1 : integer = x + 1 in
-│                       ((x1 + 1))
-│ f2 = λ (x: integer) → let x1 : integer = x + 1 in
-│                       ((x1 + 1))
+│ f1 = λ (x: integer) → g (x + 1)
+│ f2 = λ (x: integer) → g (x + 1)
 └─
 ```

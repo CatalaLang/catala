@@ -20,6 +20,32 @@
 open Catala_utils
 open Definitions
 
+val partially_evaluate_expr_for_assertion_failure_message :
+  ((('d, yes) interpr_kind, 'm) gexpr -> (('d, yes) interpr_kind, 'm) gexpr) ->
+  decl_ctx ->
+  Global.backend_lang ->
+  (('d, yes) interpr_kind, 'm) gexpr ->
+  (('d, yes) interpr_kind, 'm) gexpr
+
+val val_to_runtime :
+  (decl_ctx ->
+  (('d, yes) interpr_kind, 'm) gexpr ->
+  (('d, yes) interpr_kind, 'm) gexpr) ->
+  decl_ctx ->
+  typ ->
+  (('d, yes) interpr_kind, 'm) gexpr ->
+  Obj.t
+
+val runtime_to_val :
+  (decl_ctx ->
+  (('d, yes) interpr_kind, 'm) gexpr ->
+  (('d, yes) interpr_kind, 'm) gexpr) ->
+  decl_ctx ->
+  'm mark ->
+  typ ->
+  Obj.t ->
+  (('d, yes) interpr_kind, 'm) gexpr
+
 val evaluate_operator :
   ((((_, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
@@ -38,6 +64,25 @@ val evaluate_expr :
   (('a, _) interpr_kind, 'm) gexpr ->
   (('a, yes) interpr_kind, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
+
+(** Environment storing variables and their closures *)
+type ('a, 'b) env =
+  | Env of
+      ( (('a, yes) interpr_kind, 'b) gexpr,
+        (('a, yes) interpr_kind, 'b) gexpr * ('a, 'b) env )
+      Var.Map.t
+
+val addcustom :
+  (('a, 'b) interpr_kind, 't) gexpr -> (('a, yes) interpr_kind, 't) gexpr
+
+val evaluate_expr_with_env :
+  ?on_expr:((('d, yes) interpr_kind, 't) gexpr -> ('d, 't) env -> unit) ->
+  decl_ctx ->
+  Global.backend_lang ->
+  (('d, yes) interpr_kind, 't) gexpr ->
+  (('d, yes) interpr_kind, 't) gexpr
+(** Evaluates an expression according to the semantics of the default calculus
+    using an environment instead of substitution. *)
 
 val interpret_program_dcalc :
   (dcalc, 'm) gexpr program ->

@@ -96,17 +96,7 @@ $ catala Interpret -t -s HousingComputation --debug
 │   error_empty
 │     ⟨ ⟨true
 │        ⊢ ⟨(let result : RentComputation =
-│              (λ (RentComputation_in: RentComputation_in) →
-│               let g : integer → integer =
-│                 λ (x1: integer) →
-│                 error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩
-│               in
-│               let f : integer → integer =
-│                 λ (x1: integer) →
-│                 error_empty ⟨ ⟨true ⊢ ⟨g (x1 + 1)⟩⟩ | false ⊢ ∅ ⟩
-│               in
-│               { RentComputation f = f; })
-│                {RentComputation_in}
+│              RentComputation {RentComputation_in}
 │            in
 │            let result1 : RentComputation =
 │              { RentComputation f = λ (param0: integer) → result.f param0; }
