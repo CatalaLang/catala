@@ -32,9 +32,9 @@ $ catala test-scope A --debug
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/date/good/simple.catala_en"
 [DEBUG] Loading module interfaces...
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/stdlib_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_internal.catala_en"
+[DEBUG] Parsing "libcatala/stdlib_en.catala_en"
+[DEBUG] Parsing "libcatala/date_en.catala_en"
+[DEBUG] Parsing "libcatala/date_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...

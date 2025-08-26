@@ -41,10 +41,12 @@
  (flags
   (:standard
    (:include custom_linking.sexp)))
+ ; These are actually runtime deps and not link deps
+ (link_deps %{bin:catala} ../runtimes/ocaml/catala_runtime.cmi)
  (libraries clerk_driver)
  (modules clerk)
  (package catala))
 
 (alias
  (name clerk)
- (deps %{bin:clerk} %{bin:catala} (alias ../runtimes/runtimes) (alias ../stdlib/stdlib)))
+ (deps %{bin:clerk} %{bin:catala}))

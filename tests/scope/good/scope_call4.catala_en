@@ -41,9 +41,9 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/scope/good/scope_call4.catala_en"
 [DEBUG] Loading module interfaces...
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/stdlib_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_internal.catala_en"
+[DEBUG] Parsing "libcatala/stdlib_en.catala_en"
+[DEBUG] Parsing "libcatala/date_en.catala_en"
+[DEBUG] Parsing "libcatala/date_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...
@@ -79,9 +79,9 @@ $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/scope/good/scope_call4.catala_en"
 [DEBUG] Loading module interfaces...
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/stdlib_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_en.catala_en"
-[DEBUG] Parsing "/home/lg/inria/catala/_build/default/stdlib/catala_stdlib/date_internal.catala_en"
+[DEBUG] Parsing "libcatala/stdlib_en.catala_en"
+[DEBUG] Parsing "libcatala/date_en.catala_en"
+[DEBUG] Parsing "libcatala/date_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...

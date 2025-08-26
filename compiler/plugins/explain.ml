@@ -1259,13 +1259,6 @@ let expr_to_dot_label0 :
           | Concat -> "++"
           | Not -> xlang () ~en:"not" ~fr:"non"
           | Length -> xlang () ~en:"length" ~fr:"nombre"
-          | GetDay -> xlang () ~en:"day_of_month" ~fr:"jour_du_mois"
-          | GetMonth -> xlang () ~en:"month" ~fr:"mois"
-          | GetYear -> xlang () ~en:"year" ~fr:"année"
-          | FirstDayOfMonth ->
-            xlang () ~en:"first_day_of_month" ~fr:"premier_jour_du_mois"
-          | LastDayOfMonth ->
-            xlang () ~en:"last_day_of_month" ~fr:"dernier_jour_du_mois"
           | Round_rat | Round_mon | Round -> xlang () ~en:"round" ~fr:"arrondi"
           | Log _ -> xlang () ~en:"Log" ~fr:"Journal"
           | And -> xlang () ~en:"and" ~fr:"et"

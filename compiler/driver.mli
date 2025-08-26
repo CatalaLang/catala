@@ -30,19 +30,19 @@ module Passes : sig
   val desugared :
     Global.options ->
     includes:Global.raw_file list ->
-    stdlib:File.t Lazy.t option ->
+    stdlib:Global.raw_file option ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
     Global.options ->
     includes:Global.raw_file list ->
-    stdlib:File.t Lazy.t option ->
+    stdlib:Global.raw_file option ->
     Shared_ast.untyped Scopelang.Ast.program
 
   val dcalc :
     Global.options ->
     includes:Global.raw_file list ->
-    stdlib:File.t Lazy.t option ->
+    stdlib:Global.raw_file option ->
     optimize:bool ->
     check_invariants:bool ->
     autotest:bool ->
@@ -52,7 +52,7 @@ module Passes : sig
   val lcalc :
     Global.options ->
     includes:Global.raw_file list ->
-    stdlib:File.t Lazy.t option ->
+    stdlib:Global.raw_file option ->
     optimize:bool ->
     check_invariants:bool ->
     autotest:bool ->
@@ -69,7 +69,7 @@ module Passes : sig
   val scalc :
     Global.options ->
     includes:Global.raw_file list ->
-    stdlib:File.t Lazy.t option ->
+    stdlib:Global.raw_file option ->
     optimize:bool ->
     check_invariants:bool ->
     autotest:bool ->

@@ -65,7 +65,7 @@
 
 (alias
  (name catala)
- (deps %{bin:catala.exe}))
+ (deps %{bin:catala}))
 
 (rule
  (alias runtest)

@@ -27,7 +27,7 @@ let () =
          in
          let prg, _type_order =
            Passes.dcalc options ~includes:[]
-             ~stdlib:(Some (lazy "/stdlib"))
+             ~stdlib:(Some (Global.raw_file "/stdlib"))
              ~optimize:false ~check_invariants:false ~autotest:false
              ~typed:Shared_ast.Expr.typed
          in

@@ -38,7 +38,7 @@ $ catala ocaml
 
 open Catala_runtime
 
-[@@@ocaml.warning "-4-26-27-32-41-42"]
+[@@@ocaml.warning "-4-26-27-32-33-34-37-41-42-69"]
 
 
 let () =

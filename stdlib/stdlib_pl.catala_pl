@@ -1,8 +1,8 @@
-> Module Stdlib1
+> Module Stdlib_pl
 
 ```catala-metadata
 # This file is part of the Catala compiler, a specification language for tax
-# and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+# and social benefits computation rules. Copyright (C) 2025 Inria, contributor:
 # Louis Gesbert <louis.gesbert@inria.fr>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -18,8 +18,4 @@
 # the License.
 ```
 
-```catala-metadata
-declaration positive content money depends on x content money
-  equals
-  if x < $0 then $0 else x
-```
+> Using Date_en as Date

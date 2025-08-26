@@ -47,7 +47,7 @@ let load_modules
      them *)
   let stdlib_includes =
     match stdlib with
-    | Some (lazy dir) -> File.Tree.build dir
+    | Some dir -> File.Tree.build (options.Global.path_rewrite dir)
     | None -> File.Tree.empty
   in
   let stdlib_use file =
@@ -87,7 +87,7 @@ let load_modules
            the command-line flag @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ \
            non-standard@ location."
           mname File.format
-          (Lazy.force (Option.get stdlib))
+          (options.Global.path_rewrite (Option.get stdlib))
       else
         Message.error
           ~extra_pos:(err_req_pos (mpos :: req_chain))
@@ -243,7 +243,7 @@ module Passes = struct
       type ty.
       Global.options ->
       includes:Global.raw_file list ->
-      stdlib:File.t Lazy.t option ->
+      stdlib:Global.raw_file option ->
       optimize:bool ->
       check_invariants:bool ->
       autotest:bool ->

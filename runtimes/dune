@@ -9,21 +9,15 @@
 
 (install
  (files
-  (ocaml/.runtime.objs/byte/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi)
-  (ocaml/runtime.cma as runtime/ocaml/runtime.cma)
-  (ocaml/runtime.cmxa as runtime/ocaml/runtime.cmxa)
-  (ocaml/runtime.a as runtime/ocaml/runtime.a))
+  (ocaml/catala_runtime.ml as runtime/ocaml/catala_runtime.ml)
+  (ocaml/catala_runtime.mli as runtime/ocaml/catala_runtime.mli)
+  (ocaml/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi))
  (section lib))
 
 (install
  (files
-  (jsoo/.runtime_jsoo.objs/byte/runtime_jsoo.cmi
-   as
-   runtime/jsoo/runtime_jsoo.cmi)
-  (jsoo/.runtime_jsoo.objs/jsoo/default/runtime_jsoo.cma.js
-   as
-   runtime/jsoo/runtime_jsoo.cma.js)
-  (jsoo/runtime_jsoo.cma as runtime/jsoo/runtime_jsoo.cma))
+  (jsoo/runtime_jsoo.ml as runtime/jsoo/runtime_jsoo.ml)
+  (jsoo/runtime_jsoo.mli as runtime/jsoo/runtime_jsoo.mli))
  (section lib))
 
 ; Python runtime
@@ -33,20 +27,10 @@
   (python as runtime/python))
  (section lib))
 
-(alias
- (name runtime-python)
- (deps
-  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime/python/src/catala/runtime.py))
-
 (install
- (files
-  (java/catala_runtime.jar as runtime/java/catala_runtime.jar))
+ (source_trees
+  (java as runtime/java))
  (section lib))
-
-(alias
- (name runtime-java)
- (deps
-  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime/java/catala_runtime.jar))
 
 ;; ; Rescript runtime -- disabled
 ;;
@@ -58,23 +42,12 @@
 
 (install
  (files
-  (c/libcatala_runtime.a as runtime/c/libcatala_runtime.a)
-  (c/dates_calc.h as runtime/c/dates_calc.h)
-  (c/catala_runtime.h as runtime/c/catala_runtime.h))
+  (c/catala_runtime.c as runtime/c/catala_runtime.c)
+  (c/catala_runtime.h as runtime/c/catala_runtime.h)
+  (c/dates_calc.c as runtime/c/dates_calc.c)
+  (c/dates_calc.h as runtime/c/dates_calc.h))
  (section lib))
 
 (alias
- (name runtime-c)
- (deps
-  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime/c/libcatala_runtime.a
-  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime/c/dates_calc.h
-  %{workspace_root}/_build/install/%{context_name}/lib/catala/runtime/c/catala_runtime.h))
-
-(alias
  (name runtimes)
- (deps
-  ocaml/runtime.cmxa
-  jsoo/.runtime_jsoo.objs/jsoo/default/runtime_jsoo.cma.js
-  (alias runtime-python)
-  (alias runtime-java)
-  (alias runtime-c)))
+ (deps ocaml/catala_runtime.cmi))
