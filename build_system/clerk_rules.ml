@@ -108,7 +108,9 @@ let base_bindings ~autotest ~enabled_backends ~config =
       options.global.include_dirs []
   in
   let catala_flags =
-    ("--directory=" ^ Var.(!builddir)) :: options.global.catala_opts
+    ("--stdlib=" ^ File.(Var.(!builddir) / runtime_subdir))
+    :: ("--directory=" ^ Var.(!builddir))
+    :: options.global.catala_opts
   in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
@@ -227,7 +229,10 @@ let base_bindings ~autotest ~enabled_backends ~config =
             "-Werror";
             "-g";
           ]);
-      def Var.c_include (lazy (includes ~backend:"c" ()));
+      def Var.c_include
+        (lazy
+          (["-I"; File.(Var.(!builddir) / runtime_subdir / "c")]
+          @ includes ~backend:"c" ()));
     ]
   else []
 
@@ -241,34 +246,33 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
          else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
-  ] @ (if List.mem OCaml enabled_backends then [
+  ] @ (if List.mem OCaml enabled_backends then
+         let runtime_include =
+           File.(Var.(!builddir) / runtime_subdir / "ocaml")
+         in
+         [
       Nj.rule "catala-ocaml"
         ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "ocaml"; "⇒"; !output];
       Nj.rule "ocaml-bytobject"
         ~command:[
-          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; !includes; !input
+          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
 
       Nj.rule "ocaml-natobject"
         ~command:[
-          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; !includes; !input
+          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
 
       Nj.rule "ocaml-module"
         ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; !input;
+          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
 
-      Nj.rule "ocaml-lib"
-        ~command:
-          [!ocamlopt_exe; !ocaml_flags; "-a"; !input;
-           "-o"; !output]
-        ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
@@ -282,7 +286,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       ~description:["<cc>"; "⇒"; !output];
   ] else []) @
   (if List.mem Python enabled_backends then [
-      Nj.rule "python"
+      Nj.rule "catala-python"
         ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "python"; "⇒"; !output];
@@ -293,7 +297,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "java"; "⇒"; !output];
       Nj.rule "java-class"
-        ~command:[!javac; !javac_flags; !input]
+        ~command:[!javac; "-cp"; File.(Var.(!builddir) / runtime_subdir / "java")^":" ^ !class_path; !javac_flags; !input]
         ~description:["<catala>"; "java"; "⇒"; !output];
     ] else []) @
   (if List.mem Tests enabled_backends then
@@ -319,6 +323,7 @@ let gen_build_statements
     (enabled_backends : backend list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
+    ~is_stdlib
     (item : Scan.item) : Nj.ninja =
   let open File in
   let ( ! ) = Var.( ! ) in
@@ -490,20 +495,25 @@ let gen_build_statements
       let implicit_out backend ext =
         if has_scope_tests then [target ~backend ("+main." ^ ext)] else []
       in
+      let vars =
+        if is_stdlib then
+          Some [Var.catala_flags, [Var.(!catala_flags); "--no-stdlib"]]
+        else None
+      in
       ( Seq.return
-          (Nj.build "catala-ocaml" ~inputs ~implicit_in
+          (Nj.build "catala-ocaml" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"ocaml" "ml"]
              ~implicit_out:
                (target ~backend:"ocaml" "mli" :: implicit_out "ocaml" "ml")),
         Seq.return
-          (Nj.build "catala-c" ~inputs ~implicit_in
+          (Nj.build "catala-c" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"c" "c"]
              ~implicit_out:(target ~backend:"c" "h" :: implicit_out "c" "c")),
         Seq.return
-          (Nj.build "python" ~inputs ~implicit_in
+          (Nj.build "catala-python" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"python" "py"]),
         Seq.return
-          (Nj.build "catala-java" ~inputs ~implicit_in
+          (Nj.build "catala-java" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"java" "java"]) )
   in
   let ocamlopt =
@@ -511,14 +521,34 @@ let gen_build_statements
       [
         Nj.build "ocaml-bytobject"
           ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
-          ~implicit_in:(List.map module_target modules @ [!Var.catala_exe])
+          ~implicit_in:(List.map module_target modules @ ["@runtime-cmi"])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
-          ~vars:[Var.includes, include_flags "ocaml"];
+          ~vars:
+            [
+              Var.includes, include_flags "ocaml";
+              ( Var.ocaml_flags,
+                [
+                  Var.(!ocaml_flags);
+                  "-opaque";
+                  "-w";
+                  "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
+                  "-strict-sequence";
+                  "-strict-formats";
+                  "-short-paths";
+                  "-keep-locs";
+                  "-warn-error";
+                  "-a+8";
+                  "-w";
+                  "-67";
+                  "-bin-annot";
+                  "-no-alias-deps";
+                ] );
+            ];
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:"ocaml" "ml"]
           ~implicit_in:
             ((target ~backend:"ocaml" "cmi" :: List.map module_target modules)
-            @ [!Var.catala_exe])
+            @ ["@runtime-cmi"])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmx"; "o"])
           ~vars:[Var.includes, include_flags "ocaml"];
       ]
@@ -595,7 +625,8 @@ let gen_build_statements
        but then we could use the already resolved target files directly and get
        rid of these aliases. *)
     match item.module_def with
-    | Some m when List.mem (dirname src) include_dirs ->
+    | Some m when (not (Filename.is_relative dir)) || List.mem dir include_dirs
+      ->
       let modname = Mark.remove m in
       Nj.build "phony" ~outputs:[modname ^ "@src"] ~inputs:[catala_src]
       ::
@@ -657,6 +688,7 @@ let gen_build_statements
   Seq.concat (List.to_seq statements_list)
 
 let gen_build_statements_dir
+    ~is_stdlib
     (dir : string)
     (include_dirs : string list)
     (enabled_backends : backend list)
@@ -682,6 +714,7 @@ let gen_build_statements_dir
     | None -> String.Map.add s fname seen
   in
   let _names = List.fold_left check_conflicts String.Map.empty items in
+  let dir = if Filename.is_relative dir then dir else runtime_subdir in
   let open File in
   let ( ! ) = Var.( ! ) in
   Seq.cons (Nj.comment "")
@@ -689,13 +722,20 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding Var.tdir [!Var.builddir / dir])
   @@ Seq.flat_map
-       (gen_build_statements include_dirs enabled_backends autotest
+       (gen_build_statements ~is_stdlib include_dirs enabled_backends autotest
           same_dir_modules)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs enabled_backends items =
   let open File in
   if List.mem Tests enabled_backends then
+    let subdirs =
+      List.filter
+        (fun d ->
+          Lazy.force Poll.catala_source_tree_root = None
+          || not (String.starts_with d ~prefix:"stdlib"))
+        subdirs
+    in
     let inputs =
       List.rev_append
         (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
@@ -719,17 +759,134 @@ let dir_test_rules dir subdirs enabled_backends items =
       ]
   else Seq.empty
 
-let output_ninja_file
-    nin_ppf
-    ~config
-    ~enabled_backends
-    ~autotest
-    ~var_bindings
-    item_tree =
-  let pp nj =
-    Nj.format_def nin_ppf nj;
-    Format.pp_print_cut nin_ppf ()
-  in
+let runtime_build_statements ~config enabled_backends =
+  let open File in
+  let stdbase = Var.(!builddir) / runtime_subdir in
+  (if List.mem OCaml enabled_backends then
+     let ocaml_src = Lazy.force Poll.ocaml_runtime_dir in
+     let ocaml_base = stdbase / "ocaml" / "catala_runtime" in
+     let runtime_cmi =
+       (* This one is tricky: in order for the catala interpreter to be able to
+          dynlink compiled Catala modules, we need to be sure that they have
+          been linked with a runtime abiding by the exact same cmi. Hence we
+          need to distribute the cmi with the runtime library, and to fetch it
+          from dune's _build when in the catala tree *)
+       if Lazy.force Poll.catala_source_tree_root = None then
+         ocaml_src / "catala_runtime.cmi"
+       else
+         Lazy.force Poll.runtime_dir
+         /../ "_build"
+         / "default"
+         / "runtimes"
+         / "ocaml"
+         / "catala_runtime.cmi"
+       (* This won't work if dune is not in its standard configuration and
+          "default" profile, but that won't affect anything outside of running
+          clerk from the catala source tree so it should be fine *)
+     in
+     [
+       Nj.build "phony"
+         ~inputs:[ocaml_base -.- "mli"; ocaml_base -.- "cmi"; Var.(!catala_exe)]
+         ~outputs:["@runtime-cmi"];
+       Nj.build "phony"
+         ~inputs:[ocaml_base -.- "cmx"]
+         ~outputs:["@runtime-ocaml"];
+       Nj.build "copy"
+         ~inputs:[ocaml_src / "catala_runtime.mli"]
+         ~outputs:[ocaml_base -.- "mli"];
+       Nj.build "copy" ~inputs:[runtime_cmi] ~outputs:[ocaml_base -.- "cmi"];
+       Nj.build "copy"
+         ~inputs:[ocaml_src / "catala_runtime.ml"]
+         ~outputs:[ocaml_base -.- "ml"];
+       Nj.build "ocaml-natobject"
+         ~inputs:[ocaml_base -.- "ml"]
+         ~implicit_in:[ocaml_base -.- "cmi"]
+         ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
+     ]
+   else [])
+  @ (if List.mem C enabled_backends then
+       let c_base = stdbase / "c" / "catala_runtime" in
+       let c_src = Lazy.force Poll.c_runtime_dir in
+       [
+         Nj.build "phony"
+           ~inputs:
+             [
+               c_base -.- "o";
+               c_base -.- "h";
+               (c_base /../ "dates_calc") -.- "o";
+               (c_base /../ "dates_calc") -.- "h";
+               Var.(!catala_exe);
+             ]
+           ~outputs:["@runtime-c"];
+         Nj.build "copy"
+           ~inputs:[c_src / "catala_runtime.h"]
+           ~outputs:[c_base -.- "h"];
+         Nj.build "copy"
+           ~inputs:[c_src / "catala_runtime.c"]
+           ~outputs:[c_base -.- "c"];
+         Nj.build "copy"
+           ~inputs:[c_src / "dates_calc.h"]
+           ~outputs:[(c_base /../ "dates_calc") -.- "h"];
+         Nj.build "copy"
+           ~inputs:[c_src / "dates_calc.c"]
+           ~outputs:[(c_base /../ "dates_calc") -.- "c"];
+         Nj.build "c-object"
+           ~inputs:[c_base -.- "c"]
+           ~implicit_in:[c_base -.- "h"]
+           ~outputs:[c_base -.- "o"];
+         Nj.build "c-object"
+           ~inputs:[(c_base /../ "dates_calc") -.- "c"]
+           ~implicit_in:[(c_base /../ "dates_calc") -.- "h"]
+           ~outputs:[(c_base /../ "dates_calc") -.- "o"];
+       ]
+     else [])
+  @ (if List.mem Python enabled_backends then
+       let python_base = stdbase / "python" / "catala_runtime" in
+       let python_src = Lazy.force Poll.python_runtime_dir in
+       [
+         Nj.build "phony"
+           ~inputs:[python_base -.- "py"; Var.(!catala_exe)]
+           ~outputs:["@runtime-python"];
+         Nj.build "copy"
+           ~inputs:[python_src / "catala_runtime.py"]
+           ~outputs:[python_base -.- "py"];
+       ]
+     else [])
+  @
+  if List.mem Java enabled_backends then
+    let java_base = stdbase / "java" in
+    let java_src = Lazy.force Poll.java_runtime_dir in
+    let java_files =
+      File.scan_tree
+        (fun f -> if Filename.check_suffix f ".java" then Some f else None)
+        java_src
+      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+      |> Seq.map (File.remove_prefix java_src)
+      |> List.of_seq
+    in
+    let java_list_file =
+      let base =
+        config.Clerk_cli.options.global.build_dir / runtime_subdir / "java"
+      in
+      File.with_out_channel (base / "java.files") (fun oc ->
+          List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
+      java_base / "java.files"
+    in
+    Nj.build "phony"
+      ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+      ~outputs:["@runtime-java"]
+    :: Nj.build "java-class" ~inputs:[]
+         ~implicit_in:
+           (java_list_file :: List.map (fun f -> java_base / f) java_files)
+         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+    :: List.map
+         (fun f ->
+           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+         java_files
+  else []
+
+let output_ninja_file_header pp ~config ~enabled_backends ~var_bindings =
   pp
     (Nj.Comment
        (Printf.sprintf "File generated by Clerk v.%s\n" Catala_utils.Cli.version));
@@ -737,25 +894,60 @@ let output_ninja_file
   List.iter (fun (var, contents) -> pp (Nj.binding var contents)) var_bindings;
   pp (Nj.Comment "\n- Base rules - #\n");
   List.iter pp (static_base_rules enabled_backends);
-  pp (Nj.Comment "\n- Project-specific build statements - #");
+  pp (Nj.Comment "\n- Runtime build statements - #\n");
+  List.iter pp (runtime_build_statements ~config enabled_backends)
+
+let output_ninja_file_item_statements
+    nin_ppf
+    ~config
+    ~enabled_backends
+    ~autotest
+    ~is_stdlib
+    item_tree
+    next =
   let rec print_and_get_items seq () =
     match seq () with
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
-      @@ gen_build_statements_dir dir
+      @@ gen_build_statements_dir dir ~is_stdlib
            config.Clerk_cli.options.global.include_dirs enabled_backends
            autotest items;
-      Nj.format nin_ppf @@ dir_test_rules dir subdirs enabled_backends items;
+      if not is_stdlib then
+        Nj.format nin_ppf @@ dir_test_rules dir subdirs enabled_backends items;
       Seq.append (List.to_seq items) (print_and_get_items seq) ()
-    | Seq.Nil ->
-      pp (Nj.Comment "\n- Global rules and defaults - #\n");
-      if List.mem Tests enabled_backends then
-        pp
-          (Nj.build "phony" ~outputs:["test"]
-             ~inputs:[File.(Var.(!builddir / ".@test"))]);
-      Seq.Nil
+    | Seq.Nil -> next ()
   in
-  Seq.memoize (print_and_get_items (Seq.once item_tree))
+  print_and_get_items (Seq.once item_tree)
+
+let output_ninja_file
+    nin_ppf
+    ~config
+    ~enabled_backends
+    ~autotest
+    ~var_bindings
+    stdlib_tree
+    project_tree =
+  let pp nj =
+    Nj.format_def nin_ppf nj;
+    Format.pp_print_cut nin_ppf ()
+  in
+  output_ninja_file_header pp ~config ~enabled_backends ~var_bindings;
+  pp (Nj.Comment "\n- Standard library build statements - #");
+  Seq.memoize
+  @@ output_ninja_file_item_statements nin_ppf ~config ~enabled_backends
+       ~autotest ~is_stdlib:true stdlib_tree
+  @@ Seq.append (fun () ->
+         pp (Nj.Comment "\n- Project-specific build statements - #");
+         Seq.Nil)
+  @@ output_ninja_file_item_statements nin_ppf ~config ~enabled_backends
+       ~autotest ~is_stdlib:false project_tree
+  @@ fun () ->
+  pp (Nj.Comment "\n- Global rules and defaults - #\n");
+  if List.mem Tests enabled_backends then
+    pp
+      (Nj.build "phony" ~outputs:["test"]
+         ~inputs:[File.(Var.(!builddir / ".@test"))]);
+  Seq.Nil
 
 (** {1 Driver} *)
 
@@ -865,40 +1057,6 @@ let with_ninja_process
     wait ();
     callback_ret
 
-let copy_runtime config enabled_backends =
-  let open File in
-  let filter_ext exts f = List.mem (extension f) exts in
-  let dstdir = config.Clerk_cli.options.global.build_dir / runtime_subdir in
-  match Lazy.force Clerk_poll.catala_source_tree_root with
-  | Some root ->
-    copy_dir ()
-      ~filter:(filter_ext ["catala_en"; "catala_fr"; "catala_pl"])
-      ~newer_only:true ~src:(root / "stdlib") ~dst:dstdir;
-    if List.mem OCaml enabled_backends then (
-      copy_dir ()
-        ~filter:(filter_ext ["ml"; "mli"])
-        ~newer_only:true ~src:(root / "stdlib") ~dst:(dstdir / "ocaml");
-      copy_dir ()
-        ~filter:(filter_ext ["ml"; "mli"])
-        ~newer_only:true
-        ~src:(root / "runtimes" / "ocaml")
-        ~dst:(dstdir / "ocaml"));
-    if List.mem C enabled_backends then
-      copy_dir ()
-        ~filter:(filter_ext ["c"; "h"])
-        ~newer_only:true
-        ~src:(root / "runtimes" / "c")
-        ~dst:(dstdir / "c");
-    if List.mem Python enabled_backends then
-      copy_dir () ~filter:(filter_ext ["py"]) ~newer_only:true
-        ~src:(root / "runtimes" / "python" / "src" / "catala")
-        ~dst:(dstdir / "python");
-    if List.mem Java enabled_backends then
-      copy_dir () ~filter:(filter_ext ["java"]) ~newer_only:true
-        ~src:(root / "runtimes" / "java")
-        ~dst:(dstdir / "java")
-  | None -> failwith "TODO"
-
 let run_ninja
     ~config
     ?(enabled_backends = all_backends)
@@ -909,13 +1067,37 @@ let run_ninja
   let enabled_backends =
     if autotest then OCaml :: enabled_backends else enabled_backends
   in
-  copy_runtime config enabled_backends;
   let var_bindings = base_bindings ~config ~enabled_backends ~autotest in
   with_ninja_process ~config ~clean_up_env ~ninja_flags (fun nin_ppf ->
-      let item_tree = Scan.tree "." in
+      let insource = Lazy.force Poll.catala_source_tree_root <> None in
+      let stdlib_dir = Lazy.force Poll.stdlib_dir in
+      let stdlib_tree =
+        Scan.tree stdlib_dir |> Seq.map (fun (f, fl, items) -> f, fl, items)
+      in
+      let item_tree =
+        Scan.tree "."
+        |> Seq.filter_map (fun (f, fl, items) ->
+               if insource && String.starts_with f ~prefix:"stdlib" then None
+               else
+                 let items =
+                   List.map
+                     (fun it ->
+                       let used_modules =
+                         match Scan.get_lang it.Scan.file_name with
+                         | Some lg ->
+                           ( "Stdlib_" ^ Cli.language_code lg,
+                             Pos.from_info f 0 0 0 0 )
+                           :: it.Scan.used_modules
+                         | None -> it.Scan.used_modules
+                       in
+                       { it with Scan.used_modules })
+                     items
+                 in
+                 Some (f, fl, items))
+      in
       let items =
         output_ninja_file nin_ppf ~config ~enabled_backends ~autotest
-          ~var_bindings item_tree
+          ~var_bindings stdlib_tree item_tree
       in
       let ret = callback nin_ppf (List.of_seq items) var_bindings in
       Format.pp_print_newline nin_ppf ();

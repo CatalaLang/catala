@@ -374,51 +374,29 @@ module Flags = struct
   end
 
   let stdlib_dir =
-    let arg =
+    let no_stdlib =
       Arg.(
         value
-        & opt ~vopt:(Some None) (some (some dir)) None
+        & flag
+        & info ["no-stdlib"]
+            ~doc:
+              "Disable loading of the standard library. Required for compiling \
+               the standard library itself.")
+    in
+    let stdlib =
+      Arg.(
+        value
+        & opt raw_file File.(G.raw_file ("_build" / "libcatala"))
         & info ["stdlib"] ~docv:"DIR"
             ~env:(Cmd.Env.info "CATALA_STDLIB")
             ~doc:
-              "Specifies where the standard library will be found. By default, \
-               this is auto-detected. Use without argument to ${b,disable} \
-               loading of the stdlib.")
+              "Specifies where the standard library will be found. This is \
+               normally handled automatically by $(b,clerk).")
     in
-    let finalise = function
-      | Some (Some dir) -> Some (lazy dir)
-      | Some None -> None
-      | None ->
-        let stdlib_dir () =
-          let exedir = File.dirname Sys.executable_name in
-          (* Lookup Stdlib dir within the catala source tree first *)
-          match
-            if File.basename exedir <> "compiler" then None
-            else
-              File.check_directory
-                File.(
-                  dirname Sys.executable_name
-                  / Filename.parent_dir_name
-                  / "stdlib"
-                  / "catala_stdlib")
-          with
-          | Some d -> d
-          | None -> (
-            let candidate =
-              File.(
-                exedir / Filename.parent_dir_name / "lib" / "catala" / "runtime")
-            in
-            match File.check_directory candidate with
-            | Some d -> d
-            | None ->
-              Message.error
-                "Could not locate the Catala Stdlib in@ %a.@ Please@ check@ \
-                 your@ installation"
-                File.format candidate)
-        in
-        Some (lazy (stdlib_dir ()))
-    in
-    Term.(const finalise $ arg)
+    Term.(
+      const (fun no_stdlib stdlib -> if no_stdlib then None else Some stdlib)
+      $ no_stdlib
+      $ stdlib)
 
   let include_dirs =
     let arg =

@@ -257,7 +257,7 @@ let copy ~src ~dst =
 
 let copy_in ~src ~dir = copy ~src ~dst:(dir / Filename.basename src)
 
-let rec newer f1 f2 =
+let newer f1 f2 =
   let open Unix in
   try (stat f1).st_mtime > (stat f2).st_mtime with Unix.Unix_error _ -> true
 

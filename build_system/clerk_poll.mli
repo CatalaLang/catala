@@ -29,15 +29,21 @@ val catala_exe : File.t Lazy.t
 val ocaml_libdir : File.t Lazy.t
 (** Locates the main [lib] directory containing the OCaml libs *)
 
-val ocaml_runtime_dir : File.t Lazy.t
-(** Locates the directory containing the OCaml runtime to link to *)
-
-val ocaml_include_and_lib_flags : (string list * string list) Lazy.t
 val ocaml_include_flags : string list Lazy.t
 val ocaml_link_flags : string list Lazy.t
+
+val runtime_dir : File.t Lazy.t
+(** Locates the directory containing the runtimes to link to (in one
+    subdirectory per backend) *)
+
+val stdlib_dir : File.t Lazy.t
+(** Locates the directory containing the standard library, including external
+    implementations. Equal to [runtime_dir] on a standard installation. *)
+
+val ocaml_runtime_dir : File.t Lazy.t
 val c_runtime_dir : File.t Lazy.t
 val python_runtime_dir : File.t Lazy.t
-val java_runtime : File.t Lazy.t
+val java_runtime_dir : File.t Lazy.t
 
 val catala_source_tree_root : File.t option Lazy.t
 (** Set if, and only if the current build happens from within the Catala

@@ -68,8 +68,7 @@
  (deps
   %{bin:catala}
   %{bin:clerk}
-  (alias compiler/plugins/plugins)
-  (alias stdlib/stdlib)))
+  (alias compiler/plugins/plugins)))
 
 ;; This garbles Clerk output, prefer to run from Makefile
 ;; (rule
