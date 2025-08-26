@@ -436,6 +436,14 @@ let rec lex_code (lexbuf : lexbuf) : token =
       lex_code lexbuf
   | "#[" -> ATTR_START
   | '"' -> lex_string (Buffer.create 73) lexbuf
+  | Plus("##", Star any_but_eol, eol) ->
+      (* Docstring comment *)
+      let s = Utf8.lexeme lexbuf in
+      let re_sep = Re.(compile @@ seq [alt [bos; seq [opt (char '\r'); char '\n']];
+                                       str "##"; opt (char ' ')]) in
+      let s = Re.split re_sep s |> List.tl |> String.concat "\n" in
+      L.update_acc lexbuf;
+      DOCSTRING s
   | '#', eol ->
       (* Comments *)
       L.update_acc lexbuf;

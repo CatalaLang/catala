@@ -96,6 +96,7 @@ declaration enumeration Enum1:
   -- Case2
 
 # #[test]
+## Doc for Scope1
 declaration scope Scope1:
   internal var1 content integer
     state before

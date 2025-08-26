@@ -95,6 +95,7 @@ déclaration énumération Énum1:
   -- Cas2
 
 # #[test]
+## Documentation pour Scope1
 déclaration champ d'application Scope1:
   interne var1 contenu entier
     état avant

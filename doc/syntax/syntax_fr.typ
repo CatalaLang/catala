@@ -155,6 +155,9 @@ déclaration énumération Énum1:
   -- Cas2
 ```, [Déclaration d'énumération],
 ```catala-fr-code
+## Documetation de Chp1
+```, [Texte de documentation],
+```catala-fr-code
 #[test]
 ```, [Annot. champ de test],
 ```catala-fr-code

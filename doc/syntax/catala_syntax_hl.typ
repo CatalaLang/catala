@@ -86,7 +86,8 @@
     show regex("\b\p{Ll}[\pL\d_']*[.]\p{Ll}[\pL\d_']*\b"): txt => {
         show regex("[.].*"): text.with(..style.field); txt
     }
-    show regex("#[^\[].*"): override.with(style.comment)
+    show regex("#.*"): override.with(style.comment)
+    show regex("##.*"): override.with(style.comment + (style: "normal", weight: normal))
     show regex("#\[[^\]]+\]"): override.with(style.annotation + (style: "normal"))
     txt
 }
@@ -139,6 +140,7 @@
         show regex("[.].*"): text.with(..style.field); txt
     }
     show regex("#.*"): override.with(style.comment)
+    show regex("##.*"): override.with(style.comment + (style: "normal", weight: normal))
     show regex("#\[[^\]]+\]"): override.with(style.annotation + (style: "normal"))
     txt
 }

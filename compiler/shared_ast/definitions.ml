@@ -432,7 +432,7 @@ type Pos.attr +=
   | Src of attr_path * attr_value * Pos.t
   | DebugPrint of { label : string option }
   | Test
-  | Doc of string
+  | Doc of string * Pos.t
   | ImplicitPosArg
 
 (** {2 Markings} *)
