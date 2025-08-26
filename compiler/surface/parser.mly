@@ -71,7 +71,7 @@ end>
 
 %right top_decl
 
-%right ATTR_START
+%right ATTR_START DOCSTRING
 
 (* Precedence of expression constructions *)
 %right top_expr
@@ -168,6 +168,9 @@ let attribute :=
   value = option(preceded(EQUAL, attribute_value)) ;
   RBRACKET ; {
   Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
+}
+| s = DOCSTRING ; {
+  Shared_ast.Doc (s, get_pos $loc)
 }
 
 let attr(x) ==

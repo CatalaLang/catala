@@ -202,7 +202,7 @@ let translate_attr ~context = function
           None)
         else
           match v with
-          | String (s, _) -> Some (Doc s)
+          | String (s, pos) -> Some (Doc (s, pos))
           | _ ->
             Message.warning ~pos
               "Invalid value for the @{<magenta>#[doc]@} attribute: expecting \
@@ -241,7 +241,10 @@ let translate_attr ~context = function
         Message.warning ~pos "Unrecognised attribute \"%s\"" p1;
         None)
       else handle_extra_attributes context plugin ps v ppos)
-  | attr -> Some attr
+  | attr ->
+    (* Docstrings (`## ` comments) end up here as they are `Doc` attributes
+       already. No check that they are in a relevant spot is done, though. *)
+    Some attr
 
 let translate_pos context pos =
   Pos.attrs pos

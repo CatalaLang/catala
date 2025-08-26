@@ -147,7 +147,10 @@ declaration enumeration Enum1:
   -- Case1 content integer
   -- Case2
 ```, [Enumeration declaration],
-```catala-fr-code
+```catala-en-code
+## Documentation for Scope1
+```, [Documentation string],
+```catala-en-code
 #[test]
 ```, [Test scope annotation],
 ```catala-en-code
