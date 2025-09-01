@@ -16,6 +16,7 @@
    the License. *)
 
 open Global
+module G = Global
 
 (* Manipulation of types used by flags & options *)
 
@@ -371,6 +372,31 @@ module Flags = struct
       in
       Term.(const make $ input_src $ name_flag $ directory $ flags)
   end
+
+  let stdlib_dir =
+    let no_stdlib =
+      Arg.(
+        value
+        & flag
+        & info ["no-stdlib"]
+            ~doc:
+              "Disable loading of the standard library. Required for compiling \
+               the standard library itself.")
+    in
+    let stdlib =
+      Arg.(
+        value
+        & opt raw_file File.(G.raw_file ("_build" / "libcatala"))
+        & info ["stdlib"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_STDLIB")
+            ~doc:
+              "Specifies where the standard library will be found. This is \
+               normally handled automatically by $(b,clerk).")
+    in
+    Term.(
+      const (fun no_stdlib stdlib -> if no_stdlib then None else Some stdlib)
+      $ no_stdlib
+      $ stdlib)
 
   let include_dirs =
     let arg =

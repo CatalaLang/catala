@@ -1,0 +1,24 @@
+
+```catala
+declaration scope S:
+  output a content date
+
+scope S:
+  definition a equals Date.of_year_month_day of (31, 2, 2023)
+```
+
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  During evaluation: ambiguous comparison between durations in different
+│  units (e.g. months vs. days).
+│
+├─➤ tests/date/bad/lib_exn.catala_en:7.23-7.45:
+│   │
+│ 7 │   definition a equals Date.of_year_month_day of (31, 2, 2023)
+│   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```

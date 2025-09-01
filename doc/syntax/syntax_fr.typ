@@ -155,6 +155,9 @@ déclaration énumération Énum1:
   -- Cas2
 ```, [Déclaration d'énumération],
 ```catala-fr-code
+## Documetation de Chp1
+```, [Texte de documentation],
+```catala-fr-code
 #[test]
 ```, [Annot. champ de test],
 ```catala-fr-code
@@ -277,7 +280,7 @@ définition var1 état avant
 assertion ...
 ```, [Assertion],
 ```catala-fr-code
-date arrondi dé·croissant
+date arrondi inf·supérieur
 ```, [Mode arrondi dates]
 )
 

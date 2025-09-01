@@ -15,9 +15,9 @@
    the License. *)
 
 open Js_of_ocaml
-module R_ocaml = Runtime_ocaml.Runtime
+module R_ocaml = Catala_runtime
 
-class type source_position = object
+class type code_location = object
   method fileName : Js.js_string Js.t Js.prop
   method startLine : int Js.prop
   method endLine : int Js.prop
@@ -29,7 +29,7 @@ end
 class type raw_event = object
   method eventType : Js.js_string Js.t Js.prop
   method information : Js.js_string Js.t Js.js_array Js.t Js.prop
-  method sourcePosition : source_position Js.t Js.optdef Js.prop
+  method sourcePosition : code_location Js.t Js.optdef Js.prop
   method loggedIOJson : Js.js_string Js.t Js.prop
   method loggedValueJson : Js.js_string Js.t Js.prop
 end
@@ -71,7 +71,7 @@ let date_of_js d =
 
 let date_to_js d = Js.string @@ R_ocaml.date_to_string d
 
-let position_of_js (jpos : source_position Js.t) : R_ocaml.source_position =
+let position_of_js (jpos : code_location Js.t) : R_ocaml.code_location =
   {
     R_ocaml.filename = Js.to_string jpos##.fileName;
     start_line = jpos##.startLine;
@@ -82,7 +82,7 @@ let position_of_js (jpos : source_position Js.t) : R_ocaml.source_position =
       Js.to_array jpos##.lawHeadings |> Array.map Js.to_string |> Array.to_list;
   }
 
-let position_to_js (pos : R_ocaml.source_position) : source_position Js.t =
+let position_to_js (pos : R_ocaml.code_location) : code_location Js.t =
   object%js
     val mutable fileName = Js.string pos.R_ocaml.filename
     val mutable startLine = pos.R_ocaml.start_line

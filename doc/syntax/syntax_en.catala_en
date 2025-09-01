@@ -96,6 +96,7 @@ declaration enumeration Enum1:
   -- Case2
 
 # #[test]
+## Doc for Scope1
 declaration scope Scope1:
   internal var1 content integer
     state before
@@ -203,7 +204,8 @@ scope Scope1
 
   assertion 0
 
-  date round decreasing
+  date round down
+  date round up
 ```
 
 # List operations
@@ -268,9 +270,9 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:104.14-104.20:
+├─➤ doc/syntax/syntax_en.catala_en:105.14-105.20:
 │     │
-│ 104 │   sub1 scope Scope0
+│ 105 │   sub1 scope Scope0
 │     │              ‾‾‾‾‾‾
 └─ Metadata declaration
 #return code 123#

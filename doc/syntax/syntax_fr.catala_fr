@@ -95,6 +95,7 @@ déclaration énumération Énum1:
   -- Cas2
 
 # #[test]
+## Documentation pour Scope1
 déclaration champ d'application Scope1:
   interne var1 contenu entier
     état avant
@@ -201,7 +202,8 @@ champ d'application Chp1
 
   assertion 0
 
-  date arrondi décroissant
+  date arrondi inférieur
+  date arrondi supérieur
 ```
 
 # Opérations sur les listes
@@ -268,9 +270,9 @@ $ catala typecheck
 │
 │  No scope named Chp0 found
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:103.28-103.32:
+├─➤ doc/syntax/syntax_fr.catala_fr:104.28-104.32:
 │     │
-│ 103 │   sub1 champ d'application Chp0
+│ 104 │   sub1 champ d'application Chp0
 │     │                            ‾‾‾‾
 └─ Déclaration des métadonnées
 #return code 123#

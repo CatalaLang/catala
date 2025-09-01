@@ -71,6 +71,13 @@ let catala_test_command test_flags catala_exe catala_opts args out =
     else catala_exe
   in
   match args with
+  | "latex" :: flags ->
+    Some
+      (Array.of_list
+         ((catala_exe :: "latex" :: flags)
+         @ List.filter
+             (fun s -> not (String.starts_with ~prefix:"--stdlib=" s))
+             catala_opts))
   | cmd0 :: flags -> (
     try
       let cmd0, flags =

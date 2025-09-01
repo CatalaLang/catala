@@ -136,10 +136,12 @@ let backend_extensions =
   ]
 
 let extensions_backend =
-  List.flatten
-    (List.map
-       (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
-       backend_extensions)
+  ("cmxa", Clerk_rules.OCaml)
+  :: ("class", Clerk_rules.Java)
+  :: List.flatten
+       (List.map
+          (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
+          backend_extensions)
 
 let backend_subdir_list =
   [
@@ -163,9 +165,11 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   match backend with
   | `OCaml ->
     get_var var_bindings Var.ocamlopt_exe
+    @ List.map (expand_vars var_bindings)
+        (Lazy.force Clerk_poll.ocaml_link_flags)
+    @ [build_dir / "libcatala" / "ocaml" / "catala_runtime.cmx"]
     @ get_var var_bindings Var.ocaml_flags
     @ get_var var_bindings Var.ocaml_include
-    @ get_var var_bindings Var.runtime_ocaml_libs
     @ List.map
         (fun it ->
           let f = Scan.target_file_name it in
@@ -179,15 +183,17 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       ]
   | `C ->
     get_var var_bindings Var.cc_exe
+    @ [build_dir / "libcatala" / "c" / "dates_calc.o"]
+    @ [build_dir / "libcatala" / "c" / "catala_runtime.o"]
     @ List.map
         (fun it ->
           let f = Scan.target_file_name it in
           (build_dir / dirname f / "c" / basename f) ^ ".o")
         (link_deps item)
+    @ ["-lgmp"]
     @ [target -.- "o"; Filename.remove_extension target ^ "+main.o"]
     @ get_var var_bindings Var.c_flags
     @ get_var var_bindings Var.c_include
-    @ get_var var_bindings Var.runtime_c_libs
     @ ["-o"; target -.- "exe"]
   | `Python ->
     (* a "linked" python module is a "Module.py" folder containing the module
@@ -250,11 +256,19 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         (fun class_file -> class_file :: fetch_inner_classes class_file)
         class_files
     in
+    let runtime_class_files =
+      File.scan_tree
+        (fun f -> if Filename.check_suffix f ".class" then Some f else None)
+        (build_dir / "libcatala" / "java")
+      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+      |> List.of_seq
+    in
     get_var var_bindings Var.jar
     @ ["--create"; "--file"; jar_target]
     @ List.concat_map
         (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
         classes
+    @ runtime_class_files
   | `Custom rule ->
     let var_bindings =
       ( Var.make "src",
@@ -336,6 +350,14 @@ let make_target ~build_dir ~backend item =
   in
   build_dir / base
 
+let backend_runtime_targets enabled_backends =
+  (if List.mem Clerk_rules.OCaml enabled_backends then ["@runtime-ocaml"]
+   else [])
+  @ (if List.mem Clerk_rules.C enabled_backends then ["@runtime-c"] else [])
+  @ (if List.mem Clerk_rules.Python enabled_backends then ["@runtime-python"]
+     else [])
+  @ if List.mem Clerk_rules.Java enabled_backends then ["@runtime-java"] else []
+
 open Cmdliner
 
 let raw_cmd : int Cmd.t =
@@ -378,11 +400,14 @@ let build_clerk_target
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
+  let local_runtime_dir bk =
+    File.(build_dir / Clerk_rules.runtime_subdir / backend_subdir bk)
+  in
   let enabled_backends =
     List.map Clerk_rules.backend_from_config target.backends
     |> List.sort_uniq Stdlib.compare
   in
-  let install_targets =
+  let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
@@ -419,10 +444,15 @@ let build_clerk_target
             (fun module_item ->
               let open File in
               let base =
-                build_dir
-                / dirname module_item.Scan.file_name
-                / backend_subdir bk
-                / (Option.get module_item.module_def |> Mark.remove)
+                if Filename.is_relative module_item.Scan.file_name then
+                  build_dir
+                  / module_item.Scan.file_name
+                  /../ backend_subdir bk
+                  / (Option.get module_item.module_def |> Mark.remove)
+                else
+                  (* Standard library module *)
+                  local_runtime_dir bk
+                  / (Option.get module_item.module_def |> Mark.remove)
               in
               List.assoc bk backend_extensions
               |> List.map (fun ext -> (module_item, target, bk), base -.- ext))
@@ -433,7 +463,7 @@ let build_clerk_target
     in
     let all_targets =
       List.fold_left
-        (fun acc ((item, _target, backend), f) ->
+        (fun acc ((item, _target, backend), _) ->
           let target =
             make_target ~build_dir ~backend:(rules_backend backend) item
           in
@@ -441,36 +471,50 @@ let build_clerk_target
             if backend = OCaml then [target; File.(target -.- "cmxs")]
             else [target]
           in
-          Message.debug "Building file: %s" f;
           targets @ acc)
-        [] all_target_files
+        (backend_runtime_targets enabled_backends)
+        all_target_files
       |> List.rev
     in
+    let install_targets =
+      List.map (fun ((_item, _target, bk), file) -> bk, file) all_target_files
+    in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
-    all_target_files
+    install_targets, all_modules_deps
   in
   let open File in
   let prefix_dir = target_dir / target.tname in
   List.iter
-    (fun ((_item, _target, bk), src) ->
+    (fun (bk, src) ->
       let dir = prefix_dir / backend_subdir bk in
       ensure_dir dir;
       copy_in ~dir ~src)
     install_targets;
-  if target.Config.include_runtime then
-    target.Config.backends
-    |> List.iter (fun bk ->
-           let bk = Clerk_rules.backend_from_config bk in
-           let src =
-             match bk with
-             | Clerk_rules.OCaml -> Clerk_poll.ocaml_runtime_dir
-             | Clerk_rules.C -> Clerk_poll.c_runtime_dir
-             | Clerk_rules.Python -> Clerk_poll.python_runtime_dir
-             | Clerk_rules.Java -> Lazy.map File.dirname Clerk_poll.java_runtime
-             | Clerk_rules.Tests -> assert false
-           in
-           copy_dir () ~src:(Lazy.force src)
-             ~dst:(prefix_dir / backend_subdir bk));
+  target.Config.backends
+  |> List.iter (fun bk ->
+         let bk = Clerk_rules.backend_from_config bk in
+         let dir = prefix_dir / backend_subdir bk in
+         let extensions = List.assoc bk backend_extensions in
+         match bk with
+         | Clerk_rules.Java ->
+           List.iter
+             (fun subdir ->
+               copy_dir ()
+                 ~src:(local_runtime_dir bk / subdir)
+                 ~dst:(dir / subdir))
+             ["catala"; "org"]
+         | Clerk_rules.Tests -> assert false
+         | bk ->
+           List.iter
+             (fun ext ->
+               let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
+               if File.exists src then copy_in ~dir ~src)
+             extensions);
+  if target.Config.include_sources then
+    all_modules_deps
+    |> List.map (fun it -> it.Scan.file_name)
+    |> List.sort_uniq compare
+    |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src);
   target, prefix_dir
 
 type targets = { clerk_targets : Config.target list; others : string list }
@@ -644,10 +688,10 @@ let build_direct_targets
           exec_targets
       in
       let final_ninja_targets =
-        List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
+        backend_runtime_targets enabled_backends
+        @ List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
-      if final_ninja_targets <> [] then
-        Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
+      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
@@ -732,27 +776,36 @@ let build_cmd : int Cmd.t =
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
-    "Build command for either $(i,individual files) or $(i,clerk targets). For \
-     $(i,individual files), and given the corresponding Catala module is \
-     declared, this can be used to build .ml, .cmxs, .c, .py files, etc. These \
-     files, along with their dependencies, are written into $(i,build-dir) (by \
-     default $(b,_build)). If a catala extension is used as target, this \
-     compiles all its dependencies. The format of the targets is \
-     $(b,src-dir/BACKEND/file.ext). For example, to build a C object file from \
-     $(b,foo/bar.catala_en), one would run:\n\
-     $(b,clerk build foo/c/bar.o)\n\
-     and the resulting file would be in $(b,_build/foo/c/bar.o). When given \
-     $(i,clerk targets), that are defined in a $(b,clerk.toml) configuration \
-     file, it will build all their required dependencies for all their \
-     specified backends along with their source files and copy them over to \
-     the $(i,target-dir) (by default $(b,_target)). For instance, $(b,clerk \
-     build my-target) will generate a directory $(b,target-dir/my-target/c/) \
-     that contains all necessary files to export the target as a self \
-     contained library. When no arguments are given, $(b,clerk build) will \
-     build all the defined $(i,clerk targets) found in the $(b,clerk.toml) or \
-     the project's default targets if any."
+    "Build command for either $(i,individual files) or $(i,clerk targets)."
   in
-  Cmd.v (Cmd.info ~doc "build")
+  let man =
+    [
+      `S Manpage.s_description;
+      `P
+        "For $(i,individual files), and given the corresponding Catala module \
+         is declared, this can be used to build .ml, .cmxs, .c, .py files, \
+         etc. These files, along with their dependencies, are written into \
+         $(i,build-dir) (by default $(b,_build)). If a file with a catala \
+         extension is used as target, this compiles all its dependencies. The \
+         format of the targets is $(b,src-dir/BACKEND/file.ext). For example, \
+         to build a C object file from $(b,foo/bar.catala_en), one would run:";
+      `Pre "clerk build foo/c/bar.o";
+      `P
+        "and the resulting file would be in $(b,_build/foo/c/bar.o). When \
+         given $(i,clerk targets), that are defined in a $(b,clerk.toml) \
+         configuration file, it will build all their required dependencies for \
+         all their specified backends along with their source files and copy \
+         them over to the $(i,target-dir) (by default $(b,_target)).";
+      `P
+        "For instance, $(b,clerk build my-target) will generate a directory \
+         $(b,target-dir/my-target/c/) that contains all necessary files to \
+         export the target as a self contained library. When no arguments are \
+         given, $(b,clerk build) will build all the defined $(i,clerk targets) \
+         found in the $(b,clerk.toml) or the project's default targets if any.";
+    ]
+  in
+  Cmd.v
+    (Cmd.info ~doc ~man "build")
     Term.(
       const run
       $ Cli.init_term ()
@@ -771,7 +824,7 @@ let setup_report_format ?fix_path verbosity diff_command =
   | `Verbose -> Clerk_report.set_display_flags ~files:`All ~tests:`All ());
   Clerk_report.set_display_flags ?fix_path ~diff_command ()
 
-let run_artifact ~backend ~var_bindings ?scope src =
+let run_artifact config ~backend ~var_bindings ?scope src =
   let open File in
   match backend with
   | `OCaml ->
@@ -786,25 +839,27 @@ let run_artifact ~backend ~var_bindings ?scope src =
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
   | `Python ->
+    let build_dir = config.Cli.options.global.build_dir in
     let cmd =
       let base = Filename.(basename (remove_extension src)) in
       get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
     in
     let pythonpath =
       String.concat ":"
-        ((File.dirname src :: get_var var_bindings Var.runtime_python_dir)
-        @ [Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")])
+        [
+          build_dir / "libcatala" / "python";
+          File.dirname src;
+          Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
+        ]
     in
     Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
       (String.concat " " cmd);
     run_command ~setenv:["PYTHONPATH", pythonpath] cmd
   | `Java ->
-    let jars =
-      String.concat ":"
-        (get_var var_bindings Var.runtime_java_jar @ [src -.- "jar"])
-    in
     let target_main = Filename.basename src |> Filename.chop_extension in
-    let cmd = get_var var_bindings Var.java @ ["-cp"; jars; target_main] in
+    let cmd =
+      get_var var_bindings Var.java @ ["-cp"; src -.- "jar"; target_main]
+    in
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
 
@@ -842,11 +897,12 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
   in
   let link_deps = linking_dependencies items in
+  let runtime_targets = backend_runtime_targets [enable_backend backend] in
   let ninja_targets =
     let backend =
       match backend with
       | `Interpret -> `Interpret_module
-      | (`C | `OCaml | `Python | `Java) as b -> b
+      | (`OCaml | `C | `Python | `Java) as bk -> bk
     in
     List.fold_left
       (fun acc (it, t) ->
@@ -870,7 +926,8 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
             (fun acc it ->
               String.Set.add (make_target ~build_dir ~backend it) acc)
             acc (link_deps it))
-      String.Set.empty base_targets
+      (String.Set.of_list runtime_targets)
+      base_targets
     |> String.Set.elements
   in
   Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
@@ -900,7 +957,7 @@ let run_tests config backend cmd scope (test_targets, link_deps, var_bindings) =
     let cmd = link_cmd item target in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     match run_command cmd with
-    | 0 -> run_artifact ~backend ~var_bindings ?scope target
+    | 0 -> run_artifact config ~backend ~var_bindings ?scope target
     | n -> n)
 
 let run_cmd =
@@ -1269,6 +1326,7 @@ let main_cmd =
     ]
 
 let main () =
+  Sys.catch_break true;
   try exit (Cmdliner.Cmd.eval' ~catch:false main_cmd) with
   | Catala_utils.Cli.Exit_with n -> exit n
   | Message.CompilerError content ->
@@ -1280,6 +1338,11 @@ let main () =
   | Message.CompilerErrors contents ->
     List.iter (fun c -> Message.Content.emit c Error) contents;
     exit Cmd.Exit.some_error
+  | Sys.Break ->
+    let bt = Printexc.get_raw_backtrace () in
+    Format.fprintf (Message.err_ppf ()) "@.- Interrupted -@.";
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    exit 130
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit

@@ -1,5 +1,18 @@
 (library
- (name runtime_ocaml)
+ (name runtime)
  (public_name catala.runtime_ocaml)
+ (wrapped false)
+ ; Important for the cmi to be shareable between interpreter and
+ ; compiled modules: the cmx may differ
+ (ocamlc_flags :standard -opaque)
  (libraries dates_calc zarith zarith_stubs_js)
- (modules runtime))
+ (modules catala_runtime))
+
+;; that cmi is critical for linking catala programs
+;; so we copy it out of dune's hidden directory for
+;; more convenient access.
+;; See Clerk_rules:runtime_build_statements
+
+(rule
+ (action
+  (copy .runtime.objs/byte/catala_runtime.cmi catala_runtime.cmi)))

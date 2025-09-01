@@ -121,7 +121,7 @@ Two more modules contain additional features for the compiler:
 
 The Catala runtimes documentation is available here:
 
-{!modules: Runtime_ocaml.Runtime Runtime_jsoo.Runtime}
+{!modules: Runtime Runtime_jsoo.Runtime}
 
 Last, it is possible to customize the backend to the compiler using a plugin
 mechanism. The API is defined inside the following module:

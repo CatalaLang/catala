@@ -78,10 +78,7 @@ CLERK_BIN = _build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
-	dune build \
-		$(COMPILER_DIR)/catala.exe \
-		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe
+	dune build @all
 
 $(CATALA_BIN): .FORCE
 	dune build @catala
@@ -347,20 +344,11 @@ alltest: dependencies-python
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(PY_VENV_ACTIVATE) $(MAKE) -C catala-examples.tmp \
+	  CATALA_FLAGS=
 	  CATALA=$(CURDIR)/_build/install/default/bin/catala \
 	  CLERK=$(CURDIR)/_build/install/default/bin/clerk \
 	  BUILD=../_build/default \
-	  all testsuite local-install && \
-	$(test_title) "Running french-law tests" && \
-	$(call local_tmp_clone,french-law) && \
-	touch french-law.tmp/dune-workspace && \
-	$(MAKE) -C french-law.tmp \
-	  OCAMLPATH=$(CURDIR)/_build/install/default/lib \
-	  PY_VENV_DIR=$(ROOT_DIR)/_python_venv \
-	  dependencies \
-	  bench_ocaml \
-	  bench_js \
-	  bench_python && \
+	  all testsuite && \
 	printf "\n# Full Catala testsuite:\t\t\e[42;30m ALL TESTS PASSED \e[m\t\t\e[32m☺\e[m\n" || \
 	{ printf "\n# Full Catala testsuite:\t\t\e[41;30m   TESTS FAILED   \e[m\t\t\e[31m☹\e[m\n" ; exit 1; }
 

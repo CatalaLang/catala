@@ -23,7 +23,7 @@ syn match Include "^\s*>\s*Include:.*$"
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match Keyword contained "\<\(scope\|depends\s\+on\|declaration\|includes\|list\s\+of\|optional\s\+of\|content\|type\|optional\|structure\|enumeration\|context\|rule\|under\s\+condition\|condition\|data\|consequence\|fulfilled\|equals\|assertion\|definition\|state\|label\|exception\|anything\|list\s+empty\)\>"
-syn match Statement contained "\<\(match\|with\s\+pattern\|but\s\+replace\|fixed\|by\|decreasing\|increasing\|varies\|with\|we\s\+have\|let\|in\|such\s\+that\|exists\|for\|all\|of\|if\|then\|else\|initial\|among\|is\s+maximum\|is\s+minimum\|combine\|map\s+each\|to\|initially\\|impossible)\>"
+syn match Statement contained "\<\(match\|with\s\+pattern\|but\s\+replace\|fixed\|by\|down\|up\|varies\|with\|we\s\+have\|let\|in\|such\s\+that\|exists\|for\|all\|of\|if\|then\|else\|initial\|among\|is\s+maximum\|is\s+minimum\|combine\|map\s+each\|to\|initially\\|impossible)\>"
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
@@ -31,7 +31,7 @@ syn match Float contained "\<\([0-9]\+\(,[0-9]*\)*\(.[0-9]*\)\{0,1}\)\>"
 syn keyword Boolean contained true false
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|not\|or\|xor\|and\|\$\|%\|month\|year\|day\)"
 syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
-syn keyword Type contained integer boolean date duration money text decimal number sum
+syn keyword Type contained integer boolean date duration money code_location decimal number sum
 
 syn region ctxt contained
       \ matchgroup=Keyword start="\<\(context\|input\|output\|internal\)\(\|\s\+output\)"

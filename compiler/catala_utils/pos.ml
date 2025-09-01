@@ -37,6 +37,7 @@ let attrs t = t.attr
 let set_attrs t attr = { t with attr }
 let add_attr t attr = { t with attr = attr :: t.attr }
 let add_attrs t attrs = List.fold_left add_attr t attrs
+let rem_attr t attr = { t with attr = List.filter (fun a -> a <> attr) t.attr }
 let get_attrs t f = List.filter_map f t.attr
 
 let get_attr t f =

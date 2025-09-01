@@ -56,7 +56,7 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -O --closure-conversion 
 
 #[test]
-type Foo_in = { b_in: option (bool, source_position); }
+type Foo_in = { b_in: option (bool, code_location); }
 
 #[test]
 type Foo = { z: integer; }
@@ -120,7 +120,7 @@ let topval closure_r__1 : (closure_env, integer) → integer =
 
 #[test]
 let scope foo (foo_in: Foo_in): Foo =
-  let get b : option (bool, source_position) = foo_in.b_in in
+  let get b : option (bool, code_location) = foo_in.b_in in
   let set b__1 : bool =
     match b with
     | Absent → (true, <scope_call_func_struct_closure:17.11-12>).0

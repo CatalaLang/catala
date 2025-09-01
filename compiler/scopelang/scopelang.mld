@@ -24,7 +24,6 @@ The {!module:Scopelang.From_desugared} pass performs a few important transformat
 - the construction of the default trees (see {!Shared_ast.EDefault}) from the list of prioritized rules
 - the resolution of overloads (using {!Shared_ast.Typing})
 - wrapping of subscope arguments
-- de-tuplification of function calls
 
 The rest of the pass is performed on the scopelang ast:
 - {!module:Scopelang.Dependency} analyses inter-scope dependencies as well as the well-foundedness of types
