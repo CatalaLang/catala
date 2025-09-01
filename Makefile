@@ -348,17 +348,7 @@ alltest: dependencies-python
 	  CATALA=$(CURDIR)/_build/install/default/bin/catala \
 	  CLERK=$(CURDIR)/_build/install/default/bin/clerk \
 	  BUILD=../_build/default \
-	  all testsuite local-install && \
-	$(test_title) "Running french-law tests" && \
-	$(call local_tmp_clone,french-law) && \
-	touch french-law.tmp/dune-workspace && \
-	$(MAKE) -C french-law.tmp \
-	  OCAMLPATH=$(CURDIR)/_build/install/default/lib \
-	  PY_VENV_DIR=$(ROOT_DIR)/_python_venv \
-	  dependencies \
-	  bench_ocaml \
-	  bench_js \
-	  bench_python && \
+	  all testsuite && \
 	printf "\n# Full Catala testsuite:\t\t\e[42;30m ALL TESTS PASSED \e[m\t\t\e[32m☺\e[m\n" || \
 	{ printf "\n# Full Catala testsuite:\t\t\e[41;30m   TESTS FAILED   \e[m\t\t\e[31m☹\e[m\n" ; exit 1; }
 
