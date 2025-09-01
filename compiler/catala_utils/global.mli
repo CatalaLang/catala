@@ -103,3 +103,7 @@ val input_src_file : file input_src -> file
 
 val raw_file : string -> raw_file
 (** Create a [raw_file], for use directly after parsing from the cmdline *)
+
+val has_localised_stdlib : backend_lang -> bool
+(** Returns true for languages which should use a specialised stdlib ; when
+    false, the English stdlib must be used as fallback. *)

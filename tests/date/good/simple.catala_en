@@ -27,31 +27,11 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-cli
-$ catala test-scope A --debug
-[DEBUG] = INIT =
-[DEBUG] = SURFACE =
-[DEBUG] Parsing "tests/date/good/simple.catala_en"
-[DEBUG] Loading module interfaces...
-[DEBUG] Parsing "libcatala/stdlib_en.catala_en"
-[DEBUG] Parsing "libcatala/date_en.catala_en"
-[DEBUG] Parsing "libcatala/date_internal.catala_en"
-[DEBUG] = DESUGARED =
-[DEBUG] Name resolution...
-[DEBUG] Desugaring...
-[DEBUG] Disambiguating...
-[DEBUG] Linting...
-[DEBUG] = SCOPELANG =
-[DEBUG] = DCALC =
-[DEBUG] Typechecking...
-[DEBUG] Translating to default calculus...
-[DEBUG] Typechecking again...
-[DEBUG] Loading shared modules... Date_internal Date_en Stdlib_en
-[DEBUG] Starting interpretation...
-[DEBUG] End of interpretation
+$ catala test-scope A
 ┌─[RESULT]─ A ─
 │ t = 2019-01-31
 │ x = 2019-01-01
 │ y = 2002-09-30
-│ z = [0 years, 0 months, 5937 days]
+│ z = [5937 days]
 └─
 ```
