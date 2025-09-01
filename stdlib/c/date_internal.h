@@ -5,7 +5,10 @@
 
 
 CATALA_DATE DateInternal__of_ymd
-    (CATALA_POSITION pos, CATALA_INT dyear, CATALA_INT dmonth, CATALA_INT dday);
+    (CATALA_POSITION pos,
+     CATALA_INT dyear,
+     CATALA_INT dmonth,
+     CATALA_INT dday);
 
 const CATALA_TUPLE(CATALA_INT;CATALA_INT;CATALA_INT) DateInternal__to_ymd
     (CATALA_DATE d);

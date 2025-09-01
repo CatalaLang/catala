@@ -4,28 +4,38 @@
 
 
 CATALA_DATE DateInternal__of_ymd
-    (CATALA_POSITION pos, CATALA_INT dyear, CATALA_INT dmonth, CATALA_INT dday)
+    (CATALA_POSITION pos,
+     CATALA_INT dyear,
+     CATALA_INT dmonth,
+     CATALA_INT dday)
 {
-  static const catala_code_position pos1[1] =
-    {{"stdlib/date_internal.catala_en", 8, 10, 8, 20}};
-  catala_error(catala_impossible, pos1, 1);
+  if (mpz_fits_slong_p(dyear) && mpz_fits_ulong_p(dmonth) && mpz_fits_ulong_p(dday)) {
+    dc_date *ret = catala_malloc(sizeof(dc_date));
+    const long int y = mpz_get_si(dyear);
+    const unsigned long int m = mpz_get_ui(dmonth);
+    const unsigned long int d = mpz_get_ui(dday);
+    const int success = dc_make_date(ret, y, m, d);
+    if (success) return ret;
+  }
+  catala_error(catala_uncomparable_durations, pos, 1);
   abort();
 }
 
 const CATALA_TUPLE(CATALA_INT;CATALA_INT;CATALA_INT) DateInternal__to_ymd
     (CATALA_DATE d)
 {
-  static const catala_code_position pos[1] =
-    {{"stdlib/date_internal.catala_en", 12, 10, 12, 20}};
-  catala_error(catala_impossible, pos, 1);
-  abort();
+  CATALA_TUPLE(CATALA_INT;CATALA_INT;CATALA_INT) ret =
+    catala_malloc(3 * sizeof(tuple_element));
+  ret[0].content = catala_new_int(dc_date_year(d));
+  ret[1].content = catala_new_int(dc_date_month(d));
+  ret[2].content = catala_new_int(dc_date_day(d));
+  return ret;
 }
 
 CATALA_DATE DateInternal__last_day_of_month (CATALA_DATE d)
 {
-  static const catala_code_position pos[1] =
-    {{"stdlib/date_internal.catala_en", 16, 10, 16, 20}};
-  catala_error(catala_impossible, pos, 1);
-  abort();
+  dc_date *ret = catala_malloc(sizeof(dc_date));
+  dc_last_day_of_month(ret, d);
+  return ret;
 }
 

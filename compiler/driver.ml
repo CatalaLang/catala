@@ -25,8 +25,8 @@ let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 let has_localised_stdlib = function Global.En | Global.Fr -> true | _ -> false
 
 let modname_of_file f =
-  (* Fixme: make this more robust *)
-  String.capitalize_ascii Filename.(basename (remove_extension f))
+  String.capitalize_ascii
+    (String.to_id Filename.(basename (remove_extension f)))
 
 let load_modules
     options

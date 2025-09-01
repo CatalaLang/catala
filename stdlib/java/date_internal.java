@@ -4,41 +4,36 @@ import catala.runtime.*;
 import catala.runtime.exception.*;
 
 public class Date_internal {
-    
     public static class Globals {
-        
         public static final CatalaFunction<CatalaTuple,CatalaDate> ofYmd =
-            tup_arg_12 -> {
+            tup_arg -> {
+            CatalaPosition pos = CatalaValue.<CatalaPosition>cast
+               (tup_arg.get(0));
             CatalaInteger dyear = CatalaValue.<CatalaInteger>cast
-               (tup_arg_12.get(0));
+               (tup_arg.get(1));
             CatalaInteger dmonth = CatalaValue.<CatalaInteger>cast
-               (tup_arg_12.get(1));
+               (tup_arg.get(2));
             CatalaInteger dday = CatalaValue.<CatalaInteger>cast
-               (tup_arg_12.get(2));
-            final CatalaDate ofYmd__1;
-            CatalaPosition pos =
-                new CatalaPosition
-                 ("stdlib/date_internal.catala_en", 8, 10, 8, 20,
-                  new String[]{});
-            throw new CatalaError(CatalaError.Error.Impossible, pos); };
-        
+               (tup_arg.get(3));
+            try {
+                /* We'd like to catch overflows here but the bigint docs say that this will truncate without pointing to a way to detect errors */
+                return
+                    CatalaDate.of(dyear.asBigInteger().intValue(),
+                                  dmonth.asBigInteger().intValue(),
+                                  dday.asBigInteger().intValue());
+            } catch (IllegalArgumentException e) {
+                throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
+            }
+        };
+
         public static final CatalaFunction<CatalaDate,CatalaTuple> toYmd =
             d -> {
-            final CatalaTuple toYmd__1;
-            CatalaPosition pos =
-                new CatalaPosition
-                 ("stdlib/date_internal.catala_en", 12, 10, 12, 20,
-                  new String[]{});
-            throw new CatalaError(CatalaError.Error.Impossible, pos); };
-        
+            return new CatalaTuple(new CatalaInteger[]{d.getYear(), d.getMonth(), d.getDay()});
+        };
+
         public static final CatalaFunction<CatalaDate,CatalaDate> lastDayOfMonth =
             d -> {
-            final CatalaDate lastDayOfMonth__1;
-            CatalaPosition pos =
-                new CatalaPosition
-                 ("stdlib/date_internal.catala_en", 16, 10, 16, 20,
-                  new String[]{});
-            throw new CatalaError(CatalaError.Error.Impossible, pos); };
+            return d.getLastDayOfMonth();
+        };
     }
-    
 }
