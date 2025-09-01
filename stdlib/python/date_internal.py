@@ -4,24 +4,19 @@ from catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
 
+# Fixme: at the moment this and the corresponding part of the runtime
+# are still based on the Python date module and not on Dates_calc
 
-def of_ymd(dyear:Integer, dmonth:Integer, dday:Integer):
-    pos = (SourcePosition(filename="stdlib/date_internal.catala_en",
-               start_line=8, start_column=10, end_line=8, end_column=20,
-               law_headings=[]))
-    raise Impossible(pos)
-    return of_ymd__1
+def of_ymd(pos:SourcePosition, dyear:Integer, dmonth:Integer, dday:Integer):
+    try:
+        return Date(datetime.date(int(dyear.value), int(dmonth.value), int(dday.value)))
+    except InvalidDate:
+        raise UncomparableDurations(pos)
 
 def to_ymd(d:Date):
-    pos = (SourcePosition(filename="stdlib/date_internal.catala_en",
-               start_line=12, start_column=10, end_line=12, end_column=20,
-               law_headings=[]))
-    raise Impossible(pos)
-    return to_ymd__1
+    return (integer_of_int(d.value.year),
+            integer_of_int(d.value.month),
+            integer_of_int(d.value.day))
 
 def last_day_of_month(d:Date):
-    pos = (SourcePosition(filename="stdlib/date_internal.catala_en",
-               start_line=16, start_column=10, end_line=16, end_column=20,
-               law_headings=[]))
-    raise Impossible(pos)
-    return last_day_of_month__1
+    return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))

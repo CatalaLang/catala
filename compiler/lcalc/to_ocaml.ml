@@ -770,8 +770,8 @@ let header () =
   in
   comment
   ^ "\n\n\
-     open Catala_runtime\n\n\
-     [@@@ocaml.warning \"-4-26-27-32-33-34-37-41-42-69\"]\n\n"
+     [@@@ocaml.warning \"-4-26-27-32-33-34-37-41-42-69\"]\n\n\
+     open Catala_runtime\n\n"
 
 let format_program
     output_file
