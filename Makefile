@@ -344,6 +344,7 @@ alltest: dependencies-python
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(PY_VENV_ACTIVATE) $(MAKE) -C catala-examples.tmp \
+	  CATALA_FLAGS=
 	  CATALA=$(CURDIR)/_build/install/default/bin/catala \
 	  CLERK=$(CURDIR)/_build/install/default/bin/clerk \
 	  BUILD=../_build/default \

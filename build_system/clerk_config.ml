@@ -49,7 +49,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_runtime : bool;
   include_sources : bool;
 }
 
@@ -138,17 +137,16 @@ let project_encoding =
 let target_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { tname; tmodules; ttests; backends; include_runtime; include_sources } ->
-      tname, tmodules, ttests, backends, include_runtime, include_sources)
-    (fun (tname, tmodules, ttests, backends, include_runtime, include_sources) ->
-      { tname; tmodules; ttests; backends; include_runtime; include_sources })
-  @@ obj6
+    (fun { tname; tmodules; ttests; backends; include_sources } ->
+      tname, tmodules, ttests, backends, include_sources)
+    (fun (tname, tmodules, ttests, backends, include_sources) ->
+      { tname; tmodules; ttests; backends; include_sources })
+  @@ obj5
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
        (dft_field ~name:"backends" ~default:[OCaml]
        @@ list (union (string_cases (registered_backends ()))))
-       (dft_field ~name:"include_runtime" ~default:true @@ bool)
        (dft_field ~name:"include_sources" ~default:false @@ bool)
 
 let doc_encoding =

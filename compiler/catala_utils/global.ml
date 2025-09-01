@@ -113,3 +113,4 @@ let enforce_options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let raw_file f = f
+let has_localised_stdlib = function En | Fr -> true | _ -> false

@@ -2,6 +2,9 @@
  (name runtime)
  (public_name catala.runtime_ocaml)
  (wrapped false)
+ ; Important for the cmi to be shareable between interpreter and
+ ; compiled modules: the cmx may differ
+ (ocamlc_flags :standard -opaque)
  (libraries dates_calc zarith zarith_stubs_js)
  (modules catala_runtime))
 

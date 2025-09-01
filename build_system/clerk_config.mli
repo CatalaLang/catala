@@ -37,7 +37,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_runtime : bool;
   include_sources : bool;
 }
 

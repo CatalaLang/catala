@@ -400,6 +400,9 @@ let build_clerk_target
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
+  let local_runtime_dir bk =
+    File.(build_dir / Clerk_rules.runtime_subdir / backend_subdir bk)
+  in
   let enabled_backends =
     List.map Clerk_rules.backend_from_config target.backends
     |> List.sort_uniq Stdlib.compare
@@ -441,10 +444,15 @@ let build_clerk_target
             (fun module_item ->
               let open File in
               let base =
-                build_dir
-                / dirname module_item.Scan.file_name
-                / backend_subdir bk
-                / (Option.get module_item.module_def |> Mark.remove)
+                if Filename.is_relative module_item.Scan.file_name then
+                  build_dir
+                  / module_item.Scan.file_name
+                  /../ backend_subdir bk
+                  / (Option.get module_item.module_def |> Mark.remove)
+                else
+                  (* Standard library module *)
+                  local_runtime_dir bk
+                  / (Option.get module_item.module_def |> Mark.remove)
               in
               List.assoc bk backend_extensions
               |> List.map (fun ext -> (module_item, target, bk), base -.- ext))
@@ -482,21 +490,26 @@ let build_clerk_target
       ensure_dir dir;
       copy_in ~dir ~src)
     install_targets;
-  if target.Config.include_runtime then
-    target.Config.backends
-    |> List.iter (fun bk ->
-           let bk = Clerk_rules.backend_from_config bk in
-           let src =
-             match bk with
-             | Clerk_rules.OCaml -> Clerk_poll.ocaml_runtime_dir
-             | Clerk_rules.C -> Clerk_poll.c_runtime_dir
-             | Clerk_rules.Python -> Clerk_poll.python_runtime_dir
-             | Clerk_rules.Java ->
-               Lazy.map File.dirname Clerk_poll.java_runtime_dir
-             | Clerk_rules.Tests -> assert false
-           in
-           copy_dir () ~src:(Lazy.force src)
-             ~dst:(prefix_dir / backend_subdir bk));
+  target.Config.backends
+  |> List.iter (fun bk ->
+         let bk = Clerk_rules.backend_from_config bk in
+         let dir = prefix_dir / backend_subdir bk in
+         let extensions = List.assoc bk backend_extensions in
+         match bk with
+         | Clerk_rules.Java ->
+           List.iter
+             (fun subdir ->
+               copy_dir ()
+                 ~src:(local_runtime_dir bk / subdir)
+                 ~dst:(dir / subdir))
+             ["catala"; "org"]
+         | Clerk_rules.Tests -> assert false
+         | bk ->
+           List.iter
+             (fun ext ->
+               let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
+               if File.exists src then copy_in ~dir ~src)
+             extensions);
   if target.Config.include_sources then
     all_modules_deps
     |> List.map (fun it -> it.Scan.file_name)
