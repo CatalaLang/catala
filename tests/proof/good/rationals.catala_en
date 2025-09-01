@@ -6,9 +6,9 @@
   output y content boolean
 
 scope A:
-  definition x equals 1.
-  definition y under condition x > 1./3. consequence equals true
-  definition y under condition x <= 1./3. consequence equals false
+  definition x equals 1.0
+  definition y under condition x > 1.0/3.0 consequence equals true
+  definition y under condition x <= 1.0/3.0 consequence equals false
 ```
 
 

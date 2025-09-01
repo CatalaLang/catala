@@ -20,8 +20,8 @@
 scope S:
   definition i1 equals 1
   definition i2 equals 2
-  definition x1 equals 3.
-  definition x2 equals 4.
+  definition x1 equals 3.0
+  definition x2 equals 4.0
   definition m1 equals $5
   definition m2 equals $6
   definition d1 equals 7 day

@@ -2,7 +2,7 @@
 ```catala
 
 declaration lis1 content list of decimal equals
-  [ 12.; 13.; 14.; 15.; 16.; 17. ]
+  [ 12.0; 13.0; 14.0; 15.0; 16.0; 17.0 ]
 
 declaration lis2 content list of money equals
   [ $10; $1; $100; $42; $17; $10 ]
