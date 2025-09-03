@@ -243,6 +243,7 @@ let ast_to_html
     | C.Fr -> "Sommaire"
     | C.En -> "Table of contents"
     | C.Pl -> "Spis treści."
+    | C.Ro -> "Cuprins"
   in
 
   Format.fprintf fmt

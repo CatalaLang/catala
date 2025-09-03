@@ -132,7 +132,7 @@ let backend_extensions =
     Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"; "cmxs"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"; "class"];
-    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
+    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"; "catala_ro"];
   ]
 
 let extensions_backend =
@@ -543,7 +543,8 @@ let build_direct_targets
             let is_module = ext = "" in
             match List.assoc_opt ext extensions_backend, ext with
             | Some bk, _ -> Left (ensure_target_dir (backend_subdir bk) t)
-            | None, ("catala_en" | "catala_fr" | "catala_pl") -> Left t
+            | None, ("catala_en" | "catala_fr" | "catala_pl" | "catala_ro") ->
+              Left t
             | None, ("exe" | "jar") ->
               let t, backend =
                 match ext, lastdirname t with

@@ -4,7 +4,7 @@
 #include <runtime.h>
 #include <assert.h>
 
-void* test()
+void* test(void)
 {
   CATALA_MONEY dollars = catala_new_money_str ("10000");
   CATALA_DEC rate = catala_new_dec_str ("1/3");
@@ -16,7 +16,7 @@ void* test()
   return (void*)1;
 }
 
-int main()
+int main(void)
 {
   catala_do(&test);
   catala_free_all();

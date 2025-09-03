@@ -1290,7 +1290,8 @@ let empty_module_ctxt lang =
          (match lang with
          | Global.En -> ["Present", present; "Absent", absent]
          | Global.Fr -> ["Présent", present; "Absent", absent]
-         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]));
+         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]
+         | Global.Ro -> ["Prezent", present; "Absent", absent]));
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
     is_external = false;
