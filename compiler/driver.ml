@@ -841,12 +841,13 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
+    let f prg scope =
+      Lwt_main.run (InterpreterEnv.interpret_with_env prg scope)
+    in
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_dcalc prg scope
-          && success)
+          print_interpretation_results ~quiet options f prg scope && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -955,7 +956,7 @@ module Commands = struct
             "The flags @{<bold>--closure-conversion@} and \
              @{<bold>--monomorphize-types@} only make sense with the \
              @{<bold>--lcalc@} option"
-        else if no_typing then interpret_dcalc Expr.untyped
+          (* else if no_typing then interpret_dcalc Expr.untyped *)
         else interpret_dcalc Expr.typed
       else if no_typing then
         interpret_lcalc Expr.untyped closure_conversion keep_special_ops
