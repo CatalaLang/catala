@@ -1277,7 +1277,7 @@ module Commands = struct
         {
           program_module = None;
           program_items = [];
-          program_source_files = [];
+          program_source_files = [file];
           program_used_modules =
             List.map
               (fun f ->
