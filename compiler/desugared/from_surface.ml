@@ -177,9 +177,9 @@ let rec disambiguate_constructor
             EnumName.path struc = []
             || Global.options.whole_program
                &&
-               match ctxt.local.current_module with
-               | None -> false
-               | Some m -> EnumName.path struc = [m])
+               match ctxt.local.current_revpath with
+               | [] -> false
+               | rpath -> EnumName.path struc = List.rev rpath)
           possible_c_uids
       in
       if EnumName.Map.is_empty current_module then possible_c_uids
@@ -700,9 +700,9 @@ let rec translate_expr
               EnumName.path struc = []
               || Global.options.whole_program
                  &&
-                 match ctxt.local.current_module with
-                 | None -> false
-                 | Some m -> EnumName.path struc = [m])
+                 match ctxt.local.current_revpath with
+                 | [] -> false
+                 | rpath -> EnumName.path struc = List.rev rpath)
             possible
         in
         if EnumName.Map.is_empty current_module then possible

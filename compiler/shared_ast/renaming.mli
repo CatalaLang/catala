@@ -106,7 +106,7 @@ val program :
     sanitization.
 
     if [modnames_conflict] is true, module names can conflict with type names,
-    and they will be avoided when renaming those.
+    constructors and fields, and they will be avoided when renaming those.
 
     The [f_*] optional arguments sanitize the different kinds of ids. The
     default is what is used for OCaml: project to ASCII, capitalise structs,

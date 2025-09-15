@@ -306,7 +306,7 @@ module Hash = struct
         s.scope_defs
   (* assertions, options, etc. are not expected to be part of interfaces *)
 
-  let modul ?(strip = []) m =
+  let modul ?strip m =
     Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
       (ScopeName.Map.filter
          (fun _ s -> s.scope_visibility = Public)
@@ -318,7 +318,7 @@ module Hash = struct
            m.module_topdefs)
 
   let module_binding modname m =
-    ModuleName.hash modname % modul ~strip:[modname] m
+    ModuleName.hash modname % modul ~strip:modname m
 end
 
 let rec locations_used e : LocationSet.t =

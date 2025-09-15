@@ -108,8 +108,9 @@ module type Qualified = sig
   (** Returns only the base ident name, while [to_string] includes the path
       prefix *)
 
-  val hash : strip:Path.t -> t -> Hash.t
-  (** [strip] strips that prefix from the start of the path before hashing *)
+  val hash : strip:Module.t option -> t -> Hash.t
+  (** [strip] strips any path up to that module from the start of the path
+      before hashing *)
 end
 
 (** Same as [Gen] but also registers path information *)

@@ -32,7 +32,7 @@ val map : (t -> t Bindlib.box) -> t -> t Bindlib.box
 
 val shallow_fold : (t -> 'a -> 'a) -> t -> 'a -> 'a
 
-val hash : strip:Uid.Path.t -> t -> Hash.t
+val hash : strip:Uid.Module.t option -> t -> Hash.t
 (** The [strip] argument strips the given leading path components in included
     identifiers before hashing *)
 

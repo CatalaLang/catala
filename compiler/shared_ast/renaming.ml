@@ -361,7 +361,7 @@ let add_module_prefix ctx path str =
   in
   String.concat "." (pfx @ [str])
 
-let get_path_ctx decl_ctx tctx ctx path =
+let get_path_ctx decl_ctx tctx ctx0 path =
   try tctx.path_ctx, PathMap.find path tctx.path_ctx
   with PathMap.Not_found _ ->
     let ctx =
@@ -376,9 +376,9 @@ let get_path_ctx decl_ctx tctx ctx path =
         in
         List.fold_left
           (fun ctx mname -> reserve_name ctx (ModuleName.to_string mname))
-          ctx
+          ctx0
           (get_used_modules decl_ctx.ctx_modules path)
-      else ctx
+      else ctx0
     in
     PathMap.add path ctx tctx.path_ctx, ctx
 

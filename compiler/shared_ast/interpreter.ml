@@ -742,15 +742,15 @@ let rec evaluate_expr :
         Message.error ~pos "Reference to %a@ could@ not@ be@ resolved"
           Print.external_ref name
     in
-    let runtime_path =
-      ( List.map ModuleName.to_string path,
+    let runtime_modname =
+      ( [ModuleName.to_string (List.hd (List.rev path))],
         match Mark.remove name with
         | External_value name -> TopdefName.base name
         | External_scope name -> ScopeName.base name )
       (* we have the guarantee that the two cases won't collide because they
          have different capitalisation rules inherited from the input *)
     in
-    let o = Runtime.lookup_value runtime_path in
+    let o = Runtime.lookup_value runtime_modname in
     runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
   | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in

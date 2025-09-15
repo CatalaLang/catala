@@ -124,6 +124,14 @@ module Path = struct
       | _ -> p0
     in
     aux prefix p0
+
+  let strip_up_to modname p0 =
+    let rec aux p =
+      match p with
+      | p1 :: p -> if Module.equal modname p1 then p else aux p
+      | [] -> p0
+    in
+    aux p0
 end
 
 module QualifiedMarkedString = struct
@@ -153,9 +161,7 @@ module type Qualified = sig
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
   val base : t -> string
-
-  val hash : strip:Path.t -> t -> Hash.t
-  (** [strip] strips that prefix from the start of the path before hashing *)
+  val hash : strip:Module.t option -> t -> Hash.t
 end
 
 module Gen_qualified (S : Style) () : Qualified = struct
@@ -165,7 +171,8 @@ module Gen_qualified (S : Style) () : Qualified = struct
 
   let hash ~strip t =
     let p, i = get_info t in
-    QualifiedMarkedString.hash (Path.strip strip p, i)
+    let p = match strip with Some m -> Path.strip_up_to m p | None -> p in
+    QualifiedMarkedString.hash (p, i)
 
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)

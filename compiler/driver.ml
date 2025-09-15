@@ -366,6 +366,7 @@ module Passes = struct
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
+      Message.debug "Renaming idents...";
       let prg, ren_ctx = Renaming.apply renaming prg in
       let type_ordering =
         let open TypeIdent in

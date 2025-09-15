@@ -67,7 +67,7 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
-  current_module : ModuleName.t option;
+  current_revpath : ModuleName.t list;
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -549,11 +549,11 @@ let rec process_base_typ
       | Some mname ->
         let mod_ctxt = ModuleName.Map.find mname ctxt.modules in
         let rev_named_path_acc : Uid.Path.t =
-          match mod_ctxt.current_module with
-          | Some mname ->
+          match mod_ctxt.current_revpath with
+          | [] -> rev_named_path_acc
+          | mname :: _ ->
             ModuleName.map_info (fun (s, _) -> s, mpos) mname
             :: rev_named_path_acc
-          | None -> rev_named_path_acc
         in
         process_base_typ ~rev_named_path_acc ~vars
           { ctxt with local = mod_ctxt }
@@ -972,9 +972,7 @@ let process_name_item
         ]
       "%s name @{<yellow>\"%s\"@} already defined" msg name
   in
-  let path =
-    match ctxt.local.current_module with None -> [] | Some p -> [p]
-  in
+  let path = List.rev ctxt.local.current_revpath in
   let item, visibility = item_vis in
   match Mark.remove item with
   | ScopeDecl decl ->
@@ -1325,7 +1323,7 @@ let process_use_item
 
 let empty_module_ctxt _lang =
   {
-    current_module = None;
+    current_revpath = [];
     typedefs = Ident.Map.empty;
     field_idmap = Ident.Map.empty;
     constructor_idmap = Ident.Map.empty;
@@ -1375,7 +1373,7 @@ let form_context (surface, mod_uses) surface_modules : context =
   in
   let empty_ctxt = empty_ctxt surface.Surface.Ast.program_lang in
   let empty_module_ctxt = empty_ctxt.local in
-  let rec process_modules ctxt mod_uses =
+  let rec process_modules ctxt revpath mod_uses =
     (* Recursing on [mod_uses] rather than folding on [modules] ensures a
        topological traversal. *)
     Ident.Map.fold
@@ -1386,7 +1384,8 @@ let form_context (surface, mod_uses) surface_modules : context =
           let module_content, mod_uses =
             ModuleName.Map.find m surface_modules
           in
-          let ctxt = process_modules ctxt mod_uses in
+          let revpath = m :: revpath in
+          let ctxt = process_modules ctxt revpath mod_uses in
           let ctxt =
             {
               ctxt with
@@ -1394,7 +1393,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                 {
                   ctxt.local with
                   used_modules = mod_uses;
-                  current_module = Some m;
+                  current_revpath = revpath;
                   is_external =
                     module_content.Surface.Ast.module_modname.module_external;
                 };
@@ -1431,7 +1430,7 @@ let form_context (surface, mod_uses) surface_modules : context =
           })
       mod_uses ctxt
   in
-  let ctxt = process_modules empty_ctxt mod_uses in
+  let ctxt = process_modules empty_ctxt [] mod_uses in
   let ctxt =
     { ctxt with local = { empty_module_ctxt with used_modules = mod_uses } }
   in
