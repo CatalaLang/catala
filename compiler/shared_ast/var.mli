@@ -49,6 +49,7 @@ module Set : sig
   val mem : 'e var -> 'e t -> bool
   val of_list : 'e var list -> 'e t
   val elements : 'e t -> 'e var list
+  val cardinal : 'e t -> int
   val diff : 'e t -> 'e t -> 'e t
   val iter : ('e var -> unit) -> 'e t -> unit
 end
@@ -70,6 +71,7 @@ module Map : sig
   val find_opt : 'e var -> ('e, 'x) t -> 'x option
   val bindings : ('e, 'x) t -> ('e var * 'x) list
   val mem : 'e var -> ('e, 'x) t -> bool
+  val cardinal : ('e, 'x) t -> int
 
   val union :
     ('e var -> 'x -> 'x -> 'x option) -> ('e, 'x) t -> ('e, 'x) t -> ('e, 'x) t
