@@ -1190,3 +1190,97 @@ module UserFacing = struct
     in
     aux_value
 end
+
+let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
+ fun fmt e ->
+  let open Format in
+  let pf = fprintf in
+  let pp_sep fmt () = pf fmt ",@ " in
+  let ppl fmt l = pf fmt "@[<hov 2>[ %a ]@]" (pp_print_list ~pp_sep s_expr) l in
+  let pp_ident fmt (sf, e) =
+    pf fmt "@[<hov 1>%a: %a@]" Ident.format sf s_expr e
+  in
+  let pp_field fmt (sf, e) =
+    pf fmt "@[<hov 1>%a: %a@]" StructField.format sf s_expr e
+  in
+  let pp_opt pp fmt = function
+    | None -> pf fmt "NONE"
+    | Some x -> pf fmt "SOME(%a)" pp x
+  in
+  match Mark.remove e with
+  | ELit (LBool b) -> pf fmt "LitBool<%b>" b
+  | ELit (LInt i) -> pf fmt "LitInt<%s>" (Z.to_string i)
+  | ELit (LRat q) -> pf fmt "LitFloat<%s>" (Q.to_string q)
+  | ELit (LMoney m) -> pf fmt "LitMoney<%s>" (Z.to_string m)
+  | ELit LUnit -> pf fmt "LitUnit"
+  | ELit (LDate d) -> pf fmt "LitDate<%a>" Dates_calc.Dates.format_date d
+  | ELit (LDuration d) -> pf fmt "LitDur<%a>" Dates_calc.Dates.format_period d
+  | EApp { f; args; _ } -> pf fmt "@[<hov 1>App(%a,@ %a)@]" s_expr f ppl args
+  | EAppOp { op; args; _ } ->
+    pf fmt "@[<hov 1>AppOp( %s,@ %a)@]"
+      (operator_to_string (Mark.remove op))
+      ppl args
+  | EArray l -> pf fmt "Array(%a)" ppl l
+  | EVar v -> pf fmt "Var(%s#%d)" (Bindlib.name_of v) (Bindlib.uid_of v)
+  | EAbs { binder; _ } ->
+    let vars, e = Bindlib.unmbind binder in
+    let vars : (a, 't) gexpr list =
+      Array.to_list vars |> List.map (fun v -> Mark.add (Mark.get e) (EVar v))
+    in
+    pf fmt "@[<hov 1>Abs(%a,@ %a)@]" ppl vars s_expr e
+  | EIfThenElse { cond; etrue; efalse } ->
+    pf fmt "@[<hov 1>IF(%a,@ %a,@ %a)@]" s_expr cond s_expr etrue s_expr efalse
+  | EStruct { name; fields } ->
+    let fields = StructField.Map.bindings fields in
+    pf fmt "@[<hov 1>Struct<%a>(@[<hov 1>{ %a }@])@]" StructName.format name
+      (pp_print_list ~pp_sep pp_field)
+      fields
+  | EInj { name; e; cons } ->
+    pf fmt "@[<hov 1>Inj<%a.%a>(%a)@]" EnumName.format name
+      EnumConstructor.format cons s_expr e
+  | EMatch { name; e; cases } ->
+    let cases = EnumConstructor.Map.bindings cases in
+    let pp_case fmt (cons, e) =
+      pf fmt "@[<hov 1>%a => %a@]" EnumConstructor.format cons s_expr e
+    in
+    pf fmt "@[<hov 1>Match<%a>(%a, @[<hov 1>{ %a }@])@]" EnumName.format name
+      s_expr e
+      (pp_print_list ~pp_sep pp_case)
+      cases
+  | ETuple t -> pf fmt "@[<hov 1>Tuple(%a)@]" ppl t
+  | ETupleAccess { e; index; _ } ->
+    pf fmt "@[<hov 1>TupleAccess(%d, %a)@]" index s_expr e
+  | ELocation l -> pf fmt "@[<hov 1>Location(%a)@]" location l
+  | EScopeCall { scope; args } ->
+    let args =
+      ScopeVar.Map.bindings args |> List.map (fun (v, arg) -> v, snd arg)
+    in
+    let pp_arg fmt (v, e) =
+      pf fmt "@[<hov 1>%a : %a@]" ScopeVar.format v s_expr e
+    in
+    pf fmt "@[<hov 1>ScopeCall(%a, @[<hov 1>{ %a }@])@]" ScopeName.format scope
+      (pp_print_list ~pp_sep pp_arg)
+      args
+  | EDStructAmend { name_opt; e; fields } ->
+    let fields = Ident.Map.bindings fields in
+    pf fmt "@[<hov 1>DStructAmend<%a>(%a, @[<hov 1>{ %a }@])@]"
+      (pp_opt StructName.format) name_opt s_expr e
+      (pp_print_list ~pp_sep pp_ident)
+      fields
+  | EDStructAccess { name_opt; e; field } ->
+    pf fmt "@[<hov 1>DStructAccess<%a>(%s, %a)@]" (pp_opt StructName.format)
+      name_opt field s_expr e
+  | EStructAccess { name; e; field } ->
+    pf fmt "@[<hov 1>StructAccess<%a>(%a, %a)@]" StructName.format name
+      StructField.format field s_expr e
+  | EExternal { name } -> pf fmt "@[<hov 1>External<%a>@]" external_ref name
+  | EAssert e -> pf fmt "@[<hov 1>Assert(%a)@]" s_expr e
+  | EFatalError err -> pf fmt "FatalError<%s>" (Runtime.error_to_string err)
+  | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
+  | EDefault { excepts; just; cons } ->
+    pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr
+      cons
+  | EPureDefault e -> pf fmt "@[<hov 1>PureDefault(%a)@]" s_expr e
+  | EEmpty -> pf fmt "Empty"
+  | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(%a)@]" s_expr e
+  | ECustom _ -> pf fmt "Custom<..>"

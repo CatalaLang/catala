@@ -61,6 +61,9 @@ val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
       variable indices and operator suffixes. See the interface below for more
       detailed control. *)
 
+val s_expr : Format.formatter -> (_, _) gexpr -> unit
+(** S-expression printer for all AST nodes. *)
+
 (** {2 Generic expression printer interface} *)
 
 module type EXPR_PARAM = sig
