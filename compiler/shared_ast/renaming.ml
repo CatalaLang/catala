@@ -338,6 +338,7 @@ type type_renaming_ctx = {
   path_ctx : context PathMap.t;
   toplevel_module : ModuleName.t option;
   prefix_module : bool;
+  modnames_conflict : bool;
   structs_map : StructName.t StructName.Map.t;
   fields_map : StructField.t StructField.Map.t;
   enums_map : EnumName.t EnumName.Map.t;
@@ -360,6 +361,27 @@ let add_module_prefix ctx path str =
   in
   String.concat "." (pfx @ [str])
 
+let get_path_ctx decl_ctx tctx ctx path =
+  try tctx.path_ctx, PathMap.find path tctx.path_ctx
+  with PathMap.Not_found _ ->
+    let ctx =
+      if tctx.modnames_conflict then
+        let rec get_used_modules modtree path =
+          match path with
+          | [] ->
+            Option.to_list tctx.toplevel_module @ ModuleName.Map.keys modtree
+          | [m] -> m :: ModuleName.Map.keys (ModuleName.Map.find m modtree).deps
+          | m :: path ->
+            get_used_modules (ModuleName.Map.find m modtree).deps path
+        in
+        List.fold_left
+          (fun ctx mname -> reserve_name ctx (ModuleName.to_string mname))
+          ctx
+          (get_used_modules decl_ctx.ctx_modules path)
+      else ctx
+    in
+    PathMap.add path ctx tctx.path_ctx, ctx
+
 let process_type_ident
     (decl_ctx : decl_ctx)
     ctx0
@@ -376,12 +398,9 @@ let process_type_ident
       then add_module_prefix tctx path
       else Fun.id
     in
+    let path_ctx, ctx = get_path_ctx decl_ctx tctx ctx0 path in
     let str, pos = StructName.get_info name in
     let str = add_prefix str in
-    let path_ctx, ctx =
-      try tctx.path_ctx, PathMap.find path tctx.path_ctx
-      with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
-    in
     let id, ctx = new_id ctx (tctx.f_struct str) in
     let new_name = StructName.fresh path (id, pos) in
     let ctx1, fields_map, ctx_fields =
@@ -442,10 +461,7 @@ let process_type_ident
     in
     let str, pos = EnumName.get_info ename in
     let str = add_prefix str in
-    let path_ctx, ctx =
-      try tctx.path_ctx, PathMap.find path tctx.path_ctx
-      with PathMap.Not_found _ -> PathMap.add path ctx0 tctx.path_ctx, ctx0
-    in
+    let path_ctx, ctx = get_path_ctx decl_ctx tctx ctx0 path in
     let id, ctx = new_id ctx (tctx.f_enum str) in
     let new_name = EnumName.fresh path (id, pos) in
     let ctx1, constrs_map, ctx_constrs =
@@ -480,8 +496,7 @@ let cap s = String.to_id s |> String.capitalize_ascii
 let uncap s = String.to_id s |> String.uncapitalize_ascii
 
 (* Todo? - handle separate namespaces ? (e.g. allow a field and var to have the
-   same name for backends that support it) - register module names as reserved
-   names *)
+   same name for backends that support it) *)
 let program
     ~reserved
     ~skip_constant_binders
@@ -489,6 +504,7 @@ let program
     ~namespaced_fields
     ~namespaced_constrs
     ~prefix_module
+    ~modnames_conflict
     ?(f_var = String.to_snake_case)
     ?(f_struct = cap)
     ?(f_field = uncap)
@@ -509,9 +525,10 @@ let program
      on the current context. *)
   let type_renaming_ctx =
     {
-      path_ctx = PathMap.singleton [] ctx;
+      path_ctx = PathMap.empty;
       toplevel_module = Option.map fst p.module_name;
       prefix_module;
+      modnames_conflict;
       structs_map = StructName.Map.empty;
       fields_map = StructField.Map.empty;
       enums_map = EnumName.Map.empty;
@@ -524,6 +541,12 @@ let program
       f_field;
       f_enum;
       f_constr;
+    }
+  in
+  let type_renaming_ctx =
+    {
+      type_renaming_ctx with
+      path_ctx = fst (get_path_ctx p.decl_ctx type_renaming_ctx ctx []);
     }
   in
   let type_renaming_ctx =
@@ -699,6 +722,7 @@ let program
     ~namespaced_fields
     ~namespaced_constrs
     ~prefix_module
+    ~modnames_conflict
     ?f_var
     ?f_struct
     ?f_field
@@ -708,8 +732,8 @@ let program
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
-        ~namespaced_fields ~namespaced_constrs ~prefix_module ?f_var ?f_struct
-        ?f_field ?f_enum ?f_constr p
+        ~namespaced_fields ~namespaced_constrs ~prefix_module ~modnames_conflict
+        ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
   end in
   (module M : Renaming)
 
@@ -719,4 +743,4 @@ let default =
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
     ~f_constr:Fun.id ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false
+    ~prefix_module:false ~modnames_conflict:false

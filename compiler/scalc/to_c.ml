@@ -91,6 +91,7 @@ let renaming =
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:false ~constant_binder_name:None
     ~namespaced_fields:true ~namespaced_constrs:false ~prefix_module:true
+    ~modnames_conflict:false
     ~f_var:(ren_qualified String.to_snake_case)
     ~f_struct:(ren_qualified cap) ~f_field:(ren_qualified uncap)
     ~f_enum:(ren_qualified cap) ~f_constr:(ren_qualified upper)

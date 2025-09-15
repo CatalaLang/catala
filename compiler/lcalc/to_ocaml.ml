@@ -140,6 +140,7 @@ let renaming =
     ~constant_binder_name:
       (if Global.options.gen_external then None else Some "_")
     ~namespaced_fields:true ~namespaced_constrs:true ~prefix_module:false
+    ~modnames_conflict:false
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   (match StructName.path v with

@@ -112,7 +112,7 @@ let java_keywords =
 let renaming =
   Renaming.program () ~reserved:java_keywords ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false
+    ~prefix_module:false ~modnames_conflict:true
     ~f_var:(String.to_camel_case ~capitalize:false)
     ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
 
