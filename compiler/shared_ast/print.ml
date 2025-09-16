@@ -1140,7 +1140,8 @@ module UserFacing = struct
            (value ~fallback lang))
         l
     | EStruct { name; fields } ->
-      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format name
+      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]"
+        StructName.format_shortpath name
         (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
            (fun ppf pp_fld e ->
              Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld

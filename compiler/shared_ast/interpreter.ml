@@ -743,7 +743,8 @@ let rec evaluate_expr :
           Print.external_ref name
     in
     let runtime_modname =
-      ( [ModuleName.to_string (List.hd (List.rev path))],
+      ( List.map ModuleName.to_string
+          (Option.to_list (Uid.Path.last_member path)),
         match Mark.remove name with
         | External_value name -> TopdefName.base name
         | External_scope name -> ScopeName.base name )
