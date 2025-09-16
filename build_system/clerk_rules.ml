@@ -165,6 +165,7 @@ let base_bindings ~autotest ~enabled_backends ~config =
     def Var.ninja_required_version (lazy ["1.7"]);
     (* use of implicit outputs *)
     def Var.builddir (lazy [options.global.build_dir]);
+    def Var.runtime (lazy [Lazy.force Poll.runtime_dir]);
     def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
     def Var.catala_exe
       (lazy
@@ -762,8 +763,16 @@ let dir_test_rules dir subdirs enabled_backends items =
 let runtime_build_statements ~config enabled_backends =
   let open File in
   let stdbase = Var.(!builddir) / runtime_subdir in
+  let runtime_orig =
+    (* content of the variable [Var.(!runtime)] *)
+    match
+      List.assoc_opt Var.(name runtime) config.Clerk_cli.options.variables
+    with
+    | Some r -> lazy (String.concat " " r)
+    | None -> Poll.runtime_dir
+  in
   (if List.mem OCaml enabled_backends then
-     let ocaml_src = Lazy.force Poll.ocaml_runtime_dir in
+     let ocaml_src = Var.(!runtime) / "ocaml" in
      let ocaml_base = stdbase / "ocaml" / "catala_runtime" in
      let runtime_cmi =
        (* This one is tricky: in order for the catala interpreter to be able to
@@ -806,7 +815,7 @@ let runtime_build_statements ~config enabled_backends =
    else [])
   @ (if List.mem C enabled_backends then
        let c_base = stdbase / "c" / "catala_runtime" in
-       let c_src = Lazy.force Poll.c_runtime_dir in
+       let c_src = Var.(!runtime) / "c" in
        [
          Nj.build "phony"
            ~inputs:
@@ -842,7 +851,7 @@ let runtime_build_statements ~config enabled_backends =
      else [])
   @ (if List.mem Python enabled_backends then
        let python_base = stdbase / "python" / "catala_runtime" in
-       let python_src = Lazy.force Poll.python_runtime_dir in
+       let python_src = Var.(!runtime) / "python" / "src" / "catala" in
        [
          Nj.build "phony"
            ~inputs:[python_base -.- "py"; Var.(!catala_exe)]
@@ -855,11 +864,18 @@ let runtime_build_statements ~config enabled_backends =
   @
   if List.mem Java enabled_backends then
     let java_base = stdbase / "java" in
-    let java_src = Lazy.force Poll.java_runtime_dir in
+    let java_src = Var.(!runtime) / "java" in
+    let java_orig_prefix = Lazy.force runtime_orig / "java" in
     let java_files =
       File.scan_tree
-        (fun f -> if Filename.check_suffix f ".java" then Some f else None)
-        java_src
+        (fun f ->
+          let base = File.basename f in
+          if
+            Filename.check_suffix base ".java"
+            && base = String.capitalize_ascii base
+          then Some (File.remove_prefix java_orig_prefix f)
+          else None)
+        java_orig_prefix
       |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
       |> Seq.map (File.remove_prefix java_src)
       |> List.of_seq
