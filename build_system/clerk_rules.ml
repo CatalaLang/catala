@@ -583,6 +583,7 @@ let gen_build_statements
       ~inputs:[target ~backend:"c" "c"]
       ~implicit_in:
         (target ~backend:"c" "h"
+        :: "@runtime-c"
         :: List.map (modfile ~backend:"c" "@c-module") modules)
       ~outputs:[target ~backend:"c" "o"]
       ~vars:[Var.includes, include_flags "c"]
@@ -593,6 +594,7 @@ let gen_build_statements
            ~inputs:[target ~backend:"c" "+main.c"]
            ~implicit_in:
              (target ~backend:"c" "h"
+             :: "@runtime-c"
              :: List.map (modfile ~backend:"c" "@c-module") modules)
            ~outputs:[target ~backend:"c" "+main.o"]
            ~vars:[Var.includes, include_flags "c"];
@@ -611,7 +613,8 @@ let gen_build_statements
     in
     Nj.build "java-class"
       ~inputs:[target ~backend:"java" "java"]
-      ~implicit_in:(List.map (modfile ~backend:"java" ".class") modules)
+      ~implicit_in:
+        ("@runtime-java" :: List.map (modfile ~backend:"java" ".class") modules)
       ~outputs:[target ~backend:"java" "class"]
       ~vars:[Var.class_path, [java_class_path]]
   in
