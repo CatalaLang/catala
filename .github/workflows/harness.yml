@@ -148,7 +148,7 @@ jobs:
       - name: Build examples
         run: |
           cd ~/catala-examples
-          . ~/catala/_python_venv/bin/activate && opam --cli=2.1 exec -- make all testsuite install
+          . ~/catala/_python_venv/bin/activate && opam --cli=2.1 exec -- make all testsuite
       - name: Generate examples test report
         if: ${{ always() }}
         run: |
@@ -159,15 +159,6 @@ jobs:
         with:
           paths: "/home/ocaml/catala-examples/report.junit.xml"
         if: ${{ always() }}
-      - name: Checkout french-law repo
-        run: |
-          git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
-          git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law
-      - name: Build french-law
-        run: |
-          cd ~/french-law
-          opam --cli=2.1 exec -- make dependencies-ocaml dependencies-js dependencies-python
-          opam --cli=2.1 exec -- make bench_ocaml bench_js bench_python
       - name: Pack website assets
         run: |
           mkdir -p ~/website-assets
@@ -175,9 +166,7 @@ jobs:
           ln -s \
             ~/catala-examples/_build/us_tax_code/us_tax_code.html \
             ~/catala-examples/_build/allocations_familiales/Allocations_familiales.html \
-            ~/catala-examples/_build/allocations_familiales/Allocations_familiales_schema.json \
             ~/catala-examples/_build/aides_logement/Aides_logement.html\
-            ~/catala-examples/_build/aides_logement/Aides_logement_schema.json \
             .
           tar cz -hf ~/catala/website-assets.tar.gz *
       - name: Gather all artifacts
@@ -187,9 +176,6 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
-          tar cz -hf "artifacts/french-law_ocaml.tar.gz" -C french-law/_build/install/default/lib french-law
-          cp catala-examples/_build/french-law_npm.tar.gz artifacts/
-          cp catala-examples/_build/french_law_python.tar.gz artifacts/
           mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
