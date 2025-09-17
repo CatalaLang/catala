@@ -18,7 +18,7 @@ declaration structure Str1:
 
 declaration half content decimal
   depends on x content integer
-  equals x / 2
+  equals x / Date.get_year of |0002-01-01|
 
 declaration maybe content Enum1
   depends on x content Enum1
@@ -128,9 +128,9 @@ let half : integer -> decimal =
   fun (x: integer) ->
     o_div_int_int
       {filename="tests/modules/good/mod_def.catala_en";
-       start_line=21; start_column=14; end_line=21; end_column=15;
-       law_headings=["Test modules + inclusions 1"]} x (integer_of_string
-      "2")
+       start_line=21; start_column=14; end_line=21; end_column=43;
+       law_headings=["Test modules + inclusions 1"]} x
+      ((Date_en.get_year) (date_of_numbers (2) (1) (1)))
 
 (* Toplevel def maybe *)
 let maybe : Enum1.t -> Enum1.t =
