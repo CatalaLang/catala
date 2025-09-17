@@ -71,8 +71,8 @@ déclaration x contenu entier égal à
     arrondi de 9,99€
   ) dans
   soit x égal à (
-    accès_année de |2003-01-02|,
-    premier_jour_du_mois de |2003-01-02|
+    Date.accès_année de |2003-01-02|,
+    Date.premier_jour_du_mois de |2003-01-02|
   ) dans
   soit x égal à (
     a +! b,    # entier
