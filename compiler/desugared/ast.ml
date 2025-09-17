@@ -115,7 +115,10 @@ module ExprMap = Map.Make (struct
   let format = Expr.format
 end)
 
-type io = { io_output : bool Mark.pos; io_input : Runtime.io_input Mark.pos }
+type io = {
+  io_output : bool Mark.pos;
+  io_input : Catala_runtime.io_input Mark.pos;
+}
 
 type exception_situation =
   | BaseCase
@@ -278,7 +281,7 @@ module Hash = struct
     | States s -> !`States % Hash.list StateName.hash s
 
   let io x =
-    !(Mark.remove x.io_input : Runtime.io_input)
+    !(Mark.remove x.io_input : Catala_runtime.io_input)
     % !(Mark.remove x.io_output : bool)
 
   let scope_decl ~strip d =
@@ -303,15 +306,10 @@ module Hash = struct
         s.scope_defs
   (* assertions, options, etc. are not expected to be part of interfaces *)
 
-  let modul ?(strip = []) m =
+  let modul ?strip m =
     Hash.map ScopeName.Map.fold (ScopeName.hash ~strip) (scope ~strip)
       (ScopeName.Map.filter
-         (fun name s ->
-           Message.debug "<SCOPE> %a: %s" ScopeName.format name
-             (match s.scope_visibility with
-             | Public -> "PUBLIC"
-             | Private -> "private");
-           s.scope_visibility = Public)
+         (fun _ s -> s.scope_visibility = Public)
          m.module_scopes)
     % Hash.map TopdefName.Map.fold (TopdefName.hash ~strip)
         (fun td -> Type.hash ~strip td.topdef_type)
@@ -320,7 +318,7 @@ module Hash = struct
            m.module_topdefs)
 
   let module_binding modname m =
-    ModuleName.hash modname % modul ~strip:[modname] m
+    ModuleName.hash modname % modul ~strip:modname m
 end
 
 let rec locations_used e : LocationSet.t =

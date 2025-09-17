@@ -67,7 +67,7 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
-  current_module : ModuleName.t option;
+  current_revpath : ModuleName.t list;
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -108,6 +108,7 @@ type attribute_context =
   | ConstructorDecl
   | Expression
   | Type
+  | FunctionArgument
 
 let attribute_parsers :
     (string
@@ -201,7 +202,7 @@ let translate_attr ~context = function
           None)
         else
           match v with
-          | String (s, _) -> Some (Doc s)
+          | String (s, pos) -> Some (Doc (s, pos))
           | _ ->
             Message.warning ~pos
               "Invalid value for the @{<magenta>#[doc]@} attribute: expecting \
@@ -209,6 +210,25 @@ let translate_attr ~context = function
             None)
       | ps ->
         Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
+    | "implicit_position_argument" -> (
+      match ps with
+      | [] ->
+        if context <> FunctionArgument then (
+          Message.warning ~pos
+            "Attribute @{<magenta>#[implicit_position_argument]@} is not \
+             allowed in this context";
+          None)
+        else if v <> Unit then (
+          Message.warning ~pos
+            "The @{<magenta>#[implicit_position_argument]@} attribute doesn't \
+             allow specifying a value";
+          None)
+        else Some ImplicitPosArg
+      | ps ->
+        Message.warning ~pos:ppos
+          "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
     | "passthrough" ->
@@ -221,7 +241,10 @@ let translate_attr ~context = function
         Message.warning ~pos "Unrecognised attribute \"%s\"" p1;
         None)
       else handle_extra_attributes context plugin ps v ppos)
-  | attr -> Some attr
+  | attr ->
+    (* Docstrings (`## ` comments) end up here as they are `Doc` attributes
+       already. No check that they are in a relevant spot is done, though. *)
+    Some attr
 
 let translate_pos context pos =
   Pos.attrs pos
@@ -495,7 +518,10 @@ let rec process_base_typ
     | Surface.Ast.Duration -> TLit TDuration, typ_pos
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
-    | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
+    | Surface.Ast.Position -> TLit TPos, typ_pos
+    | Surface.Ast.External name ->
+      (* External types will be supported at some point *)
+      Message.error ~pos:typ_pos "Unrecognised type name '@{<red>%s@}'" name
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       let path = List.rev rev_named_path_acc in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
@@ -523,11 +549,11 @@ let rec process_base_typ
       | Some mname ->
         let mod_ctxt = ModuleName.Map.find mname ctxt.modules in
         let rev_named_path_acc : Uid.Path.t =
-          match mod_ctxt.current_module with
-          | Some mname ->
+          match mod_ctxt.current_revpath with
+          | [] -> rev_named_path_acc
+          | mname :: _ ->
             ModuleName.map_info (fun (s, _) -> s, mpos) mname
             :: rev_named_path_acc
-          | None -> rev_named_path_acc
         in
         process_base_typ ~rev_named_path_acc ~vars
           { ctxt with local = mod_ctxt }
@@ -774,6 +800,25 @@ let process_topdef ?(visibility = Public) ctxt def =
   let uid =
     Ident.Map.find (Mark.remove def.Surface.Ast.topdef_name) ctxt.local.topdefs
   in
+  let ty = process_type ctxt def.Surface.Ast.topdef_type in
+  let ty =
+    match ty, def.Surface.Ast.topdef_args with
+    | (TArrow (targs, tret), pos), Some (argnames, _) ->
+      ( TArrow
+          ( List.map2
+              (fun ty ((_, npos), _) ->
+                if
+                  Pos.has_attr
+                    (translate_pos FunctionArgument npos)
+                    ImplicitPosArg
+                then
+                  Mark.map_mark (fun pos -> Pos.add_attr pos ImplicitPosArg) ty
+                else ty)
+              targs argnames,
+            tret ),
+        pos )
+    | ty, _ -> ty
+  in
   {
     ctxt with
     topdefs =
@@ -784,7 +829,7 @@ let process_topdef ?(visibility = Public) ctxt def =
             | Some (_, Private), Private | None, Private -> Private
             | Some (_, Public), _ | _, Public -> Public
           in
-          Some (process_type ctxt def.Surface.Ast.topdef_type, visibility))
+          Some (ty, visibility))
         ctxt.topdefs;
   }
 
@@ -927,9 +972,7 @@ let process_name_item
         ]
       "%s name @{<yellow>\"%s\"@} already defined" msg name
   in
-  let path =
-    match ctxt.local.current_module with None -> [] | Some p -> [p]
-  in
+  let path = List.rev ctxt.local.current_revpath in
   let item, visibility = item_vis in
   match Mark.remove item with
   | ScopeDecl decl ->
@@ -1278,19 +1321,12 @@ let process_use_item
 
 (** {1 API} *)
 
-let empty_module_ctxt lang =
+let empty_module_ctxt _lang =
   {
-    current_module = None;
+    current_revpath = [];
     typedefs = Ident.Map.empty;
     field_idmap = Ident.Map.empty;
-    constructor_idmap =
-      (let present = EnumName.Map.singleton Expr.option_enum Expr.some_constr in
-       let absent = EnumName.Map.singleton Expr.option_enum Expr.none_constr in
-       Ident.Map.of_list
-         (match lang with
-         | Global.En -> ["Present", present; "Absent", absent]
-         | Global.Fr -> ["Présent", present; "Absent", absent]
-         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]));
+    constructor_idmap = Ident.Map.empty;
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
     is_external = false;
@@ -1337,7 +1373,7 @@ let form_context (surface, mod_uses) surface_modules : context =
   in
   let empty_ctxt = empty_ctxt surface.Surface.Ast.program_lang in
   let empty_module_ctxt = empty_ctxt.local in
-  let rec process_modules ctxt mod_uses =
+  let rec process_modules ctxt revpath mod_uses =
     (* Recursing on [mod_uses] rather than folding on [modules] ensures a
        topological traversal. *)
     Ident.Map.fold
@@ -1348,7 +1384,8 @@ let form_context (surface, mod_uses) surface_modules : context =
           let module_content, mod_uses =
             ModuleName.Map.find m surface_modules
           in
-          let ctxt = process_modules ctxt mod_uses in
+          let revpath = m :: revpath in
+          let ctxt = process_modules ctxt revpath mod_uses in
           let ctxt =
             {
               ctxt with
@@ -1356,7 +1393,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                 {
                   ctxt.local with
                   used_modules = mod_uses;
-                  current_module = Some m;
+                  current_revpath = revpath;
                   is_external =
                     module_content.Surface.Ast.module_modname.module_external;
                 };
@@ -1393,7 +1430,7 @@ let form_context (surface, mod_uses) surface_modules : context =
           })
       mod_uses ctxt
   in
-  let ctxt = process_modules empty_ctxt mod_uses in
+  let ctxt = process_modules empty_ctxt [] mod_uses in
   let ctxt =
     { ctxt with local = { empty_module_ctxt with used_modules = mod_uses } }
   in

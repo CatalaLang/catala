@@ -48,7 +48,7 @@ val tvar : Format.formatter -> naked_typ Bindlib.var -> unit
 val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
-val runtime_error : Format.formatter -> Runtime.error -> unit
+val runtime_error : Format.formatter -> Catala_runtime.error -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 val attrs : Format.formatter -> Pos.t -> unit
@@ -95,20 +95,26 @@ val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 
 (** User-facing, localised printer *)
 module UserFacing : sig
-  val unit : Global.backend_lang -> Format.formatter -> Runtime.unit -> unit
-  val bool : Global.backend_lang -> Format.formatter -> Runtime.bool -> unit
+  val unit :
+    Global.backend_lang -> Format.formatter -> Catala_runtime.unit -> unit
+
+  val bool :
+    Global.backend_lang -> Format.formatter -> Catala_runtime.bool -> unit
 
   val integer :
-    Global.backend_lang -> Format.formatter -> Runtime.integer -> unit
+    Global.backend_lang -> Format.formatter -> Catala_runtime.integer -> unit
 
   val decimal :
-    Global.backend_lang -> Format.formatter -> Runtime.decimal -> unit
+    Global.backend_lang -> Format.formatter -> Catala_runtime.decimal -> unit
 
-  val money : Global.backend_lang -> Format.formatter -> Runtime.money -> unit
-  val date : Global.backend_lang -> Format.formatter -> Runtime.date -> unit
+  val money :
+    Global.backend_lang -> Format.formatter -> Catala_runtime.money -> unit
+
+  val date :
+    Global.backend_lang -> Format.formatter -> Catala_runtime.date -> unit
 
   val duration :
-    Global.backend_lang -> Format.formatter -> Runtime.duration -> unit
+    Global.backend_lang -> Format.formatter -> Catala_runtime.duration -> unit
 
   val lit : Global.backend_lang -> Format.formatter -> lit -> unit
   val lit_to_string : Global.backend_lang -> lit -> string

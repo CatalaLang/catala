@@ -8,7 +8,7 @@
  (name clerk_driver)
  (public_name catala.clerk_driver)
  (libraries
-  catala.runtime_ocaml
+  ;;  runtime_ocaml
   catala.catala_utils
   catala.surface
   catala.clerk_lib
@@ -41,14 +41,12 @@
  (flags
   (:standard
    (:include custom_linking.sexp)))
+ ; These are actually runtime deps and not link deps
+ (link_deps %{bin:catala} ../runtimes/ocaml/catala_runtime.cmi)
  (libraries clerk_driver)
- (link_deps
-  ../compiler/catala.exe
-  (alias ../runtimes/runtimes))
- ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- clerk test`)
  (modules clerk)
  (package catala))
 
 (alias
  (name clerk)
- (deps %{bin:clerk}))
+ (deps %{bin:clerk} %{bin:catala}))

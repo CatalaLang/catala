@@ -84,6 +84,7 @@ val program :
   namespaced_fields:bool ->
   namespaced_constrs:bool ->
   prefix_module:bool ->
+  modnames_conflict:bool ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
   ?f_field:(string -> string) ->
@@ -103,6 +104,9 @@ val program :
     if [prefix_module] is true, the qualifying module name is inserted within
     the ident string, separated with a [.] dot. This happens before
     sanitization.
+
+    if [modnames_conflict] is true, module names can conflict with type names,
+    constructors and fields, and they will be avoided when renaming those.
 
     The [f_*] optional arguments sanitize the different kinds of ids. The
     default is what is used for OCaml: project to ASCII, capitalise structs,

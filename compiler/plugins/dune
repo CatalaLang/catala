@@ -38,6 +38,11 @@
  (flags (-linkall))
  (libraries shared_ast catala.driver ocamlgraph))
 
+(alias
+ (name plugins)
+ (deps
+  (glob_files *.cmxs)))
+
 (documentation
  (package catala)
  (mld_files plugins))

@@ -57,8 +57,18 @@ let build_dir =
     & info ["build-dir"] ~docv:"DIR"
         ~env:(Cmd.Env.info "CLERK_BUILD_DIR")
         ~doc:
-          "Directory where compilation artifacts should be written. Defaults \
-           to '_build'.")
+          "Directory where intermediate compilation artifacts should be \
+           written. Defaults to '_build'.")
+
+let target_dir =
+  Arg.(
+    value
+    & opt (some string) None
+    & info ["target-dir"] ~docv:"DIR"
+        ~env:(Cmd.Env.info "CLERK_TARGET_DIR")
+        ~doc:
+          "Directory where final compilation targets should be written. \
+           Defaults to '_target'.")
 
 let include_dirs =
   let arg =
@@ -336,6 +346,7 @@ let init
     catala_exe
     catala_opts
     build_dir
+    target_dir
     include_dirs
     color
     debug =
@@ -392,6 +403,14 @@ let init
        you wouldn't then be able to build target _build/foo.ml but would have to
        write the full path every time *)
   in
+  let target_dir =
+    let dir =
+      match target_dir with None -> config.global.target_dir | Some dir -> dir
+    in
+    let dir = File.clean_path dir in
+    File.ensure_dir dir;
+    dir
+  in
   {
     options =
       {
@@ -400,6 +419,7 @@ let init
           {
             config.global with
             build_dir;
+            target_dir;
             catala_exe;
             catala_opts = config.global.catala_opts @ catala_opts;
             include_dirs = config.global.include_dirs @ include_dirs;
@@ -420,6 +440,7 @@ let init_term ?(allow_test_flags = false) () =
     $ catala_exe
     $ catala_opts
     $ build_dir
+    $ target_dir
     $ include_dirs
     $ color
     $ debug)

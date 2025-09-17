@@ -298,7 +298,7 @@ let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
 
 let pos_to_runtime pos =
   {
-    Runtime.filename = Pos.get_file pos;
+    Catala_runtime.filename = Pos.get_file pos;
     start_line = Pos.get_start_line pos;
     start_column = Pos.get_start_column pos;
     end_line = Pos.get_end_line pos;
@@ -308,7 +308,7 @@ let pos_to_runtime pos =
 
 let runtime_to_pos rpos =
   let pos =
-    let open Runtime in
+    let open Catala_runtime in
     Pos.from_info rpos.filename rpos.start_line rpos.start_column rpos.end_line
       rpos.end_column
   in
@@ -555,7 +555,7 @@ let is_value (type a) (e : (a, _) gexpr) =
   | _ -> false
 
 let equal_lit (l1 : lit) (l2 : lit) =
-  let open Runtime.Oper in
+  let open Catala_runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> not (o_xor b1 b2)
   | LInt n1, LInt n2 -> o_eq_int_int n1 n2
@@ -565,12 +565,12 @@ let equal_lit (l1 : lit) (l2 : lit) =
   | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
   | LDuration d1, LDuration d2 -> (
     try o_eq_dur_dur (pos_to_runtime Pos.void) d1 d2
-    with Runtime.(Error (UncomparableDurations, _)) -> false)
+    with Catala_runtime.(Error (UncomparableDurations, _)) -> false)
   | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _), _ ->
     false
 
 let compare_lit (l1 : lit) (l2 : lit) =
-  let open Runtime.Oper in
+  let open Catala_runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> Bool.compare b1 b2
   | LInt n1, LInt n2 ->
@@ -585,8 +585,8 @@ let compare_lit (l1 : lit) (l2 : lit) =
   | LDuration d1, LDuration d2 -> (
     (* Duration comparison in the runtime may fail, so rely on a basic
        lexicographic comparison instead *)
-    let y1, m1, d1 = Runtime.duration_to_years_months_days d1 in
-    let y2, m2, d2 = Runtime.duration_to_years_months_days d2 in
+    let y1, m1, d1 = Catala_runtime.duration_to_years_months_days d1 in
+    let y2, m2, d2 = Catala_runtime.duration_to_years_months_days d2 in
     match compare y1 y2 with
     | 0 -> ( match compare m1 m2 with 0 -> compare d1 d2 | n -> n)
     | n -> n)
@@ -1054,3 +1054,34 @@ let rec is_pure : type a. (a, 'm) gexpr -> bool =
   | EAbs _ -> true
   | EApp _ | EScopeCall _ | EAssert _ | EFatalError _ | EErrorOnEmpty _ -> false
   | _ -> shallow_fold (fun e acc -> acc && is_pure e) e true
+
+let detuplify_application args tys mkapp =
+  match args, tys with
+  | [arg], [_] -> mkapp [arg]
+  | [arg], tys -> (
+    match unbox arg with
+    | ETuple args, _ ->
+      (* Literal tuple is directly exploded *)
+      mkapp (List.map rebox args)
+    | EVar _, _ ->
+      (* Explicit variable is indexed to instanciate each argument *)
+      let size = List.length tys in
+      let args =
+        List.init size (fun index ->
+            etupleaccess ~e:arg ~size ~index (Mark.get arg))
+      in
+      mkapp args
+    | _ ->
+      (* Anything else is put in an intermediate variable and treated like the
+         case above *)
+      let size = List.length tys in
+      let v = Var.make "args" in
+      let args =
+        let e = evar v (Mark.get arg) in
+        List.init size (fun index ->
+            etupleaccess ~e ~size ~index (Mark.get arg))
+      in
+      make_let_in (Mark.ghost v)
+        (TTuple tys, pos arg)
+        arg (mkapp args) (pos arg))
+  | args, _ -> mkapp args

@@ -126,7 +126,10 @@ let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
 
 let target_file_name t =
   let open File in
-  let dir = File.dirname t.file_name in
+  let dir =
+    if Filename.is_relative t.file_name then File.dirname t.file_name
+    else "libcatala"
+  in
   match t.module_def with
   | Some m -> dir / String.to_id (Mark.remove m)
   | None -> dir / String.to_id (basename t.file_name -.- "")

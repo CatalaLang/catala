@@ -304,7 +304,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       | External_scope name -> ScopeName.(path name, get_info name)
     in
     let modname =
-      ( ModuleName.Map.find (List.hd (List.rev path)) ctxt.program_ctx.modules,
+      ( ModuleName.Map.find
+          (Option.get (Uid.Path.last_member path))
+          ctxt.program_ctx.modules,
         Expr.pos expr )
     in
     RevBlock.empty, (EExternal { modname; name }, Expr.pos expr), ctxt.ren_ctx

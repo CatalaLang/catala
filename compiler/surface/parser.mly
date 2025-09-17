@@ -61,6 +61,8 @@
 
 %parameter<Localisation: sig
   val lex_builtin: string -> Ast.builtin_expression option
+  val lex_primitive_type: string -> Ast.primitive_typ option
+  val lex_builtin_constr: string -> Ast.builtin_constr option
 end>
 
 (* The token is returned for every line of law text, make them right-associative
@@ -69,7 +71,7 @@ end>
 
 %right top_decl
 
-%right ATTR_START
+%right ATTR_START DOCSTRING
 
 (* Precedence of expression constructions *)
 %right top_expr
@@ -167,6 +169,9 @@ let attribute :=
   RBRACKET ; {
   Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
 }
+| s = DOCSTRING ; {
+  Shared_ast.Doc (s, get_pos $loc)
+}
 
 let attr(x) ==
 | a = list(attribute) ; ~ = x ; {
@@ -193,13 +198,12 @@ let list_with_attr(x) ==
 }
 
 let primitive_typ :=
-| INTEGER ; { Integer }
-| BOOLEAN ; { Boolean }
-| MONEY ; { Money }
-| DURATION ; { Duration }
-| TEXT ; { Text }
-| DECIMAL ; { Decimal }
 | DATE ; { Date }
+| name = LIDENT ; {
+  match Localisation.lex_primitive_type name with
+  | Some ty -> ty
+  | None -> External name
+}
 | c = quident ; { let path, uid = c in Named (path, uid) }
 | WILDCARD; { Var None }
 | WILDCARD; OF; TYPE ; id = lident; { Var (Some id) }
@@ -288,21 +292,6 @@ let naked_expression ==
       ~kind:Parsing
       ~pos:pos_n "Tuple indices must be >= 1";
   TupleAccess (e, (n, pos_n))
-}
-| IMPOSSIBLE ; {
-  Builtin Impossible
-}
-| CARDINAL ; {
-  Builtin Cardinal
-}
-| INTEGER ; {
-  Builtin ToInteger
-}
-| DECIMAL ; {
-  Builtin ToDecimal
-}
-| MONEY ; {
-  Builtin ToMoney
 }
 | LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
   <ArrayLit>
@@ -414,7 +403,14 @@ let struct_content_field :=
 let struct_or_enum_inject ==
 | uid = addpos(quident) ;
   data = option(preceded(CONTENT,expression)) ; {
-  EnumInject(uid, data)
+  match uid with
+  | ([], (id, _)), pos ->
+      (match Localisation.lex_builtin_constr id with
+      | Some c ->
+          EnumInject((CBuiltin c, pos), data)
+      | None ->
+          EnumInject((CConstr ([], (id, pos)), pos), data))
+  | (path, uid), pos -> EnumInject((CConstr (path, uid), pos), data)
 }
 | c = addpos(quident) ;
   LBRACE ;
@@ -494,10 +490,26 @@ let binop ==
 
 let constructor_binding :=
 | uid = addpos(quident) ; CONTENT ; lid = lident ; {
-  ([uid], Some lid)
+  let constr =
+    match uid with
+    | ([], (id, _)), pos ->
+        (match Localisation.lex_builtin_constr id with
+        | Some c -> CBuiltin c, pos
+        | None -> CConstr ([], (id, pos)), pos)
+    | (path, uid), pos -> CConstr (path, uid), pos
+  in
+  ([constr], Some lid)
 }
 | uid = addpos(quident) ; {
-  ([uid], None)
+  let constr =
+    match uid with
+    | ([], (id, _)), pos ->
+        (match Localisation.lex_builtin_constr id with
+        | Some c -> CBuiltin c, pos
+        | None -> CConstr ([], (id, pos)), pos)
+    | (path, uid), pos -> CConstr (path, uid), pos
+  in
+  ([constr], None)
 }
 
 let match_arm :=
@@ -633,7 +645,7 @@ let date_rounding :=
     Message.delayed_error
       (DateRounding v)
       ~kind:Parsing ~pos:(get_pos $loc(i))
-      "Expected the form 'date round increasing' or 'date round decreasing'"
+      "Expected the form 'date round up' or 'date round down'"
 }
 
 let scope_item ==
@@ -793,7 +805,7 @@ let enum_decl_line :=
 }
 
 let var_content ==
-| ~ = lident ; CONTENT ; ty = posattr(typ) ; <>
+| ~ = attr(lident) ; CONTENT ; ty = posattr(typ) ; <>
 let depends_stance ==
 | DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; {
   Some (args, get_pos $sloc)

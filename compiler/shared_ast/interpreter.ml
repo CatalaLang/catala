@@ -21,7 +21,7 @@
 open Catala_utils
 open Definitions
 open Op
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 
 (** {1 Helpers} *)
 
@@ -318,21 +318,13 @@ let rec evaluate_operator
   | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
     err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
-  | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
-  | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))
-  | GetYear, [(ELit (LDate d), _)] -> ELit (LInt (o_getYear d))
-  | FirstDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_firstDayOfMonth d))
-  | LastDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_lastDayOfMonth d))
   | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_and b1 b2))
   | Or, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_or b1 b2))
   | Xor, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
     ELit (LBool (o_xor b1 b2))
-  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor ),
-      _ ) ->
-    err ()
+  | (Not | And | Or | Xor), _ -> err ()
   | Minus_int, [(ELit (LInt x), _)] -> ELit (LInt (o_minus_int x))
   | Minus_rat, [(ELit (LRat x), _)] -> ELit (LRat (o_minus_rat x))
   | Minus_mon, [(ELit (LMoney x), _)] -> ELit (LMoney (o_minus_mon x))
@@ -506,7 +498,7 @@ let rec runtime_to_val :
   | TLit TDate -> ELit (LDate (Obj.obj o)), m
   | TLit TDuration -> ELit (LDuration (Obj.obj o)), m
   | TLit TPos ->
-    let rpos : Runtime.source_position = Obj.obj o in
+    let rpos : Runtime.code_location = Obj.obj o in
     let p =
       Pos.from_info rpos.filename rpos.start_line rpos.start_column
         rpos.end_line rpos.end_column
@@ -599,7 +591,7 @@ and val_to_runtime :
   | TLit TDate, ELit (LDate t) -> Obj.repr t
   | TLit TDuration, ELit (LDuration d) -> Obj.repr d
   | TLit TPos, EPos p ->
-    let rpos : Runtime.source_position =
+    let rpos : Runtime.code_location =
       {
         Runtime.filename = Pos.get_file p;
         start_line = Pos.get_start_line p;
@@ -750,15 +742,16 @@ let rec evaluate_expr :
         Message.error ~pos "Reference to %a@ could@ not@ be@ resolved"
           Print.external_ref name
     in
-    let runtime_path =
-      ( List.map ModuleName.to_string path,
+    let runtime_modname =
+      ( List.map ModuleName.to_string
+          (Option.to_list (Uid.Path.last_member path)),
         match Mark.remove name with
         | External_value name -> TopdefName.base name
         | External_scope name -> ScopeName.base name )
       (* we have the guarantee that the two cases won't collide because they
          have different capitalisation rules inherited from the input *)
     in
-    let o = Runtime.lookup_value runtime_path in
+    let o = Runtime.lookup_value runtime_modname in
     runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
   | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in
@@ -1213,13 +1206,15 @@ let load_runtime_modules ~hashf prg =
       in
       let obj_file =
         let src = Pos.get_file (Mark.get (ModuleName.get_info mname)) in
-        let root = File.common_prefix Global.options.bin_dir src in
-        let dir =
-          File.(
-            dirname @@ (Global.options.bin_dir / File.remove_prefix root src))
+        let dir = File.dirname src in
+        let f =
+          Dynlink.adapt_filename
+            File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
         in
-        Dynlink.adapt_filename
-          File.((dir / "ocaml" / ModuleName.to_string mname) ^ ".cmo")
+        if Sys.file_exists f then f
+        else
+          let root = File.common_prefix Global.options.bin_dir dir in
+          File.(Global.options.bin_dir / File.remove_prefix root f)
       in
       (if not (Sys.file_exists obj_file) then
          Message.error

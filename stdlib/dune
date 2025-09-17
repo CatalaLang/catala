@@ -1,0 +1,13 @@
+(install
+ (files
+  (glob_files
+   (*.catala_* with_prefix runtime))
+  (glob_files_rec
+   (ocaml/* with_prefix runtime/ocaml))
+  (glob_files_rec
+   (c/* with_prefix runtime/c))
+  (glob_files_rec
+   (java/* with_prefix runtime/java))
+  (glob_files_rec
+   (python/* with_prefix runtime/python)))
+ (section lib))

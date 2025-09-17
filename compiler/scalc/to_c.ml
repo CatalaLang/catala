@@ -16,7 +16,7 @@
 
 open Catala_utils
 open Shared_ast
-module Runtime = Runtime_ocaml.Runtime
+module Runtime = Catala_runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 open Ast
@@ -91,6 +91,7 @@ let renaming =
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:false ~constant_binder_name:None
     ~namespaced_fields:true ~namespaced_constrs:false ~prefix_module:true
+    ~modnames_conflict:false
     ~f_var:(ren_qualified String.to_snake_case)
     ~f_struct:(ren_qualified cap) ~f_field:(ren_qualified uncap)
     ~f_enum:(ren_qualified cap) ~f_constr:(ren_qualified upper)
@@ -860,7 +861,9 @@ let format_program
   List.iter
     (fun (m, _intf_id) ->
       pp [ppc; pph] "@,#include <%s.h>" (ModuleName.to_string m))
-    (Program.modules_to_list p.ctx.decl_ctx.ctx_modules);
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.ctx.decl_ctx.ctx_modules));
   Option.iter
     (pp [ppmain] "@,#include \"%s\"")
     (Option.map File.(fun f -> basename f -.- "h") output_file);

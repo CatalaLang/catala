@@ -124,6 +124,19 @@ module Path = struct
       | _ -> p0
     in
     aux prefix p0
+
+  let strip_up_to modname p0 =
+    let rec aux p =
+      match p with
+      | p1 :: p -> if Module.equal modname p1 then p else aux p
+      | [] -> p0
+    in
+    aux p0
+
+  let rec last_member = function
+    | [m] -> Some m
+    | _ :: p -> last_member p
+    | [] -> None
 end
 
 module QualifiedMarkedString = struct
@@ -144,6 +157,10 @@ module QualifiedMarkedString = struct
   let hash (p, i) =
     let open Hash.Op in
     Hash.list Module.hash p % MarkedString.hash i
+
+  let format_shortpath ppf (p, i) =
+    Path.format ppf (Option.to_list (Path.last_member p));
+    MarkedString.format ppf i
 end
 
 module type Qualified = sig
@@ -153,9 +170,8 @@ module type Qualified = sig
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
   val base : t -> string
-
-  val hash : strip:Path.t -> t -> Hash.t
-  (** [strip] strips that prefix from the start of the path before hashing *)
+  val hash : strip:Module.t option -> t -> Hash.t
+  val format_shortpath : Format.formatter -> t -> unit
 end
 
 module Gen_qualified (S : Style) () : Qualified = struct
@@ -165,7 +181,13 @@ module Gen_qualified (S : Style) () : Qualified = struct
 
   let hash ~strip t =
     let p, i = get_info t in
-    QualifiedMarkedString.hash (Path.strip strip p, i)
+    let p = match strip with Some m -> Path.strip_up_to m p | None -> p in
+    QualifiedMarkedString.hash (p, i)
+
+  let format_shortpath ppf t =
+    Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag S.style);
+    QualifiedMarkedString.format_shortpath ppf (get_info t);
+    Format.pp_close_stag ppf ()
 
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)

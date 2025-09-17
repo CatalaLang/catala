@@ -23,26 +23,15 @@
 #define MR_DEPENDS "zale", 0x017C, "y", space_plus, "od"
 #define MS_DECLARATION "deklaracja"
 #define MS_CONTEXT "kontekst"
-#define MS_DECREASING "malejący"
-#define MR_DECREASING "malej", 0x0105, ",cy"
-#define MS_INCREASING "rosnący"
-#define MR_INCREASING "rosn", 0x0105, "cy"
+#define MS_DECREASING "dół"
+#define MR_DECREASING "d", 0xf3, 0x0142
+#define MS_INCREASING "górę"
+#define MR_INCREASING "g", 0xf3, "r", 0x0119
 #define MS_OF "z"
 #define MS_LIST "lista"
 #define MS_OPTION "opcjonalny"
 #define MS_CONTAINS "zawiera"
 #define MS_ENUM "enumeracja"
-#define MS_INTEGER "całkowita"
-#define MR_INTEGER "ca", 0x0142, "kowita"
-#define MS_MONEY "pieniądze"
-#define MR_MONEY "pieni", 0x0105, "dze"
-#define MS_TEXT "tekst"
-#define MS_DECIMAL "dziesiętny"
-#define MR_DECIMAL "dziesi", 0x0119, "tny"
-#define MS_DATE "czas"
-#define MS_DURATION "czas trwania"
-#define MR_DURATION "czas", space_plus, "trwania"
-#define MS_BOOLEAN "zerojedynkowy"
 #define MS_SUM "suma"
 #define MS_FILLED "spełnione"
 #define MR_FILLED "spe", 0x0142, "nione"
@@ -99,9 +88,6 @@
 #define MR_BUT_REPLACE "ale", space_plus, "zast", 0x0105, "pi", 0x0107
 #define MS_INITIALLY "początkowo"
 #define MR_INITIALLY "pocz", 0X0105, "tkowo"
-#define MS_IMPOSSIBLE "niemożliwe"
-#define MR_IMPOSSIBLE "niemo", 0x017C, "liwe"
-#define MS_CARDINAL "liczba"
 #define MS_YEAR "rok"
 #define MS_MONTH "miesiąc"
 #define MR_MONTH "miesi", 0x0105, "c"
@@ -125,20 +111,32 @@
 #define MR_MONEY_DELIM ','
 #define MR_MONEY_SUFFIX Star hspace, "PLN"
 
-(* Builtins *)
+(* Builtin types *)
+
+#define MS_INTEGER "całkowita"
+#define MR_INTEGER "ca", 0x0142, "kowita"
+#define MS_MONEY "pieniądze"
+#define MR_MONEY "pieni", 0x0105, "dze"
+#define MS_DECIMAL "dziesiętny"
+#define MR_DECIMAL "dziesi", 0x0119, "tny"
+#define MS_DATE "czas"
+#define MS_DURATION "czastrwania"
+#define MS_BOOLEAN "zerojedynkowy"
+#define MS_POSITION "code_location"
+
+(* Builtin constructors *)
+
+#define MS_PRESENT "Obecny"
+#define MS_ABSENT "Nieobecny"
+
+(* Builtin functions *)
 
 #define MS_Round "zaokrąglony"
 #define MR_Round "zaokr", 0x0105, "glony"
-#define MS_GetDay "dostęp_dzień"
-#define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
-#define MS_GetMonth "dostęp_miesiąc"
-#define MR_GetMonth "dost", 0x0119, "p_miesi", 0x0105, "c"
-#define MS_GetYear "dostęp_rok"
-#define MR_GetYear "dost", 0x0119, "p_rok"
-#define MS_FirstDayOfMonth "pierwszy_dzień_miesiąca"
-#define MR_FirstDayOfMonth "pierwszy_dzie", 0x144, "_miesi", 0x0105, "ca"
-#define MS_LastDayOfMonth "ostatni_dzień_miesiąca"
-#define MR_LastDayOfMonth "ostatni_dzie", 0x144, "_miesi", 0x0105, "ca"
+#define MS_Impossible "niemożliwe"
+#define MR_Impossible "niemo", 0x017C, "liwe"
+#define MS_Cardinal "liczba"
+
 
 (* Directives *)
 

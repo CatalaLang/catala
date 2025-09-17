@@ -69,7 +69,7 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TMoney -> "money"
     | TDuration -> "duration"
     | TDate -> "date"
-    | TPos -> "source_position")
+    | TPos -> "code_location")
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
@@ -102,6 +102,7 @@ let attr ppf = function
         | Some label -> Format.fprintf ppf " = %S" label)
       label
   | Test -> Format.fprintf ppf "#[test]@ "
+  | ImplicitPosArg -> Format.fprintf ppf "#[implicit_position_argument]@ "
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
@@ -187,16 +188,16 @@ let typ ?(colors = colors) fmt ty = typ_gen ~colors Bindlib.empty_ctxt fmt ty
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
   | LBool b -> lit_style fmt (string_of_bool b)
-  | LInt i -> lit_style fmt (Runtime.integer_to_string i)
+  | LInt i -> lit_style fmt (Catala_runtime.integer_to_string i)
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits
-         i)
+      (Catala_runtime.decimal_to_string
+         ~max_prec_digits:Global.options.max_prec_digits i)
   | LMoney e ->
-    lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
-  | LDate d -> lit_style fmt (Runtime.date_to_string d)
-  | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
+    lit_style fmt (Format.asprintf "¤%s" (Catala_runtime.money_to_string e))
+  | LDate d -> lit_style fmt (Catala_runtime.date_to_string d)
+  | LDuration d -> lit_style fmt (Catala_runtime.duration_to_string d)
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
@@ -210,11 +211,6 @@ let operator_to_string : type a. a Op.t -> string =
   function
   | Not -> "~"
   | Length -> "length"
-  | GetDay -> "get_day"
-  | GetMonth -> "get_month"
-  | GetYear -> "get_year"
-  | FirstDayOfMonth -> "first_day_of_month"
-  | LastDayOfMonth -> "last_day_of_month"
   | ToInt -> "to_int"
   | ToInt_rat -> "to_int_rat"
   | ToRat -> "to_rat"
@@ -310,11 +306,6 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   function
   | Not -> "~"
   | Length -> "length"
-  | GetDay -> "get_day"
-  | GetMonth -> "get_month"
-  | GetYear -> "get_year"
-  | FirstDayOfMonth -> "first_day_of_month"
-  | LastDayOfMonth -> "last_day_of_month"
   | ToInt | ToInt_rat -> "to_int"
   | ToRat_int | ToRat_mon | ToRat -> "to_rat"
   | ToMoney_rat | ToMoney -> "to_mon"
@@ -371,7 +362,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
       (if debug then operator_to_string op else operator_to_shorter_string op)
 
 let runtime_error ppf err =
-  Format.fprintf ppf "@{<red>%s@}" (Runtime.error_to_string err)
+  Format.fprintf ppf "@{<red>%s@}" (Catala_runtime.error_to_string err)
 
 let var_debug fmt v =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -396,9 +387,8 @@ module Precedence = struct
     | ELit _ -> Contained (* Todo: unop if < 0 *)
     | EAppOp { op; _ } -> (
       match Mark.remove op with
-      | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
-      | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
+      | Not | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon
+      | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
       | ToMoney_rat | Round | Round_rat | Round_mon ->
         App
       | And -> Op And
@@ -702,7 +692,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           "(" (rhs exprc) e' punctuation ")"
       | EFatalError err ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
-          (Runtime.error_to_string err)
+          (Catala_runtime.error_to_string err)
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -930,10 +920,16 @@ let decl_ctx ?(debug = false) (fmt : Format.formatter) (ctx : decl_ctx) : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
   Format.fprintf fmt "@[<v>%a@,%a@,@]"
     (EnumName.Map.format_bindings_i (enum ~debug))
-    (* Remove the Optional type, which is necessarily the first in the ctx *)
-    (EnumName.Map.remove (fst (EnumName.Map.min_binding ctx_enums)) ctx_enums)
+    (EnumName.Map.filter
+       (fun ename _ -> EnumName.path ename = [])
+       (* Remove the Optional type, which is necessarily the first in the ctx *)
+       (EnumName.Map.remove
+          (fst (EnumName.Map.min_binding ctx_enums))
+          ctx_enums))
     (StructName.Map.format_bindings_i (struct_ ~debug))
-    ctx_structs
+    (StructName.Map.filter
+       (fun sname _ -> StructName.path sname = [])
+       ctx_structs)
 
 let scope
     ?(debug : bool = false)
@@ -1073,13 +1069,13 @@ module UserFacing = struct
      and some others not, adding confusion. *)
 
   let date (lang : Global.backend_lang) ppf d =
-    let y, m, d = Runtime.date_to_years_months_days d in
+    let y, m, d = Catala_runtime.date_to_years_months_days d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
     | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
   let duration (lang : Global.backend_lang) ppf dr =
-    let y, m, d = Runtime.duration_to_years_months_days dr in
+    let y, m, d = Catala_runtime.duration_to_years_months_days dr in
     let rec filter0 = function
       | (0, _) :: (_ :: _ as r) -> filter0 r
       | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r
@@ -1144,7 +1140,8 @@ module UserFacing = struct
            (value ~fallback lang))
         l
     | EStruct { name; fields } ->
-      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format name
+      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]"
+        StructName.format_shortpath name
         (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
            (fun ppf pp_fld e ->
              Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld
@@ -1158,9 +1155,10 @@ module UserFacing = struct
     | EEmpty -> Format.pp_print_string ppf "ø"
     | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
+    | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | EPos _ | ELocation _ | EScopeCall _ | EDStructAmend _
+    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
     | EDStructAccess _ ->
       fallback ppf e
 
@@ -1275,7 +1273,8 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
       StructField.format field s_expr e
   | EExternal { name } -> pf fmt "@[<hov 1>External<%a>@]" external_ref name
   | EAssert e -> pf fmt "@[<hov 1>Assert(%a)@]" s_expr e
-  | EFatalError err -> pf fmt "FatalError<%s>" (Runtime.error_to_string err)
+  | EFatalError err ->
+    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string err)
   | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
   | EDefault { excepts; just; cons } ->
     pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr

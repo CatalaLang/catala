@@ -26,7 +26,7 @@ type scope_var_ctx = {
 
 type scope_input_var_ctx = {
   scope_input_name : StructField.t;
-  scope_input_io : Runtime.io_input Mark.pos;
+  scope_input_io : Catala_runtime.io_input Mark.pos;
   scope_input_typ : naked_typ;
 }
 

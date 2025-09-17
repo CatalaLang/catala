@@ -67,7 +67,7 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
-  current_module : ModuleName.t option;
+  current_revpath : ModuleName.t list;
       (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
@@ -118,6 +118,7 @@ type attribute_context =
   | ConstructorDecl
   | Expression
   | Type
+  | FunctionArgument
 
 val register_attribute :
   plugin:string ->

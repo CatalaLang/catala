@@ -408,7 +408,7 @@ let test_iota_reduction_2 () =
 
   let nomark = Untyped { pos = Pos.void } in
 
-  let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
+  let num n = Expr.elit (LInt (Catala_runtime.integer_of_int n)) nomark in
 
   let injAe e = Expr.einj ~e ~cons:consA ~name:enumT nomark in
   let injBe e = Expr.einj ~e ~cons:consB ~name:enumT nomark in

@@ -95,6 +95,8 @@ module Path : sig
   val strip : t -> t -> t
   (** [strip pfx p] removed [pfx] from the start of [p]. if [p] doesn't start
       with [pfx], it is returned unchanged *)
+
+  val last_member : t -> Module.t option
 end
 
 module type Qualified = sig
@@ -108,8 +110,13 @@ module type Qualified = sig
   (** Returns only the base ident name, while [to_string] includes the path
       prefix *)
 
-  val hash : strip:Path.t -> t -> Hash.t
-  (** [strip] strips that prefix from the start of the path before hashing *)
+  val hash : strip:Module.t option -> t -> Hash.t
+  (** [strip] strips any path up to that module from the start of the path
+      before hashing *)
+
+  val format_shortpath : Format.formatter -> t -> unit
+  (** Like [format], but prints only the last path member (if any) instead of
+      the full path *)
 end
 
 (** Same as [Gen] but also registers path information *)

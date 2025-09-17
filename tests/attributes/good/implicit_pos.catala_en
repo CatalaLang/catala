@@ -1,0 +1,46 @@
+
+```catala-metadata
+declaration need_position content integer
+  depends on #[implicit_position_argument]
+             pos content code_location,
+             foo content integer
+equals foo
+
+declaration here content code_location
+  depends on dummy_arg content integer,
+             #[implicit_position_argument]
+             pos content code_location
+  equals pos
+
+declaration explicit_pos content (integer, code_location)
+  depends on pos content code_location,
+    foo content integer
+equals (foo, pos)
+
+#[test]
+declaration scope S:
+  output x content integer
+  output y content code_location
+  output z content (code_location, integer)
+
+scope S:
+  definition x equals
+    need_position of 33
+
+  definition y equals here of 0
+
+  definition z equals
+    let pos equals here of 101010 in
+    let pos44 equals (pos, 44) in
+    let (xx, pos) equals explicit_pos of pos44 in
+    (pos, xx)
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ x = 33
+│ y = <implicit_pos:30.23-27>
+│ z = (<implicit_pos:33.20-24>, 44)
+└─
+```
