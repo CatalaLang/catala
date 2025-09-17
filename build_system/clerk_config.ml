@@ -50,6 +50,7 @@ type target = {
   ttests : File.t list;
   backends : backend list;
   include_sources : bool;
+  include_objects : bool;
 }
 
 type doc = {
@@ -137,17 +138,18 @@ let project_encoding =
 let target_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { tname; tmodules; ttests; backends; include_sources } ->
-      tname, tmodules, ttests, backends, include_sources)
-    (fun (tname, tmodules, ttests, backends, include_sources) ->
-      { tname; tmodules; ttests; backends; include_sources })
-  @@ obj5
+    (fun { tname; tmodules; ttests; backends; include_sources; include_objects } ->
+      tname, tmodules, ttests, backends, include_sources, include_objects)
+    (fun (tname, tmodules, ttests, backends, include_sources, include_objects) ->
+      { tname; tmodules; ttests; backends; include_sources; include_objects })
+  @@ obj6
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
        (dft_field ~name:"backends" ~default:[OCaml]
        @@ list (union (string_cases (registered_backends ()))))
        (dft_field ~name:"include_sources" ~default:false @@ bool)
+       (dft_field ~name:"include_objects" ~default:false @@ bool)
 
 let doc_encoding =
   let open Clerk_toml_encoding in

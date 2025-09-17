@@ -38,6 +38,7 @@ type target = {
   ttests : File.t list;
   backends : backend list;
   include_sources : bool;
+  include_objects : bool;
 }
 
 type doc = {
