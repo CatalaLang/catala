@@ -17,7 +17,7 @@ The module describing the abstract syntax tree is:
 Printing helpers can be found in {!module: Scopelang.Print}.
 
 This intermediate representation corresponds to the scope language
-presented in the {{: https://github.com/CatalaLang/catala/raw/master/doc/formalization/formalization.pdf}
+presented in the {{: https://dl.acm.org/doi/10.1145/3473582}
 Catala formalization}.
 
 The {!module:Scopelang.From_desugared} pass performs a few important transformation:
