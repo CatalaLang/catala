@@ -159,16 +159,6 @@ jobs:
         with:
           paths: "/home/ocaml/catala-examples/report.junit.xml"
         if: ${{ always() }}
-      - name: Pack website assets
-        run: |
-          mkdir -p ~/website-assets
-          cd ~/website-assets
-          ln -s \
-            ~/catala-examples/_build/us_tax_code/us_tax_code.html \
-            ~/catala-examples/_build/allocations_familiales/Allocations_familiales.html \
-            ~/catala-examples/_build/aides_logement/Aides_logement.html\
-            .
-          tar cz -hf ~/catala/website-assets.tar.gz *
       - name: Gather all artifacts
         run: |
           cd
@@ -176,7 +166,6 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
-          mv catala/website-assets.tar.gz artifacts/
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
