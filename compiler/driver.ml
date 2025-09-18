@@ -139,23 +139,10 @@ let load_modules
               module_content.Surface.Ast.module_modname.module_name
           in
           let seen = File.Map.add f None seen in
-          let seen, stdlib_use_map =
-            if is_stdlib || stdlib = None then seen, Ident.Map.empty
-            else
-              aux true
-                (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-                seen
-                [stdlib_use f]
-          in
-          let seen, sub_use_map =
+          let seen, file_use_map =
             aux is_stdlib
               (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
               seen module_content.Surface.Ast.module_submodules
-          in
-          let file_use_map =
-            (* Uses from the stdlib are "flattened" to the parent module, but
-               can still be overriden *)
-            Ident.Map.union (fun _ _ m -> Some m) stdlib_use_map sub_use_map
           in
           ( File.Map.add f (Some (modname, module_content, file_use_map)) seen,
             Ident.Map.add
@@ -177,7 +164,7 @@ let load_modules
           ModuleName.Map.add mname (intf, use_map) acc)
       file_map ModuleName.Map.empty
   in
-  let seen, stdlib_uses =
+  let stdlib_files, stdlib_uses =
     if stdlib = None then File.Map.empty, Ident.Map.empty
     else
       let stdlib_files, stdlib_use_map =
@@ -193,7 +180,17 @@ let load_modules
         Ident.Map.union (fun _ _ m -> Some m) stdlib_uses stdlib_use_map )
   in
   let file_module_map, root_uses =
-    aux false [] seen program.Surface.Ast.program_used_modules
+    aux false [] stdlib_files program.Surface.Ast.program_used_modules
+  in
+  let file_module_map =
+    File.Map.mapi
+      (fun file ->
+        Option.map (fun (mname, intf, use_map) ->
+            ( mname,
+              intf,
+              if File.Map.mem file stdlib_files then use_map
+              else Ident.Map.union (fun _ _ m -> Some m) stdlib_uses use_map )))
+      file_module_map
   in
   ( Ident.Map.union (fun _ _ m -> Some m) stdlib_uses root_uses,
     modules_map file_module_map )

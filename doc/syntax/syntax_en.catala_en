@@ -72,8 +72,8 @@ declaration x content integer equals
     round of $9.99
   ) in
   let x equals (
-    get_month of |2003-01-02|,
-    first_day_of_month of |2003-01-02|
+    Date.get_month of |2003-01-02|,
+    Date.first_day_of_month of |2003-01-02|
   ) in
   let x equals (
     a +! b,    # integer

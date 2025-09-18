@@ -126,18 +126,31 @@ let linking_dependencies items =
     in
     rem_dups (traverse [] item)
 
-let backend_extensions =
+let backend_src_extensions =
   [
-    Clerk_rules.C, ["c"; "h"; "o"];
-    Clerk_rules.OCaml, ["ml"; "mli"; "cmi"; "cmo"; "cmx"; "o"; "cmxs"];
+    Clerk_rules.C, ["c"; "h"];
+    Clerk_rules.OCaml, ["ml"; "mli"];
     Clerk_rules.Python, ["py"];
-    Clerk_rules.Java, ["java"; "class"];
+    Clerk_rules.Java, ["java"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
   ]
 
+let backend_obj_extensions =
+  [
+    Clerk_rules.C, ["o"];
+    Clerk_rules.OCaml, ["cmi"; "cmo"; "cmx"; "o"; "cmxs"];
+    Clerk_rules.Python, [];
+    Clerk_rules.Java, ["class"];
+    Clerk_rules.Tests, [];
+  ]
+
+let backend_extensions =
+  List.map
+    (fun (bk, exts) -> bk, exts @ List.assoc bk backend_obj_extensions)
+    backend_src_extensions
+
 let extensions_backend =
   ("cmxa", Clerk_rules.OCaml)
-  :: ("class", Clerk_rules.Java)
   :: List.flatten
        (List.map
           (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
@@ -350,13 +363,16 @@ let make_target ~build_dir ~backend item =
   in
   build_dir / base
 
-let backend_runtime_targets enabled_backends =
-  (if List.mem Clerk_rules.OCaml enabled_backends then ["@runtime-ocaml"]
+let backend_runtime_targets ?(only_source = false) enabled_backends =
+  let src s = if only_source then s ^ "-src" else s in
+  (if List.mem Clerk_rules.OCaml enabled_backends then [src "@runtime-ocaml"]
    else [])
-  @ (if List.mem Clerk_rules.C enabled_backends then ["@runtime-c"] else [])
+  @ (if List.mem Clerk_rules.C enabled_backends then [src "@runtime-c"] else [])
   @ (if List.mem Clerk_rules.Python enabled_backends then ["@runtime-python"]
      else [])
-  @ if List.mem Clerk_rules.Java enabled_backends then ["@runtime-java"] else []
+  @
+  if List.mem Clerk_rules.Java enabled_backends then [src "@runtime-java"]
+  else []
 
 open Cmdliner
 
@@ -454,8 +470,13 @@ let build_clerk_target
                   local_runtime_dir bk
                   / (Option.get module_item.module_def |> Mark.remove)
               in
-              List.assoc bk backend_extensions
-              |> List.map (fun ext -> (module_item, target, bk), base -.- ext))
+              let extensions =
+                if target.include_objects then List.assoc bk backend_extensions
+                else List.assoc bk backend_src_extensions
+              in
+              List.map
+                (fun ext -> (module_item, target, bk), base -.- ext)
+                extensions)
             all_modules_deps)
         enabled_backends
       |> List.sort_uniq (fun ((_, _, _), l) ((_, _, _), r) ->
@@ -463,16 +484,26 @@ let build_clerk_target
     in
     let all_targets =
       List.fold_left
-        (fun acc ((item, _target, backend), _) ->
-          let target =
-            make_target ~build_dir ~backend:(rules_backend backend) item
-          in
+        (fun acc ((item, tg, backend), _) ->
           let targets =
-            if backend = OCaml then [target; File.(target -.- "cmxs")]
-            else [target]
+            let f =
+              Scan.target_file_name item
+              ^ Filename.extension item.Scan.file_name
+            in
+            let tf =
+              File.(build_dir / dirname f / backend_subdir backend / basename f)
+            in
+            let exts =
+              if tg.Config.include_objects then
+                List.assoc backend backend_extensions
+              else List.assoc backend backend_src_extensions
+            in
+            List.map File.(fun ext -> tf -.- ext) exts
           in
           targets @ acc)
-        (backend_runtime_targets enabled_backends)
+        (backend_runtime_targets
+           ~only_source:(not target.Config.include_objects)
+           enabled_backends)
         all_target_files
       |> List.rev
     in
@@ -494,12 +525,19 @@ let build_clerk_target
   |> List.iter (fun bk ->
          let bk = Clerk_rules.backend_from_config bk in
          let dir = prefix_dir / backend_subdir bk in
-         let extensions = List.assoc bk backend_extensions in
+         let extensions =
+           if target.include_objects then List.assoc bk backend_extensions
+           else List.assoc bk backend_src_extensions
+         in
          match bk with
          | Clerk_rules.Java ->
            List.iter
              (fun subdir ->
                copy_dir ()
+                 ~filter:(fun f ->
+                   Filename.check_suffix f ".java"
+                   || target.include_objects
+                      && Filename.check_suffix f ".class")
                  ~src:(local_runtime_dir bk / subdir)
                  ~dst:(dir / subdir))
              ["catala"; "org"]
@@ -688,8 +726,7 @@ let build_direct_targets
           exec_targets
       in
       let final_ninja_targets =
-        backend_runtime_targets enabled_backends
-        @ List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
+        List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
       Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
       ninja_targets, exec_targets, var_bindings, link_deps

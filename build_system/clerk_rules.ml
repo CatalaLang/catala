@@ -228,6 +228,7 @@ let base_bindings ~autotest ~enabled_backends ~config =
             "-Wno-unused-variable";
             "-Wno-unused-but-set-variable";
             "-Werror";
+            "-fPIC";
             "-g";
           ]);
       def Var.c_include
@@ -801,6 +802,9 @@ let runtime_build_statements ~config enabled_backends =
          ~inputs:[ocaml_base -.- "mli"; ocaml_base -.- "cmi"; Var.(!catala_exe)]
          ~outputs:["@runtime-cmi"];
        Nj.build "phony"
+         ~inputs:[ocaml_base -.- "ml"; ocaml_base -.- "mli"]
+         ~outputs:["@runtime-ocaml-src"];
+       Nj.build "phony"
          ~inputs:[ocaml_base -.- "cmx"]
          ~outputs:["@runtime-ocaml"];
        Nj.build "copy"
@@ -820,6 +824,15 @@ let runtime_build_statements ~config enabled_backends =
        let c_base = stdbase / "c" / "catala_runtime" in
        let c_src = Var.(!runtime) / "c" in
        [
+         Nj.build "phony"
+           ~inputs:
+             [
+               c_base -.- "c";
+               c_base -.- "h";
+               (c_base /../ "dates_calc") -.- "c";
+               (c_base /../ "dates_calc") -.- "h";
+             ]
+           ~outputs:["@runtime-c-src"];
          Nj.build "phony"
            ~inputs:
              [
@@ -892,8 +905,11 @@ let runtime_build_statements ~config enabled_backends =
       java_base / "java.files"
     in
     Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-      ~outputs:["@runtime-java"]
+      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
+      ~outputs:["@runtime-java-src"]
+    :: Nj.build "phony"
+         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+         ~outputs:["@runtime-java"]
     :: Nj.build "java-class" ~inputs:[]
          ~implicit_in:
            (java_list_file :: List.map (fun f -> java_base / f) java_files)
