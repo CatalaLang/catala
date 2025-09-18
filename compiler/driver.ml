@@ -182,10 +182,14 @@ let load_modules
   let file_module_map, root_uses =
     aux false [] stdlib_files program.Surface.Ast.program_used_modules
   in
-  let file_module_map = File.Map.mapi (fun file -> Option.map (fun (mname, intf, use_map) ->
-      mname, intf,
-      if File.Map.mem file stdlib_files then use_map else
-      Ident.Map.union (fun _ _ m -> Some m) stdlib_uses use_map))
+  let file_module_map =
+    File.Map.mapi
+      (fun file ->
+        Option.map (fun (mname, intf, use_map) ->
+            ( mname,
+              intf,
+              if File.Map.mem file stdlib_files then use_map
+              else Ident.Map.union (fun _ _ m -> Some m) stdlib_uses use_map )))
       file_module_map
   in
   ( Ident.Map.union (fun _ _ m -> Some m) stdlib_uses root_uses,
