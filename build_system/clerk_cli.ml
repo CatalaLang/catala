@@ -198,11 +198,16 @@ let files_or_folders =
   Arg.(
     value
     & pos_all string []
-    & info [] ~docv:"FILE(S)" ~doc:"File(s) or folder(s) to process")
+    & info [] ~docv:"FILE" ~doc:"File(s) or folder(s) to process")
 
 let files =
+  Arg.(value & pos_all file [] & info [] ~docv:"FILE" ~doc:"File(s) to process")
+
+let targets =
   Arg.(
-    value & pos_all file [] & info [] ~docv:"FILE(S)" ~doc:"File(s) to process")
+    value
+    & pos_all string []
+    & info [] ~docv:"TARGET" ~doc:"Clerk targets to build")
 
 let single_file =
   Arg.(

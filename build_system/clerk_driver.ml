@@ -406,7 +406,7 @@ let raw_cmd : int Cmd.t =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
-      $ Cli.files
+      $ Cli.targets
       $ Cli.ninja_flags)
 
 let build_clerk_target
@@ -1031,6 +1031,48 @@ let run_cmd =
       $ Cli.ninja_flags
       $ Cli.prepare_only)
 
+let typecheck_cmd =
+  let run config (files_or_folders : File.t list) (ninja_flags : string list) =
+    let files_or_folders = List.map config.Cli.fix_path files_or_folders in
+    let items, var_bindings =
+      Clerk_rules.run_ninja ~config ~enabled_backends:[Clerk_rules.Tests]
+        ~autotest:false ~ninja_flags (fun nin_ppf items var_bindings ->
+          Nj.format_def nin_ppf
+            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+          items, var_bindings)
+    in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    let exec = get_var var_bindings Var.catala_exe in
+    let files =
+      List.filter_map
+        (fun it ->
+          if
+            files_or_folders = []
+            || List.exists
+                 (fun f ->
+                   it.Scan.file_name = f
+                   || String.starts_with ~prefix:File.(f / "") it.Scan.file_name)
+                 files_or_folders
+          then Some it.file_name
+          else None)
+        items
+    in
+    let ret =
+      List.map
+        (fun f ->
+          let cmd = exec @ ["typecheck"] @ catala_flags @ [f] in
+          Message.log "Checking %a" File.format f;
+          Message.debug "Running command: '%s'..." (String.concat " " cmd);
+          run_command cmd)
+        files
+    in
+    List.fold_left max 0 ret
+  in
+  let doc = "Runs the Catala type-checker on the given files." in
+  Cmd.v
+    (Cmd.info ~doc "typecheck")
+    Term.(const run $ Cli.init_term () $ Cli.files_or_folders $ Cli.ninja_flags)
+
 let clean_cmd =
   let run (config : Cli.config) =
     File.remove config.Cli.options.Config.global.build_dir;
@@ -1248,6 +1290,29 @@ let runtest_cmd =
       $ Cli.runtest_out
       $ Cli.single_file)
 
+let start_cmd =
+  let run config (ninja_flags : string list) =
+    Clerk_rules.run_ninja ~config ~autotest:false ~ninja_flags
+      (fun nin_ppf _ _ ->
+        Nj.format_def nin_ppf
+          (Nj.Default
+             (Nj.Default.make
+                [
+                  "@runtime-ocaml";
+                  "Stdlib_fr@ocaml-module";
+                  "Stdlib_en@ocaml-module";
+                ]));
+        0)
+  in
+  let doc =
+    "This command prepares the local build environment of the project with \
+     objects that are needed by Catala, including the runtime and stdlib. It \
+     is never needed before running another Clerk command, but may be useful \
+     before direct calls to the $(i,catala) compiler."
+  in
+  Cmd.v (Cmd.info ~doc "start")
+    Term.(const run $ Cli.init_term ~allow_test_flags:true () $ Cli.ninja_flags)
+
 let ci_cmd =
   let run config verbosity xml (diff_command : string option option) =
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
@@ -1358,6 +1423,8 @@ let main_cmd =
       build_cmd;
       test_cmd;
       run_cmd;
+      typecheck_cmd;
+      start_cmd;
       clean_cmd;
       ci_cmd;
       runtest_cmd;
