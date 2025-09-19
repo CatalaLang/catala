@@ -172,6 +172,35 @@ jobs:
           name: Catala examples
           path: /home/ocaml/artifacts/*
 
+  language-server:
+    name: Builds and test the language server
+    needs: build
+    runs-on: self-hosted
+    container:
+      image: ${{ needs.build.outputs.image }}
+      options: --user root
+      env:
+        DUNE_PROFILE: release
+        OPAMSWITCH: /home/ocaml/catala
+    steps:
+      - name: Fix home
+        # Workaround Github actions issue, see
+        # https://github.com/actions/runner/issues/863
+        run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
+      - name: Checkout examples repo
+        # Github fetch action is expected to work for containers, but doesn't
+        # (permission issues)
+        run: |
+          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-examples -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-examples
+      - name: Build the language server
+        run: |
+          cd ~/catala-language-server
+          opam install conf-npm -y
+          npm install
+          opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
+          make test
+
   # binaries:
   #   name: Build static binaries
   #   runs-on: self-hosted
