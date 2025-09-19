@@ -188,7 +188,10 @@ let load_modules
         Option.map (fun (mname, intf, use_map) ->
             ( mname,
               intf,
-              if File.Map.mem file stdlib_files then use_map
+              if
+                File.Map.mem file stdlib_files
+                || intf.Surface.Ast.module_modname.module_external
+              then use_map
               else Ident.Map.union (fun _ _ m -> Some m) stdlib_uses use_map )))
       file_module_map
   in
