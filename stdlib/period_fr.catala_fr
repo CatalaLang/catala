@@ -1,0 +1,159 @@
+# Périodes de time
+
+> Module Period_fr
+> Usage de Period_internal
+> Usage de Date_fr en tant que Date
+
+## Définitions et opérations
+
+Une période est la conjonction d'une date de début et de fin.
+
+```catala-metadata
+déclaration structure Période:
+  donnée début contenu date
+  # La date de fin est exclue de la période par convention.
+  donnée fin contenu date
+
+##  Vérifie si la période est bien cohérente (elle débute avant sa fin)
+déclaration valid
+  contenu booléen
+  dépend de p contenu Période
+  égal à
+    si p.fin <= p.début alors faux
+    sinon vrai
+
+## Durée d'une période, en nombre de jours
+déclaration durée
+  contenu durée
+  dépend de p contenu Période
+  égal à p.fin - p.début
+
+## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute
+déclaration are_adjacent
+  contenu booléen
+  dépend de p1 contenu Période,
+    p2 contenu Période
+  égal à
+    p1.fin = p2.début
+
+## Retourne la période qui englobe p1 et p2
+déclaration join
+  contenu Période
+  dépend de p1 contenu Période,
+    p2 contenu Période
+  égal à
+    Période {
+      -- début: Date.min de p1.début, p2.début
+      -- fin: Date.max de p1.fin, p2.fin
+    }
+
+## Returns the period corresponding to the days that are both in `p1` et `p2`
+déclaration intersection
+  contenu optionnel de Période
+  dépend de p1 contenu Période,
+    p2 contenu Période
+  égal à
+    soit intersection égal à
+      Période {
+        -- début: Date.max de p1.début, p2.début
+        -- fin: Date.min de p1.fin, p2.fin
+      }
+    dans
+    si valid de intersection alors Présent contenu intersection
+    sinon Absent
+
+## Returns `vrai` si the given date `d` belongs to the given period `p`
+déclaration contained
+  contenu booléen
+  dépend de p contenu Période,
+    d contenu date
+  égal à
+    p.début <= d et d < p.fin
+
+## Finds the first period in the given list `l` that contains the date `d`
+déclaration find_period
+  contenu optionnel de Période
+  dépend de l contenu liste de Période,
+    d contenu date
+  égal à
+    combine tout p parmi l
+      dans found initialement Absent
+      avec
+        selon found sous forme
+        -- Présent : found
+        -- Absent : si contained de p, d alors Présent contenu p sinon Absent
+```
+
+## Operations on associated lists indexed by periods
+
+```catala-metadata
+## Sorts the given periods by starting day
+déclaration sort_by_date
+  contenu liste de (Période, n'importe quel de type t)
+  dépend de l contenu liste de (Période, n'importe quel de type t)
+  égal à
+    soit tuple_associated_list égal à to_tuple_associated_list de l dans
+    soit sorted_tuple_associated_list égal à
+      Period_internal.sort de tuple_associated_list
+    dans
+    of_tuple_associated_list de sorted_tuple_associated_list
+```
+
+## Splitting periods
+
+```catala-metadata
+## Splits the given period, returning one period per calendar month. The first
+## et last elements may be non-whole months.
+déclaration split_by_month
+  contenu liste de Période
+  dépend de p contenu Période
+  égal à of_tuple_list de Period_internal.split_by_month de to_tuple de p
+
+## Splits the given period, returning one period per year, split on the first
+## de the given month. The first et last elements returned may be non-whole
+## years.
+déclaration split_by_year
+  contenu liste de Période
+  dépend de starting_month contenu Date.Mois,
+    p contenu Période
+  égal à
+    of_tuple_list de
+      Period_internal.split_by_year de
+        (Date.month_to_int de starting_month),
+        to_tuple de p
+```
+
+## Internal functions
+
+```catala
+déclaration to_tuple
+  contenu (date, date)
+  dépend de p contenu Période
+  égal à (p.début, p.fin)
+
+déclaration to_tuple_associated_list
+  contenu liste de ((date, date), n'importe quel de type t)
+  dépend de l contenu liste de (Période, n'importe quel de type t)
+  égal à transforme chaque p parmi l en ((to_tuple de p.1), p.2)
+
+déclaration to_tuple_list
+  contenu liste de (date, date)
+  dépend de l contenu liste de Période
+  égal à transforme chaque p parmi l en to_tuple de p
+
+déclaration of_tuple
+  contenu Période
+  dépend de début contenu date,
+    fin contenu date
+  égal à Période { -- début: début -- fin: fin }
+
+déclaration of_tuple_associated_list
+  contenu liste de (Période, n'importe quel de type t)
+  dépend de l contenu liste de ((date, date), n'importe quel de type t)
+  égal à transforme chaque tpl parmi l en ((of_tuple de tpl.1), tpl.2)
+
+déclaration of_tuple_list
+  contenu liste de Période
+  dépend de l contenu liste de (date, date)
+  égal à transforme chaque tpl parmi l en of_tuple de tpl
+```

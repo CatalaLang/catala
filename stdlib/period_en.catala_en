@@ -1,85 +1,32 @@
+# Periods of time
+
 > Module Period_en
 > Using Period_internal
 > Using Date_en as Date
 
-# Periods of time
+## Definitions and operations
 
-A period is a starting date and a duration. Equivalently, it can be defined as a starting date and an end date.
+A period is a starting date and an end date.
 
 ```catala-metadata
-## A period is a starting date and a duration. Here we prefer to encode it
-## using a starting date, and an excluded end date.
 declaration structure Period:
   data begin content date
+  # The end date is excluded from the period
   data end content date
-# The end date is excluded
-```
 
-```catala
-declaration to_tuple
-  content (date, date)
+## Ensures that the period coherent (it begins before its end)
+declaration valid
+  content boolean
   depends on p content Period
-  equals (p.begin, p.end)
-
-declaration to_tuple_list
-  content list of (date, date)
-  depends on l content list of Period
-  equals map each p among l to to_tuple of p
-
-declaration of_tuple
-  content Period
-  depends on begin content date,
-    end content date
-  equals Period { -- begin: begin -- end: end }
-
-declaration of_tuple_list
-  content list of Period
-  depends on l content list of (date, date)
-  equals map each tpl among l to of_tuple of tpl
-```
-
-```catala-metadata
+  equals
+    if p.end <= p.begin then false
+    else true
 
 ## Duration of a given period, in days
 declaration duration
   content duration
   depends on p content Period
   equals p.end - p.begin
-
-## Ensures that the period is not negative, returning Absent if that is the case
-declaration valid
-  content optional of Period
-  depends on p content Period
-  equals
-    if p.end <= p.begin then Absent
-    else Present content p
-
-## Sorts the given periods by starting day
-declaration sort_by_date
-  content list of Period
-  depends on l content list of Period
-  equals
-    of_tuple_list of Period_internal.sort of to_tuple_list of l
-
-## Splits the given period, returning one period per calendar month. The first
-## and last elements may be non-whole months.
-declaration split_by_month
-  content list of Period
-  depends on p content Period
-  equals of_tuple_list of Period_internal.split_by_month of to_tuple of p
-
-## Splits the given period, returning one period per year, split on the first
-## of the given month. The first and last elements returned may be non-whole
-## years.
-declaration split_by_year
-  content list of Period
-  depends on starting_month content Date.Month,
-    p content Period
-  equals
-    of_tuple_list of
-      Period_internal.split_by_year of
-        (Date.month_to_int of starting_month),
-        to_tuple of p
 
 ## Two periods are adjacent if the second one starts when the first stops
 declaration are_adjacent
@@ -89,7 +36,7 @@ declaration are_adjacent
   equals
     p1.end = p2.begin
 
-## Assuming `p1` and `p2` have no gap, returns the reunion of the periods
+## Returns the period that encompasses both p1 and p2
 declaration join
   content Period
   depends on p1 content Period,
@@ -106,11 +53,14 @@ declaration intersection
   depends on p1 content Period,
     p2 content Period
   equals
-    valid of
+    let intersection equals
       Period {
         -- begin: Date.max of p1.begin, p2.begin
         -- end: Date.min of p1.end, p2.end
       }
+    in
+    if valid of intersection then Present content intersection
+    else Absent
 
 ## Returns `true` if the given date `d` belongs to the given period `p`
 declaration contained
@@ -132,4 +82,78 @@ declaration find_period
         match found with pattern
         -- Present : found
         -- Absent : if contained of p, d then Present content p else Absent
+```
+
+## Operations on associated lists indexed by periods
+
+```catala-metadata
+## Sorts the given periods by starting day
+declaration sort_by_date
+  content list of (Period, anything of type t)
+  depends on l content list of (Period, anything of type t)
+  equals
+    let tuple_associated_list equals to_tuple_associated_list of l in
+    let sorted_tuple_associated_list equals
+      Period_internal.sort of tuple_associated_list
+    in
+    of_tuple_associated_list of sorted_tuple_associated_list
+```
+
+## Splitting periods
+
+```catala-metadata
+## Splits the given period, returning one period per calendar month. The first
+## and last elements may be non-whole months.
+declaration split_by_month
+  content list of Period
+  depends on p content Period
+  equals of_tuple_list of Period_internal.split_by_month of to_tuple of p
+
+## Splits the given period, returning one period per year, split on the first
+## of the given month. The first and last elements returned may be non-whole
+## years.
+declaration split_by_year
+  content list of Period
+  depends on starting_month content Date.Month,
+    p content Period
+  equals
+    of_tuple_list of
+      Period_internal.split_by_year of
+        (Date.month_to_int of starting_month),
+        to_tuple of p
+```
+
+## Internal functions
+
+```catala
+declaration to_tuple
+  content (date, date)
+  depends on p content Period
+  equals (p.begin, p.end)
+
+declaration to_tuple_associated_list
+  content list of ((date, date), anything of type t)
+  depends on l content list of (Period, anything of type t)
+  equals map each p among l to ((to_tuple of p.1), p.2)
+
+declaration to_tuple_list
+  content list of (date, date)
+  depends on l content list of Period
+  equals map each p among l to to_tuple of p
+
+declaration of_tuple
+  content Period
+  depends on begin content date,
+    end content date
+  equals Period { -- begin: begin -- end: end }
+
+declaration of_tuple_associated_list
+  content list of (Period, anything of type t)
+  depends on l content list of ((date, date), anything of type t)
+  equals map each tpl among l to ((of_tuple of tpl.1), tpl.2)
+
+declaration of_tuple_list
+  content list of Period
+  depends on l content list of (date, date)
+  equals map each tpl among l to of_tuple of tpl
 ```
