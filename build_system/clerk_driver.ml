@@ -1047,26 +1047,39 @@ let typecheck_cmd =
       List.filter_map
         (fun it ->
           if
-            files_or_folders = []
-            || List.exists
-                 (fun f ->
-                   it.Scan.file_name = f
-                   || String.starts_with ~prefix:File.(f / "") it.Scan.file_name)
-                 files_or_folders
+            Filename.is_relative it.Scan.file_name
+            && ((files_or_folders = [] && not it.Scan.extrnal)
+               || List.exists
+                    (fun f ->
+                      if it.Scan.file_name = f then
+                        if it.Scan.extrnal then (
+                          Message.warning
+                            "File %a defines an external module, skipping"
+                            File.format f;
+                          false)
+                        else true
+                      else
+                        String.starts_with
+                          ~prefix:File.(f / "")
+                          it.Scan.file_name
+                        && not it.Scan.extrnal)
+                    files_or_folders)
           then Some it.file_name
           else None)
         items
     in
+    if files = [] then Message.error "No matching files found";
     let ret =
       List.map
         (fun f ->
-          let cmd = exec @ ["typecheck"] @ catala_flags @ [f] in
-          Message.log "Checking %a" File.format f;
+          let cmd = exec @ ["typecheck"; "--quiet"] @ catala_flags @ [f] in
           Message.debug "Running command: '%s'..." (String.concat " " cmd);
           run_command cmd)
         files
     in
-    List.fold_left max 0 ret
+    let ret = List.fold_left max 0 ret in
+    if ret = 0 then Message.result "Typechecking successful!";
+    ret
   in
   let doc = "Runs the Catala type-checker on the given files." in
   Cmd.v

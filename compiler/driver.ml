@@ -730,7 +730,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.ex_scopes)
 
-  let typecheck options check_invariants includes stdlib =
+  let typecheck options check_invariants includes stdlib quiet =
     let prg = Passes.scopelang options ~includes ~stdlib in
     Message.debug "Typechecking...";
     let _type_ordering =
@@ -749,10 +749,10 @@ module Commands = struct
       let prg = Shared_ast.Typing.program prg in
       Message.debug "Checking invariants...";
       if Dcalc.Invariants.check_all_invariants prg then
-        Message.result "All invariant checks passed"
+        if quiet then () else Message.result "All invariant checks passed"
       else
         raise (Message.error ~internal:true "Some Dcalc invariants are invalid"));
-    Message.result "Typechecking successful!"
+    if not quiet then Message.result "Typechecking successful!"
 
   let typecheck_cmd =
     Cmd.v
@@ -763,7 +763,8 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.check_invariants
         $ Cli.Flags.include_dirs
-        $ Cli.Flags.stdlib_dir)
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.quiet)
 
   let dcalc
       typed
