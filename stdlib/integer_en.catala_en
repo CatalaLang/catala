@@ -1,20 +1,39 @@
+# Integers
+
 > Module Integer_en
 
-# Helper functions on integers
+## Helper functions
 
 ```catala-metadata
-## Returns the smaller of two integers
-declaration min content integer
+declaration min
+  content integer
   depends on x content integer,
-             y content integer
+    y content integer
   equals
-  if x <= y then x else y
+    if x <= y then x else y
 
-## Returns the bigger of two integers
-declaration max content integer
+declaration max
+  content integer
   depends on x content integer,
-             y content integer
+    y content integer
   equals
-  if x >= y then x else y
+    if x >= y then x else y
 
+declaration ceiling
+  content integer
+  depends on variable content integer,
+    ceiling content integer
+  equals min of variable, ceiling
+
+declaration floor
+  content integer
+  depends on variable content integer,
+    floor content integer
+  equals max of variable, floor
+
+## Floors the value at 0
+declaration positive
+  content integer
+  depends on variable content integer
+  equals floor of variable, 0
 ```
