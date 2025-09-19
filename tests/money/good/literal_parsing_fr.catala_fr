@@ -2,13 +2,13 @@
 
 ```catala
 #[test]
-declaration scope A:
-  output x content money
-  output y content money
+déclaration champ d'application A:
+  résultat x contenu argent
+  résultat y contenu argent
 
-scope A:
-  definition x equals $0.15 * 2.0
-  definition y equals -$0.3
+champ d'application A:
+  définition x égal à 0,15€ * 2,0
+  définition y égal à -0,3€
   assertion x = -y
 ```
 
@@ -25,7 +25,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
-│ x = $0.30
-│ y = -$0.30
+│ x = 0,30 €
+│ y = -0,30 € 
 └─
 ```
