@@ -47,6 +47,12 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
+let () =
+  match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Period_en, it may need recompiling"
+module Period_en = Period_en
 
 module Stdlib__1 = struct
   type t = {when__1: date}
