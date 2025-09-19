@@ -19,9 +19,3 @@
 ```
 
 > Usage de Date_fr en tant que Date
-
-```catala-metadata
-déclaration positif contenu argent dépend de x contenu argent
-  égal à
-  si x < 0€ alors 0€ sinon x
-```
