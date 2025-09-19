@@ -4,17 +4,18 @@
 
 ```catala-metadata
 ## Returns the smaller of two integers
-declaration min content integer
+declaration min
+  content integer
   depends on x content integer,
-             y content integer
+    y content integer
   equals
-  if x <= y then x else y
+    if x <= y then x else y
 
 ## Returns the bigger of two integers
-declaration max content integer
+declaration max
+  content integer
   depends on x content integer,
-             y content integer
+    y content integer
   equals
-  if x >= y then x else y
-
+    if x >= y then x else y
 ```
