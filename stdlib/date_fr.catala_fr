@@ -161,3 +161,39 @@ déclaration to_month_of_year
       -- nom_mois: month_of_int de (accès_mois de d)
     }
 ```
+
+## Comparaisons de date
+
+```catala-metadata
+déclaration est_après_date_plus_délai
+  contenu booléen
+  dépend de date_comparée contenu date,
+    date_de_référence contenu date,
+    délai contenu durée
+  égal à
+    date_comparée >= date_de_référence + délai
+
+déclaration est_assez_âgé
+  contenu booléen
+  dépend de date_courante contenu date,
+    date_de_naissance contenu date,
+    target_age contenu durée
+  égal à
+    date_courante >= date_de_naissance + target_age
+
+déclaration est_avant_date_plus_délai
+  contenu booléen
+  dépend de date_comparée contenu date,
+    date_de_référence contenu date,
+    délai contenu durée
+  égal à
+    date_comparée <= date_de_référence + délai
+
+déclaration est_assez_jeune
+  contenu booléen
+  dépend de date_courante contenu date,
+    date_de_naissance contenu date,
+    target_age contenu durée
+  égal à
+    date_courante <= date_de_naissance + target_age
+```

@@ -161,3 +161,39 @@ declaration to_month_of_year
       -- month_name: month_of_int of (get_month of d)
     }
 ```
+
+## Date comparisons
+
+```catala-metadata
+declaration is_after_date_plus_delay
+  content boolean
+  depends on compared_date content date,
+    reference_date content date,
+    delay content duration
+  equals
+    compared_date >= reference_date + delay
+
+declaration is_old_enough
+  content boolean
+  depends on currrent_date content date,
+    birth_date content date,
+    target_age content duration
+  equals
+    currrent_date >= birth_date + target_age
+
+declaration is_before_date_plus_delay
+  content boolean
+  depends on compared_date content date,
+    reference_date content date,
+    delay content duration
+  equals
+    compared_date <= reference_date + delay
+
+declaration is_young_enough
+  content boolean
+  depends on currrent_date content date,
+    birth_date content date,
+    target_age content duration
+  equals
+    currrent_date <= birth_date + target_age
+```

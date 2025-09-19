@@ -1,0 +1,30 @@
+```catala
+#[test]
+declaration scope A:
+  output x1 content money
+  output x2 content money
+  output y1 content money
+  output y2 content money
+  output v1 content money
+  output v2 content money
+  output w1 content money
+  output w2 content money
+
+scope A:
+  definition x1 equals Money.ceiling of $23554, $20000
+  definition x2 equals Money.ceiling of $18000, $20000
+  definition y1 equals Money.floor of $23554, $20000
+  definition y2 equals Money.floor of $19000, $20000
+  definition v1 equals Money.in_excess of $23554, $20000
+  definition v2 equals Money.in_excess of $18000, $20000
+  definition w1 equals Money.in_default of $23554, $20000
+  definition w2 equals Money.in_default of $19000, $20000
+  assertion x1 = $20000
+  assertion x2 = $18000
+  assertion y1 = $23554
+  assertion y2 = $20000
+  assertion v1 = $3554
+  assertion v2 = $0
+  assertion w1 = $0
+  assertion w2 = $1000
+```
