@@ -113,6 +113,8 @@ module date_internal = Date_internal
 module period_en = Period_en
 module period_internal = Period_internal
 module money_en = Money_en
+module integer_en = Integer_en
+module decimal_en = Decimal_en
 let glob1 = 44.12
 
 let glob3 (x: money) = return to_rat x + 10.
@@ -201,6 +203,8 @@ from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
 from . import Period_en as period_en
 from . import Money_en as money_en
+from . import Integer_en as integer_en
+from . import Decimal_en as decimal_en
 
 class A:
     def __init__(self, y: bool, z: Decimal) -> None:
