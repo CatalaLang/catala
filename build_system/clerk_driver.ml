@@ -1004,13 +1004,16 @@ let run_cmd =
       backend
       cmd
       (scope : string option)
-      (ninja_flags : string list) =
+      (ninja_flags : string list)
+      prepare_only =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config
       ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false
       (build_test_deps ~config ~backend files_or_folders)
-    |> run_tests config backend cmd scope
+    |> fun tests ->
+    if prepare_only then Cmd.Exit.ok
+    else run_tests config backend cmd scope tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -1025,7 +1028,8 @@ let run_cmd =
       $ Cli.backend
       $ Cli.run_command
       $ Cli.scope
-      $ Cli.ninja_flags)
+      $ Cli.ninja_flags
+      $ Cli.prepare_only)
 
 let clean_cmd =
   let run (config : Cli.config) =
