@@ -291,7 +291,7 @@ let rec union
       | Some (TVar v3, _), Some ((TVar v4, _) as t2) when Type.Var.equal v3 v4
         ->
         t2
-      | Some (TVar v3, _), None when Type.Var.equal v2 v3 -> t2
+      | Some (TVar v3, _), _ when Type.Var.equal v2 v3 -> t2
       | None, Some (TVar v3, _) when Type.Var.equal v1 v3 -> t1
       | Some t1, Some t2 ->
         let t = union t1 t2 in
