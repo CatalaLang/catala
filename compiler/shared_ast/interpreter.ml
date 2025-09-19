@@ -800,6 +800,11 @@ let rec evaluate_expr :
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
+    let name =
+      (* Ensures the returned module path is consistent between separate and
+         whole-program interpretation *)
+      match Expr.maybe_ty m with TStruct name, _ -> name | _ -> name
+    in
     Mark.add m
       (EStruct
          {
@@ -845,6 +850,11 @@ let rec evaluate_expr :
         e size)
   | EInj { e; name; cons } ->
     let e = evaluate_expr ctx lang e in
+    let name =
+      (* Ensures the returned module path is consistent between separate and
+         whole-program interpretation *)
+      match Expr.maybe_ty m with TEnum name, _ -> name | _ -> name
+    in
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in

@@ -32,6 +32,7 @@ val run_command : string Term.t
 val vars_override : (string * string) list Term.t
 val files_or_folders : string list Term.t
 val files : string list Term.t
+val targets : string list Term.t
 val single_file : string Term.t
 val reset_test_outputs : bool Term.t
 val scope : string option Term.t

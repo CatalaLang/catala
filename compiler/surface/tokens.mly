@@ -35,7 +35,7 @@
 %token<int * int * int> DATE_LITERAL
 %token TRUE FALSE
 %token<string * string> DECIMAL_LITERAL
-%token<string * string> MONEY_AMOUNT
+%token<bool * string * string> MONEY_AMOUNT
 %token BEGIN_CODE
 %token COLON ALT DATA
 %token OF LIST OPTION CONTAINS AMONG

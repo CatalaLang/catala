@@ -210,6 +210,8 @@ let rec disambiguate_constructor
         (Name_resolution.get_module_ctx ctxt mod_id)
         constructor pos)
 
+let int1 = Runtime.integer_of_int 1
+let intminus1 = Runtime.integer_of_int (-1)
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
 
@@ -257,11 +259,13 @@ let translate_literal l pos =
     LMoney
       Runtime.(
         money_of_cents_integer
-          (Oper.o_add_int_int
-             (Oper.o_mult_int_int
-                (integer_of_string i.money_amount_units)
-                int100)
-             (integer_of_string i.money_amount_cents)))
+          (Oper.o_mult_int_int
+             (if i.money_amount_sign then int1 else intminus1)
+             (Oper.o_add_int_int
+                (Oper.o_mult_int_int
+                   (integer_of_string i.money_amount_units)
+                   int100)
+                (integer_of_string i.money_amount_cents))))
   | S.LNumber ((Int i, _), Some (Year, _)) ->
     LDuration (Runtime.duration_of_numbers (int_of_string i) 0 0)
   | S.LNumber ((Int i, _), Some (Month, _)) ->

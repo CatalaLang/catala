@@ -122,7 +122,12 @@ type literal_date = {
 
 type literal_number = Int of string | Dec of string * string
 type literal_unit = Percent | Year | Month | Day
-type money_amount = { money_amount_units : string; money_amount_cents : string }
+
+type money_amount = {
+  money_amount_sign : bool;  (** true is positive *)
+  money_amount_units : string;
+  money_amount_cents : string;
+}
 
 type literal =
   | LNumber of literal_number Mark.pos * literal_unit Mark.pos option

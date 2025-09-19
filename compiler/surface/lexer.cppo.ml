@@ -653,9 +653,10 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_DAY ->
       L.update_acc lexbuf;
       DAY
-  | MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR,
+  | Opt '-', MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR,
                                                                              Rep (digit, 1 .. 2)), MR_MONEY_SUFFIX ->
       let s = Utf8.lexeme lexbuf in
+      let sign = s.[0] <> '-' in
       let units = Buffer.create (String.length s) in
       let cents = Buffer.create 2 in
       let buf = ref units in
@@ -669,7 +670,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
            with a 0 *)
       Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
-      MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
+      MONEY_AMOUNT (sign, Buffer.contents units, Buffer.contents cents)
   | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
     L.update_acc lexbuf;
     let rex =
