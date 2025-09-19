@@ -21,3 +21,5 @@
 > Using Date_en as Date
 > Using Period_en as Period
 > Using Money_en as Money
+> Using Integer_en as Integer
+> Using Decimal_en as Decimal

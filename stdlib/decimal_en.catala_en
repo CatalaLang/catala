@@ -1,0 +1,59 @@
+# Decimals
+
+> Module Decimal_en
+
+## Helper functions
+
+```catala-metadata
+declaration min
+  content decimal
+  depends on m1 content decimal,
+    m2 content decimal
+  equals
+    if m1 > m2 then m2 else m1
+
+declaration max
+  content decimal
+  depends on m1 content decimal,
+    m2 content decimal
+  equals
+    if m1 > m2 then m1 else m2
+
+declaration ceiling
+  content decimal
+  depends on variable content decimal,
+    ceiling content decimal
+  equals min of variable, ceiling
+
+declaration floor
+  content decimal
+  depends on variable content decimal,
+    floor content decimal
+  equals max of variable, floor
+
+## Floors the value at $0
+declaration positive
+  content decimal
+  depends on variable content decimal
+  equals floor of variable, 0.0
+```
+
+## Financial operations
+
+```catala-metadata
+## Returns the positive amount that `variable` overflows from `reference`
+## ($0 otherwise)
+declaration in_excess
+  content decimal
+  depends on variable content decimal,
+    reference content decimal
+  equals max of (0.0, variable - reference)
+
+## Returns the positive amount that `variable` underflows from `reference`
+## ($0 otherwise)
+declaration in_default
+  content decimal
+  depends on variable content decimal,
+    reference content decimal
+  equals max of (0.0, reference - variable)
+```
