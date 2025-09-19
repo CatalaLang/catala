@@ -3,13 +3,16 @@
 ```catala-metadata
 # Periods used here are a pair (date, date) instead of the Period structure, which is dependent on the localisation
 
-declaration sort content list of (date, date)
+declaration sort
+  content list of (date, date)
   depends on p content list of (date, date)
 
-declaration split_by_month content list of (date, date)
+declaration split_by_month
+  content list of (date, date)
   depends on p content (date, date)
 
-declaration split_by_year content list of (date, date)
+declaration split_by_year
+  content list of (date, date)
   depends on start_month content integer,
-             p content (date, date)
+    p content (date, date)
 ```
