@@ -8,9 +8,9 @@ import catala.runtime.*;
 import catala.runtime.exception.*;
 
 public class Period_internal {
-    
+
     public static class Globals {
-        
+
         public static final CatalaFunction<CatalaArray<CatalaTuple>,CatalaArray<CatalaTuple>> sort =
             p -> {
             final CatalaArray<CatalaTuple> sort__1;
@@ -19,7 +19,8 @@ public class Period_internal {
                  ("stdlib/period_internal.catala_en", 6, 13, 6, 17,
                   new String[]{});
             throw new CatalaError(CatalaError.Error.Impossible, pos); };
-        
+            // TODO
+
         public static final CatalaFunction<CatalaTuple,CatalaArray<CatalaTuple>> splitByMonth =
             p -> {
             final CatalaArray<CatalaTuple> splitByMonth__1;
@@ -28,7 +29,8 @@ public class Period_internal {
                  ("stdlib/period_internal.catala_en", 9, 13, 9, 27,
                   new String[]{});
             throw new CatalaError(CatalaError.Error.Impossible, pos); };
-        
+            // TODO
+
         public static final CatalaFunction<CatalaTuple,CatalaArray<CatalaTuple>> splitByYear =
             tup_arg_11 -> {
             CatalaInteger startMonth = CatalaValue.<CatalaInteger>cast
@@ -40,6 +42,7 @@ public class Period_internal {
                  ("stdlib/period_internal.catala_en", 12, 13, 12, 26,
                   new String[]{});
             throw new CatalaError(CatalaError.Error.Impossible, pos); };
+            // TODO
     }
-    
+
 }

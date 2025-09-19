@@ -12,10 +12,10 @@ module Dates = Dates_calc.Dates
 let cmp = Dates.compare_dates
 
 (* Toplevel def sort *)
-let sort : (date * date) array -> (date * date) array =
+let sort : ((date * date) * 'a) array -> ((date * date) * 'a) array =
  fun arr ->
   let ret = Array.copy arr in
-  Array.sort (fun (beg1, _) (beg2, _) -> cmp beg1 beg2) ret;
+  Array.sort (fun ((beg1, _), _) ((beg2, _), _) -> cmp beg1 beg2) ret;
   ret
 
 let one_month = Dates.make_period ~years:0 ~months:1 ~days:0
