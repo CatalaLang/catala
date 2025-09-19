@@ -21,6 +21,7 @@ open Catala_utils
 val catala_exe : string option Term.t
 val catala_opts : string list Term.t
 val autotest : bool Term.t
+val prepare_only : bool Term.t
 val build_dir : string option Term.t
 val include_dirs : string list Term.t
 val test_flags : string list Term.t

@@ -50,6 +50,13 @@ let autotest =
            guarantee that the necessary artifacts for interpretation are \
            present.")
 
+let prepare_only =
+  Arg.(
+    value
+    & flag
+    & info ["prepare-only"]
+        ~doc:"Compile dependencies of the target(s) but do not run it.")
+
 let build_dir =
   Arg.(
     value
