@@ -2,6 +2,8 @@
 
 > Using Date_internal as D
 
+## Helper functions
+
 ```catala-metadata
 ## Returns the earlier of two dates
 declaration min
@@ -18,7 +20,11 @@ declaration max
     y content date
   equals
     if x >= y then x else y
+```
 
+## Dates and years, months and days
+
+```catala-metadata
 declaration of_year_month_day
   content date
   depends on
@@ -35,11 +41,6 @@ declaration to_year_month_day
   equals
     D.to_ymd of d
 
-declaration last_day_of_month
-  content date
-  depends on d content date
-  equals D.last_day_of_month of d
-
 declaration get_year
   content integer
   depends on d content date
@@ -54,11 +55,107 @@ declaration get_day
   content integer
   depends on d content date
   equals (to_year_month_day of d).3
+```
 
+## Getting to the past or future
+
+```catala-metadata
 declaration first_day_of_month
   content date
   depends on d content date
   equals
     let ymd equals to_year_month_day of d in
     of_year_month_day of ( ymd.1, ymd.2, 1 )
+
+declaration last_day_of_month
+  content date
+  depends on d content date
+  equals D.last_day_of_month of d
+
+declaration first_day_of_year
+  content date
+  depends on d content date
+  equals
+    let ymd equals to_year_month_day of d in
+    of_year_month_day of ( ymd.1, 1, 1 )
+
+declaration last_day_of_year
+  content date
+  depends on d content date
+  equals
+    let ymd equals to_year_month_day of d in
+    of_year_month_day of ( ymd.1, 12, 31 )
+```
+
+## Named months and months of specific years
+
+```catala-metadata
+declaration enumeration Month:
+  -- January
+  -- February
+  -- March
+  -- April
+  -- May
+  -- June
+  -- July
+  -- August
+  -- September
+  -- October
+  -- November
+  -- December
+
+declaration month_to_int
+  content integer
+  depends on m content Month
+  equals
+    match m with pattern
+    -- January : 1
+    -- February : 2
+    -- March : 3
+    -- April : 4
+    -- May : 5
+    -- June : 6
+    -- July : 7
+    -- August : 8
+    -- September : 9
+    -- October : 10
+    -- November : 11
+    -- December : 12
+
+declaration structure MonthOfYear:
+  data year_number content integer
+  data month_name content Month
+
+declaration month_of_int
+  content Month
+  depends on i content integer
+  equals
+    if i = 1 then January
+    else if i = 2 then February
+    else if i = 3 then March
+    else if i = 4 then April
+    else if i = 5 then May
+    else if i = 6 then June
+    else if i = 7 then July
+    else if i = 8 then August
+    else if i = 9 then September
+    else if i = 10 then October
+    else if i = 11 then November
+    else if i = 12 then December
+    else impossible
+
+declaration month_of_year_to_first_day_of_month
+  content date
+  depends on m content MonthOfYear
+  equals
+    of_year_month_day of ( m.year_number, (month_to_int of m.month_name), 1 )
+
+declaration to_month_of_year
+  content MonthOfYear
+  depends on d content date
+  equals
+    MonthOfYear {
+      -- year_number: get_year of d
+      -- month_name: month_of_int of (get_month of d)
+    }
 ```
