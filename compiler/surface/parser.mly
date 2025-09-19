@@ -434,8 +434,9 @@ let unit_literal ==
 let literal :=
 | l = addpos(num_literal); u = option(addpos(unit_literal)) ; <LNumber>
 | money = MONEY_AMOUNT ; {
-  let (units, cents) = money in
+  let (sign, units, cents) = money in
   LMoneyAmount {
+    money_amount_sign = sign;
     money_amount_units = units;
     money_amount_cents = cents;
   }
