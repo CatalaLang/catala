@@ -1305,8 +1305,8 @@ let runtest_cmd =
 
 let start_cmd =
   let run config (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~config ~autotest:false ~ninja_flags
-      (fun nin_ppf _ _ ->
+    Clerk_rules.run_ninja ~config ~enabled_backends:[OCaml] ~autotest:false
+      ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf
           (Nj.Default
              (Nj.Default.make
