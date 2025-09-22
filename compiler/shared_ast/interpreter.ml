@@ -937,9 +937,9 @@ let rec evaluate_expr :
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
-    let empty_count = List.length (List.filter is_empty_error excepts) in
-    match List.length excepts - empty_count with
-    | 0 -> (
+    let real_errors = List.filter (Fun.negate is_empty_error) excepts in
+    match real_errors with
+    | [] -> (
       let just = evaluate_expr ctx lang just in
       match Mark.remove just with
       | ELit (LBool true) -> evaluate_expr ctx lang cons
@@ -948,14 +948,12 @@ let rec evaluate_expr :
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
-    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
-    | _ ->
+    | [x] -> x
+    | _ :: _ :: _ ->
       let poslist =
-        List.filter_map
-          (fun ex ->
-            if is_empty_error ex then None
-            else Some Expr.(pos_to_runtime (pos ex)))
-          excepts
+        List.map
+          (fun ex -> Expr.(pos_to_runtime (pos ex)))
+          real_errors
       in
       raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
