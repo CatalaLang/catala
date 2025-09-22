@@ -187,12 +187,12 @@ jobs:
         # Workaround Github actions issue, see
         # https://github.com/actions/runner/issues/863
         run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
-      - name: Checkout examples repo
+      - name: Checkout language server repo
         # Github fetch action is expected to work for containers, but doesn't
         # (permission issues)
         run: |
-          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-examples -b "${{ github.head_ref || github.ref_name }}" ||
-          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-examples
+          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-language-server -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/catala-language-server --depth 1 ~/catala-language-server
       - name: Build the language server
         run: |
           cd ~/catala-language-server
