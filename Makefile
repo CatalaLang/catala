@@ -17,7 +17,7 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-OPAM = opam --cli=2.1
+OPAM = opam
 
 dependencies-ocaml:
 	$(OPAM) pin . --no-action
