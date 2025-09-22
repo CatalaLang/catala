@@ -37,11 +37,7 @@ $ catala Dcalc -s B
 let scope B (B_in: B_in): B =
   let set a : A =
     let result : A =
-      A
-        { A_in
-          a_in = ∅;
-          b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩;
-        }
+      A { A_in a_in = ∅; b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩; }
     in
     let result1 : A = { A c = result.c; } in
     if true then result1 else result1

@@ -70,8 +70,7 @@ let scope TestBool
     (foo: ⟨bool⟩|context|output)
     (bar: ⟨integer⟩|context|output)
   =
-  let bar : integer = reentrant or by default
-    error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
+  let bar : integer = reentrant or by default error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
     error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
 ```
