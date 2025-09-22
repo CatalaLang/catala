@@ -17,17 +17,17 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-OPAM = opam
+OPAM = opam --cli=2.1
 
 dependencies-ocaml:
 	$(OPAM) pin . --no-action
-	$(OPAM) install . --with-doc --with-test --update-invariant --depext-only --with-dev-setup
-	$(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
 	$(OPAM) pin . --no-action
-	OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only --with-dev-setup
-	OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only --with-dev-setup
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
 PY_VENV_DIR = _python_venv
 
