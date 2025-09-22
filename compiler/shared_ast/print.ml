@@ -38,6 +38,7 @@ let with_color f color fmt x =
   Format.pp_close_stag fmt ()
 
 let pp_color_string = with_color Format.pp_print_string
+let pp_color_uchar fmt = with_color (fun fmt -> Format.pp_print_as fmt 1) fmt
 
 (* Cyclic list used to choose nested paren colors *)
 let rec colors =
@@ -51,13 +52,19 @@ let base_type (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.yellow fmt s
 
 let punctuation (fmt : Format.formatter) (s : string) : unit =
-  with_color (fun fmt -> Format.pp_print_as fmt 1) Ocolor_types.cyan fmt s
+  pp_color_uchar Ocolor_types.cyan fmt s
 
 let op_style (fmt : Format.formatter) (s : string) : unit =
+  pp_color_uchar Ocolor_types.green fmt s
+
+let literal_op_style (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.green fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.yellow fmt s
+
+let lit_uchar_style (fmt : Format.formatter) (s : string) : unit =
+  pp_color_uchar Ocolor_types.yellow fmt s
 
 let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   base_type fmt
@@ -358,7 +365,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
            Format.fprintf fmt "@{<blue>%s@}" (Uid.MarkedString.to_string info)))
       infos
   | op ->
-    op_style fmt
+    literal_op_style fmt
       (if debug then operator_to_string op else operator_to_shorter_string op)
 
 let runtime_error ppf err =
@@ -682,9 +689,9 @@ module ExprGen (C : EXPR_PARAM) = struct
           "⟨" expr e
           (default_punct (List.hd colors))
           "⟩"
-      | EEmpty -> lit_style fmt "∅"
+      | EEmpty -> lit_uchar_style fmt "∅"
       | EErrorOnEmpty e' ->
-        Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" literal_op_style "error_empty"
           (rhs exprc) e'
       | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
