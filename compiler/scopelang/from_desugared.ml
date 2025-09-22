@@ -401,6 +401,7 @@ let rec rule_tree_to_expr
     (params : D.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
   let emark = Expr.no_attrs (Untyped { pos = def_pos }) in
+  let ghost_mark = Expr.no_attrs (Untyped { pos = def_pos }) in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
@@ -479,8 +480,8 @@ let rec rule_tree_to_expr
            (translate_and_unbox_list base_just_list)
            (translate_and_unbox_list base_cons_list)
            [])
-      ~just:(Expr.elit (LBool false) emark)
-      ~cons:(Expr.eempty emark) emark
+      ~just:(Expr.elit (LBool false) ghost_mark)
+      ~cons:(Expr.eempty ghost_mark) ghost_mark
   in
   let exceptions =
     List.map
@@ -496,7 +497,7 @@ let rec rule_tree_to_expr
         ~cons:
           (* if toplevel then Expr.eerroronempty default_containing_base_cases emark
            * else *)
-          default_containing_base_cases emark
+          default_containing_base_cases ghost_mark
   in
   let default =
     if toplevel && not (subscope && is_reentrant_var) then

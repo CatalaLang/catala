@@ -695,6 +695,11 @@ and val_to_runtime :
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
+let coverage_result () =
+  let r = Option.value ~default:Pos_map.empty !Coverage.glob in
+  Coverage.glob := None;
+  r
+
 let rec evaluate_expr :
     type d.
     decl_ctx ->
@@ -707,6 +712,7 @@ let rec evaluate_expr :
   in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
+  Coverage.mark_pos e;
   (match debug_print with
   | None -> fun r -> r
   | Some label_opt ->
@@ -861,6 +867,10 @@ let rec evaluate_expr :
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in
+    let () =
+      if Coverage.is_recorded () then
+        EnumConstructor.Map.iter (fun _ e -> Coverage.mark_neg e) cases
+    in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -888,6 +898,7 @@ let rec evaluate_expr :
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
+    let () = Coverage.mark_all Pos_map.neg [efalse; etrue] in
     match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
@@ -939,10 +950,14 @@ let rec evaluate_expr :
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
+    Coverage.mark_neg cons;
     let excepts = List.map (evaluate_expr ctx lang) excepts in
-    let empty_count = List.length (List.filter is_empty_error excepts) in
-    match List.length excepts - empty_count with
-    | 0 -> (
+    (* TODO disable coverage marking at the surface level here *)
+    let () = Coverage.mark_all Pos_map.neg excepts in
+    let real_errors = List.filter (Fun.negate is_empty_error) excepts in
+    let () = Coverage.mark_all Pos_map.pos real_errors in
+    match real_errors with
+    | [] -> (
       let just = evaluate_expr ctx lang just in
       match Mark.remove just with
       | ELit (LBool true) -> evaluate_expr ctx lang cons
@@ -951,14 +966,10 @@ let rec evaluate_expr :
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
-    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
-    | _ ->
+    | [x] -> x
+    | _ :: _ :: _ ->
       let poslist =
-        List.filter_map
-          (fun ex ->
-            if is_empty_error ex then None
-            else Some Expr.(pos_to_runtime (pos ex)))
-          excepts
+        List.map (fun ex -> Expr.(pos_to_runtime (pos ex))) real_errors
       in
       raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
@@ -1159,10 +1170,14 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        thunked arguments"
 
 (** {1 API} *)
-let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let interpret_program_dcalc ~(coverage : bool) p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
+  let () =
+    Coverage.glob :=
+      if coverage then Some (Coverage.reachable e Pos_map.empty) else None
+  in
   match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
