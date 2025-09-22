@@ -36,12 +36,19 @@ type scope_test = {
   s_errors : (pos * string) list;
 }
 
+module LineMap = Map.Make (struct
+  include Int
+
+  let format fmt x = Format.fprintf fmt "%d" x
+end)
+
 type file = {
   name : File.t;
   successful : int;
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
+  code_coverage : bool LineMap.t File.Map.t;
 }
 
 type disp_flags = {
@@ -50,6 +57,7 @@ type disp_flags = {
   mutable diffs : bool;
   mutable diff_command : string option option;
   mutable fix_path : File.t -> File.t;
+  mutable code_coverage : bool;
 }
 
 let disp_flags =
@@ -59,6 +67,7 @@ let disp_flags =
     diffs = true;
     diff_command = None;
     fix_path = Fun.id;
+    code_coverage = false;
   }
 
 let set_display_flags
@@ -67,12 +76,14 @@ let set_display_flags
     ?(diffs = disp_flags.diffs)
     ?(diff_command = disp_flags.diff_command)
     ?(fix_path = disp_flags.fix_path)
+    ?(code_coverage = disp_flags.code_coverage)
     () =
   disp_flags.files <- files;
   disp_flags.tests <- tests;
   disp_flags.diffs <- diffs;
   disp_flags.diff_command <- diff_command;
-  disp_flags.fix_path <- fix_path
+  disp_flags.fix_path <- fix_path;
+  disp_flags.code_coverage <- code_coverage
 
 let write_to f file =
   File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
@@ -363,6 +374,26 @@ let display_file ~build_dir ppf t =
     Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
     Format.pp_close_box ppf ()
   in
+  let print_code_coverage (code_coverage : bool LineMap.t File.Map.t) =
+    let line_map = File.Map.find t.name code_coverage in
+    let total_lines = LineMap.cardinal line_map in
+    let positive_lines =
+      LineMap.fold
+        (fun _ is_covered acc -> if is_covered then acc + 1 else acc)
+        line_map 0
+    in
+    let percentage =
+      int_of_float
+        (float_of_int positive_lines /. float_of_int total_lines *. 100.)
+    in
+    Format.pp_print_break ppf 0 3;
+    Format.pp_open_vbox ppf 0;
+    Format.fprintf ppf
+      "@{<green>■@} code coverage @{<cyan>%d@} / @{<cyan>%d@} lines \
+       (@{<hi_magenta>%d %%@})"
+      positive_lines total_lines percentage;
+    Format.pp_close_box ppf ()
+  in
   if t.successful = t.total then (
     if disp_flags.files = `All then (
       Format.fprintf ppf
@@ -371,7 +402,8 @@ let display_file ~build_dir ppf t =
         (pfile t.name) t.successful t.total;
       if disp_flags.tests = `All then (
         print_tests t.tests;
-        print_scopes t.scopes);
+        print_scopes t.scopes;
+        if disp_flags.code_coverage then print_code_coverage t.code_coverage);
       Format.pp_print_cut ppf ()))
   else
     let () =
@@ -387,7 +419,8 @@ let display_file ~build_dir ppf t =
     Format.fprintf ppf " / %d tests passed" t.total;
     if disp_flags.tests <> `None then (
       print_tests t.tests;
-      print_scopes t.scopes);
+      print_scopes t.scopes;
+      if disp_flags.code_coverage then print_code_coverage t.code_coverage);
     Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }

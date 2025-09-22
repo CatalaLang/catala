@@ -462,6 +462,8 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
+        code_coverage =
+          File.Map.singleton filename (Clerk_report.LineMap.singleton 1 true);
       }
       !rtests
   in
