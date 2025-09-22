@@ -37,12 +37,15 @@ type scope_test = {
   s_errors : (pos * string) list;
 }
 
+module LineMap : Map.S with type key = Int.t
+
 type file = {
   name : File.t;
   successful : int;
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
+  code_coverage : bool LineMap.t File.Map.t;
 }
 
 val write_to : File.t -> file -> unit
@@ -65,5 +68,6 @@ val set_display_flags :
   ?diffs:bool ->
   ?diff_command:string option option ->
   ?fix_path:(File.t -> File.t) ->
+  ?code_coverage:bool ->
   unit ->
   unit

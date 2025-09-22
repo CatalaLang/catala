@@ -852,16 +852,19 @@ let build_cmd : int Cmd.t =
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
-let setup_report_format ?fix_path verbosity diff_command =
+let setup_report_format ?fix_path verbosity diff_command code_coverage =
   (match verbosity with
-  | `Summary -> Clerk_report.set_display_flags ~files:`None ~tests:`None ()
+  | `Summary ->
+    Clerk_report.set_display_flags ~files:`None ~tests:`None
+      ~code_coverage:false ()
   | `Short ->
-    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false ()
+    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false
+      ~code_coverage:false ()
   | `Failures ->
     if Catala_utils.Global.options.debug then
       Clerk_report.set_display_flags ~files:`All ()
   | `Verbose -> Clerk_report.set_display_flags ~files:`All ~tests:`All ());
-  Clerk_report.set_display_flags ?fix_path ~diff_command ()
+  Clerk_report.set_display_flags ?fix_path ~diff_command ~code_coverage ()
 
 let run_artifact config ~backend ~var_bindings ?scope src =
   let open File in
@@ -1143,10 +1146,12 @@ let run_clerk_test
     (reset_test_outputs : bool)
     verbosity
     xml
+    code_coverage
     (diff_command : string option option)
     (ninja_flags : string list) : int =
   let build_dir = config.Cli.options.global.build_dir in
-  setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+  setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
+    code_coverage;
   if backend <> `Interpret then
     if config.Cli.test_flags <> [] then
       Message.error
@@ -1160,7 +1165,12 @@ let run_clerk_test
       Message.error
         "Option @{<bold>--xml@} was specified, but the output of a test report \
          is only supported with the default @{<yellow>interpret@} backend at \
-         the moment";
+         the moment"
+    else if code_coverage then
+      Message.error
+        "Option @{<bold>--code-coverage@} was specified, but the measure of \
+         code coverage is only supported with the default \
+         @{<yellow>interpret@} backend at the moment";
   let { clerk_targets; others = files_or_folders } =
     classify_targets config clerk_targets_or_files_or_folders
   in
@@ -1277,6 +1287,7 @@ let test_cmd =
       $ Cli.reset_test_outputs
       $ Cli.report_verbosity
       $ Cli.report_xml
+      $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.ninja_flags)
 
@@ -1287,6 +1298,7 @@ let runtest_cmd =
       include_dirs
       test_flags
       report
+      code_coverage
       out
       file
       whole_program =
@@ -1294,9 +1306,12 @@ let runtest_cmd =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
-    let test_flags = List.filter (( <> ) "") test_flags in
-    let catala_opts =
-      if whole_program then "--whole-program" :: catala_opts else catala_opts
+    let test_flags =
+      List.filter (( <> ) "") test_flags
+      @
+      if code_coverage then ["--code-coverage"]
+      else if whole_program then ["--whole-program"]
+      else []
     in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
@@ -1315,6 +1330,7 @@ let runtest_cmd =
       $ Cli.include_dirs
       $ Cli.test_flags
       $ Cli.runtest_report
+      $ Cli.code_coverage
       $ Cli.runtest_out
       $ Cli.single_file
       $ Cli.whole_program)
@@ -1343,8 +1359,14 @@ let start_cmd =
     Term.(const run $ Cli.init_term ~allow_test_flags:true () $ Cli.ninja_flags)
 
 let ci_cmd =
-  let run config verbosity xml (diff_command : string option option) =
-    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+  let run
+      config
+      verbosity
+      xml
+      code_coverage
+      (diff_command : string option option) =
+    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
+      code_coverage;
     let stop_on_failure f =
       try
         let ret = f () in
@@ -1360,7 +1382,7 @@ let ci_cmd =
           (* Post-[Cli.init], we are expected to be in the project's root dir *)
         in
         run_clerk_test config [root_dir] `Interpret false verbosity xml
-          diff_command []);
+          code_coverage diff_command []);
     let targets = config.Cli.options.targets in
     if targets = [] then raise (Catala_utils.Cli.Exit_with 0);
     List.iter
@@ -1376,7 +1398,7 @@ let ci_cmd =
               t.tname
               (string_of_backend bk_rule);
             run_clerk_test config [t.tname] bk_rule false verbosity xml
-              diff_command [])
+              code_coverage diff_command [])
           t.backends)
       targets;
     raise (Catala_utils.Cli.Exit_with 0)
@@ -1396,14 +1418,15 @@ let ci_cmd =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.report_verbosity
+      $ Cli.code_coverage
       $ Cli.report_xml
       $ Cli.diff_command)
 
 let report_cmd =
-  let run color debug verbosity xml diff_command build_dir files =
+  let run color debug verbosity xml code_coverage diff_command build_dir files =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
-    setup_report_format verbosity diff_command;
+    setup_report_format verbosity diff_command code_coverage;
     let open Clerk_report in
     let tests = List.flatten (List.map read_many files) in
     let success = (if xml then print_xml else summary) ~build_dir tests in
@@ -1420,6 +1443,7 @@ let report_cmd =
       $ Cli.debug
       $ Cli.report_verbosity
       $ Cli.report_xml
+      $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.build_dir
       $ Cli.files)
