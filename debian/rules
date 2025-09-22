@@ -5,3 +5,13 @@ include /usr/share/ocaml/ocamlvars.mk
 
 %:
 	dh $@ --with ocaml --buildsystem ocaml_dune
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  NUMJOBS = -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
+
+override_dh_auto_build:
+	dune build $(NUMJOBS) @install --release
+
+override_dh_auto_test:
+	dune runtest $(NUMJOBS) --release
