@@ -694,6 +694,27 @@ and val_to_runtime :
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
+module Coverage = struct
+
+let glob = ref None
+let is_recorded () = !glob <> None
+let mark_pos pol p =
+  Option.iter (fun map -> glob := Some (Pos_map.add p pol map)) !glob
+let mark pol e = mark_pos pol (Expr.mark_pos (Mark.get e))
+let mark_all pol e =
+  Option.iter (fun m ->
+      let m =
+        List.fold_left (fun m x -> Pos_map.add (Expr.mark_pos @@ Mark.get x) pol m) m e
+      in
+      glob := Some m
+    ) !glob
+
+end
+let coverage_result () =
+  let r = Option.value ~default:Pos_map.empty !Coverage.glob in
+  Coverage.glob := None;
+  r
+
 let rec evaluate_expr :
     type d.
     decl_ctx ->
@@ -706,6 +727,7 @@ let rec evaluate_expr :
   in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
+  Coverage.mark_pos Positive pos;
   (match debug_print with
   | None -> fun r -> r
   | Some label_opt ->
@@ -860,6 +882,10 @@ let rec evaluate_expr :
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in
+    let () =
+      if Coverage.is_recorded () then
+        EnumConstructor.Map.iter (fun _ e -> Coverage.mark Negative e) cases
+    in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -887,6 +913,7 @@ let rec evaluate_expr :
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
+    let () = Coverage.mark_all Negative [efalse; etrue] in
     match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
@@ -938,8 +965,12 @@ let rec evaluate_expr :
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
+    Coverage.mark Negative cons;
     let excepts = List.map (evaluate_expr ctx lang) excepts in
+    (* TODO disable coverage marking at the surface level here *)
+    let () = List.iter (Coverage.mark Negative) excepts in
     let real_errors = List.filter (Fun.negate is_empty_error) excepts in
+    let () = List.iter (Coverage.mark Positive) real_errors in
     match real_errors with
     | [] -> (
       let just = evaluate_expr ctx lang just in
@@ -1155,8 +1186,9 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            having thunked arguments")
 
 (** {1 API} *)
-let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
+let interpret_program_dcalc ?(coverage=false) p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
+  Coverage.glob := if coverage then Some Pos_map.empty else None;
   Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in

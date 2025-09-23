@@ -40,6 +40,7 @@ val evaluate_expr :
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :
+  ?coverage:bool ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
@@ -47,6 +48,7 @@ val interpret_program_dcalc :
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
+val coverage_result: unit -> Pos_map.t
 
 val interpret_program_lcalc :
   (lcalc, 'm) gexpr program ->
