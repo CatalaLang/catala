@@ -199,7 +199,7 @@ jobs:
           opam install conf-npm -y
           npm install
           opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
-          opam exec -- make test
+          opam exec -- dune runtest
 
   # binaries:
   #   name: Build static binaries
