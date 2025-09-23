@@ -284,7 +284,15 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
-let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
+let run_tests
+    ~catala_exe
+    ~catala_opts
+    ~code_coverage
+    ~whole_program
+    ~test_flags
+    ~report
+    ~out
+    filename =
   let module L = Surface.Lexer_common in
   let lang =
     match Clerk_scan.get_lang filename with
@@ -386,7 +394,13 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
         in
         let opos_start = out.pos in
         match
-          catala_test_command test_flags catala_exe catala_opts args out
+          catala_test_command
+            (test_flags
+            @
+            if code_coverage then ["--code-coverage"]
+            else if whole_program then ["--whole-program"]
+            else [])
+            catala_exe catala_opts args out
         with
         | Some cmd -> Some (cmd, program, opos_start), lines
         | None -> None, skip_block lines))
@@ -462,8 +476,7 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
-        code_coverage =
-          File.Map.singleton filename (Clerk_report.LineMap.singleton 1 true);
+        code_coverage = Clerk_report.LineMap.singleton 1 true;
       }
       !rtests
   in

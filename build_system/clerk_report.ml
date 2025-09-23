@@ -48,7 +48,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : bool LineMap.t File.Map.t;
+  code_coverage : bool LineMap.t;
 }
 
 type disp_flags = {
@@ -359,10 +359,11 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun t -> not t.i_success) tests
       | `None -> assert false
     in
-    if tests <> [] then Format.pp_print_break ppf 0 3;
-    Format.pp_open_vbox ppf 0;
-    Format.pp_print_list (display ~build_dir t.name) ppf tests;
-    Format.pp_close_box ppf ()
+    if tests <> [] then (
+      Format.pp_print_break ppf 0 3;
+      Format.pp_open_vbox ppf 0;
+      Format.pp_print_list (display ~build_dir t.name) ppf tests;
+      Format.pp_close_box ppf ())
   in
   let print_scopes scopes =
     let scopes =
@@ -371,18 +372,18 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun s -> not s.s_success) scopes
       | `None -> assert false
     in
-    if scopes <> [] then Format.pp_print_break ppf 0 3;
-    Format.pp_open_vbox ppf 0;
-    Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
-    Format.pp_close_box ppf ()
+    if scopes <> [] then (
+      Format.pp_print_break ppf 0 3;
+      Format.pp_open_vbox ppf 0;
+      Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
+      Format.pp_close_box ppf ())
   in
-  let print_code_coverage (code_coverage : bool LineMap.t File.Map.t) =
-    let line_map = File.Map.find t.name code_coverage in
-    let total_lines = LineMap.cardinal line_map in
+  let print_code_coverage (code_coverage : bool LineMap.t) =
+    let total_lines = LineMap.cardinal code_coverage in
     let positive_lines =
       LineMap.fold
         (fun _ is_covered acc -> if is_covered then acc + 1 else acc)
-        line_map 0
+        code_coverage 0
     in
     let percentage =
       int_of_float
@@ -469,6 +470,15 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
+  let lines, lines_covered =
+    List.fold_left
+      (fun (lines, lines_covered) (file : file) ->
+        ( lines + LineMap.cardinal file.code_coverage,
+          lines_covered
+          + LineMap.cardinal (LineMap.filter (fun _ b -> b) file.code_coverage)
+        ))
+      (0, 0) tests
+  in
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
@@ -480,9 +490,12 @@ let summary ~build_dir tests =
         ppf "ALL TESTS PASSED"
   in
   result_box (fun box ->
-      box.print_line "@{<ul>%-5s %10s %10s %10s@}" "" "FAILED" "PASSED" "TOTAL";
+      box.print_line "@{<ul>%-13s %10s %10s %10s %15s@}" "" "FAILED" "PASSED"
+        "TOTAL" "PERCENTAGE";
       if files > 1 then
-        box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<hi_magenta;bold>%13d %%@}"
           "files"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -491,8 +504,12 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          success_files files;
-      box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+          success_files files
+          (int_of_float
+             (float_of_int success_files /. float_of_int files *. 100.));
+      box.print_line
+        "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+         @{<hi_magenta;bold>%13d %%@}"
         "tests"
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -501,10 +518,28 @@ let summary ~build_dir tests =
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
           | n -> Format.fprintf ppf "%10d" n)
-        success total);
+        success total
+        (int_of_float (float_of_int success /. float_of_int total *. 100.));
+      if disp_flags.code_coverage then
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<hi_magenta;bold>%13d %%@}"
+          "lines covered"
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          (lines - lines_covered)
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          lines_covered lines
+          (int_of_float
+             (float_of_int lines_covered /. float_of_int lines *. 100.)));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
   success = total
+
+let print_json ~(build_dir : string) (tests : file list) = assert false
 
 let print_xml ~build_dir tests =
   let ffile ppf f = Format.pp_print_string ppf (pfile ~build_dir f) in
