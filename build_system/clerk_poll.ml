@@ -61,9 +61,9 @@ let catala_exe : File.t Lazy.t =
 (** Locates the main [lib] directory containing the OCaml libs *)
 let ocaml_libdir : File.t Lazy.t =
   lazy
-    (try String.trim (File.process_out "opam" ["var"; "lib"])
+    (try String.trim (File.process_out "ocamlc" ["-where"])
      with Failure _ -> (
-       try String.trim (File.process_out "ocamlc" ["-where"])
+       try String.trim (File.process_out "opam" ["var"; "lib"])
        with Failure _ -> (
          match File.(check_directory (exec_dir /../ "lib")) with
          | Some d -> d
