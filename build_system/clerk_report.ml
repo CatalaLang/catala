@@ -553,7 +553,8 @@ let print_json ~(build_dir : string) (tests : file list) =
   let pos_to_json ((s, e) : Lexing.position * Lexing.position) : Yojson.t =
     `Assoc
       [
-        "fname", `String (File.remove_prefix build_dir s.pos_fname);
+        ( "fname",
+          `String File.(Sys.getcwd () / remove_prefix build_dir s.pos_fname) );
         "start_lnum", `Int s.pos_lnum;
         "start_cnum", `Int s.pos_cnum;
         "end_lnum", `Int e.pos_lnum;
@@ -567,7 +568,9 @@ let print_json ~(build_dir : string) (tests : file list) =
            Some
              (`Assoc
                [
-                 "file", `String (File.remove_prefix build_dir test.name);
+                 ( "file",
+                   `String
+                     File.(Sys.getcwd () / remove_prefix build_dir test.name) );
                  ( "tests",
                    `Assoc
                      [
