@@ -860,6 +860,7 @@ module Commands = struct
 
   let print_interpretation_results
       options
+      ~code_coverage
       ?(quiet = false)
       interpreter
       prg
@@ -876,10 +877,13 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then
+      if quiet then (
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
-          ScopeName.format scope_uid
+          ScopeName.format scope_uid;
+        if code_coverage then
+          let _coverage_results = Interpreter.coverage_result () in
+          assert false)
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results
@@ -926,17 +930,14 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
+          print_interpretation_results ~code_coverage ~quiet options
             (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
             prg scope
           && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
-    if code_coverage then (
-      let _coverage_results = Interpreter.coverage_result () in
-      ignore (assert false);
-      if not success then raise (Cli.Exit_with 123))
+    if not success then raise (Cli.Exit_with 123)
 
   let lcalc
       typed
@@ -1029,7 +1030,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
+          print_interpretation_results ~code_coverage:false ~quiet options
             Interpreter.interpret_program_lcalc prg scope
           && success)
         true

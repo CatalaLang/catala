@@ -93,7 +93,7 @@ module Var = struct
   let ( ! ) = Nj.Var.v
 end
 
-let base_bindings ~autotest ~enabled_backends ~config =
+let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
   let includes ?backend () =
     List.fold_right
@@ -185,6 +185,7 @@ let base_bindings ~autotest ~enabled_backends ~config =
          :: Var.(!catala_exe)
          :: ("--test-flags=" ^ String.concat "," test_flags)
          :: includes ()
+        @ (if code_coverage then ["--code-coverage"] else [])
         @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
   ]
   @ (if List.mem OCaml enabled_backends then
@@ -1099,6 +1100,7 @@ let with_ninja_process
 let run_ninja
     ~config
     ?(enabled_backends = all_backends)
+    ~code_coverage
     ~autotest
     ~quiet
     ?(clean_up_env = false)
@@ -1107,7 +1109,9 @@ let run_ninja
   let enabled_backends =
     if autotest then OCaml :: enabled_backends else enabled_backends
   in
-  let var_bindings = base_bindings ~config ~enabled_backends ~autotest in
+  let var_bindings =
+    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
+  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
       let stdlib_dir = Lazy.force Poll.stdlib_dir in
