@@ -1,0 +1,6 @@
+(install
+ (section lib)
+ (files
+  (pyproject.toml as python/pyproject.toml)
+  (README.md as python/README.md)
+  (glob_files_rec (src/** with_prefix python/src))))

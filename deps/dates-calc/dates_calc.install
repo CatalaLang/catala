@@ -1,0 +1,28 @@
+lib: [
+  "_build/install/default/lib/dates_calc/META"
+  "_build/install/default/lib/dates_calc/c/dates_calc.h" {"c/dates_calc.h"}
+  "_build/install/default/lib/dates_calc/c/dates_calc.o" {"c/dates_calc.o"}
+  "_build/install/default/lib/dates_calc/dates_calc.a"
+  "_build/install/default/lib/dates_calc/dates_calc.cma"
+  "_build/install/default/lib/dates_calc/dates_calc.cmi"
+  "_build/install/default/lib/dates_calc/dates_calc.cmt"
+  "_build/install/default/lib/dates_calc/dates_calc.cmti"
+  "_build/install/default/lib/dates_calc/dates_calc.cmx"
+  "_build/install/default/lib/dates_calc/dates_calc.cmxa"
+  "_build/install/default/lib/dates_calc/dates_calc.ml"
+  "_build/install/default/lib/dates_calc/dates_calc.mli"
+  "_build/install/default/lib/dates_calc/dune-package"
+  "_build/install/default/lib/dates_calc/opam"
+  "_build/install/default/lib/dates_calc/python/README.md" {"python/README.md"}
+  "_build/install/default/lib/dates_calc/python/pyproject.toml" {"python/pyproject.toml"}
+  "_build/install/default/lib/dates_calc/python/src/dates_calc/__init__.py" {"python/src/dates_calc/__init__.py"}
+  "_build/install/default/lib/dates_calc/python/src/dates_calc/dates.py" {"python/src/dates_calc/dates.py"}
+  "_build/install/default/lib/dates_calc/python/src/dates_calc/py.typed" {"python/src/dates_calc/py.typed"}
+]
+libexec: [
+  "_build/install/default/lib/dates_calc/dates_calc.cmxs"
+]
+doc: [
+  "_build/install/default/doc/dates_calc/LICENSE.txt"
+  "_build/install/default/doc/dates_calc/README.md"
+]

@@ -1,0 +1,10 @@
+(rule
+ (deps dates_calc.c)
+ (target dates_calc.o)
+ (action (run %{cc} --std=c89 -Wall -Werror -pedantic -c %{deps} -o %{target})))
+
+(install
+ (section lib)
+ (files
+  (dates_calc.o as c/dates_calc.o)
+  (dates_calc.h as c/dates_calc.h)))

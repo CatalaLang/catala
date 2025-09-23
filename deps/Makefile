@@ -1,4 +1,4 @@
-DEPS = bindlib dates_calc ninja_utils ocolor otoml ubase
+DEPS = bindlib ninja_utils ocolor otoml ubase
 
 deps: deps-list
 	for url in $(shell cat $<); do \
