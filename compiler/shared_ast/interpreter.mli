@@ -48,6 +48,7 @@ val interpret_program_dcalc :
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
+
 val coverage_result: unit -> Pos_map.t
 
 val interpret_program_lcalc :
