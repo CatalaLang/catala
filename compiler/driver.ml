@@ -877,13 +877,14 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then (
+      if quiet then
         (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
-          ScopeName.format scope_uid;
-        if code_coverage then
-          let _coverage_results = Interpreter.coverage_result () in
-          assert false)
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+          ScopeName.format scope_uid (fun fmt ->
+            if code_coverage then
+              let coverage_results = Interpreter.coverage_result () in
+              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
+            else ())
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results

@@ -104,7 +104,7 @@ let rec add_interval ~inside i v pos_map =
         if i.stop = mi.stop then pos_map
         else Interval_map.add { start = i.stop; stop = mi.stop } prev pos_map
 
-let pp_filemap ppf f = Filemap.iter (pp_file ppf) f
+let _pp_filemap ppf f = Filemap.iter (pp_file ppf) f
 
 let fusion x y =
   Filemap.union
@@ -123,9 +123,4 @@ let add pos v map =
       Filemap.add name f' map
 
 let report_coverage ppf map =
-  let non_covered_branch _ =
-    Interval_map.exists (fun _ x ->
-        match x with Negative -> true | _ -> false)
-  in
-  if Filemap.exists non_covered_branch map then
-    Format.fprintf ppf "@[%a@]@." pp_filemap map
+  Hex.pp ppf (Hex.of_string (Marshal.to_string map []))

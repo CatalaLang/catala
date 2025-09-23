@@ -36,9 +36,14 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;  (** Time spent in test, in milliseconds *)
+  s_coverage : Catala_utils.Pos_map.t option;
 }
 
 module LineMap : Map.S with type key = Int.t
+
+type aggregated_code_coverage =
+  (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
+  Catala_utils.Pos_map.Filemap.t
 
 type file = {
   name : File.t;
@@ -46,7 +51,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : bool LineMap.t;
+  code_coverage : aggregated_code_coverage;
 }
 
 val write_to : File.t -> file -> unit

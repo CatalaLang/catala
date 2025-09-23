@@ -186,7 +186,9 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          :: ("--test-flags=" ^ String.concat "," test_flags)
          :: includes ()
         @ (if code_coverage then ["--code-coverage"] else [])
-        @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
+        @ List.map
+            (fun f -> "--catala-opts=" ^ f)
+            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
   ]
   @ (if List.mem OCaml enabled_backends then
        [

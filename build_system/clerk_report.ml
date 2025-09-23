@@ -35,6 +35,7 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;
+  s_coverage : Catala_utils.Pos_map.t option;
 }
 
 module LineMap = Map.Make (struct
@@ -43,13 +44,17 @@ module LineMap = Map.Make (struct
   let format fmt x = Format.pp_print_int fmt x
 end)
 
+type aggregated_code_coverage =
+  (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
+  Catala_utils.Pos_map.Filemap.t
+
 type file = {
   name : File.t;
   successful : int;
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : bool LineMap.t;
+  code_coverage : aggregated_code_coverage;
 }
 
 type disp_flags = {
@@ -379,23 +384,43 @@ let display_file ~build_dir ppf t =
       Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
       Format.pp_close_box ppf ())
   in
-  let print_code_coverage (code_coverage : bool LineMap.t) =
-    let total_lines = LineMap.cardinal code_coverage in
-    let positive_lines =
-      LineMap.fold
-        (fun _ is_covered acc -> if is_covered then acc + 1 else acc)
+  let print_code_coverage (code_coverage : aggregated_code_coverage) =
+    let open Catala_utils.Pos_map in
+    let total_lines =
+      Filemap.fold
+        (fun _ cov_list acc ->
+          List.fold_left
+            (fun acc (loc_interval, _coverage) ->
+              loc_interval.stop.line - loc_interval.start.line + 1 + acc)
+            acc cov_list)
+        code_coverage 0
+    in
+    let negative_lines =
+      Filemap.fold
+        (fun _ cov_list acc ->
+          List.fold_left
+            (fun acc (loc_interval, coverage) ->
+              acc
+              +
+              match coverage with
+              | Negative -> loc_interval.stop.line - loc_interval.start.line + 1
+              | _ -> 0)
+            acc cov_list)
         code_coverage 0
     in
     let percentage =
       int_of_float
-        (float_of_int positive_lines /. float_of_int total_lines *. 100.)
+        (float_of_int (total_lines - negative_lines)
+        /. float_of_int total_lines
+        *. 100.)
     in
     Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
     Format.fprintf ppf
       "@{<green>■@} code coverage @{<cyan>%d@} / @{<cyan>%d@} lines \
        (@{<hi_magenta>%d %%@})"
-      positive_lines total_lines percentage;
+      (total_lines - negative_lines)
+      total_lines percentage;
     Format.pp_close_box ppf ()
   in
   if t.successful = t.total then (
@@ -471,13 +496,25 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
-  let lines, lines_covered =
+  let lines, negative_lines =
+    let open Catala_utils.Pos_map in
     List.fold_left
-      (fun (lines, lines_covered) (file : file) ->
-        ( lines + LineMap.cardinal file.code_coverage,
-          lines_covered
-          + LineMap.cardinal (LineMap.filter (fun _ b -> b) file.code_coverage)
-        ))
+      (fun (lines, negative_lines) (file : file) ->
+        Filemap.fold
+          (fun _ cov_list (lines, negative_lines) ->
+            List.fold_left
+              (fun (lines, negative_lines) (loc_interval, coverage) ->
+                let num_lines =
+                  loc_interval.Catala_utils.Pos_map.stop.line
+                  - loc_interval.start.line
+                  + 1
+                in
+                match coverage with
+                | Catala_utils.Pos_map.Negative ->
+                  lines + num_lines, negative_lines + num_lines
+                | _ -> lines + num_lines, negative_lines)
+              (lines, negative_lines) cov_list)
+          file.code_coverage (lines, negative_lines))
       (0, 0) tests
   in
   if disp_flags.files <> `None then
@@ -529,13 +566,15 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          (lines - lines_covered)
+          negative_lines
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          lines_covered lines
+          (lines - negative_lines) lines
           (int_of_float
-             (float_of_int lines_covered /. float_of_int lines *. 100.)));
+             (float_of_int (lines - negative_lines)
+             /. float_of_int lines
+             *. 100.)));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
   success = total
