@@ -34,6 +34,7 @@ type scope_test = {
   s_name : string;
   s_command_line : string list;
   s_errors : (pos * string) list;
+  s_time : float;
 }
 
 module LineMap = Map.Make (struct
@@ -334,8 +335,10 @@ let display ~build_dir file ppf t =
 let display_scope ~build_dir file ppf scope_test =
   Format.pp_open_vbox ppf 2;
   if scope_test.s_success then (
-    Format.fprintf ppf "@{<green>■@} scope @{<hi_magenta>%s@} passed"
-      scope_test.s_name;
+    Format.fprintf ppf
+      "@{<green>■@} scope @{<hi_magenta>%s@} passed (@{<hi_magenta>%d µs@})"
+      scope_test.s_name
+      (int_of_float (scope_test.s_time *. 1000000.));
     if Global.options.debug then
       print_command ~build_dir ppf file scope_test.s_command_line)
   else (
@@ -548,41 +551,43 @@ let print_json ~(build_dir : string) (tests : file list) =
   let pos_to_json ((s, e) : Lexing.position * Lexing.position) : Yojson.t =
     `Assoc
       [
-        "start_fname", `String (File.remove_prefix build_dir s.pos_fname);
+        "fname", `String (File.remove_prefix build_dir s.pos_fname);
         "start_lnum", `Int s.pos_lnum;
         "start_cnum", `Int s.pos_cnum;
-        "start_bol", `Int s.pos_bol;
-        "end_fname", `String (File.remove_prefix build_dir e.pos_fname);
         "end_lnum", `Int e.pos_lnum;
         "end_cnum", `Int e.pos_lnum;
-        "end_bol", `Int e.pos_bol;
       ]
   in
   let json =
-    `Assoc
+    `List
       (List.filter_map
          (fun test ->
            Some
-             ( File.remove_prefix build_dir test.name,
-               `Assoc
-                 (List.map
-                    (fun scope ->
-                      ( scope.s_name,
-                        `Assoc
-                          [
-                            "success", `Bool scope.s_success;
-                            ( "errors",
-                              `List
-                                (List.map
-                                   (fun ((pos : pos), e) ->
-                                     `Assoc
-                                       [
-                                         "position", pos_to_json pos;
-                                         "message", `String e;
-                                       ])
-                                   scope.s_errors) );
-                          ] ))
-                    test.scopes) ))
+             (`Assoc
+               [
+                 "file", `String (File.remove_prefix build_dir test.name);
+                 ( "tests",
+                   `Assoc
+                     (List.map
+                        (fun scope ->
+                          ( scope.s_name,
+                            `Assoc
+                              [
+                                "success", `Bool scope.s_success;
+                                ( "errors",
+                                  `List
+                                    (List.map
+                                       (fun ((pos : pos), e) ->
+                                         `Assoc
+                                           [
+                                             "position", pos_to_json pos;
+                                             "message", `String e;
+                                           ])
+                                       scope.s_errors) );
+                                "time", `Float (scope.s_time *. 1000.);
+                              ] ))
+                        test.scopes) );
+               ]))
          tests)
   in
   to_channel stdout json;

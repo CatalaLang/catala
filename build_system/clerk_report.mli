@@ -35,6 +35,7 @@ type scope_test = {
   s_name : string;
   s_command_line : string list;
   s_errors : (pos * string) list;
+  s_time : float;  (** Time spent in test, in milliseconds *)
 }
 
 module LineMap : Map.S with type key = Int.t
