@@ -693,21 +693,26 @@ and val_to_runtime :
       Expr.format v
 
 module Coverage = struct
+  let glob = ref None
+  let is_recorded () = !glob <> None
 
-let glob = ref None
-let is_recorded () = !glob <> None
-let mark_pos pol p =
-  Option.iter (fun map -> glob := Some (Pos_map.add p pol map)) !glob
-let mark pol e = mark_pos pol (Expr.mark_pos (Mark.get e))
-let mark_all pol e =
-  Option.iter (fun m ->
-      let m =
-        List.fold_left (fun m x -> Pos_map.add (Expr.mark_pos @@ Mark.get x) pol m) m e
-      in
-      glob := Some m
-    ) !glob
+  let mark_pos pol p =
+    Option.iter (fun map -> glob := Some (Pos_map.add p pol map)) !glob
 
+  let mark pol e = mark_pos pol (Expr.mark_pos (Mark.get e))
+
+  let mark_all pol e =
+    Option.iter
+      (fun m ->
+        let m =
+          List.fold_left
+            (fun m x -> Pos_map.add (Expr.mark_pos @@ Mark.get x) pol m)
+            m e
+        in
+        glob := Some m)
+      !glob
 end
+
 let coverage_result () =
   let r = Option.value ~default:Pos_map.empty !Coverage.glob in
   Coverage.glob := None;
@@ -982,9 +987,7 @@ let rec evaluate_expr :
     | [x] -> x
     | _ :: _ :: _ ->
       let poslist =
-        List.map
-          (fun ex -> Expr.(pos_to_runtime (pos ex)))
-          real_errors
+        List.map (fun ex -> Expr.(pos_to_runtime (pos ex))) real_errors
       in
       raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
@@ -1184,8 +1187,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            having thunked arguments")
 
 (** {1 API} *)
-let interpret_program_dcalc ?(coverage=false) p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let interpret_program_dcalc ?(coverage = false) p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   Coverage.glob := if coverage then Some Pos_map.empty else None;
   Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in

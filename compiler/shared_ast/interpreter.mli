@@ -49,7 +49,7 @@ val interpret_program_dcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
-val coverage_result: unit -> Pos_map.t
+val coverage_result : unit -> Pos_map.t
 
 val interpret_program_lcalc :
   (lcalc, 'm) gexpr program ->
