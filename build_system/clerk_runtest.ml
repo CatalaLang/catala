@@ -232,6 +232,7 @@ let run_catala_test_scopes
            group (rep1 (diff any (char ':')));
            str ": ";
            group (alt [str "passed"; str "failed"]);
+           alt [seq [char '|'; group (rep notnl)]; empty];
          ]
   in
   let errs, scopes_results =
@@ -259,6 +260,16 @@ let run_catala_test_scopes
                 @ ["--scope=" ^ scope];
               s_errors = List.rev errs;
               s_time = delta;
+              s_coverage =
+                (if code_coverage && result then
+                   let hex_coverage_string = Re.Group.get g 3 in
+                   let hex_coverage = `Hex hex_coverage_string in
+                   let hex_coverage_bytes = Hex.to_bytes hex_coverage in
+                   let coverage : Catala_utils.Pos_map.t =
+                     Marshal.from_bytes hex_coverage_bytes 0
+                   in
+                   Some coverage
+                 else None);
             }
             :: acc )
         | None -> (
@@ -289,6 +300,7 @@ let run_catala_test_scopes
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
         s_time = Sys.time () -. start_time;
+        s_coverage = None;
       }
       :: scopes_results
     else scopes_results
@@ -460,11 +472,21 @@ let run_tests
         filename
     else []
   in
-  let successful_test_scopes, failed_test_scopes =
+  let successful_test_scopes, failed_test_scopes, code_coverage =
     List.fold_left
-      (fun (nsucc, nfail) t ->
-        if t.Clerk_report.s_success then nsucc + 1, nfail else nsucc, nfail + 1)
-      (0, 0) scopes_results
+      (fun (nsucc, nfail, code_coverage) t ->
+        let x, y =
+          if t.Clerk_report.s_success then nsucc + 1, nfail
+          else nsucc, nfail + 1
+        in
+        ( x,
+          y,
+          match t.s_coverage with
+          | None -> code_coverage
+          | Some new_coverage ->
+            Catala_utils.Pos_map.fusion code_coverage new_coverage ))
+      (0, 0, Catala_utils.Pos_map.empty)
+      scopes_results
   in
   let num_test_scopes = successful_test_scopes + failed_test_scopes in
   let tests_report =
@@ -483,7 +505,7 @@ let run_tests
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
-        code_coverage = Clerk_report.LineMap.singleton 1 true;
+        code_coverage = Catala_utils.Pos_map.export code_coverage;
       }
       !rtests
   in
