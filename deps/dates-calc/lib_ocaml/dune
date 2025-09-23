@@ -1,3 +1,4 @@
 (library
  (public_name dates_calc)
+ (ocamlc_flags :standard -opaque)
 )
