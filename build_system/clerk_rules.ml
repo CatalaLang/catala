@@ -802,7 +802,10 @@ let runtime_build_statements ~config enabled_backends =
          ~inputs:[ocaml_base -.- "mli"; ocaml_base -.- "cmi"; Var.(!catala_exe)]
          ~outputs:["@runtime-cmi"];
        Nj.build "phony"
-         ~inputs:[ocaml_base -.- "ml"; ocaml_base -.- "mli"]
+         ~inputs:[
+           ocaml_base /../ "dates.mli"; ocaml_base /../ "dates.ml";
+           ocaml_base /../ "dates_calc.ml";
+           ocaml_base -.- "ml"; ocaml_base -.- "mli"]
          ~outputs:["@runtime-ocaml-src"];
        Nj.build "phony"
          ~inputs:[ocaml_base -.- "cmx"]
@@ -824,7 +827,7 @@ let runtime_build_statements ~config enabled_backends =
          ~inputs:[ocaml_src / "dates.mli"]
          ~outputs:[ocaml_base /../ "dates.mli"];
        Nj.build "ocaml-natobject"
-         ~inputs:[ocaml_base /../ "dates.ml"; ocaml_base /../ "dates_calc.ml";  ocaml_base -.- "ml"]
+         ~inputs:[ocaml_base /../ "dates.ml"; ocaml_base /../ "dates_calc.ml"; ocaml_base -.- "ml"]
          ~implicit_in:[ocaml_base -.- "cmi"]
          ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
      ]
