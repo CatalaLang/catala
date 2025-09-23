@@ -11,15 +11,16 @@ let from_pos p =
     stop = { line = Pos.get_end_line p; col = Pos.get_end_column p };
   }
 
-module Pos_filemap = Stdlib.Map.Make(String)
-module Pos_map = Stdlib.Map.Make(struct
+module Filemap = Stdlib.Map.Make(String)
+module Interval_map = Stdlib.Map.Make(struct
     type t = loc_interval
     let compare x y = compare x.start y.start
   end)
 
-type t = coverage Pos_map.t Pos_filemap.t
-let empty = Pos_filemap.empty
-
+type t = coverage Interval_map.t Filemap.t
+let empty = Filemap.empty
+let export m =
+  Filemap.map Interval_map.bindings m
 
 let merge ~inside x y = match x, y with
   | Fulfilled, _ -> Fulfilled
@@ -44,7 +45,7 @@ let pp_interval ppf (pos,x) =
 
 let pp_map ppf m =
   let pp_sep = Format.pp_print_cut in
-  Format.pp_print_seq ~pp_sep pp_interval ppf (Pos_map.to_seq m)
+  Format.pp_print_seq ~pp_sep pp_interval ppf (Interval_map.to_seq m)
 
 let pp_file ppf f m =
   Format.fprintf ppf "@[<v>--------------@,%s:@,--------------@,%a@]@."
@@ -52,31 +53,31 @@ let pp_file ppf f m =
     pp_map m
 
 let rec add_interval ~inside i v pos_map =
-  match Pos_map.find_first_opt (fun mi -> mi.stop > i.start) pos_map with
-  | None -> Pos_map.add i v pos_map
+  match Interval_map.find_first_opt (fun mi -> mi.stop > i.start) pos_map with
+  | None -> Interval_map.add i v pos_map
   | Some ( mi, prev ) ->
-    if i = mi then Pos_map.add i (merge ~inside prev v) pos_map
+    if i = mi then Interval_map.add i (merge ~inside prev v) pos_map
     else if i.start <= mi.start then
       begin
         (*xxxxx|------------|
              |--???? *)
         if i.stop = mi.start && prev = v then
-          pos_map |> Pos_map.remove mi |> Pos_map.add { i with stop = mi.stop } v
+          pos_map |> Interval_map.remove mi |> Interval_map.add { i with stop = mi.stop } v
         else if i.stop <= mi.start then
-          Pos_map.add i v pos_map
+          Interval_map.add i v pos_map
         else if i.stop < mi.stop then
           (*  xxx|------------|
               |------|  *)
           pos_map
-          |> Pos_map.remove mi
-          |> Pos_map.add { mi with stop = i.stop } (merge ~inside:false prev v)
-          |> Pos_map.add { start=i.stop; stop=mi.stop } prev
+          |> Interval_map.remove mi
+          |> Interval_map.add { mi with stop = i.stop } (merge ~inside:false prev v)
+          |> Interval_map.add { start=i.stop; stop=mi.stop } prev
           |> add_interval ~inside:false { i with stop = mi.start } v
         else
           (*  xxxxx|------------|
                 |------------------|  *)
           pos_map
-          |> Pos_map.add mi (merge ~inside:false prev v)
+          |> Interval_map.add mi (merge ~inside:false prev v)
           |> (if mi.start > i.start then
                 add_interval ~inside:false { i with stop = mi.start } v
                   else Fun.id
@@ -87,8 +88,8 @@ let rec add_interval ~inside i v pos_map =
                      |----------| *)
     end
     else if mi.stop = i.start && prev = v then
-      pos_map |> Pos_map.remove mi |>
-      Pos_map.add { mi with stop = i.stop } v
+      pos_map |> Interval_map.remove mi |>
+      Interval_map.add { mi with stop = i.stop } v
     (*  |------------------|
                 |---| *)
     else if i.stop <= mi.stop && merge ~inside prev v = prev then pos_map
@@ -97,36 +98,41 @@ let rec add_interval ~inside i v pos_map =
                   |---???? *)
       let pos_map =
         pos_map
-        |> Pos_map.remove mi
-        |> Pos_map.add { mi with stop = i.start } prev
+        |> Interval_map.remove mi
+        |> Interval_map.add { mi with stop = i.start } prev
       in
       (*  |------------|
                   |----------| *)
       if i.stop > mi.stop then
         pos_map
-        |> Pos_map.add { i with stop = mi.stop } (merge ~inside:false prev v)
+        |> Interval_map.add { i with stop = mi.stop } (merge ~inside:false prev v)
         |> add_interval ~inside:false { start = mi.stop; stop = i.stop } v
         (*  |------------------|
                     |---| *)
       else
-        let pos_map = Pos_map.add i (merge ~inside prev v) pos_map in
+        let pos_map = Interval_map.add i (merge ~inside prev v) pos_map in
         if i.stop = mi.stop then pos_map
-        else Pos_map.add { start = i.stop; stop = mi.stop } prev pos_map
+        else Interval_map.add { start = i.stop; stop = mi.stop } prev pos_map
 
 let pp_filemap ppf f =
-  Pos_filemap.iter (pp_file ppf) f
+  Filemap.iter (pp_file ppf) f
+
+let fusion x y =
+  Filemap.union (fun _s l r ->
+        Some (Interval_map.fold (add_interval ~inside:true) r l)
+    ) x y
 
 let add pos v map =
   if pos = Pos.void then map else
   let loc = from_pos pos in
   let name = Pos.get_file pos in
-  match Pos_filemap.find_opt name map with
-  | None -> Pos_filemap.add name (Pos_map.singleton loc v) map
+  match Filemap.find_opt name map with
+  | None -> Filemap.add name (Interval_map.singleton loc v) map
   | Some f ->
     let f' = add_interval ~inside:true loc v f in
-    Pos_filemap.add name f' map
+    Filemap.add name f' map
 
 let report_coverage ppf map =
-   let non_covered_branch _ = Pos_map.exists (fun _ x -> match x with Negative -> true | _ -> false) in
-   if Pos_filemap.exists non_covered_branch  map then
+   let non_covered_branch _ = Interval_map.exists (fun _ x -> match x with Negative -> true | _ -> false) in
+   if Filemap.exists non_covered_branch  map then
    Format.fprintf ppf "@[%a@]@." pp_filemap map
