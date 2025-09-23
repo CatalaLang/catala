@@ -377,7 +377,12 @@ let backend_runtime_targets ?(only_source = false) enabled_backends =
 open Cmdliner
 
 let raw_cmd : int Cmd.t =
-  let run config autotest (targets : string list) (ninja_flags : string list) =
+  let run
+      config
+      autotest
+      quiet
+      (targets : string list)
+      (ninja_flags : string list) =
     if targets <> [] then
       let targets =
         List.map
@@ -387,11 +392,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~config ~autotest
+      Clerk_rules.run_ninja ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~config ~autotest
+      Clerk_rules.run_ninja ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -406,12 +411,14 @@ let raw_cmd : int Cmd.t =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
+      $ Cli.quiet
       $ Cli.targets
       $ Cli.ninja_flags)
 
 let build_clerk_target
     ~(config : Cli.config)
     ~ninja_flags
+    ~quiet
     (target : Config.target) =
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
@@ -424,7 +431,8 @@ let build_clerk_target
     |> List.sort_uniq Stdlib.compare
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
+    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~quiet
+      ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -570,6 +578,7 @@ let build_direct_targets
     (config : Cli.config)
     ~ninja_flags
     ~autotest
+    ~quiet
     direct_targets =
   let open File in
   if direct_targets = [] then []
@@ -596,7 +605,8 @@ let build_direct_targets
       |> List.sort_uniq Stdlib.compare
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
-      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest
+      Clerk_rules.run_ninja ~config ~enabled_backends ~quiet ~ninja_flags
+        ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -746,6 +756,7 @@ let build_cmd : int Cmd.t =
   let run
       config
       autotest
+      quiet
       (clerk_targets_or_files : string list)
       (ninja_flags : string list) =
     let open File in
@@ -789,11 +800,11 @@ let build_cmd : int Cmd.t =
     (* Building Clerk named targets separately *)
     let clerk_targets_result =
       List.map
-        (fun t -> build_clerk_target ~config ~ninja_flags t)
+        (fun t -> build_clerk_target ~quiet ~config ~ninja_flags t)
         clerk_targets
     in
     let direct_targets_result =
-      build_direct_targets config ~ninja_flags ~autotest direct_targets
+      build_direct_targets config ~quiet ~ninja_flags ~autotest direct_targets
     in
     Message.result
       "@[<v 4>Build successful. The targets can be found in the following \
@@ -847,6 +858,7 @@ let build_cmd : int Cmd.t =
       const run
       $ Cli.init_term ()
       $ Cli.autotest
+      $ Cli.quiet
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
@@ -1006,13 +1018,14 @@ let run_cmd =
       (files_or_folders : File.t list)
       backend
       cmd
+      quiet
       (scope : string option)
       (ninja_flags : string list)
       prepare_only =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config
       ~enabled_backends:[enable_backend backend]
-      ~ninja_flags ~autotest:false
+      ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
@@ -1030,16 +1043,21 @@ let run_cmd =
       $ Cli.files_or_folders
       $ Cli.backend
       $ Cli.run_command
+      $ Cli.quiet
       $ Cli.scope
       $ Cli.ninja_flags
       $ Cli.prepare_only)
 
 let typecheck_cmd =
-  let run config (files_or_folders : File.t list) (ninja_flags : string list) =
+  let run
+      config
+      quiet
+      (files_or_folders : File.t list)
+      (ninja_flags : string list) =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let items, var_bindings =
       Clerk_rules.run_ninja ~config ~enabled_backends:[Clerk_rules.Tests]
-        ~autotest:false ~ninja_flags (fun nin_ppf items var_bindings ->
+        ~autotest:false ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
           Nj.format_def nin_ppf
             (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
           items, var_bindings)
@@ -1087,7 +1105,12 @@ let typecheck_cmd =
   let doc = "Runs the Catala type-checker on the given files." in
   Cmd.v
     (Cmd.info ~doc "typecheck")
-    Term.(const run $ Cli.init_term () $ Cli.files_or_folders $ Cli.ninja_flags)
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.quiet
+      $ Cli.files_or_folders
+      $ Cli.ninja_flags)
 
 let clean_cmd =
   let run (config : Cli.config) =
@@ -1137,6 +1160,7 @@ let check_clerk_targets_tests backend clerk_targets =
 
 let run_clerk_test
     config
+    quiet
     (clerk_targets_or_files_or_folders : string list)
     (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
     (reset_test_outputs : bool)
@@ -1191,8 +1215,8 @@ let run_clerk_test
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
-      ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~config ~enabled_backends ~ninja_flags
+      ~autotest:false ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_tests config backend "" None
   else
@@ -1216,7 +1240,7 @@ let run_clerk_test
         missing;
     let test_targets =
       Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
-        ~autotest:false ~clean_up_env:true (fun nin_ppf _items _vars ->
+        ~autotest:false ~quiet ~clean_up_env:true (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
@@ -1293,6 +1317,7 @@ let test_cmd =
     Term.(
       const run_clerk_test
       $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backend
       $ Cli.reset_test_outputs
@@ -1338,9 +1363,9 @@ let runtest_cmd =
       $ Cli.single_file)
 
 let start_cmd =
-  let run config (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~config ~enabled_backends:[OCaml] ~autotest:false
-      ~ninja_flags (fun nin_ppf _ _ ->
+  let run config quiet (ninja_flags : string list) =
+    Clerk_rules.run_ninja ~quiet ~config ~enabled_backends:[OCaml]
+      ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf
           (Nj.Default
              (Nj.Default.make
@@ -1358,11 +1383,16 @@ let start_cmd =
      before direct calls to the $(i,catala) compiler."
   in
   Cmd.v (Cmd.info ~doc "start")
-    Term.(const run $ Cli.init_term ~allow_test_flags:true () $ Cli.ninja_flags)
+    Term.(
+      const run
+      $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
+      $ Cli.ninja_flags)
 
 let ci_cmd =
   let run
       config
+      quiet
       verbosity
       code_coverage
       (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
@@ -1383,13 +1413,13 @@ let ci_cmd =
           Filename.current_dir_name
           (* Post-[Cli.init], we are expected to be in the project's root dir *)
         in
-        run_clerk_test config [root_dir] `Interpret false verbosity
+        run_clerk_test config quiet [root_dir] `Interpret false verbosity
           report_format code_coverage diff_command []);
     let targets = config.Cli.options.targets in
     if targets = [] then raise (Catala_utils.Cli.Exit_with 0);
     List.iter
       (fun t ->
-        let _ = build_clerk_target ~config ~ninja_flags:[] t in
+        let _ = build_clerk_target ~quiet ~config ~ninja_flags:[] t in
         List.iter
           (fun bk ->
             let bk_rule = rules_backend (Clerk_rules.backend_from_config bk) in
@@ -1399,7 +1429,7 @@ let ci_cmd =
               "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
               t.tname
               (string_of_backend bk_rule);
-            run_clerk_test config [t.tname] bk_rule false verbosity
+            run_clerk_test config quiet [t.tname] bk_rule false verbosity
               report_format code_coverage diff_command [])
           t.backends)
       targets;
@@ -1419,6 +1449,7 @@ let ci_cmd =
     Term.(
       const run
       $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
       $ Cli.report_verbosity
       $ Cli.code_coverage
       $ Cli.report_format
