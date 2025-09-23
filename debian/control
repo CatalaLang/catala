@@ -2,6 +2,7 @@ Source: catala
 Section: catala
 Priority: optional
 Maintainer: Catala Team <contact@catala-lang.org>
+Standards-Version: 4.0.0
 Build-depends:
   dh-ocaml (>=1.2),
   debhelper-compat (=13),
@@ -32,7 +33,7 @@ Architecture: any
 Depends:
   ocaml,
   z3,
-  ninja,
+  ninja-build,
   libgmp10,
   ${ocaml:Depends},
   ${shlibs:Depends}

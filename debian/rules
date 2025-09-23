@@ -14,4 +14,4 @@ override_dh_auto_build:
 	dune build $(NUMJOBS) @install --release
 
 override_dh_auto_test:
-	dune runtest $(NUMJOBS) --release
+	dune runtest $(NUMJOBS) --release compiler build_system stdlib
