@@ -563,32 +563,49 @@ let print_json ~(build_dir : string) (tests : file list) =
   let json =
     `List
       (List.filter_map
-         (fun test ->
+         (fun (test : file) ->
            Some
              (`Assoc
                [
                  "file", `String (File.remove_prefix build_dir test.name);
                  ( "tests",
                    `Assoc
-                     (List.map
-                        (fun scope ->
-                          ( scope.s_name,
-                            `Assoc
-                              [
-                                "success", `Bool scope.s_success;
-                                ( "errors",
-                                  `List
-                                    (List.map
-                                       (fun ((pos : pos), e) ->
-                                         `Assoc
-                                           [
-                                             "position", pos_to_json pos;
-                                             "message", `String e;
-                                           ])
-                                       scope.s_errors) );
-                                "time", `Float (scope.s_time *. 1000.);
-                              ] ))
-                        test.scopes) );
+                     [
+                       ( "scopes",
+                         `List
+                           (List.map
+                              (fun scope ->
+                                `Assoc
+                                  [
+                                    "scope_name", `String scope.s_name;
+                                    "success", `Bool scope.s_success;
+                                    ( "errors",
+                                      `List
+                                        (List.map
+                                           (fun ((pos : pos), e) ->
+                                             `Assoc
+                                               [
+                                                 "position", pos_to_json pos;
+                                                 "message", `String e;
+                                               ])
+                                           scope.s_errors) );
+                                    "time", `Float (scope.s_time *. 1000.);
+                                  ])
+                              test.scopes) );
+                       ( "inline-tests",
+                         `List
+                           (List.map
+                              (fun (inline_test : inline_test) ->
+                                `Assoc
+                                  [
+                                    ( "cmd",
+                                      `String
+                                        (String.concat " "
+                                           inline_test.i_command_line) );
+                                    "success", `Bool inline_test.i_success;
+                                  ])
+                              test.tests) );
+                     ] );
                ]))
          tests)
   in
