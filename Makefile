@@ -380,10 +380,4 @@ help_catala:
 	plugins website-assets.tar website-assets-base
 
 debian-vendored-deps:
-	mkdir -p deps
-	cd deps && opam source bindlib
-	cd deps && opam source dates_calc
-	cd deps && opam source ninja_utils
-	cd deps && opam source ocolor
-	cd deps && opam source otoml
-	cd deps && opam source ubase
+	$(MAKE) -C deps

@@ -22,4 +22,3 @@ build.ninja
 .catleg_secrets.toml
 *.tmp/
 perf.data*
-deps/
