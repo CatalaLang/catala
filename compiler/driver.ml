@@ -911,6 +911,7 @@ module Commands = struct
       options
       includes
       stdlib
+      code_coverage
       optimize
       check_invariants
       quiet
@@ -926,12 +927,16 @@ module Commands = struct
       List.fold_left
         (fun success scope ->
           print_interpretation_results ~quiet options
-            Interpreter.interpret_program_dcalc prg scope
+            (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
+            prg scope
           && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
-    if not success then raise (Cli.Exit_with 123)
+    if code_coverage then (
+      let _coverage_results = Interpreter.coverage_result () in
+      ignore (assert false);
+      if not success then raise (Cli.Exit_with 123))
 
   let lcalc
       typed
@@ -1003,11 +1008,16 @@ module Commands = struct
       options
       includes
       stdlib
+      code_coverage
       optimize
       check_invariants
       quiet
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
+    if code_coverage then
+      Message.error
+        "The flags @{<bold>--lcalc@} and @{<bold>--code-coverage@} are \
+         incompatible";
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
@@ -1067,6 +1077,7 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.code_coverage
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
