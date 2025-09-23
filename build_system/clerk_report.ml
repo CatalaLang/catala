@@ -39,7 +39,7 @@ type scope_test = {
 module LineMap = Map.Make (struct
   include Int
 
-  let format fmt x = Format.fprintf fmt "%d" x
+  let format fmt x = Format.pp_print_int fmt x
 end)
 
 type file = {
@@ -537,7 +537,54 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let print_json ~(build_dir : string) (tests : file list) = assert false
+let print_json ~(build_dir : string) (tests : file list) =
+  let success, total =
+    List.fold_left
+      (fun (success, total) file ->
+        success + file.successful, total + file.total)
+      (0, 0) tests
+  in
+  let open Yojson in
+  let pos_to_json ((s, e) : Lexing.position * Lexing.position) : Yojson.t =
+    `Assoc
+      [
+        "filename", `String (File.remove_prefix build_dir s.pos_fname);
+        "start_line", `Int s.pos_lnum;
+        "start_col", `Int s.pos_cnum;
+        "end_line", `Int e.pos_lnum;
+        "end_col", `Int e.pos_lnum;
+      ]
+  in
+  let json =
+    `Assoc
+      (List.filter_map
+         (fun test ->
+           Some
+             ( File.remove_prefix build_dir test.name,
+               `Assoc
+                 (List.map
+                    (fun scope ->
+                      ( scope.s_name,
+                        `Assoc
+                          [
+                            "success", `Bool scope.s_success;
+                            ( "errors",
+                              `List
+                                (List.map
+                                   (fun ((pos : pos), e) ->
+                                     `Assoc
+                                       [
+                                         "position", pos_to_json pos;
+                                         "message", `String e;
+                                       ])
+                                   scope.s_errors) );
+                          ] ))
+                    test.scopes) ))
+         tests)
+  in
+  to_channel stdout json;
+  Format.printf "@.";
+  success = total
 
 let print_xml ~build_dir tests =
   let ffile ppf f = Format.pp_print_string ppf (pfile ~build_dir f) in
