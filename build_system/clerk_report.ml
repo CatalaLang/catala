@@ -550,11 +550,14 @@ let print_json ~(build_dir : string) (tests : file list) =
   let pos_to_json ((s, e) : Lexing.position * Lexing.position) : Yojson.t =
     `Assoc
       [
-        "filename", `String (File.remove_prefix build_dir s.pos_fname);
-        "start_line", `Int s.pos_lnum;
-        "start_col", `Int s.pos_cnum;
-        "end_line", `Int e.pos_lnum;
-        "end_col", `Int e.pos_lnum;
+        "start_fname", `String (File.remove_prefix build_dir s.pos_fname);
+        "start_lnum", `Int s.pos_lnum;
+        "start_cnum", `Int s.pos_cnum;
+        "start_bol", `Int s.pos_bol;
+        "end_fname", `String (File.remove_prefix build_dir e.pos_fname);
+        "end_lnum", `Int e.pos_lnum;
+        "end_cnum", `Int e.pos_lnum;
+        "end_bol", `Int e.pos_bol;
       ]
   in
   let json =
