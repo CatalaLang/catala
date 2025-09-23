@@ -799,13 +799,13 @@ let runtime_build_statements ~config enabled_backends =
      in
      [
        Nj.build "phony"
-         ~inputs:[ocaml_base -.- "mli"; ocaml_base -.- "cmi"; Var.(!catala_exe)]
-         ~outputs:["@runtime-cmi"];
-       Nj.build "phony"
          ~inputs:[
            ocaml_base /../ "dates.mli"; ocaml_base /../ "dates.ml";
            ocaml_base /../ "dates_calc.ml";
-           ocaml_base -.- "ml"; ocaml_base -.- "mli"]
+           ocaml_base -.- "mli"; ocaml_base -.- "cmi"; Var.(!catala_exe)]
+         ~outputs:["@runtime-cmi"];
+       Nj.build "phony"
+         ~inputs:[ocaml_base -.- "ml"; ocaml_base -.- "mli"]
          ~outputs:["@runtime-ocaml-src"];
        Nj.build "phony"
          ~inputs:[ocaml_base -.- "cmx"]
