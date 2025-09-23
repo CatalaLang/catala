@@ -381,6 +381,7 @@ let raw_cmd : int Cmd.t =
   let run
       config
       autotest
+      code_coverage
       quiet
       (targets : string list)
       (ninja_flags : string list) =
@@ -394,11 +395,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~config ~autotest ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~config ~autotest ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -413,6 +414,7 @@ let raw_cmd : int Cmd.t =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
+      $ Cli.code_coverage
       $ Cli.quiet
       $ Cli.targets
       $ Cli.ninja_flags)
@@ -433,8 +435,8 @@ let build_clerk_target
     |> List.sort_uniq Stdlib.compare
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~quiet
-      ~autotest:false
+    Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
+      ~ninja_flags ~quiet ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -580,6 +582,7 @@ let build_direct_targets
     (config : Cli.config)
     ~ninja_flags
     ~autotest
+    ~code_coverage
     ~quiet
     direct_targets =
   let open File in
@@ -607,8 +610,8 @@ let build_direct_targets
       |> List.sort_uniq Stdlib.compare
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
-      Clerk_rules.run_ninja ~config ~enabled_backends ~quiet ~ninja_flags
-        ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
+        ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -758,6 +761,7 @@ let build_cmd : int Cmd.t =
   let run
       config
       autotest
+      code_coverage
       quiet
       (clerk_targets_or_files : string list)
       (ninja_flags : string list) =
@@ -806,7 +810,8 @@ let build_cmd : int Cmd.t =
         clerk_targets
     in
     let direct_targets_result =
-      build_direct_targets config ~quiet ~ninja_flags ~autotest direct_targets
+      build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
+        direct_targets
     in
     Message.result
       "@[<v 4>Build successful. The targets can be found in the following \
@@ -860,6 +865,7 @@ let build_cmd : int Cmd.t =
       const run
       $ Cli.init_term ()
       $ Cli.autotest
+      $ Cli.code_coverage
       $ Cli.quiet
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
@@ -1034,7 +1040,7 @@ let run_cmd =
       prepare_only
       whole_program =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    Clerk_rules.run_ninja ~config
+    Clerk_rules.run_ninja ~config ~code_coverage:false
       ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend files_or_folders)
@@ -1068,8 +1074,9 @@ let typecheck_cmd =
       (ninja_flags : string list) =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let items, var_bindings =
-      Clerk_rules.run_ninja ~config ~enabled_backends:[Clerk_rules.Tests]
-        ~autotest:false ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
+      Clerk_rules.run_ninja ~code_coverage:false ~config
+        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
+        ~quiet (fun nin_ppf items var_bindings ->
           Nj.format_def nin_ppf
             (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
           items, var_bindings)
@@ -1219,8 +1226,8 @@ let run_clerk_test
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~quiet ~config ~enabled_backends ~ninja_flags
-      ~autotest:true ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+      ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_tests config backend "" None
   else
@@ -1243,8 +1250,9 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
-        ~autotest:false ~quiet ~clean_up_env:true (fun nin_ppf _items _vars ->
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
+        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
+        (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
@@ -1346,9 +1354,13 @@ let runtest_cmd =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
+    let test_flags = List.filter (( <> ) "") test_flags in
+    let catala_opts =
+      if whole_program then "--whole-program" :: catala_opts else catala_opts
+    in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
-      ~catala_opts ~code_coverage ~whole_program ~test_flags ~report ~out file;
+      ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
   in
   let doc =
@@ -1370,8 +1382,8 @@ let runtest_cmd =
 
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~quiet ~config ~enabled_backends:[OCaml]
-      ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
+    Clerk_rules.run_ninja ~code_coverage:false ~quiet ~config
+      ~enabled_backends:[OCaml] ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf
           (Nj.Default
              (Nj.Default.make
@@ -1504,7 +1516,7 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
         ~enabled_backends:Clerk_rules.all_backends ~config
     in
     Format.eprintf "Defined variables:@.";

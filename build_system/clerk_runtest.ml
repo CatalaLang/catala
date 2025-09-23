@@ -159,7 +159,12 @@ let get_pos pos_fname pos_lnum col =
   let pos_bol = -1 in
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
-let run_catala_test_scopes test_flags catala_exe catala_opts filename =
+let run_catala_test_scopes
+    ~code_coverage
+    test_flags
+    catala_exe
+    catala_opts
+    filename =
   let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
   let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let env = catala_test_env () in
@@ -171,7 +176,8 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
        :: "--message-format=gnu"
        :: filename
        :: catala_opts
-      @ test_flags)
+      @ test_flags
+      @ if code_coverage then ["--code-coverage"] else [])
   in
   let start_time = Sys.time () in
   let current_time = ref start_time in
@@ -295,7 +301,6 @@ let run_tests
     ~catala_exe
     ~catala_opts
     ~code_coverage
-    ~whole_program
     ~test_flags
     ~report
     ~out
@@ -401,13 +406,7 @@ let run_tests
         in
         let opos_start = out.pos in
         match
-          catala_test_command
-            (test_flags
-            @
-            if code_coverage then ["--code-coverage"]
-            else if whole_program then ["--whole-program"]
-            else [])
-            catala_exe catala_opts args out
+          catala_test_command test_flags catala_exe catala_opts args out
         with
         | Some cmd -> Some (cmd, program, opos_start), lines
         | None -> None, skip_block lines))
@@ -457,7 +456,8 @@ let run_tests
   in
   let scopes_results =
     if has_test_scopes then
-      run_catala_test_scopes test_flags catala_exe catala_opts filename
+      run_catala_test_scopes ~code_coverage test_flags catala_exe catala_opts
+        filename
     else []
   in
   let successful_test_scopes, failed_test_scopes =

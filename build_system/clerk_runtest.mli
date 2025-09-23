@@ -26,7 +26,6 @@ val run_tests :
   catala_exe:string ->
   catala_opts:string list ->
   code_coverage:bool ->
-  whole_program:bool ->
   test_flags:string list ->
   report:File.t option ->
   out:File.t option ->
