@@ -32,11 +32,16 @@ Package: catala
 Architecture: any
 Depends:
   ocaml,
-  z3,
   ninja-build,
-  libgmp10,
+  libzarith-ocaml-dev,
   ${ocaml:Depends},
   ${shlibs:Depends}
+Recommends:
+  z3,
+  python3-gmpy2,
+  python3-dateutil,
+  default-jdk,
+  libzarith-stubs-js-ocaml-dev
 Description: DSL for the computation of automated legal decisions
   Catala is a domain-specific language for deriving faithful-by-construction
   algorithms from legislative texts.
