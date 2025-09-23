@@ -1,2 +1,3 @@
-usr/bin
+usr/bin/catala
+usr/bin/clerk
 @OCamlStdlibDir@/catala/runtime

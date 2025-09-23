@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://www.example.com/software/project
+Upstream-Name: catala
+Upstream-Contact: Catala Team <contact@catala-lang.org>
+
+Files: *
+Copyright: 2020-2025 Inria
+License: Apache-2.0
+
+Files: deps/ocaml-bindlib/*
+Copyright: 2007-2023 Rodolphe Lepigre
+Copyright: 2007-2023 Christophe Raffalli
+License: LGPL-3.0-only
+
+Files: deps/otoml/*
+Copyright: 2020-2025 Daniil Baturin
+License: MIT

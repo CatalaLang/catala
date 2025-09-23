@@ -36,12 +36,12 @@ Depends:
   libzarith-ocaml-dev,
   ${ocaml:Depends},
   ${shlibs:Depends}
-Recommends:
+Suggests:
   z3,
   python3-gmpy2,
   python3-dateutil,
-  default-jdk,
+  default-jdk-headless,
   libzarith-stubs-js-ocaml-dev
 Description: DSL for the computation of automated legal decisions
-  Catala is a domain-specific language for deriving faithful-by-construction
-  algorithms from legislative texts.
+ Catala is a domain-specific language for deriving faithful-by-construction
+ algorithms from legislative texts.
