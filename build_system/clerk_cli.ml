@@ -265,13 +265,17 @@ let report_verbosity =
               ~doc:"Display the full list of tests that have been run." );
         ])
 
-let report_xml =
+let report_format =
   Arg.(
     value
-    & flag
-    & info ["xml"]
-        ~env:(Cmd.Env.info "CATALA_XML_REPORT")
-        ~doc:"Output the test report in JUnit-compatible XML format.")
+    & opt
+        (enum ["terminal", `Terminal; "xml", `JUnitXML; "json", `VSCodeJSON])
+        `Terminal
+    & info ["report-format"] ~docv:"CATALA_REPORT_FORMAT"
+        ~doc:
+          "Output the test report in a human-friendly format on the terminal \
+           ($(b,terminal)), as a JUnit-compatible XML ($(b,xml)), or as a \
+           VSCode-compatible JSON Format ($(b,json)).")
 
 let code_coverage =
   Arg.(

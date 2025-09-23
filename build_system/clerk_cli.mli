@@ -39,7 +39,7 @@ val scope : string option Term.t
 val clerk_targets_or_files : string list Term.t
 val clerk_targets_or_files_or_folders : string list Term.t
 val report_verbosity : [> `Failures | `Short | `Summary | `Verbose ] Term.t
-val report_xml : bool Term.t
+val report_format : [> `Terminal | `JUnitXML | `VSCodeJSON ] Term.t
 val code_coverage : bool Term.t
 val diff_command : string option option Term.t
 val ninja_flags : string list Term.t

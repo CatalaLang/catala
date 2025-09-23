@@ -45,7 +45,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : bool LineMap.t File.Map.t;
+  code_coverage : bool LineMap.t;
 }
 
 val write_to : File.t -> file -> unit
@@ -59,8 +59,12 @@ val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
 val print_xml : build_dir:File.t -> file list -> bool
-(** Displays a summary in JUnit XML comptible format to stdout; returns true if
+(** Displays a summary in JUnit XML compatible format to stdout; returns true if
     all tests succeeded *)
+
+val print_json : build_dir:File.t -> file list -> bool
+(** Displays a summary in VSCode Json compatible format to stdout; returns true
+    if all tests succeeded *)
 
 val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->

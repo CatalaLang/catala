@@ -1141,7 +1141,7 @@ let run_clerk_test
     (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
     (reset_test_outputs : bool)
     verbosity
-    xml
+    (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
     code_coverage
     (diff_command : string option option)
     (ninja_flags : string list) : int =
@@ -1157,11 +1157,16 @@ let run_clerk_test
       Message.error
         "@{<bold>--reset@} can only be supplied with the default \
          @{<yellow>interpret@} backend"
-    else if xml then
+    else if report_format = `JUnitXML then
       Message.error
-        "Option @{<bold>--xml@} was specified, but the output of a test report \
-         is only supported with the default @{<yellow>interpret@} backend at \
-         the moment"
+        "Option @{<bold>--report-format=json@} was specified, but the output \
+         of a test report is only supported with the default \
+         @{<yellow>interpret@} backend at the moment"
+    else if report_format = `VSCodeJSON then
+      Message.error
+        "Option @{<bold>--report-format=vscode@} was specified, but the output \
+         of a test report is only supported with the default \
+         @{<yellow>interpret@} backend at the moment"
     else if code_coverage then
       Message.error
         "Option @{<bold>--code-coverage@} was specified, but the measure of \
@@ -1221,9 +1226,14 @@ let run_clerk_test
     let reports = List.flatten (List.map read_many test_targets) in
     if reset_test_outputs then
       let () =
-        if xml then
+        if report_format = `JUnitXML then
           Message.error
-            "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
+            "Options @{<bold>--report-format=xml@} and @{<bold>--reset@} are \
+             incompatible";
+        if report_format = `VSCodeJSON then
+          Message.error
+            "Options @{<bold>--report-format=json@} and @{<bold>--reset@} are \
+             incompatible";
         let ppf = Message.formatter_of_out_channel stdout () in
         match
           List.filter
@@ -1258,8 +1268,13 @@ let run_clerk_test
             (List.length need_reset)
       in
       raise (Catala_utils.Cli.Exit_with 0)
-    else if (if xml then print_xml else summary) ~build_dir reports then
-      raise (Catala_utils.Cli.Exit_with 0)
+    else if
+      (match report_format with
+      | `JUnitXML -> print_xml
+      | `Terminal -> summary
+      | `VSCodeJSON -> print_json)
+        ~build_dir reports
+    then raise (Catala_utils.Cli.Exit_with 0)
     else raise (Catala_utils.Cli.Exit_with 1)
 
 let test_cmd =
@@ -1282,7 +1297,7 @@ let test_cmd =
       $ Cli.backend
       $ Cli.reset_test_outputs
       $ Cli.report_verbosity
-      $ Cli.report_xml
+      $ Cli.report_format
       $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.ninja_flags)
@@ -1301,13 +1316,9 @@ let runtest_cmd =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
-    let test_flags =
-      List.filter (( <> ) "") test_flags
-      @ if code_coverage then ["--code-coverage"] else []
-    in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
-      ~catala_opts ~test_flags ~report ~out file;
+      ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
   in
   let doc =
@@ -1353,8 +1364,8 @@ let ci_cmd =
   let run
       config
       verbosity
-      xml
       code_coverage
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
       (diff_command : string option option) =
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
@@ -1372,8 +1383,8 @@ let ci_cmd =
           Filename.current_dir_name
           (* Post-[Cli.init], we are expected to be in the project's root dir *)
         in
-        run_clerk_test config [root_dir] `Interpret false verbosity xml
-          code_coverage diff_command []);
+        run_clerk_test config [root_dir] `Interpret false verbosity
+          report_format code_coverage diff_command []);
     let targets = config.Cli.options.targets in
     if targets = [] then raise (Catala_utils.Cli.Exit_with 0);
     List.iter
@@ -1388,8 +1399,8 @@ let ci_cmd =
               "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
               t.tname
               (string_of_backend bk_rule);
-            run_clerk_test config [t.tname] bk_rule false verbosity xml
-              code_coverage diff_command [])
+            run_clerk_test config [t.tname] bk_rule false verbosity
+              report_format code_coverage diff_command [])
           t.backends)
       targets;
     raise (Catala_utils.Cli.Exit_with 0)
@@ -1410,17 +1421,31 @@ let ci_cmd =
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.report_verbosity
       $ Cli.code_coverage
-      $ Cli.report_xml
+      $ Cli.report_format
       $ Cli.diff_command)
 
 let report_cmd =
-  let run color debug verbosity xml code_coverage diff_command build_dir files =
+  let run
+      color
+      debug
+      verbosity
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+      code_coverage
+      diff_command
+      build_dir
+      files =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
     setup_report_format verbosity diff_command code_coverage;
     let open Clerk_report in
     let tests = List.flatten (List.map read_many files) in
-    let success = (if xml then print_xml else summary) ~build_dir tests in
+    let success =
+      (match report_format with
+      | `JUnitXML -> print_xml
+      | `Terminal -> summary
+      | `VSCodeJSON -> print_json)
+        ~build_dir tests
+    in
     exit (if success then 0 else 1)
   in
   let doc =
@@ -1433,7 +1458,7 @@ let report_cmd =
       $ Cli.color
       $ Cli.debug
       $ Cli.report_verbosity
-      $ Cli.report_xml
+      $ Cli.report_format
       $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.build_dir
