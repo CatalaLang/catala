@@ -173,6 +173,8 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
        :: catala_opts
       @ test_flags)
   in
+  let start_time = Sys.time () in
+  let current_time = ref start_time in
   let pid =
     Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr cmd_out_wr
   in
@@ -238,6 +240,9 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
             | "failed" -> false
             | _ -> assert false
           in
+          let line_time = Sys.time () in
+          let delta = line_time -. !current_time in
+          current_time := line_time;
           ( [],
             {
               Clerk_report.s_name = scope;
@@ -247,6 +252,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
                 @ test_flags
                 @ ["--scope=" ^ scope];
               s_errors = List.rev errs;
+              s_time = delta;
             }
             :: acc )
         | None -> (
@@ -276,6 +282,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
         s_command_line =
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
+        s_time = Sys.time () -. start_time;
       }
       :: scopes_results
     else scopes_results
