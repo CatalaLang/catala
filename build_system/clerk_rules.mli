@@ -61,6 +61,7 @@ val run_ninja :
   config:Clerk_cli.config ->
   ?enabled_backends:backend list ->
   autotest:bool ->
+  quiet:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
   (Format.formatter -> Clerk_scan.item list -> (Var.t * string list) list -> 'a) ->
