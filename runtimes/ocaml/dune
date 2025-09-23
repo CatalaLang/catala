@@ -16,3 +16,15 @@
 (rule
  (action
   (copy .runtime.objs/byte/catala_runtime.cmi catala_runtime.cmi)))
+
+(rule
+ (action
+  (copy %{lib:dates_calc:dates_calc.ml} dates_calc.ml)))
+
+(rule
+ (action
+  (copy %{lib:dates_calc:dates.mli} dates.mli)))
+
+(rule
+ (action
+  (copy %{lib:dates_calc:dates.ml} dates.ml)))

@@ -11,6 +11,9 @@
  (files
   (ocaml/catala_runtime.ml as runtime/ocaml/catala_runtime.ml)
   (ocaml/catala_runtime.mli as runtime/ocaml/catala_runtime.mli)
+  (ocaml/dates_calc.ml as runtime/ocaml/dates_calc.ml)
+  (ocaml/dates.ml as runtime/ocaml/dates.ml)
+  (ocaml/dates.mli as runtime/ocaml/dates.mli)
   (ocaml/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi))
  (section lib))
 

@@ -814,8 +814,17 @@ let runtime_build_statements ~config enabled_backends =
        Nj.build "copy"
          ~inputs:[ocaml_src / "catala_runtime.ml"]
          ~outputs:[ocaml_base -.- "ml"];
+       Nj.build "copy"
+         ~inputs:[ocaml_src / "dates_calc.ml"]
+         ~outputs:[ocaml_base /../ "dates_calc.ml"];
+       Nj.build "copy"
+         ~inputs:[ocaml_src / "dates.ml"]
+         ~outputs:[ocaml_base /../ "dates.ml"];
+       Nj.build "copy"
+         ~inputs:[ocaml_src / "dates.mli"]
+         ~outputs:[ocaml_base /../ "dates.mli"];
        Nj.build "ocaml-natobject"
-         ~inputs:[ocaml_base -.- "ml"]
+         ~inputs:[ocaml_base /../ "dates.ml"; ocaml_base /../ "dates_calc.ml";  ocaml_base -.- "ml"]
          ~implicit_in:[ocaml_base -.- "cmi"]
          ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
      ]
