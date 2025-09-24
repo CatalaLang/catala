@@ -498,7 +498,12 @@ let run_tests
         ( x,
           y,
           Catala_utils.Pos_map.fusion code_coverage
-            (Catala_utils.Pos_map.with_name t.s_name t.s_coverage) ))
+            (Catala_utils.Pos_map.with_name
+               (File.(Sys.getcwd () / remove_prefix "_build/" filename)
+                (* TODO have a way to obtain ~build_dir here *)
+               ^ ":"
+               ^ t.s_name)
+               t.s_coverage) ))
       (0, 0, Catala_utils.Pos_map.empty)
       scopes_results
   in

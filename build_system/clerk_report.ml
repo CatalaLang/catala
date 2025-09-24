@@ -565,7 +565,7 @@ let loc_to_json l =
         "end_num", `Int l.stop.col;
       ]
 
-let coverage_reached_to_yojson (x : Pos_map.t) : Yojson.t =
+let coverage_reached_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
   let coverage_on_loc (l, (c : String.Set.t)) =
     `Assoc
       [
@@ -576,18 +576,26 @@ let coverage_reached_to_yojson (x : Pos_map.t) : Yojson.t =
   in
   let coverage_map m = `List (List.map coverage_on_loc m) in
   let filemap (f, m) =
-    `Assoc ["filename", `String f; "coverage_map", coverage_map m]
+    `Assoc
+      [
+        "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
+        "coverage_map", coverage_map m;
+      ]
   in
   `List
     (List.of_seq
     @@ Seq.map filemap
     @@ File.Map.to_seq (Pos_map.export_reached x))
 
-let coverage_reachable_to_yojson (x : Pos_map.t) : Yojson.t =
+let coverage_reachable_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
   let coverage_on_loc l = loc_to_json l in
   let coverage_map m = `List (List.map coverage_on_loc m) in
   let filemap (f, m) =
-    `Assoc ["filename", `String f; "coverage_map", coverage_map m]
+    `Assoc
+      [
+        "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
+        "coverage_map", coverage_map m;
+      ]
   in
   `List
     (List.of_seq
@@ -625,9 +633,6 @@ let print_json ~(build_dir : string) (tests : file list) =
                  `Assoc ["position", pos_to_json pos; "message", `String e])
                scope.s_errors) );
         "time", `Float (scope.s_time *. 1000.);
-        ( "coverage",
-          coverage_reached_to_yojson
-            (Pos_map.with_name scope.s_name scope.s_coverage) );
       ]
   in
   let inline_tests_to_json (inline_test : inline_test) =
@@ -654,7 +659,8 @@ let print_json ~(build_dir : string) (tests : file list) =
                        ( "inline-tests",
                          `List (List.map inline_tests_to_json test.tests) );
                      ] );
-                 "coverage", coverage_reached_to_yojson test.code_coverage;
+                 ( "coverage",
+                   coverage_reached_to_yojson ~build_dir test.code_coverage );
                ]))
          tests)
   in

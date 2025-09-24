@@ -948,7 +948,10 @@ let reachable_cmd : int Cmd.t =
         "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
          are not yet implemented for this command."
     | `VSCodeJSON ->
-      let json = Clerk_report.coverage_reachable_to_yojson reachable in
+      let json =
+        Clerk_report.coverage_reachable_to_yojson
+          ~build_dir:config.Cli.options.global.build_dir reachable
+      in
       Yojson.to_channel stdout json;
       Format.printf "@.";
       raise (Catala_utils.Cli.Exit_with 0)
