@@ -1,14 +1,7 @@
 (library
  (name surface)
  (public_name catala.surface)
- (libraries
-  catala_utils
-  menhirLib
-  sedlex
-  re
-  zarith
-  zarith_stubs_js
-  shared_ast)
+ (libraries catala_utils menhirLib sedlex re zarith shared_ast)
  (preprocess
   (per_module
    ((pps sedlex.ppx)

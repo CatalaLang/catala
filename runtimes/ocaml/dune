@@ -5,7 +5,7 @@
  ; Important for the cmi to be shareable between interpreter and
  ; compiled modules: the cmx may differ
  (ocamlc_flags :standard -opaque)
- (libraries dates_calc zarith zarith_stubs_js)
+ (libraries dates_calc zarith)
  (modules catala_runtime))
 
 ;; that cmi is critical for linking catala programs
