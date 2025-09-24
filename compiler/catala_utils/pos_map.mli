@@ -6,6 +6,7 @@ type t
 
 val empty : t
 val export : t -> (loc_interval * coverage) list File.Map.t
+val pp: Format.formatter -> t -> unit
 
 val add : Pos.t -> coverage -> t -> t
 val fusion : t -> t -> t

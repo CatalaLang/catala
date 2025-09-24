@@ -102,7 +102,7 @@ let rec add_interval ~inside i v pos_map =
         if i.stop = mi.stop then pos_map
         else Interval_map.add { start = i.stop; stop = mi.stop } prev pos_map
 
-let _pp_filemap ppf f = File.Map.iter (pp_file ppf) f
+let pp ppf f = File.Map.iter (pp_file ppf) f
 
 let fusion x y =
   File.Map.union
