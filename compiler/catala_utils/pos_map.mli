@@ -1,17 +1,22 @@
 type small_pos = { line : int; col : int }
 type loc_interval = { start : small_pos; stop : small_pos }
-type t
 
-val empty : t
+type 'a gen
 
-val export_reached : t -> loc_interval list File.Map.t
+type simple = unit gen
+type t = String.Set.t gen
+
+val empty : 'a gen
+val with_name: string -> simple -> t
+
+val export_reached : t -> (loc_interval * String.Set.t) list File.Map.t
 val export_reachable : t -> loc_interval list File.Map.t
 
-val pp: Format.formatter -> t -> unit
+val pp: Format.formatter -> 'a gen -> unit
 
-val reachable : Pos.t -> t -> t
-val pos : Pos.t -> t -> t
-val neg : Pos.t -> t -> t
+val reachable : Pos.t -> simple -> simple
+val pos : Pos.t -> simple -> simple
+val neg : Pos.t -> simple -> simple
 
 val fusion : t -> t -> t
-val report_coverage: Format.formatter -> t -> unit
+val report_coverage: Format.formatter -> simple -> unit
