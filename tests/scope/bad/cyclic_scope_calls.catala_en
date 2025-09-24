@@ -30,8 +30,7 @@ scope S4:
 $ catala typecheck
 ┌─[ERROR]─
 │
-│  Cyclic dependency detected between the following scopes:
-│  S4 → S3 → S2 → S4
+│  Cyclic dependency detected between the following scopes: S4 → S3 → S2 → S4
 │
 │ S4 is used here in the definition of S3:
 ├─➤ tests/scope/bad/cyclic_scope_calls.catala_en:21.23-21.37:

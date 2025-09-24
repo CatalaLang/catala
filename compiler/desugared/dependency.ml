@@ -146,7 +146,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
        %a:@ @[<hv>%a@]"
       ScopeName.format scope.scope_uid
       (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf " @<1>→@ ")
          Vertex.format)
       (cycle @ [List.hd cycle])
 

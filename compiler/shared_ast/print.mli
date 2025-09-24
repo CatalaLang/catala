@@ -30,6 +30,7 @@ val punctuation : Format.formatter -> string -> unit
 
 val op_style : Format.formatter -> string -> unit
 val lit_style : Format.formatter -> string -> unit
+val lit_uchar_style : Format.formatter -> string -> unit
 
 (** {1 Some basic stringifiers} *)
 

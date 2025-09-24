@@ -238,7 +238,7 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
     Message.error ~extra_pos:spans
       "Cyclic dependency detected between the following scopes:@ @[<hv>%a@]"
       (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf " @<1>→@ ")
          SVertex.format)
       (cycle @ [List.hd cycle])
 
