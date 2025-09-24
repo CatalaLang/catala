@@ -1,4 +1,10 @@
-type coverage = Reachable | Positive | Negative | Fulfilled
+type origin = String.Set.t
+
+type 'a coverage =
+  | Reachable
+  | Positive of 'a
+  | Negative
+  | Fulfilled of 'a
 type small_pos = { line : int; col : int }
 type loc_interval = { start : small_pos; stop : small_pos }
 
@@ -14,9 +20,19 @@ module Interval_map = Stdlib.Map.Make (struct
   let compare x y = compare x.start y.start
 end)
 
-type t = coverage Interval_map.t File.Map.t
+type 'a gen = 'a coverage Interval_map.t File.Map.t
+type simple = unit gen
+type t = origin gen
 
 let empty = File.Map.empty
+let with_name name fm =
+  let add_name o = function
+    | Reachable | Negative as x -> x
+    | Positive () -> Positive (String.Set.singleton o)
+    | Fulfilled () -> Fulfilled (String.Set.singleton o)
+  in
+  File.Map.map (Interval_map.map (add_name name)) fm
+
 
 let export_reachable m =
   let only_reachable (x,c) = match c with
@@ -26,12 +42,16 @@ let export_reachable m =
   File.Map.map (fun x -> List.of_seq @@ Seq.filter_map only_reachable @@ Interval_map.to_seq x) m
 
 
-let merge ~inside x y =
+let merge ~omerge ~inside x y =
   match x, y with
-  | Fulfilled, _ -> Fulfilled
-  | (Positive | Reachable), x -> x
-  | Negative, (Positive | Fulfilled) -> if inside then Fulfilled else Negative
-  | Negative, (Negative | Reachable) -> Negative
+  | Fulfilled set, (Fulfilled set'|Positive set') -> Fulfilled (omerge set set')
+  | Fulfilled set, (Negative|Reachable) -> Fulfilled set
+  | Positive set, Positive set' -> Positive (omerge set set')
+  | Positive _ , Negative -> Negative
+  | Positive _, Fulfilled set -> (* should not happen *) Fulfilled set
+  | x, Reachable | Reachable, x -> x
+  | Negative, (Positive set|Fulfilled set) -> if inside then Fulfilled set else Negative
+  | Negative, Negative -> Negative
 
 let pp_pos ppf p =
   if p.start.line = p.stop.line then
@@ -43,9 +63,9 @@ let pp_pos ppf p =
 let pp_interval ppf (pos, x) =
   match x with
   | Reachable -> Format.fprintf ppf "@{<grey>%a@}" pp_pos pos
-  | Positive -> Format.fprintf ppf "@{<green>%a@}" pp_pos pos
+  | Positive _ -> Format.fprintf ppf "@{<green>%a@}" pp_pos pos
   | Negative -> Format.fprintf ppf "@{<red>%a@}" pp_pos pos
-  | Fulfilled -> Format.fprintf ppf "@{<blue>%a@}" pp_pos pos
+  | Fulfilled _ -> Format.fprintf ppf "@{<blue>%a@}" pp_pos pos
 
 let pp_map ppf m =
   let pp_sep = Format.pp_print_cut in
@@ -55,7 +75,9 @@ let pp_file ppf f m =
   Format.fprintf ppf "@[<v>--------------@,%s:@,--------------@,%a@]@." f pp_map
     m
 
-let rec add_interval ~inside i v pos_map =
+let rec add_interval ~omerge ~inside i v pos_map =
+  let add_interval = add_interval ~omerge in
+  let merge = merge ~omerge in
   match Interval_map.find_first_opt (fun mi -> mi.stop > i.start) pos_map with
   | None -> Interval_map.add i v pos_map
   | Some (mi, prev) ->
@@ -112,12 +134,15 @@ let rec add_interval ~inside i v pos_map =
 
 let pp ppf f = File.Map.iter (pp_file ppf) f
 
+
+
 let fusion x y =
   File.Map.union
-    (fun _s l r -> Some (Interval_map.fold (add_interval ~inside:true) r l))
+    (fun _s l r -> Some (Interval_map.fold (add_interval ~omerge:String.Set.union ~inside:true) r l))
     x y
 
 let add pos v map =
+  let omerge () () = () in
   if pos = Pos.void then map
   else
     let loc = from_pos pos in
@@ -125,22 +150,23 @@ let add pos v map =
     match File.Map.find_opt name map with
     | None -> File.Map.add name (Interval_map.singleton loc v) map
     | Some f ->
-      let f' = add_interval ~inside:true loc v f in
+      let f' = add_interval ~omerge ~inside:true loc v f in
       File.Map.add name f' map
 
-let pos pos map = add pos Positive map
+let pos pos map = add pos (Positive ()) map
 let neg pos map = add pos Negative map
 let reachable pos map = add pos Reachable map
 
 
 let flatten_pos loc c map =
   match c with
-  | Positive | Fulfilled -> add_interval ~inside:true loc Positive map
+  | Positive set | Fulfilled set ->
+    add_interval ~omerge:String.Set.union ~inside:true loc (Positive set) map
   | Negative | Reachable -> map
 
 let simplify_map m =
   let only_pos = function
-    | (loc,Positive) -> Some loc
+    | (loc,Positive set) -> Some (loc,set)
     | _ -> None
   in
   List.of_seq
