@@ -72,3 +72,20 @@
  (package catala)
  (action
   (run ./tests.exe)))
+
+(include manpages.sexp)
+
+(rule
+ (mode promote)
+ (action
+  (with-stdout-to manpages.sexp
+    (bash
+     "for page in '' $(%{bin:catala} 2>&1 | sed -n 's/.    *//p'); do
+        [ \"$page\" = \"pygmentize\" ] ||
+        echo '(rule (alias man) (action (with-stdout-to catala'${page:+-$page}'.1 (run catala '$page' --help=groff))))'
+      done"))))
+
+(install
+ (section man)
+ (package catala)
+ (files (glob_files (*.1 with_prefix man1))))
