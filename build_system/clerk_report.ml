@@ -644,27 +644,38 @@ let print_json ~(build_dir : string) (tests : file list) =
         "success", `Bool inline_test.i_success;
       ]
   in
+  let full_coverage =
+    List.fold_left
+      (fun acc (file : file) -> Pos_map.fusion acc file.code_coverage)
+      Pos_map.empty tests
+  in
   let json =
-    `List
-      (List.filter_map
-         (fun (test : file) ->
-           Some
-             (`Assoc
-               [
-                 ( "file",
-                   `String
-                     File.(Sys.getcwd () / remove_prefix build_dir test.name) );
-                 ( "tests",
-                   `Assoc
+    `Assoc
+      [
+        ( "test-results",
+          `List
+            (List.filter_map
+               (fun (test : file) ->
+                 Some
+                   (`Assoc
                      [
-                       "scopes", `List (List.map scope_to_json test.scopes);
-                       ( "inline-tests",
-                         `List (List.map inline_tests_to_json test.tests) );
-                     ] );
-                 ( "coverage",
-                   coverage_reached_to_yojson ~build_dir test.code_coverage );
-               ]))
-         tests)
+                       ( "file",
+                         `String
+                           File.(
+                             Sys.getcwd () / remove_prefix build_dir test.name)
+                       );
+                       ( "tests",
+                         `Assoc
+                           [
+                             "scopes", `List (List.map scope_to_json test.scopes);
+                             ( "inline-tests",
+                               `List (List.map inline_tests_to_json test.tests)
+                             );
+                           ] );
+                     ]))
+               tests) );
+        "coverage", coverage_reached_to_yojson ~build_dir full_coverage;
+      ]
   in
   to_channel stdout json;
   Format.printf "@.";
