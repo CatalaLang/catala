@@ -35,7 +35,7 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;
-  s_coverage : Catala_utils.Pos_map.t;
+  s_coverage : Catala_utils.Pos_map.simple;
 }
 
 type file = {
@@ -378,9 +378,10 @@ let display_file ~build_dir ppf t =
   in
   let print_code_coverage (code_coverage : Catala_utils.Pos_map.t) =
     let open Catala_utils.Pos_map in
-    let code_coverage = export code_coverage in
+    let code_coverage_reached = export_reached code_coverage in
     let line_map =
-      Clerk_coverage.aggregated_code_coverage_to_coverage_line_map code_coverage
+      Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
+        code_coverage_reached
     in
     let total_lines = Clerk_coverage.total_coverage_lines line_map in
     let positive_coverage_lines =
@@ -483,7 +484,7 @@ let summary ~build_dir tests =
   in
   let coverage_line_map =
     Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
-      (Catala_utils.Pos_map.export fully_aggregated_coverage)
+      (Catala_utils.Pos_map.export_reached fully_aggregated_coverage)
   in
   let total_coverage_lines =
     Clerk_coverage.total_coverage_lines coverage_line_map
@@ -556,29 +557,44 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let coverage_to_yojson (x : Pos_map.t) : Yojson.t =
-  let coverage = function
-    | Pos_map.Positive -> `String "Positive"
-    | Negative -> `String "Negative"
-    | Reachable -> `String "Reachable"
-    | Fulfilled -> `String "Fulfilled"
-  in
-  let loc l =
+let loc_to_json l =
+  `Assoc
+    Pos_map.
+      [
+        "start_lnum", `Int l.start.line;
+        "start_cnum", `Int l.start.col;
+        "end_lnum", `Int l.stop.line;
+        "end_num", `Int l.stop.col;
+      ]
+
+let coverage_reached_to_yojson (x : Pos_map.t) : Yojson.t =
+  let coverage_on_loc (l, (c : String.Set.t)) =
     `Assoc
-      Pos_map.
-        [
-          "start_lnum", `Int l.start.line;
-          "start_cnum", `Int l.start.col;
-          "end_lnum", `Int l.stop.line;
-          "end_num", `Int l.stop.col;
-        ]
+      [
+        "location", loc_to_json l;
+        ( "reached_by",
+          `List (List.map (fun x -> `String x) (String.Set.elements c)) );
+      ]
   in
-  let coverage_on_loc (l, c) = `List [loc l; coverage c] in
   let coverage_map m = `List (List.map coverage_on_loc m) in
   let filemap (f, m) =
     `Assoc ["filename", `String f; "coverage_map", coverage_map m]
   in
-  `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq (Pos_map.export x))
+  `List
+    (List.of_seq
+    @@ Seq.map filemap
+    @@ File.Map.to_seq (Pos_map.export_reached x))
+
+let coverage_reachable_to_yojson (x : Pos_map.t) : Yojson.t =
+  let coverage_on_loc l = loc_to_json l in
+  let coverage_map m = `List (List.map coverage_on_loc m) in
+  let filemap (f, m) =
+    `Assoc ["filename", `String f; "coverage_map", coverage_map m]
+  in
+  `List
+    (List.of_seq
+    @@ Seq.map filemap
+    @@ File.Map.to_seq (Pos_map.export_reachable x))
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -611,7 +627,9 @@ let print_json ~(build_dir : string) (tests : file list) =
                  `Assoc ["position", pos_to_json pos; "message", `String e])
                scope.s_errors) );
         "time", `Float (scope.s_time *. 1000.);
-        "coverage", coverage_to_yojson scope.s_coverage;
+        ( "coverage",
+          coverage_reached_to_yojson
+            (Pos_map.with_name scope.s_name scope.s_coverage) );
       ]
   in
   let inline_tests_to_json (inline_test : inline_test) =
@@ -638,7 +656,7 @@ let print_json ~(build_dir : string) (tests : file list) =
                        ( "inline-tests",
                          `List (List.map inline_tests_to_json test.tests) );
                      ] );
-                 "coverage", coverage_to_yojson test.code_coverage;
+                 "coverage", coverage_reached_to_yojson test.code_coverage;
                ]))
          tests)
   in

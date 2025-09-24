@@ -936,10 +936,12 @@ let reachable_cmd : int Cmd.t =
           | Some reachable_coverage_string ->
             let reachable_coverage = `Hex reachable_coverage_string in
             let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in
-            let new_reachable : Catala_utils.Pos_map.t =
+            let new_reachable : Catala_utils.Pos_map.simple =
               Marshal.from_bytes reachable_coverage_bytes 0
             in
-            Pos_map.fusion new_reachable reachable)
+            Pos_map.fusion
+              (Pos_map.with_name "irrelevant" new_reachable)
+              reachable)
         Pos_map.empty files
     in
     match report_format with
@@ -948,7 +950,7 @@ let reachable_cmd : int Cmd.t =
         "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
          are not yet implemented for this command."
     | `VSCodeJSON ->
-      let json = Clerk_report.coverage_to_yojson reachable in
+      let json = Clerk_report.coverage_reachable_to_yojson reachable in
       Yojson.to_channel stdout json;
       Format.printf "@.";
       raise (Catala_utils.Cli.Exit_with 0)

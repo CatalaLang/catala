@@ -281,7 +281,7 @@ let run_catala_test_scopes
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
-                   let coverage : Catala_utils.Pos_map.t =
+                   let coverage : Catala_utils.Pos_map.simple =
                      Marshal.from_bytes hex_coverage_bytes 0
                    in
                    coverage
@@ -495,7 +495,10 @@ let run_tests
           if t.Clerk_report.s_success then nsucc + 1, nfail
           else nsucc, nfail + 1
         in
-        x, y, Catala_utils.Pos_map.fusion code_coverage t.s_coverage)
+        ( x,
+          y,
+          Catala_utils.Pos_map.fusion code_coverage
+            (Catala_utils.Pos_map.with_name t.s_name t.s_coverage) ))
       (0, 0, Catala_utils.Pos_map.empty)
       scopes_results
   in
