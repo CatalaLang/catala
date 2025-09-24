@@ -52,7 +52,7 @@ module Var : sig
 end
 
 val base_bindings :
-  code_coverage:bool ->
+  code_coverage:[ `Local | `Global | `None ] ->
   autotest:bool ->
   enabled_backends:backend list ->
   config:Clerk_cli.config ->
@@ -61,7 +61,7 @@ val base_bindings :
 val run_ninja :
   config:Clerk_cli.config ->
   ?enabled_backends:backend list ->
-  code_coverage:bool ->
+  code_coverage:[ `Local | `Global | `None ] ->
   autotest:bool ->
   quiet:bool ->
   ?clean_up_env:bool ->

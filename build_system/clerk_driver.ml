@@ -381,7 +381,7 @@ let raw_cmd : int Cmd.t =
   let run
       config
       autotest
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       quiet
       (targets : string list)
       (ninja_flags : string list) =
@@ -435,7 +435,7 @@ let build_clerk_target
     |> List.sort_uniq Stdlib.compare
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
+    Clerk_rules.run_ninja ~code_coverage:`None ~config ~enabled_backends
       ~ninja_flags ~quiet ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
@@ -761,7 +761,7 @@ let build_cmd : int Cmd.t =
   let run
       config
       autotest
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       quiet
       (clerk_targets_or_files : string list)
       (ninja_flags : string list) =
@@ -870,14 +870,18 @@ let build_cmd : int Cmd.t =
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
-let setup_report_format ?fix_path verbosity diff_command code_coverage =
+let setup_report_format
+    ?fix_path
+    verbosity
+    diff_command
+    (code_coverage : [ `Local | `Global | `None ]) =
   (match verbosity with
   | `Summary ->
     Clerk_report.set_display_flags ~files:`None ~tests:`None
-      ~code_coverage:false ()
+      ~code_coverage:`None ()
   | `Short ->
     Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false
-      ~code_coverage:false ()
+      ~code_coverage:`None ()
   | `Failures ->
     if Catala_utils.Global.options.debug then
       Clerk_report.set_display_flags ~files:`All ()
@@ -1040,7 +1044,7 @@ let run_cmd =
       prepare_only
       whole_program =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    Clerk_rules.run_ninja ~config ~code_coverage:false
+    Clerk_rules.run_ninja ~config ~code_coverage:`None
       ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend files_or_folders)
@@ -1074,7 +1078,7 @@ let typecheck_cmd =
       (ninja_flags : string list) =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let items, var_bindings =
-      Clerk_rules.run_ninja ~code_coverage:false ~config
+      Clerk_rules.run_ninja ~code_coverage:`None ~config
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
         ~quiet (fun nin_ppf items var_bindings ->
           Nj.format_def nin_ppf
@@ -1177,7 +1181,7 @@ let run_clerk_test
     (reset_test_outputs : bool)
     verbosity
     (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
-    code_coverage
+    (code_coverage : [ `Local | `Global | `None ])
     (diff_command : string option option)
     (ninja_flags : string list) : int =
   let build_dir = config.Cli.options.global.build_dir in
@@ -1202,7 +1206,7 @@ let run_clerk_test
         "Option @{<bold>--report-format=vscode@} was specified, but the output \
          of a test report is only supported with the default \
          @{<yellow>interpret@} backend at the moment"
-    else if code_coverage then
+    else if code_coverage <> `None then
       Message.error
         "Option @{<bold>--code-coverage@} was specified, but the measure of \
          code coverage is only supported with the default \
@@ -1346,7 +1350,7 @@ let runtest_cmd =
       include_dirs
       test_flags
       report
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       out
       file
       whole_program =
@@ -1382,7 +1386,7 @@ let runtest_cmd =
 
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~code_coverage:false ~quiet ~config
+    Clerk_rules.run_ninja ~code_coverage:`None ~quiet ~config
       ~enabled_backends:[OCaml] ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf
           (Nj.Default
@@ -1412,7 +1416,7 @@ let ci_cmd =
       config
       quiet
       verbosity
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
       (diff_command : string option option) =
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
@@ -1479,7 +1483,7 @@ let report_cmd =
       debug
       verbosity
       (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       diff_command
       build_dir
       files =
@@ -1516,7 +1520,7 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:`None
         ~enabled_backends:Clerk_rules.all_backends ~config
     in
     Format.eprintf "Defined variables:@.";

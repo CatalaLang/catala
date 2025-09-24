@@ -160,7 +160,7 @@ let get_pos pos_fname pos_lnum col =
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
 let run_catala_test_scopes
-    ~code_coverage
+    ~(code_coverage : [ `Local | `Global | `None ])
     test_flags
     catala_exe
     catala_opts
@@ -168,6 +168,23 @@ let run_catala_test_scopes
   let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
   let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let env = catala_test_env () in
+  let catala_opts =
+    let local_code_coverage = "--code-coverage=local" in
+    let global_code_coverage = "--code-coverage=global" in
+    let whole_program = "--whole-program" in
+    catala_opts
+    @
+    match code_coverage with
+    | `None -> []
+    | `Local ->
+      (if List.mem local_code_coverage catala_opts then []
+       else [local_code_coverage])
+      @ if List.mem whole_program catala_opts then [] else [whole_program]
+    | `Global ->
+      (if List.mem global_code_coverage catala_opts then []
+       else [global_code_coverage])
+      @ if List.mem whole_program catala_opts then [] else [whole_program]
+  in
   let cmd =
     Array.of_list
       (catala_exe
@@ -176,8 +193,7 @@ let run_catala_test_scopes
        :: "--message-format=gnu"
        :: filename
        :: catala_opts
-      @ test_flags
-      @ if code_coverage then ["--code-coverage"] else [])
+      @ test_flags)
   in
   let start_time = Sys.time () in
   let current_time = ref start_time in
@@ -261,7 +277,7 @@ let run_catala_test_scopes
               s_errors = List.rev errs;
               s_time = delta;
               s_coverage =
-                (if code_coverage && result then
+                (if code_coverage <> `None && result then
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
@@ -312,7 +328,7 @@ let run_catala_test_scopes
 let run_tests
     ~catala_exe
     ~catala_opts
-    ~code_coverage
+    ~(code_coverage : [ `Local | `Global | `None ])
     ~test_flags
     ~report
     ~out

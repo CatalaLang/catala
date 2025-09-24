@@ -93,7 +93,11 @@ module Var = struct
   let ( ! ) = Nj.Var.v
 end
 
-let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
+let base_bindings
+    ~(code_coverage : [ `Local | `Global | `None ])
+    ~autotest
+    ~enabled_backends
+    ~config =
   let options = config.Clerk_cli.options in
   let includes ?backend () =
     List.fold_right
@@ -185,10 +189,14 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          :: Var.(!catala_exe)
          :: ("--test-flags=" ^ String.concat "," test_flags)
          :: includes ()
-        @ (if code_coverage then ["--code-coverage"] else [])
+        @ (match code_coverage with
+          | `None -> []
+          | `Local -> ["--code-coverage=local"]
+          | `Global -> ["--code-coverage=global"])
         @ List.map
             (fun f -> "--catala-opts=" ^ f)
-            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
+            (catala_flags
+            @ if code_coverage <> `None then ["--whole-program"] else [])));
   ]
   @ (if List.mem OCaml enabled_backends then
        [
@@ -1139,7 +1147,7 @@ let with_ninja_process
 let run_ninja
     ~config
     ?(enabled_backends = all_backends)
-    ~code_coverage
+    ~(code_coverage : [ `Local | `Global | `None ])
     ~autotest
     ~quiet
     ?(clean_up_env = false)
