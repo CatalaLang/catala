@@ -33,15 +33,6 @@ let with_name name fm =
   in
   File.Map.map (Interval_map.map (add_name name)) fm
 
-
-let export_reachable m =
-  let only_reachable (x,c) = match c with
-    | Reachable -> Some x
-    | _ -> None
-  in
-  File.Map.map (fun x -> List.of_seq @@ Seq.filter_map only_reachable @@ Interval_map.to_seq x) m
-
-
 let merge ~omerge ~inside x y =
   match x, y with
   | Fulfilled set, (Fulfilled set'|Positive set') -> Fulfilled (omerge set set')
@@ -157,7 +148,6 @@ let pos pos map = add pos (Positive ()) map
 let neg pos map = add pos Negative map
 let reachable pos map = add pos Reachable map
 
-
 let flatten_pos loc c map =
   match c with
   | Positive set | Fulfilled set ->
@@ -176,6 +166,20 @@ let simplify_map m =
 
 let export_reached fm =
   File.Map.map simplify_map fm
+
+let flatten_reachable loc _ map =
+  let omerge _ y = y in
+  add_interval ~omerge ~inside:true loc Reachable map
+
+let reachable_map m =
+  List.of_seq
+  @@ Seq.map fst
+  @@ Interval_map.to_seq
+  @@ Interval_map.fold flatten_reachable m Interval_map.empty
+
+let export_reachable fm =
+  File.Map.map reachable_map fm
+
 
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
