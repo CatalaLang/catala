@@ -10,12 +10,12 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   NUMJOBS = -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
-CATALA_VERSION = $(shell dpkg-parsechangelog --show-field Version)
+export CATALA_VERSION = $(shell dpkg-parsechangelog --show-field Version)
 BDIR = _build/install/default/bin
 MANDIR = debian/tmp/usr/man/man1
 
 override_dh_auto_build:
-	CATALA_VERSION=$(CATALA_VERSION) dune build $(NUMJOBS) @install --release
+	dune build $(NUMJOBS) @install --release
 	mkdir -p $(MANDIR)
 	$(BDIR)/catala --help=groff > $(MANDIR)/catala.1
 	for page in $($(BDIR)/catala --message-format=gnu 2>&1 | sed 's/.*: \\(.*\\) Run .*/\\1/'); do \
