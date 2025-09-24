@@ -1,4 +1,5 @@
-type coverage = Positive | Negative | Fulfilled
+type coverage =
+  | Reachable | Positive | Negative | Fulfilled
 type small_pos = { line : int; col : int }
 type loc_interval = { start : small_pos; stop : small_pos }
 

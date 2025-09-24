@@ -89,7 +89,7 @@ let positive_coverage_lines (line_map : coverage_line_map) =
       LineMap.fold
         (fun _ cov_kind acc ->
           let open Catala_utils.Pos_map in
-          acc + match cov_kind with Positive | Fulfilled -> 1 | Negative -> 0)
+          acc + match cov_kind with Positive | Fulfilled -> 1 | Reachable | Negative -> 0)
         lines acc)
     line_map 0
 
@@ -99,7 +99,7 @@ let negative_coverage_lines (line_map : coverage_line_map) =
       LineMap.fold
         (fun _ cov_kind acc ->
           let open Catala_utils.Pos_map in
-          acc + match cov_kind with Positive | Fulfilled -> 0 | Negative -> 1)
+          acc + match cov_kind with Positive | Fulfilled -> 0 | Negative | Reachable -> 1)
         lines acc)
     line_map 0
 
@@ -620,6 +620,7 @@ let summary ~build_dir tests =
 
 let coverage_to_yojson x : (string * Yojson.t) list =
   let coverage = function
+    | Pos_map.Reachable -> `String "Reachable expression"
     | Pos_map.Positive -> `String "Visited expression"
     | Negative -> `String "Missing branch"
     | Fulfilled -> `String "Visited branch"
