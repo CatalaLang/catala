@@ -616,6 +616,25 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
+let coverage_to_yojson x : (string * Yojson.t) list =
+  let coverage = function
+    | Pos_map.Positive -> `String "Visited expression"
+    | Negative -> `String "Missing branch"
+    | Fulfilled -> `String "Visited branch"
+  in
+  let loc l = `Assoc Pos_map.[
+      "start_line", `Int l.start.line; "start_col", `Int l.start.col;
+      "end_line", `Int l.stop.line; "end_col", `Int l.stop.col;
+    ] in
+  let coverage_on_loc (l,c) = `List [ loc l; coverage c ] in
+  let coverage_map m = `List (List.map coverage_on_loc m) in
+  let filemap (f,m) = `Assoc ["filename", `String f; "coverage_map", coverage_map m ] in
+  match x with
+  | None -> []
+  | Some x ->
+    [ "coverage", `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)]
+
+
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
     List.fold_left
@@ -635,12 +654,38 @@ let print_json ~(build_dir : string) (tests : file list) =
         "end_cnum", `Int e.pos_lnum;
       ]
   in
+  let scope_to_json scope = `Assoc
+      [
+        "scope_name", `String scope.s_name;
+        "success", `Bool scope.s_success;
+        ( "errors",
+          `List
+            (List.map
+               (fun ((pos : pos), e) ->
+                  `Assoc
+                    [
+                      "position", pos_to_json pos;
+                      "message", `String e;
+                    ])
+               scope.s_errors) );
+        "time", `Float (scope.s_time *. 1000.);
+      ]
+  in
+  let inline_tests_to_json (inline_test : inline_test) =
+    `Assoc
+      [
+        ( "cmd",
+          `String
+            (String.concat " "
+               inline_test.i_command_line) );
+        "success", `Bool inline_test.i_success;
+      ] in
   let json =
     `List
       (List.filter_map
          (fun (test : file) ->
            Some
-             (`Assoc
+             (`Assoc(
                [
                  ( "file",
                    `String
@@ -649,41 +694,14 @@ let print_json ~(build_dir : string) (tests : file list) =
                    `Assoc
                      [
                        ( "scopes",
-                         `List
-                           (List.map
-                              (fun scope ->
-                                `Assoc
-                                  [
-                                    "scope_name", `String scope.s_name;
-                                    "success", `Bool scope.s_success;
-                                    ( "errors",
-                                      `List
-                                        (List.map
-                                           (fun ((pos : pos), e) ->
-                                             `Assoc
-                                               [
-                                                 "position", pos_to_json pos;
-                                                 "message", `String e;
-                                               ])
-                                           scope.s_errors) );
-                                    "time", `Float (scope.s_time *. 1000.);
-                                  ])
-                              test.scopes) );
-                       ( "inline-tests",
-                         `List
-                           (List.map
-                              (fun (inline_test : inline_test) ->
-                                `Assoc
-                                  [
-                                    ( "cmd",
-                                      `String
-                                        (String.concat " "
-                                           inline_test.i_command_line) );
-                                    "success", `Bool inline_test.i_success;
-                                  ])
-                              test.tests) );
-                     ] );
-               ]))
+                         `List (List.map scope_to_json test.scopes) );
+
+                       ( "inline-tests", `List (List.map inline_tests_to_json test.tests) );
+                     ] )
+               ]
+              @ coverage_to_yojson (Option.map Pos_map.export test.code_coverage)
+             )
+         ))
          tests)
   in
   to_channel stdout json;
