@@ -17,7 +17,14 @@ end)
 type t = coverage Interval_map.t File.Map.t
 
 let empty = File.Map.empty
-let export m = File.Map.map Interval_map.bindings m
+
+let export_reachable m =
+  let only_reachable (x,c) = match c with
+    | Reachable -> Some x
+    | _ -> None
+  in
+  File.Map.map (fun x -> List.of_seq @@ Seq.filter_map only_reachable @@ Interval_map.to_seq x) m
+
 
 let merge ~inside x y =
   match x, y with
@@ -120,6 +127,29 @@ let add pos v map =
     | Some f ->
       let f' = add_interval ~inside:true loc v f in
       File.Map.add name f' map
+
+let pos pos map = add pos Positive map
+let neg pos map = add pos Negative map
+let reachable pos map = add pos Reachable map
+
+
+let flatten_pos loc c map =
+  match c with
+  | Positive | Fulfilled -> add_interval ~inside:true loc Positive map
+  | Negative | Reachable -> map
+
+let simplify_map m =
+  let only_pos = function
+    | (loc,Positive) -> Some loc
+    | _ -> None
+  in
+  List.of_seq
+  @@ Seq.filter_map only_pos
+  @@ Interval_map.to_seq
+  @@ Interval_map.fold flatten_pos m Interval_map.empty
+
+let export_reached fm =
+  File.Map.map simplify_map fm
 
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))

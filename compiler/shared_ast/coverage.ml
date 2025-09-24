@@ -17,27 +17,30 @@
 
 open Catala_utils
 
-let glob = ref None
-let is_recorded () = !glob <> None
+  let glob = ref None
+  let is_recorded () = !glob <> None
 
-let mark_pos pol p =
-  Option.iter (fun map -> glob := Some (Pos_map.add p pol map)) !glob
+  let mark_position add p =
+    Option.iter (fun map -> glob := Some (add p map)) !glob
 
-let mark pol e = mark_pos pol (Expr.mark_pos (Mark.get e))
+  let mark pol e = mark_position pol (Expr.mark_pos (Mark.get e))
 
-let mark_all pol e =
-  Option.iter
-    (fun m ->
-      let m =
-        List.fold_left
-          (fun m x -> Pos_map.add (Expr.mark_pos @@ Mark.get x) pol m)
-          m e
-      in
-      glob := Some m)
-    !glob
+  let mark_pos p = mark Pos_map.pos p
+  let mark_neg p = mark Pos_map.neg p
 
-let rec reachable e map =
-  let m = Mark.get e in
-  let loc = Expr.mark_pos m in
-  let map = Pos_map.(add loc Reachable map) in
-  Expr.shallow_fold reachable e map
+  let mark_all add e =
+    Option.iter
+      (fun m ->
+        let m =
+          List.fold_left
+            (fun m x -> add (Expr.mark_pos @@ Mark.get x) m)
+            m e
+        in
+        glob := Some m)
+      !glob
+
+    let rec reachable e map =
+      let m = Mark.get e in
+      let loc = Expr.mark_pos m in
+      let map = Pos_map.reachable loc map in
+      Expr.shallow_fold reachable e map

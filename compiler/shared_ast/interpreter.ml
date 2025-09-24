@@ -709,7 +709,7 @@ let rec evaluate_expr :
   in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
-  Coverage.mark_pos Positive pos;
+  Coverage.mark_pos e;
   (match debug_print with
   | None -> fun r -> r
   | Some label_opt ->
@@ -866,7 +866,7 @@ let rec evaluate_expr :
     let e = evaluate_expr ctx lang e in
     let () =
       if Coverage.is_recorded () then
-        EnumConstructor.Map.iter (fun _ e -> Coverage.mark Negative e) cases
+        EnumConstructor.Map.iter (fun _ e -> Coverage.mark_neg e) cases
     in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
@@ -895,7 +895,7 @@ let rec evaluate_expr :
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
-    let () = Coverage.mark_all Negative [efalse; etrue] in
+    let () = Coverage.mark_all Pos_map.neg [efalse; etrue] in
     match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
@@ -947,12 +947,12 @@ let rec evaluate_expr :
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    Coverage.mark Negative cons;
+    Coverage.mark_neg cons;
     let excepts = List.map (evaluate_expr ctx lang) excepts in
     (* TODO disable coverage marking at the surface level here *)
-    let () = List.iter (Coverage.mark Negative) excepts in
+    let () = Coverage.mark_all Pos_map.neg excepts in
     let real_errors = List.filter (Fun.negate is_empty_error) excepts in
-    let () = List.iter (Coverage.mark Positive) real_errors in
+    let () = Coverage.mark_all Pos_map.pos real_errors in
     match real_errors with
     | [] -> (
       let just = evaluate_expr ctx lang just in
