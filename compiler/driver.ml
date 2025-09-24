@@ -1443,7 +1443,7 @@ let main () =
   if Array.length argv >= 2 then argv.(1) <- String.lowercase_ascii argv.(1);
   (* Pygmentize is a specific exec subcommand that doesn't go through
      cmdliner *)
-  if Array.length Sys.argv >= 2 && argv.(1) = "pygmentize" then
+  if Array.length Sys.argv >= 2 && argv.(1) = "pygmentize" && not (Array.length Sys.argv >= 3 && argv.(2) = "--help") then
     Literate.Pygmentize.exec ();
   (* Peek to load plugins before the command-line is parsed proper (plugins add
      their own commands) *)
