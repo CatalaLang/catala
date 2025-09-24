@@ -505,7 +505,7 @@ let run_tests
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
-        code_coverage = Catala_utils.Pos_map.export code_coverage;
+        code_coverage = Some code_coverage;
       }
       !rtests
   in

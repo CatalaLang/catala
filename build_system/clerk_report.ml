@@ -48,13 +48,68 @@ type aggregated_code_coverage =
   (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
   Catala_utils.Pos_map.Filemap.t
 
+type coverage_line_map = Catala_utils.Pos_map.coverage LineMap.t File.Map.t
+
+let aggregated_code_coverage_to_coverage_line_map
+    (agg_cc : aggregated_code_coverage) : coverage_line_map =
+  Catala_utils.Pos_map.Filemap.fold
+    (fun file locations acc ->
+      let line_map : Catala_utils.Pos_map.coverage LineMap.t =
+        List.fold_left
+          (fun (acc : Catala_utils.Pos_map.coverage LineMap.t)
+               (loc_interval, cov_kind) ->
+            let open Catala_utils.Pos_map in
+            let lines_concerned =
+              List.init
+                (loc_interval.stop.line - loc_interval.start.line + 1)
+                (fun i -> loc_interval.start.line + i)
+            in
+            List.fold_left
+              (fun (acc : Catala_utils.Pos_map.coverage LineMap.t)
+                   line_concerned ->
+                let existing_cov_kind = LineMap.find_opt line_concerned acc in
+                match existing_cov_kind, cov_kind with
+                | None, cov_kind -> LineMap.add line_concerned cov_kind acc
+                | Some Negative, _ -> acc
+                | Some (Positive | Fulfilled), Negative ->
+                  LineMap.add line_concerned cov_kind acc
+                | _, _ -> acc)
+              acc lines_concerned)
+          LineMap.empty locations
+      in
+      File.Map.add file line_map acc)
+    agg_cc File.Map.empty
+
+let total_coverage_lines (line_map : coverage_line_map) =
+  File.Map.fold (fun _ lines acc -> acc + LineMap.cardinal lines) line_map 0
+
+let positive_coverage_lines (line_map : coverage_line_map) =
+  File.Map.fold
+    (fun _ lines acc ->
+      LineMap.fold
+        (fun _ cov_kind acc ->
+          let open Catala_utils.Pos_map in
+          acc + match cov_kind with Positive | Fulfilled -> 1 | Negative -> 0)
+        lines acc)
+    line_map 0
+
+let negative_coverage_lines (line_map : coverage_line_map) =
+  File.Map.fold
+    (fun _ lines acc ->
+      LineMap.fold
+        (fun _ cov_kind acc ->
+          let open Catala_utils.Pos_map in
+          acc + match cov_kind with Positive | Fulfilled -> 0 | Negative -> 1)
+        lines acc)
+    line_map 0
+
 type file = {
   name : File.t;
   successful : int;
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : aggregated_code_coverage;
+  code_coverage : Catala_utils.Pos_map.t option;
 }
 
 type disp_flags = {
@@ -386,33 +441,21 @@ let display_file ~build_dir ppf t =
       Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
       Format.pp_close_box ppf ())
   in
-  let print_code_coverage (code_coverage : aggregated_code_coverage) =
+  let print_code_coverage (code_coverage : Catala_utils.Pos_map.t option) =
     let open Catala_utils.Pos_map in
-    let total_lines =
-      Filemap.fold
-        (fun _ cov_list acc ->
-          List.fold_left
-            (fun acc (loc_interval, _coverage) ->
-              loc_interval.stop.line - loc_interval.start.line + 1 + acc)
-            acc cov_list)
-        code_coverage 0
+    let code_coverage =
+      match code_coverage with
+      | None -> Filemap.empty
+      | Some code_coverage -> export code_coverage
     in
-    let negative_lines =
-      Filemap.fold
-        (fun _ cov_list acc ->
-          List.fold_left
-            (fun acc (loc_interval, coverage) ->
-              acc
-              +
-              match coverage with
-              | Negative -> loc_interval.stop.line - loc_interval.start.line + 1
-              | _ -> 0)
-            acc cov_list)
-        code_coverage 0
+    let line_map =
+      aggregated_code_coverage_to_coverage_line_map code_coverage
     in
+    let total_lines = total_coverage_lines line_map in
+    let positive_coverage_lines = positive_coverage_lines line_map in
     let percentage =
       int_of_float
-        (float_of_int (total_lines - negative_lines)
+        (float_of_int positive_coverage_lines
         /. float_of_int total_lines
         *. 100.)
     in
@@ -421,8 +464,7 @@ let display_file ~build_dir ppf t =
     Format.fprintf ppf
       "@{<green>■@} code coverage @{<cyan>%d@} / @{<cyan>%d@} lines \
        (@{<hi_magenta>%d %%@})"
-      (total_lines - negative_lines)
-      total_lines percentage;
+      positive_coverage_lines total_lines percentage;
     Format.pp_close_box ppf ()
   in
   if t.successful = t.total then (
@@ -498,27 +540,22 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
-  let lines, negative_lines =
+  let fully_aggregated_coverage =
     let open Catala_utils.Pos_map in
     List.fold_left
-      (fun (lines, negative_lines) (file : file) ->
-        Filemap.fold
-          (fun _ cov_list (lines, negative_lines) ->
-            List.fold_left
-              (fun (lines, negative_lines) (loc_interval, coverage) ->
-                let num_lines =
-                  loc_interval.Catala_utils.Pos_map.stop.line
-                  - loc_interval.start.line
-                  + 1
-                in
-                match coverage with
-                | Catala_utils.Pos_map.Negative ->
-                  lines + num_lines, negative_lines + num_lines
-                | _ -> lines + num_lines, negative_lines)
-              (lines, negative_lines) cov_list)
-          file.code_coverage (lines, negative_lines))
-      (0, 0) tests
+      (fun (acc : t) (file : file) ->
+        match file.code_coverage with
+        | None -> acc
+        | Some file_code_coverage -> fusion acc file_code_coverage)
+      empty tests
   in
+  let coverage_line_map =
+    aggregated_code_coverage_to_coverage_line_map
+      (Catala_utils.Pos_map.export fully_aggregated_coverage)
+  in
+  let total_coverage_lines = total_coverage_lines coverage_line_map in
+  let positive_coverage_lines = positive_coverage_lines coverage_line_map in
+  let negative_coverage_lines = negative_coverage_lines coverage_line_map in
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
@@ -568,14 +605,14 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          negative_lines
+          negative_coverage_lines
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          (lines - negative_lines) lines
+          positive_coverage_lines total_coverage_lines
           (int_of_float
-             (float_of_int (lines - negative_lines)
-             /. float_of_int lines
+             (float_of_int positive_coverage_lines
+             /. float_of_int total_coverage_lines
              *. 100.)));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();

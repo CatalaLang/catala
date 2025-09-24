@@ -51,7 +51,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : aggregated_code_coverage;
+  code_coverage : Catala_utils.Pos_map.t option;
 }
 
 val write_to : File.t -> file -> unit
