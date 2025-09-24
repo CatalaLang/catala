@@ -268,8 +268,8 @@ let run_catala_test_scopes
                    let coverage : Catala_utils.Pos_map.t =
                      Marshal.from_bytes hex_coverage_bytes 0
                    in
-                   Some coverage
-                 else None);
+                   coverage
+                 else Pos_map.empty);
             }
             :: acc )
         | None -> (
@@ -300,7 +300,7 @@ let run_catala_test_scopes
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
         s_time = Sys.time () -. start_time;
-        s_coverage = None;
+        s_coverage = Pos_map.empty;
       }
       :: scopes_results
     else scopes_results
@@ -479,12 +479,7 @@ let run_tests
           if t.Clerk_report.s_success then nsucc + 1, nfail
           else nsucc, nfail + 1
         in
-        ( x,
-          y,
-          match t.s_coverage with
-          | None -> code_coverage
-          | Some new_coverage ->
-            Catala_utils.Pos_map.fusion code_coverage new_coverage ))
+        x, y, Catala_utils.Pos_map.fusion code_coverage t.s_coverage)
       (0, 0, Catala_utils.Pos_map.empty)
       scopes_results
   in
@@ -505,7 +500,7 @@ let run_tests
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
-        code_coverage = Some code_coverage;
+        code_coverage;
       }
       !rtests
   in

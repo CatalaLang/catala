@@ -35,73 +35,8 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;
-  s_coverage : Catala_utils.Pos_map.t option;
+  s_coverage : Catala_utils.Pos_map.t;
 }
-
-module LineMap = Map.Make (struct
-  include Int
-
-  let format fmt x = Format.pp_print_int fmt x
-end)
-
-type aggregated_code_coverage =
-  (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
-  Catala_utils.File.Map.t
-
-type coverage_line_map = Catala_utils.Pos_map.coverage LineMap.t File.Map.t
-
-let aggregated_code_coverage_to_coverage_line_map
-    (agg_cc : aggregated_code_coverage) : coverage_line_map =
-  Catala_utils.File.Map.fold
-    (fun file locations acc ->
-      let line_map : Catala_utils.Pos_map.coverage LineMap.t =
-        List.fold_left
-          (fun (acc : Catala_utils.Pos_map.coverage LineMap.t)
-               (loc_interval, cov_kind) ->
-            let open Catala_utils.Pos_map in
-            let lines_concerned =
-              List.init
-                (loc_interval.stop.line - loc_interval.start.line + 1)
-                (fun i -> loc_interval.start.line + i)
-            in
-            List.fold_left
-              (fun (acc : Catala_utils.Pos_map.coverage LineMap.t)
-                   line_concerned ->
-                let existing_cov_kind = LineMap.find_opt line_concerned acc in
-                match existing_cov_kind, cov_kind with
-                | None, cov_kind -> LineMap.add line_concerned cov_kind acc
-                | Some Negative, _ -> acc
-                | Some (Positive | Fulfilled), Negative ->
-                  LineMap.add line_concerned cov_kind acc
-                | _, _ -> acc)
-              acc lines_concerned)
-          LineMap.empty locations
-      in
-      File.Map.add file line_map acc)
-    agg_cc File.Map.empty
-
-let total_coverage_lines (line_map : coverage_line_map) =
-  File.Map.fold (fun _ lines acc -> acc + LineMap.cardinal lines) line_map 0
-
-let positive_coverage_lines (line_map : coverage_line_map) =
-  File.Map.fold
-    (fun _ lines acc ->
-      LineMap.fold
-        (fun _ cov_kind acc ->
-          let open Catala_utils.Pos_map in
-          acc + match cov_kind with Positive | Fulfilled -> 1 | Reachable | Negative -> 0)
-        lines acc)
-    line_map 0
-
-let negative_coverage_lines (line_map : coverage_line_map) =
-  File.Map.fold
-    (fun _ lines acc ->
-      LineMap.fold
-        (fun _ cov_kind acc ->
-          let open Catala_utils.Pos_map in
-          acc + match cov_kind with Positive | Fulfilled -> 0 | Negative | Reachable -> 1)
-        lines acc)
-    line_map 0
 
 type file = {
   name : File.t;
@@ -109,7 +44,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : Catala_utils.Pos_map.t option;
+  code_coverage : Catala_utils.Pos_map.t;
 }
 
 type disp_flags = {
@@ -441,18 +376,16 @@ let display_file ~build_dir ppf t =
       Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
       Format.pp_close_box ppf ())
   in
-  let print_code_coverage (code_coverage : Catala_utils.Pos_map.t option) =
+  let print_code_coverage (code_coverage : Catala_utils.Pos_map.t) =
     let open Catala_utils.Pos_map in
-    let code_coverage =
-      match code_coverage with
-      | None -> File.Map.empty
-      | Some code_coverage -> export code_coverage
-    in
+    let code_coverage = export code_coverage in
     let line_map =
-      aggregated_code_coverage_to_coverage_line_map code_coverage
+      Clerk_coverage.aggregated_code_coverage_to_coverage_line_map code_coverage
     in
-    let total_lines = total_coverage_lines line_map in
-    let positive_coverage_lines = positive_coverage_lines line_map in
+    let total_lines = Clerk_coverage.total_coverage_lines line_map in
+    let positive_coverage_lines =
+      Clerk_coverage.positive_coverage_lines line_map
+    in
     let percentage =
       int_of_float
         (float_of_int positive_coverage_lines
@@ -543,19 +476,22 @@ let summary ~build_dir tests =
   let fully_aggregated_coverage =
     let open Catala_utils.Pos_map in
     List.fold_left
-      (fun (acc : t) (file : file) ->
-        match file.code_coverage with
-        | None -> acc
-        | Some file_code_coverage -> fusion acc file_code_coverage)
+      (fun (acc : t) (file : file) -> fusion acc file.code_coverage)
       empty tests
   in
   let coverage_line_map =
-    aggregated_code_coverage_to_coverage_line_map
+    Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
       (Catala_utils.Pos_map.export fully_aggregated_coverage)
   in
-  let total_coverage_lines = total_coverage_lines coverage_line_map in
-  let positive_coverage_lines = positive_coverage_lines coverage_line_map in
-  let negative_coverage_lines = negative_coverage_lines coverage_line_map in
+  let total_coverage_lines =
+    Clerk_coverage.total_coverage_lines coverage_line_map
+  in
+  let positive_coverage_lines =
+    Clerk_coverage.positive_coverage_lines coverage_line_map
+  in
+  let negative_coverage_lines =
+    Clerk_coverage.negative_coverage_lines coverage_line_map
+  in
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
@@ -625,18 +561,22 @@ let coverage_to_yojson x : (string * Yojson.t) list =
     | Negative -> `String "Missing branch"
     | Fulfilled -> `String "Visited branch"
   in
-  let loc l = `Assoc Pos_map.[
-      "start_line", `Int l.start.line; "start_col", `Int l.start.col;
-      "end_line", `Int l.stop.line; "end_col", `Int l.stop.col;
-    ] in
-  let coverage_on_loc (l,c) = `List [ loc l; coverage c ] in
+  let loc l =
+    `Assoc
+      Pos_map.
+        [
+          "start_line", `Int l.start.line;
+          "start_col", `Int l.start.col;
+          "end_line", `Int l.stop.line;
+          "end_col", `Int l.stop.col;
+        ]
+  in
+  let coverage_on_loc (l, c) = `List [loc l; coverage c] in
   let coverage_map m = `List (List.map coverage_on_loc m) in
-  let filemap (f,m) = `Assoc ["filename", `String f; "coverage_map", coverage_map m ] in
-  match x with
-  | None -> []
-  | Some x ->
-    [ "coverage", `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)]
-
+  let filemap (f, m) =
+    `Assoc ["filename", `String f; "coverage_map", coverage_map m]
+  in
+  ["coverage", `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)]
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -657,7 +597,8 @@ let print_json ~(build_dir : string) (tests : file list) =
         "end_cnum", `Int e.pos_lnum;
       ]
   in
-  let scope_to_json scope = `Assoc
+  let scope_to_json scope =
+    `Assoc
       [
         "scope_name", `String scope.s_name;
         "success", `Bool scope.s_success;
@@ -665,11 +606,7 @@ let print_json ~(build_dir : string) (tests : file list) =
           `List
             (List.map
                (fun ((pos : pos), e) ->
-                  `Assoc
-                    [
-                      "position", pos_to_json pos;
-                      "message", `String e;
-                    ])
+                 `Assoc ["position", pos_to_json pos; "message", `String e])
                scope.s_errors) );
         "time", `Float (scope.s_time *. 1000.);
       ]
@@ -677,34 +614,29 @@ let print_json ~(build_dir : string) (tests : file list) =
   let inline_tests_to_json (inline_test : inline_test) =
     `Assoc
       [
-        ( "cmd",
-          `String
-            (String.concat " "
-               inline_test.i_command_line) );
+        "cmd", `String (String.concat " " inline_test.i_command_line);
         "success", `Bool inline_test.i_success;
-      ] in
+      ]
+  in
   let json =
     `List
       (List.filter_map
          (fun (test : file) ->
            Some
-             (`Assoc(
-               [
-                 ( "file",
-                   `String
-                     File.(Sys.getcwd () / remove_prefix build_dir test.name) );
-                 ( "tests",
-                   `Assoc
-                     [
-                       ( "scopes",
-                         `List (List.map scope_to_json test.scopes) );
-
-                       ( "inline-tests", `List (List.map inline_tests_to_json test.tests) );
-                     ] )
-               ]
-              @ coverage_to_yojson (Option.map Pos_map.export test.code_coverage)
-             )
-         ))
+             (`Assoc
+               ([
+                  ( "file",
+                    `String
+                      File.(Sys.getcwd () / remove_prefix build_dir test.name) );
+                  ( "tests",
+                    `Assoc
+                      [
+                        "scopes", `List (List.map scope_to_json test.scopes);
+                        ( "inline-tests",
+                          `List (List.map inline_tests_to_json test.tests) );
+                      ] );
+                ]
+               @ coverage_to_yojson (Pos_map.export test.code_coverage))))
          tests)
   in
   to_channel stdout json;
