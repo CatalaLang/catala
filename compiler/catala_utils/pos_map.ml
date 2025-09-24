@@ -1,4 +1,4 @@
-type coverage = Positive | Negative | Fulfilled
+type coverage = Reachable | Positive | Negative | Fulfilled
 type small_pos = { line : int; col : int }
 type loc_interval = { start : small_pos; stop : small_pos }
 
@@ -22,9 +22,9 @@ let export m = File.Map.map Interval_map.bindings m
 let merge ~inside x y =
   match x, y with
   | Fulfilled, _ -> Fulfilled
-  | Positive, x -> x
-  | Negative, (Positive | Fulfilled) -> if inside then Fulfilled else Negative
-  | Negative, Negative -> Negative
+  | (Positive|Reachable), x -> x
+  | Negative, (Positive|Fulfilled) -> if inside then Fulfilled else Negative
+  | Negative, (Negative|Reachable) -> Negative
 
 let pp_pos ppf p =
   if p.start.line = p.stop.line then
@@ -35,6 +35,7 @@ let pp_pos ppf p =
 
 let pp_interval ppf (pos, x) =
   match x with
+  | Reachable -> Format.fprintf ppf "@{<grey>%a@}" pp_pos pos
   | Positive -> Format.fprintf ppf "@{<green>%a@}" pp_pos pos
   | Negative -> Format.fprintf ppf "@{<red>%a@}" pp_pos pos
   | Fulfilled -> Format.fprintf ppf "@{<blue>%a@}" pp_pos pos

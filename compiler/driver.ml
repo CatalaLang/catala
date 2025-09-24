@@ -932,7 +932,8 @@ module Commands = struct
       List.fold_left
         (fun success scope ->
           print_interpretation_results ~code_coverage ~quiet options
-            (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
+            (Interpreter.interpret_program_dcalc
+               ?coverage:(if code_coverage then Some `Total else None))
             prg scope
           && success)
         true
