@@ -46,13 +46,13 @@ end)
 
 type aggregated_code_coverage =
   (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
-  Catala_utils.Pos_map.Filemap.t
+  Catala_utils.File.Map.t
 
 type coverage_line_map = Catala_utils.Pos_map.coverage LineMap.t File.Map.t
 
 let aggregated_code_coverage_to_coverage_line_map
     (agg_cc : aggregated_code_coverage) : coverage_line_map =
-  Catala_utils.Pos_map.Filemap.fold
+  Catala_utils.File.Map.fold
     (fun file locations acc ->
       let line_map : Catala_utils.Pos_map.coverage LineMap.t =
         List.fold_left
@@ -443,7 +443,7 @@ let display_file ~build_dir ppf t =
     let open Catala_utils.Pos_map in
     let code_coverage =
       match code_coverage with
-      | None -> Filemap.empty
+      | None -> File.Map.empty
       | Some code_coverage -> export code_coverage
     in
     let line_map =

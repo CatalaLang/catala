@@ -43,7 +43,7 @@ module LineMap : Map.S with type key = Int.t
 
 type aggregated_code_coverage =
   (Catala_utils.Pos_map.loc_interval * Catala_utils.Pos_map.coverage) list
-  Catala_utils.Pos_map.Filemap.t
+  Catala_utils.File.Map.t
 
 type file = {
   name : File.t;

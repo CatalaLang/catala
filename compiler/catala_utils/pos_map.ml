@@ -8,18 +8,16 @@ let from_pos p =
     stop = { line = Pos.get_end_line p; col = Pos.get_end_column p };
   }
 
-module Filemap = Stdlib.Map.Make (String)
-
 module Interval_map = Stdlib.Map.Make (struct
   type t = loc_interval
 
   let compare x y = compare x.start y.start
 end)
 
-type t = coverage Interval_map.t Filemap.t
+type t = coverage Interval_map.t File.Map.t
 
-let empty = Filemap.empty
-let export m = Filemap.map Interval_map.bindings m
+let empty = File.Map.empty
+let export m = File.Map.map Interval_map.bindings m
 
 let merge ~inside x y =
   match x, y with
@@ -104,10 +102,10 @@ let rec add_interval ~inside i v pos_map =
         if i.stop = mi.stop then pos_map
         else Interval_map.add { start = i.stop; stop = mi.stop } prev pos_map
 
-let _pp_filemap ppf f = Filemap.iter (pp_file ppf) f
+let _pp_filemap ppf f = File.Map.iter (pp_file ppf) f
 
 let fusion x y =
-  Filemap.union
+  File.Map.union
     (fun _s l r -> Some (Interval_map.fold (add_interval ~inside:true) r l))
     x y
 
@@ -116,11 +114,11 @@ let add pos v map =
   else
     let loc = from_pos pos in
     let name = Pos.get_file pos in
-    match Filemap.find_opt name map with
-    | None -> Filemap.add name (Interval_map.singleton loc v) map
+    match File.Map.find_opt name map with
+    | None -> File.Map.add name (Interval_map.singleton loc v) map
     | Some f ->
       let f' = add_interval ~inside:true loc v f in
-      Filemap.add name f' map
+      File.Map.add name f' map
 
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
