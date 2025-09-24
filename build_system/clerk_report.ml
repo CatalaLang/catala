@@ -554,12 +554,12 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let coverage_to_yojson x : (string * Yojson.t) list =
+let coverage_to_yojson x : Yojson.t =
   let coverage = function
-    | Pos_map.Reachable -> `String "Reachable expression"
-    | Pos_map.Positive -> `String "Visited expression"
-    | Negative -> `String "Missing branch"
-    | Fulfilled -> `String "Visited branch"
+    | Pos_map.Reachable -> `String "Reachable"
+    | Pos_map.Positive -> `String "Reached"
+    | Negative -> `String "Unvisited"
+    | Fulfilled -> `String "Visited"
   in
   let loc l =
     `Assoc
@@ -576,7 +576,7 @@ let coverage_to_yojson x : (string * Yojson.t) list =
   let filemap (f, m) =
     `Assoc ["filename", `String f; "coverage_map", coverage_map m]
   in
-  ["coverage", `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)]
+  `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -609,6 +609,7 @@ let print_json ~(build_dir : string) (tests : file list) =
                  `Assoc ["position", pos_to_json pos; "message", `String e])
                scope.s_errors) );
         "time", `Float (scope.s_time *. 1000.);
+        "coverage", coverage_to_yojson (Pos_map.export scope.s_coverage);
       ]
   in
   let inline_tests_to_json (inline_test : inline_test) =
@@ -624,19 +625,20 @@ let print_json ~(build_dir : string) (tests : file list) =
          (fun (test : file) ->
            Some
              (`Assoc
-               ([
-                  ( "file",
-                    `String
-                      File.(Sys.getcwd () / remove_prefix build_dir test.name) );
-                  ( "tests",
-                    `Assoc
-                      [
-                        "scopes", `List (List.map scope_to_json test.scopes);
-                        ( "inline-tests",
-                          `List (List.map inline_tests_to_json test.tests) );
-                      ] );
-                ]
-               @ coverage_to_yojson (Pos_map.export test.code_coverage))))
+               [
+                 ( "file",
+                   `String
+                     File.(Sys.getcwd () / remove_prefix build_dir test.name) );
+                 ( "tests",
+                   `Assoc
+                     [
+                       "scopes", `List (List.map scope_to_json test.scopes);
+                       ( "inline-tests",
+                         `List (List.map inline_tests_to_json test.tests) );
+                     ] );
+                 ( "coverage",
+                   coverage_to_yojson (Pos_map.export test.code_coverage) );
+               ]))
          tests)
   in
   to_channel stdout json;
