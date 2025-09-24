@@ -285,7 +285,6 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
           [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
-
     ] else []) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"

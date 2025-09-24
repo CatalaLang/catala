@@ -868,6 +868,74 @@ let build_cmd : int Cmd.t =
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
+let reachable_cmd : int Cmd.t =
+  let run
+      config
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+      quiet
+      (ninja_flags : string list) =
+    let items, var_bindings =
+      Clerk_rules.run_ninja ~code_coverage:`None ~config
+        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
+        ~quiet (fun nin_ppf items var_bindings ->
+          Nj.format_def nin_ppf
+            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+          items, var_bindings)
+    in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    let exec = get_var var_bindings Var.catala_exe in
+    let files =
+      List.filter_map
+        (fun it ->
+          if Filename.is_relative it.Scan.file_name && not it.Scan.extrnal then
+            Some it.file_name
+          else None)
+        items
+    in
+    if files = [] then Message.error "No matching files found";
+    let reachable =
+      List.fold_left
+        (fun reachable f ->
+          let args = ["reachable"] @ catala_flags @ [f] in
+          Message.debug "Running command: '%s'..."
+            (String.concat " " (exec @ args));
+          try
+            let reachable_coverage_string =
+              File.process_out (List.hd exec) args
+            in
+            let reachable_coverage = `Hex reachable_coverage_string in
+            let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in
+            let new_reachable : Catala_utils.Pos_map.t =
+              Marshal.from_bytes reachable_coverage_bytes 0
+            in
+            Pos_map.fusion new_reachable reachable
+          with Invalid_argument _ | Failure _ -> reachable)
+        Pos_map.empty files
+    in
+    match report_format with
+    | `Terminal | `JUnitXML ->
+      Message.error
+        "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
+         are not yet implemented for this command."
+    | `VSCodeJSON ->
+      let json = Clerk_report.coverage_to_yojson reachable in
+      Yojson.to_channel stdout json;
+      Format.printf "@.";
+      raise (Catala_utils.Cli.Exit_with 0)
+  in
+  let doc =
+    "Dump reachable locations command for either $(i,individual files) or \
+     $(i,clerk targets). Used by code editors and the language server."
+  in
+  Cmd.v
+    (Cmd.info ~doc "reachable")
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.report_format
+      $ Cli.quiet
+      $ Cli.ninja_flags)
+
 let setup_report_format
     ?fix_path
     verbosity
@@ -1543,6 +1611,7 @@ let main_cmd =
       report_cmd;
       raw_cmd;
       list_vars_cmd;
+      reachable_cmd;
     ]
 
 let main () =
