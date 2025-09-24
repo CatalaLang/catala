@@ -22,9 +22,9 @@ let export m = File.Map.map Interval_map.bindings m
 let merge ~inside x y =
   match x, y with
   | Fulfilled, _ -> Fulfilled
-  | (Positive|Reachable), x -> x
-  | Negative, (Positive|Fulfilled) -> if inside then Fulfilled else Negative
-  | Negative, (Negative|Reachable) -> Negative
+  | (Positive | Reachable), x -> x
+  | Negative, (Positive | Fulfilled) -> if inside then Fulfilled else Negative
+  | Negative, (Negative | Reachable) -> Negative
 
 let pp_pos ppf p =
   if p.start.line = p.stop.line then
