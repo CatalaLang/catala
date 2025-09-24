@@ -895,23 +895,51 @@ let reachable_cmd : int Cmd.t =
         items
     in
     if files = [] then Message.error "No matching files found";
+    let process_out_no_stderr cmd args =
+      let aargs = Array.of_list (cmd :: args) in
+      let ((stdout, _stdin, _stderr) as proc_full) =
+        try Unix.open_process_args_full cmd aargs [||]
+        with Unix.Unix_error (Unix.ENOENT, _, _) ->
+          Printf.ksprintf failwith "ERROR: program %s not found" cmd
+      in
+      let buf = Buffer.create 4096 in
+      let finally f g =
+        match
+          g ();
+          f ()
+        with
+        | 0 -> Some (Buffer.contents buf)
+        | _ | (exception _) -> None
+      in
+      finally
+        (fun () ->
+          match Unix.close_process_full proc_full with
+          | Unix.WEXITED n -> n
+          | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> raise (Failure "Failed"))
+        (fun () ->
+          try
+            while true do
+              Buffer.add_channel buf stdout 4096
+            done;
+            assert false
+          with End_of_file -> ())
+    in
     let reachable =
       List.fold_left
         (fun reachable f ->
           let args = ["reachable"] @ catala_flags @ [f] in
           Message.debug "Running command: '%s'..."
             (String.concat " " (exec @ args));
-          try
-            let reachable_coverage_string =
-              File.process_out (List.hd exec) args
-            in
+          match process_out_no_stderr (List.hd exec) args with
+          | None -> reachable
+          | Some "" -> assert false
+          | Some reachable_coverage_string ->
             let reachable_coverage = `Hex reachable_coverage_string in
             let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in
             let new_reachable : Catala_utils.Pos_map.t =
               Marshal.from_bytes reachable_coverage_bytes 0
             in
-            Pos_map.fusion new_reachable reachable
-          with Invalid_argument _ | Failure _ -> reachable)
+            Pos_map.fusion new_reachable reachable)
         Pos_map.empty files
     in
     match report_format with

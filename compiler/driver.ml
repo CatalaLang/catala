@@ -796,17 +796,21 @@ module Commands = struct
       if Dcalc.Invariants.check_all_invariants prg then ()
       else
         raise (Message.error ~internal:true "Some Dcalc invariants are invalid"));
-
+    let scope_opt =
+      let items = BoundList.to_seq prg.code_items |> List.of_seq in
+      List.find_map
+        (function _, ScopeDef (sname, _) -> Some sname | _ -> None)
+        items
+    in
     let reachable_locations =
-      match get_scopelist_uids prg [] with
-      | [] -> (* No scopes in this file, so no locations*) Pos_map.empty
-      | s :: _ ->
+      match scope_opt with
+      | None -> Message.error "No reachable scope found"
+      | Some s ->
         Shared_ast.Coverage.reachable
           (Expr.unbox (Shared_ast.Program.to_expr prg s))
           Pos_map.empty
     in
-    Format.fprintf (Message.std_ppf ()) "%a" Pos_map.report_coverage
-      reachable_locations
+    Pos_map.report_coverage (Message.std_ppf ()) reachable_locations
 
   let reachable_positions_cmd =
     Cmd.v
