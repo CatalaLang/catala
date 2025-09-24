@@ -1,10 +1,5 @@
 type origin = String.Set.t
-
-type 'a coverage =
-  | Reachable
-  | Positive of 'a
-  | Negative
-  | Fulfilled of 'a
+type 'a coverage = Reachable | Positive of 'a | Negative | Fulfilled of 'a
 type small_pos = { line : int; col : int }
 type loc_interval = { start : small_pos; stop : small_pos }
 
@@ -25,9 +20,10 @@ type simple = unit gen
 type t = origin gen
 
 let empty = File.Map.empty
+
 let with_name name fm =
   let add_name o = function
-    | Reachable | Negative as x -> x
+    | (Reachable | Negative) as x -> x
     | Positive () -> Positive (String.Set.singleton o)
     | Fulfilled () -> Fulfilled (String.Set.singleton o)
   in
@@ -35,13 +31,15 @@ let with_name name fm =
 
 let merge ~omerge ~inside x y =
   match x, y with
-  | Fulfilled set, (Fulfilled set'|Positive set') -> Fulfilled (omerge set set')
-  | Fulfilled set, (Negative|Reachable) -> Fulfilled set
+  | Fulfilled set, (Fulfilled set' | Positive set') ->
+    Fulfilled (omerge set set')
+  | Fulfilled set, (Negative | Reachable) -> Fulfilled set
   | Positive set, Positive set' -> Positive (omerge set set')
-  | Positive _ , Negative -> Negative
+  | Positive _, Negative -> Negative
   | Positive _, Fulfilled set -> (* should not happen *) Fulfilled set
   | x, Reachable | Reachable, x -> x
-  | Negative, (Positive set|Fulfilled set) -> if inside then Fulfilled set else Negative
+  | Negative, (Positive set | Fulfilled set) ->
+    if inside then Fulfilled set else Negative
   | Negative, Negative -> Negative
 
 let pp_pos ppf p =
@@ -125,11 +123,13 @@ let rec add_interval ~omerge ~inside i v pos_map =
 
 let pp ppf f = File.Map.iter (pp_file ppf) f
 
-
-
 let fusion x y =
   File.Map.union
-    (fun _s l r -> Some (Interval_map.fold (add_interval ~omerge:String.Set.union ~inside:true) r l))
+    (fun _s l r ->
+      Some
+        (Interval_map.fold
+           (add_interval ~omerge:String.Set.union ~inside:true)
+           r l))
     x y
 
 let add pos v map =
@@ -155,17 +155,13 @@ let flatten_pos loc c map =
   | Negative | Reachable -> map
 
 let simplify_map m =
-  let only_pos = function
-    | (loc,Positive set) -> Some (loc,set)
-    | _ -> None
-  in
+  let only_pos = function loc, Positive set -> Some (loc, set) | _ -> None in
   List.of_seq
   @@ Seq.filter_map only_pos
   @@ Interval_map.to_seq
   @@ Interval_map.fold flatten_pos m Interval_map.empty
 
-let export_reached fm =
-  File.Map.map simplify_map fm
+let export_reached fm = File.Map.map simplify_map fm
 
 let flatten_reachable loc _ map =
   let omerge _ y = y in
@@ -177,9 +173,7 @@ let reachable_map m =
   @@ Interval_map.to_seq
   @@ Interval_map.fold flatten_reachable m Interval_map.empty
 
-let export_reachable fm =
-  File.Map.map reachable_map fm
-
+let export_reachable fm = File.Map.map reachable_map fm
 
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
