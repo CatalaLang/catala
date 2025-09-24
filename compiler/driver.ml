@@ -766,6 +766,53 @@ module Commands = struct
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.quiet)
 
+  let reachable_positions options check_invariants includes stdlib =
+    let prg = Passes.scopelang options ~includes ~stdlib in
+    Message.debug "Typechecking...";
+    let _type_ordering =
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
+        prg.program_ctx.ctx_enums
+    in
+    let prg = Scopelang.Ast.type_program prg in
+    Message.debug "Translating to default calculus...";
+    (* Strictly type-checking could stop here, but we also want this pass to
+       check full name-resolution and cycle detection. These are checked during
+       translation to dcalc so we run it here and drop the result. *)
+    let prg = Dcalc.From_scopelang.translate_program prg in
+
+    (* Additionally, we might want to check the invariants. *)
+    if check_invariants then (
+      let prg = Shared_ast.Typing.program prg in
+      Message.debug "Checking invariants...";
+      if Dcalc.Invariants.check_all_invariants prg then ()
+      else
+        raise (Message.error ~internal:true "Some Dcalc invariants are invalid"));
+
+    let reachable_locations =
+      match get_scopelist_uids prg [] with
+      | [] -> (* No scopes in this file, so no locations*) Pos_map.empty
+      | s :: _ ->
+        Shared_ast.Coverage.reachable
+          (Expr.unbox (Shared_ast.Program.to_expr prg s))
+          Pos_map.empty
+    in
+    Format.fprintf (Message.std_ppf ()) "%a" Pos_map.report_coverage
+      reachable_locations
+
+  let reachable_positions_cmd =
+    Cmd.v
+      (Cmd.info "reachable" ~man:Cli.man_base
+         ~doc:
+           "Internal command intended for $(i,clerk) use. Parses and \
+            typechecks a Catala program, then returns the data of reachable \
+            code locations for this file.")
+      Term.(
+        const reachable_positions
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir)
+
   let dcalc
       typed
       options
@@ -1420,6 +1467,7 @@ module Commands = struct
       dependency_graph_cmd;
       depends_cmd;
       pygmentize_cmd;
+      reachable_positions_cmd;
     ]
 end
 

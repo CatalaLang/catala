@@ -692,33 +692,6 @@ and val_to_runtime :
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
-module Coverage = struct
-  let glob = ref None
-  let is_recorded () = !glob <> None
-
-  let mark_pos pol p =
-    Option.iter (fun map -> glob := Some (Pos_map.add p pol map)) !glob
-
-  let mark pol e = mark_pos pol (Expr.mark_pos (Mark.get e))
-
-  let mark_all pol e =
-    Option.iter
-      (fun m ->
-        let m =
-          List.fold_left
-            (fun m x -> Pos_map.add (Expr.mark_pos @@ Mark.get x) pol m)
-            m e
-        in
-        glob := Some m)
-      !glob
-
-  let rec reachable e map =
-    let m = Mark.get e in
-    let loc = Expr.mark_pos m in
-    let map = Pos_map.(add loc Reachable map) in
-    Expr.shallow_fold reachable e map
-end
-
 let coverage_result () =
   let r = Option.value ~default:Pos_map.empty !Coverage.glob in
   Coverage.glob := None;
