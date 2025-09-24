@@ -712,11 +712,11 @@ module Coverage = struct
         glob := Some m)
       !glob
 
-    let rec reachable e map =
-      let m = Mark.get e in
-      let loc = Expr.mark_pos m in
-      let map = Pos_map.(add loc Reachable map) in
-      Expr.shallow_fold reachable e map
+  let rec reachable e map =
+    let m = Mark.get e in
+    let loc = Expr.mark_pos m in
+    let map = Pos_map.(add loc Reachable map) in
+    Expr.shallow_fold reachable e map
 end
 
 let coverage_result () =
@@ -1193,15 +1193,17 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
            having thunked arguments")
 
 (** {1 API} *)
-let interpret_program_dcalc ?coverage p s :
+let interpret_program_dcalc ~(coverage : [ `Local | `Global | `None ]) p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in
-      let () = Coverage.glob := match coverage with
-          | None -> None
-          | Some `Local -> Some Pos_map.empty
-          | Some `Total -> Some (Coverage.reachable e Pos_map.empty)
+      let () =
+        Coverage.glob :=
+          match coverage with
+          | `None -> None
+          | `Local -> Some Pos_map.empty
+          | `Global -> Some (Coverage.reachable e Pos_map.empty)
       in
       match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
       | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->

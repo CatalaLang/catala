@@ -860,7 +860,7 @@ module Commands = struct
 
   let print_interpretation_results
       options
-      ~code_coverage
+      ~(code_coverage : [ `Local | `Global | `None ])
       ?(quiet = false)
       interpreter
       prg
@@ -881,7 +881,7 @@ module Commands = struct
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
           ScopeName.format scope_uid (fun fmt ->
-            if code_coverage then
+            if code_coverage <> `None then
               let coverage_results = Interpreter.coverage_result () in
               Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
             else ())
@@ -916,7 +916,7 @@ module Commands = struct
       options
       includes
       stdlib
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       optimize
       check_invariants
       quiet
@@ -932,8 +932,7 @@ module Commands = struct
       List.fold_left
         (fun success scope ->
           print_interpretation_results ~code_coverage ~quiet options
-            (Interpreter.interpret_program_dcalc
-               ?coverage:(if code_coverage then Some `Total else None))
+            (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
             prg scope
           && success)
         true
@@ -1011,13 +1010,13 @@ module Commands = struct
       options
       includes
       stdlib
-      code_coverage
+      (code_coverage : [ `Local | `Global | `None ])
       optimize
       check_invariants
       quiet
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
-    if code_coverage then
+    if code_coverage <> `None then
       Message.error
         "The flags @{<bold>--lcalc@} and @{<bold>--code-coverage@} are \
          incompatible";
@@ -1032,7 +1031,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~code_coverage:false ~quiet options
+          print_interpretation_results ~code_coverage:`None ~quiet options
             Interpreter.interpret_program_lcalc prg scope
           && success)
         true

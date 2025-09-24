@@ -511,12 +511,16 @@ module Flags = struct
 
   let code_coverage =
     value
-    & flag
+    & opt ~vopt:`Global (enum ["local", `Local; "global", `Global]) `None
     & info ["code-coverage"]
         ~doc:
           "When used with $(b,interpret),  outputs a binary dump of the code \
            coverage information gathered during the run. Be careful to always \
-           use it in conjunction with $(b,--whole-program)."
+           use it in conjunction with $(b,--whole-program). $(b,local) means \
+           that the position map output will only contain positions reached by \
+           the execution, while $(b,global) will also report all reachable \
+           positions regardless of the execution. If unspecified, the mode is \
+           assumed to be $(b,global)."
 
   let expand_ops =
     value
