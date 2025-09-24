@@ -18,7 +18,6 @@ Build-depends:
   libyojson-ocaml-dev,
   libalcotest-ocaml-dev,
   libzarith-ocaml-dev,
-  libzarith-stubs-js-ocaml-dev,
   libuucp-ocaml-dev,
 #test-depends
   ocaml-qtest,

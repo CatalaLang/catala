@@ -7,7 +7,6 @@
   sedlex
   re
   zarith
-  zarith_stubs_js
   shared_ast)
  (preprocess
   (per_module
