@@ -53,7 +53,7 @@ type disp_flags = {
   mutable diffs : bool;
   mutable diff_command : string option option;
   mutable fix_path : File.t -> File.t;
-  mutable code_coverage : bool;
+  mutable code_coverage : [ `Local | `Global | `None ];
 }
 
 let disp_flags =
@@ -63,7 +63,7 @@ let disp_flags =
     diffs = true;
     diff_command = None;
     fix_path = Fun.id;
-    code_coverage = false;
+    code_coverage = `None;
   }
 
 let set_display_flags
@@ -407,7 +407,8 @@ let display_file ~build_dir ppf t =
       if disp_flags.tests = `All then (
         print_tests t.tests;
         print_scopes t.scopes;
-        if disp_flags.code_coverage then print_code_coverage t.code_coverage);
+        if disp_flags.code_coverage <> `None then
+          print_code_coverage t.code_coverage);
       Format.pp_print_cut ppf ()))
   else
     let () =
@@ -424,7 +425,8 @@ let display_file ~build_dir ppf t =
     if disp_flags.tests <> `None then (
       print_tests t.tests;
       print_scopes t.scopes;
-      if disp_flags.code_coverage then print_code_coverage t.code_coverage);
+      if disp_flags.code_coverage <> `None then
+        print_code_coverage t.code_coverage);
     Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
@@ -531,7 +533,7 @@ let summary ~build_dir tests =
           | n -> Format.fprintf ppf "%10d" n)
         success total
         (int_of_float (float_of_int success /. float_of_int total *. 100.));
-      if disp_flags.code_coverage then
+      if disp_flags.code_coverage <> `None then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
            @{<hi_magenta;bold>%13d %%@}"
