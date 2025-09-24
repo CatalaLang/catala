@@ -6,9 +6,11 @@
 let v =
   match Sys.getenv_opt "CATALA_VERSION" with
   | None | Some "" -> (
-    let ic = Unix.open_process_in "git describe --tags --dirty 2>/dev/null" in
-    let v = try input_line ic with _ -> "dev" in
-    match Unix.close_process_in ic with Unix.WEXITED 0 -> v | _ -> "dev")
+    try
+      let ic = Unix.open_process_in "git describe --tags --dirty 2>/dev/null" in
+      let v = input_line ic in
+      match Unix.close_process_in ic with Unix.WEXITED 0 -> v | _ -> "dev"
+    with _ -> "dev")
   | Some v -> v
 
 let () =
