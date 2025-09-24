@@ -556,21 +556,21 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let coverage_to_yojson x : Yojson.t =
+let coverage_to_yojson (x : Pos_map.t) : Yojson.t =
   let coverage = function
-    | Pos_map.Reachable -> `String "Reachable"
-    | Pos_map.Positive -> `String "Reached"
-    | Negative -> `String "Unvisited"
-    | Fulfilled -> `String "Visited"
+    | Pos_map.Positive -> `String "Positive"
+    | Negative -> `String "Negative"
+    | Reachable -> `String "Reachable"
+    | Fulfilled -> `String "Fulfilled"
   in
   let loc l =
     `Assoc
       Pos_map.
         [
-          "start_line", `Int l.start.line;
-          "start_col", `Int l.start.col;
-          "end_line", `Int l.stop.line;
-          "end_col", `Int l.stop.col;
+          "start_lnum", `Int l.start.line;
+          "start_cnum", `Int l.start.col;
+          "end_lnum", `Int l.stop.line;
+          "end_num", `Int l.stop.col;
         ]
   in
   let coverage_on_loc (l, c) = `List [loc l; coverage c] in
@@ -578,7 +578,7 @@ let coverage_to_yojson x : Yojson.t =
   let filemap (f, m) =
     `Assoc ["filename", `String f; "coverage_map", coverage_map m]
   in
-  `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq x)
+  `List (List.of_seq @@ Seq.map filemap @@ File.Map.to_seq (Pos_map.export x))
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -611,7 +611,7 @@ let print_json ~(build_dir : string) (tests : file list) =
                  `Assoc ["position", pos_to_json pos; "message", `String e])
                scope.s_errors) );
         "time", `Float (scope.s_time *. 1000.);
-        "coverage", coverage_to_yojson (Pos_map.export scope.s_coverage);
+        "coverage", coverage_to_yojson scope.s_coverage;
       ]
   in
   let inline_tests_to_json (inline_test : inline_test) =
@@ -638,8 +638,7 @@ let print_json ~(build_dir : string) (tests : file list) =
                        ( "inline-tests",
                          `List (List.map inline_tests_to_json test.tests) );
                      ] );
-                 ( "coverage",
-                   coverage_to_yojson (Pos_map.export test.code_coverage) );
+                 "coverage", coverage_to_yojson test.code_coverage;
                ]))
          tests)
   in

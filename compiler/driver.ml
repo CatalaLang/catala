@@ -775,6 +775,7 @@ module Commands = struct
         $ Cli.Flags.quiet)
 
   let reachable_positions options check_invariants includes stdlib =
+    let _options = Global.enforce_options ~disable_warnings:true () in
     let prg = Passes.scopelang options ~includes ~stdlib in
     Message.debug "Typechecking...";
     let _type_ordering =
