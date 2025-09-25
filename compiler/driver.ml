@@ -912,7 +912,7 @@ module Commands = struct
 
   let print_interpretation_results
       options
-      ~(code_coverage : [ `Local | `Global | `None ])
+      ~(code_coverage : bool)
       ?(quiet = false)
       interpreter
       prg
@@ -933,7 +933,7 @@ module Commands = struct
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
           ScopeName.format scope_uid (fun fmt ->
-            if code_coverage <> `None then
+            if code_coverage then
               let coverage_results = Interpreter.coverage_result () in
               Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
             else ())
@@ -968,7 +968,7 @@ module Commands = struct
       options
       includes
       stdlib
-      (code_coverage : [ `Local | `Global | `None ])
+      (code_coverage : bool)
       optimize
       check_invariants
       quiet
@@ -1062,13 +1062,13 @@ module Commands = struct
       options
       includes
       stdlib
-      (code_coverage : [ `Local | `Global | `None ])
+      (code_coverage : bool)
       optimize
       check_invariants
       quiet
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
-    if code_coverage <> `None then
+    if code_coverage then
       Message.error
         "The flags @{<bold>--lcalc@} and @{<bold>--code-coverage@} are \
          incompatible";
@@ -1083,7 +1083,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~code_coverage:`None ~quiet options
+          print_interpretation_results ~code_coverage:false ~quiet options
             Interpreter.interpret_program_lcalc prg scope
           && success)
         true

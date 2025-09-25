@@ -78,6 +78,6 @@ val set_display_flags :
   ?diffs:bool ->
   ?diff_command:string option option ->
   ?fix_path:(File.t -> File.t) ->
-  ?code_coverage:[ `Local | `Global | `None ] ->
+  ?code_coverage:bool ->
   unit ->
   unit

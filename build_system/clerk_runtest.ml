@@ -160,7 +160,7 @@ let get_pos pos_fname pos_lnum col =
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
 let run_catala_test_scopes
-    ~(code_coverage : [ `Local | `Global | `None ])
+    ~(code_coverage : bool)
     test_flags
     catala_exe
     catala_opts
@@ -169,21 +169,15 @@ let run_catala_test_scopes
   let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let env = catala_test_env () in
   let catala_opts =
-    let local_code_coverage = "--code-coverage=local" in
-    let global_code_coverage = "--code-coverage=global" in
+    let code_coverage_opt = "--code-coverage" in
     let whole_program = "--whole-program" in
     catala_opts
     @
-    match code_coverage with
-    | `None -> []
-    | `Local ->
-      (if List.mem local_code_coverage catala_opts then []
-       else [local_code_coverage])
+    if code_coverage then
+      (if List.mem code_coverage_opt catala_opts then []
+       else [code_coverage_opt])
       @ if List.mem whole_program catala_opts then [] else [whole_program]
-    | `Global ->
-      (if List.mem global_code_coverage catala_opts then []
-       else [global_code_coverage])
-      @ if List.mem whole_program catala_opts then [] else [whole_program]
+    else []
   in
   let cmd =
     Array.of_list
@@ -277,7 +271,7 @@ let run_catala_test_scopes
               s_errors = List.rev errs;
               s_time = delta;
               s_coverage =
-                (if code_coverage <> `None && result then
+                (if code_coverage && result then
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
@@ -328,7 +322,7 @@ let run_catala_test_scopes
 let run_tests
     ~catala_exe
     ~catala_opts
-    ~(code_coverage : [ `Local | `Global | `None ])
+    ~(code_coverage : bool)
     ~test_flags
     ~report
     ~out
