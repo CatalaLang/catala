@@ -29,12 +29,24 @@ let with_name name fm =
   in
   File.Map.map (Interval_map.map (add_name name)) fm
 
-let merge ~omerge ~inside x y =
+
+type 'a origin_ops = {
+  merge: 'a -> 'a -> 'a;
+  eq: 'a -> 'a -> bool;
+}
+
+let c_equal ops x y = match x, y with
+    | Fulfilled x, Fulfilled y -> ops.eq x y
+    | Positive x, Positive y -> ops.eq x y
+    | Negative, Negative | Reachable, Reachable -> true
+    | _, _ -> false
+
+let merge ~ops ~inside x y =
   match x, y with
   | Fulfilled set, (Fulfilled set' | Positive set') ->
-    Fulfilled (omerge set set')
+    Fulfilled (ops.merge set set')
   | Fulfilled set, (Negative | Reachable) -> Fulfilled set
-  | Positive set, Positive set' -> Positive (omerge set set')
+  | Positive set, Positive set' -> Positive (ops.merge set set')
   | Positive _, Negative -> Negative
   | Positive _, Fulfilled set -> (* should not happen *) Fulfilled set
   | x, Reachable | Reachable, x -> x
@@ -64,16 +76,18 @@ let pp_file ppf f m =
   Format.fprintf ppf "@[<v>--------------@,%s:@,--------------@,%a@]@." f pp_map
     m
 
-let rec add_interval ~omerge ~inside i v pos_map =
-  let add_interval = add_interval ~omerge in
-  let merge = merge ~omerge in
+
+
+let rec add_interval ~ops ~inside i v pos_map =
+  let add_interval = add_interval ~ops in
+  let merge = merge ~ops in
   match Interval_map.find_first_opt (fun mi -> mi.stop > i.start) pos_map with
   | None -> Interval_map.add i v pos_map
   | Some (mi, prev) ->
     if i = mi then Interval_map.add i (merge ~inside prev v) pos_map
     else if i.start <= mi.start then begin
       (*xxxxx|------------| |--???? *)
-      if i.stop = mi.start && prev = v then
+      if i.stop = mi.start && c_equal ops prev v then
         pos_map
         |> Interval_map.remove mi
         |> Interval_map.add { i with stop = mi.stop } v
@@ -96,7 +110,7 @@ let rec add_interval ~omerge ~inside i v pos_map =
         |> add_interval ~inside:false { start = mi.stop; stop = i.stop } v
         (* |------------| |----------| *)
     end
-    else if mi.stop = i.start && prev = v then
+    else if mi.stop = i.start && c_equal ops prev v then
       pos_map
       |> Interval_map.remove mi
       |> Interval_map.add { mi with stop = i.stop } v
@@ -123,17 +137,28 @@ let rec add_interval ~omerge ~inside i v pos_map =
 
 let pp ppf f = File.Map.iter (pp_file ppf) f
 
+let set_ops = {
+  merge = String.Set.union;
+  eq = String.Set.equal;
+}
+
+let unit_ops = {
+  merge = (fun () () -> ());
+  eq = (fun () () -> true);
+}
+
 let fusion x y =
   File.Map.union
     (fun _s l r ->
       Some
         (Interval_map.fold
-           (add_interval ~omerge:String.Set.union ~inside:true)
+           (add_interval ~ops:set_ops ~inside:true)
            r l))
     x y
 
+
+
 let add pos v map =
-  let omerge () () = () in
   if pos = Pos.void then map
   else
     let loc = from_pos pos in
@@ -141,7 +166,7 @@ let add pos v map =
     match File.Map.find_opt name map with
     | None -> File.Map.add name (Interval_map.singleton loc v) map
     | Some f ->
-      let f' = add_interval ~omerge ~inside:true loc v f in
+      let f' = add_interval ~ops:unit_ops ~inside:true loc v f in
       File.Map.add name f' map
 
 let pos pos map = add pos (Positive ()) map
@@ -151,7 +176,7 @@ let reachable pos map = add pos Reachable map
 let flatten_pos loc c map =
   match c with
   | Positive set | Fulfilled set ->
-    add_interval ~omerge:String.Set.union ~inside:true loc (Positive set) map
+    add_interval ~ops:set_ops ~inside:true loc (Positive set) map
   | Negative | Reachable -> map
 
 let simplify_map m =
@@ -164,8 +189,7 @@ let simplify_map m =
 let export_reached fm = File.Map.map simplify_map fm
 
 let flatten_reachable loc _ map =
-  let omerge _ y = y in
-  add_interval ~omerge ~inside:true loc Reachable map
+  add_interval ~ops:set_ops ~inside:true loc Reachable map
 
 let reachable_map m =
   List.of_seq
