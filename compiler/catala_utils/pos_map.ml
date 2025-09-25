@@ -41,17 +41,28 @@ let c_equal ops x y = match x, y with
     | Negative, Negative | Reachable, Reachable -> true
     | _, _ -> false
 
+
+type interval_coverage =
+  | Smaller
+  | Equal
+  | Larger
+
 let merge ~ops ~inside x y =
   match x, y with
   | Fulfilled set, (Fulfilled set' | Positive set') ->
     Fulfilled (ops.merge set set')
-  | Fulfilled set, (Negative | Reachable) -> Fulfilled set
+  | Fulfilled _ as f, Negative ->
+    if inside = Smaller then Negative else f
+  | Fulfilled set, Reachable -> Fulfilled set
   | Positive set, Positive set' -> Positive (ops.merge set set')
   | Positive _, Negative -> Negative
   | Positive _, Fulfilled set -> (* should not happen *) Fulfilled set
   | x, Reachable | Reachable, x -> x
   | Negative, (Positive set | Fulfilled set) ->
-    if inside then Fulfilled set else Negative
+    begin match inside with
+      | Equal | Smaller -> Fulfilled set
+      | Larger -> Negative
+    end
   | Negative, Negative -> Negative
 
 let pp_pos ppf p =
@@ -78,36 +89,47 @@ let pp_file ppf f m =
 
 
 
-let rec add_interval ~ops ~inside i v pos_map =
+let rec add_interval ~ops ~inside:ins i v pos_map =
   let add_interval = add_interval ~ops in
-  let merge = merge ~ops in
+  let merge ~inside = merge ~ops ~inside:(if not ins then Larger else inside) in
   match Interval_map.find_first_opt (fun mi -> mi.stop > i.start) pos_map with
   | None -> Interval_map.add i v pos_map
   | Some (mi, prev) ->
-    if i = mi then Interval_map.add i (merge ~inside prev v) pos_map
+    if i = mi then Interval_map.add i (merge ~inside:Equal prev v) pos_map
     else if i.start <= mi.start then begin
-      (*xxxxx|------------| |--???? *)
+      (*xxxxx|------------|
+          |--???? *)
       if i.stop = mi.start && c_equal ops prev v then
         pos_map
         |> Interval_map.remove mi
         |> Interval_map.add { i with stop = mi.stop } v
       else if i.stop <= mi.start then Interval_map.add i v pos_map
+      else if i.start = mi.start && i.stop < mi.stop && merge ~inside:Smaller prev v = prev then pos_map
       else if i.stop < mi.stop then
-        (* xxx|------------| |------| *)
-        pos_map
-        |> Interval_map.remove mi
-        |> Interval_map.add { mi with stop = i.stop }
-             (merge ~inside:false prev v)
-        |> Interval_map.add { start = i.stop; stop = mi.stop } prev
-        |> add_interval ~inside:false { i with stop = mi.start } v
+        (* xxx|------------|
+            |------| *)
+        begin if i.start = mi.start then
+            pos_map
+            |> Interval_map.remove mi
+            |> Interval_map.add i (merge ~inside:Smaller prev v)
+            |> Interval_map.add { mi with start = i.stop } prev
+          else
+            pos_map
+            |> Interval_map.remove mi
+            |> Interval_map.add { mi with stop = i.stop }
+              (merge ~inside:Larger prev v)
+            |> Interval_map.add { start = i.stop; stop = mi.stop } prev
+            |> add_interval ~inside:false { i with stop = mi.start } v
+        end
       else
         (* xxxxx|------------| |------------------| *)
         pos_map
-        |> Interval_map.add mi (merge ~inside:false prev v)
+        |> Interval_map.add mi (merge ~inside:Larger prev v)
         |> (if mi.start > i.start then
               add_interval ~inside:false { i with stop = mi.start } v
             else Fun.id)
-        |> add_interval ~inside:false { start = mi.stop; stop = i.stop } v
+        |> add_interval ~inside:false
+          { start = mi.stop; stop = i.stop } v
         (* |------------| |----------| *)
     end
     else if mi.stop = i.start && c_equal ops prev v then
@@ -115,7 +137,7 @@ let rec add_interval ~ops ~inside i v pos_map =
       |> Interval_map.remove mi
       |> Interval_map.add { mi with stop = i.stop } v
       (* |------------------| |---| *)
-    else if i.stop <= mi.stop && merge ~inside prev v = prev then pos_map
+    else if i.stop <= mi.stop && merge ~inside:Smaller prev v = prev then pos_map
     else
       (* |------------| |---???? *)
       let pos_map =
@@ -127,11 +149,11 @@ let rec add_interval ~ops ~inside i v pos_map =
       if i.stop > mi.stop then
         pos_map
         |> Interval_map.add { i with stop = mi.stop }
-             (merge ~inside:false prev v)
+             (merge ~inside:Larger prev v)
         |> add_interval ~inside:false { start = mi.stop; stop = i.stop } v
         (* |------------------| |---| *)
       else
-        let pos_map = Interval_map.add i (merge ~inside prev v) pos_map in
+        let pos_map = Interval_map.add i (merge ~inside:Smaller prev v) pos_map in
         if i.stop = mi.stop then pos_map
         else Interval_map.add { start = i.stop; stop = mi.stop } prev pos_map
 
