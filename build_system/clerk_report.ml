@@ -560,7 +560,7 @@ let loc_to_json l =
         "start_lnum", `Int l.start.line;
         "start_cnum", `Int l.start.col;
         "end_lnum", `Int l.stop.line;
-        "end_num", `Int l.stop.col;
+        "end_cnum", `Int l.stop.col;
       ]
 
 let coverage_reached_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
