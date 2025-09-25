@@ -156,8 +156,6 @@ let fusion x y =
            r l))
     x y
 
-
-
 let add pos v map =
   if pos = Pos.void then map
   else
@@ -173,18 +171,22 @@ let pos pos map = add pos (Positive ()) map
 let neg pos map = add pos Negative map
 let reachable pos map = add pos Reachable map
 
-let flatten_pos loc c map =
+let flatten_pol loc c map =
   match c with
   | Positive set | Fulfilled set ->
     add_interval ~ops:set_ops ~inside:true loc (Positive set) map
-  | Negative | Reachable -> map
+  | Negative | Reachable ->
+    add_interval ~ops:set_ops ~inside:true loc Negative map
+
 
 let simplify_map m =
-  let only_pos = function loc, Positive set -> Some (loc, set) | _ -> None in
+  let reached_set (loc,c) = loc, match c with
+    | Positive set | Fulfilled set ->  set
+    | Negative | Reachable -> String.Set.empty in
   List.of_seq
-  @@ Seq.filter_map only_pos
+  @@ Seq.map reached_set
   @@ Interval_map.to_seq
-  @@ Interval_map.fold flatten_pos m Interval_map.empty
+  @@ Interval_map.fold flatten_pol m Interval_map.empty
 
 let export_reached fm = File.Map.map simplify_map fm
 
