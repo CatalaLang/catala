@@ -568,11 +568,7 @@ let loc_to_json l =
 let coverage_reached_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
   let coverage_on_loc (l, (c : String.Set.t)) =
     `Assoc
-      [
-        "location", loc_to_json l;
-        ( "reached_by",
-          `List (List.map (fun x -> `String x) (String.Set.elements c)) );
-      ]
+      ["location", loc_to_json l; "reached_by", `Int (String.Set.cardinal c)]
   in
   let coverage_map m = `List (List.map coverage_on_loc m) in
   let filemap (f, m) =
