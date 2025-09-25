@@ -806,8 +806,12 @@ let compare_periods pos (p1 : duration) (p2 : duration) : int =
     let p1_days = Dates_calc.Dates.period_to_days p1 in
     let p2_days = Dates_calc.Dates.period_to_days p2 in
     compare p1_days p2_days
-  with Dates_calc.Dates.AmbiguousComputation ->
-    error UncomparableDurations [pos]
+  with Dates_calc.Dates.AmbiguousComputation -> (
+    let y1, m1, d1 = Dates_calc.Dates.period_to_ymds p1 in
+    let y2, m2, d2 = Dates_calc.Dates.period_to_ymds p2 in
+    match y1, y2, m1, m2, d1, d2 with
+    | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
+    | _ -> error UncomparableDurations [pos])
 
 (* TODO: same here, although it was tweaked to never fail on equal dates.
    Comparing the difference to duration_0 is not a good idea because we still
