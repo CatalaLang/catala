@@ -1,0 +1,59 @@
+# Money
+
+> Module Money_en
+
+## Helper functions
+
+```catala-metadata
+declaration min
+  content money
+  depends on m1 content money,
+    m2 content money
+  equals
+    if m1 > m2 then m2 else m1
+
+declaration max
+  content money
+  depends on m1 content money,
+    m2 content money
+  equals
+    if m1 > m2 then m1 else m2
+
+declaration ceiling
+  content money
+  depends on variable content money,
+    ceiling content money
+  equals min of variable, ceiling
+
+declaration floor
+  content money
+  depends on variable content money,
+    floor content money
+  equals max of variable, floor
+
+## Floors the value at $0
+declaration positive
+  content money
+  depends on variable content money
+  equals floor of variable, $0
+```
+
+## Financial operations
+
+```catala-metadata
+## Returns the positive amount that `variable` overflows from `reference`
+## ($0 otherwise)
+declaration in_excess
+  content money
+  depends on variable content money,
+    reference content money
+  equals max of ($0, variable - reference)
+
+## Returns the positive amount that `variable` underflows from `reference`
+## ($0 otherwise)
+declaration in_default
+  content money
+  depends on variable content money,
+    reference content money
+  equals max of ($0, reference - variable)
+```
