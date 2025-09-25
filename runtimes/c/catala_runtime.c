@@ -654,8 +654,18 @@ CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1);
+      dc_period_to_days(&days2, x2) != dc_ok) {
+
+      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
+        return 
+          CATALA_NEW_BOOL(
+              dc_period_years(x1) * 12 + dc_period_months(x1) < 
+              dc_period_years(x2) * 12 + dc_period_months(x2)
+          );
+      } else {
+        catala_error(catala_uncomparable_durations, pos, 1);
+      }
+  }
   return CATALA_NEW_BOOL(days1 < days2);
 }
 
@@ -679,8 +689,18 @@ CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1);
+      dc_period_to_days(&days2, x2) != dc_ok) {
+
+      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
+        return 
+          CATALA_NEW_BOOL(
+              dc_period_years(x1) * 12 + dc_period_months(x1) <= 
+              dc_period_years(x2) * 12 + dc_period_months(x2)
+          );
+      } else {
+        catala_error(catala_uncomparable_durations, pos, 1);
+      }
+  }
   return CATALA_NEW_BOOL(days1 <= days2);
 }
 
@@ -704,8 +724,18 @@ CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
   long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1);
+      dc_period_to_days(&days2, x2) != dc_ok) {
+
+      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
+        return 
+          CATALA_NEW_BOOL(
+              dc_period_years(x1) * 12 + dc_period_months(x1) > 
+              dc_period_years(x2) * 12 + dc_period_months(x2)
+          );
+      } else {
+        catala_error(catala_uncomparable_durations, pos, 1);
+      }
+  }
   return CATALA_NEW_BOOL(days1 > days2);
 }
 
@@ -729,8 +759,18 @@ CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
   long int days1, days2 = 0;
   if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1);
+      dc_period_to_days(&days2, x2) != dc_ok) {
+
+      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
+        return 
+          CATALA_NEW_BOOL(
+              dc_period_years(x1) * 12 + dc_period_months(x1) >= 
+              dc_period_years(x2) * 12 + dc_period_months(x2)
+          );
+      } else {
+        catala_error(catala_uncomparable_durations, pos, 1);
+      }
+  }
   return CATALA_NEW_BOOL(days1 >= days2);
 }
 

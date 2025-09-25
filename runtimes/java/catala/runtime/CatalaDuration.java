@@ -58,17 +58,13 @@ public final class CatalaDuration implements CatalaValue {
 
     // No override
     public int compareTo(CatalaPosition pos, CatalaDuration t) {
-        if (this.getYears() != 0 || t.getYears() != 0) {
-            if (this.getMonths() != 0 || t.getMonths() != 0 && this.getDays() != 0 || t.getDays() != 0) {
+        if (this.getMonths() != 0 || t.getMonths() != 0 || this.getYears() != 0 || t.getYears() != 0) {
+            if (this.getDays() != 0 || t.getDays() != 0) {
                 throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
             }
-            return ((Integer) (this.getYears())).compareTo(t.getYears());
-        }
-        if (this.getMonths() != 0 || t.getMonths() != 0) {
-            if (this.getYears() != 0 || t.getYears() != 0 && this.getDays() != 0 || t.getDays() != 0) {
-                throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
-            }
-            return ((Integer) (this.getMonths())).compareTo(t.getMonths());
+            return ((Integer)
+                (this.getYears()* 12 + this.getMonths()))
+                .compareTo(t.getYears() * 12 + t.getMonths());
         }
 
         return ((Integer) (this.getDays())).compareTo(t.getDays());
