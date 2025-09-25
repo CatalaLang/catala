@@ -242,7 +242,7 @@ let run_catala_test_scopes
            group (rep1 (diff any (char ':')));
            str ": ";
            group (alt [str "passed"; str "failed"]);
-           alt [seq [char '|'; group (rep notnl)]; empty];
+           opt (seq [char '|'; group (rep notnl)]);
          ]
   in
   let errs, scopes_results =
