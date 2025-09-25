@@ -570,15 +570,18 @@ let coverage_reached_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
   in
   let coverage_map m = `List (List.map coverage_on_loc m) in
   let filemap (f, m) =
-    `Assoc
-      [
-        "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
-        "coverage_map", coverage_map m;
-      ]
+    if File.dirname f = "libcatala" then None
+    else
+      Some
+        (`Assoc
+          [
+            "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
+            "coverage_map", coverage_map m;
+          ])
   in
   `List
     (List.of_seq
-    @@ Seq.map filemap
+    @@ Seq.filter_map filemap
     @@ File.Map.to_seq (Pos_map.export_reached x))
 
 let coverage_reachable_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
