@@ -48,8 +48,8 @@ let aggregated_code_coverage_to_coverage_line_map
                 let existing_cov_kind = LineMap.find_opt line_concerned acc in
                 match existing_cov_kind, cov_bool with
                 | None, cov_bool -> LineMap.add line_concerned cov_bool acc
-                | Some false, _ -> acc
-                | Some true, false -> LineMap.add line_concerned cov_bool acc
+                | Some true, _ -> acc
+                | Some false, true -> LineMap.add line_concerned cov_bool acc
                 | _, _ -> acc)
               acc lines_concerned)
           LineMap.empty locations
