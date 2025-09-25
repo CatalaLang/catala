@@ -289,15 +289,10 @@ let report_format =
 let code_coverage =
   Arg.(
     value
-    & opt ~vopt:`Global (enum ["local", `Local; "global", `Global]) `None
+    & flag
     & info ["code-coverage"]
         ~env:(Cmd.Env.info "CATALA_MEASURE_COVERAGE")
-        ~doc:
-          "Measure code coverage in the test report. $(b,local) means that the \
-           position map output will only contain positions reached by the \
-           execution, while $(b,global) will also report all reachable \
-           positions regardless of the execution. If unspecified, the mode is \
-           assumed to be $(b,global).")
+        ~doc:"Measure code coverage in the test report.")
 
 let diff_command =
   Arg.(

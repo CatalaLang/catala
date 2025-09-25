@@ -40,7 +40,7 @@ val evaluate_expr :
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :
-  coverage:[ `Local | `Global | `None ] ->
+  coverage:bool ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
