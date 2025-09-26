@@ -44,6 +44,7 @@ depends: [
   "zarith_stubs_js" {>= "v0.14.1"}
   "yojson" {>= "2.1.0" }
   "crunch" {>= "3.0.0"}
+  "hex" { >= "1.5.0"}
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
   "odoc" {with-doc}

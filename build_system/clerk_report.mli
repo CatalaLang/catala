@@ -35,6 +35,8 @@ type scope_test = {
   s_name : string;
   s_command_line : string list;
   s_errors : (pos * string) list;
+  s_time : float;  (** Time spent in test, in milliseconds *)
+  s_coverage : Catala_utils.Pos_map.simple;
 }
 
 type file = {
@@ -43,11 +45,18 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
+  code_coverage : Pos_map.t;
 }
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
 val read_many : File.t -> file list
+
+val coverage_reachable_to_yojson :
+  build_dir:File.t -> Catala_utils.Pos_map.t -> Yojson.t
+
+val coverage_reached_to_yojson :
+  build_dir:File.t -> Catala_utils.Pos_map.t -> Yojson.t
 
 val display :
   build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit
@@ -56,8 +65,12 @@ val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
 val print_xml : build_dir:File.t -> file list -> bool
-(** Displays a summary in JUnit XML comptible format to stdout; returns true if
+(** Displays a summary in JUnit XML compatible format to stdout; returns true if
     all tests succeeded *)
+
+val print_json : build_dir:File.t -> file list -> bool
+(** Displays a summary in VSCode Json compatible format to stdout; returns true
+    if all tests succeeded *)
 
 val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->
@@ -65,5 +78,6 @@ val set_display_flags :
   ?diffs:bool ->
   ?diff_command:string option option ->
   ?fix_path:(File.t -> File.t) ->
+  ?code_coverage:bool ->
   unit ->
   unit
