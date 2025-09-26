@@ -43,8 +43,7 @@ let scope A (A_in: A_in): A =
       ⟨ e | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨b + c + d + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   let set f : integer =
-    error_empty
-      ⟨ f | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨e + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+    error_empty ⟨ f | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨e + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   return { A b = b; d = d; f = f; }
 ```
