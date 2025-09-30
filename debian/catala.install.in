@@ -1,0 +1,4 @@
+usr/bin/catala
+usr/bin/clerk
+@OCamlStdlibDir@/catala/runtime
+@OCamlStdlibDir@/catala/plugins/*/*.cmxs /usr/libexec/catala/

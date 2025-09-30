@@ -1,0 +1,26 @@
+include Makefile
+
+debian-vendored-deps:
+	$(MAKE) -C deps
+
+CATALA_VERSION:=$(shell dpkg-parsechangelog --show-field Version)
+
+debian-package: debian-vendored-deps
+	mk-build-deps
+	sudo apt-get install ./catala-build-deps_$(CATALA_VERSION)_all.deb
+	opam exec --no-switch -- dpkg-buildpackage
+
+clean-debian-package:
+	dpkg-buildpackage -T clean
+	rm -f ./catala-build-deps_$(CATALA_VERSION)_*.*
+	rm -f \
+	  ../catala_$(CATALA_VERSION).dsc \
+	  ../catala_$(CATALA_VERSION).tar.xz \
+	  ../catala_$(CATALA_VERSION)_*.buildinfo \
+	  ../catala_$(CATALA_VERSION)_*.changes \
+	  ../catala-dbgsym_$(CATALA_VERSION).dsc \
+	  ../catala-dbgsym_$(CATALA_VERSION).tar.xz \
+	  ../catala-dbgsym_$(CATALA_VERSION)_*.buildinfo \
+	  ../catala-dbgsym_$(CATALA_VERSION)_*.changes \
+	  ../catala-dbgsym_$(CATALA_VERSION)_*.deb
+	! dpkg -l catala-build-deps 2>/dev/null || sudo apt remove --autoremove catala-build-deps

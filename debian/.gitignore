@@ -1,0 +1,8 @@
+tmp/
+catala/
+catala.install
+not-installed
+*.debhelper
+*.substvars
+debhelper-build-stamp
+files
