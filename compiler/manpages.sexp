@@ -17,8 +17,3 @@
 (rule (alias man) (action (with-stdout-to catala-scalc.1 (run %{bin:catala} scalc --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-scopelang.1 (run %{bin:catala} scopelang --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-typecheck.1 (run %{bin:catala} typecheck --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-lazy.1 (run %{bin:catala} lazy --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-python-plugin.1 (run %{bin:catala} python-plugin --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-explain.1 (run %{bin:catala} explain --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-api_web.1 (run %{bin:catala} api_web --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-json_schema.1 (run %{bin:catala} json_schema --help=groff))))
