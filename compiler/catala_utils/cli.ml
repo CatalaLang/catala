@@ -196,7 +196,10 @@ module Flags = struct
         else
           (* Otherwise, assume a standard layout: "<prefix>/bin/catala" besides
              "<prefix>/lib/catala" *)
-          [Filename.(dirname exec_dir) / "lib" / "catala" / "plugins"]
+          [
+            Filename.(dirname exec_dir) / "libexec" / "catala";
+            Filename.(dirname exec_dir) / "lib" / "catala" / "plugins";
+          ]
       in
       value & opt_all string default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
 

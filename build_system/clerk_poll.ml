@@ -60,17 +60,26 @@ let catala_exe : File.t Lazy.t =
 
 (** Locates the main [lib] directory containing the OCaml libs *)
 let ocaml_libdir : File.t Lazy.t =
+  let try_cmd cmd args =
+    try Some (String.trim (File.process_out cmd args)) with Failure _ -> None
+  in
   lazy
-    (try String.trim (File.process_out "opam" ["var"; "lib"])
-     with Failure _ -> (
-       try String.trim (File.process_out "ocamlc" ["-where"])
-       with Failure _ -> (
-         match File.(check_directory (exec_dir /../ "lib")) with
-         | Some d -> d
-         | None ->
-           Message.error
-             "Could not locate the OCaml library directory, make sure OCaml or \
-              opam is installed")))
+    (match
+       if Sys.getenv_opt "OPAM_SWITCH_PREFIX" <> None then
+         try_cmd "opam" ["var"; "lib"]
+       else None
+     with
+    | Some d -> d
+    | None -> (
+      match try_cmd "ocamlc" ["-where"] with
+      | Some d -> d
+      | None -> (
+        match File.(check_directory (exec_dir /../ "lib")) with
+        | Some d -> d
+        | None ->
+          Message.error
+            "Could not locate the OCaml library directory, make sure OCaml or \
+             opam is installed")))
 
 (** Locates the directory containing the OCaml runtime to link to *)
 let runtime_dir : File.t Lazy.t =

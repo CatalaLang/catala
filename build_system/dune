@@ -50,3 +50,22 @@
 (alias
  (name clerk)
  (deps %{bin:clerk} %{bin:catala}))
+
+(include manpages.sexp)
+
+(rule
+ (mode promote)
+ (action
+  (with-stdout-to
+   manpages.sexp
+   (run
+    sh
+    -c
+    "for page in '' $(%{bin:clerk} 2>&1 | sed -n \"s/\\(^\\|'\\)[^']*\\('\\|$\\)/ /gp;q\"); do\n        echo '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
+
+(install
+ (section man)
+ (package catala)
+ (files
+  (glob_files
+   (*.1 with_prefix man1/))))
