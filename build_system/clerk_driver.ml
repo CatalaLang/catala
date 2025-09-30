@@ -180,6 +180,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     get_var var_bindings Var.ocamlopt_exe
     @ List.map (expand_vars var_bindings)
         (Lazy.force Clerk_poll.ocaml_link_flags)
+    @ [build_dir / "libcatala" / "ocaml" / "dates_calc.cmx"]
     @ [build_dir / "libcatala" / "ocaml" / "catala_runtime.cmx"]
     @ get_var var_bindings Var.ocaml_flags
     @ get_var var_bindings Var.ocaml_include

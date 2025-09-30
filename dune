@@ -2,7 +2,7 @@
 
 (data_only_dirs syntax_highlighting)
 
-(vendored_dirs catala-examples.tmp french-law.tmp)
+(vendored_dirs catala-examples.tmp french-law.tmp deps)
 
 (copy_files
  (alias doc)

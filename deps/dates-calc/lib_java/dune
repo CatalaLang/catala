@@ -1,0 +1,12 @@
+(rule
+ (target test-main.jar)
+ (deps
+  (glob_files src/dates_calc/*.java))
+ (action
+  (run ./build-test-jar.sh)))
+
+(install
+ (section lib)
+ (files
+  (glob_files
+   (src/main/java/dates_calc/*.java with_prefix java))))
