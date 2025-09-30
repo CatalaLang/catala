@@ -11,7 +11,10 @@
  (files
   (ocaml/catala_runtime.ml as runtime/ocaml/catala_runtime.ml)
   (ocaml/catala_runtime.mli as runtime/ocaml/catala_runtime.mli)
-  (ocaml/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi))
+  (ocaml/catala_runtime.cmi as runtime/ocaml/catala_runtime.cmi)
+  (ocaml/dates_calc.ml as runtime/ocaml/dates_calc.ml)
+  (ocaml/dates_calc.mli as runtime/ocaml/dates_calc.mli)
+  (ocaml/dates_calc.cmi as runtime/ocaml/dates_calc.cmi))
  (section lib))
 
 (install
@@ -50,4 +53,4 @@
 
 (alias
  (name runtimes)
- (deps ocaml/catala_runtime.cmi))
+ (deps ocaml/dates_calc.cmi ocaml/catala_runtime.cmi))

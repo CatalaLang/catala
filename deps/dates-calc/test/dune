@@ -1,0 +1,7 @@
+(tests
+ (names unit prop)
+ (deps
+  exact_computations.csv
+  ambiguous_computations.csv
+  first_last_day_of_month.csv)
+ (libraries dates_calc alcotest qcheck))

@@ -1,0 +1,100 @@
+Several properties of interest:
+  * forall d, forall x, compare_dates (add_dates_days (add_dates_days d x) -x ) d = 0
+  * forall d1 d2, compare_dates (add_dates d2 (sub_dates d1 d2)) d1 = 0
+
+Idea: Use QuickCheck (`qcheck`) for testing this
+
+Some tests to write:
+## add_dates
+### days
+
+add_dates (March 20, 2012) (10 days) == March 30, 2012
+add_dates (March 31, 2012) (1 day) == Apr 1, 2012
+add_dates (Feb 28, 2012) (1 day) == Feb 29, 2012
+add_dates (Feb 28, 2013) (1 day) == March 1, 2013
+add_dates (March 1, 2012) (71 days) == May 10, 2012
+add_dates (Nov 1, 2012) (71  days) == Jan 10, 2013
+
+### months
+
+add_dates (Feb 15, 2012) (2 months) == Apr 15, 2012
+add_dates (Feb 28, 2012) (4 months) == June 28, 2012
+add_dates (March 15, 2012) (1 month) == Apr 15, 2012
+add_dates (Nov 15, 2012) (3 months) == Feb 15, 2013
+
+add_dates (March 31, 2012) (2 months) == May 31, 2012
+add_dates (Jan 31, 2012) (2 months) == March 31, 2012
+add_dates (Jan 31, 2013) (2 months) == March 31, 2013
+add_dates (Oct 31, 2012) (5 months) == March 31, 2013
+
+add_dates (March 31, 2012) (1 month) ==
+  (* RoundUp      *) May 1, 2012
+  (* RoundDown    *) Apr 30, 2012
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (March 31, 2012) (3 months) ==
+  (* RoundUp      *) July 1, 2012
+  (* RoundDown    *) June 30, 2012
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Jan 31, 2012) (1 month) ==
+  (* RoundUp      *) March 1, 2012
+  (* RoundDown    *) Feb 29, 2012
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Jan 31, 2012) (3 months) ==
+  (* RoundUp      *) May 1, 2012
+  (* RoundDown    *) April 30, 2012
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Jan 31, 2013) (1 month) ==
+  (* RoundUp      *) March 1, 2013
+  (* RoundDown    *) Feb 28, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Jan 31, 2013) (3 months) ==
+  (* RoundUp      *) May 1, 2013
+  (* RoundDown    *) April 30, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Oct 31, 2012) (4 months) ==
+  (* RoundUp      *) March 1, 2013
+  (* RoundDown    *) Feb 28, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Oct 31, 2012) (6 months) ==
+  (* RoundUp      *) May 1, 2013
+  (* RoundDown    *) April 30, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Oct 29, 2012) (4 months) ==
+  (* RoundUp      *) March 1, 2013
+  (* RoundDown    *) Feb 28, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+
+### years
+
+add_dates (Jan 1, 2012) (1 year) == Jan 1, 2013
+add_dates (Feb 28, 2012) (4 years) == Feb 28, 2016
+add_dates (Feb 29, 2012) (4 years) == Feb 29, 2016
+add_dates (March 15, 2012) (1 year) == March 15, 2013
+add_dates (Nov 15, 2012) (3 years) == Nov 15, 2015
+
+add_dates (Feb 29, 2012) (1 year) ==
+  (* RoundUp      *) March 1, 2013
+  (* RoundDown    *) Feb 28, 2013
+  (* AbortOnRound *) AmbiguousComputation exception
+
+add_dates (Feb 29, 2012) (88 years) ==
+  (* RoundUp      *) March 1, 2100
+  (* RoundDown    *) Feb 28, 2100
+  (* AbortOnRound *) AmbiguousComputation exception
+
+
+
+TODO remaining:
+* Negative periods for add_dates
+* Property-based testing for sub_dates
+* Basic examples for make_date, period_to_days
+* Random generation for compare_dates

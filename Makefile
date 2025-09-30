@@ -44,7 +44,7 @@ $(PY_VENV_DIR)/stamp: \
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
-	  -e $$(ocamlfind query dates_calc)/python \
+	  -e deps/dates-calc/lib_python/ \
 	  -e runtimes/python \
 	  -e syntax_highlighting/en/pygments \
 	  -e syntax_highlighting/fr/pygments \
