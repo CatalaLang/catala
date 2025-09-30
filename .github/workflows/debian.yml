@@ -1,0 +1,70 @@
+name: DEB
+
+on:
+  push:
+    branches: [pkgdeb]
+  #   tags: ["*.*.*"]
+  schedule:
+    - cron: 10 2 * * 2-6
+  workflow_dispatch:
+#  pull_request_target:
+
+jobs:
+  gen-pkg:
+    name: generate debian package
+    runs-on: self-hosted
+    container:
+      image: debian:trixie
+    env:
+      GIT_AUTHOR_NAME: "Catala Nightly Worker"
+      GIT_AUTHOR_EMAIL: "contact@catala-lang.org"
+      DEBEMAIL: "Catala Nightly Worker <contact@catala-lang.org>"
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Install devscripts etc
+        run: |
+          apt-get -yq update
+          apt-get -yq install --no-install-recommends git curl devscripts build-essential equivs
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: refs/heads/master
+      - name: Git config stuff
+        run: |
+          git config --system --add safe.directory "${GITHUB_WORKSPACE}"
+          git config --global user.email "${GIT_AUTHOR_EMAIL}"
+          git config --global user.name "${GIT_AUTHOR_NAME}"
+      - name: Get nightly build version
+        run: echo "CATALA_VERSION=$(git show -s --format="$(git describe --tags --abbrev=0 --match '*.*.*' | sed 's/-/~/')+git$(date +%Y%m%d)r%h")" >> ${GITHUB_ENV}
+      - name: Apply debian patches on master
+        run: git merge origin/pkgdeb
+      - name: Generate debian changelog
+        run: dch -v $CATALA_VERSION "Nightly build $(date +%Y-%m-%d)"
+      - name: Generate package
+        run: |
+          make -f Makefile.debian debian-vendored-deps
+          mk-build-deps
+          apt-get install -yq ./catala-build-deps_${CATALA_VERSION}_all.deb
+          dpkg-buildpackage -b
+          mkdir -p debian-package
+          mv ../catala_*.deb debian-package
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Debian package
+          path: debian-package/*
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: debian-package/*
+      - name: Update nightly release
+        uses: uses: pyTooling/Actions/releaser@main
+        with:
+          tag: nightly
+          rm: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: debian-package/*
+      - name: Cleanup
+        if: ${{ always() }}
+        run: rm -rf "$(dirname ${GITHUB_WORKSPACE})/*" ~/.cache/dune
