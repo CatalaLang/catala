@@ -83,7 +83,7 @@
    (run
     sh
     -c
-    "for page in '' $(%{bin:catala} 2>&1 | sed -n 's/.    *//p'); do\n        echo '(rule (alias man) (action (with-stdout-to catala'${page:+-$page}'.1 (run \%{bin:catala} '$page' --help=groff))))'\n      done"))))
+    "for page in '' $(%{bin:catala} 2>&1 | sed -n 's/.    *//p; /plugins/q'); do\n        echo '(rule (alias man) (action (with-stdout-to catala'${page:+-$page}'.1 (run \%{bin:catala} '$page' --help=groff))))'\n      done"))))
 
 (install
  (section man)
