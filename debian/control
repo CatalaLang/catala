@@ -1,0 +1,46 @@
+Source: catala
+Section: catala
+Priority: optional
+Maintainer: Catala Team <contact@catala-lang.org>
+Standards-Version: 4.0.0
+Build-depends:
+  dh-ocaml (>=1.2),
+  debhelper-compat (=13),
+  ocaml-dune,
+  menhir,
+  cppo,
+  ocaml-crunch,
+  libsedlex-ocaml,
+  libocamlgraph-ocaml-dev,
+  libcmdliner-ocaml-dev,
+  libre-ocaml-dev,
+  js-of-ocaml,
+  libyojson-ocaml-dev,
+  libalcotest-ocaml-dev,
+  libzarith-ocaml-dev,
+  libuucp-ocaml-dev,
+#test-depends
+  ocaml-qtest,
+  libounit-ocaml-dev,
+  libqcheck-ocaml-dev
+Homepage: https://catala-lang.org/
+Vcs-Git: https://github.com/CatalaLang/catala.git
+Vcs-Browser: https://github.com/CatalaLang/catala
+
+Package: catala
+Architecture: any
+Depends:
+  ocaml,
+  ninja-build,
+  libzarith-ocaml-dev,
+  ${ocaml:Depends},
+  ${shlibs:Depends}
+Suggests:
+  z3,
+  python3-gmpy2,
+  python3-dateutil,
+  default-jdk-headless,
+  libzarith-stubs-js-ocaml-dev
+Description: DSL for the computation of automated legal decisions
+ Catala is a domain-specific language for deriving faithful-by-construction
+ algorithms from legislative texts.

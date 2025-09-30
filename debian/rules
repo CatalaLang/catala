@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/ocaml/ocamlvars.mk
+
+%:
+	dh $@ --with ocaml --buildsystem ocaml_dune
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  NUMJOBS = -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
+
+export CATALA_VERSION = $(shell dpkg-parsechangelog --show-field Version)
+BDIR = _build/install/default/bin
+MANDIR = debian/tmp/usr/man/man1
+
+override_dh_auto_build:
+	dune build $(NUMJOBS) @install --release
+	mkdir -p $(MANDIR)
+	$(BDIR)/catala --help=groff > $(MANDIR)/catala.1
+	for page in $($(BDIR)/catala --message-format=gnu 2>&1 | sed 's/.*: \\(.*\\) Run .*/\\1/'); do \
+	  [ $$page = "pygmentize" ] || $(BDIR)/catala $$page --help=groff >$(MANDIR)/catala-$$page.1; \
+	done
+	$(BDIR)/clerk --help=groff > $(MANDIR)/clerk.1
+	for page in $($(BDIR)/clerk --message-format=gnu 2>&1 | sed 's/.*: \(.*\) Run .*/\1/'); do \
+	  $(BDIR)/clerk $$page --help=groff >$(MANDIR)/clerk-$$page.1; \
+	done
+
+override_dh_auto_test:
+	dune runtest $(NUMJOBS) --release compiler build_system stdlib runtimes
