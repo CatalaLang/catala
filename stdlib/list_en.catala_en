@@ -1,0 +1,29 @@
+# Lists
+
+> Module List_en
+> Using List_internal
+
+## Helper functions
+
+```catala-metadata
+## Returns a list made of the consecutive integers from `begin` (inclusive)
+## to `end` (exclusive).
+## **Example**: `sequence of 3, 6` is the list `[3; 4; 5]`
+## **Edge-case**: if `end <= begin`, the returned list is empty
+declaration sequence
+  content list of integer
+  depends on begin content integer,
+             end content integer
+  equals
+  List_internal.sequence of begin, end
+
+## if `index` is between `1` and `count of lst`, returns `Present` with the
+## element of the list at that index. Otherwise, returns `Absent`.
+## **Example**: `element of [$101; $102; $103], 2` is `Present content $102`
+declaration element
+  content optional of anything of type t
+  depends on lst content list of anything of type t,
+             index content integer
+  equals
+  List_internal.element of lst, index
+```

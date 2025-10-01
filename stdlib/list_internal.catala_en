@@ -1,0 +1,13 @@
+> Module List_internal external
+
+```catala-metadata
+declaration sequence
+  content list of integer
+  depends on begin content integer,
+             end content integer
+
+declaration element
+  content optional of anything of type t
+  depends on lst content list of anything of type t,
+             index content integer
+```

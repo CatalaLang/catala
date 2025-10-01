@@ -1,0 +1,49 @@
+```catala
+#[test]
+declaration scope Tsequence:
+  output o1 content list of integer
+  output o2 content list of integer
+  output o3 content list of integer
+  output o4 content list of integer
+
+scope Tsequence:
+  definition o1 equals List.sequence of 3, 6
+  definition o2 equals List.sequence of -1, 1
+  definition o3 equals List.sequence of 3, 3
+  definition o4 equals List.sequence of 3, -3
+```
+
+```catala-test-cli
+$ catala test-scope Tsequence
+┌─[RESULT]─ Tsequence ─
+│ o1 = [3; 4; 5]
+│ o2 = [-1; 0]
+│ o3 = []
+│ o4 = []
+└─
+```
+
+```catala
+#[test]
+declaration scope Telement:
+  output o1 content optional of money
+  output o2 content optional of integer
+  output o3 content optional of integer
+  output o4 content optional of (decimal, integer)
+
+scope Telement:
+  definition o1 equals List.element of [$101; $102; $103], 2
+  definition o2 equals List.element of [12; 13; 14], 0
+  definition o3 equals List.element of [], 1
+  definition o4 equals List.element of [(12.0, 44)], 1
+```
+
+```catala-test-cli
+$ catala test-scope Telement
+┌─[RESULT]─ Telement ─
+│ o1 = Present $102.00
+│ o2 = Absent
+│ o3 = Absent
+│ o4 = Present (12.0, 44)
+└─
+```
