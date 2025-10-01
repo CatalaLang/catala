@@ -24,7 +24,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
                 new CatalaInteger(BigInteger.valueOf(100)));
     }
 
-    public final CatalaDecimal asInteger() {
+    public final CatalaInteger asInteger() {
         BigDecimal bd = new BigDecimal(this.value).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
         return new CatalaInteger(bd.toBigInteger());
     }
