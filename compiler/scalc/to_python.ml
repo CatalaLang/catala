@@ -50,6 +50,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Not -> Format.pp_print_string fmt "not"
   | Length -> Format.pp_print_string fmt "list_length"
   | ToInt_rat -> Format.pp_print_string fmt "integer_of_decimal"
+  | ToInt_mon -> Format.pp_print_string fmt "integer_of_money"
   | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
   | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
   | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"

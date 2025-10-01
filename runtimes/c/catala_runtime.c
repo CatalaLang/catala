@@ -327,6 +327,16 @@ CATALA_INT o_toint_rat (CATALA_DEC x)
   return ret;
 }
 
+CATALA_INT o_toint_mon (CATALA_MONEY x)
+{
+  CATALA_NEW_MPZ(ret_int);
+  CATALA_NEW_MPQ(ret_rat);
+  round_div(ret_rat, x, zconst_100);
+  mpz_tdiv_q(ret_int, mpq_numref(ret_rat), mpq_denref(ret_rat));
+  return ret_int;
+}
+
+
 CATALA_DEC o_torat_int (CATALA_INT x)
 {
   CATALA_NEW_MPQ(ret);

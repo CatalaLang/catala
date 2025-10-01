@@ -522,6 +522,10 @@ def decimal_round(q: Decimal) -> Decimal:
 def decimal_of_money(m: Money) -> Decimal:
     return Decimal(mpq(qdiv(m.value.value, 100)))
 
+def integer_of_money(d: Decimal) -> Integer:
+    return round(decimal_of_money(d))
+
+
 # --------
 # Integers
 # --------

@@ -334,6 +334,7 @@ module Op = struct
     | Minus_dur : < resolved ; .. > t
     | ToInt : < overloaded ; .. > t
     | ToInt_rat : < resolved ; .. > t
+    | ToInt_mon : < resolved ; .. > t
     | ToRat : < overloaded ; .. > t
     | ToRat_int : < resolved ; .. > t
     | ToRat_mon : < resolved ; .. > t

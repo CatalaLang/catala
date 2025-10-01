@@ -45,6 +45,7 @@ scope A:
 
   assertion (integer of 1.5 = 1)
   assertion (integer of -42.443 = -42)
+  assertion (integer of $23.65 = 24)
 ```
 
 ```catala-test-cli
