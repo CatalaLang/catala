@@ -220,11 +220,13 @@ let operator_to_string : type a. a Op.t -> string =
   | Length -> "length"
   | ToInt -> "to_int"
   | ToInt_rat -> "to_int_rat"
+  | ToInt_mon -> "to_int_mon"
   | ToRat -> "to_rat"
   | ToRat_int -> "to_rat_int"
   | ToRat_mon -> "to_rat_mon"
   | ToMoney -> "to_mon"
   | ToMoney_rat -> "to_mon_rat"
+  | ToMoney_int -> "to_mon_int"
   | Round -> "round"
   | Round_rat -> "round_rat"
   | Round_mon -> "round_mon"
@@ -313,9 +315,9 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   function
   | Not -> "~"
   | Length -> "length"
-  | ToInt | ToInt_rat -> "to_int"
+  | ToInt | ToInt_rat | ToInt_mon -> "to_int"
   | ToRat_int | ToRat_mon | ToRat -> "to_rat"
-  | ToMoney_rat | ToMoney -> "to_mon"
+  | ToMoney_rat | ToMoney_int | ToMoney -> "to_mon"
   | Round_rat | Round_mon | Round -> "round"
   | Log _ -> "Log"
   | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
@@ -395,8 +397,9 @@ module Precedence = struct
     | EAppOp { op; _ } -> (
       match Mark.remove op with
       | Not | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon
-      | Minus_dur | ToInt | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
-      | ToMoney_rat | Round | Round_rat | Round_mon ->
+      | Minus_dur | ToInt | ToInt_rat | ToInt_mon | ToRat | ToRat_int
+      | ToRat_mon | ToMoney | ToMoney_int | ToMoney_rat | Round | Round_rat
+      | Round_mon ->
         App
       | And -> Op And
       | Or -> Op Or

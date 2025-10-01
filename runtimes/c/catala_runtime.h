@@ -186,11 +186,15 @@ CATALA_DURATION o_minus_dur (CATALA_DURATION dur);
 
 CATALA_INT o_toint_rat (CATALA_DEC x);
 
+CATALA_INT o_toint_mon (CATALA_MONEY x);
+
 CATALA_DEC o_torat_int (CATALA_INT x);
 
 CATALA_DEC o_torat_mon (CATALA_MONEY x);
 
 CATALA_MONEY o_tomoney_rat (CATALA_DEC x);
+
+CATALA_MONEY o_tomoney_int (CATALA_INT x);
 
 CATALA_DEC o_round_rat (CATALA_DEC x);
 

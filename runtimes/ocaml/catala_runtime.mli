@@ -355,9 +355,11 @@ module Oper : sig
   val o_not : bool -> bool
   val o_length : 'a array -> integer
   val o_toint_rat : decimal -> integer
+  val o_toint_mon : money -> integer
   val o_torat_int : integer -> decimal
   val o_torat_mon : money -> decimal
   val o_tomoney_rat : decimal -> money
+  val o_tomoney_int : integer -> money
   val o_getDay : date -> integer
   val o_getMonth : date -> integer
   val o_getYear : date -> integer

@@ -137,6 +137,8 @@ let money_of_decimal (d : decimal) : money =
   (* Turn units to cents then round to nearest cent *)
   round Q.(d * of_int 100)
 
+let money_of_integer (i : integer) : money = Z.(i * of_int 100)
+
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
 
@@ -199,6 +201,7 @@ let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
 let integer_of_int (i : int) : integer = Z.of_int i
 let integer_of_decimal (d : decimal) : integer = Q.to_bigint d
+let integer_of_money (m : money) : integer = round (decimal_of_money m)
 let integer_exponentiation (i : integer) (e : int) : integer = Z.pow i e
 let integer_log2 = Z.log2
 
@@ -827,9 +830,11 @@ module Oper = struct
   let o_not = Stdlib.not
   let o_length a = Z.of_int (Array.length a)
   let o_toint_rat = integer_of_decimal
+  let o_toint_mon = integer_of_money
   let o_torat_int = decimal_of_integer
   let o_torat_mon = decimal_of_money
   let o_tomoney_rat = money_of_decimal
+  let o_tomoney_int = money_of_integer
   let o_getDay = day_of_month_of_date
   let o_getMonth = month_number_of_date
   let o_getYear = year_of_date

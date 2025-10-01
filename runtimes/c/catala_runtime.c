@@ -320,30 +320,6 @@ CATALA_DURATION o_minus_dur (CATALA_DURATION dur)
   return ret;
 }
 
-CATALA_INT o_toint_rat (CATALA_DEC x)
-{
-  CATALA_NEW_MPZ(ret);
-  mpz_tdiv_q(ret, mpq_numref(x), mpq_denref(x));
-  return ret;
-}
-
-CATALA_DEC o_torat_int (CATALA_INT x)
-{
-  CATALA_NEW_MPQ(ret);
-  mpq_set_z(ret, x);
-  return ret;
-}
-
-CATALA_DEC o_torat_mon (CATALA_MONEY x)
-{
-  CATALA_NEW_MPQ(ret);
-  mpz_set(mpq_numref(ret), x);
-  mpz_set_ui(mpq_denref(ret), 100);
-  mpq_canonicalize(ret);
-  return ret;
-}
-
-
 static void round_div(mpz_ptr ret, mpz_srcptr num, mpz_srcptr den)
 {
   mpz_t den1;
@@ -363,12 +339,50 @@ static void round_div(mpz_ptr ret, mpz_srcptr num, mpz_srcptr den)
   return;
 }
 
+CATALA_INT o_toint_rat (CATALA_DEC x)
+{
+  CATALA_NEW_MPZ(ret);
+  mpz_tdiv_q(ret, mpq_numref(x), mpq_denref(x));
+  return ret;
+}
+
+CATALA_INT o_toint_mon (CATALA_MONEY x)
+{
+  CATALA_NEW_MPZ(ret);
+  round_div(ret, x, zconst_100);
+  return ret;
+}
+
+
+CATALA_DEC o_torat_int (CATALA_INT x)
+{
+  CATALA_NEW_MPQ(ret);
+  mpq_set_z(ret, x);
+  return ret;
+}
+
+CATALA_DEC o_torat_mon (CATALA_MONEY x)
+{
+  CATALA_NEW_MPQ(ret);
+  mpz_set(mpq_numref(ret), x);
+  mpz_set_ui(mpq_denref(ret), 100);
+  mpq_canonicalize(ret);
+  return ret;
+}
+
+
+
 CATALA_MONEY o_tomoney_rat (CATALA_DEC x)
 {
   CATALA_NEW_MPZ(ret);
   mpz_mul_ui(ret, mpq_numref(x), 100);
   round_div(ret, ret, mpq_denref(x));
   return ret;
+}
+
+CATALA_MONEY o_tomoney_int (CATALA_INT x)
+{
+  return o_tomoney_rat(o_torat_int(x));
 }
 
 CATALA_DEC o_round_rat (CATALA_DEC x)

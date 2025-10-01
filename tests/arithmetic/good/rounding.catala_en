@@ -12,6 +12,7 @@ scope A:
   assertion (money of 0.005 = $0.01)
   assertion (money of 0.011 = $0.01)
   assertion (money of 0.015 = $0.02)
+  assertion (money of 15 = $15)
 
   assertion (-0.015 * $1 = -$$0.02)
   assertion (-0.011 * $1 = -$$0.01)
@@ -45,6 +46,7 @@ scope A:
 
   assertion (integer of 1.5 = 1)
   assertion (integer of -42.443 = -42)
+  assertion (integer of $23.65 = 24)
 ```
 
 ```catala-test-cli
