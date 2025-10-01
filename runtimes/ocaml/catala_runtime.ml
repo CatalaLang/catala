@@ -137,6 +137,8 @@ let money_of_decimal (d : decimal) : money =
   (* Turn units to cents then round to nearest cent *)
   round Q.(d * of_int 100)
 
+let money_of_integer (i : integer) : money = Z.(i * of_int 100)
+
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
 
@@ -832,6 +834,7 @@ module Oper = struct
   let o_torat_int = decimal_of_integer
   let o_torat_mon = decimal_of_money
   let o_tomoney_rat = money_of_decimal
+  let o_tomoney_int = money_of_integer
   let o_getDay = day_of_month_of_date
   let o_getMonth = month_number_of_date
   let o_getYear = year_of_date

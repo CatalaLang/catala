@@ -340,6 +340,7 @@ module Op = struct
     | ToRat_mon : < resolved ; .. > t
     | ToMoney : < overloaded ; .. > t
     | ToMoney_rat : < resolved ; .. > t
+    | ToMoney_int : < resolved ; .. > t
     | Round : < overloaded ; .. > t
     | Round_rat : < resolved ; .. > t
     | Round_mon : < resolved ; .. > t

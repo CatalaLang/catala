@@ -31,6 +31,10 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaDecimal(this, new CatalaInteger(BigInteger.ONE));
     }
 
+    public final CatalaMoney asMoney() {
+        return CatalaMoney.ofCents(BigInteger.valueOf(100)).multiply(this);
+    }
+
     // ToInt_rat
     public static final CatalaInteger ofDecimal(CatalaDecimal dec) {
         return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));

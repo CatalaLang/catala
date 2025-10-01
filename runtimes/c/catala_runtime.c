@@ -381,6 +381,13 @@ CATALA_MONEY o_tomoney_rat (CATALA_DEC x)
   return ret;
 }
 
+CATALA_MONEY o_tomoney_int (CATALA_DEC x)
+{
+  CATALA_NEW_MPZ(ret);
+  mpz_mul_ui(ret, x, 100);
+  return ret;
+}
+
 CATALA_DEC o_round_rat (CATALA_DEC x)
 {
   CATALA_NEW_MPQ(ret);

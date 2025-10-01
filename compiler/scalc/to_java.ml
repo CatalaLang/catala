@@ -138,7 +138,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Length -> pp_print_string ppf "length"
   | ToRat_int | ToRat_mon -> pp_print_string ppf "asDecimal"
   | ToInt_rat | ToInt_mon -> pp_print_string ppf "asInteger"
-  | ToMoney_rat -> pp_print_string ppf "asMoney"
+  | ToMoney_rat | ToMoney_int -> pp_print_string ppf "asMoney"
   | Round_mon -> pp_print_string ppf "round"
   | Round_rat -> pp_print_string ppf "round"
   | Concat -> pp_print_string ppf "append"

@@ -1231,7 +1231,9 @@ let expr_to_dot_label0 :
             "＝"
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
           | ToRat_int | ToRat_mon | ToRat -> ""
-          | ToMoney_rat | ToMoney | ToInt | ToInt_rat -> ""
+          | ToMoney_rat | ToMoney_int | ToMoney | ToInt | ToInt_rat | ToInt_mon
+            ->
+            ""
           | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
           | Add_dur_dur | Add ->
             "+"

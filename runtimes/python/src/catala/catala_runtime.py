@@ -488,6 +488,9 @@ def money_of_decimal(d: Decimal) -> Money:
     """
     return Money(round(d * Decimal(100)))
 
+def money_of_integer(i: Integer) -> Money:
+    return Money(i * Integer(100))
+
 
 # --------
 # Decimals

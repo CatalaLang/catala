@@ -54,6 +54,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
   | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
   | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
+  | ToMoney_int -> Format.pp_print_string fmt "money_of_integer"
   | Round_mon -> Format.pp_print_string fmt "money_round"
   | Round_rat -> Format.pp_print_string fmt "decimal_round"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat ->
