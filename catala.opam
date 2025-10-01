@@ -41,7 +41,9 @@ depends: [
   "ubase" {>= "0.05"}
   "zarith" {>= "1.12"}
   "zarith_stubs_js" {>= "v0.14.1"}
-  "yojson" {>= "2.1.0" }
+  "yojson" {>= "2.1.0" & < "3"}
+   # Not a strict upper bound for catala, but other tools (adgen) have it and we
+   # don't want them to need a catala recompile
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
