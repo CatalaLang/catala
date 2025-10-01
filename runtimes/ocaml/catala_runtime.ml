@@ -801,28 +801,18 @@ let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
          (function Optional.Present (_, pos) -> pos | _ -> assert false)
          res)
 
-(* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
-   [3 months, 4 months] *)
+(* TODO: add this compare built-in to dates_calc ? *)
 let compare_periods pos (p1 : duration) (p2 : duration) : int =
-  try
-    let p1_days = Dates_calc.period_to_days p1 in
-    let p2_days = Dates_calc.period_to_days p2 in
-    compare p1_days p2_days
-  with Dates_calc.AmbiguousComputation -> (
-    let y1, m1, d1 = Dates_calc.period_to_ymds p1 in
-    let y2, m2, d2 = Dates_calc.period_to_ymds p2 in
-    match y1, y2, m1, m2, d1, d2 with
-    | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
-    | _ -> error UncomparableDurations [pos])
+  let y1, m1, d1 = Dates_calc.period_to_ymds p1 in
+  let y2, m2, d2 = Dates_calc.period_to_ymds p2 in
+  match y1, y2, m1, m2, d1, d2 with
+  | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
+  | 0, 0, 0, 0, d1, d2 -> Int.compare d1 d2
+  | _ -> error UncomparableDurations [pos]
 
-(* TODO: same here, although it was tweaked to never fail on equal dates.
-   Comparing the difference to duration_0 is not a good idea because we still
-   want to fail on [1 month, 30 days] rather than return [false] *)
 let equal_periods pos (p1 : duration) (p2 : duration) : bool =
   Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
-  ||
-  try Dates_calc.period_to_days (Dates_calc.sub_periods p1 p2) = 0
-  with Dates_calc.AmbiguousComputation -> error UncomparableDurations [pos]
+  || compare_periods pos p1 p2 = 0
 
 module Oper = struct
   let o_not = Stdlib.not

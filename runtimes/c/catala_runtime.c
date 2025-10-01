@@ -637,15 +637,21 @@ CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2 = 0;
-  if (dc_period_years(x1) == dc_period_years(x2) &&
-      dc_period_months(x1) == dc_period_months(x2) &&
-      dc_period_days(x1) == dc_period_days(x2))
+  long int y1 = dc_period_years(x1);
+  long int m1 = dc_period_months(x1);
+  long int d1 = dc_period_days(x1);
+  long int y2 = dc_period_years(x2);
+  long int m2 = dc_period_months(x2);
+  long int d2 = dc_period_days(x2);
+  if (y1 == y2 && m1 == m2 && d1 == d2)
     return CATALA_TRUE;
-  if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok)
+  else if (d1 == 0 && d2 == 0)
+    return CATALA_NEW_BOOL(y1 * 12 + m1 == y2 * 12 + m2);
+  else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0)
+    return CATALA_NEW_BOOL(d1 == d2);
+  else
     catala_error(catala_uncomparable_durations, pos, 1);
-  return CATALA_NEW_BOOL(days1 == days2);
+  abort();
 }
 
 CATALA_BOOL o_lt_int_int (CATALA_INT x1, CATALA_INT x2) {
@@ -664,23 +670,30 @@ CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
   return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) < 0);
 }
 
+/* TODO: backport as dc_compare_periods to dates_calc ? */
+int compare_periods (const catala_code_position* pos,
+                           CATALA_DURATION x1, CATALA_DURATION x2) {
+  long int y1 = dc_period_years(x1);
+  long int m1 = dc_period_months(x1);
+  long int d1 = dc_period_days(x1);
+  long int y2 = dc_period_years(x2);
+  long int m2 = dc_period_months(x2);
+  long int d2 = dc_period_days(x2);
+  if (d1 == 0 && d2 == 0) {
+    m1 = 12 * y1 + m1;
+    m2 = 12 * y2 + m2;
+    return m1 < m2 ? -1 : (m1 > m2);
+  } else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0) {
+    return d1 < d2 ? -1 : (d1 > d2);
+  } else {
+    catala_error(catala_uncomparable_durations, pos, 1);
+  }
+  abort();
+}
+
 CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2 = 0;
-  if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok) {
-
-      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
-        return 
-          CATALA_NEW_BOOL(
-              dc_period_years(x1) * 12 + dc_period_months(x1) < 
-              dc_period_years(x2) * 12 + dc_period_months(x2)
-          );
-      } else {
-        catala_error(catala_uncomparable_durations, pos, 1);
-      }
-  }
-  return CATALA_NEW_BOOL(days1 < days2);
+  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) < 0);
 }
 
 CATALA_BOOL o_lte_int_int (CATALA_INT x1, CATALA_INT x2) {
@@ -701,21 +714,7 @@ CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2 = 0;
-  if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok) {
-
-      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
-        return 
-          CATALA_NEW_BOOL(
-              dc_period_years(x1) * 12 + dc_period_months(x1) <= 
-              dc_period_years(x2) * 12 + dc_period_months(x2)
-          );
-      } else {
-        catala_error(catala_uncomparable_durations, pos, 1);
-      }
-  }
-  return CATALA_NEW_BOOL(days1 <= days2);
+  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) <= 0);
 }
 
 CATALA_BOOL o_gt_int_int (CATALA_INT x1, CATALA_INT x2) {
@@ -736,21 +735,7 @@ CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2 = 0;
-  if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok) {
-
-      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
-        return 
-          CATALA_NEW_BOOL(
-              dc_period_years(x1) * 12 + dc_period_months(x1) > 
-              dc_period_years(x2) * 12 + dc_period_months(x2)
-          );
-      } else {
-        catala_error(catala_uncomparable_durations, pos, 1);
-      }
-  }
-  return CATALA_NEW_BOOL(days1 > days2);
+  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) > 0);
 }
 
 CATALA_BOOL o_gte_int_int (CATALA_INT x1, CATALA_INT x2) {
@@ -771,21 +756,7 @@ CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
 
 CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
                            CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int days1, days2 = 0;
-  if (dc_period_to_days(&days1, x1) != dc_ok ||
-      dc_period_to_days(&days2, x2) != dc_ok) {
-
-      if (dc_period_days(x1) == 0 && dc_period_days(x2) == 0) {
-        return 
-          CATALA_NEW_BOOL(
-              dc_period_years(x1) * 12 + dc_period_months(x1) >= 
-              dc_period_years(x2) * 12 + dc_period_months(x2)
-          );
-      } else {
-        catala_error(catala_uncomparable_durations, pos, 1);
-      }
-  }
-  return CATALA_NEW_BOOL(days1 >= days2);
+  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) >= 0);
 }
 
 const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)
