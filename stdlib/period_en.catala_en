@@ -14,7 +14,7 @@ declaration structure Period:
   # The end date is excluded from the period
   data end content date
 
-## Ensures that the period coherent (it begins before its end)
+## Ensures that the period is coherent (it begins before its end)
 declaration valid
   content boolean
   depends on p content Period
