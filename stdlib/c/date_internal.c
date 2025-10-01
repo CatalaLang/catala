@@ -18,7 +18,6 @@ CATALA_DATE DateInternal__of_ymd
     if (success) return ret;
   }
   catala_error(catala_uncomparable_durations, pos, 1);
-  // TODO
   abort();
 }
 
