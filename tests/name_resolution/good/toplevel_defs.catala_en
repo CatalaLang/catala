@@ -115,6 +115,8 @@ module period_internal = Period_internal
 module money_en = Money_en
 module integer_en = Integer_en
 module decimal_en = Decimal_en
+module list_en = List_en
+module list_internal = List_internal
 let glob1 = 44.12
 
 let glob3 (x: money) = return to_rat x + 10.
@@ -205,6 +207,7 @@ from . import Period_en as period_en
 from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
+from . import List_en as list_en
 
 class A:
     def __init__(self, y: bool, z: Decimal) -> None:

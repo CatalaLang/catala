@@ -53,6 +53,12 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
 module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module Closure_scoppe = struct
   type t = {scoppe: bool}
@@ -165,6 +171,12 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
 module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module Closure_scoppe = struct
   type t = {scoppe: bool}
@@ -198,7 +210,7 @@ let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=110; start_column=14; end_line=110; end_column=24;
+              start_line=116; start_column=14; end_line=116; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,

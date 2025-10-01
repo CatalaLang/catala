@@ -28,6 +28,8 @@ $ catala interpret -s A --debug
 [DEBUG] Parsing "libcatala/money_en.catala_en"
 [DEBUG] Parsing "libcatala/integer_en.catala_en"
 [DEBUG] Parsing "libcatala/decimal_en.catala_en"
+[DEBUG] Parsing "libcatala/list_en.catala_en"
+[DEBUG] Parsing "libcatala/list_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...
@@ -39,7 +41,7 @@ $ catala interpret -s A --debug
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
 [DEBUG] Loading shared modules... Date_internal Date_en Period_internal
-  Period_en Money_en Integer_en Decimal_en Stdlib_en
+  Period_en Money_en Integer_en Decimal_en List_internal List_en Stdlib_en
 [DEBUG] Starting interpretation...
 [DEBUG] 0 (at tests/attributes/good/debug_print.catala_en:9.38-9.47)
 [DEBUG] value of x = 0 (at tests/attributes/good/debug_print.catala_en:10.57-10.64)

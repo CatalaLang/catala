@@ -99,6 +99,12 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
 module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module Enum1 = struct type t = Yes of unit | No of unit | Maybe of unit end
 
