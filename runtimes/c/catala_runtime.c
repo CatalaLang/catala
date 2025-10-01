@@ -320,6 +320,25 @@ CATALA_DURATION o_minus_dur (CATALA_DURATION dur)
   return ret;
 }
 
+static void round_div(mpz_ptr ret, mpz_srcptr num, mpz_srcptr den)
+{
+  mpz_t den1;
+  int sign;
+  mpz_init(den1);
+  sign = mpz_sgn(num) * mpz_sgn(den);
+  mpz_abs(ret, num);
+  mpz_abs(den1, den);
+  /* if x = n/d, this is (2*n + d) / (2*d) */
+  mpz_mul_ui(ret, ret, 2);
+  mpz_add(ret, ret, den1);
+  mpz_mul_ui(den1, den1, 2);
+  /* round towards -inf */
+  mpz_fdiv_q(ret, ret, den1);
+  mpz_clear(den1);
+  mpz_mul_si(ret, ret, sign);
+  return;
+}
+
 CATALA_INT o_toint_rat (CATALA_DEC x)
 {
   CATALA_NEW_MPZ(ret);
@@ -329,11 +348,9 @@ CATALA_INT o_toint_rat (CATALA_DEC x)
 
 CATALA_INT o_toint_mon (CATALA_MONEY x)
 {
-  CATALA_NEW_MPZ(ret_int);
-  CATALA_NEW_MPQ(ret_rat);
-  round_div(ret_rat, x, zconst_100);
-  mpz_tdiv_q(ret_int, mpq_numref(ret_rat), mpq_denref(ret_rat));
-  return ret_int;
+  CATALA_NEW_MPZ(ret);
+  round_div(ret, x, zconst_100);
+  return ret;
 }
 
 
@@ -354,24 +371,6 @@ CATALA_DEC o_torat_mon (CATALA_MONEY x)
 }
 
 
-static void round_div(mpz_ptr ret, mpz_srcptr num, mpz_srcptr den)
-{
-  mpz_t den1;
-  int sign;
-  mpz_init(den1);
-  sign = mpz_sgn(num) * mpz_sgn(den);
-  mpz_abs(ret, num);
-  mpz_abs(den1, den);
-  /* if x = n/d, this is (2*n + d) / (2*d) */
-  mpz_mul_ui(ret, ret, 2);
-  mpz_add(ret, ret, den1);
-  mpz_mul_ui(den1, den1, 2);
-  /* round towards -inf */
-  mpz_fdiv_q(ret, ret, den1);
-  mpz_clear(den1);
-  mpz_mul_si(ret, ret, sign);
-  return;
-}
 
 CATALA_MONEY o_tomoney_rat (CATALA_DEC x)
 {
@@ -381,11 +380,9 @@ CATALA_MONEY o_tomoney_rat (CATALA_DEC x)
   return ret;
 }
 
-CATALA_MONEY o_tomoney_int (CATALA_DEC x)
+CATALA_MONEY o_tomoney_int (CATALA_INT x)
 {
-  CATALA_NEW_MPZ(ret);
-  mpz_mul_ui(ret, x, 100);
-  return ret;
+  return o_tomoney_rat(o_torat_int(x));
 }
 
 CATALA_DEC o_round_rat (CATALA_DEC x)
