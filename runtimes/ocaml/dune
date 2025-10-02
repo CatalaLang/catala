@@ -19,12 +19,12 @@
 
 (rule
  (action
-  (copy %{lib:dates_calc:dates_calc.cmi} dates_calc.cmi)))
+  (copy %{lib:catala.dates_calc:dates_calc.cmi} dates_calc.cmi)))
 
 (rule
  (action
-  (copy %{lib:dates_calc:dates_calc.ml} dates_calc.ml)))
+  (copy %{lib:catala.dates_calc:dates_calc.ml} dates_calc.ml)))
 
 (rule
  (action
-  (copy %{lib:dates_calc:dates_calc.mli} dates_calc.mli)))
+  (copy %{lib:catala.dates_calc:dates_calc.mli} dates_calc.mli)))
