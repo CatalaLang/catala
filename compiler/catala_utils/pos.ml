@@ -65,18 +65,23 @@ let join_attr a1 a2 =
   else a1 @ a2
 
 let join (p1 : t) (p2 : t) : t =
-  if (fst p1.code_pos).Lexing.pos_fname <> (fst p2.code_pos).Lexing.pos_fname
-  then invalid_arg "Pos.join";
-  let beg1, end1 = p1.code_pos in
-  let beg2, end2 = p2.code_pos in
-  let first, second =
-    if lex_pos_compare beg1 beg2 <= 0 then p1, p2 else p2, p1
-  in
-  {
-    code_pos =
-      (fst first.code_pos, if lex_pos_compare end1 end2 <= 0 then end2 else end1);
-    attr = join_attr first.attr second.attr;
-  }
+  let f1 = (fst p1.code_pos).Lexing.pos_fname in
+  let f2 = (fst p2.code_pos).Lexing.pos_fname in
+  if f1 = "" then p2
+  else if f2 = "" then p1
+  else if f1 <> f2 then invalid_arg "Pos.join"
+  else
+    let beg1, end1 = p1.code_pos in
+    let beg2, end2 = p2.code_pos in
+    let first, second =
+      if lex_pos_compare beg1 beg2 <= 0 then p1, p2 else p2, p1
+    in
+    {
+      code_pos =
+        ( fst first.code_pos,
+          if lex_pos_compare end1 end2 <= 0 then end2 else end1 );
+      attr = join_attr first.attr second.attr;
+    }
 
 let from_info
     (file : string)

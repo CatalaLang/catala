@@ -59,3 +59,34 @@ $ catala test-scope B
 │ argmin = S { -- id: 0 -- income: $0.00 }
 └─
 ```
+
+## With a tuple argument
+
+```catala-metadata
+declaration min_assoc
+  content (integer, anything of type t)
+  depends on l content list of (integer, anything of type t)
+  equals
+    content of (i, x) among l such that i is minimum
+#      or if list empty then (0, impossible)
+```
+
+
+```catala
+#[test]
+declaration scope C:
+  output r content (integer, money)
+
+scope C:
+  definition r equals
+    min_assoc of
+      [(1, $3); (44, $2); (2, $1); (3, $2); (-1, $5); (100, $100); (0, $10)]
+
+```
+
+```catala-test-cli
+$ catala test-scope C
+┌─[RESULT]─ C ─
+│ r = (-1, $5.00)
+└─
+```

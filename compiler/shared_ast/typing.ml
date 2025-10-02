@@ -856,7 +856,7 @@ and typecheck_expr_top_down :
        set. Consequently, we don't quantify Type.fresh_var variables here. *)
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~internal:true ~pos:(Expr.pos e)
-        "function has %d variables but was supplied %d types\n%a"
+        "@[<v>function has %d variables but was supplied %d types:@,%a@]"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
     let t_ret = Type.fresh_var pos_e in
