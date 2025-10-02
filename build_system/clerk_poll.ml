@@ -120,7 +120,7 @@ let ocaml_runtime_dir : File.t Lazy.t =
 
 let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
   lazy
-    (let link_libs = ["zarith"; "dates_calc"] in
+    (let link_libs = ["zarith"] in
      let includes_libs =
        List.map
          (fun lib ->

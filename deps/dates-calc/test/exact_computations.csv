@@ -1,0 +1,20 @@
+Date;      Period;                      Date+Period
+2012-03-20;[0 years, 0 months, 10 days];2012-03-30
+2012-03-31;[0 years, 0 months, 1 days];2012-04-01
+2012-02-28;[0 years, 0 months, 1 days];2012-02-29
+2013-02-28;[0 years, 0 months, 1 days];2013-03-01
+2012-03-01;[0 years, 0 months, 71 days];2012-05-11
+2012-11-01;[0 years, 0 months, 71 days];2013-01-11
+2012-02-15;[0 years, 2 months, 0 days];2012-04-15
+2012-02-28;[0 years, 4 months, 0 days];2012-06-28
+2012-03-15;[0 years, 1 months, 0 days];2012-04-15
+2012-11-15;[0 years, 3 months, 0 days];2013-02-15
+2012-03-31;[0 years, 2 months, 0 days];2012-05-31
+2012-01-31;[0 years, 2 months, 0 days];2012-03-31
+2013-01-31;[0 years, 2 months, 0 days];2013-03-31
+2012-10-31;[0 years, 5 months, 0 days];2013-03-31
+2012-01-01;[1 years, 0 months, 0 days];2013-01-01
+2012-02-28;[4 years, 0 months, 0 days];2016-02-28
+2012-02-29;[4 years, 0 months, 0 days];2016-02-29
+2012-03-15;[1 years, 0 months, 0 days];2013-03-15
+2012-11-15;[3 years, 0 months, 0 days];2015-11-15

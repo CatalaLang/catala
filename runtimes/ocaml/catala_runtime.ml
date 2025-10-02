@@ -20,14 +20,14 @@ type nonrec bool = bool
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
-type date = Dates_calc.Dates.date
+type date = Dates_calc.date
 
-type date_rounding = Dates_calc.Dates.date_rounding =
+type date_rounding = Dates_calc.date_rounding =
   | RoundUp
   | RoundDown
   | AbortOnRound
 
-type duration = Dates_calc.Dates.period
+type duration = Dates_calc.period
 
 module Optional = struct
   type 'a t = Absent of unit | Present of 'a
@@ -206,45 +206,44 @@ let integer_exponentiation (i : integer) (e : int) : integer = Z.pow i e
 let integer_log2 = Z.log2
 
 let year_of_date (d : date) : integer =
-  let y, _, _ = Dates_calc.Dates.date_to_ymd d in
+  let y, _, _ = Dates_calc.date_to_ymd d in
   Z.of_int y
 
 let month_number_of_date (d : date) : integer =
-  let _, m, _ = Dates_calc.Dates.date_to_ymd d in
+  let _, m, _ = Dates_calc.date_to_ymd d in
   Z.of_int m
 
 let is_leap_year (y : integer) =
   let y = Z.to_int y in
-  Dates_calc.Dates.is_leap_year y
+  Dates_calc.is_leap_year y
 
 let day_of_month_of_date (d : date) : integer =
-  let _, _, d = Dates_calc.Dates.date_to_ymd d in
+  let _, _, d = Dates_calc.date_to_ymd d in
   Z.of_int d
 
 (* This could fail, but is expected to only be called with known, already
    validated arguments by the generated code *)
 let date_of_numbers (year : int) (month : int) (day : int) : date =
-  try Dates_calc.Dates.make_date ~year ~month ~day
-  with Dates_calc.Dates.InvalidDate ->
-    failwith "date_of_numbers: invalid date"
+  try Dates_calc.make_date ~year ~month ~day
+  with Dates_calc.InvalidDate -> failwith "date_of_numbers: invalid date"
 
 let date_to_string (d : date) : string =
-  Format.asprintf "%a" Dates_calc.Dates.format_date d
+  Format.asprintf "%a" Dates_calc.format_date d
 
 let date_to_years_months_days (d : date) : int * int * int =
-  Dates_calc.Dates.date_to_ymd d
+  Dates_calc.date_to_ymd d
 
-let first_day_of_month = Dates_calc.Dates.first_day_of_month
-let last_day_of_month = Dates_calc.Dates.last_day_of_month
+let first_day_of_month = Dates_calc.first_day_of_month
+let last_day_of_month = Dates_calc.last_day_of_month
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
-  Dates_calc.Dates.make_period ~years:year ~months:month ~days:day
+  Dates_calc.make_period ~years:year ~months:month ~days:day
 
 let duration_to_string (d : duration) : string =
-  Format.asprintf "%a" Dates_calc.Dates.format_period d
+  Format.asprintf "%a" Dates_calc.format_period d
 
 let duration_to_years_months_days (d : duration) : int * int * int =
-  Dates_calc.Dates.period_to_ymds d
+  Dates_calc.period_to_ymds d
 
 type runtime_value =
   | Unit
@@ -806,12 +805,12 @@ let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
    [3 months, 4 months] *)
 let compare_periods pos (p1 : duration) (p2 : duration) : int =
   try
-    let p1_days = Dates_calc.Dates.period_to_days p1 in
-    let p2_days = Dates_calc.Dates.period_to_days p2 in
+    let p1_days = Dates_calc.period_to_days p1 in
+    let p2_days = Dates_calc.period_to_days p2 in
     compare p1_days p2_days
-  with Dates_calc.Dates.AmbiguousComputation -> (
-    let y1, m1, d1 = Dates_calc.Dates.period_to_ymds p1 in
-    let y2, m2, d2 = Dates_calc.Dates.period_to_ymds p2 in
+  with Dates_calc.AmbiguousComputation -> (
+    let y1, m1, d1 = Dates_calc.period_to_ymds p1 in
+    let y2, m2, d2 = Dates_calc.period_to_ymds p2 in
     match y1, y2, m1, m2, d1, d2 with
     | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
     | _ -> error UncomparableDurations [pos])
@@ -820,11 +819,10 @@ let compare_periods pos (p1 : duration) (p2 : duration) : int =
    Comparing the difference to duration_0 is not a good idea because we still
    want to fail on [1 month, 30 days] rather than return [false] *)
 let equal_periods pos (p1 : duration) (p2 : duration) : bool =
-  Dates_calc.Dates.period_to_ymds p1 = Dates_calc.Dates.period_to_ymds p2
+  Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
   ||
-  try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
-  with Dates_calc.Dates.AmbiguousComputation ->
-    error UncomparableDurations [pos]
+  try Dates_calc.period_to_days (Dates_calc.sub_periods p1 p2) = 0
+  with Dates_calc.AmbiguousComputation -> error UncomparableDurations [pos]
 
 module Oper = struct
   let o_not = Stdlib.not
@@ -845,7 +843,7 @@ module Oper = struct
   let o_minus_int i1 = Z.sub Z.zero i1
   let o_minus_rat i1 = Q.sub Q.zero i1
   let o_minus_mon m1 = Z.sub Z.zero m1
-  let o_minus_dur = Dates_calc.Dates.neg_period
+  let o_minus_dur = Dates_calc.neg_period
   let o_and = ( && )
   let o_or = ( || )
   let o_xor : bool -> bool -> bool = ( <> )
@@ -872,20 +870,19 @@ module Oper = struct
   let o_add_mon_mon m1 m2 = Z.add m1 m2
 
   let o_add_dat_dur r pos da du =
-    try Dates_calc.Dates.add_dates ~round:r da du
-    with Dates_calc.Dates.AmbiguousComputation ->
-      error AmbiguousDateRounding [pos]
+    try Dates_calc.add_dates ~round:r da du
+    with Dates_calc.AmbiguousComputation -> error AmbiguousDateRounding [pos]
 
-  let o_add_dur_dur = Dates_calc.Dates.add_periods
+  let o_add_dur_dur = Dates_calc.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
   let o_sub_rat_rat i1 i2 = Q.sub i1 i2
   let o_sub_mon_mon m1 m2 = Z.sub m1 m2
-  let o_sub_dat_dat = Dates_calc.Dates.sub_dates
+  let o_sub_dat_dat = Dates_calc.sub_dates
 
   let o_sub_dat_dur r pos dat dur =
-    o_add_dat_dur r pos dat (Dates_calc.Dates.neg_period dur)
+    o_add_dat_dur r pos dat (Dates_calc.neg_period dur)
 
-  let o_sub_dur_dur = Dates_calc.Dates.sub_periods
+  let o_sub_dur_dur = Dates_calc.sub_periods
   let o_mult_int_int i1 i2 = Z.mul i1 i2
   let o_mult_rat_rat i1 i2 = Q.mul i1 i2
 
@@ -895,7 +892,7 @@ module Oper = struct
     round rat_result
 
   let o_mult_mon_int i1 i2 = o_mult_mon_rat i1 (decimal_of_integer i2)
-  let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
+  let o_mult_dur_int d m = Dates_calc.mul_period d (Z.to_int m)
 
   let o_div_int_int pos i1 i2 =
     (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
@@ -918,10 +915,9 @@ module Oper = struct
   let o_div_dur_dur pos d1 d2 =
     let i1, i2 =
       try
-        ( integer_of_int (Dates_calc.Dates.period_to_days d1),
-          integer_of_int (Dates_calc.Dates.period_to_days d2) )
-      with Dates_calc.Dates.AmbiguousComputation ->
-        error IndivisibleDurations [pos]
+        ( integer_of_int (Dates_calc.period_to_days d1),
+          integer_of_int (Dates_calc.period_to_days d2) )
+      with Dates_calc.AmbiguousComputation -> error IndivisibleDurations [pos]
     in
     o_div_int_int pos i1 i2
 
@@ -929,28 +925,28 @@ module Oper = struct
   let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0
   let o_lt_mon_mon m1 m2 = Z.compare m1 m2 < 0
   let o_lt_dur_dur pos d1 d2 = compare_periods pos d1 d2 < 0
-  let o_lt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 < 0
+  let o_lt_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 < 0
   let o_lte_int_int i1 i2 = Z.compare i1 i2 <= 0
   let o_lte_rat_rat i1 i2 = Q.compare i1 i2 <= 0
   let o_lte_mon_mon m1 m2 = Z.compare m1 m2 <= 0
   let o_lte_dur_dur pos d1 d2 = compare_periods pos d1 d2 <= 0
-  let o_lte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 <= 0
+  let o_lte_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 <= 0
   let o_gt_int_int i1 i2 = Z.compare i1 i2 > 0
   let o_gt_rat_rat i1 i2 = Q.compare i1 i2 > 0
   let o_gt_mon_mon m1 m2 = Z.compare m1 m2 > 0
   let o_gt_dur_dur pos d1 d2 = compare_periods pos d1 d2 > 0
-  let o_gt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 > 0
+  let o_gt_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 > 0
   let o_gte_int_int i1 i2 = Z.compare i1 i2 >= 0
   let o_gte_rat_rat i1 i2 = Q.compare i1 i2 >= 0
   let o_gte_mon_mon m1 m2 = Z.compare m1 m2 >= 0
   let o_gte_dur_dur pos d1 d2 = compare_periods pos d1 d2 >= 0
-  let o_gte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 >= 0
+  let o_gte_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 >= 0
   let o_eq_boo_boo b1 b2 = b1 = b2
   let o_eq_int_int i1 i2 = Z.equal i1 i2
   let o_eq_rat_rat i1 i2 = Q.equal i1 i2
   let o_eq_mon_mon m1 m2 = Z.equal m1 m2
   let o_eq_dur_dur pos d1 d2 = equal_periods pos d1 d2
-  let o_eq_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 = 0
+  let o_eq_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 = 0
   let o_fold = Array.fold_left
   let o_toclosureenv = Obj.repr
   let o_fromclosureenv = Obj.obj

@@ -1,0 +1,4 @@
+(library
+ (name dates_calc)
+ (public_name catala.dates_calc)
+ (ocamlc_flags :standard -opaque))

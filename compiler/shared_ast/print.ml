@@ -1220,8 +1220,8 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | ELit (LRat q) -> pf fmt "LitFloat<%s>" (Q.to_string q)
   | ELit (LMoney m) -> pf fmt "LitMoney<%s>" (Z.to_string m)
   | ELit LUnit -> pf fmt "LitUnit"
-  | ELit (LDate d) -> pf fmt "LitDate<%a>" Dates_calc.Dates.format_date d
-  | ELit (LDuration d) -> pf fmt "LitDur<%a>" Dates_calc.Dates.format_period d
+  | ELit (LDate d) -> pf fmt "LitDate<%a>" Dates_calc.format_date d
+  | ELit (LDuration d) -> pf fmt "LitDur<%a>" Dates_calc.format_period d
   | EApp { f; args; _ } -> pf fmt "@[<hov 1>App(%a,@ %a)@]" s_expr f ppl args
   | EAppOp { op; args; _ } ->
     pf fmt "@[<hov 1>AppOp( %s,@ %a)@]"

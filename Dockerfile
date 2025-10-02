@@ -40,6 +40,7 @@ FROM dev-build-context
 
 # Prepare extra local dependencies (doing this first allows caching)
 ADD --chown=ocaml:ocaml runtimes/python/pyproject.toml runtimes/python/pyproject.toml
+ADD --chown=ocaml:ocaml deps/dates-calc/lib_python/pyproject.toml deps/dates-calc/lib_python/pyproject.toml
 ADD --chown=ocaml:ocaml Makefile .
 ADD --chown=ocaml:ocaml syntax_highlighting syntax_highlighting
 RUN opam exec -- make dependencies-python pygments
