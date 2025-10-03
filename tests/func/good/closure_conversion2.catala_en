@@ -1,0 +1,73 @@
+
+```catala-metadata
+declaration sort_assoc
+  content list of (integer, anything of type t)
+  depends on l content list of (integer, anything of type t)
+  equals
+    let (result, remaining) equals
+      combine all bnd among l in (acc, rem) initially ([], l)
+      with
+          let elt equals
+            content of (i, x) among rem such that i is minimum
+          in
+          (acc ++ [ elt ],
+           list of bnd among rem such that bnd.1 != elt.1)
+    in
+    result
+```
+
+```catala
+#[test]
+declaration scope Test:
+  output r content list of (integer, money)
+
+scope Test:
+  definition r equals
+  sort_assoc of [(1, $3); (44, $2); (2, $1); (3, $2); (-1, $5); (100, $100); (0, $10)]
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ r =
+│   [
+│     (-1, $5.00); (0, $10.00); (1, $3.00); (2, $1.00); (3, $2.00);
+│     (44, $2.00); (100, $100.00)
+│   ]
+└─
+```
+
+
+```catala-test-cli
+$ catala interpret --lcalc --closure-conversion
+┌─[ERROR]─
+│
+│  Internal Error, please report to https://github.com/CatalaLang/catala/issues.
+│
+│  Error during typechecking, incompatible types:
+│  ─➤ (list of (integer, <t>)) → list of (integer, <t>)
+│  ─➤ ((closure_env, (list of (integer, <t>))) → list of (integer, <t>),
+│      closure_env)
+│
+│ While typechecking the following expression:
+├─➤ tests/func/good/closure_conversion2.catala_en:3.13-3.23:
+│   │
+│ 3 │ declaration sort_assoc
+│   │             ‾‾‾‾‾‾‾‾‾‾
+│
+│ Type (list of (integer, <t>)) → list of (integer, <t>) is coming from:
+├─➤ tests/func/good/closure_conversion2.catala_en:4.11-4.48:
+│   │
+│ 4 │   content list of (integer, anything of type t)
+│   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Type
+│ ((closure_env, (list of (integer, <t>))) → list of (integer, <t>),
+│  closure_env) is coming from:
+├─➤ tests/func/good/closure_conversion2.catala_en:4.11-4.48:
+│   │
+│ 4 │   content list of (integer, anything of type t)
+│   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```
