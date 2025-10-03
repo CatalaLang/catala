@@ -485,7 +485,7 @@ let is_type_cond ((typ, _) : Surface.Ast.typ) =
 
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
-    ?(rev_named_path_acc = [])
+    ~rev_path
     ~vars
     (ctxt : context)
     ((typ, typ_pos) : Surface.Ast.base_typ Mark.pos) : typ =
@@ -494,19 +494,19 @@ let rec process_base_typ
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
     ( TArray
-        (process_base_typ ~rev_named_path_acc ~vars ctxt
+        (process_base_typ ~rev_path ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.Option t) ->
     ( TOption
-        (process_base_typ ~rev_named_path_acc ~vars ctxt
+        (process_base_typ ~rev_path ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.TTuple tl) ->
     ( TTuple
         (List.map
            (fun t ->
-             process_base_typ ~rev_named_path_acc ~vars ctxt
+             process_base_typ ~rev_path ~vars ctxt
                (Surface.Ast.Data (Mark.remove t), Mark.get t))
            tl),
       typ_pos )
@@ -523,7 +523,7 @@ let rec process_base_typ
       (* External types will be supported at some point *)
       Message.error ~pos:typ_pos "Unrecognised type name '@{<red>%s@}'" name
     | Surface.Ast.Named ([], (ident, _pos)) -> (
-      let path = List.rev rev_named_path_acc in
+      let path = List.rev rev_path in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
       | Some (TStruct s_uid) ->
         let s_uid = StructName.map_info (fun (_, x) -> path, x) s_uid in
@@ -548,14 +548,13 @@ let rec process_base_typ
           "This refers to module @{<blue>%s@}, which was not found" modul
       | Some mname ->
         let mod_ctxt = ModuleName.Map.find mname ctxt.modules in
-        let rev_named_path_acc : Uid.Path.t =
+        let rev_path : Uid.Path.t =
           match mod_ctxt.current_revpath with
-          | [] -> rev_named_path_acc
+          | [] -> rev_path
           | mname :: _ ->
-            ModuleName.map_info (fun (s, _) -> s, mpos) mname
-            :: rev_named_path_acc
+            ModuleName.map_info (fun (s, _) -> s, mpos) mname :: rev_path
         in
-        process_base_typ ~rev_named_path_acc ~vars
+        process_base_typ ~rev_path ~vars
           { ctxt with local = mod_ctxt }
           Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
     | Surface.Ast.Var None ->
@@ -567,6 +566,9 @@ let rec process_base_typ
       | None ->
         Message.error ~pos
           "Specifying type `anything` is not allowed at this point"))
+
+let process_base_typ ~vars (ctxt : context) ty =
+  process_base_typ ~rev_path:ctxt.local.current_revpath ~vars ctxt ty
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
