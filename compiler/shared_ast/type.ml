@@ -265,6 +265,20 @@ let rec has_arrow decl_ctx (ty : t) =
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
 
+let rec fully_known (ty : t) =
+  match Mark.remove ty with
+  | TArrow (targs, tret) -> List.for_all fully_known targs && fully_known tret
+  | TLit _ -> true
+  | TForAll bnd -> (
+    Bindlib.mbinder_closed bnd
+    && match unquantify ty with TArrow _, _ -> true | _ -> false)
+  | TVar _ -> false
+  | TClosureEnv -> true
+  | TTuple tl -> List.for_all fully_known tl
+  | TStruct _ -> true
+  | TEnum _ -> true
+  | TOption ty | TArray ty | TDefault ty -> fully_known ty
+
 module Map = Map.Make (struct
   type nonrec t = t
 

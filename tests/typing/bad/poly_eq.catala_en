@@ -1,0 +1,28 @@
+```catala-metadata
+declaration find_in_list
+  content optional of anything of type t
+  depends on
+    needle content anything of type t,
+    haystack content list of anything of type t
+  equals
+    combine all elt among haystack
+      in found initially Absent
+      with
+        if elt = needle then Present content elt
+        else found
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─
+│
+│  Equality cannot be resolved at this point: the type of the operands is not
+│  fully known.
+│
+├─➤ tests/typing/bad/poly_eq.catala_en:11.12-11.24:
+│    │
+│ 11 │         if elt = needle then Present content elt
+│    │            ‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```

@@ -86,3 +86,7 @@ val any : Pos.t -> t
 
 val universal : Pos.t -> t
 val is_universal : t -> bool
+
+val fully_known : t -> bool
+(** true iff the type doesn't contain any unknowns (free variables or quantified
+    types outside of arrows) *)

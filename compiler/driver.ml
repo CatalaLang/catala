@@ -325,7 +325,12 @@ module Passes = struct
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
-    let prg = if expand_ops then Lcalc.Expand_op.program prg else prg in
+    let prg =
+      if expand_ops then (
+        Message.debug "Expanding polymorphic operators...";
+        Lcalc.Expand_op.program prg)
+      else prg
+    in
     let prg =
       if optimize then begin
         Message.debug "Optimizing lambda calculus...";
@@ -336,8 +341,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.debug "Retyping lambda calculus...";
-        let prg = Typing.program ~internal_check:true prg in
-        if expand_ops then Lcalc.Expand_op.program prg else prg)
+        Typing.program ~internal_check:true prg)
       else (
         Message.debug "Performing closure conversion...";
         let prg =

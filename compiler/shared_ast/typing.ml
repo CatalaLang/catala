@@ -948,9 +948,22 @@ and typecheck_expr_top_down :
                variables this way *)
             unify env e (polymorphic_op_type op) t_func;
             (* List.rev_map(2) applies the side effects in order *)
-            List.rev_map2
-              (typecheck_expr_top_down ctx env)
-              (List.rev t_args) (List.rev args)))
+            let args =
+              List.rev_map2
+                (typecheck_expr_top_down ctx env)
+                (List.rev t_args) (List.rev args)
+            in
+            (* Equality is actually not truly polymorphic, it needs expansion,
+               so add a check here for now *)
+            (match op, args with
+            | (Eq, _), a :: _ ->
+              if not (Type.fully_known (expr_ty env a)) then
+                Message.delayed_error () ~kind:Typing ~pos:(Mark.get op) "%a"
+                  Format.pp_print_text
+                  "Equality cannot be resolved at this point: the type of the \
+                   operands is not fully known."
+            | _ -> ());
+            args))
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
