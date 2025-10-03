@@ -1,21 +1,13 @@
-(* This is a template file following the expected interface and declarations to
- * implement the corresponding Catala module.
- *
- * You should replace all `raise (Error (Impossible))` place-holders with your
- * implementation and rename it to remove the ".template" suffix. *)
-
 open Catala_runtime
-module Dates = Dates_calc.Dates
-
-[@@@ocaml.warning "-4-26-27-32-41-42"]
+module Dates = Dates_calc
 
 let cmp = Dates.compare_dates
 
 (* Toplevel def sort *)
-let sort : (date * date) array -> (date * date) array =
+let sort : ((date * date) * 'a) array -> ((date * date) * 'a) array =
  fun arr ->
   let ret = Array.copy arr in
-  Array.sort (fun (beg1, _) (beg2, _) -> cmp beg1 beg2) ret;
+  Array.sort (fun ((beg1, _), _) ((beg2, _), _) -> cmp beg1 beg2) ret;
   ret
 
 let one_month = Dates.make_period ~years:0 ~months:1 ~days:0

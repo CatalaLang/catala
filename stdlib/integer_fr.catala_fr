@@ -1,0 +1,39 @@
+# Entiers
+
+> Module Integer_fr
+
+## Fonctions utilitaires
+
+```catala-metadata
+déclaration min
+  contenu entier
+  dépend de m1 contenu entier,
+    m2 contenu entier
+  égal à
+    si m1 > m2 alors m2 sinon m1
+
+déclaration max
+  contenu entier
+  dépend de m1 contenu entier,
+    m2 contenu entier
+  égal à
+    si m1 > m2 alors m1 sinon m2
+
+déclaration plafond
+  contenu entier
+  dépend de variable contenu entier,
+    plafond contenu entier
+  égal à min de variable, plafond
+
+déclaration plancher
+  contenu entier
+  dépend de variable contenu entier,
+    plancher contenu entier
+  égal à max de variable, plancher
+
+## Applique une valeur plancher à 0€
+déclaration positif
+  contenu entier
+  dépend de variable contenu entier
+  égal à plancher de variable, 0
+```
