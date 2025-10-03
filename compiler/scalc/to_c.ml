@@ -332,7 +332,8 @@ let rec format_expression
       | EExternal { name; _ }, _ ->
         Format.pp_print_string fmt (Mark.remove name)
       | EFunc f, _ -> FuncName.format fmt f
-      | ETupleAccess { e1; index = 0; typ = (TArrow _, _) as typ }, _ ->
+      | ETupleAccess { e1; index = 0; typ }, _ when Type.is_arrow typ ->
+        let typ = Type.unquantify typ in
         Format.fprintf fmt "@[<hov 1>((%a)@,%a->funcp)@]"
           (format_typ ~const:true ctx.decl_ctx ignore)
           typ format_expression e1
@@ -364,7 +365,7 @@ let rec format_expression
   | ETupleAccess { e1; index = 1; typ = TClosureEnv, _ } ->
     Format.fprintf fmt "%a->env" format_expression e1
   | ETupleAccess { e1; index; typ } ->
-    Format.fprintf fmt "(%a)(%a[%d].content)"
+    Format.fprintf fmt "((%a)(%a[%d].content))"
       (format_typ ctx.decl_ctx ignore)
       typ
       (fun ppf -> function
@@ -378,7 +379,7 @@ let rec format_expression
     Format.fprintf fmt "%s()" (Mark.remove name)
 
 let is_closure_typ = function
-  | TTuple [(TArrow _, _); (TClosureEnv, _)], _ -> true
+  | TTuple [tf; (TClosureEnv, _)], _ -> Type.is_arrow tf
   | _ -> false
 
 let rec format_statement
@@ -454,8 +455,9 @@ let rec format_statement
       {
         name = v, _;
         expr = ETuple [fct; cls_env], _;
-        typ = TTuple [(TArrow _, _); (TClosureEnv, _)], _;
-      } ->
+        typ = TTuple [tfun; (TClosureEnv, _)], _;
+      }
+    when Type.is_arrow tfun ->
     (* We detect closure initializations which have special treatment. *)
     Format.fprintf fmt "@,@[<hov 2>%a->funcp =@ (void (*)(void))%a;@]"
       VarName.format v
@@ -625,7 +627,7 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
   in
   let print_init_malloc fmt const_pointer v typ =
     let const, pp_size =
-      match Mark.remove typ with
+      match Mark.remove (Type.unquantify typ) with
       | TArray _ ->
         false, fun fmt -> Format.pp_print_string fmt "sizeof(catala_array)"
       | TStruct name ->

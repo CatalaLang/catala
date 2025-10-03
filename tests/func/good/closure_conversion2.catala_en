@@ -37,37 +37,13 @@ $ catala test-scope Test
 └─
 ```
 
-
 ```catala-test-cli
 $ catala interpret --lcalc --closure-conversion
-┌─[ERROR]─
-│
-│  Internal Error, please report to https://github.com/CatalaLang/catala/issues.
-│
-│  Error during typechecking, incompatible types:
-│  ─➤ (list of (integer, <t>)) → list of (integer, <t>)
-│  ─➤ ((closure_env, (list of (integer, <t>))) → list of (integer, <t>),
-│      closure_env)
-│
-│ While typechecking the following expression:
-├─➤ tests/func/good/closure_conversion2.catala_en:3.13-3.23:
-│   │
-│ 3 │ declaration sort_assoc
-│   │             ‾‾‾‾‾‾‾‾‾‾
-│
-│ Type (list of (integer, <t>)) → list of (integer, <t>) is coming from:
-├─➤ tests/func/good/closure_conversion2.catala_en:4.11-4.48:
-│   │
-│ 4 │   content list of (integer, anything of type t)
-│   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-│
-│ Type
-│ ((closure_env, (list of (integer, <t>))) → list of (integer, <t>),
-│  closure_env) is coming from:
-├─➤ tests/func/good/closure_conversion2.catala_en:4.11-4.48:
-│   │
-│ 4 │   content list of (integer, anything of type t)
-│   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+┌─[RESULT]─ Test ─
+│ r =
+│   [
+│     (-1, $5.00); (0, $10.00); (1, $3.00); (2, $1.00); (3, $2.00);
+│     (44, $2.00); (100, $100.00)
+│   ]
 └─
-#return code 123#
 ```

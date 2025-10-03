@@ -247,6 +247,8 @@ let hash ~strip (ty : t) =
   in
   aux Bindlib.empty_ctxt ty
 
+let is_arrow ty = match unquantify ty with TArrow _, _ -> true | _ -> false
+
 let rec has_arrow decl_ctx (ty : t) =
   match Mark.remove ty with
   | TArrow _ -> true
