@@ -156,9 +156,12 @@ let find_in_parents ?cwd predicate =
   let cwd = match cwd with None -> Sys.getcwd () | Some cwd -> cwd in
   let home = try Sys.getenv "HOME" with Not_found -> "" in
   let rec lookup dir rel =
-    if predicate dir then Some dir, rel
-    else if dir = home then None, Filename.current_dir_name
-    else
+    match predicate dir with
+    | true -> Some dir, rel
+    | exception (Unix.Unix_error _ | Sys_error _) ->
+      None, Filename.current_dir_name
+    | false when dir = home -> None, Filename.current_dir_name
+    | false ->
       let parent = Filename.dirname dir in
       if parent = dir then None, Filename.current_dir_name
       else lookup parent (rel / Filename.parent_dir_name)
@@ -432,7 +435,10 @@ let scan_tree f t =
   in
   let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in
   let rec do_dir d =
-    Sys.readdir d
+    (try Sys.readdir d
+     with Sys_error _ ->
+       Message.debug "Cannot read %s, skipping" t;
+       [||])
     |> Array.to_list
     |> List.filter not_hidden
     |> List.map (fun t -> d / t)

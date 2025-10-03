@@ -42,7 +42,9 @@
   (:standard
    (:include custom_linking.sexp)))
  ; These are actually runtime deps and not link deps
- (link_deps %{bin:catala} ../runtimes/ocaml/catala_runtime.cmi)
+ (link_deps
+  %{bin:catala}
+  (alias ../runtimes/runtimes))
  (libraries clerk_driver)
  (modules clerk)
  (package catala))

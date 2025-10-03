@@ -81,6 +81,7 @@ module Set = struct
   let cardinal s = cardinal s
   let diff s1 s2 = diff s1 s2
   let iter f s = iter (fun x -> f (get x)) s
+  let is_empty s = is_empty s
 
   (* Add more as needed *)
 end

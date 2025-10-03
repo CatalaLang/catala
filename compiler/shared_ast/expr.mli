@@ -447,7 +447,7 @@ val detuplify_application :
   typ list ->
   (('a, 'm) boxed_gexpr list -> ('a, 'm) boxed_gexpr) ->
   ('a, 'm) boxed_gexpr
-(** [detyplify_application args arg_typs mkapp] reconstructs a function
+(** [detuplify_application args arg_typs mkapp] reconstructs a function
     application using [mkapp], but transforming [args] into its individual tuple
     elements in the case where [arg_typs] expects multiple arguments but [args]
     is a single tuple *)

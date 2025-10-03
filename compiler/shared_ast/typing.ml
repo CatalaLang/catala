@@ -173,10 +173,12 @@ let get_ty_quantified env pos ty =
   if Bindlib.is_closed bty then Bindlib.unbox bty
   else
     let vars = Type.Var.Set.filter (fun v -> Bindlib.occur v bty) !vars in
-    let bnd =
-      Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq) bty
-    in
-    TForAll (Bindlib.unbox bnd), Mark.get ty
+    if Type.Var.Set.is_empty vars then Bindlib.unbox bty
+    else
+      let bnd =
+        Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq) bty
+      in
+      TForAll (Bindlib.unbox bnd), Mark.get ty
 
 (** {1 Types and unification} *)
 
@@ -856,7 +858,7 @@ and typecheck_expr_top_down :
        set. Consequently, we don't quantify Type.fresh_var variables here. *)
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.error ~internal:true ~pos:(Expr.pos e)
-        "function has %d variables but was supplied %d types\n%a"
+        "@[<v>function has %d variables but was supplied %d types:@,%a@]"
         (Bindlib.mbinder_arity binder)
         (List.length t_args) Expr.format e;
     let t_ret = Type.fresh_var pos_e in
@@ -948,9 +950,22 @@ and typecheck_expr_top_down :
                variables this way *)
             unify env e (polymorphic_op_type op) t_func;
             (* List.rev_map(2) applies the side effects in order *)
-            List.rev_map2
-              (typecheck_expr_top_down ctx env)
-              (List.rev t_args) (List.rev args)))
+            let args =
+              List.rev_map2
+                (typecheck_expr_top_down ctx env)
+                (List.rev t_args) (List.rev args)
+            in
+            (* Equality is actually not truly polymorphic, it needs expansion,
+               so add a check here for now *)
+            (match op, args with
+            | (Eq, _), a :: _ ->
+              if not (Type.fully_known (expr_ty env a)) then
+                Message.delayed_error () ~kind:Typing ~pos:(Mark.get op) "%a"
+                  Format.pp_print_text
+                  "Equality cannot be resolved at this point: the type of the \
+                   operands is not fully known."
+            | _ -> ());
+            args))
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in

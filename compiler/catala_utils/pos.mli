@@ -57,7 +57,8 @@ val join : t -> t -> t
 (** Returns the smallest range including both supplied ranges. Attributes are
     merged ; law info is taken from the earliest position.
 
-    Raises [Invalid_argument] if they don't belong to the same file. *)
+    Void positions (filename = "") are ignored. Raises [Invalid_argument] if
+    they don't belong to the same file. *)
 
 module Map : Map.S with type key = t
 

@@ -353,6 +353,34 @@ let rec translate_expr
       (* If the input is not a tuple, we assume it's already a list *)
       rec_helper e
   in
+  let detuplify_fun fbody args =
+    let pos = Expr.pos fbody in
+    let f =
+      Expr.make_abs args fbody (List.map (fun _ -> Type.any pos) args) pos
+    in
+    (* Detuplification *)
+    match args with
+    | [_] -> f
+    | _ ->
+      let v =
+        Var.make
+          (String.concat "_"
+             (List.map (fun v -> Bindlib.name_of (Mark.remove v)) args))
+      in
+      let x =
+        let pos =
+          List.fold_left (fun pos v -> Pos.join pos (Mark.get v)) Pos.void args
+        in
+        Expr.evar v (Untyped { pos })
+      in
+      let tys = List.map (fun v -> Type.any (Mark.get v)) args in
+      Expr.make_abs
+        [Mark.add Pos.void v]
+        (Expr.detuplify_application [x] tys (fun args ->
+             Expr.make_app f args tys pos))
+        [Type.any pos]
+        pos
+  in
   let pos = Name_resolution.(translate_pos Expression (Mark.get expr)) in
   let emark = Untyped { pos } in
   match Mark.remove expr with
@@ -821,29 +849,7 @@ let rec translate_expr
         (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
         local_vars param_names params
     in
-    let f_pred =
-      Expr.make_abs params
-        (rec_helper ~local_vars predicate)
-        (List.map (fun _ -> Type.any pos) params)
-        pos
-    in
-    let f_pred =
-      (* Detuplification *)
-      match param_names with
-      | [_] -> f_pred
-      | _ ->
-        let v =
-          Var.make (String.concat "_" (List.map Mark.remove param_names))
-        in
-        let x = Expr.evar v emark in
-        let tys = List.map (fun _ -> Type.any pos) param_names in
-        Expr.make_abs
-          [Mark.add Pos.void v]
-          (Expr.detuplify_application [x] tys (fun args ->
-               Expr.make_app f_pred args tys pos))
-          [Type.any pos]
-          pos
-    in
+    let f_pred = detuplify_fun (rec_helper ~local_vars predicate) params in
     Expr.eappop
       ~op:
         (match op with
@@ -917,15 +923,12 @@ let rec translate_expr
       ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f_proc; init; collection] emark
   | CollectionOp
-      ( ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
-          opos ),
+      ( (S.AggregateArgExtremum { max; default; f = param_names, scale }, opos),
         collection ) ->
-    let default =
-      match default with
-      | Some dft -> rec_helper dft
-      | None -> Expr.efatalerror Runtime.ListEmpty (Untyped { pos = opos })
-    in
-    let pos_dft = Expr.pos default in
+    (* {v x among l such that scale(x) is minimum v} is transformed into {v let
+       weights = map (fun x -> x, scale(x)) l in let weighted_result = reduce
+       (fun (x1,w1) (x2,w2) -> if CMP w1 w2 then (x1, w1) else (x2, w2)) (fun ()
+       -> default) weights in weighted_result.0 v} *)
     let collection =
       detuplify_list opos (List.map Mark.remove param_names) collection
     in
@@ -936,28 +939,35 @@ let rec translate_expr
         local_vars param_names params
     in
     let cmp_op = if max then Op.Gt, opos else Op.Lt, opos in
-    let f_pred =
-      Expr.make_abs params (rec_helper ~local_vars predicate) [Type.any pos] pos
-    in
+    let scale_body = rec_helper ~local_vars scale in
+    let f_scale = detuplify_fun scale_body params in
     let add_weight_f =
-      let vs =
-        List.map (fun p -> Var.make (Bindlib.name_of (Mark.remove p))) params
+      (* fun x -> (x, pred(x)) *)
+      let v =
+        Var.make
+          (String.concat "_"
+             (List.map (fun v -> Bindlib.name_of (Mark.remove v)) params))
       in
-      let xs = List.map (fun v -> Expr.evar v emark) vs in
-      let x = match xs with [x] -> x | xs -> Expr.etuple xs emark in
-      Expr.make_ghost_abs vs
-        (Expr.make_tuple [x; Expr.eapp ~f:f_pred ~args:xs ~tys:[] emark] emark)
+      let vpos =
+        List.fold_left (fun pos v -> Pos.join pos (Mark.get v)) Pos.void params
+      in
+      let x = Expr.evar v (Untyped { pos = vpos }) in
+      Expr.make_abs
+        [v, vpos]
+        (Expr.make_tuple
+           [x; Expr.eapp ~f:f_scale ~args:[x] ~tys:[] emark]
+           emark)
         [Type.any pos]
         pos
     in
     let reduce_f =
-      (* fun x1 x2 -> if cmp_op (x1.2) (x2.2) cmp *)
+      (* fun x1 x2 -> if cmp_op (x1.2) (x2.2) then x1 else x2 *)
       let v1, v2 = Var.make "x1", Var.make "x2" in
       let x1, x2 = Expr.make_var v1 emark, Expr.make_var v2 emark in
       Expr.make_ghost_abs [v1; v2]
         (Expr.eifthenelse
            (Expr.eappop ~op:cmp_op
-              ~tys:[Type.any pos_dft; Type.any pos_dft]
+              ~tys:[Type.any pos; Type.any pos]
               ~args:
                 [
                   Expr.etupleaccess ~e:x1 ~index:1 ~size:2 emark;
@@ -969,8 +979,18 @@ let rec translate_expr
         pos
     in
     let weights_var = Var.make "weights" in
-    let default = Expr.make_app add_weight_f [default] [Type.any pos] pos_dft in
+    let default =
+      match default with
+      | Some dft ->
+        Expr.make_app add_weight_f
+          [rec_helper dft]
+          [Type.any pos]
+          (Mark.get dft)
+      | None -> Expr.efatalerror Runtime.ListEmpty (Untyped { pos = opos })
+    in
     let weighted_result =
+      (* let weights = map add_weight_f coll in reduce reduce_f (fun () ->
+         default) weights *)
       Expr.make_let_in (Mark.ghost weights_var)
         (TArray (TTuple [Type.any pos; Type.any pos], pos), pos)
         (Expr.eappop ~op:(Map, opos)
@@ -983,6 +1003,7 @@ let rec translate_expr
            emark)
         pos
     in
+    (* weights.1 *)
     Expr.etupleaccess ~e:weighted_result ~index:0 ~size:2 emark
   | CollectionOp
       ((((Exists { predicate } | Forall { predicate }), opos) as op), collection)

@@ -151,7 +151,10 @@ let rec transform_closures_expr :
       match e with
       | EVar v -> (
         ( Bindlib.box_var v,
-          match Var.Map.find_opt v ctx.globally_bound_vars with
+          match
+            Option.map Type.unquantify
+              (Var.Map.find_opt v ctx.globally_bound_vars)
+          with
           | None -> Var.Map.singleton v m, None
           | Some ((TArrow (targs, tret), _) as fty) ->
             Var.Map.empty, Some (targs, tret, fty)
@@ -159,8 +162,11 @@ let rec transform_closures_expr :
       | EExternal { name = External_value td, _ } as e ->
         ( Bindlib.box e,
           ( Var.Map.empty,
-            match TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs with
-            | ((TArrow (targs, tret), _) as fty), _vis -> Some (targs, tret, fty)
+            match
+              Type.unquantify
+                (fst (TopdefName.Map.find td ctx.decl_ctx.ctx_topdefs))
+            with
+            | (TArrow (targs, tret), _) as fty -> Some (targs, tret, fty)
             | _ -> None ) )
       | EExternal { name = External_scope s, pos } ->
         let fty =

@@ -58,16 +58,16 @@ public final class CatalaDuration implements CatalaValue {
 
     // No override
     public int compareTo(CatalaPosition pos, CatalaDuration t) {
-        if (this.getMonths() != 0 || t.getMonths() != 0 || this.getYears() != 0 || t.getYears() != 0) {
-            if (this.getDays() != 0 || t.getDays() != 0) {
-                throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
-            }
-            return ((Integer)
-                (this.getYears()* 12 + this.getMonths()))
-                .compareTo(t.getYears() * 12 + t.getMonths());
+        if (this.getMonths() == 0 && t.getMonths() == 0 && this.getYears() == 0 && t.getYears() == 0) {
+            return ((Integer) (this.getDays())).compareTo(t.getDays());
         }
-
-        return ((Integer) (this.getDays())).compareTo(t.getDays());
+        else if (this.getDays() == 0 && t.getDays() == 0) {
+            return ((Integer)(this.getYears() * 12 + this.getMonths()))
+                   .compareTo(t.getYears() * 12 + t.getMonths());
+        }
+        else {
+            throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
+        }
     }
 
     public CatalaBool lessThan(CatalaPosition pos, CatalaDuration other) {
@@ -87,7 +87,11 @@ public final class CatalaDuration implements CatalaValue {
     }
 
     public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
-        return CatalaBool.fromBoolean(this.compareTo(pos, other) == 0);
+        return (CatalaBool.fromBoolean
+                (this.getYears() == other.getYears() &&
+                 this.getMonths() == other.getMonths() &&
+                 this.getDays() == other.getDays() ||
+                 this.compareTo(pos, other) == 0));
     }
 
     @Override

@@ -41,11 +41,15 @@ val unifiable : t -> t -> bool
 val unifiable_list : t list -> t list -> bool
 (** Similar to [equal], but allows TForAll holes *)
 
+val is_arrow : t -> bool
+(** Matches both direct arrow types and quantified arrow types *)
+
 val arrow_return : t -> t
 (** Returns the last member in nested [TArrow] types *)
 
 val has_arrow : Definitions.decl_ctx -> t -> bool
-(** Fails (with [Invalid_argument]) on TForAll and TClosureEnv *)
+(** Checks in depth, contrary to [is_arrow]. Fails (with [Invalid_argument]) on
+    TForAll and TClosureEnv *)
 
 (** Handling of variables *)
 
@@ -86,3 +90,7 @@ val any : Pos.t -> t
 
 val universal : Pos.t -> t
 val is_universal : t -> bool
+
+val fully_known : t -> bool
+(** true iff the type doesn't contain any unknowns (free variables or quantified
+    types outside of arrows) *)

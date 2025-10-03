@@ -52,6 +52,7 @@ module Set : sig
   val cardinal : 'e t -> int
   val diff : 'e t -> 'e t -> 'e t
   val iter : ('e var -> unit) -> 'e t -> unit
+  val is_empty : 'e t -> bool
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.

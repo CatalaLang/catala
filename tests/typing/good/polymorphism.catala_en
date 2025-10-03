@@ -99,9 +99,7 @@ let topval not_possible : <t0> → <t> =
    reduce
      (λ (x1: (<t>, integer)) (x2: (<t>, integer)) →
       if x1.1 < x2.1 then x1 else x2)
-     (λ () → let x : <t> = error ListEmpty in
-             (x, let x__1 : <t> = x in
-                 0))
+     (λ () → error ListEmpty)
      weights).0
 
 let topval identity : <t> → <t> =

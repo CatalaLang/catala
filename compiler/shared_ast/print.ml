@@ -565,7 +565,19 @@ module ExprGen (C : EXPR_PARAM) = struct
             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
             let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
             let xs_tau_arg =
-              List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args
+              let rec aux xs_tau args =
+                match xs_tau, args with
+                | (x, tau) :: xs_tau, arg :: args ->
+                  (x, tau, arg) :: aux xs_tau args
+                | [], [] -> []
+                | (x, tau) :: xs_tau, [] ->
+                  (x, tau, (EVar (Var.make "XXX"), Mark.get e))
+                  :: aux xs_tau args
+                | [], arg :: args ->
+                  (Var.make "XXX", (TLit TUnit, Pos.void), arg)
+                  :: aux xs_tau args
+              in
+              aux xs_tau args
             in
             Format.pp_print_list
               (fun fmt (x, tau, arg) ->

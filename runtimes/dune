@@ -53,4 +53,8 @@
 
 (alias
  (name runtimes)
- (deps ocaml/dates_calc.cmi ocaml/catala_runtime.cmi))
+ (deps
+  ocaml/dates_calc.ml
+  ocaml/dates_calc.mli
+  ocaml/dates_calc.cmi
+  ocaml/catala_runtime.cmi))
