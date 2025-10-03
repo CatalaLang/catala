@@ -42,6 +42,7 @@ val report_verbosity : [> `Failures | `Short | `Summary | `Verbose ] Term.t
 val report_xml : bool Term.t
 val diff_command : string option option Term.t
 val ninja_flags : string list Term.t
+val whole_program : bool Term.t
 val info : Cmd.info
 
 val color : Global.when_enum Term.t

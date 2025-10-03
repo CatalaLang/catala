@@ -971,14 +971,22 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
   Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
   base_targets, link_deps, var_bindings
 
-let run_tests config backend cmd scope (test_targets, link_deps, var_bindings) =
+let run_tests
+    ?(whole_program = false)
+    config
+    backend
+    cmd
+    scope
+    (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
   match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
   | `Interpret ->
     let catala_flags =
       get_var var_bindings Var.catala_flags
-      @
-      match scope with None -> [] | Some s -> [Printf.sprintf "--scope=%s" s]
+      @ (match scope with
+        | None -> []
+        | Some s -> [Printf.sprintf "--scope=%s" s])
+      @ if whole_program then ["--whole-program"] else []
     in
     let exec = get_var var_bindings Var.catala_exe in
     iter_commands ~build_dir test_targets
@@ -1006,7 +1014,8 @@ let run_cmd =
       cmd
       (scope : string option)
       (ninja_flags : string list)
-      prepare_only =
+      prepare_only
+      whole_program =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config
       ~enabled_backends:[enable_backend backend]
@@ -1014,7 +1023,7 @@ let run_cmd =
       (build_test_deps ~config ~backend files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
-    else run_tests config backend cmd scope tests
+    else run_tests ~whole_program config backend cmd scope tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -1030,7 +1039,8 @@ let run_cmd =
       $ Cli.run_command
       $ Cli.scope
       $ Cli.ninja_flags
-      $ Cli.prepare_only)
+      $ Cli.prepare_only
+      $ Cli.whole_program)
 
 let typecheck_cmd =
   let run config (files_or_folders : File.t list) (ninja_flags : string list) =
@@ -1278,12 +1288,23 @@ let test_cmd =
       $ Cli.ninja_flags)
 
 let runtest_cmd =
-  let run catala_exe catala_opts include_dirs test_flags report out file =
+  let run
+      catala_exe
+      catala_opts
+      include_dirs
+      test_flags
+      report
+      out
+      file
+      whole_program =
     let catala_opts =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
     let test_flags = List.filter (( <> ) "") test_flags in
+    let catala_opts =
+      if whole_program then "--whole-program" :: catala_opts else catala_opts
+    in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~test_flags ~report ~out file;
@@ -1302,7 +1323,8 @@ let runtest_cmd =
       $ Cli.test_flags
       $ Cli.runtest_report
       $ Cli.runtest_out
-      $ Cli.single_file)
+      $ Cli.single_file
+      $ Cli.whole_program)
 
 let start_cmd =
   let run config (ninja_flags : string list) =
