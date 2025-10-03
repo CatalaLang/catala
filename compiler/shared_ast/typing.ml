@@ -173,10 +173,12 @@ let get_ty_quantified env pos ty =
   if Bindlib.is_closed bty then Bindlib.unbox bty
   else
     let vars = Type.Var.Set.filter (fun v -> Bindlib.occur v bty) !vars in
-    let bnd =
-      Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq) bty
-    in
-    TForAll (Bindlib.unbox bnd), Mark.get ty
+    if Type.Var.Set.is_empty vars then Bindlib.unbox bty
+    else
+      let bnd =
+        Bindlib.bind_mvar (Type.Var.Set.to_seq vars |> Array.of_seq) bty
+      in
+      TForAll (Bindlib.unbox bnd), Mark.get ty
 
 (** {1 Types and unification} *)
 
