@@ -231,7 +231,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
          type: in that case two variables could be named the same *)
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
-    | TClosureEnv -> Format.fprintf fmt "Obj.t"
+    | TClosureEnv -> Format.fprintf fmt "Obj.t(*closure env*)"
   in
   aux Bindlib.empty_ctxt fmt typ
 
@@ -395,6 +395,25 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "@[<hov 2>%a %s@ %a@]" format_with_parens e1
       (if op = And then "&&" else "||")
       format_with_parens e2
+  | EAppOp
+      {
+        op = ((Map | Map2 | Filter | Fold | Reduce), _) as op;
+        args = (ETuple [clos_f; clos_env], mclos) :: args;
+        tys;
+      } ->
+    (* This hack is for handling closure-converted terms when passed to the base
+       runtime operators *)
+    let m = Mark.get e in
+    let e1 =
+      ( EApp
+          {
+            f = clos_f;
+            args = [clos_env];
+            tys = [TClosureEnv, Expr.mark_pos m];
+          },
+        mclos )
+    in
+    format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
   | EAppOp { op = op, pos; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
