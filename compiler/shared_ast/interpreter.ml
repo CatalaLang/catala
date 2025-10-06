@@ -723,6 +723,7 @@ let rec evaluate_expr :
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
+    Message.debug "%s" __LOC__;
     let path =
       match Mark.remove name with
       | External_value td -> TopdefName.path td
@@ -932,6 +933,8 @@ let rec evaluate_expr :
          not happen if the term was well-typed)")
   | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
+    Message.debug "%s" __LOC__;
+    Message.debug "%a" Print.s_expr e';
     match evaluate_expr ctx lang e' with
     | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | exception Runtime.Empty ->
@@ -1052,6 +1055,7 @@ let evaluate_expr_safe :
  fun ctx lang e ->
   try evaluate_expr_trace ctx lang e
   with Runtime.Error (err, rpos) ->
+    Message.debug "%s" __LOC__;
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
       "During evaluation: %a." Format.pp_print_text
@@ -1159,6 +1163,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
 (** {1 API} *)
 let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
+  Message.debug "%s" __LOC__;
   Message.with_delayed_errors (fun () ->
       let ctx = p.decl_ctx in
       let e = Expr.unbox (Program.to_expr p s) in
