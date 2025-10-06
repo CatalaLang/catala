@@ -318,13 +318,21 @@ let rec union
           t2))
   | TVar v1, _ ->
     let t =
-      match Env.get_tvar env v1 with None -> t2 | Some t1 -> union t1 t2
+      match Env.get_tvar env v1 with
+      | None -> t2
+      | Some t1 ->
+        Env.set_tvar env v1 t2;
+        union t1 t2
     in
     Env.set_tvar env v1 t;
     t
   | _, TVar v2 ->
     let t =
-      match Env.get_tvar env v2 with None -> t1 | Some t2 -> union t1 t2
+      match Env.get_tvar env v2 with
+      | None -> t1
+      | Some t2 ->
+        Env.set_tvar env v2 t1;
+        union t1 t2
     in
     Env.set_tvar env v2 t;
     t
