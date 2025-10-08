@@ -41,8 +41,32 @@ déclaration troncature
   contenu décimal
   dépend de variable contenu décimal
   égal à
-    si variable > 0,00 alors
+    si variable = 0,0 alors
+      0,0
+    sinon si variable > 0,0 alors
       arrondi de (variable - 0,5)
     sinon
       arrondi de (variable + 0,5)
+
+déclaration arrondi_par_excès
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à
+    si variable >= 0,0 alors
+      si troncature de variable = variable alors
+        variable
+      sinon
+        troncature de (variable + 1,0)
+    sinon arrondi de (variable + 0,5)
+
+déclaration arrondi_par_défaut
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à
+    si variable > 0,0 alors
+      troncature de variable
+    sinon si troncature de variable = variable alors
+      variable
+    sinon
+      troncature de (variable - 1,0)
 ```

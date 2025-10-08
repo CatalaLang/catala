@@ -1,0 +1,40 @@
+```catala
+#[test]
+declaration scope A:
+  output x1 content decimal
+  output x2 content decimal
+  output y1 content decimal
+  output y2 content decimal
+  internal test_values content list of decimal
+  output truncations content list of decimal
+  output roundings_by_excess content list of decimal
+  output roundings_by_default content list of decimal
+
+scope A:
+  definition x1 equals Decimal.ceiling of 23554.0, 20000.0
+  assertion x1 = 20000.0
+  definition x2 equals Decimal.ceiling of 18000.0, 20000.0
+  assertion x2 = 18000.0
+  definition y1 equals Decimal.floor of 23554.0, 20000.0
+  assertion y1 = 23554.0
+  definition y2 equals Decimal.floor of 19000.0, 20000.0
+  assertion y2 = 20000.0
+
+  definition test_values equals
+    [ 0.0 ; 3.00 ; 3.30 ; 3.50 ; 3.99 ; -3.00 ; -3.30 ; -3.50 ; -3.99 ]
+
+  definition truncations equals
+    map each d among test_values to Decimal.truncate of d
+  assertion truncations
+  = [ 0.0 ; 3.00 ; 3.00 ; 3.00 ; 3.00 ; -3.00 ; -3.00 ; -3.00 ; -3.00 ]
+
+  definition roundings_by_excess equals
+    map each d among test_values to Decimal.round_by_excess of d
+  assertion roundings_by_excess
+  = [ 0.0 ; 3.00 ; 4.00 ; 4.00 ; 4.00 ; -3.00 ; -3.00 ; -3.00 ; -3.00 ]
+
+  definition roundings_by_default equals
+    map each d among test_values to Decimal.round_by_default of d
+  assertion roundings_by_default
+  = [ 0.0 ; 3.00 ; 3.00 ; 3.00 ; 3.00 ; -3.00 ; -4.00 ; -4.00 ; -4.00 ]
+```

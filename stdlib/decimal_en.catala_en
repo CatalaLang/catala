@@ -31,7 +31,7 @@ declaration floor
     floor content decimal
   equals max of variable, floor
 
-## Floors the value at $0
+## Floors the value at 0,0
 declaration positive
   content decimal
   depends on variable content decimal
@@ -41,8 +41,32 @@ declaration truncate
   content decimal
   depends on variable content decimal
   equals
-    if variable > 0.00 then
+    if variable = 0.0 then
+      0.0
+    else if variable > 0.0 then
       round of (variable - 0.5)
     else
       round of (variable + 0.5)
+
+declaration round_by_excess
+  content decimal
+  depends on variable content decimal
+  equals
+    if variable >= 0.0 then
+      if truncate of variable = variable then
+        variable
+      else
+        truncate of (variable + 1.0)
+    else round of (variable + 0.5)
+
+declaration round_by_default
+  content decimal
+  depends on variable content decimal
+  equals
+    if variable > 0.0 then
+      truncate of variable
+    else if truncate of variable = variable then
+      variable
+    else
+      truncate of (variable - 1.0)
 ```
