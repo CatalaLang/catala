@@ -352,7 +352,7 @@ alltest: dependencies-python
 	printf "\n# Full Catala testsuite:\t\t\e[42;30m ALL TESTS PASSED \e[m\t\t\e[32m☺\e[m\n" || \
 	{ printf "\n# Full Catala testsuite:\t\t\e[41;30m   TESTS FAILED   \e[m\t\t\e[31m☹\e[m\n" ; exit 1; }
 
-#> alltest-					: Like 'alltest', but skips doc building and is much faster
+#> alltest-				: Like 'alltest', but skips doc building and is much faster
 alltest-:
 	@$(MAKE) alltest NODOC=1
 
