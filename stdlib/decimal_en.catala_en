@@ -36,6 +36,16 @@ declaration positive
   content decimal
   depends on variable content decimal
   equals floor of variable, 0.0
+
+declaration truncate
+  content decimal
+  depends on variable content decimal
+  equals round of (variable - 0.5)
+
+declaration round_by_excess
+  content decimal
+  depends on variable content decimal
+  equals round of (variable + 0.5)
 ```
 
 ## Financial operations

@@ -36,6 +36,16 @@ declaration positive
   content money
   depends on variable content money
   equals floor of variable, $0
+
+declaration truncate
+  content money
+  depends on variable content money
+  equals round of (variable - $0.5)
+
+declaration round_by_excess
+  content money
+  depends on variable content money
+  equals round of (variable + $0.5)
 ```
 
 ## Financial operations

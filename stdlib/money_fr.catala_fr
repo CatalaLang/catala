@@ -36,6 +36,16 @@ déclaration positif
   contenu argent
   dépend de variable contenu argent
   égal à plancher de variable, 0€
+
+déclaration troncature
+  contenu argent
+  dépend de variable contenu argent
+  égal à arrondi de (variable - 0,5€)
+
+déclaration arrondi_par_excès
+  contenu argent
+  dépend de variable contenu argent
+  égal à arrondi de (variable + 0,5€)
 ```
 
 ## Opérations financières

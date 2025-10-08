@@ -36,4 +36,14 @@ déclaration positif
   contenu décimal
   dépend de variable contenu décimal
   égal à plancher de variable, 0,0
+
+déclaration troncature
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à arrondi de (variable - 0,5)
+
+déclaration arrondi_par_excès
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à arrondi de (variable + 0,5)
 ```
