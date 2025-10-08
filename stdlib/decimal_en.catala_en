@@ -47,23 +47,3 @@ declaration round_by_excess
   depends on variable content decimal
   equals round of (variable + 0.5)
 ```
-
-## Financial operations
-
-```catala-metadata
-## Returns the positive amount that `variable` overflows from `reference`
-## ($0 otherwise)
-declaration in_excess
-  content decimal
-  depends on variable content decimal,
-    reference content decimal
-  equals max of (0.0, variable - reference)
-
-## Returns the positive amount that `variable` underflows from `reference`
-## ($0 otherwise)
-declaration in_default
-  content decimal
-  depends on variable content decimal,
-    reference content decimal
-  equals max of (0.0, reference - variable)
-```
