@@ -40,12 +40,29 @@ déclaration positif
 déclaration troncature
   contenu argent
   dépend de variable contenu argent
-  égal à arrondi de (variable - 0,5€)
+  égal à
+    si variable = 0€ alors 0€
+    sinon si variable > 0€ alors
+      arrondi de (variable - 0,5€)
+    sinon
+      arrondi de (variable + 0,5€)
 
 déclaration arrondi_par_excès
   contenu argent
   dépend de variable contenu argent
-  égal à arrondi de (variable + 0,5€)
+  égal à
+    si variable >= 0€ alors
+      arrondi de (variable + 0,49€)
+    sinon
+      arrondi de (variable + 0,5€)
+
+déclaration arrondi_par_défaut
+  contenu argent
+  dépend de variable contenu argent
+  égal à
+    si variable > 0€ alors
+      arrondi de (variable - 0,5€)
+    sinon arrondi de (variable - 0,49€)
 ```
 
 ## Opérations financières

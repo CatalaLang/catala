@@ -40,10 +40,9 @@ declaration positive
 declaration truncate
   content decimal
   depends on variable content decimal
-  equals round of (variable - 0.5)
-
-declaration round_by_excess
-  content decimal
-  depends on variable content decimal
-  equals round of (variable + 0.5)
+  equals
+    if variable > 0.00 then
+      round of (variable - 0.5)
+    else
+      round of (variable + 0.5)
 ```

@@ -40,12 +40,27 @@ declaration positive
 declaration truncate
   content money
   depends on variable content money
-  equals round of (variable - $0.5)
+  equals
+    if variable = $0 then $0
+    else if variable > $0 then
+      round of (variable - $0.5)
+    else round of (variable + $0.5)
 
 declaration round_by_excess
   content money
   depends on variable content money
-  equals round of (variable + $0.5)
+  equals
+    if variable >= $0 then
+      round of (variable + $0.49)
+    else round of (variable + $0.5)
+
+declaration round_by_default
+  content money
+  depends on variable content money
+  equals
+    if variable > $0 then
+      round of (variable - $0.5)
+    else round of (variable - $0.49)
 ```
 
 ## Financial operations
