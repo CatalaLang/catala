@@ -185,8 +185,9 @@ end
 
 
 (* Toplevel def closure_assert *)
-let closure_assert : Obj.t -> integer -> integer =
-  fun (env: Obj.t) (x: integer) -> (let _ : unit = (o_fromclosureenv env) in
+let closure_assert : Obj.t(*closure env*) -> integer -> integer =
+  fun (env: Obj.t(*closure env*)) (x: integer) ->
+    (let _ : unit = (o_fromclosureenv env) in
     ((o_add_int_int x (integer_of_string "1"))))
 
 (* Scope Assert *)
@@ -197,7 +198,8 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
          (Optional.Present
             ((let _ : integer array =
                 (o_map
-                   (let assert__3 : Obj.t -> integer -> integer =
+                   (let assert__3 :
+                      Obj.t(*closure env*) -> integer -> integer =
                       closure_assert in (assert__3, (o_toclosureenv ())))
                    ([|(integer_of_string "0")|])) in false),
               ({filename="tests/name_resolution/good/conflicts.catala_en";

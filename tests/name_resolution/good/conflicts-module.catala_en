@@ -86,16 +86,18 @@ let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
         Obj.repr (let closure_scoppe__2 :
-                    Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe_in.t) ->
-                       closure_scoppe x0)
+                    Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                      Closure_scoppe.t =
+                    (fun (_: Obj.t(*closure env*))
+                       (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
                  in
                  (closure_scoppe__2, (o_toclosureenv ())));
       "Closure_scoppe__1",
         Obj.repr (let closure_scoppe__2 :
-                    Obj.t -> Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) ->
-                       closure_scoppe__1 x0)
+                    Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                      Closure_scoppe__1.t =
+                    (fun (_: Obj.t(*closure env*))
+                       (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0)
                  in
                  (closure_scoppe__2, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
@@ -182,21 +184,21 @@ end
 
 
 (* Toplevel def closure_scoppe *)
-let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
-  fun (_: Obj.t) (acc: bool) (x: integer) ->
+let closure_scoppe__2 : Obj.t(*closure env*) -> bool -> integer -> bool =
+  fun (_: Obj.t(*closure env*)) (acc: bool) (x: integer) ->
     acc && (o_gt_int_int x (integer_of_string "2"))
 
 (* Scope Closure_scøppe *)
 let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool =
      if
-      (o_fold (closure_scoppe__2, (o_toclosureenv ())) true
+      (o_fold (closure_scoppe__2 (o_toclosureenv ())) true
          ([|(integer_of_string "5"); (integer_of_string "6");
             (integer_of_string "7")|])) then
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=108; start_column=14; end_line=108; end_column=24;
+              start_line=110; start_column=14; end_line=110; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,
@@ -215,16 +217,18 @@ let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
         Obj.repr (let closure_scoppe__3 :
-                    Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe_in.t) ->
-                       closure_scoppe x0)
+                    Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                      Closure_scoppe.t =
+                    (fun (_: Obj.t(*closure env*))
+                       (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
                  in
                  (closure_scoppe__3, (o_toclosureenv ())));
       "Closure_scoppe__1",
         Obj.repr (let closure_scoppe__3 :
-                    Obj.t -> Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) ->
-                       closure_scoppe__1 x0)
+                    Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                      Closure_scoppe__1.t =
+                    (fun (_: Obj.t(*closure env*))
+                       (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0)
                  in
                  (closure_scoppe__3, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
