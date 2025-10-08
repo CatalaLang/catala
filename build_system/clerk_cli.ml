@@ -391,7 +391,9 @@ let init
           set_root_dir root;
           ( Catala_utils.File.reverse_path ~from_dir ~to_dir:rel,
             Clerk_config.default_config )
-        | None -> Fun.id, Clerk_config.default_config))
+        | None ->
+          ( Catala_utils.File.make_relative_to ~dir:from_dir,
+            Clerk_config.default_config )))
     | Some f ->
       let root = Filename.dirname f in
       let config = Clerk_config.read f in
