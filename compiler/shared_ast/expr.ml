@@ -288,11 +288,11 @@ let none_constr = EnumConstructor.fresh ("Absent", Pos.void)
 let some_constr = EnumConstructor.fresh ("Present", Pos.void)
 
 (* Enums don't have type variables at the moment, so the correctness is handled
-   by the specific TOption type; the below definition is used as placeholder in
-   dcalc but doesn't guarantee consistency by itself. *)
+   by the specific TOption type; the below definition is used as placeholder but
+   doesn't guarantee consistency by itself. *)
 let option_enum_config =
   EnumConstructor.Map.of_list
-    [none_constr, (TLit TUnit, Pos.void); some_constr, Type.any Pos.void]
+    [none_constr, (TLit TUnit, Pos.void); some_constr, Type.universal Pos.void]
 
 let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
 
