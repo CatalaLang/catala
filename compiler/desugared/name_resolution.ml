@@ -974,12 +974,17 @@ let process_name_item
         ]
       "%s name @{<yellow>\"%s\"@} already defined" msg name
   in
+  let raise_forbidden_in_external_error pos =
+    Message.error ~pos "Scopes are forbidden in external modules."
+  in
+  let is_external = ctxt.local.is_external in
   let path = List.rev ctxt.local.current_revpath in
   let item, visibility = item_vis in
   match Mark.remove item with
   | ScopeDecl decl ->
     let name, pos = decl.scope_decl_name in
     let pos = translate_pos ScopeDecl pos in
+    if is_external then raise_forbidden_in_external_error pos;
     (* Checks if the name is already used *)
     Option.iter
       (fun use ->
@@ -1042,7 +1047,10 @@ let process_name_item
         (TEnum e_uid) ctxt.local.typedefs
     in
     { ctxt with local = { ctxt.local with typedefs } }
-  | ScopeUse _ -> ctxt
+  | ScopeUse s_use ->
+    if is_external then
+      raise_forbidden_in_external_error (Mark.get s_use.scope_use_name);
+    ctxt
   | Topdef def ->
     let name, pos = def.topdef_name in
     let pos = translate_pos Topdef pos in
