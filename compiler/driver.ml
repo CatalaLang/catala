@@ -1290,6 +1290,44 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
+  let lean4
+      options
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      closure_conversion =
+    let options = if closure_conversion then fix_trace options else options in
+    let prg, type_ordering, _ren_ctx =
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:true ~no_struct_literals:false
+        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
+        ~renaming:(Some Scalc.To_lean4.renaming)
+    in
+    Message.debug "Compiling program into Lean4...";
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.lean" else "lean")
+    @@ fun output_file fmt ->
+    Scalc.To_lean4.format_program output_file fmt prg type_ordering
+
+  let lean4_cmd =
+    Cmd.v
+      (Cmd.info "lean4" ~man:Cli.man_base
+         ~doc:"Generates a Lean4 translation of the Catala program.")
+      Term.(
+        const lean4
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion)
+
   let depends options includes stdlib prefix subdir extension extra_files =
     let file = Global.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
@@ -1400,6 +1438,7 @@ module Commands = struct
       python_cmd;
       java_cmd;
       c_cmd;
+      lean4_cmd;
       latex_cmd;
       html_cmd;
       makefile_cmd;
