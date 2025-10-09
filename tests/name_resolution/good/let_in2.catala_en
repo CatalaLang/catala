@@ -131,7 +131,7 @@ let s : S_in.t -> S.t = fun s_in ->
 
 let () =
   Catala_runtime.register_module "Let_in2"
-    [ "S", Obj.repr s ]
+    [ "S", Stdlib.Obj.repr s ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 

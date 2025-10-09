@@ -8,7 +8,8 @@ declaration scope Tsequence:
 
 scope Tsequence:
   definition o1 equals List.sequence of 3, 6
-  definition o2 equals map each x among List.sequence of -1, 1 to money of x
+  definition o2 equals
+    map each x among List.sequence of -1, 1 to money of x
   definition o3 equals List.sequence of 3, 3
   definition o4 equals List.sequence of 3, -3
 ```
@@ -52,13 +53,13 @@ $ catala test-scope Tnth_element
 #[test]
 declaration scope Tremove_nth_element:
   output o1 content list of money
-  output o2 content list of integer
+  output o2 content list of decimal
   output o3 content list of integer
   output o4 content list of (decimal, integer)
 
 scope Tremove_nth_element:
   definition o1 equals List.remove_nth_element of [$101; $102; $103], 2
-  definition o2 equals List.remove_nth_element of [12; 13; 14], 0
+  definition o2 equals List.remove_nth_element of [12.2; 13.3; 14.4], 0
   definition o3 equals List.remove_nth_element of [], 1
   definition o4 equals List.remove_nth_element of [(12.0, 44)], 1
 ```
@@ -67,7 +68,7 @@ scope Tremove_nth_element:
 $ catala test-scope Tremove_nth_element
 ┌─[RESULT]─ Tremove_nth_element ─
 │ o1 = [$101.00; $103.00]
-│ o2 = [12; 13; 14]
+│ o2 = [12.2; 13.3; 14.4]
 │ o3 = []
 │ o4 = []
 └─

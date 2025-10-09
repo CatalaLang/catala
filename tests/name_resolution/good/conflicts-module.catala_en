@@ -91,21 +91,22 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
-        Obj.repr (let closure_scoppe__2 :
-                    Obj.t(*closure env*) -> Closure_scoppe_in.t ->
-                      Closure_scoppe.t =
-                    (fun (_: Obj.t(*closure env*))
-                       (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                 in
-                 (closure_scoppe__2, (o_toclosureenv ())));
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                        in
+                        (closure_scoppe__2, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Obj.repr (let closure_scoppe__2 :
-                    Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
-                      Closure_scoppe__1.t =
-                    (fun (_: Obj.t(*closure env*))
-                       (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0)
-                 in
-                 (closure_scoppe__2, (o_toclosureenv ()))) ]
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                        in
+                        (closure_scoppe__2, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 
@@ -210,7 +211,7 @@ let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=116; start_column=14; end_line=116; end_column=24;
+              start_line=117; start_column=14; end_line=117; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,
@@ -228,20 +229,21 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
-        Obj.repr (let closure_scoppe__3 :
-                    Obj.t(*closure env*) -> Closure_scoppe_in.t ->
-                      Closure_scoppe.t =
-                    (fun (_: Obj.t(*closure env*))
-                       (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                 in
-                 (closure_scoppe__3, (o_toclosureenv ())));
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                        in
+                        (closure_scoppe__3, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Obj.repr (let closure_scoppe__3 :
-                    Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
-                      Closure_scoppe__1.t =
-                    (fun (_: Obj.t(*closure env*))
-                       (x0: Closure_scoppe__1_in.t) -> closure_scoppe__1 x0)
-                 in
-                 (closure_scoppe__3, (o_toclosureenv ()))) ]
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                        in
+                        (closure_scoppe__3, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

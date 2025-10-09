@@ -168,8 +168,8 @@ let maybe : Enum1.t -> Enum1.t =
 
 let () =
   Catala_runtime.register_module "Mod_def"
-    [ "S", Obj.repr s;
-      "half", Obj.repr half;
-      "maybe", Obj.repr maybe ]
+    [ "S", Stdlib.Obj.repr s;
+      "half", Stdlib.Obj.repr half;
+      "maybe", Stdlib.Obj.repr maybe ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

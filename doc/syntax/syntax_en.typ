@@ -17,7 +17,7 @@ raw("```catala      ```catala-metadata\n```            ```"),
 > Using Mdl as M
 ```, [Module import+alias],
 ```catala-en
-> Include: foo.catala_en,
+> Include: foo.catala_en
 ```, [File inclusion],
 {
     show raw: text.with(size: 0.9em)
