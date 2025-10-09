@@ -441,7 +441,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
   | SAssert { pos_expr; expr = e1 } ->
-    Format.fprintf fmt "@[<hv 4>if not (%a):@,raise AssertionFailed(%a)@]"
+    Format.fprintf fmt "@[<hv 4>if not (%a):@ raise AssertionFailed(%a)@]"
       (format_expression ctx) e1 (format_expression ctx) pos_expr
   | SSpecialOp _ -> .
 

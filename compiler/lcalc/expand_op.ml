@@ -37,7 +37,7 @@ let rec resolve_eq ctx pos ty args m =
   | TLit TMoney -> Expr.eappop ~op:(Eq_mon_mon, pos) ~args ~tys:[ty; ty] m
   | TLit TDuration -> Expr.eappop ~op:(Eq_dur_dur, pos) ~args ~tys:[ty; ty] m
   | TLit TDate -> Expr.eappop ~op:(Eq_dat_dat, pos) ~args ~tys:[ty; ty] m
-  | TLit TPos -> assert false
+  | TLit TPos -> Expr.elit (LBool true) m
   | TTuple tys ->
     let size = List.length tys in
     let eqs =
@@ -153,7 +153,51 @@ let rec resolve_eq ctx pos ty args m =
          ~args:[same_length; same_elements]
          ~tys:[tbool; tbool] m)
       pos
-  | TOption _ | TDefault _ -> assert false
+  | TOption ty ->
+    let arg1, arg2 =
+      match args with [arg1; arg2] -> arg1, arg2 | _ -> assert false
+    in
+    Expr.ematch ~name:Expr.option_enum ~e:arg1 m
+      ~cases:
+        (EnumConstructor.Map.of_list
+           [
+             ( Expr.none_constr,
+               Expr.thunk_term
+                 (Expr.ematch ~name:Expr.option_enum ~e:arg2 m
+                    ~cases:
+                      (EnumConstructor.Map.of_list
+                         [
+                           ( Expr.none_constr,
+                             Expr.thunk_term (Expr.elit (LBool true) m) );
+                           ( Expr.some_constr,
+                             Expr.make_ghost_abs
+                               [Var.make "_"]
+                               (Expr.elit (LBool false) m)
+                               [ty] pos );
+                         ])) );
+             ( Expr.some_constr,
+               let v1 = Var.make "x" in
+               let v2 = Var.make "y" in
+               Expr.make_ghost_abs [v1]
+                 (Expr.ematch ~name:Expr.option_enum ~e:arg2 m
+                    ~cases:
+                      (EnumConstructor.Map.of_list
+                         [
+                           ( Expr.none_constr,
+                             Expr.thunk_term (Expr.elit (LBool false) m) );
+                           ( Expr.some_constr,
+                             Expr.make_ghost_abs [v2]
+                               (resolve_eq ctx pos ty
+                                  [
+                                    Expr.evar v1 (Expr.with_ty m ty);
+                                    Expr.evar v2 (Expr.with_ty m ty);
+                                  ]
+                                  m)
+                               [ty] pos );
+                         ]))
+                 [ty] pos );
+           ])
+  | TDefault _ -> assert false
   | TVar _ | TForAll _ ->
     Message.error ~internal:true "Unknown type for equality resolution"
 

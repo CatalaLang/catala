@@ -1187,7 +1187,7 @@ let run_clerk_test
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
+    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:true
       ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_tests config backend "" None
