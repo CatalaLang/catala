@@ -818,12 +818,13 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         | [] ->
           let v = Var.make (ScopeName.base scope_name) in
           Local_scope_ref v
-        | _ :: _ when Global.options.whole_program ->
-          let v = Var.make (ScopeName.base scope_name) in
-          Local_scope_ref v
         | _ :: _ ->
-          External_scope_ref
-            (Mark.copy (ScopeName.get_info scope_name) scope_name)
+          if scope.S.scope_external || not Global.options.whole_program then
+            External_scope_ref
+              (Mark.copy (ScopeName.get_info scope_name) scope_name)
+          else
+            let v = Var.make (ScopeName.base scope_name) in
+            Local_scope_ref v
       in
       let scope_info = ScopeName.Map.find scope_name decl_ctx.ctx_scopes in
       let scope_sig_in_fields =

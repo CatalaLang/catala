@@ -65,6 +65,7 @@ type 'm scope_decl = {
   scope_decl_rules : 'm rule list;
   scope_options : Desugared.Ast.catala_option Mark.pos list;
   scope_visibility : visibility;
+  scope_external : bool;
 }
 
 type 'm program = {

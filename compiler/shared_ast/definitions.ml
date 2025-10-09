@@ -579,7 +579,8 @@ and ('a, 'b, 'm) base_gexpr =
   | EScopeCall : {
       scope : ScopeName.t;
       args : (Pos.t * ('a, 'm) gexpr) ScopeVar.Map.t;
-          (* Map elements contain their variable's surface position *)
+      (* Map elements contain their variable's surface position *)
+      is_external : bool;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
   | EDStructAmend : {

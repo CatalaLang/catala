@@ -85,7 +85,7 @@ let rec expr_used_defs modul e =
       || is_external
     then VMap.empty
     else VMap.singleton (Topdef v) pos
-  | (EScopeCall { scope; _ }, m) as e -> (
+  | (EScopeCall { scope; is_external = false; _ }, m) as e -> (
     match ScopeName.path scope with
     | [] ->
       VMap.add
@@ -128,16 +128,20 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   in
   let g =
     ScopeName.Map.fold
-      (fun v _ g -> SDependencies.add_vertex g (Scope (v, None)))
+      (fun v (sdecl, _) g ->
+        if sdecl.Ast.scope_external then g
+        else SDependencies.add_vertex g (Scope (v, None)))
       prgm.program_scopes g
   in
   let g =
     if Global.options.whole_program then
-      (* Also add qualified scopes in whole-program *)
+      (* Also add (non-external) qualified scopes in whole-program *)
       ModuleName.Map.fold
         (fun mn scopes g ->
           ScopeName.Map.fold
-            (fun v _ g -> SDependencies.add_vertex g (Scope (v, Some mn)))
+            (fun v (sdecl, _) g ->
+              if sdecl.Ast.scope_external then g
+              else SDependencies.add_vertex g (Scope (v, Some mn)))
             scopes g)
         prgm.program_modules g
     else g
@@ -190,7 +194,8 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
       (fun mn scopes g ->
         ScopeName.Map.fold
           (fun scope_name (scope, _) g ->
-            process_scopes (Some mn) scope_name scope g)
+            if scope.Ast.scope_external then g
+            else process_scopes (Some mn) scope_name scope g)
           scopes g)
       prgm.program_modules g
   else g

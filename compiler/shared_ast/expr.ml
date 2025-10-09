@@ -178,10 +178,10 @@ let ematch ~name ~e ~cases mark =
        (Box.lift e)
        (Box.lift_enum (EnumConstructor.Map.map Box.lift cases))
 
-let escopecall ~scope ~args mark =
+let escopecall ~scope ~args ~is_external mark =
   Mark.add mark
   @@ Bindlib.box_apply
-       (fun args -> EScopeCall { scope; args })
+       (fun args -> EScopeCall { scope; args; is_external })
        (Box.lift_scope_vars
           (ScopeVar.Map.map
              (fun (pos, e) -> Bindlib.box_apply (fun e -> pos, e) (Box.lift e))
@@ -371,9 +371,9 @@ let map
   | EMatch { name; e; cases } ->
     let cases = EnumConstructor.Map.map f cases in
     ematch ~name ~e:(f e) ~cases m
-  | EScopeCall { scope; args } ->
+  | EScopeCall { scope; args; is_external } ->
     let args = ScopeVar.Map.map (fun (p, e) -> p, f e) args in
-    escopecall ~scope ~args m
+    escopecall ~scope ~args ~is_external m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
 
@@ -522,7 +522,7 @@ let map_gather
         (acc, EnumConstructor.Map.empty)
     in
     acc, ematch ~name ~e ~cases m
-  | EScopeCall { scope; args } ->
+  | EScopeCall { scope; args; is_external } ->
     let acc, args =
       ScopeVar.Map.fold
         (fun var (p, e) (acc, args) ->
@@ -530,7 +530,7 @@ let map_gather
           join acc acc1, ScopeVar.Map.add var (p, e) args)
         args (acc, ScopeVar.Map.empty)
     in
-    acc, escopecall ~scope ~args m
+    acc, escopecall ~scope ~args ~is_external m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
 
 (* - *)
@@ -709,8 +709,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     EnumName.equal n1 n2
     && equal e1 e2
     && EnumConstructor.Map.equal equal cases1 cases2
-  | ( EScopeCall { scope = s1; args = fields1 },
-      EScopeCall { scope = s2; args = fields2 } ) ->
+  | ( EScopeCall { scope = s1; args = fields1; is_external = _ },
+      EScopeCall { scope = s2; args = fields2; is_external = _ } ) ->
     ScopeName.equal s1 s2
     && ScopeVar.Map.equal (fun (_, e) (_, e') -> equal e e') fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
@@ -783,8 +783,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     EnumName.compare name1 name2 @@< fun () ->
     compare e1 e2 @@< fun () ->
     EnumConstructor.Map.compare compare emap1 emap2
-  | EScopeCall {scope=name1; args=field_map1},
-    EScopeCall {scope=name2; args=field_map2} ->
+  | EScopeCall {scope=name1; args=field_map1;is_external=_},
+    EScopeCall {scope=name2; args=field_map2;is_external=_} ->
     ScopeName.compare name1 name2 @@< fun () ->
     ScopeVar.Map.compare (fun (_, e) (_, e') -> compare e e') field_map1 field_map2
   | ETuple es1, ETuple es2 ->
