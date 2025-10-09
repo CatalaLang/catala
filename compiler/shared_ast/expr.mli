@@ -172,7 +172,6 @@ val ematch :
 val escopecall :
   scope:ScopeName.t ->
   args:(Pos.t * ('a, 'm) boxed_gexpr) ScopeVar.Map.t ->
-  is_external:bool ->
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
 

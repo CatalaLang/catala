@@ -573,7 +573,7 @@ let rec translate_expr
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.error ~pos "Scope calls are not allowed outside of a scope.";
-    let called_scope, scope_def, is_external =
+    let called_scope, scope_def =
       let resolved_path, ctxt = Name_resolution.module_ctx ctxt path in
       let uid =
         let uid = Name_resolution.get_scope ctxt id in
@@ -582,7 +582,7 @@ let rec translate_expr
           (fun (_ml, pos) -> List.map2 restore_position path resolved_path, pos)
           uid
       in
-      uid, ScopeName.Map.find uid ctxt.scopes, ctxt.local.is_external
+      uid, ScopeName.Map.find uid ctxt.scopes
     in
     let in_struct =
       List.fold_left
@@ -615,7 +615,7 @@ let rec translate_expr
             acc)
         ScopeVar.Map.empty fields
     in
-    Expr.escopecall ~scope:called_scope ~args:in_struct ~is_external emark
+    Expr.escopecall ~scope:called_scope ~args:in_struct emark
   | LetIn (xs, e1, e2) ->
     let m_xs : _ Var.t Mark.pos list =
       List.map (fun x -> Mark.map Var.make x) xs
@@ -1975,7 +1975,6 @@ let translate_program
           {
             Ast.module_scopes = get_scopes mctx;
             module_topdefs = module_topdefs mctx;
-            module_external = mctx.is_external;
           }
         in
         m, Ast.Hash.module_binding mname m)
@@ -1985,7 +1984,6 @@ let translate_program
     {
       Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
       Ast.module_topdefs = TopdefName.Map.empty;
-      Ast.module_external = ctxt.local.is_external;
     }
   in
   let program_ctx =

@@ -138,7 +138,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
       (Expr.mark_pos m)
   | EDStructAmend { name_opt = None; _ } | EDStructAccess _ ->
     assert false (* This shouldn't appear in desugared after disambiguation *)
-  | EScopeCall { scope; args; is_external } ->
+  | EScopeCall { scope; args } ->
     Expr.escopecall ~scope
       ~args:
         (ScopeVar.Map.fold
@@ -174,7 +174,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              in
              ScopeVar.Map.add v' (p, e') args')
            args ScopeVar.Map.empty)
-      ~is_external m
+      m
   | EApp { f; tys; args } ->
     (* Detuplification of function arguments, insertion of implicit arguments *)
     let pos = Expr.pos f in
@@ -719,7 +719,6 @@ let translate_rule
       in
       let subscope_expr =
         Expr.escopecall ~scope:subscope ~args:subscope_param_map
-          ~is_external:false (*?*)
           (Untyped { pos = decl_pos })
       in
       assert (RuleName.Map.is_empty scope_def.D.scope_def_rules);
@@ -752,7 +751,7 @@ let translate_rule
     let assertion_expr = translate_expr ctx (Expr.unbox assertion_expr) in
     [Ast.Assertion (Expr.unbox assertion_expr)]
 
-let translate_scope_interface (modul : D.modul) ctx scope =
+let translate_scope_interface ctx scope =
   let get_svar scope_def =
     let svar_in_ty =
       Scope.input_type scope_def.D.scope_def_typ
@@ -824,11 +823,9 @@ let translate_scope_interface (modul : D.modul) ctx scope =
       scope_sig;
       scope_options = scope.scope_options;
       scope_visibility = scope.scope_visibility;
-      scope_external = modul.module_external;
     }
 
 let translate_scope
-    (modul : D.modul)
     (ctx : ctx)
     (exc_graphs :
       Desugared.Dependency.ExceptionsDependencies.t D.ScopeDef.Map.t)
@@ -849,7 +846,7 @@ let translate_scope
   in
   Mark.map
     (fun s -> { s with Ast.scope_decl_rules })
-    (translate_scope_interface modul ctx scope)
+    (translate_scope_interface ctx scope)
 
 (** {1 API} *)
 
@@ -980,8 +977,8 @@ let translate_program
         ScopeName.Map.map
           (fun scope ->
             if Global.options.whole_program then
-              translate_scope m ctx exc_graphs scope
-            else translate_scope_interface m ctx scope)
+              translate_scope ctx exc_graphs scope
+            else translate_scope_interface ctx scope)
           m.D.module_scopes)
       desugared.D.program_modules
   in
@@ -1021,9 +1018,7 @@ let translate_program
   in
   let program_scopes =
     let translate_scope modul =
-      ScopeName.Map.map
-        (translate_scope modul ctx exc_graphs)
-        modul.D.module_scopes
+      ScopeName.Map.map (translate_scope ctx exc_graphs) modul.D.module_scopes
     in
     let program_scopes = translate_scope desugared.D.program_root in
     if Global.options.whole_program then

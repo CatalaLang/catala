@@ -766,7 +766,7 @@ and typecheck_expr_top_down :
         cases
     in
     Expr.ematch ~e:e1' ~name ~cases mark
-  | EScopeCall { scope; args; is_external } ->
+  | EScopeCall { scope; args } ->
     let scope_out_struct =
       (ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
@@ -781,7 +781,7 @@ and typecheck_expr_top_down :
           p, e')
         args
     in
-    Expr.escopecall ~scope ~args:args' ~is_external mark
+    Expr.escopecall ~scope ~args:args' mark
   | EVar v ->
     let tau' =
       match Env.get env v with

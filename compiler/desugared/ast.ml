@@ -263,7 +263,6 @@ type topdef = {
 type modul = {
   module_scopes : scope ScopeName.Map.t;
   module_topdefs : topdef TopdefName.Map.t;
-  module_external : bool;
 }
 
 type program = {
