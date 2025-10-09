@@ -770,6 +770,58 @@ module Commands = struct
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.quiet)
 
+  let reachable_positions options check_invariants includes stdlib =
+    let _options = Global.enforce_options ~disable_warnings:true () in
+    let prg = Passes.scopelang options ~includes ~stdlib in
+    Message.debug "Typechecking...";
+    let _type_ordering =
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
+        prg.program_ctx.ctx_enums
+    in
+    let prg = Scopelang.Ast.type_program prg in
+    Message.debug "Translating to default calculus...";
+    (* Strictly type-checking could stop here, but we also want this pass to
+       check full name-resolution and cycle detection. These are checked during
+       translation to dcalc so we run it here and drop the result. *)
+    let prg = Dcalc.From_scopelang.translate_program prg in
+
+    (* Additionally, we might want to check the invariants. *)
+    if check_invariants then (
+      let prg = Shared_ast.Typing.program prg in
+      Message.debug "Checking invariants...";
+      if Dcalc.Invariants.check_all_invariants prg then ()
+      else
+        raise (Message.error ~internal:true "Some Dcalc invariants are invalid"));
+    let scope_opt =
+      let items = BoundList.to_seq prg.code_items |> List.of_seq in
+      List.find_map
+        (function _, ScopeDef (sname, _) -> Some sname | _ -> None)
+        items
+    in
+    let reachable_locations =
+      match scope_opt with
+      | None -> Message.error "No reachable scope found"
+      | Some s ->
+        Shared_ast.Coverage.reachable
+          (Expr.unbox (Shared_ast.Program.to_expr prg s))
+          Pos_map.empty
+    in
+    Pos_map.report_coverage (Message.std_ppf ()) reachable_locations
+
+  let reachable_positions_cmd =
+    Cmd.v
+      (Cmd.info "reachable" ~man:Cli.man_base
+         ~doc:
+           "Internal command intended for $(i,clerk) use. Parses and \
+            typechecks a Catala program, then returns the data of reachable \
+            code locations for this file.")
+      Term.(
+        const reachable_positions
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir)
+
   let dcalc
       typed
       options
@@ -864,6 +916,7 @@ module Commands = struct
 
   let print_interpretation_results
       options
+      ~(code_coverage : bool)
       ?(quiet = false)
       interpreter
       prg
@@ -882,8 +935,12 @@ module Commands = struct
       in
       if quiet then
         (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
-          ScopeName.format scope_uid
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+          ScopeName.format scope_uid (fun fmt ->
+            if code_coverage then
+              let coverage_results = Interpreter.coverage_result () in
+              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
+            else ())
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results
@@ -915,6 +972,7 @@ module Commands = struct
       options
       includes
       stdlib
+      (code_coverage : bool)
       optimize
       check_invariants
       quiet
@@ -929,8 +987,9 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_dcalc prg scope
+          print_interpretation_results ~code_coverage ~quiet options
+            (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
+            prg scope
           && success)
         true
         (get_scopelist_uids prg ex_scopes)
@@ -1007,11 +1066,16 @@ module Commands = struct
       options
       includes
       stdlib
+      (code_coverage : bool)
       optimize
       check_invariants
       quiet
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
+    if code_coverage then
+      Message.error
+        "The flags @{<bold>--lcalc@} and @{<bold>--code-coverage@} are \
+         incompatible";
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
@@ -1023,7 +1087,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
+          print_interpretation_results ~code_coverage:false ~quiet options
             Interpreter.interpret_program_lcalc prg scope
           && success)
         true
@@ -1071,6 +1135,7 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.code_coverage
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
@@ -1411,6 +1476,7 @@ module Commands = struct
       dependency_graph_cmd;
       depends_cmd;
       pygmentize_cmd;
+      reachable_positions_cmd;
     ]
 end
 

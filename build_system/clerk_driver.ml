@@ -378,7 +378,13 @@ let backend_runtime_targets ?(only_source = false) enabled_backends =
 open Cmdliner
 
 let raw_cmd : int Cmd.t =
-  let run config autotest (targets : string list) (ninja_flags : string list) =
+  let run
+      config
+      autotest
+      (code_coverage : bool)
+      quiet
+      (targets : string list)
+      (ninja_flags : string list) =
     if targets <> [] then
       let targets =
         List.map
@@ -388,11 +394,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~config ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~config ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -407,12 +413,15 @@ let raw_cmd : int Cmd.t =
       const run
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
+      $ Cli.code_coverage
+      $ Cli.quiet
       $ Cli.targets
       $ Cli.ninja_flags)
 
 let build_clerk_target
     ~(config : Cli.config)
     ~ninja_flags
+    ~quiet
     (target : Config.target) =
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
@@ -425,7 +434,8 @@ let build_clerk_target
     |> List.sort_uniq Stdlib.compare
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
+    Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
+      ~ninja_flags ~quiet ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -571,6 +581,8 @@ let build_direct_targets
     (config : Cli.config)
     ~ninja_flags
     ~autotest
+    ~code_coverage
+    ~quiet
     direct_targets =
   let open File in
   if direct_targets = [] then []
@@ -597,7 +609,8 @@ let build_direct_targets
       |> List.sort_uniq Stdlib.compare
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
-      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
+        ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -747,6 +760,8 @@ let build_cmd : int Cmd.t =
   let run
       config
       autotest
+      (code_coverage : bool)
+      quiet
       (clerk_targets_or_files : string list)
       (ninja_flags : string list) =
     let open File in
@@ -790,11 +805,12 @@ let build_cmd : int Cmd.t =
     (* Building Clerk named targets separately *)
     let clerk_targets_result =
       List.map
-        (fun t -> build_clerk_target ~config ~ninja_flags t)
+        (fun t -> build_clerk_target ~quiet ~config ~ninja_flags t)
         clerk_targets
     in
     let direct_targets_result =
-      build_direct_targets config ~ninja_flags ~autotest direct_targets
+      build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
+        direct_targets
     in
     Message.result
       "@[<v 4>Build successful. The targets can be found in the following \
@@ -848,19 +864,126 @@ let build_cmd : int Cmd.t =
       const run
       $ Cli.init_term ()
       $ Cli.autotest
+      $ Cli.code_coverage
+      $ Cli.quiet
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
-let setup_report_format ?fix_path verbosity diff_command =
+let reachable_cmd : int Cmd.t =
+  let run
+      config
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+      quiet
+      (ninja_flags : string list) =
+    let items, var_bindings =
+      Clerk_rules.run_ninja ~code_coverage:false ~config
+        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
+        ~quiet (fun nin_ppf items var_bindings ->
+          Nj.format_def nin_ppf
+            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+          items, var_bindings)
+    in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    let exec = get_var var_bindings Var.catala_exe in
+    let files =
+      List.filter_map
+        (fun it ->
+          if Filename.is_relative it.Scan.file_name && not it.Scan.extrnal then
+            Some it.file_name
+          else None)
+        items
+    in
+    if files = [] then Message.error "No matching files found";
+    let process_out_no_stderr cmd args =
+      let aargs = Array.of_list (cmd :: args) in
+      let ((stdout, _stdin, _stderr) as proc_full) =
+        try Unix.open_process_args_full cmd aargs [||]
+        with Unix.Unix_error (Unix.ENOENT, _, _) ->
+          Printf.ksprintf failwith "ERROR: program %s not found" cmd
+      in
+      let buf = Buffer.create 4096 in
+      let finally f g =
+        match
+          g ();
+          f ()
+        with
+        | 0 -> Some (Buffer.contents buf)
+        | _ | (exception _) -> None
+      in
+      finally
+        (fun () ->
+          match Unix.close_process_full proc_full with
+          | Unix.WEXITED n -> n
+          | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> raise (Failure "Failed"))
+        (fun () ->
+          try
+            while true do
+              Buffer.add_channel buf stdout 4096
+            done;
+            assert false
+          with End_of_file -> ())
+    in
+    let reachable =
+      List.fold_left
+        (fun reachable f ->
+          let args = ["reachable"] @ catala_flags @ [f] in
+          Message.debug "Running command: '%s'..."
+            (String.concat " " (exec @ args));
+          match process_out_no_stderr (List.hd exec) args with
+          | None -> reachable
+          | Some "" -> assert false
+          | Some reachable_coverage_string ->
+            let reachable_coverage = `Hex reachable_coverage_string in
+            let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in
+            let new_reachable : Catala_utils.Pos_map.simple =
+              Marshal.from_bytes reachable_coverage_bytes 0
+            in
+            Pos_map.fusion
+              (Pos_map.with_name "irrelevant" new_reachable)
+              reachable)
+        Pos_map.empty files
+    in
+    match report_format with
+    | `Terminal | `JUnitXML ->
+      Message.error
+        "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
+         are not yet implemented for this command."
+    | `VSCodeJSON ->
+      let json =
+        Clerk_report.coverage_reachable_to_yojson
+          ~build_dir:config.Cli.options.global.build_dir reachable
+      in
+      Yojson.to_channel stdout json;
+      Format.printf "@.";
+      raise (Catala_utils.Cli.Exit_with 0)
+  in
+  let doc =
+    "Dump reachable locations command for either $(i,individual files) or \
+     $(i,clerk targets). Used by code editors and the language server."
+  in
+  Cmd.v
+    (Cmd.info ~doc "reachable")
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.report_format
+      $ Cli.quiet
+      $ Cli.ninja_flags)
+
+let setup_report_format ?fix_path verbosity diff_command (code_coverage : bool)
+    =
   (match verbosity with
-  | `Summary -> Clerk_report.set_display_flags ~files:`None ~tests:`None ()
+  | `Summary ->
+    Clerk_report.set_display_flags ~files:`None ~tests:`None
+      ~code_coverage:false ()
   | `Short ->
-    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false ()
+    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false
+      ~code_coverage:false ()
   | `Failures ->
     if Catala_utils.Global.options.debug then
       Clerk_report.set_display_flags ~files:`All ()
   | `Verbose -> Clerk_report.set_display_flags ~files:`All ~tests:`All ());
-  Clerk_report.set_display_flags ?fix_path ~diff_command ()
+  Clerk_report.set_display_flags ?fix_path ~diff_command ~code_coverage ()
 
 let run_artifact config ~backend ~var_bindings ?scope src =
   let open File in
@@ -1004,13 +1127,14 @@ let run_cmd =
       (files_or_folders : File.t list)
       backend
       cmd
+      quiet
       (scope : string option)
       (ninja_flags : string list)
       prepare_only =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    Clerk_rules.run_ninja ~config
+    Clerk_rules.run_ninja ~config ~code_coverage:false
       ~enabled_backends:[enable_backend backend]
-      ~ninja_flags ~autotest:false
+      ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
@@ -1028,16 +1152,22 @@ let run_cmd =
       $ Cli.files_or_folders
       $ Cli.backend
       $ Cli.run_command
+      $ Cli.quiet
       $ Cli.scope
       $ Cli.ninja_flags
       $ Cli.prepare_only)
 
 let typecheck_cmd =
-  let run config (files_or_folders : File.t list) (ninja_flags : string list) =
+  let run
+      config
+      quiet
+      (files_or_folders : File.t list)
+      (ninja_flags : string list) =
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let items, var_bindings =
-      Clerk_rules.run_ninja ~config ~enabled_backends:[Clerk_rules.Tests]
-        ~autotest:false ~ninja_flags (fun nin_ppf items var_bindings ->
+      Clerk_rules.run_ninja ~code_coverage:false ~config
+        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
+        ~quiet (fun nin_ppf items var_bindings ->
           Nj.format_def nin_ppf
             (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
           items, var_bindings)
@@ -1085,7 +1215,12 @@ let typecheck_cmd =
   let doc = "Runs the Catala type-checker on the given files." in
   Cmd.v
     (Cmd.info ~doc "typecheck")
-    Term.(const run $ Cli.init_term () $ Cli.files_or_folders $ Cli.ninja_flags)
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.quiet
+      $ Cli.files_or_folders
+      $ Cli.ninja_flags)
 
 let clean_cmd =
   let run (config : Cli.config) =
@@ -1135,15 +1270,18 @@ let check_clerk_targets_tests backend clerk_targets =
 
 let run_clerk_test
     config
+    quiet
     (clerk_targets_or_files_or_folders : string list)
     (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
     (reset_test_outputs : bool)
     verbosity
-    xml
+    (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+    (code_coverage : bool)
     (diff_command : string option option)
     (ninja_flags : string list) : int =
   let build_dir = config.Cli.options.global.build_dir in
-  setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+  setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
+    code_coverage;
   if backend <> `Interpret then
     if config.Cli.test_flags <> [] then
       Message.error
@@ -1153,11 +1291,21 @@ let run_clerk_test
       Message.error
         "@{<bold>--reset@} can only be supplied with the default \
          @{<yellow>interpret@} backend"
-    else if xml then
+    else if report_format = `JUnitXML then
       Message.error
-        "Option @{<bold>--xml@} was specified, but the output of a test report \
-         is only supported with the default @{<yellow>interpret@} backend at \
-         the moment";
+        "Option @{<bold>--report-format=json@} was specified, but the output \
+         of a test report is only supported with the default \
+         @{<yellow>interpret@} backend at the moment"
+    else if report_format = `VSCodeJSON then
+      Message.error
+        "Option @{<bold>--report-format=vscode@} was specified, but the output \
+         of a test report is only supported with the default \
+         @{<yellow>interpret@} backend at the moment"
+    else if code_coverage then
+      Message.error
+        "Option @{<bold>--code-coverage@} was specified, but the measure of \
+         code coverage is only supported with the default \
+         @{<yellow>interpret@} backend at the moment";
   let { clerk_targets; others = files_or_folders } =
     classify_targets config clerk_targets_or_files_or_folders
   in
@@ -1177,8 +1325,8 @@ let run_clerk_test
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags ~autotest:false
-      ~clean_up_env:true
+    Clerk_rules.run_ninja ~code_coverage ~quiet ~config ~enabled_backends
+      ~ninja_flags ~autotest:false ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_tests config backend "" None
   else
@@ -1201,8 +1349,9 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~config ~enabled_backends ~ninja_flags
-        ~autotest:false ~clean_up_env:true (fun nin_ppf _items _vars ->
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
+        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
+        (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
@@ -1212,9 +1361,14 @@ let run_clerk_test
     let reports = List.flatten (List.map read_many test_targets) in
     if reset_test_outputs then
       let () =
-        if xml then
+        if report_format = `JUnitXML then
           Message.error
-            "Options @{<bold>--xml@} and @{<bold>--reset@} are incompatible";
+            "Options @{<bold>--report-format=xml@} and @{<bold>--reset@} are \
+             incompatible";
+        if report_format = `VSCodeJSON then
+          Message.error
+            "Options @{<bold>--report-format=json@} and @{<bold>--reset@} are \
+             incompatible";
         let ppf = Message.formatter_of_out_channel stdout () in
         match
           List.filter
@@ -1249,8 +1403,13 @@ let run_clerk_test
             (List.length need_reset)
       in
       raise (Catala_utils.Cli.Exit_with 0)
-    else if (if xml then print_xml else summary) ~build_dir reports then
-      raise (Catala_utils.Cli.Exit_with 0)
+    else if
+      (match report_format with
+      | `JUnitXML -> print_xml
+      | `Terminal -> summary
+      | `VSCodeJSON -> print_json)
+        ~build_dir reports
+    then raise (Catala_utils.Cli.Exit_with 0)
     else raise (Catala_utils.Cli.Exit_with 1)
 
 let test_cmd =
@@ -1269,24 +1428,33 @@ let test_cmd =
     Term.(
       const run_clerk_test
       $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backend
       $ Cli.reset_test_outputs
       $ Cli.report_verbosity
-      $ Cli.report_xml
+      $ Cli.report_format
+      $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.ninja_flags)
 
 let runtest_cmd =
-  let run catala_exe catala_opts include_dirs test_flags report out file =
+  let run
+      catala_exe
+      catala_opts
+      include_dirs
+      test_flags
+      report
+      (code_coverage : bool)
+      out
+      file =
     let catala_opts =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
     in
-    let test_flags = List.filter (( <> ) "") test_flags in
     Clerk_runtest.run_tests
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
-      ~catala_opts ~test_flags ~report ~out file;
+      ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
   in
   let doc =
@@ -1301,13 +1469,14 @@ let runtest_cmd =
       $ Cli.include_dirs
       $ Cli.test_flags
       $ Cli.runtest_report
+      $ Cli.code_coverage
       $ Cli.runtest_out
       $ Cli.single_file)
 
 let start_cmd =
-  let run config (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~config ~enabled_backends:[OCaml] ~autotest:false
-      ~ninja_flags (fun nin_ppf _ _ ->
+  let run config quiet (ninja_flags : string list) =
+    Clerk_rules.run_ninja ~code_coverage:false ~quiet ~config
+      ~enabled_backends:[OCaml] ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf
           (Nj.Default
              (Nj.Default.make
@@ -1325,11 +1494,22 @@ let start_cmd =
      before direct calls to the $(i,catala) compiler."
   in
   Cmd.v (Cmd.info ~doc "start")
-    Term.(const run $ Cli.init_term ~allow_test_flags:true () $ Cli.ninja_flags)
+    Term.(
+      const run
+      $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
+      $ Cli.ninja_flags)
 
 let ci_cmd =
-  let run config verbosity xml (diff_command : string option option) =
-    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command;
+  let run
+      config
+      quiet
+      verbosity
+      (code_coverage : bool)
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+      (diff_command : string option option) =
+    setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
+      code_coverage;
     let stop_on_failure f =
       try
         let ret = f () in
@@ -1344,13 +1524,13 @@ let ci_cmd =
           Filename.current_dir_name
           (* Post-[Cli.init], we are expected to be in the project's root dir *)
         in
-        run_clerk_test config [root_dir] `Interpret false verbosity xml
-          diff_command []);
+        run_clerk_test config quiet [root_dir] `Interpret false verbosity
+          report_format code_coverage diff_command []);
     let targets = config.Cli.options.targets in
     if targets = [] then raise (Catala_utils.Cli.Exit_with 0);
     List.iter
       (fun t ->
-        let _ = build_clerk_target ~config ~ninja_flags:[] t in
+        let _ = build_clerk_target ~quiet ~config ~ninja_flags:[] t in
         List.iter
           (fun bk ->
             let bk_rule = rules_backend (Clerk_rules.backend_from_config bk) in
@@ -1360,8 +1540,8 @@ let ci_cmd =
               "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
               t.tname
               (string_of_backend bk_rule);
-            run_clerk_test config [t.tname] bk_rule false verbosity xml
-              diff_command [])
+            run_clerk_test config quiet [t.tname] bk_rule false verbosity
+              report_format code_coverage diff_command [])
           t.backends)
       targets;
     raise (Catala_utils.Cli.Exit_with 0)
@@ -1380,18 +1560,34 @@ let ci_cmd =
     Term.(
       const run
       $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.quiet
       $ Cli.report_verbosity
-      $ Cli.report_xml
+      $ Cli.code_coverage
+      $ Cli.report_format
       $ Cli.diff_command)
 
 let report_cmd =
-  let run color debug verbosity xml diff_command build_dir files =
+  let run
+      color
+      debug
+      verbosity
+      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
+      (code_coverage : bool)
+      diff_command
+      build_dir
+      files =
     let _options = Catala_utils.Global.enforce_options ~debug ~color () in
     let build_dir = Option.value ~default:"_build" build_dir in
-    setup_report_format verbosity diff_command;
+    setup_report_format verbosity diff_command code_coverage;
     let open Clerk_report in
     let tests = List.flatten (List.map read_many files) in
-    let success = (if xml then print_xml else summary) ~build_dir tests in
+    let success =
+      (match report_format with
+      | `JUnitXML -> print_xml
+      | `Terminal -> summary
+      | `VSCodeJSON -> print_json)
+        ~build_dir tests
+    in
     exit (if success then 0 else 1)
   in
   let doc =
@@ -1404,7 +1600,8 @@ let report_cmd =
       $ Cli.color
       $ Cli.debug
       $ Cli.report_verbosity
-      $ Cli.report_xml
+      $ Cli.report_format
+      $ Cli.code_coverage
       $ Cli.diff_command
       $ Cli.build_dir
       $ Cli.files)
@@ -1412,7 +1609,7 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
         ~enabled_backends:Clerk_rules.all_backends ~config
     in
     Format.eprintf "Defined variables:@.";
@@ -1445,6 +1642,7 @@ let main_cmd =
       report_cmd;
       raw_cmd;
       list_vars_cmd;
+      reachable_cmd;
     ]
 
 let main () =
