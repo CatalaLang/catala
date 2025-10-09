@@ -745,7 +745,28 @@ let rec translate_expr
     let mark_constructor = Untyped { pos = pos_constructor } in
     match path with
     | [] ->
-      let possible_c_uids = get_possible_c_uids ctxt in
+      let possible_c_uids =
+        get_possible_c_uids ctxt
+        |> fun possible ->
+        if Global.options.whole_program && EnumName.Map.cardinal possible > 1
+        then (
+          let used_modules =
+            ModuleName.Set.of_seq
+              (Ident.Map.to_seq ctxt.local.used_modules |> Seq.map snd)
+          in
+          Message.debug "used_modules: %a"
+            Format.(pp_print_list ~pp_sep:pp_print_space ModuleName.format)
+            (ModuleName.Set.elements used_modules);
+          EnumName.Map.filter
+            (fun en _ ->
+              match List.rev (EnumName.path en) with
+              | [] -> true
+              | mn :: _ as path ->
+                Message.debug "%a" Uid.Path.format path;
+                ModuleName.Set.mem mn used_modules)
+            possible)
+        else possible
+      in
       if
         (* No enum name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1
