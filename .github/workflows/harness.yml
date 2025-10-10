@@ -36,7 +36,9 @@ jobs:
           ref: ${{ env.GIT_FETCH_REF }}
       - name: Get git-describe version
         id: describe
-        run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
+        run: |
+          git config --system --add safe.directory "${GITHUB_WORKSPACE}"
+          echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Get an image tag that Docker accepts
         id: branch
         run: sed 's/[^a-zA-Z0-9-]/-/g; s/^/tag=/' <<<"${{ github.head_ref || github.ref_name }}" >> "$GITHUB_OUTPUT"
