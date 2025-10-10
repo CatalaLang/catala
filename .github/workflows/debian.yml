@@ -65,6 +65,3 @@ jobs:
           rm: true
           token: ${{ secrets.GITHUB_TOKEN }}
           files: debian-package/*
-      - name: Cleanup
-        if: ${{ always() }}
-        run: rm -rf "$(dirname ${GITHUB_WORKSPACE})/*" ~/.cache/dune
