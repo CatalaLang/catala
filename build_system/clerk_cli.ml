@@ -316,6 +316,15 @@ let ninja_flags =
   in
   Term.(const makeflags_to_ninja_flags $ makeflags)
 
+let whole_program =
+  let open Arg in
+  value
+  & flag
+  & info ["W"; "whole-program"]
+      ~doc:
+        "Use Catala $(i,--whole-program) option when testing or executing \
+         Catala scopes."
+
 let info =
   let doc =
     "Build system for Catala, a specification language for tax and social \
@@ -361,7 +370,8 @@ let init
     target_dir
     include_dirs
     color
-    debug =
+    debug
+    whole_program =
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let default_config_file = "clerk.toml" in
   let set_root_dir dir =
@@ -425,6 +435,9 @@ let init
     File.ensure_dir dir;
     dir
   in
+  let test_flags =
+    if whole_program then "--whole-program" :: test_flags else test_flags
+  in
   {
     options =
       {
@@ -457,4 +470,5 @@ let init_term ?(allow_test_flags = false) () =
     $ target_dir
     $ include_dirs
     $ color
-    $ debug)
+    $ debug
+    $ whole_program)

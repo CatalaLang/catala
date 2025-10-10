@@ -745,7 +745,25 @@ let rec translate_expr
     let mark_constructor = Untyped { pos = pos_constructor } in
     match path with
     | [] ->
-      let possible_c_uids = get_possible_c_uids ctxt in
+      let possible_c_uids =
+        let possible = get_possible_c_uids ctxt in
+        (* In whole-program, all identifiers are joined together in the root
+           module. If there is an ambiguity, we need to give priority to module
+           usage's constructors as the non-whole-program mode does. *)
+        if Global.options.whole_program && EnumName.Map.cardinal possible > 1
+        then
+          let used_modules =
+            ModuleName.Set.of_seq
+              (Ident.Map.to_seq ctxt.local.used_modules |> Seq.map snd)
+          in
+          EnumName.Map.filter
+            (fun ename _ ->
+              match List.rev (EnumName.path ename) with
+              | [] -> true
+              | mn :: _ -> ModuleName.Set.mem mn used_modules)
+            possible
+        else possible
+      in
       if
         (* No enum name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1

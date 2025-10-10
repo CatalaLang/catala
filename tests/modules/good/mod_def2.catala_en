@@ -1,0 +1,17 @@
+> Module Mod_def2
+
+```catala-metadata
+declaration scope Si :
+    output x content integer
+
+declaration scope S :
+    output x content list of Si
+```
+
+```catala
+scope Si:
+    definition x equals 1
+
+scope S :
+    definition x equals [ (output of Si)]
+```

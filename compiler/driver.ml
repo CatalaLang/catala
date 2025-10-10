@@ -35,6 +35,8 @@ let load_modules
     program :
     ModuleName.t Ident.Map.t
     * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
+  Message.with_delayed_errors
+  @@ fun () ->
   let stdlib_root_module lang =
     let lang = if Global.has_localised_stdlib lang then lang else Global.En in
     "Stdlib_" ^ Cli.language_code lang
