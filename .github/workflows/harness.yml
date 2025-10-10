@@ -37,7 +37,7 @@ jobs:
       - name: Get git-describe version
         id: describe
         run: |
-          git config --system --add safe.directory "${GITHUB_WORKSPACE}"
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Get an image tag that Docker accepts
         id: branch
