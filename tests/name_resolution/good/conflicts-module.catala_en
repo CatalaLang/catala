@@ -29,6 +29,36 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
+let () =
+  match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Period_en, it may need recompiling"
+module Period_en = Period_en
+let () =
+  match Catala_runtime.check_module "Money_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Money_en, it may need recompiling"
+module Money_en = Money_en
+let () =
+  match Catala_runtime.check_module "Integer_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Integer_en, it may need recompiling"
+module Integer_en = Integer_en
+let () =
+  match Catala_runtime.check_module "Decimal_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
+module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module Closure_scoppe = struct
   type t = {scoppe: bool}
@@ -61,19 +91,22 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
-        Obj.repr (let closure_scoppe__2 :
-                    Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe_in.t) ->
-                       closure_scoppe x0)
-                 in
-                 (closure_scoppe__2, (o_toclosureenv ())));
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                        in
+                        (closure_scoppe__2, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Obj.repr (let closure_scoppe__2 :
-                    Obj.t -> Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) ->
-                       closure_scoppe__1 x0)
-                 in
-                 (closure_scoppe__2, (o_toclosureenv ()))) ]
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                        in
+                        (closure_scoppe__2, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 
@@ -115,6 +148,36 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
+let () =
+  match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Period_en, it may need recompiling"
+module Period_en = Period_en
+let () =
+  match Catala_runtime.check_module "Money_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Money_en, it may need recompiling"
+module Money_en = Money_en
+let () =
+  match Catala_runtime.check_module "Integer_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Integer_en, it may need recompiling"
+module Integer_en = Integer_en
+let () =
+  match Catala_runtime.check_module "Decimal_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
+module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module Closure_scoppe = struct
   type t = {scoppe: bool}
@@ -134,21 +197,21 @@ end
 
 
 (* Toplevel def closure_scoppe *)
-let closure_scoppe__2 : Obj.t -> bool -> integer -> bool =
-  fun (_: Obj.t) (acc: bool) (x: integer) ->
+let closure_scoppe__2 : Obj.t(*closure env*) -> bool -> integer -> bool =
+  fun (_: Obj.t(*closure env*)) (acc: bool) (x: integer) ->
     acc && (o_gt_int_int x (integer_of_string "2"))
 
 (* Scope Closure_scøppe *)
 let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool =
      if
-      (o_fold (closure_scoppe__2, (o_toclosureenv ())) true
+      (o_fold (closure_scoppe__2 (o_toclosureenv ())) true
          ([|(integer_of_string "5"); (integer_of_string "6");
             (integer_of_string "7")|])) then
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=84; start_column=14; end_line=84; end_column=24;
+              start_line=117; start_column=14; end_line=117; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,
@@ -166,18 +229,21 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc\195\184ppe",
-        Obj.repr (let closure_scoppe__3 :
-                    Obj.t -> Closure_scoppe_in.t -> Closure_scoppe.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe_in.t) ->
-                       closure_scoppe x0)
-                 in
-                 (closure_scoppe__3, (o_toclosureenv ())));
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                        in
+                        (closure_scoppe__3, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Obj.repr (let closure_scoppe__3 :
-                    Obj.t -> Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
-                    (fun (_: Obj.t) (x0: Closure_scoppe__1_in.t) ->
-                       closure_scoppe__1 x0)
-                 in
-                 (closure_scoppe__3, (o_toclosureenv ()))) ]
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                        in
+                        (closure_scoppe__3, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

@@ -1,0 +1,72 @@
+# Decimals
+
+> Module Decimal_en
+
+## Helper functions
+
+```catala-metadata
+declaration min
+  content decimal
+  depends on m1 content decimal,
+    m2 content decimal
+  equals
+    if m1 > m2 then m2 else m1
+
+declaration max
+  content decimal
+  depends on m1 content decimal,
+    m2 content decimal
+  equals
+    if m1 > m2 then m1 else m2
+
+declaration ceiling
+  content decimal
+  depends on variable content decimal,
+    ceiling content decimal
+  equals min of variable, ceiling
+
+declaration floor
+  content decimal
+  depends on variable content decimal,
+    floor content decimal
+  equals max of variable, floor
+
+## Floors the value at 0,0
+declaration positive
+  content decimal
+  depends on variable content decimal
+  equals floor of variable, 0.0
+
+declaration truncate
+  content decimal
+  depends on variable content decimal
+  equals
+    if variable = 0.0 then
+      0.0
+    else if variable > 0.0 then
+      round of (variable - 0.5)
+    else
+      round of (variable + 0.5)
+
+declaration round_by_excess
+  content decimal
+  depends on variable content decimal
+  equals
+    if variable >= 0.0 then
+      if truncate of variable = variable then
+        variable
+      else
+        truncate of (variable + 1.0)
+    else round of (variable + 0.5)
+
+declaration round_by_default
+  content decimal
+  depends on variable content decimal
+  equals
+    if variable > 0.0 then
+      truncate of variable
+    else if truncate of variable = variable then
+      variable
+    else
+      truncate of (variable - 1.0)
+```

@@ -38,7 +38,12 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
     @Override
     public CatalaBool equalsTo(CatalaValue other) {
         if (other instanceof CatalaOption catalaOption) {
-            return this.equalsTo(catalaOption);
+            if (this == NONE)
+                return CatalaBool.fromBoolean(catalaOption == NONE);
+            else if (catalaOption == NONE)
+                return CatalaBool.FALSE;
+            else
+                return this.value.equalsTo(catalaOption.value);
         } else {
             return CatalaBool.FALSE;
         }

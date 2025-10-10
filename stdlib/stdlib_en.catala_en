@@ -19,11 +19,8 @@
 ```
 
 > Using Date_en as Date
-
-xx > Using Period_en as Period
-
-```catala-metadata
-declaration positive content money depends on x content money
-  equals
-  if x < $0 then $0 else x
-```
+> Using Period_en as Period
+> Using Money_en as Money
+> Using Integer_en as Integer
+> Using Decimal_en as Decimal
+> Using List_en as List

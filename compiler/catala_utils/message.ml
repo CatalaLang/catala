@@ -120,7 +120,7 @@ let print_time_marker =
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 50. then
+    if delta > 150. then
       Format.fprintf ppf
         "[@{<bold;magenta>DEBUG@}] @{<bold;black>- %.0fms elapsed -@}@," delta
 

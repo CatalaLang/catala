@@ -225,13 +225,20 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
            format_typ_with_parens)
         (t1 @ [t2])
     | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
-    | TVar v -> Format.fprintf fmt "'%s" (Bindlib.name_of v)
+    | TVar v ->
+      let name = Bindlib.name_of v in
+      let name =
+        if String.starts_with ~prefix:"'" name then
+          "a" ^ String.sub name 1 (String.length name - 1)
+        else "t" ^ name
+      in
+      Format.fprintf fmt "'%s" name
     | TForAll tb ->
       (* We suppose here that there aren't multiple parallel binders in the same
          type: in that case two variables could be named the same *)
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
-    | TClosureEnv -> Format.fprintf fmt "Obj.t"
+    | TClosureEnv -> Format.fprintf fmt "Obj.t(*closure env*)"
   in
   aux Bindlib.empty_ctxt fmt typ
 
@@ -395,6 +402,25 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "@[<hov 2>%a %s@ %a@]" format_with_parens e1
       (if op = And then "&&" else "||")
       format_with_parens e2
+  | EAppOp
+      {
+        op = ((Map | Map2 | Filter | Fold | Reduce), _) as op;
+        args = (ETuple [clos_f; clos_env], mclos) :: args;
+        tys;
+      } ->
+    (* This hack is for handling closure-converted terms when passed to the base
+       runtime operators *)
+    let m = Mark.get e in
+    let e1 =
+      ( EApp
+          {
+            f = clos_f;
+            args = [clos_env];
+            tys = [TClosureEnv, Expr.mark_pos m];
+          },
+        mclos )
+    in
+    format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
   | EAppOp { op = op, pos; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
@@ -664,14 +690,16 @@ let format_scope_exec_args
   Format.pp_print_string fmt
     {|
 let commands =
-  List.map (fun c ->
-      if List.mem c test_scopes then c else (
-        print_endline "Specify scopes from the following list (or no argument \
-                       for running them all):";
-        List.iter (fun n -> print_endline ("  - " ^ n)) test_scopes;
-        exit 1
+  Stdlib.List.map (fun c ->
+      if Stdlib.List.mem c test_scopes then c else (
+        Stdlib.print_endline
+          "Specify scopes from the following list (or no argument \
+           for running them all):";
+        Stdlib.List.iter (fun n -> Stdlib.print_endline ("  - " ^ n))
+          test_scopes;
+        Stdlib.exit 1
       ))
-    (List.tl (Array.to_list Sys.argv))
+    (Stdlib.List.tl (Stdlib.Array.to_list Stdlib.Sys.argv))
 
 let commands = if commands = [] then test_scopes else commands
 
@@ -691,8 +719,8 @@ let commands = if commands = [] then test_scopes else commands
       (* Note: this only checks that execution doesn't raise errors or assert
          failures. Adding a printer for the results could be an idea... *)
       Format.fprintf fmt
-        "let () = if List.mem %S commands then (@,\
-        \  @[<hv>@[<hov 2>let _ =@ @[<hv>%a@]@]@ in@ print_endline \
+        "let () = if Stdlib.List.mem %S commands then (@,\
+        \  @[<hv>@[<hov 2>let _ =@ @[<hv>%a@]@]@ in@ Stdlib.print_endline \
          \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\"@]@,\
          )@,"
         (ScopeName.to_string scope)
@@ -735,7 +763,8 @@ let format_module_registration ctx fmt exports modname hash is_external =
       Format.pp_print_char fmt ';';
       Format.pp_print_cut fmt ())
     (fun fmt (name, e) ->
-      Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" name (format_expr ctx) e)
+      Format.fprintf fmt "@[<hov 2>%S,@ Stdlib.Obj.repr %a@]" name
+        (format_expr ctx) e)
     fmt
     (List.filter_map
        (function

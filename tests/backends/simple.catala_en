@@ -39,6 +39,11 @@ $ catala c
 
 #include <Stdlib_en.h>
 #include <Date_en.h>
+#include <Period_en.h>
+#include <Money_en.h>
+#include <Integer_en.h>
+#include <Decimal_en.h>
+#include <List_en.h>
 
 typedef struct Foo {
   CATALA_BOOL x;

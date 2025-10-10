@@ -159,11 +159,11 @@ static mpz_t zconst_100;
   ((X) ? CATALA_TRUE : CATALA_FALSE)
 
 #define CATALA_NEW_MPZ(X) \
-  mpz_ptr X = catala_malloc(sizeof(__mpz_struct)); \
+  const mpz_ptr X = catala_malloc(sizeof(__mpz_struct)); \
   mpz_init(X)
 
 #define CATALA_NEW_MPQ(X) \
-  mpq_ptr X = catala_malloc(sizeof(__mpq_struct)); \
+  const mpq_ptr X = catala_malloc(sizeof(__mpq_struct)); \
   mpq_init(X)
 
 CATALA_BOOL catala_new_bool(const int x)

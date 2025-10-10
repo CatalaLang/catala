@@ -19,9 +19,8 @@
 ```
 
 > Usage de Date_fr en tant que Date
-
-```catala-metadata
-déclaration positif contenu argent dépend de x contenu argent
-  égal à
-  si x < 0€ alors 0€ sinon x
-```
+> Usage de Period_fr en tant que Période
+> Usage de Money_fr en tant que Argent
+> Usage de Integer_fr en tant que Entier
+> Usage de Decimal_fr en tant que Décimal
+> Usage de List_fr en tant que Liste

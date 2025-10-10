@@ -1,53 +1,199 @@
+# Dates
+
 > Module Date_en
 
 > Using Date_internal as D
 
+## Helper functions
+
 ```catala-metadata
 ## Returns the earlier of two dates
-declaration min content date
+declaration min
+  content date
   depends on x content date,
-             y content date
+    y content date
   equals
-  if x <= y then x else y
+    if x <= y then x else y
 
 ## Returns the latter of two dates
-declaration max content date
+declaration max
+  content date
   depends on x content date,
-             y content date
+    y content date
   equals
-  if x >= y then x else y
+    if x >= y then x else y
+```
 
-declaration of_year_month_day content date
-  depends on #[implicit_position_argument] pos content code_location,
-             dyear content integer,
-             dmonth content integer,
-             dday content integer
+## Dates and years, months and days
+
+```catala-metadata
+declaration of_year_month_day
+  content date
+  depends on
+  #[implicit_position_argument]
+    pos content code_location,
+    dyear content integer,
+    dmonth content integer,
+    dday content integer
   equals D.of_ymd of pos, dyear, dmonth, dday
 
-declaration to_year_month_day content (integer, integer, integer)
+declaration to_year_month_day
+  content ( integer, integer, integer )
   depends on d content date
   equals
-  D.to_ymd of d
+    D.to_ymd of d
 
-declaration last_day_of_month content date
-  depends on d content date
-  equals D.last_day_of_month of d
-
-declaration get_year content integer
+declaration get_year
+  content integer
   depends on d content date
   equals (to_year_month_day of d).1
 
-declaration get_month content integer
+declaration get_month
+  content integer
   depends on d content date
   equals (to_year_month_day of d).2
 
-declaration get_day content integer
+declaration get_day
+  content integer
   depends on d content date
   equals (to_year_month_day of d).3
+```
 
-declaration first_day_of_month content date
+## Getting to the past or future
+
+```catala-metadata
+declaration first_day_of_month
+  content date
   depends on d content date
   equals
-  let ymd equals to_year_month_day of d in
-  of_year_month_day of (ymd.1, ymd.2, 1)
+    let ymd equals to_year_month_day of d in
+    of_year_month_day of ( ymd.1, ymd.2, 1 )
+
+declaration last_day_of_month
+  content date
+  depends on d content date
+  equals D.last_day_of_month of d
+
+declaration first_day_of_year
+  content date
+  depends on d content date
+  equals
+    let ymd equals to_year_month_day of d in
+    of_year_month_day of ( ymd.1, 1, 1 )
+
+declaration last_day_of_year
+  content date
+  depends on d content date
+  equals
+    let ymd equals to_year_month_day of d in
+    of_year_month_day of ( ymd.1, 12, 31 )
+```
+
+## Named months and months of specific years
+
+```catala-metadata
+declaration enumeration Month:
+  -- January
+  -- February
+  -- March
+  -- April
+  -- May
+  -- June
+  -- July
+  -- August
+  -- September
+  -- October
+  -- November
+  -- December
+
+declaration month_to_int
+  content integer
+  depends on m content Month
+  equals
+    match m with pattern
+    -- January : 1
+    -- February : 2
+    -- March : 3
+    -- April : 4
+    -- May : 5
+    -- June : 6
+    -- July : 7
+    -- August : 8
+    -- September : 9
+    -- October : 10
+    -- November : 11
+    -- December : 12
+
+declaration structure MonthOfYear:
+  data year_number content integer
+  data month_name content Month
+
+declaration month_of_int
+  content Month
+  depends on i content integer
+  equals
+    if i = 1 then January
+    else if i = 2 then February
+    else if i = 3 then March
+    else if i = 4 then April
+    else if i = 5 then May
+    else if i = 6 then June
+    else if i = 7 then July
+    else if i = 8 then August
+    else if i = 9 then September
+    else if i = 10 then October
+    else if i = 11 then November
+    else if i = 12 then December
+    else impossible
+
+declaration month_of_year_to_first_day_of_month
+  content date
+  depends on m content MonthOfYear
+  equals
+    of_year_month_day of ( m.year_number, (month_to_int of m.month_name), 1 )
+
+declaration to_month_of_year
+  content MonthOfYear
+  depends on d content date
+  equals
+    MonthOfYear {
+      -- year_number: get_year of d
+      -- month_name: month_of_int of (get_month of d)
+    }
+```
+
+## Date comparisons
+
+```catala-metadata
+declaration is_after_date_plus_delay
+  content boolean
+  depends on compared_date content date,
+    reference_date content date,
+    delay content duration
+  equals
+    compared_date >= reference_date + delay
+
+declaration is_old_enough
+  content boolean
+  depends on currrent_date content date,
+    birth_date content date,
+    target_age content duration
+  equals
+    currrent_date >= birth_date + target_age
+
+declaration is_before_date_plus_delay
+  content boolean
+  depends on compared_date content date,
+    reference_date content date,
+    delay content duration
+  equals
+    compared_date <= reference_date + delay
+
+declaration is_young_enough
+  content boolean
+  depends on currrent_date content date,
+    birth_date content date,
+    target_age content duration
+  equals
+    currrent_date <= birth_date + target_age
 ```

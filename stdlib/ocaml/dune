@@ -1,0 +1,4 @@
+(library
+ (name stdlib_internals)
+ (public_name catala.stdlib_internals)
+ (libraries catala.runtime_ocaml))

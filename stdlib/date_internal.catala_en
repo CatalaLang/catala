@@ -1,15 +1,18 @@
 > Module Date_internal external
 
 ```catala-metadata
-declaration of_ymd content date
+declaration of_ymd
+  content date
   depends on pos content code_location,
-             dyear content integer,
-             dmonth content integer,
-             dday content integer
+    dyear content integer,
+    dmonth content integer,
+    dday content integer
 
-declaration to_ymd content (integer, integer, integer)
+declaration to_ymd
+  content ( integer, integer, integer )
   depends on d content date
 
-declaration last_day_of_month content date
+declaration last_day_of_month
+  content date
   depends on d content date
 ```

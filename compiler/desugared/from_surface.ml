@@ -2127,7 +2127,7 @@ let translate_program
                     EFatalError Runtime.Impossible, Untyped { pos }
                   in
                   let expr =
-                    match topdef.Ast.topdef_arg_names, typ with
+                    match topdef.Ast.topdef_arg_names, Type.unquantify typ with
                     | [], _ -> impossible
                     | args, (TArrow (targs, _), _) ->
                       let body =

@@ -318,13 +318,21 @@ let rec union
           t2))
   | TVar v1, _ ->
     let t =
-      match Env.get_tvar env v1 with None -> t2 | Some t1 -> union t1 t2
+      match Env.get_tvar env v1 with
+      | None -> t2
+      | Some t1 ->
+        Env.set_tvar env v1 t2;
+        union t1 t2
     in
     Env.set_tvar env v1 t;
     t
   | _, TVar v2 ->
     let t =
-      match Env.get_tvar env v2 with None -> t1 | Some t2 -> union t1 t2
+      match Env.get_tvar env v2 with
+      | None -> t1
+      | Some t2 ->
+        Env.set_tvar env v2 t1;
+        union t1 t2
     in
     Env.set_tvar env v2 t;
     t
@@ -728,25 +736,22 @@ and typecheck_expr_top_down :
     let cell_type = Type.fresh_var (Expr.pos e1) in
     let t_arg = TOption cell_type, Expr.pos e1 in
     let cases_ty =
-      ListLabels.fold_right2
-        [Expr.none_constr; Expr.some_constr]
-        [TLit TUnit, Expr.pos e1; cell_type]
-        ~f:EnumConstructor.Map.add ~init:EnumConstructor.Map.empty
+      EnumConstructor.Map.of_list
+        [
+          Expr.none_constr, (TLit TUnit, Expr.pos e1);
+          Expr.some_constr, cell_type;
+        ]
     in
     let t_ret = Type.fresh_var (Expr.pos e) in
     let mark = mark_with_tau_and_unify t_ret in
     let e1' = typecheck_expr_top_down ctx env t_arg e1 in
     let cases =
-      EnumConstructor.Map.merge
-        (fun _ e e_ty ->
-          match e, e_ty with
-          | Some e, Some e_ty ->
-            Some
-              (typecheck_expr_top_down ctx env
-                 (TArrow ([e_ty], t_ret), Expr.pos e)
-                 e)
-          | _ -> assert false)
-        cases cases_ty
+      EnumConstructor.Map.mapi
+        (fun c_name e ->
+          let c_ty = EnumConstructor.Map.find c_name cases_ty in
+          let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
+          typecheck_expr_top_down ctx env e_ty e)
+        cases
     in
     Expr.ematch ~e:e1' ~name ~cases mark
   | EMatch { e = e1; name; cases } ->

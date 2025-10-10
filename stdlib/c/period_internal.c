@@ -9,13 +9,14 @@
 #include <catala_runtime.h>
 
 
-const CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE;CATALA_DATE))
+CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE;CATALA_DATE), void *))
     PeriodInternal__sort
-    (const CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE;CATALA_DATE)) p)
+    (const CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE;CATALA_DATE), void *)) p)
 {
   static const catala_code_position pos[1] =
     {{"stdlib/period_internal.catala_en", 6, 13, 6, 17}};
   catala_error(catala_impossible, pos, 1);
+  /* TODO */
   abort();
 }
 
@@ -26,6 +27,7 @@ const CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE;CATALA_DATE))
   static const catala_code_position pos[1] =
     {{"stdlib/period_internal.catala_en", 9, 13, 9, 27}};
   catala_error(catala_impossible, pos, 1);
+  /* TODO */
   abort();
 }
 
@@ -36,6 +38,7 @@ const CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE;CATALA_DATE))
   static const catala_code_position pos[1] =
     {{"stdlib/period_internal.catala_en", 12, 13, 12, 26}};
   catala_error(catala_impossible, pos, 1);
+  /* TODO */
   abort();
 }
 

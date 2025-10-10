@@ -7,6 +7,7 @@ public class Prorata_external {
 
         private static final CatalaPosition dummy_position = new CatalaPosition("src/periodes.java", 0, 0, 0, 0, new String[]{});
 
+        @SuppressWarnings("unchecked")
         public static final CatalaFunction<CatalaTuple, CatalaArray<CatalaMoney>> prorata
                 = x -> {
                     CatalaMoney amount = x.get(0, CatalaMoney.class);
@@ -28,6 +29,7 @@ public class Prorata_external {
                     return new CatalaArray(new_weights);
                 };
 
+        @SuppressWarnings("unchecked")
         public static final CatalaFunction<CatalaTuple, CatalaArray<CatalaMoney>> prorata2
                 = x -> {
                     CatalaMoney amount = x.get(0, CatalaMoney.class);

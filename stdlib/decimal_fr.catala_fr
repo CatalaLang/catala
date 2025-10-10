@@ -1,0 +1,72 @@
+# Décimaux
+
+> Module Decimal_fr
+
+## Fonctions utilitaires
+
+```catala-metadata
+déclaration min
+  contenu décimal
+  dépend de m1 contenu décimal,
+    m2 contenu décimal
+  égal à
+    si m1 > m2 alors m2 sinon m1
+
+déclaration max
+  contenu décimal
+  dépend de m1 contenu décimal,
+    m2 contenu décimal
+  égal à
+    si m1 > m2 alors m1 sinon m2
+
+déclaration plafond
+  contenu décimal
+  dépend de variable contenu décimal,
+    plafond contenu décimal
+  égal à min de variable, plafond
+
+déclaration plancher
+  contenu décimal
+  dépend de variable contenu décimal,
+    plancher contenu décimal
+  égal à max de variable, plancher
+
+## Applique une valeur plancher à 0€
+déclaration positif
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à plancher de variable, 0,0
+
+déclaration troncature
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à
+    si variable = 0,0 alors
+      0,0
+    sinon si variable > 0,0 alors
+      arrondi de (variable - 0,5)
+    sinon
+      arrondi de (variable + 0,5)
+
+déclaration arrondi_par_excès
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à
+    si variable >= 0,0 alors
+      si troncature de variable = variable alors
+        variable
+      sinon
+        troncature de (variable + 1,0)
+    sinon arrondi de (variable + 0,5)
+
+déclaration arrondi_par_défaut
+  contenu décimal
+  dépend de variable contenu décimal
+  égal à
+    si variable > 0,0 alors
+      troncature de variable
+    sinon si troncature de variable = variable alors
+      variable
+    sinon
+      troncature de (variable - 1,0)
+```

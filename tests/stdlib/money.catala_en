@@ -1,0 +1,52 @@
+```catala
+#[test]
+declaration scope A:
+  output x1 content money
+  output x2 content money
+  output y1 content money
+  output y2 content money
+  output v1 content money
+  output v2 content money
+  output w1 content money
+  output w2 content money
+  internal test_values content list of money
+  output truncations content list of money
+  output roundings_by_excess content list of money
+  output roundings_by_default content list of money
+
+scope A:
+  definition x1 equals Money.ceiling of $23554, $20000
+  assertion x1 = $20000
+  definition x2 equals Money.ceiling of $18000, $20000
+  assertion x2 = $18000
+  definition y1 equals Money.floor of $23554, $20000
+  assertion y1 = $23554
+  definition y2 equals Money.floor of $19000, $20000
+  assertion y2 = $20000
+  definition v1 equals Money.in_excess of $23554, $20000
+  assertion v1 = $3554
+  definition v2 equals Money.in_excess of $18000, $20000
+  assertion v2 = $0
+  definition w1 equals Money.in_default of $23554, $20000
+  assertion w1 = $0
+  definition w2 equals Money.in_default of $19000, $20000
+  assertion w2 = $1000
+
+  definition test_values equals
+    [ $0 ; $3.00 ; $3.30 ; $3.50 ; $3.99 ; -$3.00 ; -$3.30 ; -$3.50 ; -$3.99 ]
+
+  definition truncations equals
+    map each m among test_values to Money.truncate of m
+  assertion truncations
+  = [ $0 ; $3.00 ; $3.00 ; $3.00 ; $3.00 ; -$3.00 ; -$3.00 ; -$3.00 ; -$3.00 ]
+
+  definition roundings_by_excess equals
+    map each m among test_values to Money.round_by_excess of m
+  assertion roundings_by_excess
+  = [ $0 ; $3.00 ; $4.00 ; $4.00 ; $4.00 ; -$3.00 ; -$3.00 ; -$3.00 ; -$3.00 ]
+
+  definition roundings_by_default equals
+    map each m among test_values to Money.round_by_default of m
+  assertion roundings_by_default
+  = [ $0 ; $3.00 ; $3.00 ; $3.00 ; $3.00 ; -$3.00 ; -$4.00 ; -$4.00 ; -$4.00 ]
+```

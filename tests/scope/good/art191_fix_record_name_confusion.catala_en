@@ -48,6 +48,36 @@ let () =
   | Ok () -> ()
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
+let () =
+  match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Period_en, it may need recompiling"
+module Period_en = Period_en
+let () =
+  match Catala_runtime.check_module "Money_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Money_en, it may need recompiling"
+module Money_en = Money_en
+let () =
+  match Catala_runtime.check_module "Integer_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Integer_en, it may need recompiling"
+module Integer_en = Integer_en
+let () =
+  match Catala_runtime.check_module "Decimal_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
+module Decimal_en = Decimal_en
+let () =
+  match Catala_runtime.check_module "List_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
+module List_en = List_en
 
 module ScopeA = struct
   type t = {a: bool}
