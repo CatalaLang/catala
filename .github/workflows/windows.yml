@@ -1,0 +1,49 @@
+name: Windows smoke test
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  windows-smoke:
+    name: Windows smoke test
+    runs-on: windows-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install opam and Ninja via winget
+        run: |
+          winget install --id OCaml.opam --source winget --accept-package-agreements --accept-source-agreements --silent
+          winget install --id Ninja-build.Ninja --source winget --accept-package-agreements --accept-source-agreements --silent
+
+      - name: Initialize opam (non-interactive) and create local switch
+        run: |
+          opam init -y --bare --disable-sandboxing
+          opam switch create . -y
+          opam switch set .
+          opam --version
+
+      - name: Build and install Catala through opam
+        run: |
+          opam update
+          opam install . -y
+
+      - name: Run built-in tests
+        run: |
+          opam exec -- dune test
+
+      - name: Clone catala-examples
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dst = "$env:USERPROFILE\catala-examples"
+          if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 -b main $dst
+
+      - name: Run clerk test in catala-examples
+        run: |
+          Push-Location "$env:USERPROFILE\catala-examples"
+          opam exec -- clerk test
+          Pop-Location
