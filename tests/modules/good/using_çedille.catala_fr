@@ -1,0 +1,10 @@
+> Usage de Utf_çédille
+
+```catala
+#[test]
+déclaration champ d'application Test:
+  rien champ d'application Utf_çédille.Rien
+
+champ d'application Test:
+  définition rien.x égal à 0
+```

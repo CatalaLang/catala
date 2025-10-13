@@ -500,9 +500,25 @@ module Tree = struct
   let lookup t path =
     try
       let t = subtree t (dirname path) in
-      match Map.find_opt (Filename.basename path) (Lazy.force t) with
-      | Some (path, F) -> Some path
-      | Some (_, D _) | None -> None
+      let fname = String.to_id (Filename.basename path) in
+      let matches =
+        Map.filter_map
+          (fun s m ->
+            match equal (String.to_id s) fname, m with
+            | true, (path, F) -> Some path
+            | _ -> None)
+          (Lazy.force t)
+      in
+      match Map.cardinal matches with
+      | 0 -> None
+      | 1 -> Some (snd (Map.choose matches))
+      | _ ->
+        Message.error
+          "Multiple files match the same module name:@ @[<v>%a@]@,\
+           @{<b>Hint:@} Rename your modules to avoid conflicts. You may need \
+           to run `clerk clean`"
+          (Format.pp_print_list format)
+          (List.map fst (Map.bindings matches))
     with Not_found -> None
 
   let union t1 t2 =

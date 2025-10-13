@@ -248,8 +248,9 @@ module Tree : sig
   (** Looks up a path within a lazy tree *)
 
   val lookup : t -> path -> path option
-  (** Checks if there is a matching plain file (case-insensitively) ; and
-      returns its path with the correct case if so *)
+  (** Checks if there is a matching plain file (after projection to ASCII using
+      `String.to_id`, and case-insensitively) ; and returns its path with the
+      correct case if so *)
 
   val union : t -> t -> t
   (** Merges two trees. In case of conflict, lhs entry wins *)
