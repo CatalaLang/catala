@@ -2,6 +2,8 @@
 
 > Module Decimal_fr
 
+> Usage de Decimal_internal en tant que D
+
 ## Fonctions utilitaires
 
 ```catala-metadata
@@ -81,4 +83,14 @@ déclaration arrondi_par_défaut
       variable
     sinon
       troncature de (variable - 1,0)
+
+## Arrondi un nombre à la [nième_décimale] spécifiée.
+## [nième_décimale] peut être une valeur négative. Par exemple,
+## `arrondi_à_la_décimale de 123,4567,  3 = 123,457` et
+## `arrondi_à_la_décimale de 123,4567, -2 = 100,0`.
+déclaration arrondi_à_la_décimale
+  contenu décimal
+  dépend de variable contenu décimal,
+    nième_décimale contenu entier
+  égal à D.round_to_decimal de variable, nième_décimale
 ```

@@ -13,6 +13,7 @@ declaration scope A:
   output truncations content list of money
   output roundings_by_excess content list of money
   output roundings_by_default content list of money
+  output roundings_to_decimal content list of money
 
 scope A:
   definition x1 equals Money.ceiling of $23554, $20000
@@ -49,4 +50,12 @@ scope A:
     map each m among test_values to Money.round_by_default of m
   assertion roundings_by_default
   = [ $0 ; $3.00 ; $3.00 ; $3.00 ; $3.00 ; -$3.00 ; -$4.00 ; -$4.00 ; -$4.00 ]
+
+  definition roundings_to_decimal equals
+    let test_values equals
+        [ ($0, 2) ; ($0, 1) ; ($0, 0) ; ($0, -1) ; ($1234.56, 2) ; ($1234.56, 1) ; ($1234.56, 0) ; ($1234.56, -1) ; ($1234.56, -2) ]
+    in
+    map each (n,d) among test_values to Money.round_to_decimal of n, d
+  assertion roundings_to_decimal
+      = [ $0 ; $0 ; $0 ; $0 ; $1234.56 ; $1234.6 ; $1235 ; $1230 ; $1200 ]
 ```
