@@ -576,7 +576,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
   let modules, ctxt =
     List.fold_left
       (fun (modules, ctxt) (m, _) ->
-        let name, pos = ModuleName.get_info m in
+        let name, pos = ModuleName.get_info (ModuleName.normalise m) in
         let vname, ctxt =
           if config.keep_module_names then
             ( name,

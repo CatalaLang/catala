@@ -82,7 +82,13 @@ module Gen (_ : Style) () : Id with type info = MarkedString.info
 
 (** {2 Handling of Uids with additional path information} *)
 
-module Module : Id with type info = MarkedString.info
+module Module : sig
+  include Id with type info = MarkedString.info
+
+  val normalise : t -> t
+  (** Projects the module name to alphanumeric, for use in file names and
+      backend's module names *)
+end
 
 module Path : sig
   type t = Module.t list

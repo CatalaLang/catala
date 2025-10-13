@@ -862,7 +862,7 @@ let format_program
     module_id;
   List.iter
     (fun (m, _intf_id) ->
-      pp [ppc; pph] "@,#include <%s.h>" (ModuleName.to_string m))
+      pp [ppc; pph] "@,#include <%s.h>" ModuleName.(to_string (normalise m)))
     (List.map
        (fun (m, intf) -> m, intf.intf_id)
        (ModuleName.Map.bindings p.ctx.decl_ctx.ctx_modules));

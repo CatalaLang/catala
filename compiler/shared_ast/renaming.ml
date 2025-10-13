@@ -382,6 +382,8 @@ let get_path_ctx decl_ctx tctx ctx0 path =
     in
     PathMap.add path ctx tctx.path_ctx, ctx
 
+let process_path (p : Uid.Path.t) = List.map ModuleName.normalise p
+
 let process_type_ident
     (decl_ctx : decl_ctx)
     ctx0
@@ -390,7 +392,7 @@ let process_type_ident
   match type_ident with
   | TypeIdent.Struct name ->
     let fields = StructName.Map.find name decl_ctx.ctx_structs in
-    let path = StructName.path name in
+    let path = process_path (StructName.path name) in
     let add_prefix =
       if
         tctx.prefix_module
@@ -451,7 +453,7 @@ let process_type_ident
     }
   | TypeIdent.Enum ename ->
     let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
-    let path = EnumName.path ename in
+    let path = process_path (EnumName.path ename) in
     let add_prefix =
       if
         tctx.prefix_module
@@ -564,7 +566,7 @@ let program
   let path_ctx, scopes_map =
     ScopeName.Map.fold
       (fun name info (path_ctx, scopes_map) ->
-        let path = ScopeName.path name in
+        let path = process_path (ScopeName.path name) in
         if info.visibility = Private then
           (* Private scopes / topdefs in the root module will be renamed through
              the variables binding them in the code_items. It's important that
@@ -593,7 +595,7 @@ let program
   let path_ctx, topdefs_map, ctx_topdefs =
     TopdefName.Map.fold
       (fun name (typ, visibility) (path_ctx, topdefs_map, ctx_topdefs) ->
-        let path = TopdefName.path name in
+        let path = process_path (TopdefName.path name) in
         if visibility = Private then
           (* Private scopes / topdefs in the root module will be renamed through
              the variables binding them in the code_items. *)

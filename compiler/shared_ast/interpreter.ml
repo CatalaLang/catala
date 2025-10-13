@@ -1222,7 +1222,7 @@ let load_runtime_modules ~hashf prg =
         let f =
           Dynlink.adapt_filename
             File.(
-              (dir / "ocaml" / String.to_id (ModuleName.to_string mname))
+              (dir / "ocaml" / ModuleName.to_string (ModuleName.normalise mname))
               ^ ".cmo")
         in
         if Sys.file_exists f then f
