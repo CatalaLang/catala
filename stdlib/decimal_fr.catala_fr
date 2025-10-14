@@ -5,6 +5,7 @@
 ## Fonctions utilitaires
 
 ```catala-metadata
+## Renvoie le plus petit des deux arguments.
 déclaration min
   contenu décimal
   dépend de m1 contenu décimal,
@@ -12,6 +13,7 @@ déclaration min
   égal à
     si m1 > m2 alors m2 sinon m1
 
+## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu décimal
   dépend de m1 contenu décimal,
@@ -19,24 +21,30 @@ déclaration max
   égal à
     si m1 > m2 alors m1 sinon m2
 
+## `plafond de variable, valeur_max` met une limite supérieure à `variable`
+## et renvoie une valeur qui n'excède jamais `valeur_max`.
 déclaration plafond
   contenu décimal
   dépend de variable contenu décimal,
-    plafond contenu décimal
-  égal à min de variable, plafond
+    valeur_max contenu décimal
+  égal à min de variable, valeur_max
 
+## `plancher de variable, valeur_min` met une limite inférieure à `variable`
+## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu décimal
   dépend de variable contenu décimal,
-    plancher contenu décimal
-  égal à max de variable, plancher
+    valeur_min contenu décimal
+  égal à max de variable, valeur_min
 
-## Applique une valeur plancher à 0€
+## Renvoie l'argument s'il est positif, 0,0 sinon.
 déclaration positif
   contenu décimal
   dépend de variable contenu décimal
   égal à plancher de variable, 0,0
 
+## Enlève d'un nombre ses chiffres après la virgule. Par exemple,
+## `troncature de 7,61 = 7,0` et `troncature de -7,61 = -7,0`.
 déclaration troncature
   contenu décimal
   dépend de variable contenu décimal
@@ -48,6 +56,8 @@ déclaration troncature
     sinon
       arrondi de (variable + 0,5)
 
+## Arrondi un nombre à l'entier supérieur. Par exemple,
+## `arrondi_par_excès de 4,34 = 5,0` et `arrondi_par_excès de -4,34 = -4,0`.
 déclaration arrondi_par_excès
   contenu décimal
   dépend de variable contenu décimal
@@ -59,6 +69,8 @@ déclaration arrondi_par_excès
         troncature de (variable + 1,0)
     sinon arrondi de (variable + 0,5)
 
+## Arrondi un nombre à l'entier inférieur. Par exemple,
+## `arrondi_par_défaut de 3,78 = 3,0 et `arrondi_par_défaut de -3,78 = -4,0`.
 déclaration arrondi_par_défaut
   contenu décimal
   dépend de variable contenu décimal

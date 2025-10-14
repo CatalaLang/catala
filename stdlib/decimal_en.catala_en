@@ -5,6 +5,7 @@
 ## Helper functions
 
 ```catala-metadata
+## Returns the smallest of the two arguments.
 declaration min
   content decimal
   depends on m1 content decimal,
@@ -12,6 +13,7 @@ declaration min
   equals
     if m1 > m2 then m2 else m1
 
+## Returns the biggest of the two arguments.
 declaration max
   content decimal
   depends on m1 content decimal,
@@ -19,24 +21,30 @@ declaration max
   equals
     if m1 > m2 then m1 else m2
 
+## `ceiling of variable, max_value` puts an upper cap to `variable` and returns
+## a value that never exceeds `max_value`.
 declaration ceiling
   content decimal
   depends on variable content decimal,
-    ceiling content decimal
-  equals min of variable, ceiling
+    max_value content decimal
+  equals min of variable, max_value
 
+## `floor of variable, min_value` puts a lower cap to `variable` and returns
+## a value that is never inferior to `min_value`.
 declaration floor
   content decimal
   depends on variable content decimal,
-    floor content decimal
-  equals max of variable, floor
+    min_value content decimal
+  equals max of variable, min_value
 
-## Floors the value at 0,0
+## Returns the argument if it is positive, 0 otherwise.
 declaration positive
   content decimal
   depends on variable content decimal
   equals floor of variable, 0.0
 
+## Removes decimal digits from a number. For instance, `truncate of 7.61 = 7.0`
+## and `truncate of -7.61 = -7.0`.
 declaration truncate
   content decimal
   depends on variable content decimal
@@ -48,6 +56,8 @@ declaration truncate
     else
       round of (variable + 0.5)
 
+## Rounds a number to the next greater integer. For instance,
+## `round_by_excess of 4.34 = 5` and `round_by_excess of -4.34 = -4.0`.
 declaration round_by_excess
   content decimal
   depends on variable content decimal
@@ -59,6 +69,8 @@ declaration round_by_excess
         truncate of (variable + 1.0)
     else round of (variable + 0.5)
 
+## Rounds a number to the previous lesser integer. For instance,
+## `round_by_excess of 3.78 = 3` and `round_by_excess of -3.78 = -4.0`.
 declaration round_by_default
   content decimal
   depends on variable content decimal
