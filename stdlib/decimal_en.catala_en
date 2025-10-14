@@ -37,7 +37,7 @@ declaration floor
     min_value content decimal
   equals max of variable, min_value
 
-## Returns the argument if it is positive, 0 otherwise.
+## Returns the argument if it is positive, 0.0 otherwise.
 declaration positive
   content decimal
   depends on variable content decimal
