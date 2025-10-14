@@ -5,6 +5,7 @@
 ## Fonctions utilitaires
 
 ```catala-metadata
+## Renvoie le plus petit des deux arguments.
 déclaration min
   contenu entier
   dépend de m1 contenu entier,
@@ -12,6 +13,7 @@ déclaration min
   égal à
     si m1 > m2 alors m2 sinon m1
 
+## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu entier
   dépend de m1 contenu entier,
@@ -19,19 +21,23 @@ déclaration max
   égal à
     si m1 > m2 alors m1 sinon m2
 
+## `plafond de variable, valeur_max` met une limite supérieure à `variable`
+## et renvoie une valeur qui n'excède jamais `valeur_max`.
 déclaration plafond
   contenu entier
   dépend de variable contenu entier,
-    plafond contenu entier
-  égal à min de variable, plafond
+    valeur_max contenu entier
+  égal à min de variable, valeur_max
 
+## `plancher de variable, valeur_min` met une limite inférieure à `variable`
+## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu entier
   dépend de variable contenu entier,
-    plancher contenu entier
-  égal à max de variable, plancher
+    valeur_min contenu entier
+  égal à max de variable, valeur_min
 
-## Applique une valeur plancher à 0€
+## Renvoie l'argument s'il est positif, 0 sinon.
 déclaration positif
   contenu entier
   dépend de variable contenu entier
