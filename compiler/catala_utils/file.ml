@@ -515,8 +515,8 @@ module Tree = struct
       | _ ->
         Message.error
           "Multiple files match the same module name:@ @[<v>%a@]@,\
-           @{<b>Hint:@} Rename your modules to avoid conflicts. You may need \
-           to run `clerk clean`"
+           @{<bold>Hint:@} Rename your modules to avoid conflicts. You may \
+           need to run `clerk clean`"
           (Format.pp_print_list format)
           (List.map fst (Map.bindings matches))
     with Not_found -> None

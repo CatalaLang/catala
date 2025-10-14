@@ -78,10 +78,13 @@ let load_modules
     | [] ->
       if in_stdlib then
         Message.error
-          "The standard library module @{<magenta>%s@}@ could@ not@ be@ found@ \
-           at@ %a,@ please@ check@ your@ Catala@ installation.@ You can use \
-           the command-line flag @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ \
-           non-standard@ location."
+          "@[<v>@[<hov>The standard library module @{<magenta>%s@}@ could@ \
+           not@ be@ found@ at@ %a.@]@,\
+           @,\
+           @[<hov>@{<bold>Hint:@} run command '@{<cyan>clerk start@}' first to \
+           setup the@ standard@ library@ in@ the@ current@ project.@ In@ \
+           general,@ prefer@ building@ with@ @{<cyan>clerk@}@ rather@ than@ \
+           running@ @{<cyan>catala@}@ directly.@]@]"
           mname File.format
           (options.Global.path_rewrite (Option.get stdlib))
       else
