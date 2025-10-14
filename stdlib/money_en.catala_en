@@ -5,6 +5,7 @@
 ## Helper functions
 
 ```catala-metadata
+## Returns the smallest of the two arguments.
 declaration min
   content money
   depends on m1 content money,
@@ -12,6 +13,7 @@ declaration min
   equals
     if m1 > m2 then m2 else m1
 
+## Returns the biggest of the two arguments.
 declaration max
   content money
   depends on m1 content money,
@@ -19,24 +21,30 @@ declaration max
   equals
     if m1 > m2 then m1 else m2
 
+## `ceiling of variable, max_value` puts an upper cap to `variable` and returns
+## a value that never exceeds `max_value`.
 declaration ceiling
   content money
   depends on variable content money,
-    ceiling content money
-  equals min of variable, ceiling
+    max_value content money
+  equals min of variable, max_value
 
+## `floor of variable, min_value` puts a lower cap to `variable` and returns
+## a value that is never inferior to `min_value`.
 declaration floor
   content money
   depends on variable content money,
-    floor content money
-  equals max of variable, floor
+    min_value content money
+  equals max of variable, min_value
 
-## Floors the value at $0
+## Returns the argument if it is positive, $0 otherwise.
 declaration positive
   content money
   depends on variable content money
   equals floor of variable, $0
 
+## Removes decimal digits from a money amount. For instance,
+## `truncate of $7.61 = $7.0` and `truncate of -$7.61 = -$7.0`.
 declaration truncate
   content money
   depends on variable content money
@@ -46,6 +54,8 @@ declaration truncate
       round of (variable - $0.5)
     else round of (variable + $0.5)
 
+## Rounds a money amount to the next greater dollar. For instance,
+## `round_by_excess of $4.34 = $5` and `round_by_excess of -$4.34 = -$4.0`.
 declaration round_by_excess
   content money
   depends on variable content money
@@ -54,6 +64,8 @@ declaration round_by_excess
       round of (variable + $0.49)
     else round of (variable + $0.5)
 
+## Rounds a money amount to the previous lesser dollar. For instance,
+## `round_by_excess of $3.78 = $3` and `round_by_excess of -$3.78 = -$4.0`.
 declaration round_by_default
   content money
   depends on variable content money
@@ -67,7 +79,7 @@ declaration round_by_default
 
 ```catala-metadata
 ## Returns the positive amount that `variable` overflows from `reference`
-## ($0 otherwise)
+## ($0 otherwise).
 declaration in_excess
   content money
   depends on variable content money,
@@ -75,7 +87,7 @@ declaration in_excess
   equals max of ($0, variable - reference)
 
 ## Returns the positive amount that `variable` underflows from `reference`
-## ($0 otherwise)
+## ($0 otherwise).
 declaration in_default
   content money
   depends on variable content money,
