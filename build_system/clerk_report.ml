@@ -269,7 +269,9 @@ let clean_command_line ~build_dir file cl =
   cl
   |> List.filter_map (fun s ->
          if s = "--directory=" ^ build_dir then None
-         else if String.starts_with ~prefix:"-" s || not (String.contains s '/')
+         else if
+           String.starts_with ~prefix:"-" s
+           || not (String.contains s '/' || String.contains s '\\')
          then Some s
          else Some (pfile ~build_dir s))
   |> (function
