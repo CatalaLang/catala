@@ -123,7 +123,8 @@ let format_qualified
     (s : id) =
   match List.rev (Id.path s) with
   | [] -> pp_print_string ppf (Id.base s)
-  | m :: _ -> fprintf ppf "%a.%s" ModuleName.format m (Id.base s)
+  | m :: _ ->
+    fprintf ppf "%a.%s" ModuleName.format (ModuleName.normalise m) (Id.base s)
 
 let format_struct = format_qualified (module StructName)
 let format_enum = format_qualified (module EnumName)

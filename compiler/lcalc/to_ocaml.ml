@@ -743,8 +743,8 @@ let check_and_reexport_used_modules ppml ppi ~hashf modules =
             Format.pp_print_string ppf Hash.external_placeholder
           else Hash.format ppf h)
         (hashf intf_id.hash) ModuleName.format m;
-      pp [ppml; ppi] "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
-        ModuleName.format m)
+      pp [ppml; ppi] "@[<hv 2>module %a@ = %a@]@," ModuleName.format
+        (ModuleName.normalise m) ModuleName.format (ModuleName.normalise m))
     modules;
   if modules <> [] then pp [ppml; ppi] "@,"
 

@@ -486,14 +486,20 @@ let check_modname program source_file =
   match program.Ast.program_module, source_file with
   | ( Some { module_name = mname, pos; _ },
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
-    when not File.(equal mname Filename.(remove_extension (basename file))) ->
-    Message.error ~kind:Parsing ~pos
-      "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ file@ \
-       name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ %a."
-      mname File.format file
-      (String.capitalize_ascii Filename.(remove_extension (basename file)))
-      File.format
-      File.((dirname file / mname) ^ Filename.extension file)
+    ->
+    if
+      File.equal (String.to_id mname)
+        (String.to_id Filename.(remove_extension (basename file)))
+    then ()
+    else
+      Message.error ~kind:Parsing ~pos
+        "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
+         file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ \
+         to@ %a."
+        mname File.format file
+        (String.capitalize_ascii Filename.(remove_extension (basename file)))
+        File.format
+        File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
 let load_source_file ?default_module_name source_file content_builder =

@@ -1,0 +1,9 @@
+> Module Utf_çédille
+
+# Just testing the consistency of file naming with specific unicode chars in module name
+
+
+```catala-metadata
+déclaration champ d'application Rien:
+  contexte résultat x contenu entier
+```

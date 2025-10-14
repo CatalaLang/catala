@@ -50,7 +50,7 @@ $1,234,567.89
 ```catala-en-code
 money
 ```,
-raw(lang: "catala-fr-code", "|"+datetime.today().display()+"|"),
+raw(lang: "catala-en-code", "|"+datetime.today().display()+"|"),
 ```catala-en-code
 date
 ```,

@@ -713,9 +713,10 @@ let gen_build_statements_dir
     match String.Map.find_opt s seen with
     | Some f1 ->
       Message.error
-        "Conflicting file names:@ %S@ and@ %S@ would both generate the same \
-         target file@ %S.@ Please rename one of them."
-        (File.basename f1) (File.basename fname) (File.basename s)
+        "Conflicting file names:@ %a@ and@ %a@ would both generate the same \
+         target file@ %a.@ Please rename one of them."
+        File.format (File.basename f1) File.format (File.basename fname)
+        File.format (File.basename s)
     | None -> String.Map.add s fname seen
   in
   let _names = List.fold_left check_conflicts String.Map.empty items in

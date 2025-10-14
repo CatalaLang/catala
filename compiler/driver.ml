@@ -22,10 +22,6 @@ open Shared_ast
     {!type: Global.backend_lang} string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
-let modname_of_file f =
-  String.capitalize_ascii
-    (String.to_id Filename.(basename (remove_extension f)))
-
 let load_modules
     options
     includes
@@ -1304,7 +1300,10 @@ module Commands = struct
           program_used_modules =
             List.map
               (fun f ->
-                let name = modname_of_file f in
+                let name =
+                  String.capitalize_ascii
+                    (String.to_id Filename.(basename (remove_extension f)))
+                in
                 {
                   mod_use_name = name, Pos.void;
                   mod_use_alias = name, Pos.void;
@@ -1363,6 +1362,9 @@ module Commands = struct
   let depends_cmd =
     Cmd.v
       (Cmd.info "depends" ~man:Cli.man_base
+         ~deprecated:
+           "Prefer the use of Clerk Targets defined in a $(i,clerk.toml) file. \
+            This may be unreliable with non-ASCII module names"
          ~doc:
            "Lists the dependencies of the given catala files, in linking \
             order. This includes recursive dependencies and is useful for \

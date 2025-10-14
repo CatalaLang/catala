@@ -96,12 +96,16 @@ module Gen (S : Style) () = Make (MarkedString) (S) ()
 
 (* - Modules, paths and qualified idents - *)
 
-module Module =
-  Gen
-    (struct
-      let style = Ocolor_types.(Fg (C4 blue))
-    end)
-    ()
+module Module = struct
+  include
+    Gen
+      (struct
+        let style = Ocolor_types.(Fg (C4 blue))
+      end)
+      ()
+
+  let normalise t = map_info (Mark.map String.to_id) t
+end
 
 module Path = struct
   type t = Module.t list

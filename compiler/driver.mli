@@ -116,10 +116,6 @@ module Commands : sig
       [Cmdliner.Cmd.group] *)
 end
 
-(** Various helpers *)
-
-val modname_of_file : string -> string
-
 (** API available to plugins for their own registration *)
 
 module Plugin : sig
