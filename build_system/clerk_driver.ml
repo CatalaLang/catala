@@ -1059,23 +1059,15 @@ let typecheck_cmd =
         (fun it ->
           if
             Filename.is_relative it.Scan.file_name
-            && ((files_or_folders = [] && not it.Scan.extrnal)
+            && (files_or_folders = []
                || List.exists
                     (fun f ->
-                      if it.Scan.file_name = f then
-                        if it.Scan.extrnal then (
-                          Message.warning
-                            "File %a defines an external module, skipping"
-                            File.format f;
-                          false)
-                        else true
-                      else
-                        String.starts_with
-                          ~prefix:File.(f / "")
-                          it.Scan.file_name
-                        && not it.Scan.extrnal)
+                      it.Scan.file_name = f
+                      || String.starts_with
+                           ~prefix:File.(f / "")
+                           it.Scan.file_name)
                     files_or_folders)
-          then Some it.file_name
+          then Some it.Scan.file_name
           else None)
         items
     in
