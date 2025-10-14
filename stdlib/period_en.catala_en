@@ -14,7 +14,7 @@ declaration structure Period:
   # The end date is excluded from the period
   data end content date
 
-## Ensures that the period is coherent (it begins before its end)
+## Ensures that the period is coherent (it begins before its end).
 declaration valid
   content boolean
   depends on p content Period
@@ -22,13 +22,13 @@ declaration valid
     if p.end <= p.begin then false
     else true
 
-## Duration of a given period, in days
+## Duration of a given period, in days.
 declaration duration
   content duration
   depends on p content Period
   equals p.end - p.begin
 
-## Two periods are adjacent if the second one starts when the first stops
+## Two periods are adjacent if the second one starts when the first stops.
 declaration are_adjacent
   content boolean
   depends on p1 content Period,
@@ -36,7 +36,7 @@ declaration are_adjacent
   equals
     p1.end = p2.begin
 
-## Returns the period that encompasses both p1 and p2
+## Returns the period that encompasses both `p1` and `p2`.
 declaration join
   content Period
   depends on p1 content Period,
@@ -47,7 +47,7 @@ declaration join
       -- end: Date.max of p1.end, p2.end
     }
 
-## Returns the period corresponding to the days that are both in `p1` and `p2`
+## Returns the period corresponding to the days that are both in `p1` and `p2`.
 declaration intersection
   content optional of Period
   depends on p1 content Period,
@@ -70,7 +70,7 @@ declaration contained
   equals
     p.begin <= d and d < p.end
 
-## Finds the first period in the given list `l` that contains the date `d`
+## Finds the first period in the given list `l` that contains the date `d`.
 declaration find_period
   content optional of Period
   depends on l content list of Period,
@@ -87,7 +87,7 @@ declaration find_period
 ## Operations on associated lists indexed by periods
 
 ```catala-metadata
-## Sorts the given periods by starting day
+## Sorts the given periods by starting day.
 declaration sort_by_date
   content list of (Period, anything of type t)
   depends on l content list of (Period, anything of type t)

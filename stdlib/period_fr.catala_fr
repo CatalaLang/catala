@@ -14,7 +14,7 @@ déclaration structure Période:
   # La date de fin est exclue de la période par convention.
   donnée fin contenu date
 
-## Vérifie si la période est bien cohérente (elle débute avant sa fin)
+## Vérifie si la période est bien cohérente (elle débute avant sa fin).
 déclaration valid
   contenu booléen
   dépend de p contenu Période
@@ -22,13 +22,13 @@ déclaration valid
     si p.fin <= p.début alors faux
     sinon vrai
 
-## Durée d'une période, en nombre de jours
+## Durée d'une période, en nombre de jours.
 déclaration durée
   contenu durée
   dépend de p contenu Période
   égal à p.fin - p.début
 
-## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute
+## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute.
 déclaration are_adjacent
   contenu booléen
   dépend de p1 contenu Période,
@@ -36,7 +36,7 @@ déclaration are_adjacent
   égal à
     p1.fin = p2.début
 
-## Retourne la période qui englobe p1 et p2
+## Retourne la période qui englobe `p1` et `p2`.
 déclaration join
   contenu Période
   dépend de p1 contenu Période,
@@ -47,7 +47,7 @@ déclaration join
       -- fin: Date.max de p1.fin, p2.fin
     }
 
-## Retourne la période contenue à la fois dans p1 et p2, si elle existe
+## Retourne la période contenue à la fois dans p1 et p2, si elle existe.
 déclaration intersection
   contenu optionnel de Période
   dépend de p1 contenu Période,
@@ -62,7 +62,7 @@ déclaration intersection
     si valid de intersection alors Présent contenu intersection
     sinon Absent
 
-## Retourne `vrai` si la date appartient à la période
+## Retourne `vrai` si la date appartient à la période.
 déclaration contained
   contenu booléen
   dépend de p contenu Période,
@@ -70,7 +70,7 @@ déclaration contained
   égal à
     p.début <= d et d < p.fin
 
-## Trouve la première période dans la liste `l` qui contient la date `d`
+## Trouve la première période dans la liste `l` qui contient la date `d`.
 déclaration find_period
   contenu optionnel de Période
   dépend de l contenu liste de Période,
@@ -87,7 +87,7 @@ déclaration find_period
 ## Opérations sur des listes associées indexées par des périodes
 
 ```catala-metadata
-## Trie la liste de période en fonction de la date de début
+## Trie la liste de période en fonction de la date de début.
 déclaration sort_by_date
   contenu liste de (Période, n'importe quel de type t)
   dépend de l contenu liste de (Période, n'importe quel de type t)
