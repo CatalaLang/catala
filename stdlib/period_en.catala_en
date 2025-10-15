@@ -88,6 +88,8 @@ declaration find_period
 
 ```catala-metadata
 ## Sorts the given periods by starting day.
+## **Edge-case**: if two periods start on the same day, their order in the list
+## is preserved
 declaration sort_by_date
   content list of (Period, anything of type t)
   depends on l content list of (Period, anything of type t)

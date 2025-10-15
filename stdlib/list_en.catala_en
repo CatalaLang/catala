@@ -57,7 +57,7 @@ declaration remove_nth_element
   equals
   List_internal.remove_nth_element of lst, index
 
-## Returns the given list, without its first element
+## Returns the given list, without its first element.
 ## **Edge-case**: an empty list is returned unchanged
 declaration remove_first_element
   content list of anything of type t
@@ -65,7 +65,7 @@ declaration remove_first_element
   equals
   List_internal.remove_nth_element of lst, 1
 
-## Returns the given list, without its last element
+## Returns the given list, without its last element.
 ## **Edge-case**: an empty list is returned unchanged
 declaration remove_last_element
   content list of anything of type t
