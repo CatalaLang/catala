@@ -17,7 +17,9 @@ let split_by_month : date * date -> (date * date) array =
  fun (start, stop) ->
   let rec split start =
     let next = Dates.add_dates (Dates.first_day_of_month start) one_month in
-    if cmp stop next <= 0 then [start, stop] else (start, next) :: split next
+    if cmp next stop < 0 then (start, next) :: split next
+    else if cmp start stop < 0 then [start, stop]
+    else []
   in
   split start |> Array.of_list
 
@@ -37,7 +39,9 @@ let split_by_year : integer -> date * date -> (date * date) array =
     let next =
       Dates.add_dates (first_day_of_rolling_year start start_month) one_year
     in
-    if cmp stop next <= 0 then [start, stop] else (start, next) :: split next
+    if cmp next stop < 0 then (start, next) :: split next
+    else if cmp start stop < 0 then [start, stop]
+    else []
   in
   split start |> Array.of_list
 
