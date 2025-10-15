@@ -111,7 +111,6 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
         return new CatalaDecimal(new CatalaInteger(this.getDenominator()), new CatalaInteger(this.getNumerator()));
     }
 
-    // TODO: add throws
     public CatalaDecimal divide(CatalaPosition pos, CatalaDecimal denum) {
         try {
             return new CatalaDecimal(this.value.divide(denum.value));
@@ -148,7 +147,7 @@ public final class CatalaDecimal implements CatalaValue, Comparable<CatalaDecima
     }
 
     public final CatalaDecimal divide(CatalaDecimal other) {
-        return new CatalaDecimal(this.value.multiply(other.value));
+        return new CatalaDecimal(this.value.divide(other.value));
     }
 
     public CatalaBool lessThan(CatalaDecimal other) {

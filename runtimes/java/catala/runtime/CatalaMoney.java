@@ -109,12 +109,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
 
     // Div_mon_int
     public final CatalaMoney divide(CatalaPosition pos, CatalaInteger other) {
-        if (other.asBigInteger().equals(BigInteger.ZERO)) {
-            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
-        }
-        return this.multiply(new CatalaDecimal(
-                new CatalaInteger(BigInteger.ONE),
-                other));
+        return this.divide(pos, new CatalaDecimal(other, new CatalaInteger(BigInteger.ONE)));
     }
 
     // Div_mon_rat
