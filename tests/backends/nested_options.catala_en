@@ -1,0 +1,29 @@
+```catala-metadata
+declaration scope S:
+  input i content optional of optional of integer
+  output o content integer
+
+scope S:
+  definition o equals
+    match i with pattern
+    -- Absent: 0
+    -- Present content x:
+       match x with pattern
+       -- Absent: 1
+       -- Present content n: 2
+
+#[test]
+declaration scope Test:
+  output o scope S
+
+scope Test:
+  definition o.i equals Present content Absent
+```
+
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ o = S { -- o: 1 }
+└─
+```
