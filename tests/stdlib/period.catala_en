@@ -88,7 +88,7 @@ scope Tsplit_by_month:
 $ catala test-scope Tsplit_by_month
 ┌─[RESULT]─ Tsplit_by_month ─
 │ o1 = [Period_en.Period { -- begin: 2020-01-10 -- end: 2020-01-20 }]
-│ o2 = [Period_en.Period { -- begin: 2020-01-10 -- end: 2019-12-12 }]
+│ o2 = []
 │ o3 = [Period_en.Period { -- begin: 2020-01-01 -- end: 2020-02-01 }]
 │ o4 = [Period_en.Period { -- begin: 2020-01-10 -- end: 2020-02-01 }]
 │ o5 =
@@ -142,7 +142,7 @@ scope Tsplit_by_year:
 $ catala test-scope Tsplit_by_year
 ┌─[RESULT]─ Tsplit_by_year ─
 │ o1 = [Period_en.Period { -- begin: 2001-10-01 -- end: 2001-12-01 }]
-│ o2 = [Period_en.Period { -- begin: 2001-01-10 -- end: 2000-12-12 }]
+│ o2 = []
 │ o3 = [Period_en.Period { -- begin: 2001-01-01 -- end: 2002-01-01 }]
 │ o4 = [Period_en.Period { -- begin: 2001-10-10 -- end: 2002-01-01 }]
 │ o5 =

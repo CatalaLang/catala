@@ -106,6 +106,8 @@ declaration sort_by_date
 ```catala-metadata
 ## Splits the given period, returning one period per calendar month. The first
 ## and last elements may be non-whole months.
+## **Edge-case**: if the given period is empty (begin >= end), an empty list
+## is returned
 declaration split_by_month
   content list of Period
   depends on p content Period
@@ -114,6 +116,8 @@ declaration split_by_month
 ## Splits the given period, returning one period per year, split on the first
 ## of the given month. The first and last elements returned may be non-whole
 ## years.
+## **Edge-case**: if the given period is empty (begin >= end), an empty list
+## is returned
 declaration split_by_year
   content list of Period
   depends on starting_month content Date.Month,
