@@ -15,7 +15,7 @@ déclaration structure Période:
   donnée fin contenu date
 
 ## Vérifie si la période est bien cohérente (elle débute avant sa fin).
-déclaration valid
+déclaration valide
   contenu booléen
   dépend de p contenu Période
   égal à
@@ -29,7 +29,7 @@ déclaration durée
   égal à p.fin - p.début
 
 ## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute.
-déclaration are_adjacent
+déclaration sont_adjacentes
   contenu booléen
   dépend de p1 contenu Période,
     p2 contenu Période
@@ -37,7 +37,7 @@ déclaration are_adjacent
     p1.fin = p2.début
 
 ## Retourne la période qui englobe `p1` et `p2`.
-déclaration join
+déclaration union
   contenu Période
   dépend de p1 contenu Période,
     p2 contenu Période
@@ -59,11 +59,11 @@ déclaration intersection
         -- fin: Date.min de p1.fin, p2.fin
       }
     dans
-    si valid de intersection alors Présent contenu intersection
+    si valide de intersection alors Présent contenu intersection
     sinon Absent
 
 ## Retourne `vrai` si la date appartient à la période.
-déclaration contained
+déclaration contenue
   contenu booléen
   dépend de p contenu Période,
     d contenu date
@@ -71,7 +71,7 @@ déclaration contained
     p.début <= d et d < p.fin
 
 ## Trouve la première période dans la liste `l` qui contient la date `d`.
-déclaration find_period
+déclaration trouve_période
   contenu optionnel de Période
   dépend de l contenu liste de Période,
     d contenu date
@@ -81,14 +81,14 @@ déclaration find_period
       avec
         selon found sous forme
         -- Présent : found
-        -- Absent : si contained de p, d alors Présent contenu p sinon Absent
+        -- Absent : si contenue de p, d alors Présent contenu p sinon Absent
 ```
 
 ## Opérations sur des listes associées indexées par des périodes
 
 ```catala-metadata
 ## Trie la liste de période en fonction de la date de début.
-déclaration sort_by_date
+déclaration tri_par_date
   contenu liste de (Période, n'importe quel de type t)
   dépend de l contenu liste de (Période, n'importe quel de type t)
   égal à
@@ -105,20 +105,20 @@ déclaration sort_by_date
 ## Divise la période en autant de sous-périodes qu'elle contient de mois du
 ## calendrier. Les premiers et derniers éléments retournés peuvent donc être
 ## des mois incomplets.
-déclaration split_by_month
+déclaration divise_par_mois
   contenu liste de Période
   dépend de p contenu Période
-  égal à depuis_tuple_list de Period_internal.split_by_month de vers_tuple de p
+  égal à depuis_tuple_liste de Period_internal.split_by_month de vers_tuple de p
 
 ## Divise la période en autant de sous-périodes qu'elle contient d'années du
 ## calendrier. Les premiers et derniers éléments retournés peuvent donc être
 ## des années incomplètes.
-déclaration split_by_year
+déclaration divise_par_année
   contenu liste de Période
   dépend de starting_month contenu Date.Mois,
     p contenu Période
   égal à
-    depuis_tuple_list de
+    depuis_tuple_liste de
       Period_internal.split_by_year de
         (Date.month_to_int de starting_month),
         vers_tuple de p
@@ -136,7 +136,7 @@ déclaration vers_tuple_liste_associée
   dépend de l contenu liste de (Période, n'importe quel de type t)
   égal à transforme chaque p parmi l en ((vers_tuple de p.1), p.2)
 
-déclaration vers_tuple_list
+déclaration vers_tuple_liste
   contenu liste de (date, date)
   dépend de l contenu liste de Période
   égal à transforme chaque p parmi l en vers_tuple de p
@@ -152,7 +152,7 @@ déclaration depuis_tuple_liste_associée
   dépend de l contenu liste de ((date, date), n'importe quel de type t)
   égal à transforme chaque tpl parmi l en ((depuis_tuple de tpl.1), tpl.2)
 
-déclaration depuis_tuple_list
+déclaration depuis_tuple_liste
   contenu liste de Période
   dépend de l contenu liste de (date, date)
   égal à transforme chaque tpl parmi l en depuis_tuple de tpl
