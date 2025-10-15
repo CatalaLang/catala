@@ -1899,6 +1899,7 @@ let init_scope_defs
 (** Main function of this module *)
 let translate_program
     (ctxt : Name_resolution.context)
+    ?(allow_external = Global.options.gen_external)
     (modules_contents : Surface.Ast.module_content ModuleName.Map.t)
     (surface : S.program) : Ast.program =
   let get_scope s_uid =
@@ -2100,16 +2101,19 @@ let translate_program
         ModuleName.format modname
     | false, false -> desugared
     | false, true ->
-      let modname, _ = Option.get desugared.program_module_name in
-      Message.error
-        ~pos:(Mark.get (ModuleName.get_info modname))
-        "@[<v>@[<hov>This module is marked as \"@{<cyan>external@}\", which \
-         means@ that@ its@ implementation@ in@ the@ backend@ language@ is@ \
-         expected@ to@ be@ supplied@ by@ the@ user@ rather@ than@ compiled.@]@,\
-         @,\
-         @[<hov 2>@{<bold>Hint:@} You may want to use the flag \
-         @{<cyan>--gen-external@}@ to@ generate@ a@ template@ \
-         implementation.@]@]"
+      if allow_external then desugared
+      else
+        let modname, _ = Option.get desugared.program_module_name in
+        Message.error
+          ~pos:(Mark.get (ModuleName.get_info modname))
+          "@[<v>@[<hov>This module is marked as \"@{<cyan>external@}\", which \
+           means@ that@ its@ implementation@ in@ the@ backend@ language@ is@ \
+           expected@ to@ be@ supplied@ by@ the@ user@ rather@ than@ \
+           compiled.@]@,\
+           @,\
+           @[<hov 2>@{<bold>Hint:@} You may want to use the flag \
+           @{<cyan>--gen-external@}@ to@ generate@ a@ template@ \
+           implementation.@]@]"
     | true, true ->
       {
         desugared with

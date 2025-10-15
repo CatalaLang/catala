@@ -78,10 +78,13 @@ let load_modules
     | [] ->
       if in_stdlib then
         Message.error
-          "The standard library module @{<magenta>%s@}@ could@ not@ be@ found@ \
-           at@ %a,@ please@ check@ your@ Catala@ installation.@ You can use \
-           the command-line flag @{<yellow>--stdlib=DIR@}@ to@ specify@ a@ \
-           non-standard@ location."
+          "@[<v>@[<hov>The standard library module @{<magenta>%s@}@ could@ \
+           not@ be@ found@ at@ %a.@]@,\
+           @,\
+           @[<hov>@{<bold>Hint:@} run command '@{<cyan>clerk start@}' first to \
+           setup the@ standard@ library@ in@ the@ current@ project.@ In@ \
+           general,@ prefer@ building@ with@ @{<cyan>clerk@}@ rather@ than@ \
+           running@ @{<cyan>catala@}@ directly.@]@]"
           mname File.format
           (options.Global.path_rewrite (Option.get stdlib))
       else
@@ -208,7 +211,7 @@ module Passes = struct
     debug_pass_name "surface";
     Surface.Parser_driver.parse_top_level_file options.Global.input_src
 
-  let desugared options ~includes ~stdlib :
+  let desugared ?allow_external options ~includes ~stdlib :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg = surface options in
     let mod_uses, modules = load_modules options includes ~stdlib prg in
@@ -217,15 +220,18 @@ module Passes = struct
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.debug "Desugaring...";
     let modules = ModuleName.Map.map fst modules in
-    let prg = Desugared.From_surface.translate_program ctx modules prg in
+    let prg =
+      Desugared.From_surface.translate_program ctx ?allow_external modules prg
+    in
     Message.debug "Disambiguating...";
     let prg = Desugared.Disambiguate.program prg in
     Message.debug "Linting...";
     Desugared.Linting.lint_program prg;
     prg, ctx
 
-  let scopelang options ~includes ~stdlib : untyped Scopelang.Ast.program =
-    let prg, _ = desugared options ~includes ~stdlib in
+  let scopelang ?allow_external options ~includes ~stdlib :
+      untyped Scopelang.Ast.program =
+    let prg, _ = desugared options ?allow_external ~includes ~stdlib in
     debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -733,7 +739,7 @@ module Commands = struct
         $ Cli.Flags.ex_scopes)
 
   let typecheck options check_invariants includes stdlib quiet =
-    let prg = Passes.scopelang options ~includes ~stdlib in
+    let prg = Passes.scopelang options ~allow_external:true ~includes ~stdlib in
     Message.debug "Typechecking...";
     let _type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs

@@ -22,7 +22,10 @@
 
 val translate_program :
   Name_resolution.context ->
+  ?allow_external:bool ->
   Surface.Ast.module_content Shared_ast.ModuleName.Map.t ->
   Surface.Ast.program ->
   Ast.program
-(** Main function of this module *)
+(** Translation from surface to desugared.
+
+    [allow_external] defaults to false unless the [gen_external] option is set. *)

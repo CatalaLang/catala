@@ -28,12 +28,14 @@ module Passes : sig
   val surface : Global.options -> Surface.Ast.program
 
   val desugared :
+    ?allow_external:bool ->
     Global.options ->
     includes:Global.raw_file list ->
     stdlib:Global.raw_file option ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
+    ?allow_external:bool ->
     Global.options ->
     includes:Global.raw_file list ->
     stdlib:Global.raw_file option ->
