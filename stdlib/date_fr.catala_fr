@@ -15,7 +15,7 @@ déclaration min
   égal à
     si x <= y alors x sinon y
 
-## RRenvoie la plus récente des deux dates.
+## Renvoie la plus récente des deux dates.
 déclaration max
   contenu date
   dépend de x contenu date,
@@ -145,7 +145,7 @@ déclaration structure MoisDansAnnée:
   donnée nom_mois contenu Mois
 
 ## Renvoie le mois nommé correspondant au numéro de mois (à partir de 1).
-## Si l'argument n'est pas entre 1 et 12, crashe avec `impossible`.
+## Si l'argument n'est pas entre 1 et 12, échoue avec l'erreur `impossible`.
 déclaration month_of_int
   contenu Mois
   dépend de i contenu entier
