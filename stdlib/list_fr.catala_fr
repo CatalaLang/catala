@@ -41,7 +41,6 @@ déclaration premier_element
 
 ## Donne le dernier élément de la liste, s'il existe, encapsulé dans le
 ## constructeur `Présent`.
-## existe.
 ## **Cas limite**: si la liste est vide, retourne `Absent`
 déclaration dernier_element
   contenu optionnel de n'importe quel de type t
@@ -60,7 +59,7 @@ déclaration retire_nième_élément
   égal à
   List_internal.remove_nth_element de lst, index
 
-## Retourne la liste sans son premier élément
+## Retourne la liste sans son premier élément.
 ## **Cas limite**: la liste vide est retournée inchangée
 déclaration retire_first_element
   contenu liste de n'importe quel de type t
@@ -68,7 +67,7 @@ déclaration retire_first_element
   égal à
   List_internal.remove_nth_element de lst, 1
 
-## Retourne la liste sans son dernier élément
+## Retourne la liste sans son dernier élément.
 ## **Cas limite**: la liste vide est retournée inchangée
 déclaration retire_last_element
   contenu liste de n'importe quel de type t
