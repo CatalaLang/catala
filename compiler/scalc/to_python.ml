@@ -214,9 +214,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
       ts
   | TStruct s -> format_struct ctx fmt s
-  | TOption some_typ ->
-    (* We translate the option type with an overloading by Python's [None] *)
-    Format.fprintf fmt "Optional[%a]" format_typ some_typ
+  | TOption some_typ -> Format.fprintf fmt "Option[%a]" format_typ some_typ
   | TDefault t -> format_typ fmt t
   | TEnum e -> format_enum ctx fmt e
   | TArrow (t1, t2) ->
@@ -253,13 +251,11 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EInj { cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
-    (* We translate the option type with an overloading by Python's [None] *)
-    Format.fprintf fmt "None"
+    Format.fprintf fmt "Option(None)"
   | EInj { e1 = e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
-    (* We translate the option type with an overloading by Python's [None] *)
-    format_expression ctx fmt e
+    Format.fprintf fmt "Option(%a)" (format_expression ctx) e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name
       (format_enum ctx) enum_name EnumConstructor.format cons
@@ -403,13 +399,20 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
         _;
       }
     when EnumName.equal e_name Expr.option_enum ->
-    (* We translate the option type with an overloading by Python's [None] *)
     let pos = Mark.get s in
-    Format.fprintf fmt "@[<v 4>if %a is None:@ %a@]@," VarName.format switch_var
-      (format_block ctx) case_none;
-    Format.fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx)
-      (Utils.subst_block case_some_var (EVar switch_var, pos) payload_var_typ
-         pos case_some)
+    Format.fprintf fmt "@[<v 4>if %a.value is not None:@ %a@]@," VarName.format
+      switch_var (format_block ctx)
+      (Utils.subst_block case_some_var
+         (* Not a real catala struct, but will print as <var>.value *)
+         ( EStructFieldAccess
+             {
+               e1 = EVar switch_var, pos;
+               field = StructField.fresh ("value", pos);
+               name = StructName.fresh [] ("Dummy", pos);
+             },
+           pos )
+         payload_var_typ pos case_some);
+    Format.fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx) case_none
   | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
     let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let pos = Mark.get s in

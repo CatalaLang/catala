@@ -398,6 +398,7 @@ let rec translate_expr
     let cases =
       EnumConstructor.Map.mapi
         (fun c_uid' tau ->
+          let tau = Type.unquantify tau in
           if EnumConstructor.compare c_uid c_uid' <> 0 then
             let nop_var = Var.make "_" in
             Expr.make_ghost_abs [nop_var]
@@ -1165,11 +1166,13 @@ and disambiguate_match_and_build_expression
       case_body
       e_binder
       pos_binder =
+    let cell_type =
+      EnumConstructor.Map.find c_uid
+        (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums))
+    in
+    (* [cell_type] may be quantified in the case of the option type. Here we need to use a specific instance *)
     Expr.eabs e_binder pos_binder
-      [
-        EnumConstructor.Map.find c_uid
-          (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums));
-      ]
+      [Type.unquantify cell_type]
       (Mark.get case_body)
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =

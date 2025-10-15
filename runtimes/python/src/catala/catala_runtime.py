@@ -14,7 +14,7 @@ from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # ty
 import datetime
 import calendar
 import dateutil.relativedelta
-from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
+from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any
 from functools import reduce
 from enum import Enum
 import copy
@@ -28,6 +28,8 @@ Gamma = TypeVar('Gamma')
 # ==========
 
 class SourcePosition:
+    __slots__ = ( 'filename', 'start_line', 'start_column', 'end_line', 'end_column', 'law_headings' )
+
     def __init__(self,
                  filename: str,
                  start_line: int,
@@ -59,6 +61,8 @@ class SourcePosition:
             return False
 
 class CatalaError(Exception):
+    __slots__ = ( 'message', 'source_positions' )
+
     def __init__(self, message: str, source_positions: List[SourcePosition]) -> None:
         self.message = message
         self.source_positions = source_positions
@@ -117,6 +121,10 @@ class Impossible(CatalaError):
 # ============
 
 class Integer:
+    __slots__ = ( 'value' )
+
+    value: int
+
     def __init__(self, value: Union[str, int, Decimal]) -> None:
         if isinstance(value, Decimal):
             self.value = t_div(
@@ -172,6 +180,8 @@ class Integer:
 
 
 class Decimal:
+    __slots__ = ( 'value' )
+
     value: mpq
 
     def __init__(self, value: Union[str, int, float, Integer]) -> None:
@@ -227,6 +237,10 @@ class Decimal:
 
 
 class Money:
+    __slots__ = ( 'value' )
+
+    value: Integer
+
     def __init__(self, value: Integer) -> None:
         self.value = value
 
@@ -282,6 +296,10 @@ class Money:
 DateRounding = Enum("DateRounding", ["RoundUp", "RoundDown", "AbortOnRound"])
 
 class Date:
+    __slots__ = ( 'value' )
+
+    value: datetime.date
+
     def __init__(self, value: datetime.date) -> None:
         self.value = value
 
@@ -328,6 +346,10 @@ class Date:
 
 
 class Duration:
+    __slots__ = ( 'value' )
+
+    value: dateutil.relativedelta.relativedelta
+
     def __init__(self, value: dateutil.relativedelta.relativedelta) -> None:
         self.value = value
 
@@ -377,6 +399,8 @@ class Duration:
 
 
 class Unit:
+    __slots__ = ()
+
     def __init__(self) -> None:
         ...
 
@@ -398,6 +422,28 @@ class Unit:
     def __repr__(self) -> str:
         return "Unit()"
 
+class Option(Generic[Alpha]):
+    __slots__ = ( 'value' )
+
+    value: Alpha | None
+
+    def __init__(self, value: Alpha | None) -> None:
+        self.value = value
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Option):
+            return self.value == other.value
+        else:
+            return False
+
+    def __str__(self) -> str:
+        if self.value is None:
+            return "Absent"
+        else:
+            return "Present({})".format(self.value)
+
+    def __repr__(self) -> str:
+        return f"Option({self.value.__repr__()})"
 
 # ============================
 # Constructors and conversions
@@ -535,8 +581,8 @@ def decimal_round(q: Decimal) -> Decimal:
 def decimal_of_money(m: Money) -> Decimal:
     return Decimal(mpq(qdiv(m.value.value, 100)))
 
-def integer_of_money(d: Decimal) -> Integer:
-    return round(decimal_of_money(d))
+def integer_of_money(m: Money) -> Integer:
+    return round(decimal_of_money(m))
 
 
 # --------
@@ -659,13 +705,13 @@ def list_length(l: List[Alpha]) -> Integer:
 
 
 def handle_exceptions(
-    exceptions: List[Optional[Tuple[Alpha,SourcePosition]]]) -> Optional[Tuple[Alpha,SourcePosition]]:
-    active_exns: List[Tuple[Alpha,SourcePosition]] = [e for e in exceptions if e is not None]
+    exceptions: List[Option[Tuple[Alpha,SourcePosition]]]) -> Option[Tuple[Alpha,SourcePosition]]:
+    active_exns: List[Tuple[Alpha,SourcePosition]] = [e.value for e in exceptions if e.value is not None]
     count = len(active_exns)
     if count == 0:
-        return None
+        return Option(None)
     elif count == 1:
-        return active_exns[0]
+        return Option(active_exns[0])
     else:
         raise Conflict([e[1] for e in active_exns])
 
@@ -708,7 +754,7 @@ class LogIO:
 
 
 class LogEvent:
-    def __init__(self, code: LogEventCode, io: Optional[LogIO], payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:
+    def __init__(self, code: LogEventCode, io: Option[LogIO], payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:
         self.code = code
         self.io = io
         self.payload = payload
@@ -726,21 +772,21 @@ def retrieve_log() -> List[LogEvent]:
 
 
 def log_variable_definition(headings: List[str], io: LogIO, value: Alpha) -> Alpha:
-    log.append(LogEvent(LogEventCode.VariableDefinition, io,
+    log.append(LogEvent(LogEventCode.VariableDefinition, Option(io),
                (headings, copy.deepcopy(value))))
     return value
 
 
 def log_begin_call(headings: List[str], f: Callable[[Alpha], Beta], value: Alpha) -> Beta:
-    log.append(LogEvent(LogEventCode.BeginCall, None, headings))
+    log.append(LogEvent(LogEventCode.BeginCall, Option(None), headings))
     return f(value)
 
 
 def log_end_call(headings: List[str], value: Alpha) -> Alpha:
-    log.append(LogEvent(LogEventCode.EndCall, None, headings))
+    log.append(LogEvent(LogEventCode.EndCall, Option(None), headings))
     return value
 
 
 def log_decision_taken(pos: SourcePosition, value: bool) -> bool:
-    log.append(LogEvent(LogEventCode.DecisionTaken, None, pos))
+    log.append(LogEvent(LogEventCode.DecisionTaken, Option(None), pos))
     return value

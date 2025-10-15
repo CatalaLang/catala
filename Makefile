@@ -223,7 +223,7 @@ backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
 
 validate-py-runtime: dependencies-python
-	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/runtime.py
+	@$(PY_VENV_ACTIVATE) mypy runtimes/python/src/catala/catala_runtime.py
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 

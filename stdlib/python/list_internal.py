@@ -15,9 +15,9 @@ def sequence(begin:Integer, end:Integer):
 def nth_element(lst:List[Any], index:Integer):
     i = integer_to_int(index) - 1
     if i < 0 or len(lst) <= i:
-        return None
+        return Option(None)
     else:
-        return lst[i]
+        return Option(lst[i])
 
 def remove_nth_element(lst:List[Any], index:Integer):
     i = integer_to_int(index) - 1
