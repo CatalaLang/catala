@@ -70,6 +70,7 @@ declaration scope Tsplit_by_month:
   output o3 content list of Period.Period
   output o4 content list of Period.Period
   output o5 content list of Period.Period
+  output o6 content list of Period.Period
 
 scope Tsplit_by_month:
   definition o1 equals
@@ -82,6 +83,8 @@ scope Tsplit_by_month:
     Period.split_by_month of Period.Period {--begin:|2020-01-10| --end:|2020-02-01|}
   definition o5 equals
     Period.split_by_month of Period.Period {--begin:|2020-01-10| --end:|2020-04-17|}
+  definition o6 equals
+    Period.split_by_month of Period.Period {--begin:|2020-01-31| --end:|2020-04-17|}
 ```
 
 ```catala-test-cli
@@ -94,6 +97,13 @@ $ catala test-scope Tsplit_by_month
 │ o5 =
 │   [
 │     Period_en.Period { -- begin: 2020-01-10 -- end: 2020-02-01 };
+│     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-03-01 };
+│     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-04-01 };
+│     Period_en.Period { -- begin: 2020-04-01 -- end: 2020-04-17 }
+│   ]
+│ o6 =
+│   [
+│     Period_en.Period { -- begin: 2020-01-31 -- end: 2020-02-01 };
 │     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-03-01 };
 │     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-04-01 };
 │     Period_en.Period { -- begin: 2020-04-01 -- end: 2020-04-17 }
