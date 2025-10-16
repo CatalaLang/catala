@@ -1,7 +1,7 @@
 [project]
 name = "catala-runtime"
 description = "Runtime libraries needed to execute Catala programs compiled to Python"
-version = "1.0.0a"
+version = "1.0.0b"
 dependencies = [
   "gmpy2 ~= 2.2.0rc1",
   "typing",
@@ -12,14 +12,11 @@ dependencies = [
   "termcolor",
   "types-termcolor",
   "typer[all]",
-  "typing-extensions"
+  "typing-extensions",
 ]
 
 [project.optional-dependencies]
-test = [
-  "pytest",
-  "pytest-cov",
-]
+test = ["pytest", "pytest-cov"]
 
 [project.urls]
 "Homepage" = "https://github.com/CatalaLang/catala/"

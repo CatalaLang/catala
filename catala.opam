@@ -3,7 +3,7 @@ opam-version: "2.0"
 # it uses a custom 'cataladevmode' variable and not the new --with-dev-setup flag
 # (for both reasons of compatibility with older opam, and support in the 'depexts' section)
 
-version: "1.0.0~alpha"
+version: "1.0.0~beta"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
 description:
@@ -29,7 +29,6 @@ depends: [
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
   "dune" {>= "3.13"}
-  "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
   "ocaml" {>= "4.14.0"}
@@ -62,7 +61,6 @@ depends: [
 depopts: ["z3"]
 conflicts: [
   "z3" {< "4.8.11"}
-  "base" {>= "v0.16.0"}
 ]
 build: [
   "dune"
