@@ -119,7 +119,7 @@ val eifthenelse :
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
-val eempty : 'm mark -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+val eempty : 'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 
 val eerroronempty :
   ('a, 'm) boxed_gexpr ->
@@ -392,8 +392,7 @@ val make_app :
 val make_puredefault :
   ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val make_pos :
-  Pos.t -> 'm mark -> ((< defaultTerms : no ; .. > as 'a), 'm) boxed_gexpr
+val make_pos : Pos.t -> 'm mark -> (< defaultTerms : no ; .. >, 'm) boxed_gexpr
 (** [m] is used as type witness, but both position and type are overriden *)
 
 val make_erroronempty :
