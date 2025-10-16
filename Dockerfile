@@ -57,7 +57,7 @@ ENV DUNE_PROFILE=check
 ARG CATALA_VERSION
 
 # Check the build
-RUN opam exec -- make build js_build
+RUN opam exec -- make build
 
 # Install to prefix
 RUN opam exec -- make install && opam clean

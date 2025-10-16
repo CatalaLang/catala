@@ -93,10 +93,6 @@ compiler: parser-messages
 #> build					: Builds the Catala compiler
 build: parser-messages format build_dev
 
-#> js_build				: Builds the Web-compatible JS versions of the Catala compiler
-js_build:
-	dune build $(COMPILER_DIR)/catala.bc.js $(COMPILER_DIR)/catala_web_interpreter.bc.js
-
 #> doc					: Generates the HTML OCaml documentation
 doc:
 	dune build @doc
@@ -305,7 +301,7 @@ website-assets: website-assets.tar
 
 #> all					: Run all make commands
 all: \
-	build js_build doc \
+	build doc \
 	tests \
 	runtimes \
 	plugins
