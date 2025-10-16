@@ -1,0 +1,8 @@
+> Module Decimal_internal external
+
+```catala-metadata
+declaration round_to_decimal
+  content decimal
+  depends on variable content decimal,
+    nth_decimal content integer
+```

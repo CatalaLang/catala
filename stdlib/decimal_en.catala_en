@@ -2,6 +2,8 @@
 
 > Module Decimal_en
 
+> Using Decimal_internal as D
+
 ## Helper functions
 
 ```catala-metadata
@@ -81,4 +83,14 @@ declaration round_by_default
       variable
     else
       truncate of (variable - 1.0)
+
+## Rounds a number to the specified [nth_decimal].
+## [nth_decimal] may be a negative value. For instance,
+## `round_to_decimal of 123.4567,  3 = 123.457` and
+## `round_to_decimal of 123.4567, -2 = 100.0`.
+declaration round_to_decimal
+  content decimal
+  depends on variable content decimal,
+    nth_decimal content integer
+  equals D.round_to_decimal of variable, nth_decimal
 ```

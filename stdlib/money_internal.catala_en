@@ -1,0 +1,8 @@
+> Module Money_internal external
+
+```catala-metadata
+declaration round_to_decimal
+  content money
+  depends on variable content money,
+    nth_decimal content integer
+```

@@ -288,7 +288,7 @@ class Money:
             return False
 
     def __str__(self) -> str:
-        return "${:.2}".format(self.value.value / 100)
+        return "%.2f" % (int(self.value.value) / 100)
 
     def __repr__(self) -> str:
         return f"Money({self.value.__repr__()})"
