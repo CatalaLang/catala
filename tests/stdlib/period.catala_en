@@ -10,6 +10,8 @@ declaration scope Tunit:
   output p_bad content Period.Period
   output p_succ_one_day content Period.Period
   output p_in_succ_one_day content Period.Period
+  output p_from_month_and_year content Period.Period
+  output p_from_year content Period.Period
 
 scope Tunit:
   definition p_one_day equals mk_p of (|2020-01-01|, |2020-01-01|)
@@ -49,6 +51,12 @@ scope Tunit:
       and p = p_succ_one_day
     )
   )
+
+  definition p_from_month_and_year equals Period.of_month_and_year of Date.Month.May, 1968
+  assertion p_from_month_and_year = Period.Period { -- begin: |1968-05-01| -- end: |1968-05-31| }
+
+  definition p_from_year equals Period.of_year of 2002
+  assertion p_from_year = Period.Period { -- begin: |2002-01-01| -- end: |2002-12-31| }
 ```
 
 ```catala
