@@ -1,4 +1,57 @@
 ```catala
+declaration mk_p
+  content Period.Period
+  depends on b content date, e content date
+  equals Period.Period { -- begin: b -- end: e }
+
+#[test]
+declaration scope Tunit:
+  output p_one_day content Period.Period
+  output p_bad content Period.Period
+  output p_succ_one_day content Period.Period
+  output p_in_succ_one_day content Period.Period
+
+scope Tunit:
+  definition p_one_day equals mk_p of (|2020-01-01|, |2020-01-01|)
+  assertion (Period.valid of p_one_day and Period.duration of p_one_day = 1 day)
+
+  definition p_bad equals mk_p of (|2020-01-02|, |2020-01-01|)
+  assertion (not (Period.valid of p_bad))
+
+  definition p_succ_one_day equals mk_p of (|2020-01-02|, |2020-01-03|)
+  assertion (
+    Period.valid of p_succ_one_day
+    and Period.are_adjacent of p_one_day, p_succ_one_day
+    and (Period.intersection of p_one_day, p_succ_one_day) with pattern Absent
+    and Period.join of p_one_day, p_succ_one_day = mk_p of |2020-01-01|, |2020-01-03|
+    and Period.contained of p_succ_one_day, |2020-01-02|
+  )
+
+  definition p_in_succ_one_day equals mk_p of (|2020-01-03|, |2020-01-03|)
+  assertion (
+    Period.valid of p_in_succ_one_day
+    and not (Period.are_adjacent of p_succ_one_day, p_in_succ_one_day)
+    and (
+      (Period.intersection of p_succ_one_day, p_in_succ_one_day) with pattern Present content p
+      and p = (mk_p of |2020-01-03|, |2020-01-03|)
+    )
+    and Period.join of p_succ_one_day, p_in_succ_one_day = p_succ_one_day
+  )
+
+  assertion (
+    (Period.find_period of [ p_one_day ; p_succ_one_day ; p_in_succ_one_day ], |2020-01-04|) with pattern Absent
+    and (
+      (
+        Period.find_period of
+          [ p_one_day ; p_succ_one_day ; p_in_succ_one_day ],
+          |2020-01-03|
+      ) with pattern Present content p
+      and p = p_succ_one_day
+    )
+  )
+```
+
+```catala
 #[test]
 declaration scope Tsort:
   output o1 content list of (Period.Period, integer)
