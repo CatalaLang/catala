@@ -35,17 +35,25 @@ let map_utf8 f s =
   utf8_seq s |> Seq.map f |> Seq.iter (Buffer.add_utf_8_uchar buf);
   Buffer.contents buf
 
-let to_id s =
-  to_ascii s
-  |> map (function
-       | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c -> c
-       | _ -> '_')
-
-let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
-
 let begins_with_uppercase (s : string) : bool =
   (not (s = ""))
   && get_utf_8_uchar s 0 |> Uchar.utf_decode_uchar |> Uucp.Case.is_upper
+
+let to_id s =
+  if s = "_" then s
+  else
+    let s =
+      Ubase.from_utf8 ~strip:"" s
+      |> map (function
+           | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c -> c
+           | _ -> '_')
+    in
+    if length s < 1 || get s 0 = '_' then
+      let pfx = if begins_with_uppercase s then "X" else "x" in
+      pfx ^ s
+    else s
+
+let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let to_snake_case (s : string) : string =
   let out = Buffer.create (2 * length s) in
