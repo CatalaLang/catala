@@ -60,8 +60,6 @@ depends: [
 depopts: ["z3"]
 conflicts: [
   "z3" {< "4.8.11"}
-  # catala-lsp conflicts with linol = 0.10, which is used by ocaml-lsp-server
-  "ocaml" { >= "5.4.0"}
 ]
 build: [
   "dune"
