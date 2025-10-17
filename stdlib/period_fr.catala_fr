@@ -11,7 +11,7 @@ Une période est la conjonction d'une date de début et de fin.
 ```catala-metadata
 déclaration structure Période:
   donnée début contenu date
-  # La date de fin est exclue de la période par convention.
+  # La date de fin est incluse dans la période par convention.
   donnée fin contenu date
 
 ## Vérifie si la période est bien cohérente (elle débute avant sa fin).
@@ -19,14 +19,14 @@ déclaration valide
   contenu booléen
   dépend de p contenu Période
   égal à
-    si p.fin <= p.début alors faux
+    si p.fin < p.début alors faux
     sinon vrai
 
 ## Durée d'une période, en nombre de jours.
 déclaration durée
   contenu durée
   dépend de p contenu Période
-  égal à p.fin - p.début
+  égal à 1 jour + p.fin - p.début
 
 ## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute.
 déclaration sont_adjacentes
@@ -34,7 +34,7 @@ déclaration sont_adjacentes
   dépend de p1 contenu Période,
     p2 contenu Période
   égal à
-    p1.fin = p2.début
+    p1.fin = p2.début - 1 jour
 
 ## Retourne la période qui englobe `p1` et `p2`.
 déclaration union
@@ -68,7 +68,7 @@ déclaration contenue
   dépend de p contenu Période,
     d contenu date
   égal à
-    p.début <= d et d < p.fin
+    p.début <= d et d <= p.fin
 
 ## Trouve la première période dans la liste `l` qui contient la date `d`.
 déclaration trouve_période

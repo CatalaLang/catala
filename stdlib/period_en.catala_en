@@ -11,7 +11,7 @@ A period is a starting date and an end date.
 ```catala-metadata
 declaration structure Period:
   data begin content date
-  # The end date is excluded from the period
+  # The end date is included in the period
   data end content date
 
 ## Ensures that the period is coherent (it begins before its end).
@@ -19,14 +19,14 @@ declaration valid
   content boolean
   depends on p content Period
   equals
-    if p.end <= p.begin then false
+    if p.end < p.begin then false
     else true
 
 ## Duration of a given period, in days.
 declaration duration
   content duration
   depends on p content Period
-  equals p.end - p.begin
+  equals 1 day + p.end - p.begin
 
 ## Two periods are adjacent if the second one starts when the first stops.
 declaration are_adjacent
@@ -34,7 +34,7 @@ declaration are_adjacent
   depends on p1 content Period,
     p2 content Period
   equals
-    p1.end = p2.begin
+    p1.end = p2.begin - 1 day
 
 ## Returns the period that encompasses both `p1` and `p2`.
 declaration join
@@ -68,7 +68,7 @@ declaration contained
   depends on p content Period,
     d content date
   equals
-    p.begin <= d and d < p.end
+    p.begin <= d and d <= p.end
 
 ## Finds the first period in the given list `l` that contains the date `d`.
 declaration find_period
