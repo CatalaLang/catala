@@ -96,16 +96,16 @@ $ catala test-scope Tsplit_by_month
 │ o4 = [Period_en.Period { -- begin: 2020-01-10 -- end: 2020-02-01 }]
 │ o5 =
 │   [
-│     Period_en.Period { -- begin: 2020-01-10 -- end: 2020-02-01 };
-│     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-03-01 };
-│     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-04-01 };
+│     Period_en.Period { -- begin: 2020-01-10 -- end: 2020-01-31 };
+│     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-02-29 };
+│     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-03-31 };
 │     Period_en.Period { -- begin: 2020-04-01 -- end: 2020-04-17 }
 │   ]
 │ o6 =
 │   [
-│     Period_en.Period { -- begin: 2020-01-31 -- end: 2020-02-01 };
-│     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-03-01 };
-│     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-04-01 };
+│     Period_en.Period { -- begin: 2020-01-31 -- end: 2020-01-31 };
+│     Period_en.Period { -- begin: 2020-02-01 -- end: 2020-02-29 };
+│     Period_en.Period { -- begin: 2020-03-01 -- end: 2020-03-31 };
 │     Period_en.Period { -- begin: 2020-04-01 -- end: 2020-04-17 }
 │   ]
 └─
@@ -157,24 +157,24 @@ $ catala test-scope Tsplit_by_year
 │ o4 = [Period_en.Period { -- begin: 2001-10-10 -- end: 2002-01-01 }]
 │ o5 =
 │   [
-│     Period_en.Period { -- begin: 2001-10-10 -- end: 2002-01-01 };
-│     Period_en.Period { -- begin: 2002-01-01 -- end: 2003-01-01 };
-│     Period_en.Period { -- begin: 2003-01-01 -- end: 2004-01-01 };
-│     Period_en.Period { -- begin: 2004-01-01 -- end: 2005-01-01 };
-│     Period_en.Period { -- begin: 2005-01-01 -- end: 2006-01-01 };
-│     Period_en.Period { -- begin: 2006-01-01 -- end: 2007-01-01 };
-│     Period_en.Period { -- begin: 2007-01-01 -- end: 2008-01-01 };
+│     Period_en.Period { -- begin: 2001-10-10 -- end: 2001-12-31 };
+│     Period_en.Period { -- begin: 2002-01-01 -- end: 2002-12-31 };
+│     Period_en.Period { -- begin: 2003-01-01 -- end: 2003-12-31 };
+│     Period_en.Period { -- begin: 2004-01-01 -- end: 2004-12-31 };
+│     Period_en.Period { -- begin: 2005-01-01 -- end: 2005-12-31 };
+│     Period_en.Period { -- begin: 2006-01-01 -- end: 2006-12-31 };
+│     Period_en.Period { -- begin: 2007-01-01 -- end: 2007-12-31 };
 │     Period_en.Period { -- begin: 2008-01-01 -- end: 2008-04-17 }
 │   ]
 │ o6 =
 │   [
-│     Period_en.Period { -- begin: 2001-10-10 -- end: 2001-11-01 };
-│     Period_en.Period { -- begin: 2001-11-01 -- end: 2002-11-01 };
-│     Period_en.Period { -- begin: 2002-11-01 -- end: 2003-11-01 };
-│     Period_en.Period { -- begin: 2003-11-01 -- end: 2004-11-01 };
-│     Period_en.Period { -- begin: 2004-11-01 -- end: 2005-11-01 };
-│     Period_en.Period { -- begin: 2005-11-01 -- end: 2006-11-01 };
-│     Period_en.Period { -- begin: 2006-11-01 -- end: 2007-11-01 };
+│     Period_en.Period { -- begin: 2001-10-10 -- end: 2001-10-31 };
+│     Period_en.Period { -- begin: 2001-11-01 -- end: 2002-10-31 };
+│     Period_en.Period { -- begin: 2002-11-01 -- end: 2003-10-31 };
+│     Period_en.Period { -- begin: 2003-11-01 -- end: 2004-10-31 };
+│     Period_en.Period { -- begin: 2004-11-01 -- end: 2005-10-31 };
+│     Period_en.Period { -- begin: 2005-11-01 -- end: 2006-10-31 };
+│     Period_en.Period { -- begin: 2006-11-01 -- end: 2007-10-31 };
 │     Period_en.Period { -- begin: 2007-11-01 -- end: 2008-04-17 }
 │   ]
 └─

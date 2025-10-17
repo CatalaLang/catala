@@ -90,9 +90,11 @@ PeriodInternal__split_by_month(const CATALA_TUPLE(CATALA_DATE; CATALA_DATE) p)
   CATALA_DATE stop = p[1].content;
   int estimated_size;
   CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE; CATALA_DATE)) ret;
+  dc_date * next_end;
   dc_date * next;
   dc_date tmp;
   dc_period one_month;
+  dc_period m_one_day;
   char should_continue;
   int idx;
 
@@ -109,6 +111,7 @@ PeriodInternal__split_by_month(const CATALA_TUPLE(CATALA_DATE; CATALA_DATE) p)
   ret->elements = catala_malloc(estimated_size * sizeof(CATALA_TUPLE(_)));
 
   dc_make_period(&one_month, 0, 1, 0);
+  dc_make_period(&m_one_day, 0, 0, -1);
   idx = 0;
 
   while (1) {
@@ -117,7 +120,9 @@ PeriodInternal__split_by_month(const CATALA_TUPLE(CATALA_DATE; CATALA_DATE) p)
     dc_add_dates(next, dc_date_round_abort, &tmp, &one_month);
 
     if (dc_compare_dates(next, stop) < 0){
-      ret->elements[idx++] = mk_period(start, next);
+      next_end = catala_malloc(sizeof(dc_date));
+      dc_add_dates(next_end, dc_date_round_abort, next, &m_one_day);
+      ret->elements[idx++] = mk_period(start, next_end);
       start = next;
       continue;
     }
@@ -150,8 +155,10 @@ PeriodInternal__split_by_year(CATALA_INT start_month, const CATALA_TUPLE(CATALA_
   int estimated_size;
   CATALA_ARRAY(CATALA_TUPLE(CATALA_DATE; CATALA_DATE)) ret;
   dc_date * next;
+  dc_date * next_end;
   dc_date tmp;
   dc_period one_year;
+  dc_period m_one_day;
   char should_continue;
   int idx;
 
@@ -169,6 +176,7 @@ PeriodInternal__split_by_year(CATALA_INT start_month, const CATALA_TUPLE(CATALA_
   estimated_size = (dc_date_year(stop) - dc_date_year(start) + 1);
   ret->elements = catala_malloc(estimated_size * sizeof(CATALA_TUPLE(_)));
   dc_make_period(&one_year, 1, 0, 0);
+  dc_make_period(&m_one_day, 0, 0, -1);
   idx = 0;
 
   while (1) {
@@ -177,7 +185,9 @@ PeriodInternal__split_by_year(CATALA_INT start_month, const CATALA_TUPLE(CATALA_
     dc_add_dates(next, dc_date_round_abort, &tmp, &one_year);
 
     if (dc_compare_dates(next, stop) < 0){
-      ret->elements[idx++] = mk_period(start, next);
+      next_end = catala_malloc(sizeof(dc_date));
+      dc_add_dates(next_end, dc_date_round_abort, next, &m_one_day);
+      ret->elements[idx++] = mk_period(start, next_end);
       start = next;
       continue;
     }

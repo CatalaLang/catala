@@ -12,7 +12,10 @@ def split_by_month(p:Tuple[Date, Date]):
     result = []
     while cur < end:
         cut = min(end, first_day_of_month(cur + Duration(relativedelta.relativedelta(months=1))))
-        result.append((cur, cut))
+        if (cut == end):
+          result.append((cur, cut))
+        else:
+          result.append((cur, cut - Duration(relativedelta.relativedelta(days=1))))
         cur = cut
     return result
 
@@ -30,6 +33,9 @@ def split_by_year(start_month:Integer, p:Tuple[Date, Date]):
     result = []
     while cur < end:
         cut = min(end, first_day_of_next_rolling_year(start_month.value, cur))
-        result.append((cur, cut))
+        if (cut == end):
+          result.append((cur, cut))
+        else:
+          result.append((cur, cut - Duration(relativedelta.relativedelta(days=1))))
         cur = cut
     return result

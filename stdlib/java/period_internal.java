@@ -38,7 +38,7 @@ public class Period_internal {
             };
 
         /**
-         * Splits the given period, returning one period per calendar month. 
+         * Splits the given period, returning one period per calendar month.
          * The first and last elements may be non-whole months.
          * Edge-case: if the given period is empty (begin >= end), an empty list
          * is returned.
@@ -52,16 +52,20 @@ public class Period_internal {
 
                 while(cur.compareTo(end) < 0){
                    CatalaDate fdmNext = cur.getFirstDayOfMonth().addDurationAbortOnRound(null, CatalaDuration.of(0, 1, 0));
-                   int cmp = end.compareTo(fdmNext);
-                   CatalaDate cut = cmp <= 0 ? end : fdmNext;
-                   res.add(new CatalaTuple(cur, cut));
-                   cur = cut;
+                   CatalaDate fdmEndPeriod = fdmNext.addDurationAbortOnRound(null, CatalaDuration.of(0, 0, -1));
+                  if (end.compareTo(fdmNext) <= 0) {
+                    res.add(new CatalaTuple(cur, end));
+                    break;
+                  } else {
+                      res.add(new CatalaTuple(cur, fdmEndPeriod));
+                  }
+                  cur = fdmNext;
                 }
 
                 return new CatalaArray<>(res.toArray(CatalaTuple[]::new));
             };
 
-        /** 
+        /**
          * Splits the given period, returning one period per year, split on the first
          * of the given month. The first and last elements returned may be non-whole
          * years.
@@ -79,9 +83,14 @@ public class Period_internal {
               while(cur.compareTo(end) < 0){
                 CatalaDate fdyNext =
                     new CatalaDate(firstDayOfNextRollingYear(startMonth.asBigInteger().intValueExact(), cur.date));
-                CatalaDate cut = end.compareTo(fdyNext) <= 0 ? end : fdyNext;
-                res.add(new CatalaTuple(cur, cut));
-                cur = cut;
+                CatalaDate fdyEndPeriod = fdyNext.addDurationAbortOnRound(null, CatalaDuration.of(0, 0, -1));
+                if (end.compareTo(fdyNext) <= 0) {
+                    res.add(new CatalaTuple(cur, end));
+                    break;
+                } else {
+                    res.add(new CatalaTuple(cur, fdyEndPeriod));
+                }
+                cur = fdyNext;
               }
 
               return new CatalaArray<>(res.toArray(CatalaTuple[]::new));
