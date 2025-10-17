@@ -383,8 +383,9 @@ let raw_cmd : int Cmd.t =
       let targets =
         List.map
           (fun f ->
-            if String.exists (function '/' | '.' -> true | _ -> false) f then
-              config.Cli.fix_path f
+            if
+              String.exists (function '/' | '\\' | '.' -> true | _ -> false) f
+            then config.Cli.fix_path f
             else f)
           targets
       in

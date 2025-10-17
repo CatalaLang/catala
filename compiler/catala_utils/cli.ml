@@ -60,7 +60,7 @@ let file_lang filename =
 
 let exec_dir =
   let cmd = Sys.argv.(0) in
-  if String.contains cmd '/' then
+  if String.contains cmd '/' || String.contains cmd '\\' then
     (* Do not use Sys.executable_name, which may resolve symlinks: we want the
        original path. (e.g. _build/install/default/bin/foo is a symlink) *)
     Filename.dirname cmd

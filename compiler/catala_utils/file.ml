@@ -38,26 +38,54 @@ let ( / ) a b =
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
 
+(* Rely on recursive calls to dirname/basename, because that correctly supports
+   Windows paths (splitting on path_sep isn't reliable there) *)
+let path_to_list path =
+  let rec split acc p =
+    let d = Filename.dirname p in
+    if d <> p then
+      match Filename.basename p with
+      | "" | "." -> split acc d
+      | base -> split (base :: acc) d
+    else if d = Filename.current_dir_name then acc
+    else if String.ends_with ~suffix:Filename.dir_sep d then
+      String.sub d 0 (String.length d - 1) :: acc
+    else d :: acc
+  in
+  split [] path
+
+let list_to_path = function
+  | [] -> Filename.current_dir_name
+  | p1 :: p ->
+    List.fold_left
+      (fun left right ->
+        if left = "" then Filename.dir_sep ^ right
+        else Filename.concat left right)
+      p1 p
+
+(* - Removes redundant "." segments. - Folds ".." segments when possible and
+   preserves extra leading "..". - Preserves whether [p] is absolute or relative
+   according to [Filename] on the current platform. - Keeps the platform's
+   separator and root syntax (e.g. ["C:\\"] on Windows). - Does not resolve
+   symlinks or case; purely lexical. *)
 let clean_path p =
-  let ( / ) a b = if b = "" then a else a / b in
+  let leading, p =
+    (* Windows drive letters *)
+    match path_to_list p with
+    | drive :: path when not (Filename.is_relative p) ->
+      drive ^ Filename.dir_sep, path
+    | path -> "", path
+  in
   let nup, p =
     List.fold_right
       (fun d (nup, acc) ->
-        if d = Filename.current_dir_name then nup, acc
-        else if d = Filename.parent_dir_name then nup + 1, acc
+        if d = Filename.parent_dir_name then nup + 1, acc
         else if nup > 0 then nup - 1, acc
-        else nup, d / acc)
-      (String.split_on_char dir_sep_char p)
-      (0, "")
+        else 0, d :: acc)
+      p (0, [])
   in
-  let p =
-    if nup = 0 then p
-    else
-      String.concat Filename.dir_sep
-        (List.init nup (fun _ -> Filename.parent_dir_name))
-      / p
-  in
-  if p = "" then "." else p
+  let p = List.init nup (fun _ -> Filename.parent_dir_name) @ p in
+  leading ^ list_to_path p
 
 let make_absolute p =
   clean_path @@ if Filename.is_relative p then Sys.getcwd () / p else p
@@ -97,14 +125,6 @@ let rec ensure_dir dir =
     if pdir <> dir then ensure_dir pdir;
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
-
-let path_to_list path =
-  String.split_on_char dir_sep_char path
-  |> List.filter (function "" | "." -> false | _ -> true)
-
-let list_to_path = function
-  | [] -> Filename.current_dir_name
-  | l -> String.concat Filename.dir_sep l
 
 let common_prefix f1 f2 =
   let rec aux p1 p2 =
