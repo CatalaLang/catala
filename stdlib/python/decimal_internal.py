@@ -11,5 +11,4 @@ def round_to_decimal2(variable: Decimal, n_decimal: Integer) -> Decimal:
 
 def round_to_decimal(variable: Decimal, n_decimal: Integer) -> Decimal:
     r = round_to_decimal2(variable, n_decimal)
-    print(r)
     return r

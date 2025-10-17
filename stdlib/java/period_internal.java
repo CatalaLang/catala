@@ -48,7 +48,7 @@ public class Period_internal {
                 CatalaDate cur = p.get(0, CatalaDate.class);
                 CatalaDate end = p.get(1, CatalaDate.class);
 
-                List<CatalaTuple> res = new ArrayList();
+                List<CatalaTuple> res = new ArrayList<CatalaTuple>();
 
                 while(cur.compareTo(end) < 0){
                    CatalaDate fdmNext = cur.getFirstDayOfMonth().addDurationAbortOnRound(null, CatalaDuration.of(0, 1, 0));
@@ -74,13 +74,12 @@ public class Period_internal {
               CatalaDate cur = p.get(0, CatalaDate.class);
               CatalaDate end = p.get(1, CatalaDate.class);
 
-              List<CatalaTuple> res = new ArrayList();
+              List<CatalaTuple> res = new ArrayList<CatalaTuple>();
 
               while(cur.compareTo(end) < 0){
-                CatalaDate fdyNext = firstDayOfNextRollingYear(startMonth.asBigInteger().intValueExact(), end);
-                
-                int cmp = end.compareTo(fdyNext);
-                CatalaDate cut = cmp <= 0 ? end : fdyNext;
+                CatalaDate fdyNext =
+                    new CatalaDate(firstDayOfNextRollingYear(startMonth.asBigInteger().intValueExact(), cur.date));
+                CatalaDate cut = end.compareTo(fdyNext) <= 0 ? end : fdyNext;
                 res.add(new CatalaTuple(cur, cut));
                 cur = cut;
               }
@@ -89,10 +88,10 @@ public class Period_internal {
             };
     }
 
-    private static CatalaDate firstDayOfNextRollingYear(int startMonth, CatalaDate date){
+    private static Date firstDayOfNextRollingYear(int startMonth, Date date){
       assert((startMonth >= 1) && (startMonth <= 12));
-      CatalaInteger yr = date.getMonth().asBigInteger().intValueExact() < startMonth ? date.getYear() : date.getYear().add(new CatalaInteger(1));
-      return new CatalaDate(Date.of(yr.asBigInteger().intValueExact(), startMonth, 1));
+      int yr = date.month < startMonth ? date.year : date.year + 1;
+      return Date.of(yr, startMonth, 1);
     }
 
 }
