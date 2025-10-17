@@ -14,6 +14,31 @@ declaration structure Period:
   # The end date is included in the period
   data end content date
 
+## Returns a period ranging over the given month of the given year.
+declaration of_month_and_year
+  content Period
+  depends on
+    pmonth content Date.Month,
+    pyear content integer
+  equals
+    let pbegin equals
+      Date.of_year_month_day of (pyear, (Date.month_to_int of pmonth), 1)
+    in
+    Period {
+      -- begin: pbegin
+      -- end: Date.last_day_of_month of pbegin
+    }
+
+## Returns a period ranging over the given year.
+declaration of_year
+  content Period
+  depends on pyear content integer
+  equals
+    Period {
+      -- begin: Date.of_year_month_day of (pyear, 1, 1)
+      -- end: Date.of_year_month_day of (pyear, 12, 31)
+    }
+
 ## Ensures that the period is coherent (it begins before its end).
 declaration valid
   content boolean
