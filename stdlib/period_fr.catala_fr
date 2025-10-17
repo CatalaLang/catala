@@ -14,6 +14,31 @@ déclaration structure Période:
   # La date de fin est incluse dans la période par convention.
   donnée fin contenu date
 
+## Retourne la période englobant le mois donné de l'année donnée.
+déclaration depuis_mois_et_année
+  contenu Période
+  dépend de
+    pmois contenu Date.Mois,
+    pannée contenu entier
+  égal à
+    soit pbegin égal à
+      Date.depuis_année_mois_jour de (pannée, (Date.mois_vers_entier de pmois), 1)
+    dans
+    Période {
+      -- début: pbegin
+      -- fin: Date.dernier_jour_du_mois de pbegin
+    }
+
+## Retourne la période englobant l'année donnée.
+déclaration depuis_année
+  contenu Période
+  dépend de pannée contenu entier
+  égal à
+    Période {
+      -- début: Date.depuis_année_mois_jour de (pannée, 1, 1)
+      -- fin: Date.depuis_année_mois_jour de (pannée, 12, 31)
+    }
+
 ## Vérifie si la période est bien cohérente (elle débute avant sa fin).
 déclaration valide
   contenu booléen
