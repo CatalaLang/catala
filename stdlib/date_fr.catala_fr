@@ -122,7 +122,7 @@ déclaration énumération Mois:
   -- Décembre
 
 ## Renvoie le numéro de mois (à partir de 1) associé à un mois nommé.
-déclaration month_to_int
+déclaration mois_vers_entier
   contenu entier
   dépend de m contenu Mois
   égal à
@@ -146,7 +146,7 @@ déclaration structure MoisDansAnnée:
 
 ## Renvoie le mois nommé correspondant au numéro de mois (à partir de 1).
 ## Si l'argument n'est pas entre 1 et 12, échoue avec l'erreur `impossible`.
-déclaration month_of_int
+déclaration mois_depuis_entier
   contenu Mois
   dépend de i contenu entier
   égal à
@@ -166,14 +166,14 @@ déclaration month_of_int
 
 ## Transforme un `MoisDansAnnée` vers une `date` en choisissant le premier jour
 ## du mois.
-déclaration month_of_year_to_premier_jour_du_mois
+déclaration mois_dans_année_vers_premier_jour_du_mois
   contenu date
   dépend de m contenu MoisDansAnnée
   égal à
     depuis_année_mois_jour de (m.numéro_année, (month_to_int de m.nom_mois), 1)
 
 ## Extrait le mois nommé et le numéro de l'année dans une date.
-déclaration to_month_of_year
+déclaration vers_mois_dans_année
   contenu MoisDansAnnée
   dépend de d contenu date
   égal à
