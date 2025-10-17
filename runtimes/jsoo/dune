@@ -1,7 +1,0 @@
-(library
- (name runtime_jsoo)
- (wrapped false)
- (preprocess
-  (pps js_of_ocaml-ppx))
- (libraries runtime js_of_ocaml)
- (modules runtime_jsoo))
