@@ -1,0 +1,21 @@
+# Identifier made of non-latin characters
+
+[Discussion](https://zulip.catala-lang.org/#narrow/channel/1-general/topic/Non-latin.20characters.20in.20idents/with/75728)
+
+```catala
+#[test]
+declaration scope IncomeTax2:
+  context суммаНалоговыхБаз content money
+  output суммаНалоговыхБаг content money # doesn't mean anything, but could trigger a conflict
+
+scope IncomeTax2:
+  definition суммаНалоговыхБаз equals $10
+  definition суммаНалоговыхБаг equals суммаНалоговыхБаз
+```
+
+```catala-test-cli
+$ catala test-scope IncomeTax2
+┌─[RESULT]─ IncomeTax2 ─
+│ суммаНалоговыхБаг = $10.00
+└─
+```
