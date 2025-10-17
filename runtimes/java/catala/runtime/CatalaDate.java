@@ -7,7 +7,7 @@ import catala.runtime.exception.CatalaError;
 
 public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
 
-    final Date date;
+    public final Date date;
 
     public CatalaDate(Date date) {
         this.date = date;
