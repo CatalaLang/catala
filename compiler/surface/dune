@@ -7,7 +7,8 @@
    ((pps sedlex.ppx)
     lexer_en
     lexer_fr
-    lexer_pl))))
+    lexer_pl
+    lexer_ro))))
 
 (rule
  (copy ast.mli ast.ml))
@@ -26,6 +27,11 @@
  (with-stdout-to
   lexer_pl.ml
   (run %{bin:cppo} %{dep:lexer_pl.cppo.ml} %{dep:lexer.cppo.ml})))
+
+(rule
+ (with-stdout-to
+  lexer_ro.ml
+  (run %{bin:cppo} %{dep:lexer_ro.cppo.ml} %{dep:lexer.cppo.ml})))
 
 (menhir
  (modules tokens)

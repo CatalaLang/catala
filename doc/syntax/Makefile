@@ -1,4 +1,4 @@
-TARGETS = syntax.pdf syntax_en.pdf syntax_fr.pdf
+TARGETS = syntax.pdf syntax_en.pdf syntax_fr.pdf syntax_ro.pdf
 
 TYPST_FLAGS = --font-path fonts/ --ignore-system-fonts
 

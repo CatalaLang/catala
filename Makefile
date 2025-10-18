@@ -40,7 +40,8 @@ $(PY_VENV_DIR)/stamp: \
     runtimes/python/pyproject.toml \
     syntax_highlighting/en/pygments/pyproject.toml \
     syntax_highlighting/fr/pygments/pyproject.toml \
-    syntax_highlighting/pl/pygments/pyproject.toml
+    syntax_highlighting/pl/pygments/pyproject.toml \
+    syntax_highlighting/ro/pygments/pyproject.toml
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
@@ -48,7 +49,8 @@ $(PY_VENV_DIR)/stamp: \
 	  -e runtimes/python \
 	  -e syntax_highlighting/en/pygments \
 	  -e syntax_highlighting/fr/pygments \
-	  -e syntax_highlighting/pl/pygments
+	  -e syntax_highlighting/pl/pygments \
+	  -e syntax_highlighting/ro/pygments
 	touch $@
 
 dependencies-python: $(PY_VENV_DIR)
@@ -358,7 +360,7 @@ clean:
 	rm -rf artifacts
 
 inspect:
-	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading
+	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,catala_ro,md,fst,mld --grading
 
 #> help_clerk				: Display the clerk man page
 help_clerk:

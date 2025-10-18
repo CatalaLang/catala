@@ -288,12 +288,14 @@ end
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
+module Parser_Ro = ParserAux (Lexer_ro)
 
 let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
   function
   | En -> Parser_En.commands_or_includes
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
+  | Ro -> Parser_Ro.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
@@ -303,6 +305,7 @@ let lines (file : File.t) (language : Global.backend_lang) =
     | En -> Lexer_en.lex_line
     | Fr -> Lexer_fr.lex_line
     | Pl -> Lexer_pl.lex_line
+    | Ro -> Lexer_ro.lex_line
   in
   let input = open_in file in
   try
