@@ -16,7 +16,7 @@
 
 type file = string
 type raw_file = file
-type backend_lang = En | Fr | Pl
+type backend_lang = En | Fr | Pl | Ro
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU | Lsp
 type trace_format_enum = Human | JSON
@@ -113,4 +113,4 @@ let enforce_options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let raw_file f = f
-let has_localised_stdlib = function En | Fr -> true | _ -> false
+let has_localised_stdlib = function En | Fr | Ro -> true | _ -> false

@@ -1,0 +1,77 @@
+# Liste
+
+> Modul List_ro
+> Folosind List_internal
+
+## Funcții utilitare
+
+```catala-metadata
+## Oferă lista formată din întregi consecutivi de la `început` (inclus) la
+## `sfârșit` (exclus).
+## **Exemplu**: `secvență de 3, 6` oferă lista `[3; 4; 5]`
+## **Caz limită**: dacă `sfârșit <= început`, rezultatul este o listă goală
+declarație secvență
+  conținut listă de întreg
+  depinde de început conținut întreg,
+            sfârșit conținut întreg
+  egal
+  List_internal.sequence de început, sfârșit
+
+## Oferă elementul listei la `indexul` dat, încapsulat în
+## constructorul `Prezent`.
+## **Exemplu**: `element_n de [101 RON; 102 RON; 103 RON], 2` oferă
+## `Prezent conținut 102 RON`
+## **Caz limită**: dacă indexul este mai mic de 1, sau în afara
+## listei, valoarea `Absent` este returnată
+declarație element_n
+  conținut opțional de orice de tip t
+  depinde de lst conținut listă de orice de tip t,
+            index conținut întreg
+  egal
+  List_internal.nth_element de lst, index
+
+## Oferă primul element al listei, dacă există, încapsulat în
+## constructorul `Prezent`.
+## **Caz limită**: dacă lista este goală, returnează `Absent`
+declarație primul_element
+  conținut opțional de orice de tip t
+  depinde de lst conținut listă de orice de tip t
+  egal
+  element_n de lst, 1
+
+## Oferă ultimul element al listei, dacă există, încapsulat în
+## constructorul `Prezent`.
+## **Caz limită**: dacă lista este goală, returnează `Absent`
+declarație ultimul_element
+  conținut opțional de orice de tip t
+  depinde de lst conținut listă de orice de tip t
+  egal
+  element_n de lst, (număr de lst)
+
+## Elimină elementul de la `indexul` dat din listă. Indexurile elementelor
+## următoare sunt deplasate.
+## **Caz limită**: dacă indexul dat este invalid, returnează lista fără
+## modificare
+declarație elimină_element_n
+  conținut listă de orice de tip t
+  depinde de lst conținut listă de orice de tip t,
+            index conținut întreg
+  egal
+  List_internal.remove_nth_element de lst, index
+
+## Returnează lista fără primul său element
+## **Caz limită**: lista goală este returnată neschimbată
+declarație elimină_primul_element
+  conținut listă de orice de tip t
+  depinde de lst conținut listă de orice de tip t
+  egal
+  List_internal.remove_nth_element de lst, 1
+
+## Returnează lista fără ultimul său element
+## **Caz limită**: lista goală este returnată neschimbată
+declarație elimină_ultimul_element
+  conținut listă de orice de tip t
+  depinde de lst conținut listă de orice de tip t
+  egal
+  List_internal.remove_nth_element de lst, (număr de lst)
+```

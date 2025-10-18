@@ -1,0 +1,110 @@
+# Bani
+
+> Modul Money_ro
+
+> Folosind Money_internal ca M
+
+## Funcții utilitare
+
+```catala-metadata
+## Returnează cel mai mic dintre cele două argumente.
+declarație min
+  conținut bani
+  depinde de m1 conținut bani,
+    m2 conținut bani
+  egal
+    dacă m1 > m2 atunci m2 altfel m1
+
+## Returnează cel mai mare dintre cele două argumente.
+declarație max
+  conținut bani
+  depinde de m1 conținut bani,
+    m2 conținut bani
+  egal
+    dacă m1 > m2 atunci m1 altfel m2
+
+## `plafon de variabilă, valoare_max` stabilește o limită superioară pentru `variabilă`
+## și returnează o valoare care nu depășește niciodată `valoare_max`.
+declarație plafon
+  conținut bani
+  depinde de variabilă conținut bani,
+    valoare_max conținut bani
+  egal min de variabilă, valoare_max
+
+## `prag de variabilă, valoare_min` stabilește o limită inferioară pentru `variabilă`
+## și returnează o valoare care nu este niciodată mai mică decât `valoare_min`.
+declarație prag
+  conținut bani
+  depinde de variabilă conținut bani,
+    valoare_min conținut bani
+  egal max de variabilă, valoare_min
+
+## Returnează argumentul dacă este pozitiv, 0 RON altfel.
+declarație pozitiv
+  conținut bani
+  depinde de variabilă conținut bani
+  egal prag de variabilă, 0 RON
+
+## Elimină cifrele unei sume de bani după virgulă. De exemplu,
+## `trunchiază de 7,61 RON = 7 RON` și `trunchiază de -7,61 RON = -7 RON`.
+declarație trunchiază
+  conținut bani
+  depinde de variabilă conținut bani
+  egal
+    dacă variabilă = 0 RON atunci 0 RON
+    altfel dacă variabilă > 0 RON atunci
+      rotunjește de (variabilă - 0,5 RON)
+    altfel
+      rotunjește de (variabilă + 0,5 RON)
+
+## Rotunjește o sumă de bani la RON-ul superior. De exemplu,
+## `rotunjește_în_sus de 4,34 RON = 5 RON` și `rotunjește_în_sus de -4,34 RON = -4 RON`.
+declarație rotunjește_în_sus
+  conținut bani
+  depinde de variabilă conținut bani
+  egal
+    dacă variabilă >= 0 RON atunci
+      rotunjește de (variabilă + 0,49 RON)
+    altfel
+      rotunjește de (variabilă + 0,5 RON)
+
+## Rotunjește o sumă de bani la RON-ul inferior. De exemplu,
+## `rotunjește_în_jos de 3,78 RON = 3 RON` și `rotunjește_în_jos de -3,78 RON = -4 RON`.
+declarație rotunjește_în_jos
+  conținut bani
+  depinde de variabilă conținut bani
+  egal
+    dacă variabilă > 0 RON atunci
+      rotunjește de (variabilă - 0,5 RON)
+    altfel rotunjește de (variabilă - 0,49 RON)
+
+## Rotunjește o sumă de bani la [a_n_ulea_zecimală] specificată.
+## [a_n_ulea_zecimală] poate fi o valoare negativă. De exemplu,
+## `rotunjește_la_zecimala de 123,45 RON, 1  = 123,5 RON` și
+## `rotunjește_la_zecimala de 123,45 RON, -2 = 100 RON`.
+declarație rotunjește_la_zecimala
+  conținut bani
+  depinde de variabilă conținut bani,
+    a_n_ulea_zecimală conținut întreg
+  egal M.round_to_decimal de variabilă, a_n_ulea_zecimală
+```
+
+## Operații financiare
+
+```catala-metadata
+## Returnează suma pozitivă cu care `variabilă` depășește `referință`
+## (altfel 0 RON)
+declarație în_exces
+  conținut bani
+  depinde de variabilă conținut bani,
+    referință conținut bani
+  egal max de (0 RON, variabilă - referință)
+
+## Returnează suma pozitivă cu care `variabilă` este sub `referință`
+## (altfel 0 RON)
+declarație în_deficit
+  conținut bani
+  depinde de variabilă conținut bani,
+    referință conținut bani
+  egal max de (0 RON, referință - variabilă)
+```

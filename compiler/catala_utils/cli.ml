@@ -21,7 +21,7 @@ module G = Global
 (* Manipulation of types used by flags & options *)
 
 (** Associates a {!type: Global.backend_lang} with its string represtation. *)
-let languages = ["en", En; "fr", Fr; "pl", Pl]
+let languages = ["en", En; "fr", Fr; "pl", Pl; "ro", Ro]
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
@@ -43,7 +43,8 @@ let raw_file =
 
 (* Some helpers for catala sources *)
 
-let extensions = [".catala_fr", Fr; ".catala_en", En; ".catala_pl", Pl]
+let extensions =
+  [".catala_fr", Fr; ".catala_en", En; ".catala_pl", Pl; ".catala_ro", Ro]
 
 let file_lang filename =
   List.assoc_opt (Filename.extension filename) extensions

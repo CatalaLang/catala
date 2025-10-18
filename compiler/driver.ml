@@ -20,7 +20,13 @@ open Shared_ast
 
 (** Associates a file extension with its corresponding
     {!type: Global.backend_lang} string representation. *)
-let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
+let extensions =
+  [
+    ".catala_fr", "fr";
+    ".catala_en", "en";
+    ".catala_pl", "pl";
+    ".catala_ro", "ro";
+  ]
 
 let load_modules
     options

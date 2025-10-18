@@ -23,6 +23,7 @@ let lang_of_ext s =
     | "catala_en" -> Some Global.En
     | "catala_fr" -> Some Global.Fr
     | "catala_pl" -> Some Global.Pl
+    | "catala_ro" -> Some Global.Ro
     | _ -> failwith "Unknown Catala dialect"
   else None
 
