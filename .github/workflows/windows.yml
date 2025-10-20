@@ -10,7 +10,6 @@ jobs:
   windows-smoke:
     name: Windows smoke test
     runs-on: windows-latest
-    continue-on-error: true
 
     steps:
       - name: Checkout repository
@@ -52,6 +51,7 @@ jobs:
           git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
 
       - name: Run clerk test in catala-examples
+        continue-on-error: true
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
           opam exec -- clerk test
