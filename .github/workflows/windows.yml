@@ -3,12 +3,13 @@ name: Windows smoke test
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   windows-smoke:
     name: Windows smoke test
     runs-on: windows-latest
-    continue-on-error: true
 
     steps:
       - name: Checkout repository
@@ -19,11 +20,18 @@ jobs:
           winget install --id OCaml.opam --source winget --accept-package-agreements --accept-source-agreements --silent
           winget install --id Ninja-build.Ninja --source winget --accept-package-agreements --accept-source-agreements --silent
 
-      - name: Initialize opam (non-interactive) and create local switch
+      - name: Refresh PATH from registry
+        shell: pwsh
+        run: |
+          $machinePath = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+          $userPath = [System.Environment]::GetEnvironmentVariable("Path","User")
+          "$machinePath;$userPath" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Initialize opam (non-interactive) and create switch
         run: |
           opam init -y --bare --disable-sandboxing
-          opam switch create . -y
-          opam switch set .
+          opam switch create 5.3.0
+          opam switch 5.3.0
           opam --version
 
       - name: Build and install Catala through opam
@@ -40,9 +48,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $dst = "$env:USERPROFILE\catala-examples"
           if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
-          git clone https://github.com/CatalaLang/catala-examples --depth 1 -b main $dst
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
 
       - name: Run clerk test in catala-examples
+        continue-on-error: true
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
           opam exec -- clerk test
