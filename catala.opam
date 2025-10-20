@@ -46,14 +46,14 @@ depends: [
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
   "odoc" {with-doc}
-  "ocamlformat" {cataladevmode & = "0.26.0"}
-  "obelisk" {cataladevmode}
-  "conf-npm" {cataladevmode}
-  "conf-python-3-dev" {cataladevmode}
-  "conf-openjdk" {cataladevmode}
-  "cpdf" {cataladevmode}
-  "conf-pandoc" {cataladevmode}
-  "z3" {catalaz3mode}
+  "ocamlformat" {?cataladevmode & cataladevmode & = "0.26.0"}
+  "obelisk" {?cataladevmode & cataladevmode}
+  "conf-npm" {?cataladevmode & cataladevmode}
+  "conf-python-3-dev" {?cataladevmode & cataladevmode}
+  "conf-openjdk" {?cataladevmode & cataladevmode}
+  "cpdf" {?cataladevmode & cataladevmode}
+  "conf-pandoc" {?cataladevmode & cataladevmode}
+  "z3" {?catalaz3mode & catalaz3mode}
   "conf-ninja"
   "otoml" {>= "1.0"}
 ]
@@ -75,7 +75,7 @@ build: [
 dev-repo: "git+https://github.com/CatalaLang/catala"
 depexts: [
   ["groff"] { with-doc }
-  ["python3-pip"] {cataladevmode & os-family = "debian"}
-  ["py3-pip" "py3-pygments"] {cataladevmode & os-distribution = "alpine"}
-  ["python-pygments"] {cataladevmode & os-family = "arch"}
+  ["python3-pip"] {?cataladevmode & cataladevmode & os-family = "debian"}
+  ["py3-pip" "py3-pygments"] {?cataladevmode & cataladevmode & os-distribution = "alpine"}
+  ["python-pygments"] {?cataladevmode & cataladevmode & os-family = "arch"}
 ]
