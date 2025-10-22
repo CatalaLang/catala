@@ -74,4 +74,12 @@ déclaration retire_last_element
   dépend de lst contenu liste de n'importe quel de type t
   égal à
   List_internal.remove_nth_element de lst, (nombre de lst)
+
+## Inverse l'ordre des éléments la liste donnée.
+## **Cas limite**: la liste vide est retournée inchangée
+déclaration inverse
+  contenu liste de n'importe quel de type t
+  dépend de lst contenu liste de n'importe quel de type t
+  égal à
+  List_internal.reverse de lst
 ```

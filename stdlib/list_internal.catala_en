@@ -15,4 +15,8 @@ declaration remove_nth_element
   content list of anything of type t
   depends on lst content list of anything of type t,
              index content integer
+
+declaration reverse
+  content list of anything of type t
+  depends on lst content list of anything of type t
 ```

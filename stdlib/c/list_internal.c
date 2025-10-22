@@ -59,3 +59,18 @@ const CATALA_ARRAY(void * /* any t */) ListInternal__remove_nth_element
     return lst;
   }
 }
+
+const CATALA_ARRAY(void * /* any t */) ListInternal__reverse
+    (const CATALA_ARRAY(void * /* any t */) lst)
+{
+  size_t len = lst->size;
+  int i;
+  if (len <= 0) {
+    return lst;
+  } else {
+    catala_array* ret = catala_malloc(sizeof(catala_array));
+    for (i = 0; i < len; i++)
+      ret->elements[i] = lst->elements[len - 1 - i];
+    return ret;
+  }
+}

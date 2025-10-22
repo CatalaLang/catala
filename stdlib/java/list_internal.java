@@ -1,9 +1,3 @@
-/* This is a template file following the expected interface and declarations to
- * implement the corresponding Catala module.
- *
- * You should replace all `Error.Impossible` place-holders with your
- * implementation and rename it to remove the ".template" suffix. */
-
 import catala.runtime.*;
 import catala.runtime.exception.*;
 
@@ -51,5 +45,17 @@ public class List_internal {
             }
         };
 
+        public static final CatalaFunction<CatalaArray<CatalaValue>,CatalaArray<CatalaValue>> reverse =
+            lst -> {
+            CatalaValue[] lst_arr = lst.asArray();
+            int len = lst_arr.length;
+            if (len == 0)
+                return lst;
+            CatalaValue[] ret = java.util.Arrays.copyOf(lst_arr, len);
+            for (int i = 0; i < len; i++){
+                ret[i] = lst_arr[len - 1 - i];
+            }
+            return new CatalaArray<CatalaValue>(ret);
+        };
     }
 }

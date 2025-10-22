@@ -8,8 +8,8 @@
 ```catala-metadata
 ## Returns a list made of the consecutive integers from `begin` (inclusive)
 ## to `end` (exclusive).
-## **Example**: `sequence of 3, 6` is the list `[3; 4; 5]`
-## **Edge-case**: if `end <= begin`, the returned list is empty
+## **Example:** `sequence of 3, 6 = [3; 4; 5]`
+## **Edge-case**: if `end <= begin`, the returned list is empty.
 declaration sequence
   content list of integer
   depends on begin content integer,
@@ -18,7 +18,7 @@ declaration sequence
   List_internal.sequence of begin, end
 
 ## Returns the element of the list at the given index, encapsulated within
-## constructor `Présent`
+## constructor `Present`.
 ## **Example**: `nth_element of [$101; $102; $103], 2` is `Present content $102`
 ## **Edge-case**: if the index is less than 1, or otherwise outside of the list,
 ## `Absent` is returned
@@ -72,4 +72,12 @@ declaration remove_last_element
   depends on lst content list of anything of type t
   equals
   List_internal.remove_nth_element of lst, (number of lst)
+
+## Reverse the elements of the given list.
+## **Edge-case**: an empty list is returned unchanged
+declaration reverse
+  content list of anything of type t
+  depends on lst content list of anything of type t
+  equals
+  List_internal.reverse of lst
 ```
