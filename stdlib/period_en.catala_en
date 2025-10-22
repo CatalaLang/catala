@@ -17,8 +17,7 @@ declaration structure Period:
 ## Returns a period ranging over the given month of the given year.
 declaration of_month_and_year
   content Period
-  depends on
-    pmonth content Date.Month,
+  depends on pmonth content Date.Month,
     pyear content integer
   equals
     let pbegin equals
@@ -87,13 +86,45 @@ declaration intersection
     if valid of intersection then Present content intersection
     else Absent
 
-## Returns `true` if the given date `d` belongs to the given period `p`
-declaration contained
+## Returns `true` if the periods have an overlap of at least one day.
+declaration overlap
+  content boolean
+  depends on p1 content Period,
+    p2 content Period
+  equals
+    match (intersection of p1, p2) with pattern
+    -- Present content p : true
+    -- Absent : false
+
+## Returns `true` if the period `p1` fully covers the period `p2`.
+declaration cover
+  content boolean
+  depends on p1 content Period,
+    p2 content Period
+  equals
+    p1.begin <= p2.begin and p2.end <= p1.end
+
+## Returns `true` if the given date `d` is contained in the given period `p`.
+declaration is_contained
   content boolean
   depends on p content Period,
     d content date
   equals
     p.begin <= d and d <= p.end
+
+## Returns `true` if the given date occurs *strictly* before the period.
+declaration is_before
+  content boolean
+  depends on p content Period,
+    d content date
+  equals d < p.begin
+
+## Returns `true` if the given date occurs *strictly* after the period.
+declaration is_after
+  content boolean
+  depends on p content Period,
+    d content date
+  equals d > p.end
 
 ## Finds the first period in the given list `l` that contains the date `d`.
 declaration find_period
@@ -106,7 +137,7 @@ declaration find_period
       with
         match found with pattern
         -- Present : found
-        -- Absent : if contained of p, d then Present content p else Absent
+        -- Absent : if is_contained of p, d then Present content p else Absent
 ```
 
 ## Operations on associated lists indexed by periods

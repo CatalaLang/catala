@@ -17,8 +17,7 @@ déclaration structure Période:
 ## Retourne la période englobant le mois donné de l'année donnée.
 déclaration depuis_mois_et_année
   contenu Période
-  dépend de
-    pmois contenu Date.Mois,
+  dépend de pmois contenu Date.Mois,
     pannée contenu entier
   égal à
     soit pbegin égal à
@@ -35,8 +34,8 @@ déclaration depuis_année
   dépend de pannée contenu entier
   égal à
     Période {
-      -- début: Date.depuis_année_mois_jour de (pannée, 1, 1)
-      -- fin: Date.depuis_année_mois_jour de (pannée, 12, 31)
+      -- début: Date.depuis_année_mois_jour de pannée, (1), (1)
+      -- fin: Date.depuis_année_mois_jour de pannée, (12), (31)
     }
 
 ## Vérifie si la période est bien cohérente (elle débute avant sa fin).
@@ -87,13 +86,47 @@ déclaration intersection
     si valide de intersection alors Présent contenu intersection
     sinon Absent
 
-## Retourne `vrai` si la date appartient à la période.
-déclaration contenue
+## Retourne `vrai` si les périodes se chevauchent d'au moins un jour.
+déclaration chevauche
+  contenu booléen
+  dépend de p1 contenu Période,
+    p2 contenu Période
+  égal à
+    selon (intersection de p1, p2) sous forme
+    -- Présent contenu p : vrai
+    -- Absent : faux
+
+## Retourne `vrai` si la période `p1` englobe la période `p2`.
+déclaration englobe
+  contenu booléen
+  dépend de p1 contenu Période,
+    p2 contenu Période
+  égal à
+    p1.début <= p2.début et p2.fin <= p1.fin
+
+## Retourne `vrai` si la date est contenue dans la période.
+déclaration est_contenue
   contenu booléen
   dépend de p contenu Période,
     d contenu date
   égal à
     p.début <= d et d <= p.fin
+
+## Retourne `vrai` si la date survient *strictement* avant la période.
+déclaration est_avant
+  contenu booléen
+  dépend de p contenu Période,
+    d contenu date
+  égal à
+    d < p.début
+
+## Retourne `vrai` si la date survient *strictement* après la période.
+déclaration est_après
+  contenu booléen
+  dépend de p contenu Période,
+    d contenu date
+  égal à
+    d > p.fin
 
 ## Trouve la première période dans la liste `l` qui contient la date `d`.
 déclaration trouve_période
@@ -106,7 +139,7 @@ déclaration trouve_période
       avec
         selon found sous forme
         -- Présent : found
-        -- Absent : si contenue de p, d alors Présent contenu p sinon Absent
+        -- Absent : si est_contenue de p, d alors Présent contenu p sinon Absent
 ```
 
 ## Opérations sur des listes associées indexées par des périodes
@@ -140,12 +173,12 @@ déclaration divise_par_mois
 ## des années incomplètes.
 déclaration divise_par_année
   contenu liste de Période
-  dépend de starting_month contenu Date.Mois,
+  dépend de mois_de_départ contenu Date.Mois,
     p contenu Période
   égal à
     depuis_tuple_liste de
       Period_internal.split_by_year de
-        (Date.month_to_int de starting_month),
+        (Date.mois_vers_entier de mois_de_départ),
         vers_tuple de p
 ```
 
