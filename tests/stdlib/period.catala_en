@@ -26,7 +26,11 @@ scope Tunit:
     and Period.are_adjacent of p_one_day, p_succ_one_day
     and (Period.intersection of p_one_day, p_succ_one_day) with pattern Absent
     and Period.join of p_one_day, p_succ_one_day = mk_p of |2020-01-01|, |2020-01-03|
-    and Period.contained of p_succ_one_day, |2020-01-02|
+    and Period.cover of p_one_day, p_succ_one_day = false
+    and Period.overlap of p_one_day, p_succ_one_day = false
+    and Period.is_before of p_succ_one_day, p_one_day.begin = true
+    and Period.is_after of p_one_day, p_succ_one_day.begin = true
+    and Period.is_contained of p_succ_one_day, |2020-01-02|
   )
 
   definition p_in_succ_one_day equals mk_p of (|2020-01-03|, |2020-01-03|)
@@ -37,7 +41,9 @@ scope Tunit:
       (Period.intersection of p_succ_one_day, p_in_succ_one_day) with pattern Present content p
       and p = (mk_p of |2020-01-03|, |2020-01-03|)
     )
-    and Period.join of p_succ_one_day, p_in_succ_one_day = p_succ_one_day
+    and (Period.join of p_succ_one_day, p_in_succ_one_day = p_succ_one_day)
+    and (Period.cover of p_succ_one_day, p_in_succ_one_day = true)
+    and (Period.overlap of p_succ_one_day, p_in_succ_one_day = true)
   )
 
   assertion (
