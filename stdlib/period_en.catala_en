@@ -22,7 +22,7 @@ declaration of_month_and_year
     pyear content integer
   equals
     let pbegin equals
-      Date.of_year_month_day of (pyear, (Date.month_to_int of pmonth), 1)
+      Date.of_year_month_day of (pyear, (Date.month_to_integer of pmonth), 1)
     in
     Period {
       -- begin: pbegin
@@ -150,7 +150,7 @@ declaration split_by_year
   equals
     of_tuple_list of
       Period_internal.split_by_year of
-        (Date.month_to_int of starting_month),
+        (Date.month_to_integer of starting_month),
         to_tuple of p
 ```
 
