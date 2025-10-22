@@ -104,7 +104,7 @@ declaration last_day_of_year
     of_year_month_day of (ymd.1, 12, 31)
 ```
 
-## Named months and months of specific years
+## Named months
 
 ```catala-metadata
 declaration enumeration Month:
@@ -122,7 +122,7 @@ declaration enumeration Month:
   -- December
 
 ## Returns the month number (starting from 1) associated to a named month.
-declaration month_to_int
+declaration month_to_integer
   content integer
   depends on m content Month
   equals
@@ -140,13 +140,9 @@ declaration month_to_int
     -- November : 11
     -- December : 12
 
-declaration structure MonthOfYear:
-  data year_number content integer
-  data month_name content Month
-
 ## Returns the named month corresponding to the month number (starting from 1).
 ## If the input is not between 1 and 12, fails with an `impossible` error.
-declaration month_of_int
+declaration month_of_integer
   content Month
   depends on i content integer
   equals
@@ -163,24 +159,78 @@ declaration month_of_int
     else if i = 11 then November
     else if i = 12 then December
     else impossible
+```
 
-## Transforms a `MonthOfYear` into a `date` by choosing the first day of the
-## month.
-declaration month_of_year_to_first_day_of_month
-  content date
-  depends on m content MonthOfYear
-  equals
-    of_year_month_day of (m.year_number, (month_to_int of m.month_name), 1)
+## Months of specific years
 
-## Extracts the named month and year from a date.
-declaration to_month_of_year
-  content MonthOfYear
+```catala-metadata
+declaration structure MonthYear:
+  data year_number content integer
+  data month_name content Month
+
+## Extracts the named month and year from a date ignoring the day.
+declaration to_month_year
+  content MonthYear
   depends on d content date
   equals
-    MonthOfYear {
+    MonthYear {
       -- year_number: get_year of d
-      -- month_name: month_of_int of (get_month of d)
+      -- month_name: month_of_integer of (get_month of d)
     }
+
+## Transforms a `MonthYear` into a `date` by choosing the first day of the
+## month.
+declaration to_first_day_of_month
+  content date
+  depends on m content MonthYear
+  equals
+    of_year_month_day of (m.year_number, (month_to_integer of m.month_name), 1)
+
+## Transforms a `MonthYear` into a `date` by choosing the last day of the
+## month.
+declaration to_last_day_of_month
+  content date
+  depends on m content MonthYear
+  equals
+    last_day_of_month of
+      (of_year_month_day of (m.year_number, (month_to_integer of m.month_name), 1))
+
+## Returns `true` if the date occurs strictly before given month.
+declaration is_before_the_month
+  content boolean
+  depends on m content MonthYear, d content date
+  equals d < to_first_day_of_month of m
+
+## Returns `true` if the date occurs strictly after the given month.
+declaration is_after_the_month
+  content boolean
+  depends on m content MonthYear, d content date
+  equals d > to_last_day_of_month of m
+
+## Returns `true` if the date is in the given month.
+declaration is_in_the_month
+  content boolean
+  depends on m content MonthYear, d content date
+  equals (is_after_the_first_day_of_month of m, d) and
+    (is_before_the_end_of_the_month of m, d)
+
+## Returns `true` if the date occurs before the end of the given month (included).
+## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-04-13| = true`
+## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-05-31| = true`
+## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-06-01| = false`
+declaration is_before_the_end_of_the_month
+  content boolean
+  depends on m content MonthYear, d content date
+  equals d <= to_last_day_of_month of m
+
+## Returns `true` if the date occurs after the first day of the given month (included).
+## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-06-15| = true`
+## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-05-01| = true`
+## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-04-30| = false`
+declaration is_after_the_first_day_of_month
+  content boolean
+  depends on m content MonthYear, d content date
+  equals d >= to_first_day_of_month of m
 ```
 
 ## Date comparisons
