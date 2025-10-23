@@ -10,7 +10,8 @@
 ## Renvoie le plus petit des deux arguments.
 déclaration min
   contenu argent
-  dépend de m1 contenu argent,
+  dépend de
+    m1 contenu argent,
     m2 contenu argent
   égal à
     si m1 > m2 alors m2 sinon m1
@@ -18,7 +19,8 @@ déclaration min
 ## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu argent
-  dépend de m1 contenu argent,
+  dépend de
+    m1 contenu argent,
     m2 contenu argent
   égal à
     si m1 > m2 alors m1 sinon m2
@@ -27,23 +29,28 @@ déclaration max
 ## et renvoie une valeur qui n'excède jamais `valeur_max`.
 déclaration plafond
   contenu argent
-  dépend de variable contenu argent,
+  dépend de
+    variable contenu argent,
     valeur_max contenu argent
-  égal à min de variable, valeur_max
+  égal à
+    min de variable, valeur_max
 
 ## `plancher de variable, valeur_min` met une limite inférieure à `variable`
 ## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu argent
-  dépend de variable contenu argent,
+  dépend de
+    variable contenu argent,
     valeur_min contenu argent
-  égal à max de variable, valeur_min
+  égal à
+    max de variable, valeur_min
 
 ## Renvoie l'argument s'il est positif, 0€ sinon.
 déclaration positif
   contenu argent
   dépend de variable contenu argent
-  égal à plancher de variable, 0€
+  égal à
+    plancher de variable, 0€
 
 ## Enlève d'un montant d'argent ses chiffres après la virgule. Par exemple,
 ## `troncature de 7,61€ = 7€` et `troncature de -7,61€ = -7€`.
@@ -84,9 +91,11 @@ déclaration arrondi_par_défaut
 ## `arrondi_à_la_décimale de 123,45€, -2 = 100€`.
 déclaration arrondi_à_la_décimale
   contenu argent
-  dépend de variable contenu argent,
+  dépend de
+    variable contenu argent,
     nième_décimale contenu entier
-  égal à M.round_to_decimal de variable, nième_décimale
+  égal à
+    M.round_to_decimal de variable, nième_décimale
 ```
 
 ## Opérations financières
@@ -96,15 +105,19 @@ déclaration arrondi_à_la_décimale
 ## (sinon 0€)
 déclaration en_excès
   contenu argent
-  dépend de variable contenu argent,
+  dépend de
+    variable contenu argent,
     référence contenu argent
-  égal à max de (0€, variable - référence)
+  égal à
+    max de (0€, variable - référence)
 
 ## Retourne le montant positif duquel `variable` est en dessous de `référence`
 ## (sinon 0€)
 déclaration en_défaut
   contenu argent
-  dépend de variable contenu argent,
+  dépend de
+    variable contenu argent,
     référence contenu argent
-  égal à max de (0€, référence - variable)
+  égal à
+    max de (0€, référence - variable)
 ```

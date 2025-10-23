@@ -17,7 +17,8 @@ déclaration structure Période:
 ## Retourne la période englobant le mois donné de l'année donnée.
 déclaration depuis_mois_et_année
   contenu Période
-  dépend de pmois contenu Date.Mois,
+  dépend de
+    pmois contenu Date.Mois,
     pannée contenu entier
   égal à
     soit pbegin égal à
@@ -50,12 +51,14 @@ déclaration valide
 déclaration durée
   contenu durée
   dépend de p contenu Période
-  égal à 1 jour + p.fin - p.début
+  égal à
+    1 jour + p.fin - p.début
 
 ## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute.
 déclaration sont_adjacentes
   contenu booléen
-  dépend de p1 contenu Période,
+  dépend de
+    p1 contenu Période,
     p2 contenu Période
   égal à
     p1.fin = p2.début - 1 jour
@@ -63,7 +66,8 @@ déclaration sont_adjacentes
 ## Retourne la période qui englobe `p1` et `p2`.
 déclaration union
   contenu Période
-  dépend de p1 contenu Période,
+  dépend de
+    p1 contenu Période,
     p2 contenu Période
   égal à
     Période {
@@ -74,7 +78,8 @@ déclaration union
 ## Retourne la période contenue à la fois dans p1 et p2, si elle existe.
 déclaration intersection
   contenu optionnel de Période
-  dépend de p1 contenu Période,
+  dépend de
+    p1 contenu Période,
     p2 contenu Période
   égal à
     soit intersection égal à
@@ -89,7 +94,8 @@ déclaration intersection
 ## Retourne `vrai` si les périodes se chevauchent d'au moins un jour.
 déclaration chevauche
   contenu booléen
-  dépend de p1 contenu Période,
+  dépend de
+    p1 contenu Période,
     p2 contenu Période
   égal à
     selon (intersection de p1, p2) sous forme
@@ -99,7 +105,8 @@ déclaration chevauche
 ## Retourne `vrai` si la période `p1` englobe la période `p2`.
 déclaration englobe
   contenu booléen
-  dépend de p1 contenu Période,
+  dépend de
+    p1 contenu Période,
     p2 contenu Période
   égal à
     p1.début <= p2.début et p2.fin <= p1.fin
@@ -107,7 +114,8 @@ déclaration englobe
 ## Retourne `vrai` si la date est contenue dans la période.
 déclaration est_contenue
   contenu booléen
-  dépend de p contenu Période,
+  dépend de
+    p contenu Période,
     d contenu date
   égal à
     p.début <= d et d <= p.fin
@@ -115,7 +123,8 @@ déclaration est_contenue
 ## Retourne `vrai` si la date survient *strictement* avant la période.
 déclaration est_avant
   contenu booléen
-  dépend de p contenu Période,
+  dépend de
+    p contenu Période,
     d contenu date
   égal à
     d < p.début
@@ -123,7 +132,8 @@ déclaration est_avant
 ## Retourne `vrai` si la date survient *strictement* après la période.
 déclaration est_après
   contenu booléen
-  dépend de p contenu Période,
+  dépend de
+    p contenu Période,
     d contenu date
   égal à
     d > p.fin
@@ -131,7 +141,8 @@ déclaration est_après
 ## Trouve la première période dans la liste `l` qui contient la date `d`.
 déclaration trouve_période
   contenu optionnel de Période
-  dépend de l contenu liste de Période,
+  dépend de
+    l contenu liste de Période,
     d contenu date
   égal à
     combine tout p parmi l
@@ -166,14 +177,16 @@ déclaration tri_par_date
 déclaration divise_par_mois
   contenu liste de Période
   dépend de p contenu Période
-  égal à depuis_tuple_liste de Period_internal.split_by_month de vers_tuple de p
+  égal à
+    depuis_tuple_liste de Period_internal.split_by_month de vers_tuple de p
 
 ## Divise la période en autant de sous-périodes qu'elle contient d'années du
 ## calendrier. Les premiers et derniers éléments retournés peuvent donc être
 ## des années incomplètes.
 déclaration divise_par_année
   contenu liste de Période
-  dépend de mois_de_départ contenu Date.Mois,
+  dépend de
+    mois_de_départ contenu Date.Mois,
     p contenu Période
   égal à
     depuis_tuple_liste de
@@ -187,31 +200,38 @@ déclaration divise_par_année
 déclaration vers_tuple
   contenu (date, date)
   dépend de p contenu Période
-  égal à (p.début, p.fin)
+  égal à
+  (p.début, p.fin)
 
 déclaration vers_tuple_liste_associée
   contenu liste de ((date, date), n'importe quel de type t)
   dépend de l contenu liste de (Période, n'importe quel de type t)
-  égal à transforme chaque p parmi l en ((vers_tuple de p.1), p.2)
+  égal à
+    transforme chaque p parmi l en ((vers_tuple de p.1), p.2)
 
 déclaration vers_tuple_liste
   contenu liste de (date, date)
   dépend de l contenu liste de Période
-  égal à transforme chaque p parmi l en vers_tuple de p
+  égal à
+    transforme chaque p parmi l en vers_tuple de p
 
 déclaration depuis_tuple
   contenu Période
-  dépend de début contenu date,
+  dépend de
+    début contenu date,
     fin contenu date
-  égal à Période { -- début: début -- fin: fin }
+  égal à
+    Période { -- début: début -- fin: fin }
 
 déclaration depuis_tuple_liste_associée
   contenu liste de (Période, n'importe quel de type t)
   dépend de l contenu liste de ((date, date), n'importe quel de type t)
-  égal à transforme chaque tpl parmi l en ((depuis_tuple de tpl.1), tpl.2)
+  égal à
+    transforme chaque tpl parmi l en ((depuis_tuple de tpl.1), tpl.2)
 
 déclaration depuis_tuple_liste
   contenu liste de Période
   dépend de l contenu liste de (date, date)
-  égal à transforme chaque tpl parmi l en depuis_tuple de tpl
+  égal à
+    transforme chaque tpl parmi l en depuis_tuple de tpl
 ```

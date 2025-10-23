@@ -10,7 +10,8 @@
 ## Returns the smallest of the two arguments.
 declaration min
   content decimal
-  depends on m1 content decimal,
+  depends on
+    m1 content decimal,
     m2 content decimal
   equals
     if m1 > m2 then m2 else m1
@@ -18,7 +19,8 @@ declaration min
 ## Returns the biggest of the two arguments.
 declaration max
   content decimal
-  depends on m1 content decimal,
+  depends on
+    m1 content decimal,
     m2 content decimal
   equals
     if m1 > m2 then m1 else m2
@@ -27,23 +29,28 @@ declaration max
 ## a value that never exceeds `max_value`.
 declaration ceiling
   content decimal
-  depends on variable content decimal,
+  depends on
+    variable content decimal,
     max_value content decimal
-  equals min of variable, max_value
+  equals
+    min of variable, max_value
 
 ## `floor of variable, min_value` puts a lower cap to `variable` and returns
 ## a value that is never inferior to `min_value`.
 declaration floor
   content decimal
-  depends on variable content decimal,
+  depends on
+    variable content decimal,
     min_value content decimal
-  equals max of variable, min_value
+  equals
+    max of variable, min_value
 
 ## Returns the argument if it is positive, 0.0 otherwise.
 declaration positive
   content decimal
   depends on variable content decimal
-  equals floor of variable, 0.0
+  equals
+    floor of variable, 0.0
 
 ## Removes decimal digits from a number. For instance, `truncate of 7.61 = 7.0`
 ## and `truncate of -7.61 = -7.0`.
@@ -90,7 +97,9 @@ declaration round_by_default
 ## `round_to_decimal of 123.4567, -2 = 100.0`.
 declaration round_to_decimal
   content decimal
-  depends on variable content decimal,
+  depends on
+    variable content decimal,
     nth_decimal content integer
-  equals D.round_to_decimal of variable, nth_decimal
+  equals
+    D.round_to_decimal of variable, nth_decimal
 ```

@@ -10,7 +10,8 @@
 ## Returns the smallest of the two arguments.
 declaration min
   content money
-  depends on m1 content money,
+  depends on
+    m1 content money,
     m2 content money
   equals
     if m1 > m2 then m2 else m1
@@ -18,7 +19,8 @@ declaration min
 ## Returns the biggest of the two arguments.
 declaration max
   content money
-  depends on m1 content money,
+  depends on
+    m1 content money,
     m2 content money
   equals
     if m1 > m2 then m1 else m2
@@ -27,23 +29,28 @@ declaration max
 ## a value that never exceeds `max_value`.
 declaration ceiling
   content money
-  depends on variable content money,
+  depends on
+    variable content money,
     max_value content money
-  equals min of variable, max_value
+  equals
+    min of variable, max_value
 
 ## `floor of variable, min_value` puts a lower cap to `variable` and returns
 ## a value that is never inferior to `min_value`.
 declaration floor
   content money
-  depends on variable content money,
+  depends on
+    variable content money,
     min_value content money
-  equals max of variable, min_value
+  equals
+    max of variable, min_value
 
 ## Returns the argument if it is positive, $0 otherwise.
 declaration positive
   content money
   depends on variable content money
-  equals floor of variable, $0
+  equals
+    floor of variable, $0
 
 ## Removes decimal digits from a money amount. For instance,
 ## `truncate of $7.61 = $7.0` and `truncate of -$7.61 = -$7.0`.
@@ -82,9 +89,11 @@ declaration round_by_default
 ## `round_to_decimal of $123.45, -2 = $100`.
 declaration round_to_decimal
   content money
-  depends on variable content money,
+  depends on
+    variable content money,
     nth_decimal content integer
-  equals M.round_to_decimal of variable, nth_decimal
+  equals
+    M.round_to_decimal of variable, nth_decimal
 ```
 
 ## Financial operations
@@ -94,15 +103,19 @@ declaration round_to_decimal
 ## ($0 otherwise).
 declaration in_excess
   content money
-  depends on variable content money,
+  depends on
+    variable content money,
     reference content money
-  equals max of ($0, variable - reference)
+  equals
+    max of ($0, variable - reference)
 
 ## Returns the positive amount that `variable` underflows from `reference`
 ## ($0 otherwise).
 declaration in_default
   content money
-  depends on variable content money,
+  depends on
+    variable content money,
     reference content money
-  equals max of ($0, reference - variable)
+  equals
+    max of ($0, reference - variable)
 ```

@@ -10,7 +10,8 @@
 ## Renvoie la plus ancienne des deux dates.
 déclaration min
   contenu date
-  dépend de x contenu date,
+  dépend de
+    x contenu date,
     y contenu date
   égal à
     si x <= y alors x sinon y
@@ -18,7 +19,8 @@ déclaration min
 ## Renvoie la plus récente des deux dates.
 déclaration max
   contenu date
-  dépend de x contenu date,
+  dépend de
+    x contenu date,
     y contenu date
   égal à
     si x >= y alors x sinon y
@@ -32,12 +34,13 @@ déclaration max
 déclaration depuis_année_mois_jour
   contenu date
   dépend de
-  #[implicit_position_argument]
+    #[implicit_position_argument]
     pos contenu position_source,
     dyear contenu entier,
     dmonth contenu entier,
     dday contenu entier
-  égal à D.of_ymd de pos, dyear, dmonth, dday
+  égal à
+    D.of_ymd de pos, dyear, dmonth, dday
 
 ## Renvoie le numéro de l'année, du mois (à partir de 1) et du jour
 ## (à partir de 1) de la date passée en argument.
@@ -51,19 +54,22 @@ déclaration vers_année_mois_jour
 déclaration accès_année
   contenu entier
   dépend de d contenu date
-  égal à (vers_année_mois_jour de d).1
+  égal à
+    (vers_année_mois_jour de d).1
 
 ## Renvoie le numéro du mois (à partir de 1) d'une date.
 déclaration accès_mois
   contenu entier
   dépend de d contenu date
-  égal à (vers_année_mois_jour de d).2
+  égal à
+    (vers_année_mois_jour de d).2
 
 ## Renvoie le numéro du jour (à partir de 1) d'une date.
 déclaration accès_jour
   contenu entier
   dépend de d contenu date
-  égal à (vers_année_mois_jour de d).3
+  égal à
+    (vers_année_mois_jour de d).3
 ```
 
 ## Aller vers le passé ou le futur
@@ -83,7 +89,8 @@ déclaration premier_jour_du_mois
 déclaration dernier_jour_du_mois
   contenu date
   dépend de d contenu date
-  égal à D.last_day_of_month de d
+  égal à
+    D.last_day_of_month de d
 
 ## Renvoie le premier jour de l'année de la date passée en argument. Par
 ## exemple, `premier_jour_de_l_année de |21-03-2024| = |01-01-2024|`.
@@ -199,20 +206,23 @@ déclaration vers_dernier_jour_du_mois
 déclaration est_avant_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
-  égal à d < vers_premier_jour_du_mois de m
+  égal à
+    d < vers_premier_jour_du_mois de m
 
 ## Retourne `vrai` si la date survient strictement après le mois concerné.
 déclaration est_après_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
-  égal à d > vers_dernier_jour_du_mois de m
+  égal à
+    d > vers_dernier_jour_du_mois de m
 
 ## Retourne `vrai` si la date survient durant le mois concerné.
 déclaration est_dans_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
-  égal à (est_après_le_début_du_mois de m, d) et
-    (est_avant_la_fin_du_mois de m, d)
+  égal à
+    (est_après_le_début_du_mois de m, d)
+    et (est_avant_la_fin_du_mois de m, d)
 
 ## Retourne `vrai` si la date survient avant la fin du mois concerné (inclus).
 ## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-04-13| = vrai`
@@ -221,7 +231,8 @@ déclaration est_dans_le_mois
 déclaration est_avant_la_fin_du_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
-  égal à d <= vers_dernier_jour_du_mois de m
+  égal à
+    d <= vers_dernier_jour_du_mois de m
 
 ## Retourne `vrai` si la date survient après le début du mois concerné (inclus).
 ## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-06-15| = vrai`
@@ -230,7 +241,8 @@ déclaration est_avant_la_fin_du_mois
 déclaration est_après_le_début_du_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
-  égal à d >= vers_premier_jour_du_mois de m
+  égal à
+    d >= vers_premier_jour_du_mois de m
 ```
 
 ## Comparaisons de date
@@ -245,7 +257,8 @@ déclaration est_après_le_début_du_mois
 ## `faux`.
 déclaration est_après_date_plus_délai
   contenu booléen
-  dépend de date_comparée contenu date,
+  dépend de
+    date_comparée contenu date,
     date_de_référence contenu date,
     délai contenu durée
   égal à
@@ -260,7 +273,8 @@ déclaration est_après_date_plus_délai
 ## `faux`.
 déclaration est_assez_âgé
   contenu booléen
-  dépend de date_courante contenu date,
+  dépend de
+    date_courante contenu date,
     date_de_naissance contenu date,
     âge_cible contenu durée
   égal à
@@ -275,7 +289,8 @@ déclaration est_assez_âgé
 ## `vrai`.
 déclaration est_avant_date_plus_délai
   contenu booléen
-  dépend de date_comparée contenu date,
+  dépend de
+    date_comparée contenu date,
     date_de_référence contenu date,
     délai contenu durée
   égal à
@@ -290,7 +305,8 @@ déclaration est_avant_date_plus_délai
 ## `vrai`.
 déclaration est_assez_jeune
   contenu booléen
-  dépend de date_courante contenu date,
+  dépend de
+    date_courante contenu date,
     date_de_naissance contenu date,
     target_age contenu durée
   égal à
