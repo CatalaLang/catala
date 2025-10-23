@@ -35,11 +35,12 @@ declaration of_year
   depends on pyear content integer
   equals
     Period {
-      -- begin: Date.of_year_month_day of (pyear, 1, 1)
-      -- end: Date.of_year_month_day of (pyear, 12, 31)
+      -- begin: Date.of_year_month_day of pyear, 1, 1
+      -- end: Date.of_year_month_day of pyear, 12, 31
     }
 
-## Ensures that the period is coherent (it begins before its end).
+## Ensures that the period is coherent (it begins before it ends, and is at
+## least one day long).
 declaration valid
   content boolean
   depends on p content Period
@@ -54,7 +55,8 @@ declaration duration
   equals
     1 day + p.end - p.begin
 
-## Two periods are adjacent if the second one starts when the first stops.
+## Two periods are adjacent if the second one starts right after the first
+## stops.
 declaration are_adjacent
   content boolean
   depends on
@@ -91,27 +93,25 @@ declaration intersection
     if valid of intersection then Present content intersection
     else Absent
 
-## Returns `true` if the periods have an overlap of at least one day.
-declaration overlap
+## Checks if the periods have an overlap of at least one day.
+declaration overlaps
   content boolean
   depends on
     p1 content Period,
     p2 content Period
   equals
-    match (intersection of p1, p2) with pattern
-    -- Present content p : true
-    -- Absent : false
+    (intersection of p1, p2) with pattern Present
 
-## Returns `true` if the period `p1` fully covers the period `p2`.
-declaration cover
+## Checks if the period `long` fully covers the period `short`.
+declaration covers
   content boolean
   depends on
-    p1 content Period,
-    p2 content Period
+    long content Period,
+    short content Period
   equals
-    p1.begin <= p2.begin and p2.end <= p1.end
+    long.begin <= short.begin and short.end <= long.end
 
-## Returns `true` if the given date `d` is contained in the given period `p`.
+## Checks if the date `d` is contained in the period `p`.
 declaration is_contained
   content boolean
   depends on
@@ -120,7 +120,7 @@ declaration is_contained
   equals
     p.begin <= d and d <= p.end
 
-## Returns `true` if the given date occurs *strictly* before the period.
+## Checks if the given date occurs *strictly* before the period.
 declaration is_before
   content boolean
   depends on
@@ -129,7 +129,7 @@ declaration is_before
   equals
     d < p.begin
 
-## Returns `true` if the given date occurs *strictly* after the period.
+## Checks if the given date occurs *strictly* after the period.
 declaration is_after
   content boolean
   depends on
@@ -157,8 +157,7 @@ declaration find_period
 
 ```catala-metadata
 ## Sorts the given periods by starting day.
-## **Edge-case**: if two periods start on the same day, their order in the list
-## is preserved
+## if two periods start on the same day, their order in the list is preserved
 declaration sort_by_date
   content list of (Period, anything of type t)
   depends on l content list of (Period, anything of type t)
@@ -175,8 +174,7 @@ declaration sort_by_date
 ```catala-metadata
 ## Splits the given period, returning one period per calendar month. The first
 ## and last elements may be non-whole months.
-## **Edge-case**: if the given period is empty (begin >= end), an empty list
-## is returned
+## If the given period is empty (begin >= end), an empty list is returned.
 declaration split_by_month
   content list of Period
   depends on p content Period

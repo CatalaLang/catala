@@ -1,7 +1,9 @@
 ## Style conventions for the standard library
 
-* Test functions returning a boolean should be named `is_...` or `est_...`,
-  or `are_...` or `sont_...` when there are multiple arguments.
+* Test functions returning a boolean should be named as predicates
+  (`is_...`/`est_...`, or `are_...`/`sont_...` when there are multiple
+  arguments). The doc should be worded "Checks if"/"Teste si" rather than
+  "Returns true if".
 * Verbs in French should be in imperative form and not infinitive form.
 * The description of the function should speak about the function at the third
   person: "Computes" instead of "Compute", etc.

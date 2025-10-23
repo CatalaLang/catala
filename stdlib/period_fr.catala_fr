@@ -6,12 +6,12 @@
 
 ## Définitions et opérations
 
-Une période est la conjonction d'une date de début et de fin.
+Une période est composée d'une date de début et d'une date de fin.
 
 ```catala-metadata
 déclaration structure Période:
   donnée début contenu date
-  # La date de fin est incluse dans la période par convention.
+  # La date de fin est incluse dans la période par convention
   donnée fin contenu date
 
 ## Retourne la période englobant le mois donné de l'année donnée.
@@ -35,11 +35,12 @@ déclaration depuis_année
   dépend de pannée contenu entier
   égal à
     Période {
-      -- début: Date.depuis_année_mois_jour de pannée, (1), (1)
-      -- fin: Date.depuis_année_mois_jour de pannée, (12), (31)
+      -- début: Date.depuis_année_mois_jour de pannée, 1, 1
+      -- fin: Date.depuis_année_mois_jour de pannée, 12, 31
     }
 
-## Vérifie si la période est bien cohérente (elle débute avant sa fin).
+## Vérifie si la période est bien cohérente (elle débute avant sa fin, et dure
+## au moins un jour).
 déclaration valide
   contenu booléen
   dépend de p contenu Période
@@ -54,7 +55,8 @@ déclaration durée
   égal à
     1 jour + p.fin - p.début
 
-## Deux périodes sont adjacentes si l'une finit lorsque l'autre débute.
+## Deux périodes sont adjacentes si la seconde commence aussitôt après la fin
+## de la première.
 déclaration sont_adjacentes
   contenu booléen
   dépend de
@@ -91,27 +93,25 @@ déclaration intersection
     si valide de intersection alors Présent contenu intersection
     sinon Absent
 
-## Retourne `vrai` si les périodes se chevauchent d'au moins un jour.
+## Teste si les périodes se chevauchent d'au moins un jour.
 déclaration chevauche
   contenu booléen
   dépend de
     p1 contenu Période,
     p2 contenu Période
   égal à
-    selon (intersection de p1, p2) sous forme
-    -- Présent contenu p : vrai
-    -- Absent : faux
+    (intersection de p1, p2) sous forme Présent
 
-## Retourne `vrai` si la période `p1` englobe la période `p2`.
+## Teste si la période `longue` englobe la période `courte`.
 déclaration englobe
   contenu booléen
   dépend de
-    p1 contenu Période,
-    p2 contenu Période
+    longue contenu Période,
+    courte contenu Période
   égal à
-    p1.début <= p2.début et p2.fin <= p1.fin
+    longue.début <= courte.début et courte.fin <= longue.fin
 
-## Retourne `vrai` si la date est contenue dans la période.
+## Teste si la date `d` est contenue dans la période `p`.
 déclaration est_contenue
   contenu booléen
   dépend de
@@ -120,7 +120,7 @@ déclaration est_contenue
   égal à
     p.début <= d et d <= p.fin
 
-## Retourne `vrai` si la date survient *strictement* avant la période.
+## Teste si la date survient *strictement* avant la période.
 déclaration est_avant
   contenu booléen
   dépend de
@@ -129,7 +129,7 @@ déclaration est_avant
   égal à
     d < p.début
 
-## Retourne `vrai` si la date survient *strictement* après la période.
+## Teste si la date survient *strictement* après la période.
 déclaration est_après
   contenu booléen
   dépend de
@@ -156,7 +156,9 @@ déclaration trouve_période
 ## Opérations sur des listes associées indexées par des périodes
 
 ```catala-metadata
-## Trie la liste de période en fonction de la date de début.
+## Trie la liste de périodes en fonction de la date de début.
+## Si deux périodes commencent le même jour, leur ordre dans la liste est
+## préservé
 déclaration tri_par_date
   contenu liste de (Période, n'importe quel de type t)
   dépend de l contenu liste de (Période, n'importe quel de type t)
@@ -171,9 +173,10 @@ déclaration tri_par_date
 ## Diviser des périodes
 
 ```catala-metadata
-## Divise la période en autant de sous-périodes qu'elle contient de mois du
-## calendrier. Les premiers et derniers éléments retournés peuvent donc être
+## Divise la période en autant de sous-périodes qu'elle contient de mois
+## calendaires. Les premiers et derniers éléments retournés peuvent donc être
 ## des mois incomplets.
+## Si la période donnée est invalide, retourne une liste vide.
 déclaration divise_par_mois
   contenu liste de Période
   dépend de p contenu Période
@@ -183,6 +186,7 @@ déclaration divise_par_mois
 ## Divise la période en autant de sous-périodes qu'elle contient d'années du
 ## calendrier. Les premiers et derniers éléments retournés peuvent donc être
 ## des années incomplètes.
+## Si la période donnée est invalide, retourne une liste vide.
 déclaration divise_par_année
   contenu liste de Période
   dépend de
