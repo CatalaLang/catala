@@ -63,7 +63,7 @@
    (run
     sh
     -c
-    "for page in '' $(%{bin:clerk} 2>&1 | sed -n \"s/\\(^\\|'\\)[^']*\\('\\|$\\)/ /gp;q\"); do\n        echo '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
+    "for page in '' $(%{bin:clerk} 2>&1 | sed -E \"s/[^']*'([^']*)'[^']*/\\1 /g\" | head -1); do\n        echo '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
 
 (install
  (section man)

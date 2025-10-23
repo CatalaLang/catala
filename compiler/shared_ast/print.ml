@@ -1005,10 +1005,10 @@ module UserFacing = struct
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
      https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
   let bigsep (lang : Global.backend_lang) =
-    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
+    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3 | Ro -> ".", 3
 
   let decsep (lang : Global.backend_lang) =
-    match lang with En -> "." | Fr -> "," | Pl -> "."
+    match lang with En -> "." | Fr -> "," | Pl -> "." | Ro -> ","
 
   let unit (_lang : Global.backend_lang) ppf () =
     Format.pp_print_string ppf "()"
@@ -1022,6 +1022,8 @@ module UserFacing = struct
       | Fr, false -> "faux"
       | Pl, true -> "prawda"
       | Pl, false -> "falsz"
+      | Ro, true -> "adevărat"
+      | Ro, false -> "fals"
     in
     Format.pp_print_string ppf s
 
@@ -1042,7 +1044,9 @@ module UserFacing = struct
     let num = Z.abs n in
     let units, cents = Z.div_rem num (Z.of_int 100) in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
-    (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl -> ());
+    (match lang with
+    | En -> Format.pp_print_string ppf "$"
+    | Fr | Pl | Ro -> ());
     integer lang ppf units;
     Format.pp_print_string ppf (decsep lang);
     Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
@@ -1050,6 +1054,7 @@ module UserFacing = struct
     | En -> ()
     | Fr -> Format.pp_print_string ppf " €"
     | Pl -> Format.pp_print_string ppf " PLN"
+    | Ro -> Format.pp_print_string ppf " RON"
 
   let decimal (lang : Global.backend_lang) ppf r =
     let den = Q.den r in
@@ -1094,7 +1099,7 @@ module UserFacing = struct
     let y, m, d = Catala_runtime.date_to_years_months_days d in
     match lang with
     | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
-    | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
+    | Fr | Ro -> Format.fprintf ppf "%02d/%02d/%04d" d m y
 
   let duration (lang : Global.backend_lang) ppf dr =
     let y, m, d = Catala_runtime.duration_to_years_months_days dr in
@@ -1104,11 +1109,13 @@ module UserFacing = struct
       | [] -> []
     in
     let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
+    let ro_plur n s_sing s_plur = if abs n > 1 then n, s_plur else n, s_sing in
     Format.pp_print_char ppf '[';
     (match lang with
     | En -> [splur y "year"; splur m "month"; splur d "day"]
     | Fr -> [splur y "an"; m, "mois"; splur d "jour"]
-    | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
+    | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"]
+    | Ro -> [ro_plur y "an" "ani"; ro_plur m "lună" "luni"; ro_plur d "zi" "zile"])
     |> filter0
     |> Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")

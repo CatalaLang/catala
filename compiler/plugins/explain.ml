@@ -1210,8 +1210,12 @@ let expr_to_dot_label0 :
     (a, 't) gexpr ->
     unit =
  fun lang ctx env ->
-  let xlang ~en ?(pl = en) ~fr () =
-    match lang with Global.Fr -> fr | Global.En -> en | Global.Pl -> pl
+  let xlang ~en ?(pl = en) ?(ro = en) ~fr () =
+    match lang with
+    | Global.Fr -> fr
+    | Global.En -> en
+    | Global.Pl -> pl
+    | Global.Ro -> ro
   in
   let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
    fun ppf e -> Print.UserFacing.value ~fallback lang ppf e

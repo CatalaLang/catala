@@ -1,0 +1,96 @@
+# Zecimale
+
+> Modul Decimal_ro
+
+> Folosind Decimal_internal ca D
+
+## Funcții utilitare
+
+```catala-metadata
+## Returnează cel mai mic dintre cele două argumente.
+declarație min
+  conținut zecimal
+  depinde de m1 conținut zecimal,
+    m2 conținut zecimal
+  egal
+    dacă m1 > m2 atunci m2 altfel m1
+
+## Returnează cel mai mare dintre cele două argumente.
+declarație max
+  conținut zecimal
+  depinde de m1 conținut zecimal,
+    m2 conținut zecimal
+  egal
+    dacă m1 > m2 atunci m1 altfel m2
+
+## `plafon de variabilă, valoare_max` stabilește o limită superioară pentru `variabilă`
+## și returnează o valoare care nu depășește niciodată `valoare_max`.
+declarație plafon
+  conținut zecimal
+  depinde de variabilă conținut zecimal,
+    valoare_max conținut zecimal
+  egal min de variabilă, valoare_max
+
+## `prag de variabilă, valoare_min` stabilește o limită inferioară pentru `variabilă`
+## și returnează o valoare care nu este niciodată mai mică decât `valoare_min`.
+declarație prag
+  conținut zecimal
+  depinde de variabilă conținut zecimal,
+    valoare_min conținut zecimal
+  egal max de variabilă, valoare_min
+
+## Returnează argumentul dacă este pozitiv, 0,0 altfel.
+declarație pozitiv
+  conținut zecimal
+  depinde de variabilă conținut zecimal
+  egal prag de variabilă, 0,0
+
+## Elimină cifrele unui număr după virgulă. De exemplu,
+## `trunchiază de 7,61 = 7,0` și `trunchiază de -7,61 = -7,0`.
+declarație trunchiază
+  conținut zecimal
+  depinde de variabilă conținut zecimal
+  egal
+    dacă variabilă = 0,0 atunci
+      0,0
+    altfel dacă variabilă > 0,0 atunci
+      rotunjește de (variabilă - 0,5)
+    altfel
+      rotunjește de (variabilă + 0,5)
+
+## Rotunjește un număr la întregul superior. De exemplu,
+## `rotunjește_în_sus de 4,34 = 5,0` și `rotunjește_în_sus de -4,34 = -4,0`.
+declarație rotunjește_în_sus
+  conținut zecimal
+  depinde de variabilă conținut zecimal
+  egal
+    dacă variabilă >= 0,0 atunci
+      dacă trunchiază de variabilă = variabilă atunci
+        variabilă
+      altfel
+        trunchiază de (variabilă + 1,0)
+    altfel rotunjește de (variabilă + 0,5)
+
+## Rotunjește un număr la întregul inferior. De exemplu,
+## `rotunjește_în_jos de 3,78 = 3,0` și `rotunjește_în_jos de -3,78 = -4,0`.
+declarație rotunjește_în_jos
+  conținut zecimal
+  depinde de variabilă conținut zecimal
+  egal
+    dacă variabilă > 0,0 atunci
+      trunchiază de variabilă
+    altfel dacă trunchiază de variabilă = variabilă atunci
+      variabilă
+    altfel
+      trunchiază de (variabilă - 1,0)
+
+## Rotunjește un număr la [a_n_ulea_zecimală] specificată.
+## [a_n_ulea_zecimală] poate fi o valoare negativă. De exemplu,
+## `rotunjește_la_zecimala de 123,4567,  3 = 123,457` și
+## `rotunjește_la_zecimala de 123,4567, -2 = 100,0`.
+declarație rotunjește_la_zecimala
+  conținut zecimal
+  depinde de variabilă conținut zecimal,
+    a_n_ulea_zecimală conținut întreg
+  egal D.round_to_decimal de variabilă, a_n_ulea_zecimală
+```

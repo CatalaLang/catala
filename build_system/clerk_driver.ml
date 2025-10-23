@@ -132,7 +132,7 @@ let backend_src_extensions =
     Clerk_rules.OCaml, ["ml"; "mli"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"];
-    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
+    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"; "catala_ro"];
   ]
 
 let backend_obj_extensions =
@@ -627,7 +627,8 @@ let build_direct_targets
             let is_module = ext = "" in
             match List.assoc_opt ext extensions_backend, ext with
             | Some bk, _ -> Left (ensure_target_dir (backend_subdir bk) t)
-            | None, ("catala_en" | "catala_fr" | "catala_pl") -> Left t
+            | None, ("catala_en" | "catala_fr" | "catala_pl" | "catala_ro") ->
+              Left t
             | None, ("exe" | "jar") ->
               let t, backend =
                 match ext, lastdirname t with
@@ -1050,7 +1051,7 @@ let typecheck_cmd =
       Clerk_rules.run_ninja ~config ~enabled_backends:[Clerk_rules.Tests]
         ~autotest:false ~ninja_flags (fun nin_ppf items var_bindings ->
           Nj.format_def nin_ppf
-            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"; "Stdlib_ro@src"]));
           items, var_bindings)
     in
     let catala_flags = get_var var_bindings Var.catala_flags in
@@ -1330,6 +1331,7 @@ let start_cmd =
                   "@runtime-ocaml";
                   "Stdlib_fr@ocaml-module";
                   "Stdlib_en@ocaml-module";
+                  "Stdlib_ro@ocaml-module";
                 ]));
         0)
   in

@@ -1,0 +1,278 @@
+Verificarea corectitudinii tuturor exemplelor din cheat-sheet.
+
+Acest fișier ar trebui să corespundă cât mai aproape cu syntax_ro.tex.
+Este de asemenea util pentru verificarea evidențierii sintaxei.
+
+# Programare literată
+
+(nu ajungem să definim module fictive doar pentru a testa aceste 3 cazuri)
+
+```
+# > Modul ModulBar
+# > Folosind ModulFoo
+# > Include: foo.catala_ro
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+# Literale și tipuri
+
+```catala
+declarație x conținut boolean egal adevărat
+declarație x conținut boolean egal fals
+declarație x conținut întreg egal 65536
+declarație x conținut zecimal egal 65536,262144
+declarație x conținut zecimal egal 37%
+declarație x conținut bani egal 1.234.567,89 RON
+declarație x conținut dată egal |2024-04-01|
+declarație x conținut durată egal 254 zi + -4 lună + 1 an
+declarație x conținut opțional de bani egal Prezent conținut 34 RON
+declarație x conținut opțional de bani egal Absent
+declarație x conținut listă de întreg egal [ 12; 24; 36 ]
+declarație x conținut listă de orice de tip t depinde de a conținut întreg egal []
+declarație x conținut (dată,bani,zecimal) egal (|2024-04-01|, 30 RON, 1%)
+declarație f conținut zecimal depinde de
+    x conținut bani,
+    y conținut zecimal
+  egal y * x / 12,0 RON
+
+declarație x conținut Struct1 egal Struct1 { -- fld1: 9 -- fld2: 7% }
+declarație x conținut Enum1 egal Case1 conținut 12
+declarație x conținut Enum1 egal Case2
+```
+
+# Operatori și funcții predefinite
+
+```catala
+declarație x conținut întreg egal
+  fie x egal (
+    nu a,        a și b,
+    a sau b,       # "sau altfel"
+    a sau exclusiv b       # sau exclusiv
+  ) în
+  fie x egal (
+    - a,          a + b,        a - b,
+    a * b,        a / b
+  ) în
+  fie x egal (
+    a = b,        a < b,        a <= b,
+    a != b,       a > b,        a >= b
+  ) în
+  fie x egal (
+    zecimal de 44,
+    bani de 23,15
+  ) în
+  fie x egal (
+    rotunjește de 9,99 RON
+  ) în
+  fie x egal (
+    Date.accesează_lună de |2003-01-02|,
+    Date.prima_zi_a_lunii de |2003-01-02|
+  ) în
+  fie x egal (
+    a +! b,    # întreg
+    a +. b,    # zecimal
+    a +RON b,    # bani
+    a +^ b     # durată
+  ) în
+  0
+```
+
+# Declararea metadatelor
+
+```catala
+declarație structură Struct1:
+  date fld1 conținut întreg
+  date fld2 conținut zecimal
+
+declarație enumerare Enum1:
+  -- Case1 conținut întreg
+  -- Case2
+
+# #[test]
+## Documentație pentru Scope1
+declarație scop Scope1:
+  intern var1 conținut întreg
+    stare before
+    stare after
+  intern var2 condiție
+  sub1 scop Scope0
+
+  ieșire var3 conținut întreg
+  intrare var4 conținut întreg
+  intrare ieșire var5 conținut întreg
+  context var6 conținut întreg
+  context ieșire var7 conținut întreg
+  ieșire sub2 scop Scope0
+
+declarație const conținut zecimal
+  egal 17,1
+
+declarație square conținut zecimal
+  depinde de x conținut zecimal
+  egal x * x
+```
+
+# Expresii
+
+```catala
+declarație x conținut întreg egal
+  fie x egal fie x egal 36 - 5 în 0
+  în
+  fie x egal
+    potrivește expr cu model
+       -- Case1 conținut x : 0
+       -- Case2 : 0
+       -- orice : 0
+  în
+  fie x egal imposibil în
+  fie x egal #[debug.print = "message"] 0 în
+  fie x egal
+    expr cu model Case1
+  în
+  fie x egal
+    expr cu model Case1 conținut x
+    și x >= 2
+  în
+  fie x egal
+    struc1 dar înlocuiește { -- fld2: 8% }
+  în
+  fie x egal
+    struc1.fld2
+  în
+  fie x egal
+    tuple1.2
+  în
+  fie x egal
+    sub1.var0
+  în
+  fie x egal
+    f de 44,50 RON, 1/3
+  în
+  fie x egal
+    ieșire de Scope1 cu
+      { -- fld1: 9 -- fld2: 15% }
+  în
+  fie x egal
+    dacă 0 atunci 0 altfel 0
+  în
+  fie x egal
+    var1 stare before
+  în
+  0
+```
+
+# Definiția scopului
+
+```catala
+scop Scope1:
+  definiție x egal 0
+
+scop Scope1
+  în condiția var1 >= 2:
+
+  definiție var1 egal 0
+
+  definiție var1
+    în condiția 0
+    consecință egal 0
+
+  regulă var2
+    în condiția var1 >= 2
+    consecință îndeplinit
+
+  regulă var2 în condiția fals
+    consecință nu îndeplinit
+
+  definiție f de x, y egal 0
+
+  etichetă lbl1 definiție var1 egal 0
+
+  excepție lbl1 definiție var1 egal 0
+
+  excepție definiție var1 egal 0
+
+  definiție var1
+    stare before
+    egal 0
+
+  aserțiune 0
+
+  dată rotunjește descrescător
+  dată rotunjește crescător
+```
+
+# Operații pe liste
+
+```catala
+declarație x conținut întreg egal
+  fie x egal
+    lst conține 3
+  în
+  fie x egal
+    există x printre lst astfel că x > 2
+  în
+  fie x egal
+    pentru toți x printre lst avem x > 2
+  în
+  fie x egal
+    aplică fiecare x printre lst la x + 2
+  în
+  fie x egal
+    listă de x printre lst astfel că x > 2
+  în
+  fie x egal
+    aplică fiecare x printre lst astfel că x > 2
+    la x - 2
+  în
+  fie x egal
+    aplică fiecare (x, y) printre (lst1, lst2) la x + y
+  în
+  fie x egal
+    lst1 ++ lst2
+  în
+  fie x egal
+    sumă întreg de lst
+  în
+  fie x egal
+    număr de lst
+  în
+  fie x egal
+    maxim de lst
+      sau dacă lista este goală atunci -1
+  în
+  fie x egal
+    conținut de x printre lst
+      astfel că x * x este minim
+      sau dacă lista este goală atunci -1
+  în
+  fie x egal
+    combină toți x printre lst
+    în acc inițial 0
+    cu acc + x
+  în
+  0
+```
+
+
+Este normal ca testul de mai jos să returneze o eroare de rezoluție sau de tip, vrem doar
+să ne asigurăm că *sintaxa* este corectă.
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─
+│
+│  No scope named Scope0 found
+│
+├─➤ doc/syntax/syntax_ro.catala_ro:105.13-105.19:
+│     │
+│ 105 │   sub1 scop Scope0
+│     │             ‾‾‾‾‾‾
+└─ Declararea metadatelor
+#return code 123#
+```

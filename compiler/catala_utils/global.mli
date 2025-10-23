@@ -24,7 +24,7 @@ type raw_file = private file
 (** A file name that has not yet been resolved, [options.path_rewrite] must be
     called on it *)
 
-type backend_lang = En | Fr | Pl
+type backend_lang = En | Fr | Pl | Ro
 
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
