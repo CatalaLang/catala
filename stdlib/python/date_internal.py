@@ -11,7 +11,7 @@ def of_ymd(pos:SourcePosition, dyear:Integer, dmonth:Integer, dday:Integer):
     try:
         return Date(datetime.date(int(dyear.value), int(dmonth.value), int(dday.value)))
     except InvalidDate:
-        raise UncomparableDurations(pos)
+        raise AssertionFailed(pos)
 
 def to_ymd(d:Date):
     return (integer_of_int(d.value.year),

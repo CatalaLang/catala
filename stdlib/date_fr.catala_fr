@@ -11,19 +11,19 @@
 déclaration min
   contenu date
   dépend de
-    x contenu date,
-    y contenu date
+    d1 contenu date,
+    d2 contenu date
   égal à
-    si x <= y alors x sinon y
+    si d1 <= d2 alors d1 sinon d2
 
 ## Renvoie la plus récente des deux dates.
 déclaration max
   contenu date
   dépend de
-    x contenu date,
-    y contenu date
+    d1 contenu date,
+    d2 contenu date
   égal à
-    si x >= y alors x sinon y
+    si d1 >= d2 alors d1 sinon d2
 ```
 
 ## Dates et années, mois et jours
@@ -36,14 +36,14 @@ déclaration depuis_année_mois_jour
   dépend de
     #[implicit_position_argument]
     pos contenu position_source,
-    dyear contenu entier,
-    dmonth contenu entier,
-    dday contenu entier
+    dannée contenu entier,
+    dmois contenu entier,
+    djour contenu entier
   égal à
-    D.of_ymd de pos, dyear, dmonth, dday
+    D.of_ymd de pos, dannée, dmois, djour
 
-## Renvoie le numéro de l'année, du mois (à partir de 1) et du jour
-## (à partir de 1) de la date passée en argument.
+## Renvoie le numéro de l'année, du mois (1-12) et du jour (1-31) de la date
+## passée en argument.
 déclaration vers_année_mois_jour
   contenu (entier, entier, entier)
   dépend de d contenu date
@@ -57,14 +57,14 @@ déclaration accès_année
   égal à
     (vers_année_mois_jour de d).1
 
-## Renvoie le numéro du mois (à partir de 1) d'une date.
+## Renvoie le numéro du mois (1-12) d'une date.
 déclaration accès_mois
   contenu entier
   dépend de d contenu date
   égal à
     (vers_année_mois_jour de d).2
 
-## Renvoie le numéro du jour (à partir de 1) d'une date.
+## Renvoie le numéro du jour (1-31) d'une date.
 déclaration accès_jour
   contenu entier
   dépend de d contenu date
@@ -75,8 +75,8 @@ déclaration accès_jour
 ## Aller vers le passé ou le futur
 
 ```catala-metadata
-## Renvoie le premier jour du mois de la date passée en argument. Par
-## exemple, `premier_jour_du_mois de |21-01-2024| = |01-01-2024|`.
+## Renvoie le premier jour du mois de la date passée en argument.
+## **Exemple:** `premier_jour_du_mois de |2024-01-21| = |2024-01-01|`.
 déclaration premier_jour_du_mois
   contenu date
   dépend de d contenu date
@@ -84,16 +84,16 @@ déclaration premier_jour_du_mois
     soit ymd égal à vers_année_mois_jour de d dans
     depuis_année_mois_jour de (ymd.1, ymd.2, 1)
 
-## Renvoie le dernier jour du mois de la date passée en argument. Par
-## exemple, `dernier_jour_du_mois de |21-01-2024| = |31-01-2024|`.
+## Renvoie le dernier jour du mois de la date passée en argument.
+## **Exemple:** `dernier_jour_du_mois de |2024-01-21| = |2024-01-31|`
 déclaration dernier_jour_du_mois
   contenu date
   dépend de d contenu date
   égal à
     D.last_day_of_month de d
 
-## Renvoie le premier jour de l'année de la date passée en argument. Par
-## exemple, `premier_jour_de_l_année de |21-03-2024| = |01-01-2024|`.
+## Renvoie le premier jour de l'année de la date passée en argument.
+## **Exemple:** `premier_jour_de_l_année de |2024-03-21| = |2024-01-01|`
 déclaration premier_jour_de_l_année
   contenu date
   dépend de d contenu date
@@ -101,8 +101,8 @@ déclaration premier_jour_de_l_année
     soit ymd égal à (vers_année_mois_jour de d) dans
     depuis_année_mois_jour de (ymd.1, (1), (1))
 
-## Renvoie le dernier jour de l'année de la date passée en argument. Par
-## exemple, `dernier_jour_de_l_année de |21-03-2024| = |31-12-2024|`.
+## Renvoie le dernier jour de l'année de la date passée en argument.
+## **Exemple:** `dernier_jour_de_l_année de |2024-03-21| = |2024-12-31|`
 déclaration dernier_jour_de_l_année
   contenu date
   dépend de d contenu date
@@ -128,7 +128,7 @@ déclaration énumération Mois:
   -- Novembre
   -- Décembre
 
-## Renvoie le numéro de mois (à partir de 1) associé à un mois nommé.
+## Renvoie le numéro de mois (1-12) associé à un mois nommé.
 déclaration mois_vers_entier
   contenu entier
   dépend de m contenu Mois
@@ -147,11 +147,14 @@ déclaration mois_vers_entier
     -- Novembre : 11
     -- Décembre : 12
 
-## Renvoie le mois nommé correspondant au numéro de mois (à partir de 1).
-## Si l'argument n'est pas entre 1 et 12, échoue avec l'erreur `impossible`.
+## Renvoie le mois nommé correspondant au numéro de mois (1-12).
+## **Aborts:** si l'argument n'est pas entre 1 et 12
 déclaration mois_depuis_entier
   contenu Mois
-  dépend de i contenu entier
+  dépend de
+    #[implicit_position_argument]
+    pos contenu position_source,
+    i contenu entier
   égal à
     si i = 1 alors Janvier
     sinon si i = 2 alors Février
@@ -165,7 +168,7 @@ déclaration mois_depuis_entier
     sinon si i = 10 alors Octobre
     sinon si i = 11 alors Novembre
     sinon si i = 12 alors Décembre
-    sinon impossible
+    sinon soit erreur égal à D.of_ymd de (pos, -1, -1, -1) dans impossible
 ```
 
 ## Mois d'années spécifiques
@@ -202,21 +205,21 @@ déclaration vers_dernier_jour_du_mois
     dernier_jour_du_mois de
       (depuis_année_mois_jour de (m.numéro_année, (mois_vers_entier de m.nom_mois), 1))
 
-## Retourne `vrai` si la date survient strictement avant le mois concerné.
+## Teste si la date survient strictement avant le mois concerné.
 déclaration est_avant_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
   égal à
     d < vers_premier_jour_du_mois de m
 
-## Retourne `vrai` si la date survient strictement après le mois concerné.
+## Teste si la date survient strictement après le mois concerné.
 déclaration est_après_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
   égal à
     d > vers_dernier_jour_du_mois de m
 
-## Retourne `vrai` si la date survient durant le mois concerné.
+## Teste si la date survient durant le mois concerné.
 déclaration est_dans_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
@@ -224,7 +227,7 @@ déclaration est_dans_le_mois
     (est_après_le_début_du_mois de m, d)
     et (est_avant_la_fin_du_mois de m, d)
 
-## Retourne `vrai` si la date survient avant la fin du mois concerné (inclus).
+## Teste si la date survient avant la fin du mois concerné (inclus).
 ## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-04-13| = vrai`
 ## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-05-31| = vrai`
 ## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-06-01| = faux`
@@ -234,7 +237,7 @@ déclaration est_avant_la_fin_du_mois
   égal à
     d <= vers_dernier_jour_du_mois de m
 
-## Retourne `vrai` si la date survient après le début du mois concerné (inclus).
+## Teste si la date survient après le début du mois concerné (inclus).
 ## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-06-15| = vrai`
 ## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-05-01| = vrai`
 ## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-04-30| = faux`
@@ -248,13 +251,10 @@ déclaration est_après_le_début_du_mois
 ## Comparaisons de date
 
 ```catala-metadata
-## `est_après_date_plus_délai de date_comparée, date_de_référence, délai`
-## vérifie si `date_comparée` est après `date_de_référence + délai`.
-## Par exemple,
-## `est_après_date_plus_délai de |15-06-2024|, |01-01-2024|, 6 mois` renvoie
-## `vrai` mais
-## `est_après_date_plus_délai de |15-05-2024|, |01-01-2024|, 6 mois` renvoie
-## `faux`.
+## Teste si `date_comparée` est après `date_de_référence + délai`.
+## **Exemples:**
+## - `est_après_date_plus_délai de |2024-06-15|, |2024-01-01|, 6 mois = vrai`
+## - `est_après_date_plus_délai de |2024-05-15|, |2024-01-01|, 6 mois = faux`
 déclaration est_après_date_plus_délai
   contenu booléen
   dépend de
@@ -264,13 +264,12 @@ déclaration est_après_date_plus_délai
   égal à
     date_comparée >= date_de_référence + délai
 
-## `est_assez_âgé de date_courante, date_de_naissance, âge_cible`
-## vérifie si `date_courante` est après `date_de_naissance + âge_cible`.
-## Par exemple,
-## `est_assez_âgé de |15-06-2024|, |01-06-2000|, 24 an` renvoie
-## `vrai` mais
-## `est_assez_âgé de |15-05-2024|, |01-06-2024|, 24 an` renvoie
-## `faux`.
+## Teste si une personne née à `date_de_naissance` est au moins âgée de
+## `âge_cible` ans à la date `à_date`.
+## **Exemple:**
+## - `est_assez_âgé de |2024-06-15|, |2000-06-01|, 24 an = vrai`
+## - `est_assez_âgé de |2024-05-15|, |2024-06-01|, 24 an = faux`
+## **Échoue:** si la personne est née un 29 février
 déclaration est_assez_âgé
   contenu booléen
   dépend de
@@ -282,11 +281,9 @@ déclaration est_assez_âgé
 
 ## `est_avant_date_plus_délai de date_comparée, date_de_référence, délai`
 ## vérifie si `date_comparée` est avant `date_de_référence + délai`.
-## Par exemple,
-## `est_avant_date_plus_délai de |15-06-2024|, |01-01-2024|, 6 mois` renvoie
-## `faux` mais
-## `est_avant_date_plus_délai de |15-05-2024|, |01-01-2024|, 6 mois` renvoie
-## `vrai`.
+## **Exemple:**
+## - `est_avant_date_plus_délai de |2024-06-15|, |2024-01-01|, 6 mois = faux`
+## - `est_avant_date_plus_délai de |2024-05-15|, |2024-01-01|, 6 mois = vrai`
 déclaration est_avant_date_plus_délai
   contenu booléen
   dépend de
@@ -298,11 +295,9 @@ déclaration est_avant_date_plus_délai
 
 ## `est_assez_jeune de date_courante, date_de_naissance, âge_cible`
 ## vérifie si `date_courante` est avant `date_de_naissance + âge_cible`.
-## Par exemple,
-## `est_assez_jeune de |15-06-2024|, |01-06-2000|, 24 an` renvoie
-## `faux` mais
-## `est_assez_jeune de |15-05-2024|, |01-06-2024|, 24 an` renvoie
-## `vrai`.
+## **Exemple:**
+## - `est_assez_jeune de |2024-06-15|, |2000-06-01|, 24 an = faux`
+## - `est_assez_jeune de |2024-05-15|, |2024-06-01|, 24 an = vrai`
 déclaration est_assez_jeune
   contenu booléen
   dépend de

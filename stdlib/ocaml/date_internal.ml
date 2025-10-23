@@ -8,7 +8,7 @@ let of_ymd : code_location -> integer -> integer -> integer -> date =
       ~day:(Z.to_int d)
   with Dates_calc.InvalidDate ->
     (* FIXME: add specific error *)
-    raise (Error (UncomparableDurations, [pos]))
+    raise (Error (AssertionFailed, [pos]))
 
 (* Toplevel def to_ymd *)
 let to_ymd : date -> integer * integer * integer =

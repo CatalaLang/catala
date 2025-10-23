@@ -15,8 +15,8 @@
 ## Main message describing what is the goal of the function. New sentence with
 ## additional information.
 ## **Example(s):** Unique example here or
-## * First example
-## * Second example
+## - First example
+## - Second example
 ## **Aborts:** List of input conditions for which the function crashes.
 ```
 
@@ -24,8 +24,15 @@
 ## Message principal décrivant le but de la fonction. Nouvelle
 ## phrase avec des informations additionnelles.
 ## **Exemple(s):** Exemple unique ici ou
-## * Premier exemple
-## * Deuxième exemple
+## - Premier exemple
+## - Deuxième exemple
 ## **Échoue:** Liste de conditions sur les entrées telles que la fonction
 ## crashe.
 ```
+
+* Naming of function arguments:
+  * for arguments of the module "base type", one-letter initials are fine
+  * if there is more than one of the "base type" with similar role (like in comparisons), number them: prefer `d1`, `d2` to `x`, `y`
+  * arguments should otherwise be named based on their type, when unambiguous
+  * and their role otherwise
+  * remember to localise these name too when translating a module.
