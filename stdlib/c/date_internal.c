@@ -17,7 +17,7 @@ CATALA_DATE DateInternal__of_ymd
     const int success = dc_make_date(ret, y, m, d);
     if (success) return ret;
   }
-  catala_error(catala_uncomparable_durations, pos, 1);
+  catala_error(catala_assertion_failed, pos, 1);
   abort();
 }
 

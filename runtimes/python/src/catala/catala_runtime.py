@@ -106,6 +106,11 @@ class UncomparableDurations(CatalaError):
             "comparing durations in different units (e.g. months vs. days)",
             [source_position])
 
+class AmbiguousDateRounding(CatalaError):
+    def __init__(self, source_position: SourcePosition) -> None:
+        super().__init__("ambiguous date computation, and rounding mode was not specified",
+                         [source_position])
+
 class IndivisibleDurations(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("dividing durations that are not in days",
