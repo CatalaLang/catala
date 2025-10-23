@@ -91,7 +91,8 @@ const Baz* baz (const Baz_in* baz_in)
     c__1;
   Baz* const baz__1 = catala_malloc(sizeof(Baz));
   if (a->code == catala_option_some) {
-    a__2 = catala_some(a->payload);
+    const CATALA_TUPLE(Bar*;CATALA_POSITION) x = a->payload;
+    a__2 = catala_some(x);
   } else {
     const Bar* a__4;
     Bar* const a__7 = catala_malloc(sizeof(Bar));
@@ -110,7 +111,8 @@ const Baz* baz (const Baz_in* baz_in)
     a__6[1].content = pos;
     a__5 = catala_some(a__6);
     if (a__5->code == catala_option_some) {
-      a__4 = ((Bar*)(((CATALA_TUPLE(_))a__5->payload)[0].content));
+      const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__5->payload;
+      a__4 = ((Bar*)(arg[0].content));
     } else {
       static const catala_code_position pos__1[1] =
         {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
@@ -122,7 +124,8 @@ const Baz* baz (const Baz_in* baz_in)
     a__2 = catala_some(a__3);
   }
   if (a__2->code == catala_option_some) {
-    a__1 = ((Bar*)(((CATALA_TUPLE(_))a__2->payload)[0].content));
+    const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__2->payload;
+    a__1 = ((Bar*)(arg[0].content));
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
@@ -153,7 +156,8 @@ const Baz* baz (const Baz_in* baz_in)
     b__2 = CATALA_NONE;
   }
   if (b__2->code == catala_option_some) {
-    b__1 = catala_some(b__2->payload);
+    const CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) x = b__2->payload;
+    b__1 = catala_some(x);
   } else {
     CATALA_DEC b__5;
     static const catala_code_position pos[1] =
@@ -184,7 +188,8 @@ const Baz* baz (const Baz_in* baz_in)
     b__1 = catala_some(b__4);
   }
   if (b__1->code == catala_option_some) {
-    b = ((CATALA_DEC)(((CATALA_TUPLE(_))b__1->payload)[0].content));
+    const CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) arg = b__1->payload;
+    b = ((CATALA_DEC)(arg[0].content));
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
@@ -199,7 +204,9 @@ const Baz* baz (const Baz_in* baz_in)
   c__2[1].content = pos;
   c__1 = catala_some(c__2);
   if (c__1->code == catala_option_some) {
-    c = ((CATALA_ARRAY(CATALA_DEC))(((CATALA_TUPLE(_))c__1->payload)[0].content));
+    const CATALA_TUPLE(CATALA_ARRAY(CATALA_DEC);CATALA_POSITION)
+      arg = c__1->payload;
+    c = ((CATALA_ARRAY(CATALA_DEC))(arg[0].content));
   } else {
     static const catala_code_position pos__1[1] =
       {{"tests/backends/simple.catala_en", 14, 10, 14, 11}};
