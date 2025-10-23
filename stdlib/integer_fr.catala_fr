@@ -8,7 +8,8 @@
 ## Renvoie le plus petit des deux arguments.
 déclaration min
   contenu entier
-  dépend de m1 contenu entier,
+  dépend de
+    m1 contenu entier,
     m2 contenu entier
   égal à
     si m1 > m2 alors m2 sinon m1
@@ -16,7 +17,8 @@ déclaration min
 ## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu entier
-  dépend de m1 contenu entier,
+  dépend de
+    m1 contenu entier,
     m2 contenu entier
   égal à
     si m1 > m2 alors m1 sinon m2
@@ -25,21 +27,26 @@ déclaration max
 ## et renvoie une valeur qui n'excède jamais `valeur_max`.
 déclaration plafond
   contenu entier
-  dépend de variable contenu entier,
+  dépend de
+    variable contenu entier,
     valeur_max contenu entier
-  égal à min de variable, valeur_max
+  égal à
+    min de variable, valeur_max
 
 ## `plancher de variable, valeur_min` met une limite inférieure à `variable`
 ## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu entier
-  dépend de variable contenu entier,
+  dépend de
+    variable contenu entier,
     valeur_min contenu entier
-  égal à max de variable, valeur_min
+  égal à
+    max de variable, valeur_min
 
 ## Renvoie l'argument s'il est positif, 0 sinon.
 déclaration positif
   contenu entier
   dépend de variable contenu entier
-  égal à plancher de variable, 0
+  égal à
+    plancher de variable, 0
 ```

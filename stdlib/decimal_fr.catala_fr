@@ -10,7 +10,8 @@
 ## Renvoie le plus petit des deux arguments.
 déclaration min
   contenu décimal
-  dépend de m1 contenu décimal,
+  dépend de
+    m1 contenu décimal,
     m2 contenu décimal
   égal à
     si m1 > m2 alors m2 sinon m1
@@ -18,7 +19,8 @@ déclaration min
 ## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu décimal
-  dépend de m1 contenu décimal,
+  dépend de
+    m1 contenu décimal,
     m2 contenu décimal
   égal à
     si m1 > m2 alors m1 sinon m2
@@ -27,23 +29,28 @@ déclaration max
 ## et renvoie une valeur qui n'excède jamais `valeur_max`.
 déclaration plafond
   contenu décimal
-  dépend de variable contenu décimal,
+  dépend de
+    variable contenu décimal,
     valeur_max contenu décimal
-  égal à min de variable, valeur_max
+  égal à
+    min de variable, valeur_max
 
 ## `plancher de variable, valeur_min` met une limite inférieure à `variable`
 ## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu décimal
-  dépend de variable contenu décimal,
+  dépend de
+    variable contenu décimal,
     valeur_min contenu décimal
-  égal à max de variable, valeur_min
+  égal à
+    max de variable, valeur_min
 
 ## Renvoie l'argument s'il est positif, 0,0 sinon.
 déclaration positif
   contenu décimal
   dépend de variable contenu décimal
-  égal à plancher de variable, 0,0
+  égal à
+    plancher de variable, 0,0
 
 ## Enlève d'un nombre ses chiffres après la virgule. Par exemple,
 ## `troncature de 7,61 = 7,0` et `troncature de -7,61 = -7,0`.
@@ -90,7 +97,9 @@ déclaration arrondi_par_défaut
 ## `arrondi_à_la_décimale de 123,4567, -2 = 100,0`.
 déclaration arrondi_à_la_décimale
   contenu décimal
-  dépend de variable contenu décimal,
+  dépend de
+    variable contenu décimal,
     nième_décimale contenu entier
-  égal à D.round_to_decimal de variable, nième_décimale
+  égal à
+    D.round_to_decimal de variable, nième_décimale
 ```

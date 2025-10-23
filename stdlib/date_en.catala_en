@@ -10,7 +10,8 @@
 ## Returns the earlier of two dates.
 declaration min
   content date
-  depends on x content date,
+  depends on
+    x content date,
     y content date
   equals
     if x <= y then x else y
@@ -18,7 +19,8 @@ declaration min
 ## Returns the latter of two dates.
 declaration max
   content date
-  depends on x content date,
+  depends on
+    x content date,
     y content date
   equals
     if x >= y then x else y
@@ -32,12 +34,13 @@ declaration max
 declaration of_year_month_day
   content date
   depends on
-  #[implicit_position_argument]
+    #[implicit_position_argument]
     pos content code_location,
     dyear content integer,
     dmonth content integer,
     dday content integer
-  equals D.of_ymd of pos, dyear, dmonth, dday
+  equals
+    D.of_ymd of pos, dyear, dmonth, dday
 
 ## Returns the number of the year, month (starting from 1) and day (starting
 ## from 1) from the date.
@@ -51,19 +54,22 @@ declaration to_year_month_day
 declaration get_year
   content integer
   depends on d content date
-  equals (to_year_month_day of d).1
+  equals
+    (to_year_month_day of d).1
 
 ## Returns the month number from a date (starting from 1).
 declaration get_month
   content integer
   depends on d content date
-  equals (to_year_month_day of d).2
+  equals
+    (to_year_month_day of d).2
 
 ## Returns the day number from a date (starting from 1).
 declaration get_day
   content integer
   depends on d content date
-  equals (to_year_month_day of d).3
+  equals
+    (to_year_month_day of d).3
 ```
 
 ## Getting to the past or future
@@ -83,7 +89,8 @@ declaration first_day_of_month
 declaration last_day_of_month
   content date
   depends on d content date
-  equals D.last_day_of_month of d
+  equals
+    D.last_day_of_month of d
 
 ## Returns the first day of the current year from the given date. For
 ## instance, `first_day_of_year of |21-03-2024| = |01-01-2024|`.
@@ -199,20 +206,23 @@ declaration to_last_day_of_month
 declaration is_before_the_month
   content boolean
   depends on m content MonthYear, d content date
-  equals d < to_first_day_of_month of m
+  equals
+    d < to_first_day_of_month of m
 
 ## Returns `true` if the date occurs strictly after the given month.
 declaration is_after_the_month
   content boolean
   depends on m content MonthYear, d content date
-  equals d > to_last_day_of_month of m
+  equals
+    d > to_last_day_of_month of m
 
 ## Returns `true` if the date is in the given month.
 declaration is_in_the_month
   content boolean
   depends on m content MonthYear, d content date
-  equals (is_after_the_first_day_of_month of m, d) and
-    (is_before_the_end_of_the_month of m, d)
+  equals
+    (is_after_the_first_day_of_month of m, d)
+    and (is_before_the_end_of_the_month of m, d)
 
 ## Returns `true` if the date occurs before the end of the given month (included).
 ## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-04-13| = true`
@@ -221,7 +231,8 @@ declaration is_in_the_month
 declaration is_before_the_end_of_the_month
   content boolean
   depends on m content MonthYear, d content date
-  equals d <= to_last_day_of_month of m
+  equals
+    d <= to_last_day_of_month of m
 
 ## Returns `true` if the date occurs after the first day of the given month (included).
 ## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-06-15| = true`
@@ -230,7 +241,8 @@ declaration is_before_the_end_of_the_month
 declaration is_after_the_first_day_of_month
   content boolean
   depends on m content MonthYear, d content date
-  equals d >= to_first_day_of_month of m
+  equals
+    d >= to_first_day_of_month of m
 ```
 
 ## Date comparisons
@@ -245,7 +257,8 @@ declaration is_after_the_first_day_of_month
 ## `false.
 declaration is_after_date_plus_delay
   content boolean
-  depends on compared_date content date,
+  depends on
+    compared_date content date,
     reference_date content date,
     delay content duration
   equals
@@ -260,7 +273,8 @@ declaration is_after_date_plus_delay
 ## `false.
 declaration is_old_enough
   content boolean
-  depends on currrent_date content date,
+  depends on
+    currrent_date content date,
     birth_date content date,
     target_age content duration
   equals
@@ -275,7 +289,8 @@ declaration is_old_enough
 ## `true.
 declaration is_before_date_plus_delay
   content boolean
-  depends on compared_date content date,
+  depends on
+    compared_date content date,
     reference_date content date,
     delay content duration
   equals
@@ -290,7 +305,8 @@ declaration is_before_date_plus_delay
 ## `true.
 declaration is_young_enough
   content boolean
-  depends on currrent_date content date,
+  depends on
+    currrent_date content date,
     birth_date content date,
     target_age content duration
   equals

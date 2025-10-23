@@ -12,10 +12,11 @@
 ## **Cas limite**: si `fin <= début`, le résultat est une liste vide
 déclaration séquence
   contenu liste de entier
-  dépend de début contenu entier,
-            fin contenu entier
+  dépend de
+    début contenu entier,
+    fin contenu entier
   égal à
-  List_internal.sequence de début, fin
+    List_internal.sequence de début, fin
 
 ## Donne l'élément de la liste à l'`index` donné, encapsulé dans
 ## le constructeur `Présent`.
@@ -25,10 +26,11 @@ déclaration séquence
 ## de la liste, la valeur `Absent` est retournée
 déclaration nième_élément
   contenu optionnel de n'importe quel de type t
-  dépend de lst contenu liste de n'importe quel de type t,
-            index contenu entier
+  dépend de
+    lst contenu liste de n'importe quel de type t,
+    index contenu entier
   égal à
-  List_internal.nth_element de lst, index
+    List_internal.nth_element de lst, index
 
 ## Donne le premier élément de la liste, s'il existe, encapsulé dans le
 ## constructeur `Présent`.
@@ -37,7 +39,7 @@ déclaration premier_element
   contenu optionnel de n'importe quel de type t
   dépend de lst contenu liste de n'importe quel de type t
   égal à
-  nième_élément de lst, 1
+    nième_élément de lst, 1
 
 ## Donne le dernier élément de la liste, s'il existe, encapsulé dans le
 ## constructeur `Présent`.
@@ -46,7 +48,7 @@ déclaration dernier_element
   contenu optionnel de n'importe quel de type t
   dépend de lst contenu liste de n'importe quel de type t
   égal à
-  nième_élément de lst, (nombre de lst)
+    nième_élément de lst, (nombre de lst)
 
 ## Supprime l'élément à l'`index` donné de la liste. Les index des éléments
 ## suivants sont décalés.
@@ -54,10 +56,11 @@ déclaration dernier_element
 ## modification
 déclaration retire_nième_élément
   contenu liste de n'importe quel de type t
-  dépend de lst contenu liste de n'importe quel de type t,
-            index contenu entier
+  dépend de
+    lst contenu liste de n'importe quel de type t,
+    index contenu entier
   égal à
-  List_internal.remove_nth_element de lst, index
+    List_internal.remove_nth_element de lst, index
 
 ## Retourne la liste sans son premier élément.
 ## **Cas limite**: la liste vide est retournée inchangée
@@ -65,7 +68,7 @@ déclaration retire_first_element
   contenu liste de n'importe quel de type t
   dépend de lst contenu liste de n'importe quel de type t
   égal à
-  List_internal.remove_nth_element de lst, 1
+    List_internal.remove_nth_element de lst, 1
 
 ## Retourne la liste sans son dernier élément.
 ## **Cas limite**: la liste vide est retournée inchangée
@@ -73,7 +76,7 @@ déclaration retire_last_element
   contenu liste de n'importe quel de type t
   dépend de lst contenu liste de n'importe quel de type t
   égal à
-  List_internal.remove_nth_element de lst, (nombre de lst)
+    List_internal.remove_nth_element de lst, (nombre de lst)
 
 ## Inverse l'ordre des éléments la liste donnée.
 ## **Cas limite**: la liste vide est retournée inchangée
@@ -81,5 +84,5 @@ déclaration inverse
   contenu liste de n'importe quel de type t
   dépend de lst contenu liste de n'importe quel de type t
   égal à
-  List_internal.reverse de lst
+    List_internal.reverse de lst
 ```
