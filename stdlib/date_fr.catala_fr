@@ -149,7 +149,7 @@ déclaration mois_vers_entier
 
 ## Renvoie le mois nommé correspondant au numéro de mois (1-12).
 ## **Aborts:** si l'argument n'est pas entre 1 et 12
-déclaration mois_depuis_entier
+déclaration entier_vers_mois
   contenu Mois
   dépend de
     #[implicit_position_argument]
@@ -185,7 +185,7 @@ déclaration vers_mois_année
   égal à
     MoisAnnée {
       -- numéro_année: accès_année de d
-      -- nom_mois: mois_depuis_entier de (accès_mois de d)
+      -- nom_mois: entier_vers_mois de (accès_mois de d)
     }
 
 ## Transforme un `MoisAnnée` vers une `date` en choisissant
