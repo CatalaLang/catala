@@ -9,22 +9,22 @@
 déclaration min
   contenu entier
   dépend de
-    m1 contenu entier,
-    m2 contenu entier
+    n1 contenu entier,
+    n2 contenu entier
   égal à
-    si m1 > m2 alors m2 sinon m1
+    si n1 > n2 alors n2 sinon n1
 
 ## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu entier
   dépend de
-    m1 contenu entier,
-    m2 contenu entier
+    n1 contenu entier,
+    n2 contenu entier
   égal à
-    si m1 > m2 alors m1 sinon m2
+    si n1 > n2 alors n1 sinon n2
 
-## `plafond de variable, valeur_max` met une limite supérieure à `variable`
-## et renvoie une valeur qui n'excède jamais `valeur_max`.
+## Applique une limite supérieure à `n`, et renvoie une valeur qui n'est
+## jamais plus grande que `valeur_max`.
 déclaration plafond
   contenu entier
   dépend de
@@ -33,8 +33,8 @@ déclaration plafond
   égal à
     min de variable, valeur_max
 
-## `plancher de variable, valeur_min` met une limite inférieure à `variable`
-## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
+## Applique une limite inférieure à `n`, et renvoie une valeur qui n'est
+## jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu entier
   dépend de

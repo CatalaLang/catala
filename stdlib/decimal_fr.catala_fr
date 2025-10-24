@@ -11,95 +11,103 @@
 déclaration min
   contenu décimal
   dépend de
-    m1 contenu décimal,
-    m2 contenu décimal
+    d1 contenu décimal,
+    d2 contenu décimal
   égal à
-    si m1 > m2 alors m2 sinon m1
+    si d1 > d2 alors d2 sinon d1
 
 ## Renvoie le plus grand des deux arguments.
 déclaration max
   contenu décimal
   dépend de
-    m1 contenu décimal,
-    m2 contenu décimal
+    d1 contenu décimal,
+    d2 contenu décimal
   égal à
-    si m1 > m2 alors m1 sinon m2
+    si d1 > d2 alors d1 sinon d2
 
-## `plafond de variable, valeur_max` met une limite supérieure à `variable`
-## et renvoie une valeur qui n'excède jamais `valeur_max`.
+## Applique une limite supérieure à `d`, et renvoie une valeur qui n'est
+## jamais plus grande que `valeur_max`.
 déclaration plafond
   contenu décimal
   dépend de
-    variable contenu décimal,
+    d contenu décimal,
     valeur_max contenu décimal
   égal à
-    min de variable, valeur_max
+    min de d, valeur_max
 
-## `plancher de variable, valeur_min` met une limite inférieure à `variable`
-## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
+## Applique une limite inférieure à `n`, et renvoie une valeur qui n'est
+## jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu décimal
   dépend de
-    variable contenu décimal,
+    d contenu décimal,
     valeur_min contenu décimal
   égal à
-    max de variable, valeur_min
+    max de d, valeur_min
 
 ## Renvoie l'argument s'il est positif, 0,0 sinon.
 déclaration positif
   contenu décimal
-  dépend de variable contenu décimal
+  dépend de d contenu décimal
   égal à
-    plancher de variable, 0,0
+    plancher de d, 0,0
 
-## Enlève d'un nombre ses chiffres après la virgule. Par exemple,
-## `troncature de 7,61 = 7,0` et `troncature de -7,61 = -7,0`.
+## Enlève les chiffres après la virgule.
+## **Exemples:**
+## - `troncature de 7,61 = 7,0`
+## - `troncature de -7,61 = -7,0`
 déclaration troncature
   contenu décimal
-  dépend de variable contenu décimal
+  dépend de d contenu décimal
   égal à
-    si variable = 0,0 alors
+    si d = 0,0 alors
       0,0
-    sinon si variable > 0,0 alors
-      arrondi de (variable - 0,5)
+    sinon si d > 0,0 alors
+      arrondi de (d - 0,5)
     sinon
-      arrondi de (variable + 0,5)
+      arrondi de (d + 0,5)
 
-## Arrondi un nombre à l'entier supérieur. Par exemple,
-## `arrondi_par_excès de 4,34 = 5,0` et `arrondi_par_excès de -4,34 = -4,0`.
+## Arrondit à l'entier supérieur.
+## **Exemples:**
+## - `arrondi_par_excès de 4,34 = 5,0`
+## - `arrondi_par_excès de -4,34 = -4,0`
 déclaration arrondi_par_excès
   contenu décimal
-  dépend de variable contenu décimal
+  dépend de d contenu décimal
   égal à
-    si variable >= 0,0 alors
-      si troncature de variable = variable alors
-        variable
+    si d >= 0,0 alors
+      si troncature de d = d alors
+        d
       sinon
-        troncature de (variable + 1,0)
-    sinon arrondi de (variable + 0,5)
+        troncature de (d + 1,0)
+    sinon
+      arrondi de (d + 0,5)
 
-## Arrondi un nombre à l'entier inférieur. Par exemple,
-## `arrondi_par_défaut de 3,78 = 3,0 et `arrondi_par_défaut de -3,78 = -4,0`.
+## Arrondit à l'entier inférieur.
+## **Exemples:**
+## - `arrondi_par_défaut de 3,78 = 3,0`
+## - `arrondi_par_défaut de -3,78 = -4,0`
 déclaration arrondi_par_défaut
   contenu décimal
-  dépend de variable contenu décimal
+  dépend de d contenu décimal
   égal à
-    si variable > 0,0 alors
-      troncature de variable
-    sinon si troncature de variable = variable alors
-      variable
+    si d > 0,0 alors
+      troncature de d
+    sinon si troncature de d = d alors
+      d
     sinon
-      troncature de (variable - 1,0)
+      troncature de (d - 1,0)
 
-## Arrondi un nombre à la [nième_décimale] spécifiée.
-## [nième_décimale] peut être une valeur négative. Par exemple,
-## `arrondi_à_la_décimale de 123,4567,  3 = 123,457` et
-## `arrondi_à_la_décimale de 123,4567, -2 = 100,0`.
+## Arrondit à la `nième_décimale` spécifiée. `nième_décimale` peut être une
+## valeur négative.
+## **Exemples:**
+## - `arrondi_à_la_décimale de 123,4567,  3 = 123,457`
+## - `arrondi_à_la_décimale de 123,4567, -2 = 100,0`
 déclaration arrondi_à_la_décimale
   contenu décimal
   dépend de
-    variable contenu décimal,
+    d contenu décimal,
     nième_décimale contenu entier
   égal à
-    D.round_to_decimal de variable, nième_décimale
+    D.round_to_decimal de d, nième_décimale
 ```
