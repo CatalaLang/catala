@@ -16,3 +16,6 @@ val nth_element : 't array -> integer -> 't Optional.t
 
 val remove_nth_element : 't array -> integer -> 't array
 (** Toplevel definition remove_nth_element *)
+
+val reverse : 't array -> 't array
+(** Toplevel definition reverse *)

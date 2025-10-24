@@ -13,6 +13,7 @@ declaration split_by_month
 
 declaration split_by_year
   content list of (date, date)
-  depends on start_month content integer,
+  depends on
+    start_month content integer,
     p content (date, date)
 ```

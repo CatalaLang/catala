@@ -33,10 +33,10 @@ declaration scope Tnth_element:
   output o4 content optional of (decimal, integer)
 
 scope Tnth_element:
-  definition o1 equals List.nth_element of [$101; $102; $103], 2
-  definition o2 equals List.nth_element of [12; 13; 14], 0
+  definition o1 equals List.nth_element of [ $101 ; $102 ; $103 ], 2
+  definition o2 equals List.nth_element of [ 12 ; 13 ; 14 ], 0
   definition o3 equals List.nth_element of [], 1
-  definition o4 equals List.nth_element of [(12.0, 44)], 1
+  definition o4 equals List.nth_element of [ (12.0, 44) ], 1
 ```
 
 ```catala-test-cli
@@ -58,10 +58,10 @@ declaration scope Tremove_nth_element:
   output o4 content list of (decimal, integer)
 
 scope Tremove_nth_element:
-  definition o1 equals List.remove_nth_element of [$101; $102; $103], 2
-  definition o2 equals List.remove_nth_element of [12.2; 13.3; 14.4], 0
+  definition o1 equals List.remove_nth_element of [ $101 ; $102 ; $103 ], 2
+  definition o2 equals List.remove_nth_element of [ 12.2 ; 13.3 ; 14.4 ], 0
   definition o3 equals List.remove_nth_element of [], 1
-  definition o4 equals List.remove_nth_element of [(12.0, 44)], 1
+  definition o4 equals List.remove_nth_element of [ (12.0, 44) ], 1
 ```
 
 ```catala-test-cli
@@ -71,5 +71,33 @@ $ catala test-scope Tremove_nth_element
 │ o2 = [12.2; 13.3; 14.4]
 │ o3 = []
 │ o4 = []
+└─
+```
+
+```catala
+#[test]
+declaration scope Treverse:
+  output o1 content list of money
+  output o2 content list of decimal
+  output o3 content list of integer
+  output o4 content list of (decimal, integer)
+  output o5 content list of list of integer
+
+scope Treverse:
+  definition o1 equals List.reverse of [ $101 ; $102 ; $103 ]
+  definition o2 equals List.reverse of [ 12.2 ; 13.3 ; 14.4 ]
+  definition o3 equals List.reverse of []
+  definition o4 equals List.reverse of [ (12.0, 44) ]
+  definition o5 equals List.reverse of [ [ 1 ; 2 ; 3 ] ; [ 4 ; 5 ; 6 ] ]
+```
+
+```catala-test-cli
+$ catala test-scope Treverse
+┌─[RESULT]─ Treverse ─
+│ o1 = [$103.00; $102.00; $101.00]
+│ o2 = [14.4; 13.3; 12.2]
+│ o3 = []
+│ o4 = [(12.0, 44)]
+│ o5 = [[4; 5; 6]; [1; 2; 3]]
 └─
 ```

@@ -5,41 +5,47 @@
 ## Helper functions
 
 ```catala-metadata
-## Returns the smallest of the two arguments.
+## Returns the smaller of the two arguments.
 declaration min
   content integer
-  depends on x content integer,
-    y content integer
+  depends on
+    n1 content integer,
+    n2 content integer
   equals
-    if x <= y then x else y
+    if n1 <= n2 then n1 else n2
 
-## Returns the biggest of the two arguments.
+## Returns the bigger of the two arguments.
 declaration max
   content integer
-  depends on x content integer,
-    y content integer
+  depends on
+    n1 content integer,
+    n2 content integer
   equals
-    if x >= y then x else y
+    if n1 >= n2 then n1 else n2
 
-## `ceiling of variable, max_value` puts an upper cap to `variable` and returns
-## a value that never exceeds `max_value`.
+## Caps `n`, returning a value that never exceeds `max_value`.
 declaration ceiling
   content integer
-  depends on variable content integer,
+  depends on
+    n content integer,
     max_value content integer
-  equals min of variable, max_value
+  equals
+    min of n, max_value
 
-## `floor of variable, min_value` puts a lower cap to `variable` and returns
-## a value that is never inferior to `min_value`.
+## Applies a lower cap on `n`, and returns a value that is never smaller
+## than `min_value`.
 declaration floor
   content integer
-  depends on variable content integer,
+  depends on
+    n content integer,
     min_value content integer
-  equals max of variable, min_value
+  equals
+    max of n, min_value
 
 ## Returns the argument if it is positive, 0 otherwise.
 declaration positive
   content integer
-  depends on variable content integer
-  equals floor of variable, 0
+  depends on n content integer
+  equals
+    floor of n, 0
 ```
