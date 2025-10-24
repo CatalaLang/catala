@@ -97,11 +97,16 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     in
     let error_loc = Pos.from_lpos (lexing_positions lexbuf) in
     let wrong_token = Utf8.lexeme lexbuf in
-    let msg = custom_menhir_message in
-    Message.delayed_error ~kind:Parsing () ?suggestion ~pos:error_loc
-      "@[<hov>Syntax error at %a:@ %t@]"
-      (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
-      wrong_token msg
+    if String.trim wrong_token = "```" then
+      (* If the token is an ending code fence, override the message for an
+         appropriate one. *)
+      Message.delayed_error ~kind:Parsing () ?suggestion ~pos:error_loc
+        "@[<hov>Syntax error in preceding code block@]"
+    else
+      Message.delayed_error ~kind:Parsing () ?suggestion ~pos:error_loc
+        "@[<hov>Syntax error at %a:@ %t@]"
+        (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+        wrong_token custom_menhir_message
 
   let sorted_candidate_tokens lexbuf token_list env =
     let acceptable_tokens =
