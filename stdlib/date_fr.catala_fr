@@ -247,3 +247,71 @@ déclaration est_après_le_début_du_mois
   égal à
     d >= vers_premier_jour_du_mois de m
 ```
+
+## Comparaisons de dates
+
+```catala-metadata
+## Teste si une personne née à `date_de_naissance` est au moins âgée de `âge` à
+## la date `à_date`. Cette fonction calcule l'anniversaire en arrondissant à
+## l'**inférieur**.
+## **Exemples:**
+## - `est_assez_âgé_arrondi_inférieur de |2000-06-01|, 24 an, |2024-06-15| = vrai`
+## - `est_assez_âgé_arrondi_inférieur de |2000-06-01|, 24 an, |2024-05-15| = faux`
+## - `est_assez_âgé_arrondi_inférieur de |2000-01-31|, 1 mois, |2000-02-29| = vrai`
+déclaration est_assez_âgé_arrondi_inférieur
+  contenu booléen
+  dépend de
+    date_de_naissance contenu date,
+    âge contenu durée,
+    à_date contenu date
+  égal à
+    à_date >= D.add_rounded_down de date_de_naissance, âge
+
+## Teste si une personne née à `date_de_naissance` est au moins âgée de `âge` à
+## la date `à_date`. Cette fonction calcule l'anniversaire en arrondissant au
+## **supérieur**.
+## **Exemples:**
+## - `est_assez_âgé_arrondi_supérieur de |2000-06-01|, 24 an, |2024-06-15| = vrai`
+## - `est_assez_âgé_arrondi_supérieur de |2000-06-01|, 24 an, |2024-05-15| = faux`
+## - `est_assez_âgé_arrondi_supérieur de |2000-01-31|, 1 mois, |2000-02-29| = faux`
+déclaration est_assez_âgé_arrondi_supérieur
+  contenu booléen
+  dépend de
+    date_de_naissance contenu date,
+    âge contenu durée,
+    à_date contenu date
+  égal à
+    à_date >= D.add_rounded_up de date_de_naissance, âge
+
+## Teste si une personne née à `date_de_naissance` a un âge strictement
+## inférieur à `âge` à la date `à_date`. Cette fonction calcule l'anniversaire
+## en arrondissant à l'**inférieur**.
+## **Exemples:**
+## - `est_assez_jeune_arrondi_inférieur de |2000-06-01|, 24 an, |2024-06-15| = faux`
+## - `est_assez_jeune_arrondi_inférieur de |2000-06-01|, 24 an, |2024-05-15| = vrai`
+## - `est_assez_jeune_arrondi_inférieur de |2000-01-31|, 1 mois, |2000-02-29| = faux`
+déclaration est_assez_jeune_arrondi_inférieur
+  contenu booléen
+  dépend de
+    date_de_naissance contenu date,
+    âge contenu durée,
+    à_date contenu date
+  égal à
+    non (est_assez_âgé_arrondi_inférieur de date_de_naissance, âge, à_date)
+
+## Teste si une personne née à `date_de_naissance` a un âge strictement
+## inférieur à `âge` à la date `à_date`. Cette fonction calcule l'anniversaire
+## en arrondissant au **supérieur**.
+## **Exemples:**
+## - `est_assez_jeune_arrondi_supérieur de |2000-06-01|, 24 an, |2024-06-15| = faux`
+## - `est_assez_jeune_arrondi_supérieur de |2000-06-01|, 24 an, |2024-05-15| = vrai`
+## - `est_assez_jeune_arrondi_supérieur de |2000-01-31|, 1 mois, |2000-02-29| = vrai`
+déclaration est_assez_jeune_arrondi_supérieur
+  contenu booléen
+  dépend de
+    date_de_naissance contenu date,
+    âge contenu durée,
+    à_date contenu date
+  égal à
+    non (est_assez_âgé_arrondi_supérieur de date_de_naissance, âge, à_date)
+```

@@ -20,3 +20,9 @@ def to_ymd(d:Date):
 
 def last_day_of_month(d:Date):
     return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))
+
+def add_rounded_down(d:Date, dur:Duration):
+    return add_date_duration(RoundDown)(d, dur)
+
+def add_rounded_up(d:Date, dur:Duration):
+    return add_date_duration(RoundUp)(d, dur)

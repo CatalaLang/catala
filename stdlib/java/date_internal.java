@@ -35,5 +35,21 @@ public class Date_internal {
             d -> {
             return d.getLastDayOfMonth();
         };
+        
+        public static final CatalaFunction<CatalaTuple,CatalaDate> addRoundedDown =
+            tup_arg_22 -> {
+            CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_22.get(0));
+            CatalaDuration dur = CatalaValue.<CatalaDuration>cast
+               (tup_arg_22.get(1));
+            return d.addDurationRoundDown(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
+        };
+
+        public static final CatalaFunction<CatalaTuple,CatalaDate> addRoundedUp =
+            tup_arg_23 -> {
+            CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_23.get(0));
+            CatalaDuration dur = CatalaValue.<CatalaDuration>cast
+               (tup_arg_23.get(1));
+            return d.addDurationRoundUp(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
+        };
     }
 }
