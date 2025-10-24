@@ -246,3 +246,79 @@ declaration is_after_the_first_day_of_month
   equals
     d >= to_first_day_of_month of m
 ```
+
+## Date comparisons
+
+```catala-metadata
+## Checks whether a person born at `birth_date` is at least `age` old at
+## `at_date`. This function rounds **down** when computing the birthday.
+## **Examples:**
+## - `is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| = true`
+## - `is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| =
+##   false`
+## - `is_old_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| = true`
+declaration is_old_enough_rounding_down
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    at_date >= D.add_rounded_down of birth_date, age
+
+## Checks whether a person born at `birth_date` is at least `age` old at
+## `at_date`. This function rounds **up** when computing the birthday.
+## **Examples:**
+## - `is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| = true`
+## - `is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = false`
+## - `is_old_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = false`
+declaration is_old_enough_rounding_up
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    at_date >= D.add_rounded_up of birth_date, age
+
+## Checks whether a person born at `birth_date` is strictly less than
+## `age` old at `at_date`. This function rounds **down** when computing
+## the birthday.
+## **Examples:**
+## - `is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| =
+##   false`
+## - `is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| =
+##   true`
+## - `is_young_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| =
+##   false`
+declaration is_young_enough_rounding_down
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    not (is_old_enough_rounding_down of birth_date, age, at_date)
+# Note: it would be tempting to write a function that tests if the person
+# is "at most" a given age instead. But that would be misleading, because by
+# "at most n years old", we actually mean "less than (n+1) years old",
+# implicitly rounding the age down. The function can't do that since it allows
+# durations in months or days as well.
+
+## Checks whether a person born at `birth_date` is strictly less than
+## `age` old at `at_date`. This function rounds **down** when computing
+## the birthday.
+## **Examples:**
+## - `is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| =
+##   false`
+## - `is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = true`
+## - `is_young_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = true`
+declaration is_young_enough_rounding_up
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    not (is_old_enough_rounding_up of birth_date, age, at_date)
+```

@@ -16,4 +16,16 @@ declaration to_ymd
 declaration last_day_of_month
   content date
   depends on d content date
+
+declaration add_rounded_down
+  content date
+  depends on
+    d content date,
+    dur content duration
+
+declaration add_rounded_up
+  content date
+  depends on
+    d content date,
+    dur content duration
 ```

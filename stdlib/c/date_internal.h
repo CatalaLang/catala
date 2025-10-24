@@ -15,4 +15,9 @@ const CATALA_TUPLE(CATALA_INT;CATALA_INT;CATALA_INT) DateInternal__to_ymd
 
 CATALA_DATE DateInternal__last_day_of_month (CATALA_DATE d);
 
+CATALA_DATE DateInternal__add_rounded_down
+    (CATALA_DATE d, CATALA_DURATION dur);
+
+CATALA_DATE DateInternal__add_rounded_up (CATALA_DATE d, CATALA_DURATION dur);
+
 #endif /* __DATE_INTERNAL_H__ */
