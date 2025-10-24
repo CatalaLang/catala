@@ -148,14 +148,14 @@ declaration month_to_integer
 
 ## Returns the named month corresponding to the month number (1-12).
 ## **Aborts:** if the input is not between 1 and 12
-declaration month_of_integer
+declaration integer_to_month
   content Month
   depends on
     #[implicit_position_argument]
     pos content code_location,
     i content integer
   equals
-    if i = 1 then January
+    if i = 1 then      January
     else if i = 2 then February
     else if i = 3 then March
     else if i = 4 then April
@@ -184,7 +184,7 @@ declaration to_month_year
   equals
     MonthYear {
       -- year_number: get_year of d
-      -- month_name: month_of_integer of (get_month of d)
+      -- month_name: integer_to_month of (get_month of d)
     }
 
 ## Transforms a `MonthYear` into a `date` by choosing the first day of the
@@ -224,13 +224,13 @@ declaration is_in_the_month
   depends on m content MonthYear, d content date
   equals
     (is_after_the_first_day_of_month of m, d)
-    and (is_before_the_end_of_the_month of m, d)
+    and (is_before_the_end_of_month of m, d)
 
 ## Checks if the date occurs before the end of the given month (included).
 ## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-04-13| = true`
 ## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-05-31| = true`
 ## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-06-01| = false`
-declaration is_before_the_end_of_the_month
+declaration is_before_the_end_of_month
   content boolean
   depends on m content MonthYear, d content date
   equals
