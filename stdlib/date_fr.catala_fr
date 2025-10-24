@@ -148,7 +148,7 @@ déclaration mois_vers_entier
     -- Décembre : 12
 
 ## Renvoie le mois nommé correspondant au numéro de mois (1-12).
-## **Aborts:** si l'argument n'est pas entre 1 et 12
+## **Échoue:** si l'argument n'est pas entre 1 et 12
 déclaration entier_vers_mois
   contenu Mois
   dépend de

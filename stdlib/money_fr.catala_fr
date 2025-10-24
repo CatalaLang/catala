@@ -25,99 +25,107 @@ déclaration max
   égal à
     si m1 > m2 alors m1 sinon m2
 
-## `plafond de variable, valeur_max` met une limite supérieure à `variable`
-## et renvoie une valeur qui n'excède jamais `valeur_max`.
+## Applique une limite supérieure à `a`, et renvoie une valeur qui n'est
+## jamais plus grande que `valeur_max`.
 déclaration plafond
   contenu argent
   dépend de
-    variable contenu argent,
+    a contenu argent,
     valeur_max contenu argent
   égal à
-    min de variable, valeur_max
+    min de a, valeur_max
 
-## `plancher de variable, valeur_min` met une limite inférieure à `variable`
-## et renvoie une valeur qui n'est jamais plus petite que `valeur_min`.
+## Applique une limite inférieure à `a`, et renvoie une valeur qui n'est
+## jamais plus petite que `valeur_min`.
 déclaration plancher
   contenu argent
   dépend de
-    variable contenu argent,
+    a contenu argent,
     valeur_min contenu argent
   égal à
-    max de variable, valeur_min
+    max de a, valeur_min
 
 ## Renvoie l'argument s'il est positif, 0€ sinon.
 déclaration positif
   contenu argent
-  dépend de variable contenu argent
+  dépend de a contenu argent
   égal à
-    plancher de variable, 0€
+    plancher de a, 0€
 
-## Enlève d'un montant d'argent ses chiffres après la virgule. Par exemple,
-## `troncature de 7,61€ = 7€` et `troncature de -7,61€ = -7€`.
+## Enlève d'un montant d'argent ses chiffres après la virgule.
+## **Exemples:**
+## - `troncature de 7,61€ = 7€`
+## - `troncature de -7,61€ = -7€`
 déclaration troncature
   contenu argent
-  dépend de variable contenu argent
+  dépend de a contenu argent
   égal à
-    si variable = 0€ alors 0€
-    sinon si variable > 0€ alors
-      arrondi de (variable - 0,5€)
+    si a = 0€ alors 0€
+    sinon si a > 0€ alors
+      arrondi de (a - 0,5€)
     sinon
-      arrondi de (variable + 0,5€)
+      arrondi de (a + 0,5€)
 
-## Arrondi un montant d'argent à l'euro supérieur. Par exemple,
-## `arrondi_par_excès de 4,34€ = 5€` et `arrondi_par_excès de -4,34€ = -4€`.
+## Arrondi un montant d'argent à l'euro supérieur.
+## **Exemples:**
+## - `arrondi_par_excès de 4,34€ = 5€`
+## - `arrondi_par_excès de -4,34€ = -4€`
 déclaration arrondi_par_excès
   contenu argent
-  dépend de variable contenu argent
+  dépend de a contenu argent
   égal à
-    si variable >= 0€ alors
-      arrondi de (variable + 0,49€)
+    si a >= 0€ alors
+      arrondi de (a + 0,49€)
     sinon
-      arrondi de (variable + 0,5€)
+      arrondi de (a + 0,5€)
 
-## Arrondi un montant d'argent à l'euro inférieur. Par exemple,
-## `arrondi_par_défaut de 3,78€ = 3€ et `arrondi_par_défaut de -3,78€ = -4€`.
+## Arrondit un montant d'argent à l'euro inférieur.
+## **Exemples:**
+## - `arrondi_par_défaut de 3,78€ = 3€`
+## - `arrondi_par_défaut de -3,78€ = -4€`
 déclaration arrondi_par_défaut
   contenu argent
-  dépend de variable contenu argent
+  dépend de a contenu argent
   égal à
-    si variable > 0€ alors
-      arrondi de (variable - 0,5€)
-    sinon arrondi de (variable - 0,49€)
+    si a > 0€ alors
+      arrondi de (a - 0,5€)
+    sinon
+      arrondi de (a - 0,49€)
 
-## Arrondi un montant d'argent à la [nième_décimale] spécifiée.
-## [nième_décimale] peut être une valeur négative. Par exemple,
-## `arrondi_à_la_décimale de 123,45€, 1  = 123,5€` et
-## `arrondi_à_la_décimale de 123,45€, -2 = 100€`.
+## Arrondit un montant d'argent à la `nième_décimale` spécifiée.
+## `nième_décimale` peut être une valeur négative.
+## **Exemples:**
+## - `arrondi_à_la_décimale de 123,45€, 1 = 123,5€`
+## - `arrondi_à_la_décimale de 123,45€, -2 = 100€`
 déclaration arrondi_à_la_décimale
   contenu argent
   dépend de
-    variable contenu argent,
+    a contenu argent,
     nième_décimale contenu entier
   égal à
-    M.round_to_decimal de variable, nième_décimale
+    M.round_to_decimal de a, nième_décimale
 ```
 
 ## Opérations financières
 
 ```catala-metadata
-## Retourne le montant positif duquel `variable` dépasse de `référence`
-## (sinon 0€)
+## Retourne le montant positif duquel `a` dépasse de `référence`
+## (sinon 0€).
 déclaration en_excès
   contenu argent
   dépend de
-    variable contenu argent,
+    a contenu argent,
     référence contenu argent
   égal à
-    max de (0€, variable - référence)
+    max de (0€, a - référence)
 
-## Retourne le montant positif duquel `variable` est en dessous de `référence`
-## (sinon 0€)
+## Retourne le montant positif duquel `a` est en dessous de `référence`
+## (sinon 0€).
 déclaration en_défaut
   contenu argent
   dépend de
-    variable contenu argent,
+    a contenu argent,
     référence contenu argent
   égal à
-    max de (0€, référence - variable)
+    max de (0€, référence - a)
 ```
