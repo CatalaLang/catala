@@ -1,4 +1,4 @@
-name: Windows smoke test
+name: CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   windows-smoke:
-    name: Windows smoke test
+    name: Windows build
     runs-on: windows-latest
 
     steps:
@@ -51,7 +51,8 @@ jobs:
           git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
 
       - name: Run clerk test in catala-examples
-        continue-on-error: true
+        continue-on-error: true # This fails because of an incompatibility
+                                # of Windows Ninja. FIXME
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
           opam exec -- clerk test
