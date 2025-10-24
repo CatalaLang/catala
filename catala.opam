@@ -45,6 +45,7 @@ depends: [
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
+  "dune-build-info" { >= "3.20.0" }
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.26.0"}
   "obelisk" {?cataladevmode & cataladevmode}

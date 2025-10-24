@@ -57,7 +57,18 @@ type full = { catala_version : t; flags_hash : Flags.t; contents : t }
 
 let finalise t =
   Flags.pass (fun flags_hash ->
-      { catala_version = !(Version.v : string); flags_hash; contents = t })
+      {
+        catala_version =
+          !(match Version.v with
+            | Some v -> v
+            | None ->
+              Option.value ~default:"dev"
+                (Option.map Build_info.V1.Version.to_string
+                   (Build_info.V1.version ()))
+             : string);
+        flags_hash;
+        contents = t;
+      })
 
 let to_string full =
   Printf.sprintf "CM0|%08x|%08x|%08x" full.catala_version
