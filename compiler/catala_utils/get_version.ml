@@ -9,11 +9,14 @@ let v =
     try
       let ic = Unix.open_process_in "git describe --tags --dirty 2>/dev/null" in
       let v = input_line ic in
-      match Unix.close_process_in ic with Unix.WEXITED 0 -> v | _ -> "dev"
-    with _ -> "dev")
-  | Some v -> v
+      match Unix.close_process_in ic with Unix.WEXITED 0 -> Some v | _ -> None
+    with _ -> None)
+  | Some v -> Some v
 
 let () =
-  print_string "let v = \"";
-  print_string (String.escaped v);
-  print_endline "\""
+  print_string "let v = ";
+  print_string
+    (match v with
+    | None -> "None"
+    | Some v -> "Some \"" ^ String.escaped v ^ "\"");
+  print_endline ""

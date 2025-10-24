@@ -593,7 +593,12 @@ module Flags = struct
 end
 
 (* Retrieve current version from dune *)
-let version = Version.v
+let version : string =
+  match Version.v with
+  | Some v -> v
+  | None ->
+    Option.value ~default:"dev"
+      (Option.map Build_info.V1.Version.to_string (Build_info.V1.version ()))
 
 let man_header =
   [
