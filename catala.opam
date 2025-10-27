@@ -72,6 +72,7 @@ build: [
   "@runtest" {with-test}
   "@doc" {with-doc}
 ]
+build-env: [ CATALA_VERSION = "%{version}%" ]
 dev-repo: "git+https://github.com/CatalaLang/catala"
 depexts: [
   ["groff"] { with-doc }
