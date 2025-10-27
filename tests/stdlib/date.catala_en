@@ -106,19 +106,19 @@ scope Tunit:
     and Date.is_in_the_month of my2, |2010-06-30|
     and not (Date.is_in_the_month of my2, |2010-05-10|)
 
-  # is_(after|before)_the_(first_day|end)_of_month
+  # is_(after|before)_the_(previous|next)_of_month
   assertion
-    not (Date.is_before_the_end_of_month of my2, |2060-10-10|)
-    and not (Date.is_before_the_end_of_month of my2, |2010-07-01|)
-    and Date.is_before_the_end_of_month of my2, |2010-06-30|
-    and Date.is_before_the_end_of_month of my2, |2010-06-01|
-    and Date.is_before_the_end_of_month of my2, |2010-05-10|
+    not (Date.is_before_the_next_month of my2, |2060-10-10|)
+    and not (Date.is_before_the_next_month of my2, |2010-07-01|)
+    and Date.is_before_the_next_month of my2, |2010-06-30|
+    and Date.is_before_the_next_month of my2, |2010-06-01|
+    and Date.is_before_the_next_month of my2, |2010-05-10|
   assertion
-    Date.is_after_the_first_day_of_month of my2, |2060-10-10|
-    and Date.is_after_the_first_day_of_month of my2, |2010-06-01|
-    and Date.is_after_the_first_day_of_month of my2, |2010-06-30|
-    and not (Date.is_after_the_first_day_of_month of my2, |2010-05-10|)
-    and not (Date.is_after_the_first_day_of_month of my2, |2010-05-31|)
+    Date.is_after_the_previous_month of my2, |2060-10-10|
+    and Date.is_after_the_previous_month of my2, |2010-06-01|
+    and Date.is_after_the_previous_month of my2, |2010-06-30|
+    and not (Date.is_after_the_previous_month of my2, |2010-05-10|)
+    and not (Date.is_after_the_previous_month of my2, |2010-05-31|)
 
   # is_old_enough_*
   assertion

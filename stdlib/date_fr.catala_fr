@@ -224,24 +224,24 @@ déclaration est_dans_le_mois
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
   égal à
-    (est_après_le_début_du_mois de m, d)
-    et (est_avant_la_fin_du_mois de m, d)
+    (est_après_le_mois_précédent de m, d)
+    et (est_avant_le_mois_suivant de m, d)
 
-## Teste si la date survient avant la fin du mois concerné (inclus).
-## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-04-13| = vrai`
-## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-05-31| = vrai`
-## **Exemple:** `est_avant_la_fin_du_mois de mai_2025, |2025-06-01| = faux`
-déclaration est_avant_la_fin_du_mois
+## Teste si la date survient avant le premier jour du mois suivant.
+## **Exemple:** `est_avant_le_mois_suivant de mai_2025, |2025-04-13| = vrai`
+## **Exemple:** `est_avant_le_mois_suivant de mai_2025, |2025-05-31| = vrai`
+## **Exemple:** `est_avant_le_mois_suivant de mai_2025, |2025-06-01| = faux`
+déclaration est_avant_le_mois_suivant
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
   égal à
     d <= vers_dernier_jour_du_mois de m
 
-## Teste si la date survient après le début du mois concerné (inclus).
-## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-06-15| = vrai`
-## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-05-01| = vrai`
-## **Exemple:** `est_après_le_début_du_mois de mai_2025, |2025-04-30| = faux`
-déclaration est_après_le_début_du_mois
+## Teste si la date survient après le dernier jour du mois suivant.
+## **Exemple:** `est_après_le_mois_précédent de mai_2025, |2025-06-15| = vrai`
+## **Exemple:** `est_après_le_mois_précédent de mai_2025, |2025-05-01| = vrai`
+## **Exemple:** `est_après_le_mois_précédent de mai_2025, |2025-04-30| = faux`
+déclaration est_après_le_mois_précédent
   contenu booléen
   dépend de m contenu MoisAnnée, d contenu date
   égal à

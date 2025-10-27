@@ -223,24 +223,24 @@ declaration is_in_the_month
   content boolean
   depends on m content MonthYear, d content date
   equals
-    (is_after_the_first_day_of_month of m, d)
-    and (is_before_the_end_of_month of m, d)
+    (is_after_the_previous_month of m, d)
+    and (is_before_the_next_month of m, d)
 
-## Checks if the date occurs before the end of the given month (included).
-## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-04-13| = true`
-## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-05-31| = true`
-## **Example:** `is_before_the_end_of_the_month of may_2025, |2025-06-01| = false`
-declaration is_before_the_end_of_month
+## Checks if the date occurs before the first day of the next month.
+## **Example:** `is_before_the_next_month of may_2025, |2025-04-13| = true`
+## **Example:** `is_before_the_next_month of may_2025, |2025-05-31| = true`
+## **Example:** `is_before_the_next_month of may_2025, |2025-06-01| = false`
+declaration is_before_the_next_month
   content boolean
   depends on m content MonthYear, d content date
   equals
     d <= to_last_day_of_month of m
 
-## Checks if the date occurs after the first day of the given month (included).
-## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-06-15| = true`
-## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-05-01| = true`
-## **Example:** `is_after_the_first_day_of_month of may_2025, |2025-04-30| = false`
-declaration is_after_the_first_day_of_month
+## Checks if the date occurs after the last day of the previous month.
+## **Example:** `is_after_the_previous_month of may_2025, |2025-06-15| = true`
+## **Example:** `is_after_the_previous_month of may_2025, |2025-05-01| = true`
+## **Example:** `is_after_the_previous_month of may_2025, |2025-04-30| = false`
+declaration is_after_the_previous_month
   content boolean
   depends on m content MonthYear, d content date
   equals
