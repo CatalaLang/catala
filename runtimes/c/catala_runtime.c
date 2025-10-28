@@ -931,6 +931,9 @@ void* catala_do(void* (*f)(void))
     case catala_not_same_length:
       error_kind = "List lengths not matching";
       break;
+    case catala_invalid_date:
+      error_kind = "the provided numbers do not correspond to a valid date";
+      break;
     case catala_uncomparable_durations:
       error_kind = "Comparison between incompatible durations";
       break;

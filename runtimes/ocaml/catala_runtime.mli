@@ -76,6 +76,7 @@ type error =
   | DivisionByZero  (** The denominator happened to be 0 here *)
   | ListEmpty  (** Element access on an empty list *)
   | NotSameLength  (** Traversing multiple lists of different lengths *)
+  | InvalidDate  (** Invalid year/month/day combination *)
   | UncomparableDurations
       (** Comparing durations in different units (e.g. months vs. days) *)
   | AmbiguousDateRounding

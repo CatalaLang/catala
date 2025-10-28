@@ -52,6 +52,7 @@ type error =
   | DivisionByZero
   | ListEmpty
   | NotSameLength
+  | InvalidDate
   | UncomparableDurations
   | AmbiguousDateRounding
   | IndivisibleDurations
@@ -64,6 +65,7 @@ let error_to_string = function
   | DivisionByZero -> "DivisionByZero"
   | ListEmpty -> "ListEmpty"
   | NotSameLength -> "NotSameLength"
+  | InvalidDate -> "InvalidDate"
   | UncomparableDurations -> "UncomparableDurations"
   | AmbiguousDateRounding -> "AmbiguousDateRounding"
   | IndivisibleDurations -> "IndivisibleDurations"
@@ -79,6 +81,7 @@ let error_message = function
     "a value is being used as denominator in a division and it computed to zero"
   | ListEmpty -> "the list was empty"
   | NotSameLength -> "traversing multiple lists of different lengths"
+  | InvalidDate -> "the provided numbers do not correspond to a valid date"
   | UncomparableDurations ->
     "ambiguous comparison between durations in different units (e.g. months \
      vs. days)"
