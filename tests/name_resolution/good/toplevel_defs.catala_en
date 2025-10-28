@@ -110,6 +110,7 @@ $ catala scalc
 module stdlib_en = Stdlib_en
 module date_en = Date_en
 module date_internal = Date_internal
+module month_year_en = MonthYear_en
 module period_en = Period_en
 module period_internal = Period_internal
 module money_en = Money_en
@@ -205,6 +206,7 @@ from typing import Any, List, Callable, Tuple
 from enum import Enum
 from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
+from . import MonthYear_en as month_year_en
 from . import Period_en as period_en
 from . import Money_en as money_en
 from . import Integer_en as integer_en
