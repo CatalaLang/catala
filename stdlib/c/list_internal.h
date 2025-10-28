@@ -17,4 +17,7 @@ const CATALA_OPTION(void * /* any t */) ListInternal__nth_element
 const CATALA_ARRAY(void * /* any t */) ListInternal__remove_nth_element
     (const CATALA_ARRAY(void * /* any t */) lst, CATALA_INT index);
 
+const CATALA_ARRAY(void * /* any t */) ListInternal__reverse
+    (const CATALA_ARRAY(void * /* any t */) lst);
+
 #endif /* __LIST_INTERNAL_H__ */

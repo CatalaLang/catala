@@ -30,6 +30,12 @@ let () =
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
 let () =
+  match Catala_runtime.check_module "MonthYear_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module MonthYear_en, it may need recompiling"
+module MonthYear_en = MonthYear_en
+let () =
   match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
     with
   | Ok () -> ()
@@ -149,6 +155,12 @@ let () =
   | Error h -> failwith "Hash mismatch for module Date_en, it may need recompiling"
 module Date_en = Date_en
 let () =
+  match Catala_runtime.check_module "MonthYear_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
+    with
+  | Ok () -> ()
+  | Error h -> failwith "Hash mismatch for module MonthYear_en, it may need recompiling"
+module MonthYear_en = MonthYear_en
+let () =
   match Catala_runtime.check_module "Period_en" "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
     with
   | Ok () -> ()
@@ -211,7 +223,7 @@ let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=117; start_column=14; end_line=117; end_column=24;
+              start_line=123; start_column=14; end_line=123; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,

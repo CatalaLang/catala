@@ -1,7 +1,9 @@
 ## Style conventions for the standard library
 
-* Test functions returning a boolean should be named `is_...` or `est_...`,
-  or `are_...` or `sont_...` when there are multiple arguments.
+* Test functions returning a boolean should be named as predicates
+  (`is_...`/`est_...`, or `are_...`/`sont_...` when there are multiple
+  arguments). The doc should be worded "Checks if"/"Teste si" rather than
+  "Returns true if".
 * Verbs in French should be in imperative form and not infinitive form.
 * The description of the function should speak about the function at the third
   person: "Computes" instead of "Compute", etc.
@@ -15,8 +17,8 @@
 ## Main message describing what is the goal of the function. New sentence with
 ## additional information.
 ## **Example(s):** Unique example here or
-## * First example
-## * Second example
+## - First example
+## - Second example
 ## **Aborts:** List of input conditions for which the function crashes.
 ```
 
@@ -24,8 +26,15 @@
 ## Message principal décrivant le but de la fonction. Nouvelle
 ## phrase avec des informations additionnelles.
 ## **Exemple(s):** Exemple unique ici ou
-## * Premier exemple
-## * Deuxième exemple
+## - Premier exemple
+## - Deuxième exemple
 ## **Échoue:** Liste de conditions sur les entrées telles que la fonction
 ## crashe.
 ```
+
+* Naming of function arguments:
+  * for arguments of the module "base type", one-letter initials are fine
+  * if there is more than one of the "base type" with similar role (like in comparisons), number them: prefer `d1`, `d2` to `x`, `y`
+  * arguments should otherwise be named based on their type, when unambiguous
+  * and their role otherwise
+  * remember to localise these name too when translating a module.

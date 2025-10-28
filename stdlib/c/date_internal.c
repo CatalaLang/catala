@@ -17,7 +17,7 @@ CATALA_DATE DateInternal__of_ymd
     const int success = dc_make_date(ret, y, m, d);
     if (success) return ret;
   }
-  catala_error(catala_uncomparable_durations, pos, 1);
+  catala_error(catala_invalid_date, pos, 1);
   abort();
 }
 
@@ -36,6 +36,21 @@ CATALA_DATE DateInternal__last_day_of_month (CATALA_DATE d)
 {
   dc_date *ret = catala_malloc(sizeof(dc_date));
   dc_last_day_of_month(ret, d);
+  return ret;
+}
+
+CATALA_DATE DateInternal__add_rounded_down
+    (CATALA_DATE d, CATALA_DURATION dur)
+{
+  dc_date *ret = catala_malloc(sizeof(dc_date));
+  dc_add_dates(ret, dc_date_round_down, d, dur);
+  return ret;
+}
+
+CATALA_DATE DateInternal__add_rounded_up (CATALA_DATE d, CATALA_DURATION dur)
+{
+  dc_date *ret = catala_malloc(sizeof(dc_date));
+  dc_add_dates(ret, dc_date_round_up, d, dur);
   return ret;
 }
 

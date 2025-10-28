@@ -6,9 +6,7 @@ let of_ymd : code_location -> integer -> integer -> integer -> date =
   try
     Dates_calc.make_date ~year:(Z.to_int y) ~month:(Z.to_int m)
       ~day:(Z.to_int d)
-  with Dates_calc.InvalidDate ->
-    (* FIXME: add specific error *)
-    raise (Error (UncomparableDurations, [pos]))
+  with Dates_calc.InvalidDate -> raise (Error (InvalidDate, [pos]))
 
 (* Toplevel def to_ymd *)
 let to_ymd : date -> integer * integer * integer =
@@ -20,11 +18,23 @@ let to_ymd : date -> integer * integer * integer =
 let last_day_of_month : date -> date =
  fun (d : date) -> Dates_calc.last_day_of_month d
 
+(* Toplevel def add_rounded_down *)
+let add_rounded_down : date -> duration -> date =
+ fun (d : date) (dur : duration) ->
+  Dates_calc.add_dates d dur ~round:Dates_calc.RoundDown
+
+(* Toplevel def add_rounded_up *)
+let add_rounded_up : date -> duration -> date =
+ fun (d : date) (dur : duration) ->
+  Dates_calc.add_dates d dur ~round:Dates_calc.RoundUp
+
 let () =
   Catala_runtime.register_module "Date_internal"
     [
-      "of_ymd", Obj.repr of_ymd;
-      "to_ymd", Obj.repr to_ymd;
-      "last_day_of_month", Obj.repr last_day_of_month;
+      "of_ymd", Stdlib.Obj.repr of_ymd;
+      "to_ymd", Stdlib.Obj.repr to_ymd;
+      "last_day_of_month", Stdlib.Obj.repr last_day_of_month;
+      "add_rounded_down", Stdlib.Obj.repr add_rounded_down;
+      "add_rounded_up", Stdlib.Obj.repr add_rounded_up;
     ]
     "*external*"

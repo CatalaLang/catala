@@ -14,6 +14,7 @@ public class CatalaError extends RuntimeException {
         DivisionByZero,
         ListEmpty,
         NotSameLength,
+        InvalidDate,
         UncomparableDurations,
         AmbiguousDateRounding,
         IndivisibleDurations,
@@ -34,6 +35,8 @@ public class CatalaError extends RuntimeException {
                     return "the list was empty";
                 case NotSameLength:
                     return "traversing multiple lists of different lengths";
+                case InvalidDate:
+                    return "the provided numbers do not correspond to a valid date";
                 case UncomparableDurations:
                     return "ambiguous comparison between durations in different units (e.g. months vs. days)";
                 case AmbiguousDateRounding:

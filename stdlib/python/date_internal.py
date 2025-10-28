@@ -8,15 +8,18 @@ from enum import Enum
 # are still based on the Python date module and not on Dates_calc
 
 def of_ymd(pos:SourcePosition, dyear:Integer, dmonth:Integer, dday:Integer):
-    try:
-        return Date(datetime.date(int(dyear.value), int(dmonth.value), int(dday.value)))
-    except InvalidDate:
-        raise UncomparableDurations(pos)
+    return Date((dyear.value, dmonth.value, dday.value), pos)
 
 def to_ymd(d:Date):
-    return (integer_of_int(d.value.year),
-            integer_of_int(d.value.month),
-            integer_of_int(d.value.day))
+    return (Integer(d.value.year),
+            Integer(d.value.month),
+            Integer(d.value.day))
 
 def last_day_of_month(d:Date):
-    return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))
+    return Date(d.value.last_day_of_month())
+
+def add_rounded_down(d:Date, dur:Duration):
+    return d.__add__(dur, dates.DateRounding.RoundDown)
+
+def add_rounded_up(d:Date, dur:Duration):
+    return d.__add__(dur, dates.DateRounding.RoundUp)

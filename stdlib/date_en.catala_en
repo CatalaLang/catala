@@ -10,18 +10,20 @@
 ## Returns the earlier of two dates.
 declaration min
   content date
-  depends on x content date,
-    y content date
+  depends on
+    d1 content date,
+    d2 content date
   equals
-    if x <= y then x else y
+    if d1 <= d2 then d1 else d2
 
 ## Returns the latter of two dates.
 declaration max
   content date
-  depends on x content date,
-    y content date
+  depends on
+    d1 content date,
+    d2 content date
   equals
-    if x >= y then x else y
+    if d1 >= d2 then d1 else d2
 ```
 
 ## Dates and years, months and days
@@ -32,15 +34,15 @@ declaration max
 declaration of_year_month_day
   content date
   depends on
-  #[implicit_position_argument]
+    #[implicit_position_argument]
     pos content code_location,
     dyear content integer,
     dmonth content integer,
     dday content integer
-  equals D.of_ymd of pos, dyear, dmonth, dday
+  equals
+    D.of_ymd of pos, dyear, dmonth, dday
 
-## Returns the number of the year, month (starting from 1) and day (starting
-## from 1) from the date.
+## Returns the number of the year, month (1-12) and day (1-31) from the date.
 declaration to_year_month_day
   content (integer, integer, integer)
   depends on d content date
@@ -51,26 +53,29 @@ declaration to_year_month_day
 declaration get_year
   content integer
   depends on d content date
-  equals (to_year_month_day of d).1
+  equals
+    (to_year_month_day of d).1
 
-## Returns the month number from a date (starting from 1).
+## Returns the month number (1-12) from a date.
 declaration get_month
   content integer
   depends on d content date
-  equals (to_year_month_day of d).2
+  equals
+    (to_year_month_day of d).2
 
 ## Returns the day number from a date (starting from 1).
 declaration get_day
   content integer
   depends on d content date
-  equals (to_year_month_day of d).3
+  equals
+    (to_year_month_day of d).3
 ```
 
 ## Getting to the past or future
 
 ```catala-metadata
-## Returns the first day of the current month from the given date. For
-## instance, `first_day_of_month of |21-01-2024| = |01-01-2024|`.
+## Returns the first day of the current month from the given date.
+## **Example:** `first_day_of_month of |2024-01-21| = |2024-01-01|`
 declaration first_day_of_month
   content date
   depends on d content date
@@ -78,15 +83,16 @@ declaration first_day_of_month
     let ymd equals to_year_month_day of d in
     of_year_month_day of (ymd.1, ymd.2, 1)
 
-## Returns the last day of the current month from the given date. For
-## instance, `last_day_of_month of |21-01-2024| = |31-01-2024|`.
+## Returns the last day of the current month from the given date.
+## **Example:** `last_day_of_month of |2024-01-21| = |2024-01-31|`
 declaration last_day_of_month
   content date
   depends on d content date
-  equals D.last_day_of_month of d
+  equals
+    D.last_day_of_month of d
 
-## Returns the first day of the current year from the given date. For
-## instance, `first_day_of_year of |21-03-2024| = |01-01-2024|`.
+## Returns the first day of the current year from the given date.
+## **Example:** `first_day_of_year of |2024-03-21| = |2024-01-01|`.
 declaration first_day_of_year
   content date
   depends on d content date
@@ -94,8 +100,8 @@ declaration first_day_of_year
     let ymd equals to_year_month_day of d in
     of_year_month_day of (ymd.1, 1, 1)
 
-## Returns the last day of the current year from the given date. For
-## instance, `last_day_of_month of |21-03-2024| = |31-12-2024|`.
+## Returns the last day of the year from the given date.
+## **Example:** `last_day_of_year of |2024-03-21| = |2024-12-31|`.
 declaration last_day_of_year
   content date
   depends on d content date
@@ -104,7 +110,7 @@ declaration last_day_of_year
     of_year_month_day of (ymd.1, 12, 31)
 ```
 
-## Named months and months of specific years
+## Named months
 
 ```catala-metadata
 declaration enumeration Month:
@@ -121,8 +127,8 @@ declaration enumeration Month:
   -- November
   -- December
 
-## Returns the month number (starting from 1) associated to a named month.
-declaration month_to_int
+## Returns the month number (1-12) associated to a named month.
+declaration month_to_integer
   content integer
   depends on m content Month
   equals
@@ -140,17 +146,16 @@ declaration month_to_int
     -- November : 11
     -- December : 12
 
-declaration structure MonthOfYear:
-  data year_number content integer
-  data month_name content Month
-
-## Returns the named month corresponding to the month number (starting from 1).
-## If the input is not between 1 and 12, fails with an `impossible` error.
-declaration month_of_int
+## Returns the named month corresponding to the month number (1-12).
+## **Aborts:** if the input is not between 1 and 12
+declaration integer_to_month
   content Month
-  depends on i content integer
+  depends on
+    #[implicit_position_argument]
+    pos content code_location,
+    i content integer
   equals
-    if i = 1 then January
+    if i = 1 then      January
     else if i = 2 then February
     else if i = 3 then March
     else if i = 4 then April
@@ -162,87 +167,81 @@ declaration month_of_int
     else if i = 10 then October
     else if i = 11 then November
     else if i = 12 then December
-    else impossible
-
-## Transforms a `MonthOfYear` into a `date` by choosing the first day of the
-## month.
-declaration month_of_year_to_first_day_of_month
-  content date
-  depends on m content MonthOfYear
-  equals
-    of_year_month_day of (m.year_number, (month_to_int of m.month_name), 1)
-
-## Extracts the named month and year from a date.
-declaration to_month_of_year
-  content MonthOfYear
-  depends on d content date
-  equals
-    MonthOfYear {
-      -- year_number: get_year of d
-      -- month_name: month_of_int of (get_month of d)
-    }
+    else let error equals D.of_ymd of (pos, -1, -1, -1) in impossible
 ```
 
 ## Date comparisons
 
 ```catala-metadata
-## `is_after_date_plus_delay of compared_date, reference_date, delay`
-## checks whether `compared_date` is after `reference_date + delay`.
-## For instance,
-## `is_after_date_plus_delay of |15-06-2024|, |01-01-2024|, 6 month` returns
-## `true` but
-## `is_after_date_plus_delay of |15-05-2024|, |01-01-2024|, 6 month` returns
-## `false.
-declaration is_after_date_plus_delay
+## Checks whether a person born at `birth_date` is at least `age` old at
+## `at_date`. This function rounds **down** when computing the birthday.
+## **Examples:**
+## - `is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| = true`
+## - `is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| =
+##   false`
+## - `is_old_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| = true`
+declaration is_old_enough_rounding_down
   content boolean
-  depends on compared_date content date,
-    reference_date content date,
-    delay content duration
-  equals
-    compared_date >= reference_date + delay
-
-## `is_old_enough of compared_date, birth_date, target_age`
-## checks whether `compared_date` is after `birth_date + target_age`.
-## For instance,
-## `is_old_enough of |15-06-2024|, |01-06-2000|, 24 year` returns
-## `true` but
-## `is_old_enough of |15-05-2024|, |01-06-2024|, 24 year` returns
-## `false.
-declaration is_old_enough
-  content boolean
-  depends on currrent_date content date,
+  depends on
     birth_date content date,
-    target_age content duration
+    age content duration,
+    at_date content date
   equals
-    currrent_date >= birth_date + target_age
+    at_date >= D.add_rounded_down of birth_date, age
 
-## `is_before_date_plus_delay of compared_date, reference_date, delay`
-## checks whether `compared_date` is before `reference_date + delay`.
-## For instance,
-## `is_before_date_plus_delay of |15-06-2024|, |01-01-2024|, 6 month` returns
-## `false` but
-## `is_before_date_plus_delay of |15-05-2024|, |01-01-2024|, 6 month` returns
-## `true.
-declaration is_before_date_plus_delay
+## Checks whether a person born at `birth_date` is at least `age` old at
+## `at_date`. This function rounds **up** when computing the birthday.
+## **Examples:**
+## - `is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| = true`
+## - `is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = false`
+## - `is_old_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = false`
+declaration is_old_enough_rounding_up
   content boolean
-  depends on compared_date content date,
-    reference_date content date,
-    delay content duration
-  equals
-    compared_date <= reference_date + delay
-
-## `is_young_enough of compared_date, birth_date, target_age`
-## checks whether `compared_date` is before `birth_date + target_age`.
-## For instance,
-## `is_young_enough of |15-06-2024|, |01-06-2000|, 24 year` returns
-## `false` but
-## `is_young_enough of |15-05-2024|, |01-06-2024|, 24 year` returns
-## `true.
-declaration is_young_enough
-  content boolean
-  depends on currrent_date content date,
+  depends on
     birth_date content date,
-    target_age content duration
+    age content duration,
+    at_date content date
   equals
-    currrent_date <= birth_date + target_age
+    at_date >= D.add_rounded_up of birth_date, age
+
+## Checks whether a person born at `birth_date` is strictly less than
+## `age` old at `at_date`. This function rounds **down** when computing
+## the birthday.
+## **Examples:**
+## - `is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| =
+##   false`
+## - `is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| =
+##   true`
+## - `is_young_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| =
+##   false`
+declaration is_young_enough_rounding_down
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    not (is_old_enough_rounding_down of birth_date, age, at_date)
+# Note: it would be tempting to write a function that tests if the person
+# is "at most" a given age instead. But that would be misleading, because by
+# "at most n years old", we actually mean "less than (n+1) years old",
+# implicitly rounding the age down. The function can't do that since it allows
+# durations in months or days as well.
+
+## Checks whether a person born at `birth_date` is strictly less than
+## `age` old at `at_date`. This function rounds **down** when computing
+## the birthday.
+## **Examples:**
+## - `is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| =
+##   false`
+## - `is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = true`
+## - `is_young_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = true`
+declaration is_young_enough_rounding_up
+  content boolean
+  depends on
+    birth_date content date,
+    age content duration,
+    at_date content date
+  equals
+    not (is_old_enough_rounding_up of birth_date, age, at_date)
 ```

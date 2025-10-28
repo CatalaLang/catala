@@ -1,9 +1,3 @@
-# This is a template file following the expected interface and declarations to
-# implement the corresponding Catala module.
-#
-# You should replace all `raise Impossible` place-holders with your
-# implementation and rename it to remove the ".template" suffix.
-
 from catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
@@ -25,3 +19,6 @@ def remove_nth_element(lst:List[Any], index:Integer):
         return lst
     else:
         return lst[:i] + lst [i+1:]
+
+def reverse(lst:List[Any]):
+    return list(reversed(lst))

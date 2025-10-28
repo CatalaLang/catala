@@ -109,6 +109,9 @@ jobs:
         run: |
           cd /home/ocaml/catala
           opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Validate Python runtime
+        if: ${{ always() }}
+        run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
       - name: Test Summary
         uses: test-summary/action@v2
         with:

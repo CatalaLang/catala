@@ -7,102 +7,124 @@
 ## Helper functions
 
 ```catala-metadata
-## Returns the smallest of the two arguments.
+## Returns the smaller of the two arguments.
 declaration min
   content money
-  depends on m1 content money,
+  depends on
+    m1 content money,
     m2 content money
   equals
     if m1 > m2 then m2 else m1
 
-## Returns the biggest of the two arguments.
+## Returns the bigger of the two arguments.
 declaration max
   content money
-  depends on m1 content money,
+  depends on
+    m1 content money,
     m2 content money
   equals
     if m1 > m2 then m1 else m2
 
-## `ceiling of variable, max_value` puts an upper cap to `variable` and returns
-## a value that never exceeds `max_value`.
+## Caps `m`, returning a value that never exceeds `max_value`.
 declaration ceiling
   content money
-  depends on variable content money,
+  depends on
+    m content money,
     max_value content money
-  equals min of variable, max_value
+  equals
+    min of m, max_value
 
-## `floor of variable, min_value` puts a lower cap to `variable` and returns
-## a value that is never inferior to `min_value`.
+## Puts a lower cap on `m`, and returns a value that is never smaller
+## than `min_value`.
 declaration floor
   content money
-  depends on variable content money,
+  depends on
+    m content money,
     min_value content money
-  equals max of variable, min_value
+  equals
+    max of m, min_value
 
 ## Returns the argument if it is positive, $0 otherwise.
 declaration positive
   content money
-  depends on variable content money
-  equals floor of variable, $0
+  depends on m content money
+  equals
+    floor of m, $0
 
-## Removes decimal digits from a money amount. For instance,
-## `truncate of $7.61 = $7.0` and `truncate of -$7.61 = -$7.0`.
+## Removes decimal digits from a money amount.
+## **Examples:**
+## - `truncate of $7.61 = $7.0`
+## - `truncate of -$7.61 = -$7.0`
 declaration truncate
   content money
-  depends on variable content money
+  depends on m content money
   equals
-    if variable = $0 then $0
-    else if variable > $0 then
-      round of (variable - $0.5)
-    else round of (variable + $0.5)
+    if m = $0 then $0
+    else if m > $0 then
+      round of (m - $0.5)
+    else
+      round of (m + $0.5)
 
-## Rounds a money amount to the next greater dollar. For instance,
-## `round_by_excess of $4.34 = $5` and `round_by_excess of -$4.34 = -$4.0`.
+## Rounds a money amount to the next greater dollar.
+## **Examples:**
+## - `round_by_excess of $4.34 = $5`
+## - `round_by_excess of -$4.34 = -$4.0`
 declaration round_by_excess
   content money
-  depends on variable content money
+  depends on m content money
   equals
-    if variable >= $0 then
-      round of (variable + $0.49)
-    else round of (variable + $0.5)
+    if m >= $0 then
+      round of (m + $0.49)
+    else
+      round of (m + $0.5)
 
-## Rounds a money amount to the previous lesser dollar. For instance,
-## `round_by_excess of $3.78 = $3` and `round_by_excess of -$3.78 = -$4.0`.
+## Rounds a money amount to the previous lesser dollar.
+## **Examples:**
+## - `round_by_excess of $3.78 = $3`
+## - `round_by_excess of -$3.78 = -$4.0`
 declaration round_by_default
   content money
-  depends on variable content money
+  depends on m content money
   equals
-    if variable > $0 then
-      round of (variable - $0.5)
-    else round of (variable - $0.49)
+    if m > $0 then
+      round of (m - $0.5)
+    else
+      round of (m - $0.49)
 
-## Rounds a money amount to the specified [nth_decimal].
-## [nth_decimal] may be a negative value. For instance,
-## `round_to_decimal of $123.45, 1  = $123.5` and
-## `round_to_decimal of $123.45, -2 = $100`.
+## Rounds a money amount to the specified `nth_decimal`.
+## `nth_decimal` may be a negative value.
+## **Examples:**
+## - `round_to_decimal of $123.45, 1 = $123.5`
+## - `round_to_decimal of $123.45, -2 = $100`
 declaration round_to_decimal
   content money
-  depends on variable content money,
+  depends on
+    m content money,
     nth_decimal content integer
-  equals M.round_to_decimal of variable, nth_decimal
+  equals
+    M.round_to_decimal of m, nth_decimal
 ```
 
 ## Financial operations
 
 ```catala-metadata
-## Returns the positive amount that `variable` overflows from `reference`
+## Returns the positive amount that `m` overflows from `reference`
 ## ($0 otherwise).
 declaration in_excess
   content money
-  depends on variable content money,
+  depends on
+    m content money,
     reference content money
-  equals max of ($0, variable - reference)
+  equals
+    max of ($0, m - reference)
 
-## Returns the positive amount that `variable` underflows from `reference`
+## Returns the positive amount that `m` underflows from `reference`
 ## ($0 otherwise).
 declaration in_default
   content money
-  depends on variable content money,
+  depends on
+    m content money,
     reference content money
-  equals max of ($0, reference - variable)
+  equals
+    max of ($0, reference - m)
 ```

@@ -1,0 +1,78 @@
+```catala
+#[test]
+declaration scope Tunit:
+
+  output my1 content MonthYear.MonthYear
+  output my2 content MonthYear.MonthYear
+  output my3 content MonthYear.MonthYear
+
+scope Tunit:
+
+  # MonthYears
+
+  definition my1 equals MonthYear.to_month_year of |2000-01-01|
+  definition my2 equals MonthYear.to_month_year of |2010-06-06|
+  definition my3 equals MonthYear.to_month_year of |2020-12-31|
+
+  assertion
+    my1.year_number = 2000
+    and my1.month_name = Date.Month.January
+    and my2.year_number = 2010
+    and my2.month_name = Date.Month.June
+    and my3.year_number = 2020
+    and my3.month_name = Date.Month.December
+
+  # (first|last)_day_of_month
+  assertion
+    MonthYear.first_day_of_month of my1 = |2000-01-01|
+    and MonthYear.first_day_of_month of my2 = |2010-06-01|
+    and MonthYear.first_day_of_month of my3 = |2020-12-01|
+    and MonthYear.last_day_of_month of my1 = |2000-01-31|
+    and MonthYear.last_day_of_month of my2 = |2010-06-30|
+    and MonthYear.last_day_of_month of my3 = |2020-12-31|
+
+  # is_(before|after|in)_the_month
+  assertion
+    not (MonthYear.is_before_the_month of my2, |2060-10-10|)
+    and not (MonthYear.is_before_the_month of my2, |2010-06-01|)
+    and (MonthYear.is_before_the_month of my2, |2010-05-10|)
+  assertion
+    MonthYear.is_after_the_month of my2, |2060-10-10|
+    and not (MonthYear.is_after_the_month of my2, |2010-06-01|)
+    and not (MonthYear.is_after_the_month of my2, |2010-05-10|)
+  assertion
+    not (MonthYear.is_in_the_month of my2, |2060-10-10|)
+    and (MonthYear.is_in_the_month of my2, |2010-06-01|)
+    and (MonthYear.is_in_the_month of my2, |2010-06-30|)
+    and not (MonthYear.is_in_the_month of my2, |2010-05-10|)
+
+  # is_(before|after)_the_month
+  assertion
+    not (MonthYear.is_before_the_month of my2, |2060-10-10|)
+    and not (MonthYear.is_before_the_month of my2, |2010-06-01|)
+    and MonthYear.is_before_the_month of my2, |2010-05-10|
+  assertion
+    MonthYear.is_after_the_month of my2, |2060-10-10|
+    and not (MonthYear.is_after_the_month of my2, |2010-06-01|)
+    and not (MonthYear.is_after_the_month of my2, |2010-05-10|)
+  assertion
+    not (MonthYear.is_in_the_month of my2, |2060-10-10|)
+    and MonthYear.is_in_the_month of my2, |2010-06-01|
+    and MonthYear.is_in_the_month of my2, |2010-06-30|
+    and not (MonthYear.is_in_the_month of my2, |2010-05-10|)
+
+  # is_(after|before)_the_(previous|next)_of_month
+  assertion
+    not (MonthYear.is_before_the_next_month of my2, |2060-10-10|)
+    and not (MonthYear.is_before_the_next_month of my2, |2010-07-01|)
+    and MonthYear.is_before_the_next_month of my2, |2010-06-30|
+    and MonthYear.is_before_the_next_month of my2, |2010-06-01|
+    and MonthYear.is_before_the_next_month of my2, |2010-05-10|
+  assertion
+    MonthYear.is_after_the_previous_month of my2, |2060-10-10|
+    and MonthYear.is_after_the_previous_month of my2, |2010-06-01|
+    and MonthYear.is_after_the_previous_month of my2, |2010-06-30|
+    and not (MonthYear.is_after_the_previous_month of my2, |2010-05-10|)
+    and not (MonthYear.is_after_the_previous_month of my2, |2010-05-31|)
+
+```

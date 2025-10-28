@@ -110,6 +110,7 @@ $ catala scalc
 module stdlib_en = Stdlib_en
 module date_en = Date_en
 module date_internal = Date_internal
+module month_year_en = MonthYear_en
 module period_en = Period_en
 module period_internal = Period_internal
 module money_en = Money_en
@@ -205,6 +206,7 @@ from typing import Any, List, Callable, Tuple
 from enum import Enum
 from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
+from . import MonthYear_en as month_year_en
 from . import Period_en as period_en
 from . import Money_en as money_en
 from . import Integer_en as integer_en
@@ -367,8 +369,7 @@ def glob4(x:Money, y:Decimal):
     return ((decimal_of_money(x) * y) + decimal_of_string("10"))
 
 def glob5_init():
-    x = ((decimal_of_integer(integer_of_string("2")) *
-        decimal_of_string("3")))
+    x = ((decimal_of_integer(Integer(2)) * decimal_of_string("3")))
     y = (decimal_of_string("1000"))
     return (x * y)
 
@@ -386,7 +387,7 @@ def s2(s2_in:S2In):
                filename="tests/name_resolution/good/toplevel_defs.catala_en",
                start_line=53, start_column=24, end_line=53, end_column=44,
                law_headings=["Test toplevel function defs"]))
-    a__1 = (Option(((glob3(money_of_cents_string("4400")) +
+    a__1 = (Option(((glob3(Money(Integer(4400))) +
         decimal_of_string("100")),
         pos)))
     if a__1.value is not None:
@@ -406,7 +407,7 @@ def s3(s3_in:S3In):
                start_line=74, start_column=24, end_line=74, end_column=49,
                law_headings=["Test function def with two args"]))
     a__1 = (Option(((decimal_of_string("50") +
-        glob4(money_of_cents_string("4400"), decimal_of_string("55"))),
+        glob4(Money(Integer(4400)), decimal_of_string("55"))),
         pos)))
     if a__1.value is not None:
         a = (a__1.value[0])

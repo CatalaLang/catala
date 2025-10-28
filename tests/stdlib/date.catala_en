@@ -1,0 +1,71 @@
+```catala
+#[test]
+declaration scope Tunit:
+  output d1 content date
+  output d2 content date
+  output d3 content date
+
+  output all_months content list of Date.Month
+
+scope Tunit:
+  definition d1 equals |2000-01-01|
+  definition d2 equals |2010-06-06|
+  definition d3 equals |2020-12-31|
+
+  # min/max
+  assertion Date.min of d1, d2 = d1 and Date.min of d2, d3 = d2
+  assertion Date.max of d1, d2 = d2 and Date.max of d2, d3 = d3
+
+  # to_ymd/get_(year|month|day)
+  assertion
+    Date.to_year_month_day of d1 = (2000, 01, 01)
+    and Date.get_year of d2 = 2010
+    and Date.get_month of d3 = 12
+    and Date.get_day of d2 = 6
+
+  # (first|last)_day_of_month
+  assertion
+    Date.first_day_of_month of d1 = |2000-01-01|
+    and Date.first_day_of_month of d2 = |2010-06-01|
+    and Date.first_day_of_month of d3 = |2020-12-01|
+    and Date.last_day_of_month of d1 = |2000-01-31|
+    and Date.last_day_of_month of d2 = |2010-06-30|
+    and Date.last_day_of_month of d3 = |2020-12-31|
+    and Date.last_day_of_month of |2000-02-01| = |2000-02-29|
+
+  # (first|last)_day_of_year
+  assertion
+    Date.first_day_of_year of d1 = |2000-01-01|
+    and Date.first_day_of_year of d2 = |2010-01-01|
+    and Date.first_day_of_year of d3 = |2020-01-01|
+    and Date.last_day_of_year of d1 = |2000-12-31|
+    and Date.last_day_of_year of d2 = |2010-12-31|
+    and Date.last_day_of_year of d3 = |2020-12-31|
+
+  # Months
+  definition all_months equals
+    [ January; February; March; April; May; June; July; August; September; October; November; December ]
+
+  assertion (map each i among [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12 ] to Date.integer_to_month of i) = all_months
+  assertion (map each i among all_months to Date.month_to_integer of i) = [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12 ]
+
+  # is_old_enough_*
+  assertion
+    Date.is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| = true
+    and Date.is_old_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| = false
+    and Date.is_old_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| = true
+  assertion
+    Date.is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| = true
+    and Date.is_old_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = false
+    and Date.is_old_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = false
+
+  # is_young_enough_*
+  assertion
+    Date.is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-06-15| = false
+    and Date.is_young_enough_rounding_down of |2000-06-01|, 24 year, |2024-05-15| = true
+    and Date.is_young_enough_rounding_down of |2000-01-31|, 1 month, |2000-02-29| = false
+  assertion
+    Date.is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| = false
+    and Date.is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = true
+    and Date.is_young_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = true
+```
