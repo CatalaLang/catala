@@ -11,10 +11,8 @@ from __future__ import annotations # 'ClsType' ~> ClsType annotations
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
 from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # type: ignore
-import datetime
-import calendar
-import dateutil.relativedelta
-from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any
+import dates
+from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload
 from functools import reduce
 from enum import Enum
 import copy
@@ -74,17 +72,16 @@ class CatalaError(Exception):
 
 class AssertionFailed(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("this assertion doesn't hold", [source_position])
+        super().__init__(
+            "this assertion doesn't hold", [source_position])
 
 class NoValue(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("no computation with valid conditions found",
-                         [source_position])
+        super().__init__("no computation with valid conditions found", [source_position])
 
 class Conflict(CatalaError):
     def __init__(self, pos: List[SourcePosition]) -> None:
-        super().__init__("two or more concurring valid computations",
-                         pos)
+        super().__init__("two or more concurring valid computations", pos)
 
 class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
@@ -92,29 +89,34 @@ class DivisionByZero(CatalaError):
 
 class ListEmpty(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("the list was empty",
-                         [source_position])
+        super().__init__("the list was empty", [source_position])
 
 class NotSameLength(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("traversing multiple lists of different lengths",
                          [source_position])
 
+class InvalidDate(CatalaError):
+    def __init__(self, source_position: SourcePosition | None) -> None:
+        super().__init__(
+            "the provided numbers do not correspond to a valid date",
+            [source_position] if source_position is not None else [])
+
 class UncomparableDurations(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
+    def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__(
             "comparing durations in different units (e.g. months vs. days)",
-            [source_position])
+            [source_position] if source_position is not None else [])
 
 class AmbiguousDateRounding(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
+    def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__("ambiguous date computation, and rounding mode was not specified",
-                         [source_position])
+                         [source_position] if source_position is not None else [])
 
 class IndivisibleDurations(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
+    def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__("dividing durations that are not in days",
-                         [source_position])
+                         [source_position] if source_position is not None else [])
 
 class Impossible(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
@@ -298,50 +300,63 @@ class Money:
     def __repr__(self) -> str:
         return f"Money({self.value.__repr__()})"
 
-DateRounding = Enum("DateRounding", ["RoundUp", "RoundDown", "AbortOnRound"])
-
 class Date:
     __slots__ = ( 'value' )
 
-    value: datetime.date
+    value: dates.Date
 
-    def __init__(self, value: datetime.date) -> None:
-        self.value = value
+    def __init__(self, value: Union [Tuple[int, int, int], dates.Date], pos: SourcePosition | None = None):
+        try:
+            if isinstance(value, dates.Date):
+                self.value = value
+            else:
+                self.value = dates.Date(year=value[0], month=value[1], day=value[2])
+        except dates.InvalidDate: raise InvalidDate(pos)
 
-    def __add__(self, other: Duration) -> Date:
-        return Date(self.value + other.value)
+    def __add__(self, other: Duration, round: dates.DateRounding = dates.DateRounding.AbortOnRound,  pos: SourcePosition | None = None) -> Date:
+        try: return Date(self.value.__add__(other.value, round))
+        except dates.AmbiguousComputation: raise AmbiguousDateRounding(pos)
 
-    def __sub__(self, other: Union[Date, Duration]) -> Union[Duration, Date]:
+    @overload
+    def __sub__(self, other: Date) -> Duration: ...
+
+    @overload
+    def __sub__(self, other: Duration, round: dates.DateRounding = dates.DateRounding.AbortOnRound, pos: SourcePosition | None = None) -> Date: ...
+
+    def __sub__(self, \
+                other: Union[Date, Duration], \
+                round: dates.DateRounding = dates.DateRounding.AbortOnRound, \
+                pos: SourcePosition | None = None) -> Union[Duration, Date]:
         if isinstance(other, Date):
-            return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
+            return Duration(self.value - other.value)
         elif isinstance(other, Duration):
-            return Date(self.value - other.value)
+            return Date(self.value + (-other.value))
         else:
             raise Exception("Substracting date and invalid obj")
-
-    def __lt__(self, other: Date) -> bool:
-        return self.value < other.value
-
-    def __le__(self, other: Date) -> bool:
-        return self.value <= other.value
-
-    def __gt__(self, other: Date) -> bool:
-        return self.value > other.value
-
-    def __ge__(self, other: Date) -> bool:
-        return self.value >= other.value
-
-    def __ne__(self, other: object) -> bool:
-        if isinstance(other, Date):
-            return self.value != other.value
-        else:
-            return True
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Date):
             return self.value == other.value
         else:
             return False
+
+    def __lt__(self, other: Date) -> bool:
+        return self.value < other.value
+
+    def __le__(self, other: Date) -> bool:
+        return self < other or self == other
+
+    def __gt__(self, other: Date) -> bool:
+        return self.value > other.value
+
+    def __ge__(self, other: Date) -> bool:
+        return self > other or self == other
+
+    def __ne__(self, other: object) -> bool:
+        if isinstance(other, Date):
+            return self.value != other.value
+        else:
+            return True
 
     def __str__(self) -> str:
         return self.value.__str__()
@@ -349,52 +364,83 @@ class Date:
     def __repr__(self) -> str:
         return f"Date({self.value.__repr__()})"
 
-
 class Duration:
     __slots__ = ( 'value' )
 
-    value: dateutil.relativedelta.relativedelta
+    value: dates.Period
 
-    def __init__(self, value: dateutil.relativedelta.relativedelta) -> None:
-        self.value = value
+    def __init__(self, value: Union [Tuple[int, int, int], dates.Period]):
+        if isinstance(value, dates.Period):
+            self.value = value
+        else:
+            self.value = dates.Period(years=value[0], months=value[1], days=value[2])
 
-    def __add__(self, other: Duration) -> Duration:
-        return Duration(self.value + other.value)
+    def __add__(self: Duration, rhs: Duration) -> Duration:
+        return Duration(self.value + rhs.value)
 
-    def __sub__(self, other: Duration) -> Duration:
-        return Duration(self.value - other.value)
+    def __sub__(self: Duration, rhs: Duration) -> Duration:
+        return Duration(self.value - rhs.value)
+
+    def __truediv__(self, other: Duration, pos: SourcePosition | None = None) -> Decimal:
+        if (self.value.years != 0 or other.value.years != 0 or
+            self.value.months != 0 or other.value.months != 0):
+            raise IndivisibleDurations(pos)
+        else:
+            return Decimal(self.value.days) / Decimal(other.value.days)
+
+    def __mul__(self: Duration, rhs: Integer) -> Duration:
+        return Duration(self.value * rhs.value)
 
     def __neg__(self: Duration) -> Duration:
         return Duration(- self.value)
 
-    def __truediv__(self, other: Duration) -> Decimal:
-        x = self.value.normalized()
-        y = other.value.normalized()
-        if (x.years != 0 or y.years != 0 or x.months != 0 or y.months != 0):
-            raise Exception("Can only divide durations expressed in days")
-        else:
-            return Decimal(x.days / y.days)
-
-    def __mul__(self: Duration, rhs: Integer) -> Duration:
-        mul_int : int = int(rhs.value)
-        delta = self.value
-        y : int = delta.years * mul_int
-        m : int = delta.months * mul_int
-        d : int = delta.days * mul_int
-        return Duration(
-            dateutil.relativedelta.relativedelta(years=y, months=m, days=d))
-
-    def __ne__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Duration):
-            return self.value != other.value
-        else:
-            return True
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, Duration):
-            return self.value == other.value
+            if self.value == other.value:
+                return True
+            elif self.value.days == 0 and other.value.days == 0:
+                return self.value.years * 12 + self.value.months == other.value.years * 12 + other.value.months
+            elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:
+               return self.value.days == other.value.days
+            else:
+                raise UncomparableDurations(pos)
         else:
             return False
+
+    def __ne__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return not(self.__eq__(other, pos))
+
+    def __lt__(self, other: Duration, pos: SourcePosition | None = None) -> bool:
+        if self.value.days == 0 and other.value.days == 0:
+            return self.value.years * 12 + self.value.months < other.value.years * 12 + other.value.months
+        elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:
+            return self.value.days < other.value.days
+        else:
+            raise UncomparableDurations(pos)
+
+    def __le__(self, other: Duration, pos: SourcePosition | None = None) -> bool:
+        if self.value.days == 0 and other.value.days == 0:
+            return self.value.years * 12 + self.value.months <= other.value.years * 12 + other.value.months
+        elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:
+            return self.value.days <= other.value.days
+        else:
+            raise UncomparableDurations(pos)
+
+    def __gt__(self, other: Duration, pos: SourcePosition | None = None) -> bool:
+        if self.value.days == 0 and other.value.days == 0:
+            return self.value.years * 12 + self.value.months > other.value.years * 12 + other.value.months
+        elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:
+            return self.value.days > other.value.days
+        else:
+            raise UncomparableDurations(pos)
+
+    def __ge__(self, other: Duration, pos: SourcePosition | None = None) -> bool:
+        if self.value.days == 0 and other.value.days == 0:
+            return self.value.years * 12 + self.value.months >= other.value.years * 12 + other.value.months
+        elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:
+            return self.value.days >= other.value.days
+        else:
+            raise UncomparableDurations(pos)
 
     def __str__(self) -> str:
         return self.value.__str__()
@@ -459,49 +505,17 @@ def div(pos: SourcePosition, x, y):
     try: return x / y
     except ZeroDivisionError: raise DivisionByZero(pos)
 
-# TODO: use rounding mode
-def add_date_duration(rounding: DateRounding):
-    def add(pos: SourcePosition, dat: Date, dur: Duration):
-        return dat + dur
-    return add
+def eq_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
+    return d1.__eq__(d2, pos)
 
-# TODO: use rounding mode
-def sub_date_duration(rounding: DateRounding):
-    def add(pos: SourcePosition, dat: Date, dur: Duration):
-        return dat - dur
-    return add
-
-def lt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    xdt = x.value.normalized()
-    ydt = y.value.normalized()
-    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
-        raise UncomparableDurations(pos)
-    else:
-        return x.value.days < y.value.days
-
-def leq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    xdt = x.value.normalized()
-    ydt = y.value.normalized()
-    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
-        raise UncomparableDurations(pos)
-    else:
-        return x.value.days <= y.value.days
-
-def gt_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    xdt = x.value.normalized()
-    ydt = y.value.normalized()
-    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
-        raise UncomparableDurations(pos)
-    else:
-        return x.value.days > y.value.days
-
-def geq_duration(pos: SourcePosition, x: Duration, y: Duration) -> bool:
-    xdt = x.value.normalized()
-    ydt = y.value.normalized()
-    if (xdt.years != 0 or ydt.years != 0 or xdt.months != 0 or ydt.months != 0):
-        raise UncomparableDurations(pos)
-    else:
-        return x.value.days >= y.value.days
+def le_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
+    return d1.__le__(d2, pos)
+def lt_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
+    return d1.__lt__(d2, pos)
+def ge_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
+    return d1.__ge__(d2, pos)
+def gt_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
+    return d1.__gt__(d2, pos)
 
 def round(q : Decimal) -> Integer:
     sgn = sign(q.value)
@@ -634,39 +648,25 @@ def month_number_of_date(d: Date) -> Integer:
 def year_of_date(d: Date) -> Integer:
     return integer_of_int(d.value.year)
 
-
 def date_to_string(d: Date) -> str:
     return "{}".format(d.value)
 
+def add_date_duration(rounding: dates.DateRounding):
+    def add(pos: SourcePosition, dat: Date, dur: Duration):
+        return dat.__add__(dur, rounding, pos)
+    return add
 
-def date_of_numbers(year: int, month: int, day: int) -> Date:
-    # The datetime.date does not take year=0 as an entry, we trick it into
-    # 1 in that case because year=0 cases don't care about the actual year
-    return Date(datetime.date(year if year != 0 else 1, month, day))
-
-
-def date_of_datetime(d: datetime.date) -> Date:
-    return Date(d)
-
-
-def first_day_of_month(d: Date) -> Date:
-    return Date(datetime.date(d.value.year, d.value.month, 1))
-
-
-def last_day_of_month(d: Date) -> Date:
-    return Date(datetime.date(d.value.year, d.value.month, calendar.monthrange(d.value.year, d.value.month)[1]))
+def sub_date_duration(rounding: dates.DateRounding):
+    def sub(pos: SourcePosition, dat: Date, dur: Duration):
+        return dat.__sub__(dur, rounding, pos)
+    return sub
 
 # ---------
 # Durations
 # ---------
 
-
-def duration_of_numbers(years: int, months: int, days: int) -> Duration:
-    return Duration(dateutil.relativedelta.relativedelta(years=years, months=months, days=days))
-
-
 def duration_to_years_months_days(d: Duration) -> Tuple[int, int, int]:
-    return (d.value.years, d.value.months, d.value.days)  # type: ignore
+    return (d.value.years, d.value.value.months, d.value.value.days)  # type: ignore
 
 
 def duration_to_string(s: Duration) -> str:

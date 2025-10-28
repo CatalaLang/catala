@@ -899,8 +899,16 @@ let runtime_build_statements ~config enabled_backends =
        let python_src = Var.(!runtime) / "python" / "src" / "catala" in
        [
          Nj.build "phony"
-           ~inputs:[python_base -.- "py"; Var.(!catala_exe)]
+           ~inputs:
+             [
+               python_base -.- "py";
+               python_base /../ "dates.py";
+               Var.(!catala_exe);
+             ]
            ~outputs:["@runtime-python"];
+         Nj.build "copy"
+           ~inputs:[python_src / "dates.py"]
+           ~outputs:[python_base /../ "dates.py"];
          Nj.build "copy"
            ~inputs:[python_src / "catala_runtime.py"]
            ~outputs:[python_base -.- "py"];
