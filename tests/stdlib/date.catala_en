@@ -7,10 +7,6 @@ declaration scope Tunit:
 
   output all_months content list of Date.Month
 
-  output my1 content Date.MonthYear
-  output my2 content Date.MonthYear
-  output my3 content Date.MonthYear
-
 scope Tunit:
   definition d1 equals |2000-01-01|
   definition d2 equals |2010-06-06|
@@ -52,73 +48,6 @@ scope Tunit:
 
   assertion (map each i among [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12 ] to Date.integer_to_month of i) = all_months
   assertion (map each i among all_months to Date.month_to_integer of i) = [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12 ]
-
-  # MonthYears
-
-  definition my1 equals Date.to_month_year of d1
-  definition my2 equals Date.to_month_year of d2
-  definition my3 equals Date.to_month_year of d3
-
-  assertion
-    my1.year_number = 2000
-    and my1.month_name = Date.Month.January
-    and my2.year_number = 2010
-    and my2.month_name = Date.Month.June
-    and my3.year_number = 2020
-    and my3.month_name = Date.Month.December
-
-  # to_(first|last)_day_of_month
-  assertion
-    Date.to_first_day_of_month of my1 = |2000-01-01|
-    and Date.to_first_day_of_month of my2 = |2010-06-01|
-    and Date.to_first_day_of_month of my3 = |2020-12-01|
-    and Date.to_last_day_of_month of my1 = |2000-01-31|
-    and Date.to_last_day_of_month of my2 = |2010-06-30|
-    and Date.to_last_day_of_month of my3 = |2020-12-31|
-
-  # is_(before|after|in)_the_month
-  assertion
-    not (Date.is_before_the_month of my2, |2060-10-10|)
-    and not (Date.is_before_the_month of my2, |2010-06-01|)
-    and (Date.is_before_the_month of my2, |2010-05-10|)
-  assertion
-    Date.is_after_the_month of my2, |2060-10-10|
-    and not (Date.is_after_the_month of my2, |2010-06-01|)
-    and not (Date.is_after_the_month of my2, |2010-05-10|)
-  assertion
-    not (Date.is_in_the_month of my2, |2060-10-10|)
-    and (Date.is_in_the_month of my2, |2010-06-01|)
-    and (Date.is_in_the_month of my2, |2010-06-30|)
-    and not (Date.is_in_the_month of my2, |2010-05-10|)
-
-  # is_(before|after)_the_month
-  assertion
-    not (Date.is_before_the_month of my2, |2060-10-10|)
-    and not (Date.is_before_the_month of my2, |2010-06-01|)
-    and Date.is_before_the_month of my2, |2010-05-10|
-  assertion
-    Date.is_after_the_month of my2, |2060-10-10|
-    and not (Date.is_after_the_month of my2, |2010-06-01|)
-    and not (Date.is_after_the_month of my2, |2010-05-10|)
-  assertion
-    not (Date.is_in_the_month of my2, |2060-10-10|)
-    and Date.is_in_the_month of my2, |2010-06-01|
-    and Date.is_in_the_month of my2, |2010-06-30|
-    and not (Date.is_in_the_month of my2, |2010-05-10|)
-
-  # is_(after|before)_the_(previous|next)_of_month
-  assertion
-    not (Date.is_before_the_next_month of my2, |2060-10-10|)
-    and not (Date.is_before_the_next_month of my2, |2010-07-01|)
-    and Date.is_before_the_next_month of my2, |2010-06-30|
-    and Date.is_before_the_next_month of my2, |2010-06-01|
-    and Date.is_before_the_next_month of my2, |2010-05-10|
-  assertion
-    Date.is_after_the_previous_month of my2, |2060-10-10|
-    and Date.is_after_the_previous_month of my2, |2010-06-01|
-    and Date.is_after_the_previous_month of my2, |2010-06-30|
-    and not (Date.is_after_the_previous_month of my2, |2010-05-10|)
-    and not (Date.is_after_the_previous_month of my2, |2010-05-31|)
 
   # is_old_enough_*
   assertion

@@ -21,6 +21,7 @@
 ```
 
 > Usage de Date_fr en tant que Date
+> Usage de MonthYear_fr en tant que MoisAnnée
 > Usage de Period_fr en tant que Période
 > Usage de Money_fr en tant que Argent
 > Usage de Integer_fr en tant que Entier
