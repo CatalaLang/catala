@@ -769,7 +769,7 @@ log: List[LogEvent] = []
 
 
 def reset_log():
-    log = []
+    global log; log = []
 
 
 def retrieve_log() -> List[LogEvent]:
