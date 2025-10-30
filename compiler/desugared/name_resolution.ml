@@ -1331,12 +1331,20 @@ let process_use_item
 
 (** {1 API} *)
 
-let empty_module_ctxt _lang =
+let empty_module_ctxt lang =
   {
     current_revpath = [];
     typedefs = Ident.Map.empty;
     field_idmap = Ident.Map.empty;
-    constructor_idmap = Ident.Map.empty;
+    constructor_idmap =
+      (let present = EnumName.Map.singleton Expr.option_enum Expr.some_constr in
+       let absent = EnumName.Map.singleton Expr.option_enum Expr.none_constr in
+       Ident.Map.of_list
+         (match lang with
+         | Global.En -> ["Present", present; "Absent", absent]
+         | Global.Fr -> ["Présent", present; "Absent", absent]
+         | Global.Pl -> ["Obecny", present; "Nieobecny", absent]
+         | Global.Ro -> ["Prezent", present; "Absent", absent]));
     topdefs = Ident.Map.empty;
     used_modules = Ident.Map.empty;
     is_external = false;

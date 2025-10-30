@@ -1,0 +1,248 @@
+# Date
+
+> Modul Date_ro
+
+> Folosind Date_internal ca D
+
+## Funcții utilitare
+
+```catala-metadata
+## Returnează cea mai veche dintre cele două date.
+declarație min
+  conținut dată
+  depinde de x conținut dată,
+    y conținut dată
+  egal
+    dacă x <= y atunci x altfel y
+
+## Returnează cea mai recentă dintre cele două date.
+declarație max
+  conținut dată
+  depinde de x conținut dată,
+    y conținut dată
+  egal
+    dacă x >= y atunci x altfel y
+```
+
+## Date și ani, luni și zile
+
+```catala-metadata
+## Construiește o dată din numărul anului, al lunii (de la 1)
+## și al zilei (de la 1).
+declarație din_an_lună_zi
+  conținut dată
+  depinde de
+  #[implicit_position_argument]
+    pos conținut position_source,
+    dyear conținut întreg,
+    dmonth conținut întreg,
+    dday conținut întreg
+  egal D.of_ymd de pos, dyear, dmonth, dday
+
+## Returnează numărul anului, al lunii (de la 1) și al zilei
+## (de la 1) ale datei transmise ca argument.
+declarație către_an_lună_zi
+  conținut (întreg, întreg, întreg)
+  depinde de d conținut dată
+  egal
+    D.to_ymd de d
+
+## Returnează numărul anului unei date.
+declarație accesează_an
+  conținut întreg
+  depinde de d conținut dată
+  egal (către_an_lună_zi de d).1
+
+## Returnează numărul lunii (de la 1) unei date.
+declarație accesează_lună
+  conținut întreg
+  depinde de d conținut dată
+  egal (către_an_lună_zi de d).2
+
+## Returnează numărul zilei (de la 1) unei date.
+declarație accesează_zi
+  conținut întreg
+  depinde de d conținut dată
+  egal (către_an_lună_zi de d).3
+```
+
+## Navigare către trecut sau viitor
+
+```catala-metadata
+## Returnează prima zi a lunii datei transmise ca argument. De
+## exemplu, `prima_zi_a_lunii de |21-01-2024| = |01-01-2024|`.
+declarație prima_zi_a_lunii
+  conținut dată
+  depinde de d conținut dată
+  egal
+    fie ymd egal către_an_lună_zi de d în
+    din_an_lună_zi de (ymd.1, ymd.2, 1)
+
+## Returnează ultima zi a lunii datei transmise ca argument. De
+## exemplu, `ultima_zi_a_lunii de |21-01-2024| = |31-01-2024|`.
+declarație ultima_zi_a_lunii
+  conținut dată
+  depinde de d conținut dată
+  egal D.last_day_of_month de d
+
+## Returnează prima zi a anului datei transmise ca argument. De
+## exemplu, `prima_zi_a_anului de |21-03-2024| = |01-01-2024|`.
+declarație prima_zi_a_anului
+  conținut dată
+  depinde de d conținut dată
+  egal
+    fie ymd egal (către_an_lună_zi de d) în
+    din_an_lună_zi de (ymd.1, (1), (1))
+
+## Returnează ultima zi a anului datei transmise ca argument. De
+## exemplu, `ultima_zi_a_anului de |21-03-2024| = |31-12-2024|`.
+declarație ultima_zi_a_anului
+  conținut dată
+  depinde de d conținut dată
+  egal
+    fie ymd egal către_an_lună_zi de d în
+    din_an_lună_zi de (ymd.1, (12), (31))
+```
+
+## Luni denumite și luni din ani specifici
+
+```catala-metadata
+declarație enumerare Lună:
+  -- Ianuarie
+  -- Februarie
+  -- Martie
+  -- Aprilie
+  -- Mai
+  -- Iunie
+  -- Iulie
+  -- August
+  -- Septembrie
+  -- Octombrie
+  -- Noiembrie
+  -- Decembrie
+
+## Returnează numărul lunii (de la 1) asociat unei luni denumite.
+declarație month_to_int
+  conținut întreg
+  depinde de m conținut Lună
+  egal
+    potrivește m cu model
+    -- Ianuarie : 1
+    -- Februarie : 2
+    -- Martie : 3
+    -- Aprilie : 4
+    -- Mai : 5
+    -- Iunie : 6
+    -- Iulie : 7
+    -- August : 8
+    -- Septembrie : 9
+    -- Octombrie : 10
+    -- Noiembrie : 11
+    -- Decembrie : 12
+
+declarație structură LunaInAn:
+  date număr_an conținut întreg
+  date nume_lună conținut Lună
+
+## Returnează luna denumită corespunzătoare numărului lunii (de la 1).
+## Dacă argumentul nu este între 1 și 12, eșuează cu eroarea `imposibil`.
+declarație month_of_int
+  conținut Lună
+  depinde de i conținut întreg
+  egal
+    dacă i = 1 atunci Ianuarie
+    altfel dacă i = 2 atunci Februarie
+    altfel dacă i = 3 atunci Martie
+    altfel dacă i = 4 atunci Aprilie
+    altfel dacă i = 5 atunci Mai
+    altfel dacă i = 6 atunci Iunie
+    altfel dacă i = 7 atunci Iulie
+    altfel dacă i = 8 atunci August
+    altfel dacă i = 9 atunci Septembrie
+    altfel dacă i = 10 atunci Octombrie
+    altfel dacă i = 11 atunci Noiembrie
+    altfel dacă i = 12 atunci Decembrie
+    altfel imposibil
+
+## Transformă o `LunaInAn` către o `dată` alegând prima zi
+## a lunii.
+declarație luna_in_an_către_prima_zi_a_lunii
+  conținut dată
+  depinde de m conținut LunaInAn
+  egal
+    din_an_lună_zi de (m.număr_an, (month_to_int de m.nume_lună), 1)
+
+## Extrage luna denumită și numărul anului dintr-o dată.
+declarație to_month_of_year
+  conținut LunaInAn
+  depinde de d conținut dată
+  egal
+    LunaInAn {
+      -- număr_an: accesează_an de d
+      -- nume_lună: month_of_int de (accesează_lună de d)
+    }
+```
+
+## Comparații de date
+
+```catala-metadata
+## `este_după_dată_plus_interval de dată_comparată, dată_de_referință, interval`
+## verifică dacă `dată_comparată` este după `dată_de_referință + interval`.
+## De exemplu,
+## `este_după_dată_plus_interval de |15-06-2024|, |01-01-2024|, 6 lună` returnează
+## `adevărat` dar
+## `este_după_dată_plus_interval de |15-05-2024|, |01-01-2024|, 6 lună` returnează
+## `fals`.
+declarație este_după_dată_plus_interval
+  conținut boolean
+  depinde de dată_comparată conținut dată,
+    dată_de_referință conținut dată,
+    interval conținut durată
+  egal
+    dată_comparată >= dată_de_referință + interval
+
+## `este_suficient_de_bătrân de dată_curentă, dată_nașterii, vârstă_țintă`
+## verifică dacă `dată_curentă` este după `dată_nașterii + vârstă_țintă`.
+## De exemplu,
+## `este_suficient_de_bătrân de |15-06-2024|, |01-06-2000|, 24 an` returnează
+## `adevărat` dar
+## `este_suficient_de_bătrân de |15-05-2024|, |01-06-2024|, 24 an` returnează
+## `fals`.
+declarație este_suficient_de_bătrân
+  conținut boolean
+  depinde de dată_curentă conținut dată,
+    dată_nașterii conținut dată,
+    vârstă_țintă conținut durată
+  egal
+    dată_curentă >= dată_nașterii + vârstă_țintă
+
+## `este_înainte_de_dată_plus_interval de dată_comparată, dată_de_referință, interval`
+## verifică dacă `dată_comparată` este înainte de `dată_de_referință + interval`.
+## De exemplu,
+## `este_înainte_de_dată_plus_interval de |15-06-2024|, |01-01-2024|, 6 lună` returnează
+## `fals` dar
+## `este_înainte_de_dată_plus_interval de |15-05-2024|, |01-01-2024|, 6 lună` returnează
+## `adevărat`.
+declarație este_înainte_de_dată_plus_interval
+  conținut boolean
+  depinde de dată_comparată conținut dată,
+    dată_de_referință conținut dată,
+    interval conținut durată
+  egal
+    dată_comparată <= dată_de_referință + interval
+
+## `este_suficient_de_tânăr de dată_curentă, dată_nașterii, vârstă_țintă`
+## verifică dacă `dată_curentă` este înainte de `dată_nașterii + vârstă_țintă`.
+## De exemplu,
+## `este_suficient_de_tânăr de |15-06-2024|, |01-06-2000|, 24 an` returnează
+## `fals` dar
+## `este_suficient_de_tânăr de |15-05-2024|, |01-06-2024|, 24 an` returnează
+## `adevărat`.
+declarație este_suficient_de_tânăr
+  conținut boolean
+  depinde de dată_curentă conținut dată,
+    dată_nașterii conținut dată,
+    target_age conținut durată
+  egal
+    dată_curentă <= dată_nașterii + target_age
+```

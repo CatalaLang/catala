@@ -1,0 +1,45 @@
+# Întregi
+
+> Modul Integer_ro
+
+## Funcții utilitare
+
+```catala-metadata
+## Returnează cel mai mic dintre cele două argumente.
+declarație min
+  conținut întreg
+  depinde de m1 conținut întreg,
+    m2 conținut întreg
+  egal
+    dacă m1 > m2 atunci m2 altfel m1
+
+## Returnează cel mai mare dintre cele două argumente.
+declarație max
+  conținut întreg
+  depinde de m1 conținut întreg,
+    m2 conținut întreg
+  egal
+    dacă m1 > m2 atunci m1 altfel m2
+
+## `plafon de variabilă, valoare_max` stabilește o limită superioară pentru `variabilă`
+## și returnează o valoare care nu depășește niciodată `valoare_max`.
+declarație plafon
+  conținut întreg
+  depinde de variabilă conținut întreg,
+    valoare_max conținut întreg
+  egal min de variabilă, valoare_max
+
+## `prag de variabilă, valoare_min` stabilește o limită inferioară pentru `variabilă`
+## și returnează o valoare care nu este niciodată mai mică decât `valoare_min`.
+declarație prag
+  conținut întreg
+  depinde de variabilă conținut întreg,
+    valoare_min conținut întreg
+  egal max de variabilă, valoare_min
+
+## Returnează argumentul dacă este pozitiv, 0 altfel.
+declarație pozitiv
+  conținut întreg
+  depinde de variabilă conținut întreg
+  egal prag de variabilă, 0
+```

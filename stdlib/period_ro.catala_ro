@@ -1,0 +1,159 @@
+# Perioade de timp
+
+> Modul Period_ro
+> Folosind Period_internal
+> Folosind Date_ro ca Dată
+
+## Definiții și operații
+
+O perioadă este conjuncția unei date de început și sfârșit.
+
+```catala-metadata
+declarație structură Perioadă:
+  date început conținut dată
+  # Data de sfârșit este exclusă din perioadă prin convenție.
+  date sfârșit conținut dată
+
+## Verifică dacă perioada este coerentă (începe înainte de sfârșit).
+declarație validă
+  conținut boolean
+  depinde de p conținut Perioadă
+  egal
+    dacă p.sfârșit <= p.început atunci fals
+    altfel adevărat
+
+## Durata unei perioade, în număr de zile.
+declarație durată
+  conținut durată
+  depinde de p conținut Perioadă
+  egal p.sfârșit - p.început
+
+## Două perioade sunt adiacente dacă una se termină când cealaltă începe.
+declarație sunt_adiacente
+  conținut boolean
+  depinde de p1 conținut Perioadă,
+    p2 conținut Perioadă
+  egal
+    p1.sfârșit = p2.început
+
+## Returnează perioada care cuprinde `p1` și `p2`.
+declarație uniune
+  conținut Perioadă
+  depinde de p1 conținut Perioadă,
+    p2 conținut Perioadă
+  egal
+    Perioadă {
+      -- început: Dată.min de p1.început, p2.început
+      -- sfârșit: Dată.max de p1.sfârșit, p2.sfârșit
+    }
+
+## Returnează perioada conținută atât în p1 cât și în p2, dacă există.
+declarație intersecție
+  conținut opțional de Perioadă
+  depinde de p1 conținut Perioadă,
+    p2 conținut Perioadă
+  egal
+    fie intersecție egal
+      Perioadă {
+        -- început: Dată.max de p1.început, p2.început
+        -- sfârșit: Dată.min de p1.sfârșit, p2.sfârșit
+      }
+    în
+    dacă validă de intersecție atunci Prezent conținut intersecție
+    altfel Absent
+
+## Returnează `adevărat` dacă data aparține perioadei.
+declarație conținută
+  conținut boolean
+  depinde de p conținut Perioadă,
+    d conținut dată
+  egal
+    p.început <= d și d < p.sfârșit
+
+## Găsește prima perioadă din lista `l` care conține data `d`.
+declarație găsește_perioada
+  conținut opțional de Perioadă
+  depinde de l conținut listă de Perioadă,
+    d conținut dată
+  egal
+    combină toți p printre l
+      în found inițial Absent
+      cu
+        potrivește found cu model
+        -- Prezent : found
+        -- Absent : dacă conținută de p, d atunci Prezent conținut p altfel Absent
+```
+
+## Operații pe liste asociate indexate prin perioade
+
+```catala-metadata
+## Sortează lista de perioade în funcție de data de început.
+declarație sortează_după_dată
+  conținut listă de (Perioadă, orice de tip t)
+  depinde de l conținut listă de (Perioadă, orice de tip t)
+  egal
+    fie tuple_associated_list egal către_tuplu_listă_asociată de l în
+    fie sorted_tuple_associated_list egal
+      Period_internal.sort de tuple_associated_list
+    în
+    din_tuplu_listă_asociată de sorted_tuple_associated_list
+```
+
+## Împărțirea perioadelor
+
+```catala-metadata
+## Împarte perioada în câte sub-perioade conține luni din
+## calendar. Primele și ultimele elemente returnate pot fi deci
+## luni incomplete.
+declarație împarte_pe_luni
+  conținut listă de Perioadă
+  depinde de p conținut Perioadă
+  egal din_tuplu_listă de Period_internal.split_by_month de către_tuplu de p
+
+## Împarte perioada în câte sub-perioade conține ani din
+## calendar. Primele și ultimele elemente returnate pot fi deci
+## ani incompleți.
+declarație împarte_pe_ani
+  conținut listă de Perioadă
+  depinde de starting_month conținut Dată.Lună,
+    p conținut Perioadă
+  egal
+    din_tuplu_listă de
+      Period_internal.split_by_year de
+        (Dată.month_to_int de starting_month),
+        către_tuplu de p
+```
+
+## Funcții interne
+```catala
+declarație către_tuplu
+  conținut (dată, dată)
+  depinde de p conținut Perioadă
+  egal (p.început, p.sfârșit)
+
+declarație către_tuplu_listă_asociată
+  conținut listă de ((dată, dată), orice de tip t)
+  depinde de l conținut listă de (Perioadă, orice de tip t)
+  egal aplică fiecare p printre l la ((către_tuplu de p.1), p.2)
+
+declarație către_tuplu_listă
+  conținut listă de (dată, dată)
+  depinde de l conținut listă de Perioadă
+  egal aplică fiecare p printre l la către_tuplu de p
+
+declarație din_tuplu
+  conținut Perioadă
+  depinde de început conținut dată,
+    sfârșit conținut dată
+  egal Perioadă { -- început: început -- sfârșit: sfârșit }
+
+declarație din_tuplu_listă_asociată
+  conținut listă de (Perioadă, orice de tip t)
+  depinde de l conținut listă de ((dată, dată), orice de tip t)
+  egal aplică fiecare tpl printre l la ((din_tuplu de tpl.1), tpl.2)
+
+declarație din_tuplu_listă
+  conținut listă de Perioadă
+  depinde de l conținut listă de (dată, dată)
+  egal aplică fiecare tpl printre l la din_tuplu de tpl
+```
