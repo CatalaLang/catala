@@ -239,6 +239,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
     | TClosureEnv -> Format.fprintf fmt "Obj.t(*closure env*)"
+    | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
 

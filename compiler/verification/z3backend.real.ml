@@ -218,6 +218,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     failwith "[Z3 model]: Pretty-printing of closure_env not supported"
   | TDefault _ ->
     failwith "[Z3 model]: Pretty-printing of default terms not supported"
+  | TError -> assert false
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
     where verification conditions are not satisfied. The context [ctx] is useful
@@ -294,6 +295,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
     ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TVar _ | TForAll _ -> failwith "[Z3 encoding] TForAll type not supported"
   | TClosureEnv -> failwith "[Z3 encoding] TClosureEnv type not supported"
+  | TError -> failwith "[Z3 encoding] TError type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
     Catala enumeration [enum]. If no such sort exists yet, it constructs it by

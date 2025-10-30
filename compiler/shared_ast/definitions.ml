@@ -215,6 +215,7 @@ type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 type typ = naked_typ Mark.pos
 
 and naked_typ =
+  | TError
   | TLit of typ_lit
   | TArrow of typ list * typ
   | TTuple of typ list

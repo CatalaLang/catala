@@ -149,7 +149,7 @@ let collect_monomorphized_instances (prg : typed program) :
       in
       collect_typ new_acc t
     | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> acc
-    | TForAll _ -> assert false
+    | TForAll _ | TError -> assert false
     | TVar _ -> (* TODO ? *) acc
     | TOption _ | TTuple _ ->
       Message.error ~internal:true ~pos:(Mark.get typ)
@@ -179,7 +179,7 @@ let rec monomorphize_typ
     (typ : typ) : typ =
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> typ
-  | TForAll _ | TVar _ -> assert false (* TODO *)
+  | TForAll _ | TVar _ | TError -> assert false (* TODO *)
   | TArray _ ->
     ( TStruct (Type.Map.find typ monomorphized_instances.arrays).name,
       Mark.get typ )

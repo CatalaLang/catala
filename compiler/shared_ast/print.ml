@@ -189,6 +189,7 @@ let rec typ_gen :
         (Array.to_seq tvs);
     typ_gen ~bctx () fmt ty
   | TClosureEnv -> base_type fmt "closure_env"
+  | TError -> base_type fmt "error"
 
 let typ ?(colors = colors) fmt ty = typ_gen ~colors Bindlib.empty_ctxt fmt ty
 

@@ -337,6 +337,8 @@ let rec union
     Env.set_tvar env v2 t;
     t
   | TClosureEnv, TClosureEnv -> t2
+  | TError, _ -> t1
+  | _, TError -> t2
   | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
       | TArray _ | TDefault _ | TClosureEnv ),
       _ ) ->

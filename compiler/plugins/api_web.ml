@@ -90,6 +90,7 @@ module To_jsoo = struct
            format_typ_with_parens)
         t1 format_typ_with_parens t2
     | TClosureEnv -> Format.fprintf fmt "Js.Unsafe.any Js.t"
+    | TError -> Format.fprintf fmt "<ERROR>"
 
   let rec format_to_js fmt typ =
     match Mark.remove typ with
@@ -129,6 +130,7 @@ module To_jsoo = struct
       let _v, typ = Bindlib.unmbind tb in
       format_to_js fmt typ
     | TArrow _ | TClosureEnv -> ()
+    | TError -> ()
 
   let rec format_of_js fmt typ =
     match Mark.remove typ with
@@ -165,7 +167,7 @@ module To_jsoo = struct
     | TForAll tb ->
       let _v, typ = Bindlib.unmbind tb in
       format_of_js fmt typ
-    | TArrow _ | TClosureEnv -> Format.fprintf fmt ""
+    | TArrow _ | TClosureEnv | TError -> Format.fprintf fmt ""
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm Var.t) : unit =
     let lowercase_name =
