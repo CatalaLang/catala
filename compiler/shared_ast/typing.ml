@@ -1032,6 +1032,7 @@ and typecheck_expr_top_down :
   | ECustom { obj; targs; tret } ->
     let mark = mark_with_tau_and_unify (TArrow (targs, tret), Expr.pos e) in
     Expr.ecustom obj targs tret mark
+  | EBad -> Expr.ebad (Custom { pos = Expr.pos e; custom = TError, Expr.pos e })
 
 (** {1 API} *)
 

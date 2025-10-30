@@ -456,6 +456,7 @@ module Precedence = struct
     | EErrorOnEmpty _ -> App
     | EPos _ -> Contained
     | ECustom _ -> Contained
+    | EBad -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
     match expr context, expr e with
@@ -790,6 +791,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         punctuation fmt "}";
         Format.pp_close_box fmt ()
       | ECustom _ -> Format.pp_print_string fmt "<obj>"
+      | EBad -> Format.pp_print_string fmt "<bad>"
 
   let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
 end
@@ -1181,7 +1183,7 @@ module UserFacing = struct
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
     | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
-    | EDStructAccess _ ->
+    | EDStructAccess _ | EBad ->
       fallback ppf e
 
   let expr :
@@ -1305,3 +1307,4 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | EEmpty -> pf fmt "Empty"
   | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(%a)@]" s_expr e
   | ECustom _ -> pf fmt "Custom<..>"
+  | EBad -> pf fmt "Bad"

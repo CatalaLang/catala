@@ -446,6 +446,10 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "raise@ (Error (%a, [%a]))" Print.runtime_error er
       format_pos (Expr.pos e)
   | EPos p -> format_pos fmt p
+  | EBad ->
+    Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
+      "Attempting to compile a EBad node which should have been previously \
+       filtered."
   | _ -> .
 
 let format_struct_embedding

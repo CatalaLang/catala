@@ -962,6 +962,10 @@ let rec evaluate_expr :
       in
       raise Runtime.(Error (Conflict, poslist)))
   | EPureDefault e -> evaluate_expr ctx lang e
+  | EBad ->
+    Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
+      "Attempting to evaluate a EBad node which should have been previously \
+       filtered."
   | _ -> .
 
 and partially_evaluate_expr_for_assertion_failure_message :
@@ -1074,7 +1078,7 @@ let addcustom e =
     | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ | EBad ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
@@ -1105,7 +1109,7 @@ let delcustom e =
     | (EPos _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
         | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ ),
+        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ | EBad ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .

@@ -312,6 +312,10 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     RevBlock.empty, (EExternal { modname; name }, Expr.pos expr), ctxt.ren_ctx
   | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
     spill_expr ctxt expr
+  | EBad ->
+    Message.error ~internal:true ~pos:(Expr.pos expr) "%a" Format.pp_print_text
+      "Attempting to translate a EBad node which should have been previously \
+       filtered."
   | _ -> .
 
 (** Used when an lcalc expression needs to be translated, but doesn't fit in a
@@ -531,6 +535,11 @@ and translate_assignment
             },
           pos )),
       ren_ctx )
+  | EBad ->
+    Message.error ~internal:true ~pos:(Expr.pos block_expr) "%a"
+      Format.pp_print_text
+      "Attempting to compile a EBad node which should have been previously \
+       filtered."
   | _ -> .
 
 let rec translate_scope_body_expr ctx (scope_expr : 'm L.expr scope_body_expr) :
