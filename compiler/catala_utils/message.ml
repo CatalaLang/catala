@@ -552,36 +552,51 @@ let error ?(kind = Generic) : ('a, 'exn) emitter =
 (* Multiple errors handling *)
 
 type global_errors = {
-  mutable errors : t list option;
+  mutable errors : (t * Printexc.raw_backtrace) list option;
   mutable stop_on_error : bool;
 }
 
 let global_errors = { errors = None; stop_on_error = false }
 
+let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
+  let register_error =
+    match !global_error_hook with
+    | Some f ->
+      let message ppf = Content.emit ~ppf m Error in
+      let pos =
+        match main_pos with
+        | Some p -> p
+        | None ->
+          List.find_map (function Position pos -> Some pos.pos | _ -> None) m
+      in
+      f { kind; message; pos; suggestion = None }
+    | None -> true
+  in
+  if register_error then (
+    let bt = Printexc.get_raw_backtrace () in
+    if global_errors.stop_on_error then
+      Printexc.raise_with_backtrace (CompilerError m) bt;
+    match global_errors.errors with
+    | None ->
+      error ~internal:true
+        "delayed error called outside scope: encapsulate using \
+         'with_delayed_errors' first"
+    | Some l -> global_errors.errors <- Some ((m, bt) :: l))
+
 let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
  fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
      ?suggestion fmt ->
-  make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-    fmt ~level:Error ~cont:(fun m _ ->
-      let register_error =
-        match !global_error_hook with
-        | Some f ->
-          let message ppf = Content.emit ~ppf m Error in
-          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
-          f { kind; message; pos; suggestion }
-        | None -> true
-      in
-      if register_error then (
-        if global_errors.stop_on_error then raise (CompilerError m);
-        match global_errors.errors with
-        | None ->
-          error ~internal:true
-            "delayed error called outside scope: encapsulate using \
-             'with_delayed_errors' first"
-        | Some l ->
-          global_errors.errors <- Some (m :: l);
-          x)
-      else x)
+  make ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+    ?suggestion fmt ~level:Error ~cont:(fun m _ ->
+      let main_pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
+      register_content_as_delayed_error ~kind ~main_pos m;
+      x)
+
+let wrap_to_delayed_error ?(kind = Generic) x f =
+  try f ()
+  with CompilerError m ->
+    register_content_as_delayed_error ~kind m;
+    x
 
 exception Stop_and_report
 
@@ -621,9 +636,11 @@ let with_delayed_errors
     | Some [], `Completed result -> result
     | (None | Some []), `Force_stop ->
       error ~internal:true "inconsistent Stop_and_report exception triggered"
-    | Some [err], (`Force_stop | `Completed _) -> raise (CompilerError err)
+    | Some [(err, bt)], (`Force_stop | `Completed _) ->
+      Printexc.raise_with_backtrace (CompilerError err) bt
     | Some errs, (`Force_stop | `Completed _) ->
-      raise (CompilerErrors (List.rev errs))
+      raise (CompilerErrors (List.rev_map fst errs))
     | Some errs, `Fatal_error (err, bt) ->
-      Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt
-    )
+      Printexc.raise_with_backtrace
+        (CompilerErrors (List.rev (err :: List.map fst errs)))
+        bt)

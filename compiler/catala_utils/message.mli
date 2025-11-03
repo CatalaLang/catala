@@ -151,3 +151,10 @@ val report_delayed_errors_if_any : unit -> unit
     [with_delayed_errors] scope. *)
 
 val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter
+
+val wrap_to_delayed_error : ?kind:lsp_error_kind -> 'a -> (unit -> 'a) -> 'a
+(** [wrap_to_delayed_error ?kind dft_val f] protects with a try-with the call of
+    [f] and converts fatal errors (i.e., [error]) into delayed errors. This is
+    useful when no good default value can be provided in a callee without heavy
+    refactoring . The position is guessed by scanning locations from the
+    message's content. *)
