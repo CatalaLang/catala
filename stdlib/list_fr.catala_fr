@@ -33,7 +33,7 @@ déclaration nième_élément
 ## Donne le premier élément de la liste encapsulé dans le constructeur
 ## `Présent`.
 ## Si la liste est vide, retourne `Absent`.
-déclaration premier_element
+déclaration premier_élément
   contenu optionnel de n'importe quel de type t
   dépend de l contenu liste de n'importe quel de type t
   égal à
@@ -61,7 +61,7 @@ déclaration retire_nième_élément
 
 ## Retourne la liste sans son premier élément.
 ## La liste vide est retournée inchangée.
-déclaration retire_first_element
+déclaration retire_premier_élément
   contenu liste de n'importe quel de type t
   dépend de l contenu liste de n'importe quel de type t
   égal à
@@ -69,7 +69,7 @@ déclaration retire_first_element
 
 ## Retourne la liste sans son dernier élément.
 ## La liste vide est retournée inchangée.
-déclaration retire_last_element
+déclaration retire_dernier_élément
   contenu liste de n'importe quel de type t
   dépend de l contenu liste de n'importe quel de type t
   égal à

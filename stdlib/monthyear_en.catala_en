@@ -9,7 +9,7 @@ declaration structure MonthYear:
   data month_name content D.Month
 
 ## Extracts the named month and year from a date ignoring the day.
-declaration to_month_year
+declaration from_date
   content MonthYear
   depends on d content date
   equals
@@ -58,9 +58,10 @@ declaration is_in_the_month
     and (is_before_the_next_month of m, d)
 
 ## Checks if the date occurs before the first day of the next month.
-## **Example:** `is_before_the_next_month of may_2025, |2025-04-13| = true`
-## **Example:** `is_before_the_next_month of may_2025, |2025-05-31| = true`
-## **Example:** `is_before_the_next_month of may_2025, |2025-06-01| = false`
+## **Examples:**
+## - `is_before_the_next_month of may_2025, |2025-04-13| = true`
+## - `is_before_the_next_month of may_2025, |2025-05-31| = true`
+## - `is_before_the_next_month of may_2025, |2025-06-01| = false`
 declaration is_before_the_next_month
   content boolean
   depends on m content MonthYear, d content date
@@ -68,9 +69,10 @@ declaration is_before_the_next_month
     d <= last_day_of_month of m
 
 ## Checks if the date occurs after the last day of the previous month.
-## **Example:** `is_after_the_previous_month of may_2025, |2025-06-15| = true`
-## **Example:** `is_after_the_previous_month of may_2025, |2025-05-01| = true`
-## **Example:** `is_after_the_previous_month of may_2025, |2025-04-30| = false`
+## **Examples:**
+## - `is_after_the_previous_month of may_2025, |2025-06-15| = true`
+## - `is_after_the_previous_month of may_2025, |2025-05-01| = true`
+## - `is_after_the_previous_month of may_2025, |2025-04-30| = false`
 declaration is_after_the_previous_month
   content boolean
   depends on m content MonthYear, d content date
