@@ -46,19 +46,27 @@ let rule ctx env rule =
 let scope ctx env scope =
   let env = Typing.Env.open_scope scope.scope_uid env in
   let scope_defs =
-    ScopeDef.Map.map
-      (fun def ->
+    ScopeDef.Map.filter_map
+      (fun _ def ->
         let scope_def_rules =
           (* Note: ordering in file order might be better for error reporting ?
              When we gather errors, the ordering could be done afterwards,
              though *)
-          RuleName.Map.map (rule ctx env) def.scope_def_rules
+          RuleName.Map.filter_map
+            (fun _ x ->
+              Message.wrap_to_delayed_error ~kind:Typing None
+              @@ fun () -> Some (rule ctx env x))
+            def.scope_def_rules
         in
-        { def with scope_def_rules })
+        Some { def with scope_def_rules })
       scope.scope_defs
   in
   let scope_assertions =
-    AssertionName.Map.map (expr ctx env) scope.scope_assertions
+    AssertionName.Map.filter_map
+      (fun _ x ->
+        Message.wrap_to_delayed_error ~kind:Typing None
+        @@ fun () -> Some (expr ctx env x))
+      scope.scope_assertions
   in
   { scope with scope_defs; scope_assertions }
 
