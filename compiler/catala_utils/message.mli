@@ -144,4 +144,9 @@ val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
     @raise CompilerError
       on the first error encountered when the [stop_on_error] flag is set. *)
 
+val report_delayed_errors_if_any : unit -> unit
+(** [report_delayed_errors_if_any] checks whether some delayed errors are
+    registered and raises the errors if any are present. Does nothing outside a
+    [with_delayed_errors] scope. *)
+
 val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter

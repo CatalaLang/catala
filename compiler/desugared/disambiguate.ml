@@ -133,5 +133,3 @@ let program prg =
       prg.program_modules
   in
   { prg with program_root = { module_topdefs; module_scopes }; program_modules }
-
-let program prg = Message.with_delayed_errors (fun () -> program prg)

@@ -31,8 +31,6 @@ let load_modules
     program :
     ModuleName.t Ident.Map.t
     * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
-  Message.with_delayed_errors
-  @@ fun () ->
   let stdlib_root_module lang =
     let lang = if Global.has_localised_stdlib lang then lang else Global.En in
     "Stdlib_" ^ Cli.language_code lang
@@ -239,6 +237,7 @@ module Passes = struct
     let prg =
       Scopelang.From_desugared.translate_program prg exceptions_graphs
     in
+    Message.report_delayed_errors_if_any ();
     prg
 
   let dcalc :
@@ -1503,7 +1502,11 @@ let main () =
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit excode
   in
-  match Cmd.eval_value ~catch:false ~argv command with
+
+  match
+    Message.with_delayed_errors (fun () ->
+        Cmd.eval_value ~catch:false ~argv command)
+  with
   | Ok _ -> exit Cmd.Exit.ok
   | Error e ->
     if e = `Term then Plugin.print_failures ();

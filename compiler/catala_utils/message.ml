@@ -577,32 +577,47 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
           x)
       else x)
 
+exception Stop_and_report
+
+let report_delayed_errors_if_any () =
+  if global_errors.errors = None || global_errors.errors = Some [] then ()
+  else raise Stop_and_report
+
 let with_delayed_errors
     ?(stop_on_error = Global.options.stop_on_error)
     (f : unit -> 'a) : 'a =
-  (match global_errors.errors with
-  | None -> global_errors.errors <- Some []
-  | Some _ -> error ~internal:true "nested call to 'with_delayed_errors'");
-  global_errors.stop_on_error <- stop_on_error;
-  let result =
-    match f () with
-    | r -> Either.Left r
-    | exception CompilerError err ->
-      let bt = Printexc.get_raw_backtrace () in
-      Either.Right (err, bt)
-    | exception e ->
-      global_errors.errors <- None;
-      raise e
-  in
-  let errs = global_errors.errors in
-  global_errors.errors <- None;
-  match errs, result with
-  | (None | Some []), Either.Right (e, bt) ->
-    Printexc.raise_with_backtrace (CompilerError e) bt
-  | None, Either.Left _ ->
-    error ~internal:true "intertwined delayed error scope"
-  | Some [], Either.Left result -> result
-  | Some [err], Either.Left _ -> raise (CompilerError err)
-  | Some errs, Either.Left _ -> raise (CompilerErrors (List.rev errs))
-  | Some errs, Either.Right (err, bt) ->
-    Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt
+  match global_errors.errors with
+  | Some _ ->
+    warning ~internal:true
+      "with_delayed_errors: already in a with_delayed_errors block";
+    f ()
+  | None -> (
+    global_errors.errors <- Some [];
+    global_errors.stop_on_error <- stop_on_error;
+    let result =
+      match f () with
+      | r -> `Completed r
+      | exception Stop_and_report -> `Force_stop
+      | exception CompilerError err ->
+        let bt = Printexc.get_raw_backtrace () in
+        `Fatal_error (err, bt)
+      | exception e ->
+        global_errors.errors <- None;
+        raise e
+    in
+    let errs = global_errors.errors in
+    global_errors.errors <- None;
+    match errs, result with
+    | (None | Some []), `Fatal_error (e, bt) ->
+      Printexc.raise_with_backtrace (CompilerError e) bt
+    | None, `Completed _ ->
+      error ~internal:true "intertwined delayed error scope"
+    | Some [], `Completed result -> result
+    | (None | Some []), `Force_stop ->
+      error ~internal:true "inconsistent Stop_and_report exception triggered"
+    | Some [err], (`Force_stop | `Completed _) -> raise (CompilerError err)
+    | Some errs, (`Force_stop | `Completed _) ->
+      raise (CompilerErrors (List.rev errs))
+    | Some errs, `Fatal_error (err, bt) ->
+      Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt
+    )

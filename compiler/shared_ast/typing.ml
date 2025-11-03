@@ -1204,7 +1204,7 @@ let program ?assume_op_types prg =
 let program ?assume_op_types ?(internal_check = false) prg =
   let wrap =
     if internal_check then (fun f ->
-      try Message.with_delayed_errors f
+      try f ()
       with (Message.CompilerError _ | Message.CompilerErrors _) as exc ->
         let bt = Printexc.get_raw_backtrace () in
         let err =
@@ -1220,6 +1220,6 @@ let program ?assume_op_types ?(internal_check = false) prg =
           (Print.program ~debug:true)
           prg;
         Printexc.raise_with_backtrace err bt)
-    else fun f -> Message.with_delayed_errors f
+    else fun f -> f ()
   in
   wrap @@ fun () -> program ?assume_op_types prg

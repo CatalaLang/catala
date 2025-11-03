@@ -153,5 +153,3 @@ let type_program (type m) (prg : m program) : typed program =
       prg.program_modules
   in
   { prg with program_topdefs; program_scopes; program_modules }
-
-let type_program prg = Message.with_delayed_errors (fun () -> type_program prg)

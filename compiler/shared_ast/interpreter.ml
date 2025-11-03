@@ -1116,83 +1116,77 @@ let delcustom e =
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
-  Message.with_delayed_errors (fun () ->
-      let e = Expr.unbox @@ Program.to_expr p s in
-      let ctx = p.decl_ctx in
-      match evaluate_expr_safe ctx p.lang (addcustom e) with
-      | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
-        begin
-        (* At this point, the interpreter seeks to execute the scope but does
-           not have a way to retrieve input values from the command line. [taus]
-           contain the types of the scope arguments. For [context] arguments, we
-           can provide an empty term. But for [input] arguments of another type,
-           we cannot provide anything so we have to fail. *)
-        let application_term = Scope.empty_input_struct_lcalc ctx s_in mark_e in
-        let to_interpret =
-          Expr.make_app (Expr.box e) [application_term]
-            [TStruct s_in, Expr.pos e]
-            (Expr.pos e)
-        in
-        match
-          Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
-        with
-        | EStruct { fields; _ } ->
-          List.map
-            (fun (fld, e) -> StructField.get_info fld, e)
-            (StructField.Map.bindings fields)
-        (* | exception Runtime.Error (err, rpos) ->
-         *   Message.error
-         *     ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
-         *     "%a" Format.pp_print_text
-         *     (Runtime.error_message err) *)
-        | _ ->
-          Message.error ~pos:(Expr.pos e) ~internal:true "%a"
-            Format.pp_print_text
-            "The interpretation of the program doesn't yield a struct \
-             corresponding to the scope variables"
-      end
-      | _ ->
-        Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-          "The interpreter can only interpret terms starting with functions \
-           having thunked arguments")
+  let e = Expr.unbox @@ Program.to_expr p s in
+  let ctx = p.decl_ctx in
+  match evaluate_expr_safe ctx p.lang (addcustom e) with
+  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+    (* At this point, the interpreter seeks to execute the scope but does not
+       have a way to retrieve input values from the command line. [taus] contain
+       the types of the scope arguments. For [context] arguments, we can provide
+       an empty term. But for [input] arguments of another type, we cannot
+       provide anything so we have to fail. *)
+    let application_term = Scope.empty_input_struct_lcalc ctx s_in mark_e in
+    let to_interpret =
+      Expr.make_app (Expr.box e) [application_term]
+        [TStruct s_in, Expr.pos e]
+        (Expr.pos e)
+    in
+    match
+      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+    with
+    | EStruct { fields; _ } ->
+      List.map
+        (fun (fld, e) -> StructField.get_info fld, e)
+        (StructField.Map.bindings fields)
+    (* | exception Runtime.Error (err, rpos) ->
+     *   Message.error
+     *     ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+     *     "%a" Format.pp_print_text
+     *     (Runtime.error_message err) *)
+    | _ ->
+      Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+        "The interpretation of the program doesn't yield a struct \
+         corresponding to the scope variables"
+  end
+  | _ ->
+    Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+      "The interpreter can only interpret terms starting with functions having \
+       thunked arguments"
 
 (** {1 API} *)
 let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
-  Message.with_delayed_errors (fun () ->
-      let ctx = p.decl_ctx in
-      let e = Expr.unbox (Program.to_expr p s) in
-      match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
-      | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e ->
-        begin
-        (* At this point, the interpreter seeks to execute the scope but does
-           not have a way to retrieve input values from the command line. [taus]
-           contain the types of the scope arguments. For [context] arguments, we
-           can provide an empty thunked term. But for [input] arguments of
-           another type, we cannot provide anything so we have to fail. *)
-        let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
-        let to_interpret =
-          Expr.make_app (Expr.box e) [application_term]
-            [TStruct s_in, Expr.pos e]
-            (Expr.pos e)
-        in
-        match
-          Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
-        with
-        | EStruct { fields; _ } ->
-          List.map
-            (fun (fld, e) -> StructField.get_info fld, e)
-            (StructField.Map.bindings fields)
-        | _ ->
-          Message.error ~pos:(Expr.pos e) ~internal:true "%a"
-            Format.pp_print_text
-            "The interpretation of a program should always yield a struct \
-             corresponding to the scope variables"
-      end
-      | _ ->
-        Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
-          "The interpreter can only interpret terms starting with functions \
-           having thunked arguments")
+  let ctx = p.decl_ctx in
+  let e = Expr.unbox (Program.to_expr p s) in
+  match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
+  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+    (* At this point, the interpreter seeks to execute the scope but does not
+       have a way to retrieve input values from the command line. [taus] contain
+       the types of the scope arguments. For [context] arguments, we can provide
+       an empty thunked term. But for [input] arguments of another type, we
+       cannot provide anything so we have to fail. *)
+    let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+    let to_interpret =
+      Expr.make_app (Expr.box e) [application_term]
+        [TStruct s_in, Expr.pos e]
+        (Expr.pos e)
+    in
+    match
+      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+    with
+    | EStruct { fields; _ } ->
+      List.map
+        (fun (fld, e) -> StructField.get_info fld, e)
+        (StructField.Map.bindings fields)
+    | _ ->
+      Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+        "The interpretation of a program should always yield a struct \
+         corresponding to the scope variables"
+  end
+  | _ ->
+    Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+      "The interpreter can only interpret terms starting with functions having \
+       thunked arguments"
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
