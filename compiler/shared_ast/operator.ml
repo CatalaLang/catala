@@ -583,7 +583,7 @@ let resolve_overload ((op, pos) : overloaded t Mark.pos) (operands : typ list) :
         (Print.operator ~debug:true)
         op
     | [] ->
-      Message.error ~pos
+      Message.error ~main_pos:pos ~pos
         ~fmt_pos:
           (List.map
              (fun ty ->

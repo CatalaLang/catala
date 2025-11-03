@@ -117,6 +117,7 @@ val formatter_of_out_channel :
 type ('a, 'b) emitter =
   ?header:Content.message ->
   ?internal:bool ->
+  ?main_pos:Pos.t ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
   ?extra_pos:(string * Pos.t) list ->

@@ -429,6 +429,7 @@ let register_lsp_error_absorber f = global_error_hook := Some f
 type ('a, 'b) emitter =
   ?header:Content.message ->
   ?internal:bool ->
+  ?main_pos:Pos.t ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
   ?extra_pos:(string * Pos.t) list ->
@@ -441,6 +442,7 @@ type ('a, 'b) emitter =
 let make
     ?header
     ?(internal = false)
+    ?main_pos:_
     ?pos
     ?pos_msg
     ?extra_pos
@@ -501,18 +503,22 @@ let result = make ~level:Result ~cont:emit
 let results ?title r =
   emit_raw ?header:title (List.flatten (List.map of_result r)) Result
 
-let join_pos ~pos ~fmt_pos ~extra_pos =
+let join_pos ~main_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
-     for each of them and prioritize in this order [fmt_pos] > [extra_pos] >
-     [pos] if multiple positions are present. *)
-  match fmt_pos, extra_pos, pos with
-  | Some ((_, pos) :: _), _, _ | _, Some ((_, pos) :: _), _ | _, _, Some pos ->
+     for each of them and prioritize in this order [main_pos] > [fmt_pos] >
+     [extra_pos] > [pos] if multiple positions are present. *)
+  match main_pos, fmt_pos, extra_pos, pos with
+  | Some pos, _, _, _
+  | _, Some ((_, pos) :: _), _, _
+  | _, _, Some ((_, pos) :: _), _
+  | _, _, _, Some pos ->
     Some pos
   | _ -> None
 
 let warning
     ?header
     ?internal
+    ?main_pos
     ?pos
     ?pos_msg
     ?extra_pos
@@ -525,20 +531,20 @@ let warning
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Warning in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
           ignore (f { kind = Warning; message; pos; suggestion }))
         !global_error_hook;
       emit m x)
 
 let error ?(kind = Generic) : ('a, 'exn) emitter =
- fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-     fmt ->
+ fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+     ?suggestion fmt ->
   make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
     fmt ~level:Error ~cont:(fun m _ ->
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Error in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
           ignore (f { kind; message; pos; suggestion }))
         !global_error_hook;
       raise (CompilerError m))
@@ -553,15 +559,15 @@ type global_errors = {
 let global_errors = { errors = None; stop_on_error = false }
 
 let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
- fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-     fmt ->
+ fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+     ?suggestion fmt ->
   make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
     fmt ~level:Error ~cont:(fun m _ ->
       let register_error =
         match !global_error_hook with
         | Some f ->
           let message ppf = Content.emit ~ppf m Error in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
           f { kind; message; pos; suggestion }
         | None -> true
       in
