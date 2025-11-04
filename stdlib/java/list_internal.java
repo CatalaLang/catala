@@ -28,7 +28,7 @@ public class List_internal {
                 return CatalaOption.none();
         };
 
-        public static final CatalaFunction<CatalaTuple,CatalaArray<CatalaValue>> removeNthElement =
+        public static final CatalaFunction<CatalaTuple,CatalaArray<? extends CatalaValue>> removeNthElement =
             tup_arg -> {
             CatalaArray<CatalaValue> lst =
                 CatalaValue.<CatalaArray<CatalaValue>>cast(tup_arg.get(0));
@@ -45,12 +45,12 @@ public class List_internal {
             }
         };
 
-        public static final CatalaFunction<CatalaArray<CatalaValue>,CatalaArray<CatalaValue>> reverse =
+        public static final CatalaFunction<CatalaArray<? extends CatalaValue>,CatalaArray<CatalaValue>> reverse =
             lst -> {
             CatalaValue[] lst_arr = lst.asArray();
             int len = lst_arr.length;
             if (len == 0)
-                return lst;
+                return CatalaValue.<CatalaArray<CatalaValue>>cast(lst);
             CatalaValue[] ret = java.util.Arrays.copyOf(lst_arr, len);
             for (int i = 0; i < len; i++){
                 ret[i] = lst_arr[len - 1 - i];
