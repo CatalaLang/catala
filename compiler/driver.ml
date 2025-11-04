@@ -216,13 +216,16 @@ module Passes = struct
     debug_pass_name "desugared";
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
+    Message.report_delayed_errors_if_any ();
     Message.debug "Desugaring...";
     let modules = ModuleName.Map.map fst modules in
     let prg =
       Desugared.From_surface.translate_program ctx ?allow_external modules prg
     in
+    Message.report_delayed_errors_if_any ();
     Message.debug "Disambiguating...";
     let prg = Desugared.Disambiguate.program prg in
+    Message.report_delayed_errors_if_any ();
     Message.debug "Linting...";
     Desugared.Linting.lint_program prg;
     prg, ctx
@@ -265,6 +268,7 @@ module Passes = struct
       | Untyped _ -> prg
       | Custom _ -> invalid_arg "Driver.Passes.dcalc"
     in
+    Message.report_delayed_errors_if_any ();
     Message.debug "Translating to default calculus...";
     let prg = Dcalc.From_scopelang.translate_program prg in
     let prg =
@@ -290,6 +294,7 @@ module Passes = struct
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
+    Message.report_delayed_errors_if_any ();
     if check_invariants then (
       Message.debug "Checking invariants...";
       match typed with
@@ -370,6 +375,7 @@ module Passes = struct
         prg, type_ordering)
       else prg, type_ordering
     in
+    Message.report_delayed_errors_if_any ();
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
@@ -759,6 +765,7 @@ module Commands = struct
         if quiet then () else Message.result "All invariant checks passed"
       else
         raise (Message.error ~internal:true "Some Dcalc invariants are invalid"));
+    Message.report_delayed_errors_if_any ();
     if not quiet then Message.result "Typechecking successful!"
 
   let typecheck_cmd =
@@ -1515,9 +1522,7 @@ let main () =
   | exception Message.CompilerError content ->
     exit_with_error Cmd.Exit.some_error @@ fun () -> content
   | exception Message.CompilerErrors contents ->
-    let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit_n contents Error;
-    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Failure msg ->
     exit_with_error Cmd.Exit.some_error

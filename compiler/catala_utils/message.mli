@@ -54,7 +54,9 @@ module Content : sig
 
   (** {2 Content emission}*)
 
-  val emit_n : ?ppf:Format.formatter -> t list -> level -> unit
+  val emit_n :
+    ?ppf:Format.formatter -> (t * Printexc.raw_backtrace) list -> level -> unit
+
   val emit : ?ppf:Format.formatter -> t -> level -> unit
 end
 
@@ -64,7 +66,7 @@ end
 (** {1 Error exceptions} *)
 
 exception CompilerError of Content.t
-exception CompilerErrors of Content.t list
+exception CompilerErrors of (Content.t * Printexc.raw_backtrace) list
 
 type lsp_error_kind =
   | Lexing

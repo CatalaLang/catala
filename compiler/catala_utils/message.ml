@@ -376,16 +376,22 @@ module Content = struct
     | GNU -> gnu_msg ?header ppf target content
     | Lsp -> lsp_msg ppf content
 
-  let emit_n ?ppf (errs : t list) (target : level) =
-    match errs with
-    | [content] -> emit_raw ?ppf content target
+  let emit_n
+      ?ppf
+      (errs_and_bt : (t * Printexc.raw_backtrace) list)
+      (target : level) =
+    match errs_and_bt with
+    | [(content, bt)] ->
+      emit_raw ?ppf content target;
+      if Global.options.debug then Printexc.print_raw_backtrace stderr bt
     | contents ->
       let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
-        (fun i c ->
+        (fun i (c, bt) ->
           let header = Printf.sprintf "%d/%d" (succ i) len in
-          emit_raw ~ppf ~header c target)
+          emit_raw ~ppf ~header c target;
+          if Global.options.debug then Printexc.print_raw_backtrace stderr bt)
         contents
 
   let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
@@ -396,7 +402,7 @@ open Content
 (** {1 Error exception} *)
 
 exception CompilerError of Content.t
-exception CompilerErrors of Content.t list
+exception CompilerErrors of (Content.t * Printexc.raw_backtrace) list
 
 type lsp_error_kind =
   | Lexing
@@ -639,8 +645,8 @@ let with_delayed_errors
     | Some [(err, bt)], (`Force_stop | `Completed _) ->
       Printexc.raise_with_backtrace (CompilerError err) bt
     | Some errs, (`Force_stop | `Completed _) ->
-      raise (CompilerErrors (List.rev_map fst errs))
+      raise (CompilerErrors (List.rev errs))
     | Some errs, `Fatal_error (err, bt) ->
       Printexc.raise_with_backtrace
-        (CompilerErrors (List.rev (err :: List.map fst errs)))
+        (CompilerErrors (List.rev ((err, bt) :: errs)))
         bt)
