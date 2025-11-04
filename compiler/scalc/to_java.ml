@@ -184,7 +184,8 @@ let format_visibility ppf = function
   | Private -> () (* nothing => package visibility *)
   | Public -> fprintf ppf "public "
 
-let rec format_typ ctx ppf (typ : typ) =
+let rec format_typ ?(wildcard = false) ctx ppf (typ : typ) =
+  let format_typ = format_typ ~wildcard in
   let typ = Type.unquantify typ in
   match Mark.remove typ with
   | TLit TBool -> fprintf ppf "CatalaBool"
@@ -208,7 +209,9 @@ let rec format_typ ctx ppf (typ : typ) =
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
   | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
   | TDefault typ -> (format_typ ctx) ppf typ
-  | TVar _ -> fprintf ppf "CatalaValue"
+  | TVar _ ->
+    if wildcard then fprintf ppf "? extends CatalaValue"
+    else fprintf ppf "CatalaValue"
   | TForAll _ -> assert false
   | TClosureEnv -> assert false
 
@@ -1070,7 +1073,7 @@ let format_external_parameter ctx ppf (name, ty, vis) =
 let format_external_method ctx ppf (name, (ty_l, ret_ty), vis) =
   let format_input_types ppf = function
     | [] -> fprintf ppf "CatalaUnit"
-    | [t] -> (format_typ ctx) ppf t
+    | [t] -> (format_typ ~wildcard:true ctx) ppf t
     | l -> (format_typ ctx) ppf (TTuple l, Pos.void)
   in
   fprintf ppf
@@ -1088,7 +1091,7 @@ let format_global_parameter ctx ppf (name, e, ty, vis) =
 let format_global_method ctx ppf (name, f, vis) =
   let format_input_types ppf = function
     | [] -> fprintf ppf "CatalaUnit"
-    | [t] -> (format_typ ctx) ppf t
+    | [t] -> (format_typ ~wildcard:true ctx) ppf t
     | l -> (format_typ ctx) ppf (TTuple l, Pos.void)
   in
   fprintf ppf "@[<hov 4>%astatic final CatalaFunction<%a,%a> %a =@ %a;@]"
