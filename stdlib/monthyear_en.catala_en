@@ -18,16 +18,14 @@ declaration from_date
       -- month_name: D.integer_to_month of (D.get_month of d)
     }
 
-## Transforms a `MonthYear` into a `date` by choosing the first day of the
-## month.
+## Gets the first day of the month as a `date`.
 declaration first_day_of_month
   content date
   depends on m content MonthYear
   equals
     D.of_year_month_day of (m.year_number, (D.month_to_integer of m.month_name), 1)
 
-## Transforms a `MonthYear` into a `date` by choosing the last day of the
-## month.
+## Gets the last day of the month as a `date`.
 declaration last_day_of_month
   content date
   depends on m content MonthYear
@@ -54,15 +52,15 @@ declaration is_in_the_month
   content boolean
   depends on m content MonthYear, d content date
   equals
-    (is_after_the_previous_month of m, d)
-    and (is_before_the_next_month of m, d)
+    (is_before_or_during_month of m, d)
+    and (is_during_or_after_month of m, d)
 
 ## Checks if the date occurs before the first day of the next month.
 ## **Examples:**
 ## - `is_before_the_next_month of may_2025, |2025-04-13| = true`
 ## - `is_before_the_next_month of may_2025, |2025-05-31| = true`
 ## - `is_before_the_next_month of may_2025, |2025-06-01| = false`
-declaration is_before_the_next_month
+declaration is_before_or_during_month
   content boolean
   depends on m content MonthYear, d content date
   equals
@@ -73,7 +71,7 @@ declaration is_before_the_next_month
 ## - `is_after_the_previous_month of may_2025, |2025-06-15| = true`
 ## - `is_after_the_previous_month of may_2025, |2025-05-01| = true`
 ## - `is_after_the_previous_month of may_2025, |2025-04-30| = false`
-declaration is_after_the_previous_month
+declaration is_during_or_after_month
   content boolean
   depends on m content MonthYear, d content date
   equals

@@ -63,16 +63,16 @@ scope Tunit:
 
   # is_(after|before)_the_(previous|next)_of_month
   assertion
-    not (MonthYear.is_before_the_next_month of my2, |2060-10-10|)
-    and not (MonthYear.is_before_the_next_month of my2, |2010-07-01|)
-    and MonthYear.is_before_the_next_month of my2, |2010-06-30|
-    and MonthYear.is_before_the_next_month of my2, |2010-06-01|
-    and MonthYear.is_before_the_next_month of my2, |2010-05-10|
+    not (MonthYear.is_before_or_during_month of my2, |2060-10-10|)
+    and not (MonthYear.is_before_or_during_month of my2, |2010-07-01|)
+    and MonthYear.is_before_or_during_month of my2, |2010-06-30|
+    and MonthYear.is_before_or_during_month of my2, |2010-06-01|
+    and MonthYear.is_before_or_during_month of my2, |2010-05-10|
   assertion
-    MonthYear.is_after_the_previous_month of my2, |2060-10-10|
-    and MonthYear.is_after_the_previous_month of my2, |2010-06-01|
-    and MonthYear.is_after_the_previous_month of my2, |2010-06-30|
-    and not (MonthYear.is_after_the_previous_month of my2, |2010-05-10|)
-    and not (MonthYear.is_after_the_previous_month of my2, |2010-05-31|)
+    MonthYear.is_during_or_after_month of my2, |2060-10-10|
+    and MonthYear.is_during_or_after_month of my2, |2010-06-01|
+    and MonthYear.is_during_or_after_month of my2, |2010-06-30|
+    and not (MonthYear.is_during_or_after_month of my2, |2010-05-10|)
+    and not (MonthYear.is_during_or_after_month of my2, |2010-05-31|)
 
 ```
