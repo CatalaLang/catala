@@ -10,9 +10,9 @@ scope Tunit:
 
   # MonthYears
 
-  definition my1 equals MonthYear.to_month_year of |2000-01-01|
-  definition my2 equals MonthYear.to_month_year of |2010-06-06|
-  definition my3 equals MonthYear.to_month_year of |2020-12-31|
+  definition my1 equals MonthYear.from_date of |2000-01-01|
+  definition my2 equals MonthYear.from_date of |2010-06-06|
+  definition my3 equals MonthYear.from_date of |2020-12-31|
 
   assertion
     my1.year_number = 2000
