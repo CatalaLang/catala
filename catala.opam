@@ -6,8 +6,9 @@ opam-version: "2.0"
 version: "1.0.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
-description:
-  "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information"
+description: """
+Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information
+"""
 maintainer: "contact@catala-lang.org"
 authors: [
   "Vincent Botbol"
@@ -21,18 +22,19 @@ authors: [
   "Emile Rolley"
 ]
 license: "Apache-2.0"
+tags: [ "catala" ]
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
+  "ocaml" {>= "4.14.0" }
+  "ocamlfind" {!= "1.9.5"}
+  "dune" {>= "3.13"}
+  "cppo" {>= "1"}
+  "menhir" {>= "20200211"}
+  "menhirLib" {>= "20200211"}
   "ocolor" {>= "1.3.0"}
   "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
-  "cppo" {>= "1"}
-  "dune" {>= "3.13"}
-  "menhir" {>= "20200211"}
-  "menhirLib" {>= "20200211"}
-  "ocaml" {>= "4.14.0"}
-  "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
   "re" {>= "1.11"}
   "sedlex" {>= "3.2"}
@@ -45,38 +47,36 @@ depends: [
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
+  "otoml" {>= "1.0"}
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.26.0"}
   "obelisk" {?cataladevmode & cataladevmode}
-  "conf-npm" {?cataladevmode & cataladevmode}
-  "conf-python-3-dev" {?cataladevmode & cataladevmode}
-  "conf-openjdk" {?cataladevmode & cataladevmode}
-  "cpdf" {?cataladevmode & cataladevmode}
-  "conf-pandoc" {?cataladevmode & cataladevmode}
-  "z3" {?catalaz3mode & catalaz3mode}
-  "conf-ninja"
-  "otoml" {>= "1.0"}
+  "conf-ninja" {post}
+  # --- the following are "optional runtime dependencies" ---
+  # they're listed here mostly for documentation ; one can export
+  # OPAMVAR_cataladevmode=1 before installation to automatically get them
+  "conf-npm" {post & ?cataladevmode & cataladevmode}
+  "conf-python-3-dev" {post & ?cataladevmode & cataladevmode}
+  "conf-openjdk" {post & ?cataladevmode & cataladevmode}
+  "conf-pandoc" {post & ?cataladevmode & cataladevmode}
+  "z3" {post & ?catalaz3mode & catalaz3mode}
 ]
 depopts: ["z3"]
 conflicts: [
   "z3" {< "4.8.11"}
 ]
 build: [
-  "dune"
-  "build"
-  "-p"
-  name
-  "-j"
-  jobs
-  "@install"
-  "@runtest" {with-test}
-  "@doc" {with-doc}
+  "dune" "build" "-p" name "-j" jobs "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
 ]
 build-env: [ CATALA_VERSION = "%{version}%" ]
-dev-repo: "git+https://github.com/CatalaLang/catala"
 depexts: [
-  ["groff"] { with-doc }
+  ["groff"] {with-doc}
+  # --- the following are "optional runtime dependencies" ---
+  # See above
   ["python3-pip"] {?cataladevmode & cataladevmode & os-family = "debian"}
   ["py3-pip" "py3-pygments"] {?cataladevmode & cataladevmode & os-distribution = "alpine"}
   ["python-pygments"] {?cataladevmode & cataladevmode & os-family = "arch"}
 ]
+dev-repo: "git+https://github.com/CatalaLang/catala"
