@@ -12,7 +12,7 @@ declaration foo content integer equals
 
 ```catala-test-cli
 $ catala typecheck
-┌─[ERROR]─
+┌─[ERROR]─ 1/2 ─
 │
 │  In this application of operator <=, the type of an operand is unknown
 │
@@ -26,6 +26,21 @@ $ catala typecheck
 │   │
 │ 3 │ declaration min content anything of type t
 │   │             ‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  In this application of operator +, the type of an operand is unknown
+│
+├─➤ tests/typing/bad/poly_overload.catala_en:9.3-9.17:
+│   │
+│ 9 │   3 + impossible
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Undetermined type <any type> coming from expression:
+├─➤ tests/typing/bad/poly_overload.catala_en:9.5-9.6:
+│   │
+│ 9 │   3 + impossible
+│   │     ‾
 └─
 #return code 123#
 ```
