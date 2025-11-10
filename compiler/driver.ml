@@ -1509,19 +1509,18 @@ let main () =
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit excode
   in
-
-  match
-    Message.with_delayed_errors (fun () ->
-        Cmd.eval_value ~catch:false ~argv command)
-  with
+  match Cmd.eval_value ~catch:false ~argv command with
   | Ok _ -> exit Cmd.Exit.ok
   | Error e ->
     if e = `Term then Plugin.print_failures ();
     exit Cmd.Exit.cli_error
   | exception Cli.Exit_with n -> exit n
-  | exception Message.CompilerError content ->
-    exit_with_error Cmd.Exit.some_error @@ fun () -> content
   | exception Message.CompilerErrors contents ->
+    Message.Content.emit_n contents Error;
+    exit Cmd.Exit.some_error
+  | exception Message.CompilerError content ->
+    let bt = Printexc.get_raw_backtrace () in
+    let contents = Message.combine_with_pending_errors content bt in
     Message.Content.emit_n contents Error;
     exit Cmd.Exit.some_error
   | exception Failure msg ->

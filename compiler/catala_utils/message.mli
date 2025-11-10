@@ -138,19 +138,9 @@ val results : ?title:string -> Content.message list -> unit
 
 (** Multiple errors *)
 
-val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
-(** [with_delayed_errors ?stop_on_error f] calls [f] and registers each error
-    triggered using [delayed_error]. [stop_on_error] defaults to
-    [Global.options.stop_on_error].
-
-    @raise CompilerErrors when delayed errors were registered.
-    @raise CompilerError
-      on the first error encountered when the [stop_on_error] flag is set. *)
-
 val report_delayed_errors_if_any : unit -> unit
 (** [report_delayed_errors_if_any] checks whether some delayed errors are
-    registered and raises the errors if any are present. Does nothing outside a
-    [with_delayed_errors] scope. *)
+    registered and raises the pending errors if any are present. *)
 
 val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter
 
@@ -160,3 +150,11 @@ val wrap_to_delayed_error : ?kind:lsp_error_kind -> 'a -> (unit -> 'a) -> 'a
     useful when no good default value can be provided in a callee without heavy
     refactoring . The position is guessed by scanning locations from the
     message's content. *)
+
+val combine_with_pending_errors :
+  Content.t ->
+  Printexc.raw_backtrace ->
+  (Content.t * Printexc.raw_backtrace) list
+(** [combine_with_pending_errors error bt] adds the given [error] and its
+    backtrace [bt] to the current pending errors (if any) and returns the
+    ordered list of errors to eventually emit with [Content.emit_n]. *)

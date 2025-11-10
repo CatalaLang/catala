@@ -557,12 +557,11 @@ let error ?(kind = Generic) : ('a, 'exn) emitter =
 
 (* Multiple errors handling *)
 
-type global_errors = {
-  mutable errors : (t * Printexc.raw_backtrace) list option;
-  mutable stop_on_error : bool;
+type delayed_errors = {
+  mutable rev_delayed_errors : (t * Printexc.raw_backtrace) list;
 }
 
-let global_errors = { errors = None; stop_on_error = false }
+let global_errors = { rev_delayed_errors = [] }
 
 let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
   let register_error =
@@ -580,14 +579,10 @@ let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
   in
   if register_error then (
     let bt = Printexc.get_raw_backtrace () in
-    if global_errors.stop_on_error then
+    if Global.options.stop_on_error then
       Printexc.raise_with_backtrace (CompilerError m) bt;
-    match global_errors.errors with
-    | None ->
-      error ~internal:true
-        "delayed error called outside scope: encapsulate using \
-         'with_delayed_errors' first"
-    | Some l -> global_errors.errors <- Some ((m, bt) :: l))
+    global_errors.rev_delayed_errors <-
+      (m, bt) :: global_errors.rev_delayed_errors)
 
 let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
  fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
@@ -604,49 +599,10 @@ let wrap_to_delayed_error ?(kind = Generic) x f =
     register_content_as_delayed_error ~kind m;
     x
 
-exception Stop_and_report
-
 let report_delayed_errors_if_any () =
-  if global_errors.errors = None || global_errors.errors = Some [] then ()
-  else raise Stop_and_report
+  match global_errors.rev_delayed_errors with
+  | [] -> ()
+  | rev_delayed_errors -> raise (CompilerErrors (List.rev rev_delayed_errors))
 
-let with_delayed_errors
-    ?(stop_on_error = Global.options.stop_on_error)
-    (f : unit -> 'a) : 'a =
-  match global_errors.errors with
-  | Some _ ->
-    warning ~internal:true
-      "with_delayed_errors: already in a with_delayed_errors block";
-    f ()
-  | None -> (
-    global_errors.errors <- Some [];
-    global_errors.stop_on_error <- stop_on_error;
-    let result =
-      match f () with
-      | r -> `Completed r
-      | exception Stop_and_report -> `Force_stop
-      | exception CompilerError err ->
-        let bt = Printexc.get_raw_backtrace () in
-        `Fatal_error (err, bt)
-      | exception e ->
-        global_errors.errors <- None;
-        raise e
-    in
-    let errs = global_errors.errors in
-    global_errors.errors <- None;
-    match errs, result with
-    | (None | Some []), `Fatal_error (e, bt) ->
-      Printexc.raise_with_backtrace (CompilerError e) bt
-    | None, `Completed _ ->
-      error ~internal:true "intertwined delayed error scope"
-    | Some [], `Completed result -> result
-    | (None | Some []), `Force_stop ->
-      error ~internal:true "inconsistent Stop_and_report exception triggered"
-    | Some [(err, bt)], (`Force_stop | `Completed _) ->
-      Printexc.raise_with_backtrace (CompilerError err) bt
-    | Some errs, (`Force_stop | `Completed _) ->
-      raise (CompilerErrors (List.rev errs))
-    | Some errs, `Fatal_error (err, bt) ->
-      Printexc.raise_with_backtrace
-        (CompilerErrors (List.rev ((err, bt) :: errs)))
-        bt)
+let combine_with_pending_errors content bt =
+  List.rev ((content, bt) :: global_errors.rev_delayed_errors)
