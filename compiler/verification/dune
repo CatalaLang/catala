@@ -1,17 +1,21 @@
-(library
- (name verification)
- (public_name catala.verification)
+(executable
+ (name proof)
+; (public_name catala.plugins.proof)
+ (modes plugin)
+ ;; (synopsis
+ ;;  "Program verification plugin 'proof' for Catala, based on Z3.")
+ ;(enabled_if %{lib-available:z3}) ;
+ (optional)
+ ;; (flags (-linkall)) ; check if needed
+; (ocamlopt_flags (:standard  %{lib:z3:z3ml.cmxa} -cclib -lz3 -cclib %{lib:z3:libz3ml.a}))
  (libraries
   bindlib
   catala_utils
   dcalc
   catala.runtime_ocaml
   dates_calc
-  (select
-   z3backend.ml
-   from
-   (z3 -> z3backend.real.ml)
-   (-> z3backend.dummy.ml))))
+  z3
+  catala.driver))
 
 (documentation
  (package catala)

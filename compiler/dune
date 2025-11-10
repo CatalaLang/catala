@@ -10,8 +10,7 @@
   dcalc
   lcalc
   scalc
-  catala.runtime_ocaml
-  verification)
+  catala.runtime_ocaml)
  (modules plugin driver))
 
 (executable

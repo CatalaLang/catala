@@ -6,6 +6,6 @@ to do so. The advantage of creating a customized backend is the possibility
 to craft a generated target code that perfectly matches the naming conventions,
 module structure or coding style of your application.
 
-See the [online documentation](https://catala-lang.org/ocaml_docs/catala/plugins.html)
+See the [online documentation](https://assets.catala-lang.org/api-doc/catala/plugins.html)
 for more details on how to create them, or look at the existing plugins
 in this directory for inspiration.
