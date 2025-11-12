@@ -140,7 +140,8 @@ val results : ?title:string -> Content.message list -> unit
 
 val report_delayed_errors_if_any : unit -> unit
 (** [report_delayed_errors_if_any] checks whether some delayed errors are
-    registered and raises the pending errors if any are present. *)
+    registered and raises the pending errors if any are present. Current
+    registered delayed errors are also deleted. *)
 
 val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter
 

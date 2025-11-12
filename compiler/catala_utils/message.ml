@@ -602,7 +602,10 @@ let wrap_to_delayed_error ?(kind = Generic) x f =
 let report_delayed_errors_if_any () =
   match global_errors.rev_delayed_errors with
   | [] -> ()
-  | rev_delayed_errors -> raise (CompilerErrors (List.rev rev_delayed_errors))
+  | rev_delayed_errors ->
+    (* reinitialize the global state for reentrancy *)
+    global_errors.rev_delayed_errors <- [];
+    raise (CompilerErrors (List.rev rev_delayed_errors))
 
 let combine_with_pending_errors content bt =
   List.rev ((content, bt) :: global_errors.rev_delayed_errors)
