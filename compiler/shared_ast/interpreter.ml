@@ -1172,6 +1172,10 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
 (** {1 API} *)
 let interpret_program_dcalc ~(coverage : bool) p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
+  let coverage_results = Coverage.(compute_reachable_dcalc p |> from_new) in
+  Format.fprintf (Message.std_ppf ()) "@\n@\nMy version@\n@\n%a@\n@\n"
+    (Print.program ~debug:true ~coverage:coverage_results)
+    p;
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
   let () =

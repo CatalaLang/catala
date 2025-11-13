@@ -38,12 +38,17 @@ let get_pos (type a) : a mark -> Pos.t = function
 
 let get_color_opt : Pos_map.simple_coverage -> Ocolor_types.color option =
  fun x ->
+  let rgb_of i = i / 256 / 256 mod 256, i / 256 mod 256, i mod 256 in
+  let pale_blue = rgb_of 0xbcb6ff in
+  let forest_green = rgb_of 0x7ea172 in
+  let pale_green = rgb_of 0xc7cb85 in
+  let orange = rgb_of 0xe7a977 in
   let rgb_opt =
     match x with
-    | Pos_map.Reach -> None (* Some (0xE7, 0xD4, 0xE8) *)
-    | Pos_map.Fulf -> (* None *) Some (0x99, 0x99, 0x33)
-    | Pos_map.Neg -> Some (0xCC, 0x66, 0x77)
-    | Pos_map.Pos -> (* None *) Some (0x5A, 0xAE, 0x61)
+    | Pos_map.Reach -> Some pale_green
+    | Pos_map.Fulf -> Some pale_blue
+    | Pos_map.Neg -> Some orange
+    | Pos_map.Pos -> Some forest_green
   in
   Option.map (fun (r24, g24, b24) -> Ocolor_types.C24 { r24; g24; b24 }) rgb_opt
 
@@ -54,6 +59,8 @@ let wrap pos fmt f =
     match get_color_opt x with
     | None -> f ()
     | Some color ->
+      Format.eprintf "%s@." __LOC__;
+      Format.eprintf "%s@." (Pos.to_string_shorter pos);
       Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Bg color));
       f ();
       Format.pp_close_stag fmt ())
@@ -531,8 +538,6 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
-    wrap (get_pos (Mark.get e)) fmt
-    @@ fun () ->
     attrs fmt
       (match Mark.get e with
       | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
@@ -566,8 +571,9 @@ module ExprGen (C : EXPR_PARAM) = struct
     if C.bypass fmt e then ()
     else
       match Mark.remove e with
-      | EVar v -> var fmt v
-      | EExternal { name } -> external_ref fmt name
+      | EVar v -> wrap (get_pos (Mark.get e)) fmt @@ fun () -> var fmt v
+      | EExternal { name } ->
+        wrap (get_pos (Mark.get e)) fmt @@ fun () -> external_ref fmt name
       | ETuple es ->
         Format.fprintf fmt "@[<hov 2>%a%a%a@]"
           (pp_color_string (List.hd colors))
@@ -589,7 +595,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         lhs exprc fmt e;
         punctuation fmt ".";
         Format.pp_print_int fmt index
-      | ELit l -> C.lit fmt l
+      | ELit l -> wrap (get_pos (Mark.get e)) fmt @@ fun () -> C.lit fmt l
       | EApp { f = EAbs _, _; _ } ->
         let rec pr bnd_ctx colors fmt = function
           | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ }, _ ->
@@ -739,7 +745,9 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" literal_op_style "error_empty"
           (rhs exprc) e'
-      | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
+      | EPos p ->
+        wrap (get_pos (Mark.get e)) fmt
+        @@ fun () -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
           "(" (rhs exprc) e' punctuation ")"

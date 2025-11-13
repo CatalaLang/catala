@@ -949,9 +949,11 @@ module Commands = struct
           ScopeName.format scope_uid (fun fmt ->
             if code_coverage then (
               let coverage_results = Interpreter.coverage_result () in
-              Format.fprintf (Message.std_ppf ()) "Program@\n@\n%a@\n@\n"
+              Format.fprintf (Message.std_ppf ())
+                "@\n@\nTheir version@\n@\n%a@\n@\n"
                 (Print.program ~debug:true ~coverage:coverage_results)
                 prg;
+
               Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results)
             else ())
       else if results = [] then Message.result "Computation successful!"

@@ -229,3 +229,10 @@ let export_reachable fm = File.Map.map reachable_map fm
 
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
+
+let add p v map =
+  match v with
+  | Neg -> neg p map
+  | Pos -> pos p map
+  | Fulf -> add p (Fulfilled ()) map
+  | Reach -> reachable p map
