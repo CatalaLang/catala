@@ -14,6 +14,7 @@
 (rule (alias man) (action (with-stdout-to catala-proof.1 (run %{bin:catala} proof --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-pygmentize.1 (run %{bin:catala} pygmentize --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-python.1 (run %{bin:catala} python --help=groff))))
+(rule (alias man) (action (with-stdout-to catala-reachable.1 (run %{bin:catala} reachable --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-scalc.1 (run %{bin:catala} scalc --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-scopelang.1 (run %{bin:catala} scopelang --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-typecheck.1 (run %{bin:catala} typecheck --help=groff))))

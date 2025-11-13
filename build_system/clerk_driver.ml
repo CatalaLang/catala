@@ -950,6 +950,7 @@ let reachable_cmd : int Cmd.t =
         "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
          are not yet implemented for this command."
     | `VSCodeJSON ->
+      Format.eprintf "REACHABLE@\n@\n%a" Pos_map.pp reachable;
       let json =
         Clerk_report.coverage_reachable_to_yojson
           ~build_dir:config.Cli.options.global.build_dir reachable

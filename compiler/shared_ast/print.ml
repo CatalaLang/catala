@@ -17,6 +17,8 @@
 open Catala_utils
 open Definitions
 
+let glob_coverage : Pos_map.simple ref = ref Pos_map.empty
+
 let typ_needs_parens (ty : typ) : bool =
   match Mark.remove ty with TArrow _ | TArray _ -> true | _ -> false
 
@@ -30,6 +32,31 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
          else "%s")
         (Uid.MarkedString.to_string info))
     fmt infos
+
+let get_pos (type a) : a mark -> Pos.t = function
+  | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos
+
+let get_color_opt : Pos_map.simple_coverage -> Ocolor_types.color option =
+ fun x ->
+  let rgb_opt =
+    match x with
+    | Pos_map.Reach -> None (* Some (0xE7, 0xD4, 0xE8) *)
+    | Pos_map.Fulf -> (* None *) Some (0x99, 0x99, 0x33)
+    | Pos_map.Neg -> Some (0xCC, 0x66, 0x77)
+    | Pos_map.Pos -> (* None *) Some (0x5A, 0xAE, 0x61)
+  in
+  Option.map (fun (r24, g24, b24) -> Ocolor_types.C24 { r24; g24; b24 }) rgb_opt
+
+let wrap pos fmt f =
+  match Pos_map.get_value_simple !glob_coverage pos with
+  | None -> f ()
+  | Some x -> (
+    match get_color_opt x with
+    | None -> f ()
+    | Some color ->
+      Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Bg color));
+      f ();
+      Format.pp_close_stag fmt ())
 
 let with_color f color fmt x =
   (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
@@ -504,6 +531,8 @@ module ExprGen (C : EXPR_PARAM) = struct
       (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
+    wrap (get_pos (Mark.get e)) fmt
+    @@ fun () ->
     attrs fmt
       (match Mark.get e with
       | Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos);
@@ -985,8 +1014,9 @@ let code_item_list ?(debug = false) fmt c =
     fmt (BoundList.to_seq c);
   Format.pp_close_box fmt ()
 
-let program ?(debug = false) fmt p =
+let program ?(debug = false) ?coverage fmt p =
   decl_ctx ~debug fmt p.decl_ctx;
+  Option.iter (fun x -> glob_coverage := x) coverage;
   code_item_list ~debug fmt p.code_items
 
 (* - User-facing value printer - *)

@@ -92,7 +92,12 @@ val decl_ctx : ?debug:bool -> Format.formatter -> decl_ctx -> unit
 val scope :
   ?debug:bool -> Format.formatter -> string * ('a, 'm) gexpr scope_body -> unit
 
-val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
+val program :
+  ?debug:bool ->
+  ?coverage:Pos_map.simple ->
+  Format.formatter ->
+  ('a, 'm) gexpr program ->
+  unit
 
 (** User-facing, localised printer *)
 module UserFacing : sig

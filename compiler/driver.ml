@@ -929,7 +929,7 @@ module Commands = struct
       ~(code_coverage : bool)
       ?(quiet = false)
       interpreter
-      prg
+      (prg : ('a, 'm) gexpr program)
       scope_uid =
     try
       Message.debug "Starting interpretation...";
@@ -947,9 +947,12 @@ module Commands = struct
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
           ScopeName.format scope_uid (fun fmt ->
-            if code_coverage then
+            if code_coverage then (
               let coverage_results = Interpreter.coverage_result () in
-              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
+              Format.fprintf (Message.std_ppf ()) "Program@\n@\n%a@\n@\n"
+                (Print.program ~debug:true ~coverage:coverage_results)
+                prg;
+              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results)
             else ())
       else if results = [] then Message.result "Computation successful!"
       else
@@ -979,10 +982,10 @@ module Commands = struct
 
   let interpret_dcalc
       typed
+      code_coverage
       options
       includes
       stdlib
-      (code_coverage : bool)
       optimize
       check_invariants
       quiet
@@ -1076,16 +1079,11 @@ module Commands = struct
       options
       includes
       stdlib
-      (code_coverage : bool)
       optimize
       check_invariants
       quiet
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
-    if code_coverage then
-      Message.error
-        "The flags @{<bold>--lcalc@} and @{<bold>--code-coverage@} are \
-         incompatible";
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
@@ -1112,15 +1110,16 @@ module Commands = struct
         keep_special_ops
         monomorphize_types
         expand_ops
-        no_typing =
+        no_typing
+        code_coverage =
       if not lcalc then
         if closure_conversion || monomorphize_types then
           Message.error
             "The flags @{<bold>--closure-conversion@} and \
              @{<bold>--monomorphize-types@} only make sense with the \
              @{<bold>--lcalc@} option"
-        else if no_typing then interpret_dcalc Expr.untyped
-        else interpret_dcalc Expr.typed
+        else if no_typing then interpret_dcalc Expr.untyped code_coverage
+        else interpret_dcalc Expr.typed code_coverage
       else if no_typing then
         interpret_lcalc Expr.untyped closure_conversion keep_special_ops
           monomorphize_types expand_ops
@@ -1142,10 +1141,10 @@ module Commands = struct
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
+        $ Cli.Flags.code_coverage
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
-        $ Cli.Flags.code_coverage
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet

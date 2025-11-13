@@ -14,3 +14,7 @@ val pos : Pos.t -> simple -> simple
 val neg : Pos.t -> simple -> simple
 val fusion : t -> t -> t
 val report_coverage : Format.formatter -> simple -> unit
+
+type simple_coverage = Reach | Pos | Neg | Fulf
+
+val get_value_simple : simple -> Pos.t -> simple_coverage option
