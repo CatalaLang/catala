@@ -400,7 +400,7 @@ let rec rule_tree_to_expr
     (params : D.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
   let emark = Expr.no_attrs (Untyped { pos = def_pos }) in
-  let ghost_mark = Expr.no_attrs (Untyped { pos = Pos.void }) in
+  let ghost_mark = Expr.no_attrs (Untyped { pos = def_pos }) in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
