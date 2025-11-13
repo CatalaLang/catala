@@ -168,16 +168,21 @@ let run_catala_test_scopes
   let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
   let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let env = catala_test_env () in
+  let whole_program_opt = "--whole-program" in
+  let code_coverage_opt = "--code-coverage" in
   let catala_opts =
-    let code_coverage_opt = "--code-coverage" in
-    let whole_program = "--whole-program" in
     catala_opts
     @
     if code_coverage then
       (if List.mem code_coverage_opt catala_opts then []
        else [code_coverage_opt])
-      @ if List.mem whole_program catala_opts then [] else [whole_program]
+      @
+      if List.mem whole_program_opt catala_opts then [] else [whole_program_opt]
     else []
+  in
+  let test_flags =
+    if code_coverage then List.filter (( <> ) whole_program_opt) test_flags
+    else test_flags
   in
   let cmd =
     Array.of_list

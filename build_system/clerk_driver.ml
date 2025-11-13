@@ -1448,7 +1448,7 @@ let runtest_cmd =
       include_dirs
       test_flags
       report
-      (code_coverage : bool)
+      code_coverage
       out
       file
       whole_program =
