@@ -144,8 +144,8 @@ see [the dedicated readme](doc/formalization/README.md).
 
 ### Compiler documentation
 
-The documentation is accessible online, both for the [latest release](https://catala-lang.org/ocaml_docs/) and [bleeding-edge version](https://catalalang.github.io/catala/api-doc/).
-
+The documentation is accessible online, for the latest [`master`
+version](https://catalalang.github.io/catala/api-doc/).
 
 It is otherwise generated from the compiler source code using
 `dune` and `odoc`. Run
