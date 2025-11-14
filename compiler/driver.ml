@@ -948,13 +948,10 @@ module Commands = struct
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
           ScopeName.format scope_uid (fun fmt ->
-            if code_coverage then (
+            if code_coverage then
               let coverage_results = Interpreter.coverage_result () in
-              Format.fprintf fmt "@\n@\nTheir version@\n@\n%a@\n@\n"
-                (Print.program ~debug:true ~coverage:(Some coverage_results))
-                prg;
 
-              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results)
+              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
             else ())
       else if results = [] then Message.result "Computation successful!"
       else

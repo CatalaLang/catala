@@ -59,9 +59,6 @@ let wrap pos fmt f =
     match get_color_opt x with
     | None -> f ()
     | Some color ->
-      Format.eprintf "GLOB COVERAGE: %a@." Pos_map.pp !glob_coverage;
-      Format.eprintf "%s@." __LOC__;
-      Format.eprintf "PRINTING %a@." Pos.format_loc_text pos;
       Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Bg color));
       f ();
       Format.pp_close_stag fmt ())
@@ -663,18 +660,15 @@ module ExprGen (C : EXPR_PARAM) = struct
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
       | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
-        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
         wrap pos fmt
         @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
           (rhs exprc) arg2
       | EAppOp { op = (Log _ as op), _; args = [arg1]; _ } ->
-        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
         wrap pos fmt
         @@ fun () ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op0, _; args = [_; _]; _ } ->
-        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
         wrap pos fmt
         @@ fun () ->
         let prec = Precedence.expr e in
@@ -696,12 +690,10 @@ module ExprGen (C : EXPR_PARAM) = struct
         pr colors fmt e;
         Format.pp_close_box fmt ()
       | EAppOp { op = op, _; args = [arg1]; _ } ->
-        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
         wrap pos fmt
         @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op, _; args; _ } ->
-        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
         wrap pos fmt
         @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op
@@ -1081,13 +1073,7 @@ let code_item_list ?(debug = false) fmt c =
 
 let program ?(debug = false) ~coverage fmt p =
   decl_ctx ~debug fmt p.decl_ctx;
-  Option.iter
-    (fun x ->
-      Format.eprintf "ASSIGNING COVERAGE: %x@." (Obj.magic x);
-      Format.eprintf "POS_MAP: %a@." Pos_map.pp x;
-
-      glob_coverage := x)
-    coverage;
+  Option.iter (fun x -> glob_coverage := x) coverage;
   code_item_list ~debug fmt p.code_items
 
 (* - User-facing value printer - *)

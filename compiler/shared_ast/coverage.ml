@@ -101,12 +101,7 @@ let compute_reachable_dcalc (p : (dcalc, 'm) gexpr program) =
       loop e;
       EnumConstructor.Map.iter (fun _ e -> loop e) cases
   in
-  Program.fold_exprs
-    ~f:(fun () e _typ ->
-      Format.fprintf (Message.std_ppf ()) "@\n@\nSEXPR@\n@\n%a@\n@\n"
-        Print.s_expr e;
-      loop e)
-    ~init:() p;
+  Program.fold_exprs ~f:(fun () e _typ -> loop e) ~init:() p;
   htbl
 
 let from_new h =

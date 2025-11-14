@@ -700,6 +700,13 @@ let coverage_result () =
   Coverage.glob := None;
   r
 
+let add_coverage pos =
+  Option.iter
+    (fun glob ->
+      Format.eprintf "interp adding %a@." Pos.format_loc_text pos;
+      Coverage.glob := Some (Pos_map.add pos Pos glob))
+    !Coverage.glob
+
 let rec evaluate_expr :
     type d.
     decl_ctx ->
@@ -729,9 +736,7 @@ let rec evaluate_expr :
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
-    Option.iter
-      (fun glob -> Coverage.glob := Some (Pos_map.add pos Pos glob))
-      !Coverage.glob;
+    add_coverage pos;
     let path =
       match Mark.remove name with
       | External_value td -> TopdefName.path td
@@ -808,9 +813,7 @@ let rec evaluate_expr :
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty ->
-    Option.iter
-      (fun glob -> Coverage.glob := Some (Pos_map.add pos Pos glob))
-      !Coverage.glob;
+    add_coverage pos;
     e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
@@ -1198,6 +1201,12 @@ let interpret_program_dcalc ~(coverage : bool) p s :
       Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
+      Format.fprintf (Message.std_ppf ()) "@\n@\nReached@\n%a@\n@\n"
+        (Print.program ~debug:true ~coverage:!Coverage.glob)
+        p;
+      Option.iter
+        (Format.eprintf "GLOB COVERAGE: %a@." Pos_map.pp)
+        !Coverage.glob;
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
