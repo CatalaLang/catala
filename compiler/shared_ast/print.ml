@@ -59,8 +59,9 @@ let wrap pos fmt f =
     match get_color_opt x with
     | None -> f ()
     | Some color ->
+      Format.eprintf "GLOB COVERAGE: %a@." Pos_map.pp !glob_coverage;
       Format.eprintf "%s@." __LOC__;
-      Format.eprintf "%s@." (Pos.to_string_shorter pos);
+      Format.eprintf "PRINTING %a@." Pos.format_loc_text pos;
       Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Bg color));
       f ();
       Format.pp_close_stag fmt ())
@@ -550,7 +551,7 @@ module ExprGen (C : EXPR_PARAM) = struct
      *        (typ ~colors) ty
      *    | _ -> f fmt e)
      * @@ fun fmt e -> *)
-    let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
+    let exprb bnd_ctx colors fmt e = expr_aux bnd_ctx colors fmt e in
     let exprc colors e = exprb bnd_ctx colors e in
     let expr e = exprc colors e in
     let var = C.var in
@@ -568,13 +569,15 @@ module ExprGen (C : EXPR_PARAM) = struct
     let default_punct = with_color (fun fmt -> Format.pp_print_as fmt 1) in
     let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
     let rhs ex = paren ~rhs:true ex in
+    let pos = get_pos (Mark.get e) in
     if C.bypass fmt e then ()
     else
       match Mark.remove e with
-      | EVar v -> wrap (get_pos (Mark.get e)) fmt @@ fun () -> var fmt v
-      | EExternal { name } ->
-        wrap (get_pos (Mark.get e)) fmt @@ fun () -> external_ref fmt name
+      | EVar v -> wrap pos fmt @@ fun () -> var fmt v
+      | EExternal { name } -> wrap pos fmt @@ fun () -> external_ref fmt name
       | ETuple es ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hov 2>%a%a%a@]"
           (pp_color_string (List.hd colors))
           "("
@@ -586,17 +589,23 @@ module ExprGen (C : EXPR_PARAM) = struct
           (pp_color_string (List.hd colors))
           ")"
       | EArray es ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@,@[<hov>%a@]@;<0 -2>%a@]" punctuation "["
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
              (fun fmt e -> lhs exprc fmt e))
           es punctuation "]"
       | ETupleAccess { e; index; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         lhs exprc fmt e;
         punctuation fmt ".";
         Format.pp_print_int fmt index
-      | ELit l -> wrap (get_pos (Mark.get e)) fmt @@ fun () -> C.lit fmt l
+      | ELit l -> wrap pos fmt @@ fun () -> C.lit fmt l
       | EApp { f = EAbs _, _; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         let rec pr bnd_ctx colors fmt = function
           | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ }, _ ->
             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
@@ -631,6 +640,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         pr bnd_ctx colors fmt e;
         Format.pp_close_box fmt ()
       | EAbs { binder; pos = _; tys } ->
+        wrap pos fmt
+        @@ fun () ->
         let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
         let expr = exprb bnd_ctx in
         let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
@@ -652,11 +663,20 @@ module ExprGen (C : EXPR_PARAM) = struct
                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
       | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
+        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
           (rhs exprc) arg2
       | EAppOp { op = (Log _ as op), _; args = [arg1]; _ } ->
+        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op0, _; args = [_; _]; _ } ->
+        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
+        wrap pos fmt
+        @@ fun () ->
         let prec = Precedence.expr e in
         let rec pr colors fmt = function
           (* Flatten sequences of the same associative op *)
@@ -676,20 +696,30 @@ module ExprGen (C : EXPR_PARAM) = struct
         pr colors fmt e;
         Format.pp_close_box fmt ()
       | EAppOp { op = op, _; args = [arg1]; _ } ->
+        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op, _; args; _ } ->
+        Format.eprintf "EAPPOP POS : %a@." Pos.format_loc_text pos;
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
              (rhs exprc))
           args
       | EApp { f; args; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
              (rhs exprc))
           args
       | EIfThenElse _ ->
+        wrap pos fmt
+        @@ fun () ->
         let rec pr els fmt = function
           | EIfThenElse { cond; etrue; efalse }, _ ->
             Format.fprintf fmt "@[<hv 2>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]@ %a"
@@ -703,6 +733,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         pr false fmt e;
         Format.pp_close_box fmt ()
       | EDefault { excepts; just; cons } ->
+        wrap pos fmt
+        @@ fun () ->
         if List.length excepts = 0 then
           Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]"
             (default_punct (List.hd colors))
@@ -736,29 +768,41 @@ module ExprGen (C : EXPR_PARAM) = struct
             (default_punct (List.hd colors))
             "⟩"
       | EPureDefault e ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "%a%a%a"
           (default_punct (List.hd colors))
           "⟨" expr e
           (default_punct (List.hd colors))
           "⟩"
-      | EEmpty -> lit_uchar_style fmt "∅"
+      | EEmpty -> wrap pos fmt @@ fun () -> lit_uchar_style fmt "∅"
       | EErrorOnEmpty e' ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" literal_op_style "error_empty"
           (rhs exprc) e'
       | EPos p ->
         wrap (get_pos (Mark.get e)) fmt
         @@ fun () -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
           "(" (rhs exprc) e' punctuation ")"
       | EFatalError err ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
           (Catala_runtime.error_to_string err)
-      | ELocation loc -> location fmt loc
+      | ELocation loc -> wrap pos fmt @@ fun () -> location fmt loc
       | EDStructAccess { e; field; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
           "." punctuation "\"" Ident.format field punctuation "\""
       | EDStructAmend { e; fields; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>@[<hov>%a %a@ with@]@ %a@;<1 -2>%a@]"
           punctuation "{" (lhs exprc) e
           (Ident.Map.format_bindings ~pp_sep:Format.pp_print_space
@@ -767,6 +811,8 @@ module ExprGen (C : EXPR_PARAM) = struct
                  punctuation "=" (lhs exprc) field_expr punctuation ";"))
           fields punctuation "}"
       | EStruct { name; fields } ->
+        wrap pos fmt
+        @@ fun () ->
         if StructField.Map.is_empty fields then (
           punctuation fmt "{";
           StructName.format fmt name;
@@ -780,14 +826,22 @@ module ExprGen (C : EXPR_PARAM) = struct
                    punctuation "=" (lhs exprc) field_expr punctuation ";"))
             fields punctuation "}"
       | EStructAccess { e; field; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
           StructField.format field
       | EInj { e = ELit LUnit, _; cons; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@]" EnumConstructor.format cons
       | EInj { e; cons; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
           (paren ~rhs:false exprc) e
       | EMatch { e; cases; _ } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"
           (EnumConstructor.Map.format_bindings
@@ -811,6 +865,8 @@ module ExprGen (C : EXPR_PARAM) = struct
                    pp_cons_name punctuation "→" (rhs exprc) e))
           cases
       | EScopeCall { scope; args } ->
+        wrap pos fmt
+        @@ fun () ->
         Format.pp_open_hovbox fmt 2;
         ScopeName.format fmt scope;
         Format.pp_print_space fmt ();
@@ -827,7 +883,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_close_box fmt ();
         punctuation fmt "}";
         Format.pp_close_box fmt ()
-      | ECustom _ -> Format.pp_print_string fmt "<obj>"
+      | ECustom _ ->
+        wrap pos fmt @@ fun () -> Format.pp_print_string fmt "<obj>"
       | EBad -> Format.pp_print_string fmt "<bad>"
 
   let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
@@ -1022,9 +1079,15 @@ let code_item_list ?(debug = false) fmt c =
     fmt (BoundList.to_seq c);
   Format.pp_close_box fmt ()
 
-let program ?(debug = false) ?coverage fmt p =
+let program ?(debug = false) ~coverage fmt p =
   decl_ctx ~debug fmt p.decl_ctx;
-  Option.iter (fun x -> glob_coverage := x) coverage;
+  Option.iter
+    (fun x ->
+      Format.eprintf "ASSIGNING COVERAGE: %x@." (Obj.magic x);
+      Format.eprintf "POS_MAP: %a@." Pos_map.pp x;
+
+      glob_coverage := x)
+    coverage;
   code_item_list ~debug fmt p.code_items
 
 (* - User-facing value printer - *)

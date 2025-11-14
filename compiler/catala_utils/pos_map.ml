@@ -12,7 +12,7 @@ let from_pos p =
 module Interval_map = Stdlib.Map.Make (struct
   type t = loc_interval
 
-  let compare x y = compare x.start y.start
+  let compare x y = compare x y
 end)
 
 type 'a gen = 'a coverage Interval_map.t File.Map.t
@@ -230,9 +230,18 @@ let export_reachable fm = File.Map.map reachable_map fm
 let report_coverage ppf map =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
 
+let raw_add pos v (map : simple) =
+  let loc = from_pos pos in
+  let name = Pos.get_file pos in
+  match File.Map.find_opt name map with
+  | None -> File.Map.add name (Interval_map.singleton loc v) map
+  | Some itvm ->
+    let itvm' = Interval_map.add loc v itvm in
+    File.Map.add name itvm' map
+
 let add p v map =
   match v with
-  | Neg -> neg p map
-  | Pos -> pos p map
-  | Fulf -> add p (Fulfilled ()) map
-  | Reach -> reachable p map
+  | Neg -> raw_add p Negative map
+  | Pos -> raw_add p (Positive ()) map
+  | Fulf -> raw_add p (Fulfilled ()) map
+  | Reach -> raw_add p Reachable map

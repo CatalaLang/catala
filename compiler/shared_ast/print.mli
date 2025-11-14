@@ -94,7 +94,7 @@ val scope :
 
 val program :
   ?debug:bool ->
-  ?coverage:Pos_map.simple ->
+  coverage:Pos_map.simple option ->
   Format.formatter ->
   ('a, 'm) gexpr program ->
   unit

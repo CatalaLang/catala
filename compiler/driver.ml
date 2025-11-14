@@ -850,7 +850,7 @@ module Commands = struct
     @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
-      Print.program ~debug:options.Global.debug fmt prg;
+      Print.program ~debug:options.Global.debug ~coverage:None fmt prg;
       Format.pp_print_newline fmt ()
     | scopes ->
       List.iter
@@ -931,6 +931,7 @@ module Commands = struct
       interpreter
       (prg : ('a, 'm) gexpr program)
       scope_uid =
+    ignore code_coverage;
     try
       Message.debug "Starting interpretation...";
       let results = interpreter prg scope_uid in
@@ -949,9 +950,8 @@ module Commands = struct
           ScopeName.format scope_uid (fun fmt ->
             if code_coverage then (
               let coverage_results = Interpreter.coverage_result () in
-              Format.fprintf (Message.std_ppf ())
-                "@\n@\nTheir version@\n@\n%a@\n@\n"
-                (Print.program ~debug:true ~coverage:coverage_results)
+              Format.fprintf fmt "@\n@\nTheir version@\n@\n%a@\n@\n"
+                (Print.program ~debug:true ~coverage:(Some coverage_results))
                 prg;
 
               Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results)
@@ -1043,7 +1043,7 @@ module Commands = struct
           Format.pp_print_newline fmt ())
         scopes
     | [] ->
-      Print.program ~debug:options.Global.debug fmt prg;
+      Print.program ~debug:options.Global.debug ~coverage:None fmt prg;
       Format.pp_print_newline fmt ()
 
   let lcalc_cmd =

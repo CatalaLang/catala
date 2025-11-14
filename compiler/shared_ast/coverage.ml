@@ -55,10 +55,14 @@ let compute_reachable_dcalc (p : (dcalc, 'm) gexpr program) =
     let e = Mark.remove e in
     match e with
     (* atoms *)
-    | ELit _ -> add pos Pos_map.Pos
-    | EPos _ -> add pos Pos_map.Neg
-    | EVar _ -> add pos Pos_map.Fulf
+    | ELit _ -> add pos Pos_map.Reach
+    | EPos _ -> add pos Pos_map.Reach
+    | EVar _ -> add pos Pos_map.Reach
     | EExternal _ -> add pos Pos_map.Reach
+    (* | ELit _ -> add pos Pos_map.Pos *)
+    (* | EPos _ -> add pos Pos_map.Neg *)
+    (* | EVar _ -> add pos Pos_map.Fulf *)
+    (* | EExternal _ -> add pos Pos_map.Reach *)
     (**** ignored ****)
     | ELocation _ | EFatalError _ | EEmpty (* | ECustom _ *) -> ()
     (**** direct recursion ****)

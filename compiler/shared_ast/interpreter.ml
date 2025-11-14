@@ -712,7 +712,6 @@ let rec evaluate_expr :
   in
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
-  Coverage.mark_pos e;
   (match debug_print with
   | None -> fun r -> r
   | Some label_opt ->
@@ -730,6 +729,9 @@ let rec evaluate_expr :
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
+    Option.iter
+      (fun glob -> Coverage.glob := Some (Pos_map.add pos Pos glob))
+      !Coverage.glob;
     let path =
       match Mark.remove name with
       | External_value td -> TopdefName.path td
@@ -805,7 +807,11 @@ let rec evaluate_expr :
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
+  | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty ->
+    Option.iter
+      (fun glob -> Coverage.glob := Some (Pos_map.add pos Pos glob))
+      !Coverage.glob;
+    e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
@@ -867,10 +873,6 @@ let rec evaluate_expr :
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in
-    let () =
-      if Coverage.is_recorded () then
-        EnumConstructor.Map.iter (fun _ e -> Coverage.mark_neg e) cases
-    in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -898,7 +900,6 @@ let rec evaluate_expr :
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
-    let () = Coverage.mark_all Pos_map.neg [efalse; etrue] in
     match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
@@ -950,12 +951,9 @@ let rec evaluate_expr :
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    Coverage.mark_neg cons;
     let excepts = List.map (evaluate_expr ctx lang) excepts in
     (* TODO disable coverage marking at the surface level here *)
-    let () = Coverage.mark_all Pos_map.neg excepts in
     let real_errors = List.filter (Fun.negate is_empty_error) excepts in
-    let () = Coverage.mark_all Pos_map.pos real_errors in
     match real_errors with
     | [] -> (
       let just = evaluate_expr ctx lang just in
@@ -1172,9 +1170,10 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
 (** {1 API} *)
 let interpret_program_dcalc ~(coverage : bool) p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
-  let coverage_results = Coverage.(compute_reachable_dcalc p |> from_new) in
-  Format.fprintf (Message.std_ppf ()) "@\n@\nMy version@\n@\n%a@\n@\n"
-    (Print.program ~debug:true ~coverage:coverage_results)
+  let htbl = Coverage.(compute_reachable_dcalc p) in
+  let coverage_results = Coverage.from_new htbl in
+  Format.fprintf (Message.std_ppf ()) "@\n@\nReachable positions@\n@\n%a@\n@\n"
+    (Print.program ~debug:true ~coverage:(Some coverage_results))
     p;
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
