@@ -42,7 +42,7 @@ déclaration premier_élément
 ## Donne le dernier élément de la liste encapsulé dans le constructeur
 ## `Présent`.
 ## Si la liste est vide, retourne `Absent`.
-déclaration dernier_element
+déclaration dernier_élément
   contenu optionnel de n'importe quel de type t
   dépend de l contenu liste de n'importe quel de type t
   égal à
