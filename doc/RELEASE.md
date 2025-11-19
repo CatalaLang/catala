@@ -1,5 +1,10 @@
 # Guide for Catala releases
 
+## Update version number on `catala-language-server`
+
+Before tagging the release, update the version number in the `package.json` file.
+Commit the change.
+
 ## Tag the release
 
 On all three repos: catala, catala-language-server, catala-format.
@@ -46,8 +51,14 @@ Add an entry to the [releases of Catala](https://github.com/CatalaLang/catala/re
 * upload the relevant debian package and document it.
 
 Add an entry to the [releases of `catala-language-server`](https://github.com/CatalaLang/catala-language-server/releases)
-* upload the `.vsix` file compiled from the repository at the release tag.
 
 ## Publish the VSCode extension on the VSCode Marketplace
 
-TODO Romain
+Creating a catala-language-server release from a tag (as you did
+in the previous step) will automatically publish the VSCode extension
+on the marketplace.
+You may check that it's happening smoothly
+[here](https://github.com/CatalaLang/catala-language-server/actions).
+
+After a few minutes, the new release should appear on
+[this page](https://marketplace.visualstudio.com/items?itemName=catalalang.catala).
