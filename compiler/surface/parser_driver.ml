@@ -605,8 +605,6 @@ let parse_top_level_file
     | None -> fun s -> Option.value (tbl_lookup s) ~default:(Global.FileName s)
     | Some f -> f
   in
-  Message.with_delayed_errors
-  @@ fun () ->
   let program =
     with_sedlex_source source_file (parse_source ~resolve_included_file)
   in

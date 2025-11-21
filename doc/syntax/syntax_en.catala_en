@@ -266,7 +266,7 @@ to ensure that the *syntax* is correct.
 
 ```catala-test-cli
 $ catala typecheck
-┌─[ERROR]─
+┌─[ERROR]─ 1/3 ─
 │
 │  No scope named Scope0 found
 │
@@ -275,5 +275,23 @@ $ catala typecheck
 │ 105 │   sub1 scope Scope0
 │     │              ‾‾‾‾‾‾
 └─ Metadata declaration
+┌─[ERROR]─ 2/3 ─
+│
+│  "x": unknown identifier for a variable of scope Scope1
+│
+├─➤ doc/syntax/syntax_en.catala_en:175.14-175.15:
+│     │
+│ 175 │   definition x equals 0
+│     │              ‾
+└─ Scope definition
+┌─[ERROR]─ 3/3 ─
+│
+│  "var1": unknown identifier for a variable of scope Scope1
+│
+├─➤ doc/syntax/syntax_en.catala_en:180.14-180.18:
+│     │
+│ 180 │   definition var1 equals 0
+│     │              ‾‾‾‾
+└─ Scope definition
 #return code 123#
 ```

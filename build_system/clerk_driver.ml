@@ -1473,7 +1473,7 @@ let main () =
       Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | Message.CompilerErrors contents ->
-    List.iter (fun c -> Message.Content.emit c Error) contents;
+    Message.Content.emit_n contents Error;
     exit Cmd.Exit.some_error
   | Sys.Break ->
     let bt = Printexc.get_raw_backtrace () in

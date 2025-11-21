@@ -84,6 +84,7 @@ val forall : Var.t list -> t Bindlib.box -> Pos.t -> t
 (** The opposite of [unbind]: constructs a [TForAll] quantified type *)
 
 val fresh_var : Pos.t -> t
+val error : Pos.t -> t
 
 val any : Pos.t -> t
 (** deprecated, TODO replace with fresh_var *)

@@ -142,7 +142,7 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EFatalError _ | EPos _ | EIfThenElse _ ->
+  | ELit _ | EAssert _ | EFatalError _ | EPos _ | EIfThenElse _ | EBad ->
     Expr.map_gather ~acc:Var.Map.empty ~join:join_vars
       ~f:(transform_closures_expr ctx)
       e
@@ -584,7 +584,7 @@ let rec hoist_closures_expr :
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
   | EArray _ | ELit _ | EAssert _ | EFatalError _ | EPos _ | EAppOp _
-  | EIfThenElse _ | EVar _ ->
+  | EIfThenElse _ | EVar _ | EBad ->
     Expr.map_gather ~acc:[] ~join:( @ )
       ~f:(hoist_closures_expr flags name_context)
       e

@@ -376,16 +376,22 @@ module Content = struct
     | GNU -> gnu_msg ?header ppf target content
     | Lsp -> lsp_msg ppf content
 
-  let emit_n ?ppf (errs : t list) (target : level) =
-    match errs with
-    | [content] -> emit_raw ?ppf content target
+  let emit_n
+      ?ppf
+      (errs_and_bt : (t * Printexc.raw_backtrace) list)
+      (target : level) =
+    match errs_and_bt with
+    | [(content, bt)] ->
+      emit_raw ?ppf content target;
+      if Global.options.debug then Printexc.print_raw_backtrace stderr bt
     | contents ->
       let ppf = Option.value ~default:(get_ppf target) ppf in
       let len = List.length contents in
       List.iteri
-        (fun i c ->
+        (fun i (c, bt) ->
           let header = Printf.sprintf "%d/%d" (succ i) len in
-          emit_raw ~ppf ~header c target)
+          emit_raw ~ppf ~header c target;
+          if Global.options.debug then Printexc.print_raw_backtrace stderr bt)
         contents
 
   let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
@@ -396,7 +402,7 @@ open Content
 (** {1 Error exception} *)
 
 exception CompilerError of Content.t
-exception CompilerErrors of Content.t list
+exception CompilerErrors of (Content.t * Printexc.raw_backtrace) list
 
 type lsp_error_kind =
   | Lexing
@@ -429,6 +435,7 @@ let register_lsp_error_absorber f = global_error_hook := Some f
 type ('a, 'b) emitter =
   ?header:Content.message ->
   ?internal:bool ->
+  ?main_pos:Pos.t ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
   ?extra_pos:(string * Pos.t) list ->
@@ -441,6 +448,7 @@ type ('a, 'b) emitter =
 let make
     ?header
     ?(internal = false)
+    ?main_pos:_
     ?pos
     ?pos_msg
     ?extra_pos
@@ -501,18 +509,22 @@ let result = make ~level:Result ~cont:emit
 let results ?title r =
   emit_raw ?header:title (List.flatten (List.map of_result r)) Result
 
-let join_pos ~pos ~fmt_pos ~extra_pos =
+let join_pos ~main_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
-     for each of them and prioritize in this order [fmt_pos] > [extra_pos] >
-     [pos] if multiple positions are present. *)
-  match fmt_pos, extra_pos, pos with
-  | Some ((_, pos) :: _), _, _ | _, Some ((_, pos) :: _), _ | _, _, Some pos ->
+     for each of them and prioritize in this order [main_pos] > [fmt_pos] >
+     [extra_pos] > [pos] if multiple positions are present. *)
+  match main_pos, fmt_pos, extra_pos, pos with
+  | Some pos, _, _, _
+  | _, Some ((_, pos) :: _), _, _
+  | _, _, Some ((_, pos) :: _), _
+  | _, _, _, Some pos ->
     Some pos
   | _ -> None
 
 let warning
     ?header
     ?internal
+    ?main_pos
     ?pos
     ?pos_msg
     ?extra_pos
@@ -525,84 +537,75 @@ let warning
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Warning in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
           ignore (f { kind = Warning; message; pos; suggestion }))
         !global_error_hook;
       emit m x)
 
 let error ?(kind = Generic) : ('a, 'exn) emitter =
- fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-     fmt ->
+ fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+     ?suggestion fmt ->
   make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
     fmt ~level:Error ~cont:(fun m _ ->
       Option.iter
         (fun f ->
           let message ppf = Content.emit ~ppf m Error in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
+          let pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
           ignore (f { kind; message; pos; suggestion }))
         !global_error_hook;
       raise (CompilerError m))
 
 (* Multiple errors handling *)
 
-type global_errors = {
-  mutable errors : t list option;
-  mutable stop_on_error : bool;
+type delayed_errors = {
+  mutable rev_delayed_errors : (t * Printexc.raw_backtrace) list;
 }
 
-let global_errors = { errors = None; stop_on_error = false }
+let global_errors = { rev_delayed_errors = [] }
+
+let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
+  let register_error =
+    match !global_error_hook with
+    | Some f ->
+      let message ppf = Content.emit ~ppf m Error in
+      let pos =
+        match main_pos with
+        | Some p -> p
+        | None ->
+          List.find_map (function Position pos -> Some pos.pos | _ -> None) m
+      in
+      f { kind; message; pos; suggestion = None }
+    | None -> true
+  in
+  if register_error then (
+    let bt = Printexc.get_raw_backtrace () in
+    if Global.options.stop_on_error then
+      Printexc.raise_with_backtrace (CompilerError m) bt;
+    global_errors.rev_delayed_errors <-
+      (m, bt) :: global_errors.rev_delayed_errors)
 
 let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
- fun ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-     fmt ->
-  make ?header ?internal ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome ?suggestion
-    fmt ~level:Error ~cont:(fun m _ ->
-      let register_error =
-        match !global_error_hook with
-        | Some f ->
-          let message ppf = Content.emit ~ppf m Error in
-          let pos = join_pos ~pos ~fmt_pos ~extra_pos in
-          f { kind; message; pos; suggestion }
-        | None -> true
-      in
-      if register_error then (
-        if global_errors.stop_on_error then raise (CompilerError m);
-        match global_errors.errors with
-        | None ->
-          error ~internal:true
-            "delayed error called outside scope: encapsulate using \
-             'with_delayed_errors' first"
-        | Some l ->
-          global_errors.errors <- Some (m :: l);
-          x)
-      else x)
+ fun ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+     ?suggestion fmt ->
+  make ?header ?internal ?main_pos ?pos ?pos_msg ?extra_pos ?fmt_pos ?outcome
+    ?suggestion fmt ~level:Error ~cont:(fun m _ ->
+      let main_pos = join_pos ~main_pos ~pos ~fmt_pos ~extra_pos in
+      register_content_as_delayed_error ~kind ~main_pos m;
+      x)
 
-let with_delayed_errors
-    ?(stop_on_error = Global.options.stop_on_error)
-    (f : unit -> 'a) : 'a =
-  (match global_errors.errors with
-  | None -> global_errors.errors <- Some []
-  | Some _ -> error ~internal:true "nested call to 'with_delayed_errors'");
-  global_errors.stop_on_error <- stop_on_error;
-  let result =
-    match f () with
-    | r -> Either.Left r
-    | exception CompilerError err ->
-      let bt = Printexc.get_raw_backtrace () in
-      Either.Right (err, bt)
-    | exception e ->
-      global_errors.errors <- None;
-      raise e
-  in
-  let errs = global_errors.errors in
-  global_errors.errors <- None;
-  match errs, result with
-  | (None | Some []), Either.Right (e, bt) ->
-    Printexc.raise_with_backtrace (CompilerError e) bt
-  | None, Either.Left _ ->
-    error ~internal:true "intertwined delayed error scope"
-  | Some [], Either.Left result -> result
-  | Some [err], Either.Left _ -> raise (CompilerError err)
-  | Some errs, Either.Left _ -> raise (CompilerErrors (List.rev errs))
-  | Some errs, Either.Right (err, bt) ->
-    Printexc.raise_with_backtrace (CompilerErrors (List.rev (err :: errs))) bt
+let wrap_to_delayed_error ?(kind = Generic) x f =
+  try f ()
+  with CompilerError m ->
+    register_content_as_delayed_error ~kind m;
+    x
+
+let report_delayed_errors_if_any () =
+  match global_errors.rev_delayed_errors with
+  | [] -> ()
+  | rev_delayed_errors ->
+    (* reinitialize the global state for reentrancy *)
+    global_errors.rev_delayed_errors <- [];
+    raise (CompilerErrors (List.rev rev_delayed_errors))
+
+let combine_with_pending_errors content bt =
+  List.rev ((content, bt) :: global_errors.rev_delayed_errors)

@@ -157,7 +157,7 @@ let rec format_typ
   | TVar v ->
     Format.fprintf fmt "%svoid * /* any %s */%t" sconst (Bindlib.name_of v)
       element_name
-  | TForAll _ -> assert false
+  | TForAll _ | TError -> assert false
   | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
 
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :

@@ -187,6 +187,8 @@ let escopecall ~scope ~args mark =
              (fun (pos, e) -> Bindlib.box_apply (fun e -> pos, e) (Box.lift e))
              args))
 
+let ebad mark = Mark.add mark (Bindlib.box EBad)
+
 (* - Manipulation of marks - *)
 
 let no_mark : type m. m mark -> m mark = function
@@ -376,6 +378,7 @@ let map
     escopecall ~scope ~args m
   | ECustom { obj; targs; tret } ->
     ecustom obj (List.map typ targs) (typ tret) m
+  | EBad -> ebad m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
@@ -415,6 +418,7 @@ let shallow_fold
   | EScopeCall { args; _ } ->
     acc |> ScopeVar.Map.fold (fun _ (_p, e) -> f e) args
   | ECustom _ -> acc
+  | EBad -> acc
 
 (* Like [map], but also allows to gather a result bottom-up. *)
 let map_gather
@@ -532,6 +536,7 @@ let map_gather
     in
     acc, escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
+  | EBad -> acc, ebad m
 
 (* - *)
 
@@ -716,11 +721,12 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
+  | EBad, EBad -> true
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EPos _
       | EDefault _ | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _
       | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
-      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
+      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ | EBad ),
       _ ) ->
     false
 
@@ -815,6 +821,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EEmpty, EEmpty -> 0
   | EErrorOnEmpty e1, EErrorOnEmpty e2 ->
     compare e1 e2
+  | EBad, EBad -> 0
   | ECustom _, _ | _, ECustom _ ->
     (* fixme: ideally this would be forbidden by typing *)
     invalid_arg "Custom block comparison"
@@ -842,6 +849,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmpty , _ -> -1 | _, EEmpty  -> 1
+  | EBad, _ -> -1 | _, EBad -> 1
   | EErrorOnEmpty _, _ -> . | _, EErrorOnEmpty _ -> .
 
 let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
@@ -872,7 +880,7 @@ let format ppf e = Print.expr ~debug:false () ppf e
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Mark.remove e with
-  | EVar _ | EExternal _ | ELit _ | EEmpty | ECustom _ -> 1
+  | EVar _ | EExternal _ | ELit _ | EEmpty | ECustom _ | EBad -> 1
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1

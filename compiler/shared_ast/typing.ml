@@ -245,6 +245,8 @@ let rec union
   let pos2 = Mark.get t2 in
   let record_type_error () = record_type_error env (AnyExpr e) t1 t2 in
   match Mark.remove t1, Mark.remove t2 with
+  | TError, _ -> t1
+  | _, TError -> t2
   | TLit tl1, TLit tl2 ->
     if tl1 <> tl2 then record_type_error ();
     t2
@@ -320,9 +322,12 @@ let rec union
     let t =
       match Env.get_tvar env v1 with
       | None -> t2
-      | Some t1 ->
+      | Some t1 -> (
         Env.set_tvar env v1 t2;
-        union t1 t2
+        try union t1 t2
+        with Message.CompilerError _ as exn ->
+          Env.set_tvar env v1 t1;
+          raise exn)
     in
     Env.set_tvar env v1 t;
     t
@@ -442,15 +447,20 @@ let polymorphic_op_return_type
 
 let resolve_overload_ret_type
     ~flags:_
-    _e
+    e
     (op : Operator.overloaded operator Mark.pos)
     tys : typ =
+  Message.wrap_to_delayed_error ~kind:Typing (Type.error (Expr.pos e))
+  @@ fun () ->
   let op_ty = Operator.overload_type op tys in
   Type.arrow_return op_ty
 
 (** {1 Double-directed typing} *)
 
 let expr_ty env ((_, Custom { custom; _ }) as e) = get_ty env e custom
+
+let error_expr () : (< .. >, typ custom) boxed_gexpr =
+  Expr.ebad (Custom { custom = TError, Pos.void; pos = Pos.void })
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
@@ -490,6 +500,8 @@ and typecheck_expr_top_down :
   in
   match Mark.remove e with
   | ELocation loc ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let ty_opt =
       match loc with
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
@@ -504,6 +516,8 @@ and typecheck_expr_top_down :
     in
     Expr.elocation loc (mark_with_tau_and_unify ty)
   | EStruct { name; fields } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let mark = mark_with_tau_and_unify (TStruct name, pos_e) in
     let str_ast = StructName.Map.find name ctx.ctx_structs in
     let str = StructName.Map.find name env.structs in
@@ -545,6 +559,8 @@ and typecheck_expr_top_down :
     in
     Expr.estruct ~name ~fields mark
   | EDStructAmend { name_opt = _; e; fields } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let e = typecheck_expr_top_down ctx env tau e in
     let name =
       match expr_ty env e with
@@ -564,125 +580,136 @@ and typecheck_expr_top_down :
        and duplicate the checks here. *)
     Expr.edstructamend ~name_opt:(Some name) ~e ~fields context_mark
   | EDStructAccess { e = e_struct; name_opt; field } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let t_struct =
       match name_opt with
       | Some name -> TStruct name, pos_e
       | None -> Type.fresh_var pos_e
     in
     let e_struct' = typecheck_expr_top_down ctx env t_struct e_struct in
-    let name_opt =
-      match expr_ty env e_struct' with
-      | TStruct name, _ -> Some name
-      | TForAll _, _ | TVar _, _ -> None
-      | ty ->
-        Message.error ~pos:(Expr.pos e)
-          "This is not a structure, cannot access field @{<magenta>%s@}@ \
-           (found type: %a)"
-          field Type.format ty
-    in
-    let name, field =
-      let candidate_structs =
-        try Ident.Map.find field ctx.ctx_struct_fields
-        with Ident.Map.Not_found _ -> (
-          match name_opt with
-          | None ->
-            Message.error
-              ~pos:(Expr.mark_pos context_mark)
-              "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ any@ known@ \
-               structure"
-              field StructName.format
-          (* Since we were unable to disambiguate, we can't get any hints at
-             this point (but explaining the situation in more detail would
-             probably not be helpful) *)
-          | Some name -> (
-            match
-              ScopeName.Map.choose_opt
-              @@ ScopeName.Map.filter
-                   (fun _ { out_struct_name; _ } ->
-                     StructName.equal out_struct_name name)
-                   ctx.ctx_scopes
-            with
-            | Some (scope_out, _) ->
-              let str =
-                try StructName.Map.find name env.structs
-                with StructName.Map.Not_found _ ->
-                  Message.error ~pos:pos_e "No structure %a found"
-                    StructName.format name
-              in
-              Message.error
-                ~fmt_pos:
-                  [
-                    ( (fun ppf ->
-                        Format.fprintf ppf
-                          "@{<magenta>%s@} is used here as an output" field),
-                      Expr.mark_pos context_mark );
-                    ( (fun ppf ->
-                        Format.fprintf ppf "Scope %a is declared here"
-                          ScopeName.format scope_out),
-                      Mark.get (StructName.get_info name) );
-                  ]
-                "Variable @{<magenta>%s@} is not a declared output of scope %a."
-                field ScopeName.format scope_out
-                ~suggestion:
-                  (Suggestions.sorted_candidates
-                     (List.map StructField.to_string (StructField.Map.keys str))
-                     field)
+    let e_struct'_ty = expr_ty env e_struct' in
+    if Mark.remove e_struct'_ty = TError then error_expr ()
+    else
+      let name_opt =
+        match e_struct'_ty with
+        | TStruct name, _ -> Some name
+        | TForAll _, _ | TVar _, _ -> None
+        | ty ->
+          Message.error ~pos:(Expr.pos e)
+            "This is not a structure, cannot access field @{<magenta>%s@}@ \
+             (found type: %a)"
+            field Type.format ty
+      in
+      let name, field =
+        let candidate_structs =
+          try Ident.Map.find field ctx.ctx_struct_fields
+          with Ident.Map.Not_found _ -> (
+            match name_opt with
             | None ->
               Message.error
-                ~extra_pos:
-                  [
-                    "", Expr.mark_pos context_mark;
-                    "Structure definition", Mark.get (StructName.get_info name);
-                  ]
-                "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ structure@ \
-                 @{<yellow>\"%a\"@}."
-                field StructName.format name
-                ~suggestion:
-                  (Suggestions.sorted_candidates
-                     (Ident.Map.keys ctx.ctx_struct_fields)
-                     field)))
+                ~pos:(Expr.mark_pos context_mark)
+                "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ any@ known@ \
+                 structure"
+                field StructName.format
+            (* Since we were unable to disambiguate, we can't get any hints at
+               this point (but explaining the situation in more detail would
+               probably not be helpful) *)
+            | Some name -> (
+              match
+                ScopeName.Map.choose_opt
+                @@ ScopeName.Map.filter
+                     (fun _ { out_struct_name; _ } ->
+                       StructName.equal out_struct_name name)
+                     ctx.ctx_scopes
+              with
+              | Some (scope_out, _) ->
+                let str =
+                  try StructName.Map.find name env.structs
+                  with StructName.Map.Not_found _ ->
+                    Message.error ~pos:pos_e "No structure %a found"
+                      StructName.format name
+                in
+                Message.error
+                  ~fmt_pos:
+                    [
+                      ( (fun ppf ->
+                          Format.fprintf ppf
+                            "@{<magenta>%s@} is used here as an output" field),
+                        Expr.mark_pos context_mark );
+                      ( (fun ppf ->
+                          Format.fprintf ppf "Scope %a is declared here"
+                            ScopeName.format scope_out),
+                        Mark.get (StructName.get_info name) );
+                    ]
+                  "Variable @{<magenta>%s@} is not a declared output of scope \
+                   %a."
+                  field ScopeName.format scope_out
+                  ~suggestion:
+                    (Suggestions.sorted_candidates
+                       (List.map StructField.to_string
+                          (StructField.Map.keys str))
+                       field)
+              | None ->
+                Message.error
+                  ~extra_pos:
+                    [
+                      "", Expr.mark_pos context_mark;
+                      ( "Structure definition",
+                        Mark.get (StructName.get_info name) );
+                    ]
+                  "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ \
+                   structure@ @{<yellow>\"%a\"@}."
+                  field StructName.format name
+                  ~suggestion:
+                    (Suggestions.sorted_candidates
+                       (Ident.Map.keys ctx.ctx_struct_fields)
+                       field)))
+        in
+        match name_opt with
+        | None ->
+          if StructName.Map.cardinal candidate_structs = 1 then
+            StructName.Map.choose candidate_structs
+          else
+            Message.error
+              ~pos:(Expr.mark_pos context_mark)
+              "@[<v>@[<hov>Ambiguous field access @{<cyan>%s@}:@ the@ parent@ \
+               structure@ could@ not@ be@ determined@ at@ this@ point.@ The@ \
+               following@ structures@ have@ a@ field@ by@ this@ name:@]@,\
+               @[<v>%a@]@,\
+               @[<hov>@{<b>Hint@}: explicit the structure the field belongs to \
+               using@ x.@{<cyan>StructName@}.@{<magenta>%s@}@ (or@ \
+               x.@{<blue>ModuleName@}.@{<cyan>StructName@}.@{<magenta>%s@})@]@]"
+              field
+              (Format.pp_print_list (fun fmt s_name ->
+                   Format.fprintf fmt "- %a" StructName.format s_name))
+              (StructName.Map.keys candidate_structs)
+              field field
+        | Some name -> (
+          try name, StructName.Map.find name candidate_structs
+          with StructName.Map.Not_found _ ->
+            Message.error
+              ~pos:(Expr.mark_pos context_mark)
+              "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ structure@ %a@ \
+               (however, structure@ %a@ defines@ it).@]"
+              field StructName.format name
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+                 StructName.format)
+              (StructName.Map.keys candidate_structs))
       in
-      match name_opt with
-      | None ->
-        if StructName.Map.cardinal candidate_structs = 1 then
-          StructName.Map.choose candidate_structs
-        else
-          Message.error
-            ~pos:(Expr.mark_pos context_mark)
-            "@[<v>@[<hov>Ambiguous field access @{<cyan>%s@}:@ the@ parent@ \
-             structure@ could@ not@ be@ determined@ at@ this@ point.@ The@ \
-             following@ structures@ have@ a@ field@ by@ this@ name:@]@,\
-             @[<v>%a@]@,\
-             @[<hov>@{<b>Hint@}: explicit the structure the field belongs to \
-             using@ x.@{<cyan>StructName@}.@{<magenta>%s@}@ (or@ \
-             x.@{<blue>ModuleName@}.@{<cyan>StructName@}.@{<magenta>%s@})@]@]"
-            field
-            (Format.pp_print_list (fun fmt s_name ->
-                 Format.fprintf fmt "- %a" StructName.format s_name))
-            (StructName.Map.keys candidate_structs)
-            field field
-      | Some name -> (
-        try name, StructName.Map.find name candidate_structs
+      let str =
+        try StructName.Map.find name env.structs
         with StructName.Map.Not_found _ ->
-          Message.error
-            ~pos:(Expr.mark_pos context_mark)
-            "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ structure@ %a@ \
-             (however, structure@ %a@ defines@ it).@]"
-            field StructName.format name
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-               StructName.format)
-            (StructName.Map.keys candidate_structs))
-    in
-    let str =
-      try StructName.Map.find name env.structs
-      with StructName.Map.Not_found _ ->
-        Message.error ~pos:pos_e "No structure %a found" StructName.format name
-    in
-    let fld_ty = StructField.Map.find field str in
-    let mark = mark_with_tau_and_unify fld_ty in
-    Expr.estructaccess ~name ~e:e_struct' ~field mark
+          Message.error ~pos:pos_e "No structure %a found" StructName.format
+            name
+      in
+      let fld_ty = StructField.Map.find field str in
+      let mark = mark_with_tau_and_unify fld_ty in
+      Expr.estructaccess ~name ~e:e_struct' ~field mark
   | EStructAccess { e = e_struct; name; field } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let fld_ty =
       let str =
         try StructName.Map.find name env.structs
@@ -792,11 +819,13 @@ and typecheck_expr_top_down :
       match Env.get env v with
       | Some t -> Type.unquantify t
       | None ->
-        Message.error ~pos:pos_e "Variable %s not found in the current context"
-          (Bindlib.name_of v)
+        Message.delayed_error (TError, Pos.void) ~pos:pos_e
+          "Variable %s not found in the current context" (Bindlib.name_of v)
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | EExternal { name } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let ty =
       let not_found pr x =
         Message.error ~pos:pos_e
@@ -827,6 +856,8 @@ and typecheck_expr_top_down :
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
     Expr.etuple es' mark
   | ETupleAccess { e = e1; index; size } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let out_of_bounds size =
       Message.error ~pos:pos_e "Tuple access out of bounds (%d/%d)" index size
     in
@@ -858,6 +889,8 @@ and typecheck_expr_top_down :
     in
     Expr.etupleaccess ~e:e1' ~index ~size mark
   | EAbs { binder; pos; tys = t_args } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     (* Polymorphism is only allowed, explicitely, on toplevel definitions : if
        it happens here, the corresponding type variables will already have been
        set. Consequently, we don't quantify Type.fresh_var variables here. *)
@@ -894,6 +927,8 @@ and typecheck_expr_top_down :
     let tys = List.map2 (get_ty env) args t_args in
     Expr.eapp ~f:e1' ~args:args' ~tys context_mark
   | EApp { f = e1; args; tys } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     (* Non-letin application: the arguments may need to be detuplified ; the
        type of the function should be checked for implicit arguments *)
     let e1 = typecheck_expr_bottom_up ctx env e1 in
@@ -942,6 +977,8 @@ and typecheck_expr_top_down :
     in
     Expr.eapp ~f:e1 ~args:args' ~tys (mark_with_tau_and_unify t_ret)
   | EAppOp { op; tys = t_args; args } ->
+    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    @@ fun () ->
     let t_func = TArrow (t_args, tau), pos_e in
     let args =
       Operator.kind_dispatch (Mark.set pos_e op)
@@ -974,9 +1011,12 @@ and typecheck_expr_top_down :
         ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
-          unify env e tau
-            (resolve_overload_ret_type ~flags e op
-               (List.map2 (get_ty env) args t_args));
+          if
+            not (List.exists (function TError, _ -> true | _ -> false) t_args)
+          then
+            unify env e tau
+              (resolve_overload_ret_type ~flags e op
+                 (List.map2 (get_ty env) args t_args));
           args')
         ~monomorphic:(fun op ->
           (* Here it doesn't matter but may affect the error messages *)
@@ -1030,6 +1070,9 @@ and typecheck_expr_top_down :
   | ECustom { obj; targs; tret } ->
     let mark = mark_with_tau_and_unify (TArrow (targs, tret), Expr.pos e) in
     Expr.ecustom obj targs tret mark
+  | EBad ->
+    (* Expression should not be typechecked *)
+    Expr.ebad (Custom { pos = Expr.pos e; custom = TError, Expr.pos e })
 
 (** {1 API} *)
 
@@ -1204,7 +1247,7 @@ let program ?assume_op_types prg =
 let program ?assume_op_types ?(internal_check = false) prg =
   let wrap =
     if internal_check then (fun f ->
-      try Message.with_delayed_errors f
+      try f ()
       with (Message.CompilerError _ | Message.CompilerErrors _) as exc ->
         let bt = Printexc.get_raw_backtrace () in
         let err =
@@ -1213,13 +1256,15 @@ let program ?assume_op_types ?(internal_check = false) prg =
             Message.CompilerError (Message.Content.to_internal_error err)
           | Message.CompilerErrors errs ->
             Message.CompilerErrors
-              (List.map Message.Content.to_internal_error errs)
+              (List.map
+                 (fun (err, bt) -> Message.Content.to_internal_error err, bt)
+                 errs)
           | _ -> assert false
         in
         Message.debug "@[<v>Faulty intermediate program:@,%a@]"
           (Print.program ~debug:true)
           prg;
         Printexc.raise_with_backtrace err bt)
-    else fun f -> Message.with_delayed_errors f
+    else fun f -> f ()
   in
   wrap @@ fun () -> program ?assume_op_types prg

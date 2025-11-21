@@ -21,6 +21,12 @@ module SurfacePrint = Surface.Print
 open Shared_ast
 module Runtime = Catala_runtime
 
+let fold_left_catch_errors f init l =
+  List.fold_left
+    (fun acc e ->
+      Message.wrap_to_delayed_error ~kind:Parsing acc @@ fun () -> f acc e)
+    init l
+
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
 
     - Removes syntactic sugars
@@ -302,6 +308,10 @@ let rec translate_expr
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
     (expr : S.expression) : Ast.expr boxed =
+  let pos = Name_resolution.(translate_pos Expression (Mark.get expr)) in
+  let emark = Untyped { pos } in
+  Message.wrap_to_delayed_error (Expr.ebad emark) ~kind:Parsing
+  @@ fun () ->
   let scope_vars =
     match scope with
     | None -> Ident.Map.empty
@@ -381,8 +391,6 @@ let rec translate_expr
         [Type.any pos]
         pos
   in
-  let pos = Name_resolution.(translate_pos Expression (Mark.get expr)) in
-  let emark = Untyped { pos } in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
   | Binop
@@ -586,7 +594,7 @@ let rec translate_expr
       uid, ScopeName.Map.find uid ctxt.scopes
     in
     let in_struct =
-      List.fold_left
+      fold_left_catch_errors
         (fun acc (fld_id, e) ->
           let var =
             match
@@ -636,7 +644,7 @@ let rec translate_expr
       (fun args -> Expr.eapp ~f ~args ~tys emark)
   | StructReplace (e, fields) ->
     let fields =
-      List.fold_left
+      fold_left_catch_errors
         (fun acc (field_id, field_expr) ->
           if Ident.Map.mem (Mark.remove field_id) acc then
             Message.error ~pos:(Mark.get field_expr)
@@ -663,7 +671,7 @@ let rec translate_expr
           "This identifier should refer to a struct name."
     in
     let s_fields =
-      List.fold_left
+      fold_left_catch_errors
         (fun s_fields (f_name, f_e) ->
           let f_uid =
             try
@@ -1660,7 +1668,7 @@ let process_scope_use
   let () = assert (ScopeName.Map.mem scope_uid modul.module_scopes) in
   let precond = use.scope_use_condition in
   List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
-  List.fold_left
+  fold_left_catch_errors
     (process_scope_use_item precond scope_uid ctxt)
     modul use.scope_use_items
 
@@ -2065,7 +2073,7 @@ let translate_program
     }
   in
   let process_code_block ctxt modul ~is_meta block =
-    List.fold_left
+    fold_left_catch_errors
       (fun modul item ->
         match Mark.remove item with
         | S.ScopeUse use -> process_scope_use ctxt modul use
@@ -2078,7 +2086,7 @@ let translate_program
       Ast.modul =
     match item with
     | S.LawHeading (_, children) ->
-      List.fold_left
+      fold_left_catch_errors
         (fun modul child -> process_structure ctxt modul child)
         modul children
     | S.CodeBlock (block, _, is_meta) ->
@@ -2089,7 +2097,7 @@ let translate_program
     {
       desugared with
       program_root =
-        List.fold_left (process_structure ctxt) desugared.program_root
+        fold_left_catch_errors (process_structure ctxt) desugared.program_root
           surface.S.program_items;
     }
   in
@@ -2171,7 +2179,7 @@ let translate_program
               (* Unreachable: nothing to do *)
               assert false
             | Code module_items ->
-              List.fold_left (process_structure ctxt) modul module_items
+              fold_left_catch_errors (process_structure ctxt) modul module_items
           in
           let program_modules =
             ModuleName.Map.add mn modul prgm.program_modules

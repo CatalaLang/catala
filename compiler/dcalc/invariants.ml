@@ -150,6 +150,10 @@ let rec check_typ_no_default ctx ty =
     Message.error ~internal:true
       "Some Dcalc invariants are invalid: TClosureEnv was found whereas it \
        should only appear later in the compilation process."
+  | TError ->
+    Message.error ~internal:true
+      "Some Dcalc invariants are invalid: TError was found whereas it should \
+       only appear later in the compilation process."
 
 let check_type_thunked_or_nodefault ctx ty =
   check_typ_no_default ctx ty

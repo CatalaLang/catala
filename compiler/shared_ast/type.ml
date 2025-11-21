@@ -36,8 +36,9 @@ let rec equal ty1 ty2 =
   | TVar tv1, TVar tv2 -> Bindlib.eq_vars tv1 tv2
   | TForAll tb1, TForAll tb2 -> Bindlib.eq_mbinder equal tb1 tb2
   | TClosureEnv, TClosureEnv -> true
+  | TError, TError -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TDefault _ | TForAll _ | TVar _ | TClosureEnv ),
+      | TArray _ | TDefault _ | TForAll _ | TVar _ | TClosureEnv | TError ),
       _ ) ->
     false
 
@@ -59,6 +60,7 @@ let rec compare (ty1 : t) (ty2 : t) =
     let _, ty1, ty2 = Bindlib.unmbind2 tb1 tb2 in
     compare ty1 ty2
   | TClosureEnv, TClosureEnv -> 0
+  | TError, TError -> 0
   | TLit _, _ -> -1
   | _, TLit _ -> 1
   | TTuple _, _ -> -1
@@ -79,8 +81,10 @@ let rec compare (ty1 : t) (ty2 : t) =
   | _, TVar _ -> 1
   | TForAll _, _ -> -1
   | _, TForAll _ -> 1
-(* | TClosureEnv, _ -> -1
- * | _, TClosureEnv -> 1 *)
+  | TClosureEnv, _ -> -1
+  | _, TClosureEnv -> 1
+(* | TError, _ -> -1 *)
+(* | _, TError -> -1 *)
 
 let format = Print.typ
 
@@ -112,7 +116,8 @@ let shallow_fold f ty acc =
       | TArrow (tl, ty) -> lfold tl (f ty acc)
       | TForAll tb ->
         let _v, ty = Bindlib.unmbind tb in
-        f ty acc)
+        f ty acc
+      | TError -> acc)
     ty
 
 let rec free_vars (ty : t) =
@@ -153,6 +158,7 @@ let forall vars t pos =
   TForAll (Bindlib.unbox (Bindlib.bind_mvar (Array.of_list vars) t)), pos
 
 let fresh_var pos = TVar (Var.fresh ()), pos
+let error pos = TError, pos
 
 (* TODO: deprecate and replace with fresh_var *)
 let any = fresh_var
@@ -190,6 +196,7 @@ let rec unifiable (ty1 : t) (ty2 : t) =
   | (TArray t1, _), (TArray t2, _) -> unifiable t1 t2
   | (TDefault t1, _), (TDefault t2, _) -> unifiable t1 t2
   | (TClosureEnv, _), (TClosureEnv, _) -> true
+  | (TError, _), _ | _, (TError, _) -> true
   | ( ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
         | TArray _ | TDefault _ | TClosureEnv ),
         _ ),
@@ -221,6 +228,7 @@ let map : (t -> t Bindlib.box) -> t -> t Bindlib.box =
     let tv, ty = Bindlib.unmbind tb in
     (fun tb -> TForAll tb) @& Bindlib.bind_mvar tv (f ty)
   | TClosureEnv -> Bindlib.box (TClosureEnv, m)
+  | TError -> Bindlib.box (TError, m)
 
 let rec rebox ty = map rebox ty
 
@@ -244,6 +252,7 @@ let hash ~strip (ty : t) =
       let _, ty, ctx = Bindlib.unmbind_in ctx tb in
       !`TForAll % aux ctx ty
     | TClosureEnv -> !`TClosureEnv
+    | TError -> !`TError
   in
   aux Bindlib.empty_ctxt ty
 
@@ -253,7 +262,7 @@ let rec has_arrow decl_ctx (ty : t) =
   match Mark.remove ty with
   | TArrow _ -> true
   | TLit _ -> false
-  | TVar _ | TForAll _ | TClosureEnv -> invalid_arg "Type.has_arrow"
+  | TVar _ | TForAll _ | TClosureEnv | TError -> invalid_arg "Type.has_arrow"
   | TTuple tl -> List.exists (has_arrow decl_ctx) tl
   | TStruct n ->
     StructField.Map.exists
@@ -280,6 +289,7 @@ let rec fully_known (ty : t) =
   | TStruct _ -> true
   | TEnum _ -> true
   | TOption ty | TArray ty | TDefault ty -> fully_known ty
+  | TError -> true
 
 module Map = Map.Make (struct
   type nonrec t = t

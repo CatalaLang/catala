@@ -528,6 +528,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
   | EFatalError err, _ ->
     error e0 "%a" Format.pp_print_text (Runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
+  | EBad, _ -> assert false
   | _ -> .
 
 let result_level base_vars =

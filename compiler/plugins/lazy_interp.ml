@@ -223,6 +223,7 @@ let rec lazy_eval :
   | EFatalError err, m ->
     error e0 "%a" Format.pp_print_text (Catala_runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
+  | EBad, _ -> assert false
   | _ -> .
 
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
