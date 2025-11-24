@@ -794,7 +794,6 @@ module Commands = struct
        check full name-resolution and cycle detection. These are checked during
        translation to dcalc so we run it here and drop the result. *)
     let prg = Dcalc.From_scopelang.translate_program prg in
-
     (* Additionally, we might want to check the invariants. *)
     if check_invariants then (
       let prg = Shared_ast.Typing.program prg in
@@ -999,6 +998,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
+          let () = Interpreter.Environment.evaluate_with_coverage prg scope in
           print_interpretation_results ~code_coverage ~quiet options
             (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
             prg scope

@@ -36,7 +36,7 @@ let mark_all add e =
       glob := Some m)
     !glob
 
-open Definitions
+type t = Reached | Reachable
 
 let rec reachable e map =
   let m = Mark.get e in
@@ -44,59 +44,43 @@ let rec reachable e map =
   let map = Pos_map.reachable loc map in
   Expr.shallow_fold reachable e map
 
-let compute_reachable_dcalc (p : (dcalc, 'm) gexpr program) =
-  let htbl = Hashtbl.create 13 in
-  let add p x =
-    Format.eprintf "adding %a@." Pos.format_loc_text p;
-    Hashtbl.add htbl p x
-  in
-  let rec loop (e : (dcalc, 'm) gexpr) =
-    let pos = Expr.mark_pos (Mark.get e) in
-    let e = Mark.remove e in
-    match e with
-    (* atoms *)
-    | ELit _ -> add pos Pos_map.Reach
-    | EPos _ -> add pos Pos_map.Reach
-    | EVar _ -> add pos Pos_map.Reach
-    | EExternal _ -> add pos Pos_map.Reach
-    (**** ignored ****)
-    | ELocation _ | EFatalError _ | EEmpty | EBad (* | ECustom _ *) -> ()
-    (**** direct recursion ****)
-    | EInj { e; _ }
-    | EPureDefault e
-    | EErrorOnEmpty e
-    | ETupleAccess { e; _ }
-    (* | EDStructAccess { e; _ } *)
-    | EStructAccess { e; _ }
-    | EAssert e ->
-      loop e
-    (**** non-trivial ****)
-    | EApp { f = e; args; _ } ->
-      loop e;
-      List.iter loop args
-    | EAbs { binder; pos = _; tys = _ } ->
-      let _, body = Bindlib.unmbind binder in
-      loop body
-    | EArray args | ETuple args -> List.iter loop args
-    (* | EScopeCall { args; _ } -> ScopeVar.Map.iter (fun _ (_p, e) -> loop e)
-       args *)
-    | EStruct { fields; _ } -> StructField.Map.iter (fun _ e -> loop e) fields
-    | EAppOp { args; _ } -> List.iter loop args
-    | EIfThenElse { cond; etrue; efalse } ->
-      loop cond;
-      loop etrue;
-      loop efalse
-    | EDefault { excepts; just; cons } ->
-      List.iter loop excepts;
-      loop just;
-      loop cons
-    | EMatch { e; cases; _ } ->
-      loop e;
-      EnumConstructor.Map.iter (fun _ e -> loop e) cases
-  in
+module Coverage_map = Position_map.Make (struct
+  type nonrec t = t
 
-  Program.fold_exprs ~f:(fun () e _typ -> loop e) ~init:() p;
-  htbl
+  let compare = compare
+
+  let format fmt x =
+    let rgb_of i = i / 256 / 256 mod 256, i / 256 mod 256, i mod 256 in
+    let pale_green =
+      let r24, g24, b24 = rgb_of 0xc7cb85 in
+      Ocolor_types.C24 { r24; g24; b24 }
+    in
+    let orange =
+      let r24, g24, b24 = rgb_of 0xe7a977 in
+      Ocolor_types.C24 { r24; g24; b24 }
+    in
+    (match x with
+    | Reached ->
+      Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg pale_green));
+      Format.fprintf fmt "Reached"
+    | Reachable ->
+      Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg orange));
+      Format.fprintf fmt "Reachable");
+    Format.pp_close_stag fmt ()
+end)
+
+let rec reachable_pos e map =
+  let m = Mark.get e in
+  let loc = Expr.mark_pos m in
+  let map = Coverage_map.add loc Reachable map in
+  Expr.shallow_fold reachable_pos e map
+
+let normalize map =
+  Coverage_map.map_data
+    (fun l ->
+      Coverage_map.DS.singleton
+      @@ if Coverage_map.DS.mem Reached l then Reached else Reachable)
+    map
 
 let from_new h =
   Hashtbl.fold (fun p x acc -> Pos_map.add p x acc) h Pos_map.empty

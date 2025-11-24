@@ -1173,8 +1173,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
 (** {1 API} *)
 let interpret_program_dcalc ~(coverage : bool) p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
-  let htbl = Coverage.(compute_reachable_dcalc p) in
-  let coverage_results = Coverage.from_new htbl in
+  let coverage_results =
+    Program.fold_exprs
+      ~f:(fun acc e _typ -> Coverage.reachable e acc)
+      p ~init:Pos_map.empty
+  in
   Format.fprintf (Message.std_ppf ()) "@\n@\nReachable positions@\n@\n%a@\n@\n"
     (Print.program ~debug:true ~coverage:(Some coverage_results))
     p;
@@ -1197,6 +1200,8 @@ let interpret_program_dcalc ~(coverage : bool) p s :
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
+    Format.eprintf "SEXPR@\n@\n%a@\n@\n@." Print.s_expr
+      (Expr.unbox to_interpret);
     match
       Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
     with
@@ -1783,4 +1788,21 @@ module Environment = struct
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
         "The interpretation of the program doesn't yield a struct \
          corresponding to the scope variables"
+
+  let evaluate_with_coverage p scope =
+    let open Coverage in
+    let reachable_map =
+      Program.fold_exprs
+        ~f:(fun acc e _typ -> Coverage.reachable_pos e acc)
+        p ~init:Coverage.Coverage_map.empty
+    in
+    let reached_map = ref reachable_map in
+    let on_expr e _env =
+      reached_map := Coverage_map.add (Expr.pos e) Reached !reached_map
+    in
+    let _ = interpret_program_dcalc ~on_expr p scope in
+    Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp
+      !reached_map;
+    Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp
+      (Coverage.normalize !reached_map)
 end

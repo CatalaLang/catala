@@ -1,13 +1,25 @@
 ```catala
+declaration f
+  content boolean
+  depends on b content boolean
+  equals
+    b
+
 #[test]
 declaration scope A:
   output w content integer
 
 scope A:
   definition w equals
-    if 1 > 2 or 2 > 3 then
-      3
-    else 4
+    if f of true or 1 > 2 or 2 > 3 then
+      if false then
+        3 # non-reached
+      else
+        2
+    else
+      if false then # non-reached
+        3 # non-reached
+      else 24 # non-reached
 ```
 
 ```catala-test-cli

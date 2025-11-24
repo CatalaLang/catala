@@ -87,4 +87,6 @@ module Environment : sig
     (dcalc, 'm) gexpr program ->
     ScopeName.t ->
     (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+
+  val evaluate_with_coverage : (dcalc, 'a) gexpr program -> ScopeName.t -> unit
 end
