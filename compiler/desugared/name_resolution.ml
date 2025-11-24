@@ -1084,7 +1084,9 @@ let process_code_block
     (ctxt : context)
     (block : Surface.Ast.code_block) : context =
   List.fold_left
-    (fun ctxt decl -> process_item ctxt (decl, visibility))
+    (fun ctxt decl ->
+      Message.wrap_to_delayed_error ~kind:Parsing ctxt
+      @@ fun () -> process_item ctxt (decl, visibility))
     ctxt block
 
 (** Process a law structure, only considering the code blocks *)
@@ -1096,7 +1098,9 @@ let rec process_law_structure
   match s with
   | Surface.Ast.LawHeading (_, children) ->
     List.fold_left
-      (fun ctxt child -> process_law_structure process_item ctxt child)
+      (fun ctxt child ->
+        Message.wrap_to_delayed_error ~kind:Parsing ctxt
+        @@ fun () -> process_law_structure process_item ctxt child)
       ctxt children
   | Surface.Ast.CodeBlock (block, _, is_meta) ->
     process_code_block

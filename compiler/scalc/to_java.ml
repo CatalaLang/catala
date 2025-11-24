@@ -214,6 +214,7 @@ let rec format_typ ?(wildcard = false) ctx ppf (typ : typ) =
     else fprintf ppf "CatalaValue"
   | TForAll _ -> assert false
   | TClosureEnv -> assert false
+  | TError -> assert false
 
 let format_struct_params ctx ppf (fields : typ StructField.Map.t) =
   let fields = StructField.Map.bindings fields in

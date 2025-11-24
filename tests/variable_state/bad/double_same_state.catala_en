@@ -12,7 +12,7 @@ scope A:
 
 ```catala-test-cli
 $ catala Typecheck
-┌─[ERROR]─
+┌─[ERROR]─ 1/2 ─
 │
 │  There are two states with the same name for the same variable: this is
 │  ambiguous. Please change the name of either states.
@@ -29,6 +29,15 @@ $ catala Typecheck
 │   │
 │ 7 │     state bar
 │   │           ‾‾‾
+└─ Test
+┌─[ERROR]─ 2/2 ─
+│
+│  "foo": unknown identifier for a variable of scope A
+│
+├─➤ tests/variable_state/bad/double_same_state.catala_en:10.14-10.17:
+│    │
+│ 10 │   definition foo state bar equals 2
+│    │              ‾‾‾
 └─ Test
 #return code 123#
 ```

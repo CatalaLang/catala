@@ -239,6 +239,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
     | TClosureEnv -> Format.fprintf fmt "Obj.t(*closure env*)"
+    | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
 
@@ -445,6 +446,10 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt "raise@ (Error (%a, [%a]))" Print.runtime_error er
       format_pos (Expr.pos e)
   | EPos p -> format_pos fmt p
+  | EBad ->
+    Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
+      "Attempting to compile a EBad node which should have been previously \
+       filtered."
   | _ -> .
 
 let format_struct_embedding

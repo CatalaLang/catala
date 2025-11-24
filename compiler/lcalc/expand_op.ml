@@ -29,6 +29,7 @@ let rec resolve_eq ctx pos ty args m =
         e0 el
   in
   match Mark.remove ty with
+  | TError -> assert false
   | TArrow _ | TClosureEnv -> Message.error "Invalid comparison of functions"
   | TLit TUnit -> Expr.elit (LBool true) m
   | TLit TBool -> Expr.eappop ~op:(Eq_boo_boo, pos) ~args ~tys:[ty; ty] m

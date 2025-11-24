@@ -228,6 +228,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
     let _v, typ = Bindlib.unmbind tb in
     format_typ fmt typ
   | TClosureEnv -> failwith "unimplemented!"
+  | TError -> assert false
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v

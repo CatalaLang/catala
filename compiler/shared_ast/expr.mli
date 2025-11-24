@@ -182,6 +182,8 @@ val ecustom :
   'm mark ->
   (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
+val ebad : 'm mark -> ('a any, 'm) boxed_gexpr
+
 val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 (** The type of the mark, if typed, is assumed to correspond to the argument
     type, not the function type *)

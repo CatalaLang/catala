@@ -215,6 +215,7 @@ type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
 type typ = naked_typ Mark.pos
 
 and naked_typ =
+  | TError
   | TLit of typ_lit
   | TArrow of typ list * typ
   | TTuple of typ list
@@ -639,6 +640,9 @@ and ('a, 'b, 'm) base_gexpr =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
+  | EBad : ('a, < .. >, 't) base_gexpr
+      (** An internal-only node used to progress through the passes to report
+          multiple errors. It should not appear to the user. *)
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr

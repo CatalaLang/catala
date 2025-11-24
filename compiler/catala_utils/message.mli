@@ -54,7 +54,9 @@ module Content : sig
 
   (** {2 Content emission}*)
 
-  val emit_n : ?ppf:Format.formatter -> t list -> level -> unit
+  val emit_n :
+    ?ppf:Format.formatter -> (t * Printexc.raw_backtrace) list -> level -> unit
+
   val emit : ?ppf:Format.formatter -> t -> level -> unit
 end
 
@@ -64,7 +66,7 @@ end
 (** {1 Error exceptions} *)
 
 exception CompilerError of Content.t
-exception CompilerErrors of Content.t list
+exception CompilerErrors of (Content.t * Printexc.raw_backtrace) list
 
 type lsp_error_kind =
   | Lexing
@@ -117,6 +119,7 @@ val formatter_of_out_channel :
 type ('a, 'b) emitter =
   ?header:Content.message ->
   ?internal:bool ->
+  ?main_pos:Pos.t ->
   ?pos:Pos.t ->
   ?pos_msg:Content.message ->
   ?extra_pos:(string * Pos.t) list ->
@@ -135,13 +138,24 @@ val results : ?title:string -> Content.message list -> unit
 
 (** Multiple errors *)
 
-val with_delayed_errors : ?stop_on_error:bool -> (unit -> 'a) -> 'a
-(** [with_delayed_errors ?stop_on_error f] calls [f] and registers each error
-    triggered using [delayed_error]. [stop_on_error] defaults to
-    [Global.options.stop_on_error].
-
-    @raise CompilerErrors when delayed errors were registered.
-    @raise CompilerError
-      on the first error encountered when the [stop_on_error] flag is set. *)
+val report_delayed_errors_if_any : unit -> unit
+(** [report_delayed_errors_if_any] checks whether some delayed errors are
+    registered and raises the pending errors if any are present. Current
+    registered delayed errors are also deleted. *)
 
 val delayed_error : ?kind:lsp_error_kind -> 'b -> ('a, 'b) emitter
+
+val wrap_to_delayed_error : ?kind:lsp_error_kind -> 'a -> (unit -> 'a) -> 'a
+(** [wrap_to_delayed_error ?kind dft_val f] protects with a try-with the call of
+    [f] and converts fatal errors (i.e., [error]) into delayed errors. This is
+    useful when no good default value can be provided in a callee without heavy
+    refactoring . The position is guessed by scanning locations from the
+    message's content. *)
+
+val combine_with_pending_errors :
+  Content.t ->
+  Printexc.raw_backtrace ->
+  (Content.t * Printexc.raw_backtrace) list
+(** [combine_with_pending_errors error bt] adds the given [error] and its
+    backtrace [bt] to the current pending errors (if any) and returns the
+    ordered list of errors to eventually emit with [Content.emit_n]. *)
