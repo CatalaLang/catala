@@ -1321,9 +1321,48 @@ module Environment = struct
            Some l)
          env env')
 
+  let rec partially_evaluate_expr_for_assertion_failure_message :
+      type d.
+      (((d, _) interpr_kind, 'm) gexpr -> ((d, _) interpr_kind, 'm) gexpr) ->
+      decl_ctx ->
+      Global.backend_lang ->
+      ((d, yes) interpr_kind, 't) gexpr ->
+      ((d, yes) interpr_kind, 't) gexpr =
+   fun evaluate_expr ctx lang e ->
+    (* Here we want to print an expression that explains why an assertion has
+       failed. Since assertions have type [bool] and are usually constructed
+       with comparisons and logical operators, we leave those unevaluated at the
+       top of the AST while evaluating everything below. This makes for a good
+       error message. *)
+    match Mark.remove e with
+    | EAppOp
+        {
+          args = [e1; e2];
+          tys;
+          op =
+            ( ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+              | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+              | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int
+              | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int
+              | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur
+              | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat
+                ),
+              _ ) as op;
+        } ->
+      let e1 =
+        partially_evaluate_expr_for_assertion_failure_message evaluate_expr ctx
+          lang e1
+      in
+      let e2 =
+        partially_evaluate_expr_for_assertion_failure_message evaluate_expr ctx
+          lang e2
+      in
+      EAppOp { op; tys; args = [e1; e2] }, Mark.get e
+    | _ -> evaluate_expr e
+
   let rec evaluate_expr_with_env :
       type d.
-      ?on_expr:(((d, yes) interpr_kind, 't) gexpr -> (d, 't) env -> unit) ->
+      ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> (d, 't) env -> unit) ->
       (d, 't) env ->
       decl_ctx ->
       Global.backend_lang ->
@@ -1652,29 +1691,89 @@ module Environment = struct
     | EBad -> assert false
     | _ -> .
 
-  let interpret_with_env
-      ?on_expr
-      (p : (yes Shared_ast__Definitions.dcalc_lcalc, typed) gexpr program)
-      scope =
+  let evaluate_expr_trace :
+      type d.
+      ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> (d, 't) env -> unit) ->
+      decl_ctx ->
+      Global.backend_lang ->
+      ((d, yes) interpr_kind, 't) gexpr ->
+      ((d, yes) interpr_kind, 't) gexpr =
+   fun ?on_expr ctx lang e ->
+    Runtime.reset_log ();
+    Fun.protect
+      (fun () -> evaluate_expr_with_env ?on_expr empty_env ctx lang e |> fst)
+      ~finally:(fun () ->
+        match Global.options.trace with
+        | None -> ()
+        | Some (lazy ppf) ->
+          let trace = Runtime.retrieve_log () in
+          if trace = [] then
+            (* FIXME: we call evaluate twice: once to generate the scope
+               function and once for the actual call scope call. A proper fix
+               would be to disable the trace for the the first pass. *)
+            ()
+          else
+            let output_trace fmt =
+              match Global.options.trace_format with
+              | Human ->
+                Format.pp_open_vbox ppf 0;
+                ignore @@ List.fold_left (print_log ppf lang) 0 trace;
+                Format.pp_close_box ppf ()
+              | JSON ->
+                Format.fprintf fmt "@[<v 2>[@,";
+                Format.pp_print_list
+                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
+                  Format.pp_print_string fmt
+                  (List.map Runtime.Json.raw_event trace);
+                Format.fprintf fmt "]@]@."
+            in
+            Fun.protect
+              (fun () -> output_trace ppf)
+              ~finally:(fun () -> Format.pp_print_flush ppf ()))
+
+  let evaluate_expr_safe :
+      type d.
+      ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> (d, 't) env -> unit) ->
+      decl_ctx ->
+      Global.backend_lang ->
+      ((d, yes) interpr_kind, 't) gexpr ->
+      ((d, yes) interpr_kind, 't) gexpr =
+   fun ?on_expr ctx lang e ->
+    try evaluate_expr_trace ?on_expr ctx lang e
+    with Runtime.Error (err, rpos) ->
+      Message.error
+        ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+        "During evaluation: %a." Format.pp_print_text
+        (Runtime.error_message err)
+
+  let interpret_program_dcalc
+      ?(on_expr :
+         (((yes, yes) interpr_kind, 'm) gexpr -> (yes, 'm) env -> unit) option)
+      (p : (dcalc, 'm) gexpr program)
+      scope : (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+      =
     let e = Expr.unbox (Program.to_expr p scope) |> addcustom in
     let ctx = p.decl_ctx in
     let scope_info = ScopeName.Map.find scope ctx.ctx_scopes in
     let scope_input_struct = scope_info.in_struct_name in
+    let mark_term =
+      Expr.map_ty (fun _ -> TStruct scope_input_struct, Pos.void) (Mark.get e)
+      |> Expr.with_pos Pos.void
+    in
     let app_term =
-      Scope.empty_input_struct_dcalc ctx scope_input_struct
-        (Typed { pos = Pos.void; ty = TStruct scope_input_struct, Pos.void })
+      Scope.empty_input_struct_dcalc ctx scope_input_struct mark_term
     in
     let to_interpret =
       Expr.make_app (Expr.box e) [app_term]
         [TStruct scope_input_struct, Expr.pos e]
         (Expr.pos e)
     in
-    let r =
-      evaluate_expr_with_env empty_env ~on_expr ctx p.lang
-        (Expr.unbox to_interpret)
-    in
-    match r with
-    | ((EStruct _, _) as e), _env -> e
+    let r = evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret) in
+    match Mark.remove r with
+    | EStruct { fields; _ } ->
+      List.map
+        (fun (fld, e) -> StructField.get_info fld, e)
+        (StructField.Map.bindings fields)
     | exception Catala_runtime.Error (err, rpos) ->
       Message.error
         ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)

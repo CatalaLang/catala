@@ -60,6 +60,10 @@ val interpret_program_lcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
+val addcustom :
+  (('a, 'b) interpr_kind, 't) gexpr -> (('a, yes) interpr_kind, 't) gexpr
+(** Add custom terms to the AST type. *)
+
 val delcustom :
   (('a, 'b) interpr_kind, 'm) gexpr -> (('a, no) interpr_kind, 'm) gexpr
 (** Runtime check that the term contains no custom terms (raises
@@ -70,3 +74,17 @@ val load_runtime_modules : hashf:(Hash.t -> Hash.full) -> _ program -> unit
     them callable by the interpreter. This function is affected by
     [Global.options.bin_dir]. Note: in whole-program, we will only try loading
     external modules. *)
+
+module Environment : sig
+  type ('a, 'm) env =
+    | Env of
+        ( (('a, yes) interpr_kind, 'm) gexpr,
+          (('a, yes) interpr_kind, 'm) gexpr * ('a, 'm) env )
+        Var.Map.t
+
+  val interpret_program_dcalc :
+    ?on_expr:(((yes, yes) interpr_kind, 'm) gexpr -> (yes, 'm) env -> unit) ->
+    (dcalc, 'm) gexpr program ->
+    ScopeName.t ->
+    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+end

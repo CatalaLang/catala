@@ -59,12 +59,8 @@ let compute_reachable_dcalc (p : (dcalc, 'm) gexpr program) =
     | EPos _ -> add pos Pos_map.Reach
     | EVar _ -> add pos Pos_map.Reach
     | EExternal _ -> add pos Pos_map.Reach
-    (* | ELit _ -> add pos Pos_map.Pos *)
-    (* | EPos _ -> add pos Pos_map.Neg *)
-    (* | EVar _ -> add pos Pos_map.Fulf *)
-    (* | EExternal _ -> add pos Pos_map.Reach *)
     (**** ignored ****)
-    | ELocation _ | EFatalError _ | EEmpty (* | ECustom _ *) -> ()
+    | ELocation _ | EFatalError _ | EEmpty | EBad (* | ECustom _ *) -> ()
     (**** direct recursion ****)
     | EInj { e; _ }
     | EPureDefault e
@@ -94,13 +90,11 @@ let compute_reachable_dcalc (p : (dcalc, 'm) gexpr program) =
       List.iter loop excepts;
       loop just;
       loop cons
-    (* | EDStructAmend { e; fields; _ } -> *)
-    (*   loop e; *)
-    (*   Ident.Map.iter (fun _ e -> loop e) fields *)
     | EMatch { e; cases; _ } ->
       loop e;
       EnumConstructor.Map.iter (fun _ e -> loop e) cases
   in
+
   Program.fold_exprs ~f:(fun () e _typ -> loop e) ~init:() p;
   htbl
 

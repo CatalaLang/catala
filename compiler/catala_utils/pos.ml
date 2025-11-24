@@ -345,3 +345,12 @@ module Map = Map.Make (struct
 
   let format ppf t = Format.pp_print_string ppf (to_string_short t)
 end)
+
+module Set = Set.Make (struct
+  type nonrec t = t
+
+  let compare t1 t2 =
+    match lex_pos_compare (fst t1.code_pos) (fst t2.code_pos) with
+    | 0 -> lex_pos_compare (snd t1.code_pos) (snd t2.code_pos)
+    | n -> n
+end)
