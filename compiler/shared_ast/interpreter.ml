@@ -1303,3 +1303,385 @@ let load_runtime_modules ~hashf prg =
            if externals_only && not is_external then None else Some m)
          modules_list_topo);
   List.iter load modules_list_topo
+
+module Environment = struct
+  type ('a, 'b) env =
+    | Env of
+        ( (('a, yes) interpr_kind, 'b) gexpr,
+          (('a, yes) interpr_kind, 'b) gexpr * ('a, 'b) env )
+        Var.Map.t
+
+  let empty_env = Env Var.Map.empty
+
+  let join_env (Env env) (Env env') =
+    Env
+      (Var.Map.union
+         (fun _ l _r ->
+           (* Variables are immutable so collisions reference the same values *)
+           Some l)
+         env env')
+
+  let rec evaluate_expr_with_env :
+      type d.
+      ?on_expr:(((d, yes) interpr_kind, 't) gexpr -> (d, 't) env -> unit) ->
+      (d, 't) env ->
+      decl_ctx ->
+      Global.backend_lang ->
+      ((d, yes) interpr_kind, 't) gexpr ->
+      ((d, yes) interpr_kind, 't) gexpr * (d, 't) env =
+   fun ?on_expr env ctx lang e ->
+    let () = Option.iter (fun f -> f e env) on_expr in
+    let m = Mark.get e in
+    let pos = Expr.mark_pos m in
+    match Mark.remove e with
+    | EVar v -> begin
+      let (Env env) = env in
+      Var.Map.find_opt v env
+      |> function
+      | Some (e, env') ->
+        evaluate_expr_with_env ?on_expr:None (* Skip variable evaluations? *)
+          env' ctx lang e
+      | None ->
+        Format.kasprintf
+          (Message.error ~pos "%a" Format.pp_print_text)
+          "Variable '%s#%d' missing from environment at evaluation (should not \
+           happen if term was well-typed)"
+          (Bindlib.name_of v) (Bindlib.uid_of v)
+    end
+    | EExternal { name } ->
+      let path =
+        match Mark.remove name with
+        | External_value td -> TopdefName.path td
+        | External_scope s -> ScopeName.path s
+      in
+      let ty =
+        try
+          match Mark.remove name with
+          | External_value name ->
+            let typ, _vis = TopdefName.Map.find name ctx.ctx_topdefs in
+            typ
+          | External_scope name ->
+            let scope_info = ScopeName.Map.find name ctx.ctx_scopes in
+            ( TArrow
+                ( [TStruct scope_info.in_struct_name, pos],
+                  (TStruct scope_info.out_struct_name, pos) ),
+              pos )
+        with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
+          Message.error ~pos "Reference to %a@ could@ not@ be@ resolved"
+            Print.external_ref name
+      in
+      let runtime_modname =
+        ( List.map ModuleName.to_string
+            (Option.to_list (Uid.Path.last_member path)),
+          match Mark.remove name with
+          | External_value name -> TopdefName.base name
+          | External_scope name -> ScopeName.base name )
+        (* we have the guarantee that the two cases won't collide because they
+           have different capitalisation rules inherited from the input *)
+      in
+      let o = Catala_runtime.lookup_value runtime_modname in
+      let e =
+        runtime_to_val
+          (fun ctx e ->
+            let e, _ = evaluate_expr_with_env ?on_expr:None env ctx lang e in
+            e)
+          ctx m ty o
+      in
+      e, env
+    | EApp { f = e1; args; _ } -> (
+      let (Env env) = env in
+      let e1, Env env_f =
+        evaluate_expr_with_env ?on_expr (Env env) ctx lang e1
+      in
+      let (Env env) = join_env (Env env) (Env env_f) in
+      let args =
+        List.map (evaluate_expr_with_env ?on_expr (Env env) ctx lang) args
+      in
+      match Mark.remove e1 with
+      | EAbs { binder; _ } ->
+        if Bindlib.mbinder_arity binder = List.length args then
+          let vars, e = Bindlib.unmbind binder in
+          let env =
+            List.fold_left2
+              (fun (Env env) v (e, Env env') ->
+                Env (Var.Map.add v (e, Env env') env))
+              (Env env_f) (Array.to_list vars) args
+          in
+          evaluate_expr_with_env ?on_expr env ctx lang e
+        else
+          Message.error ~pos
+            "wrong function call, expected %d arguments, got %d"
+            (Bindlib.mbinder_arity binder)
+            (List.length args)
+      | ECustom { obj; targs; tret } ->
+        (* Applies the arguments one by one to the curried form *)
+        let o =
+          List.fold_left2
+            (fun fobj targ arg ->
+              let fobj = fobj in
+              let arg =
+                val_to_runtime
+                  (fun ctx e ->
+                    let e, _ =
+                      evaluate_expr_with_env ?on_expr (Env env) ctx lang e
+                    in
+                    e)
+                  ctx targ arg
+              in
+              let f : Obj.t -> Obj.t =
+                if Obj.tag fobj = Obj.first_non_constant_constructor_tag then
+                  (* Function is not a closure, but a pair, we assume closure
+                     conversion has been done *)
+                  let (f, x0) : ('a -> Obj.t -> Obj.t) * 'a = Obj.obj fobj in
+                  f x0
+                else Obj.obj fobj
+              in
+              f arg)
+            obj targs (List.map fst args)
+        in
+        let rval =
+          runtime_to_val
+            (fun ctx e ->
+              let e, _ = evaluate_expr_with_env ?on_expr (Env env) ctx lang e in
+              e)
+            ctx m tret o
+        in
+        rval, Env env
+      | _ ->
+        Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
+          "function has not been reduced to a lambda at evaluation (should not \
+           happen if the term was well-typed"
+          (fun ppf e ->
+            if Global.options.debug then
+              Format.fprintf ppf ":@ %a" Expr.format e
+            else ())
+          e1)
+    | EAppOp { op; args; _ } ->
+      let args =
+        List.map
+          (fun e -> evaluate_expr_with_env ?on_expr env ctx lang e |> fst)
+          args
+      in
+      let e =
+        evaluate_operator
+          (fun e -> evaluate_expr_with_env ?on_expr env ctx lang e |> fst)
+          op m lang args
+      in
+      e, env
+    | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty ->
+      e, env (* these are values *)
+    | EStruct { fields = es; name } ->
+      let fields, es = List.split (StructField.Map.bindings es) in
+      let ll = List.map (evaluate_expr_with_env ?on_expr env ctx lang) es in
+      let es, env =
+        List.split ll |> fun (l, r) -> l, List.fold_left join_env env r
+      in
+      ( Mark.add m
+          (EStruct
+             {
+               fields =
+                 StructField.Map.of_seq
+                   (Seq.zip (List.to_seq fields) (List.to_seq es));
+               name;
+             }),
+        env )
+    | EStructAccess { e; name = s; field } -> (
+      let e, env = evaluate_expr_with_env ?on_expr env ctx lang e in
+      match Mark.remove e with
+      | EStruct { fields = es; name } -> (
+        if not (StructName.equal s name) then
+          Message.error
+            ~extra_pos:["", pos; "", Expr.pos e]
+            "%a" Format.pp_print_text
+            "Error during struct access: not the same structs (should not \
+             happen if the term was well-typed)";
+        match StructField.Map.find_opt field es with
+        | Some e' -> e', env
+        | None ->
+          Message.error ~pos:(Expr.pos e)
+            "Invalid field access %a@ in@ struct@ %a@ (should not happen if \
+             the term was well-typed). Fields: %a"
+            StructField.format field StructName.format s
+            (fun ppf -> StructField.Map.format_keys ppf)
+            es)
+      | _ ->
+        Message.error ~pos:(Expr.pos e)
+          "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \
+           not happen if the term was well-typed)"
+          (Print.UserFacing.expr lang)
+          e StructName.format s)
+    | ETuple es ->
+      let l =
+        List.map (fun e -> evaluate_expr_with_env ?on_expr env ctx lang e) es
+      in
+      let e, env =
+        List.split l |> fun (l, r) -> l, List.fold_left join_env env r
+      in
+      Mark.add m (ETuple e), env
+    | ETupleAccess { e = e1; index; size } -> (
+      let r = evaluate_expr_with_env ?on_expr env ctx lang e1 in
+      match r with
+      | (ETuple es, _), env when List.length es = size -> List.nth es index, env
+      | e, _ ->
+        Message.error ~pos:(Expr.pos e)
+          "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d@ \
+           (should not happen if the term was well-typed)"
+          (Print.UserFacing.expr lang)
+          e size)
+    | EInj { e; name; cons } ->
+      let e, env = evaluate_expr_with_env ?on_expr env ctx lang e in
+      Mark.add m (EInj { e; name; cons }), env
+    | EMatch { e; cases; name } -> (
+      let e, _env = evaluate_expr_with_env ?on_expr env ctx lang e in
+      match Mark.remove e with
+      | EInj { e = e1; cons; name = name' } ->
+        if not (EnumName.equal name name') then
+          Message.error
+            ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
+            "%a" Format.pp_print_text
+            "Error during match: two different enums found (should not happen \
+             if the term was well-typed)";
+        let es_n =
+          match EnumConstructor.Map.find_opt cons cases with
+          | Some es_n -> es_n
+          | None ->
+            Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+              "sum type index error (should not happen if the term was \
+               well-typed)"
+        in
+        let ty =
+          EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
+        in
+        let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
+        evaluate_expr_with_env ?on_expr env ctx lang new_e
+      | _ ->
+        Message.error ~pos:(Expr.pos e)
+          "Expected a term having a sum type as an argument to a match (should \
+           not happen if the term was well-typed")
+    | EIfThenElse { cond; etrue; efalse } -> (
+      let cond, _env = evaluate_expr_with_env ?on_expr env ctx lang cond in
+      match Mark.remove cond with
+      | ELit (LBool true) -> evaluate_expr_with_env ?on_expr env ctx lang etrue
+      | ELit (LBool false) ->
+        evaluate_expr_with_env ?on_expr env ctx lang efalse
+      | _ ->
+        Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
+          "Expected a boolean literal for the result of this condition (should \
+           not happen if the term was well-typed)")
+    | EArray es ->
+      let es =
+        List.map
+          (fun e -> evaluate_expr_with_env ?on_expr env ctx lang e |> fst)
+          es
+      in
+      Mark.add m (EArray es), env
+    | EAssert e' -> (
+      let e, env = evaluate_expr_with_env ?on_expr env ctx lang e' in
+      match Mark.remove e with
+      | ELit (LBool true) -> Mark.add m (ELit LUnit), env
+      | ELit (LBool false) ->
+        if Global.options.stop_on_error then
+          raise
+            Catala_runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
+        else
+          let partially_evaluated_assertion_failure_expr =
+            partially_evaluate_expr_for_assertion_failure_message
+              (fun e -> evaluate_expr_with_env ?on_expr env ctx lang e |> fst)
+              ctx lang (Expr.skip_wrappers e')
+          in
+          (match Mark.remove partially_evaluated_assertion_failure_expr with
+          | ELit (LBool false) ->
+            if Global.options.no_fail_on_assert then
+              Message.warning ~pos "Assertion failed"
+            else
+              Message.delayed_error ~kind:AssertFailure () ~pos
+                "Assertion failed"
+          | _ ->
+            if Global.options.no_fail_on_assert then
+              Message.warning ~pos "Assertion failed:@ %a"
+                (Print.UserFacing.expr lang)
+                partially_evaluated_assertion_failure_expr
+            else
+              Message.delayed_error ~kind:AssertFailure () ~pos
+                "Assertion failed:@ %a"
+                (Print.UserFacing.expr lang)
+                partially_evaluated_assertion_failure_expr);
+          Mark.add m (ELit LUnit), env
+      | _ ->
+        Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
+          "Expected a boolean literal for the result of this assertion (should \
+           not happen if the term was well-typed)")
+    | EFatalError err ->
+      raise (Catala_runtime.Error (err, [Expr.pos_to_runtime pos]))
+    | EErrorOnEmpty e' -> (
+      let r = evaluate_expr_with_env ?on_expr env ctx lang e' in
+      match r with
+      | (EEmpty, _), _ ->
+        raise Catala_runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
+      | exception Catala_runtime.Empty ->
+        raise Catala_runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
+      | e, _env -> e, env)
+    | EDefault { excepts; just; cons } -> (
+      let l = List.map (evaluate_expr_with_env ?on_expr env ctx lang) excepts in
+      let excepts = List.map fst l in
+      let empty_count = List.length (List.filter is_empty_error excepts) in
+      match List.length excepts - empty_count with
+      | 0 -> (
+        let just, _env = evaluate_expr_with_env ?on_expr env ctx lang just in
+        match just with
+        | ELit (LBool true), _ ->
+          evaluate_expr_with_env ?on_expr env ctx lang cons
+        | ELit (LBool false), _ -> Mark.copy e EEmpty, env
+        | _ ->
+          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+            "Default justification has not been reduced to a boolean at \
+             evaluation (should not happen if the term was well-typed")
+      | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts, env
+      | _ ->
+        let poslist =
+          List.filter_map
+            (fun ex ->
+              if is_empty_error ex then None
+              else Some Expr.(pos_to_runtime (pos ex)))
+            excepts
+        in
+        raise Catala_runtime.(Error (Conflict, poslist)))
+    | EPureDefault e ->
+      let e, _env = evaluate_expr_with_env ?on_expr env ctx lang e in
+      e, env
+    | EBad -> assert false
+    | _ -> .
+
+  let interpret_with_env
+      ?on_expr
+      (p : (yes Shared_ast__Definitions.dcalc_lcalc, typed) gexpr program)
+      scope =
+    let e = Expr.unbox (Program.to_expr p scope) |> addcustom in
+    let ctx = p.decl_ctx in
+    let scope_info = ScopeName.Map.find scope ctx.ctx_scopes in
+    let scope_input_struct = scope_info.in_struct_name in
+    let app_term =
+      Scope.empty_input_struct_dcalc ctx scope_input_struct
+        (Typed { pos = Pos.void; ty = TStruct scope_input_struct, Pos.void })
+    in
+    let to_interpret =
+      Expr.make_app (Expr.box e) [app_term]
+        [TStruct scope_input_struct, Expr.pos e]
+        (Expr.pos e)
+    in
+    let r =
+      evaluate_expr_with_env empty_env ~on_expr ctx p.lang
+        (Expr.unbox to_interpret)
+    in
+    match r with
+    | ((EStruct _, _) as e), _env -> e
+    | exception Catala_runtime.Error (err, rpos) ->
+      Message.error
+        ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+        "%a" Format.pp_print_text
+        (Catala_runtime.error_message err)
+    | _ ->
+      Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+        "The interpretation of the program doesn't yield a struct \
+         corresponding to the scope variables"
+end
