@@ -556,8 +556,12 @@ let format_ctx
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "@[<hov>%a of@ %a@]" format_enum_cons_name
-             enum_cons format_typ enum_cons_type))
+           match Mark.remove enum_cons_type with
+           | TLit TUnit ->
+             Format.fprintf fmt "@[<hov>%a@]" format_enum_cons_name enum_cons
+           | _ ->
+             Format.fprintf fmt "@[<hov>%a of@ %a@]" format_enum_cons_name
+               enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons)
       format_enum_embedding enum;
     if TypeIdent.(Set.mem (Enum enum_name) ctx.ctx_public_types) then
@@ -568,8 +572,12 @@ let format_ctx
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
            (fun fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
-               enum_cons format_typ enum_cons_type))
+             match Mark.remove enum_cons_type with
+             | TLit TUnit ->
+               Format.fprintf fmt "@[<hov>%a@]" format_enum_cons_name enum_cons
+             | _ ->
+               Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
+                 enum_cons format_typ enum_cons_type))
         (EnumConstructor.Map.bindings enum_cons)
         (fun ppf ->
           if Global.options.trace = None then ()

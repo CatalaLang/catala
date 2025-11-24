@@ -26,7 +26,7 @@ module Env = struct
   type 'e t = {
     flags : flags;
     structs : typ StructField.Map.t StructName.Map.t;
-    enums : typ EnumConstructor.Map.t EnumName.Map.t;
+    enums : typ option EnumConstructor.Map.t EnumName.Map.t;
     vars : ('e, typ) Var.Map.t;
     scope_vars : typ ScopeVar.Map.t;
     scopes : typ ScopeVar.Map.t ScopeName.Map.t;

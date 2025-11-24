@@ -158,7 +158,7 @@ val estructaccess :
 val einj :
   name:EnumName.t ->
   cons:EnumConstructor.t ->
-  e:('a, 'm) boxed_gexpr ->
+  e:('a, 'm) boxed_gexpr option ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 

@@ -558,7 +558,7 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, < .. >, 'm) base_gexpr
   | EInj : {
       name : EnumName.t;
-      e : ('a, 'm) gexpr;
+      e : ('a, 'm) gexpr option;
       cons : EnumConstructor.t;
     }
       -> ('a, < .. >, 'm) base_gexpr
@@ -741,7 +741,7 @@ type 'e code_item_list = ('e, 'e code_item, 'e code_export list) bound_list
    function. *)
 
 type struct_ctx = typ StructField.Map.t StructName.Map.t
-type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
+type enum_ctx = typ option EnumConstructor.Map.t EnumName.Map.t
 
 type scope_info = {
   in_struct_name : StructName.t;

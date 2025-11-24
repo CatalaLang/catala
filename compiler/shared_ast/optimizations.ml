@@ -105,7 +105,7 @@ let simplified_match enum_name match_arg cases mark =
   in
   let ret_ty = Expr.maybe_ty mark in
   let rec aux seen_constrs = function
-    | EInj { cons; e; _ }, m ->
+    | EInj { cons; e = Some _ as e; _ }, m ->
       if EnumConstructor.Set.mem cons seen_constrs then raise Exit;
       (* Abort inlining to avoid code duplication *)
       let seen_constrs =
@@ -113,7 +113,7 @@ let simplified_match enum_name match_arg cases mark =
           seen_constrs
         else EnumConstructor.Set.add cons seen_constrs
       in
-      seen_constrs, (app_cases cons e, Expr.with_ty m ret_ty)
+      seen_constrs, (app_cases cons (Option.get e), Expr.with_ty m ret_ty)
     | EMatch ({ cases; _ } as ematch), m ->
       let seen_constrs, cases =
         EnumConstructor.Map.fold

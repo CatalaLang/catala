@@ -169,7 +169,10 @@ let edstructaccess ~name_opt ~field ~e =
 let estructaccess ~name ~field ~e =
   Box.app1 e @@ fun e -> EStructAccess { name; field; e }
 
-let einj ~name ~cons ~e = Box.app1 e @@ fun e -> EInj { name; cons; e }
+let einj ~name ~cons ~(e : ('a, 'm) boxed_gexpr option) =
+  match e with
+  | Some e -> Box.app1 e @@ fun e -> EInj { name; cons; e = Some e }
+  | None -> Box.app0 (EInj { name; cons; e = None })
 
 let ematch ~name ~e ~cases mark =
   Mark.add mark
@@ -294,7 +297,7 @@ let some_constr = EnumConstructor.fresh ("Present", Pos.void)
    doesn't guarantee consistency by itself. *)
 let option_enum_config =
   EnumConstructor.Map.of_list
-    [none_constr, (TLit TUnit, Pos.void); some_constr, Type.universal Pos.void]
+    [none_constr, None; some_constr, Some (Type.universal Pos.void)]
 
 let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
 
@@ -351,7 +354,7 @@ let map
     eifthenelse (f cond) (f etrue) (f efalse) m
   | ETuple args -> etuple (List.map f args) m
   | ETupleAccess { e; index; size } -> etupleaccess ~e:(f e) ~index ~size m
-  | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
+  | EInj { name; cons; e } -> einj ~name ~cons ~e:(Option.map f e) m
   | EAssert e1 -> eassert (f e1) m
   | EFatalError e1 -> efatalerror e1 m
   | EPos p -> epos p m
@@ -392,7 +395,8 @@ let shallow_fold
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
   | ELit _ | EVar _ | EFatalError _ | EPos _ | EExternal _ | ELocation _
-  | EEmpty ->
+  | EEmpty
+  | EInj { e = None; _ } ->
     acc
   | EApp { f = e; args; _ } -> acc |> f e |> lfold args
   | EAppOp { args; _ } -> acc |> lfold args
@@ -403,7 +407,7 @@ let shallow_fold
   | EIfThenElse { cond; etrue; efalse } -> acc |> f cond |> f etrue |> f efalse
   | ETuple args -> acc |> lfold args
   | ETupleAccess { e; _ } -> acc |> f e
-  | EInj { e; _ } -> acc |> f e
+  | EInj { e = Some _; _ } -> acc |> f e
   | EAssert e -> acc |> f e
   | EDefault { excepts; just; cons } -> acc |> lfold excepts |> f just |> f cons
   | EPureDefault e -> acc |> f e
@@ -469,7 +473,13 @@ let map_gather
     let acc, e = f e in
     acc, etupleaccess ~e ~index ~size m
   | EInj { name; cons; e } ->
-    let acc, e = f e in
+    let acc, e =
+      match e with
+      | Some e ->
+        let acc, e = f e in
+        acc, Some e
+      | None -> acc, None
+    in
     acc, einj ~name ~cons ~e m
   | EAssert e ->
     let acc, e = f e in
@@ -706,8 +716,11 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
-  | EInj { e = e1; cons = c1; name = n1 }, EInj { e = e2; cons = c2; name = n2 }
-    ->
+  | ( EInj { e = None; cons = c1; name = n1 },
+      EInj { e = None; cons = c2; name = n2 } ) ->
+    EnumName.equal n1 n2 && EnumConstructor.equal c1 c2
+  | ( EInj { e = Some e1; cons = c1; name = n1 },
+      EInj { e = Some e2; cons = c2; name = n2 } ) ->
     EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 && equal e1 e2
   | ( EMatch { e = e1; name = n1; cases = cases1 },
       EMatch { e = e2; name = n2; cases = cases2 } ) ->
@@ -800,8 +813,12 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     Int.compare s1 s2 @@< fun () ->
     Int.compare n1 n2 @@< fun () ->
     compare e1 e2
-  | EInj {e=e1; name=name1; cons=cons1 },
-    EInj {e=e2; name=name2; cons=cons2 } ->
+  | EInj {e=None; name=name1; cons=cons1 },
+    EInj {e=None; name=name2; cons=cons2 } ->
+    EnumName.compare name1 name2 @@< fun () ->
+    EnumConstructor.compare cons1 cons2
+  | EInj {e= Some e1; name=name1; cons=cons1 },
+    EInj {e=Some e2; name=name2; cons=cons2 } ->
     EnumName.compare name1 name2 @@< fun () ->
     EnumConstructor.compare cons1 cons2 @@< fun () ->
     compare e1 e2
@@ -884,7 +901,8 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1
-  | EInj { e; _ } -> size e + 1
+  | EInj { e = Some e; _ } -> size e + 1
+  | EInj { e = None; _ } -> 1
   | EAssert e -> size e + 1
   | EFatalError _ -> 1
   | EPos _ -> 1
