@@ -925,12 +925,11 @@ module Commands = struct
 
   let print_interpretation_results
       options
-      ~(code_coverage : bool)
+      ?(code_coverage : Coverage.Coverage_map.t option)
       ?(quiet = false)
       interpreter
       (prg : ('a, 'm) gexpr program)
       scope_uid =
-    ignore code_coverage;
     try
       Message.debug "Starting interpretation...";
       let results = interpreter prg scope_uid in
@@ -947,11 +946,9 @@ module Commands = struct
         (* Caution: this output is parsed by Clerk *)
         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
           ScopeName.format scope_uid (fun fmt ->
-            if code_coverage then
-              let coverage_results = Interpreter.coverage_result () in
-
-              Format.fprintf fmt "|%a" Pos_map.report_coverage coverage_results
-            else ())
+            Option.iter
+              (Format.fprintf fmt "|%a" Coverage.format_coverage_map)
+              code_coverage)
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results
@@ -998,11 +995,17 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          let () = Interpreter.Environment.evaluate_with_coverage prg scope in
-          print_interpretation_results ~code_coverage ~quiet options
-            (Interpreter.interpret_program_dcalc ~coverage:code_coverage)
-            prg scope
-          && success)
+          if code_coverage then
+            let _r, code_coverage =
+              Interpreter.Environment.interpret_program_dcalc_with_coverage prg
+                scope
+            in
+            print_interpretation_results options ~code_coverage ~quiet
+              Interpreter.Environment.interpret_program_dcalc prg scope
+          else
+            print_interpretation_results ~quiet options
+              Interpreter.Environment.interpret_program_dcalc prg scope
+            && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1094,7 +1097,7 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~code_coverage:false ~quiet options
+          print_interpretation_results ~quiet options
             Interpreter.interpret_program_lcalc prg scope
           && success)
         true

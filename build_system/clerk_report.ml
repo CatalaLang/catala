@@ -19,6 +19,7 @@
     concerns cli tests (```catala-test-cli blocks). *)
 
 open Catala_utils
+open Shared_ast
 
 type pos = Lexing.position * Lexing.position
 
@@ -35,7 +36,7 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;
-  s_coverage : Catala_utils.Pos_map.simple;
+  s_coverage : Coverage.Coverage_map.t;
 }
 
 type file = {
@@ -44,7 +45,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : Catala_utils.Pos_map.t;
+  code_coverage : Coverage.Aggregated_coverage.t;
 }
 
 type disp_flags = {
@@ -348,7 +349,7 @@ let display_scope ~build_dir file ppf scope_test =
       scope_test.s_errors);
   Format.pp_close_box ppf ()
 
-let display_file ~build_dir ppf t =
+let display_file ~build_dir ppf (t : file) =
   let pfile f = pfile ~build_dir f in
   let print_tests tests =
     let tests =
@@ -376,12 +377,11 @@ let display_file ~build_dir ppf t =
       Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
       Format.pp_close_box ppf ())
   in
-  let print_code_coverage (code_coverage : Catala_utils.Pos_map.t) =
-    let open Catala_utils.Pos_map in
-    let code_coverage_reached = export_reached code_coverage in
+  let print_code_coverage (full_code_coverage : Coverage.Aggregated_coverage.t)
+      =
     let line_map =
       Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
-        code_coverage_reached
+        full_code_coverage
     in
     let total_lines = Clerk_coverage.total_coverage_lines line_map in
     let positive_coverage_lines =
@@ -475,14 +475,15 @@ let summary ~build_dir tests =
       (0, 0, 0, 0) tests
   in
   let fully_aggregated_coverage =
-    let open Catala_utils.Pos_map in
+    let open Coverage in
     List.fold_left
-      (fun (acc : t) (file : file) -> fusion acc file.code_coverage)
-      empty tests
+      (fun (acc : Aggregated_coverage.t) (file : file) ->
+        Aggregated_coverage.merge acc file.code_coverage)
+      Aggregated_coverage.empty tests
   in
   let coverage_line_map =
     Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
-      (Catala_utils.Pos_map.export_reached fully_aggregated_coverage)
+      fully_aggregated_coverage
   in
   let total_coverage_lines =
     Clerk_coverage.total_coverage_lines coverage_line_map
@@ -555,51 +556,67 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let loc_to_json l =
+let pos_to_json p =
+  let open Pos in
   `Assoc
-    Pos_map.
-      [
-        "start_lnum", `Int l.start.line;
-        "start_cnum", `Int l.start.col;
-        "end_lnum", `Int l.stop.line;
-        "end_cnum", `Int l.stop.col;
-      ]
+    [
+      ( "start",
+        `Assoc
+          [
+            "line", `Int (get_start_line p - 1);
+            "character", `Int (get_start_column p - 1);
+          ] );
+      ( "end",
+        `Assoc
+          [
+            "line", `Int (get_end_line p - 1);
+            "character", `Int (get_end_column p - 1);
+          ] );
+    ]
 
-let coverage_reached_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
-  let coverage_on_loc (l, (c : String.Set.t)) =
-    `Assoc
-      ["location", loc_to_json l; "reached_by", `Int (String.Set.cardinal c)]
+let coverage_reached_to_yojson
+    ~build_dir:_
+    (coverage : Coverage.Aggregated_coverage.t) : Yojson.t =
+  let coverage_on_pos (p, c) =
+    `Assoc ["range", pos_to_json p; "reached_by", `Int c]
   in
-  let coverage_map m = `List (List.map coverage_on_loc m) in
-  let filemap (f, m) =
+  let coverage_map f m =
+    let elements =
+      Coverage.Aggregated_coverage.Trie.fold f
+        (fun pos x acc -> (pos, x) :: acc)
+        m []
+      |> List.rev
+    in
+    List.sort (fun (_, x) (_, y) -> -1 * compare x y) elements
+    |> List.map coverage_on_pos
+  in
+  let filemap (f, (x : Coverage.Aggregated_coverage.Trie.t)) =
     if File.dirname f = "libcatala" then None
     else
       Some
         (`Assoc
           [
-            "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
-            "coverage_map", coverage_map m;
+            "filename", `String File.(Sys.getcwd () / f);
+            "coverage_map", `List (coverage_map f x);
           ])
   in
   `List
-    (List.of_seq
-    @@ Seq.filter_map filemap
-    @@ File.Map.to_seq (Pos_map.export_reached x))
+    (Position_map.SMap.to_seq coverage |> Seq.filter_map filemap |> List.of_seq)
 
-let coverage_reachable_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t =
-  let coverage_on_loc l = loc_to_json l in
-  let coverage_map m = `List (List.map coverage_on_loc m) in
-  let filemap (f, m) =
-    `Assoc
-      [
-        "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f);
-        "coverage_map", coverage_map m;
-      ]
-  in
-  `List
-    (List.of_seq
-    @@ Seq.map filemap
-    @@ File.Map.to_seq (Pos_map.export_reachable x))
+(* let coverage_reachable_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t = *)
+(*   let coverage_on_loc l = pos_to_json l in *)
+(*   let coverage_map m = `List (List.map coverage_on_loc m) in *)
+(*   let filemap (f, m) = *)
+(*     `Assoc *)
+(*       [ *)
+(* "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f); *)
+(*         "coverage_map", coverage_map m; *)
+(*       ] *)
+(*   in *)
+(*   `List *)
+(*     (List.of_seq *)
+(*     @@ Seq.map filemap *)
+(*     @@ File.Map.to_seq (Pos_map.export_reachable x)) *)
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -643,8 +660,9 @@ let print_json ~(build_dir : string) (tests : file list) =
   in
   let full_coverage =
     List.fold_left
-      (fun acc (file : file) -> Pos_map.fusion acc file.code_coverage)
-      Pos_map.empty tests
+      (fun acc (file : file) ->
+        Coverage.Aggregated_coverage.merge acc file.code_coverage)
+      Coverage.Aggregated_coverage.empty tests
   in
   let json =
     `Assoc

@@ -47,6 +47,11 @@ let rec reachable e map =
 module Coverage_map = Position_map.Make (struct
   type nonrec t = t
 
+  let merge x y =
+    match x, y with
+    | Reachable, Reached | Reached, Reachable -> Reached
+    | _ -> x
+
   let compare = compare
 
   let format fmt x =
@@ -69,18 +74,52 @@ module Coverage_map = Position_map.Make (struct
     Format.pp_close_stag fmt ()
 end)
 
+module Aggregated_coverage = Position_map.Make (struct
+  include Int
+
+  let merge x y = x + y
+  let format = Format.pp_print_int
+end)
+
+let to_aggregated_coverage m =
+  Coverage_map.fold
+    (fun pos coverage acc ->
+      let n = if coverage = Reached then 1 else 0 in
+      Aggregated_coverage.add pos n acc)
+    m Aggregated_coverage.empty
+
 let rec reachable_pos e map =
   let m = Mark.get e in
   let loc = Expr.mark_pos m in
   let map = Coverage_map.add loc Reachable map in
   Expr.shallow_fold reachable_pos e map
 
-let normalize map =
-  Coverage_map.map_data
-    (fun l ->
-      Coverage_map.DS.singleton
-      @@ if Coverage_map.DS.mem Reached l then Reached else Reachable)
-    map
+let merge ~reachable_map reached_map =
+  (* trim unreached files *)
+  let reachable_map =
+    Position_map.SMap.filter
+      (fun f _ -> Position_map.SMap.mem f reached_map)
+      reachable_map
+  in
+  let map = Coverage_map.merge reachable_map reached_map in
+  let sanitized =
+    Coverage_map.mapi_data
+      (fun trie -> function
+        | Reached -> Reached
+        | Reachable ->
+          if
+            Coverage_map.Trie.all_children_data trie
+            |> List.exists (( = ) Reached)
+          then Reached
+          else Reachable)
+      map
+  in
+  sanitized
+
+let union l r = Coverage_map.merge l r
+
+let format_coverage_map ppf map =
+  Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
 
 let from_new h =
   Hashtbl.fold (fun p x acc -> Pos_map.add p x acc) h Pos_map.empty

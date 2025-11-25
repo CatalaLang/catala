@@ -15,6 +15,8 @@
    the License. *)
 
 open Catala_utils
+open Shared_ast
+open Coverage
 
 type output_buf = { oc : out_channel; mutable pos : Lexing.position }
 
@@ -280,11 +282,11 @@ let run_catala_test_scopes
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
-                   let coverage : Catala_utils.Pos_map.simple =
+                   let coverage : Coverage_map.t =
                      Marshal.from_bytes hex_coverage_bytes 0
                    in
                    coverage
-                 else Pos_map.empty);
+                 else Coverage_map.empty);
             }
             :: acc )
         | None -> (
@@ -315,7 +317,7 @@ let run_catala_test_scopes
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
         s_time = Sys.time () -. start_time;
-        s_coverage = Pos_map.empty;
+        s_coverage = Coverage_map.empty;
       }
       :: scopes_results
     else scopes_results
@@ -494,16 +496,18 @@ let run_tests
           if t.Clerk_report.s_success then nsucc + 1, nfail
           else nsucc, nfail + 1
         in
+        let to_aggregated_coverage m =
+          Coverage.Coverage_map.fold
+            (fun pos coverage acc ->
+              let n = if coverage = Reached then 1 else 0 in
+              Coverage.Aggregated_coverage.add pos n acc)
+            m Coverage.Aggregated_coverage.empty
+        in
         ( x,
           y,
-          Catala_utils.Pos_map.fusion code_coverage
-            (Catala_utils.Pos_map.with_name
-               (File.(Sys.getcwd () / remove_prefix "_build/" filename)
-                (* TODO have a way to obtain ~build_dir here *)
-               ^ ":"
-               ^ t.s_name)
-               t.s_coverage) ))
-      (0, 0, Catala_utils.Pos_map.empty)
+          Aggregated_coverage.merge code_coverage
+            (to_aggregated_coverage t.s_coverage) ))
+      (0, 0, Aggregated_coverage.empty)
       scopes_results
   in
   let num_test_scopes = successful_test_scopes + failed_test_scopes in

@@ -4,7 +4,6 @@
 (rule (alias man) (action (with-stdout-to clerk-clean.1 (run %{bin:clerk} clean --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-list-vars.1 (run %{bin:clerk} list-vars --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-raw-target.1 (run %{bin:clerk} raw-target --help=groff))))
-(rule (alias man) (action (with-stdout-to clerk-reachable.1 (run %{bin:clerk} reachable --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-report.1 (run %{bin:clerk} report --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-run.1 (run %{bin:clerk} run --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-runtest.1 (run %{bin:clerk} runtest --help=groff))))

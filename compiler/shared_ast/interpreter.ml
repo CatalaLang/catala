@@ -1805,20 +1805,38 @@ module Environment = struct
         "The interpreter can only interpret terms starting with functions \
          having thunked arguments"
 
-  let evaluate_with_coverage p scope =
+  let interpret_program_dcalc_with_coverage
+      (p : (dcalc, 'm) gexpr program)
+      scope :
+      (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+      * Coverage.Coverage_map.t =
     let open Coverage in
     let reachable_map =
       Program.fold_exprs
         ~f:(fun acc e _typ -> Coverage.reachable_pos e acc)
         p ~init:Coverage.Coverage_map.empty
     in
-    let reached_map = ref reachable_map in
-    let on_expr e _env =
-      reached_map := Coverage_map.add (Expr.pos e) Reached !reached_map
+    let reached_map = ref Coverage.Coverage_map.empty in
+    let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) _env =
+      match Mark.remove e with
+      | EDefault _ ->
+        ()
+        (* bad location, ignore this case, sub-nodes positions will be added *)
+      | _ -> reached_map := Coverage_map.add (Expr.pos e) Reached !reached_map
     in
-    let _ = interpret_program_dcalc ~on_expr p scope in
+    let r = interpret_program_dcalc ~on_expr p scope in
+    (* Format.fprintf (Message.std_ppf ()) *)
+    (*   "################ REACHABLE MAP ################@."; *)
+    (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
+    (*   reachable_map; *)
+    (* Format.fprintf (Message.std_ppf ()) *)
+    (*   "################ REACHED MAP ################@."; *)
     (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
     (*   !reached_map; *)
+    (* Format.fprintf (Message.std_ppf ()) *)
+    (*   "################ MERGED MAP ################@."; *)
+    let merged_reached_map = Coverage.merge ~reachable_map !reached_map in
     Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp
-      (Coverage.normalize !reached_map)
+      merged_reached_map;
+    r, merged_reached_map
 end

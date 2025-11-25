@@ -870,107 +870,106 @@ let build_cmd : int Cmd.t =
       $ Cli.clerk_targets_or_files
       $ Cli.ninja_flags)
 
-let reachable_cmd : int Cmd.t =
-  let run
-      config
-      (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
-      quiet
-      (ninja_flags : string list) =
-    let items, var_bindings =
-      Clerk_rules.run_ninja ~code_coverage:false ~config
-        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
-        ~quiet (fun nin_ppf items var_bindings ->
-          Nj.format_def nin_ppf
-            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
-          items, var_bindings)
-    in
-    let catala_flags = get_var var_bindings Var.catala_flags in
-    let exec = get_var var_bindings Var.catala_exe in
-    let files =
-      List.filter_map
-        (fun it ->
-          if Filename.is_relative it.Scan.file_name && not it.Scan.extrnal then
-            Some it.file_name
-          else None)
-        items
-    in
-    if files = [] then Message.error "No matching files found";
-    let process_out_no_stderr cmd args =
-      let aargs = Array.of_list (cmd :: args) in
-      let ((stdout, _stdin, _stderr) as proc_full) =
-        try Unix.open_process_args_full cmd aargs [||]
-        with Unix.Unix_error (Unix.ENOENT, _, _) ->
-          Printf.ksprintf failwith "ERROR: program %s not found" cmd
-      in
-      let buf = Buffer.create 4096 in
-      let finally f g =
-        match
-          g ();
-          f ()
-        with
-        | 0 -> Some (Buffer.contents buf)
-        | _ | (exception _) -> None
-      in
-      finally
-        (fun () ->
-          match Unix.close_process_full proc_full with
-          | Unix.WEXITED n -> n
-          | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> raise (Failure "Failed"))
-        (fun () ->
-          try
-            while true do
-              Buffer.add_channel buf stdout 4096
-            done;
-            assert false
-          with End_of_file -> ())
-    in
-    let reachable =
-      List.fold_left
-        (fun reachable f ->
-          let args = ["reachable"] @ catala_flags @ [f] in
-          Message.debug "Running command: '%s'..."
-            (String.concat " " (exec @ args));
-          match process_out_no_stderr (List.hd exec) args with
-          | None -> reachable
-          | Some "" -> assert false
-          | Some reachable_coverage_string ->
-            let reachable_coverage = `Hex reachable_coverage_string in
-            let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in
-            let new_reachable : Catala_utils.Pos_map.simple =
-              Marshal.from_bytes reachable_coverage_bytes 0
-            in
-            Pos_map.fusion
-              (Pos_map.with_name "irrelevant" new_reachable)
-              reachable)
-        Pos_map.empty files
-    in
-    match report_format with
-    | `Terminal | `JUnitXML ->
-      Message.error
-        "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \
-         are not yet implemented for this command."
-    | `VSCodeJSON ->
-      Format.eprintf "REACHABLE@\n@\n%a" Pos_map.pp reachable;
-      let json =
-        Clerk_report.coverage_reachable_to_yojson
-          ~build_dir:config.Cli.options.global.build_dir reachable
-      in
-      Yojson.to_channel stdout json;
-      Format.printf "@.";
-      raise (Catala_utils.Cli.Exit_with 0)
-  in
-  let doc =
-    "Dump reachable locations command for either $(i,individual files) or \
-     $(i,clerk targets). Used by code editors and the language server."
-  in
-  Cmd.v
-    (Cmd.info ~doc "reachable")
-    Term.(
-      const run
-      $ Cli.init_term ()
-      $ Cli.report_format
-      $ Cli.quiet
-      $ Cli.ninja_flags)
+(* let reachable_cmd : int Cmd.t = *)
+(*   let run *)
+(*       config *)
+(*       (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ]) *)
+(*       quiet *)
+(*       (ninja_flags : string list) = *)
+(*     let items, var_bindings = *)
+(*       Clerk_rules.run_ninja ~code_coverage:false ~config *)
+(*         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags *)
+(*         ~quiet (fun nin_ppf items var_bindings -> *)
+(*           Nj.format_def nin_ppf *)
+(* (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"])); *)
+(*           items, var_bindings) *)
+(*     in *)
+(*     let catala_flags = get_var var_bindings Var.catala_flags in *)
+(*     let exec = get_var var_bindings Var.catala_exe in *)
+(*     let files = *)
+(*       List.filter_map *)
+(*         (fun it -> *)
+(* if Filename.is_relative it.Scan.file_name && not it.Scan.extrnal then *)
+(*             Some it.file_name *)
+(*           else None) *)
+(*         items *)
+(*     in *)
+(*     if files = [] then Message.error "No matching files found"; *)
+(*     let process_out_no_stderr cmd args = *)
+(*       let aargs = Array.of_list (cmd :: args) in *)
+(*       let ((stdout, _stdin, _stderr) as proc_full) = *)
+(*         try Unix.open_process_args_full cmd aargs [||] *)
+(*         with Unix.Unix_error (Unix.ENOENT, _, _) -> *)
+(*           Printf.ksprintf failwith "ERROR: program %s not found" cmd *)
+(*       in *)
+(*       let buf = Buffer.create 4096 in *)
+(*       let finally f g = *)
+(*         match *)
+(*           g (); *)
+(*           f () *)
+(*         with *)
+(*         | 0 -> Some (Buffer.contents buf) *)
+(*         | _ | (exception _) -> None *)
+(*       in *)
+(*       finally *)
+(*         (fun () -> *)
+(*           match Unix.close_process_full proc_full with *)
+(*           | Unix.WEXITED n -> n *)
+(*           | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> raise (Failure "Failed")) *)
+(*         (fun () -> *)
+(*           try *)
+(*             while true do *)
+(*               Buffer.add_channel buf stdout 4096 *)
+(*             done; *)
+(*             assert false *)
+(*           with End_of_file -> ()) *)
+(*     in *)
+(*     let reachable = *)
+(*       List.fold_left *)
+(*         (fun reachable f -> *)
+(*           let args = ["reachable"] @ catala_flags @ [f] in *)
+(*           Message.debug "Running command: '%s'..." *)
+(*             (String.concat " " (exec @ args)); *)
+(*           match process_out_no_stderr (List.hd exec) args with *)
+(*           | None -> reachable *)
+(*           | Some "" -> assert false *)
+(*           | Some reachable_coverage_string -> *)
+(*             let reachable_coverage = `Hex reachable_coverage_string in *)
+(* let reachable_coverage_bytes = Hex.to_bytes reachable_coverage in *)
+(*             let new_reachable : Catala_utils.Pos_map.simple = *)
+(*               Marshal.from_bytes reachable_coverage_bytes 0 *)
+(*             in *)
+(*             Pos_map.fusion *)
+(*               (Pos_map.with_name "irrelevant" new_reachable) *)
+(*               reachable) *)
+(*         Pos_map.empty files *)
+(*     in *)
+(*     match report_format with *)
+(*     | `Terminal | `JUnitXML -> *)
+(*       Message.error *)
+(* "The @{<hi_magenta>terminal@} and @{<hi_magenta>xml@} report formats \ *) (*
+   are not yet implemented for this command." *)
+(*     | `VSCodeJSON -> *)
+(*       let json = *)
+(*         Clerk_report.coverage_reachable_to_yojson *)
+(*           ~build_dir:config.Cli.options.global.build_dir reachable *)
+(*       in *)
+(*       Yojson.to_channel stdout json; *)
+(*       Format.printf "@."; *)
+(*       raise (Catala_utils.Cli.Exit_with 0) *)
+(*   in *)
+(*   let doc = *)
+(* "Dump reachable locations command for either $(i,individual files) or \ *) (*
+   $(i,clerk targets). Used by code editors and the language server." *)
+(*   in *)
+(*   Cmd.v *)
+(*     (Cmd.info ~doc "reachable") *)
+(*     Term.( *)
+(*       const run *)
+(*       $ Cli.init_term () *)
+(*       $ Cli.report_format *)
+(*       $ Cli.quiet *)
+(*       $ Cli.ninja_flags) *)
 
 let setup_report_format ?fix_path verbosity diff_command (code_coverage : bool)
     =
@@ -1652,7 +1651,7 @@ let main_cmd =
       report_cmd;
       raw_cmd;
       list_vars_cmd;
-      reachable_cmd;
+      (* reachable_cmd; *)
     ]
 
 let main () =

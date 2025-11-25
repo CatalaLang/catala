@@ -17,16 +17,15 @@
 module type Data = sig
   type t
 
+  val merge : t -> t -> t
   val compare : t -> t -> int
   val format : Format.formatter -> t -> unit
 end
 
 module Make_trie (D : Data) = struct
-  module DS = Set.Make (D)
-
   type itv = (int (* line *) * int (* col *)) * (int (* line *) * int (* col *))
 
-  type node = Node of { itv : itv; data : DS.t; children : trie }
+  type node = Node of { itv : itv; data : D.t; children : trie }
   and trie = node list
 
   type t = trie
@@ -37,14 +36,10 @@ module Make_trie (D : Data) = struct
   let rec pp_node ppf (Node { itv; data; children }) =
     let open Format in
     match children with
-    | [] ->
-      fprintf ppf "@[<h>%a: [ @[<h>%a@] ]@]" pp_itv itv
-        (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt " ; ") D.format)
-        (DS.elements data)
+    | [] -> fprintf ppf "@[<h>%a: @[<h>%a@]@]" pp_itv itv D.format data
     | _ ->
-      fprintf ppf "@[<v 2>%a: [ @[<h>%a@] ]@ %a@]" pp_itv itv
-        (pp_print_list ~pp_sep:pp_print_space D.format)
-        (DS.elements data) pp_trie children
+      fprintf ppf "@[<v 2>%a: @[<h>%a@]@ %a@]" pp_itv itv D.format data pp_trie
+        children
 
   and pp_trie ppf tries =
     let open Format in
@@ -84,7 +79,7 @@ module Make_trie (D : Data) = struct
     |> List.map (fun (Node { data; _ }) -> data)
     |> function [] -> None | l -> Some l
 
-  let lookup_best_on_line (l : int) trie : DS.t option =
+  let lookup_best_on_line (l : int) trie : D.t option =
     match List.find_all (fun (Node { itv; _ }) -> is_in_line itv l) trie with
     | [] -> None
     | candidates -> (
@@ -127,7 +122,7 @@ module Make_trie (D : Data) = struct
     in
     fresh_children @ List.concat_map gather_children children
 
-  let rec insert_all itv (data : DS.t) trie =
+  let rec insert itv (data : D.t) trie =
     let rec find_included_nodes acc = function
       | [] -> List.rev acc, `Disjoint []
       | (Node n as h) :: t as l -> (
@@ -145,13 +140,13 @@ module Make_trie (D : Data) = struct
       | (Node ({ itv = itv_p; children; _ } as node_r) as node) :: t as l -> (
         match compare_itv itv_p itv with
         | `Equal ->
-          let node = Node { node_r with data = DS.union data node_r.data } in
+          let node = Node { node_r with data = D.merge data node_r.data } in
           List.rev_append (node :: acc) t
         | `Disjoint_left ->
           List.rev_append (Node { itv; data; children = [] } :: acc) l
         | `Disjoint_right -> loop (node :: acc) itv t
         | `Subset ->
-          let new_children = insert_all itv data children in
+          let new_children = insert itv data children in
           List.rev_append
             (Node { node_r with children = new_children } :: acc)
             t
@@ -174,13 +169,13 @@ module Make_trie (D : Data) = struct
             in
             List.rev_append (node :: acc) (loop [] included_itv r))
         | `Left_inclusion (included_itv, disjoint_part) ->
-          let new_children = insert_all included_itv data children in
+          let new_children = insert included_itv data children in
           loop
             (Node { node_r with children = new_children } :: acc)
             disjoint_part t
         | `Right_inclusion (disjoint_part, included_itv) ->
           let acc = Node { itv = disjoint_part; data; children = [] } :: acc in
-          let new_children = insert_all included_itv data children in
+          let new_children = insert included_itv data children in
           List.rev_append
             (Node { node_r with children = new_children } :: acc)
             t)
@@ -192,31 +187,40 @@ module Make_trie (D : Data) = struct
       (fun (Node { itv; data; children }) ->
         Node { itv; data = f data; children = map_data f children })
       trie
+
+  let rec mapi_data f trie =
+    List.map
+      (fun (Node { itv; data; children } as n) ->
+        Node { itv; data = f n data; children = mapi_data f children })
+      trie
+
+  let rec fold file f trie acc =
+    List.fold_left
+      (fun acc (Node { itv = (li, i), (lj, j); children; data }) ->
+        let acc = f (Pos.from_info file li i lj j) data acc in
+        fold file f children acc)
+      acc trie
+
+  let all_children_data (Node { children; _ }) =
+    let rec loop (Node { children; data; _ }) =
+      data :: List.concat_map loop children
+    in
+    List.concat_map loop children
 end
 
 module SMap = Map.Make (String)
 
 module Make (D : Data) = struct
   module Trie = Make_trie (D)
-  module DS = Trie.DS
 
   type pmap = Trie.t SMap.t
   type t = pmap
 
   let pp ppf pmap =
     let open Format in
-    fprintf ppf "@[<v 2>variables:@ %a@]"
-      (SMap.format ~pp_sep:pp_print_cut Trie.pp_trie)
-      pmap
+    (SMap.format ~pp_sep:pp_print_cut Trie.pp_trie) ppf pmap
 
   let ( -- ) i j = List.init (j - i + 1) (fun x -> i + x)
-
-  let merge_tries _i trie trie' : Trie.t option =
-    match trie, trie' with
-    | None, None -> None
-    | None, Some (itv, data) -> Some [Node { itv; data; children = [] }]
-    | Some trie, None -> Some trie
-    | Some trie, Some (itv, data) -> Some (Trie.insert_all itv data trie)
 
   let pos_to_itv pos =
     let li = Pos.get_start_line pos in
@@ -229,18 +233,15 @@ module Make (D : Data) = struct
     let open Format in
     fprintf ppf "@[<h>%a: %a@]" Trie.pp_itv (pos_to_itv p) D.format d
 
-  let add_all pos data variables =
+  let add pos data variables =
     if pos = Pos.void then variables
     else
       let itv = pos_to_itv pos in
-      let data = DS.of_list data in
       SMap.update (Pos.get_file pos)
         (function
           | None -> Some [Trie.Node { itv; data; children = [] }]
-          | Some trie -> Some (Trie.insert_all itv data trie))
+          | Some trie -> Some (Trie.insert itv data trie))
         variables
-
-  let add pos data variables = add_all pos [data] variables
 
   let lookup pos pmap =
     let ( let* ) = Option.bind in
@@ -248,22 +249,25 @@ module Make (D : Data) = struct
     let* trie = SMap.find_opt (Pos.get_file pos) pmap in
     Trie.lookup (Pos.get_start_line pos, Pos.get_start_column pos) trie
 
-  let fold f pmap acc =
-    let rec fold file trie acc =
-      List.fold_left
-        (fun acc (Trie.Node { itv = (li, i), (lj, j); children; data }) ->
-          let acc = f (Pos.from_info file li i lj j) data acc in
-          fold file children acc)
-        acc trie
-    in
-    SMap.fold fold pmap acc
+  let fold f pmap acc = SMap.fold (fun s -> Trie.fold s f) pmap acc
 
   let fold_on_file file f pmap acc =
     SMap.find_opt file pmap
     |> function
     | None -> acc | Some pmap -> fold f (SMap.singleton file pmap) acc
 
+  let merge (pmap : t) (pmap' : t) =
+    SMap.union
+      (fun _ x y ->
+        let rec loop acc (Trie.Node { itv; data; children }) =
+          let acc = Trie.insert itv data acc in
+          List.fold_left loop acc children
+        in
+        Some (List.fold_left loop x y))
+      pmap pmap'
+
   let map_data f pmap = SMap.map (fun trie -> Trie.map_data f trie) pmap
+  let mapi_data f pmap = SMap.map (fun trie -> Trie.mapi_data f trie) pmap
   let iter f pmap = fold (fun k v () -> f k v) pmap ()
   let empty = SMap.empty
 end

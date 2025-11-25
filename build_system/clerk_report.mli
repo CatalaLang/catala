@@ -19,6 +19,8 @@
     concerns inline tests (```catala-test-cli blocks). *)
 
 open Catala_utils
+open Shared_ast
+open Coverage
 
 type pos = Lexing.position * Lexing.position
 
@@ -36,7 +38,7 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;  (** Time spent in test, in milliseconds *)
-  s_coverage : Catala_utils.Pos_map.simple;
+  s_coverage : Coverage_map.t;
 }
 
 type file = {
@@ -45,18 +47,18 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : Pos_map.t;
+  code_coverage : Aggregated_coverage.t;
 }
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
 val read_many : File.t -> file list
 
-val coverage_reachable_to_yojson :
-  build_dir:File.t -> Catala_utils.Pos_map.t -> Yojson.t
+(* val coverage_reachable_to_yojson : *)
+(*   build_dir:File.t -> Catala_utils.Coverage_map.t -> Yojson.t *)
 
 val coverage_reached_to_yojson :
-  build_dir:File.t -> Catala_utils.Pos_map.t -> Yojson.t
+  build_dir:File.t -> Aggregated_coverage.t -> Yojson.t
 
 val display :
   build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit
