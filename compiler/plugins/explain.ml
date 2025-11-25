@@ -452,7 +452,8 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     if not llevel.eval_match then e0, env
     else
       match eval_to_value env e with
-      | (EInj { name = n; cons; e = e1 }, m), env when EnumName.equal name n ->
+      | (EInj { name = n; cons; e = Some e1 }, m), env
+        when EnumName.equal name n ->
         let condition = e, env in
         (* FIXME: condition should be "e TEST_MATCH n" but we don't have a
            concise expression to express that *)
@@ -467,6 +468,9 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               m )
         in
         add_condition ~condition e1, env
+      | ((EInj { name = n; cons; e = None }, m) as e), env
+        when EnumName.equal name n ->
+        e, env
       | e, _ -> error e "Invalid match argument %a" Expr.format e)
   | EDefault { excepts; just; cons }, m -> (
     let excs =
@@ -671,7 +675,7 @@ let to_graph ctx env expr =
         _ ) ->
       aux env g arg
     (* we skip conversions *)
-    | ELit l, _ ->
+    | ELit _, _ | EInj { e = None; _ }, _ ->
       let v = G.V.create e in
       G.add_vertex g v, v
     | (EVar var, _) as e ->
@@ -685,7 +689,7 @@ let to_graph ctx env expr =
       let g = G.add_vertex g v in
       let g, children = List.fold_left_map (aux env) g args in
       List.fold_left (fun g -> G.add_edge g v) g children, v
-    | EInj { e; _ }, _ -> aux env g e
+    | EInj { e = Some e; _ }, _ -> aux env g e
     | EStruct { fields; _ }, _ ->
       let v = G.V.create e in
       let g = G.add_vertex g v in
@@ -701,8 +705,8 @@ let to_graph ctx env expr =
 
 let rec is_const e =
   match Expr.skip_wrappers e with
-  | ELit _, _ -> true
-  | EInj { e; _ }, _ -> is_const e
+  | ELit _, _ | EInj { e = None; _ }, _ -> true
+  | EInj { e = Some e; _ }, _ -> is_const e
   | EStruct { fields; _ }, _ ->
     StructField.Map.for_all (fun _ e -> is_const e) fields
   | EArray el, _ -> List.for_all is_const el
@@ -830,7 +834,7 @@ let program_to_graph
         _ ) ->
       aux parent (g, var_vertices, env0) (Mark.set m arg)
     (* we skip conversions *)
-    | ELit l, _ ->
+    | ELit _, _ | EInj { e = None; _ }, _ ->
       let v = G.V.create e in
       (G.add_vertex g v, var_vertices, env0), v
     | EVar var, _ -> (
@@ -919,7 +923,7 @@ let program_to_graph
       in
       ( (List.fold_left (fun g -> G.add_edge g v) g children, var_vertices, env),
         v )
-    | EInj { e; _ }, _ -> aux parent (g, var_vertices, env0) e
+    | EInj { e = Some e; _ }, _ -> aux parent (g, var_vertices, env0) e
     | EStruct { fields; _ }, _ ->
       let v = G.V.create e in
       let g = G.add_vertex g v in
@@ -1399,8 +1403,8 @@ let rec expr_to_dot_label (style : Style.theme) lang ctx env ppf e =
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf -> function
-             | ((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _) as
-               e ->
+             | ( (EVar _ | ELit _ | EInj { e = Some ((EVar _ | ELit _), _); _ }),
+                 _ ) as e ->
                print_expr ppf e (* ; * Format.pp_print_string ppf "\\l" *)
              | _ -> Format.pp_print_string ppf "…"))
         (StructField.Map.values fields)

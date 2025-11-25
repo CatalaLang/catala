@@ -103,7 +103,9 @@ module To_json = struct
           (* Scope's input is a struct. *)
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
-          List.fold_left collect (t :: acc)
+          List.fold_left
+            (fun t t1 -> match t1 with Some t1 -> collect t t1 | None -> t)
+            (t :: acc)
             (EnumConstructor.Map.values (EnumName.Map.find e ctx.ctx_enums))
         | TArray t -> collect acc t
         | _ -> acc
@@ -136,25 +138,44 @@ module To_json = struct
         (EnumConstructor.Map.keys enum_def)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-           (fun fmt (enum_cons, payload_type) ->
-             Format.fprintf fmt
-               "@[<hov 2>{@\n\
-                @[<hov 2>\"if\": {@\n\
-                @[<hov 2>\"properties\": {@\n\
-                @[<hov 2>\"kind\": {@\n\
-                \"const\": \"%a\"@]@\n\
-                }@]@\n\
-                }@]@\n\
-                },@\n\
-                @[<hov 2>\"then\": {@\n\
-                @[<hov 2>\"properties\": {@\n\
-                @[<hov 2>\"payload\": {@\n\
-                %a@]@\n\
-                }@]@\n\
-                }@]@\n\
-                }@]@\n\
-                }"
-               format_enum_cons_name enum_cons fmt_type payload_type))
+           (fun fmt (enum_cons, (payload_type : typ option)) ->
+             match payload_type with
+             | Some payload_type ->
+               Format.fprintf fmt
+                 "@[<hov 2>{@\n\
+                  @[<hov 2>\"if\": {@\n\
+                  @[<hov 2>\"properties\": {@\n\
+                  @[<hov 2>\"kind\": {@\n\
+                  \"const\": \"%a\"@]@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  },@\n\
+                  @[<hov 2>\"then\": {@\n\
+                  @[<hov 2>\"properties\": {@\n\
+                  @[<hov 2>\"payload\": {@\n\
+                  %a@]@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  }"
+                 format_enum_cons_name enum_cons fmt_type payload_type
+             | None ->
+               Format.fprintf fmt
+                 "@[<hov 2>{@\n\
+                  @[<hov 2>\"if\": {@\n\
+                  @[<hov 2>\"properties\": {@\n\
+                  @[<hov 2>\"kind\": {@\n\
+                  \"const\": \"%a\"@]@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  },@\n\
+                  @[<hov 2>\"then\": {@\n\
+                  @[<hov 2>\"properties\": {@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  }@]@\n\
+                  }"
+                 format_enum_cons_name enum_cons))
         (EnumConstructor.Map.bindings enum_def)
     in
 
