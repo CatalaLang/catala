@@ -703,7 +703,7 @@ let coverage_result () =
 let add_coverage pos =
   Option.iter
     (fun glob ->
-      Format.eprintf "interp adding %a@." Pos.format_loc_text pos;
+      (* Format.eprintf "interp adding %a@." Pos.format_loc_text pos; *)
       Coverage.glob := Some (Pos_map.add pos Pos glob))
     !Coverage.glob
 
@@ -1702,11 +1702,12 @@ module Environment = struct
       decl_ctx ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, 't) gexpr ->
-      ((d, yes) interpr_kind, 't) gexpr =
-   fun ?on_expr ctx lang e ->
+      (d, 't) env ->
+      ((d, yes) interpr_kind, 't) gexpr * (d, 't) env =
+   fun ?on_expr ctx lang e env ->
     Runtime.reset_log ();
     Fun.protect
-      (fun () -> evaluate_expr_with_env ?on_expr empty_env ctx lang e |> fst)
+      (fun () -> evaluate_expr_with_env ?on_expr env ctx lang e)
       ~finally:(fun () ->
         match Global.options.trace with
         | None -> ()
@@ -1742,9 +1743,10 @@ module Environment = struct
       decl_ctx ->
       Global.backend_lang ->
       ((d, yes) interpr_kind, 't) gexpr ->
-      ((d, yes) interpr_kind, 't) gexpr =
-   fun ?on_expr ctx lang e ->
-    try evaluate_expr_trace ?on_expr ctx lang e
+      (d, 't) env ->
+      ((d, yes) interpr_kind, 't) gexpr * (d, 't) env =
+   fun ?on_expr ctx lang e env ->
+    try evaluate_expr_trace ?on_expr ctx lang e env
     with Runtime.Error (err, rpos) ->
       Message.error
         ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1759,35 +1761,49 @@ module Environment = struct
       =
     let e = Expr.unbox (Program.to_expr p scope) |> addcustom in
     let ctx = p.decl_ctx in
-    let scope_info = ScopeName.Map.find scope ctx.ctx_scopes in
-    let scope_input_struct = scope_info.in_struct_name in
-    let mark_term =
-      Expr.map_ty (fun _ -> TStruct scope_input_struct, Pos.void) (Mark.get e)
-      |> Expr.with_pos Pos.void
-    in
-    let app_term =
-      Scope.empty_input_struct_dcalc ctx scope_input_struct mark_term
-    in
-    let to_interpret =
-      Expr.make_app (Expr.box e) [app_term]
-        [TStruct scope_input_struct, Expr.pos e]
-        (Expr.pos e)
-    in
-    let r = evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret) in
-    match Mark.remove r with
-    | EStruct { fields; _ } ->
-      List.map
-        (fun (fld, e) -> StructField.get_info fld, e)
-        (StructField.Map.bindings fields)
-    | exception Catala_runtime.Error (err, rpos) ->
-      Message.error
-        ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
-        "%a" Format.pp_print_text
-        (Catala_runtime.error_message err)
+    match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) empty_env with
+    | ((EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e), env ->
+      begin
+      let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+      let to_interpret =
+        Expr.make_app (Expr.box e) [application_term]
+          [TStruct s_in, Expr.pos e]
+          (Expr.pos e)
+      in
+      (* let mark_term = *)
+      (*   Expr.map_ty (fun _ -> TStruct scope_input_struct, Pos.void) (Mark.get e) *)
+      (*   |> Expr.with_pos Pos.void *)
+      (* in *)
+      (* let app_term = *)
+      (*   Scope.empty_input_struct_dcalc ctx scope_input_struct mark_term *)
+      (* in *)
+      (* let to_interpret = *)
+      (*   Expr.make_app (Expr.box e) [app_term] *)
+      (*     [TStruct scope_input_struct, Expr.pos e] *)
+      (*     (Expr.pos e) *)
+      (* in *)
+      let r, _env =
+        evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret) env
+      in
+      match Mark.remove r with
+      | EStruct { fields; _ } ->
+        List.map
+          (fun (fld, e) -> StructField.get_info fld, e)
+          (StructField.Map.bindings fields)
+      | exception Catala_runtime.Error (err, rpos) ->
+        Message.error
+          ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
+          "%a" Format.pp_print_text
+          (Catala_runtime.error_message err)
+      | _ ->
+        Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
+          "The interpretation of the program doesn't yield a struct \
+           corresponding to the scope variables"
+    end
     | _ ->
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
-        "The interpretation of the program doesn't yield a struct \
-         corresponding to the scope variables"
+        "The interpreter can only interpret terms starting with functions \
+         having thunked arguments"
 
   let evaluate_with_coverage p scope =
     let open Coverage in
@@ -1801,8 +1817,8 @@ module Environment = struct
       reached_map := Coverage_map.add (Expr.pos e) Reached !reached_map
     in
     let _ = interpret_program_dcalc ~on_expr p scope in
-    Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp
-      !reached_map;
+    (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
+    (*   !reached_map; *)
     Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp
       (Coverage.normalize !reached_map)
 end
