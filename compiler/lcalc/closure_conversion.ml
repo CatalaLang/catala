@@ -464,7 +464,7 @@ let transform_closures_program ~flags (p : 'm program) : 'm program Bindlib.box
           p.decl_ctx.ctx_structs;
       ctx_enums =
         EnumName.Map.map
-          (EnumConstructor.Map.map translate_type)
+          (EnumConstructor.Map.map (Option.map translate_type))
           p.decl_ctx.ctx_enums;
       (* Toplevel definitions may not contain scope calls or take functions as
          arguments at the moment, which ensures that their interfaces aren't

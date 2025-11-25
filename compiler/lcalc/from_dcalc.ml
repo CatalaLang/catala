@@ -64,17 +64,15 @@ let rec translate_default
   let mark_alpha = Expr.with_ty mark_default ty_alpha in
   let if_just_then_cons =
     let none =
-      Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
-        ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
+      Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum ~e:None
         mark_default
     in
     match just with
     | ELit (LBool b), _ -> if b then translate_expr cons else none
     | just ->
       Expr.eifthenelse (translate_expr just) (translate_expr cons)
-        (Expr.einj
-           ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
-           ~cons:Expr.none_constr ~name:Expr.option_enum mark_default)
+        (Expr.einj ~e:None ~cons:Expr.none_constr ~name:Expr.option_enum
+           mark_default)
         mark_default
   in
   let match_some e =
@@ -92,7 +90,8 @@ let rec translate_default
                  let x = Var.make "x" in
                  Expr.make_ghost_abs [x]
                    (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
-                      ~e:(Expr.evar x mark_alpha) mark_default)
+                      ~e:(Some (Expr.evar x mark_alpha))
+                      mark_default)
                    [ty_alpha] pos );
                (* None -> if just then cons else None *)
                Expr.none_constr, Expr.thunk_term if_just_then_cons;
@@ -120,10 +119,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   match e with
   | EEmpty, m ->
     let m = translate_mark m in
-    let pos = Expr.mark_pos m in
-    Expr.einj
-      ~e:(Expr.elit LUnit (Expr.with_ty m (TLit TUnit, pos)))
-      ~cons:Expr.none_constr ~name:Expr.option_enum m
+    Expr.einj ~e:None ~cons:Expr.none_constr ~name:Expr.option_enum m
   | EErrorOnEmpty arg, m ->
     let m = translate_mark m in
     let pos = Expr.mark_pos m in
@@ -155,7 +151,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   | EPureDefault e, m ->
     let pos = Expr.mark_pos m in
     let e = Expr.make_tuple [translate_expr e; Expr.make_pos pos m] m in
-    Expr.einj ~e ~cons:Expr.some_constr ~name:Expr.option_enum
+    Expr.einj ~e:(Some e) ~cons:Expr.some_constr ~name:Expr.option_enum
       (translate_mark m)
   | EAppOp { op; tys; args }, m ->
     Expr.eappop ~op:(Operator.translate op)

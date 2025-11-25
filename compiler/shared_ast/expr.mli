@@ -254,7 +254,7 @@ val option_struct : StructName.t
 
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
-val option_enum_config : typ EnumConstructor.Map.t
+val option_enum_config : typ option EnumConstructor.Map.t
 
 val source_pos_struct : StructName.t
 (** Fake structure (there is no corresponding decl) used for categorising

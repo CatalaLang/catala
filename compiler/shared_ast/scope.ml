@@ -162,9 +162,7 @@ let empty_input_struct_lcalc ctx in_struct_name mark =
           (* Context args should return an option *)
           Expr.make_abs
             (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
-            (Expr.einj
-               ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
-               ~cons:Expr.none_constr ~name:Expr.option_enum
+            (Expr.einj ~e:None ~cons:Expr.none_constr ~name:Expr.option_enum
                (Expr.with_ty mark tret))
             ty_in pos
         | TTuple ((TArrow (ty_in, ((TOption _, _) as tret)), _) :: _), pos ->
@@ -173,9 +171,7 @@ let empty_input_struct_lcalc ctx in_struct_name mark =
             [
               Expr.make_abs
                 (List.map (fun _ -> Mark.ghost (Var.make "_")) ty_in)
-                (Expr.einj
-                   ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
-                   ~cons:Expr.none_constr ~name:Expr.option_enum
+                (Expr.einj ~e:None ~cons:Expr.none_constr ~name:Expr.option_enum
                    (Expr.with_ty mark tret))
                 ty_in pos;
               Expr.eappop
@@ -185,10 +181,9 @@ let empty_input_struct_lcalc ctx in_struct_name mark =
                 (Expr.with_ty mark (TClosureEnv, pos));
             ]
             mark
-        | (TOption _, pos) as ty ->
+        | (TOption _, _) as ty ->
           (* lcalc and later *)
-          Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
-            ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
+          Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum ~e:None
             (Expr.with_ty mark ty)
         | _, pos ->
           Message.error ~pos "%a" Format.pp_print_text

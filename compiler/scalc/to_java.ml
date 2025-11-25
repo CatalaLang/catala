@@ -270,7 +270,7 @@ let fill_struct_bindings
                {
                  name = Expr.option_enum;
                  cons = Expr.none_constr;
-                 e1 = ELit LUnit, Pos.void;
+                 e1 = None;
                  expr_typ = TOption (Type.any Pos.void), Pos.void;
                },
              Pos.void ))
@@ -348,14 +348,14 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
     fprintf ppf "CatalaOption.none()"
-  | EInj { e1 = e; cons; name = e_name; _ }
+  | EInj { e1 = Some e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
     fprintf ppf "@[<hv 2>CatalaOption.some@;<0 -1>(%a)@]"
       (format_expression ctx) e
-  | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
+  | EInj { e1 = None; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a()" format_enum enum_name EnumConstructor.format cons
-  | EInj { e1 = e; cons; name = enum_name; _ } ->
+  | EInj { e1 = Some e; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a(%a)" format_enum enum_name EnumConstructor.format
       cons (format_expression ctx) e
   | EArray es ->
@@ -991,12 +991,11 @@ let format_enums ctx ppf =
         "private final CatalaValue contents;@\npublic final Kind kind;"
     in
     let format_enum_constrs ppf =
-      let format_enum_make ppf (cstr, typ) =
-        let is_unit =
-          match Mark.remove typ with TLit TUnit -> true | _ -> false
-        in
+      let format_enum_make ppf (cstr, (typ : typ option)) =
+        let is_unit = match typ with None -> true | _ -> false in
         let format_arg ppf =
-          if is_unit then () else fprintf ppf "%a v" (format_typ ctx) typ
+          if is_unit then ()
+          else fprintf ppf "%a v" (format_typ ctx) (Option.get typ)
         in
         fprintf ppf
           "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, %s);@;\
@@ -1022,7 +1021,7 @@ let format_enums ctx ppf =
            <1 -2>}@]@ return (T) this.contents;@;\
            <1 -4>}@]"
       in
-      let format_enum_accessor ppf (cstr, typ) =
+      let format_enum_accessor ppf (cstr, (typ : typ)) =
         fprintf ppf
           "@[<v 4>public %a get%aContents() {@ return \
            this.getContentsAs(Kind.%a, %a.class);@]@\n\
@@ -1032,9 +1031,9 @@ let format_enums ctx ppf =
       in
       fprintf ppf "@[<v>%t%a@]" format_default_accessor
         (pp_print_list_padded ~pp_sep:pp_print_space format_enum_accessor)
-        (List.filter
-           (fun (_, typ) ->
-             match Mark.remove typ with TLit TUnit -> false | _ -> true)
+        (List.filter_map
+           (fun (cstr, typ) ->
+             match typ with None -> None | Some typ -> Some (cstr, typ))
            (EnumConstructor.Map.bindings cstrs))
     in
     let format_fields_comparison ppf =

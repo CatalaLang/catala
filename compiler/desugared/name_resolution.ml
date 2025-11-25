@@ -46,7 +46,7 @@ type scope_context = {
 type struct_context = typ StructField.Map.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ EnumConstructor.Map.t
+type enum_context = typ option EnumConstructor.Map.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {
@@ -763,7 +763,7 @@ let process_enum_decl
        be able to accept it."
       (Mark.remove edecl.enum_decl_name);
   List.fold_left
-    (fun ctxt (cdecl, cdecl_pos) ->
+    (fun ctxt (cdecl, _cdecl_pos) ->
       let name, pos = cdecl.Surface.Ast.enum_decl_case_name in
       let pos = translate_pos ConstructorDecl pos in
       let c_uid = EnumConstructor.fresh (name, pos) in
@@ -786,8 +786,8 @@ let process_enum_decl
           (fun cases ->
             let typ =
               match cdecl.Surface.Ast.enum_decl_case_typ with
-              | None -> TLit TUnit, cdecl_pos
-              | Some typ -> process_type ctxt typ
+              | None -> None
+              | Some typ -> Some (process_type ctxt typ)
             in
             match cases with
             | None -> Some (EnumConstructor.Map.singleton c_uid typ, visibility)

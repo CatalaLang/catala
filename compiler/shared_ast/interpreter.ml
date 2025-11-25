@@ -41,7 +41,9 @@ let rec format_runtime_value lang ppf = function
   | Runtime.Decimal d -> Print.UserFacing.decimal lang ppf d
   | Runtime.Date t -> Print.UserFacing.date lang ppf t
   | Runtime.Duration dt -> Print.UserFacing.duration lang ppf dt
-  | Runtime.Enum (name, (constr, v)) ->
+  | Runtime.Enum (name, (constr, None)) ->
+    Format.fprintf ppf "@[<hov 2>%s.%s@]" name constr
+  | Runtime.Enum (name, (constr, Some v)) ->
     Format.fprintf ppf "@[<hov 2>%s.%s@ (%a)@]" name constr
       (format_runtime_value lang)
       v
@@ -114,7 +116,7 @@ let rec value_to_runtime_embedded = function
     Runtime.Enum
       ( EnumName.to_string name,
         ( EnumConstructor.to_string cons,
-          value_to_runtime_embedded (Mark.remove e) ) )
+          Option.map (fun e -> value_to_runtime_embedded (Mark.remove e)) e ) )
   | EStruct { name; fields } ->
     Runtime.Struct
       ( StructName.to_string name,
@@ -172,9 +174,13 @@ let handle_eq pos evaluate_operator m lang e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Mark.remove (eq_eval [e1; e2]) with
-      | ELit (LBool b) -> b
-      | _ -> assert false
+      match e1, e2 with
+      | None, None -> true
+      | Some e1, Some e2 -> (
+        match Mark.remove (eq_eval [e1; e2]) with
+        | ELit (LBool b) -> b
+        | _ -> assert false)
+      | _ -> false
       (* should not happen *)
     with Invalid_argument _ -> false)
   | _, _ -> false (* comparing anything else return false *)
@@ -443,7 +449,7 @@ let rec evaluate_operator
             ->
             if EnumConstructor.equal cons Expr.some_constr then
               match e with
-              | ETuple [e; (EPos p, _)], _ ->
+              | Some (ETuple [e; (EPos p, _)], _) ->
                 Runtime.Optional.Present (e, Expr.pos_to_runtime p)
               | _ -> err ()
             else Runtime.Optional.Absent ()
@@ -452,15 +458,14 @@ let rec evaluate_operator
     in
     match Runtime.handle_exceptions (Array.of_list exps) with
     | Runtime.Optional.Absent () ->
-      EInj
-        { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
+      EInj { name = Expr.option_enum; cons = Expr.none_constr; e = None }
     | Runtime.Optional.Present (e, rpos) ->
       let p = Expr.runtime_to_pos rpos in
       EInj
         {
           name = Expr.option_enum;
           cons = Expr.some_constr;
-          e = ETuple [e; EPos p, Expr.with_pos p m], m;
+          e = Some (ETuple [e; EPos p, Expr.with_pos p m], m);
         })
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon
       | ToRat_int | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat
@@ -532,18 +537,19 @@ let rec runtime_to_val :
         (EnumConstructor.Map.bindings cons_map)
         (Obj.tag o - Obj.first_non_constant_constructor_tag)
     in
-    let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
-    EInj { name; cons; e }, m
+    ( (match ty with
+      | None -> EInj { name; cons; e = None }
+      | Some ty ->
+        let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+        EInj { name; cons; e = Some e }),
+      m )
   | TOption ty -> (
     match Obj.tag o - Obj.first_non_constant_constructor_tag with
     | 0 ->
-      let e =
-        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.void) (Obj.field o 0)
-      in
-      EInj { name = Expr.option_enum; cons = Expr.none_constr; e }, m
+      EInj { name = Expr.option_enum; cons = Expr.none_constr; e = None }, m
     | 1 ->
       let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
-      EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
+      EInj { name = Expr.option_enum; cons = Expr.some_constr; e = Some e }, m
     | _ -> assert false)
   | TClosureEnv ->
     (* By construction, a closure environment can only be consumed from the same
@@ -616,7 +622,7 @@ and val_to_runtime :
       (StructField.Map.to_seq fields)
     |> Array.of_seq
     |> Obj.repr
-  | TEnum name1, EInj { name; cons; e } ->
+  | TEnum name1, EInj { name; cons; e } -> (
     assert (EnumName.equal name name1);
     let cons_map = EnumName.Map.find name ctx.ctx_enums in
     let rec find_tag n = function
@@ -628,25 +634,37 @@ and val_to_runtime :
       find_tag Obj.first_non_constant_constructor_tag
         (EnumConstructor.Map.bindings cons_map)
     in
-    let field = val_to_runtime eval_expr ctx ty e in
-    let o = Obj.with_tag tag (Obj.repr (Some ())) in
-    Obj.set_field o 0 field;
-    o
-  | TOption ty, EInj { name; cons; e } ->
+    match ty, e with
+    | None, None ->
+      let o = Obj.with_tag tag (Obj.repr None) in
+      o
+    | Some ty, Some e ->
+      let field = val_to_runtime eval_expr ctx ty e in
+      let o = Obj.with_tag tag (Obj.repr (Some ())) in
+      Obj.set_field o 0 field;
+      o
+    | _ -> assert false)
+  | TOption ty, EInj { name; cons; e } -> (
     assert (EnumName.equal name Expr.option_enum);
     let tag, ty =
       (* None is before Some because the constructors have been defined in this
          order in [expr.ml], and the ident maps preserve definition ordering *)
       if EnumConstructor.equal cons Expr.none_constr then
-        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.void)
+        Obj.first_non_constant_constructor_tag, None
       else if EnumConstructor.equal cons Expr.some_constr then
-        Obj.first_non_constant_constructor_tag + 1, ty
+        Obj.first_non_constant_constructor_tag + 1, Some ty
       else assert false
     in
-    let field = val_to_runtime eval_expr ctx ty e in
-    let o = Obj.with_tag tag (Obj.repr (Some ())) in
-    Obj.set_field o 0 field;
-    o
+    match ty, e with
+    | None, None ->
+      let o = Obj.with_tag tag (Obj.repr None) in
+      o
+    | Some ty, Some e ->
+      let field = val_to_runtime eval_expr ctx ty e in
+      let o = Obj.with_tag tag (Obj.repr (Some ())) in
+      Obj.set_field o 0 field;
+      o
+    | _ -> assert false)
   | TArray ty, EArray es ->
     Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr
   | TArrow (targs, tret), _ ->
@@ -851,21 +869,30 @@ let rec evaluate_expr :
          (should not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e size)
-  | EInj { e; name; cons } ->
+  | EInj { e = Some e; name; cons } ->
     let e = evaluate_expr ctx lang e in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
       match Expr.maybe_ty m with TEnum name, _ -> name | _ -> name
     in
-    Mark.add m (EInj { e; name; cons })
+    Mark.add m (EInj { e = Some e; name; cons })
+  | EInj { e = None; name; cons } ->
+    let name =
+      (* Ensures the returned module path is consistent between separate and
+         whole-program interpretation *)
+      match Expr.maybe_ty m with TEnum name, _ -> name | _ -> name
+    in
+    Mark.add m (EInj { e = None; name; cons })
   | EMatch { e; cases; name } -> (
     let e = evaluate_expr ctx lang e in
     match Mark.remove e with
-    | EInj { e = e1; cons; name = name' } ->
+    | EInj { e = e1; cons; name = name' } -> (
       if not (EnumName.equal name name') then
         Message.error
-          ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
+          ~extra_pos:
+            (["", Expr.pos e]
+            @ match e1 with None -> [] | Some e1 -> ["", Expr.pos e1])
           "%a" Format.pp_print_text
           "Error during match: two different enums found (should not happen if \
            the term was well-typed)";
@@ -880,8 +907,12 @@ let rec evaluate_expr :
       let ty =
         EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
       in
-      let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-      evaluate_expr ctx lang new_e
+      match ty, e1 with
+      | Some ty, Some e1 ->
+        let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
+        evaluate_expr ctx lang new_e
+      | None, None -> evaluate_expr ctx lang es_n
+      | _ -> assert false)
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \

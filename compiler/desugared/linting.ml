@@ -181,9 +181,11 @@ let detect_unused_enum_constructors (p : program) : unit =
         ~f:(fun enum_constructors_used e ->
           let rec enum_constructors_used_expr e enum_constructors_used =
             match Mark.remove e with
-            | EInj { name = _; e = e_enum; cons } ->
+            | EInj { name = _; e = Some e_enum; cons } ->
               EnumConstructor.Set.add cons
                 (enum_constructors_used_expr e_enum enum_constructors_used)
+            | EInj { name = _; e = None; cons } ->
+              EnumConstructor.Set.singleton cons
             | EMatch { e = e_match; name = _; cases } ->
               let enum_constructors_used =
                 enum_constructors_used_expr e_match enum_constructors_used

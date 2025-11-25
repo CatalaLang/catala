@@ -23,12 +23,15 @@ module L = Lcalc.Ast
 let rec get_vars e =
   match Mark.remove e with
   | EVar v -> VarName.Set.singleton v
-  | EFunc _ | ELit _ | EPosLit | EExternal _ -> VarName.Set.empty
+  | EFunc _ | ELit _ | EPosLit | EExternal _ | EInj { e1 = None; _ } ->
+    VarName.Set.empty
   | EStruct str ->
     StructField.Map.fold
       (fun _ e -> VarName.Set.union (get_vars e))
       str.fields VarName.Set.empty
-  | EStructFieldAccess { e1; _ } | ETupleAccess { e1; _ } | EInj { e1; _ } ->
+  | EStructFieldAccess { e1; _ }
+  | ETupleAccess { e1; _ }
+  | EInj { e1 = Some e1; _ } ->
     get_vars e1
   | ETuple el | EArray el | EAppOp { args = el; _ } ->
     List.fold_left
@@ -52,7 +55,7 @@ let rec subst_expr v e within_expr =
     EStructFieldAccess { sfa with e1 = subst_expr v e sfa.e1 }, m
   | ETuple el -> ETuple (List.map (subst_expr v e) el), m
   | ETupleAccess ta -> ETupleAccess { ta with e1 = subst_expr v e ta.e1 }, m
-  | EInj i -> EInj { i with e1 = subst_expr v e i.e1 }, m
+  | EInj i -> EInj { i with e1 = Option.map (subst_expr v e) i.e1 }, m
   | EArray el -> EArray (List.map (subst_expr v e) el), m
   | EApp app ->
     ( EApp

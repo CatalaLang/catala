@@ -166,7 +166,8 @@ let collect_monomorphized_instances (prg : typed program) :
   EnumName.Map.fold
     (fun _ constructors acc ->
       EnumConstructor.Map.fold
-        (fun _ t acc -> collect_typ acc t)
+        (fun _ t acc ->
+          match t with None -> acc | Some t -> collect_typ acc t)
         constructors acc)
     prg.decl_ctx.ctx_enums
     (StructName.Map.fold
@@ -299,7 +300,8 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
      instances *)
   let ctx_enums =
     EnumName.Map.map
-      (EnumConstructor.Map.map (monomorphize_typ monomorphized_instances))
+      (EnumConstructor.Map.map
+         (Option.map (monomorphize_typ monomorphized_instances)))
       ctx_enums
   in
   let ctx_structs =
@@ -312,11 +314,11 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
     Type.Map.fold
       (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
         EnumName.Map.add option_instance.name
-          (EnumConstructor.Map.add option_instance.none_cons
-             (TLit TUnit, Pos.void)
+          (EnumConstructor.Map.add option_instance.none_cons None
              (EnumConstructor.Map.singleton option_instance.some_cons
-                (monomorphize_typ monomorphized_instances
-                   (option_instance.some_typ, Pos.void))))
+                (Some
+                   (monomorphize_typ monomorphized_instances
+                      (option_instance.some_typ, Pos.void)))))
           ctx_enums)
       monomorphized_instances.options ctx_enums
   in

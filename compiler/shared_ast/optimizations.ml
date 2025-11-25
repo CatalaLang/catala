@@ -364,9 +364,15 @@ let test_iota_reduction_1 () =
   let consC = EnumConstructor.fresh ("C", Pos.void) in
   let consD = EnumConstructor.fresh ("D", Pos.void) in
   let nomark = Untyped { pos = Pos.void } in
-  let injA = Expr.einj ~e:(Expr.evar x nomark) ~cons:consA ~name:enumT nomark in
-  let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
-  let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
+  let injA =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consA ~name:enumT nomark
+  in
+  let injC =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consC ~name:enumT nomark
+  in
+  let injD =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consD ~name:enumT nomark
+  in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
@@ -410,10 +416,10 @@ let test_iota_reduction_2 () =
 
   let num n = Expr.elit (LInt (Catala_runtime.integer_of_int n)) nomark in
 
-  let injAe e = Expr.einj ~e ~cons:consA ~name:enumT nomark in
-  let injBe e = Expr.einj ~e ~cons:consB ~name:enumT nomark in
-  let injCe e = Expr.einj ~e ~cons:consC ~name:enumT nomark in
-  let injDe e = Expr.einj ~e ~cons:consD ~name:enumT nomark in
+  let injAe e = Expr.einj ~e:(Some e) ~cons:consA ~name:enumT nomark in
+  let injBe e = Expr.einj ~e:(Some e) ~cons:consB ~name:enumT nomark in
+  let injCe e = Expr.einj ~e:(Some e) ~cons:consC ~name:enumT nomark in
+  let injDe e = Expr.einj ~e:(Some e) ~cons:consD ~name:enumT nomark in
 
   (* let injA x = injAe (Expr.evar x nomark) in *)
   let injB x = injBe (Expr.evar x nomark) in

@@ -136,7 +136,10 @@ let rec check_typ_no_default ctx ty =
     StructField.Map.for_all (fun _k ty -> check_typ_no_default ctx ty) s
   | TEnum n ->
     let s = EnumName.Map.find n ctx.ctx_enums in
-    EnumConstructor.Map.for_all (fun _k ty -> check_typ_no_default ctx ty) s
+    EnumConstructor.Map.for_all
+      (fun _k ty ->
+        match ty with None -> true | Some ty -> check_typ_no_default ctx ty)
+      s
   | TOption ty -> check_typ_no_default ctx ty
   | TArrow (args, res) ->
     List.for_all (check_typ_no_default ctx) args && check_typ_no_default ctx res

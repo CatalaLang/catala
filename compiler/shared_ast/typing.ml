@@ -740,21 +740,39 @@ and typecheck_expr_top_down :
     if Definitions.EnumConstructor.equal cons Expr.some_constr then
       let cell_type = Type.fresh_var (Expr.pos e) in
       let mark = mark_with_tau_and_unify (TOption cell_type, pos_e) in
+      let e_enum =
+        match e_enum with
+        | Some e_enum -> e_enum
+        | None ->
+          Message.error ~kind:Typing ~pos:(Expr.pos e)
+            "Expected a payload for the Some constructor but got none."
+      in
       let e_enum' = typecheck_expr_top_down ctx env cell_type e_enum in
-      Expr.einj ~name ~cons ~e:e_enum' mark
+      Expr.einj ~name ~cons ~e:(Some e_enum') mark
     else
       (* None constructor *)
       let cell_type = Type.fresh_var (Expr.pos e) in
       let mark = mark_with_tau_and_unify (TOption cell_type, pos_e) in
-      let e_enum' =
-        typecheck_expr_top_down ctx env (TLit TUnit, pos_e) e_enum
-      in
-      Expr.einj ~name ~cons ~e:e_enum' mark
+      (match e_enum with
+      | None -> ()
+      | Some e_enum ->
+        Message.delayed_error () ~kind:Typing ~pos:(Expr.pos e_enum)
+          "Expected no payload for the None constructor but got one.");
+      Expr.einj ~name ~cons ~e:None mark
   | EInj { name; cons; e = e_enum } ->
     let mark = mark_with_tau_and_unify (TEnum name, pos_e) in
     let e_enum' =
-      typecheck_expr_top_down ctx env
-        (EnumConstructor.Map.find cons (EnumName.Map.find name env.enums))
+      Option.map
+        (fun e_enum ->
+          typecheck_expr_top_down ctx env
+            (match
+               EnumConstructor.Map.find cons (EnumName.Map.find name env.enums)
+             with
+            | None ->
+              Message.error ~kind:Typing ~pos:(Expr.pos e_enum)
+                "Got a payload for this constructor but expected none."
+            | Some ty -> ty)
+            e_enum)
         e_enum
     in
     Expr.einj ~e:e_enum' ~cons ~name mark
@@ -793,7 +811,11 @@ and typecheck_expr_top_down :
           (* For now our constructors are limited to zero or one argument. If
              there is a change to allow for multiple arguments, it might be
              easier to use tuples directly. *)
-          let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
+          let e_ty =
+            match c_ty with
+            | None -> t_ret
+            | Some c_ty -> TArrow ([c_ty], t_ret), Expr.pos e
+          in
           typecheck_expr_top_down ctx env e_ty e)
         cases
     in
@@ -1233,9 +1255,9 @@ let program ?assume_op_types prg =
           EnumName.Map.mapi
             (fun e_name cons ->
               EnumConstructor.Map.mapi
-                (fun cons_name (t : typ) ->
-                  match Mark.remove t with
-                  | TForAll _ ->
+                (fun cons_name (t : typ option) ->
+                  match t with
+                  | Some (TForAll _, _) ->
                     EnumConstructor.Map.find cons_name
                       (EnumName.Map.find e_name new_env.enums)
                   | _ -> t)

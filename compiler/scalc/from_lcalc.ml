@@ -147,13 +147,24 @@ and translate_struct_literal ctxt expr =
         (RevBlock.empty, StructField.Map.empty, ctxt.ren_ctx)
     in
     args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr), ren_ctx
-  | EInj { e = e1; cons; name } ->
+  | EInj { e = Some e1; cons; name } ->
     let e1_stmts, new_e1, ren_ctx = translate_expr ctxt e1 in
     ( e1_stmts,
       ( A.EInj
-          { e1 = new_e1; cons; name; expr_typ = Expr.maybe_ty (Mark.get expr) },
+          {
+            e1 = Some new_e1;
+            cons;
+            name;
+            expr_typ = Expr.maybe_ty (Mark.get expr);
+          },
         Expr.pos expr ),
       ren_ctx )
+  | EInj { e = None; cons; name } ->
+    ( RevBlock.empty,
+      ( A.EInj
+          { e1 = None; cons; name; expr_typ = Expr.maybe_ty (Mark.get expr) },
+        Expr.pos expr ),
+      ctxt.ren_ctx )
   | ETuple args ->
     let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
     args_stmts, (A.ETuple new_args, Expr.pos expr), ren_ctx

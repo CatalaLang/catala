@@ -306,9 +306,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EStructAccess { e; field; name } ->
     Format.fprintf fmt "%a.%a" format_with_parens e format_struct_field_name
       (Some name, field)
-  | EInj { e; cons; name } ->
+  | EInj { e = Some e; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
       (`Ename name) format_enum_cons_name cons format_with_parens e
+  | EInj { e = None; cons; name } ->
+    Format.fprintf fmt "@[<hov 2>%a.%a@]" format_to_module_name (`Ename name)
+      format_enum_cons_name cons
   | EMatch { e; cases; name } ->
     Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@,| %a@]"
       format_with_parens e
@@ -474,7 +477,7 @@ let format_struct_embedding
 
 let format_enum_embedding
     (fmt : Format.formatter)
-    ((enum_name, enum_cases) : EnumName.t * typ EnumConstructor.Map.t) =
+    ((enum_name, enum_cases) : EnumName.t * typ option EnumConstructor.Map.t) =
   if Global.options.trace = None || EnumName.path enum_name <> [] then ()
   else if EnumConstructor.Map.is_empty enum_cases then
     Format.fprintf fmt "@,let embed (_: t) : runtime_value = Unit"
@@ -487,9 +490,14 @@ let format_enum_embedding
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
          (fun fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
-             format_enum_cons_name enum_cons EnumConstructor.format enum_cons
-             typ_embedding_name enum_cons_type))
+           match enum_cons_type with
+           | Some enum_cons_type ->
+             Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
+               format_enum_cons_name enum_cons EnumConstructor.format enum_cons
+               typ_embedding_name enum_cons_type
+           | None ->
+             Format.fprintf fmt "@[<hov 2>| %a ->@ (\"%a\")@]"
+               format_enum_cons_name enum_cons EnumConstructor.format enum_cons))
       (EnumConstructor.Map.bindings enum_cases)
 
 let format_ctx
@@ -556,10 +564,10 @@ let format_ctx
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (enum_cons, enum_cons_type) ->
-           match Mark.remove enum_cons_type with
-           | TLit TUnit ->
+           match enum_cons_type with
+           | None ->
              Format.fprintf fmt "@[<hov>%a@]" format_enum_cons_name enum_cons
-           | _ ->
+           | Some enum_cons_type ->
              Format.fprintf fmt "@[<hov>%a of@ %a@]" format_enum_cons_name
                enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons)
@@ -572,10 +580,10 @@ let format_ctx
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
            (fun fmt (enum_cons, enum_cons_type) ->
-             match Mark.remove enum_cons_type with
-             | TLit TUnit ->
+             match enum_cons_type with
+             | None ->
                Format.fprintf fmt "@[<hov>%a@]" format_enum_cons_name enum_cons
-             | _ ->
+             | Some enum_cons_type ->
                Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
                  enum_cons format_typ enum_cons_type))
         (EnumConstructor.Map.bindings enum_cons)

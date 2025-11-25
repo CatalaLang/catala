@@ -252,11 +252,14 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
     Format.fprintf fmt "Option(None)"
-  | EInj { e1 = e; cons; name = e_name; _ }
+  | EInj { e1 = Some e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
     Format.fprintf fmt "Option(%a)" (format_expression ctx) e
-  | EInj { e1 = e; cons; name = enum_name; _ } ->
+  | EInj { e1 = None; cons; name = enum_name; _ } ->
+    Format.fprintf fmt "%a(%a_Code.%a)" (format_enum ctx) enum_name
+      (format_enum ctx) enum_name EnumConstructor.format cons
+  | EInj { e1 = Some e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name
       (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e

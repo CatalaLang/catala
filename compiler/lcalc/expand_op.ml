@@ -77,29 +77,42 @@ let rec resolve_eq ctx pos ty args m =
     let constrs = EnumName.Map.find name ctx.ctx_enums in
     let cases =
       EnumConstructor.Map.mapi
-        (fun cstr ty ->
-          let v1 = Var.make "v1" in
+        (fun cstr (ty1 : typ option) ->
+          let v1 = Option.map (fun _ -> Var.make "v1") ty1 in
           let cases =
             EnumConstructor.Map.mapi
-              (fun cstr2 ty ->
-                if EnumConstructor.equal cstr cstr2 then
-                  let v2 = Var.make "v2" in
-                  Expr.make_ghost_abs [v2]
-                    (resolve_eq ctx pos ty
-                       [
-                         Expr.evar v1 (Expr.with_ty m ty);
-                         Expr.evar v2 (Expr.with_ty m ty);
-                       ]
-                       m)
-                    [ty] pos
-                else
-                  Expr.make_ghost_abs
-                    [Var.make "_"]
-                    (Expr.elit (LBool false) m)
-                    [ty] pos)
+              (fun cstr2 (ty2 : typ option) ->
+                match ty1, ty2 with
+                | Some ty1, Some ty2 ->
+                  if EnumConstructor.equal cstr cstr2 then
+                    let v2 = Var.make "v2" in
+                    Expr.make_ghost_abs [v2]
+                      (resolve_eq ctx pos ty
+                         [
+                           Expr.evar (Option.get v1) (Expr.with_ty m ty1);
+                           Expr.evar v2 (Expr.with_ty m ty2);
+                         ]
+                         m)
+                      [ty2] pos
+                  else
+                    Expr.make_ghost_abs
+                      [Var.make "_"]
+                      (Expr.elit (LBool false) m)
+                      [ty2] pos
+                | None, None ->
+                  if EnumConstructor.equal cstr cstr2 then
+                    Expr.elit (LBool true) m
+                  else Expr.elit (LBool false) m
+                | _ -> Expr.elit (LBool false) m)
               constrs
           in
-          Expr.make_ghost_abs [v1] (Expr.ematch ~name ~e:arg2 ~cases m) [ty] pos)
+          match ty1 with
+          | Some ty1 ->
+            Expr.make_ghost_abs
+              [Option.get v1]
+              (Expr.ematch ~name ~e:arg2 ~cases m)
+              [ty1] pos
+          | None -> Expr.ematch ~name ~e:arg2 ~cases m)
         constrs
     in
     Expr.ematch ~name ~e:arg1 ~cases m
