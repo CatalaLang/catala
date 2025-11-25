@@ -105,7 +105,7 @@ let simplified_match enum_name match_arg cases mark =
   in
   let ret_ty = Expr.maybe_ty mark in
   let rec aux seen_constrs = function
-    | EInj { cons; e; _ }, m ->
+    | EInj { cons; e = Some _ as e; _ }, m ->
       if EnumConstructor.Set.mem cons seen_constrs then raise Exit;
       (* Abort inlining to avoid code duplication *)
       let seen_constrs =
@@ -113,7 +113,7 @@ let simplified_match enum_name match_arg cases mark =
           seen_constrs
         else EnumConstructor.Set.add cons seen_constrs
       in
-      seen_constrs, (app_cases cons e, Expr.with_ty m ret_ty)
+      seen_constrs, (app_cases cons (Option.get e), Expr.with_ty m ret_ty)
     | EMatch ({ cases; _ } as ematch), m ->
       let seen_constrs, cases =
         EnumConstructor.Map.fold
@@ -364,9 +364,15 @@ let test_iota_reduction_1 () =
   let consC = EnumConstructor.fresh ("C", Pos.void) in
   let consD = EnumConstructor.fresh ("D", Pos.void) in
   let nomark = Untyped { pos = Pos.void } in
-  let injA = Expr.einj ~e:(Expr.evar x nomark) ~cons:consA ~name:enumT nomark in
-  let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
-  let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
+  let injA =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consA ~name:enumT nomark
+  in
+  let injC =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consC ~name:enumT nomark
+  in
+  let injD =
+    Expr.einj ~e:(Some (Expr.evar x nomark)) ~cons:consD ~name:enumT nomark
+  in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
@@ -410,10 +416,10 @@ let test_iota_reduction_2 () =
 
   let num n = Expr.elit (LInt (Catala_runtime.integer_of_int n)) nomark in
 
-  let injAe e = Expr.einj ~e ~cons:consA ~name:enumT nomark in
-  let injBe e = Expr.einj ~e ~cons:consB ~name:enumT nomark in
-  let injCe e = Expr.einj ~e ~cons:consC ~name:enumT nomark in
-  let injDe e = Expr.einj ~e ~cons:consD ~name:enumT nomark in
+  let injAe e = Expr.einj ~e:(Some e) ~cons:consA ~name:enumT nomark in
+  let injBe e = Expr.einj ~e:(Some e) ~cons:consB ~name:enumT nomark in
+  let injCe e = Expr.einj ~e:(Some e) ~cons:consC ~name:enumT nomark in
+  let injDe e = Expr.einj ~e:(Some e) ~cons:consD ~name:enumT nomark in
 
   (* let injA x = injAe (Expr.evar x nomark) in *)
   let injB x = injBe (Expr.evar x nomark) in

@@ -5,18 +5,18 @@ declaration enumeration E:
   -- Case1 content integer
   -- Case2
 
-#[test] declaration scope A:
+#[test]
+declaration scope A:
   context output x content E
   context output y content integer
 
 scope A:
   definition x equals Case1 content 2
-  definition y equals match x with pattern
+  definition y equals
+    match x with pattern
     -- Case1 content i : 42
     -- Case2 : 43
 ```
-
-
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
@@ -34,4 +34,9 @@ $ catala test-scope A
 │ x = Case1 2
 │ y = 42
 └─
+```
+
+```catala-test-cli
+$ catala lcalc A
+
 ```

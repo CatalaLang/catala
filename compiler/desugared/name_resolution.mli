@@ -46,7 +46,7 @@ type scope_context = {
 type struct_context = typ StructField.Map.t
 (** Types of the fields of a struct *)
 
-type enum_context = typ EnumConstructor.Map.t
+type enum_context = typ option EnumConstructor.Map.t
 (** Types of the payloads of the cases of an enum *)
 
 type var_sig = {

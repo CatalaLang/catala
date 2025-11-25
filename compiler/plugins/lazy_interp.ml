@@ -172,11 +172,15 @@ let rec lazy_eval :
     if not llevel.eval_default then e0, env
     else
       match eval_to_value env e with
-      | (EInj { name = n; cons; e }, m), env when EnumName.equal name n ->
+      | (EInj { name = n; cons; e = Some e }, m), env when EnumName.equal name n
+        ->
         lazy_eval ctx env llevel
           ( EApp
               { f = EnumConstructor.Map.find cons cases; args = [e]; tys = [] },
             m )
+      | (EInj { name = n; cons; e = None }, m), env when EnumName.equal name n
+        ->
+        lazy_eval ctx env llevel (EnumConstructor.Map.find cons cases)
       | e, _ -> error e "Invalid match argument %a" Expr.format e)
   | EDefault { excepts; just; cons }, m -> (
     let excs =

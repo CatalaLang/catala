@@ -256,7 +256,7 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string * (string * runtime_value)
+  | Enum of string * (string * runtime_value option)
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value array
   | Tuple of runtime_value array
@@ -356,7 +356,11 @@ module BufferedJson = struct
     | Decimal d -> decimal buf d
     | Date d -> quote buf (date_to_string d)
     | Duration d -> quote buf (duration_to_string d)
-    | Enum (name, (constr, v)) ->
+    | Enum (name, (constr, None)) ->
+      Printf.bprintf buf
+        {|{"kind": "enum", "name": "%s", "constructor": "%s", "value": null}|}
+        name constr
+    | Enum (name, (constr, Some v)) ->
       Printf.bprintf buf
         {|{"kind": "enum", "name": "%s", "constructor": "%s", "value": %a}|}
         name constr runtime_value v

@@ -48,7 +48,7 @@ and naked_expr =
   | ETuple of expr list
   | ETupleAccess of { e1 : expr; index : int; typ : typ }
   | EInj of {
-      e1 : expr;
+      e1 : expr option;
       cons : EnumConstructor.t;
       name : EnumName.t;
       expr_typ : typ;

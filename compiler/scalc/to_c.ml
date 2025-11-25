@@ -197,7 +197,10 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
        } %s;" (EnumName.base enum_name) (EnumName.base enum_name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         (fun fmt (enum_cons, typ) ->
+         (fun fmt (enum_cons, (typ : typ option)) ->
+           let typ =
+             match typ with Some typ -> typ | None -> TLit TUnit, Pos.void
+           in
            Format.fprintf fmt "@[<hov 2>%a;@]"
              (format_typ ~const:true ctx (fun fmt ->
                   Format.pp_print_space fmt ();
@@ -286,7 +289,7 @@ let rec format_expression
     when EnumName.equal enum_name Expr.option_enum ->
     if EnumConstructor.equal cons Expr.none_constr then
       Format.fprintf fmt "CATALA_NONE"
-    else Format.fprintf fmt "catala_some(%a)" format_expression e1
+    else Format.fprintf fmt "catala_some(%a)" format_expression (Option.get e1)
   | EStruct _ | EInj _ | EArray _ ->
     Message.error ~internal:true "Unlifted construct found: %a"
       (Scalc__Print.format_expr ctx.decl_ctx ?debug:None)
@@ -444,13 +447,16 @@ let rec format_statement
           expr)
       fields
   | SLocalDef { name = v, _; expr = EInj { e1; cons; name; _ }, _; _ }
-    when not (EnumName.equal name Expr.option_enum) ->
+    when not (EnumName.equal name Expr.option_enum) -> (
     Format.fprintf fmt "@,@[<hov 2>%a->code = %s;@]" VarName.format v
       (EnumConstructor.to_string cons);
-    Format.fprintf fmt "@,@[<hov 2>%a->payload.%s = %a;@]" VarName.format v
-      (EnumConstructor.to_string cons)
-      (format_expression ctx env)
-      e1
+    match e1 with
+    | Some e1 ->
+      Format.fprintf fmt "@,@[<hov 2>%a->payload.%s = %a;@]" VarName.format v
+        (EnumConstructor.to_string cons)
+        (format_expression ctx env)
+        e1
+    | None -> ())
   | SLocalDef
       {
         name = v, _;

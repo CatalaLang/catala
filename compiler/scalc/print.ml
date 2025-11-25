@@ -75,9 +75,11 @@ let rec format_expr
   | ETupleAccess { e1; index; _ } ->
     Format.fprintf fmt "%a%a%a%d%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" index Print.punctuation "\""
-  | EInj { e1 = e; cons; _ } ->
+  | EInj { e1 = Some e; cons; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
+  | EInj { e1 = None; cons; _ } ->
+    Format.fprintf fmt "@[<hov 2>%a@]" EnumConstructor.format cons
   | ELit l -> Print.lit fmt l
   | EPosLit -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter (Mark.get e))
   | EAppOp

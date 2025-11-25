@@ -290,8 +290,9 @@ module To_jsoo = struct
           (StructField.Map.bindings struct_fields)
           fmt_conv_funs ()
     in
-    let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructor.Map.t))
-        =
+    let format_enum_decl
+        fmt
+        (enum_name, (enum_cons : typ option EnumConstructor.Map.t)) =
       if
         (* EnumName.path enum_name <> [] || *)
         EnumName.equal enum_name Expr.option_enum
@@ -306,14 +307,24 @@ module To_jsoo = struct
             (Format.pp_print_list
                ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
                (fun fmt (cname, typ) ->
-                 Format.fprintf fmt
-                   "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
-                    val kind = Js.string \"%a\"@\n\
-                    val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a \
-                    arg))@]@\n\
-                    end@]"
-                   format_enum_cons_name cname format_enum_cons_name cname
-                   format_to_js typ))
+                 match typ with
+                 | Some typ ->
+                   Format.fprintf fmt
+                     "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
+                      val kind = Js.string \"%a\"@\n\
+                      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (%a \
+                      arg))@]@\n\
+                      end@]"
+                     format_enum_cons_name cname format_enum_cons_name cname
+                     format_to_js typ
+                 | None ->
+                   Format.fprintf fmt
+                     "@[<v 2>@[<v 4>| %a arg -> object%%js@\n\
+                      val kind = Js.string \"%a\"@\n\
+                      val payload = Js.Unsafe.coerce (Js.Unsafe.inject \
+                      (Js.null))@]@\n\
+                      end@]"
+                     format_enum_cons_name cname format_enum_cons_name cname))
             (EnumConstructor.Map.bindings enum_cons)
         in
         let fmt_of_js fmt _ =
@@ -327,20 +338,24 @@ module To_jsoo = struct
             (Format.pp_print_list
                ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
                (fun fmt (cname, typ) ->
-                 match Mark.remove typ with
-                 | TTuple _ ->
+                 match typ with
+                 | Some ((TTuple _, _) as typ) ->
                    Message.error ~pos:(Mark.get typ)
                      "Tuples aren't yet supported in the conversion to JS..."
-                 | TLit TUnit ->
+                 | Some (TLit TUnit, _) ->
                    Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
                      format_enum_cons_name cname fmt_module_enum_name ()
                      format_enum_cons_name cname
-                 | _ ->
+                 | Some typ ->
                    Format.fprintf fmt
                      "| \"%a\" ->@\n%a.%a (%a (Js.Unsafe.coerce %a##.payload))"
                      format_enum_cons_name cname fmt_module_enum_name ()
                      format_enum_cons_name cname format_of_js typ fmt_enum_name
-                     ()))
+                     ()
+                 | None ->
+                   Format.fprintf fmt "| \"%a\" ->@\n%a.%a"
+                     format_enum_cons_name cname fmt_module_enum_name ()
+                     format_enum_cons_name cname))
             (EnumConstructor.Map.bindings enum_cons)
             fmt_module_enum_name ()
         in

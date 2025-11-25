@@ -745,27 +745,24 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
           StructField.format field
-      | EInj { e = ELit LUnit, _; cons; _ } ->
+      | EInj { e = None; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@]" EnumConstructor.format cons
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
-          (paren ~rhs:false exprc) e
+          (paren ~rhs:false exprc) (Option.get e)
       | EMatch { e; cases; _ } ->
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"
           (EnumConstructor.Map.format_bindings
              (fun fmt pp_cons_name case_expr ->
                match case_expr with
-               | EAbs { binder; tys; _ }, _ ->
+               | EAbs { binder; _ }, _ ->
                  let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
                  let expr = exprb bnd_ctx in
                  let pp_args fmt =
-                   match tys with
-                   | [(TLit TUnit, _)] -> ()
-                   | _ ->
-                     Format.pp_print_seq ~pp_sep:Format.pp_print_space var fmt
-                       (Array.to_seq xs);
-                     Format.pp_print_space fmt ()
+                   Format.pp_print_seq ~pp_sep:Format.pp_print_space var fmt
+                     (Array.to_seq xs);
+                   Format.pp_print_space fmt ()
                  in
                  Format.fprintf fmt "@[<hov 2>%a %t@ %t%a@ %a@]" punctuation "|"
                    pp_cons_name pp_args punctuation "→" (rhs expr) body
@@ -910,7 +907,7 @@ let enum
     fmt
     (pp_name : Format.formatter -> unit)
     name
-    (c : typ EnumConstructor.Map.t) =
+    (c : typ option EnumConstructor.Map.t) =
   attrs fmt (Mark.get (EnumName.get_info name));
   Format.fprintf fmt "@[<v 2>%a %t %a@ %a@]@," keyword "type" pp_name
     punctuation "="
@@ -919,9 +916,10 @@ let enum
          Format.fprintf fmt "@[<hov2>%a %a%t%a@]" punctuation "|" attrs
            (Mark.get (EnumConstructor.get_info n))
            pp_n
-           (fun ppf -> function
-             | TLit TUnit, _ -> ()
-             | ty -> Format.fprintf ppf " %a %a" keyword "of" typ ty)
+           (fun ppf ty ->
+             match ty with
+             | None -> ()
+             | Some ty -> Format.fprintf ppf " %a %a" keyword "of" typ ty)
            ty))
     c
 
@@ -1171,11 +1169,11 @@ module UserFacing = struct
              Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld
                (value ~fallback lang) e))
         fields
-    | EInj { name = _; cons; e = ELit LUnit, _ } ->
+    | EInj { name = _; cons; e = None } ->
       Format.fprintf ppf "@[<hov 2>%a@]" EnumConstructor.format cons
     | EInj { name = _; cons; e } ->
       Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
-        (value ~fallback lang) e
+        (value ~fallback lang) (Option.get e)
     | EEmpty -> Format.pp_print_string ppf "ø"
     | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
@@ -1257,9 +1255,12 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     pf fmt "@[<hov 1>Struct<%a>(@[<hov 1>{ %a }@])@]" StructName.format name
       (pp_print_list ~pp_sep pp_field)
       fields
+  | EInj { name; e = None; cons } ->
+    pf fmt "@[<hov 1>Inj<%a.%a>@]" EnumName.format name EnumConstructor.format
+      cons
   | EInj { name; e; cons } ->
     pf fmt "@[<hov 1>Inj<%a.%a>(%a)@]" EnumName.format name
-      EnumConstructor.format cons s_expr e
+      EnumConstructor.format cons s_expr (Option.get e)
   | EMatch { name; e; cases } ->
     let cases = EnumConstructor.Map.bindings cases in
     let pp_case fmt (cons, e) =

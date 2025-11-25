@@ -103,7 +103,7 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string * (string * runtime_value)
+  | Enum of string * (string * runtime_value option)
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value Array.t
   | Tuple of runtime_value Array.t

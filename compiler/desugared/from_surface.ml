@@ -405,22 +405,28 @@ let rec translate_expr
     in
     let cases =
       EnumConstructor.Map.mapi
-        (fun c_uid' tau ->
-          let tau = Type.unquantify tau in
-          if EnumConstructor.compare c_uid c_uid' <> 0 then
-            let nop_var = Var.make "_" in
-            Expr.make_ghost_abs [nop_var]
-              (Expr.elit (LBool false) emark)
-              [tau] pos_op
-          else
-            let binding_var = Var.make (Mark.remove binding) in
-            let local_vars =
-              Ident.Map.add (Mark.remove binding) binding_var local_vars
-            in
-            let e2 = rec_helper ~local_vars e2 in
-            Expr.make_abs
-              [Mark.add (Mark.get binding) binding_var]
-              e2 [tau] pos_op)
+        (fun c_uid' (tau : typ option) ->
+          match tau with
+          | None ->
+            if EnumConstructor.compare c_uid c_uid' <> 0 then
+              Expr.elit (LBool false) emark
+            else rec_helper ~local_vars e2
+          | Some tau ->
+            let tau = Type.unquantify tau in
+            if EnumConstructor.compare c_uid c_uid' <> 0 then
+              let nop_var = Var.make "_" in
+              Expr.make_ghost_abs [nop_var]
+                (Expr.elit (LBool false) emark)
+                [tau] pos_op
+            else
+              let binding_var = Var.make (Mark.remove binding) in
+              let local_vars =
+                Ident.Map.add (Mark.remove binding) binding_var local_vars
+              in
+              let e2 = rec_helper ~local_vars e2 in
+              Expr.make_abs
+                [Mark.add (Mark.get binding) binding_var]
+                e2 [tau] pos_op)
         (fst (EnumName.Map.find enum_uid ctxt.enums))
     in
     Expr.ematch ~e:(rec_helper e1_sub) ~name:enum_uid ~cases emark
@@ -712,19 +718,14 @@ let rec translate_expr
               expected_s_fields));
 
     Expr.estruct ~name:s_uid ~fields:s_fields emark
-  | EnumInject ((CBuiltin ((Present | Absent) as c), cpos), payload) ->
+  | EnumInject ((CBuiltin ((Present | Absent) as c), _cpos), payload) ->
     let payload = Option.map rec_helper payload in
     let e_uid, c_uid =
       match c with
       | Present -> Expr.option_enum, Expr.some_constr
       | Absent -> Expr.option_enum, Expr.none_constr
     in
-    Expr.einj
-      ~e:
-        (match payload with
-        | Some e' -> e'
-        | None -> Expr.elit LUnit (Untyped { pos = cpos }))
-      ~cons:c_uid ~name:e_uid emark
+    Expr.einj ~e:payload ~cons:c_uid ~name:e_uid emark
   | EnumInject ((CConstr (path, (constructor, pos_constructor)), _), payload)
     -> (
     let get_possible_c_uids ctxt =
@@ -751,7 +752,7 @@ let rec translate_expr
       with Ident.Map.Not_found _ ->
         raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
-    let mark_constructor = Untyped { pos = pos_constructor } in
+    let _mark_constructor = Untyped { pos = pos_constructor } in
     match path with
     | [] ->
       let possible_c_uids =
@@ -792,12 +793,7 @@ let rec translate_expr
             c_uid
         in
         let payload = Option.map rec_helper payload in
-        Expr.einj
-          ~e:
-            (match payload with
-            | Some e' -> e'
-            | None -> Expr.elit LUnit mark_constructor)
-          ~cons:c_uid ~name:e_uid emark
+        Expr.einj ~e:payload ~cons:c_uid ~name:e_uid emark
     | path_enum -> (
       let path, enum =
         match List.rev path_enum with
@@ -824,12 +820,7 @@ let rec translate_expr
               v, Pos.add_attrs pos_constructor (Pos.attrs p))
         in
         let payload = Option.map rec_helper payload in
-        Expr.einj
-          ~e:
-            (match payload with
-            | Some e' -> e'
-            | None -> Expr.elit LUnit mark_constructor)
-          ~cons:c_uid ~name:e_uid emark
+        Expr.einj ~e:payload ~cons:c_uid ~name:e_uid emark
       with EnumName.Map.Not_found _ ->
         Message.error ~pos "Enum %s does not contain case %s."
           (Mark.remove enum) constructor))
@@ -853,11 +844,17 @@ let rec translate_expr
     in
     let cases =
       EnumConstructor.Map.mapi
-        (fun c_uid' tau ->
-          let nop_var = Var.make "_" in
-          Expr.make_ghost_abs [nop_var]
-            (Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
-            [tau] pos)
+        (fun c_uid' (tau : typ option) ->
+          match tau with
+          | Some tau ->
+            let nop_var = Var.make "_" in
+            Expr.make_ghost_abs [nop_var]
+              (Expr.elit
+                 (LBool (EnumConstructor.compare c_uid c_uid' = 0))
+                 emark)
+              [tau] pos
+          | None ->
+            Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
         (fst (EnumName.Map.find enum_uid ctxt.enums))
     in
     Expr.ematch ~e:(rec_helper e1) ~name:enum_uid ~cases emark
@@ -1178,10 +1175,14 @@ and disambiguate_match_and_build_expression
       EnumConstructor.Map.find c_uid
         (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums))
     in
-    (* [cell_type] may be quantified in the case of the option type. Here we need to use a specific instance *)
-    Expr.eabs e_binder pos_binder
-      [Type.unquantify cell_type]
-      (Mark.get case_body)
+    (* [cell_type] may be quantified in the case of the option type. Here we
+       need to use a specific instance *)
+    match cell_type with
+    | Some cell_type ->
+      Expr.eabs e_binder pos_binder
+        [Type.unquantify cell_type]
+        (Mark.get case_body)
+    | None -> case_body
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with

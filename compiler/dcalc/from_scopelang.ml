@@ -931,7 +931,10 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
           StructField.Map.fold (fun _ -> typ_deps) fields empty
         | Enum ename ->
           let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
-          EnumConstructor.Map.fold (fun _ -> typ_deps) constrs empty)
+          EnumConstructor.Map.fold
+            (fun _ (ty2 : typ option) ->
+              match ty2 with None -> Fun.id | Some ty2 -> typ_deps ty2)
+            constrs empty)
       empty ctx_public_types
   in
   let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in

@@ -217,7 +217,8 @@ let rec expr : type k. context -> (k, 'm) gexpr -> (k, 'm) gexpr boxed =
     Expr.estructaccess ~name:(ctx.structs name) ~field:(ctx.fields field)
       ~e:(expr ctx e) (fm m)
   | EInj { name; e; cons }, m ->
-    Expr.einj ~name:(ctx.enums name) ~cons:(ctx.constrs cons) ~e:(expr ctx e)
+    Expr.einj ~name:(ctx.enums name) ~cons:(ctx.constrs cons)
+      ~e:(Option.map (expr ctx) e)
       (fm m)
   | EMatch { name; e; cases }, m ->
     Expr.ematch ~name:(ctx.enums name)

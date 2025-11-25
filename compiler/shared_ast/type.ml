@@ -270,7 +270,8 @@ let rec has_arrow decl_ctx (ty : t) =
       (StructName.Map.find n decl_ctx.ctx_structs)
   | TEnum n ->
     EnumConstructor.Map.exists
-      (fun _ -> has_arrow decl_ctx)
+      (fun _ maybe_t ->
+        match maybe_t with None -> false | Some t -> has_arrow decl_ctx t)
       (EnumName.Map.find n decl_ctx.ctx_enums)
   | TOption ty | TArray ty | TDefault ty -> has_arrow decl_ctx ty
 
