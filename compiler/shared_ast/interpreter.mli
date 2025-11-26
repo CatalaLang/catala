@@ -49,6 +49,12 @@ val interpret_program_dcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
+val interpret_program_dcalc_with_coverage :
+  (dcalc, 'm) gexpr program ->
+  ScopeName.t ->
+  (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+  * Coverage.Coverage_map.t
+
 val coverage_result : unit -> Pos_map.simple
 
 val interpret_program_lcalc :

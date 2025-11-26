@@ -997,14 +997,16 @@ module Commands = struct
         (fun success scope ->
           if code_coverage then
             let _r, code_coverage =
-              Interpreter.Environment.interpret_program_dcalc_with_coverage prg
-                scope
+              (* Interpreter.Environment.interpret_program_dcalc_with_coverage prg *)
+              (*   scope *)
+              Interpreter.interpret_program_dcalc_with_coverage prg scope
             in
             print_interpretation_results options ~code_coverage ~quiet
               Interpreter.Environment.interpret_program_dcalc prg scope
           else
             print_interpretation_results ~quiet options
-              Interpreter.Environment.interpret_program_dcalc prg scope
+              (Interpreter.interpret_program_dcalc ~coverage:false)
+              prg scope
             && success)
         true
         (get_scopelist_uids prg ex_scopes)

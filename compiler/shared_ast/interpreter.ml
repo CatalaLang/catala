@@ -709,14 +709,16 @@ let add_coverage pos =
 
 let rec evaluate_expr :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   let debug_print, e =
     Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
   in
+  Option.iter (fun f -> f e) on_expr;
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   (match debug_print with
@@ -768,14 +770,14 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_modname in
-    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
+    runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m ty o
   | EApp { f = e1; args; _ } -> (
-    let e1 = evaluate_expr ctx lang e1 in
-    let args = List.map (evaluate_expr ctx lang) args in
+    let e1 = evaluate_expr ?on_expr ctx lang e1 in
+    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ctx lang
+        evaluate_expr ?on_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
@@ -787,7 +789,9 @@ let rec evaluate_expr :
         List.fold_left2
           (fun fobj targ arg ->
             let arg =
-              val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg
+              val_to_runtime
+                (fun ctx -> evaluate_expr ?on_expr ctx lang)
+                ctx targ arg
             in
             let f : Obj.t -> Obj.t =
               if Obj.tag fobj = Obj.first_non_constant_constructor_tag then
@@ -800,7 +804,7 @@ let rec evaluate_expr :
             f arg)
           obj targs args
       in
-      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
+      runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
@@ -810,14 +814,14 @@ let rec evaluate_expr :
           else ())
         e1)
   | EAppOp { op; args; _ } ->
-    let args = List.map (evaluate_expr ctx lang) args in
-    evaluate_operator (evaluate_expr ctx lang) op m lang args
+    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
+    evaluate_operator (evaluate_expr ?on_expr ctx lang) op m lang args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty ->
     add_coverage pos;
     e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
-    let es = List.map (evaluate_expr ctx lang) es in
+    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -832,7 +836,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
@@ -856,9 +860,10 @@ let rec evaluate_expr :
          not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e StructName.format s)
-  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
+  | ETuple es ->
+    Mark.add m (ETuple (List.map (evaluate_expr ?on_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
-    match evaluate_expr ctx lang e1 with
+    match evaluate_expr ?on_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
       Message.error ~pos:(Expr.pos e)
@@ -867,7 +872,7 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -875,7 +880,7 @@ let rec evaluate_expr :
     in
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -896,25 +901,25 @@ let rec evaluate_expr :
         EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
       in
       let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-      evaluate_expr ctx lang new_e
+      evaluate_expr ?on_expr ctx lang new_e
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
-    let cond = evaluate_expr ctx lang cond in
+    let cond = evaluate_expr ?on_expr ctx lang cond in
     match Mark.remove cond with
-    | ELit (LBool true) -> evaluate_expr ctx lang etrue
-    | ELit (LBool false) -> evaluate_expr ctx lang efalse
+    | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang etrue
+    | ELit (LBool false) -> evaluate_expr ?on_expr ctx lang efalse
     | _ ->
       Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    let es = List.map (evaluate_expr ctx lang) es in
+    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
     Mark.add m (EArray es)
   | EAssert e' -> (
-    let e = evaluate_expr ctx lang e' in
+    let e = evaluate_expr ?on_expr ctx lang e' in
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
@@ -922,8 +927,8 @@ let rec evaluate_expr :
         raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
       else
         let partially_evaluated_assertion_failure_expr =
-          partially_evaluate_expr_for_assertion_failure_message ctx lang
-            (Expr.skip_wrappers e')
+          partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+            lang (Expr.skip_wrappers e')
         in
         (match Mark.remove partially_evaluated_assertion_failure_expr with
         | ELit (LBool false) ->
@@ -948,20 +953,20 @@ let rec evaluate_expr :
          not happen if the term was well-typed)")
   | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
-    match evaluate_expr ctx lang e' with
+    match evaluate_expr ?on_expr ctx lang e' with
     | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | exception Runtime.Empty ->
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ctx lang) excepts in
+    let excepts = List.map (evaluate_expr ?on_expr ctx lang) excepts in
     (* TODO disable coverage marking at the surface level here *)
     let real_errors = List.filter (Fun.negate is_empty_error) excepts in
     match real_errors with
     | [] -> (
-      let just = evaluate_expr ctx lang just in
+      let just = evaluate_expr ?on_expr ctx lang just in
       match Mark.remove just with
-      | ELit (LBool true) -> evaluate_expr ctx lang cons
+      | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmpty
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
@@ -973,7 +978,7 @@ let rec evaluate_expr :
         List.map (fun ex -> Expr.(pos_to_runtime (pos ex))) real_errors
       in
       raise Runtime.(Error (Conflict, poslist)))
-  | EPureDefault e -> evaluate_expr ctx lang e
+  | EPureDefault e -> evaluate_expr ?on_expr ctx lang e
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "Attempting to evaluate a EBad node which should have been previously \
@@ -982,11 +987,12 @@ let rec evaluate_expr :
 
 and partially_evaluate_expr_for_assertion_failure_message :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
      comparisons and logical operators, we leave those unevaluated at the top of
@@ -1012,25 +1018,28 @@ and partially_evaluate_expr_for_assertion_failure_message :
           tys;
           args =
             [
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e1;
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e2;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e1;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e2;
             ];
         },
       Mark.get e )
   (* TODO: improve this heuristic, because if the assertion is not [e1 <op> e2],
      the error message merely displays [false]... *)
-  | _ -> evaluate_expr ctx lang e
+  | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   Runtime.reset_log ();
   Fun.protect
-    (fun () -> evaluate_expr ctx lang e)
+    (fun () -> evaluate_expr ?on_expr ctx lang e)
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
@@ -1062,12 +1071,13 @@ let evaluate_expr_trace :
 
 let evaluate_expr_safe :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
-  try evaluate_expr_trace ctx lang e
+ fun ?on_expr ctx lang e ->
+  try evaluate_expr_trace ?on_expr ctx lang e
   with Runtime.Error (err, rpos) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1170,17 +1180,58 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
-(** {1 API} *)
-let interpret_program_dcalc ~(coverage : bool) p s :
-    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
-  let coverage_results =
-    Program.fold_exprs
-      ~f:(fun acc e _typ -> Coverage.reachable e acc)
-      p ~init:Pos_map.empty
+let check map =
+  let pos_to_itv pos =
+    let li = Pos.get_start_line pos in
+    let i = Pos.get_start_column pos in
+    let lj = Pos.get_end_line pos in
+    let j = Pos.get_end_column pos in
+    (li, i), (lj, j)
   in
-  Format.fprintf (Message.std_ppf ()) "@\n@\nReachable positions@\n@\n%a@\n@\n"
-    (Print.program ~debug:true ~coverage:(Some coverage_results))
-    p;
+  let is_in ((li, i), (lj, j)) (ln, n) =
+    (ln > li && ln < lj)
+    || (ln = li && ln = lj && i <= n && n <= j)
+    || (ln > li && ln = lj && n <= j)
+    || (ln = li && ln < lj && i <= n)
+  in
+  let is_included itv (left, right) = is_in itv left && is_in itv right in
+  let is_disjoint_right ((_li, _i), (lj, j)) ((li', i'), (_lj', _j')) =
+    li' > lj || (li' = lj && i' > j)
+  in
+  let rec loop = function
+    | [] | [_] -> ()
+    | h :: h' :: t ->
+      if not (String.equal (Pos.get_file h) (Pos.get_file h')) then
+        loop (h' :: t)
+      else
+        let itv, itv' = pos_to_itv h, pos_to_itv h' in
+        let is_in = is_included itv' itv in
+        let is_right = is_disjoint_right itv itv' in
+        if is_in || is_right then loop (h' :: t)
+        else
+          Message.error "%a@\n@\n vs. %a@\n / is_in: %b, is_right: %b"
+            Pos.format_loc_text h Pos.format_loc_text h' is_in is_right
+  in
+  loop (Pos.Map.keys map)
+
+(** {1 API} *)
+let interpret_program_dcalc ?on_expr ~(coverage : bool) p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
+  (* let coverage_results = *)
+  (*   Program.fold_exprs *)
+  (*     ~f:(fun acc e _typ -> Coverage.reachable e acc) *)
+  (*     p ~init:Pos_map.empty *)
+  (* in *)
+  (* ignore coverage_results; *)
+  (* Format.fprintf (Message.std_ppf ()) "@\n@\nReachable
+     positions@\n@\n%a@\n@\n" *)
+  (*   (Print.program ~debug:true ~coverage:(Some coverage_results)) *)
+  (*   p; *)
+  let pos_map = ref Pos.Map.empty in
+  let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+    pos_map := Pos.Map.add (Expr.mark_pos (Mark.get e)) () !pos_map;
+    Option.iter (fun f -> f e) on_expr
+  in
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
   let () =
@@ -1200,15 +1251,17 @@ let interpret_program_dcalc ~(coverage : bool) p s :
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
-    Format.eprintf "SEXPR@\n@\n%a@\n@\n@." Print.s_expr
-      (Expr.unbox to_interpret);
+    (* Format.eprintf "SEXPR@\n@\n%a@\n@\n@." Print.s_expr *)
+    (*   (Expr.unbox to_interpret); *)
     match
-      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+      Mark.remove
+        (evaluate_expr_safe ~on_expr ctx p.lang (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
-      Format.fprintf (Message.std_ppf ()) "@\n@\nReached@\n%a@\n@\n"
-        (Print.program ~debug:true ~coverage:!Coverage.glob)
-        p;
+      check !pos_map;
+      (* Format.fprintf (Message.std_ppf ()) "@\n@\nReached@\n%a@\n@\n" *)
+      (*   (Print.program ~debug:true ~coverage:!Coverage.glob) *)
+      (*   p; *)
       Option.iter
         (Format.eprintf "GLOB COVERAGE: %a@." Pos_map.pp)
         !Coverage.glob;
@@ -1224,6 +1277,93 @@ let interpret_program_dcalc ~(coverage : bool) p s :
     Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
+
+let interpret_program_dcalc_with_coverage (p : (dcalc, 'm) gexpr program) scope
+    :
+    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+    * Coverage.Coverage_map.t =
+  let open Coverage in
+  let reachable_map =
+    Program.fold_exprs
+      ~f:(fun acc e _typ -> Coverage.reachable_pos e acc)
+      p ~init:Coverage.Coverage_map.empty
+  in
+  let reachable_map_bindings =
+    Coverage_map.fold
+      (fun p _ acc -> Pos.Map.add p Reachable acc)
+      reachable_map Pos.Map.empty
+    |> Pos.Map.bindings
+  in
+  let reached_map = ref Pos.Map.empty in
+  let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+    match Mark.remove e with
+    | EDefault _ ->
+      () (* bad location, ignore this case, sub-nodes positions will be added *)
+    | _ -> reached_map := Pos.Map.add (Expr.pos e) Reached !reached_map
+  in
+  let r = interpret_program_dcalc ~on_expr ~coverage:false p scope in
+  (* Format.fprintf (Message.std_ppf ()) *)
+  (*   "################ REACHABLE MAP ################@."; *)
+  (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
+  (*   reachable_map; *)
+  (* Format.fprintf (Message.std_ppf ()) *)
+  (*   "################ REACHED MAP ################@."; *)
+  (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
+  (*   !reached_map; *)
+  (* Format.fprintf (Message.std_ppf ()) *)
+  (*   "################ MERGED MAP ################@."; *)
+  let bindings = Pos.Map.bindings !reached_map in
+  let pos_to_itv pos =
+    let li = Pos.get_start_line pos in
+    let i = Pos.get_start_column pos in
+    let lj = Pos.get_end_line pos in
+    let j = Pos.get_end_column pos in
+    (li, i), (lj, j)
+  in
+  let is_in ((li, i), (lj, j)) (ln, n) =
+    (ln > li && ln < lj)
+    || (ln = li && ln = lj && i <= n && n <= j)
+    || (ln > li && ln = lj && n <= j)
+    || (ln = li && ln < lj && i <= n)
+  in
+  let is_included itv (left, right) = is_in itv left && is_in itv right in
+  let reached_map =
+    bindings
+    |> List.fold_left
+         (fun acc (pos, r) ->
+           (* Format.fprintf (Message.std_ppf ()) "%s@\n" *)
+           (*   (Pos.to_string_shorter pos); *)
+           Coverage_map.add pos r acc)
+         Coverage_map.empty
+  in
+  let is_disjoint_right ((_li, _i), (lj, j)) ((li', i'), (_lj', _j')) =
+    li' > lj || (li' = lj && i' > j)
+  in
+  let rec loop = function
+    | [] | [_] -> ()
+    | h :: h' :: t ->
+      if not (String.equal (Pos.get_file h) (Pos.get_file h')) then
+        loop (h' :: t)
+      else
+        let itv, itv' = pos_to_itv h, pos_to_itv h' in
+        let is_in = is_included itv' itv in
+        let is_right = is_disjoint_right itv itv' in
+        if is_in || is_right then loop (h' :: t)
+        else
+          Message.error "%a@\n@\n vs. %a@\n / is_in: %b, is_right: %b"
+            Pos.format_loc_text h Pos.format_loc_text h' is_in is_right
+  in
+  Format.eprintf "%s@." __LOC__;
+  loop (List.map fst bindings);
+  Format.eprintf "%s@." __LOC__;
+  loop (List.map fst reachable_map_bindings);
+  let merged_reached_map = Coverage.merge ~reachable_map reached_map in
+  (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
+  (*   merged_reached_map; *)
+  r, merged_reached_map
+
+let interpret_program_dcalc ~(coverage : bool) p s =
+  interpret_program_dcalc ~coverage p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]

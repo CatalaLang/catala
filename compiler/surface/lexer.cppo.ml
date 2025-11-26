@@ -784,7 +784,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       UIDENT (Utf8.lexeme lexbuf)
   | lowercase, Star idchar ->
       (* Name of variable *)
-      L.update_acc lexbuf;
+    L.update_acc lexbuf;
       LIDENT (Utf8.lexeme lexbuf)
   | Opt '-', Plus digit ->
       (* Integer literal*)

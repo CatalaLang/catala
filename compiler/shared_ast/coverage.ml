@@ -89,10 +89,16 @@ let to_aggregated_coverage m =
     m Aggregated_coverage.empty
 
 let rec reachable_pos e map =
-  let m = Mark.get e in
-  let loc = Expr.mark_pos m in
-  let map = Coverage_map.add loc Reachable map in
-  Expr.shallow_fold reachable_pos e map
+  match Mark.remove e with
+  | Definitions.EAbs { binder; _ } ->
+    (* skip lambdas *)
+    let _vars, e' = Bindlib.unmbind binder in
+    reachable_pos e' map
+  | _ ->
+    let m = Mark.get e in
+    let loc = Expr.mark_pos m in
+    let map = Coverage_map.add loc Reachable map in
+    Expr.shallow_fold reachable_pos e map
 
 let merge ~reachable_map reached_map =
   (* trim unreached files *)

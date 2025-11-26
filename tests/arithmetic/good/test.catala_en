@@ -11,6 +11,7 @@ declaration scope A:
 
 scope A:
   definition w equals
+  let x equals 3 in
     if f of true or 1 > 2 or 2 > 3 then
       if false then
         3 # non-reached

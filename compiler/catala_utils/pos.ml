@@ -26,6 +26,15 @@ let lex_pos_compare lp1 lp2 =
   | 0 -> Int.compare lp1.Lexing.pos_cnum lp2.Lexing.pos_cnum
   | n -> n
 
+let lex_pos_compare' lp1 lp2 =
+  match String.compare lp1.Lexing.pos_fname lp2.Lexing.pos_fname with
+  | 0 -> begin
+    match Int.compare lp1.Lexing.pos_lnum lp2.Lexing.pos_lnum with
+    | 0 -> Int.compare lp1.Lexing.pos_cnum lp2.Lexing.pos_cnum
+    | n -> n
+  end
+  | n -> n
+
 let compare p1 p2 =
   let p1beg, p1end = p1.code_pos and p2beg, p2end = p2.code_pos in
   match lex_pos_compare p1beg p2beg with
@@ -338,9 +347,14 @@ let void : t =
 module Map = Map.Make (struct
   type nonrec t = t
 
+  (* let compare t1 t2 = *)
+  (*   match lex_pos_compare (fst t1.code_pos) (fst t2.code_pos) with *)
+  (*   | 0 -> lex_pos_compare (snd t1.code_pos) (snd t2.code_pos) *)
+  (*   | n -> n *)
+
   let compare t1 t2 =
-    match lex_pos_compare (fst t1.code_pos) (fst t2.code_pos) with
-    | 0 -> lex_pos_compare (snd t1.code_pos) (snd t2.code_pos)
+    match lex_pos_compare' (snd t1.code_pos) (snd t2.code_pos) with
+    | 0 -> lex_pos_compare' (fst t2.code_pos) (fst t1.code_pos)
     | n -> n
 
   let format ppf t = Format.pp_print_string ppf (to_string_short t)
