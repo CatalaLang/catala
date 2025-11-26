@@ -531,9 +531,8 @@ let rule_expr ==
 | i = posattr(scope_var) ; p = option(posattr(definition_parameters)) ; <>
 
 let rule_consequence :=
-| flag = option(NOT); FILLED ; {
-  None = flag
-}
+| FILLED ; { true }
+| NOT; FILLED ; { false }
 
 let rule :=
 | label = ioption(label) ;
