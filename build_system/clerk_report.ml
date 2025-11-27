@@ -579,12 +579,14 @@ let coverage_to_json ~build_dir (coverage : Coverage.coverage_map) : Yojson.t =
   let itv_trees = String.Map.map Coverage.map_to_interval_tree coverage in
   let all_scopes =
     String.Map.fold
-      (fun _ tree acc -> ScopeName.Set.union (Coverage.all_scopes tree) acc)
-      itv_trees ScopeName.Set.empty
+      (fun _ tree acc -> Coverage.ScopeSet.union (Coverage.all_scopes tree) acc)
+      itv_trees Coverage.ScopeSet.empty
   in
   let scope_idx =
-    let l = List.mapi (fun i s -> s, i) (ScopeName.Set.elements all_scopes) in
-    fun s -> `Int (List.assoc s l)
+    let l =
+      List.mapi (fun i s -> s, i) (Coverage.ScopeSet.elements all_scopes)
+    in
+    fun s -> try `Int (List.assoc s l) with Not_found -> assert false
   in
   let itv_tree_to_json (f, tree) =
     let rec loop : Coverage.interval_tree -> [< `List of Yojson.t list ] =
@@ -596,7 +598,7 @@ let coverage_to_json ~build_dir (coverage : Coverage.coverage_map) : Yojson.t =
           match cover with
           | Unreached -> []
           | Reached_by { scopes } ->
-            ScopeName.Set.elements scopes |> List.map scope_idx
+            Coverage.ScopeSet.elements scopes |> List.map scope_idx
         in
         let node : Yojson.t =
           `Assoc
@@ -618,7 +620,7 @@ let coverage_to_json ~build_dir (coverage : Coverage.coverage_map) : Yojson.t =
   let scopes_json : string * Yojson.t =
     ( "scopes",
       `List
-        (ScopeName.Set.elements all_scopes
+        (Coverage.ScopeSet.elements all_scopes
         |> List.map (fun s ->
                let pos = ScopeName.get_info s |> Mark.get in
                `Assoc

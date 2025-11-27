@@ -18,7 +18,14 @@
 open Catala_utils
 open Definitions
 
-type cover = Unreached | Reached_by of { scopes : ScopeName.Set.t }
+module ScopeSet = Set.Make (struct
+  type t = ScopeName.t
+
+  let compare s s' =
+    Pos.compare (ScopeName.get_info s |> snd) (ScopeName.get_info s' |> snd)
+end)
+
+type cover = Unreached | Reached_by of { scopes : ScopeSet.t }
 type itv = { start_line : int; start_col : int; end_line : int; end_col : int }
 
 let is_included
@@ -42,7 +49,7 @@ let format_cover ppf =
   | Reached_by { scopes } ->
     fprintf ppf "Reached by [ %a ]"
       (pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ", ") ScopeName.format)
-      (ScopeName.Set.elements scopes)
+      (ScopeSet.elements scopes)
 
 let format_itv ppf { start_line; start_col; end_line; end_col } =
   Format.fprintf ppf "%d.%d-%d.%d" start_line start_col end_line end_col
@@ -100,9 +107,9 @@ let reached_pos p s (m : coverage_map) : coverage_map =
   update p
     (function
       | None | Some Unreached ->
-        Some (Reached_by { scopes = ScopeName.Set.singleton s })
+        Some (Reached_by { scopes = ScopeSet.singleton s })
       | Some (Reached_by { scopes }) ->
-        Some (Reached_by { scopes = ScopeName.Set.add s scopes }))
+        Some (Reached_by { scopes = ScopeSet.add s scopes }))
     m
 
 let unreached_pos p (m : coverage_map) : coverage_map =
@@ -134,7 +141,7 @@ let merge_cover v v' =
   | Reached_by s, Unreached | Unreached, Reached_by s -> Reached_by s
   | Unreached, Unreached -> Unreached
   | Reached_by { scopes = s }, Reached_by { scopes = s' } ->
-    Reached_by { scopes = ScopeName.Set.union s s' }
+    Reached_by { scopes = ScopeSet.union s s' }
 
 let union m m' =
   String.Map.union
@@ -202,9 +209,9 @@ let all_scopes t =
   fold_interval_tree
     (fun (_itv, cover) acc ->
       match cover with
-      | Reached_by { scopes } -> ScopeName.Set.union acc scopes
+      | Reached_by { scopes } -> ScopeSet.union acc scopes
       | Unreached -> acc)
-    t ScopeName.Set.empty
+    t ScopeSet.empty
 
 let rec format_interval_tree ppf itv_tree =
   let format_node ppf { itv; cover; children } =
@@ -219,7 +226,4 @@ let rec format_interval_tree ppf itv_tree =
     itv_tree
 
 let format_coverage_hex_dump ppf (map : coverage_map) =
-  Format.eprintf "dumping %a@."
-    (String.Map.format (ItvMap.format format_cover))
-    map;
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))

@@ -78,22 +78,16 @@ val load_runtime_modules : hashf:(Hash.t -> Hash.full) -> _ program -> unit
     [Global.options.bin_dir]. Note: in whole-program, we will only try loading
     external modules. *)
 
-(* module Environment : sig *)
-(*   type ('a, 'm) env = *)
-(*     | Env of *)
-(*         ( (('a, yes) interpr_kind, 'm) gexpr, *)
-(*           (('a, yes) interpr_kind, 'm) gexpr * ('a, 'm) env ) *)
-(*         Var.Map.t *)
+module Environment : sig
+  type ('a, 'm) env =
+    | Env of
+        ( (('a, yes) interpr_kind, 'm) gexpr,
+          (('a, yes) interpr_kind, 'm) gexpr * ('a, 'm) env )
+        Var.Map.t
 
-(* val interpret_program_dcalc : *)
-(* ?on_expr:(((yes, yes) interpr_kind, 'm) gexpr -> (yes, 'm) env -> unit) -> *)
-(*     (dcalc, 'm) gexpr program -> *)
-(*     ScopeName.t -> *)
-(*     (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list *)
-
-(*   val interpret_program_dcalc_with_coverage : *)
-(*     (dcalc, 'm) gexpr program -> *)
-(*     ScopeName.t -> *)
-(*     (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list *)
-(*     * Coverage.coverage_map *)
-(* end *)
+  val interpret_program_dcalc :
+    ?on_expr:(((yes, yes) interpr_kind, 'm) gexpr -> (yes, 'm) env -> unit) ->
+    (dcalc, 'm) gexpr program ->
+    ScopeName.t ->
+    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+end

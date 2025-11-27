@@ -277,18 +277,14 @@ let run_catala_test_scopes
               s_errors = List.rev errs;
               s_time = delta;
               s_coverage =
-                (if code_coverage && result then (
+                (if code_coverage && result then
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
                    let coverage : Coverage.coverage_map =
                      Marshal.from_bytes hex_coverage_bytes 0
                    in
-                   Format.eprintf "GOT %a@."
-                     (String.Map.format
-                        (Coverage.ItvMap.format Coverage.format_cover))
-                     coverage;
-                   Some coverage)
+                   Some coverage
                  else None);
             }
             :: acc )
