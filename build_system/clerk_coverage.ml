@@ -23,20 +23,15 @@ module LineMap = Map.Make (struct
   let format fmt x = Format.pp_print_int fmt x
 end)
 
-type aggregated_reached_code_coverage =
-  (Pos_map.loc_interval * String.Set.t) list File.Map.t
-
 type coverage_line_map = bool LineMap.t String.Map.t
 
 let aggregated_code_coverage_to_coverage_line_map
-    (full_coverage : Coverage.Aggregated_coverage.t) : coverage_line_map =
-  Coverage.Aggregated_coverage.fold
-    (fun pos coverage acc ->
-      let file = Pos.get_file pos in
+    (coverage : Coverage.coverage_map) : coverage_line_map =
+  Coverage.fold
+    (fun (file, { Coverage.start_line; end_line; _ }) coverage acc ->
       let lines =
-        let start = Pos.get_start_line pos in
-        List.init (Pos.get_end_line pos - start + 1) (fun i -> start + i)
-        |> List.map (fun l -> l, coverage > 0)
+        List.init (end_line - start_line + 1) (fun i -> start_line + i)
+        |> List.map (fun l -> l, coverage <> Coverage.Unreached)
         |> LineMap.of_list
       in
       String.Map.update file
@@ -44,7 +39,7 @@ let aggregated_code_coverage_to_coverage_line_map
           | None -> Some lines
           | Some l -> Some (LineMap.union (fun _ l r -> Some (l && r)) l lines))
         acc)
-    full_coverage String.Map.empty
+    coverage String.Map.empty
 
 let total_coverage_lines (line_map : coverage_line_map) =
   String.Map.fold (fun _ lines acc -> acc + LineMap.cardinal lines) line_map 0

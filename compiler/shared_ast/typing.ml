@@ -1262,7 +1262,7 @@ let program ?assume_op_types ?(internal_check = false) prg =
           | _ -> assert false
         in
         Message.debug "@[<v>Faulty intermediate program:@,%a@]"
-          (Print.program ~debug:true ~coverage:None)
+          (Print.program ~debug:true)
           prg;
         Printexc.raise_with_backtrace err bt)
     else fun f -> f ()

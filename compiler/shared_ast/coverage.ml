@@ -1,7 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2025 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>, Florian Angeletti
-   <florian.angeletti@inria.fr>
+   <florian.angeletti@inria.fr>, Vincent Botbol <vincent.botbol@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -16,116 +16,210 @@
    the License. *)
 
 open Catala_utils
+open Definitions
 
-let glob = ref None
-let is_recorded () = !glob <> None
+type cover = Unreached | Reached_by of { scopes : ScopeName.Set.t }
+type itv = { start_line : int; start_col : int; end_line : int; end_col : int }
 
-let mark_position add p =
-  Option.iter (fun map -> glob := Some (add p map)) !glob
+let is_included
+    itv
+    { start_line = sl'; start_col = sc'; end_line = el'; end_col = ec' } =
+  let is_in { start_line; start_col; end_line; end_col } (line, col) =
+    (line > start_line && line < end_line)
+    || line = start_line
+       && line = end_col
+       && start_col <= col
+       && col <= end_col
+    || (line > start_line && line = end_line && col <= end_col)
+    || (line = start_line && line < end_line && start_col <= col)
+  in
+  is_in itv (sl', sc') && is_in itv (el', ec')
 
-let mark pol e = mark_position pol (Expr.mark_pos (Mark.get e))
-let mark_pos p = mark Pos_map.pos p
-let mark_neg p = mark Pos_map.neg p
+let format_cover ppf =
+  let open Format in
+  function
+  | Unreached -> fprintf ppf "Unreached"
+  | Reached_by { scopes } ->
+    fprintf ppf "Reached by [ %a ]"
+      (pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ", ") ScopeName.format)
+      (ScopeName.Set.elements scopes)
 
-let mark_all add e =
-  Option.iter
-    (fun m ->
-      let m =
-        List.fold_left (fun m x -> add (Expr.mark_pos @@ Mark.get x) m) m e
+let format_itv ppf { start_line; start_col; end_line; end_col } =
+  Format.fprintf ppf "%d.%d-%d.%d" start_line start_col end_line end_col
+
+let from_pos p =
+  {
+    start_line = Pos.get_start_line p;
+    start_col = Pos.get_start_column p;
+    end_line = Pos.get_end_line p;
+    end_col = Pos.get_end_column p;
+  }
+
+module ItvMap = Map.Make (struct
+  type t = itv
+
+  let format = format_itv
+
+  (* This order yields an interval tree's prefix-order: for all pairs of
+     consecutive elements (A, B), we have A's interval included in B's or A's
+     interval is disjoint and located before B's interval.
+
+     This allows to easily build an interval tree.
+
+     Hypothesis: no interval elements are overlapping *)
+  let compare t1 t2 =
+    let n = Int.compare t1.end_line t2.end_line in
+    if n <> 0 then n
+    else
+      let n = Int.compare t1.end_col t2.end_col in
+      if n <> 0 then n
+      else
+        let n = Int.compare t2.start_line t1.start_line in
+        if n <> 0 then n
+        else
+          let n = Int.compare t2.start_col t1.start_col in
+          if n <> 0 then n else n
+end)
+
+type coverage_map = cover ItvMap.t String.Map.t
+
+let empty = String.Map.empty
+
+let update p f m =
+  let file = Pos.get_file p in
+  if file = "" then m
+  else
+    let itv = from_pos p in
+    String.Map.update file
+      (function
+        | None -> Option.map (fun v -> ItvMap.singleton itv v) (f None)
+        | Some itvm -> Some (ItvMap.update itv f itvm))
+      m
+
+let reached_pos p s (m : coverage_map) : coverage_map =
+  update p
+    (function
+      | None | Some Unreached ->
+        Some (Reached_by { scopes = ScopeName.Set.singleton s })
+      | Some (Reached_by { scopes }) ->
+        Some (Reached_by { scopes = ScopeName.Set.add s scopes }))
+    m
+
+let unreached_pos p (m : coverage_map) : coverage_map =
+  update p
+    (function
+      | None | Some Unreached -> Some Unreached
+      | Some (Reached_by _ as elt) -> Some elt)
+    m
+
+let program_to_unreached_map p =
+  Program.fold_exprs
+    ~f:(fun acc e _typ ->
+      let rec loop e map =
+        match Mark.remove e with
+        | Definitions.EAbs { binder; _ } ->
+          (* skip lambdas *)
+          let _vars, e' = Bindlib.unmbind binder in
+          loop e' map
+        | _ ->
+          let pos = Expr.pos e in
+          let map = unreached_pos pos map in
+          Expr.shallow_fold loop e map
       in
-      glob := Some m)
-    !glob
+      loop e acc)
+    p ~init:empty
 
-type t = Reached | Reachable
+let merge_cover v v' =
+  match v, v' with
+  | Reached_by s, Unreached | Unreached, Reached_by s -> Reached_by s
+  | Unreached, Unreached -> Unreached
+  | Reached_by { scopes = s }, Reached_by { scopes = s' } ->
+    Reached_by { scopes = ScopeName.Set.union s s' }
 
-let rec reachable e map =
-  let m = Mark.get e in
-  let loc = Expr.mark_pos m in
-  let map = Pos_map.reachable loc map in
-  Expr.shallow_fold reachable e map
+let union m m' =
+  String.Map.union
+    (fun _ m m' ->
+      Some (ItvMap.union (fun _itv v v' -> Some (merge_cover v v')) m m'))
+    m m'
 
-module Coverage_map = Position_map.Make (struct
-  type nonrec t = t
+let map f m = String.Map.map (ItvMap.map f) m
 
-  let merge x y =
-    match x, y with
-    | Reachable, Reached | Reached, Reachable -> Reached
-    | _ -> x
+let fold f m acc =
+  String.Map.fold
+    (fun file itvm acc ->
+      ItvMap.fold (fun itv v acc -> f (file, itv) v acc) itvm acc)
+    m acc
 
-  let compare = compare
+type interval_node = { itv : itv; cover : cover; children : interval_tree }
+and interval_tree = interval_node list
 
-  let format fmt x =
-    let rgb_of i = i / 256 / 256 mod 256, i / 256 mod 256, i mod 256 in
-    let pale_green =
-      let r24, g24, b24 = rgb_of 0xc7cb85 in
-      Ocolor_types.C24 { r24; g24; b24 }
-    in
-    let orange =
-      let r24, g24, b24 = rgb_of 0xe7a977 in
-      Ocolor_types.C24 { r24; g24; b24 }
-    in
-    (match x with
-    | Reached ->
-      Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg pale_green));
-      Format.fprintf fmt "Reached"
-    | Reachable ->
-      Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg orange));
-      Format.fprintf fmt "Reachable");
-    Format.pp_close_stag fmt ()
-end)
-
-module Aggregated_coverage = Position_map.Make (struct
-  include Int
-
-  let merge x y = x + y
-  let format = Format.pp_print_int
-end)
-
-let to_aggregated_coverage m =
-  Coverage_map.fold
-    (fun pos coverage acc ->
-      let n = if coverage = Reached then 1 else 0 in
-      Aggregated_coverage.add pos n acc)
-    m Aggregated_coverage.empty
-
-let rec reachable_pos e map =
-  match Mark.remove e with
-  | Definitions.EAbs { binder; _ } ->
-    (* skip lambdas *)
-    let _vars, e' = Bindlib.unmbind binder in
-    reachable_pos e' map
-  | _ ->
-    let m = Mark.get e in
-    let loc = Expr.mark_pos m in
-    let map = Coverage_map.add loc Reachable map in
-    Expr.shallow_fold reachable_pos e map
-
-let merge ~reachable_map reached_map =
-  (* trim unreached files *)
-  let reachable_map =
-    Position_map.SMap.filter
-      (fun f _ -> Position_map.SMap.mem f reached_map)
-      reachable_map
+let sanitize_interval_tree (tree : interval_tree) : interval_tree =
+  (* In some cases, we have a cover that is not a super-set of its children:
+     e.g., Unreached parent with Reached_by children. We normalize them. *)
+  let rec normalize_unreachable : interval_tree -> interval_tree = function
+    | [] -> []
+    | { itv; cover; children } :: t ->
+      let children = normalize_unreachable children in
+      let cover =
+        List.fold_left
+          (fun acc { cover; _ } -> merge_cover cover acc)
+          cover children
+      in
+      { itv; cover; children } :: normalize_unreachable t
   in
-  let map = Coverage_map.merge reachable_map reached_map in
-  let sanitized =
-    Coverage_map.mapi_data
-      (fun trie -> function
-        | Reached -> Reached
-        | Reachable ->
-          if
-            Coverage_map.Trie.all_children_data trie
-            |> List.exists (( = ) Reached)
-          then Reached
-          else Reachable)
-      map
+  normalize_unreachable tree
+
+let map_to_interval_tree (m : 'a ItvMap.t) : interval_tree =
+  let bds = ItvMap.bindings m in
+  let rec included_partition acc itv = function
+    | [] -> List.rev acc, []
+    | ({ itv = itv'; _ } as elt) :: t ->
+      if is_included itv itv' then included_partition (elt :: acc) itv t
+      else List.rev acc, elt :: t
   in
-  sanitized
+  let rec build_tree acc bds =
+    match bds, acc with
+    | [], acc -> List.rev acc
+    | (itv, cover) :: t, acc ->
+      let inc, notinc = included_partition [] itv acc in
+      build_tree ({ itv; cover; children = List.rev inc } :: notinc) t
+  in
+  build_tree [] bds |> sanitize_interval_tree
 
-let union l r = Coverage_map.merge l r
+let rec size_interval_tree : interval_tree -> int = function
+  | [] -> 0
+  | { children; _ } :: t ->
+    1 + size_interval_tree children + size_interval_tree t
 
-let format_coverage_map ppf map =
+let rec fold_interval_tree f t init =
+  List.fold_left
+    (fun acc { itv; cover; children } ->
+      let acc = fold_interval_tree f children acc in
+      f (itv, cover) acc)
+    init t
+
+let all_scopes t =
+  fold_interval_tree
+    (fun (_itv, cover) acc ->
+      match cover with
+      | Reached_by { scopes } -> ScopeName.Set.union acc scopes
+      | Unreached -> acc)
+    t ScopeName.Set.empty
+
+let rec format_interval_tree ppf itv_tree =
+  let format_node ppf { itv; cover; children } =
+    match children with
+    | [] -> Format.fprintf ppf "@[%a -> %a@]" format_itv itv format_cover cover
+    | _ :: _ ->
+      Format.fprintf ppf "@[<v 2>%a -> %a@ %a@]" format_itv itv format_cover
+        cover format_interval_tree children
+  in
+  Format.fprintf ppf "@[<v>%a@]"
+    Format.(pp_print_list ~pp_sep:pp_print_cut format_node)
+    itv_tree
+
+let format_coverage_hex_dump ppf (map : coverage_map) =
+  Format.eprintf "dumping %a@."
+    (String.Map.format (ItvMap.format format_cover))
+    map;
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
-
-let from_new h =
-  Hashtbl.fold (fun p x acc -> Pos_map.add p x acc) h Pos_map.empty

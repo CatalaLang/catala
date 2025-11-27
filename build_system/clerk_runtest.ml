@@ -16,7 +16,6 @@
 
 open Catala_utils
 open Shared_ast
-open Coverage
 
 type output_buf = { oc : out_channel; mutable pos : Lexing.position }
 
@@ -278,15 +277,19 @@ let run_catala_test_scopes
               s_errors = List.rev errs;
               s_time = delta;
               s_coverage =
-                (if code_coverage && result then
+                (if code_coverage && result then (
                    let hex_coverage_string = Re.Group.get g 3 in
                    let hex_coverage = `Hex hex_coverage_string in
                    let hex_coverage_bytes = Hex.to_bytes hex_coverage in
-                   let coverage : Coverage_map.t =
+                   let coverage : Coverage.coverage_map =
                      Marshal.from_bytes hex_coverage_bytes 0
                    in
-                   coverage
-                 else Coverage_map.empty);
+                   Format.eprintf "GOT %a@."
+                     (String.Map.format
+                        (Coverage.ItvMap.format Coverage.format_cover))
+                     coverage;
+                   Some coverage)
+                 else None);
             }
             :: acc )
         | None -> (
@@ -317,7 +320,7 @@ let run_catala_test_scopes
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
         s_time = Sys.time () -. start_time;
-        s_coverage = Coverage_map.empty;
+        s_coverage = None;
       }
       :: scopes_results
     else scopes_results
@@ -496,31 +499,26 @@ let run_tests
           if t.Clerk_report.s_success then nsucc + 1, nfail
           else nsucc, nfail + 1
         in
-        let to_aggregated_coverage m =
-          Coverage.Coverage_map.fold
-            (fun pos coverage acc ->
-              let n = if coverage = Reached then 1 else 0 in
-              Coverage.Aggregated_coverage.add pos n acc)
-            m Coverage.Aggregated_coverage.empty
+        let code_coverage =
+          match code_coverage, t.s_coverage with
+          | None, None -> None
+          | None, Some cov | Some cov, None -> Some cov
+          | Some cov, Some cov' -> Some (Coverage.union cov cov')
         in
-        ( x,
-          y,
-          Aggregated_coverage.merge code_coverage
-            (to_aggregated_coverage t.s_coverage) ))
-      (0, 0, Aggregated_coverage.empty)
-      scopes_results
+        x, y, code_coverage)
+      (0, 0, None) scopes_results
   in
   let num_test_scopes = successful_test_scopes + failed_test_scopes in
   let tests_report =
+    let open Clerk_report in
     List.fold_left
-      Clerk_report.(
-        fun tests t ->
-          {
-            tests with
-            total = tests.total + 1;
-            successful = (tests.successful + if t.i_success then 1 else 0);
-            tests = t :: tests.tests;
-          })
+      (fun tests t ->
+        {
+          tests with
+          total = tests.total + 1;
+          successful = (tests.successful + if t.i_success then 1 else 0);
+          tests = t :: tests.tests;
+        })
       {
         Clerk_report.name = filename;
         successful = successful_test_scopes;

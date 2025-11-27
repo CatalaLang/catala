@@ -36,7 +36,7 @@ type scope_test = {
   s_command_line : string list;
   s_errors : (pos * string) list;
   s_time : float;
-  s_coverage : Coverage.Coverage_map.t;
+  s_coverage : Coverage.coverage_map option;
 }
 
 type file = {
@@ -45,7 +45,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
-  code_coverage : Coverage.Aggregated_coverage.t;
+  code_coverage : Coverage.coverage_map option;
 }
 
 type disp_flags = {
@@ -377,8 +377,7 @@ let display_file ~build_dir ppf (t : file) =
       Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
       Format.pp_close_box ppf ())
   in
-  let print_code_coverage (full_code_coverage : Coverage.Aggregated_coverage.t)
-      =
+  let print_code_coverage (full_code_coverage : Coverage.coverage_map) =
     let line_map =
       Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
         full_code_coverage
@@ -410,7 +409,8 @@ let display_file ~build_dir ppf (t : file) =
       if disp_flags.tests = `All then (
         print_tests t.tests;
         print_scopes t.scopes;
-        if disp_flags.code_coverage then print_code_coverage t.code_coverage);
+        if disp_flags.code_coverage then
+          Option.iter print_code_coverage t.code_coverage);
       Format.pp_print_cut ppf ()))
   else
     let () =
@@ -427,7 +427,8 @@ let display_file ~build_dir ppf (t : file) =
     if disp_flags.tests <> `None then (
       print_tests t.tests;
       print_scopes t.scopes;
-      if disp_flags.code_coverage then print_code_coverage t.code_coverage);
+      if disp_flags.code_coverage then
+        Option.iter print_code_coverage t.code_coverage);
     Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
@@ -474,16 +475,17 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
-  let fully_aggregated_coverage =
-    let open Coverage in
+  let aggregated_coverage =
     List.fold_left
-      (fun (acc : Aggregated_coverage.t) (file : file) ->
-        Aggregated_coverage.merge acc file.code_coverage)
-      Aggregated_coverage.empty tests
+      (fun (acc : Coverage.coverage_map) (file : file) ->
+        match file.code_coverage with
+        | None -> acc
+        | Some file_code_coverage -> Coverage.union acc file_code_coverage)
+      Coverage.empty tests
   in
   let coverage_line_map =
     Clerk_coverage.aggregated_code_coverage_to_coverage_line_map
-      fully_aggregated_coverage
+      aggregated_coverage
   in
   let total_coverage_lines =
     Clerk_coverage.total_coverage_lines coverage_line_map
@@ -556,67 +558,82 @@ let summary ~build_dir tests =
   Format.pp_print_flush ppf ();
   success = total
 
-let pos_to_json p =
-  let open Pos in
+let itv_to_vscode_range (li, i) (lj, j) =
   `Assoc
     [
-      ( "start",
-        `Assoc
-          [
-            "line", `Int (get_start_line p - 1);
-            "character", `Int (get_start_column p - 1);
-          ] );
-      ( "end",
-        `Assoc
-          [
-            "line", `Int (get_end_line p - 1);
-            "character", `Int (get_end_column p - 1);
-          ] );
+      "start", `Assoc ["line", `Int (li - 1); "character", `Int (i - 1)];
+      "end", `Assoc ["line", `Int (lj - 1); "character", `Int (j - 1)];
     ]
 
-let coverage_reached_to_yojson
-    ~build_dir:_
-    (coverage : Coverage.Aggregated_coverage.t) : Yojson.t =
-  let coverage_on_pos (p, c) =
-    `Assoc ["range", pos_to_json p; "reached_by", `Int c]
-  in
-  let coverage_map f m =
-    let elements =
-      Coverage.Aggregated_coverage.Trie.fold f
-        (fun pos x acc -> (pos, x) :: acc)
-        m []
-      |> List.rev
-    in
-    List.sort (fun (_, x) (_, y) -> -1 * compare x y) elements
-    |> List.map coverage_on_pos
-  in
-  let filemap (f, (x : Coverage.Aggregated_coverage.Trie.t)) =
-    if File.dirname f = "libcatala" then None
-    else
-      Some
-        (`Assoc
-          [
-            "filename", `String File.(Sys.getcwd () / f);
-            "coverage_map", `List (coverage_map f x);
-          ])
-  in
-  `List
-    (Position_map.SMap.to_seq coverage |> Seq.filter_map filemap |> List.of_seq)
+let itv_to_range { Coverage.start_line; start_col; end_line; end_col } =
+  itv_to_vscode_range (start_line, start_col) (end_line, end_col)
 
-(* let coverage_reachable_to_yojson ~build_dir (x : Pos_map.t) : Yojson.t = *)
-(*   let coverage_on_loc l = pos_to_json l in *)
-(*   let coverage_map m = `List (List.map coverage_on_loc m) in *)
-(*   let filemap (f, m) = *)
-(*     `Assoc *)
-(*       [ *)
-(* "filename", `String File.(Sys.getcwd () / remove_prefix build_dir f); *)
-(*         "coverage_map", coverage_map m; *)
-(*       ] *)
-(*   in *)
-(*   `List *)
-(*     (List.of_seq *)
-(*     @@ Seq.map filemap *)
-(*     @@ File.Map.to_seq (Pos_map.export_reachable x)) *)
+let pos_to_json p =
+  let open Pos in
+  itv_to_vscode_range
+    (get_start_line p, get_start_column p)
+    (get_end_line p, get_end_column p)
+
+let coverage_to_json ~build_dir (coverage : Coverage.coverage_map) : Yojson.t =
+  let cwd = Sys.getcwd () in
+  let itv_trees = String.Map.map Coverage.map_to_interval_tree coverage in
+  let all_scopes =
+    String.Map.fold
+      (fun _ tree acc -> ScopeName.Set.union (Coverage.all_scopes tree) acc)
+      itv_trees ScopeName.Set.empty
+  in
+  let scope_idx =
+    let l = List.mapi (fun i s -> s, i) (ScopeName.Set.elements all_scopes) in
+    fun s -> `Int (List.assoc s l)
+  in
+  let itv_tree_to_json (f, tree) =
+    let rec loop : Coverage.interval_tree -> [< `List of Yojson.t list ] =
+      let open Coverage in
+      function
+      | [] -> `List []
+      | { itv; cover; children } :: t ->
+        let reached_by =
+          match cover with
+          | Unreached -> []
+          | Reached_by { scopes } ->
+            ScopeName.Set.elements scopes |> List.map scope_idx
+        in
+        let node : Yojson.t =
+          `Assoc
+            [
+              "location", itv_to_range itv;
+              "reached_by", `List reached_by;
+              "subtree", (loop children :> Yojson.t);
+            ]
+        in
+        let (`List t) = loop t in
+        `List (node :: t)
+    in
+    `Assoc
+      [
+        "file", `String File.(cwd / remove_prefix build_dir f);
+        "tree", (loop tree :> Yojson.t);
+      ]
+  in
+  let scopes_json : string * Yojson.t =
+    ( "scopes",
+      `List
+        (ScopeName.Set.elements all_scopes
+        |> List.map (fun s ->
+               let pos = ScopeName.get_info s |> Mark.get in
+               `Assoc
+                 [
+                   "index", scope_idx s;
+                   "name", `String (ScopeName.to_string s);
+                   "file", `String File.(cwd / Pos.get_file pos);
+                   "location", pos_to_json pos;
+                 ])) )
+  in
+  let locations_json =
+    ( "locations",
+      `List (String.Map.bindings itv_trees |> List.map itv_tree_to_json) )
+  in
+  `Assoc [scopes_json; locations_json]
 
 let print_json ~(build_dir : string) (tests : file list) =
   let success, total =
@@ -658,11 +675,16 @@ let print_json ~(build_dir : string) (tests : file list) =
         "success", `Bool inline_test.i_success;
       ]
   in
-  let full_coverage =
+  let aggregated_coverage =
     List.fold_left
       (fun acc (file : file) ->
-        Coverage.Aggregated_coverage.merge acc file.code_coverage)
-      Coverage.Aggregated_coverage.empty tests
+        match file.code_coverage with
+        | None -> acc
+        | Some file_code_coverage -> Coverage.union acc file_code_coverage)
+      Coverage.empty tests
+    |> String.Map.filter (fun f _ ->
+           (* FIXME: find a better way to remove stdlib for coverage *)
+           not (String.equal (File.dirname f) "libcatala"))
   in
   let json =
     `Assoc
@@ -689,7 +711,7 @@ let print_json ~(build_dir : string) (tests : file list) =
                            ] );
                      ]))
                tests) );
-        "coverage", coverage_reached_to_yojson ~build_dir full_coverage;
+        "coverage", coverage_to_json ~build_dir aggregated_coverage;
       ]
   in
   to_channel stdout json;
