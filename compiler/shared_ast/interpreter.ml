@@ -1258,6 +1258,9 @@ let interpret_program_dcalc ?on_expr ~(coverage : bool) p s :
         (evaluate_expr_safe ~on_expr ctx p.lang (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
+      Format.eprintf "@[<v>%a@]@."
+        (Pos.Map.format_keys ~pp_sep:Format.pp_print_newline)
+        !pos_map;
       check !pos_map;
       (* Format.fprintf (Message.std_ppf ()) "@\n@\nReached@\n%a@\n@\n" *)
       (*   (Print.program ~debug:true ~coverage:!Coverage.glob) *)
@@ -1288,6 +1291,24 @@ let interpret_program_dcalc_with_coverage (p : (dcalc, 'm) gexpr program) scope
       ~f:(fun acc e _typ -> Coverage.reachable_pos e acc)
       p ~init:Coverage.Coverage_map.empty
   in
+  let reachable_cov_map : _ Coverage_tmp.map =
+    Program.fold_exprs
+      ~f:(fun acc e _typ ->
+        let rec loop e map =
+          match Mark.remove e with
+          | Definitions.EAbs { binder; _ } ->
+            (* skip lambdas *)
+            let _vars, e' = Bindlib.unmbind binder in
+            loop e' map
+          | _ ->
+            let m = Mark.get e in
+            let pos = Expr.mark_pos m in
+            let map = Coverage_tmp.update pos (fun _ -> Some Reachable) map in
+            Expr.shallow_fold loop e map
+        in
+        loop e acc)
+      p ~init:String.Map.empty
+  in
   let reachable_map_bindings =
     Coverage_map.fold
       (fun p _ acc -> Pos.Map.add p Reachable acc)
@@ -1295,13 +1316,42 @@ let interpret_program_dcalc_with_coverage (p : (dcalc, 'm) gexpr program) scope
     |> Pos.Map.bindings
   in
   let reached_map = ref Pos.Map.empty in
+  let reached_cov_map : 'a Coverage_tmp.map ref = ref String.Map.empty in
   let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
     match Mark.remove e with
     | EDefault _ ->
       () (* bad location, ignore this case, sub-nodes positions will be added *)
-    | _ -> reached_map := Pos.Map.add (Expr.pos e) Reached !reached_map
+    | _ ->
+      reached_cov_map :=
+        Coverage_tmp.update (Expr.pos e)
+          (function _ -> Some Reached)
+          !reached_cov_map;
+      reached_map := Pos.Map.add (Expr.pos e) Reached !reached_map
   in
   let r = interpret_program_dcalc ~on_expr ~coverage:false p scope in
+  Format.eprintf "################ ITV TREE ################@.";
+  let itv_trees =
+    String.Map.map Coverage_tmp.map_to_interval_tree !reached_cov_map
+  in
+  Format.eprintf "@\n@\n%a@\n@\n"
+    (String.Map.format
+       (Coverage_tmp.format_interval_tree (fun ppf _ ->
+            Format.fprintf ppf "N/A")))
+    itv_trees;
+
+  Format.eprintf "################ MERGED ITV TREE ################@.";
+  let itv_trees =
+    Coverage_tmp.union
+      (fun x y -> match x, y with _, Reached | Reached, _ -> Reached | _ -> x)
+      !reached_cov_map reachable_cov_map
+    |> String.Map.map Coverage_tmp.map_to_interval_tree
+  in
+  Format.eprintf "@\n@\n%a@\n@\n"
+    (String.Map.format
+       (Coverage_tmp.format_interval_tree (fun ppf -> function
+          | Reachable -> Format.fprintf ppf "Reachable"
+          | Reached -> Format.fprintf ppf "Reached")))
+    itv_trees;
   (* Format.fprintf (Message.std_ppf ()) *)
   (*   "################ REACHABLE MAP ################@."; *)
   (* Format.fprintf (Message.std_ppf ()) "@\n@\n%a@\n@\n" Coverage_map.pp *)
