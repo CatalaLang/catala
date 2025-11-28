@@ -15,6 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+let ppf = open_out "/tmp/test" |> Format.formatter_of_out_channel
+
 open Catala_utils
 open Definitions
 
@@ -28,20 +30,6 @@ end)
 type cover = Unreached | Reached_by of { scopes : ScopeSet.t }
 type itv = { start_line : int; start_col : int; end_line : int; end_col : int }
 
-let is_included
-    itv
-    { start_line = sl'; start_col = sc'; end_line = el'; end_col = ec' } =
-  let is_in { start_line; start_col; end_line; end_col } (line, col) =
-    (line > start_line && line < end_line)
-    || line = start_line
-       && line = end_col
-       && start_col <= col
-       && col <= end_col
-    || (line > start_line && line = end_line && col <= end_col)
-    || (line = start_line && line < end_line && start_col <= col)
-  in
-  is_in itv (sl', sc') && is_in itv (el', ec')
-
 let format_cover ppf =
   let open Format in
   function
@@ -53,6 +41,20 @@ let format_cover ppf =
 
 let format_itv ppf { start_line; start_col; end_line; end_col } =
   Format.fprintf ppf "%d.%d-%d.%d" start_line start_col end_line end_col
+
+let is_included
+    itv
+    { start_line = sl'; start_col = sc'; end_line = el'; end_col = ec' } =
+  let is_in { start_line; start_col; end_line; end_col } (line, col) =
+    (line > start_line && line < end_line)
+    || line = start_line
+       && line = end_line
+       && start_col <= col
+       && col <= end_col
+    || (line > start_line && line = end_line && col <= end_col)
+    || (line = start_line && line < end_line && start_col <= col)
+  in
+  is_in itv (sl', sc') && is_in itv (el', ec')
 
 let from_pos p =
   {
@@ -174,22 +176,45 @@ let sanitize_interval_tree (tree : interval_tree) : interval_tree =
       in
       { itv; cover; children } :: normalize_unreachable t
   in
-  normalize_unreachable tree
+  let rec merge_siblings : interval_tree -> interval_tree = function
+    | [] -> []
+    | ({ cover = Unreached; _ } as h) :: t ->
+      (* Unreached nodes (must) only have unreached children, we merge them
+         together *)
+      { h with children = [] } :: merge_siblings t
+    | ({ itv = _; cover = Reached_by { scopes = s }; children } as h) :: t ->
+      let children = merge_siblings children in
+      let new_children =
+        (* We merge children with an equivalent cover by lifting them to the
+           parent and along with their children. *)
+        List.fold_left
+          (fun acc -> function
+            | { itv = _; cover = Reached_by { scopes = s' }; children } as x ->
+              if ScopeSet.equal s s' then List.rev_append children acc
+              else x :: acc
+            | x -> x :: acc)
+          [] children
+        |> List.rev
+      in
+      { h with children = new_children } :: merge_siblings t
+  in
+  normalize_unreachable tree |> merge_siblings
 
 let map_to_interval_tree (m : 'a ItvMap.t) : interval_tree =
   let bds = ItvMap.bindings m in
-  let rec included_partition acc itv = function
-    | [] -> List.rev acc, []
+  let rec included_partition acc itv l =
+    match l with
+    | [] -> acc, []
     | ({ itv = itv'; _ } as elt) :: t ->
       if is_included itv itv' then included_partition (elt :: acc) itv t
-      else List.rev acc, elt :: t
+      else acc, elt :: t
   in
   let rec build_tree acc bds =
     match bds, acc with
     | [], acc -> List.rev acc
     | (itv, cover) :: t, acc ->
       let inc, notinc = included_partition [] itv acc in
-      build_tree ({ itv; cover; children = List.rev inc } :: notinc) t
+      build_tree ({ itv; cover; children = inc } :: notinc) t
   in
   build_tree [] bds |> sanitize_interval_tree
 
@@ -227,3 +252,20 @@ let rec format_interval_tree ppf itv_tree =
 
 let format_coverage_hex_dump ppf (map : coverage_map) =
   Hex.pp ppf (Hex.of_string (Marshal.to_string map []))
+
+(* let test_tree = *)
+(*   let x = Pos.from_info "a" 1226 76 1226 80 |> from_pos in *)
+(*   let y = Pos.from_info "a" 1226 52 1226 80 |> from_pos in *)
+(*   let z = Pos.from_info "a" 1223 27 1226 80 |> from_pos in *)
+(*   assert (is_included y x); *)
+(*   assert (is_included z x); *)
+(*   assert (is_included z y); *)
+(*   let s = *)
+(*     [(\* a; b; c; c'; c''; d; f; *\) x; y; z] *)
+(*     |> List.map (fun x -> x, Unreached) *)
+(*     |> List.to_seq *)
+(*   in *)
+(*   let m = ItvMap.add_seq s ItvMap.empty in *)
+(*   Format.fprintf ppf "Map:@\n%a@\n@\n@." (ItvMap.format format_cover) m; *)
+(*   Format.fprintf ppf "Map:@\n%a@\n@\n@." format_interval_tree *)
+(*     (map_to_interval_tree m) *)

@@ -5,20 +5,28 @@ declaration f
   equals
     b
 
+declaration structure S:
+  data x content boolean
+
+declaration s content S equals S { -- x: f of true }
+
 #[test]
 declaration scope A:
   output w content integer
 
 scope A:
   definition w equals
-  let x equals 3 in
-    if f of true or 1 > 2 or 2 > 3 then
+    let x equals 3 in
+    if s.x or 1 > 2 or 2 > 3 then
       if false then
-        3 # non-reached
+        3
+      # non-reached
       else
         2
-    else
-      if false then # non-reached
-        3 # non-reached
-      else 24 # non-reached
+    else if false then
+      # non-reached
+      3
+    # non-reached
+    else 24
+# non-reached
 ```

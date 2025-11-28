@@ -1179,13 +1179,25 @@ let interpret_program_dcalc ?on_expr p s :
   (*   (Print.program ~debug:true ~coverage:(Some coverage_results)) *)
   (*   p; *)
   let pos_map = ref Pos.Map.empty in
+  let on_expr' (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+    match Mark.remove e with
+    | EAbs _ ->
+      () (* This is to remove scope reach during the first evaluation *)
+    | _ ->
+      pos_map := Pos.Map.add (Expr.mark_pos (Mark.get e)) () !pos_map;
+      Option.iter (fun f -> f e) on_expr
+  in
   let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
     pos_map := Pos.Map.add (Expr.mark_pos (Mark.get e)) () !pos_map;
     Option.iter (fun f -> f e) on_expr
   in
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
+
+  (* TODO: on_expr is special here *)
+  match
+    evaluate_expr_safe ~on_expr:on_expr' p.decl_ctx p.lang (addcustom e)
+  with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1226,7 +1238,7 @@ let interpret_program_dcalc_with_coverage (p : (dcalc, 'm) gexpr program) scope
     (* Mark program positions as unreached *)
     Coverage.program_to_unreached_map p
   in
-  let coverage_map = ref reachable_map in
+  let coverage_map = ref Coverage.empty in
   let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
     match Mark.remove e with
     | EDefault _ ->
@@ -1234,7 +1246,14 @@ let interpret_program_dcalc_with_coverage (p : (dcalc, 'm) gexpr program) scope
     | _ -> coverage_map := Coverage.reached_pos (Expr.pos e) scope !coverage_map
   in
   let r = interpret_program_dcalc ~on_expr p scope in
-  r, !coverage_map
+  let coverage =
+    (* Remove unreached files *)
+    String.Map.merge
+      (fun _k l r -> if r = None then None else l)
+      reachable_map !coverage_map
+    |> Coverage.union !coverage_map
+  in
+  r, coverage
 
 let interpret_program_dcalc p s = interpret_program_dcalc p s
 

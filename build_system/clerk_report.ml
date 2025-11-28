@@ -577,6 +577,16 @@ let pos_to_json p =
 let coverage_to_json ~build_dir (coverage : Coverage.coverage_map) : Yojson.t =
   let cwd = Sys.getcwd () in
   let itv_trees = String.Map.map Coverage.map_to_interval_tree coverage in
+  (* *)
+  let ppf = open_out "/tmp/testout" |> Format.formatter_of_out_channel in
+  Format.fprintf ppf "COV MAPS@\n@\n";
+  (Format.fprintf ppf "@[<v>%a@]@."
+     (String.Map.format (Coverage.ItvMap.format Coverage.format_cover)))
+    coverage;
+  Format.fprintf ppf "@\n@\nITV TREES@\n@\n";
+  Format.fprintf ppf "@[<v>%a@]@."
+    (String.Map.format (fun fmt tree -> Coverage.format_interval_tree fmt tree))
+    itv_trees;
   let all_scopes =
     String.Map.fold
       (fun _ tree acc -> Coverage.ScopeSet.union (Coverage.all_scopes tree) acc)
