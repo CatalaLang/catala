@@ -372,6 +372,7 @@ let init
     color
     debug
     whole_program =
+  if debug then Printexc.record_backtrace true;
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let default_config_file = "clerk.toml" in
   let set_root_dir dir =

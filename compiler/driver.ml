@@ -20,7 +20,15 @@ open Shared_ast
 
 (** Associates a file extension with its corresponding
     {!type: Global.backend_lang} string representation. *)
-let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
+let extensions =
+  [
+    ".catala_fr", "fr";
+    ".catala_fr.md", "fr";
+    ".catala_en", "en";
+    ".catala_en.md", "en";
+    ".catala_pl", "pl";
+    ".catala_pl.md", "pl";
+  ]
 
 let load_modules
     options
@@ -122,7 +130,7 @@ let load_modules
               (* This preserves the filename capitalisation, which corresponds
                  to the convention for files related to not-module compilation
                  artifacts and is used by [depends] below *)
-              Some Filename.(basename (remove_extension f))
+              Some (Filename.basename (File.remove_extension f))
             else None
           in
           let module_content =
@@ -544,7 +552,7 @@ module Commands = struct
       (String.concat "\\\n"
          (Option.value ~default:"stdout" output_file
          :: List.map
-              (fun ext -> Filename.remove_extension source_file ^ ext)
+              (fun ext -> File.remove_extension source_file ^ ext)
               backend_extensions_list))
       (String.concat "\\\n" prg.Surface.Ast.program_source_files)
       (String.concat "\\\n" prg.Surface.Ast.program_source_files)
@@ -1248,9 +1256,9 @@ module Commands = struct
       match output_file, options.Global.input_src with
       | Some file, _
       | None, (FileName (file : File.t) | Contents (_, (file : File.t))) ->
-        let name = Filename.(remove_extension file |> basename) in
+        let name = File.remove_extension file |> Filename.basename in
         if Global.options.gen_external then
-          String.capitalize_ascii (Filename.remove_extension name)
+          String.capitalize_ascii (File.remove_extension name)
         else name
       | None, Stdin _ -> "AnonymousClass"
     in
@@ -1314,7 +1322,7 @@ module Commands = struct
               (fun f ->
                 let name =
                   String.capitalize_ascii
-                    (String.to_id Filename.(basename (remove_extension f)))
+                    (String.to_id (Filename.basename (File.remove_extension f)))
                 in
                 {
                   mod_use_name = name, Pos.void;

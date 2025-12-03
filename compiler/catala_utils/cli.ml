@@ -43,10 +43,18 @@ let raw_file =
 
 (* Some helpers for catala sources *)
 
-let extensions = [".catala_fr", Fr; ".catala_en", En; ".catala_pl", Pl]
+let extensions =
+  [
+    "catala_fr", Fr;
+    "catala_fr.md", Fr;
+    "catala_en", En;
+    "catala_en.md", En;
+    "catala_pl", Pl;
+    "catala_pl.md", Pl;
+  ]
 
 let file_lang filename =
-  List.assoc_opt (Filename.extension filename) extensions
+  List.assoc_opt (File.extension filename) extensions
   |> function
   | Some lang -> lang
   | None -> (
@@ -152,8 +160,7 @@ module Flags = struct
         conv ~docv:"FILE"
           ( (fun s ->
               if s = "-" then Ok `Stdout
-              else if
-                Filename.extension s |> String.starts_with ~prefix:".catala"
+              else if File.extension s |> String.starts_with ~prefix:"catala"
               then
                 Error (`Msg "Output trace file cannot have a .catala extension")
               else Ok (`FileName (Global.raw_file s))),
