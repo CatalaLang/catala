@@ -223,7 +223,7 @@ let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
       (let x, _
         = (true,
             ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=123; start_column=14; end_line=123; end_column=24;
+              start_line=123; start_column=15; end_line=123; end_column=24;
               law_headings=[]})) in x) else
       (let x, _
         = (false,

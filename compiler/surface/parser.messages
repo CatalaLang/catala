@@ -450,12 +450,12 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT NOT FALSE
 ##
-## Ends in an error in state: 446.
+## Ends in an error in state: 444.
 ##
-## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DOCSTRING DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
+## rule_consequence -> NOT . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DOCSTRING DEFINITION DECLARATION DATE ATTR_START ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(NOT)
+## NOT
 ##
 
 expected the filled keyword the this rule
