@@ -1463,34 +1463,30 @@ let main_cmd =
     ]
 
 let main () =
+  let[@inline] exit_with_error excode emit =
+    let bt = Printexc.get_raw_backtrace () in
+    emit ();
+    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
+    exit excode
+  in
   Sys.catch_break true;
   try exit (Cmdliner.Cmd.eval' ~catch:false main_cmd) with
   | Catala_utils.Cli.Exit_with n -> exit n
   | Message.CompilerError content ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit content Error;
-    if Catala_utils.Global.options.debug then
-      Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.some_error
+    exit_with_error Cmd.Exit.some_error
+    @@ fun () -> Message.Content.emit content Error
   | Message.CompilerErrors contents ->
-    Message.Content.emit_n contents Error;
-    exit Cmd.Exit.some_error
+    exit_with_error Cmd.Exit.some_error
+    @@ fun () -> Message.Content.emit_n contents Error
   | Sys.Break ->
-    let bt = Printexc.get_raw_backtrace () in
     Format.fprintf (Message.err_ppf ()) "@.- Interrupted -@.";
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit 130
+    exit_with_error 130 (fun () -> ())
   | Sys_error msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("System error: " ^ msg))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () ->
+    Message.Content.(emit (of_string ("System error: " ^ msg)) Error)
   | e ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit
-      (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    exit Cmd.Exit.internal_error
+    exit_with_error Cmd.Exit.internal_error
+    @@ fun () ->
+    Message.Content.(
+      emit (of_string ("Unexpected error: " ^ Printexc.to_string e)) Error)
