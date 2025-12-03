@@ -492,19 +492,17 @@ let check_modname program source_file =
   | ( Some { module_name = mname, pos; _ },
       (Global.FileName file | Global.Contents (_, file) | Global.Stdin file) )
     ->
-    if
-      File.equal (String.to_id mname)
-        (String.to_id Filename.(remove_extension (basename file)))
-    then ()
+    let basename_no_ext = File.remove_extension (Filename.basename file) in
+    if File.equal (String.to_id mname) (String.to_id basename_no_ext) then ()
     else
       Message.error ~kind:Parsing ~pos
         "Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
          file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ \
          to@ %a."
         mname File.format file
-        (String.capitalize_ascii Filename.(remove_extension (basename file)))
+        (String.capitalize_ascii basename_no_ext)
         File.format
-        File.((dirname file / mname) ^ Filename.extension file)
+        File.((dirname file / mname) -.- extension file)
   | _ -> ()
 
 let load_source_file ?default_module_name source_file content_builder =
@@ -527,7 +525,7 @@ let load_source_file ?default_module_name source_file content_builder =
         (Global.input_src_file source_file)
         (match source_file with
         | FileName s ->
-          String.capitalize_ascii Filename.(basename (remove_extension s))
+          String.capitalize_ascii (Filename.basename (File.remove_extension s))
         | _ -> "Module_name")
   in
   let used_modules, module_items = content_builder program in

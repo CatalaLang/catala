@@ -191,7 +191,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         (link_deps item)
     @ [
         target -.- "cmx";
-        Filename.remove_extension target ^ "+main.cmx";
+        File.remove_extension target ^ "+main.cmx";
         "-o";
         target -.- "exe";
       ]
@@ -205,7 +205,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
           (build_dir / dirname f / "c" / basename f) ^ ".o")
         (link_deps item)
     @ ["-lgmp"]
-    @ [target -.- "o"; Filename.remove_extension target ^ "+main.o"]
+    @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
     @ get_var var_bindings Var.c_flags
     @ get_var var_bindings Var.c_include
     @ ["-o"; target -.- "exe"]
@@ -242,7 +242,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       (* 'javac' generates one file per inner class. Sadly, we do generate a lot
          of those. We need to pack those in the jar as well. *)
       let fetch_inner_classes class_file =
-        let basename = Filename.(basename class_file |> chop_extension) in
+        let basename = File.(remove_extension (basename class_file)) in
         let dirname = Filename.dirname class_file in
         let dir_classes =
           Hashtbl.find_opt h dirname
@@ -346,7 +346,7 @@ let string_of_backend = function
 
 let make_target ~build_dir ~backend item =
   let open File in
-  let f = Scan.target_file_name item ^ Filename.extension item.Scan.file_name in
+  let f = Scan.target_file_name item -.- File.extension item.Scan.file_name in
   let dir = dirname f in
   let base = basename f in
   let base =
@@ -489,8 +489,8 @@ let build_clerk_target
         (fun acc ((item, tg, backend), _) ->
           let targets =
             let f =
-              Scan.target_file_name item
-              ^ Filename.extension item.Scan.file_name
+              File.(
+                Scan.target_file_name item -.- extension item.Scan.file_name)
             in
             let tf =
               File.(build_dir / dirname f / backend_subdir backend / basename f)
@@ -724,7 +724,7 @@ let build_direct_targets
             let t = make_target ~build_dir ~backend item in
             match backend with
             | `Java | `Python | `Custom _ -> t
-            | _ -> Filename.remove_extension t ^ "+main" ^ Filename.extension t)
+            | _ -> File.((remove_extension t ^ "+main") -.- File.extension t))
           exec_targets
       in
       let final_ninja_targets =
@@ -880,7 +880,7 @@ let run_artifact config ~backend ~var_bindings ?scope src =
   | `Python ->
     let build_dir = config.Cli.options.global.build_dir in
     let cmd =
-      let base = Filename.(basename (remove_extension src)) in
+      let base = Filename.basename (File.remove_extension src) in
       get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
     in
     let pythonpath =
@@ -895,7 +895,7 @@ let run_artifact config ~backend ~var_bindings ?scope src =
       (String.concat " " cmd);
     run_command ~setenv:["PYTHONPATH", pythonpath] cmd
   | `Java ->
-    let target_main = Filename.basename src |> Filename.chop_extension in
+    let target_main = File.remove_extension (Filename.basename src) in
     let cmd =
       get_var var_bindings Var.java @ ["-cp"; src -.- "jar"; target_main]
     in
@@ -923,7 +923,7 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
             Option.map Mark.remove item.Scan.module_def
             = Some (File.basename file)
             || item.Scan.file_name = file
-            || Filename.remove_extension item.Scan.file_name = file
+            || File.remove_extension item.Scan.file_name = file
         in
         let items = List.filter filter items in
         if items = [] then
@@ -955,10 +955,7 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
               @@ String.Set.add
                    (match backend with
                    | `Java | `Python -> t
-                   | _ ->
-                     Filename.remove_extension t
-                     ^ "+main"
-                     ^ Filename.extension t)
+                   | _ -> File.(remove_extension t ^ ("+main" -.- extension t)))
                    acc
           in
           List.fold_left

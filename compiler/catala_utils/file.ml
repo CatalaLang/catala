@@ -212,9 +212,34 @@ let with_formatter_of_opt_file filename_opt f =
   | None -> finally (fun () -> flush stdout) (fun () -> f Format.std_formatter)
   | Some filename -> with_formatter_of_file filename f
 
+let extension filename =
+  let file_ext = Filename.extension filename in
+  let full_extension =
+    if file_ext = ".md" then
+      let sub_ext = Filename.extension (Filename.remove_extension filename) in
+      if sub_ext = "" then "md" else sub_ext ^ ".md"
+    else file_ext
+  in
+  String.remove_prefix ~prefix:"." full_extension
+
 let ( -.- ) file ext =
-  let base = Filename.remove_extension file in
-  match ext with "" -> base | ext -> base ^ "." ^ ext
+  (* file_ext may be empty, "<ext>" when non-md, "md" if only ".md" is present
+     and "<ext>.md" if a double-extension is present *)
+  let file_ext = extension file in
+  if ext = "" then
+    (* No extension given *)
+    if file_ext = "" then (* Nothing to do *) file
+    else
+      (* Remove the extension and the dot *)
+      String.(sub file 0 (length file - length file_ext - 1))
+  else if file_ext = "" then
+    (* File has no extension, append the new one *)
+    file ^ "." ^ ext
+  else
+    (* Remove the existing extension (minus the dot) and append the new one *)
+    String.(sub file 0 (length file - length file_ext)) ^ ext
+
+let remove_extension filename = filename -.- ""
 
 let get_main_out_channel ~source_file ~output_file ?ext () =
   match output_file, ext with
@@ -241,7 +266,7 @@ let with_secondary_out_channel ~output_file ~ext f =
     let file =
       match ext.[0] with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> file -.- ext
-      | _ -> Filename.remove_extension file ^ ext
+      | _ -> remove_extension file ^ ext
     in
     Message.debug "Secondary output to %a" format file;
     with_formatter_of_file file (fun ppf -> f (Some file) ppf)
@@ -424,7 +449,6 @@ let check_exec t =
 
 let dirname = Filename.dirname
 let basename = Filename.basename
-let extension t = String.remove_prefix ~prefix:"." (Filename.extension t)
 let ( /../ ) a b = parent a / b
 
 let equal a b =

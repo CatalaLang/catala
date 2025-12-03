@@ -849,7 +849,7 @@ let format_program
     | None, None -> "MAIN"
     | None, Some f ->
       String.uppercase_ascii
-        (String.to_id (File.basename (Filename.remove_extension f)))
+        (String.to_id (File.basename (File.remove_extension f)))
     | Some (m, _), _ ->
       String.uppercase_ascii (String.to_ascii (ModuleName.to_string m))
   in

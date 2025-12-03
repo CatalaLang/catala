@@ -40,7 +40,7 @@ let exec () =
     | None ->
       List.find_map
         (fun s ->
-          match Filename.extension s with
+          match File.extension s with
           | "" -> None
           | e -> lang_of_ext (String.sub e 1 (String.length e - 1)))
         args

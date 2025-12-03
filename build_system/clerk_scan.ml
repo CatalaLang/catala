@@ -28,7 +28,9 @@ type item = {
 }
 
 let catala_suffix_regex =
-  Re.(compile (seq [str ".catala_"; group (seq [alpha; alpha]); eos]))
+  Re.(
+    compile
+      (seq [str ".catala_"; group (seq [alpha; alpha]); opt (str ".md"); eos]))
 
 let test_command_args =
   let open Re in
@@ -138,4 +140,4 @@ let target_file_name t =
   in
   match t.module_def with
   | Some m -> dir / String.to_id (Mark.remove m)
-  | None -> dir / String.to_id (basename t.file_name -.- "")
+  | None -> dir / String.to_id (remove_extension (basename t.file_name))
