@@ -111,7 +111,13 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       ((* If there are includes, they must be checked for test scopes as well *)
        Lazy.force item.has_scope_tests
       || List.exists
-           (fun l -> find_test_scope ~lang (Mark.remove l))
+           (fun l ->
+             let included_file = Mark.remove l in
+             if File.check_file included_file = None then
+               Message.error ~kind:Parsing ~pos:(Mark.get l)
+                 "Included file '%s' is not a regular file or does not exist."
+                 included_file;
+             find_test_scope ~lang included_file)
            item.included_files)
   in
   { item with has_scope_tests }
