@@ -697,14 +697,16 @@ and val_to_runtime :
 
 let rec evaluate_expr :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   let debug_print, e =
     Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
   in
+  Option.iter (fun f -> f e) on_expr;
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   (match debug_print with
@@ -755,14 +757,14 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_modname in
-    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
+    runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m ty o
   | EApp { f = e1; args; _ } -> (
-    let e1 = evaluate_expr ctx lang e1 in
-    let args = List.map (evaluate_expr ctx lang) args in
+    let e1 = evaluate_expr ?on_expr ctx lang e1 in
+    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ctx lang
+        evaluate_expr ?on_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
@@ -774,7 +776,9 @@ let rec evaluate_expr :
         List.fold_left2
           (fun fobj targ arg ->
             let arg =
-              val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg
+              val_to_runtime
+                (fun ctx -> evaluate_expr ?on_expr ctx lang)
+                ctx targ arg
             in
             let f : Obj.t -> Obj.t =
               if Obj.tag fobj = Obj.first_non_constant_constructor_tag then
@@ -787,7 +791,7 @@ let rec evaluate_expr :
             f arg)
           obj targs args
       in
-      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
+      runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
@@ -797,12 +801,12 @@ let rec evaluate_expr :
           else ())
         e1)
   | EAppOp { op; args; _ } ->
-    let args = List.map (evaluate_expr ctx lang) args in
-    evaluate_operator (evaluate_expr ctx lang) op m lang args
+    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
+    evaluate_operator (evaluate_expr ?on_expr ctx lang) op m lang args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
-    let es = List.map (evaluate_expr ctx lang) es in
+    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -817,7 +821,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
@@ -841,9 +845,10 @@ let rec evaluate_expr :
          not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e StructName.format s)
-  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
+  | ETuple es ->
+    Mark.add m (ETuple (List.map (evaluate_expr ?on_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
-    match evaluate_expr ctx lang e1 with
+    match evaluate_expr ?on_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
       Message.error ~pos:(Expr.pos e)
@@ -852,7 +857,7 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -860,7 +865,7 @@ let rec evaluate_expr :
     in
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    let e = evaluate_expr ctx lang e in
+    let e = evaluate_expr ?on_expr ctx lang e in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -881,30 +886,30 @@ let rec evaluate_expr :
         EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
       in
       let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-      evaluate_expr ctx lang new_e
+      evaluate_expr ?on_expr ctx lang new_e
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
-    let cond = evaluate_expr ctx lang cond in
+    let cond = evaluate_expr ?on_expr ctx lang cond in
     match Mark.remove cond with
-    | ELit (LBool true) -> evaluate_expr ctx lang etrue
-    | ELit (LBool false) -> evaluate_expr ctx lang efalse
+    | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang etrue
+    | ELit (LBool false) -> evaluate_expr ?on_expr ctx lang efalse
     | _ ->
       Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    let es = List.map (evaluate_expr ctx lang) es in
+    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
     Mark.add m (EArray es)
   | EAssert e' -> (
-    let e = evaluate_expr ctx lang e' in
+    let e = evaluate_expr ?on_expr ctx lang e' in
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
       let partially_evaluated_assertion_failure_expr =
-        partially_evaluate_expr_for_assertion_failure_message ctx lang
+        partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx lang
           (Expr.skip_wrappers e')
       in
       (match Mark.remove partially_evaluated_assertion_failure_expr with
@@ -931,19 +936,19 @@ let rec evaluate_expr :
          not happen if the term was well-typed)")
   | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
-    match evaluate_expr ctx lang e' with
+    match evaluate_expr ?on_expr ctx lang e' with
     | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | exception Runtime.Empty ->
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ctx lang) excepts in
+    let excepts = List.map (evaluate_expr ?on_expr ctx lang) excepts in
     let empty_count = List.length (List.filter is_empty_error excepts) in
     match List.length excepts - empty_count with
     | 0 -> (
-      let just = evaluate_expr ctx lang just in
+      let just = evaluate_expr ?on_expr ctx lang just in
       match Mark.remove just with
-      | ELit (LBool true) -> evaluate_expr ctx lang cons
+      | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmpty
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
@@ -959,7 +964,7 @@ let rec evaluate_expr :
           excepts
       in
       raise Runtime.(Error (Conflict, poslist)))
-  | EPureDefault e -> evaluate_expr ctx lang e
+  | EPureDefault e -> evaluate_expr ?on_expr ctx lang e
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "Attempting to evaluate a EBad node which should have been previously \
@@ -968,11 +973,12 @@ let rec evaluate_expr :
 
 and partially_evaluate_expr_for_assertion_failure_message :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
      comparisons and logical operators, we leave those unevaluated at the top of
@@ -998,25 +1004,28 @@ and partially_evaluate_expr_for_assertion_failure_message :
           tys;
           args =
             [
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e1;
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e2;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e1;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e2;
             ];
         },
       Mark.get e )
   (* TODO: improve this heuristic, because if the assertion is not [e1 <op> e2],
      the error message merely displays [false]... *)
-  | _ -> evaluate_expr ctx lang e
+  | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   Runtime.reset_log ();
   Fun.protect
-    (fun () -> evaluate_expr ctx lang e)
+    (fun () -> evaluate_expr ?on_expr ctx lang e)
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
@@ -1048,13 +1057,14 @@ let evaluate_expr_trace :
 
 let evaluate_expr_safe :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   try
-    let r = evaluate_expr_trace ctx lang e in
+    let r = evaluate_expr_trace ?on_expr ctx lang e in
     Message.report_delayed_errors_if_any ();
     r
   with Runtime.Error (err, rpos) ->
@@ -1160,11 +1170,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        thunked arguments"
 
 (** {1 API} *)
-let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let interpret_program_dcalc ?on_expr p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
+  match evaluate_expr_safe ?on_expr p.decl_ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1178,7 +1188,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         (Expr.pos e)
     in
     match
-      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+      Mark.remove
+        (evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
       List.map
@@ -1193,6 +1204,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
+
+let interpret_program_dcalc p s = interpret_program_dcalc p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
