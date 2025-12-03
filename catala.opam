@@ -45,6 +45,7 @@ depends: [
    # Not a strict upper bound for catala, but other tools (adgen) have it and we
    # don't want them to need a catala recompile
   "crunch" {>= "3.0.0"}
+  "hex" { >= "1.5.0"}
   "alcotest" {>= "1.5.0"}
   "ninja_utils" {= "0.9.0"}
   "otoml" {>= "1.0"}
