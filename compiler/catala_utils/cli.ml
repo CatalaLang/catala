@@ -519,6 +519,15 @@ module Flags = struct
            versions of the enumeration, and transform tuples into named \
            structs. "
 
+  let code_coverage =
+    value
+    & flag
+    & info ["code-coverage"]
+        ~doc:
+          "When used with $(b,interpret),  outputs a binary dump of the code \
+           coverage information gathered during the run. Be careful to always \
+           use it in conjunction with $(b,--whole-program)."
+
   let expand_ops =
     value
     & flag

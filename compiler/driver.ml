@@ -884,11 +884,10 @@ module Commands = struct
       options
       ?(quiet = false)
       interpreter
-      prg
       scope_uid =
     try
       Message.debug "Starting interpretation...";
-      let results = interpreter prg scope_uid in
+      let results, cov_opt = interpreter () in
       Message.debug "End of interpretation";
       let results =
         List.sort
@@ -898,10 +897,14 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then
+      if quiet then begin
         (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
-          ScopeName.format scope_uid
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+          ScopeName.format scope_uid (fun fmt ->
+            Option.iter
+              (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
+              cov_opt)
+      end
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results
@@ -930,6 +933,7 @@ module Commands = struct
 
   let interpret_dcalc
       typed
+      code_coverage
       options
       includes
       stdlib
@@ -947,9 +951,20 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_dcalc prg scope
-          && success)
+          if code_coverage then
+            let interp () =
+              let res, cov =
+                Interpreter.interpret_program_dcalc_with_coverage ?stdlib prg
+                  scope
+              in
+              res, Some cov
+            in
+            print_interpretation_results options ~quiet interp scope
+          else
+            let interp () =
+              Interpreter.interpret_program_dcalc prg scope, None
+            in
+            print_interpretation_results ~quiet options interp scope && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1041,9 +1056,8 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_lcalc prg scope
-          && success)
+          let interp () = Interpreter.interpret_program_lcalc prg scope, None in
+          print_interpretation_results ~quiet options interp scope && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1056,15 +1070,20 @@ module Commands = struct
         keep_special_ops
         monomorphize_types
         expand_ops
-        no_typing =
+        no_typing
+        code_coverage =
       if not lcalc then
         if closure_conversion || monomorphize_types then
           Message.error
             "The flags @{<bold>--closure-conversion@} and \
              @{<bold>--monomorphize-types@} only make sense with the \
              @{<bold>--lcalc@} option"
-        else if no_typing then interpret_dcalc Expr.untyped
-        else interpret_dcalc Expr.typed
+        else if no_typing then interpret_dcalc Expr.untyped code_coverage
+        else interpret_dcalc Expr.typed code_coverage
+      else if code_coverage then
+        Message.error
+          "The flag @{<bold>--code-coverage@} is not compatible with the \
+           @{<bold>--lcalc@} option"
       else if no_typing then
         interpret_lcalc Expr.untyped closure_conversion keep_special_ops
           monomorphize_types expand_ops
@@ -1086,6 +1105,7 @@ module Commands = struct
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
+        $ Cli.Flags.code_coverage
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
