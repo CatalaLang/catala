@@ -1205,6 +1205,44 @@ let interpret_program_dcalc ?on_expr p s :
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
+let interpret_program_dcalc_with_coverage
+    ?(stdlib : Global.raw_file option)
+    (p : (dcalc, 'm) gexpr program)
+    scope :
+    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+    * Coverage.coverage_map =
+  let reachable_map =
+    (* Mark program positions as unreached *)
+    Coverage.reachable_positions p
+  in
+  let coverage_map = ref Coverage.empty in
+  let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+    match Mark.remove e with
+    | EDefault _ ->
+      ()
+      (* Bad location, ignore this case, sub-nodes positions will still be added
+         later on *)
+    | _ -> coverage_map := Coverage.reached_pos (Expr.pos e) scope !coverage_map
+  in
+  let r = interpret_program_dcalc ~on_expr p scope in
+  Option.iter
+    (fun (stdlib_dir : Global.raw_file) ->
+      let stdlib_dir = Global.options.path_rewrite stdlib_dir in
+      (* Remove stdlib's files reached positions if provided. Reachable stdlib
+         positions in 'reachable_map' will be discarded when the follow-up merge
+         occurs. *)
+      coverage_map :=
+        Coverage.filter_files
+          (fun path -> not (String.starts_with ~prefix:stdlib_dir path))
+          !coverage_map)
+    stdlib;
+  let coverage =
+    Coverage.(
+      merge_with_reachable_positions ~reachable:reachable_map
+        ~reached:!coverage_map)
+  in
+  r, coverage
+
 let interpret_program_dcalc p s = interpret_program_dcalc p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
