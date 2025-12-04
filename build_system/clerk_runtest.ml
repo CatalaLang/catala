@@ -15,6 +15,7 @@
    the License. *)
 
 open Catala_utils
+open Shared_ast
 
 type output_buf = { oc : out_channel; mutable pos : Lexing.position }
 
@@ -159,10 +160,31 @@ let get_pos pos_fname pos_lnum col =
   let pos_bol = -1 in
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
-let run_catala_test_scopes test_flags catala_exe catala_opts filename =
+let run_catala_test_scopes
+    ~code_coverage
+    test_flags
+    catala_exe
+    catala_opts
+    filename =
   let cmd_out_rd, cmd_out_wr = Unix.pipe ~cloexec:true () in
   let command_ic = Unix.in_channel_of_descr cmd_out_rd in
   let env = catala_test_env () in
+  let whole_program_opt = "--whole-program" in
+  let code_coverage_opt = "--code-coverage" in
+  let catala_opts =
+    catala_opts
+    @
+    if code_coverage then
+      (if List.mem code_coverage_opt catala_opts then []
+       else [code_coverage_opt])
+      @
+      if List.mem whole_program_opt catala_opts then [] else [whole_program_opt]
+    else []
+  in
+  let test_flags =
+    if code_coverage then List.filter (( <> ) whole_program_opt) test_flags
+    else test_flags
+  in
   let cmd =
     Array.of_list
       (catala_exe
@@ -173,6 +195,8 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
        :: catala_opts
       @ test_flags)
   in
+  let start_time = Sys.time () in
+  let current_time = ref start_time in
   let pid =
     Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr cmd_out_wr
   in
@@ -224,6 +248,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
            group (rep1 (diff any (char ':')));
            str ": ";
            group (alt [str "passed"; str "failed"]);
+           opt (seq [char '|'; group (rep notnl)]);
          ]
   in
   let errs, scopes_results =
@@ -238,6 +263,9 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
             | "failed" -> false
             | _ -> assert false
           in
+          let line_time = Sys.time () in
+          let delta = line_time -. !current_time in
+          current_time := line_time;
           ( [],
             {
               Clerk_report.s_name = scope;
@@ -247,6 +275,12 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
                 @ test_flags
                 @ ["--scope=" ^ scope];
               s_errors = List.rev errs;
+              s_time = delta;
+              s_coverage =
+                (if code_coverage && result then
+                   let hex_coverage_string = Re.Group.get g 3 in
+                   Some (Coverage.of_hex hex_coverage_string)
+                 else None);
             }
             :: acc )
         | None -> (
@@ -265,7 +299,7 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
     | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
   in
   let scopes_results =
-    (* Add a fake results in case some scopes failed to run *)
+    (* Add a fake result in case some scopes failed to run *)
     if
       return_code <> 0
       && List.filter (fun t -> not t.Clerk_report.s_success) scopes_results = []
@@ -276,6 +310,8 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
         s_command_line =
           (catala_exe :: "interpret" :: filename :: catala_opts) @ test_flags;
         s_errors = errs;
+        s_time = Sys.time () -. start_time;
+        s_coverage = None;
       }
       :: scopes_results
     else scopes_results
@@ -284,7 +320,14 @@ let run_catala_test_scopes test_flags catala_exe catala_opts filename =
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
-let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
+let run_tests
+    ~catala_exe
+    ~catala_opts
+    ~code_coverage
+    ~test_flags
+    ~report
+    ~out
+    filename =
   let module L = Surface.Lexer_common in
   let lang =
     match Clerk_scan.get_lang filename with
@@ -436,32 +479,44 @@ let run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out filename =
   in
   let scopes_results =
     if has_test_scopes then
-      run_catala_test_scopes test_flags catala_exe catala_opts filename
+      run_catala_test_scopes ~code_coverage test_flags catala_exe catala_opts
+        filename
     else []
   in
-  let successful_test_scopes, failed_test_scopes =
+  let successful_test_scopes, failed_test_scopes, coverage =
     List.fold_left
-      (fun (nsucc, nfail) t ->
-        if t.Clerk_report.s_success then nsucc + 1, nfail else nsucc, nfail + 1)
-      (0, 0) scopes_results
+      (fun (nsucc, nfail, code_coverage) t ->
+        let x, y =
+          if t.Clerk_report.s_success then nsucc + 1, nfail
+          else nsucc, nfail + 1
+        in
+        let code_coverage =
+          match code_coverage, t.s_coverage with
+          | None, None -> None
+          | None, Some cov | Some cov, None -> Some cov
+          | Some cov, Some cov' -> Some (Coverage.union cov cov')
+        in
+        x, y, code_coverage)
+      (0, 0, None) scopes_results
   in
   let num_test_scopes = successful_test_scopes + failed_test_scopes in
   let tests_report =
+    let open Clerk_report in
     List.fold_left
-      Clerk_report.(
-        fun tests t ->
-          {
-            tests with
-            total = tests.total + 1;
-            successful = (tests.successful + if t.i_success then 1 else 0);
-            tests = t :: tests.tests;
-          })
+      (fun tests t ->
+        {
+          tests with
+          total = tests.total + 1;
+          successful = (tests.successful + if t.i_success then 1 else 0);
+          tests = t :: tests.tests;
+        })
       {
         Clerk_report.name = filename;
         successful = successful_test_scopes;
         total = num_test_scopes;
         tests = [];
         scopes = scopes_results;
+        coverage;
       }
       !rtests
   in

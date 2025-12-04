@@ -93,7 +93,7 @@ module Var = struct
   let ( ! ) = Nj.Var.v
 end
 
-let base_bindings ~autotest ~enabled_backends ~config =
+let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
   let includes ?backend () =
     List.fold_right
@@ -185,7 +185,10 @@ let base_bindings ~autotest ~enabled_backends ~config =
          :: Var.(!catala_exe)
          :: ("--test-flags=" ^ String.concat "," test_flags)
          :: includes ()
-        @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags));
+        @ (if code_coverage then ["--code-coverage"] else [])
+        @ List.map
+            (fun f -> "--catala-opts=" ^ f)
+            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
   ]
   @ (if List.mem OCaml enabled_backends then
        [
@@ -274,7 +277,6 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
           [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
-
     ] else []) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
@@ -1056,7 +1058,7 @@ let with_ninja_process
     ~config
     ~clean_up_env
     ~ninja_flags
-    ?(quiet = not Global.options.debug)
+    ~quiet
     (callback : Format.formatter -> 'a) =
   let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
   let fname =
@@ -1070,8 +1072,10 @@ let with_ninja_process
   let ninja_process nin_file nin_fd =
     let args =
       let ninja_flags =
-        if quiet && Lazy.force ninja_version >= [1; 12] then
-          "--quiet" :: ninja_flags
+        (* Newer versions of ninja have a flag to not print "nothing to do", we
+           use that if available. *)
+        if (not Global.options.debug) && Lazy.force ninja_version >= [1; 12]
+        then "--quiet" :: ninja_flags
         else ninja_flags
       in
       ("-f" :: nin_file :: ninja_flags)
@@ -1080,8 +1084,16 @@ let with_ninja_process
     let cmdline = ninja_exec :: args in
     Message.debug "executing '%s'..." (String.concat " " cmdline);
     let npid =
-      Unix.create_process_env ninja_exec (Array.of_list cmdline) env nin_fd
-        Unix.stdout Unix.stderr
+      let out =
+        (* In --quiet, we redirect all ninja's output to /dev/null *)
+        if quiet then Unix.openfile Filename.null [O_WRONLY] 0o111
+        else Unix.stdout
+      in
+      Fun.protect
+        ~finally:(fun () -> if quiet then Unix.close out)
+        (fun () ->
+          Unix.create_process_env ninja_exec (Array.of_list cmdline) env nin_fd
+            out Unix.stderr)
     in
     let rec wait () =
       match Unix.waitpid [] npid with
@@ -1132,6 +1144,8 @@ let with_ninja_process
 let run_ninja
     ~config
     ?(enabled_backends = all_backends)
+    ~quiet
+    ~code_coverage
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
@@ -1139,8 +1153,10 @@ let run_ninja
   let enabled_backends =
     if autotest then OCaml :: enabled_backends else enabled_backends
   in
-  let var_bindings = base_bindings ~config ~enabled_backends ~autotest in
-  with_ninja_process ~config ~clean_up_env ~ninja_flags (fun nin_ppf ->
+  let var_bindings =
+    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
+  in
+  with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
       let stdlib_dir = Lazy.force Poll.stdlib_dir in
       let stdlib_tree =

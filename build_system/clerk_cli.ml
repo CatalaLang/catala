@@ -50,6 +50,15 @@ let autotest =
            guarantee that the necessary artifacts for interpretation are \
            present.")
 
+let quiet =
+  Arg.(
+    value
+    & flag
+    & info ["quiet"]
+        ~doc:
+          "Silences the $(i,ninja) build tool that usually prints its output \
+           on the standard output.")
+
 let prepare_only =
   Arg.(
     value
@@ -114,7 +123,7 @@ let runtest_report =
     & info ["report"] ~docv:"FILE"
         ~doc:
           "If set, $(i,clerk runtest) will output a tests result summary in \
-           binary format to the given $(b,FILE)")
+           binary format to the given $(b,FILE).")
 
 let runtest_out =
   Arg.(
@@ -139,7 +148,7 @@ let backend =
     & info ["backend"] ~docv:"BACKEND"
         ~doc:
           "Run the program using the given backend. $(docv) must be one of \
-           $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java)")
+           $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java).")
 
 let run_command =
   Arg.(
@@ -192,7 +201,7 @@ let ninja_output =
           "$(i,FILE) is the file that will contain the build.ninja file \
            output. If not specified, the build.ninja file is set to \
            $(i,<builddir>/clerk.ninja) in debug mode, and a temporary file \
-           otherwise")
+           otherwise.")
 
 let files_or_folders =
   Arg.(
@@ -253,24 +262,44 @@ let report_verbosity =
     & vflag `Failures
         [
           ( `Summary,
-            info ["summary"] ~doc:"Only display a summary of the test results" );
+            info ["summary"] ~doc:"Only display a summary of the test results."
+          );
           ( `Short,
-            info ["short"] ~doc:"Don't display detailed test failures diff" );
+            info ["short"] ~doc:"Don't display detailed test failures diff." );
           ( `Failures,
             info ["failures"]
-              ~doc:"Show details of files with failed tests only" );
+              ~doc:"Show details of files with failed tests only." );
           ( `Verbose,
             info ["verbose"; "v"]
-              ~doc:"Display the full list of tests that have been run" );
+              ~doc:"Display the full list of tests that have been run." );
         ])
 
-let report_xml =
+let report_format =
+  Arg.(
+    value
+    & vflag `Terminal
+        [
+          ( `Terminal,
+            info ["terminal"]
+              ~doc:
+                "Output the test report in a human-friendly format on the \
+                 terminal." );
+          ( `JUnitXML,
+            info ["xml"]
+              ~doc:"Output the test report in JUnit-compatible XML format." );
+          ( `VSCodeJSON,
+            info ["json"]
+              ~doc:"Output the test report as a VSCode-compatible JSON format."
+          );
+        ])
+
+let code_coverage =
   Arg.(
     value
     & flag
-    & info ["xml"]
-        ~env:(Cmd.Env.info "CATALA_XML_REPORT")
-        ~doc:"Output the test report in JUnit-compatible XML format")
+    & info ["code-coverage"]
+        ~env:(Cmd.Env.info "CATALA_MEASURE_COVERAGE")
+        ~doc:"Measure code coverage in the test report.")
 
 let diff_command =
   Arg.(
@@ -283,7 +312,7 @@ let diff_command =
            side-by-side view. If no argument is supplied, the command will be \
            $(b,patdiff) if available or $(b,diff) otherwise. A supplied \
            argument will be used as diff command with arguments pointing to \
-           the reference file and the output file")
+           the reference file and the output file.")
 
 let ninja_flags =
   let env =
