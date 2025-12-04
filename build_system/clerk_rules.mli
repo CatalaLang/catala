@@ -52,6 +52,7 @@ module Var : sig
 end
 
 val base_bindings :
+  code_coverage:bool ->
   autotest:bool ->
   enabled_backends:backend list ->
   config:Clerk_cli.config ->
@@ -60,6 +61,8 @@ val base_bindings :
 val run_ninja :
   config:Clerk_cli.config ->
   ?enabled_backends:backend list ->
+  quiet:bool ->
+  code_coverage:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
