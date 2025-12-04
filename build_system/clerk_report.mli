@@ -19,6 +19,7 @@
     concerns inline tests (```catala-test-cli blocks). *)
 
 open Catala_utils
+open Shared_ast
 
 type pos = Lexing.position * Lexing.position
 
@@ -35,6 +36,8 @@ type scope_test = {
   s_name : string;
   s_command_line : string list;
   s_errors : (pos * string) list;
+  s_time : float;  (** Time spent in test, in milliseconds *)
+  s_coverage : Coverage.coverage_map option;
 }
 
 type file = {
@@ -43,6 +46,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
+  coverage : Coverage.coverage_map option;
 }
 
 val write_to : File.t -> file -> unit
@@ -56,8 +60,12 @@ val summary : build_dir:File.t -> file list -> bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
 val print_xml : build_dir:File.t -> file list -> bool
-(** Displays a summary in JUnit XML comptible format to stdout; returns true if
+(** Displays a summary in JUnit XML compatible format to stdout; returns true if
     all tests succeeded *)
+
+val print_json : build_dir:File.t -> file list -> bool
+(** Displays a summary in VSCode Json compatible format to stdout; returns true
+    if all tests succeeded *)
 
 val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->
@@ -65,5 +73,6 @@ val set_display_flags :
   ?diffs:bool ->
   ?diff_command:string option option ->
   ?fix_path:(File.t -> File.t) ->
+  ?coverage:bool ->
   unit ->
   unit
