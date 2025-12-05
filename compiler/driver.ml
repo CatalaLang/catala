@@ -20,7 +20,15 @@ open Shared_ast
 
 (** Associates a file extension with its corresponding
     {!type: Global.backend_lang} string representation. *)
-let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
+let extensions =
+  [
+    ".catala_fr", "fr";
+    ".catala_fr.md", "fr";
+    ".catala_en", "en";
+    ".catala_en.md", "en";
+    ".catala_pl", "pl";
+    ".catala_pl.md", "pl";
+  ]
 
 let load_modules
     options
@@ -122,7 +130,7 @@ let load_modules
               (* This preserves the filename capitalisation, which corresponds
                  to the convention for files related to not-module compilation
                  artifacts and is used by [depends] below *)
-              Some Filename.(basename (remove_extension f))
+              Some (Filename.basename (File.remove_extension f))
             else None
           in
           let module_content =
@@ -544,7 +552,7 @@ module Commands = struct
       (String.concat "\\\n"
          (Option.value ~default:"stdout" output_file
          :: List.map
-              (fun ext -> Filename.remove_extension source_file ^ ext)
+              (fun ext -> File.remove_extension source_file ^ ext)
               backend_extensions_list))
       (String.concat "\\\n" prg.Surface.Ast.program_source_files)
       (String.concat "\\\n" prg.Surface.Ast.program_source_files)
@@ -876,11 +884,10 @@ module Commands = struct
       options
       ?(quiet = false)
       interpreter
-      prg
       scope_uid =
     try
       Message.debug "Starting interpretation...";
-      let results = interpreter prg scope_uid in
+      let results, cov_opt = interpreter () in
       Message.debug "End of interpretation";
       let results =
         List.sort
@@ -890,10 +897,14 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then
+      if quiet then begin
         (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}@."
-          ScopeName.format scope_uid
+        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+          ScopeName.format scope_uid (fun fmt ->
+            Option.iter
+              (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
+              cov_opt)
+      end
       else if results = [] then Message.result "Computation successful!"
       else
         Message.results
@@ -922,6 +933,7 @@ module Commands = struct
 
   let interpret_dcalc
       typed
+      code_coverage
       options
       includes
       stdlib
@@ -939,9 +951,20 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_dcalc prg scope
-          && success)
+          if code_coverage then
+            let interp () =
+              let res, cov =
+                Interpreter.interpret_program_dcalc_with_coverage ?stdlib prg
+                  scope
+              in
+              res, Some cov
+            in
+            print_interpretation_results options ~quiet interp scope
+          else
+            let interp () =
+              Interpreter.interpret_program_dcalc prg scope, None
+            in
+            print_interpretation_results ~quiet options interp scope && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1033,9 +1056,8 @@ module Commands = struct
     let success =
       List.fold_left
         (fun success scope ->
-          print_interpretation_results ~quiet options
-            Interpreter.interpret_program_lcalc prg scope
-          && success)
+          let interp () = Interpreter.interpret_program_lcalc prg scope, None in
+          print_interpretation_results ~quiet options interp scope && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1048,15 +1070,20 @@ module Commands = struct
         keep_special_ops
         monomorphize_types
         expand_ops
-        no_typing =
+        no_typing
+        code_coverage =
       if not lcalc then
         if closure_conversion || monomorphize_types then
           Message.error
             "The flags @{<bold>--closure-conversion@} and \
              @{<bold>--monomorphize-types@} only make sense with the \
              @{<bold>--lcalc@} option"
-        else if no_typing then interpret_dcalc Expr.untyped
-        else interpret_dcalc Expr.typed
+        else if no_typing then interpret_dcalc Expr.untyped code_coverage
+        else interpret_dcalc Expr.typed code_coverage
+      else if code_coverage then
+        Message.error
+          "The flag @{<bold>--code-coverage@} is not compatible with the \
+           @{<bold>--lcalc@} option"
       else if no_typing then
         interpret_lcalc Expr.untyped closure_conversion keep_special_ops
           monomorphize_types expand_ops
@@ -1078,6 +1105,7 @@ module Commands = struct
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
+        $ Cli.Flags.code_coverage
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
@@ -1248,9 +1276,9 @@ module Commands = struct
       match output_file, options.Global.input_src with
       | Some file, _
       | None, (FileName (file : File.t) | Contents (_, (file : File.t))) ->
-        let name = Filename.(remove_extension file |> basename) in
+        let name = File.remove_extension file |> Filename.basename in
         if Global.options.gen_external then
-          String.capitalize_ascii (Filename.remove_extension name)
+          String.capitalize_ascii (File.remove_extension name)
         else name
       | None, Stdin _ -> "AnonymousClass"
     in
@@ -1314,7 +1342,7 @@ module Commands = struct
               (fun f ->
                 let name =
                   String.capitalize_ascii
-                    (String.to_id Filename.(basename (remove_extension f)))
+                    (String.to_id (Filename.basename (File.remove_extension f)))
                 in
                 {
                   mod_use_name = name, Pos.void;

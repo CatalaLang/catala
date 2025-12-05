@@ -28,7 +28,9 @@ type item = {
 }
 
 let catala_suffix_regex =
-  Re.(compile (seq [str ".catala_"; group (seq [alpha; alpha]); eos]))
+  Re.(
+    compile
+      (seq [str ".catala_"; group (seq [alpha; alpha]); opt (str ".md"); eos]))
 
 let test_command_args =
   let open Re in
@@ -111,7 +113,13 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       ((* If there are includes, they must be checked for test scopes as well *)
        Lazy.force item.has_scope_tests
       || List.exists
-           (fun l -> find_test_scope ~lang (Mark.remove l))
+           (fun l ->
+             let included_file = Mark.remove l in
+             if File.check_file included_file = None then
+               Message.error ~kind:Parsing ~pos:(Mark.get l)
+                 "Included file '%s' is not a regular file or does not exist."
+                 included_file;
+             find_test_scope ~lang included_file)
            item.included_files)
   in
   { item with has_scope_tests }
@@ -132,4 +140,4 @@ let target_file_name t =
   in
   match t.module_def with
   | Some m -> dir / String.to_id (Mark.remove m)
-  | None -> dir / String.to_id (basename t.file_name -.- "")
+  | None -> dir / String.to_id (remove_extension (basename t.file_name))
