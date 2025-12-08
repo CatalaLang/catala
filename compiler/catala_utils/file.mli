@@ -148,7 +148,9 @@ val dirname : t -> t
 
 val extension : t -> string
 (** Like [Filename.extension], but without the leading dot (doesn't, therefore,
-    differenciate between empty extension and no extension) *)
+    differenciate between empty extension and no extension). It also considers
+    catala + md extensions as a single extension, hence
+    [extension "a_file.catala_en.md"] will return ["catala_en.md"] *)
 
 val parent : t -> t
 (** Similar to [dirname], except it strips the last **non-"." or ".."** element
@@ -198,6 +200,9 @@ val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
     with the given one (which shouldn't start with a dot). No dot is appended if
     the provided extension is empty. *)
+
+val remove_extension : t -> string
+(** [remove_extension filename] is equivalent to [filename -.- ""] *)
 
 val path_to_list : t -> string list
 (** Empty elements or current-directory (".") are skipped in the resulting list *)

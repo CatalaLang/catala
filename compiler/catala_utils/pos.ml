@@ -154,7 +154,12 @@ let to_string_short (pos : t) : string =
 
 let to_string_shorter (pos : t) : string =
   let s, e = pos.code_pos in
-  let f = Filename.(remove_extension (basename s.Lexing.pos_fname)) in
+  let f =
+    if Filename.extension s.Lexing.pos_fname = ".md" then
+      Filename.(
+        remove_extension (remove_extension (basename s.Lexing.pos_fname)))
+    else Filename.(remove_extension (basename s.Lexing.pos_fname))
+  in
   if s.Lexing.pos_lnum = e.Lexing.pos_lnum then
     Printf.sprintf "%s:%d.%d-%d" f s.Lexing.pos_lnum
       (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
