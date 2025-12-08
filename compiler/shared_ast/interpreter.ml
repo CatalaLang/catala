@@ -903,30 +903,28 @@ let rec evaluate_expr :
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
-      if Global.options.stop_on_error then
-        raise Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos]))
-      else
-        let partially_evaluated_assertion_failure_expr =
-          partially_evaluate_expr_for_assertion_failure_message ctx lang
-            (Expr.skip_wrappers e')
-        in
-        (match Mark.remove partially_evaluated_assertion_failure_expr with
-        | ELit (LBool false) ->
-          if Global.options.no_fail_on_assert then
-            Message.warning ~pos "Assertion failed"
-          else
-            Message.delayed_error ~kind:AssertFailure () ~pos "Assertion failed"
-        | _ ->
-          if Global.options.no_fail_on_assert then
-            Message.warning ~pos "Assertion failed:@ %a"
-              (Print.UserFacing.expr lang)
-              partially_evaluated_assertion_failure_expr
-          else
-            Message.delayed_error ~kind:AssertFailure () ~pos
-              "Assertion failed:@ %a"
-              (Print.UserFacing.expr lang)
-              partially_evaluated_assertion_failure_expr);
-        Mark.add m (ELit LUnit)
+      let partially_evaluated_assertion_failure_expr =
+        partially_evaluate_expr_for_assertion_failure_message ctx lang
+          (Expr.skip_wrappers e')
+      in
+      (match Mark.remove partially_evaluated_assertion_failure_expr with
+      | ELit (LBool false) ->
+        if Global.options.no_fail_on_assert then
+          Message.warning ~pos "Assertion failed"
+        else
+          Message.delayed_error ~kind:AssertFailure () ~pos
+            "During evaluation: %s."
+            (Runtime.error_message Runtime.AssertionFailed)
+      | _ ->
+        if Global.options.no_fail_on_assert then
+          Message.warning ~pos "Assertion failed:@ %a"
+            (Print.UserFacing.expr lang)
+            partially_evaluated_assertion_failure_expr
+        else
+          Message.delayed_error ~kind:AssertFailure () ~pos
+            "During evaluation: %s."
+            (Runtime.error_message Runtime.AssertionFailed));
+      Mark.add m (ELit LUnit)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
@@ -1055,7 +1053,10 @@ let evaluate_expr_safe :
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
-  try evaluate_expr_trace ctx lang e
+  try
+    let r = evaluate_expr_trace ctx lang e in
+    Message.report_delayed_errors_if_any ();
+    r
   with Runtime.Error (err, rpos) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1199,7 +1200,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    reflect that. *)
 let evaluate_expr ctx lang e =
   Fun.protect ~finally:Runtime.reset_log
-  @@ fun () -> evaluate_expr ctx lang (addcustom e)
+  @@ fun () -> evaluate_expr_safe ctx lang (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 

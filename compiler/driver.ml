@@ -1517,7 +1517,12 @@ let main () =
     if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit excode
   in
-  match Cmd.eval_value ~catch:false ~argv command with
+  let eval_cmd () =
+    let r = Cmd.eval_value ~catch:false ~argv command in
+    Message.report_delayed_errors_if_any ();
+    r
+  in
+  match eval_cmd () with
   | Ok _ -> exit Cmd.Exit.ok
   | Error e ->
     if e = `Term then Plugin.print_failures ();
