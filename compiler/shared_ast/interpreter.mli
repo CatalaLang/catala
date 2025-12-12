@@ -48,6 +48,16 @@ val interpret_program_dcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
+val interpret_program_dcalc_with_coverage :
+  ?stdlib:Global.raw_file ->
+  (dcalc, 'm) gexpr program ->
+  ScopeName.t ->
+  (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+  * Coverage.coverage_map
+(** Same as interpret_program_dcalc but also computes and returns the coverage
+    map of the given program. If [stdlib] is provided, all positions that refers
+    to it will be discarded. *)
+
 val interpret_program_lcalc :
   (lcalc, 'm) gexpr program ->
   ScopeName.t ->
@@ -56,6 +66,10 @@ val interpret_program_lcalc :
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
+
+val addcustom :
+  (('a, 'b) interpr_kind, 't) gexpr -> (('a, yes) interpr_kind, 't) gexpr
+(** Add custom terms to the AST type. *)
 
 val delcustom :
   (('a, 'b) interpr_kind, 'm) gexpr -> (('a, no) interpr_kind, 'm) gexpr
