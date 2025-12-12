@@ -436,6 +436,21 @@ let init
     File.ensure_dir dir;
     dir
   in
+  let include_dirs, bad_dirs =
+    List.partition_map
+      (fun dir ->
+        match File.check_directory dir with
+        | Some d -> Left (fix_path d)
+        | None -> Right dir)
+      (List.sort_uniq compare (config.global.include_dirs @ include_dirs))
+  in
+  List.iter
+    (fun bad_dir ->
+      Message.warning
+        "Ignoring included directory '%s': it is not a directory or file does \
+         not exist."
+        bad_dir)
+    bad_dirs;
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags
   in
@@ -450,7 +465,7 @@ let init
             target_dir;
             catala_exe;
             catala_opts = config.global.catala_opts @ catala_opts;
-            include_dirs = config.global.include_dirs @ include_dirs;
+            include_dirs;
           };
       };
     fix_path;
