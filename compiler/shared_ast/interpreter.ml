@@ -927,8 +927,9 @@ let rec evaluate_expr :
             partially_evaluated_assertion_failure_expr
         else
           Message.delayed_error ~kind:AssertFailure () ~pos
-            "During evaluation: %s."
-            (Runtime.error_message Runtime.AssertionFailed));
+            "Assertion failed: %a."
+            (Print.UserFacing.expr lang)
+            partially_evaluated_assertion_failure_expr);
       Mark.add m (ELit LUnit)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
