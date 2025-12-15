@@ -706,6 +706,7 @@ let rec evaluate_expr :
   let debug_print, e =
     Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
   in
+  let evaluate_expr = evaluate_expr ?on_expr in
   Option.iter (fun f -> f e) on_expr;
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
@@ -757,14 +758,14 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_modname in
-    runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m ty o
+    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
   | EApp { f = e1; args; _ } -> (
-    let e1 = evaluate_expr ?on_expr ctx lang e1 in
-    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
+    let e1 = evaluate_expr ctx lang e1 in
+    let args = List.map (evaluate_expr ctx lang) args in
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ?on_expr ctx lang
+        evaluate_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
         Message.error ~pos "wrong function call, expected %d arguments, got %d"
@@ -776,9 +777,7 @@ let rec evaluate_expr :
         List.fold_left2
           (fun fobj targ arg ->
             let arg =
-              val_to_runtime
-                (fun ctx -> evaluate_expr ?on_expr ctx lang)
-                ctx targ arg
+              val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg
             in
             let f : Obj.t -> Obj.t =
               if Obj.tag fobj = Obj.first_non_constant_constructor_tag then
@@ -791,7 +790,7 @@ let rec evaluate_expr :
             f arg)
           obj targs args
       in
-      runtime_to_val (fun ctx -> evaluate_expr ?on_expr ctx lang) ctx m tret o
+      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
@@ -801,12 +800,12 @@ let rec evaluate_expr :
           else ())
         e1)
   | EAppOp { op; args; _ } ->
-    let args = List.map (evaluate_expr ?on_expr ctx lang) args in
-    evaluate_operator (evaluate_expr ?on_expr ctx lang) op m lang args
+    let args = List.map (evaluate_expr ctx lang) args in
+    evaluate_operator (evaluate_expr ctx lang) op m lang args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
-    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
+    let es = List.map (evaluate_expr ctx lang) es in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -821,7 +820,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    let e = evaluate_expr ?on_expr ctx lang e in
+    let e = evaluate_expr ctx lang e in
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
@@ -845,10 +844,9 @@ let rec evaluate_expr :
          not happen if the term was well-typed)"
         (Print.UserFacing.expr lang)
         e StructName.format s)
-  | ETuple es ->
-    Mark.add m (ETuple (List.map (evaluate_expr ?on_expr ctx lang) es))
+  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
-    match evaluate_expr ?on_expr ctx lang e1 with
+    match evaluate_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
       Message.error ~pos:(Expr.pos e)
@@ -857,7 +855,7 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
-    let e = evaluate_expr ?on_expr ctx lang e in
+    let e = evaluate_expr ctx lang e in
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
@@ -865,7 +863,7 @@ let rec evaluate_expr :
     in
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    let e = evaluate_expr ?on_expr ctx lang e in
+    let e = evaluate_expr ctx lang e in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -886,25 +884,25 @@ let rec evaluate_expr :
         EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
       in
       let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
-      evaluate_expr ?on_expr ctx lang new_e
+      evaluate_expr ctx lang new_e
     | _ ->
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
-    let cond = evaluate_expr ?on_expr ctx lang cond in
+    let cond = evaluate_expr ctx lang cond in
     match Mark.remove cond with
-    | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang etrue
-    | ELit (LBool false) -> evaluate_expr ?on_expr ctx lang efalse
+    | ELit (LBool true) -> evaluate_expr ctx lang etrue
+    | ELit (LBool false) -> evaluate_expr ctx lang efalse
     | _ ->
       Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    let es = List.map (evaluate_expr ?on_expr ctx lang) es in
+    let es = List.map (evaluate_expr ctx lang) es in
     Mark.add m (EArray es)
   | EAssert e' -> (
-    let e = evaluate_expr ?on_expr ctx lang e' in
+    let e = evaluate_expr ctx lang e' in
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
@@ -937,19 +935,19 @@ let rec evaluate_expr :
          not happen if the term was well-typed)")
   | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
   | EErrorOnEmpty e' -> (
-    match evaluate_expr ?on_expr ctx lang e' with
+    match evaluate_expr ctx lang e' with
     | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | exception Runtime.Empty ->
       raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ?on_expr ctx lang) excepts in
+    let excepts = List.map (evaluate_expr ctx lang) excepts in
     let empty_count = List.length (List.filter is_empty_error excepts) in
     match List.length excepts - empty_count with
     | 0 -> (
-      let just = evaluate_expr ?on_expr ctx lang just in
+      let just = evaluate_expr ctx lang just in
       match Mark.remove just with
-      | ELit (LBool true) -> evaluate_expr ?on_expr ctx lang cons
+      | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmpty
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
@@ -965,7 +963,7 @@ let rec evaluate_expr :
           excepts
       in
       raise Runtime.(Error (Conflict, poslist)))
-  | EPureDefault e -> evaluate_expr ?on_expr ctx lang e
+  | EPureDefault e -> evaluate_expr ctx lang e
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "Attempting to evaluate a EBad node which should have been previously \
