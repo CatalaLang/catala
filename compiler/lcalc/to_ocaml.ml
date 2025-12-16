@@ -741,7 +741,8 @@ let commands = if commands = [] then test_scopes else commands
   let modname =
     match p.module_name with
     | Some (n, _) -> ModuleName.to_string n
-    | None -> String.capitalize_ascii File.(basename filename -.- "")
+    | None ->
+      String.capitalize_ascii (String.to_id File.(basename filename -.- ""))
   in
   Format.pp_open_vbox fmt 0;
   Format.fprintf fmt "open Catala_runtime@,";

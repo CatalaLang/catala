@@ -22,10 +22,6 @@ type backend = OCaml | Python | C | Java | Tests
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend
 
-val runtime_subdir : File.t
-(** The local subdirectory of the builddir hosting the mirror of the standard
-    library and runtime *)
-
 module Var : sig
   type t = Ninja_utils.Var.t
 
