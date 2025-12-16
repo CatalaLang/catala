@@ -347,6 +347,11 @@ let rec format_expression
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_expression)
       args
+  | EAppOp { op = Eq, _; args = [x1; x2]; _ } ->
+    (* The Eq operator must have been expanded: this should only concern
+       constant constructor equality checks *)
+    Format.fprintf fmt "catala_new_bool(@[<hov 0>(%a)->code == (%a)->code)@]"
+      format_expression x1 format_expression x2
   | EAppOp { op = ((And | Or) as op), _; args; _ } ->
     Format.fprintf fmt "catala_new_bool(@[<hov 0>%a)@]"
       (Format.pp_print_list

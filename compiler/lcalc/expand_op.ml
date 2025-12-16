@@ -75,34 +75,49 @@ let rec resolve_eq ctx pos ty args m =
       match args with [arg1; arg2] -> arg1, arg2 | _ -> assert false
     in
     let constrs = EnumName.Map.find name ctx.ctx_enums in
-    let cases =
-      EnumConstructor.Map.mapi
-        (fun cstr ty ->
-          let v1 = Var.make "v1" in
-          let cases =
-            EnumConstructor.Map.mapi
-              (fun cstr2 ty ->
-                if EnumConstructor.equal cstr cstr2 then
-                  let v2 = Var.make "v2" in
-                  Expr.make_ghost_abs [v2]
-                    (resolve_eq ctx pos ty
-                       [
-                         Expr.evar v1 (Expr.with_ty m ty);
-                         Expr.evar v2 (Expr.with_ty m ty);
-                       ]
-                       m)
-                    [ty] pos
-                else
-                  Expr.make_ghost_abs
-                    [Var.make "_"]
-                    (Expr.elit (LBool false) m)
-                    [ty] pos)
-              constrs
-          in
-          Expr.make_ghost_abs [v1] (Expr.ematch ~name ~e:arg2 ~cases m) [ty] pos)
+    if
+      EnumConstructor.Map.for_all
+        (fun _ -> function TLit TUnit, _ -> true | _ -> false)
         constrs
-    in
-    Expr.ematch ~name ~e:arg1 ~cases m
+    then Expr.eappop ~op:(Eq, pos) ~args ~tys:[ty; ty] m
+    else
+      let cases =
+        EnumConstructor.Map.mapi
+          (fun cstr ty1 ->
+            match ty1 with
+            | TLit TUnit, _ ->
+              Expr.make_ghost_abs
+                [Var.make "_"]
+                (Expr.eappop ~op:(Eq, pos) ~args ~tys:[ty; ty] m)
+                [ty1] pos
+            | _ ->
+              let v1 = Var.make "v1" in
+              let cases =
+                EnumConstructor.Map.mapi
+                  (fun cstr2 ty2 ->
+                    if EnumConstructor.equal cstr cstr2 then
+                      let v2 = Var.make "v2" in
+                      Expr.make_ghost_abs [v2]
+                        (resolve_eq ctx pos ty1
+                           [
+                             Expr.evar v1 (Expr.with_ty m ty1);
+                             Expr.evar v2 (Expr.with_ty m ty1);
+                           ]
+                           m)
+                        [ty1] pos
+                    else
+                      Expr.make_ghost_abs
+                        [Var.make "_"]
+                        (Expr.elit (LBool false) m)
+                        [ty2] pos)
+                  constrs
+              in
+              Expr.make_ghost_abs [v1]
+                (Expr.ematch ~name ~e:arg2 ~cases m)
+                [ty1] pos)
+          constrs
+      in
+      Expr.ematch ~name ~e:arg1 ~cases m
   | TArray ty1 ->
     let tbool = TLit TBool, pos in
     let vargs =
