@@ -136,10 +136,10 @@ let load_modules
           let module_content =
             if options.Global.whole_program then
               Surface.Parser_driver.load_interface_and_code ?default_module_name
-                (Global.FileName f)
+                ~is_stdlib (Global.FileName f)
             else
               Surface.Parser_driver.load_interface ?default_module_name
-                (Global.FileName f)
+                ~is_stdlib (Global.FileName f)
           in
           let modname =
             ModuleName.fresh

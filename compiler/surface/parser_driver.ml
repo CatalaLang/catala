@@ -505,7 +505,8 @@ let check_modname program source_file =
         File.((dirname file / mname) -.- extension file)
   | _ -> ()
 
-let load_source_file ?default_module_name source_file content_builder =
+let load_source_file ?default_module_name ~is_stdlib source_file content_builder
+    =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
@@ -531,11 +532,12 @@ let load_source_file ?default_module_name source_file content_builder =
   let used_modules, module_items = content_builder program in
   {
     Ast.module_modname = modname;
-    Ast.module_items;
-    Ast.module_submodules = used_modules;
+    module_items;
+    module_is_stdlib = is_stdlib;
+    module_submodules = used_modules;
   }
 
-let load_interface ?default_module_name source_file =
+let load_interface ?default_module_name ~is_stdlib source_file =
   let get_interface program =
     let rec filter (req, acc) = function
       | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
@@ -569,9 +571,9 @@ let load_interface ?default_module_name source_file =
     let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
     List.rev req, Ast.Interface (List.rev acc)
   in
-  load_source_file ?default_module_name source_file get_interface
+  load_source_file ?default_module_name ~is_stdlib source_file get_interface
 
-let load_interface_and_code ?default_module_name source_file =
+let load_interface_and_code ?default_module_name ~is_stdlib source_file =
   let get_code_block program =
     let rec filter req = function
       | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req
@@ -587,7 +589,7 @@ let load_interface_and_code ?default_module_name source_file =
     let mod_uses = List.fold_left filter [] program.Ast.program_items in
     List.rev mod_uses, Ast.Code program.Ast.program_items
   in
-  load_source_file ?default_module_name source_file get_code_block
+  load_source_file ?default_module_name ~is_stdlib source_file get_code_block
 
 let resolution_tbl = Hashtbl.create 13
 
