@@ -100,34 +100,22 @@ class SomeNameIn:
 
 def some_name(some_name_in:SomeNameIn):
     i = (some_name_in.i_in)
-    pos = (SourcePosition(
-               filename="tests/backends/python_name_clash.catala_en",
-               start_line=10, start_column=23, end_line=10, end_column=28,
-               law_headings=[]))
+    pos = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=10, start_column=23, end_line=10, end_column=28, law_headings=[]))
     o__1 = (Option(((i + Integer(1)), pos)))
     if o__1.value is not None:
         o = (o__1.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/backends/python_name_clash.catala_en",
-                      start_line=7, start_column=10,
-                      end_line=7, end_column=11, law_headings=[]))
+        pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=[]))
         raise NoValue(pos__1)
     return SomeName(o = o)
 
 def b(b_in:BIn):
-    pos = (SourcePosition(
-               filename="tests/backends/python_name_clash.catala_en",
-               start_line=17, start_column=33, end_line=17, end_column=34,
-               law_headings=[]))
+    pos = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=33, end_line=17, end_column=34, law_headings=[]))
     result__2 = (Option((Integer(1), pos)))
     if result__2.value is not None:
         result__1 = (result__2.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/backends/python_name_clash.catala_en",
-                      start_line=17, start_column=14,
-                      end_line=17, end_column=25, law_headings=[]))
+        pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=14, end_line=17, end_column=25, law_headings=[]))
         raise NoValue(pos__1)
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
