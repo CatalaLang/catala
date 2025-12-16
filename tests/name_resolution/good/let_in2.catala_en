@@ -106,7 +106,7 @@ let s : S_in.t -> S.t = fun s_in ->
     match
       (match a
        with
-       | Optional.Absent _ ->
+       | Optional.Absent ->
            (Optional.Present
               ((match
                   (Optional.Present
@@ -116,7 +116,7 @@ let s : S_in.t -> S.t = fun s_in ->
                          start_line=11; start_column=5;
                          end_line=13; end_column=6; law_headings=["Article"]})))
                 with
-                | Optional.Absent _ -> (raise
+                | Optional.Absent -> (raise
                     (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
                                        start_line=7; start_column=18;
                                        end_line=7; end_column=19;
@@ -127,7 +127,7 @@ let s : S_in.t -> S.t = fun s_in ->
                   law_headings=["Article"]})))
        | Optional.Present x -> (Optional.Present x))
     with
-    | Optional.Absent _ -> (raise
+    | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
                            start_line=7; start_column=18;
                            end_line=7; end_column=19;

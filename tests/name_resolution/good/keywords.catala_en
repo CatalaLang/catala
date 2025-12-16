@@ -116,7 +116,7 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
              start_line=11; start_column=26; end_line=11; end_column=52;
              law_headings=[]})))
     with
-    | Optional.Absent _ -> (raise
+    | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                            start_line=5; start_column=10;
                            end_line=5; end_column=14; law_headings=[]}])))
@@ -136,7 +136,7 @@ let test : Test_in.t -> Test.t = fun _ ->
                         start_line=18; start_column=27;
                         end_line=18; end_column=29; law_headings=[]})))
                with
-               | Optional.Absent _ -> (raise
+               | Optional.Absent -> (raise
                    (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                                       start_line=18; start_column=14;
                                       end_line=18; end_column=19;
@@ -155,7 +155,7 @@ let test : Test_in.t -> Test.t = fun _ ->
              start_line=19; start_column=25; end_line=19; end_column=31;
              law_headings=[]})))
     with
-    | Optional.Absent _ -> (raise
+    | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                            start_line=15; start_column=10;
                            end_line=15; end_column=13; law_headings=[]}])))
