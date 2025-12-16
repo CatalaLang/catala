@@ -133,34 +133,50 @@ module Arg = struct
   let format = format
 
   let compare s1 s2 =
-    let len1 = length s1 in
-    let len2 = length s2 in
-    let int c = int_of_char c - int_of_char '0' in
-    let rec readnum acc s i =
-      if i >= length s then acc, i
-      else
-        match get s i with
-        | '0' .. '9' as c -> readnum ((acc * 10) + int c) s (i + 1)
-        | _ -> acc, i
-    in
-    let rec aux i1 i2 =
-      if i1 >= len1 then if i2 >= len2 then 0 else -1
-      else if i2 >= len2 then 1
-      else
-        match get s1 i1, get s2 i2 with
-        | ('0' .. '9' as c1), ('0' .. '9' as c2) -> (
-          let x1, i1' = readnum (int c1) s1 (i1 + 1) in
-          let x2, i2' = readnum (int c2) s2 (i2 + 1) in
-          match Int.compare x1 x2 with
-          | 0 -> (
-            match Int.compare (i1' - i1) (i2' - i2) with
-            | 0 -> aux i1' i2'
-            | n -> n)
-          | n -> n)
-        | c1, c2 -> (
-          match Char.compare c1 c2 with 0 -> aux (i1 + 1) (i2 + 1) | n -> n)
-    in
-    aux 0 0
+    if s1 == s2 then 0
+    else
+      let len1 = length s1 in
+      let len2 = length s2 in
+      let int c = int_of_char c - int_of_char '0' in
+      let rec readnum acc s i =
+        if i >= length s then acc, i
+        else
+          match get s i with
+          | '0' .. '9' as c -> readnum ((acc * 10) + int c) s (i + 1)
+          | _ -> acc, i
+      in
+      let rec aux i1 i2 =
+        if i1 >= len1 then if i2 >= len2 then 0 else -1
+        else if i2 >= len2 then 1
+        else
+          let c1 = get s1 i1 and c2 = get s2 i2 in
+          if Char.equal c1 c2 then aux (i1 + 1) (i2 + 1)
+          else
+            match c1, c2 with
+            | '0' .. '9', _ -> (
+              let x1, i1' = readnum (int c1) s1 (i1 + 1) in
+              let x2, i2' = readnum 0 s2 i2 in
+              match Int.compare x1 x2 with
+              | 0 -> (
+                match Int.compare (i1' - i1) (i2' - i2) with
+                | 0 -> aux i1' i2'
+                | n -> n)
+              | n -> n)
+            | _, '0' .. '9' -> (
+              let x1, i1' = readnum 0 s1 i1 in
+              let x2, i2' = readnum (int c2) s2 (i2 + 1) in
+              match Int.compare x1 x2 with
+              | 0 -> (
+                match Int.compare (i1' - i1) (i2' - i2) with
+                | 0 -> aux i1' i2'
+                | n -> n)
+              | n -> n)
+            | _ -> (
+              match Char.compare c1 c2 with
+              | 0 -> aux (i1 + 1) (i2 + 1)
+              | n -> n)
+      in
+      aux 0 0
 end
 
 let compare = Arg.compare
