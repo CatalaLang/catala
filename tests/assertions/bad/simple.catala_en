@@ -13,7 +13,7 @@ scope A:
 $ catala test-scope A
 ┌─[ERROR]─ 1/2 ─
 │
-│  During evaluation: an assertion doesn't hold.
+│  Assertion failed: 6 > 6.
 │
 ├─➤ tests/assertions/bad/simple.catala_en:9.13-9.18:
 │   │
@@ -22,7 +22,7 @@ $ catala test-scope A
 └─
 ┌─[ERROR]─ 2/2 ─
 │
-│  During evaluation: an assertion doesn't hold.
+│  Assertion failed: 6 < 6.
 │
 ├─➤ tests/assertions/bad/simple.catala_en:7.13-7.18:
 │   │

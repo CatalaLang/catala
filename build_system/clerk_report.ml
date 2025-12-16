@@ -19,6 +19,7 @@
     concerns cli tests (```catala-test-cli blocks). *)
 
 open Catala_utils
+open Shared_ast
 
 type pos = Lexing.position * Lexing.position
 
@@ -34,6 +35,8 @@ type scope_test = {
   s_name : string;
   s_command_line : string list;
   s_errors : (pos * string) list;
+  s_time : float;
+  s_coverage : Coverage.coverage_map option;
 }
 
 type file = {
@@ -42,6 +45,7 @@ type file = {
   total : int;
   tests : inline_test list;
   scopes : scope_test list;
+  coverage : Coverage.coverage_map option;
 }
 
 type disp_flags = {
@@ -50,6 +54,7 @@ type disp_flags = {
   mutable diffs : bool;
   mutable diff_command : string option option;
   mutable fix_path : File.t -> File.t;
+  mutable coverage : bool;
 }
 
 let disp_flags =
@@ -59,6 +64,7 @@ let disp_flags =
     diffs = true;
     diff_command = None;
     fix_path = Fun.id;
+    coverage = false;
   }
 
 let set_display_flags
@@ -67,12 +73,14 @@ let set_display_flags
     ?(diffs = disp_flags.diffs)
     ?(diff_command = disp_flags.diff_command)
     ?(fix_path = disp_flags.fix_path)
+    ?(coverage = disp_flags.coverage)
     () =
   disp_flags.files <- files;
   disp_flags.tests <- tests;
   disp_flags.diffs <- diffs;
   disp_flags.diff_command <- diff_command;
-  disp_flags.fix_path <- fix_path
+  disp_flags.fix_path <- fix_path;
+  disp_flags.coverage <- coverage
 
 let write_to f file =
   File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
@@ -325,8 +333,10 @@ let display ~build_dir file ppf t =
 let display_scope ~build_dir file ppf scope_test =
   Format.pp_open_vbox ppf 2;
   if scope_test.s_success then (
-    Format.fprintf ppf "@{<green>■@} scope @{<hi_magenta>%s@} passed"
-      scope_test.s_name;
+    Format.fprintf ppf
+      "@{<green>■@} scope @{<hi_magenta>%s@} passed (@{<hi_magenta>%d µs@})"
+      scope_test.s_name
+      (int_of_float (scope_test.s_time *. 1000000.));
     if Global.options.debug then
       print_command ~build_dir ppf file scope_test.s_command_line)
   else (
@@ -339,7 +349,7 @@ let display_scope ~build_dir file ppf scope_test =
       scope_test.s_errors);
   Format.pp_close_box ppf ()
 
-let display_file ~build_dir ppf t =
+let display_file ~build_dir ppf (t : file) =
   let pfile f = pfile ~build_dir f in
   let print_tests tests =
     let tests =
@@ -348,10 +358,11 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun t -> not t.i_success) tests
       | `None -> assert false
     in
-    if tests <> [] then Format.pp_print_break ppf 0 3;
-    Format.pp_open_vbox ppf 0;
-    Format.pp_print_list (display ~build_dir t.name) ppf tests;
-    Format.pp_close_box ppf ()
+    if tests <> [] then (
+      Format.pp_print_break ppf 0 3;
+      Format.pp_open_vbox ppf 0;
+      Format.pp_print_list (display ~build_dir t.name) ppf tests;
+      Format.pp_close_box ppf ())
   in
   let print_scopes scopes =
     let scopes =
@@ -360,9 +371,32 @@ let display_file ~build_dir ppf t =
       | `Failed -> List.filter (fun s -> not s.s_success) scopes
       | `None -> assert false
     in
-    if scopes <> [] then Format.pp_print_break ppf 0 3;
+    if scopes <> [] then (
+      Format.pp_print_break ppf 0 3;
+      Format.pp_open_vbox ppf 0;
+      Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
+      Format.pp_close_box ppf ())
+  in
+  let print_code_coverage (full_code_coverage : Coverage.coverage_map) =
+    let {
+      Clerk_coverage.total_reachable_lines;
+      total_reached_lines;
+      total_unreached_lines;
+    } =
+      Clerk_coverage.compute_coverage_per_line full_code_coverage
+    in
+    let percentage =
+      int_of_float
+        (float_of_int total_reached_lines
+        /. float_of_int total_unreached_lines
+        *. 100.)
+    in
+    Format.pp_print_break ppf 0 3;
     Format.pp_open_vbox ppf 0;
-    Format.pp_print_list (display_scope ~build_dir t.name) ppf scopes;
+    Format.fprintf ppf
+      "@{<green>■@} code coverage @{<cyan>%d@} / @{<cyan>%d@} lines \
+       (@{<hi_magenta>%d %%@})"
+      total_reached_lines total_reachable_lines percentage;
     Format.pp_close_box ppf ()
   in
   if t.successful = t.total then (
@@ -373,7 +407,8 @@ let display_file ~build_dir ppf t =
         (pfile t.name) t.successful t.total;
       if disp_flags.tests = `All then (
         print_tests t.tests;
-        print_scopes t.scopes);
+        print_scopes t.scopes;
+        if disp_flags.coverage then Option.iter print_code_coverage t.coverage);
       Format.pp_print_cut ppf ()))
   else
     let () =
@@ -389,7 +424,8 @@ let display_file ~build_dir ppf t =
     Format.fprintf ppf " / %d tests passed" t.total;
     if disp_flags.tests <> `None then (
       print_tests t.tests;
-      print_scopes t.scopes);
+      print_scopes t.scopes;
+      if disp_flags.coverage then Option.iter print_code_coverage t.coverage);
     Format.pp_print_cut ppf ()
 
 type box = { print_line : 'a. ('a, Format.formatter, unit) format -> 'a }
@@ -436,6 +472,21 @@ let summary ~build_dir tests =
           total + file.total ))
       (0, 0, 0, 0) tests
   in
+  let full_coverage =
+    List.fold_left
+      (fun (acc : Coverage.coverage_map) (file : file) ->
+        match file.coverage with
+        | None -> acc
+        | Some file_coverage -> Coverage.union acc file_coverage)
+      Coverage.empty tests
+  in
+  let {
+    Clerk_coverage.total_reachable_lines;
+    total_reached_lines;
+    total_unreached_lines;
+  } =
+    Clerk_coverage.compute_coverage_per_line full_coverage
+  in
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
@@ -447,9 +498,12 @@ let summary ~build_dir tests =
         ppf "ALL TESTS PASSED"
   in
   result_box (fun box ->
-      box.print_line "@{<ul>%-5s %10s %10s %10s@}" "" "FAILED" "PASSED" "TOTAL";
+      box.print_line "@{<ul>%-13s %10s %10s %10s %15s@}" "" "FAILED" "PASSED"
+        "TOTAL" "PERCENTAGE";
       if files > 1 then
-        box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<hi_magenta;bold>%13d %%@}"
           "files"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -458,8 +512,12 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          success_files files;
-      box.print_line "%-5s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@}"
+          success_files files
+          (int_of_float
+             (float_of_int success_files /. float_of_int files *. 100.));
+      box.print_line
+        "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+         @{<hi_magenta;bold>%13d %%@}"
         "tests"
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -468,9 +526,101 @@ let summary ~build_dir tests =
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
           | n -> Format.fprintf ppf "%10d" n)
-        success total);
+        success total
+        (int_of_float (float_of_int success /. float_of_int total *. 100.));
+      if disp_flags.coverage then
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<hi_magenta;bold>%13d %%@}"
+          "lines covered"
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          total_unreached_lines
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          total_reached_lines total_reachable_lines
+          (int_of_float
+             (float_of_int total_reached_lines
+             /. float_of_int total_reachable_lines
+             *. 100.)));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
+  success = total
+
+let print_json ~(build_dir : string) (tests : file list) =
+  let cwd = Sys.getcwd () in
+  let ppf = Message.formatter_of_out_channel stdout () in
+  let success, total =
+    List.fold_left
+      (fun (success, total) file ->
+        success + file.successful, total + file.total)
+      (0, 0) tests
+  in
+  let scope_to_json scope =
+    `Assoc
+      [
+        "scope_name", `String scope.s_name;
+        "success", `Bool scope.s_success;
+        ( "errors",
+          `List
+            (List.map
+               (fun ((pos : pos), e) ->
+                 `Assoc
+                   [
+                     ( "location",
+                       Clerk_coverage.pos_to_json_location ~build_dir ~cwd
+                         (Pos.from_lpos pos) );
+                     "message", `String e;
+                   ])
+               scope.s_errors) );
+        "time", `Float (scope.s_time *. 1000.);
+      ]
+  in
+  let inline_tests_to_json (inline_test : inline_test) =
+    `Assoc
+      [
+        "cmd", `String (String.concat " " inline_test.i_command_line);
+        "success", `Bool inline_test.i_success;
+      ]
+  in
+  let full_coverage =
+    List.fold_left
+      (fun acc (file : file) ->
+        match file.coverage with
+        | None -> acc
+        | Some file_code_coverage -> Coverage.union acc file_code_coverage)
+      Coverage.empty tests
+  in
+  let json =
+    `Assoc
+      [
+        ( "test-results",
+          `List
+            (List.filter_map
+               (fun (test : file) ->
+                 Some
+                   (`Assoc
+                     [
+                       ( "file",
+                         `String File.(cwd / remove_prefix build_dir test.name)
+                       );
+                       ( "tests",
+                         `Assoc
+                           [
+                             "scopes", `List (List.map scope_to_json test.scopes);
+                             ( "inline-tests",
+                               `List (List.map inline_tests_to_json test.tests)
+                             );
+                           ] );
+                     ]))
+               tests) );
+        ( "coverage",
+          Clerk_coverage.coverage_to_json ~build_dir ~cwd full_coverage );
+      ]
+  in
+  Format.fprintf ppf "%s@." (Yojson.to_string json);
   success = total
 
 let print_xml ~build_dir tests =
@@ -539,5 +689,5 @@ let print_xml ~build_dir tests =
         ppf f.scopes;
       Format.fprintf ppf "@]@,</testsuite>")
     ppf tests;
-  Format.fprintf ppf "@]@,</testsuites>@,@]@.";
+  Format.fprintf ppf "@]@,</testsuites>@]@.";
   success = total

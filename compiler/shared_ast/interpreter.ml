@@ -697,14 +697,17 @@ and val_to_runtime :
 
 let rec evaluate_expr :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   let debug_print, e =
     Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
   in
+  let evaluate_expr = evaluate_expr ?on_expr in
+  Option.iter (fun f -> f e) on_expr;
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   (match debug_print with
@@ -904,7 +907,7 @@ let rec evaluate_expr :
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
       let partially_evaluated_assertion_failure_expr =
-        partially_evaluate_expr_for_assertion_failure_message ctx lang
+        partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx lang
           (Expr.skip_wrappers e')
       in
       (match Mark.remove partially_evaluated_assertion_failure_expr with
@@ -922,8 +925,9 @@ let rec evaluate_expr :
             partially_evaluated_assertion_failure_expr
         else
           Message.delayed_error ~kind:AssertFailure () ~pos
-            "During evaluation: %s."
-            (Runtime.error_message Runtime.AssertionFailed));
+            "Assertion failed: %a."
+            (Print.UserFacing.expr lang)
+            partially_evaluated_assertion_failure_expr);
       Mark.add m (ELit LUnit)
     | _ ->
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
@@ -968,11 +972,12 @@ let rec evaluate_expr :
 
 and partially_evaluate_expr_for_assertion_failure_message :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
      comparisons and logical operators, we leave those unevaluated at the top of
@@ -998,25 +1003,28 @@ and partially_evaluate_expr_for_assertion_failure_message :
           tys;
           args =
             [
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e1;
-              partially_evaluate_expr_for_assertion_failure_message ctx lang e2;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e1;
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e2;
             ];
         },
       Mark.get e )
   (* TODO: improve this heuristic, because if the assertion is not [e1 <op> e2],
      the error message merely displays [false]... *)
-  | _ -> evaluate_expr ctx lang e
+  | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   Runtime.reset_log ();
   Fun.protect
-    (fun () -> evaluate_expr ctx lang e)
+    (fun () -> evaluate_expr ?on_expr ctx lang e)
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
@@ -1048,13 +1056,14 @@ let evaluate_expr_trace :
 
 let evaluate_expr_safe :
     type d.
+    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
     ((d, yes) interpr_kind, 't) gexpr ->
     ((d, yes) interpr_kind, 't) gexpr =
- fun ctx lang e ->
+ fun ?on_expr ctx lang e ->
   try
-    let r = evaluate_expr_trace ctx lang e in
+    let r = evaluate_expr_trace ?on_expr ctx lang e in
     Message.report_delayed_errors_if_any ();
     r
   with Runtime.Error (err, rpos) ->
@@ -1160,11 +1169,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        thunked arguments"
 
 (** {1 API} *)
-let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let interpret_program_dcalc ?on_expr p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr_safe p.decl_ctx p.lang (addcustom e) with
+  match evaluate_expr_safe ?on_expr p.decl_ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1178,7 +1187,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         (Expr.pos e)
     in
     match
-      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+      Mark.remove
+        (evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
       List.map
@@ -1193,6 +1203,46 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
+
+let interpret_program_dcalc_with_coverage
+    ?(stdlib : Global.raw_file option)
+    (p : (dcalc, 'm) gexpr program)
+    scope :
+    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+    * Coverage.coverage_map =
+  let reachable_map =
+    (* Mark program positions as unreached *)
+    Coverage.reachable_positions p
+  in
+  let coverage_map = ref Coverage.empty in
+  let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+    match Mark.remove e with
+    | EDefault _ ->
+      ()
+      (* Bad location, ignore this case, sub-nodes positions will still be added
+         later on *)
+    | _ -> coverage_map := Coverage.reached_pos (Expr.pos e) scope !coverage_map
+  in
+  let r = interpret_program_dcalc ~on_expr p scope in
+  Option.iter
+    (fun (stdlib_dir : Global.raw_file) ->
+      let stdlib_dir = Global.options.path_rewrite stdlib_dir in
+      (* Remove stdlib's files reached positions if provided. Reachable stdlib
+         positions in 'reachable_map' will be discarded when the follow-up merge
+         occurs. *)
+      coverage_map :=
+        Coverage.filter_files
+          (fun path -> not (String.starts_with ~prefix:stdlib_dir path))
+          !coverage_map)
+    stdlib;
+  let coverage =
+    Coverage.(
+      merge_with_reachable_positions ~reachable:reachable_map
+        ~reached:!coverage_map)
+  in
+  r, coverage
+
+let interpret_program_dcalc p s = interpret_program_dcalc p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]

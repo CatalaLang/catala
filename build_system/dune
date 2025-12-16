@@ -16,11 +16,13 @@
   cmdliner
   re
   ocolor
-  otoml)
+  otoml
+  yojson)
  (modules
   clerk_report
   clerk_runtest
   clerk_cli
+  clerk_coverage
   clerk_poll
   clerk_rules
   clerk_driver)
