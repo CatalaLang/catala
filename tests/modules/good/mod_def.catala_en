@@ -112,7 +112,7 @@ let () =
   | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
 module List_en = List_en
 
-module Enum1 = struct type t = Yes of unit | No of unit | Maybe of unit end
+module Enum1 = struct type t = Yes | No | Maybe end
 
 module S = struct
   type t = {sr: money; e1: Enum1.t}
@@ -137,7 +137,7 @@ let s : S_in.t -> S.t = fun _ ->
              start_line=29; start_column=24; end_line=29; end_column=30;
              law_headings=["Test modules + inclusions 1"]})))
     with
-    | Optional.Absent _ -> (raise
+    | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                            start_line=16; start_column=10;
                            end_line=16; end_column=12;
@@ -146,12 +146,12 @@ let s : S_in.t -> S.t = fun _ ->
   let e1: Enum1.t =
     match
       (Optional.Present
-         ((Enum1.Maybe ()),
+         ((Enum1.Maybe),
            ({filename="tests/modules/good/mod_def.catala_en";
              start_line=30; start_column=24; end_line=30; end_column=29;
              law_headings=["Test modules + inclusions 1"]})))
     with
-    | Optional.Absent _ -> (raise
+    | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                            start_line=17; start_column=10;
                            end_line=17; end_column=12;
@@ -170,7 +170,7 @@ let half : integer -> decimal =
 
 (* Toplevel def maybe *)
 let maybe : Enum1.t -> Enum1.t =
-  fun (_: Enum1.t) -> Enum1.Maybe ()
+  fun (_: Enum1.t) -> Enum1.Maybe
 
 let () =
   Catala_runtime.register_module "Mod_def"

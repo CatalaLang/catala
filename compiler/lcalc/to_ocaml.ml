@@ -306,29 +306,44 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EStructAccess { e; field; name } ->
     Format.fprintf fmt "%a.%a" format_with_parens e format_struct_field_name
       (Some name, field)
+  | EInj { e = ELit LUnit, _; cons; name } ->
+    Format.fprintf fmt "@[<hov 2>%a.%a@]" format_to_module_name (`Ename name)
+      format_enum_cons_name cons
   | EInj { e; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
       (`Ename name) format_enum_cons_name cons format_with_parens e
   | EMatch { e; cases; name } ->
+    let enum = EnumName.Map.find name ctx.ctx_enums in
     Format.fprintf fmt "@[<hv>@[<hov 2>match@ %a@]@ with@,| %a@]"
       format_with_parens e
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (c, e) ->
-           Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
-             (`Ename name) format_enum_cons_name c
-             (fun fmt e ->
-               match Mark.remove e with
-               | EAbs { binder; _ } ->
-                 let xs, body = Bindlib.unmbind binder in
-                 Format.fprintf fmt "%a ->@ %a"
-                   (Format.pp_print_list
-                      ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-                      (fun fmt x -> Format.fprintf fmt "%a" format_var x))
-                   (Array.to_list xs) format_with_parens body
-               | _ -> assert false
-               (* should not happen *))
-             e))
+           match EnumConstructor.Map.find c enum with
+           | TLit TUnit, _ ->
+             Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
+               (`Ename name) format_enum_cons_name c
+               (fun fmt e ->
+                 match Mark.remove e with
+                 | EAbs { binder; _ } ->
+                   let _, body = Bindlib.unmbind binder in
+                   Format.fprintf fmt "->@ %a" format_with_parens body
+                 | _ -> assert false)
+               e
+           | _ ->
+             Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
+               (`Ename name) format_enum_cons_name c
+               (fun fmt e ->
+                 match Mark.remove e with
+                 | EAbs { binder; _ } ->
+                   let xs, body = Bindlib.unmbind binder in
+                   Format.fprintf fmt "%a ->@ %a"
+                     (Format.pp_print_list
+                        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+                        (fun fmt x -> Format.fprintf fmt "%a" format_var x))
+                     (Array.to_list xs) format_with_parens body
+                 | _ -> assert false)
+               e))
       (EnumConstructor.Map.bindings cases)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.add (Expr.pos e) l)
   | EApp { f = EAbs { binder; pos = _; tys }, _; args; _ } ->
@@ -487,9 +502,14 @@ let format_enum_embedding
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
          (fun fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
-             format_enum_cons_name enum_cons EnumConstructor.format enum_cons
-             typ_embedding_name enum_cons_type))
+           match enum_cons_type with
+           | TLit TUnit, _ ->
+             Format.fprintf fmt "@[<hov 2>| %a ->@ (\"%a\", Unit)@]"
+               format_enum_cons_name enum_cons EnumConstructor.format enum_cons
+           | _ ->
+             Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
+               format_enum_cons_name enum_cons EnumConstructor.format enum_cons
+               typ_embedding_name enum_cons_type))
       (EnumConstructor.Map.bindings enum_cases)
 
 let format_ctx
@@ -556,8 +576,12 @@ let format_ctx
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
          (fun fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "@[<hov>%a of@ %a@]" format_enum_cons_name
-             enum_cons format_typ enum_cons_type))
+           match enum_cons_type with
+           | TLit TUnit, _ ->
+             Format.fprintf fmt "@[<hov 2>%a@]" format_enum_cons_name enum_cons
+           | _ ->
+             Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
+               enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons)
       format_enum_embedding enum;
     if TypeIdent.(Set.mem (Enum enum_name) ctx.ctx_public_types) then
@@ -568,8 +592,13 @@ let format_ctx
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
            (fun fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
-               enum_cons format_typ enum_cons_type))
+             match enum_cons_type with
+             | TLit TUnit, _ ->
+               Format.fprintf fmt "@[<hov 2>%a@]" format_enum_cons_name
+                 enum_cons
+             | _ ->
+               Format.fprintf fmt "@[<hov 2>%a of@ %a@]" format_enum_cons_name
+                 enum_cons format_typ enum_cons_type))
         (EnumConstructor.Map.bindings enum_cons)
         (fun ppf ->
           if Global.options.trace = None then ()

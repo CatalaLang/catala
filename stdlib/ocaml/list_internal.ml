@@ -12,7 +12,7 @@ let nth_element : 't array -> integer -> 't Optional.t =
  fun arr n ->
   let n = Z.to_int n - 1 in
   if 0 <= n && n < Array.length arr then Optional.Present arr.(n)
-  else Optional.Absent ()
+  else Optional.Absent
 
 (* Toplevel def remove_nth_element *)
 let remove_nth_element : 't array -> integer -> 't array =

@@ -30,7 +30,7 @@ type date_rounding = Dates_calc.date_rounding =
 type duration = Dates_calc.period
 
 module Optional = struct
-  type 'a t = Absent of unit | Present of 'a
+  type 'a t = Absent | Present of 'a
 end
 
 type io_input = NoInput | OnlyInput | Reentrant
@@ -792,11 +792,11 @@ let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
     if i < len then
       match exceptions.(i) with
       | Optional.Present _ as new_val -> new_val :: filt_except (i + 1)
-      | Optional.Absent () -> filt_except (i + 1)
+      | Optional.Absent -> filt_except (i + 1)
     else []
   in
   match filt_except 0 with
-  | [] -> Optional.Absent ()
+  | [] -> Optional.Absent
   | [res] -> res
   | res ->
     error Conflict

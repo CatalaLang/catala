@@ -45,7 +45,7 @@ type code_location = {
 }
 
 module Optional : sig
-  type 'a t = Absent of unit | Present of 'a
+  type 'a t = Absent | Present of 'a
 end
 
 (** This type characterizes the three levels of visibility for a given scope
