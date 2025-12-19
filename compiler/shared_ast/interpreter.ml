@@ -102,7 +102,9 @@ let print_log ppf lang level entry =
       "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
-let rec value_to_runtime_embedded = function
+let rec value_to_runtime_embedded :
+    type d. ((d, _) interpr_kind, 'm) naked_gexpr -> Runtime.runtime_value =
+  function
   | ELit LUnit -> Runtime.Unit
   | ELit (LBool b) -> Runtime.Bool b
   | ELit (LMoney m) -> Runtime.Money m
@@ -130,6 +132,7 @@ let rec value_to_runtime_embedded = function
     Runtime.Tuple
       (Array.of_list
          (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
+  | EEmpty -> Runtime.Enum ("Optional", ("Absent", Unit))
   | _ -> Runtime.Unembeddable
 
 (* Todo: this should be handled early when resolving overloads. Here we have
