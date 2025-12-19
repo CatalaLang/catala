@@ -380,9 +380,18 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     Format.fprintf fmt "@[<hov 4>raise %s(%a)@]"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
-  | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
-    Format.fprintf fmt "@[<v 4>if %a:@ %a@]@,@[<v 4>else:@ %a@]"
-      (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
+  | SIfThenElse { if_expr; then_block; else_block } ->
+    let rec pr_else = function
+      | [(SIfThenElse { if_expr; then_block; else_block }, _)] ->
+        Format.fprintf fmt "@[<v 4>elif @[<hov>%a@]:@ %a@]@,"
+          (format_expression ctx) if_expr (format_block ctx) then_block;
+        pr_else else_block
+      | else_block ->
+        Format.fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx) else_block
+    in
+    Format.fprintf fmt "@[<v 4>if @[<hov>%a@]:@ %a@]@," (format_expression ctx)
+      if_expr (format_block ctx) then_block;
+    pr_else else_block
   | SSwitch
       {
         switch_var;
@@ -422,9 +431,9 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
         cases
         (EnumConstructor.Map.bindings cons_map)
     in
-    Format.fprintf fmt "@[<hov 4>if %a@]"
+    Format.fprintf fmt "@[<v 4>if %a@]"
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<v 4>elif ")
          (fun fmt (case, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@," VarName.format
              switch_var (format_enum ctx) e_name EnumConstructor.format
@@ -628,6 +637,10 @@ let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : TypeIdent.t list) : unit =
+  (* Disable the formatting line length limit which may lead to broken
+     indentation (we need to disable all line breaking for this, since Format
+     doesn't accept max_indent >= margin) *)
+  Format.pp_set_geometry fmt ~max_indent:999_990 ~margin:1_000_000;
   Format.pp_open_vbox fmt 0;
   let header =
     (if Global.options.gen_external then

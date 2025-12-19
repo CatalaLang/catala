@@ -375,96 +375,52 @@ def glob5_init():
 
 glob5 = (glob5_init())
 
-glob2 = (
-    A(y = (glob1 >=
-    decimal_of_string("30")),
-    z = (decimal_of_string("123") *
-    decimal_of_string("17")))
-)
+glob2 = (A(y = (glob1 >= decimal_of_string("30")), z = (decimal_of_string("123") * decimal_of_string("17"))))
 
 def s2(s2_in:S2In):
-    pos = (SourcePosition(
-               filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=53, start_column=24, end_line=53, end_column=44,
-               law_headings=["Test toplevel function defs"]))
-    a__1 = (Option(((glob3(Money(Integer(4400))) +
-        decimal_of_string("100")),
-        pos)))
+    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=24, end_line=53, end_column=44, law_headings=["Test toplevel function defs"]))
+    a__1 = (Option(((glob3(Money(Integer(4400))) + decimal_of_string("100")), pos)))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                      start_line=50, start_column=10,
-                      end_line=50, end_column=11,
-                      law_headings=["Test toplevel function defs"]))
+        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=50, start_column=10, end_line=50, end_column=11, law_headings=["Test toplevel function defs"]))
         raise NoValue(pos__1)
     return S2(a = a)
 
 def s3(s3_in:S3In):
-    pos = (SourcePosition(
-               filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=74, start_column=24, end_line=74, end_column=49,
-               law_headings=["Test function def with two args"]))
-    a__1 = (Option(((decimal_of_string("50") +
-        glob4(Money(Integer(4400)), decimal_of_string("55"))),
-        pos)))
+    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=74, start_column=24, end_line=74, end_column=49, law_headings=["Test function def with two args"]))
+    a__1 = (Option(((decimal_of_string("50") + glob4(Money(Integer(4400)), decimal_of_string("55"))), pos)))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                      start_line=71, start_column=10,
-                      end_line=71, end_column=11,
-                      law_headings=["Test function def with two args"]))
+        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=71, start_column=10, end_line=71, end_column=11, law_headings=["Test function def with two args"]))
         raise NoValue(pos__1)
     return S3(a = a)
 
 def s4(s4_in:S4In):
-    pos = (SourcePosition(
-               filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=98, start_column=24, end_line=98, end_column=35,
-               law_headings=["Test inline defs in toplevel defs"]))
+    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=98, start_column=24, end_line=98, end_column=35, law_headings=["Test inline defs in toplevel defs"]))
     a__1 = (Option(((glob5 + decimal_of_string("1")), pos)))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                      start_line=95, start_column=10,
-                      end_line=95, end_column=11,
-                      law_headings=["Test inline defs in toplevel defs"]))
+        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=95, start_column=10, end_line=95, end_column=11, law_headings=["Test inline defs in toplevel defs"]))
         raise NoValue(pos__1)
     return S4(a = a)
 
 def s(s_in:SIn):
-    pos = (SourcePosition(
-               filename="tests/name_resolution/good/toplevel_defs.catala_en",
-               start_line=18, start_column=24, end_line=18, end_column=37,
-               law_headings=["Test basic toplevel values defs"]))
+    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=18, start_column=24, end_line=18, end_column=37, law_headings=["Test basic toplevel values defs"]))
     a__1 = (Option(((glob1 * glob1), pos)))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(
-                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                      start_line=7, start_column=10,
-                      end_line=7, end_column=11,
-                      law_headings=["Test basic toplevel values defs"]))
+        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos__1)
-    pos__1 = (SourcePosition(
-                  filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                  start_line=19, start_column=24, end_line=19, end_column=29,
-                  law_headings=["Test basic toplevel values defs"]))
+    pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=19, start_column=24, end_line=19, end_column=29, law_headings=["Test basic toplevel values defs"]))
     b__1 = (Option((glob2, pos__1)))
     if b__1.value is not None:
         b = (b__1.value[0])
     else:
-        pos__2 = (SourcePosition(
-                      filename="tests/name_resolution/good/toplevel_defs.catala_en",
-                      start_line=8, start_column=10,
-                      end_line=8, end_column=11,
-                      law_headings=["Test basic toplevel values defs"]))
+        pos__2 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=8, start_column=10, end_line=8, end_column=11, law_headings=["Test basic toplevel values defs"]))
         raise NoValue(pos__2)
     return S(a = a, b = b)
 
