@@ -118,6 +118,7 @@ val embed_decimal : decimal -> runtime_value
 val embed_date : date -> runtime_value
 val embed_duration : duration -> runtime_value
 val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
+val format_value : Format.formatter -> runtime_value -> unit
 
 (** {1 Logging} *)
 
