@@ -606,6 +606,33 @@ module Flags = struct
         ~doc:
           "Append the given subdir at the end of the path of each of the files \
            in the returned list. Usually matches the name of the backend used."
+
+  let json_input : Yojson.Safe.t option Term.t =
+    let converter =
+      conv ~docv:"FILE|JSON"
+        ( (fun s ->
+            try
+              let json =
+                if s = "-" then Yojson.Safe.from_channel stdin
+                else if Sys.file_exists s && not (Sys.is_directory s) then
+                  let ic = open_in s in
+                  Fun.protect
+                    (fun () -> Yojson.Safe.from_channel ic)
+                    ~finally:(fun () -> close_in ic)
+                else Yojson.Safe.from_string s
+              in
+              Ok json
+            with Yojson.Json_error msg -> Error (`Msg msg)),
+          fun ppf -> Yojson.Safe.pretty_print ppf )
+    in
+    value
+    & opt (some converter) None
+    & info ["json-input"] ~docv:"FILE|JSON"
+        ~doc:
+          "Reads a JSON value from the given string or file ($(b,-) for stdin) \
+           and uses it as input value when interpreting the given scope. See \
+           also $(b,json-schema) command to generate the accepted JSON's \
+           schema for a given scope."
 end
 
 (* Retrieve current version from dune *)

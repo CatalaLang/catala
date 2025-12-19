@@ -83,6 +83,8 @@ module Flags : sig
 
   val subdir : string option Term.t
   (** for the 'depends' command *)
+
+  val json_input : Yojson.Safe.t option Term.t
 end
 
 (** {2 Command-line application} *)
