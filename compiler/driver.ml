@@ -448,15 +448,21 @@ module Commands = struct
         scope
         ~suggestion:(Ident.Map.keys ctx.ctx_scope_index)
 
-  let get_scopelist_uids prg (scopes : string list) : ScopeName.t list =
+  let get_scopelist_uids ?(tests_only = true) prg (scopes : string list) :
+      ScopeName.t list =
     match scopes with
     | _ :: _ -> List.map (get_scope_uid prg.decl_ctx) scopes
     | [] ->
       let exports = BoundList.last prg.code_items in
       let test_scopes =
-        List.filter_map
-          (function KTest scope, _ -> Some scope | _ -> None)
-          exports
+        if tests_only then
+          List.filter_map
+            (function KTest scope, _ -> Some scope | _ -> None)
+            exports
+        else
+          List.filter_map
+            (function KScope scope, _ -> Some scope | _ -> None)
+            exports
       in
       if test_scopes = [] then
         Message.warning
@@ -1421,6 +1427,38 @@ module Commands = struct
                startup *))
         $ Cli.Flags.Global.options)
 
+  let json_schema_cmd =
+    let f options includes stdlib ex_scopes =
+      let mark = Expr.typed in
+      let prg, _ =
+        Passes.dcalc options ~includes ~stdlib ~optimize:false
+          ~check_invariants:false ~autotest:false ~typed:mark
+      in
+      Interpreter.load_runtime_modules
+        ~hashf:Hash.(finalise ~monomorphize_types:false)
+        prg;
+      List.iter
+        (fun scope ->
+          let { in_struct_name; out_struct_name = _; _ } =
+            ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
+          in
+          let ty = TStruct in_struct_name, Expr.mark_pos mark in
+          let encoding = Encoding.make_encoding prg.decl_ctx ty in
+          let scope_input_schema = Json_encoding.schema encoding in
+          Message.result "schema for %s:@\n%a"
+            (ScopeName.to_string scope)
+            Json_schema.pp scope_input_schema)
+        (get_scopelist_uids ~tests_only:false prg ex_scopes)
+    in
+    Cmd.v
+      (Cmd.info "json-schema" ~man:Cli.man_base ~doc:"TODO")
+      Term.(
+        const f
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.ex_scopes)
+
   let commands =
     [
       interpret_cmd;
@@ -1441,6 +1479,7 @@ module Commands = struct
       dependency_graph_cmd;
       depends_cmd;
       pygmentize_cmd;
+      json_schema_cmd;
     ]
 end
 
