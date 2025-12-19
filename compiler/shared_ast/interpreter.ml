@@ -484,15 +484,8 @@ let rec evaluate_operator
    of the OCaml runtime *)
 let rec runtime_to_val :
     type d.
-    (decl_ctx ->
-    ((d, _) interpr_kind, 'm) gexpr ->
-    ((d, _) interpr_kind, 'm) gexpr) ->
-    decl_ctx ->
-    'm mark ->
-    typ ->
-    Obj.t ->
-    ((d, yes) interpr_kind, 'm) gexpr =
- fun eval_expr ctx m ty o ->
+    decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, yes) interpr_kind, 'm) gexpr =
+ fun ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
   | TLit TBool -> ELit (LBool (Obj.obj o)), m
@@ -511,17 +504,12 @@ let rec runtime_to_val :
     let p = Pos.overwrite_law_info p rpos.law_headings in
     EPos p, m
   | TTuple ts ->
-    ( ETuple
-        (List.map2
-           (runtime_to_val eval_expr ctx m)
-           ts
-           (Array.to_list (Obj.obj o))),
-      m )
+    ETuple (List.map2 (runtime_to_val ctx m) ts (Array.to_list (Obj.obj o))), m
   | TStruct name ->
     StructName.Map.find name ctx.ctx_structs
     |> StructField.Map.to_seq
     |> Seq.map2
-         (fun o (fld, ty) -> fld, runtime_to_val eval_expr ctx m ty o)
+         (fun o (fld, ty) -> fld, runtime_to_val ctx m ty o)
          (Array.to_seq (Obj.obj o))
     |> StructField.Map.of_seq
     |> fun fields -> EStruct { name; fields }, m
@@ -564,7 +552,7 @@ let rec runtime_to_val :
       | _ -> assert false
       | exception Found (cons, ty) ->
         let payload = Obj.field o 0 (* Arity is always 1 in the runtime *) in
-        let e = runtime_to_val eval_expr ctx m ty payload in
+        let e = runtime_to_val ctx m ty payload in
         EInj { name; cons; e }, m)
   | TOption ty ->
     if Obj.is_int o then
@@ -578,7 +566,7 @@ let rec runtime_to_val :
         m )
     else
       (* Some case *)
-      let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+      let e = runtime_to_val ctx m ty (Obj.field o 0) in
       EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
   | TClosureEnv ->
     (* By construction, a closure environment can only be consumed from the same
@@ -586,11 +574,7 @@ let rec runtime_to_val :
        safely avoid converting in depth here *)
     Obj.obj o, m
   | TArray ty ->
-    ( EArray
-        (List.map
-           (runtime_to_val eval_expr ctx m ty)
-           (Array.to_list (Obj.obj o))),
-      m )
+    EArray (List.map (runtime_to_val ctx m ty) (Array.to_list (Obj.obj o))), m
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
   | TDefault ty -> (
     (* This case is only valid for ASTs including default terms; but the typer
@@ -598,12 +582,12 @@ let rec runtime_to_val :
     match (Obj.obj o : 'a Runtime.Optional.t) with
     | Runtime.Optional.Absent -> Obj.magic EEmpty, m
     | Runtime.Optional.Present o -> (
-      match runtime_to_val eval_expr ctx m ty o with
+      match runtime_to_val ctx m ty o with
       | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
       | _ -> assert false))
   | TForAll tb ->
     let _v, ty = Bindlib.unmbind tb in
-    runtime_to_val eval_expr ctx m ty o
+    runtime_to_val ctx m ty o
   | TVar _ ->
     (* A type variable being an unresolved type, it can't be deconstructed, so
        we can let it pass through. *)
@@ -700,8 +684,7 @@ and val_to_runtime :
         val_to_runtime eval_expr ctx tret
           (eval_expr ctx (EApp { f = v; args; tys }, m))
       | targ :: targs ->
-        Obj.repr (fun x ->
-            curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
+        Obj.repr (fun x -> curry (runtime_to_val ctx m targ x :: acc) targs)
     in
     curry [] targs
   | TDefault ty, _ -> (
@@ -798,7 +781,7 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_modname in
-    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
+    runtime_to_val ctx m ty o
   | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in
     let args = List.map (evaluate_expr ctx lang) args in
@@ -830,7 +813,7 @@ let rec evaluate_expr :
             f arg)
           obj targs args
       in
-      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
+      runtime_to_val ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
