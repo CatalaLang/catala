@@ -1152,18 +1152,32 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
-let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let convert_json_input ctx scope_ty json =
+  let encoding = Encoding.make_encoding ctx scope_ty in
+  Encoding.parse_json encoding json
+
+let interpret_program_lcalc ?input p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
   match evaluate_expr_safe ctx p.lang (addcustom e) with
-  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+  | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
        an empty term. But for [input] arguments of another type, we cannot
        provide anything so we have to fail. *)
-    let application_term = Scope.empty_input_struct_lcalc ctx s_in mark_e in
+    let application_term =
+      match input with
+      | None -> Scope.empty_input_struct_lcalc ctx s_in mark_e
+      | Some json ->
+        let rval = convert_json_input ctx scope_ty json in
+        let mark = Expr.with_ty mark_e scope_ty in
+        Encoding.convert_to_lcalc ctx mark scope_ty rval
+        |> Expr.unbox
+        |> addcustom
+        |> Expr.box
+    in
     let to_interpret =
       Expr.make_app (Expr.box e) [application_term]
         [TStruct s_in, Expr.pos e]
@@ -1192,18 +1206,28 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        thunked arguments"
 
 (** {1 API} *)
-let interpret_program_dcalc ?on_expr p s :
+let interpret_program_dcalc ?input ?on_expr p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
   match evaluate_expr_safe ?on_expr p.decl_ctx p.lang (addcustom e) with
-  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+  | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+    let application_term =
+      match input with
+      | None -> Scope.empty_input_struct_dcalc ctx s_in mark_e
+      | Some json ->
+        let rval = convert_json_input ctx scope_ty json in
+        let mark = Expr.with_ty mark_e scope_ty in
+        Encoding.convert_to_dcalc ctx mark scope_ty rval
+        |> Expr.unbox
+        |> addcustom
+        |> Expr.box
+    in
     let to_interpret =
       Expr.make_app (Expr.box e) [application_term]
         [TStruct s_in, Expr.pos e]
@@ -1265,7 +1289,7 @@ let interpret_program_dcalc_with_coverage
   in
   r, coverage
 
-let interpret_program_dcalc p s = interpret_program_dcalc p s
+let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
