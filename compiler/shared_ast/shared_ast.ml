@@ -29,3 +29,4 @@ module Typing = Typing
 module Interpreter = Interpreter
 module Optimizations = Optimizations
 module Coverage = Coverage
+module Encoding = Encoding
