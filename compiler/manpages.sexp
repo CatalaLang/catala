@@ -7,6 +7,7 @@
 (rule (alias man) (action (with-stdout-to catala-html.1 (run %{bin:catala} html --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-interpret.1 (run %{bin:catala} interpret --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-java.1 (run %{bin:catala} java --help=groff))))
+(rule (alias man) (action (with-stdout-to catala-json-schema.1 (run %{bin:catala} json-schema --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-latex.1 (run %{bin:catala} latex --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-lcalc.1 (run %{bin:catala} lcalc --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-makefile.1 (run %{bin:catala} makefile --help=groff))))
