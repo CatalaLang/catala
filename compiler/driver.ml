@@ -105,105 +105,91 @@ let load_modules
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
         ms
   in
-  let rec aux is_stdlib req_chain seen uses :
-      (ModuleName.t * Surface.Ast.module_content * ModuleName.t Ident.Map.t)
-      option
-      File.Map.t
+  let load_file ~is_stdlib f =
+    let default_module_name =
+      if allow_notmodules then
+        (* This preserves the filename capitalisation, which corresponds to the
+           convention for files related to not-module compilation artifacts and
+           is used by [depends] below *)
+        Some (Filename.basename (File.remove_extension f))
+      else None
+    in
+    if options.Global.whole_program then
+      Surface.Parser_driver.load_interface_and_code ?default_module_name
+        ~is_stdlib (Global.FileName f)
+    else
+      Surface.Parser_driver.load_interface ?default_module_name ~is_stdlib
+        (Global.FileName f)
+  in
+  let rec load_uses file ~is_stdlib req_chain acc uses :
+      (ModuleName.t option File.Map.t
+      * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t)
       * ModuleName.t Ident.Map.t =
+    let use_map = Ident.Map.empty in
+    let acc, use_map =
+      if is_stdlib || stdlib = None then acc, use_map
+      else
+        let std_use = stdlib_use file in
+        let acc, std_modname =
+          load_submodule ~is_stdlib:true req_chain acc std_use
+        in
+        let std_uses =
+          let _, modules = acc in
+          let _, std_uses = ModuleName.Map.find std_modname modules in
+          std_uses
+        in
+        ( acc,
+          Ident.Map.add
+            (Mark.remove std_use.Surface.Ast.mod_use_name)
+            std_modname std_uses )
+    in
     List.fold_left
-      (fun (seen, use_map) use ->
-        let f = find_module is_stdlib req_chain use.Surface.Ast.mod_use_name in
-        match File.Map.find_opt f seen with
-        | Some (Some (modname, _, _)) ->
-          ( seen,
-            Ident.Map.add
-              (Mark.remove use.Surface.Ast.mod_use_alias)
-              modname use_map )
-        | Some None ->
-          Message.error
-            ~extra_pos:
-              (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
-            "Circular module dependency"
-        | None ->
-          let default_module_name =
-            if allow_notmodules then
-              (* This preserves the filename capitalisation, which corresponds
-                 to the convention for files related to not-module compilation
-                 artifacts and is used by [depends] below *)
-              Some (Filename.basename (File.remove_extension f))
-            else None
-          in
-          let module_content =
-            if options.Global.whole_program then
-              Surface.Parser_driver.load_interface_and_code ?default_module_name
-                ~is_stdlib (Global.FileName f)
-            else
-              Surface.Parser_driver.load_interface ?default_module_name
-                ~is_stdlib (Global.FileName f)
-          in
-          let modname =
-            ModuleName.fresh
-              module_content.Surface.Ast.module_modname.module_name
-          in
-          let seen = File.Map.add f None seen in
-          let seen, file_use_map =
-            aux is_stdlib
-              (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-              seen module_content.Surface.Ast.module_submodules
-          in
-          ( File.Map.add f (Some (modname, module_content, file_use_map)) seen,
-            Ident.Map.add
-              (Mark.remove use.Surface.Ast.mod_use_alias)
-              modname use_map ))
-      (seen, Ident.Map.empty) uses
+      (fun (acc, use_map) use ->
+        let acc, modname = load_submodule ~is_stdlib req_chain acc use in
+        ( acc,
+          Ident.Map.add
+            (Mark.remove use.Surface.Ast.mod_use_alias)
+            modname use_map ))
+      (acc, use_map) uses
+  and load_submodule ~is_stdlib req_chain (files, modules) use =
+    let f = find_module is_stdlib req_chain use.Surface.Ast.mod_use_name in
+    match File.Map.find_opt f files with
+    | Some (Some modname) ->
+      (* Already loaded *)
+      (files, modules), modname
+    | Some None ->
+      (* Already being resolved *)
+      Message.error
+        ~extra_pos:
+          (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
+        "Circular module dependency"
+    | None ->
+      let module_content = load_file ~is_stdlib f in
+      let modname =
+        ModuleName.fresh module_content.Surface.Ast.module_modname.module_name
+      in
+      let files = File.Map.add f None files in
+      let req_chain = Mark.get use.Surface.Ast.mod_use_name :: req_chain in
+      let (files, modules), use_map =
+        load_uses f ~is_stdlib req_chain (files, modules)
+          module_content.Surface.Ast.module_submodules
+      in
+      ( ( File.Map.add f (Some modname) files,
+          ModuleName.Map.add modname (module_content, use_map) modules ),
+        modname )
   in
   let file =
     match program.Surface.Ast.program_module with
     | Some m -> Pos.get_file (Mark.get m.module_name)
     | None -> List.hd program.Surface.Ast.program_source_files
   in
-  let modules_map file_map =
-    File.Map.fold
-      (fun _ info acc ->
-        match info with
-        | None -> acc
-        | Some (mname, intf, use_map) ->
-          ModuleName.Map.add mname (intf, use_map) acc)
-      file_map ModuleName.Map.empty
+  let (_files, module_map), root_uses =
+    load_uses file ~is_stdlib:false
+      [Pos.from_info file 0 0 0 0]
+      (File.Map.empty, ModuleName.Map.empty)
+      program.Surface.Ast.program_used_modules
   in
-  let stdlib_files, stdlib_uses =
-    if stdlib = None then File.Map.empty, Ident.Map.empty
-    else
-      let stdlib_files, stdlib_use_map =
-        aux true [Pos.from_info file 0 0 0 0] File.Map.empty [stdlib_use file]
-      in
-      let stdlib_modules = modules_map stdlib_files in
-      let _, (_, stdlib_uses) =
-        (* Uses from the stdlib are "flattened" to the parent module, but can
-           still be overriden *)
-        ModuleName.Map.choose stdlib_modules
-      in
-      ( stdlib_files,
-        Ident.Map.union (fun _ _ m -> Some m) stdlib_uses stdlib_use_map )
-  in
-  let file_module_map, root_uses =
-    aux false [] stdlib_files program.Surface.Ast.program_used_modules
-  in
-  let file_module_map =
-    File.Map.mapi
-      (fun file ->
-        Option.map (fun (mname, intf, use_map) ->
-            ( mname,
-              intf,
-              if
-                File.Map.mem file stdlib_files
-                || intf.Surface.Ast.module_modname.module_external
-              then use_map
-              else Ident.Map.union (fun _ _ m -> Some m) stdlib_uses use_map )))
-      file_module_map
-  in
-  ( Ident.Map.union (fun _ _ m -> Some m) stdlib_uses root_uses,
-    modules_map file_module_map )
+  root_uses, module_map
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
