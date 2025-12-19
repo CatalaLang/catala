@@ -805,22 +805,26 @@ let build_cmd : int Cmd.t =
     let direct_targets_result =
       build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
         direct_targets
+      |> List.filter (fun s -> not (String.contains s '@'))
     in
-    Message.result
-      "@[<v 4>Build successful. The targets can be found in the following \
-       files:@,\
-       %a%t%a@]"
-      (Format.pp_print_list (fun ppf (t, f) ->
-           Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
-             (make_relative_to ~dir:original_cwd f)))
-      clerk_targets_result
-      (fun fmt ->
-        if clerk_targets_result <> [] && direct_targets <> [] then
-          Format.pp_print_cut fmt ())
-      (Format.pp_print_list (fun ppf f ->
-           Format.fprintf ppf "@{<cyan>%s@}"
-             (make_relative_to ~dir:original_cwd f)))
-      direct_targets_result;
+    if clerk_targets_result = [] && direct_targets_result = [] then
+      Message.result "@[<v 4>Build successful@]"
+    else
+      Message.result
+        "@[<v 4>Build successful. The targets can be found in the following \
+         files:@,\
+         %a%t%a@]"
+        (Format.pp_print_list (fun ppf (t, f) ->
+             Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
+               (make_relative_to ~dir:original_cwd f)))
+        clerk_targets_result
+        (fun fmt ->
+          if clerk_targets_result <> [] && direct_targets <> [] then
+            Format.pp_print_cut fmt ())
+        (Format.pp_print_list (fun ppf f ->
+             Format.fprintf ppf "@{<cyan>%s@}"
+               (make_relative_to ~dir:original_cwd f)))
+        direct_targets_result;
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
