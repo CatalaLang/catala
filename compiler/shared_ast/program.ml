@@ -155,11 +155,13 @@ let to_expr p main_scope =
   Expr.Box.assert_closed (Expr.Box.lift res);
   res
 
-let modules_to_list (mt : module_tree) =
+let modules_to_list ?(trim_stdlib = false) (mt : module_tree) =
   let rec aux acc mtree =
     ModuleName.Map.fold
       (fun mname mnode acc ->
         if List.exists (fun (m, _) -> ModuleName.equal m mname) acc then acc
+        else if trim_stdlib && mnode.intf_id.is_stdlib then
+          (mname, mnode.intf_id) :: acc
         else (mname, mnode.intf_id) :: aux acc mnode.deps)
       mtree acc
   in
