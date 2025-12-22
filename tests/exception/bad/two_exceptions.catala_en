@@ -17,6 +17,22 @@ scope A:
 
 ```catala-test-cli
 $ catala test-scope A
+┌─[WARNING]─
+│
+│  Multiple conflicting definitions:
+│  these have the same conditions and will always trigger a conflict at runtime.
+│
+├─➤ tests/exception/bad/two_exceptions.catala_en:12.14-12.15:
+│    │
+│ 12 │   definition x equals 1
+│    │              ‾
+├─ Test
+│
+├─➤ tests/exception/bad/two_exceptions.catala_en:15.14-15.15:
+│    │
+│ 15 │   definition x equals 2
+│    │              ‾
+└─ Test
 ┌─[ERROR]─
 │
 │  During evaluation: conflict between multiple valid consequences for
