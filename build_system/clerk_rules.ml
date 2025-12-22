@@ -33,8 +33,6 @@ let backend_from_config = function
   | Clerk_config.Java -> Java
   | _ -> invalid_arg __FUNCTION__
 
-let runtime_subdir = "libcatala"
-
 (** Ninja variable names *)
 module Var = struct
   include Nj.Var
@@ -108,7 +106,7 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
       options.global.include_dirs []
   in
   let catala_flags =
-    ("--stdlib=" ^ File.(Var.(!builddir) / runtime_subdir))
+    ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
     :: ("--directory=" ^ Var.(!builddir))
     :: options.global.catala_opts
   in
@@ -236,7 +234,7 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
           ]);
       def Var.c_include
         (lazy
-          (["-I"; File.(Var.(!builddir) / runtime_subdir / "c")]
+          (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
           @ includes ~backend:"c" ()));
     ]
   else []
@@ -253,7 +251,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       ~description:["<copy>"; !input];
   ] @ (if List.mem OCaml enabled_backends then
          let runtime_include =
-           File.(Var.(!builddir) / runtime_subdir / "ocaml")
+           File.(Var.(!builddir) / Scan.libcatala / "ocaml")
          in
          [
       Nj.rule "catala-ocaml"
@@ -301,7 +299,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "java"; "⇒"; !output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; File.(Var.(!builddir) / runtime_subdir / "java")^":" ^ !class_path; !javac_flags; !input]
+        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / "java")^":" ^ !class_path; !javac_flags; !input]
         ~description:["<catala>"; "java"; "⇒"; !output];
     ] else []) @
   (if List.mem Tests enabled_backends then
@@ -632,8 +630,7 @@ let gen_build_statements
        but then we could use the already resolved target files directly and get
        rid of these aliases. *)
     match item.module_def with
-    | Some m when (not (Filename.is_relative dir)) || List.mem dir include_dirs
-      ->
+    | Some m when item.is_stdlib || List.mem dir include_dirs ->
       let modname = Mark.remove m in
       Nj.build "phony" ~outputs:[modname ^ "@src"] ~inputs:[catala_src]
       ::
@@ -722,7 +719,10 @@ let gen_build_statements_dir
     | None -> String.Map.add s fname seen
   in
   let _names = List.fold_left check_conflicts String.Map.empty items in
-  let dir = if Filename.is_relative dir then dir else runtime_subdir in
+  let dir =
+    if Filename.is_relative dir (* Detect stdlib modules *) then dir
+    else Scan.libcatala
+  in
   let open File in
   let ( ! ) = Var.( ! ) in
   Seq.cons (Nj.comment "")
@@ -769,7 +769,7 @@ let dir_test_rules dir subdirs enabled_backends items =
 
 let runtime_build_statements ~config enabled_backends =
   let open File in
-  let stdbase = Var.(!builddir) / runtime_subdir in
+  let stdbase = Var.(!builddir) / Scan.libcatala in
   let runtime_orig =
     (* content of the variable [Var.(!runtime)] *)
     match
@@ -937,7 +937,7 @@ let runtime_build_statements ~config enabled_backends =
     in
     let java_list_file =
       let base =
-        config.Clerk_cli.options.global.build_dir / runtime_subdir / "java"
+        config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
       in
       File.with_out_channel (base / "java.files") (fun oc ->
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);

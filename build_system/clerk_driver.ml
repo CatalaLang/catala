@@ -180,8 +180,8 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     get_var var_bindings Var.ocamlopt_exe
     @ List.map (expand_vars var_bindings)
         (Lazy.force Clerk_poll.ocaml_link_flags)
-    @ [build_dir / "libcatala" / "ocaml" / "dates_calc.cmx"]
-    @ [build_dir / "libcatala" / "ocaml" / "catala_runtime.cmx"]
+    @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
+    @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
     @ get_var var_bindings Var.ocaml_flags
     @ get_var var_bindings Var.ocaml_include
     @ List.map
@@ -197,8 +197,8 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       ]
   | `C ->
     get_var var_bindings Var.cc_exe
-    @ [build_dir / "libcatala" / "c" / "dates_calc.o"]
-    @ [build_dir / "libcatala" / "c" / "catala_runtime.o"]
+    @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
+    @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
     @ List.map
         (fun it ->
           let f = Scan.target_file_name it in
@@ -273,7 +273,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     let runtime_class_files =
       File.scan_tree
         (fun f -> if Filename.check_suffix f ".class" then Some f else None)
-        (build_dir / "libcatala" / "java")
+        (build_dir / Scan.libcatala / "java")
       |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
       |> List.of_seq
     in
@@ -428,7 +428,7 @@ let build_clerk_target
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
   let local_runtime_dir bk =
-    File.(build_dir / Clerk_rules.runtime_subdir / backend_subdir bk)
+    File.(build_dir / Scan.libcatala / backend_subdir bk)
   in
   let enabled_backends =
     List.map Clerk_rules.backend_from_config target.backends
@@ -472,15 +472,13 @@ let build_clerk_target
             (fun module_item ->
               let open File in
               let base =
-                if Filename.is_relative module_item.Scan.file_name then
+                if module_item.Scan.is_stdlib then
+                  local_runtime_dir bk / Scan.target_basename module_item
+                else
                   build_dir
                   / module_item.Scan.file_name
                   /../ backend_subdir bk
-                  / (Option.get module_item.module_def |> Mark.remove)
-                else
-                  (* Standard library module *)
-                  local_runtime_dir bk
-                  / (Option.get module_item.module_def |> Mark.remove)
+                  / Scan.target_basename module_item
               in
               let extensions =
                 if target.include_objects then List.assoc bk backend_extensions
@@ -623,13 +621,8 @@ let build_direct_targets
           try
             List.find
               (fun it ->
-                let item_name =
-                  match it.Scan.module_def with
-                  | Some m -> File.dirname it.Scan.file_name / Mark.remove m
-                  | None -> it.Scan.file_name -.- ""
-                in
                 (dirname (dirname t) / basename t) -.- ""
-                = build_dir / item_name)
+                = build_dir / Scan.target_file_name it)
               items
           with Not_found ->
             Message.error "No source to make target %a found" File.format t
@@ -812,22 +805,26 @@ let build_cmd : int Cmd.t =
     let direct_targets_result =
       build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
         direct_targets
+      |> List.filter (fun s -> not (String.contains s '@'))
     in
-    Message.result
-      "@[<v 4>Build successful. The targets can be found in the following \
-       files:@,\
-       %a%t%a@]"
-      (Format.pp_print_list (fun ppf (t, f) ->
-           Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
-             (make_relative_to ~dir:original_cwd f)))
-      clerk_targets_result
-      (fun fmt ->
-        if clerk_targets_result <> [] && direct_targets <> [] then
-          Format.pp_print_cut fmt ())
-      (Format.pp_print_list (fun ppf f ->
-           Format.fprintf ppf "@{<cyan>%s@}"
-             (make_relative_to ~dir:original_cwd f)))
-      direct_targets_result;
+    if clerk_targets_result = [] && direct_targets_result = [] then
+      Message.result "@[<v 4>Build successful@]"
+    else
+      Message.result
+        "@[<v 4>Build successful. The targets can be found in the following \
+         files:@,\
+         %a%t%a@]"
+        (Format.pp_print_list (fun ppf (t, f) ->
+             Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
+               (make_relative_to ~dir:original_cwd f)))
+        clerk_targets_result
+        (fun fmt ->
+          if clerk_targets_result <> [] && direct_targets <> [] then
+            Format.pp_print_cut fmt ())
+        (Format.pp_print_list (fun ppf f ->
+             Format.fprintf ppf "@{<cyan>%s@}"
+               (make_relative_to ~dir:original_cwd f)))
+        direct_targets_result;
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
@@ -906,7 +903,7 @@ let run_artifact config ~backend ~var_bindings ?scope src =
     let pythonpath =
       String.concat ":"
         [
-          build_dir / "libcatala" / "python";
+          build_dir / Scan.libcatala / "python";
           File.dirname src;
           Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
         ]

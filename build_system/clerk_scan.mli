@@ -23,6 +23,7 @@ open Catala_utils
 type item = {
   file_name : File.t;
   module_def : string Mark.pos option;
+  is_stdlib : bool;
   extrnal : bool;
   used_modules : string Mark.pos list;
   included_files : File.t Mark.pos list;
@@ -31,6 +32,10 @@ type item = {
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
+
+val libcatala : File.t
+(** Subdirectory of the build directory holding the runtime and standard library
+    and its built artifacts *)
 
 val get_lang : File.t -> Global.backend_lang option
 (** Guesses Catala dialect from file-name and global options *)
@@ -51,7 +56,11 @@ val find_test_scope : lang:Global.backend_lang -> File.t -> bool
     through file includes. The file extension takes precendence over the [~lang]
     argument. *)
 
+val target_basename : item -> File.t
+(** Returns the expected basename (without directory or extension) for artifacts
+    based on this file: the module name is used if defined, otherwise the
+    original file is used. In both case, it is normalised using [String.to_id]. *)
+
 val target_file_name : item -> File.t
-(** Returns the expected name (without extension) for artifacts based on this
-    file: the module name is used if defined, otherwise the original file is
-    used. In both case, it is normalised using [String.to_id]. *)
+(** Like [target_basename], but returns a relative filename to the build
+    directory, without extension *)

@@ -20,12 +20,15 @@ module L = Surface.Lexer_common
 type item = {
   file_name : File.t;
   module_def : string Mark.pos option;
+  is_stdlib : bool;
   extrnal : bool;
   used_modules : string Mark.pos list;
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : bool Lazy.t;
 }
+
+let libcatala = "libcatala"
 
 let catala_suffix_regex =
   Re.(
@@ -101,6 +104,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       {
         file_name = file;
         module_def = None;
+        is_stdlib = not (Filename.is_relative file);
         extrnal = false;
         used_modules = [];
         included_files = [];
@@ -132,12 +136,12 @@ let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
       | Some lang -> Some (catala_file f lang))
     dir
 
+let target_basename t =
+  match t.module_def with
+  | Some m -> String.to_id (Mark.remove m)
+  | None -> String.to_id File.(remove_extension (basename t.file_name))
+
 let target_file_name t =
   let open File in
-  let dir =
-    if Filename.is_relative t.file_name then File.dirname t.file_name
-    else "libcatala"
-  in
-  match t.module_def with
-  | Some m -> dir / String.to_id (Mark.remove m)
-  | None -> dir / String.to_id (remove_extension (basename t.file_name))
+  let dir = if t.is_stdlib then libcatala else File.dirname t.file_name in
+  dir / target_basename t
