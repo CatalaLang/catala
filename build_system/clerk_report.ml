@@ -498,12 +498,22 @@ let summary ~build_dir tests =
         ppf "ALL TESTS PASSED"
   in
   result_box (fun box ->
-      box.print_line "@{<ul>%-13s %10s %10s %10s %15s@}" "" "FAILED" "PASSED"
-        "TOTAL" "PERCENTAGE";
+      box.print_line "@{<ul>%-13s %10s %10s %10s %10s@}" "" "FAILED" "PASSED"
+        "TOTAL" "RATIO";
+      let ratio ppf (m, n) =
+        let color =
+          let open Ocolor_types in
+          if m >= n then C4 green
+          else C24 { r24 = 255; g24 = m * 255 / n; b24 = 0 }
+        in
+        Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag (Fg color));
+        Format.fprintf ppf "%8d %%" (m * 100 / n);
+        Format.pp_close_stag ppf ()
+      in
       if files > 1 then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<hi_magenta;bold>%13d %%@}"
+           @{<bold>%a@}"
           "files"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -512,12 +522,9 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          success_files files
-          (int_of_float
-             (float_of_int success_files /. float_of_int files *. 100.));
+          success_files files ratio (success_files, files);
       box.print_line
-        "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-         @{<hi_magenta;bold>%13d %%@}"
+        "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} @{<bold>%a@}"
         "tests"
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -526,8 +533,7 @@ let summary ~build_dir tests =
         (fun ppf -> function
           | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
           | n -> Format.fprintf ppf "%10d" n)
-        success total
-        (int_of_float (float_of_int success /. float_of_int total *. 100.));
+        success total ratio (success, total);
       if disp_flags.coverage then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
