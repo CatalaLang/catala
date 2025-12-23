@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Louis Gesbert <louis.gesbert@inria.fr>
+   and social benefits computation rules. Copyright (C) 2026 Inria, contributor:
+   Vincent Botbol <vincent.botbol@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,19 +14,26 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Definitions
-module Var = Var
-module Qident = Qident
-module Type = Type
-module Operator = Operator
-module Expr = Expr
-module BoundList = BoundList
-module Scope = Scope
-module Program = Program
-module Renaming = Renaming
-module Print = Print
-module Typing = Typing
-module Interpreter = Interpreter
-module Optimizations = Optimizations
-module Coverage = Coverage
-module Encoding = Encoding
+open Definitions
+
+val make_encoding :
+  decl_ctx -> typ -> Catala_runtime.runtime_value Json_encoding.encoding
+
+val parse_json :
+  Catala_runtime.runtime_value Json_encoding.encoding ->
+  Yojson.Safe.t ->
+  Catala_runtime.runtime_value
+
+val convert_to_dcalc :
+  decl_ctx ->
+  'm mark ->
+  typ ->
+  Catala_runtime.runtime_value ->
+  (dcalc, 'm) gexpr boxed
+
+val convert_to_lcalc :
+  decl_ctx ->
+  'm mark ->
+  typ ->
+  Catala_runtime.runtime_value ->
+  (lcalc, 'm) gexpr boxed
