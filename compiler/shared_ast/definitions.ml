@@ -750,7 +750,7 @@ type scope_info = {
   visibility : visibility;
 }
 
-type module_intf_id = { hash : Hash.t; is_external : bool }
+type module_intf_id = { hash : Hash.t; is_stdlib : bool; is_external : bool }
 
 type module_tree_node = { deps : module_tree; intf_id : module_intf_id }
 

@@ -131,7 +131,8 @@ type topdef = {
   topdef_type : typ;
   topdef_arg_names : string Mark.pos list;
   topdef_visibility : visibility;
-      (** Necessarily [Public] outside of the root module *)
+      (** Necessarily [Public] outside of the root module (unless in
+          whole_program mode) *)
   topdef_external : bool;
 }
 

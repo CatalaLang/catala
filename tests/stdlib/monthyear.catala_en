@@ -1,11 +1,14 @@
-```catala
+> Module MonthYear
+
+```catala-metadata
 #[test]
 declaration scope Tunit:
-
   output my1 content MonthYear.MonthYear
   output my2 content MonthYear.MonthYear
   output my3 content MonthYear.MonthYear
+```
 
+```catala
 scope Tunit:
 
   # MonthYears

@@ -178,12 +178,18 @@ let format_qualified
     ctx
     ppf
     (s : id) =
-  match List.rev (Id.path s) with
-  | [] -> Format.pp_print_string ppf (Id.base s)
-  | m :: _ ->
-    Format.fprintf ppf "%a.%s" VarName.format
-      (ModuleName.Map.find m ctx.modules)
-      (Id.base s)
+  let rec shorten_rpath = function
+    | m :: _ when ModuleName.Map.mem m ctx.modules -> [m]
+    | m :: r -> m :: shorten_rpath r
+    | [] -> []
+  in
+  let path = List.rev (shorten_rpath (List.rev (Id.path s))) in
+  List.iter
+    (fun m ->
+      VarName.format ppf (ModuleName.Map.find m ctx.modules);
+      Format.pp_print_char ppf '.')
+    path;
+  Format.pp_print_string ppf (Id.base s)
 
 let format_struct = format_qualified (module StructName)
 let format_enum = format_qualified (module EnumName)
@@ -663,12 +669,12 @@ let format_program
       ]
   in
   Format.pp_print_list Format.pp_print_string fmt header;
-  ModuleName.Map.iter
-    (fun m _ ->
+  List.iter
+    (fun (m, _) ->
       Format.fprintf fmt "from . import %a as %a@," ModuleName.format
         (ModuleName.normalise m) VarName.format
         (ModuleName.Map.find m p.ctx.modules))
-    p.ctx.decl_ctx.ctx_modules;
+    (Program.modules_to_list ~trim_stdlib:true p.ctx.decl_ctx.ctx_modules);
   Format.pp_print_cut fmt ();
   format_ctx type_ordering fmt p.ctx;
   Format.pp_print_cut fmt ();
