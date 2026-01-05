@@ -77,6 +77,7 @@ module To_jsoo = struct
       Format.fprintf fmt "@[<hov 2>(%a)@] Js.opt" format_typ_with_parens t
     | TDefault _ -> assert false
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
+    | TAbstract _ -> failwith "TODO"
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TVar _ -> Format.fprintf fmt "Js.Unsafe.any Js.t"
@@ -104,6 +105,7 @@ module To_jsoo = struct
     | TLit TPos -> Format.fprintf fmt "position_to_js"
     | TEnum ename -> Format.fprintf fmt "%a_to_js" format_enum_name ename
     | TStruct sname -> Format.fprintf fmt "%a_to_js" format_struct_name sname
+    | TAbstract _ -> failwith "TODO"
     | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)" format_to_js
         t
@@ -397,7 +399,8 @@ module To_jsoo = struct
             (s, StructName.Map.find s ctx.ctx_structs)
         | TypeIdent.Enum e ->
           Format.fprintf fmt "%a@\n" format_enum_decl
-            (e, EnumName.Map.find e ctx.ctx_enums))
+            (e, EnumName.Map.find e ctx.ctx_enums)
+        | TypeIdent.Abstract _ -> failwith "TODO")
       (type_ordering @ scope_structs)
 
   let fmt_input_struct_name fmt (scope_body : 'a expr scope_body) =
