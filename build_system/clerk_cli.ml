@@ -242,6 +242,8 @@ let scope =
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
 
+let json_input = Catala_utils.Cli.Flags.json_input
+
 let clerk_targets_or_files =
   Arg.(
     value

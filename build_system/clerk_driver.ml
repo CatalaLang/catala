@@ -924,8 +924,14 @@ let enable_backend =
   function
   | `Interpret | `OCaml -> OCaml | `C -> C | `Python -> Python | `Java -> Java
 
-let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
-    =
+let build_test_deps
+    ~config
+    ~backend
+    ?(test_only = true)
+    files_or_folders
+    nin_ppf
+    items
+    var_bindings =
   let open File in
   let build_dir = config.Cli.options.global.build_dir in
   let target_items =
@@ -935,7 +941,7 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
         let filter item =
           if is_dir then
             String.starts_with ~prefix:(file / "") item.Scan.file_name
-            && Lazy.force item.Scan.has_scope_tests
+            && (Lazy.force item.Scan.has_scope_tests || not test_only)
           else
             Option.map Mark.remove item.Scan.module_def
             = Some (File.basename file)
@@ -992,15 +998,22 @@ let run_tests
     backend
     cmd
     scope
+    json_input
     (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
   match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
   | `Interpret ->
     let catala_flags =
       get_var var_bindings Var.catala_flags
-      @ (match scope with
-        | None -> []
-        | Some s -> [Printf.sprintf "--scope=%s" s])
+      @ (match scope, json_input with
+        | None, _ -> []
+        | Some s, None -> [Printf.sprintf "--scope=%s" s]
+        | Some s, Some (json : Yojson.Safe.t) ->
+          [
+            Printf.sprintf "--scope=%s" s;
+            Printf.sprintf "--json-input=%s"
+              (Yojson.Safe.to_string ~std:true json);
+          ])
       @ if whole_program then ["--whole-program"] else []
     in
     let exec = get_var var_bindings Var.catala_exe in
@@ -1029,17 +1042,29 @@ let run_cmd =
       cmd
       quiet
       (scope : string option)
+      json_input
       (ninja_flags : string list)
       prepare_only
       whole_program =
+    let test_only =
+      match json_input, scope, backend with
+      | Some _, Some _, `Interpret -> false
+      | Some _, None, _ ->
+        Message.error
+          "A scope must be specified when providing a JSON input. See --scope \
+           option."
+      | Some _, Some _, _ ->
+        Message.error "JSON input is only supported with the interpret backend."
+      | _ -> true
+    in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config ~code_coverage:false
       ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false ~quiet
-      (build_test_deps ~config ~backend files_or_folders)
+      (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
-    else run_tests ~whole_program config backend cmd scope tests
+    else run_tests ~whole_program config backend cmd scope json_input tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -1055,6 +1080,7 @@ let run_cmd =
       $ Cli.run_command
       $ Cli.quiet
       $ Cli.scope
+      $ Cli.json_input
       $ Cli.ninja_flags
       $ Cli.prepare_only
       $ Cli.whole_program)
@@ -1223,7 +1249,7 @@ let run_clerk_test
     Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
       ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
-    |> run_tests config backend "" None
+    |> run_tests config backend "" None None
   else
     let targets, missing =
       let fs =
