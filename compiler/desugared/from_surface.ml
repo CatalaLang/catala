@@ -2042,11 +2042,19 @@ let translate_program
            (fun name (_, visibility) acc ->
              if visibility = Public then TypeIdent.Set.add (Enum name) acc
              else acc)
-           ctxt.enums TypeIdent.Set.empty
+           ctxt.enums
+      @@ AbstractType.Map.fold
+           (fun name visibility acc ->
+             if visibility = Public then TypeIdent.Set.add (Abstract name) acc
+             else acc)
+           ctxt.abstract_types TypeIdent.Set.empty
     in
     {
       ctx_structs = StructName.Map.map fst ctxt.structs;
       ctx_enums = EnumName.Map.map fst ctxt.enums;
+      ctx_abstract_types =
+        AbstractType.(
+          Map.fold (fun t _ -> Set.add t) ctxt.abstract_types Set.empty);
       ctx_scopes =
         ModuleName.Map.fold
           (fun _ -> ctx_scopes)
@@ -2094,7 +2102,9 @@ let translate_program
         | S.ScopeUse use -> process_scope_use ctxt modul use
         | S.Topdef def ->
           process_topdef ctxt modul is_meta ctxt.local.is_external def
-        | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ -> modul)
+        | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ | S.AbstractTypeDecl _
+          ->
+          modul)
       modul block
   in
   let rec process_structure ctxt (modul : Ast.modul) (item : S.law_structure) :

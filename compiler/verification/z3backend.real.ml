@@ -207,6 +207,8 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
+  | TAbstract _ ->
+    failwith "[Z3 model]: Pretty-printing of abstract types not supported"
   | TOption _ -> failwith "[Z3 model]: Pretty-printing of options not supported"
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ ->
@@ -286,6 +288,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   | TStruct name -> find_or_create_struct ctx name
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
   | TEnum e -> find_or_create_enum ctx e
+  | TAbstract _ -> failwith "[Z3 encoding] TAbstract type not supported"
   | TOption _ -> failwith "[Z3 encoding] TOption type not supported"
   | TDefault _ -> failwith "[Z3 encoding] TDefault type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"

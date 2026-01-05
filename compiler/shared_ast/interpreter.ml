@@ -605,6 +605,7 @@ let rec runtime_to_val :
     (* A type variable being an unresolved type, it can't be deconstructed, so
        we can let it pass through. *)
     Obj.obj o, m
+  | TAbstract _ -> ECustom { obj = o; targs = []; tret = ty }, m
   | TError -> assert false
 
 and val_to_runtime :
@@ -727,6 +728,7 @@ and val_to_runtime :
        scope where it was built (compiled or not) ; for this reason, we can
        safely avoid converting in depth here *)
     Obj.repr v
+  | TAbstract _, ECustom { obj; _ } -> obj
   | _ ->
     Message.error ~internal:true
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty

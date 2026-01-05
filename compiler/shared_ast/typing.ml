@@ -273,6 +273,9 @@ let rec union
   | TEnum e1, TEnum e2 ->
     if not (EnumName.equal e1 e2) then record_type_error ();
     t2
+  | TAbstract a1, TAbstract a2 ->
+    if not (AbstractType.equal a1 a2) then record_type_error ();
+    t2
   | TOption t1', TOption t2' -> TOption (union t1' t2'), pos2
   | TArray t1', TArray t2' -> TArray (union t1' t2'), pos2
   | TDefault t1', TDefault t2' -> TDefault (union t1' t2'), pos2
@@ -342,8 +345,8 @@ let rec union
     Env.set_tvar env v2 t;
     t
   | TClosureEnv, TClosureEnv -> t2
-  | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-      | TArray _ | TDefault _ | TClosureEnv ),
+  | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TAbstract _
+      | TOption _ | TArray _ | TDefault _ | TClosureEnv ),
       _ ) ->
     record_type_error ();
     t2

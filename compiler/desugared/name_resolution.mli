@@ -64,6 +64,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
+  | TAbstract of AbstractType.t
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
@@ -95,6 +96,7 @@ type context = {
       (** For each struct, its context *)
   enums : (enum_context * visibility) EnumName.Map.t;
       (** For each enum, its context *)
+  abstract_types : visibility AbstractType.Map.t;
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;
@@ -112,6 +114,7 @@ type attribute_context =
   | ScopeDecl
   | StructDecl
   | EnumDecl
+  | AbstractTypeDecl
   | Topdef
   | ScopeDef
   | FieldDecl

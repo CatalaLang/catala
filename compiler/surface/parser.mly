@@ -899,6 +899,7 @@ let code ==
       | StructDecl sd -> StructDecl { sd with struct_decl_name = set_attrs sd.struct_decl_name }
       | ScopeDecl sd -> ScopeDecl { sd with scope_decl_name = set_attrs sd.scope_decl_name }
       | EnumDecl ed -> EnumDecl { ed with enum_decl_name = set_attrs ed.enum_decl_name }
+      | AbstractTypeDecl ad -> AbstractTypeDecl (set_attrs ad)
       | Topdef td -> Topdef { td with topdef_name = set_attrs td.topdef_name }
     in
     (item, pos_noattr) :: acc, trailing_attrs

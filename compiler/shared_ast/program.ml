@@ -116,6 +116,7 @@ let empty_ctx =
   {
     ctx_enums = EnumName.Map.empty;
     ctx_structs = StructName.Map.empty;
+    ctx_abstract_types = AbstractType.Set.empty;
     ctx_scopes = ScopeName.Map.empty;
     ctx_topdefs = TopdefName.Map.empty;
     ctx_public_types = TypeIdent.Set.empty;

@@ -380,7 +380,8 @@ module Passes = struct
         List.map
           (function
             | Struct s -> Struct (Renaming.struct_name ren_ctx s)
-            | Enum e -> Enum (Renaming.enum_name ren_ctx e))
+            | Enum e -> Enum (Renaming.enum_name ren_ctx e)
+            | Abstract t -> Abstract (Renaming.abstract_type ren_ctx t))
           type_ordering
       in
       prg, type_ordering, Some ren_ctx

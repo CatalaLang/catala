@@ -167,7 +167,7 @@ module To_jsoo = struct
     | TForAll tb ->
       let _v, typ = Bindlib.unmbind tb in
       format_of_js fmt typ
-    | TArrow _ | TClosureEnv | TError -> Format.fprintf fmt ""
+    | TAbstract _ | TArrow _ | TClosureEnv | TError -> ()
 
   let format_var_camel_case (fmt : Format.formatter) (v : 'm Var.t) : unit =
     let lowercase_name =
@@ -377,7 +377,7 @@ module To_jsoo = struct
       List.exists
         (fun struct_or_enum ->
           match struct_or_enum with
-          | TypeIdent.Enum _ -> false
+          | TypeIdent.Enum _ | TypeIdent.Abstract _ -> false
           | TypeIdent.Struct s' -> s = s')
         type_ordering
     in

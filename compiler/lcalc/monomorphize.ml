@@ -148,7 +148,7 @@ let collect_monomorphized_instances (prg : typed program) :
         }
       in
       collect_typ new_acc t
-    | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> acc
+    | TStruct _ | TEnum _ | TAbstract _ | TClosureEnv | TLit _ -> acc
     | TForAll _ | TError -> assert false
     | TVar _ -> (* TODO ? *) acc
     | TOption _ | TTuple _ ->
@@ -178,7 +178,7 @@ let rec monomorphize_typ
     (monomorphized_instances : monomorphized_instances)
     (typ : typ) : typ =
   match Mark.remove typ with
-  | TStruct _ | TEnum _ | TClosureEnv | TLit _ -> typ
+  | TStruct _ | TEnum _ | TAbstract _ | TClosureEnv | TLit _ -> typ
   | TForAll _ | TVar _ | TError -> assert false (* TODO *)
   | TArray _ ->
     ( TStruct (Type.Map.find typ monomorphized_instances.arrays).name,

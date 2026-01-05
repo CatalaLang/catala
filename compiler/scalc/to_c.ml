@@ -141,6 +141,8 @@ let rec format_typ
   | TDefault t -> format_typ decl_ctx ~const element_name fmt t
   | TEnum e ->
     Format.fprintf fmt "%s%s*%t" sconst (EnumName.base e) element_name
+  | TAbstract t ->
+    Format.fprintf fmt "%s%s*%t" sconst (AbstractType.base t) element_name
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hv 4>@[<hov 4>%a@]@,@[<hov 1>(%a)@]@]"
       (format_typ decl_ctx ~const (fun fmt ->
@@ -231,7 +233,10 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       | TypeIdent.Enum e ->
         if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
           let def = EnumName.Map.find e ctx.ctx_enums in
-          pp ppfs "@,%a" format_enum_decl (e, def))
+          pp ppfs "@,%a" format_enum_decl (e, def)
+      | TypeIdent.Abstract t ->
+        if AbstractType.path t = [] then
+          pp ppfs "@,@[<v 2>typedef %s;@]" (AbstractType.base t))
     (type_ordering @ scope_structs)
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =

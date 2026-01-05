@@ -65,6 +65,7 @@ val scope_name : context -> ScopeName.t -> ScopeName.t
 val topdef_name : context -> TopdefName.t -> TopdefName.t
 val struct_name : context -> StructName.t -> StructName.t
 val enum_name : context -> EnumName.t -> EnumName.t
+val abstract_type : context -> AbstractType.t -> AbstractType.t
 
 val code_items :
   context ->

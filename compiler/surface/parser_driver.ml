@@ -556,7 +556,9 @@ let load_interface ?default_module_name ~is_stdlib source_file =
           List.fold_left
             (fun acc -> function
               | Ast.ScopeUse _, _ -> acc
-              | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+              | ( ( Ast.ScopeDecl _ | StructDecl _ | EnumDecl _
+                  | AbstractTypeDecl _ ),
+                  _ ) as e ->
                 ( e,
                   if is_metadata then Shared_ast.Public else Shared_ast.Private
                 )

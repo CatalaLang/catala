@@ -64,6 +64,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
+  | TAbstract of AbstractType.t
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type module_context = {
@@ -89,6 +90,7 @@ type context = {
       (** For each struct, its context *)
   enums : (enum_context * visibility) EnumName.Map.t;
       (** For each enum, its context *)
+  abstract_types : visibility AbstractType.Map.t;
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;
@@ -102,6 +104,7 @@ type attribute_context =
   | ScopeDecl
   | StructDecl
   | EnumDecl
+  | AbstractTypeDecl
   | Topdef
   | ScopeDef
   | FieldDecl
@@ -345,6 +348,14 @@ let get_enum ctxt id =
           "Structure defined at", Mark.get (StructName.get_info sid);
         ]
       "Expecting an enum, but found a structure"
+  | TAbstract tid ->
+    Message.error
+      ~extra_pos:
+        [
+          "", Mark.get id;
+          "Abstract type defined at", Mark.get (AbstractType.get_info tid);
+        ]
+      "Expecting an enum, but found an abstract type"
   | TScope (sid, _) ->
     Message.error
       ~extra_pos:
@@ -361,6 +372,14 @@ let get_struct ctxt id =
       ~extra_pos:
         ["", Mark.get id; "Enum defined at", Mark.get (EnumName.get_info eid)]
       "Expecting a struct, but found an enum"
+  | TAbstract tid ->
+    Message.error
+      ~extra_pos:
+        [
+          "", Mark.get id;
+          "Abstract type defined at", Mark.get (AbstractType.get_info tid);
+        ]
+      "Expecting a struct, but found an abstract type"
   | exception Ident.Map.Not_found _ ->
     Message.error ~pos:(Mark.get id) "No struct named %s found" (Mark.remove id)
 
@@ -371,7 +390,15 @@ let get_scope ctxt id =
     Message.error
       ~extra_pos:
         ["", Mark.get id; "Enum defined at", Mark.get (EnumName.get_info eid)]
-      "Expecting an scope, but found an enum"
+      "Expecting a scope, but found an enum"
+  | TAbstract tid ->
+    Message.error
+      ~extra_pos:
+        [
+          "", Mark.get id;
+          "Abstract type defined at", Mark.get (AbstractType.get_info tid);
+        ]
+      "Expecting a scope, but found an abstract type"
   | TStruct sid ->
     Message.error
       ~extra_pos:
@@ -531,6 +558,9 @@ let rec process_base_typ
       | Some (TEnum e_uid) ->
         let e_uid = EnumName.map_info (fun (_, x) -> path, x) e_uid in
         TEnum e_uid, typ_pos
+      | Some (TAbstract t_uid) ->
+        let t_uid = AbstractType.map_info (fun (_, x) -> path, x) t_uid in
+        TAbstract t_uid, typ_pos
       | Some (TScope (_, scope_str)) ->
         let s_uid =
           StructName.map_info (fun (_, x) -> path, x) scope_str.out_struct_name
@@ -798,6 +828,20 @@ let process_enum_decl
       { ctxt with enums })
     ctxt edecl.enum_decl_cases
 
+let process_abstract_typedecl
+    ?(visibility = Public)
+    (ctxt : context)
+    (name : string Mark.pos) : context =
+  let t_uid =
+    match Ident.Map.find (Mark.remove name) ctxt.local.typedefs with
+    | TAbstract id -> id
+    | _ -> Message.error ~pos:(Mark.get name) "Conflicting type declaration"
+  in
+  {
+    ctxt with
+    abstract_types = AbstractType.Map.add t_uid visibility ctxt.abstract_types;
+  }
+
 let process_topdef ?(visibility = Public) ctxt def =
   let uid =
     Ident.Map.find (Mark.remove def.Surface.Ast.topdef_name) ctxt.local.topdefs
@@ -958,6 +1002,7 @@ let process_scope_decl
 let typedef_info = function
   | TStruct t -> StructName.get_info t
   | TEnum t -> EnumName.get_info t
+  | TAbstract t -> AbstractType.get_info t
   | TScope (s, _) -> ScopeName.get_info s
 
 (** Process the names of all declaration items *)
@@ -1047,6 +1092,16 @@ let process_name_item
         (TEnum e_uid) ctxt.local.typedefs
     in
     { ctxt with local = { ctxt.local with typedefs } }
+  | AbstractTypeDecl tname ->
+    let name, pos = tname in
+    let pos = translate_pos AbstractTypeDecl pos in
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (typedef_info use) name pos "abstract type")
+      (Ident.Map.find_opt name ctxt.local.typedefs);
+    let t_uid = AbstractType.fresh path (name, pos) in
+    let typedefs = Ident.Map.add name (TAbstract t_uid) ctxt.local.typedefs in
+    { ctxt with local = { ctxt.local with typedefs } }
   | ScopeUse s_use ->
     if is_external then
       raise_forbidden_in_external_error (Mark.get s_use.scope_use_name);
@@ -1073,6 +1128,7 @@ let process_decl_item
   | ScopeDecl decl -> process_scope_decl ~visibility ctxt decl
   | StructDecl sdecl -> process_struct_decl ~visibility ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ~visibility ctxt edecl
+  | AbstractTypeDecl tdecl -> process_abstract_typedecl ~visibility ctxt tdecl
   | ScopeUse _ -> ctxt
   | Topdef def -> process_topdef ~visibility ctxt def
 
@@ -1321,7 +1377,8 @@ let process_use_item
     (ctxt : context)
     ((item, _) : Surface.Ast.code_item Mark.pos * visibility) : context =
   match Mark.remove item with
-  | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
+  | ScopeDecl _ | StructDecl _ | EnumDecl _ | AbstractTypeDecl _ | Topdef _ ->
+    ctxt
   | ScopeUse suse -> (
     let pos = Mark.get suse.scope_use_name in
     match
@@ -1354,6 +1411,7 @@ let empty_ctxt lang =
     structs = StructName.Map.empty;
     enums =
       EnumName.Map.singleton Expr.option_enum (Expr.option_enum_config, Private);
+    abstract_types = AbstractType.Map.empty;
     modules = ModuleName.Map.empty;
     local = empty_module_ctxt lang;
   }

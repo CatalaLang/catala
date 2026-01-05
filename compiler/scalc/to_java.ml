@@ -206,6 +206,7 @@ let rec format_typ ?(wildcard = false) ctx ppf (typ : typ) =
     pp_print_string ppf "CatalaPosition"
   | TStruct sname -> format_struct ppf sname
   | TEnum ename -> format_enum ppf ename
+  | TAbstract aname -> format_qualified (module AbstractType) ppf aname
   | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
   | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
   | TDefault typ -> (format_typ ctx) ppf typ
