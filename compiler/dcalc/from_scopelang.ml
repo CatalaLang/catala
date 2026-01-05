@@ -147,6 +147,8 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
     let compare = Expr.compare
     let format = Expr.format
   end) in
+  (* Detect identical outcomes, and implicitely add a hierarchy so that a
+     conflict is'nt triggered *)
   let cons_map =
     List.fold_left
       (fun map -> function
@@ -175,6 +177,34 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
         | e -> cons_map, e :: excepts)
       excepts (cons_map, [])
   in
+  (* Detect static conflicts and warn about them *)
+  let just_map =
+    List.fold_left
+      (fun map ex ->
+        let just =
+          match ex with
+          | EDefault { cons = EDefault _, _; _ }, _ -> None
+          | EDefault { just; _ }, _ -> Some just
+          | EPureDefault (_, m), _ -> Some (ELit (LBool true), m)
+          | _ -> None
+        in
+        match just with
+        | None -> map
+        | Some just ->
+          ExprMap.update just
+            (fun prev -> Some (Expr.pos just :: Option.value ~default:[] prev))
+            map)
+      ExprMap.empty excepts
+  in
+  ExprMap.iter
+    (fun _ -> function
+      | [] | [_] -> ()
+      | pos ->
+        Message.warning
+          ~extra_pos:(List.rev_map (fun pos -> "", pos) pos)
+          "Multiple conflicting definitions:@ these have the same conditions \
+           and will always trigger a conflict at runtime.")
+    just_map;
   excepts
 
 let input_var_typ typ io_in =

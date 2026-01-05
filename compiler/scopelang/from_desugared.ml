@@ -45,7 +45,7 @@ let tag_with_log_entry
   else e
 
 (* Once implicit arguments have been inserted, the tag should be removed because
-   it changes the behaviour of the typer on function applications*)
+   it changes the behaviour of the typer on function applications *)
 let untag_implicit_args targs =
   List.map (Mark.map_mark (fun pos -> Pos.rem_attr pos ImplicitPosArg)) targs
 
@@ -407,19 +407,20 @@ let rec rule_tree_to_expr
   (* because each rule has its own variables parameters and we want to convert
      the whole rule tree into a function, we need to perform some alpha-renaming
      of all the expressions *)
-  let substitute_parameter (e : D.expr boxed) (rule : D.rule) : D.expr boxed =
+  let substitute_parameter (e : D.expr boxed) (rule : D.rule) : D.expr =
     match params, rule.D.rule_parameter with
     | Some new_params, Some (old_params_with_types, _) ->
       let old_params, _ = List.split old_params_with_types in
       let old_params = Array.of_list (List.map Mark.remove old_params) in
       let new_params = Array.of_list new_params in
       let binder = Bindlib.bind_mvar old_params (Mark.remove e) in
-      Mark.add (Mark.get e)
-      @@ Bindlib.box_apply2
-           (fun binder new_param -> Bindlib.msubst binder new_param)
-           binder
-           (new_params |> Array.map Bindlib.box_var |> Bindlib.box_array)
-    | None, None -> e
+      (* translate_expr will be called on the expression, which will rebox, so
+         it is ok to unbox now *)
+      ( Bindlib.unbox
+          (Bindlib.mbind_apply binder
+             (new_params |> Array.map Bindlib.box_var |> Bindlib.box_array)),
+        Mark.get e )
+    | None, None -> Expr.unbox e
     | _ -> assert false
     (* should not happen *)
   in
@@ -443,30 +444,19 @@ let rec rule_tree_to_expr
                the parameter at each tree level. *)
             ctx)
   in
-  let base_just_list =
-    List.map (fun rule -> substitute_parameter rule.D.rule_just rule) base_rules
-  in
-  let base_cons_list =
-    List.map (fun rule -> substitute_parameter rule.D.rule_cons rule) base_rules
-  in
-  let translate_and_unbox_list (list : D.expr boxed list) :
-      untyped Ast.expr boxed list =
-    List.map
-      (fun e ->
-        (* There are two levels of boxing here, the outermost is introduced by
-           the [translate_expr] function for which all of the bindings should
-           have been closed by now, so we can safely unbox. *)
-        translate_expr ctx (Expr.unbox e))
-      list
-  in
   let default_containing_base_cases =
     Expr.edefault
       ~excepts:
-        (List.fold_right2
-           (fun base_just base_cons acc ->
-             match Expr.unbox base_just with
+        (List.fold_right
+           (fun base_rule acc ->
+             match Expr.unbox base_rule.D.rule_just with
              | ELit (LBool false), _ -> acc
              | _ ->
+               let conv e =
+                 translate_expr ctx (substitute_parameter e base_rule)
+               in
+               let base_just = conv base_rule.D.rule_just in
+               let base_cons = conv base_rule.D.rule_cons in
                let cons = Expr.make_puredefault base_cons in
                Expr.edefault
                  ~excepts:[]
@@ -476,9 +466,7 @@ let rec rule_tree_to_expr
                  ~cons
                  (Expr.no_attrs (Mark.get cons))
                :: acc)
-           (translate_and_unbox_list base_just_list)
-           (translate_and_unbox_list base_cons_list)
-           [])
+           base_rules [])
       ~just:(Expr.elit (LBool false) emark)
       ~cons:(Expr.eempty emark) emark
   in
