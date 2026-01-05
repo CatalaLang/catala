@@ -42,6 +42,33 @@ let int_encoding : Runtime.runtime_value encoding =
         (fun s -> Runtime.Integer (Z.of_string s));
     ]
 
+let money_encoding : Runtime.runtime_value encoding =
+  let two53 = Z.(shift_left one 53) in
+  let z_100 = Z.of_int 100 in
+  union
+    [
+      case int53
+        (function
+          | Runtime.Money z when Z.lt z two53 && Z.gt z (Z.neg two53) ->
+            let z = Z.div z z_100 in
+            Some (Z.to_int64 z)
+          | _ -> None)
+        (fun i -> Runtime.Money (Z.of_int64 (Int64.mul i 100L)));
+      case float
+        (function Runtime.Money z -> Some (Z.to_float z /. 100.) | _ -> None)
+        (fun i -> Runtime.Money (Z.of_float (i *. 100.)));
+      case string
+        (function
+          | Runtime.Money z ->
+            let z = Z.div z z_100 in
+            Some (Z.to_string z)
+          | _ -> None)
+        (fun s ->
+          let q = Q.(of_string s |> mul (of_int 100)) in
+          Runtime.Money (Q.to_bigint q));
+    ]
+
+(* TODO: allow more patterns *)
 let rat_encoding : Runtime.runtime_value encoding =
   conv
     (function Runtime.Decimal d -> Q.to_float d | _ -> assert false)
@@ -79,8 +106,7 @@ let generate_lit_encoding (typ_lit : typ_lit) : Runtime.runtime_value encoding =
   | TDate -> date_encoding
   | TDuration -> duration_encoding
   | TPos -> unit_encoding
-  | _ ->
-    Message.error "Unsupported literal type conversion: %a" Print.tlit typ_lit
+  | TMoney -> money_encoding
 
 let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
     Runtime.runtime_value encoding =
