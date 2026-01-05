@@ -147,6 +147,20 @@ and generate_tuple_encoder ctx typl =
 and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   let struc = StructName.Map.find sname ctx.ctx_structs in
   let bdgs = StructField.Map.bindings struc in
+  let is_input_scope_struct =
+    ScopeName.Map.exists
+      (fun _ { in_struct_name; _ } -> StructName.equal sname in_struct_name)
+      ctx.ctx_scopes
+  in
+  let rename_field f =
+    let field_s = StructField.to_string f in
+    if
+      is_input_scope_struct
+      && String.ends_with ~suffix:"_in" field_s
+      && String.length field_s > 3
+    then String.sub field_s 0 (String.length field_s - 3), field_s
+    else field_s, field_s
+  in
   let empty_struct_enc =
     conv
       (fun _ -> ())
@@ -155,9 +169,9 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   in
   let add_req_field (encoding : Runtime.runtime_value encoding) (sf, typ) :
       Runtime.runtime_value encoding =
-    let field_s = StructField.to_string sf in
+    let field_label, field_s = rename_field sf in
     let bconv =
-      merge_objs encoding (obj1 (req field_s (generate_encoder ctx typ)))
+      merge_objs encoding (obj1 (req field_label (generate_encoder ctx typ)))
     in
     conv
       (function
@@ -173,9 +187,9 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   in
   let add_opt_field (encoding : Runtime.runtime_value encoding) (sf, typ) :
       Runtime.runtime_value encoding =
-    let field_s = StructField.to_string sf in
+    let field_label, field_s = rename_field sf in
     let bconv =
-      merge_objs encoding (obj1 (opt field_s (generate_encoder ctx typ)))
+      merge_objs encoding (obj1 (opt field_label (generate_encoder ctx typ)))
     in
     conv
       (function
