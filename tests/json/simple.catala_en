@@ -11,35 +11,35 @@ scope S:
 ```
 
 ```catala-test-cli
-$ catala test-scope S --json-input {"x":1,"y":true,"z":123}
+$ catala test-scope S --input {"x":1,"y":true,"z":123}
 ┌─[RESULT]─ S ─
 │ r = $123.00
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope S --json-input {"x":0.0,"y":false,"z":123}
+$ catala test-scope S --input {"x":0.0,"y":false,"z":123}
 ┌─[RESULT]─ S ─
 │ r = $0.00
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope S --json-input {"x":"999999999","y":true,"z":123.32}
+$ catala test-scope S --input {"x":"999999999","y":true,"z":123.32}
 ┌─[RESULT]─ S ─
 │ r = $123.32
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope S --json-input {"x":"999999999","y":true,"z":"123.32"}
+$ catala test-scope S --input {"x":"999999999","y":true,"z":"123.32"}
 ┌─[RESULT]─ S ─
 │ r = $123.32
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope S --json-input {"x":"999999999","y":true,"z":"123"}
+$ catala test-scope S --input {"x":"999999999","y":true,"z":"123"}
 ┌─[RESULT]─ S ─
 │ r = $123.00
 └─

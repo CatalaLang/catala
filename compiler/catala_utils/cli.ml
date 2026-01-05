@@ -627,7 +627,7 @@ module Flags = struct
     in
     value
     & opt (some converter) None
-    & info ["json-input"] ~docv:"FILE|JSON"
+    & info ["input"] ~docv:"FILE|JSON"
         ~doc:
           "Reads a JSON value from the given string or file ($(b,-) for stdin) \
            and uses it as input value when interpreting the given scope. See \
