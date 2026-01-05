@@ -882,6 +882,9 @@ let code_item :=
     topdef_expr;
   }, []
 }
+| DECLARATION ; name = uident ; {
+  AbstractTypeDecl name, []
+}
 
 let opt_def ==
 | DEFINED_AS; expression

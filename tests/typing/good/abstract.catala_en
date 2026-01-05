@@ -1,0 +1,16 @@
+
+```catala-metadata
+declaration Abstract
+
+declaration scope S:
+  context foo content Abstract
+  output bar content integer
+
+scope S:
+  definition bar equals 1
+```
+
+
+```catala-test-cli
+$ catala test-scope S
+```
