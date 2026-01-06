@@ -876,12 +876,13 @@ module Commands = struct
       options
       ?(quiet = false)
       interpreter
-      scope_uid =
+      scope_uid
+      (ctx : decl_ctx) =
     try
       Message.debug "Starting interpretation...";
       let results, cov_opt = interpreter () in
       Message.debug "End of interpretation";
-      let results =
+      let sorted_results =
         List.sort
           (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
           results
@@ -889,25 +890,54 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then begin
-        (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
-          ScopeName.format scope_uid (fun fmt ->
-            Option.iter
-              (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
-              cov_opt)
-      end
-      else if results = [] then Message.result "Computation successful!"
-      else
-        Message.results
-          ~title:(ScopeName.to_string scope_uid)
-          (List.map
-             (fun ((var, _), result) ppf ->
-               Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
-                 (if options.Global.debug then Print.expr ~debug:false ()
-                  else Print.UserFacing.value language)
-                 result)
-             results);
+      (if quiet then begin
+         (* Caution: this output is parsed by Clerk *)
+         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+           ScopeName.format scope_uid (fun fmt ->
+             Option.iter
+               (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
+               cov_opt)
+       end
+       else
+         match results, options.Global.output_format with
+         | [], Human -> Message.result "Computation successful!"
+         | _ :: _, Human ->
+           Message.results
+             ~title:(ScopeName.to_string scope_uid)
+             ((List.map (fun ((var, _), result) ppf ->
+                   Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+                     (if options.Global.debug then Print.expr ~debug:false ()
+                      else Print.UserFacing.value language)
+                     result))
+                sorted_results)
+         | [], JSON ->
+           Format.fprintf (Message.std_ppf ()) "%a@."
+             (Yojson.Safe.pretty_print ~std:true)
+             (`Assoc [])
+         | (_, f_e) :: _, JSON ->
+           let { out_struct_name; _ } =
+             ScopeName.Map.find scope_uid ctx.ctx_scopes
+           in
+           let struct_result =
+             let fields =
+               List.fold_left
+                 (fun m (sf_s, e) ->
+                   StructField.Map.add (StructField.fresh sf_s) (Expr.box e) m)
+                 StructField.Map.empty results
+             in
+             Expr.estruct ~name:out_struct_name ~fields (Mark.get f_e)
+             |> Expr.unbox
+             |> Encoding.convert_from_gexpr ctx
+           in
+           let encoding =
+             Encoding.make_encoding ctx
+               (Mark.add Pos.void (TStruct out_struct_name))
+           in
+           let module Enc = Json_encoding.Make (Json_repr.Yojson) in
+           let json = Enc.construct encoding struct_result in
+           Format.fprintf (Message.std_ppf ()) "%a@."
+             (Yojson.Safe.pretty_print ~std:true)
+             json);
       true
     with
     | Message.CompilerError content ->
@@ -953,12 +983,15 @@ module Commands = struct
               res, Some cov
             in
             print_interpretation_results options ~quiet interp scope
+              prg.decl_ctx
           else
             let interp () =
               ( Interpreter.interpret_program_dcalc ?input:json_input prg scope,
                 None )
             in
-            print_interpretation_results ~quiet options interp scope && success)
+            print_interpretation_results ~quiet options interp scope
+              prg.decl_ctx
+            && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in
@@ -1055,7 +1088,8 @@ module Commands = struct
             ( Interpreter.interpret_program_lcalc ?input:json_input prg scope,
               None )
           in
-          print_interpretation_results ~quiet options interp scope && success)
+          print_interpretation_results ~quiet options interp scope prg.decl_ctx
+          && success)
         true
         (get_scopelist_uids prg ex_scopes)
     in

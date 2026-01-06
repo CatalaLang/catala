@@ -32,8 +32,8 @@ type when_enum = Auto | Always | Never
 (** Format of error and warning messages output by the compiler. *)
 type message_format_enum = Human | GNU | Lsp
 
-(** Format of trace logs *)
-type trace_format_enum = Human | JSON
+(** Format of trace logs and interpretation results *)
+type format_enum = Human | JSON
 
 (** Sources for program input *)
 type 'file input_src =
@@ -54,7 +54,8 @@ type options = private {
   mutable color : when_enum;
   mutable message_format : message_format_enum;
   mutable trace : Format.formatter Lazy.t option;
-  mutable trace_format : trace_format_enum;
+  mutable trace_format : format_enum;
+  mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
@@ -81,7 +82,8 @@ val enforce_options :
   ?color:when_enum ->
   ?message_format:message_format_enum ->
   ?trace:Format.formatter Lazy.t option ->
-  ?trace_format:trace_format_enum ->
+  ?trace_format:format_enum ->
+  ?output_format:format_enum ->
   ?plugins_dirs:file list ->
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->

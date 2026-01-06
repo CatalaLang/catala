@@ -402,7 +402,8 @@ let init
     include_dirs
     color
     debug
-    whole_program =
+    whole_program
+    output_format =
   if debug then Printexc.record_backtrace true;
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let default_config_file = "clerk.toml" in
@@ -485,6 +486,11 @@ let init
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags
   in
+  let catala_opts =
+    match output_format with
+    | Global.Human -> catala_opts
+    | JSON -> ["--format"; "json"] @ catala_opts
+  in
   {
     options =
       {
@@ -518,4 +524,5 @@ let init_term ?(allow_test_flags = false) () =
     $ include_dirs
     $ color
     $ debug
-    $ whole_program)
+    $ whole_program
+    $ Cli.Flags.output_format)

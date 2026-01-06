@@ -19,7 +19,7 @@ type raw_file = file
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU | Lsp
-type trace_format_enum = Human | JSON
+type format_enum = Human | JSON
 
 type 'file input_src =
   | FileName of 'file
@@ -34,7 +34,8 @@ type options = {
   mutable color : when_enum;
   mutable message_format : message_format_enum;
   mutable trace : Format.formatter Lazy.t option;
-  mutable trace_format : trace_format_enum;
+  mutable trace_format : format_enum;
+  mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
@@ -61,6 +62,7 @@ let options =
     message_format = Human;
     trace = None;
     trace_format = Human;
+    output_format = Human;
     plugins_dirs = [];
     disable_warnings = false;
     max_prec_digits = 20;
@@ -81,6 +83,7 @@ let enforce_options
     ?message_format
     ?trace
     ?trace_format
+    ?output_format
     ?plugins_dirs
     ?disable_warnings
     ?max_prec_digits
@@ -99,6 +102,7 @@ let enforce_options
   Option.iter (fun x -> options.message_format <- x) message_format;
   Option.iter (fun x -> options.trace <- x) trace;
   Option.iter (fun x -> options.trace_format <- x) trace_format;
+  Option.iter (fun x -> options.output_format <- x) output_format;
   Option.iter (fun x -> options.plugins_dirs <- x) plugins_dirs;
   Option.iter (fun x -> options.disable_warnings <- x) disable_warnings;
   Option.iter (fun x -> options.max_prec_digits <- x) max_prec_digits;
