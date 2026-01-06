@@ -406,3 +406,39 @@ let rec convert_to_lcalc
     Message.error
       "Cannot convert runtime_value to lcalc: expected value of type %a, got %a"
       Print.typ typ Runtime.format_value r
+
+let rec convert_from_gexpr :
+    type a. decl_ctx -> (a, 'm) gexpr -> Runtime.runtime_value =
+ fun ctx e ->
+  let f = convert_from_gexpr ctx in
+  match Mark.remove e with
+  | ELit LUnit -> Unit
+  | ELit (LBool b) -> Bool b
+  | ELit (LMoney m) -> Money m
+  | ELit (LInt z) -> Integer z
+  | ELit (LRat q) -> Decimal q
+  | ELit (LDate d) -> Date d
+  | ELit (LDuration d) -> Duration d
+  | EEmpty -> Enum ("Optional", ("Absent", Unit))
+  | EPureDefault e -> Enum ("Optional", ("Present", f e))
+  | EInj { name; cons; e = _ }
+    when EnumName.equal Expr.option_enum name
+         && EnumConstructor.equal cons Expr.none_constr ->
+    Enum ("Optional", ("Absent", Unit))
+  | EInj { name; cons; e }
+    when EnumName.equal Expr.option_enum name
+         && EnumConstructor.equal cons Expr.some_constr ->
+    Enum ("Optional", ("Present", f e))
+  | EInj { name; cons; e } ->
+    Enum (EnumName.to_string name, (EnumConstructor.to_string cons, f e))
+  | EStruct { name; fields } ->
+    Struct
+      ( StructName.to_string name,
+        StructField.Map.bindings fields
+        |> List.map (fun (sf, e) -> StructField.to_string sf, f e) )
+  | EArray el -> Array (List.map f el |> Array.of_list)
+  | ETuple [e; (EPos _, _)] -> f e
+  | ETuple el -> Tuple (List.map f el |> Array.of_list)
+  | _ ->
+    Message.error "Failed to convert expression to runtime_value: %a"
+      (Print.expr ()) e

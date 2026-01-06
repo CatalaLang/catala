@@ -44,3 +44,8 @@ val convert_to_dcalc :
 val convert_to_lcalc :
   decl_ctx -> 'm mark -> typ -> runtime_value -> (lcalc, 'm) gexpr boxed
 (** Conversion function from a [runtime_value] to a lambda calculus expression. *)
+
+val convert_from_gexpr : decl_ctx -> (_, 'm) gexpr -> runtime_value
+(** Conversion function from a generic expression to a runtime value. This
+    functions expects the expression to be composed of encodable-only nodes
+    (e.g., no lambdas, closures, etc.) *)
