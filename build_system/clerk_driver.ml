@@ -998,22 +998,28 @@ let run_tests
     backend
     cmd
     scope
-    json_input
+    scope_input
     (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
   match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
   | `Interpret ->
+    let () =
+      match scope_input, test_targets with
+      | None, _ | Some _, [_] -> ()
+      | Some _, _ ->
+        Message.error
+          "Multiple targets found for a single input, please specify a single \
+           target."
+    in
     let catala_flags =
       get_var var_bindings Var.catala_flags
-      @ (match scope, json_input with
-        | None, _ -> []
-        | Some s, None -> [Printf.sprintf "--scope=%s" s]
-        | Some s, Some (json : Yojson.Safe.t) ->
-          [
-            Printf.sprintf "--scope=%s" s;
-            Printf.sprintf "--json-input=%s"
-              (Yojson.Safe.to_string ~std:true json);
-          ])
+      @ (match scope with
+        | None -> []
+        | Some scope -> [Printf.sprintf "--scope=%s" scope])
+      @ (match scope_input with
+        | None -> []
+        | Some input ->
+          [Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input)])
       @ if whole_program then ["--whole-program"] else []
     in
     let exec = get_var var_bindings Var.catala_exe in
@@ -1042,18 +1048,14 @@ let run_cmd =
       cmd
       quiet
       (scope : string option)
-      json_input
+      scope_input
       (ninja_flags : string list)
       prepare_only
       whole_program =
     let test_only =
-      match json_input, scope, backend with
-      | Some _, Some _, `Interpret -> false
-      | Some _, None, _ ->
-        Message.error
-          "A scope must be specified when providing a JSON input. See --scope \
-           option."
-      | Some _, Some _, _ ->
+      match scope_input, backend with
+      | Some _, `Interpret -> false
+      | Some _, _ ->
         Message.error "JSON input is only supported with the interpret backend."
       | _ -> true
     in
@@ -1064,7 +1066,7 @@ let run_cmd =
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
-    else run_tests ~whole_program config backend cmd scope json_input tests
+    else run_tests ~whole_program config backend cmd scope scope_input tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \

@@ -448,21 +448,42 @@ module Commands = struct
         scope
         ~suggestion:(Ident.Map.keys ctx.ctx_scope_index)
 
-  let get_scopelist_uids ?(tests_only = true) prg (scopes : string list) :
-      ScopeName.t list =
+  let get_single_scope_uid prg (scopes : string list) =
+    match scopes with
+    | [s] -> get_scope_uid prg.decl_ctx s
+    | _ :: _ ->
+      Message.error "Expected at most one scope argument but got multiple ones."
+    | [] -> (
+      let exports = BoundList.last prg.code_items in
+      let prg_scopes =
+        List.filter_map
+          (function KScope scope, _ -> Some scope | _ -> None)
+          exports
+      in
+      match prg_scopes with
+      | [] ->
+        Message.error
+          "The program has no exported scopes.@ Please specify option \
+           @{<yellow>--scope@}@ to execute a private scope@ or add \
+           ```catala-metadata to a scope declaration."
+      | _ :: _ :: _ ->
+        Message.error
+          "The program defines multiple scopes but only one was expected.@ \
+           Please specify option @{<yellow>--scope@} to explicit what to \
+           execute.@ The program defines the following scopes:@ @[<hv 4>%a@]"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
+          prg_scopes
+      | [h] -> h)
+
+  let get_test_scopes_uids prg (scopes : string list) : ScopeName.t list =
     match scopes with
     | _ :: _ -> List.map (get_scope_uid prg.decl_ctx) scopes
     | [] ->
       let exports = BoundList.last prg.code_items in
       let test_scopes =
-        if tests_only then
-          List.filter_map
-            (function KTest scope, _ -> Some scope | _ -> None)
-            exports
-        else
-          List.filter_map
-            (function KScope scope, _ -> Some scope | _ -> None)
-            exports
+        List.filter_map
+          (function KTest scope, _ -> Some scope | _ -> None)
+          exports
       in
       if test_scopes = [] then
         Message.warning
@@ -971,6 +992,10 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
+    let scopes =
+      if Option.is_none scope_input then get_test_scopes_uids prg ex_scopes
+      else [get_single_scope_uid prg ex_scopes]
+    in
     let success =
       List.fold_left
         (fun success scope ->
@@ -992,8 +1017,7 @@ module Commands = struct
             print_interpretation_results ~quiet options interp scope
               prg.decl_ctx
             && success)
-        true
-        (get_scopelist_uids prg ex_scopes)
+        true scopes
     in
     if not success then raise (Cli.Exit_with 123)
 
@@ -1081,6 +1105,10 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
       prg;
+    let scopes =
+      if Option.is_none scope_input then get_test_scopes_uids prg ex_scopes
+      else [get_single_scope_uid prg ex_scopes]
+    in
     let success =
       List.fold_left
         (fun success scope ->
@@ -1090,8 +1118,7 @@ module Commands = struct
           in
           print_interpretation_results ~quiet options interp scope prg.decl_ctx
           && success)
-        true
-        (get_scopelist_uids prg ex_scopes)
+        true scopes
     in
     if not success then raise (Cli.Exit_with 123)
 
@@ -1469,7 +1496,7 @@ module Commands = struct
         $ Cli.Flags.Global.options)
 
   let json_schema_cmd =
-    let f options includes stdlib ex_scopes =
+    let f options includes stdlib ex_scope =
       let mark = Expr.typed in
       let prg, _ =
         Passes.dcalc options ~includes ~stdlib ~optimize:false
@@ -1478,44 +1505,41 @@ module Commands = struct
       Interpreter.load_runtime_modules
         ~hashf:Hash.(finalise ~monomorphize_types:false)
         prg;
-      List.iter
-        (fun scope ->
-          let { in_struct_name; out_struct_name; _ } =
-            ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
-          in
-          let scope_input_schema =
-            let input_ty = TStruct in_struct_name, Expr.mark_pos mark in
-            let encoding =
-              Encoding.scope_input_encoding scope prg.decl_ctx input_ty
-            in
-            Json_encoding.schema encoding
-          in
-          let scope_output_schema =
-            let output_ty = TStruct out_struct_name, Expr.mark_pos mark in
-            let encoding =
-              Encoding.scope_output_encoding scope prg.decl_ctx output_ty
-            in
-            Json_encoding.schema encoding
-          in
-          let module Schema_repr = Json_schema.Make (Json_repr.Yojson) in
-          Format.fprintf (Message.std_ppf ()) "%a@\n%a@\n"
-            (Yojson.Safe.pretty_print ~std:true)
-            (Schema_repr.to_json scope_input_schema)
-            (Yojson.Safe.pretty_print ~std:true)
-            (Schema_repr.to_json scope_output_schema))
-        (get_scopelist_uids ~tests_only:false prg ex_scopes)
+      let scope = get_scope_uid prg.decl_ctx ex_scope in
+      let { in_struct_name; out_struct_name; _ } =
+        ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
+      in
+      let module Schema_repr = Json_schema.Make (Json_repr.Yojson) in
+      let scope_input_schema_json =
+        let input_ty = TStruct in_struct_name, Expr.mark_pos mark in
+        let encoding =
+          Encoding.scope_input_encoding scope prg.decl_ctx input_ty
+        in
+        Json_encoding.schema encoding |> Schema_repr.to_json
+      in
+      let scope_output_schema_json =
+        let output_ty = TStruct out_struct_name, Expr.mark_pos mark in
+        let encoding =
+          Encoding.scope_output_encoding scope prg.decl_ctx output_ty
+        in
+        Json_encoding.schema encoding |> Schema_repr.to_json
+      in
+      Format.fprintf (Message.std_ppf ()) "%a@\n"
+        (Yojson.Safe.pretty_print ~std:true)
+        (`List [scope_input_schema_json; scope_output_schema_json])
     in
     Cmd.v
       (Cmd.info "json-schema" ~man:Cli.man_base
          ~doc:
-           "Display the JSON-schema of the input and output JSON objects for \
-            the given scopes.")
+           "Display the JSON-schema of the input and output JSON objects of \
+            the given scope. Both schemas are contained in a JSON array of two \
+            elements: first one being the input, the second one the output.")
       Term.(
         const f
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
-        $ Cli.Flags.ex_scopes)
+        $ Cli.Flags.ex_scope)
 
   let commands =
     [
