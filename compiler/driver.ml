@@ -1446,19 +1446,36 @@ module Commands = struct
         prg;
       List.iter
         (fun scope ->
-          let { in_struct_name; out_struct_name = _; _ } =
+          let { in_struct_name; out_struct_name; _ } =
             ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
           in
-          let ty = TStruct in_struct_name, Expr.mark_pos mark in
-          let encoding = Encoding.make_encoding prg.decl_ctx ty in
-          let scope_input_schema = Json_encoding.schema encoding in
-          Message.result "schema for %s:@\n%a"
-            (ScopeName.to_string scope)
-            Json_schema.pp scope_input_schema)
+          let scope_input_schema =
+            let input_ty = TStruct in_struct_name, Expr.mark_pos mark in
+            let encoding =
+              Encoding.scope_input_encoding scope prg.decl_ctx input_ty
+            in
+            Json_encoding.schema encoding
+          in
+          let scope_output_schema =
+            let output_ty = TStruct out_struct_name, Expr.mark_pos mark in
+            let encoding =
+              Encoding.scope_output_encoding scope prg.decl_ctx output_ty
+            in
+            Json_encoding.schema encoding
+          in
+          let module Schema_repr = Json_schema.Make (Json_repr.Yojson) in
+          Format.fprintf (Message.std_ppf ()) "%a@\n%a@\n"
+            (Yojson.Safe.pretty_print ~std:true)
+            (Schema_repr.to_json scope_input_schema)
+            (Yojson.Safe.pretty_print ~std:true)
+            (Schema_repr.to_json scope_output_schema))
         (get_scopelist_uids ~tests_only:false prg ex_scopes)
     in
     Cmd.v
-      (Cmd.info "json-schema" ~man:Cli.man_base ~doc:"TODO")
+      (Cmd.info "json-schema" ~man:Cli.man_base
+         ~doc:
+           "Display the JSON-schema of the input and output JSON objects for \
+            the given scopes.")
       Term.(
         const f
         $ Cli.Flags.Global.options

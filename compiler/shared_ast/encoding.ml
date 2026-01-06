@@ -281,6 +281,20 @@ let make_encoding (ctx : decl_ctx) (typ : typ) : Runtime.runtime_value encoding
     =
   generate_encoder ctx typ
 
+let scope_input_encoding scope ctx typ =
+  let scope_s = ScopeName.to_string scope in
+  let title = Format.sprintf "Scope %s input" scope_s in
+  let description = Format.sprintf "Input structure of scope %s" scope_s in
+  let encoding = make_encoding ctx typ in
+  def (scope_s ^ "_input") ~title ~description encoding
+
+let scope_output_encoding scope ctx typ =
+  let scope_s = ScopeName.to_string scope in
+  let title = Format.sprintf "Scope %s output" scope_s in
+  let description = Format.sprintf "Output structure of scope %s" scope_s in
+  let encoding = make_encoding ctx typ in
+  def (scope_s ^ "_output") ~title ~description encoding
+
 module Yojson_repr = Json_encoding.Make (Json_repr.Yojson)
 
 let parse_json e json =

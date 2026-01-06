@@ -23,6 +23,16 @@ val make_encoding : decl_ctx -> typ -> runtime_value Json_encoding.encoding
 (** Computes a JSON encoding of a Catala type using [runtime_value] as an
     intermediate representation. *)
 
+val scope_input_encoding :
+  ScopeName.t -> decl_ctx -> typ -> runtime_value Json_encoding.encoding
+(** Same as [make_encoding] but adds a title and a description to the generated
+    JSON-schema expliciting that this represent a scope input structure. *)
+
+val scope_output_encoding :
+  ScopeName.t -> decl_ctx -> typ -> runtime_value Json_encoding.encoding
+(** Same as [make_encoding] but adds a title and a description to the generated
+    JSON-schema expliciting that this represent a scope output structure. *)
+
 val parse_json :
   runtime_value Json_encoding.encoding -> Yojson.Safe.t -> runtime_value
 (** Parse a JSON using the given encoding as validation schema. *)
