@@ -244,12 +244,13 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
         | _ -> assert false)
       bconv
   in
-  List.fold_left
-    (fun e (sf, typ) ->
-      match Mark.remove typ with
-      | TOption typ | TDefault typ -> add_opt_field e (sf, typ)
-      | _ -> add_req_field e (sf, typ))
-    empty_struct_enc bdgs
+  def (Format.asprintf "%a" StructName.format_shortpath sname)
+  @@ List.fold_left
+       (fun e (sf, typ) ->
+         match Mark.remove typ with
+         | TOption typ | TDefault typ -> add_opt_field e (sf, typ)
+         | _ -> add_req_field e (sf, typ))
+       empty_struct_enc bdgs
 
 and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let enum = EnumName.Map.find ename ctx.ctx_enums in
@@ -275,7 +276,8 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
             (Enum (EnumName.to_string ename, (EnumConstructor.to_string cstr, v))))
         (function Enum (_, (_, v)) -> v | _ -> assert false)
   in
-  List.map make_constructor_case bdgs |> union
+  def (Format.asprintf "%a" EnumName.format_shortpath ename)
+  @@ (List.map make_constructor_case bdgs |> union)
 
 let make_encoding (ctx : decl_ctx) (typ : typ) : Runtime.runtime_value encoding
     =
