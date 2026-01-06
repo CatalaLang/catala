@@ -255,25 +255,18 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
 and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let enum = EnumName.Map.find ename ctx.ctx_enums in
   let bdgs = EnumConstructor.Map.bindings enum in
-  let make_constructor_case (cstr, typ) : Runtime.runtime_value case =
+  let open Runtime in
+  let ename_s = EnumName.to_string ename in
+  let make_constructor_case (cstr, typ) : runtime_value case =
     match Mark.remove typ with
     | TLit TUnit ->
-      case
-        (make_constant (EnumConstructor.to_string cstr))
-        (function
-          | (Unit : Runtime.runtime_value) ->
-            Some
-              (Enum
-                 ( EnumName.to_string ename,
-                   (EnumConstructor.to_string cstr, Unit) ))
-          | _ -> None)
-        (fun _ -> Unit)
+      case string
+        (function Enum (_ename, (cstr, _)) -> Some cstr | _ -> assert false)
+        (fun s -> Enum (ename_s, (s, Unit)))
     | _ ->
       case
         (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
-        (fun v ->
-          Some
-            (Enum (EnumName.to_string ename, (EnumConstructor.to_string cstr, v))))
+        (fun v -> Some (Enum (ename_s, (EnumConstructor.to_string cstr, v))))
         (function Enum (_, (_, v)) -> v | _ -> assert false)
   in
   def (Format.asprintf "%a" EnumName.format_shortpath ename)
