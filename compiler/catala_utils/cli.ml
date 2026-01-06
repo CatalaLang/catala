@@ -620,7 +620,7 @@ module Flags = struct
           "Append the given subdir at the end of the path of each of the files \
            in the returned list. Usually matches the name of the backend used."
 
-  let json_input : Yojson.Safe.t option Term.t =
+  let scope_input : Yojson.Safe.t option Term.t =
     let converter =
       conv ~docv:"FILE|JSON"
         ( (fun s ->

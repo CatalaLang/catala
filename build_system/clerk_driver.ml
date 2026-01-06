@@ -1080,7 +1080,7 @@ let run_cmd =
       $ Cli.run_command
       $ Cli.quiet
       $ Cli.scope
-      $ Cli.json_input
+      $ Cli.scope_input
       $ Cli.ninja_flags
       $ Cli.prepare_only
       $ Cli.whole_program)

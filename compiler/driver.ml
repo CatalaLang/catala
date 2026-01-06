@@ -963,7 +963,7 @@ module Commands = struct
       check_invariants
       quiet
       ex_scopes
-      json_input =
+      scope_input =
     let prg, _ =
       Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~typed
@@ -986,7 +986,7 @@ module Commands = struct
               prg.decl_ctx
           else
             let interp () =
-              ( Interpreter.interpret_program_dcalc ?input:json_input prg scope,
+              ( Interpreter.interpret_program_dcalc ?input:scope_input prg scope,
                 None )
             in
             print_interpretation_results ~quiet options interp scope
@@ -1071,7 +1071,7 @@ module Commands = struct
       check_invariants
       quiet
       ex_scopes
-      json_input =
+      scope_input =
     let options = if closure_conversion then fix_trace options else options in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -1085,7 +1085,7 @@ module Commands = struct
       List.fold_left
         (fun success scope ->
           let interp () =
-            ( Interpreter.interpret_program_lcalc ?input:json_input prg scope,
+            ( Interpreter.interpret_program_lcalc ?input:scope_input prg scope,
               None )
           in
           print_interpretation_results ~quiet options interp scope prg.decl_ctx
@@ -1145,7 +1145,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
         $ Cli.Flags.ex_scopes
-        $ Cli.Flags.json_input)
+        $ Cli.Flags.scope_input)
 
   let ocaml
       options
