@@ -233,9 +233,18 @@ let reset_test_outputs =
           "Used with the `test` command, resets the test output to whatever is \
            output by the Catala compiler.")
 
-let scope =
+let scope_opt =
   Arg.(
     value
+    & opt (some string) None
+    & info ["s"; "scope"] ~docv:"SCOPE"
+        ~doc:
+          "Used with the `run` command, selects which scope of a given Catala \
+           file to run.")
+
+let scope =
+  Arg.(
+    required
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE"
         ~doc:

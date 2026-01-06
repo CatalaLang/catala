@@ -1079,7 +1079,7 @@ let run_cmd =
       $ Cli.backend
       $ Cli.run_command
       $ Cli.quiet
-      $ Cli.scope
+      $ Cli.scope_opt
       $ Cli.scope_input
       $ Cli.ninja_flags
       $ Cli.prepare_only
@@ -1555,6 +1555,40 @@ let list_vars_cmd =
   in
   Cmd.v (Cmd.info ~doc "list-vars") Term.(const run $ Cli.init_term ())
 
+let json_schema_cmd =
+  let run config ninja_flags quiet file scope =
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
+      ~ninja_flags ~autotest:false ~quiet
+      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
+    |> fun (items, _link_deps, var_bindings) ->
+    let catala_exe = get_var var_bindings Var.catala_exe in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    match items with
+    | [] ->
+      Message.error "Found no valid compiled target to extract JSON schema"
+    | ({ Scan.file_name; _ }, _) :: _ ->
+      let cmd =
+        catala_exe @ ["json-schema"; file_name; "--scope"; scope] @ catala_flags
+      in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      run_command cmd
+  in
+  let doc =
+    "Display the JSON-schema of the input and output JSON objects of the given \
+     scope (using $(b,--scope <scope-name>)). Both schemas are contained in a \
+     JSON array of two elements: first one being the input, the second one the \
+     output."
+  in
+  Cmd.v
+    (Cmd.info ~doc "json-schema")
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.ninja_flags
+      $ Cli.quiet
+      $ Cli.single_file
+      $ Cli.scope)
+
 let main_cmd =
   Cmd.group Cli.info
     [
@@ -1569,6 +1603,7 @@ let main_cmd =
       report_cmd;
       raw_cmd;
       list_vars_cmd;
+      json_schema_cmd;
     ]
 
 let main () =

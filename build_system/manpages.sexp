@@ -2,6 +2,7 @@
 (rule (alias man) (action (with-stdout-to clerk-build.1 (run %{bin:clerk} build --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-ci.1 (run %{bin:clerk} ci --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-clean.1 (run %{bin:clerk} clean --help=groff))))
+(rule (alias man) (action (with-stdout-to clerk-json-schema.1 (run %{bin:clerk} json-schema --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-list-vars.1 (run %{bin:clerk} list-vars --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-raw-target.1 (run %{bin:clerk} raw-target --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-report.1 (run %{bin:clerk} report --help=groff))))
