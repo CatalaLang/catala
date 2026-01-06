@@ -297,9 +297,19 @@ let scope_output_encoding scope ctx typ =
 
 module Yojson_repr = Json_encoding.Make (Json_repr.Yojson)
 
-let parse_json e json =
-  try Yojson_repr.destruct e json
-  with e -> Message.error "%a" (fun fmt -> Json_encoding.print_error fmt) e
+let parse_json enc json =
+  try Yojson_repr.destruct enc json
+  with e ->
+    let print_unknown fmt = function
+      | Failure msg -> Format.pp_print_string fmt msg
+      | e -> Format.pp_print_string fmt (Printexc.to_string e)
+    in
+    Message.error
+      "@[<v 2>Failed to validate JSON:@ %a@]@\n\
+       @\n\
+       @[<v 2>Expected JSON object of the form:@ %a@]"
+      (fun fmt -> Json_encoding.print_error ~print_unknown fmt)
+      e Json_schema.pp (Json_encoding.schema enc)
 
 let rec convert_to_dcalc
     ctx
