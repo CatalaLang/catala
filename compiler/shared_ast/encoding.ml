@@ -45,26 +45,30 @@ let int_encoding : Runtime.runtime_value encoding =
 let money_encoding : Runtime.runtime_value encoding =
   let two53 = Z.(shift_left one 53) in
   let z_100 = Z.of_int 100 in
+  let q_100 = Q.of_int 100 in
   union
     [
       case int53
         (function
-          | Runtime.Money z when Z.lt z two53 && Z.gt z (Z.neg two53) ->
-            let z = Z.div z z_100 in
-            Some (Z.to_int64 z)
+          | Runtime.Money z
+            when Z.lt z two53 && Z.gt z (Z.neg two53) && Z.rem z z_100 = Z.zero
+            ->
+            Some Z.(div z z_100 |> to_int64)
           | _ -> None)
-        (fun i -> Runtime.Money (Z.of_int64 (Int64.mul i 100L)));
+        (fun i -> Runtime.Money Z.(mul (of_int64 i) z_100));
       case float
         (function Runtime.Money z -> Some (Z.to_float z /. 100.) | _ -> None)
-        (fun i -> Runtime.Money (Z.of_float (i *. 100.)));
+        (fun i ->
+          let z = Z.of_float (i *. 100.) in
+          Runtime.Money z);
       case string
         (function
           | Runtime.Money z ->
-            let z = Z.div z z_100 in
-            Some (Z.to_string z)
+            let z = Q.div (Q.of_bigint z) q_100 in
+            Some (Q.to_string z)
           | _ -> None)
         (fun s ->
-          let q = Q.(of_string s |> mul (of_int 100)) in
+          let q = Q.(of_string s |> mul q_100) in
           Runtime.Money (Q.to_bigint q));
     ]
 
