@@ -39,7 +39,10 @@ let int_encoding : Runtime.runtime_value encoding =
         (fun i -> Runtime.Integer (Z.of_int i));
       case string
         (function Runtime.Integer z -> Some (Z.to_string z) | _ -> None)
-        (fun s -> Runtime.Integer (Z.of_string s));
+        (fun s ->
+          try Runtime.Integer (Z.of_string s)
+          with _ ->
+            raise (Json_encoding.Unexpected ("string", "numeric string")));
     ]
 
 let money_encoding : Runtime.runtime_value encoding =
@@ -65,8 +68,11 @@ let money_encoding : Runtime.runtime_value encoding =
             Some (Q.to_string z)
           | _ -> None)
         (fun s ->
-          let q = Q.(of_string s |> mul q_100) in
-          Runtime.Money (Q.to_bigint q));
+          try
+            let q = Q.(of_string s |> mul q_100) in
+            Runtime.Money (Q.to_bigint q)
+          with _ ->
+            raise (Json_encoding.Unexpected ("string", "numeric string")));
     ]
 
 let rat_encoding : Runtime.runtime_value encoding =
@@ -76,7 +82,12 @@ let rat_encoding : Runtime.runtime_value encoding =
         (function Runtime.Decimal d -> Some (Q.to_float d) | _ -> None)
         (fun f -> Runtime.Decimal (Q.of_float f));
       case int (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int f));
-      case string (fun _ -> None) (fun s -> Runtime.Decimal (Q.of_string s));
+      case string
+        (fun _ -> None)
+        (fun s ->
+          try Runtime.Decimal (Q.of_string s)
+          with _ ->
+            raise (Json_encoding.Unexpected ("string", "numeric string")));
     ]
 
 let date_encoding : Runtime.runtime_value encoding =
