@@ -31,11 +31,14 @@ let unit_encoding : Runtime.runtime_value encoding =
     (fun () -> Runtime.Unit)
     empty
 
+let try_option f = try Some (f ()) with _ -> None
+
 let int_encoding : Runtime.runtime_value encoding =
   union
     [
       case int
-        (function Runtime.Integer z -> Some (Z.to_int z) | _ -> None)
+        (function
+          | Runtime.Integer z -> try_option (fun () -> Z.to_int z) | _ -> None)
         (fun i -> Runtime.Integer (Z.of_int i));
       case string
         (function Runtime.Integer z -> Some (Z.to_string z) | _ -> None)
@@ -53,11 +56,13 @@ let money_encoding : Runtime.runtime_value encoding =
       case int
         (function
           | Runtime.Money z when Z.rem z z_100 = Z.zero ->
-            Some Z.(div z z_100 |> to_int)
+            try_option (fun () -> Z.(div z z_100 |> to_int))
           | _ -> None)
         (fun i -> Runtime.Money Z.(mul (of_int i) z_100));
       case float
-        (function Runtime.Money z -> Some (Z.to_float z /. 100.) | _ -> None)
+        (function
+          | Runtime.Money z -> try_option (fun () -> Z.to_float z /. 100.)
+          | _ -> None)
         (fun i ->
           let z = Z.of_float (i *. 100.) in
           Runtime.Money z);
@@ -79,7 +84,8 @@ let rat_encoding : Runtime.runtime_value encoding =
   union
     [
       case float
-        (function Runtime.Decimal d -> Some (Q.to_float d) | _ -> None)
+        (function
+          | Runtime.Decimal d -> try_option (fun () -> Q.to_float d) | _ -> None)
         (fun f -> Runtime.Decimal (Q.of_float f));
       case int (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int f));
       case string
