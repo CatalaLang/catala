@@ -144,3 +144,16 @@ module Plugin : sig
     Catala_utils.Pos.attr option) ->
     unit
 end
+
+val load_modules :
+  Global.options ->
+  Global.raw_file list ->
+  stdlib:Global.raw_file option ->
+  ?more_includes:string list ->
+  ?allow_notmodules:bool ->
+  Surface.Ast.program ->
+  Shared_ast.ModuleName.t Shared_ast.Ident.Map.t
+  * (Surface.Ast.module_content
+    * Shared_ast.ModuleName.t Shared_ast.Ident.Map.t)
+    Shared_ast.ModuleName.Map.t
+(** Retrieve and load modules contents necessary to compile the given program *)
