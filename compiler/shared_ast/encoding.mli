@@ -16,6 +16,41 @@
 
 (** JSON encoding functions for Catala values *)
 
+(** {1 Runtime values to JSON encodings correspondence}
+
+{v
+   - Unit: {} (empty JSON object)
+
+   - Bool: true | false (JSON boolean)
+
+   - Money: 123 (JSON integer) | 123.45 (JSON number) | "123" (JSON string)
+     Note:
+       - integer and string representations map to monetary units and not cents
+       - floats are truncated to the second decimal
+
+   - Integer: 123 (JSON integer) | "123" (JSON string)
+
+   - Decimal: 123 (JSON integer) | 123.45 (JSON number) | "1/3" (JSON string)
+     Note: we rely on [Q.of_string] for decoding strings
+
+   - Date: "1970-01-31" (JSON string)
+     Note: we rely on [Dates_calc.date_of_string]
+
+   - Duration: "[1 years, 2 months, 3 days]" (JSON string)
+     Note: we rely on [Dates_calc.period_of_string]
+
+   - Enum:
+     - Unit constructors: "A" (JSON string)
+     - Non-unit constructors: {"B": <json value>} (JSON object)
+
+   - Struct: { "x": <json value>, "y": <json value>, ...} (JSON object)
+
+   - Array: [ <json value>, <json value>, ...] (JSON array)
+
+   - Tuple: [ <json value>, <json value>, ...] (JSON array)
+}
+*)
+
 open Definitions
 open Catala_runtime
 
