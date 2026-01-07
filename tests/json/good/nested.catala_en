@@ -1,0 +1,137 @@
+```catala-metadata
+declaration structure S:
+  data x content integer
+  data y content boolean
+
+declaration structure SS:
+  data a content S
+  data b content S
+
+declaration enumeration E:
+  -- A content S
+  -- B
+
+declaration scope T:
+  input e content E
+  input s content SS
+
+  output r content S
+
+scope T:
+  definition r equals
+    match e with pattern
+    -- A content s : s
+    -- B :
+      # removes unused warning
+      if s.b.y and s.b.x > 0 then s.a else s.b
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format human
+┌─[RESULT]─ T ─
+│ r = S { -- x: 2 -- y: false }
+└─
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format json
+{ "r": { "x": 2.0, "y": false } }
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format json
+{ "r": { "x": 2.0, "y": false } }
+```
+
+```catala-test-cli
+$ catala json-schema --scope T
+[
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope T input",
+    "description": "Input structure of scope T",
+    "$ref": "#/definitions/T_in",
+    "definitions": {
+      "E": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": { "A": { "$ref": "#/definitions/S" } },
+            "required": [ "A" ],
+            "additionalProperties": false
+          },
+          { "type": "string" }
+        ]
+      },
+      "S": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": -1073741824.0,
+                "maximum": 1073741823.0
+              },
+              { "type": "string" }
+            ]
+          },
+          "y": { "type": "boolean" }
+        },
+        "required": [ "y", "x" ],
+        "additionalProperties": false
+      },
+      "SS": {
+        "type": "object",
+        "properties": {
+          "a": { "$ref": "#/definitions/S" },
+          "b": { "$ref": "#/definitions/S" }
+        },
+        "required": [ "b", "a" ],
+        "additionalProperties": false
+      },
+      "T_in": {
+        "type": "object",
+        "properties": {
+          "e": { "$ref": "#/definitions/E" },
+          "s": { "$ref": "#/definitions/SS" }
+        },
+        "required": [ "s", "e" ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope T output",
+    "description": "Output structure of scope T",
+    "$ref": "#/definitions/T",
+    "definitions": {
+      "S": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": -1073741824.0,
+                "maximum": 1073741823.0
+              },
+              { "type": "string" }
+            ]
+          },
+          "y": { "type": "boolean" }
+        },
+        "required": [ "y", "x" ],
+        "additionalProperties": false
+      },
+      "T": {
+        "type": "object",
+        "properties": { "r": { "$ref": "#/definitions/S" } },
+        "required": [ "r" ],
+        "additionalProperties": false
+      }
+    }
+  }
+]
+```

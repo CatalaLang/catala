@@ -1,0 +1,71 @@
+```catala-metadata
+declaration structure Str:
+  data x content integer
+
+declaration scope S:
+  input s content Str
+  input x content integer
+  input y content boolean
+  input z content money
+
+  output r content money
+
+scope S:
+  definition r equals if s.x + x > 0 and y then z else $0
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true,"s":{}}
+┌─[ERROR]─
+│
+│  Failed to validate JSON:
+│    At /s, missing object field x
+│  
+│  Expected JSON object of the form:
+│    { "s": $Str,
+│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "y": boolean,
+│      "z": integer ∈ [-2^30, 2^30] || number || string }
+│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│
+└─
+#return code 123#
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true,"s":{"x":1}}
+┌─[ERROR]─
+│
+│  Failed to validate JSON:
+│    Missing object field z
+│  
+│  Expected JSON object of the form:
+│    { "s": $Str,
+│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "y": boolean,
+│      "z": integer ∈ [-2^30, 2^30] || number || string }
+│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│
+└─
+#return code 123#
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":"bla","y":true,"z":300,"s":{"x":1}}
+┌─[ERROR]─
+│
+│  Failed to validate JSON:
+│    At /x, no case matched:
+│      Unexpected string instead of number
+│      Unexpected string instead of numeric string
+│  
+│  Expected JSON object of the form:
+│    { "s": $Str,
+│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "y": boolean,
+│      "z": integer ∈ [-2^30, 2^30] || number || string }
+│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│
+└─
+#return code 123#
+```
