@@ -43,19 +43,16 @@ let int_encoding : Runtime.runtime_value encoding =
     ]
 
 let money_encoding : Runtime.runtime_value encoding =
-  let two53 = Z.(shift_left one 53) in
   let z_100 = Z.of_int 100 in
   let q_100 = Q.of_int 100 in
   union
     [
-      case int53
+      case int
         (function
-          | Runtime.Money z
-            when Z.lt z two53 && Z.gt z (Z.neg two53) && Z.rem z z_100 = Z.zero
-            ->
-            Some Z.(div z z_100 |> to_int64)
+          | Runtime.Money z when Z.rem z z_100 = Z.zero ->
+            Some Z.(div z z_100 |> to_int)
           | _ -> None)
-        (fun i -> Runtime.Money Z.(mul (of_int64 i) z_100));
+        (fun i -> Runtime.Money Z.(mul (of_int i) z_100));
       case float
         (function Runtime.Money z -> Some (Z.to_float z /. 100.) | _ -> None)
         (fun i ->
@@ -72,28 +69,40 @@ let money_encoding : Runtime.runtime_value encoding =
           Runtime.Money (Q.to_bigint q));
     ]
 
-(* TODO: allow more patterns *)
 let rat_encoding : Runtime.runtime_value encoding =
-  conv
-    (function Runtime.Decimal d -> Q.to_float d | _ -> assert false)
-    (fun f -> Runtime.Decimal (Q.of_float f))
-    float
+  union
+    [
+      case float
+        (function Runtime.Decimal d -> Some (Q.to_float d) | _ -> None)
+        (fun f -> Runtime.Decimal (Q.of_float f));
+      case int (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int f));
+      case string (fun _ -> None) (fun s -> Runtime.Decimal (Q.of_string s));
+    ]
 
 let date_encoding : Runtime.runtime_value encoding =
-  conv
-    (function
-      | Runtime.Date d -> Format.asprintf "%a" Dates_calc.format_date d
-      | _ -> assert false)
-    (fun s -> Runtime.Date (Dates_calc.date_of_string s))
-    string
+  def "date" ~title:"Catala date"
+    ~description:
+      "Catala date representation, accepts JSON strings with the following \
+       format: YYYY-MM-DD, e.g., \"1970-01-31\""
+  @@ conv
+       (function
+         | Runtime.Date d -> Format.asprintf "%a" Dates_calc.format_date d
+         | _ -> assert false)
+       (fun s -> Runtime.Date (Dates_calc.date_of_string s))
+       string
 
 let duration_encoding : Runtime.runtime_value encoding =
-  conv
-    (function
-      | Runtime.Duration d -> Format.asprintf "%a" Dates_calc.format_period d
-      | _ -> assert false)
-    (fun s -> Runtime.Duration (Dates_calc.period_of_string s))
-    string
+  def "duration" ~title:"Catala duration"
+    ~description:
+      "Catala duration representation, accepts JSON strings with the following \
+       format: [X years, Y months, Z days], e.g., \"[0 years, 2 months, 3 \
+       days]\""
+  @@ conv
+       (function
+         | Runtime.Duration d -> Format.asprintf "%a" Dates_calc.format_period d
+         | _ -> assert false)
+       (fun s -> Runtime.Duration (Dates_calc.period_of_string s))
+       string
 
 let make_constant s : Runtime.runtime_value encoding =
   conv
