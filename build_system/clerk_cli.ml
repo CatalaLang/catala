@@ -221,7 +221,7 @@ let targets =
 let single_file =
   Arg.(
     required
-    & pos 0 (some file) None
+    & pos 0 (some string) None
     & info [] ~docv:"FILE" ~doc:"File to process")
 
 let reset_test_outputs =

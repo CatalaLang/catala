@@ -1559,6 +1559,7 @@ let list_vars_cmd =
 
 let json_schema_cmd =
   let run config ninja_flags quiet file scope =
+    let file = config.Cli.fix_path file in
     Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
