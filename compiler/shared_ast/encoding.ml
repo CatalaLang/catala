@@ -275,22 +275,35 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
 and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let enum = EnumName.Map.find ename ctx.ctx_enums in
   let bdgs = EnumConstructor.Map.bindings enum in
-  let open Runtime in
   let ename_s = EnumName.to_string ename in
-  let make_constructor_case (cstr, typ) : runtime_value case =
+  let make_constructor_case (cstr, typ) : Runtime.runtime_value case =
+    let cstr_s = EnumConstructor.to_string cstr in
     match Mark.remove typ with
     | TLit TUnit ->
-      case string
-        (function Enum (_ename, (cstr, _)) -> Some cstr | _ -> assert false)
-        (fun s -> Enum (ename_s, (s, Unit)))
+      case (constant cstr_s)
+        (function
+          | Runtime.Enum (_ename, (cstr', _)) ->
+            if cstr_s = cstr' then Some () else None
+          | _ -> assert false)
+        (fun () -> Enum (ename_s, (cstr_s, Unit)))
     | _ ->
       case
         (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
         (fun v -> Some (Enum (ename_s, (EnumConstructor.to_string cstr, v))))
-        (function Enum (_, (_, v)) -> v | _ -> assert false)
+        (fun v -> Enum (ename_s, (cstr_s, v)))
   in
-  def (Format.asprintf "%a" EnumName.format_shortpath ename)
-  @@ (List.map make_constructor_case bdgs |> union)
+  let enc =
+    if List.for_all (fun (_, typ) -> Mark.remove typ = TLit TUnit) bdgs then
+      (* This simplifies the JSON schema *)
+      string_enum
+        (List.map
+           (fun (cstr, _) ->
+             ( EnumConstructor.to_string cstr,
+               Runtime.Enum (ename_s, (EnumConstructor.to_string cstr, Unit)) ))
+           bdgs)
+    else List.map make_constructor_case bdgs |> union
+  in
+  def (Format.asprintf "%a" EnumName.format_shortpath ename) enc
 
 let make_encoding (ctx : decl_ctx) (typ : typ) : Runtime.runtime_value encoding
     =

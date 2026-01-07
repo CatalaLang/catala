@@ -60,7 +60,7 @@ $ catala json-schema --scope T
             "required": [ "A" ],
             "additionalProperties": false
           },
-          { "type": "string" }
+          { "type": "string", "enum": [ "B" ] }
         ]
       },
       "S": {
