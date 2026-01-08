@@ -36,8 +36,7 @@
    - Date: "1970-01-31" (JSON string)
      Note: we rely on [Dates_calc.date_of_string]
 
-   - Duration: "[1 years, 2 months, 3 days]" (JSON string)
-     Note: we rely on [Dates_calc.period_of_string]
+   - Duration: "1 years", "2 months" or "12 days" (JSON string)
 
    - Enum:
      - Unit constructors: "A" (JSON string)
