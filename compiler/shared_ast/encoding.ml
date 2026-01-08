@@ -333,7 +333,11 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
     | _ ->
       case
         (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
-        (fun v -> Some (Enum (ename_s, (EnumConstructor.to_string cstr, v))))
+        (function
+          | Runtime.Enum (e_name_s', (cstr_s', v))
+            when e_name_s' = e_name_s' && cstr_s = cstr_s' ->
+            Some v
+          | _ -> None)
         (fun v -> Enum (ename_s, (cstr_s, v)))
   in
   let enc =
