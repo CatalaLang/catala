@@ -99,8 +99,8 @@ let rat_encoding : Runtime.runtime_value encoding =
 let date_encoding : Runtime.runtime_value encoding =
   def "date" ~title:"Catala date"
     ~description:
-      "Catala date representation, accepts JSON strings with the following \
-       format: YYYY-MM-DD, e.g., \"1970-01-31\""
+      "Accepts JSON strings with the following format: YYYY-MM-DD, e.g., \
+       \"1970-01-31\""
   @@ conv
        (function
          | Runtime.Date d -> Format.asprintf "%a" Dates_calc.format_date d
@@ -111,9 +111,8 @@ let date_encoding : Runtime.runtime_value encoding =
 let duration_encoding : Runtime.runtime_value encoding =
   def "duration" ~title:"Catala duration"
     ~description:
-      "Catala duration representation, accepts JSON strings with the following \
-       format: [X years, Y months, Z days], e.g., \"[0 years, 2 months, 3 \
-       days]\""
+      "Accepts JSON strings with the following format: [X years|months|days], \
+       e.g., \"[2 months]\" or \"[3 days]\""
   @@ conv
        (function
          | Runtime.Duration d -> Format.asprintf "%a" Dates_calc.format_period d
