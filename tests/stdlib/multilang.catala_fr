@@ -1,0 +1,37 @@
+> Usage de MonthYear
+
+```catala
+#[test]
+déclaration champ d'application S:
+  résultat my champ d'application MonthYear.Tunit
+  résultat ma contenu MoisAnnée.MoisAnnée
+
+champ d'application S:
+  définition ma égal à MoisAnnée.depuis_date de |2000-01-01|
+```
+
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ ma = MonthYear_fr.MoisAnnée { -- nom_mois: Janvier -- année: 2 000 }
+│ my =
+│   MonthYear.Tunit {
+│     -- my1:
+│       MonthYear.MonthYear_en.MonthYear {
+│         -- year_number: 2 000
+│         -- month_name: January
+│       }
+│     -- my2:
+│       MonthYear.MonthYear_en.MonthYear {
+│         -- year_number: 2 010
+│         -- month_name: June
+│       }
+│     -- my3:
+│       MonthYear.MonthYear_en.MonthYear {
+│         -- year_number: 2 020
+│         -- month_name: December
+│       }
+│   }
+└─
+```

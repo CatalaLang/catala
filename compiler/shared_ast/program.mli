@@ -80,5 +80,8 @@ val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 
 val find_scope : ScopeName.t -> 'e code_item_list -> 'e scope_body
 
-val modules_to_list : module_tree -> (ModuleName.t * module_intf_id) list
-(** Returns a list of used modules, in topological order *)
+val modules_to_list :
+  ?trim_stdlib:bool -> module_tree -> (ModuleName.t * module_intf_id) list
+(** Returns a list of used modules, in topological order. With [trim_stdlib],
+    inner stdlib modules are skipped; the top-level stdlib module is still
+    included. *)

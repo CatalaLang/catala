@@ -338,4 +338,5 @@ type module_content = {
   module_modname : program_module;
   module_items : module_items;
   module_submodules : module_use list;
+  module_is_stdlib : bool;
 }

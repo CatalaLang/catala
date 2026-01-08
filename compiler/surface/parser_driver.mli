@@ -27,13 +27,19 @@ val lines :
     structure as is *)
 
 val load_interface :
-  ?default_module_name:string -> File.t Global.input_src -> Ast.module_content
+  ?default_module_name:string ->
+  is_stdlib:bool ->
+  File.t Global.input_src ->
+  Ast.module_content
 (** Reads only declarations in metadata in the supplied input file, and only
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
 
 val load_interface_and_code :
-  ?default_module_name:string -> File.t Global.input_src -> Ast.module_content
+  ?default_module_name:string ->
+  is_stdlib:bool ->
+  File.t Global.input_src ->
+  Ast.module_content
 (** Reads the supplied input file and returns its interface that contains type
     information as well as scope and topdef definitions. The list of submodules
     is initialised with names only and empty contents. *)

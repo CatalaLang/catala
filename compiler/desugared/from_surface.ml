@@ -2014,7 +2014,17 @@ let translate_program
               let deps = aux mctx in
               let hash = snd (ModuleName.Map.find m program_modules) in
               ModuleName.Map.add m
-                { deps; intf_id = { hash; is_external = mctx.is_external } }
+                {
+                  deps;
+                  intf_id =
+                    {
+                      hash;
+                      is_external = mctx.is_external;
+                      is_stdlib =
+                        (ModuleName.Map.find m modules_contents)
+                          .S.module_is_stdlib;
+                    };
+                }
                 acc)
             mctx.used_modules ModuleName.Map.empty
         in
@@ -2061,7 +2071,12 @@ let translate_program
        @@ fun { Surface.Ast.module_name; module_external } ->
        let mname = ModuleName.fresh module_name in
        let hash_placeholder = Hash.raw 0 in
-       mname, { hash = hash_placeholder; is_external = module_external }
+       ( mname,
+         {
+           hash = hash_placeholder;
+           is_external = module_external;
+           is_stdlib = false;
+         } )
   in
   let desugared =
     {
