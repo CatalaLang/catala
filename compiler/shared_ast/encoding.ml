@@ -21,13 +21,23 @@ open Json_encoding
 
 let bool_encoding : Runtime.runtime_value encoding =
   conv
-    (function Runtime.Bool b -> b | _ -> assert false)
+    (function
+      | Runtime.Bool b -> b
+      | v ->
+        Message.error ~internal:true
+          "Unexpected runtime value %a instead of bool while encoding to JSON"
+          Runtime.format_value v)
     (fun b -> Runtime.Bool b)
     bool
 
 let unit_encoding : Runtime.runtime_value encoding =
   conv
-    (function Runtime.Unit -> () | _ -> assert false)
+    (function
+      | Runtime.Unit -> ()
+      | v ->
+        Message.error ~internal:true
+          "Unexpected runtime value %a instead of unit while encoding to JSON"
+          Runtime.format_value v)
     (fun () -> Runtime.Unit)
     empty
 
@@ -38,10 +48,16 @@ let int_encoding : Runtime.runtime_value encoding =
     [
       case int
         (function
-          | Runtime.Integer z -> try_option (fun () -> Z.to_int z) | _ -> None)
+          | Runtime.Integer z -> try_option (fun () -> Z.to_int z)
+          | v ->
+            Message.error ~internal:true
+              "Unexpected runtime value %a instead of int while encoding to \
+               JSON"
+              Runtime.format_value v)
         (fun i -> Runtime.Integer (Z.of_int i));
       case string
-        (function Runtime.Integer z -> Some (Z.to_string z) | _ -> None)
+        (function
+          | Runtime.Integer z -> Some (Z.to_string z) | _ -> assert false)
         (fun s ->
           try Runtime.Integer (Z.of_string s)
           with _ ->
@@ -57,12 +73,17 @@ let money_encoding : Runtime.runtime_value encoding =
         (function
           | Runtime.Money z when Z.rem z z_100 = Z.zero ->
             try_option (fun () -> Z.(div z z_100 |> to_int))
-          | _ -> None)
+          | Runtime.Money _ -> None
+          | v ->
+            Message.error ~internal:true
+              "Unexpected runtime value %a instead of money while encoding to \
+               JSON"
+              Runtime.format_value v)
         (fun i -> Runtime.Money Z.(mul (of_int i) z_100));
       case float
         (function
           | Runtime.Money z -> try_option (fun () -> Z.to_float z /. 100.)
-          | _ -> None)
+          | _ -> assert false)
         (fun i ->
           let z = Z.of_float (i *. 100.) in
           Runtime.Money z);
@@ -71,7 +92,7 @@ let money_encoding : Runtime.runtime_value encoding =
           | Runtime.Money z ->
             let z = Q.div (Q.of_bigint z) q_100 in
             Some (Q.to_string z)
-          | _ -> None)
+          | _ -> assert false)
         (fun s ->
           try
             let q = Q.(of_string s |> mul q_100) in
@@ -85,7 +106,12 @@ let rat_encoding : Runtime.runtime_value encoding =
     [
       case float
         (function
-          | Runtime.Decimal d -> try_option (fun () -> Q.to_float d) | _ -> None)
+          | Runtime.Decimal d -> try_option (fun () -> Q.to_float d)
+          | v ->
+            Message.error ~internal:true
+              "Unexpected runtime value %a instead of decimal while encoding \
+               to JSON"
+              Runtime.format_value v)
         (fun f -> Runtime.Decimal (Q.of_float f));
       case int (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int f));
       case string
@@ -104,7 +130,11 @@ let date_encoding : Runtime.runtime_value encoding =
   @@ conv
        (function
          | Runtime.Date d -> Format.asprintf "%a" Dates_calc.format_date d
-         | _ -> assert false)
+         | v ->
+           Message.error ~internal:true
+             "Unexpected runtime value %a instead of date while encoding to \
+              JSON"
+             Runtime.format_value v)
        (fun s -> Runtime.Date (Dates_calc.date_of_string s))
        string
 
@@ -149,7 +179,11 @@ let duration_encoding : Runtime.runtime_value encoding =
            | 0, 0, d -> `Days d
            | _ -> `Raw d
          end
-         | _ -> assert false)
+         | v ->
+           Message.error ~internal:true
+             "Unexpected runtime value %a instead of duration while encoding \
+              to JSON"
+             Runtime.format_value v)
        (function
          | `Years years ->
            Duration (Dates_calc.make_period ~years ~months:0 ~days:0)
@@ -161,7 +195,12 @@ let duration_encoding : Runtime.runtime_value encoding =
 
 let make_constant s : Runtime.runtime_value encoding =
   conv
-    (function Runtime.Unit -> () | _ -> assert false)
+    (function
+      | Runtime.Unit -> ()
+      | v ->
+        Message.error ~internal:true
+          "Unexpected runtime value %a instead of unit while encoding to JSON"
+          Runtime.format_value v)
     (fun () -> Unit)
     (constant s)
 
@@ -196,7 +235,12 @@ let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
 and generate_array_encoder ctx typ : Runtime.runtime_value encoding =
   let open Runtime in
   conv
-    (function Array a -> a | _ -> assert false)
+    (function
+      | Array a -> a
+      | v ->
+        Message.error ~internal:true
+          "Unexpected runtime value %a instead of array while encoding to JSON"
+          Runtime.format_value v)
     (fun a -> Array a)
     (array (generate_encoder ctx typ))
 
@@ -228,7 +272,11 @@ and generate_tuple_encoder ctx typl =
         | Runtime.Tuple arr ->
           ( Runtime.Tuple (Array.sub arr 0 (Array.length arr - 1)),
             arr.(Array.length arr - 1) )
-        | _ -> assert false)
+        | v ->
+          Message.error ~internal:true
+            "Unexpected runtime value %a instead of tuple while encoding to \
+             JSON"
+            Runtime.format_value v)
       (function
         | Runtime.Tuple arr, rval -> Runtime.Tuple (Array.append arr [| rval |])
         | _ -> assert false)
@@ -272,7 +320,11 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
         | Runtime.Struct (s, lvals) ->
           let rval = List.assoc field_s lvals in
           Runtime.Struct (s, List.remove_assoc field_s lvals), rval
-        | _ -> assert false)
+        | v ->
+          Message.error ~internal:true
+            "Unexpected runtime value %a instead of struct while encoding to \
+             JSON"
+            Runtime.format_value v)
       (function
         | Runtime.Struct (s, lvals), rval ->
           Runtime.Struct (s, (field_s, rval) :: lvals)
@@ -328,7 +380,11 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
         (function
           | Runtime.Enum (_ename, (cstr', _)) ->
             if cstr_s = cstr' then Some () else None
-          | _ -> assert false)
+          | v ->
+            Message.error ~internal:true
+              "Unexpected runtime value %a instead of enum while encoding to \
+               JSON"
+              Runtime.format_value v)
         (fun () -> Enum (ename_s, (cstr_s, Unit)))
     | _ ->
       case
