@@ -757,8 +757,16 @@ let program_to_graph
         Some (vscope, name, fields)
       | e -> Expr.shallow_fold find_tested_scope e acc
   in
+  let tested_scope_opt = find_tested_scope e None in
   let tested_scope_v, in_struct, in_fields =
-    Option.get (find_tested_scope e None)
+    match tested_scope_opt with
+    | Some result -> result
+    | None ->
+      Message.error
+        "The explain plugin requires a test scope that calls another scope \
+         with struct inputs. The scope %a appears to be a standalone test \
+         scope. Please use a test scope that calls another scope."
+        ScopeName.format scope
   in
   log "The specified scope is detected to be testing scope %s"
     (Bindlib.name_of tested_scope_v);
@@ -947,8 +955,23 @@ let program_to_graph
         aux (Some v) (g, var_vertices, env0) e
       in
       (G.add_edge g v child, var_vertices, env), v
+    | EApp { f; args; _ }, _ ->
+      (* Handle general function applications *)
+      let v = G.V.create e in
+      let g = G.add_vertex g v in
+      let (g, var_vertices, env), children =
+        List.fold_left_map (aux (Some v)) (g, var_vertices, env0) args
+      in
+      ( (List.fold_left (fun g -> G.add_edge g v) g children, var_vertices, env),
+        v )
+    | ETuple _, _ | EDefault _, _ ->
+      (* Handle other expression types by creating a node without exploring
+         children *)
+      let v = G.V.create e in
+      (G.add_vertex g v, var_vertices, env0), v
     | _ ->
-      Format.eprintf "%a" Expr.format e;
+      Format.eprintf "Unhandled expression type in explain plugin: %a@."
+        Expr.format e;
       assert false
   in
   let (g, vmap, env), _ = aux None (G.empty, Var.Map.empty, env) e in
