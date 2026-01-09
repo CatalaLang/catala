@@ -1,9 +1,12 @@
 ```catala-metadata
-declaration f content code_location
-depends on #[implicit_position_argument]
-  pos content code_location,
-  x content integer
-equals pos
+declaration f
+  content code_location
+  depends on
+    #[implicit_position_argument]
+    pos content code_location,
+    x content integer
+  equals
+    pos
 
 declaration scope S:
   output r content code_location
@@ -18,8 +21,8 @@ $ catala test-scope S --input {} -F json
   "r": {
     "file": "tests/json/good/locations.catala_en",
     "range": {
-      "start": { "line": 12.0, "character": 23.0 },
-      "end": { "line": 12.0, "character": 24.0 }
+      "start": { "line": 15.0, "character": 23.0 },
+      "end": { "line": 15.0, "character": 24.0 }
     }
   }
 }

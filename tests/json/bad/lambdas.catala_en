@@ -32,7 +32,6 @@ $ catala test-scope S --input {}
 #return code 123#
 ```
 
-
 ```catala-test-cli
 $ catala test-scope S2 -F json
 ┌─[ERROR]─

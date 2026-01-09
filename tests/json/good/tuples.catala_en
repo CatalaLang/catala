@@ -5,7 +5,7 @@ declaration scope S:
   output r content (integer, integer, integer)
 
 scope S:
-  definition r equals  x
+  definition r equals x
 ```
 
 ```catala-test-cli
