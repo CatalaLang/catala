@@ -242,7 +242,7 @@ let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
   | TEnum ename -> generate_enum_encoder ctx ename
   | TOption typ -> generate_option_encoder ctx typ
   | TArray typ -> generate_array_encoder ctx typ
-  | TArrow _ -> Message.error "Cannot encode 'function' types"
+  | TArrow _ -> Message.error "Cannot convert functional values from JSON"
   | TDefault _ -> Message.error "Cannot encode 'default' types"
   | TVar _ -> Message.error "Cannot encode 'variable' types"
   | TForAll _ -> Message.error "Cannot encode 'for-all' types"
@@ -607,6 +607,7 @@ let rec convert_from_gexpr :
           get_start_column p,
           get_end_line p,
           get_end_column p ))
+  | EAbs _ -> Message.error "Cannot convert functional values to JSON"
   | _ ->
     Message.error "Failed to convert expression to runtime_value: %a"
       (Print.expr ()) e
