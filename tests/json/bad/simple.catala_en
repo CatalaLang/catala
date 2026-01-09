@@ -23,10 +23,10 @@ $ catala test-scope S --input {"x":1,"y":true,"s":{}}
 │  
 │  Expected JSON object of the form:
 │    { "s": $Str,
-│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "x": integer ∈ [-2^53, 2^53] || string,
 │      "y": boolean,
-│      "z": integer ∈ [-2^30, 2^30] || number || string }
-│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│      "z": integer ∈ [-2^53, 2^53] || number || string }
+│    $Str: { "x": integer ∈ [-2^53, 2^53] || string }
 │
 └─
 #return code 123#
@@ -41,10 +41,10 @@ $ catala test-scope S --input {"x":1,"y":true,"s":{"x":1}}
 │  
 │  Expected JSON object of the form:
 │    { "s": $Str,
-│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "x": integer ∈ [-2^53, 2^53] || string,
 │      "y": boolean,
-│      "z": integer ∈ [-2^30, 2^30] || number || string }
-│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│      "z": integer ∈ [-2^53, 2^53] || number || string }
+│    $Str: { "x": integer ∈ [-2^53, 2^53] || string }
 │
 └─
 #return code 123#
@@ -61,10 +61,10 @@ $ catala test-scope S --input {"x":"bla","y":true,"z":300,"s":{"x":1}}
 │  
 │  Expected JSON object of the form:
 │    { "s": $Str,
-│      "x": integer ∈ [-2^30, 2^30] || string,
+│      "x": integer ∈ [-2^53, 2^53] || string,
 │      "y": boolean,
-│      "z": integer ∈ [-2^30, 2^30] || number || string }
-│    $Str: { "x": integer ∈ [-2^30, 2^30] || string }
+│      "z": integer ∈ [-2^53, 2^53] || number || string }
+│    $Str: { "x": integer ∈ [-2^53, 2^53] || string }
 │
 └─
 #return code 123#

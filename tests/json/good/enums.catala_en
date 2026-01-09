@@ -61,8 +61,8 @@ $ catala json-schema --scope T
                 "oneOf": [
                   {
                     "type": "integer",
-                    "minimum": -1073741824.0,
-                    "maximum": 1073741823.0
+                    "minimum": -9007199254740992.0,
+                    "maximum": 9007199254740992.0
                   },
                   { "type": "string" }
                 ]

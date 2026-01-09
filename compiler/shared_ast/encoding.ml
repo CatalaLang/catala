@@ -46,15 +46,15 @@ let try_option f = try Some (f ()) with _ -> None
 let int_encoding : Runtime.runtime_value encoding =
   union
     [
-      case int
+      case int53
         (function
-          | Runtime.Integer z -> try_option (fun () -> Z.to_int z)
+          | Runtime.Integer z -> try_option (fun () -> Z.to_int64 z)
           | v ->
             Message.error ~internal:true
               "Unexpected runtime value %a instead of int while encoding to \
                JSON"
               Runtime.format_value v)
-        (fun i -> Runtime.Integer (Z.of_int i));
+        (fun i -> Runtime.Integer (Z.of_int64 i));
       case string
         (function
           | Runtime.Integer z -> Some (Z.to_string z) | _ -> assert false)
@@ -69,17 +69,17 @@ let money_encoding : Runtime.runtime_value encoding =
   let q_100 = Q.of_int 100 in
   union
     [
-      case int
+      case int53
         (function
           | Runtime.Money z when Z.rem z z_100 = Z.zero ->
-            try_option (fun () -> Z.(div z z_100 |> to_int))
+            try_option (fun () -> Z.(div z z_100 |> to_int64))
           | Runtime.Money _ -> None
           | v ->
             Message.error ~internal:true
               "Unexpected runtime value %a instead of money while encoding to \
                JSON"
               Runtime.format_value v)
-        (fun i -> Runtime.Money Z.(mul (of_int i) z_100));
+        (fun i -> Runtime.Money Z.(mul (of_int64 i) z_100));
       case float
         (function
           | Runtime.Money z -> try_option (fun () -> Z.to_float z /. 100.)
@@ -113,9 +113,9 @@ let rat_encoding : Runtime.runtime_value encoding =
                to JSON"
               Runtime.format_value v)
         (fun f -> Runtime.Decimal (Q.of_float f));
-      case int (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int f));
+      case int53 (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int64 f));
       case string
-        (fun _ -> None)
+        (function Runtime.Decimal d -> Some (Q.to_string d) | _ -> None)
         (fun s ->
           try Runtime.Decimal (Q.of_string s)
           with _ ->
