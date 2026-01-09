@@ -1,0 +1,16 @@
+> Module Dictionnary_ext external
+
+```catala-metadata
+declaration type Dictionnary: external
+
+declaration empty content Dictionnary
+
+declaration store content Dictionnary
+  depends on dict content Dictionnary,
+             key content integer,
+             value content money
+
+declaration find content optional of money
+  depends on dict content Dictionnary,
+             key content integer
+```

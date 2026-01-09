@@ -52,6 +52,7 @@ val set_rewriters :
   ?fields:(StructField.t -> StructField.t) ->
   ?enums:(EnumName.t -> EnumName.t) ->
   ?constrs:(EnumConstructor.t -> EnumConstructor.t) ->
+  ?abstract_types:(AbstractType.t -> AbstractType.t) ->
   context ->
   context
 
@@ -91,6 +92,7 @@ val program :
   ?f_field:(string -> string) ->
   ?f_enum:(string -> string) ->
   ?f_constr:(string -> string) ->
+  ?f_abstract_type:(string -> string) ->
   unit ->
   t
 (** Renames all idents (variables, types, struct and enum names, fields and

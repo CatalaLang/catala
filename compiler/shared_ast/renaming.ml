@@ -133,11 +133,29 @@ let unmbind_in ctx b =
   let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
   vs, e, { ctx with bcontext }
 
-let set_rewriters ?scopes ?topdefs ?structs ?fields ?enums ?constrs ctx =
+let set_rewriters
+    ?scopes
+    ?topdefs
+    ?structs
+    ?fields
+    ?enums
+    ?constrs
+    ?abstract_types
+    ctx =
   (fun ?(scopes = ctx.scopes) ?(topdefs = ctx.topdefs) ?(structs = ctx.structs)
-       ?(fields = ctx.fields) ?(enums = ctx.enums) ?(constrs = ctx.constrs) () ->
-    { ctx with scopes; topdefs; structs; fields; enums; constrs })
-    ?scopes ?topdefs ?structs ?fields ?enums ?constrs ()
+       ?(fields = ctx.fields) ?(enums = ctx.enums) ?(constrs = ctx.constrs)
+       ?(abstract_types = ctx.abstract_types) () ->
+    {
+      ctx with
+      scopes;
+      topdefs;
+      structs;
+      fields;
+      enums;
+      constrs;
+      abstract_types;
+    })
+    ?scopes ?topdefs ?structs ?fields ?enums ?constrs ?abstract_types ()
 
 let new_id ctx name =
   let module BindCtx = (val ctx.bindCtx) in
@@ -355,8 +373,8 @@ type type_renaming_ctx = {
   f_struct : string -> string;
   f_field : string -> string;
   f_enum : string -> string;
-  f_abstract_type : string -> string;
   f_constr : string -> string;
+  f_abstract_type : string -> string;
 }
 
 let add_module_prefix ctx path str =
@@ -537,8 +555,8 @@ let program
     ?(f_struct = cap)
     ?(f_field = uncap)
     ?(f_enum = cap)
-    ?(f_abstract_type = cap)
     ?(f_constr = cap)
+    ?(f_abstract_type = cap)
     p =
   let cfg =
     {
@@ -570,8 +588,8 @@ let program
       f_struct;
       f_field;
       f_enum;
-      f_abstract_type;
       f_constr;
+      f_abstract_type;
     }
   in
   let type_renaming_ctx =
@@ -712,6 +730,8 @@ let program
       ~enums:(fun n -> EnumName.Map.find n type_renaming_ctx.enums_map)
       ~constrs:(fun n ->
         EnumConstructor.Map.find n type_renaming_ctx.constrs_map)
+      ~abstract_types:(fun n ->
+        AbstractType.Map.find n type_renaming_ctx.abstract_type_map)
   in
   let ctx_public_types =
     TypeIdent.Set.map
@@ -761,12 +781,13 @@ let program
     ?f_field
     ?f_enum
     ?f_constr
+    ?f_abstract_type
     () =
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
         ~namespaced_fields ~namespaced_constrs ~prefix_module ~modnames_conflict
-        ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
+        ?f_var ?f_struct ?f_field ?f_enum ?f_constr ?f_abstract_type p
   end in
   (module M : Renaming)
 
@@ -775,5 +796,5 @@ let default =
     ~skip_constant_binders:default_config.skip_constant_binders
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
-    ~f_constr:Fun.id ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false ~modnames_conflict:false
+    ~f_constr:Fun.id ~f_abstract_type:Fun.id ~namespaced_fields:true
+    ~namespaced_constrs:true ~prefix_module:false ~modnames_conflict:false

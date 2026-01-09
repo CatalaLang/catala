@@ -639,8 +639,7 @@ let format_ctx
             ctx.ctx_structs))
   in
   List.iter
-    (fun struct_or_enum ->
-      match struct_or_enum with
+    (function
       | TypeIdent.Struct s ->
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then format_struct_decl (s, def)
@@ -866,10 +865,11 @@ let format_program
   @@ fun intf_file ppi ->
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
-  check_and_reexport_used_modules ppml ppi ~hashf
-    (List.map
-       (fun (m, intf) -> m, intf.intf_id)
-       (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
+  if not Global.options.gen_external then
+    check_and_reexport_used_modules ppml ppi ~hashf
+      (List.map
+         (fun (m, intf) -> m, intf.intf_id)
+         (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name

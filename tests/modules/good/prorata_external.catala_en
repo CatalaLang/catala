@@ -13,18 +13,3 @@ declaration prorata2 content list of money
   depends on amount content money,
              weights content list of money
 ```
-
-
-# ```catala
-# # Trivial algorithm that cumulates all rounding errors to the last element
-# declaration prorata content list of money
-#   depends on amount content money,
-#              weights content list of money
-#   equals []
-
-# # Another algorithm that distributes errors along the way
-# declaration prorata2 content list of money
-#   depends on amount content money,
-#              weights content list of money
-#   equals []
-# ```

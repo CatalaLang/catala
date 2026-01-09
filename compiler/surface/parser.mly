@@ -882,7 +882,7 @@ let code_item :=
     topdef_expr;
   }, []
 }
-| DECLARATION ; name = uident ; {
+| DECLARATION ; TYPE; name = uident ; COLON ; EXTERNAL ; {
   AbstractTypeDecl name, []
 }
 
@@ -939,7 +939,7 @@ let directive :=
     LawInclude (Ast.CatalaFile (filename, pos))
 }
 | MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ;
-  ext = option (MODULE_EXTERNAL) ; {
+  ext = option (EXTERNAL) ; {
   ModuleDef (m, ext <> None)
 }
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;

@@ -1,16 +1,21 @@
 
 ```catala-metadata
-declaration Abstract
+declaration type Abstract: external
 
 declaration scope S:
-  context foo content Abstract
+  context output foo content list of Abstract
   output bar content integer
 
 scope S:
+  definition foo equals []
   definition bar equals 1
 ```
 
 
 ```catala-test-cli
 $ catala test-scope S
+┌─[RESULT]─ S ─
+│ bar = 1
+│ foo = []
+└─
 ```

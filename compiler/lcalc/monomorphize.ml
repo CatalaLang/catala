@@ -354,4 +354,5 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
          ~f:(monomorphize_expr monomorphized_instances)
   in
   ( { prg with decl_ctx; code_items },
-    Scopelang.Dependency.check_type_cycles ctx_structs ctx_enums )
+    Scopelang.Dependency.check_type_cycles decl_ctx.ctx_abstract_types
+      ctx_structs ctx_enums )

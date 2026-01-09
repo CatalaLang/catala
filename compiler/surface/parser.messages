@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 797.
+## Ends in an error in state: 801.
 ##
 ## code_item -> DECLARATION ENUM UIDENT COLON rev_list_with_attr(enum_decl_line) . [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## rev_list_with_attr(enum_decl_line) -> rev_list_with_attr(enum_decl_line) . attribute [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
@@ -14,7 +14,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 800.
+## Ends in an error in state: 804.
 ##
 ## option(preceded(CONTENT,posattr(typ))) -> CONTENT . list(attribute) typ_data [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
 ##
@@ -26,7 +26,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT YEAR
 ##
-## Ends in an error in state: 799.
+## Ends in an error in state: 803.
 ##
 ## enum_decl_line -> ALT UIDENT . option(preceded(CONTENT,posattr(typ))) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
 ##
@@ -38,7 +38,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT YEAR
 ##
-## Ends in an error in state: 798.
+## Ends in an error in state: 802.
 ##
 ## enum_decl_line -> ALT . UIDENT option(preceded(CONTENT,posattr(typ))) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
 ##
@@ -50,7 +50,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT YEAR
 ##
-## Ends in an error in state: 795.
+## Ends in an error in state: 799.
 ##
 ## code_item -> DECLARATION ENUM UIDENT . COLON rev_list_with_attr(enum_decl_line) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -62,7 +62,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 794.
+## Ends in an error in state: 798.
 ##
 ## code_item -> DECLARATION ENUM . UIDENT COLON rev_list_with_attr(enum_decl_line) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -74,7 +74,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON YEAR
 ##
-## Ends in an error in state: 606.
+## Ends in an error in state: 610.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT COLON rev_list_with_attr(scope_decl_item) . [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## rev_list_with_attr(scope_decl_item) -> rev_list_with_attr(scope_decl_item) . attribute [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -88,7 +88,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 604.
+## Ends in an error in state: 608.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT . COLON rev_list_with_attr(scope_decl_item) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -100,7 +100,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 603.
+## Ends in an error in state: 607.
 ##
 ## code_item -> DECLARATION SCOPE . UIDENT COLON rev_list_with_attr(scope_decl_item) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -114,7 +114,7 @@ expected the name of the scope you are declaring
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 589.
+## Ends in an error in state: 593.
 ##
 ## struct_scope -> struct_scope_base DEPENDS . separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DOCSTRING DECLARATION DATA CONDITION ATTR_START ]
 ## struct_scope -> struct_scope_base DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DOCSTRING DECLARATION DATA CONDITION ATTR_START ]
@@ -127,7 +127,7 @@ expected the type of the parameter of this struct data function
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT YEAR
 ##
-## Ends in an error in state: 588.
+## Ends in an error in state: 592.
 ##
 ## struct_scope -> struct_scope_base . DEPENDS separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DOCSTRING DECLARATION DATA CONDITION ATTR_START ]
 ## struct_scope -> struct_scope_base . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DOCSTRING DECLARATION DATA CONDITION ATTR_START ]
@@ -141,7 +141,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION YEAR
 ##
-## Ends in an error in state: 586.
+## Ends in an error in state: 590.
 ##
 ## struct_scope_base -> CONDITION . lident [ SCOPE END_CODE DOCSTRING DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -153,7 +153,7 @@ expected the name of this struct condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 569.
+## Ends in an error in state: 573.
 ##
 ## struct_scope_base -> DATA lident CONTENT . list(attribute) typ_data [ SCOPE END_CODE DOCSTRING DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -165,7 +165,7 @@ expected the type of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT YEAR
 ##
-## Ends in an error in state: 568.
+## Ends in an error in state: 572.
 ##
 ## struct_scope_base -> DATA lident . CONTENT list(attribute) typ_data [ SCOPE END_CODE DOCSTRING DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -177,7 +177,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA YEAR
 ##
-## Ends in an error in state: 567.
+## Ends in an error in state: 571.
 ##
 ## struct_scope_base -> DATA . lident CONTENT list(attribute) typ_data [ SCOPE END_CODE DOCSTRING DEPENDS DECLARATION DATA CONDITION ATTR_START ]
 ##
@@ -189,7 +189,7 @@ expected the name of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON YEAR
 ##
-## Ends in an error in state: 566.
+## Ends in an error in state: 570.
 ##
 ## code_item -> DECLARATION STRUCT list(attribute) UIDENT COLON rev_list_with_attr(struct_scope) . [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## rev_list_with_attr(struct_scope) -> rev_list_with_attr(struct_scope) . attribute [ SCOPE END_CODE DOCSTRING DECLARATION DATA CONDITION ATTR_START ]
@@ -203,7 +203,7 @@ expected struct data or condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT YEAR
 ##
-## Ends in an error in state: 564.
+## Ends in an error in state: 568.
 ##
 ## code_item -> DECLARATION STRUCT list(attribute) UIDENT . COLON rev_list_with_attr(struct_scope) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -215,7 +215,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 562.
+## Ends in an error in state: 566.
 ##
 ## code_item -> DECLARATION STRUCT . list(attribute) UIDENT COLON rev_list_with_attr(struct_scope) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -235,6 +235,7 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION . lident CONTENT typ_data option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
+## code_item -> DECLARATION . TYPE UIDENT COLON EXTERNAL [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
@@ -841,7 +842,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 844.
+## Ends in an error in state: 848.
 ##
 ## rev_list_with_attr(code_item) -> rev_list_with_attr(code_item) . attribute [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## rev_list_with_attr(code_item) -> rev_list_with_attr(code_item) . code_item [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
@@ -906,8 +907,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 822, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 823, spurious reduction of production option(law_text) -> law_text
+## In state 826, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 827, spurious reduction of production option(law_text) -> law_text
 ## In state 6, spurious reduction of production rev_list_with_attr(code_item) ->
 ##
 
@@ -2091,7 +2092,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 724.
+## Ends in an error in state: 728.
 ##
 ## scope_decl_item -> CONTEXT . OUTPUT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT . OUTPUT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2116,7 +2117,7 @@ expected a variable name, optionally preceded by 'output'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON INTERNAL YEAR
 ##
-## Ends in an error in state: 632.
+## Ends in an error in state: 636.
 ##
 ## scope_decl_item -> INTERNAL . OUTPUT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> INTERNAL . OUTPUT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2141,7 +2142,7 @@ expected a variable name
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT YEAR
 ##
-## Ends in an error in state: 748.
+## Ends in an error in state: 752.
 ##
 ## scope_decl_item -> CONTEXT lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2159,7 +2160,7 @@ expected either 'condition', or 'content' followed by the expected variable type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 751.
+## Ends in an error in state: 755.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2173,7 +2174,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 752.
+## Ends in an error in state: 756.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2188,7 +2189,7 @@ for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 753.
+## Ends in an error in state: 757.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2201,7 +2202,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 754.
+## Ends in an error in state: 758.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2213,7 +2214,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 755.
+## Ends in an error in state: 759.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2226,15 +2227,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 35, spurious reduction of production quident -> UIDENT
 ## In state 39, spurious reduction of production primitive_typ -> quident
-## In state 580, spurious reduction of production typ_data -> primitive_typ
-## In state 597, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
+## In state 584, spurious reduction of production typ_data -> primitive_typ
+## In state 601, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument specification
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 756.
+## Ends in an error in state: 760.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2246,7 +2247,7 @@ expected a 'state' declaration for the preceding declaration, or the next declar
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION STATE LIDENT YEAR
 ##
-## Ends in an error in state: 617.
+## Ends in an error in state: 621.
 ##
 ## list(state) -> state . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2259,7 +2260,7 @@ declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 758.
+## Ends in an error in state: 762.
 ##
 ## scope_decl_item -> CONTEXT lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2272,15 +2273,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 35, spurious reduction of production quident -> UIDENT
 ## In state 39, spurious reduction of production primitive_typ -> quident
-## In state 580, spurious reduction of production typ_data -> primitive_typ
-## In state 597, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
+## In state 584, spurious reduction of production typ_data -> primitive_typ
+## In state 601, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION YEAR
 ##
-## Ends in an error in state: 761.
+## Ends in an error in state: 765.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONDITION . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2294,7 +2295,7 @@ expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS YEAR
 ##
-## Ends in an error in state: 762.
+## Ends in an error in state: 766.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2307,7 +2308,7 @@ expected the form 'depends on <ident> content <type>'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 763.
+## Ends in an error in state: 767.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2319,7 +2320,7 @@ expected the form 'depends on (<ident> content <type> [, <ident> content <type> 
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 764.
+## Ends in an error in state: 768.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2332,15 +2333,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 35, spurious reduction of production quident -> UIDENT
 ## In state 39, spurious reduction of production primitive_typ -> quident
-## In state 580, spurious reduction of production typ_data -> primitive_typ
-## In state 597, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
+## In state 584, spurious reduction of production typ_data -> primitive_typ
+## In state 601, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument declaration (', <ident> content <type>')
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 765.
+## Ends in an error in state: 769.
 ##
 ## scope_decl_item -> CONTEXT lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2352,7 +2353,7 @@ expected the next definition in scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT YEAR
 ##
-## Ends in an error in state: 771.
+## Ends in an error in state: 775.
 ##
 ## scope_decl_item -> lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ## scope_decl_item -> lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
@@ -2370,7 +2371,7 @@ expected the form '<ident> scope <Scope_name>', or a scope variable declaration
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE YEAR
 ##
-## Ends in an error in state: 772.
+## Ends in an error in state: 776.
 ##
 ## scope_decl_item -> lident SCOPE . quident [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
 ##
@@ -2382,7 +2383,7 @@ expected a scope name
 
 source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
-## Ends in an error in state: 806.
+## Ends in an error in state: 810.
 ##
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
@@ -2396,7 +2397,7 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 807.
+## Ends in an error in state: 811.
 ##
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
@@ -2410,7 +2411,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 808.
+## Ends in an error in state: 812.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
@@ -2425,7 +2426,7 @@ expected 'equals <expression>', optionally preceded by 'depends on <var> content
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 809.
+## Ends in an error in state: 813.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
@@ -2438,7 +2439,7 @@ expected a variable name, following the form 'depends on <var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 810.
+## Ends in an error in state: 814.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -2450,7 +2451,7 @@ expected a variable name, following the form 'depends on (<var> content <type>, 
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 811.
+## Ends in an error in state: 815.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -2463,8 +2464,8 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 35, spurious reduction of production quident -> UIDENT
 ## In state 39, spurious reduction of production primitive_typ -> quident
-## In state 580, spurious reduction of production typ_data -> primitive_typ
-## In state 597, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
+## In state 584, spurious reduction of production typ_data -> primitive_typ
+## In state 601, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data
 ##
 
 expected ')', or ',' followed by another argument declaration in the form '<var>
@@ -2472,7 +2473,7 @@ content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 812.
+## Ends in an error in state: 816.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -2484,7 +2485,7 @@ expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS YEAR
 ##
-## Ends in an error in state: 813.
+## Ends in an error in state: 817.
 ##
 ## option(opt_def) -> DEFINED_AS . list(attribute) noattr_expression [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
 ##
@@ -2496,7 +2497,7 @@ expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT YEAR
 ##
-## Ends in an error in state: 594.
+## Ends in an error in state: 598.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident . CONTENT list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident . CONTENT list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
@@ -2509,7 +2510,7 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 595.
+## Ends in an error in state: 599.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT . list(attribute) typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT . list(attribute) typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
@@ -2522,7 +2523,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT LIDENT YEAR
 ##
-## Ends in an error in state: 597.
+## Ends in an error in state: 601.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
@@ -2535,7 +2536,7 @@ expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT COMMA YEAR
 ##
-## Ends in an error in state: 598.
+## Ends in an error in state: 602.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data COMMA . separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
 ##
@@ -2547,7 +2548,7 @@ expected the definition of another argument in the form '<var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 815.
+## Ends in an error in state: 819.
 ##
 ## noattr_expression -> noattr_expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE DOT DOCSTRING DIV DECLARATION CONTAINS BUT_REPLACE ATTR_START AND ]
 ## noattr_expression -> noattr_expression . DOT INT_LITERAL [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE DOT DOCSTRING DIV DECLARATION CONTAINS BUT_REPLACE ATTR_START AND ]
@@ -2579,7 +2580,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 824.
+## Ends in an error in state: 828.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . directive END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -2591,7 +2592,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 834.
+## Ends in an error in state: 838.
 ##
 ## directive -> LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
@@ -2603,7 +2604,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 835.
+## Ends in an error in state: 839.
 ##
 ## directive -> LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
@@ -2615,7 +2616,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 836.
+## Ends in an error in state: 840.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -2628,7 +2629,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 841.
+## Ends in an error in state: 845.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE directive . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -2640,7 +2641,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 846.
+## Ends in an error in state: 850.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

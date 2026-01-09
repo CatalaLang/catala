@@ -952,6 +952,8 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         if StructName.path sname = [] then add (Struct sname) acc else acc
       | Shared_ast.TEnum ename ->
         if EnumName.path ename = [] then add (Enum ename) acc else acc
+      | Shared_ast.TAbstract tname ->
+        if AbstractType.path tname = [] then add (Abstract tname) acc else acc
       | _ -> Type.shallow_fold typ_deps ty acc
     in
     transitive_closure
