@@ -635,7 +635,8 @@ module Flags = struct
                 else Yojson.Safe.from_string s
               in
               Ok json
-            with Yojson.Json_error msg -> Error (`Msg msg)),
+            with Yojson.Json_error _ ->
+              Error (`Msg "argument is neither a file nor a valid JSON value.")),
           fun ppf -> Yojson.Safe.pretty_print ppf )
     in
     value
