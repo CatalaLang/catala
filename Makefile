@@ -374,4 +374,4 @@ help_catala:
 ##########################################
 .PHONY: inspect clean all english alltest pygments install build_dev build doc	\
 	format dependencies dependencies-ocaml catala.html help parser-messages	\
-	plugins website-assets.tar website-assets-base
+	plugins website-assets.tar website-assets-base runtimes
