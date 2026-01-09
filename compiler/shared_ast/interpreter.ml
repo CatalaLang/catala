@@ -64,6 +64,9 @@ let rec format_runtime_value lang ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
          (format_runtime_value lang))
       (Array.to_list elts)
+  | Runtime.Position (file, sl, sc, el, ec) ->
+    let p = Pos.from_info file sl sc el ec in
+    Format.pp_print_string ppf (Pos.to_string_shorter p)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
 let print_log ppf lang level entry =

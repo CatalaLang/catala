@@ -107,6 +107,7 @@ type runtime_value =
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value Array.t
   | Tuple of runtime_value Array.t
+  | Position of (string * int * int * int * int)
   | Unembeddable
 
 val unembeddable : 'a -> runtime_value

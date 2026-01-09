@@ -260,6 +260,7 @@ type runtime_value =
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value array
   | Tuple of runtime_value array
+  | Position of (string * int * int * int * int)
   | Unembeddable
 
 let unembeddable _ = Unembeddable
@@ -373,6 +374,9 @@ module BufferedJson = struct
         | Tuple _ -> "\"tuple\""
         | _ -> assert false)
         (list runtime_value) (Array.to_list elts)
+    | Position (file, sl, sc, el, ec) ->
+      Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
+        file sl sc el ec
     | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
@@ -503,6 +507,8 @@ let rec format_value ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
          format_value)
       (elts |> Array.to_list)
+  | Position (file, sl, sc, el, ec) ->
+    Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" file sl sc el ec
 
 let rec pp_events ?(is_first_call = true) ppf events =
   let rec format_var_def ppf var =

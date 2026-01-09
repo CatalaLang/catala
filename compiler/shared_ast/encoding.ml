@@ -193,6 +193,22 @@ let duration_encoding : Runtime.runtime_value encoding =
            Duration (Dates_calc.make_period ~years:0 ~months:0 ~days)
          | `Raw d -> Duration d)
 
+let position_encoding =
+  let p_encoding = obj2 (req "line" int32) (req "character" int) in
+  let range_encoding = obj2 (req "start" p_encoding) (req "end" p_encoding) in
+  obj2 (req "file" string) (req "range" range_encoding)
+  |> conv
+       (function
+         | Runtime.Position (file, sl, sc, el, ec) ->
+           file, ((Int32.of_int sl, sc), (Int32.of_int el, ec))
+         | v ->
+           Message.error ~internal:true
+             "Unexpected runtime value %a instead of position while encoding \
+              to JSON"
+             Runtime.format_value v)
+       (fun (file, ((sl, sc), (el, ec))) ->
+         Runtime.Position (file, Int32.to_int sl, sc, Int32.to_int el, ec))
+
 let make_constant s : Runtime.runtime_value encoding =
   conv
     (function
@@ -212,8 +228,8 @@ let generate_lit_encoding (typ_lit : typ_lit) : Runtime.runtime_value encoding =
   | TRat -> rat_encoding
   | TDate -> date_encoding
   | TDuration -> duration_encoding
-  | TPos -> unit_encoding
   | TMoney -> money_encoding
+  | TPos -> position_encoding
 
 let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
     Runtime.runtime_value encoding =
@@ -457,6 +473,8 @@ let rec convert_to_dcalc
   | TLit TRat, Decimal q -> Expr.elit (LRat q) mark
   | TLit TDate, Date d -> Expr.elit (LDate d) mark
   | TLit TDuration, Duration d -> Expr.elit (LDuration d) mark
+  | TLit TPos, Position (file, sl, sc, el, ec) ->
+    Expr.epos (Pos.from_info file sl sc el ec) mark
   | TDefault _typ, Enum ("Optional", ("Absent", Unit)) -> Expr.eempty mark
   | TDefault typ, Enum ("Optional", ("Present", rval)) ->
     Expr.epuredefault (f typ rval) mark
@@ -503,7 +521,8 @@ let rec convert_to_lcalc
   let mark = Expr.with_ty mark typ in
   let f = convert_to_lcalc ctx mark in
   match Mark.remove typ, rval with
-  | TLit TPos, Unit -> Expr.epos Pos.void mark
+  | TLit TPos, Position (file, sl, sc, el, ec) ->
+    Expr.epos (Pos.from_info file sl sc el ec) mark
   | TLit TUnit, Unit -> Expr.elit LUnit mark
   | TLit TBool, Bool b -> Expr.elit (LBool b) mark
   | TLit TMoney, Money z -> Expr.elit (LMoney z) mark
@@ -580,6 +599,14 @@ let rec convert_from_gexpr :
   | EArray el -> Array (List.map f el |> Array.of_list)
   | ETuple [e; (EPos _, _)] -> f e
   | ETuple el -> Tuple (List.map f el |> Array.of_list)
+  | EPos p ->
+    Position
+      Pos.(
+        ( get_file p,
+          get_start_line p,
+          get_start_column p,
+          get_end_line p,
+          get_end_column p ))
   | _ ->
     Message.error "Failed to convert expression to runtime_value: %a"
       (Print.expr ()) e
