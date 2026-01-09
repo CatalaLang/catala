@@ -196,7 +196,7 @@ let ninja_output =
   Arg.(
     value
     & opt (some string) None
-    & info ["o"; "output"] ~docv:"FILE"
+    & info ["ninja-output-file"] ~docv:"FILE"
         ~doc:
           "$(i,FILE) is the file that will contain the build.ninja file \
            output. If not specified, the build.ninja file is set to \
@@ -498,7 +498,7 @@ let init
   let catala_opts =
     match output_format with
     | Global.Human -> catala_opts
-    | JSON -> ["--format"; "json"] @ catala_opts
+    | JSON -> ["--output-format"; "json"] @ catala_opts
   in
   {
     options =

@@ -194,7 +194,7 @@ module Flags = struct
     let output_format =
       value
       & opt (enum output_format_opt) Human
-      & info ["format"]
+      & info ["output-format"; "F"]
           ~doc:
             "Selects the format of interpretation results. If set to \
              $(i,human), the messages will be nicely displayed and meant to be \

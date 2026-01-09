@@ -27,19 +27,19 @@ scope T:
 ```
 
 ```catala-test-cli
-$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format human
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F human
 ┌─[RESULT]─ T ─
 │ r = S { -- x: 2 -- y: false }
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format json
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F json
 { "r": { "x": 2.0, "y": false } }
 ```
 
 ```catala-test-cli
-$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} --format json
+$ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F json
 { "r": { "x": 2.0, "y": false } }
 ```
 
