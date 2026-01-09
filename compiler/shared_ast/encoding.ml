@@ -264,11 +264,12 @@ and generate_option_encoder ctx typ =
 and generate_tuple_encoder ctx typl =
   assert (typl <> []);
   let first_tup_enc = tup1 (generate_encoder ctx (List.hd typl)) in
-  let add_tuple (encoding : Runtime.runtime_value encoding) typ :
+  let add_tuple (acc : Runtime.runtime_value encoding) typ :
       Runtime.runtime_value encoding =
-    let bconv = merge_tups encoding (tup1 (generate_encoder ctx typ)) in
+    let bconv = merge_tups acc (tup1 (generate_encoder ctx typ)) in
     conv
       (function
+        | Runtime.Tuple [| x1; x2 |] -> x1, x2
         | Runtime.Tuple arr ->
           ( Runtime.Tuple (Array.sub arr 0 (Array.length arr - 1)),
             arr.(Array.length arr - 1) )
@@ -279,12 +280,10 @@ and generate_tuple_encoder ctx typl =
             Runtime.format_value v)
       (function
         | Runtime.Tuple arr, rval -> Runtime.Tuple (Array.append arr [| rval |])
-        | _ -> assert false)
+        | v, rval -> (* First element reached *) Runtime.Tuple [| v; rval |])
       bconv
   in
-  List.fold_left
-    (fun e (sf, typ) -> add_tuple e (sf, typ))
-    first_tup_enc (List.tl typl)
+  List.fold_left (fun e typ -> add_tuple e typ) first_tup_enc (List.tl typl)
 
 and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   let struc = StructName.Map.find sname ctx.ctx_structs in
