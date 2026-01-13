@@ -190,6 +190,7 @@ and naked_expression =
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
   | TupleAccess of expression * int Mark.pos
+  | Assert of expression * expression * Pos.t
 
 type exception_to =
   | NotAnException

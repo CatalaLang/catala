@@ -1154,6 +1154,12 @@ let rec translate_expr
     Expr.eappop ~op:(Fold, opos)
       ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f; init; collection] emark
+  | Assert (e1, e2, pos) ->
+    Expr.make_let_in
+      (Var.make "_", Mark.get e1)
+      (TLit TUnit, Mark.get e1)
+      (Expr.eassert (rec_helper e1) (Untyped { pos }))
+      (rec_helper e2) pos
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t option)

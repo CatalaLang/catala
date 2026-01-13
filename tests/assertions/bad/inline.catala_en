@@ -1,0 +1,46 @@
+```catala
+#[test]
+declaration scope A:
+  output w content integer
+
+scope A:
+  definition w equals
+    let a equals 1 + 2 in
+    assertion a = -3 in
+    let b equals a + 3 in
+    assertion b = -6 in
+    assertion not (b > -6) in
+    b
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[ERROR]─ 1/3 ─
+│
+│  Assertion failed: 3 = -3.
+│
+├─➤ tests/assertions/bad/inline.catala_en:9.5-9.21:
+│   │
+│ 9 │     assertion a = -3 in
+│   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/3 ─
+│
+│  Assertion failed: 6 = -6.
+│
+├─➤ tests/assertions/bad/inline.catala_en:11.5-11.21:
+│    │
+│ 11 │     assertion b = -6 in
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 3/3 ─
+│
+│  During evaluation: an assertion doesn't hold.
+│
+├─➤ tests/assertions/bad/inline.catala_en:12.5-12.27:
+│    │
+│ 12 │     assertion not (b > -6) in
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```

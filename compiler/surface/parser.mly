@@ -392,6 +392,10 @@ let naked_expression ==
   default = opt_or_if_empty; {
   CollectionOp ((AggregateArgExtremum { max; default; f = ids, f }, pos), coll)
 }
+| p1 = pos(ASSERTION) ; check = expression ; IN ; next = expression ; {
+  let pos = Pos.join p1 (Mark.get check) in
+  Assert (check, next, pos)
+} %prec let_expr
 
 let opt_or_if_empty ==
 | OR_IF_LIST_EMPTY ; THEN ; default = expression ; <Some> %prec apply
