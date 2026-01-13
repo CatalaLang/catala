@@ -110,9 +110,10 @@ type attribute_context =
   | ScopeDef
   | FieldDecl
   | ConstructorDecl
-  | Expression
+  | Expression of Surface.Ast.expression
   | Type
   | FunctionArgument
+  | Assertion
 
 let attribute_parsers :
     (string
@@ -159,12 +160,8 @@ let translate_attr ~context = function
     | "debug" -> (
       match ps with
       | ["print"] -> (
-        if context <> Expression then (
-          Message.warning ~pos
-            "Attribute @{<magenta>#[debug.print]@} is not allowed in this \
-             context";
-          None)
-        else
+        match context with
+        | Expression _ -> (
           match v with
           | Unit -> Some (DebugPrint { label = None })
           | String (s, _) -> Some (DebugPrint { label = Some s })
@@ -176,6 +173,11 @@ let translate_attr ~context = function
             Message.warning ~pos
               "Invalid value for attribute @{<magenta>#[debug.print]@}";
             None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[debug.print]@} is not allowed in this \
+             context";
+          None)
       | ps ->
         Message.warning ~pos:ppos ~suggestion:["print"]
           "Unknown debug attribute \"%s\"" (String.concat "." ps);
@@ -197,21 +199,44 @@ let translate_attr ~context = function
         Message.warning ~pos:ppos "Unknown test sub-attribute \"%s\""
           (String.concat "." ps);
         None)
+    | "error" -> (
+      match ps with
+      | ["message"] -> (
+        match context with
+        | Assertion | Expression ((Assert _ | Builtin Impossible), _) -> (
+          match v with
+          | String (s, _) -> Some (ErrorMessage s)
+          | _ ->
+            Message.warning ~pos
+              "Invalid value for attribute @{<magenta>#[error.message]@}: a \
+               string was expected";
+            None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[error.message]@} is not allowed in this \
+             context.@ It must be put before an @{<cyan>assertion@} or \
+             @{<cyan>impossible@}.";
+          None)
+      | ps ->
+        Message.warning ~pos:ppos "Unknown error sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
     | "doc" -> (
       match ps with
       | [] -> (
-        if context = Expression then (
+        match context with
+        | Expression _ ->
           Message.warning ~pos
             "Attribute @{<magenta>#[doc]@} is not allowed in this context";
-          None)
-        else
+          None
+        | _ -> (
           match v with
           | String (s, pos) -> Some (Doc (s, pos))
           | _ ->
             Message.warning ~pos
               "Invalid value for the @{<magenta>#[doc]@} attribute: expecting \
                a string";
-            None)
+            None))
       | ps ->
         Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
           (String.concat "." ps);

@@ -454,6 +454,7 @@ type Pos.attr +=
   | Test
   | Doc of string * Pos.t
   | ImplicitPosArg
+  | ErrorMessage of string
 
 (** {2 Markings} *)
 

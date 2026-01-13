@@ -120,9 +120,10 @@ type attribute_context =
   | ScopeDef
   | FieldDecl
   | ConstructorDecl
-  | Expression
+  | Expression of Surface.Ast.expression
   | Type
   | FunctionArgument
+  | Assertion
 
 val register_attribute :
   plugin:string ->

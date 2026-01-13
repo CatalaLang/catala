@@ -308,7 +308,7 @@ let rec translate_expr
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
     (expr : S.expression) : Ast.expr boxed =
-  let pos = Name_resolution.(translate_pos Expression (Mark.get expr)) in
+  let pos = Name_resolution.(translate_pos (Expression expr) (Mark.get expr)) in
   let emark = Untyped { pos } in
   Message.wrap_to_delayed_error (Expr.ebad emark) ~kind:Parsing
   @@ fun () ->
@@ -1544,6 +1544,12 @@ let process_assert
               ass.S.assertion_content,
               Mark.copy cond (S.Literal (S.LBool true)) ),
           Mark.get cond ))
+  in
+  let ass =
+    Mark.map_mark
+      (fun (Untyped { pos }) ->
+        Untyped { pos = Name_resolution.(translate_pos Assertion pos) })
+      ass
   in
   let assertion =
     match precond with
