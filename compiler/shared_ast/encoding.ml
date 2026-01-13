@@ -123,75 +123,60 @@ let rat_encoding : Runtime.runtime_value encoding =
     ]
 
 let date_encoding : Runtime.runtime_value encoding =
+  let date_obj =
+    obj3
+      (req "year" (ranged_int ~minimum:0 ~maximum:9999 "years"))
+      (req "month" (ranged_int ~minimum:1 ~maximum:12 "months"))
+      (req "day" (ranged_int ~minimum:1 ~maximum:31 "days"))
+  in
   def "date" ~title:"Catala date"
-    ~description:
-      "Accepts JSON strings with the following format: YYYY-MM-DD, e.g., \
-       \"1970-01-31\""
-  @@ conv
-       (function
-         | Runtime.Date d -> Format.asprintf "%a" Dates_calc.format_date d
-         | v ->
-           Message.error ~internal:true
-             "Unexpected runtime value %a instead of date while encoding to \
-              JSON"
-             Runtime.format_value v)
-       (fun s -> Runtime.Date (Dates_calc.date_of_string s))
-       string
+  @@ union
+       [
+         case
+           ~description:
+             "Accepts strings with the following format: YYYY-MM-DD, e.g., \
+              \"1970-01-31\""
+           string
+           (function
+             | Runtime.Date d ->
+               Some (Format.asprintf "%a" Dates_calc.format_date d)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of date while encoding \
+                  to JSON"
+                 Runtime.format_value v)
+           (fun s -> Runtime.Date (Dates_calc.date_of_string s));
+         case
+           ~description:
+             "Accepts date objects: {\"year\":<int>, \"month\":<int>, \
+              \"day\":<int>}"
+           date_obj
+           (function
+             | Runtime.Date d -> Some (Dates_calc.date_to_ymd d)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of date while encoding \
+                  to JSON"
+                 Runtime.format_value v)
+           (fun (year, month, day) ->
+             Runtime.Date (Dates_calc.make_date ~year ~month ~day));
+       ]
 
 let duration_encoding : Runtime.runtime_value encoding =
-  let parse_duration s =
-    let s =
-      String.split_on_char ' ' s
-      |> List.filter (( <> ) String.empty)
-      |> String.concat ""
-    in
-    try
-      Scanf.sscanf s "%d%s" (fun n unit ->
-          match unit with
-          | "years" | "year" -> `Years n
-          | "months" | "month" -> `Months n
-          | "days" | "day" -> `Days n
-          | _ ->
-            raise (Json_encoding.Unexpected (unit, "years, months or days")))
-    with _ ->
-      raise (Json_encoding.Unexpected (s, "number and duration unit string"))
+  let encoding =
+    obj3 (dft "years" int 0) (dft "months" int 0) (dft "days" int 0)
+    |> conv
+         (function
+           | Runtime.Duration d -> Dates_calc.period_to_ymds d
+           | v ->
+             Message.error ~internal:true
+               "Unexpected runtime value %a instead of duration while encoding \
+                to JSON"
+               Runtime.format_value v)
+         (fun (years, months, days) ->
+           Runtime.Duration (Dates_calc.make_period ~years ~months ~days))
   in
-  def "duration" ~title:"Catala duration"
-    ~description:
-      "Accepts JSON strings with the following format: [X years|months|days], \
-       e.g., \"[2 months]\" or \"[3 days]\""
-  @@ conv
-       (function
-         | `Years y -> Format.sprintf "%d years" y
-         | `Months m -> Format.sprintf "%d months" m
-         | `Days d -> Format.sprintf "%d days" d
-         | `Raw d ->
-           let s = Format.asprintf "%a" Dates_calc.format_period d in
-           String.sub s 1 (String.length s - 2))
-       (fun s -> parse_duration s)
-       string
-  |> conv
-       (function
-         | Runtime.Duration d -> begin
-           match Dates_calc.period_to_ymds d with
-           | y, 0, 0 -> `Years y
-           | 0, m, 0 -> `Months m
-           | 0, 0, d -> `Days d
-           | _ -> `Raw d
-         end
-         | v ->
-           Message.error ~internal:true
-             "Unexpected runtime value %a instead of duration while encoding \
-              to JSON"
-             Runtime.format_value v)
-       (function
-         | `Years years ->
-           Duration (Dates_calc.make_period ~years ~months:0 ~days:0)
-         | `Months months ->
-           Duration (Dates_calc.make_period ~years:0 ~months ~days:0)
-         | `Days days ->
-           Duration (Dates_calc.make_period ~years:0 ~months:0 ~days)
-         | `Raw d -> Duration d)
+  def "duration" ~title:"Catala duration" @@ encoding
 
 let position_encoding =
   let p_encoding = obj2 (req "line" int32) (req "character" int) in

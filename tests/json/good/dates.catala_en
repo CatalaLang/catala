@@ -1,51 +1,51 @@
 ```catala-metadata
 declaration scope S:
-  input w content date
-  input x content duration
+  input x content date
   input y content duration
-  input z content duration
 
-  output rw content date
-  output rx content duration
+  output rx content date
   output ry content duration
   output rz content duration
 
 scope S:
   date round up
-  definition rw equals w
-  definition rx equals x + 2 month
+  definition rx equals x
   definition ry equals y
-  definition rz equals z
+  definition rz equals 1 year + 2 month
 ```
 
-FIXME: Cannot test duration strings with spaces as the command parser splits on spaces.
-
 ```catala-test-cli
-$ catala test-scope S --input {"w":"2025-01-31","x":"1year","y":"1month","z":"1day"}
+$ catala test-scope S --input {"x":"2025-01-31","y":{"years":1}}
 ┌─[RESULT]─ S ─
-│ rw = 2025-01-31
-│ rx = [1 year, 2 months]
-│ ry = [1 month]
-│ rz = [1 day]
+│ rx = 2025-01-31
+│ ry = [1 year]
+│ rz = [1 year, 2 months]
 └─
 ```
 
 ```catala-test-cli
-$ catala test-scope S --input {"w":"2025-01-31","x":"1year","y":"1month","z":"1day"} -F json
+$ catala test-scope S --input {"x":"2025-01-31","y":{"years":1}} -F json
 {
-  "rw": "2025-01-31",
-  "rx": "1 years, 2 months, 0 days",
-  "ry": "1 months",
-  "rz": "1 days"
+  "rx": "2025-01-31",
+  "ry": { "years": 1.0 },
+  "rz": { "years": 1.0, "months": 2.0 }
 }
 ```
 
 ```catala-test-cli
-$ catala test-scope S --input {"w":"2025-01-31","x":"1years","y":"1months","z":"1days"}
+$ catala test-scope S --input {"x":{"year":2025,"month":1,"day":31},"y":{"years":1,"months":13,"days":-365}}
 ┌─[RESULT]─ S ─
-│ rw = 2025-01-31
-│ rx = [1 year, 2 months]
-│ ry = [1 month]
-│ rz = [1 day]
+│ rx = 2025-01-31
+│ ry = [1 year, 13 months, -365 days]
+│ rz = [1 year, 2 months]
 └─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":{"year":2025,"month":1,"day":31},"y":{"years":1,"months":13,"days":-365}} -F json
+{
+  "rx": "2025-01-31",
+  "ry": { "years": 1.0, "months": 13.0, "days": -365.0 },
+  "rz": { "years": 1.0, "months": 2.0 }
+}
 ```
