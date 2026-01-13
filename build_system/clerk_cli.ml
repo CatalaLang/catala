@@ -230,26 +230,21 @@ let reset_test_outputs =
     & flag
     & info ["r"; "reset"]
         ~doc:
-          "Used with the `test` command, resets the test output to whatever is \
-           output by the Catala compiler.")
+          "Reset the test output to whatever is output by the Catala compiler.")
 
 let scope_opt =
   Arg.(
     value
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE"
-        ~doc:
-          "Used with the `run` command, selects which scope of a given Catala \
-           file to run.")
+        ~doc:"Select which scope of a given Catala file to run.")
 
 let scope =
   Arg.(
     required
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE"
-        ~doc:
-          "Used with the `run` command, selects which scope of a given Catala \
-           file to run.")
+        ~doc:"Select which scope of a given Catala file to run.")
 
 let scope_input = Catala_utils.Cli.Flags.scope_input
 
