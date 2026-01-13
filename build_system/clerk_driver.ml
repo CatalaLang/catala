@@ -941,7 +941,7 @@ let build_test_deps
         let filter item =
           if is_dir then
             String.starts_with ~prefix:(file / "") item.Scan.file_name
-            && (Lazy.force item.Scan.has_scope_tests || not test_only)
+            && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
           else
             Option.map Mark.remove item.Scan.module_def
             = Some (File.basename file)

@@ -1502,9 +1502,6 @@ module Commands = struct
         Passes.dcalc options ~includes ~stdlib ~optimize:false
           ~check_invariants:false ~autotest:false ~typed:mark
       in
-      Interpreter.load_runtime_modules
-        ~hashf:Hash.(finalise ~monomorphize_types:false)
-        prg;
       let scope = get_scope_uid prg.decl_ctx ex_scope in
       let { in_struct_name; out_struct_name; _ } =
         ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
