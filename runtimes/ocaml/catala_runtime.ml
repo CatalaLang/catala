@@ -260,6 +260,7 @@ type runtime_value =
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value array
   | Tuple of runtime_value array
+  | Position of (string * int * int * int * int)
   | Unembeddable
 
 let unembeddable _ = Unembeddable
@@ -373,6 +374,9 @@ module BufferedJson = struct
         | Tuple _ -> "\"tuple\""
         | _ -> assert false)
         (list runtime_value) (Array.to_list elts)
+    | Position (file, sl, sc, el, ec) ->
+      Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
+        file sl sc el ec
     | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
@@ -472,6 +476,40 @@ let log_decision_taken pos x =
   if x then log_ref := DecisionTaken pos :: !log_ref;
   x
 
+let rec format_value ppf = function
+  | Unembeddable -> Format.fprintf ppf "fun"
+  | Unit -> Format.fprintf ppf "()"
+  | Bool x -> Format.fprintf ppf "%b" x
+  | Money x -> Format.fprintf ppf "%s€" (money_to_string x)
+  | Integer x -> Format.fprintf ppf "%s" (Z.to_string x)
+  | Decimal x ->
+    Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
+  | Date x -> Format.fprintf ppf "%s" (date_to_string x)
+  | Duration x -> Format.fprintf ppf "%s" (duration_to_string x)
+  | Enum (_, (name, Unit)) -> Format.fprintf ppf "%s" name
+  | Enum (_, (name, v)) -> Format.fprintf ppf "%s(%a)" name format_value v
+  | Struct (name, attrs) ->
+    Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]" name
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (fun fmt (name, value) ->
+           Format.fprintf fmt "%s: %a" name format_value value))
+      attrs
+  | Array elts ->
+    Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+         format_value)
+      (elts |> Array.to_list)
+  | Tuple elts ->
+    Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         format_value)
+      (elts |> Array.to_list)
+  | Position (file, sl, sc, el, ec) ->
+    Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" file sl sc el ec
+
 let rec pp_events ?(is_first_call = true) ppf events =
   let rec format_var_def ppf var =
     Format.fprintf ppf "@[<hov 2><var_def at %a>@ %s:@ %a@]" format_pos_opt
@@ -500,36 +538,6 @@ let rec pp_events ?(is_first_call = true) ppf events =
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            (fun ppf fun_call -> format_event ppf (FunCall fun_call)))
         fun_calls
-  and format_value ppf = function
-    | Unembeddable -> Format.fprintf ppf "fun"
-    | Unit -> Format.fprintf ppf "()"
-    | Bool x -> Format.fprintf ppf "%b" x
-    | Money x -> Format.fprintf ppf "%s€" (money_to_string x)
-    | Integer x -> Format.fprintf ppf "%d" (integer_to_int x)
-    | Decimal x ->
-      Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
-    | Date x -> Format.fprintf ppf "%s" (date_to_string x)
-    | Duration x -> Format.fprintf ppf "%s" (duration_to_string x)
-    | Enum (_, (name, _)) -> Format.fprintf ppf "%s" name
-    | Struct (name, attrs) ->
-      Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]" name
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,")
-           (fun fmt (name, value) ->
-             Format.fprintf fmt "%s: %a" name format_value value))
-        attrs
-    | Array elts ->
-      Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-           format_value)
-        (elts |> Array.to_list)
-    | Tuple elts ->
-      Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           format_value)
-        (elts |> Array.to_list)
   and format_event ppf = function
     | VarComputation var_def_with_fun
       when Option.is_some var_def_with_fun.fun_calls ->

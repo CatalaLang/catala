@@ -924,8 +924,14 @@ let enable_backend =
   function
   | `Interpret | `OCaml -> OCaml | `C -> C | `Python -> Python | `Java -> Java
 
-let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
-    =
+let build_test_deps
+    ~config
+    ~backend
+    ?(test_only = true)
+    files_or_folders
+    nin_ppf
+    items
+    var_bindings =
   let open File in
   let build_dir = config.Cli.options.global.build_dir in
   let target_items =
@@ -935,7 +941,7 @@ let build_test_deps ~config ~backend files_or_folders nin_ppf items var_bindings
         let filter item =
           if is_dir then
             String.starts_with ~prefix:(file / "") item.Scan.file_name
-            && Lazy.force item.Scan.has_scope_tests
+            && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
           else
             Option.map Mark.remove item.Scan.module_def
             = Some (File.basename file)
@@ -992,15 +998,28 @@ let run_tests
     backend
     cmd
     scope
+    scope_input
     (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
   match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
   | `Interpret ->
+    let () =
+      match scope_input, test_targets with
+      | None, _ | Some _, [_] -> ()
+      | Some _, _ ->
+        Message.error
+          "Multiple targets found for a single input, please specify a single \
+           target."
+    in
     let catala_flags =
       get_var var_bindings Var.catala_flags
       @ (match scope with
         | None -> []
-        | Some s -> [Printf.sprintf "--scope=%s" s])
+        | Some scope -> [Printf.sprintf "--scope=%s" scope])
+      @ (match scope_input with
+        | None -> []
+        | Some input ->
+          [Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input)])
       @ if whole_program then ["--whole-program"] else []
     in
     let exec = get_var var_bindings Var.catala_exe in
@@ -1029,17 +1048,25 @@ let run_cmd =
       cmd
       quiet
       (scope : string option)
+      scope_input
       (ninja_flags : string list)
       prepare_only
       whole_program =
+    let test_only =
+      match scope_input, backend with
+      | Some _, `Interpret -> false
+      | Some _, _ ->
+        Message.error "JSON input is only supported with the interpret backend."
+      | _ -> true
+    in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config ~code_coverage:false
       ~enabled_backends:[enable_backend backend]
       ~ninja_flags ~autotest:false ~quiet
-      (build_test_deps ~config ~backend files_or_folders)
+      (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
-    else run_tests ~whole_program config backend cmd scope tests
+    else run_tests ~whole_program config backend cmd scope scope_input tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -1054,7 +1081,8 @@ let run_cmd =
       $ Cli.backend
       $ Cli.run_command
       $ Cli.quiet
-      $ Cli.scope
+      $ Cli.scope_opt
+      $ Cli.scope_input
       $ Cli.ninja_flags
       $ Cli.prepare_only
       $ Cli.whole_program)
@@ -1223,7 +1251,7 @@ let run_clerk_test
     Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
       ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
-    |> run_tests config backend "" None
+    |> run_tests config backend "" None None
   else
     let targets, missing =
       let fs =
@@ -1529,6 +1557,41 @@ let list_vars_cmd =
   in
   Cmd.v (Cmd.info ~doc "list-vars") Term.(const run $ Cli.init_term ())
 
+let json_schema_cmd =
+  let run config ninja_flags quiet file scope =
+    let file = config.Cli.fix_path file in
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
+      ~ninja_flags ~autotest:false ~quiet
+      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
+    |> fun (items, _link_deps, var_bindings) ->
+    let catala_exe = get_var var_bindings Var.catala_exe in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    match items with
+    | [] ->
+      Message.error "Found no valid compiled target to extract JSON schema"
+    | ({ Scan.file_name; _ }, _) :: _ ->
+      let cmd =
+        catala_exe @ ["json-schema"; file_name; "--scope"; scope] @ catala_flags
+      in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      run_command cmd
+  in
+  let doc =
+    "Display the JSON-schema of the input and output JSON objects of the given \
+     scope (using $(b,--scope <scope-name>)). Both schemas are contained in a \
+     JSON array of two elements: first one being the input, the second one the \
+     output."
+  in
+  Cmd.v
+    (Cmd.info ~doc "json-schema")
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.ninja_flags
+      $ Cli.quiet
+      $ Cli.single_file
+      $ Cli.scope)
+
 let main_cmd =
   Cmd.group Cli.info
     [
@@ -1543,6 +1606,7 @@ let main_cmd =
       report_cmd;
       raw_cmd;
       list_vars_cmd;
+      json_schema_cmd;
     ]
 
 let main () =

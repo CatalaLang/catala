@@ -1,0 +1,26 @@
+```catala-metadata
+declaration scope S:
+  input x content integer
+  input y content optional of boolean
+  context z content integer
+
+  output r content integer
+
+scope S:
+  definition z equals 3
+  definition r equals x + if y = Absent then 1 else 0 + z
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true,"z":1}
+┌─[RESULT]─ S ─
+│ r = 2
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true}
+┌─[RESULT]─ S ─
+│ r = 4
+└─
+```

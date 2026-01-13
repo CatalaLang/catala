@@ -1,0 +1,14 @@
+```catala-metadata
+declaration scope S:
+  input x content (integer, integer, integer)
+
+  output r content (integer, integer, integer)
+
+scope S:
+  definition r equals x
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":[1,2,3]} -F json
+{ "r": [ 1.0, 2.0, 3.0 ] }
+```

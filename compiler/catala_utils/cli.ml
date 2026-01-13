@@ -28,7 +28,8 @@ let language_code =
   fun l -> List.assoc l rl
 
 let message_format_opt = ["human", (Human : message_format_enum); "gnu", GNU]
-let trace_format_opt = ["human", (Human : trace_format_enum); "json", JSON]
+let trace_format_opt = ["human", (Human : format_enum); "json", JSON]
+let output_format_opt = ["human", (Human : format_enum); "json", JSON]
 
 open Cmdliner
 
@@ -190,6 +191,16 @@ module Flags = struct
              meant to be read by a human. If set to $(i, json), the messages \
              will be emitted as a JSON structured object."
 
+    let output_format =
+      value
+      & opt (enum output_format_opt) Human
+      & info ["output-format"; "F"]
+          ~doc:
+            "Selects the format of interpretation results. If set to \
+             $(i,human), the messages will be nicely displayed and meant to be \
+             read by a human. If set to $(i, json), the messages will be \
+             emitted as a JSON structured object."
+
     let plugins_dirs =
       let doc = "Set the given directory to be searched for backend plugins." in
       let env = Cmd.Env.info "CATALA_PLUGINS" in
@@ -290,6 +301,7 @@ module Flags = struct
           message_format
           trace
           trace_format
+          output_format
           plugins_dirs
           disable_warnings
           max_prec_digits
@@ -343,9 +355,9 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~plugins_dirs ~disable_warnings ~max_prec_digits
-          ~path_rewrite ~stop_on_error ~no_fail_on_assert ~whole_program
-          ~bin_dir ~gen_external ()
+          ~trace_format ~output_format ~plugins_dirs ~disable_warnings
+          ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
+          ~whole_program ~bin_dir ~gen_external ()
       in
       Term.(
         const make
@@ -355,6 +367,7 @@ module Flags = struct
         $ message_format
         $ trace
         $ trace_format
+        $ output_format
         $ plugins_dirs
         $ disable_warnings
         $ max_prec_digits
@@ -606,6 +619,36 @@ module Flags = struct
         ~doc:
           "Append the given subdir at the end of the path of each of the files \
            in the returned list. Usually matches the name of the backend used."
+
+  let scope_input : Yojson.Safe.t option Term.t =
+    let converter =
+      conv ~docv:"FILE|JSON"
+        ( (fun s ->
+            try
+              let json =
+                if s = "-" then Yojson.Safe.from_channel stdin
+                else if Sys.file_exists s && not (Sys.is_directory s) then
+                  let ic = open_in s in
+                  Fun.protect
+                    (fun () -> Yojson.Safe.from_channel ic)
+                    ~finally:(fun () -> close_in ic)
+                else Yojson.Safe.from_string s
+              in
+              Ok json
+            with Yojson.Json_error _ ->
+              Error (`Msg "argument is neither a file nor a valid JSON value.")),
+          fun ppf -> Yojson.Safe.pretty_print ppf )
+    in
+    value
+    & opt (some converter) None
+    & info ["input"] ~docv:"FILE|JSON"
+        ~doc:
+          "Reads a JSON value from the given string or file ($(b,-) for stdin) \
+           and uses it as input value when interpreting the given scope. See \
+           also $(b,json-schema) command to generate the accepted JSON's \
+           schema for a given scope."
+
+  let output_format = Global.output_format
 end
 
 (* Retrieve current version from dune *)

@@ -83,6 +83,12 @@ module Flags : sig
 
   val subdir : string option Term.t
   (** for the 'depends' command *)
+
+  val scope_input : Yojson.Safe.t option Term.t
+  (** JSON used as scope input *)
+
+  val output_format : format_enum Term.t
+  (** Exported for clerk usage *)
 end
 
 (** {2 Command-line application} *)

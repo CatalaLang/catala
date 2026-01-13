@@ -196,7 +196,7 @@ let ninja_output =
   Arg.(
     value
     & opt (some string) None
-    & info ["o"; "output"] ~docv:"FILE"
+    & info ["ninja-output-file"] ~docv:"FILE"
         ~doc:
           "$(i,FILE) is the file that will contain the build.ninja file \
            output. If not specified, the build.ninja file is set to \
@@ -221,7 +221,7 @@ let targets =
 let single_file =
   Arg.(
     required
-    & pos 0 (some file) None
+    & pos 0 (some string) None
     & info [] ~docv:"FILE" ~doc:"File to process")
 
 let reset_test_outputs =
@@ -230,17 +230,23 @@ let reset_test_outputs =
     & flag
     & info ["r"; "reset"]
         ~doc:
-          "Used with the `test` command, resets the test output to whatever is \
-           output by the Catala compiler.")
+          "Reset the test output to whatever is output by the Catala compiler.")
 
-let scope =
+let scope_opt =
   Arg.(
     value
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE"
-        ~doc:
-          "Used with the `run` command, selects which scope of a given Catala \
-           file to run.")
+        ~doc:"Select which scope of a given Catala file to run.")
+
+let scope =
+  Arg.(
+    required
+    & opt (some string) None
+    & info ["s"; "scope"] ~docv:"SCOPE"
+        ~doc:"Select which scope of a given Catala file to run.")
+
+let scope_input = Catala_utils.Cli.Flags.scope_input
 
 let clerk_targets_or_files =
   Arg.(
@@ -400,7 +406,8 @@ let init
     include_dirs
     color
     debug
-    whole_program =
+    whole_program
+    output_format =
   if debug then Printexc.record_backtrace true;
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let default_config_file = "clerk.toml" in
@@ -483,6 +490,11 @@ let init
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags
   in
+  let catala_opts =
+    match output_format with
+    | Global.Human -> catala_opts
+    | JSON -> ["--output-format"; "json"] @ catala_opts
+  in
   {
     options =
       {
@@ -516,4 +528,5 @@ let init_term ?(allow_test_flags = false) () =
     $ include_dirs
     $ color
     $ debug
-    $ whole_program)
+    $ whole_program
+    $ Cli.Flags.output_format)

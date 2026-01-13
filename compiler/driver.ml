@@ -448,7 +448,34 @@ module Commands = struct
         scope
         ~suggestion:(Ident.Map.keys ctx.ctx_scope_index)
 
-  let get_scopelist_uids prg (scopes : string list) : ScopeName.t list =
+  let get_single_scope_uid prg (scopes : string list) =
+    match scopes with
+    | [s] -> get_scope_uid prg.decl_ctx s
+    | _ :: _ ->
+      Message.error "Expected at most one scope argument but got multiple ones."
+    | [] -> (
+      let exports = BoundList.last prg.code_items in
+      let prg_scopes =
+        List.filter_map
+          (function KScope scope, _ -> Some scope | _ -> None)
+          exports
+      in
+      match prg_scopes with
+      | [] ->
+        Message.error
+          "The program has no exported scopes.@ Please specify option \
+           @{<yellow>--scope@}@ to execute a private scope@ or add \
+           ```catala-metadata to a scope declaration."
+      | _ :: _ :: _ ->
+        Message.error
+          "The program defines multiple scopes but only one was expected.@ \
+           Please specify option @{<yellow>--scope@} to explicit what to \
+           execute.@ The program defines the following scopes:@ @[<hv 4>%a@]"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
+          prg_scopes
+      | [h] -> h)
+
+  let get_test_scopes_uids prg (scopes : string list) : ScopeName.t list =
     match scopes with
     | _ :: _ -> List.map (get_scope_uid prg.decl_ctx) scopes
     | [] ->
@@ -870,12 +897,13 @@ module Commands = struct
       options
       ?(quiet = false)
       interpreter
-      scope_uid =
+      scope_uid
+      (ctx : decl_ctx) =
     try
       Message.debug "Starting interpretation...";
       let results, cov_opt = interpreter () in
       Message.debug "End of interpretation";
-      let results =
+      let sorted_results =
         List.sort
           (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
           results
@@ -883,25 +911,54 @@ module Commands = struct
       let language =
         Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
-      if quiet then begin
-        (* Caution: this output is parsed by Clerk *)
-        Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
-          ScopeName.format scope_uid (fun fmt ->
-            Option.iter
-              (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
-              cov_opt)
-      end
-      else if results = [] then Message.result "Computation successful!"
-      else
-        Message.results
-          ~title:(ScopeName.to_string scope_uid)
-          (List.map
-             (fun ((var, _), result) ppf ->
-               Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
-                 (if options.Global.debug then Print.expr ~debug:false ()
-                  else Print.UserFacing.value language)
-                 result)
-             results);
+      (if quiet then begin
+         (* Caution: this output is parsed by Clerk *)
+         Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
+           ScopeName.format scope_uid (fun fmt ->
+             Option.iter
+               (Format.fprintf fmt "|%a" Coverage.format_coverage_hex_dump)
+               cov_opt)
+       end
+       else
+         match results, options.Global.output_format with
+         | [], Human -> Message.result "Computation successful!"
+         | _ :: _, Human ->
+           Message.results
+             ~title:(ScopeName.to_string scope_uid)
+             ((List.map (fun ((var, _), result) ppf ->
+                   Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+                     (if options.Global.debug then Print.expr ~debug:false ()
+                      else Print.UserFacing.value language)
+                     result))
+                sorted_results)
+         | [], JSON ->
+           Format.fprintf (Message.std_ppf ()) "%a@."
+             (Yojson.Safe.pretty_print ~std:true)
+             (`Assoc [])
+         | (_, f_e) :: _, JSON ->
+           let { out_struct_name; _ } =
+             ScopeName.Map.find scope_uid ctx.ctx_scopes
+           in
+           let struct_result =
+             let fields =
+               List.fold_left
+                 (fun m (sf_s, e) ->
+                   StructField.Map.add (StructField.fresh sf_s) (Expr.box e) m)
+                 StructField.Map.empty results
+             in
+             Expr.estruct ~name:out_struct_name ~fields (Mark.get f_e)
+             |> Expr.unbox
+             |> Encoding.convert_from_gexpr ctx
+           in
+           let encoding =
+             Encoding.make_encoding ctx
+               (Mark.add Pos.void (TStruct out_struct_name))
+           in
+           let module Enc = Json_encoding.Make (Json_repr.Yojson) in
+           let json = Enc.construct encoding struct_result in
+           Format.fprintf (Message.std_ppf ()) "%a@."
+             (Yojson.Safe.pretty_print ~std:true)
+             json);
       true
     with
     | Message.CompilerError content ->
@@ -926,7 +983,8 @@ module Commands = struct
       optimize
       check_invariants
       quiet
-      ex_scopes =
+      ex_scopes
+      scope_input =
     let prg, _ =
       Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~typed
@@ -934,6 +992,10 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
+    let scopes =
+      if Option.is_none scope_input then get_test_scopes_uids prg ex_scopes
+      else [get_single_scope_uid prg ex_scopes]
+    in
     let success =
       List.fold_left
         (fun success scope ->
@@ -946,13 +1008,16 @@ module Commands = struct
               res, Some cov
             in
             print_interpretation_results options ~quiet interp scope
+              prg.decl_ctx
           else
             let interp () =
-              Interpreter.interpret_program_dcalc prg scope, None
+              ( Interpreter.interpret_program_dcalc ?input:scope_input prg scope,
+                None )
             in
-            print_interpretation_results ~quiet options interp scope && success)
-        true
-        (get_scopelist_uids prg ex_scopes)
+            print_interpretation_results ~quiet options interp scope
+              prg.decl_ctx
+            && success)
+        true scopes
     in
     if not success then raise (Cli.Exit_with 123)
 
@@ -1029,7 +1094,8 @@ module Commands = struct
       optimize
       check_invariants
       quiet
-      ex_scopes =
+      ex_scopes
+      scope_input =
     let options = if closure_conversion then fix_trace options else options in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -1039,13 +1105,20 @@ module Commands = struct
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
       prg;
+    let scopes =
+      if Option.is_none scope_input then get_test_scopes_uids prg ex_scopes
+      else [get_single_scope_uid prg ex_scopes]
+    in
     let success =
       List.fold_left
         (fun success scope ->
-          let interp () = Interpreter.interpret_program_lcalc prg scope, None in
-          print_interpretation_results ~quiet options interp scope && success)
-        true
-        (get_scopelist_uids prg ex_scopes)
+          let interp () =
+            ( Interpreter.interpret_program_lcalc ?input:scope_input prg scope,
+              None )
+          in
+          print_interpretation_results ~quiet options interp scope prg.decl_ctx
+          && success)
+        true scopes
     in
     if not success then raise (Cli.Exit_with 123)
 
@@ -1098,7 +1171,8 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
-        $ Cli.Flags.ex_scopes)
+        $ Cli.Flags.ex_scopes
+        $ Cli.Flags.scope_input)
 
   let ocaml
       options
@@ -1421,6 +1495,49 @@ module Commands = struct
                startup *))
         $ Cli.Flags.Global.options)
 
+  let json_schema_cmd =
+    let f options includes stdlib ex_scope =
+      let mark = Expr.typed in
+      let prg, _ =
+        Passes.dcalc options ~includes ~stdlib ~optimize:false
+          ~check_invariants:false ~autotest:false ~typed:mark
+      in
+      let scope = get_scope_uid prg.decl_ctx ex_scope in
+      let { in_struct_name; out_struct_name; _ } =
+        ScopeName.Map.find scope prg.decl_ctx.ctx_scopes
+      in
+      let module Schema_repr = Json_schema.Make (Json_repr.Yojson) in
+      let scope_input_schema_json =
+        let input_ty = TStruct in_struct_name, Expr.mark_pos mark in
+        let encoding =
+          Encoding.scope_input_encoding scope prg.decl_ctx input_ty
+        in
+        Json_encoding.schema encoding |> Schema_repr.to_json
+      in
+      let scope_output_schema_json =
+        let output_ty = TStruct out_struct_name, Expr.mark_pos mark in
+        let encoding =
+          Encoding.scope_output_encoding scope prg.decl_ctx output_ty
+        in
+        Json_encoding.schema encoding |> Schema_repr.to_json
+      in
+      Format.fprintf (Message.std_ppf ()) "%a@\n"
+        (Yojson.Safe.pretty_print ~std:true)
+        (`List [scope_input_schema_json; scope_output_schema_json])
+    in
+    Cmd.v
+      (Cmd.info "json-schema" ~man:Cli.man_base
+         ~doc:
+           "Display the JSON-schema of the input and output JSON objects of \
+            the given scope. Both schemas are contained in a JSON array of two \
+            elements: first one being the input, the second one the output.")
+      Term.(
+        const f
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.ex_scope)
+
   let commands =
     [
       interpret_cmd;
@@ -1441,6 +1558,7 @@ module Commands = struct
       dependency_graph_cmd;
       depends_cmd;
       pygmentize_cmd;
+      json_schema_cmd;
     ]
 end
 

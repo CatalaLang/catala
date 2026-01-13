@@ -107,6 +107,7 @@ type runtime_value =
   | Struct of string * (string * runtime_value) list
   | Array of runtime_value Array.t
   | Tuple of runtime_value Array.t
+  | Position of (string * int * int * int * int)
   | Unembeddable
 
 val unembeddable : 'a -> runtime_value
@@ -118,6 +119,7 @@ val embed_decimal : decimal -> runtime_value
 val embed_date : date -> runtime_value
 val embed_duration : duration -> runtime_value
 val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
+val format_value : Format.formatter -> runtime_value -> unit
 
 (** {1 Logging} *)
 

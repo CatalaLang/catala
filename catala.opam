@@ -53,6 +53,7 @@ depends: [
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.26.0"}
   "obelisk" {?cataladevmode & cataladevmode}
   "conf-ninja" {post}
+  "json-data-encoding"
   # --- the following are "optional runtime dependencies" ---
   # they're listed here mostly for documentation ; one can export
   # OPAMVAR_cataladevmode=1 before installation to automatically get them

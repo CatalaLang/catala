@@ -1,0 +1,46 @@
+```catala-metadata
+declaration scope S:
+  input x content integer
+  input y content boolean
+  input z content money
+
+  output r content money
+
+scope S:
+  definition r equals if x > 0 and y then z else $0
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true,"z":123}
+┌─[RESULT]─ S ─
+│ r = $123.00
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":0.0,"y":false,"z":123}
+┌─[RESULT]─ S ─
+│ r = $0.00
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":"999999999","y":true,"z":123.32}
+┌─[RESULT]─ S ─
+│ r = $123.32
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":"999999999","y":true,"z":"123.32"}
+┌─[RESULT]─ S ─
+│ r = $123.32
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":"999999999","y":true,"z":"123"}
+┌─[RESULT]─ S ─
+│ r = $123.00
+└─
+```

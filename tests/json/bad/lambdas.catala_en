@@ -1,0 +1,43 @@
+```catala-metadata
+declaration f
+  content integer
+  depends on x content integer
+  equals
+    x + 1
+
+declaration scope S:
+  input i content integer depends on x content integer
+  output r content integer
+
+scope S:
+  definition r equals i of 3
+
+declaration structure Str:
+  data f content integer depends on x content integer
+
+declaration scope S2:
+  output r content Str
+
+scope S2:
+  definition r equals Str { -- f: f }
+```
+
+```catala-test-cli
+$ catala test-scope S --input {}
+┌─[ERROR]─
+│
+│  Cannot convert functional values from JSON
+│
+└─
+#return code 123#
+```
+
+```catala-test-cli
+$ catala test-scope S2 -F json
+┌─[ERROR]─
+│
+│  Cannot convert functional values to JSON
+│
+└─
+#return code 123#
+```

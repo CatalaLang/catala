@@ -64,6 +64,9 @@ let rec format_runtime_value lang ppf = function
          ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
          (format_runtime_value lang))
       (Array.to_list elts)
+  | Runtime.Position (file, sl, sc, el, ec) ->
+    let p = Pos.from_info file sl sc el ec in
+    Format.pp_print_string ppf (Pos.to_string_shorter p)
   | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
 
 let print_log ppf lang level entry =
@@ -102,7 +105,9 @@ let print_log ppf lang level entry =
       "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
-let rec value_to_runtime_embedded = function
+let rec value_to_runtime_embedded :
+    type d. ((d, _) interpr_kind, 'm) naked_gexpr -> Runtime.runtime_value =
+  function
   | ELit LUnit -> Runtime.Unit
   | ELit (LBool b) -> Runtime.Bool b
   | ELit (LMoney m) -> Runtime.Money m
@@ -130,6 +135,7 @@ let rec value_to_runtime_embedded = function
     Runtime.Tuple
       (Array.of_list
          (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
+  | EEmpty -> Runtime.Enum ("Optional", ("Absent", Unit))
   | _ -> Runtime.Unembeddable
 
 (* Todo: this should be handled early when resolving overloads. Here we have
@@ -481,15 +487,8 @@ let rec evaluate_operator
    of the OCaml runtime *)
 let rec runtime_to_val :
     type d.
-    (decl_ctx ->
-    ((d, _) interpr_kind, 'm) gexpr ->
-    ((d, _) interpr_kind, 'm) gexpr) ->
-    decl_ctx ->
-    'm mark ->
-    typ ->
-    Obj.t ->
-    ((d, yes) interpr_kind, 'm) gexpr =
- fun eval_expr ctx m ty o ->
+    decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, yes) interpr_kind, 'm) gexpr =
+ fun ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
   | TLit TBool -> ELit (LBool (Obj.obj o)), m
@@ -508,17 +507,12 @@ let rec runtime_to_val :
     let p = Pos.overwrite_law_info p rpos.law_headings in
     EPos p, m
   | TTuple ts ->
-    ( ETuple
-        (List.map2
-           (runtime_to_val eval_expr ctx m)
-           ts
-           (Array.to_list (Obj.obj o))),
-      m )
+    ETuple (List.map2 (runtime_to_val ctx m) ts (Array.to_list (Obj.obj o))), m
   | TStruct name ->
     StructName.Map.find name ctx.ctx_structs
     |> StructField.Map.to_seq
     |> Seq.map2
-         (fun o (fld, ty) -> fld, runtime_to_val eval_expr ctx m ty o)
+         (fun o (fld, ty) -> fld, runtime_to_val ctx m ty o)
          (Array.to_seq (Obj.obj o))
     |> StructField.Map.of_seq
     |> fun fields -> EStruct { name; fields }, m
@@ -561,7 +555,7 @@ let rec runtime_to_val :
       | _ -> assert false
       | exception Found (cons, ty) ->
         let payload = Obj.field o 0 (* Arity is always 1 in the runtime *) in
-        let e = runtime_to_val eval_expr ctx m ty payload in
+        let e = runtime_to_val ctx m ty payload in
         EInj { name; cons; e }, m)
   | TOption ty ->
     if Obj.is_int o then
@@ -575,7 +569,7 @@ let rec runtime_to_val :
         m )
     else
       (* Some case *)
-      let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+      let e = runtime_to_val ctx m ty (Obj.field o 0) in
       EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
   | TClosureEnv ->
     (* By construction, a closure environment can only be consumed from the same
@@ -583,11 +577,7 @@ let rec runtime_to_val :
        safely avoid converting in depth here *)
     Obj.obj o, m
   | TArray ty ->
-    ( EArray
-        (List.map
-           (runtime_to_val eval_expr ctx m ty)
-           (Array.to_list (Obj.obj o))),
-      m )
+    EArray (List.map (runtime_to_val ctx m ty) (Array.to_list (Obj.obj o))), m
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
   | TDefault ty -> (
     (* This case is only valid for ASTs including default terms; but the typer
@@ -595,12 +585,12 @@ let rec runtime_to_val :
     match (Obj.obj o : 'a Runtime.Optional.t) with
     | Runtime.Optional.Absent -> Obj.magic EEmpty, m
     | Runtime.Optional.Present o -> (
-      match runtime_to_val eval_expr ctx m ty o with
+      match runtime_to_val ctx m ty o with
       | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
       | _ -> assert false))
   | TForAll tb ->
     let _v, ty = Bindlib.unmbind tb in
-    runtime_to_val eval_expr ctx m ty o
+    runtime_to_val ctx m ty o
   | TVar _ ->
     (* A type variable being an unresolved type, it can't be deconstructed, so
        we can let it pass through. *)
@@ -697,8 +687,7 @@ and val_to_runtime :
         val_to_runtime eval_expr ctx tret
           (eval_expr ctx (EApp { f = v; args; tys }, m))
       | targ :: targs ->
-        Obj.repr (fun x ->
-            curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
+        Obj.repr (fun x -> curry (runtime_to_val ctx m targ x :: acc) targs)
     in
     curry [] targs
   | TDefault ty, _ -> (
@@ -795,7 +784,7 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_modname in
-    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
+    runtime_to_val ctx m ty o
   | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in
     let args = List.map (evaluate_expr ctx lang) args in
@@ -827,7 +816,7 @@ let rec evaluate_expr :
             f arg)
           obj targs args
       in
-      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
+      runtime_to_val ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
         "function has not been reduced to a lambda at evaluation (should not \
@@ -1166,18 +1155,32 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
-let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let convert_json_input ctx scope_ty json =
+  let encoding = Encoding.make_encoding ctx scope_ty in
+  Encoding.parse_json encoding json
+
+let interpret_program_lcalc ?input p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
   match evaluate_expr_safe ctx p.lang (addcustom e) with
-  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+  | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
        an empty term. But for [input] arguments of another type, we cannot
        provide anything so we have to fail. *)
-    let application_term = Scope.empty_input_struct_lcalc ctx s_in mark_e in
+    let application_term =
+      match input with
+      | None -> Scope.empty_input_struct_lcalc ctx s_in mark_e
+      | Some json ->
+        let rval = convert_json_input ctx scope_ty json in
+        let mark = Expr.with_ty mark_e scope_ty in
+        Encoding.convert_to_lcalc ctx mark scope_ty rval
+        |> Expr.unbox
+        |> addcustom
+        |> Expr.box
+    in
     let to_interpret =
       Expr.make_app (Expr.box e) [application_term]
         [TStruct s_in, Expr.pos e]
@@ -1206,18 +1209,28 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        thunked arguments"
 
 (** {1 API} *)
-let interpret_program_dcalc ?on_expr p s :
+let interpret_program_dcalc ?input ?on_expr p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
   match evaluate_expr_safe ?on_expr p.decl_ctx p.lang (addcustom e) with
-  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+  | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let application_term = Scope.empty_input_struct_dcalc ctx s_in mark_e in
+    let application_term =
+      match input with
+      | None -> Scope.empty_input_struct_dcalc ctx s_in mark_e
+      | Some json ->
+        let rval = convert_json_input ctx scope_ty json in
+        let mark = Expr.with_ty mark_e scope_ty in
+        Encoding.convert_to_dcalc ctx mark scope_ty rval
+        |> Expr.unbox
+        |> addcustom
+        |> Expr.box
+    in
     let to_interpret =
       Expr.make_app (Expr.box e) [application_term]
         [TStruct s_in, Expr.pos e]
@@ -1279,7 +1292,7 @@ let interpret_program_dcalc_with_coverage
   in
   r, coverage
 
-let interpret_program_dcalc p s = interpret_program_dcalc p s
+let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
 
 (* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]

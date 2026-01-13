@@ -1,0 +1,107 @@
+```catala-metadata
+declaration enumeration E:
+  -- X
+  -- Y
+  -- Z
+
+declaration enumeration F:
+  -- A content integer
+  -- B
+  -- C content E
+
+declaration scope T:
+  input e content F
+  output r content E
+
+scope T:
+  definition r equals
+    match e with pattern
+    -- A content i : if i = 0 then X else Y
+    -- B : Z
+    -- C content e : e
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":{"A":0}}
+┌─[RESULT]─ T ─
+│ r = X
+└─
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":"B"}
+┌─[RESULT]─ T ─
+│ r = Z
+└─
+```
+
+```catala-test-cli
+$ catala test-scope T --input {"e":{"C":"Z"}}
+┌─[RESULT]─ T ─
+│ r = Z
+└─
+```
+
+```catala-test-cli
+$ catala json-schema --scope T
+[
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope T input",
+    "description": "Input structure of scope T",
+    "$ref": "#/definitions/T_in",
+    "definitions": {
+      "E": { "type": "string", "enum": [ "X", "Y", "Z" ] },
+      "F": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "A": {
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740992.0,
+                    "maximum": 9007199254740992.0
+                  },
+                  { "type": "string" }
+                ]
+              }
+            },
+            "required": [ "A" ],
+            "additionalProperties": false
+          },
+          { "type": "string", "enum": [ "B" ] },
+          {
+            "type": "object",
+            "properties": { "C": { "$ref": "#/definitions/E" } },
+            "required": [ "C" ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "T_in": {
+        "type": "object",
+        "properties": { "e": { "$ref": "#/definitions/F" } },
+        "required": [ "e" ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope T output",
+    "description": "Output structure of scope T",
+    "$ref": "#/definitions/T",
+    "definitions": {
+      "E": { "type": "string", "enum": [ "X", "Y", "Z" ] },
+      "T": {
+        "type": "object",
+        "properties": { "r": { "$ref": "#/definitions/E" } },
+        "required": [ "r" ],
+        "additionalProperties": false
+      }
+    }
+  }
+]
+```
