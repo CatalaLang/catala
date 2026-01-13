@@ -2128,13 +2128,18 @@ let translate_program
   in
   let desugared =
     match Global.options.gen_external, ctxt.local.is_external with
-    | true, false ->
-      let modname, _ = Option.get desugared.program_module_name in
-      Message.error
-        ~pos:(Mark.get (ModuleName.get_info modname))
-        "Flag @{<cyan>--gen-external@} was supplied, but %a is not marked as \
-         external"
-        ModuleName.format modname
+    | true, false -> (
+      match desugared.program_module_name with
+      | None ->
+        Message.error
+          "Flag @{<cyan>--gen-external@} was supplied, but the given file is \
+           not marked as an external module."
+      | Some (modname, _) ->
+        Message.error
+          ~pos:(Mark.get (ModuleName.get_info modname))
+          "Flag @{<cyan>--gen-external@} was supplied, but %a is not marked as \
+           external."
+          ModuleName.format modname)
     | false, false -> desugared
     | false, true ->
       if allow_external then desugared
