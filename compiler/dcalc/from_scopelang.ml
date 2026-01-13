@@ -570,7 +570,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
-    | EArray _ | EIfThenElse _ | EAppOp _ | EPos _ | EBad ) as e ->
+    | EArray _ | EIfThenElse _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables
