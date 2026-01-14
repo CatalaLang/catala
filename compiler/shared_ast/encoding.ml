@@ -232,6 +232,7 @@ let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
   | TVar _ -> Message.error "Cannot encode 'variable' types"
   | TForAll _ -> Message.error "Cannot encode 'for-all' types"
   | TClosureEnv -> Message.error "Cannot encode 'closure-env' types"
+  | TAbstract _ -> Message.error "Cannot encode 'abstract' types"
 
 and generate_array_encoder ctx typ : Runtime.runtime_value encoding =
   let open Runtime in
