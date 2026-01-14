@@ -59,69 +59,76 @@ class SourcePosition:
             return False
 
 class CatalaError(Exception):
-    __slots__ = ( 'message', 'source_positions' )
+    __slots__ = ( 'message', 'source_positions', 'note' )
 
-    def __init__(self, message: str, source_positions: List[SourcePosition]) -> None:
+    def __init__(self, message: str, source_positions: List[SourcePosition], note: str | None) -> None:
         self.message = message
         self.source_positions = source_positions
+        self.note = note
     # Prints in the same format as the OCaml runtime
     def __str__(self) -> str:
-        return "[ERROR] At {}: {}".format(
+        return "\n\x1b[1;31m[ERROR]\x1b[m At {}: {}{}".format(
             ', '.join([str(e) for e in self.source_positions]),
-            self.message)
+            self.message,
+            "" if self.note is None else (". " + self.note))
 
 class AssertionFailed(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
+    def __init__(self, source_position: SourcePosition, note : str | None) -> None:
         super().__init__(
-            "this assertion doesn't hold", [source_position])
+            "this assertion doesn't hold", [source_position], note)
 
 class NoValue(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("no computation with valid conditions found", [source_position])
+        super().__init__("no computation with valid conditions found", [source_position], None)
 
 class Conflict(CatalaError):
     def __init__(self, pos: List[SourcePosition]) -> None:
-        super().__init__("two or more concurring valid computations", pos)
+        super().__init__("two or more concurring valid computations", pos, None)
 
 class DivisionByZero(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("division by zero", [source_position])
+        super().__init__("division by zero", [source_position], None)
 
 class ListEmpty(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
-        super().__init__("the list was empty", [source_position])
+        super().__init__("the list was empty", [source_position], None)
 
 class NotSameLength(CatalaError):
     def __init__(self, source_position: SourcePosition) -> None:
         super().__init__("traversing multiple lists of different lengths",
-                         [source_position])
+                         [source_position], None)
 
 class InvalidDate(CatalaError):
     def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__(
             "the provided numbers do not correspond to a valid date",
-            [source_position] if source_position is not None else [])
+            [source_position] if source_position is not None else [],
+            None)
 
 class UncomparableDurations(CatalaError):
     def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__(
             "comparing durations in different units (e.g. months vs. days)",
-            [source_position] if source_position is not None else [])
+            [source_position] if source_position is not None else [],
+            None)
 
 class AmbiguousDateRounding(CatalaError):
     def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__("ambiguous date computation, and rounding mode was not specified",
-                         [source_position] if source_position is not None else [])
+                         [source_position] if source_position is not None else [],
+                         None)
 
 class IndivisibleDurations(CatalaError):
     def __init__(self, source_position: SourcePosition | None) -> None:
         super().__init__("dividing durations that are not in days",
-                         [source_position] if source_position is not None else [])
+                         [source_position] if source_position is not None else [],
+                         None)
 
 class Impossible(CatalaError):
-    def __init__(self, source_position: SourcePosition) -> None:
+    def __init__(self, source_position: SourcePosition, note: str | None) -> None:
         super().__init__("\"impossible\" computation reached",
-                         [source_position])
+                         [source_position],
+                         note)
 
 # ============
 # Type classes

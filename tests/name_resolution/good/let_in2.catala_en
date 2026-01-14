@@ -120,7 +120,7 @@ let s : S_in.t -> S.t = fun s_in ->
                     (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
                                        start_line=7; start_column=18;
                                        end_line=7; end_column=19;
-                                       law_headings=["Article"]}])))
+                                       law_headings=["Article"]}], None)))
                 | Optional.Present arg -> (let x, _ = arg in x)),
                 ({filename="tests/name_resolution/good/let_in2.catala_en";
                   start_line=7; start_column=18; end_line=7; end_column=19;
@@ -131,7 +131,7 @@ let s : S_in.t -> S.t = fun s_in ->
         (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
                            start_line=7; start_column=18;
                            end_line=7; end_column=19;
-                           law_headings=["Article"]}])))
+                           law_headings=["Article"]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   {S.a = a__1}
 

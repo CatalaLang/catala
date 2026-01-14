@@ -13,7 +13,7 @@ scope A:
   definition x equals Case2
   definition y equals match x with pattern
     -- Case1 content i : 42
-    -- Case2 : impossible
+    -- Case2 : #[error.message = "Precondition for A broken: x is Case2"] impossible
 ```
 
 
@@ -32,11 +32,12 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  During evaluation: "impossible" computation reached.
+│  Precondition for A broken: x is Case2
 │
-├─➤ tests/enum/bad/impossible.catala_en:16.16-16.26:
+├─➤ tests/enum/bad/impossible.catala_en:16.75-16.85:
 │    │
-│ 16 │     -- Case2 : impossible
-│    │                ‾‾‾‾‾‾‾‾‾‾
+│ 16 │     -- Case2 : #[error.message = "Precondition for A broken: x is Case2"] impossible
+│    │                                                                           ‾‾‾‾‾‾‾‾‾‾
 └─ Article
 #return code 123#
 ```
