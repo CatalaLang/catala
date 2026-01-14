@@ -252,17 +252,17 @@ déclaration énumération Jours:
   -- Dimanche
 ```
 
-## Algorithme de Sakamoto, détermination jour de la semaine d'une date donnée
+## Algorithme de Sakamoto, détermination jour de la semaine d'une date donée
 ```catala-metadata
 déclaration champ d'application Jour_de_la_semaine_depuis_date :
   entrée résultat date_entrée contenu date
 
   interne liste_Sakamoto contenu (entier, entier, entier, entier, entier, entier, entier, entier, entier, entier, entier, entier)
-  interne month_number contenu entier
-  interne n_number contenu entier
-  interne year_number contenu entier
+  interne mois_nombre contenu entier
+  interne n_nombre contenu entier
+  interne année_nombre contenu entier
 
-  interne jour_number contenu entier
+  interne jour_nombre contenu entier
   résultat jour_de_la_semaine_depuis_date contenu Jours
 ```
 
@@ -273,103 +273,103 @@ champ d'application Jour_de_la_semaine_depuis_date :
 ```
 ```catala
 champ d'application Jour_de_la_semaine_depuis_date :
-  définition month_number
-  égal à Date.get_month de date_entrée
+  définition mois_nombre
+  égal à accès_mois de date_entrée
 ```
 ```catala
 champ d'application Jour_de_la_semaine_depuis_date :
-  définition year_number
+  définition année_nombre
   égal à 
-    si month_number < 3
-      alors Date.get_year de date_entrée - 1
-    sinon Date.get_year de date_entrée 
+    si mois_nombre < 3
+      alors accès_année de date_entrée - 1
+    sinon accès_année de date_entrée 
 ```
 
 ```catala
 champ d'application Jour_de_la_semaine_depuis_date :
-  définition n_number sous condition
-    month_number = 1
+  définition n_nombre sous condition
+    mois_nombre = 1
   conséquence égal à liste_Sakamoto.1
-  définition n_number sous condition
-    month_number = 2
+  définition n_nombre sous condition
+    mois_nombre = 2
   conséquence égal à liste_Sakamoto.2
 
-  définition n_number sous condition
-    month_number = 3
+  définition n_nombre sous condition
+    mois_nombre = 3
   conséquence égal à liste_Sakamoto.3
 
-  définition n_number sous condition
-    month_number = 4
+  définition n_nombre sous condition
+    mois_nombre = 4
   conséquence égal à liste_Sakamoto.4
 
-  définition n_number sous condition
-    month_number = 5
+  définition n_nombre sous condition
+    mois_nombre = 5
   conséquence égal à liste_Sakamoto.5
 
-  définition n_number sous condition
-    month_number = 6
+  définition n_nombre sous condition
+    mois_nombre = 6
   conséquence égal à liste_Sakamoto.6
 
-  définition n_number sous condition
-    month_number = 7
+  définition n_nombre sous condition
+    mois_nombre = 7
   conséquence égal à liste_Sakamoto.7
 
-  définition n_number sous condition
-    month_number = 8
+  définition n_nombre sous condition
+    mois_nombre = 8
   conséquence égal à liste_Sakamoto.8
 
-  définition n_number sous condition
-    month_number = 9
+  définition n_nombre sous condition
+    mois_nombre = 9
   conséquence égal à liste_Sakamoto.9
 
-  définition n_number sous condition
-    month_number = 10
+  définition n_nombre sous condition
+    mois_nombre = 10
   conséquence égal à liste_Sakamoto.10
 
-  définition n_number sous condition
-    month_number = 11
+  définition n_nombre sous condition
+    mois_nombre = 11
   conséquence égal à liste_Sakamoto.11
 
-  définition n_number sous condition
-    month_number = 12
+  définition n_nombre sous condition
+    mois_nombre = 12
   conséquence égal à liste_Sakamoto.12
 ```
 
 ```catala
 champ d'application Jour_de_la_semaine_depuis_date :
-  définition jour_number
+  définition jour_nombre
   égal à 
-    (year_number + entier de (year_number / 4) - entier de (year_number / 100) + entier de (year_number / 400) + n_number + Date.get_day de date_entrée) 
-    - 7 * entier de ((year_number + entier de (year_number / 4) - entier de (year_number / 100) + entier de (year_number / 400) + n_number + Date.get_day de date_entrée) /7)
+    (année_nombre + entier de (année_nombre / 4) - entier de (année_nombre / 100) + entier de (année_nombre / 400) + n_nombre + accès_jour de date_entrée) 
+    - 7 * entier de ((année_nombre + entier de (année_nombre / 4) - entier de (année_nombre / 100) + entier de (année_nombre / 400) + n_nombre + accès_jour de date_entrée) /7)
 ```
 
 ```catala
 champ d'application Jour_de_la_semaine_depuis_date :
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 0
+    jour_nombre = 0
   conséquence égal à Dimanche
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 1
+    jour_nombre = 1
   conséquence égal à Lundi
 
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 2
+    jour_nombre = 2
   conséquence égal à Mardi
 
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 3
+    jour_nombre = 3
   conséquence égal à Mercredi
 
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 4
+    jour_nombre = 4
   conséquence égal à Jeudi
 
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 5
+    jour_nombre = 5
   conséquence égal à Vendredi
 
   définition jour_de_la_semaine_depuis_date sous condition
-    jour_number = 6
+    jour_nombre = 6
   conséquence égal à Samedi
 ```
 
