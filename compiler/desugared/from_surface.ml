@@ -1154,12 +1154,13 @@ let rec translate_expr
     Expr.eappop ~op:(Fold, opos)
       ~tys:[Type.any pos; Type.any pos; Type.any pos]
       ~args:[f; init; collection] emark
-  | Assert (e1, e2, pos) ->
+  | Assert (e1, e2, apos) ->
     Expr.make_let_in
       (Var.make "_", Mark.get e1)
       (TLit TUnit, Mark.get e1)
-      (Expr.eassert (rec_helper e1) (Untyped { pos }))
-      (rec_helper e2) pos
+      (Expr.eassert (rec_helper e1)
+         (Untyped { pos = Pos.set_attrs apos (Pos.attrs pos) }))
+      (rec_helper e2) apos
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t option)
@@ -1532,37 +1533,35 @@ let process_assert
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
-    (ass : S.assertion) : Ast.modul =
+    (asrt : S.assertion)
+    (pos : Pos.t) : Ast.modul =
   let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
-  let ass =
+  let asrt =
     translate_expr (Some scope_uid) None ctxt Ident.Map.empty
-      (match ass.S.assertion_condition with
-      | None -> ass.S.assertion_content
+      (match asrt.S.assertion_condition with
+      | None -> asrt.S.assertion_content
       | Some cond ->
         ( S.IfThenElse
             ( cond,
-              ass.S.assertion_content,
+              asrt.S.assertion_content,
               Mark.copy cond (S.Literal (S.LBool true)) ),
           Mark.get cond ))
-  in
-  let ass =
-    Mark.map_mark
-      (fun (Untyped { pos }) ->
-        Untyped { pos = Name_resolution.(translate_pos Assertion pos) })
-      ass
   in
   let assertion =
     match precond with
     | Some precond ->
-      Expr.eifthenelse precond ass
+      Expr.eifthenelse precond asrt
         (Expr.elit (LBool true) (Mark.get precond))
         (Mark.get precond)
-    | None -> ass
+    | None -> asrt
   in
   (* The assertion name is not very relevant and should not be used in error
      messages, it is only a reference to designate the assertion instead of its
      expression. *)
-  let assertion_name = Ast.AssertionName.fresh ("assert", Expr.pos assertion) in
+  let assertion_name =
+    Ast.AssertionName.fresh
+      ("assert", Name_resolution.translate_pos Assertion pos)
+  in
   let new_scope =
     {
       scope with
@@ -1589,7 +1588,8 @@ let process_scope_use_item
   match Mark.remove item with
   | S.Rule rule -> process_rule precond scope ctxt modul rule
   | S.Definition def -> process_def precond scope ctxt modul def
-  | S.Assertion ass -> process_assert precond scope ctxt modul ass
+  | S.Assertion asrt ->
+    process_assert precond scope ctxt modul asrt (Mark.get item)
   | S.DateRounding (r, _) ->
     let scope_uid = scope in
     let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in

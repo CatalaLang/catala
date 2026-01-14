@@ -736,9 +736,15 @@ let translate_rule
       D.AssertionName.Map.find a_name scope.scope_assertions
     in
     (* we unbox here because assertions do not have free variables (at this
-       point Bindlib variables are only for function parameters)*)
+       point Bindlib variables are only for function parameters) *)
     let assertion_expr = translate_expr ctx (Expr.unbox assertion_expr) in
-    [Ast.Assertion (Expr.unbox assertion_expr)]
+    [
+      Ast.Assertion
+        {
+          e = Expr.unbox assertion_expr;
+          pos = Mark.get (D.AssertionName.get_info a_name);
+        };
+    ]
 
 let translate_scope_interface ctx scope =
   let get_svar scope_def =

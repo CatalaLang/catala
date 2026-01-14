@@ -641,7 +641,7 @@ let translate_rule
             (a_var, Mark.remove typ, io)
             ctx.scope_vars;
       } )
-  | Assertion e ->
+  | Assertion { e; pos } ->
     let new_e = translate_expr ctx e in
     let scope_let_pos = Expr.pos e in
     let scope_let_typ = TLit TUnit, scope_let_pos in
@@ -654,7 +654,10 @@ let translate_rule
                   scope_let_typ;
                   scope_let_expr =
                     Mark.add
-                      (Expr.map_ty (fun _ -> scope_let_typ) (Mark.get e))
+                      (Expr.map_mark
+                         (fun _ -> pos)
+                         (fun _ -> scope_let_typ)
+                         (Mark.get e))
                       (EAssert new_e);
                   scope_let_kind = Assertion;
                 },
@@ -763,9 +766,9 @@ let translate_scope_decl
         scope_name
     | ( S.ScopeVarDefinition { e; _ }
       | S.SubScopeVarDefinition { e; _ }
-      | S.Assertion e )
+      | S.Assertion { e; _ } )
       :: _ ->
-      Mark.get e
+      Expr.no_attrs (Mark.get e)
   in
   let scope_mark =
     Expr.with_ty scope_mark

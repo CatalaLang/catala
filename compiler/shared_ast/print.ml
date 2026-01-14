@@ -108,6 +108,7 @@ let attr ppf = function
         | None -> () | Some label -> Format.fprintf ppf " = %S" label)
       label
   | Test -> Format.fprintf ppf "#[test]@ "
+  | ErrorMessage s -> Format.fprintf ppf "#[error.message = %S]@ " s
   | ImplicitPosArg -> Format.fprintf ppf "#[implicit_position_argument]@ "
   | _ -> Format.fprintf ppf "#[?]@ "
 
@@ -711,8 +712,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           (rhs exprc) e'
       | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
-        Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
-          "(" (rhs exprc) e' punctuation ")"
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "assert" (rhs exprc) e'
       | EFatalError err ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
           (Catala_runtime.error_to_string err)

@@ -941,26 +941,34 @@ let rec evaluate_expr : type d.
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
+      let msg ppf =
+        match
+          Pos.get_attr (Expr.mark_pos m) (function
+            | ErrorMessage m -> Some m
+            | _ -> None)
+        with
+        | Some note ->
+          Format.fprintf ppf "@[<hv 4>Assertion failed:@ %a.@]"
+            Format.pp_print_text note
+        | None -> Format.fprintf ppf "Assertion failed."
+      in
       let partially_evaluated_assertion_failure_expr =
         partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx lang
           (Expr.skip_wrappers e')
       in
       (match Mark.remove partially_evaluated_assertion_failure_expr with
       | ELit (LBool false) ->
-        if Global.options.no_fail_on_assert then
-          Message.warning ~pos "Assertion failed"
-        else
-          Message.delayed_error ~kind:AssertFailure () ~pos
-            "During evaluation: %s."
-            (Runtime.error_message Runtime.AssertionFailed)
+        if Global.options.no_fail_on_assert then Message.warning ~pos "%t" msg
+        else Message.delayed_error ~kind:AssertFailure () ~pos "%t" msg
       | _ ->
         if Global.options.no_fail_on_assert then
-          Message.warning ~pos "Assertion failed:@ %a"
+          Message.warning ~pos
+            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
             (Print.UserFacing.expr lang)
             partially_evaluated_assertion_failure_expr
         else
           Message.delayed_error ~kind:AssertFailure () ~pos
-            "Assertion failed: %a."
+            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
             (Print.UserFacing.expr lang)
             partially_evaluated_assertion_failure_expr);
       Mark.add m (ELit LUnit)
@@ -1044,8 +1052,18 @@ and partially_evaluate_expr_for_assertion_failure_message : type d.
             ];
         },
       Mark.get e )
-  (* TODO: improve this heuristic, because if the assertion is not [e1 <op> e2],
-     the error message merely displays [false]... *)
+  | EAppOp { args = [e1]; tys; op = (Not, _) as op } ->
+    ( EAppOp
+        {
+          op;
+          tys;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e1;
+            ];
+        },
+      Mark.get e )
   | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace : type d.

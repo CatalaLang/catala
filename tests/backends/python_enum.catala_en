@@ -254,7 +254,7 @@ def s(s_in:SIn):
     else:
         pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
         raise NoValue(pos__1)
-    pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=13, end_line=118, end_column=18, law_headings=[]))
+    pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[]))
     if not (not o): raise AssertionFailed(pos__1)
     return S(o = o)
 
