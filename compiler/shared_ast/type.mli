@@ -49,7 +49,7 @@ val arrow_return : t -> t
 
 val has_arrow : Definitions.decl_ctx -> t -> bool
 (** Checks in depth, contrary to [is_arrow]. Fails (with [Invalid_argument]) on
-    TForAll and TClosureEnv *)
+    TForAll and TClosureEnv. False on abstract types. *)
 
 (** Handling of variables *)
 

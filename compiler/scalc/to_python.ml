@@ -222,6 +222,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TOption some_typ -> Format.fprintf fmt "Option[%a]" format_typ some_typ
   | TDefault t -> format_typ fmt t
   | TEnum e -> format_enum ctx fmt e
+  | TAbstract t -> format_qualified (module AbstractType) ctx fmt t
   | TArrow (t1, t2) ->
     Format.fprintf fmt "Callable[[%a], %a]"
       (Format.pp_print_list
@@ -565,7 +566,7 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
     List.exists
       (fun struct_or_enum ->
         match struct_or_enum with
-        | TypeIdent.Enum _ -> false
+        | TypeIdent.Enum _ | TypeIdent.Abstract _ -> false
         | TypeIdent.Struct s' -> s = s')
       type_ordering
   in
@@ -587,7 +588,10 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
       | TypeIdent.Enum e ->
         if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
           Format.fprintf fmt "%a@,@," format_enum_decl
-            (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
+            (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums)
+      | TypeIdent.Abstract t ->
+        if AbstractType.path t = [] then
+          Format.fprintf fmt "class %a:@,@," AbstractType.format t)
     (type_ordering @ scope_structs)
 
 let format_code_item ctx fmt = function

@@ -1,0 +1,27 @@
+> Using Dictionnary_ext as Dict
+
+```catala
+#[test]
+declaration scope S:
+  internal dict content Dict.Dictionnary
+  output o content (optional of money, optional of money, optional of money)
+
+declaration dict_of_list content Dict.Dictionnary
+  depends on bindings content list of (integer, money)
+  equals
+  combine all (k, v) among bindings in dict initially Dict.empty
+    with Dict.store of dict, k, v
+
+scope S:
+  definition dict equals dict_of_list of [
+    (1, $10);
+    (2, $12);
+    (3, $14);
+    (4, $22);
+    (5, $11);
+    (6, $7);
+    (12, $1)
+  ]
+
+  definition o equals ((Dict.find of dict, 3), (Dict.find of dict, 7), (Dict.find of dict, 1))
+```

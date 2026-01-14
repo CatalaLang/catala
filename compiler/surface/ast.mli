@@ -281,6 +281,7 @@ type code_item =
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
+  | AbstractTypeDecl of uident Mark.pos
   | Topdef of top_def
 
 type code_block = code_item Mark.pos list

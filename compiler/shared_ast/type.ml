@@ -29,6 +29,7 @@ let rec equal ty1 ty2 =
   | TTuple tys1, TTuple tys2 -> equal_list tys1 tys2
   | TStruct n1, TStruct n2 -> StructName.equal n1 n2
   | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
+  | TAbstract n1, TAbstract n2 -> AbstractType.equal n1 n2
   | TOption t1, TOption t2 -> equal t1 t2
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_list t1 t2 && equal t1' t2'
   | TArray t1, TArray t2 -> equal t1 t2
@@ -37,8 +38,9 @@ let rec equal ty1 ty2 =
   | TForAll tb1, TForAll tb2 -> Bindlib.eq_mbinder equal tb1 tb2
   | TClosureEnv, TClosureEnv -> true
   | TError, TError -> true
-  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TDefault _ | TForAll _ | TVar _ | TClosureEnv | TError ),
+  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TAbstract _ | TOption _
+      | TArrow _ | TArray _ | TDefault _ | TForAll _ | TVar _ | TClosureEnv
+      | TError ),
       _ ) ->
     false
 
@@ -51,6 +53,7 @@ let rec compare (ty1 : t) (ty2 : t) =
   | TTuple tys1, TTuple tys2 -> List.compare compare tys1 tys2
   | TStruct n1, TStruct n2 -> StructName.compare n1 n2
   | TEnum en1, TEnum en2 -> EnumName.compare en1 en2
+  | TAbstract en1, TAbstract en2 -> AbstractType.compare en1 en2
   | TOption t1, TOption t2 -> compare t1 t2
   | TArrow (a1, b1), TArrow (a2, b2) -> (
     match List.compare compare a1 a2 with 0 -> compare b1 b2 | n -> n)
@@ -69,6 +72,8 @@ let rec compare (ty1 : t) (ty2 : t) =
   | _, TStruct _ -> 1
   | TEnum _, _ -> -1
   | _, TEnum _ -> 1
+  | TAbstract _, _ -> -1
+  | _, TAbstract _ -> 1
   | TOption _, _ -> -1
   | _, TOption _ -> 1
   | TArrow _, _ -> -1
@@ -110,7 +115,7 @@ let shallow_fold f ty acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   Mark.fold
     (function
-      | TLit _ | TStruct _ | TEnum _ | TClosureEnv | TVar _ -> acc
+      | TLit _ | TStruct _ | TEnum _ | TAbstract _ | TClosureEnv | TVar _ -> acc
       | TTuple tl -> lfold tl acc
       | TOption ty | TArray ty | TDefault ty -> f ty acc
       | TArrow (tl, ty) -> lfold tl (f ty acc)
@@ -190,6 +195,7 @@ let rec unifiable (ty1 : t) (ty2 : t) =
   | (TTuple tys1, _), (TTuple tys2, _) -> unifiable_list tys1 tys2
   | (TStruct n1, _), (TStruct n2, _) -> StructName.equal n1 n2
   | (TEnum n1, _), (TEnum n2, _) -> EnumName.equal n1 n2
+  | (TAbstract n1, _), (TAbstract n2, _) -> AbstractType.equal n1 n2
   | (TOption t1, _), (TOption t2, _) -> unifiable t1 t2
   | (TArrow (t1, t1'), _), (TArrow (t2, t2'), _) ->
     unifiable_list t1 t2 && unifiable t1' t2'
@@ -197,8 +203,8 @@ let rec unifiable (ty1 : t) (ty2 : t) =
   | (TDefault t1, _), (TDefault t2, _) -> unifiable t1 t2
   | (TClosureEnv, _), (TClosureEnv, _) -> true
   | (TError, _), _ | _, (TError, _) -> true
-  | ( ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-        | TArray _ | TDefault _ | TClosureEnv ),
+  | ( ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TAbstract _ | TOption _
+        | TArrow _ | TArray _ | TDefault _ | TClosureEnv ),
         _ ),
       _ ) ->
     false
@@ -215,6 +221,7 @@ let map : (t -> t Bindlib.box) -> t -> t Bindlib.box =
   | TTuple tl -> (fun tl -> TTuple tl) @& Bindlib.box_list (List.map f tl)
   | TStruct n -> (fun n -> TStruct n) @& Bindlib.box n
   | TEnum n -> (fun n -> TEnum n) @& Bindlib.box n
+  | TAbstract n -> (fun n -> TAbstract n) @& Bindlib.box n
   | TOption ty -> (fun ty -> TOption ty) @& f ty
   | TArrow (tl, ty) ->
     Bindlib.box_apply2
@@ -240,6 +247,7 @@ let hash ~strip (ty : t) =
     | TTuple tl -> List.fold_left (fun acc ty -> acc % aux ctx ty) !`TTuple tl
     | TStruct n -> !`TStruct % StructName.hash ~strip n
     | TEnum n -> !`TEnum % EnumName.hash ~strip n
+    | TAbstract n -> !`TAbstract % AbstractType.hash ~strip n
     | TOption ty -> !`TOption % aux ctx ty
     | TArrow (tl, ty) ->
       !`TArrow % List.fold_left (fun acc ty -> acc % aux ctx ty) (aux ctx ty) tl
@@ -272,6 +280,7 @@ let rec has_arrow decl_ctx (ty : t) =
     EnumConstructor.Map.exists
       (fun _ -> has_arrow decl_ctx)
       (EnumName.Map.find n decl_ctx.ctx_enums)
+  | TAbstract _ -> false (* TODO: explicit what this means in this context *)
   | TOption ty | TArray ty | TDefault ty -> has_arrow decl_ctx ty
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
@@ -288,6 +297,7 @@ let rec fully_known (ty : t) =
   | TTuple tl -> List.for_all fully_known tl
   | TStruct _ -> true
   | TEnum _ -> true
+  | TAbstract _ -> true
   | TOption ty | TArray ty | TDefault ty -> fully_known ty
   | TError -> true
 

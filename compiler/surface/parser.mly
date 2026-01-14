@@ -882,6 +882,9 @@ let code_item :=
     topdef_expr;
   }, []
 }
+| DECLARATION ; TYPE; name = uident ; COLON ; EXTERNAL ; {
+  AbstractTypeDecl name, []
+}
 
 let opt_def ==
 | DEFINED_AS; expression
@@ -899,6 +902,7 @@ let code ==
       | StructDecl sd -> StructDecl { sd with struct_decl_name = set_attrs sd.struct_decl_name }
       | ScopeDecl sd -> ScopeDecl { sd with scope_decl_name = set_attrs sd.scope_decl_name }
       | EnumDecl ed -> EnumDecl { ed with enum_decl_name = set_attrs ed.enum_decl_name }
+      | AbstractTypeDecl ad -> AbstractTypeDecl (set_attrs ad)
       | Topdef td -> Topdef { td with topdef_name = set_attrs td.topdef_name }
     in
     (item, pos_noattr) :: acc, trailing_attrs
@@ -935,7 +939,7 @@ let directive :=
     LawInclude (Ast.CatalaFile (filename, pos))
 }
 | MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ;
-  ext = option (MODULE_EXTERNAL) ; {
+  ext = option (EXTERNAL) ; {
   ModuleDef (m, ext <> None)
 }
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;

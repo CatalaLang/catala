@@ -155,10 +155,14 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
 
 let format_to_module_name
     (fmt : Format.formatter)
-    (name : [< `Ename of EnumName.t | `Sname of StructName.t ]) =
+    (name :
+      [< `Ename of EnumName.t
+      | `Sname of StructName.t
+      | `Aname of AbstractType.t ]) =
   match name with
   | `Ename v -> EnumName.format fmt v
   | `Sname v -> StructName.format fmt v
+  | `Aname v -> AbstractType.format fmt v
 
 let format_struct_field_name
     (fmt : Format.formatter)
@@ -218,6 +222,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
         format_to_module_name (`Ename Expr.option_enum)
     | TDefault t -> aux bctx fmt t
     | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
+    | TAbstract e -> Format.fprintf fmt "%a.t" format_to_module_name (`Aname e)
     | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a@]"
         (Format.pp_print_list
@@ -604,11 +609,24 @@ let format_ctx
           if Global.options.trace = None then ()
           else Format.fprintf ppf "@,val embed: t -> runtime_value")
   in
+  let format_abstract_decl name =
+    Format.fprintf ppml "@[<v 2>module %a = struct@,type t"
+      format_to_module_name (`Aname name);
+    if Global.options.trace <> None then
+      Format.fprintf ppml "@,let embed (_: t) : runtime_value = Unembeddable";
+    Format.fprintf ppml "@;<1 -2>end@]@,@,";
+    if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then (
+      Format.fprintf ppi "@[<v 2>module %a : sig@,type t" format_to_module_name
+        (`Aname name);
+      if Global.options.trace <> None then
+        Format.fprintf ppi "@,val embed : t -> runtime_value@,";
+      Format.fprintf ppi "@;<1 -2>end@]@,@,")
+  in
   let is_in_type_ordering s =
     List.exists
       (fun struct_or_enum ->
         match struct_or_enum with
-        | TypeIdent.Enum _ -> false
+        | TypeIdent.Enum _ | TypeIdent.Abstract _ -> false
         | TypeIdent.Struct s' -> s = s')
       type_ordering
   in
@@ -621,8 +639,7 @@ let format_ctx
             ctx.ctx_structs))
   in
   List.iter
-    (fun struct_or_enum ->
-      match struct_or_enum with
+    (function
       | TypeIdent.Struct s ->
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then format_struct_decl (s, def)
@@ -630,7 +647,9 @@ let format_ctx
         if EnumName.equal e Expr.option_enum then ()
         else
           let def = EnumName.Map.find e ctx.ctx_enums in
-          if EnumName.path e = [] then format_enum_decl (e, def))
+          if EnumName.path e = [] then format_enum_decl (e, def)
+      | TypeIdent.Abstract t ->
+        if AbstractType.path t = [] then format_abstract_decl t)
     (type_ordering @ scope_structs)
 
 let format_expr ctx fmt e =
@@ -846,10 +865,11 @@ let format_program
   @@ fun intf_file ppi ->
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
-  check_and_reexport_used_modules ppml ppi ~hashf
-    (List.map
-       (fun (m, intf) -> m, intf.intf_id)
-       (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
+  if not Global.options.gen_external then
+    check_and_reexport_used_modules ppml ppi ~hashf
+      (List.map
+         (fun (m, intf) -> m, intf.intf_id)
+         (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name

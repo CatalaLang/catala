@@ -952,6 +952,8 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
         if StructName.path sname = [] then add (Struct sname) acc else acc
       | Shared_ast.TEnum ename ->
         if EnumName.path ename = [] then add (Enum ename) acc else acc
+      | Shared_ast.TAbstract tname ->
+        if AbstractType.path tname = [] then add (Abstract tname) acc else acc
       | _ -> Type.shallow_fold typ_deps ty acc
     in
     transitive_closure
@@ -961,7 +963,8 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
           StructField.Map.fold (fun _ -> typ_deps) fields empty
         | Enum ename ->
           let constrs = EnumName.Map.find ename decl_ctx.ctx_enums in
-          EnumConstructor.Map.fold (fun _ -> typ_deps) constrs empty)
+          EnumConstructor.Map.fold (fun _ -> typ_deps) constrs empty
+        | Abstract _ -> empty)
       empty ctx_public_types
   in
   let decl_ctx = { decl_ctx with ctx_structs; ctx_public_types } in

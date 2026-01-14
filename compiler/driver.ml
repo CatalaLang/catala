@@ -251,8 +251,8 @@ module Passes = struct
     let prg = scopelang options ~includes ~stdlib in
     debug_pass_name "dcalc";
     let type_ordering =
-      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
-        prg.program_ctx.ctx_enums
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_abstract_types
+        prg.program_ctx.ctx_structs prg.program_ctx.ctx_enums
     in
     let (prg : ty Scopelang.Ast.program) =
       match typed with
@@ -380,7 +380,8 @@ module Passes = struct
         List.map
           (function
             | Struct s -> Struct (Renaming.struct_name ren_ctx s)
-            | Enum e -> Enum (Renaming.enum_name ren_ctx e))
+            | Enum e -> Enum (Renaming.enum_name ren_ctx e)
+            | Abstract t -> Abstract (Renaming.abstract_type ren_ctx t))
           type_ordering
       in
       prg, type_ordering, Some ren_ctx
@@ -768,8 +769,8 @@ module Commands = struct
     let prg = Passes.scopelang options ~allow_external:true ~includes ~stdlib in
     Message.debug "Typechecking...";
     let _type_ordering =
-      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
-        prg.program_ctx.ctx_enums
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_abstract_types
+        prg.program_ctx.ctx_structs prg.program_ctx.ctx_enums
     in
     let prg = Scopelang.Ast.type_program prg in
     Message.debug "Translating to default calculus...";

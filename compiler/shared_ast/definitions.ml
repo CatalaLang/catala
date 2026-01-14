@@ -65,6 +65,13 @@ module EnumConstructor =
     end)
     ()
 
+module AbstractType =
+  Uid.Gen_qualified
+    (struct
+      let style = Ocolor_types.(Fg (C4 cyan))
+    end)
+    ()
+
 (** Only used by surface *)
 
 module RuleName =
@@ -221,6 +228,7 @@ and naked_typ =
   | TTuple of typ list
   | TStruct of StructName.t
   | TEnum of EnumName.t
+  | TAbstract of AbstractType.t
   | TOption of typ
   | TArray of typ
   | TDefault of typ
@@ -230,7 +238,10 @@ and naked_typ =
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 module TypeIdent : sig
-  type t = Struct of StructName.t | Enum of EnumName.t
+  type t =
+    | Struct of StructName.t
+    | Enum of EnumName.t
+    | Abstract of AbstractType.t
 
   include Map.OrderedType with type t := t
 
@@ -242,25 +253,33 @@ module TypeIdent : sig
   module Map : Map.S with type key = t
 end = struct
   module Ordering = struct
-    type t = Struct of StructName.t | Enum of EnumName.t
+    type t =
+      | Struct of StructName.t
+      | Enum of EnumName.t
+      | Abstract of AbstractType.t
 
     let compare x y =
       match x, y with
       | Struct x, Struct y -> StructName.compare x y
       | Enum x, Enum y -> EnumName.compare x y
-      | Struct _, Enum _ -> 1
-      | Enum _, Struct _ -> -1
+      | Abstract x, Abstract y -> AbstractType.compare x y
+      | Struct _, _ -> 1
+      | _, Struct _ -> -1
+      | Enum _, _ -> 1
+      | _, Enum _ -> -1
 
     let equal x y =
       match x, y with
       | Struct x, Struct y -> StructName.compare x y = 0
       | Enum x, Enum y -> EnumName.compare x y = 0
+      | Abstract x, Abstract y -> AbstractType.compare x y = 0
       | _ -> false
 
     let format (fmt : Format.formatter) (x : t) : unit =
       match x with
       | Struct x -> StructName.format fmt x
       | Enum x -> EnumName.format fmt x
+      | Abstract x -> AbstractType.format fmt x
   end
 
   include Ordering
@@ -269,11 +288,13 @@ end = struct
     match x with
     | Struct x -> StructName.id x
     | Enum x -> Hashtbl.hash (`Enum (EnumName.id x))
+    | Abstract x -> Hashtbl.hash (`Abstract (AbstractType.id x))
 
   let get_info (x : t) =
     match x with
     | Struct x -> StructName.get_info x
     | Enum x -> EnumName.get_info x
+    | Abstract x -> AbstractType.get_info x
 
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
@@ -760,6 +781,7 @@ and module_tree = module_tree_node ModuleName.Map.t
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
+  ctx_abstract_types : AbstractType.Set.t;
   ctx_scopes : scope_info ScopeName.Map.t;
   ctx_topdefs : (typ * visibility) TopdefName.Map.t;
   ctx_public_types : TypeIdent.Set.t;

@@ -157,6 +157,7 @@ let rec typ_gen :
     pp_color_string (List.hd colors) fmt ")"
   | TStruct s -> StructName.format fmt s
   | TEnum e -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
+  | TAbstract e -> Format.fprintf fmt "@[<hov 2>%a@]" AbstractType.format e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" (typ_gen ()) t
   | TArrow ([t1], t2) ->

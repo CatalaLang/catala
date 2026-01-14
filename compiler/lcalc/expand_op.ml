@@ -118,6 +118,10 @@ let rec resolve_eq ctx pos ty args m =
           constrs
       in
       Expr.ematch ~name ~e:arg1 ~cases m
+  | TAbstract _ ->
+    (* We assume that the backend has support for comparing this type. TODO:
+       this needs to be clearly specified *)
+    Expr.eappop ~op:(Eq, pos) ~args ~tys:[ty; ty] m
   | TArray ty1 ->
     let tbool = TLit TBool, pos in
     let vargs =

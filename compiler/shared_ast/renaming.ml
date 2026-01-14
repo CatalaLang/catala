@@ -94,6 +94,7 @@ type context = {
   fields : StructField.t -> StructField.t;
   enums : EnumName.t -> EnumName.t;
   constrs : EnumConstructor.t -> EnumConstructor.t;
+  abstract_types : AbstractType.t -> AbstractType.t;
 }
 
 let default_config =
@@ -132,11 +133,29 @@ let unmbind_in ctx b =
   let vs, e, bcontext = BindCtx.unmbind_in ctx.bcontext b in
   vs, e, { ctx with bcontext }
 
-let set_rewriters ?scopes ?topdefs ?structs ?fields ?enums ?constrs ctx =
+let set_rewriters
+    ?scopes
+    ?topdefs
+    ?structs
+    ?fields
+    ?enums
+    ?constrs
+    ?abstract_types
+    ctx =
   (fun ?(scopes = ctx.scopes) ?(topdefs = ctx.topdefs) ?(structs = ctx.structs)
-       ?(fields = ctx.fields) ?(enums = ctx.enums) ?(constrs = ctx.constrs) () ->
-    { ctx with scopes; topdefs; structs; fields; enums; constrs })
-    ?scopes ?topdefs ?structs ?fields ?enums ?constrs ()
+       ?(fields = ctx.fields) ?(enums = ctx.enums) ?(constrs = ctx.constrs)
+       ?(abstract_types = ctx.abstract_types) () ->
+    {
+      ctx with
+      scopes;
+      topdefs;
+      structs;
+      fields;
+      enums;
+      constrs;
+      abstract_types;
+    })
+    ?scopes ?topdefs ?structs ?fields ?enums ?constrs ?abstract_types ()
 
 let new_id ctx name =
   let module BindCtx = (val ctx.bindCtx) in
@@ -170,12 +189,14 @@ let get_ctx cfg =
     fields = Fun.id;
     enums = Fun.id;
     constrs = Fun.id;
+    abstract_types = Fun.id;
   }
 
 let typ ctx ty =
   let rec aux = function
     | TStruct n, m -> Bindlib.box (TStruct (ctx.structs n), m)
     | TEnum n, m -> Bindlib.box (TEnum (ctx.enums n), m)
+    | TAbstract n, m -> Bindlib.box (TAbstract (ctx.abstract_types n), m)
     | ty -> Type.map aux ty
   in
   Bindlib.unbox (aux ty)
@@ -233,6 +254,7 @@ let scope_name ctx s = ctx.scopes s
 let topdef_name ctx s = ctx.topdefs s
 let struct_name ctx s = ctx.structs s
 let enum_name ctx e = ctx.enums e
+let abstract_type ctx t = ctx.abstract_types t
 
 (* {2 Handling scopes} *)
 
@@ -342,6 +364,7 @@ type type_renaming_ctx = {
   structs_map : StructName.t StructName.Map.t;
   fields_map : StructField.t StructField.Map.t;
   enums_map : EnumName.t EnumName.Map.t;
+  abstract_type_map : AbstractType.t AbstractType.Map.t;
   constrs_map : EnumConstructor.t EnumConstructor.Map.t;
   ctx_structs : struct_ctx;
   ctx_enums : enum_ctx;
@@ -351,6 +374,7 @@ type type_renaming_ctx = {
   f_field : string -> string;
   f_enum : string -> string;
   f_constr : string -> string;
+  f_abstract_type : string -> string;
 }
 
 let add_module_prefix ctx path str =
@@ -493,6 +517,26 @@ let process_type_ident
       constrs_map;
       ctx_enums = EnumName.Map.add new_name ctx_constrs tctx.ctx_enums;
     }
+  | TypeIdent.Abstract tname ->
+    let path = process_path (AbstractType.path tname) in
+    let add_prefix =
+      if
+        tctx.prefix_module
+        && TypeIdent.Set.mem (Abstract tname) decl_ctx.ctx_public_types
+      then add_module_prefix tctx path
+      else Fun.id
+    in
+    let str, pos = AbstractType.get_info tname in
+    let str = add_prefix str in
+    let path_ctx, ctx = get_path_ctx decl_ctx tctx ctx0 path in
+    let id, ctx = new_id ctx (tctx.f_abstract_type str) in
+    let new_name = AbstractType.fresh path (id, pos) in
+    {
+      tctx with
+      path_ctx = PathMap.add path ctx path_ctx;
+      abstract_type_map =
+        AbstractType.Map.add tname new_name tctx.abstract_type_map;
+    }
 
 let cap s = String.to_id s |> String.capitalize_ascii
 let uncap s = String.to_id s |> String.uncapitalize_ascii
@@ -512,6 +556,7 @@ let program
     ?(f_field = uncap)
     ?(f_enum = cap)
     ?(f_constr = cap)
+    ?(f_abstract_type = cap)
     p =
   let cfg =
     {
@@ -534,6 +579,7 @@ let program
       structs_map = StructName.Map.empty;
       fields_map = StructField.Map.empty;
       enums_map = EnumName.Map.empty;
+      abstract_type_map = AbstractType.Map.empty;
       constrs_map = EnumConstructor.Map.empty;
       ctx_structs = StructName.Map.empty;
       ctx_enums = EnumName.Map.empty;
@@ -543,6 +589,7 @@ let program
       f_field;
       f_enum;
       f_constr;
+      f_abstract_type;
     }
   in
   let type_renaming_ctx =
@@ -683,13 +730,17 @@ let program
       ~enums:(fun n -> EnumName.Map.find n type_renaming_ctx.enums_map)
       ~constrs:(fun n ->
         EnumConstructor.Map.find n type_renaming_ctx.constrs_map)
+      ~abstract_types:(fun n ->
+        AbstractType.Map.find n type_renaming_ctx.abstract_type_map)
   in
   let ctx_public_types =
     TypeIdent.Set.map
       (function
         | Struct s ->
           Struct (StructName.Map.find s type_renaming_ctx.structs_map)
-        | Enum s -> Enum (EnumName.Map.find s type_renaming_ctx.enums_map))
+        | Enum s -> Enum (EnumName.Map.find s type_renaming_ctx.enums_map)
+        | Abstract s ->
+          Abstract (AbstractType.Map.find s type_renaming_ctx.abstract_type_map))
       p.decl_ctx.ctx_public_types
   in
   let decl_ctx =
@@ -730,12 +781,13 @@ let program
     ?f_field
     ?f_enum
     ?f_constr
+    ?f_abstract_type
     () =
   let module M = struct
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
         ~namespaced_fields ~namespaced_constrs ~prefix_module ~modnames_conflict
-        ?f_var ?f_struct ?f_field ?f_enum ?f_constr p
+        ?f_var ?f_struct ?f_field ?f_enum ?f_constr ?f_abstract_type p
   end in
   (module M : Renaming)
 
@@ -744,5 +796,5 @@ let default =
     ~skip_constant_binders:default_config.skip_constant_binders
     ~constant_binder_name:default_config.constant_binder_name
     ~f_var:String.to_snake_case ~f_struct:Fun.id ~f_field:Fun.id ~f_enum:Fun.id
-    ~f_constr:Fun.id ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false ~modnames_conflict:false
+    ~f_constr:Fun.id ~f_abstract_type:Fun.id ~namespaced_fields:true
+    ~namespaced_constrs:true ~prefix_module:false ~modnames_conflict:false
