@@ -238,3 +238,138 @@ déclaration est_assez_jeune_arrondi_supérieur
   égal à
     non (est_assez_âgé_arrondi_supérieur de date_de_naissance, âge, à_date)
 ```
+
+
+## Gestion des jours de la semaine et des jours fériés
+```catala-metadata
+déclaration énumération Jours:
+  -- Lundi
+  -- Mardi
+  -- Mercredi
+  -- Jeudi
+  -- Vendredi
+  -- Samedi
+  -- Dimanche
+```
+
+## Algorithme de Sakamoto, détermination jour de la semaine d'une date donnée
+```catala-metadata
+déclaration champ d'application Jour_de_la_semaine_depuis_date :
+  entrée résultat date_entrée contenu date
+
+  interne liste_Sakamoto contenu (entier, entier, entier, entier, entier, entier, entier, entier, entier, entier, entier, entier)
+  interne month_number contenu entier
+  interne n_number contenu entier
+  interne year_number contenu entier
+
+  interne jour_number contenu entier
+  résultat jour_de_la_semaine_depuis_date contenu Jours
+```
+
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition liste_Sakamoto
+  égal à (0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4)
+```
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition month_number
+  égal à Date.get_month de date_entrée
+```
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition year_number
+  égal à 
+    si month_number < 3
+      alors Date.get_year de date_entrée - 1
+    sinon Date.get_year de date_entrée 
+```
+
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition n_number sous condition
+    month_number = 1
+  conséquence égal à liste_Sakamoto.1
+  définition n_number sous condition
+    month_number = 2
+  conséquence égal à liste_Sakamoto.2
+
+  définition n_number sous condition
+    month_number = 3
+  conséquence égal à liste_Sakamoto.3
+
+  définition n_number sous condition
+    month_number = 4
+  conséquence égal à liste_Sakamoto.4
+
+  définition n_number sous condition
+    month_number = 5
+  conséquence égal à liste_Sakamoto.5
+
+  définition n_number sous condition
+    month_number = 6
+  conséquence égal à liste_Sakamoto.6
+
+  définition n_number sous condition
+    month_number = 7
+  conséquence égal à liste_Sakamoto.7
+
+  définition n_number sous condition
+    month_number = 8
+  conséquence égal à liste_Sakamoto.8
+
+  définition n_number sous condition
+    month_number = 9
+  conséquence égal à liste_Sakamoto.9
+
+  définition n_number sous condition
+    month_number = 10
+  conséquence égal à liste_Sakamoto.10
+
+  définition n_number sous condition
+    month_number = 11
+  conséquence égal à liste_Sakamoto.11
+
+  définition n_number sous condition
+    month_number = 12
+  conséquence égal à liste_Sakamoto.12
+```
+
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition jour_number
+  égal à 
+    (year_number + entier de (year_number / 4) - entier de (year_number / 100) + entier de (year_number / 400) + n_number + Date.get_day de date_entrée) 
+    - 7 * entier de ((year_number + entier de (year_number / 4) - entier de (year_number / 100) + entier de (year_number / 400) + n_number + Date.get_day de date_entrée) /7)
+```
+
+```catala
+champ d'application Jour_de_la_semaine_depuis_date :
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 0
+  conséquence égal à Dimanche
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 1
+  conséquence égal à Lundi
+
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 2
+  conséquence égal à Mardi
+
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 3
+  conséquence égal à Mercredi
+
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 4
+  conséquence égal à Jeudi
+
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 5
+  conséquence égal à Vendredi
+
+  définition jour_de_la_semaine_depuis_date sous condition
+    jour_number = 6
+  conséquence égal à Samedi
+```
+
