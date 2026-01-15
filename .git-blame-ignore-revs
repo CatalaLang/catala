@@ -1,6 +1,8 @@
 # Reformatting commits to be skipped when running 'git blame'
 # Use `git config --global blame.ignoreRevsFile .git-blame-ignore-revs` to use it
 # Add new reformatting commits at the top
+7aa6562ae9a4b04d7e6d18da6a6f4df3245b72fd
+
 6a062921f15c5b70e42fefee0f28d249d4289e34
 5d61963a93a0b735d9419b43ef05c676f5169d9a
 1b6da0b5720e9168aca1452e9ed40ad7e0bd737a
