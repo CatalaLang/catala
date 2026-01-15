@@ -87,6 +87,9 @@ type error =
 val error_to_string : error -> string
 (** Returns the capitalized tag of the error as a string *)
 
+val error_of_string : string -> error
+(** Tries to build the error constructor from a string *)
+
 val error_message : error -> string
 (** Returns a short explanation message about the error *)
 

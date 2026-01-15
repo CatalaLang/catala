@@ -544,10 +544,10 @@ module Commands = struct
 
   let get_output_format options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    fun ?ext f ->
+    fun ?ext ?suffix f ->
       let output_file, with_output =
         File.get_main_out_formatter ~source_file:options.Global.input_src
-          ~output_file ?ext ()
+          ~output_file ?ext ?suffix ()
       in
       Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
       with_output (fun ppf -> f output_file ppf)
@@ -1212,6 +1212,59 @@ module Commands = struct
         $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion)
 
+  let jsoo
+      options
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      closure_conversion =
+    let options = if closure_conversion then fix_trace options else options in
+    let prg, type_ordering, _ =
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
+        ~monomorphize_types:false ~expand_ops:true
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
+    in
+    Message.debug "Compiling program to generate Js_of_ocaml interface...";
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.ml" else "ml")
+      ~suffix:"_jsoo"
+    @@ fun output_file fmt ->
+    let hashf = Hash.finalise ~monomorphize_types:false in
+    Lcalc.To_jsoo_interface.format_program output_file fmt prg ~hashf
+      type_ordering;
+    Format.pp_print_flush fmt ();
+    let filename =
+      match output_file with
+      | Some "-" -> None
+      | Some f -> Some f
+      | None ->
+        let src = Global.input_src_file options.Global.input_src in
+        let f = File.file_with_extension ~suffix:"_jsoo" src "ml" in
+        Some f
+    in
+    Option.iter Ocamlformat.format filename
+
+  let jsoo_cmd =
+    Cmd.v
+      (Cmd.info "jsoo" ~man:Cli.man_base
+         ~doc:
+           "Generates a Js_of_ocaml interface to use Catala program in \
+            javascript.")
+      Term.(
+        const jsoo
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion)
+
   let scalc
       options
       includes
@@ -1544,6 +1597,7 @@ module Commands = struct
       typecheck_cmd;
       proof_cmd;
       ocaml_cmd;
+      jsoo_cmd;
       python_cmd;
       java_cmd;
       c_cmd;

@@ -19,6 +19,59 @@
 
 open Js_of_ocaml
 
+type unit_jsoo = unit
+
+val unit_to_jsoo : unit -> unit_jsoo
+val unit_of_jsoo : unit_jsoo -> unit
+
+type bool_jsoo = bool Js.t
+
+val bool_to_jsoo : bool -> bool_jsoo
+val bool_of_jsoo : bool_jsoo -> bool
+
+class type bigInt = object
+  method toLocalString : Js.js_string Js.t -> Js.js_string Js.t Js.meth
+
+  method toLocalString_withopt :
+    Js.js_string Js.t -> Js.Unsafe.any -> Js.js_string Js.t Js.meth
+
+  method toString : Js.js_string Js.t Js.meth
+  method toString_base : int -> Js.js_string Js.t Js.meth
+  method valueOf : bigInt Js.t Js.meth
+end
+
+class type decimal_ct = object
+  method n : bigInt Js.t Js.prop
+  method d : bigInt Js.t Js.prop
+end
+
+val bigInt : 'a Js.t -> bigInt Js.t
+
+type money_jsoo = bigInt Js.t
+
+val money_to_jsoo : money -> money_jsoo
+val money_of_jsoo : money_jsoo -> money
+
+type integer_jsoo = bigInt Js.t
+
+val integer_to_jsoo : integer -> integer_jsoo
+val integer_of_jsoo : integer_jsoo -> integer
+
+type decimal_jsoo = decimal_ct Js.t
+
+val decimal_to_jsoo : decimal -> decimal_jsoo
+val decimal_of_jsoo : decimal_jsoo -> decimal
+
+type date_jsoo = Js.date Js.t
+
+val date_to_jsoo : date -> date_jsoo
+val date_of_jsoo : date_jsoo -> date
+
+type error_jsoo = Js.js_string Js.t
+
+val error_to_jsoo : error -> error_jsoo
+val error_of_jsoo : error_jsoo -> error
+
 (** {1 Log events} *)
 
 (** Information about the position of the log inside the Catala source file. *)

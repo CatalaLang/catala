@@ -17,6 +17,72 @@
 open Js_of_ocaml
 module R_ocaml = Catala_runtime
 
+type unit_jsoo = unit
+
+let unit_to_jsoo = Fun.id
+let unit_od_jsoo = Fun.id
+
+type bool_jsoo = bool Js.t
+
+let bool_to_jsoo = Js.bool
+let bool_of_jsoo = Js.to_bool
+
+class type bigInt = object
+  method toLocalString : Js.js_string Js.t -> Js.js_string Js.t Js.meth
+
+  method toLocalString_withopt :
+    Js.js_string Js.t -> Js.Unsafe.any -> Js.js_string Js.t Js.meth
+
+  method toString : Js.js_string Js.t Js.meth
+  method toString_base : int -> Js.js_string Js.t Js.meth
+  method valueOf : bigInt Js.t Js.meth
+end
+
+class type decimal_ct = object
+  method n : bigInt Js.t Js.prop
+  method d : bigInt Js.t Js.prop
+end
+
+let bigInt (x : 'a Js.t) : bigInt Js.t = Js.Unsafe.global##_BigInt x
+
+type money_jsoo = bigInt Js.t
+
+let money_to_jsoo z = bigInt (Js.string (Z.to_string z))
+let money_of_jsoo js = Z.of_string (Js.to_string js##toString)
+
+type integer_jsoo = bigInt Js.t
+
+let integer_to_jsoo z = bigInt (Js.string (Z.to_string z))
+let integer_of_jsoo js = Z.of_string (Js.to_string js##toString)
+
+type decimal_jsoo = decimal_ct Js.t
+
+let decimal_to_jsoo q =
+  object%js
+    val n = bigInt (Js.string (Z.to_string (Q.num q)))
+    val d = bigInt (Js.string (Z.to_string (Q.den q)))
+  end
+
+let decimal_of_jsoo js =
+  Q.make
+    (Z.of_string (Js.to_string js##.n##toString))
+    (Z.of_string (Js.to_string js##.d##toString))
+
+type date_jsoo = Js.date Js.t
+
+let date_to_jsoo d =
+  let cs = Js.Unsafe.global##._Date in
+  new%js cs (Js.string (Format.asprintf "%a" Dates_calc.format_date d))
+
+let date_of_jsoo js =
+  let s = Js.to_string js##toISOString in
+  Dates_calc.date_of_string (String.sub s 0 10)
+
+type error_jsoo = Js.js_string Js.t
+
+let error_to_jsoo e = Js.string (R_ocaml.error_to_string e)
+let error_of_jsoo js = R_ocaml.error_of_string (Js.to_string js)
+
 class type code_location = object
   method fileName : Js.js_string Js.t Js.prop
   method startLine : int Js.prop
