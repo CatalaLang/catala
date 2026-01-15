@@ -626,14 +626,7 @@ let definition :=
 }
 
 let assertion :=
-| ASSERTION ;
-  cond = option(condition_consequence) ;
-  base = expression ; {
-  Assertion {
-    assertion_condition = cond;
-    assertion_content = base;
-  }
-}
+| ASSERTION ; e = expression ; <Assertion>
 
 let variation_type :=
 | INCREASING ; { Increasing }

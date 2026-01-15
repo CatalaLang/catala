@@ -221,15 +221,10 @@ type definition = {
 
 type variation_typ = Increasing | Decreasing
 
-type assertion = {
-  assertion_condition : expression option;
-  assertion_content : expression;
-}
-
 type scope_use_item =
   | Rule of rule
   | Definition of definition
-  | Assertion of assertion
+  | Assertion of expression
   | DateRounding of variation_typ Mark.pos
 
 type scope_use = {

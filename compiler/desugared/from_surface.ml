@@ -1533,20 +1533,10 @@ let process_assert
     (scope_uid : ScopeName.t)
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
-    (asrt : S.assertion)
+    (asrt : S.expression)
     (pos : Pos.t) : Ast.modul =
   let scope : Ast.scope = ScopeName.Map.find scope_uid modul.module_scopes in
-  let asrt =
-    translate_expr (Some scope_uid) None ctxt Ident.Map.empty
-      (match asrt.S.assertion_condition with
-      | None -> asrt.S.assertion_content
-      | Some cond ->
-        ( S.IfThenElse
-            ( cond,
-              asrt.S.assertion_content,
-              Mark.copy cond (S.Literal (S.LBool true)) ),
-          Mark.get cond ))
-  in
+  let asrt = translate_expr (Some scope_uid) None ctxt Ident.Map.empty asrt in
   let assertion =
     match precond with
     | Some precond ->
