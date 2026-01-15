@@ -17,30 +17,6 @@
 open Catala_utils
 open Shared_ast
 
-val renaming : Renaming.t
-
-(** Formats a lambda calculus program into a valid OCaml program *)
-
-val typ_needs_parens : typ -> bool
-
-(* val needs_parens : 'm expr -> bool *)
-val format_enum_name : Format.formatter -> EnumName.t -> unit
-val format_enum_cons_name : Format.formatter -> EnumConstructor.t -> unit
-val format_struct_name : Format.formatter -> StructName.t -> unit
-
-val format_struct_field_name :
-  Format.formatter -> StructName.t option * StructField.t -> unit
-
-val format_to_module_name :
-  Format.formatter ->
-  [< `Ename of EnumName.t | `Sname of StructName.t | `Aname of AbstractType.t ] ->
-  unit
-(* * val format_lit : Format.formatter -> lit Mark.pos -> unit * val
-   format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit *)
-
-val format_var : Format.formatter -> 'm Var.t -> unit
-val format_typ : Format.formatter -> typ -> unit
-
 val format_program :
   File.t option ->
   Format.formatter ->
