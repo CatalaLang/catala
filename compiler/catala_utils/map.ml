@@ -14,7 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Small wrapper on top of the stdlib [Map] module to add some useful functions *)
+(** Small wrapper on top of the stdlib [Map] module to add some useful functions
+*)
 
 (* NOTE: only defines typed module, a .mli would be completely redundant *)
 

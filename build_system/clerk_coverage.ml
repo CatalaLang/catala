@@ -165,13 +165,13 @@ let coverage_to_json ~build_dir ~cwd (coverage : Coverage.coverage_map) :
       `List
         (Coverage.ScopeSet.elements all_scopes
         |> List.map (fun s ->
-               let pos = ScopeName.get_info s |> Mark.get in
-               `Assoc
-                 [
-                   "index", scope_idx s;
-                   "name", `String (ScopeName.to_string s);
-                   "location", pos_to_json_location ~build_dir ~cwd pos;
-                 ])) )
+            let pos = ScopeName.get_info s |> Mark.get in
+            `Assoc
+              [
+                "index", scope_idx s;
+                "name", `String (ScopeName.to_string s);
+                "location", pos_to_json_location ~build_dir ~cwd pos;
+              ])) )
   in
   let coverage_locations_json =
     ( "locations",

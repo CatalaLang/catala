@@ -5,10 +5,8 @@ open Js_of_ocaml
 let () =
   Js.export_all
     (object%js
-       method interpret
-           (contents : Js.js_string Js.t)
-           (scope : Js.js_string Js.t)
-           (language : Js.js_string Js.t)
+       method interpret (contents : Js.js_string Js.t)
+           (scope : Js.js_string Js.t) (language : Js.js_string Js.t)
            (trace : bool) =
          let contents = Js.to_string contents in
          let scope = Js.to_string scope in

@@ -41,7 +41,8 @@ type 'm scope_sig_ctx = {
   scope_sig_input_struct : StructName.t;  (** Scope input *)
   scope_sig_output_struct : StructName.t;  (** Scope output *)
   scope_sig_in_fields : scope_input_var_ctx ScopeVar.Map.t;
-      (** Mapping between the input scope variables and the input struct fields. *)
+      (** Mapping between the input scope variables and the input struct fields.
+      *)
 }
 
 type 'm ctx = {

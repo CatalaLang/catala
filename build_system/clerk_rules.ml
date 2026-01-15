@@ -556,14 +556,14 @@ let gen_build_statements
       ]
     in
     (match item.module_def with
-    | Some _ ->
-      obj
-      @ [
-          Nj.build "ocaml-module"
-            ~inputs:[target ~backend:"ocaml" "cmx"]
-            ~outputs:[target ~backend:"ocaml" "cmxs"];
-        ]
-    | None -> obj)
+      | Some _ ->
+        obj
+        @ [
+            Nj.build "ocaml-module"
+              ~inputs:[target ~backend:"ocaml" "cmx"]
+              ~outputs:[target ~backend:"ocaml" "cmxs"];
+          ]
+      | None -> obj)
     @
     if has_scope_tests then
       [
@@ -1011,8 +1011,8 @@ let output_ninja_file
   @@ output_ninja_file_item_statements nin_ppf ~config ~enabled_backends
        ~autotest ~is_stdlib:true stdlib_tree
   @@ Seq.append (fun () ->
-         pp (Nj.Comment "\n- Project-specific build statements - #");
-         Seq.Nil)
+      pp (Nj.Comment "\n- Project-specific build statements - #");
+      Seq.Nil)
   @@ output_ninja_file_item_statements nin_ppf ~config ~enabled_backends
        ~autotest ~is_stdlib:false project_tree
   @@ fun () ->
@@ -1032,13 +1032,13 @@ let cleaned_up_env () =
   Unix.environment ()
   |> Array.to_seq
   |> Seq.filter (fun s ->
-         (not (String.starts_with ~prefix:"CATALA_" s))
-         || List.exists
-              (fun prefix -> String.starts_with ~prefix s)
-              passthrough_vars
-         ||
-         (Message.warning "Ignoring environment variable %s" s;
-          false))
+      (not (String.starts_with ~prefix:"CATALA_" s))
+      || List.exists
+           (fun prefix -> String.starts_with ~prefix s)
+           passthrough_vars
+      ||
+      (Message.warning "Ignoring environment variable %s" s;
+       false))
   |> Array.of_seq
 
 let ninja_exec = try Sys.getenv "NINJA_BIN" with Not_found -> "ninja"
@@ -1165,27 +1165,27 @@ let run_ninja
       let item_tree =
         Scan.tree "."
         |> Seq.filter_map (fun (f, fl, items) ->
-               if insource && String.starts_with f ~prefix:"stdlib" then None
-               else
-                 let items =
-                   List.map
-                     (fun it ->
-                       let used_modules =
-                         match Scan.get_lang it.Scan.file_name with
-                         | Some lg ->
-                           let lg =
-                             if Global.has_localised_stdlib lg then lg
-                             else Global.En
-                           in
-                           ( "Stdlib_" ^ Cli.language_code lg,
-                             Pos.from_info f 0 0 0 0 )
-                           :: it.Scan.used_modules
-                         | None -> it.Scan.used_modules
-                       in
-                       { it with Scan.used_modules })
-                     items
-                 in
-                 Some (f, fl, items))
+            if insource && String.starts_with f ~prefix:"stdlib" then None
+            else
+              let items =
+                List.map
+                  (fun it ->
+                    let used_modules =
+                      match Scan.get_lang it.Scan.file_name with
+                      | Some lg ->
+                        let lg =
+                          if Global.has_localised_stdlib lg then lg
+                          else Global.En
+                        in
+                        ( "Stdlib_" ^ Cli.language_code lg,
+                          Pos.from_info f 0 0 0 0 )
+                        :: it.Scan.used_modules
+                      | None -> it.Scan.used_modules
+                    in
+                    { it with Scan.used_modules })
+                  items
+              in
+              Some (f, fl, items))
       in
       let items =
         output_ninja_file nin_ppf ~config ~enabled_backends ~autotest

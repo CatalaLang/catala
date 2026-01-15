@@ -55,9 +55,9 @@ val dft_field : name:string -> default:'a -> 'a descr -> 'a field
     [obj2 (req_field ~name:"a" string) (req_field ~name:"b" (list string))]
     described under a table "target" will match the following TOML:
     {v
-[target]
-a = "some string"
-b = [ "hello" ; "world" ]
+    [target]
+    a = "some string"
+    b = [ "hello" ; "world" ]
     v} *)
 
 (** {b Warning}: registering multiple fields in an object under the same name
@@ -109,17 +109,17 @@ val string_cases : (string * 'a) list -> 'a case list
 (** Table constructors *)
 
 (** Tables are translated as toplevel tables in TOML: e.g.,
-    [table2 (table_opt ~name:"project" (...)) (multi_table ~name:"module" (...))]
-    will match the following TOML:
+    [table2 (table_opt ~name:"project" (...)) (multi_table ~name:"module"
+     (...))] will match the following TOML:
     {v
-[project]
-...
+    [project]
+    ...
 
-[[module]]
-...
+    [[module]]
+    ...
 
-[[module]]
-...
+    [[module]]
+    ...
     v}
 
     N.b., the [project] table could be omitted *)

@@ -458,8 +458,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EAssert e' ->
     Format.fprintf fmt
       "@[<hov 2>if not@ %a@;\
-       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a]))@]@]" format_with_parens
-      e'
+       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a]))@]@]"
+      format_with_parens e'
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
   | EFatalError er ->
@@ -483,7 +483,8 @@ let format_struct_embedding
       "@,\
        @[<hv 2>let embed (x: t) : runtime_value =@ @[<hv 2>Struct(@,\
        \"%a\",@ @[<hv 1>[%a]@]@;\
-       <0 -2>)@]@]" StructName.format struct_name
+       <0 -2>)@]@]"
+      StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt (struct_field, struct_field_type) ->
@@ -874,9 +875,9 @@ let format_program
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name
   |> Option.iter (fun (modname, intf_id) ->
-         Format.pp_print_cut ppml ();
-         format_module_registration p.decl_ctx ppml exports modname
-           (hashf intf_id.hash) intf_id.is_external);
+      Format.pp_print_cut ppml ();
+      format_module_registration p.decl_ctx ppml exports modname
+        (hashf intf_id.hash) intf_id.is_external);
   if List.exists (function KTest _, _ -> true | _ -> false) exports then
     File.with_secondary_out_channel ~output_file ~ext:"+main.ml" (fun _ fmt ->
         format_scope_exec_args p

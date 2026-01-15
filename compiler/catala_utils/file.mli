@@ -61,7 +61,8 @@ val get_main_out_formatter :
   t option * ((Format.formatter -> 'a) -> 'a)
 (** [get_output_format ~source_file ~output_file ?ext ()] returns the inferred
     filename and its corresponding [with_formatter_of_out_channel] function. If
-    the [output_file] is equal to [Some "-"] returns a wrapper around [stdout]. *)
+    the [output_file] is equal to [Some "-"] returns a wrapper around [stdout].
+*)
 
 val with_secondary_out_channel :
   output_file:t option ->
@@ -205,7 +206,8 @@ val remove_extension : t -> string
 (** [remove_extension filename] is equivalent to [filename -.- ""] *)
 
 val path_to_list : t -> string list
-(** Empty elements or current-directory (".") are skipped in the resulting list *)
+(** Empty elements or current-directory (".") are skipped in the resulting list
+*)
 
 val equal : t -> t -> bool
 (** Case-insensitive string comparison (no file resolution whatsoever) *)

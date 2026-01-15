@@ -76,7 +76,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-cli
-$ catala Typecheck --disable-warning
+$ catala Typecheck --disable-warnings
 ┌─[RESULT]─
 │ Typechecking successful!
 └─

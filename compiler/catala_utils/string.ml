@@ -45,8 +45,8 @@ let to_id s =
     let s =
       Ubase.from_utf8 ~strip:"" s
       |> map (function
-           | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c -> c
-           | _ -> '_')
+        | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c -> c
+        | _ -> '_')
     in
     if length s < 1 || get s 0 = '_' then
       let pfx = if begins_with_uppercase s then "X" else "x" in
@@ -72,12 +72,12 @@ let to_camel_case ?(capitalize = true) (s : string) : string =
   s
   |> to_id
   |> iter (function
-       | '_' -> last_was_underscore := true
-       | c ->
-         let c = if c = '-' then '_' else c in
-         Buffer.add_char out
-           (if !last_was_underscore then Char.uppercase_ascii c else c);
-         last_was_underscore := false);
+    | '_' -> last_was_underscore := true
+    | c ->
+      let c = if c = '-' then '_' else c in
+      Buffer.add_char out
+        (if !last_was_underscore then Char.uppercase_ascii c else c);
+      last_was_underscore := false);
   Buffer.contents out
 
 let remove_prefix ~prefix s =

@@ -33,7 +33,8 @@ val unbox_closed : ('a, 'm) boxed_gexpr -> ('a, 'm) gexpr
     being closed *)
 
 val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
-(** Rebuild the whole term, re-binding all variables and exposing free variables *)
+(** Rebuild the whole term, re-binding all variables and exposing free variables
+*)
 
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
 
@@ -467,7 +468,8 @@ val equal_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> bool
 val compare_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> int
 
 val equal : ('a, 'm) gexpr -> ('a, 'm) gexpr -> bool
-(** Determines if two expressions are equal, omitting their position information *)
+(** Determines if two expressions are equal, omitting their position information
+*)
 
 val compare : ('a, 'm) gexpr -> ('a, 'm) gexpr -> int
 (** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position

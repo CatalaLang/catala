@@ -67,7 +67,8 @@ module Map : Map.S with type key = t
 val to_string : t -> string
 (** Formats a position like this:
 
-    {v in file <file>, from <start_line>:<start_col> to <end_line>:<end_col> v} *)
+    {v in file <file>, from <start_line>:<start_col> to <end_line>:<end_col> v}
+*)
 
 val to_string_short : t -> string
 (** Formats a position like this:
@@ -76,7 +77,7 @@ val to_string_short : t -> string
 
     This function is compliant with the
     {{:https://www.gnu.org/prep/standards/standards.html#Errors} GNU coding
-      standards}. *)
+     standards}. *)
 
 val to_string_shorter : t -> string
 (** Like [to_string_short], but skips directory names and extension *)

@@ -107,13 +107,13 @@ let check_exceeding_lines
   content
   |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         let len_s = String.width s in
-         if len_s > max_len then
-           Message.warning
-             ~pos:
-               (Pos.from_info filename (start_line + i) (max_len + 1)
-                  (start_line + i) (len_s + 1))
-             "This line is exceeding @{<bold;red>%d@} characters" max_len)
+      let len_s = String.width s in
+      if len_s > max_len then
+        Message.warning
+          ~pos:
+            (Pos.from_info filename (start_line + i) (max_len + 1)
+               (start_line + i) (len_s + 1))
+          "This line is exceeding @{<bold;red>%d@} characters" max_len)
 
 let with_pygmentize_lexer lang f =
   let lexer_py =

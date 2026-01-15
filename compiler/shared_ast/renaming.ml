@@ -142,9 +142,15 @@ let set_rewriters
     ?constrs
     ?abstract_types
     ctx =
-  (fun ?(scopes = ctx.scopes) ?(topdefs = ctx.topdefs) ?(structs = ctx.structs)
-       ?(fields = ctx.fields) ?(enums = ctx.enums) ?(constrs = ctx.constrs)
-       ?(abstract_types = ctx.abstract_types) () ->
+  (fun ?(scopes = ctx.scopes)
+    ?(topdefs = ctx.topdefs)
+    ?(structs = ctx.structs)
+    ?(fields = ctx.fields)
+    ?(enums = ctx.enums)
+    ?(constrs = ctx.constrs)
+    ?(abstract_types = ctx.abstract_types)
+    ()
+  ->
     {
       ctx with
       scopes;

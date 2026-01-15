@@ -15,7 +15,8 @@
    the License. *)
 
 (** This module contains definitions of global flags and types used throughout.
-    They should be defined from the command-line and never modified afterwards. *)
+    They should be defined from the command-line and never modified afterwards.
+*)
 
 type file = string
 (** File names ; equal to [File.t] but let's avoid cyclic dependencies *)

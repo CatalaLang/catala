@@ -267,14 +267,14 @@ let fill_struct_bindings
   let expected : expr StructField.Map.t =
     StructName.Map.find struct_name ctx.decl_ctx.ctx_structs
     |> StructField.Map.map (fun _ ->
-           ( EInj
-               {
-                 name = Expr.option_enum;
-                 cons = Expr.none_constr;
-                 e1 = ELit LUnit, Pos.void;
-                 expr_typ = TOption (Type.any Pos.void), Pos.void;
-               },
-             Pos.void ))
+        ( EInj
+            {
+              name = Expr.option_enum;
+              cons = Expr.none_constr;
+              e1 = ELit LUnit, Pos.void;
+              expr_typ = TOption (Type.any Pos.void), Pos.void;
+            },
+          Pos.void ))
   in
   StructField.Map.(
     merge
@@ -369,9 +369,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     let pos = Mark.get e in
     fprintf ppf
       "@[<hv 2>new CatalaPosition@;\
-       <0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d,@ %a@])@]" (Pos.get_file pos)
-      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
-      (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
+       <0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d,@ %a@])@]"
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
   | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
     fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
@@ -844,7 +845,8 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
   let out_fields =
     StructName.Map.find_opt out_struct_name ctx.decl_ctx.ctx_structs
     |> function
-    | None -> [] | Some out_fields -> StructField.Map.bindings out_fields
+    | None -> []
+    | Some out_fields -> StructField.Map.bindings out_fields
   in
   let fields_l = List.map fst out_fields |> List.map StructField.to_string in
   let format_fields_comparison ppf = format_fields_comparison ppf fields_l in
@@ -1015,14 +1017,16 @@ let format_enums ctx ppf =
         in
         fprintf ppf
           "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, %s);@;\
-           <1 -4>}@]" format_enum ename EnumConstructor.format cstr format_arg
-          format_enum ename EnumConstructor.format cstr
+           <1 -4>}@]"
+          format_enum ename EnumConstructor.format cstr format_arg format_enum
+          ename EnumConstructor.format cstr
           (if is_unit then "CatalaUnit.INSTANCE" else "v")
       in
       fprintf ppf
         "@[<v 4>private %a(Kind k, CatalaValue contents) {@ this.kind = k;@ \
          this.contents = contents;@;\
-         <1 -4>}@]%a" format_enum ename
+         <1 -4>}@]%a"
+        format_enum ename
         (pp_print_list_padded ~pp_sep:pp_print_space format_enum_make)
         (EnumConstructor.Map.bindings cstrs)
     in

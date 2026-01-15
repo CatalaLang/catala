@@ -140,8 +140,8 @@ let pp_marker ?extra_label target ppf =
   Format.pp_close_stag ppf ();
   extra_label
   |> Option.iter (fun lbl ->
-         Format.pp_print_char ppf ' ';
-         Format.pp_print_string ppf lbl);
+      Format.pp_print_char ppf ' ';
+      Format.pp_print_string ppf lbl);
   Format.pp_close_stag ppf ()
 
 (**{2 Printers}*)

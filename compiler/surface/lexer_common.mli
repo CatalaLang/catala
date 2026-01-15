@@ -38,7 +38,8 @@ val update_acc : Sedlexing.lexbuf -> unit
 (** Updates the current code buffer with the current lexeme. The underlying
     buffer is used to accumulate the string representation of the body of code
     being lexed. This string representation is used in the literate programming
-    backends to faithfully capture the spacing pattern of the original program *)
+    backends to faithfully capture the spacing pattern of the original program
+*)
 
 val flush_acc : unit -> string
 (** Flushes the code buffer and returns its contents (see [update_acc]) *)

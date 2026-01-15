@@ -118,7 +118,8 @@ let project_encoding =
            catala_opts,
            default_targets,
            build_dir,
-           target_dir ) ->
+           target_dir )
+       ->
       {
         include_dirs = inj_empty_list include_dirs;
         catala_exe;
@@ -138,9 +139,10 @@ let project_encoding =
 let target_encoding =
   let open Clerk_toml_encoding in
   conv
-    (fun { tname; tmodules; ttests; backends; include_sources; include_objects } ->
-      tname, tmodules, ttests, backends, include_sources, include_objects)
-    (fun (tname, tmodules, ttests, backends, include_sources, include_objects) ->
+    (fun { tname; tmodules; ttests; backends; include_sources; include_objects }
+       -> tname, tmodules, ttests, backends, include_sources, include_objects)
+    (fun (tname, tmodules, ttests, backends, include_sources, include_objects)
+       ->
       { tname; tmodules; ttests; backends; include_sources; include_objects })
   @@ obj6
        (req_field ~name:"name" @@ string)

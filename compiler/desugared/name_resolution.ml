@@ -38,7 +38,8 @@ type scope_context = {
   scope_in_struct : StructName.t;
   scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
-      (** Other scopes referred to by this scope. Used for dependency analysis *)
+      (** Other scopes referred to by this scope. Used for dependency analysis
+      *)
   scope_visibility : visibility;
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
@@ -319,8 +320,7 @@ let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
   let scope = get_scope_context ctxt scope_uid in
   Ident.Map.exists
     (fun _ -> function
-      | ScopeVar var_uid -> ScopeVar.equal uid var_uid
-      | _ -> false)
+      | ScopeVar var_uid -> ScopeVar.equal uid var_uid | _ -> false)
     scope.var_idmap
 
 let get_var_def (def : Ast.ScopeDef.t) : ScopeVar.t =
@@ -983,8 +983,8 @@ let process_scope_decl
         (Mark.remove decl.scope_decl_name)
         (function
           | Some
-              (TScope
-                (scope, { in_struct_name; out_struct_name; visibility; _ })) ->
+              (TScope (scope, { in_struct_name; out_struct_name; visibility; _ }))
+            ->
             Some
               (TScope
                  ( scope,
@@ -1265,7 +1265,9 @@ let update_def_key_ctx
             (Ambiguous
                ([Mark.get d.definition_name]
                @
-               match old with Ambiguous old -> old | Unique (_, pos) -> [pos]));
+               match old with
+               | Ambiguous old -> old
+               | Unique (_, pos) -> [pos]));
       }
     (* No definition has been set yet for this key *)
     | None -> (

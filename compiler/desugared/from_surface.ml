@@ -819,7 +819,8 @@ let rec translate_expr
       try
         let c_uid =
           EnumName.Map.find e_uid possible_c_uids
-          |> (* Retain the correct position *)
+          |>
+          (* Retain the correct position *)
           EnumConstructor.map_info (fun (v, p) ->
               v, Pos.add_attrs pos_constructor (Pos.attrs p))
         in
@@ -1255,9 +1256,9 @@ and disambiguate_match_and_build_expression
           EnumName.Map.find e_uid ctxt.Name_resolution.enums
           |> fst
           |> EnumConstructor.Map.filter_map (fun c_uid _ ->
-                 match EnumConstructor.Map.find_opt c_uid cases_d with
-                 | Some _ -> None
-                 | None -> Some c_uid)
+              match EnumConstructor.Map.find_opt c_uid cases_d with
+              | Some _ -> None
+              | None -> Some c_uid)
         in
         if EnumConstructor.Map.is_empty missing_constructors then
           Message.warning ~pos:case_pos
@@ -2067,8 +2068,7 @@ let translate_program
       ctx_scope_index =
         Ident.Map.filter_map
           (fun _ -> function
-            | Name_resolution.TScope (s, _) -> Some s
-            | _ -> None)
+            | Name_resolution.TScope (s, _) -> Some s | _ -> None)
           ctxt.local.typedefs;
       ctx_modules;
     }
