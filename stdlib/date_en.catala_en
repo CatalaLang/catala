@@ -245,3 +245,136 @@ declaration is_young_enough_rounding_up
   equals
     not (is_old_enough_rounding_up of birth_date, age, at_date)
 ```
+
+## Days of the week enumeration
+```catala-metadata
+declaration enumeration Days:
+  -- Monday
+  -- Tuesday
+  -- Wednesday
+  -- Thursday
+  -- Friday
+  -- Saturday
+  -- Sunday
+```
+
+## Tomohiko Sakamoto Algorithm : find the Day of the week for a given date
+```catala-metadata
+declaration scope Day_of_the_of_given_date :
+  input output given_date content date
+
+  internal sakamoto_list content (integer, integer, integer, integer, integer, integer, integer, integer, integer, integer, integer, integer)
+  internal month_number content integer
+  internal n_number content integer
+  internal year_number content integer
+
+  internal day_number content integer
+  output day_of_the_week content Days
+```
+
+```catala
+scope Day_of_the_of_given_date :
+  definition sakamoto_list
+  equals (0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4)
+```
+```catala
+scope Day_of_the_of_given_date :
+  definition month_number
+  equals get_month of given_date
+```
+```catala
+scope Day_of_the_of_given_date :
+  definition year_number
+  equals 
+    if month_number < 3
+      then Date.get_year of given_date - 1
+    else get_year of given_date 
+```
+
+```catala
+scope Day_of_the_of_given_date :
+  definition n_number under condition
+    month_number = 1
+  consequence equals sakamoto_list.1
+  definition n_number under condition
+    month_number = 2
+  consequence equals sakamoto_list.2
+
+  definition n_number under condition
+    month_number = 3
+  consequence equals sakamoto_list.3
+
+  definition n_number under condition
+    month_number = 4
+  consequence equals sakamoto_list.4
+
+  definition n_number under condition
+    month_number = 5
+  consequence equals sakamoto_list.5
+
+  definition n_number under condition
+    month_number = 6
+  consequence equals sakamoto_list.6
+
+  definition n_number under condition
+    month_number = 7
+  consequence equals sakamoto_list.7
+
+  definition n_number under condition
+    month_number = 8
+  consequence equals sakamoto_list.8
+
+  definition n_number under condition
+    month_number = 9
+  consequence equals sakamoto_list.9
+
+  definition n_number under condition
+    month_number = 10
+  consequence equals sakamoto_list.10
+
+  definition n_number under condition
+    month_number = 11
+  consequence equals sakamoto_list.11
+
+  definition n_number under condition
+    month_number = 12
+  consequence equals sakamoto_list.12
+```
+
+```catala
+scope Day_of_the_of_given_date :
+  definition day_number
+  equals 
+    (year_number + integer of (year_number / 4) - integer of (year_number / 100) + integer of (year_number / 400) + n_number + get_day of given_date) 
+    - 7 * integer of ((year_number + integer of (year_number / 4) - integer of (year_number / 100) + integer of (year_number / 400) + n_number + get_day of given_date) /7)
+```
+
+```catala
+scope Day_of_the_of_given_date :
+  definition day_of_the_week under condition
+    day_number = 0
+  consequence equals Sunday
+  definition day_of_the_week under condition
+    day_number = 1
+  consequence equals Monday
+
+  definition day_of_the_week under condition
+    day_number = 2
+  consequence equals Tuesday
+
+  definition day_of_the_week under condition
+    day_number = 3
+  consequence equals Wednesday
+
+  definition day_of_the_week under condition
+    day_number = 4
+  consequence equals Thursday
+
+  definition day_of_the_week under condition
+    day_number = 5
+  consequence equals Friday
+
+  definition day_of_the_week under condition
+    day_number = 6
+  consequence equals Saturday
+```
