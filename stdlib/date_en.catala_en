@@ -287,7 +287,7 @@ scope Day_of_the_of_given_date :
   definition year_number
   equals 
     if month_number < 3
-      then Date.get_year of given_date - 1
+      then get_year of given_date - 1
     else get_year of given_date 
 ```
 
