@@ -77,29 +77,30 @@ let merge_objs l r =
   in
   let rec check_name_clash : type a. S.t -> a descr -> S.t =
    fun acc -> function
-    | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
-    | Conv { descr; _ } -> check_name_clash acc descr
-    | Objs (l, r) ->
-      let l = check_name_clash S.empty l in
-      let r = check_name_clash S.empty r in
-      if S.disjoint l r then S.union l r
-      else
-        let inter = S.inter l r in
-        fatal_error
-        @@ fun () ->
-        Message.error
-          "Invalid TOML encoding: different fields have an identical name %a."
-          Format.(
-            pp_print_list
-              ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-              (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
-          (S.elements inter)
-    | Obj (Req { name; _ }) | Obj (Opt { name; _ }) | Obj (Dft { name; _ }) ->
-      S.add name acc
-    | Obj (Free _) ->
-      fatal_error
-      @@ fun () ->
-      Message.error "Invalid TOML encoding: free-name fields can't be combined."
+     | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
+     | Conv { descr; _ } -> check_name_clash acc descr
+     | Objs (l, r) ->
+       let l = check_name_clash S.empty l in
+       let r = check_name_clash S.empty r in
+       if S.disjoint l r then S.union l r
+       else
+         let inter = S.inter l r in
+         fatal_error
+         @@ fun () ->
+         Message.error
+           "Invalid TOML encoding: different fields have an identical name %a."
+           Format.(
+             pp_print_list
+               ~pp_sep:(fun fmt () -> fprintf fmt ", ")
+               (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
+           (S.elements inter)
+     | Obj (Req { name; _ }) | Obj (Opt { name; _ }) | Obj (Dft { name; _ }) ->
+       S.add name acc
+     | Obj (Free _) ->
+       fatal_error
+       @@ fun () ->
+       Message.error
+         "Invalid TOML encoding: free-name fields can't be combined."
   in
   ignore @@ check_name_clash S.empty (Objs (l, r));
   Objs (l, r)
@@ -115,29 +116,31 @@ let binding_list f = List (Obj (Free f))
 let merge_tables l r =
   let rec check_name_clash : type a. S.t -> a table_descr -> S.t =
    fun acc -> function
-    | ConvT { descr; _ } -> check_name_clash acc descr
-    | Tables (l, r) -> (
-      let l = check_name_clash S.empty l in
-      let r = check_name_clash S.empty r in
-      if S.disjoint l r then S.union l r
-      else
-        let inter = S.inter l r in
-        try
-          Message.error
-            "Invalid TOML encoding: different tables have an identical name %a."
-            Format.(
-              pp_print_list
-                ~pp_sep:(fun fmt () -> fprintf fmt ", ")
-                (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
-            (S.elements inter)
-        with Message.CompilerError content ->
-          (* This is triggered when the descriptor gets evaluated, it's not
-             caught under the driver's main loop: we display it directly as it
-             should be unreachable in a release. *)
-          Message.Content.emit content Error;
-          exit Cmdliner.Cmd.Exit.some_error)
-    | Table_req { name; _ } | Table_opt { name; _ } | Multi_table { name; _ } ->
-      S.add name acc
+     | ConvT { descr; _ } -> check_name_clash acc descr
+     | Tables (l, r) -> (
+       let l = check_name_clash S.empty l in
+       let r = check_name_clash S.empty r in
+       if S.disjoint l r then S.union l r
+       else
+         let inter = S.inter l r in
+         try
+           Message.error
+             "Invalid TOML encoding: different tables have an identical name \
+              %a."
+             Format.(
+               pp_print_list
+                 ~pp_sep:(fun fmt () -> fprintf fmt ", ")
+                 (fun fmt s -> fprintf fmt "@{<red>'%s'@}" s))
+             (S.elements inter)
+         with Message.CompilerError content ->
+           (* This is triggered when the descriptor gets evaluated, it's not
+              caught under the driver's main loop: we display it directly as it
+              should be unreachable in a release. *)
+           Message.Content.emit content Error;
+           exit Cmdliner.Cmd.Exit.some_error)
+     | Table_req { name; _ } | Table_opt { name; _ } | Multi_table { name; _ }
+       ->
+       S.add name acc
   in
   ignore @@ check_name_clash S.empty (Tables (l, r));
   Tables (l, r)
@@ -279,10 +282,10 @@ let pp_scope fmt scope =
 let key_names (descr : _ descr) : S.t =
   let rec loop : type a. S.t -> a descr -> S.t =
    fun acc -> function
-    | Objs (l, r) -> S.union (loop acc l) (loop S.empty r)
-    | Obj (Req { name; _ }) | Obj (Dft { name; _ }) | Obj (Opt { name; _ }) ->
-      S.add name acc
-    | _ -> acc
+     | Objs (l, r) -> S.union (loop acc l) (loop S.empty r)
+     | Obj (Req { name; _ }) | Obj (Dft { name; _ }) | Obj (Opt { name; _ }) ->
+       S.add name acc
+     | _ -> acc
   in
   loop S.empty descr
 
@@ -320,8 +323,8 @@ let check_obj scope bindings descr =
 let decode_descr (target : target_kind) toml descr =
   let open Otoml in
   let open Format in
-  let rec loop :
-      type a. ?first_obj:bool -> scope:scope -> Otoml.t -> a descr -> a =
+  let rec loop : type a.
+      ?first_obj:bool -> scope:scope -> Otoml.t -> a descr -> a =
    fun ?(first_obj = true) ~scope toml (descr as current) ->
     match toml, descr with
     | _, Union { cases } -> (
@@ -399,13 +402,13 @@ let table_names (tables_descr : _ table_descr) : string list * S.t =
   let rec loop : type a. string list * S.t -> a table_descr -> string list * S.t
       =
    fun ((t, mt) as acc) -> function
-    | Table_req { name; _ } -> name :: t, mt
-    | Table_opt { name; _ } -> name :: t, mt
-    | Multi_table { name; _ } -> t, S.add name mt
-    | ConvT { descr; _ } -> loop acc descr
-    | Tables (l, r) ->
-      let acc = loop acc l in
-      loop acc r
+     | Table_req { name; _ } -> name :: t, mt
+     | Table_opt { name; _ } -> name :: t, mt
+     | Multi_table { name; _ } -> t, S.add name mt
+     | ConvT { descr; _ } -> loop acc descr
+     | Tables (l, r) ->
+       let acc = loop acc l in
+       loop acc r
   in
   loop ([], S.empty) tables_descr
 
@@ -545,8 +548,7 @@ let rec encode_descr : type a. a -> a descr -> Otoml.t =
 
 let encode v table_descr : Otoml.t =
   let open Otoml in
-  let rec encode_table :
-      type a.
+  let rec encode_table : type a.
       Otoml.t M.t * Otoml.t M.t ->
       a ->
       a table_descr ->

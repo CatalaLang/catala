@@ -59,7 +59,8 @@ val find_test_scope : lang:Global.backend_lang -> File.t -> bool
 val target_basename : item -> File.t
 (** Returns the expected basename (without directory or extension) for artifacts
     based on this file: the module name is used if defined, otherwise the
-    original file is used. In both case, it is normalised using [String.to_id]. *)
+    original file is used. In both case, it is normalised using [String.to_id].
+*)
 
 val target_file_name : item -> File.t
 (** Like [target_basename], but returns a relative filename to the build

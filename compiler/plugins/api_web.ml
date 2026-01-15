@@ -176,7 +176,7 @@ module To_jsoo = struct
       Bindlib.name_of v
       |> String.to_camel_case
       |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ ->
-             "_dot_")
+          "_dot_")
       |> String.uncapitalize_ascii
     in
     if
@@ -276,9 +276,10 @@ module To_jsoo = struct
         Format.fprintf fmt
           "class type %a =@ object end@\n\
            let %a_to_js (_ : %a.t) : %a Js.t = object%%js end@\n\
-           let %a_of_js (_ : %a Js.t) : %a.t = ()" fmt_struct_name ()
-          fmt_struct_name () fmt_module_struct_name () fmt_struct_name ()
+           let %a_of_js (_ : %a Js.t) : %a.t = ()"
           fmt_struct_name () fmt_struct_name () fmt_module_struct_name ()
+          fmt_struct_name () fmt_struct_name () fmt_struct_name ()
+          fmt_module_struct_name ()
       else
         Format.fprintf fmt
           "@[<hv 2>class type %a =@ @[<hov 2>object@ %a@]@,end@\n%a@]@\n"

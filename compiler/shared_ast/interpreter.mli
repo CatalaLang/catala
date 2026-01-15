@@ -37,7 +37,8 @@ val evaluate_expr :
   Global.backend_lang ->
   (('a, _) interpr_kind, 'm) gexpr ->
   (('a, yes) interpr_kind, 'm) gexpr
-(** Evaluates an expression according to the semantics of the default calculus. *)
+(** Evaluates an expression according to the semantics of the default calculus.
+*)
 
 val interpret_program_dcalc :
   ?input:Yojson.Safe.t ->

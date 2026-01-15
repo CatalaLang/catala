@@ -42,7 +42,8 @@ let pre_latexify (s : string) : string =
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
-    Prints an LaTeX complete documùent structure around the [wrapped] content. *)
+    Prints an LaTeX complete documùent structure around the [wrapped] content.
+*)
 let wrap_latex
     (source_files : string list)
     (language : C.backend_lang)

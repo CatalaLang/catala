@@ -334,8 +334,7 @@ let equal t1 t2 = compare t1 t2 = 0
 
 (* Classification of operators *)
 
-let kind_dispatch :
-    type a.
+let kind_dispatch : type a.
     polymorphic:(< polymorphic : yes ; .. > t Mark.pos -> 'b) ->
     monomorphic:(< monomorphic : yes ; .. > t Mark.pos -> 'b) ->
     ?overloaded:(< overloaded : yes ; .. > t Mark.pos -> 'b) ->

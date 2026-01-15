@@ -140,4 +140,5 @@ end
 (**/*)
 
 val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
-(** This is exported from [Expr], but first defined here for dependency reasons *)
+(** This is exported from [Expr], but first defined here for dependency reasons
+*)

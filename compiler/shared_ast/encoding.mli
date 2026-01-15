@@ -18,37 +18,36 @@
 
 (** {1 Runtime values to JSON encodings correspondence}
 
-{v
-   - Unit: {} (empty JSON object)
+    {v
+    - Unit: {} (empty JSON object)
 
-   - Bool: true | false (JSON boolean)
+    - Bool: true | false (JSON boolean)
 
-   - Money: 123 (JSON integer) | 123.45 (JSON number) | "123" (JSON string)
-     Note:
-       - integer and string representations map to monetary units and not cents
-       - floats are truncated to the second decimal
+    - Money: 123 (JSON integer) | 123.45 (JSON number) | "123" (JSON string)
+      Note:
+        - integer and string representations map to monetary units and not cents
+        - floats are truncated to the second decimal
 
-   - Integer: 123 (JSON integer) | "123" (JSON string)
+    - Integer: 123 (JSON integer) | "123" (JSON string)
 
-   - Decimal: 123 (JSON integer) | 123.45 (JSON number) | "1/3" (JSON string)
-     Note: we rely on [Q.of_string] for decoding strings
+    - Decimal: 123 (JSON integer) | 123.45 (JSON number) | "1/3" (JSON string)
+      Note: we rely on [Q.of_string] for decoding strings
 
-   - Date: "1970-01-31" (JSON string)
-     Note: we rely on [Dates_calc.date_of_string]
+    - Date: "1970-01-31" (JSON string)
+      Note: we rely on [Dates_calc.date_of_string]
 
-   - Duration: "1 years", "2 months" or "12 days" (JSON string)
+    - Duration: "1 years", "2 months" or "12 days" (JSON string)
 
-   - Enum:
-     - Unit constructors: "A" (JSON string)
-     - Non-unit constructors: {"B": <json value>} (JSON object)
+    - Enum:
+      - Unit constructors: "A" (JSON string)
+      - Non-unit constructors: {"B": <json value>} (JSON object)
 
-   - Struct: { "x": <json value>, "y": <json value>, ...} (JSON object)
+    - Struct: { "x": <json value>, "y": <json value>, ...} (JSON object)
 
-   - Array: [ <json value>, <json value>, ...] (JSON array)
+    - Array: [ <json value>, <json value>, ...] (JSON array)
 
-   - Tuple: [ <json value>, <json value>, ...] (JSON array)
-}
-*)
+    - Tuple: [ <json value>, <json value>, ...] (JSON array)
+    v} *)
 
 open Definitions
 open Catala_runtime
@@ -73,11 +72,13 @@ val parse_json :
 
 val convert_to_dcalc :
   decl_ctx -> 'm mark -> typ -> runtime_value -> (dcalc, 'm) gexpr boxed
-(** Conversion function from a [runtime_value] to a default calculus expression. *)
+(** Conversion function from a [runtime_value] to a default calculus expression.
+*)
 
 val convert_to_lcalc :
   decl_ctx -> 'm mark -> typ -> runtime_value -> (lcalc, 'm) gexpr boxed
-(** Conversion function from a [runtime_value] to a lambda calculus expression. *)
+(** Conversion function from a [runtime_value] to a lambda calculus expression.
+*)
 
 val convert_from_gexpr : decl_ctx -> (_, 'm) gexpr -> runtime_value
 (** Conversion function from a generic expression to a runtime value. This

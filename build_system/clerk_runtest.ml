@@ -102,9 +102,9 @@ let catala_test_env () =
   Unix.environment ()
   |> Array.to_seq
   |> Seq.filter (fun s ->
-         not
-           (String.starts_with ~prefix:"OCAMLRUNPARAM=" s
-           || String.starts_with ~prefix:"CATALA_" s))
+      not
+        (String.starts_with ~prefix:"OCAMLRUNPARAM=" s
+        || String.starts_with ~prefix:"CATALA_" s))
   |> Seq.cons "CATALA_OUT=-"
   |> Seq.cons "CATALA_COLOR=never"
   |> Seq.cons "CATALA_PLUGINS="

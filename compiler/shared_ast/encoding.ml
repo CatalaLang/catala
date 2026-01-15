@@ -344,9 +344,9 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
           let rval =
             List.assoc_opt field_s lvals
             |> Option.map (function
-                 | Runtime.Enum ("Optional", ("Present", rval)) -> Some rval
-                 | Runtime.Enum ("Optional", ("Absent", Unit)) -> None
-                 | _ -> assert false)
+              | Runtime.Enum ("Optional", ("Present", rval)) -> Some rval
+              | Runtime.Enum ("Optional", ("Absent", Unit)) -> None
+              | _ -> assert false)
             |> Option.join
           in
           Runtime.Struct (s, List.remove_assoc field_s lvals), rval
@@ -553,8 +553,8 @@ let rec convert_to_lcalc
       "Cannot convert runtime_value to lcalc: expected value of type %a, got %a"
       Print.typ typ Runtime.format_value r
 
-let rec convert_from_gexpr :
-    type a. decl_ctx -> (a, 'm) gexpr -> Runtime.runtime_value =
+let rec convert_from_gexpr : type a.
+    decl_ctx -> (a, 'm) gexpr -> Runtime.runtime_value =
  fun ctx e ->
   let f = convert_from_gexpr ctx in
   match Mark.remove e with

@@ -15,7 +15,8 @@
    the License. *)
 
 (** Graph representation of the dependencies between scopes in the Catala
-    program. Vertices are functions, x -> y if x is used in the definition of y. *)
+    program. Vertices are functions, x -> y if x is used in the definition of y.
+*)
 
 open Catala_utils
 open Shared_ast

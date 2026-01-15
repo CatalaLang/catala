@@ -47,7 +47,8 @@ val run_pandoc : string -> [ `Html | `Latex ] -> string
 
 val check_exceeding_lines : ?max_len:int -> int -> string -> string -> unit
 (** [check_exceeding_lines ~max_len start_line filename content] prints a
-    warning message for each lines of [content] exceeding [max_len] characters. *)
+    warning message for each lines of [content] exceeding [max_len] characters.
+*)
 
 val call_pygmentize : ?lang:Global.backend_lang -> string list -> string
 (** Calls the [pygmentize] command with the given arguments, and returns the

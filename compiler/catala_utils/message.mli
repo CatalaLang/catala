@@ -112,7 +112,8 @@ val formatter_of_out_channel :
   ?nocolor:bool -> out_channel -> unit -> Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
-    [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)
+    [Cli.style_flag] -- and wether the channel is a tty if that is set to auto.
+*)
 
 (** {1 Simple interface for various message emission} *)
 

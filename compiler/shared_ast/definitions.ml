@@ -114,7 +114,8 @@ module StateName =
 
 (** {1 Abstract syntax tree} *)
 
-(** Define a common base type for the expressions in most passes of the compiler *)
+(** Define a common base type for the expressions in most passes of the compiler
+*)
 
 (** {2 Phantom types used to select relevant cases on the generic AST}
 
@@ -483,7 +484,8 @@ type ('a, 'm) marked = ('a, 'm mark) Mark.ed
 
 (** {2 Generic expressions} *)
 
-(** Define a common base type for the expressions in most passes of the compiler *)
+(** Define a common base type for the expressions in most passes of the compiler
+*)
 
 (** Literals are the same throughout compilation. *)
 type lit =
@@ -790,7 +792,8 @@ type decl_ctx = {
       (** needed for disambiguation (desugared -> scope) *)
   ctx_enum_constrs : EnumConstructor.t EnumName.Map.t Ident.Map.t;
   ctx_scope_index : ScopeName.t Ident.Map.t;
-      (** only used to lookup scopes (in the root module) specified from the cli *)
+      (** only used to lookup scopes (in the root module) specified from the cli
+      *)
   ctx_modules : module_tree;
 }
 

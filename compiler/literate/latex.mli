@@ -29,7 +29,8 @@ val wrap_latex :
   unit
 (** Usage: [wrap_latex source_files language fmt wrapped]
 
-    Prints an LaTeX complete documùent structure around the [wrapped] content. *)
+    Prints an LaTeX complete documùent structure around the [wrapped] content.
+*)
 
 (** {1 API} *)
 

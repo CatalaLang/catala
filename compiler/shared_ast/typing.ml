@@ -466,8 +466,7 @@ let error_expr () : (< .. >, typ custom) boxed_gexpr =
   Expr.ebad (Custom { custom = TError, Pos.void; pos = Pos.void })
 
 (** Infers the most permissive type from an expression *)
-let rec typecheck_expr_bottom_up :
-    type a m.
+let rec typecheck_expr_bottom_up : type a m.
     decl_ctx ->
     (a, m) gexpr Env.t ->
     (a, m) gexpr ->
@@ -476,8 +475,7 @@ let rec typecheck_expr_bottom_up :
   typecheck_expr_top_down ctx env (Type.fresh_var (Expr.pos e)) e
 
 (** Checks whether the expression can be typed with the provided type *)
-and typecheck_expr_top_down :
-    type a m.
+and typecheck_expr_top_down : type a m.
     decl_ctx ->
     (a, m) gexpr Env.t ->
     typ ->

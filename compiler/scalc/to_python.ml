@@ -280,9 +280,10 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       "@[<hov 4>SourcePosition(@,\
        filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
        end_column=%d,@ law_headings=%a@;\
-       <0 -4>)@]" (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
+       <0 -4>)@]"
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
   | EAppOp
       {
         op = ((HandleExceptions | Map | Filter), _) as op;
@@ -491,8 +492,8 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
       \        return not (self == other)@,\
        @,\
       \    def __str__(self) -> str:@,\
-      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" StructName.format
-      struct_name
+      \        @[<hov 4>return \"%a(%a)\".format(%a)@]"
+      StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt (struct_field, struct_field_type) ->

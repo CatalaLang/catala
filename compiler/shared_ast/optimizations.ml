@@ -153,8 +153,7 @@ let simplified_match enum_name match_arg cases mark =
     (* Optimisation was aborted due a non-terminal or code duplication *)
     EMatch { e = match_arg; cases; name = enum_name }
 
-let rec optimize_expr :
-    type a b.
+let rec optimize_expr : type a b.
     (a, b, 'm) optimizations_ctx ->
     (a dcalc_lcalc, 'm) gexpr ->
     (a dcalc_lcalc, 'm) boxed_gexpr =
@@ -347,9 +346,8 @@ let rec optimize_expr :
   Expr.Box.app1 e reduce mark
 
 let optimize_expr :
-      'm.
-      decl_ctx -> ('a dcalc_lcalc, 'm) gexpr -> ('a dcalc_lcalc, 'm) boxed_gexpr
-    =
+    'm.
+    decl_ctx -> ('a dcalc_lcalc, 'm) gexpr -> ('a dcalc_lcalc, 'm) boxed_gexpr =
  fun (decl_ctx : decl_ctx) (e : ('a dcalc_lcalc, 'm) gexpr) ->
   optimize_expr { decl_ctx } e
 
@@ -392,12 +390,12 @@ let test_iota_reduction_1 () =
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   EnumConstructor.Map.of_list
   @@ ListLabels.map l ~f:(fun (cons, f) ->
-         let var = Var.make "x" in
-         ( cons,
-           Expr.eabs_ghost
-             (Expr.bind [| var |] (f var))
-             [Type.any Pos.void]
-             (Untyped { pos = Pos.void }) ))
+      let var = Var.make "x" in
+      ( cons,
+        Expr.eabs_ghost
+          (Expr.bind [| var |] (f var))
+          [Type.any Pos.void]
+          (Untyped { pos = Pos.void }) ))
 
 let test_iota_reduction_2 () =
   let enumT = EnumName.fresh [] ("t", Pos.void) in

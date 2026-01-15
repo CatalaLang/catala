@@ -28,4 +28,5 @@ val translate_program :
   Ast.program
 (** Translation from surface to desugared.
 
-    [allow_external] defaults to false unless the [gen_external] option is set. *)
+    [allow_external] defaults to false unless the [gen_external] option is set.
+*)

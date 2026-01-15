@@ -105,9 +105,8 @@ let print_log ppf lang level entry =
       "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
-let rec value_to_runtime_embedded :
-    type d. ((d, _) interpr_kind, 'm) naked_gexpr -> Runtime.runtime_value =
-  function
+let rec value_to_runtime_embedded : type d.
+    ((d, _) interpr_kind, 'm) naked_gexpr -> Runtime.runtime_value = function
   | ELit LUnit -> Runtime.Unit
   | ELit (LBool b) -> Runtime.Bool b
   | ELit (LMoney m) -> Runtime.Money m
@@ -485,8 +484,7 @@ let rec evaluate_operator
 
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
-let rec runtime_to_val :
-    type d.
+let rec runtime_to_val : type d.
     decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, yes) interpr_kind, 'm) gexpr =
  fun ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
@@ -554,7 +552,10 @@ let rec runtime_to_val :
       with
       | _ -> assert false
       | exception Found (cons, ty) ->
-        let payload = Obj.field o 0 (* Arity is always 1 in the runtime *) in
+        let payload =
+          Obj.field o 0
+          (* Arity is always 1 in the runtime *)
+        in
         let e = runtime_to_val ctx m ty payload in
         EInj { name; cons; e }, m)
   | TOption ty ->
@@ -598,8 +599,7 @@ let rec runtime_to_val :
   | TAbstract _ -> ECustom { obj = o; targs = []; tret = ty }, m
   | TError -> assert false
 
-and val_to_runtime :
-    type d.
+and val_to_runtime : type d.
     (decl_ctx ->
     ((d, _) interpr_kind, 'm) gexpr ->
     ((d, _) interpr_kind, 'm) gexpr) ->
@@ -644,8 +644,10 @@ and val_to_runtime :
     let cons_map = EnumName.Map.find name ctx.ctx_enums in
     match EnumConstructor.Map.find cons cons_map with
     | TLit TUnit, _ -> (
-      let exception (* Constant constructor case *)
-        Found of int in
+      let exception
+        (* Constant constructor case *)
+        Found of int
+      in
       match
         EnumConstructor.Map.fold
           (fun c ty n ->
@@ -656,8 +658,10 @@ and val_to_runtime :
       | _ -> assert false
       | exception Found constant_tag -> Obj.repr constant_tag)
     | ty -> (
-      let exception (* Non-constant constructor *)
-        Found of int in
+      let exception
+        (* Non-constant constructor *)
+        Found of int
+      in
       match
         EnumConstructor.Map.fold
           (fun c ty n ->
@@ -723,8 +727,7 @@ and val_to_runtime :
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
-let rec evaluate_expr :
-    type d.
+let rec evaluate_expr : type d.
     ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
@@ -739,15 +742,15 @@ let rec evaluate_expr :
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   (match debug_print with
-  | None -> fun r -> r
-  | Some label_opt ->
-    fun r ->
-      Message.debug "%a%a @{<grey>(at %s)@}"
-        (fun ppf -> function
-          | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
-          | None -> ())
-        label_opt (Print.expr ()) r (Pos.to_string_short pos);
-      r)
+    | None -> fun r -> r
+    | Some label_opt ->
+      fun r ->
+        Message.debug "%a%a @{<grey>(at %s)@}"
+          (fun ppf -> function
+            | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
+            | None -> ())
+          label_opt (Print.expr ()) r (Pos.to_string_short pos);
+        r)
   @@
   match Mark.remove e with
   | EVar _ ->
@@ -837,7 +840,9 @@ let rec evaluate_expr :
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
-      match Expr.maybe_ty m with TStruct name, _ -> name | _ -> name
+      match Expr.maybe_ty m with
+      | TStruct name, _ -> name
+      | _ -> name
     in
     Mark.add m
       (EStruct
@@ -887,7 +892,9 @@ let rec evaluate_expr :
     let name =
       (* Ensures the returned module path is consistent between separate and
          whole-program interpretation *)
-      match Expr.maybe_ty m with TEnum name, _ -> name | _ -> name
+      match Expr.maybe_ty m with
+      | TEnum name, _ -> name
+      | _ -> name
     in
     Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
@@ -998,8 +1005,7 @@ let rec evaluate_expr :
        filtered."
   | _ -> .
 
-and partially_evaluate_expr_for_assertion_failure_message :
-    type d.
+and partially_evaluate_expr_for_assertion_failure_message : type d.
     ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
@@ -1042,8 +1048,7 @@ and partially_evaluate_expr_for_assertion_failure_message :
      the error message merely displays [false]... *)
   | _ -> evaluate_expr ?on_expr ctx lang e
 
-let evaluate_expr_trace :
-    type d.
+let evaluate_expr_trace : type d.
     ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
@@ -1082,8 +1087,7 @@ let evaluate_expr_trace :
             (fun () -> output_trace ppf)
             ~finally:(fun () -> Format.pp_print_flush ppf ()))
 
-let evaluate_expr_safe :
-    type d.
+let evaluate_expr_safe : type d.
     ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
@@ -1102,8 +1106,7 @@ let evaluate_expr_safe :
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
-  let rec f :
-      type c d.
+  let rec f : type c d.
       ((d, c) interpr_kind, 't) gexpr -> ((d, yes) interpr_kind, 't) gexpr boxed
       = function
     | (ECustom _, _) as e -> Expr.map ~f e
@@ -1133,8 +1136,7 @@ let addcustom e =
   else id e
 
 let delcustom e =
-  let rec f :
-      type c d.
+  let rec f : type c d.
       ((d, c) interpr_kind, 't) gexpr -> ((d, no) interpr_kind, 't) gexpr boxed
       = function
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"

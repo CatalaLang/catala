@@ -38,7 +38,8 @@ type scope_context = {
   scope_in_struct : StructName.t;
   scope_out_struct : StructName.t;
   sub_scopes : ScopeName.Set.t;
-      (** Other scopes referred to by this scope. Used for dependency analysis *)
+      (** Other scopes referred to by this scope. Used for dependency analysis
+      *)
   scope_visibility : visibility;
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)

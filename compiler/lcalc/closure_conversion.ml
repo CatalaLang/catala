@@ -58,8 +58,7 @@ let join_vars : ('a, 'x) Var.Map.t -> ('a, 'x) Var.Map.t -> ('a, 'x) Var.Map.t =
 
 (** {1 Transforming closures}*)
 
-let build_closure :
-    type m.
+let build_closure : type m.
     m ctx ->
     (m expr Var.t * m mark) list ->
     m expr boxed ->
@@ -135,8 +134,8 @@ let build_closure :
     inside this new expression. Implementation guided by
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=10
     (environment-passing closure conversion). *)
-let rec transform_closures_expr :
-    type m. m ctx -> m expr -> (m expr, m mark) Var.Map.t * m expr boxed =
+let rec transform_closures_expr : type m.
+    m ctx -> m expr -> (m expr, m mark) Var.Map.t * m expr boxed =
  fun ctx e ->
   let e = translate_mark e in
   let m = Mark.get e in
@@ -489,8 +488,7 @@ type 'm hoisted_closure = {
   closure : (lcalc, 'm) boxed_gexpr (* Starts with [EAbs]. *);
 }
 
-let rec hoist_closures_expr :
-    type m.
+let rec hoist_closures_expr : type m.
     flags -> name_context -> m expr -> m hoisted_closure list * m expr boxed =
  fun flags name_context e ->
   let m = Mark.get e in

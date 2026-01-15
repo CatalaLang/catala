@@ -196,7 +196,8 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       "@,\
        @[<v 2>typedef struct %s {@ enum %s__code code;@ @[<v 2>union {@ %a@]@,\
        } payload;@]@,\
-       } %s;" (EnumName.base enum_name) (EnumName.base enum_name)
+       } %s;"
+      (EnumName.base enum_name) (EnumName.base enum_name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
@@ -211,8 +212,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
   let scope_structs =
     List.fold_left
       (fun acc -> function
-        | TypeIdent.Struct s -> StructName.Map.remove s acc
-        | _ -> acc)
+        | TypeIdent.Struct s -> StructName.Map.remove s acc | _ -> acc)
       ctx.ctx_structs type_ordering
     |> StructName.Map.keys
     |> List.map (fun s -> TypeIdent.Struct s)
@@ -815,7 +815,8 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
            "@,\
             printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
             successfully.\\n\");@;\
-            <1 -2>}@]" ScopeName.format name)
+            <1 -2>}@]"
+           ScopeName.format name)
        tests);
   Format.fprintf fmt "@,return (void*)1;@;<1 -2>}@]@,";
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";

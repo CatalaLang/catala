@@ -1202,8 +1202,7 @@ let rec graph_cleanup options g base_vars =
   in
   g
 
-let expr_to_dot_label0 :
-    type a.
+let expr_to_dot_label0 : type a.
     Global.backend_lang ->
     decl_ctx ->
     Env.t ->
@@ -1412,9 +1411,9 @@ let rec expr_to_dot_label (style : Style.theme) lang ctx env ppf e =
         "<table border=\"0\" cellborder=\"1\" \
          cellspacing=\"0\"><tr>%a</tr></table>"
         (Format.pp_print_list (fun ppf -> function
-           | ((EVar _ | ELit _), _) as e ->
-             Format.fprintf ppf "<td>%a</td>" print_expr e
-           | _ -> Format.pp_print_string ppf "<td>…</td>"))
+          | ((EVar _ | ELit _), _) as e ->
+            Format.fprintf ppf "<td>%a</td>" print_expr e
+          | _ -> Format.pp_print_string ppf "<td>…</td>"))
         elts
     in
     Format.pp_print_string ppf (Message.unformat pr)
@@ -1759,7 +1758,7 @@ let inline_used_modules global_options =
   let used_modules =
     prg.Surface.Ast.program_used_modules
     |> List.map (fun { Surface.Ast.mod_use_name; mod_use_alias; _ } ->
-           Mark.remove mod_use_name, Mark.remove mod_use_alias)
+        Mark.remove mod_use_name, Mark.remove mod_use_alias)
   in
   if used_modules = [] then ()
   else
@@ -1774,10 +1773,10 @@ let inline_used_modules global_options =
       Sys.readdir dir
       |> Array.map (Filename.concat dir)
       |> Array.find_map (fun path ->
-             let file = Filename.basename path in
-             if file = en_candidate then Some path
-             else if file = fr_candidate then Some path
-             else None)
+          let file = Filename.basename path in
+          if file = en_candidate then Some path
+          else if file = fr_candidate then Some path
+          else None)
     in
     let raw_prg, file =
       match global_options.input_src with

@@ -108,9 +108,9 @@ let event_manager : event_manager Js.t =
       R_ocaml.retrieve_log ()
       |> R_ocaml.EventParser.parse_raw_events
       |> List.map (fun event ->
-             object%js
-               val mutable data = event |> R_ocaml.Json.event |> Js.string
-             end)
+          object%js
+            val mutable data = event |> R_ocaml.Json.event |> Js.string
+          end)
       |> Array.of_list
       |> Js.array
 
@@ -121,17 +121,18 @@ let event_manager : event_manager Js.t =
         object%js
           val mutable eventType =
             (match evt with
-            | R_ocaml.BeginCall _ -> "Begin call"
-            | EndCall _ -> "End call"
-            | VariableDefinition _ -> "Variable definition"
-            | DecisionTaken _ -> "Decision taken")
+              | R_ocaml.BeginCall _ -> "Begin call"
+              | EndCall _ -> "End call"
+              | VariableDefinition _ -> "Variable definition"
+              | DecisionTaken _ -> "Decision taken")
             |> Js.string
 
           val mutable information =
             (match evt with
-            | BeginCall info | EndCall info | VariableDefinition (info, _, _) ->
-              List.map Js.string info
-            | DecisionTaken _ -> [])
+              | BeginCall info | EndCall info | VariableDefinition (info, _, _)
+                ->
+                List.map Js.string info
+              | DecisionTaken _ -> [])
             |> Array.of_list
             |> Js.array
 
@@ -144,9 +145,9 @@ let event_manager : event_manager Js.t =
 
           val mutable loggedValueJson =
             (match evt with
-            | VariableDefinition (_, _, v) -> v
-            | EndCall _ | BeginCall _ | DecisionTaken _ ->
-              R_ocaml.unembeddable ())
+              | VariableDefinition (_, _, v) -> v
+              | EndCall _ | BeginCall _ | DecisionTaken _ ->
+                R_ocaml.unembeddable ())
             |> R_ocaml.Json.runtime_value
             |> Js.string
 

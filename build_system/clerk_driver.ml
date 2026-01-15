@@ -490,7 +490,7 @@ let build_clerk_target
             all_modules_deps)
         enabled_backends
       |> List.sort_uniq (fun ((_, _, _), l) ((_, _, _), r) ->
-             String.compare l r)
+          String.compare l r)
     in
     let all_targets =
       List.fold_left
@@ -533,31 +533,30 @@ let build_clerk_target
     install_targets;
   target.Config.backends
   |> List.iter (fun bk ->
-         let bk = Clerk_rules.backend_from_config bk in
-         let dir = prefix_dir / backend_subdir bk in
-         let extensions =
-           if target.include_objects then List.assoc bk backend_extensions
-           else List.assoc bk backend_src_extensions
-         in
-         match bk with
-         | Clerk_rules.Java ->
-           List.iter
-             (fun subdir ->
-               copy_dir ()
-                 ~filter:(fun f ->
-                   Filename.check_suffix f ".java"
-                   || target.include_objects
-                      && Filename.check_suffix f ".class")
-                 ~src:(local_runtime_dir bk / subdir)
-                 ~dst:(dir / subdir))
-             ["catala"; "org"]
-         | Clerk_rules.Tests -> assert false
-         | bk ->
-           List.iter
-             (fun ext ->
-               let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
-               if File.exists src then copy_in ~dir ~src)
-             extensions);
+      let bk = Clerk_rules.backend_from_config bk in
+      let dir = prefix_dir / backend_subdir bk in
+      let extensions =
+        if target.include_objects then List.assoc bk backend_extensions
+        else List.assoc bk backend_src_extensions
+      in
+      match bk with
+      | Clerk_rules.Java ->
+        List.iter
+          (fun subdir ->
+            copy_dir ()
+              ~filter:(fun f ->
+                Filename.check_suffix f ".java"
+                || (target.include_objects && Filename.check_suffix f ".class"))
+              ~src:(local_runtime_dir bk / subdir)
+              ~dst:(dir / subdir))
+          ["catala"; "org"]
+      | Clerk_rules.Tests -> assert false
+      | bk ->
+        List.iter
+          (fun ext ->
+            let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
+            if File.exists src then copy_in ~dir ~src)
+          extensions);
   if target.Config.include_sources then
     all_modules_deps
     |> List.map (fun it -> it.Scan.file_name)
@@ -679,14 +678,14 @@ let build_direct_targets
                           | false, _ ->
                             Some
                               (`Found
-                                File.(
-                                  build_dir / dirname t / "ocaml" / basename t))
+                                 File.(
+                                   build_dir / dirname t / "ocaml" / basename t))
                         else None
                       | _ -> None)
                     items
                   |> List.partition_map (function
-                       | `Found x -> Either.Left x
-                       | `Not_included x -> Right x)
+                    | `Found x -> Either.Left x
+                    | `Not_included x -> Right x)
                 in
                 let found_l =
                   let in_same_dir_l = List.find_all in_same_dir found_l in
@@ -699,7 +698,8 @@ let build_direct_targets
                 | _ :: _ :: _, _ ->
                   Message.error
                     "Found multiple files that satisfy the module %s: %a. @\n\
-                     Fix the include_dirs or change the module names." t
+                     Fix the include_dirs or change the module names."
+                    t
                     Format.(
                       pp_print_list
                         ~pp_sep:(fun fmt () -> fprintf fmt ", ")
@@ -922,7 +922,10 @@ let run_artifact config ~backend ~var_bindings ?scope src =
 let enable_backend =
   let open Clerk_rules in
   function
-  | `Interpret | `OCaml -> OCaml | `C -> C | `Python -> Python | `Java -> Java
+  | `Interpret | `OCaml -> OCaml
+  | `C -> C
+  | `Python -> Python
+  | `Java -> Java
 
 let build_test_deps
     ~config

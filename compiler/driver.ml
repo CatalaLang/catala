@@ -237,8 +237,7 @@ module Passes = struct
     Message.report_delayed_errors_if_any ();
     prg
 
-  let dcalc :
-      type ty.
+  let dcalc : type ty.
       Global.options ->
       includes:Global.raw_file list ->
       stdlib:Global.raw_file option ->

@@ -25,7 +25,8 @@ module To_json = struct
   let to_camel_case (s : string) : string =
     String.split_on_char '_' s
     |> (function
-         | hd :: tl -> hd :: List.map String.capitalize_ascii tl | l -> l)
+    | hd :: tl -> hd :: List.map String.capitalize_ascii tl
+    | l -> l)
     |> String.concat ""
 
   let format_struct_field_name_camel_case

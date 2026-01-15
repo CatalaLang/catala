@@ -30,7 +30,8 @@ module ScopeSet : sig
       their's ids *)
 end
 
-(** A position can either be [Unreached] or [Reached_by] a set of test scopes. *)
+(** A position can either be [Unreached] or [Reached_by] a set of test scopes.
+*)
 type cover = Unreached | Reached_by of { scopes : ScopeSet.t }
 
 val format_cover : Format.formatter -> cover -> unit

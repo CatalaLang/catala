@@ -15,7 +15,8 @@
    the License. *)
 
 (** Replicating the interface, with no actual implementation for compiling
-    without the expected backend. All functions print an error message and exit *)
+    without the expected backend. All functions print an error message and exit
+*)
 
 let dummy () =
   Catala_utils.Message.error
