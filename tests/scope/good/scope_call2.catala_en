@@ -62,5 +62,4 @@ $ catala test-scope Titi
 ```catala-test-cli
 $ catala dependency-graph --disable-warnings
 {"intra_scopes":{"Toto":{"nodes":{"9":"foo","8":"bar"},"edges":[{"from":8,"to":9}]},"Titi":{"nodes":{"12":"toto","11":"fuzz","10":"fizz"},"edges":[]}},"inter_scopes":{"nodes":{"3":"Titi","2":"Toto"},"edges":[{"from":2,"to":3},{"from":2,"to":3},{"from":2,"to":3}]},"types":{"nodes":{"10":"Titi","8":"Toto","6":"Period_en.Period","5":"MonthYear_en.MonthYear","4":"Date_en.Day_of_the_of_given_date","980147805":"Date_en.Days","809014657":"MonthYear_en.Date_en.Month","9647113":"Optional"},"edges":[{"from":8,"to":10},{"from":8,"to":10},{"from":980147805,"to":4},{"from":809014657,"to":5}]}}
-
 ```
