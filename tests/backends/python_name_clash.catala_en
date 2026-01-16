@@ -106,7 +106,7 @@ def some_name(some_name_in:SomeNameIn):
         o = (o__1.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=[]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     return SomeName(o = o)
 
 def b(b_in:BIn):
@@ -116,7 +116,7 @@ def b(b_in:BIn):
         result__1 = (result__2.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=14, end_line=17, end_column=25, law_headings=[]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
     if True:

@@ -458,13 +458,28 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EAssert e' ->
     Format.fprintf fmt
       "@[<hov 2>if not@ %a@;\
-       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a]))@]@]"
+       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a],@ %t))@]@]"
       format_with_parens e'
       Runtime.(error_to_string AssertionFailed)
       format_pos (Expr.pos e')
+      (fun ppf ->
+        match
+          Pos.get_attr (Expr.pos e) (function
+            | ErrorMessage m -> Some m
+            | _ -> None)
+        with
+        | None -> Format.pp_print_string ppf "None"
+        | Some m -> Format.fprintf ppf "Some %S" m)
   | EFatalError er ->
-    Format.fprintf fmt "raise@ (Error (%a, [%a]))" Print.runtime_error er
-      format_pos (Expr.pos e)
+    Format.fprintf fmt "raise@ (Error (%a, [%a], %t))" Print.runtime_error er
+      format_pos (Expr.pos e) (fun ppf ->
+        match
+          Pos.get_attr (Expr.pos e) (function
+            | ErrorMessage m -> Some m
+            | _ -> None)
+        with
+        | None -> Format.pp_print_string ppf "None"
+        | Some m -> Format.fprintf ppf "Some %S" m)
   | EPos p -> format_pos fmt p
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text

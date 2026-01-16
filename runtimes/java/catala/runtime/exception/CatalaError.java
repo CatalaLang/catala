@@ -50,12 +50,16 @@ public class CatalaError extends RuntimeException {
         }
     }
 
+    public CatalaError(Error err, CatalaPosition pos, String note) {
+        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString() + ". " + note);
+    }
+
     public CatalaError(Error err, CatalaPosition pos) {
-        super("[ERROR] At " + pos.toString() + ": " + err.toString());
+        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString());
     }
 
     public CatalaError(Error err, List<CatalaPosition> lpos) {
-        super("[ERROR] At " + lpos.stream()
+        super("\n\033[1;31m[ERROR]\033[m At " + lpos.stream()
                 .map(CatalaPosition::toString)
                 .collect(Collectors.joining(", ")) + ": " + err.toString());
     }

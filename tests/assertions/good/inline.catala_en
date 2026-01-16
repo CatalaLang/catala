@@ -1,0 +1,21 @@
+```catala
+#[test]
+declaration scope A:
+  output w content integer
+
+scope A:
+  definition w equals
+    let a equals 1 + 2 in
+    assertion a = 3 in
+    let b equals a + 3 in
+    assertion b = 6 in
+    assertion not (b > 6) in
+    b
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ w = 6
+└─
+```

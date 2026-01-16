@@ -86,11 +86,7 @@ val eapp :
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
-val eassert :
-  ('a, 'm) boxed_gexpr ->
-  'm mark ->
-  ((< assertions : yes ; .. > as 'a), 'm) boxed_gexpr
-
+val eassert : ('a, 'm) boxed_gexpr -> 'm mark -> ('a any, 'm) boxed_gexpr
 val efatalerror : Catala_runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
 val epos : Pos.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 

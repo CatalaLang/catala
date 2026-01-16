@@ -384,7 +384,7 @@ def s2(s2_in:S2In):
         a = (a__1.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=50, start_column=10, end_line=50, end_column=11, law_headings=["Test toplevel function defs"]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     return S2(a = a)
 
 def s3(s3_in:S3In):
@@ -394,7 +394,7 @@ def s3(s3_in:S3In):
         a = (a__1.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=71, start_column=10, end_line=71, end_column=11, law_headings=["Test function def with two args"]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     return S3(a = a)
 
 def s4(s4_in:S4In):
@@ -404,7 +404,7 @@ def s4(s4_in:S4In):
         a = (a__1.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=95, start_column=10, end_line=95, end_column=11, law_headings=["Test inline defs in toplevel defs"]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     return S4(a = a)
 
 def s(s_in:SIn):
@@ -414,14 +414,14 @@ def s(s_in:SIn):
         a = (a__1.value[0])
     else:
         pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos__1)
+        raise NoValue(pos__1, None)
     pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=19, start_column=24, end_line=19, end_column=29, law_headings=["Test basic toplevel values defs"]))
     b__1 = (Option((glob2, pos__1)))
     if b__1.value is not None:
         b = (b__1.value[0])
     else:
         pos__2 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=8, start_column=10, end_line=8, end_column=11, law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos__2)
+        raise NoValue(pos__2, None)
     return S(a = a, b = b)
 
 # Automatic Catala tests

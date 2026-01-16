@@ -45,7 +45,7 @@ type 'm rule =
       typ : typ; (* non-thunked at this point for reentrant vars *)
       e : 'm expr;
     }
-  | Assertion of 'm expr
+  | Assertion of { e : 'm expr; pos : Pos.t }
 
 type scope_var_ty = {
   svar_in_ty : typ;

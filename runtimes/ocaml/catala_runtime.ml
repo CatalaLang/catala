@@ -90,10 +90,10 @@ let error_message = function
   | IndivisibleDurations -> "dividing durations that are not in days"
   | Impossible -> "\"impossible\" computation reached"
 
-exception Error of error * code_location list
+exception Error of error * code_location list * string option
 exception Empty
 
-let error err pos = raise (Error (err, pos))
+let error ?note err pos = raise (Error (err, pos, note))
 
 (* Register (fallback) exception printers *)
 let () =
@@ -104,14 +104,16 @@ let () =
   let pposl () pl = String.concat ", " (List.map (ppos ()) pl) in
   Printexc.register_printer
   @@ function
-  | Error (err, pos) ->
-    Some (Printf.sprintf "At %a: %s" pposl pos (error_message err))
+  | Error (err, pos, note) ->
+    Some
+      (Printf.sprintf "At %a: %s%s" pposl pos (error_message err)
+         (Option.fold ~none:"" ~some:(( ^ ) ". ") note))
   | _ -> None
 
 let () =
   Printexc.set_uncaught_exception_handler
   @@ fun exc bt ->
-  Printf.eprintf "[ERROR] %s\n%!" (Printexc.to_string exc);
+  Printf.eprintf "\x1b[1;31m[ERROR]\x1b[m %s\n%!" (Printexc.to_string exc);
   if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt
 (* TODO: the backtrace will point to the OCaml code; but we could make it point
    to the Catala code if we add #line directives everywhere in the generated

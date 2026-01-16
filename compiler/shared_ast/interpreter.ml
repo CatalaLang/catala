@@ -291,7 +291,7 @@ let rec evaluate_operator
            (fun e1 e2 -> eval_application evaluate_expr f [e1; e2])
            es1 es2)
     with Invalid_argument _ ->
-      raise Runtime.(Error (NotSameLength, [Expr.pos_to_runtime opos])))
+      raise Runtime.(Error (NotSameLength, [Expr.pos_to_runtime opos], None)))
   | Reduce, [_; default; (EArray [], _)] ->
     Mark.remove
       (eval_application evaluate_expr default
@@ -941,26 +941,34 @@ let rec evaluate_expr : type d.
     match Mark.remove e with
     | ELit (LBool true) -> Mark.add m (ELit LUnit)
     | ELit (LBool false) ->
+      let msg ppf =
+        match
+          Pos.get_attr (Expr.mark_pos m) (function
+            | ErrorMessage m -> Some m
+            | _ -> None)
+        with
+        | Some note ->
+          Format.fprintf ppf "@[<hv 4>Assertion failed:@ @[<hov>%a@].@]"
+            Format.pp_print_text note
+        | None -> Format.fprintf ppf "Assertion failed."
+      in
       let partially_evaluated_assertion_failure_expr =
         partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx lang
           (Expr.skip_wrappers e')
       in
       (match Mark.remove partially_evaluated_assertion_failure_expr with
       | ELit (LBool false) ->
-        if Global.options.no_fail_on_assert then
-          Message.warning ~pos "Assertion failed"
-        else
-          Message.delayed_error ~kind:AssertFailure () ~pos
-            "During evaluation: %s."
-            (Runtime.error_message Runtime.AssertionFailed)
+        if Global.options.no_fail_on_assert then Message.warning ~pos "%t" msg
+        else Message.delayed_error ~kind:AssertFailure () ~pos "%t" msg
       | _ ->
         if Global.options.no_fail_on_assert then
-          Message.warning ~pos "Assertion failed:@ %a"
+          Message.warning ~pos
+            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
             (Print.UserFacing.expr lang)
             partially_evaluated_assertion_failure_expr
         else
           Message.delayed_error ~kind:AssertFailure () ~pos
-            "Assertion failed: %a."
+            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
             (Print.UserFacing.expr lang)
             partially_evaluated_assertion_failure_expr);
       Mark.add m (ELit LUnit)
@@ -968,12 +976,19 @@ let rec evaluate_expr : type d.
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
-  | EFatalError err -> raise (Runtime.Error (err, [Expr.pos_to_runtime pos]))
+  | EFatalError err ->
+    let note =
+      Pos.get_attr (Expr.mark_pos m) (function
+        | ErrorMessage m -> Some m
+        | _ -> None)
+    in
+    raise (Runtime.Error (err, [Expr.pos_to_runtime pos], note))
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
-    | EEmpty, _ -> raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
+    | EEmpty, _ ->
+      raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos], None))
     | exception Runtime.Empty ->
-      raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos]))
+      raise Runtime.(Error (NoValue, [Expr.pos_to_runtime pos], None))
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -997,7 +1012,7 @@ let rec evaluate_expr : type d.
             else Some Expr.(pos_to_runtime (pos ex)))
           excepts
       in
-      raise Runtime.(Error (Conflict, poslist)))
+      raise Runtime.(Error (Conflict, poslist, None)))
   | EPureDefault e -> evaluate_expr ctx lang e
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos e) "%a" Format.pp_print_text
@@ -1044,8 +1059,18 @@ and partially_evaluate_expr_for_assertion_failure_message : type d.
             ];
         },
       Mark.get e )
-  (* TODO: improve this heuristic, because if the assertion is not [e1 <op> e2],
-     the error message merely displays [false]... *)
+  | EAppOp { args = [e1]; tys; op = (Not, _) as op } ->
+    ( EAppOp
+        {
+          op;
+          tys;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
+                lang e1;
+            ];
+        },
+      Mark.get e )
   | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace : type d.
@@ -1098,11 +1123,15 @@ let evaluate_expr_safe : type d.
     let r = evaluate_expr_trace ?on_expr ctx lang e in
     Message.report_delayed_errors_if_any ();
     r
-  with Runtime.Error (err, rpos) ->
+  with Runtime.Error (err, rpos, note) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
-      "During evaluation: %a." Format.pp_print_text
+      "@[<v>@[<hov>During evaluation:@ %a.@]%t@]" Format.pp_print_text
       (Runtime.error_message err)
+      (fun ppf ->
+        match note with
+        | None -> ()
+        | Some n -> Format.fprintf ppf "@,@[<hov>%a@]" Format.pp_print_text n)
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =

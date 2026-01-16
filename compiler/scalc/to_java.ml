@@ -513,9 +513,16 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
     fprintf ppf "@[<hov 4>%a %a =@ %a;@]" (format_typ ctx) typ VarName.format
       (Mark.remove name) (format_expression ctx) expr
   | SFatalError { pos_expr; error } ->
-    fprintf ppf "throw new CatalaError(CatalaError.Error.%s, %a);"
+    fprintf ppf "throw new CatalaError(CatalaError.Error.%s, %a%s);"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
+      (match
+         Pos.get_attr (Mark.get stmt) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> ""
+      | Some m -> ", " ^ String.quote m)
   | SIfThenElse { if_expr; then_block; else_block } ->
     format_if ppf
       ~cond_format:(fun ppf ->
@@ -596,11 +603,18 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       (List.combine enum_cstrs switch_cases)
       pp_default_initializer
   | SAssert { expr; pos_expr } ->
-    fprintf ppf "@[<hov 4>CatalaAssertion.check(%a, %a);@]"
+    fprintf ppf "@[<hov 4>CatalaAssertion.check(%a, %a%s);@]"
       (format_expression_with_paren ctx)
       pos_expr
       (format_expression_with_paren ctx)
       expr
+      (match
+         Pos.get_attr (Mark.get stmt) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> ""
+      | Some m -> ", " ^ String.quote m)
   | SSpecialOp _ -> .
 
 and format_inner_func_def ctx ppf (name, func) =

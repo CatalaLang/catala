@@ -229,7 +229,7 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
     | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/conflicts.catala_en";
                            start_line=19; start_column=10;
-                           end_line=19; end_column=16; law_headings=[]}])))
+                           end_line=19; end_column=16; law_headings=[]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   {Assert.assert__1 = assert__2}
 

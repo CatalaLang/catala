@@ -13,21 +13,23 @@ scope A:
 $ catala test-scope A --no-fail-on-assert
 ┌─[WARNING]─
 │
-│  Assertion failed: 6 > 6
+│  Assertion failed.
+│  The condition resolved to: 6 > 6
 │
-├─➤ tests/assertions/good/ignored.catala_en:9.13-9.18:
+├─➤ tests/assertions/good/ignored.catala_en:9.3-9.18:
 │   │
 │ 9 │   assertion w > 6
-│   │             ‾‾‾‾‾
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 ┌─[WARNING]─
 │
-│  Assertion failed: 6 < 6
+│  Assertion failed.
+│  The condition resolved to: 6 < 6
 │
-├─➤ tests/assertions/good/ignored.catala_en:7.13-7.18:
+├─➤ tests/assertions/good/ignored.catala_en:7.3-7.18:
 │   │
 │ 7 │   assertion w < 6
-│   │             ‾‾‾‾‾
+│   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 ┌─[RESULT]─ A ─
 │ w = 6

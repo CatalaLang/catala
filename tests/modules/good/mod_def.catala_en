@@ -141,7 +141,7 @@ let s : S_in.t -> S.t = fun _ ->
         (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                            start_line=16; start_column=10;
                            end_line=16; end_column=12;
-                           law_headings=["Test modules + inclusions 1"]}])))
+                           law_headings=["Test modules + inclusions 1"]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   let e1: Enum1.t =
     match
@@ -155,7 +155,7 @@ let s : S_in.t -> S.t = fun _ ->
         (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
                            start_line=17; start_column=10;
                            end_line=17; end_column=12;
-                           law_headings=["Test modules + inclusions 1"]}])))
+                           law_headings=["Test modules + inclusions 1"]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   {S.sr = sr; S.e1 = e1}
 

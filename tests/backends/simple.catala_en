@@ -117,7 +117,7 @@ const Baz* baz (const Baz_in* baz_in)
     } else {
       static const catala_code_position pos__1[1] =
         {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-      catala_error(catala_no_value, pos__1, 1);
+      catala_error(catala_no_value, pos__1, 1, NULL);
       abort();
     }
     a__3[0].content = a__4;
@@ -130,7 +130,7 @@ const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-    catala_error(catala_no_value, pos, 1);
+    catala_error(catala_no_value, pos, 1, NULL);
     abort();
   }
   switch (a__1->code) {
@@ -194,7 +194,7 @@ const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 13, 10, 13, 11}};
-    catala_error(catala_no_value, pos, 1);
+    catala_error(catala_no_value, pos, 1, NULL);
     abort();
   }
   c__3->size = 2;
@@ -211,7 +211,7 @@ const Baz* baz (const Baz_in* baz_in)
   } else {
     static const catala_code_position pos__1[1] =
       {{"tests/backends/simple.catala_en", 14, 10, 14, 11}};
-    catala_error(catala_no_value, pos__1, 1);
+    catala_error(catala_no_value, pos__1, 1, NULL);
     abort();
   }
   baz__1->b = b;

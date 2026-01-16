@@ -10,4 +10,10 @@ public class CatalaAssertion {
             throw new CatalaError(CatalaError.Error.AssertionFailed, pos);
         }
     }
+
+    public static void check(CatalaPosition pos, CatalaBool b, String note) {
+        if (!b.asBoolean()) {
+            throw new CatalaError(CatalaError.Error.AssertionFailed, pos, note);
+        }
+    }
 }

@@ -129,7 +129,10 @@ déclaration x contenu entier égal à
     -- Cas1 contenu x : 0
     -- n'importe quel : 0
   dans
-  soit x égal à impossible dans
+  soit x égal à #[error.message = "err"] impossible dans
+  soit x égal à
+    si 0 alors 0 sinon 0
+  dans
   soit x égal à #[debug.print = "message"] 0 dans
   soit x égal à
     expr sous forme Cas1
@@ -158,10 +161,10 @@ déclaration x contenu entier égal à
       avec { -- chp1: 9 -- chp2: 15% }
   dans
   soit x égal à
-    si 0 alors 0 sinon 0
+    var1 état avant
   dans
   soit x égal à
-    var1 état avant
+    assertion x > 0 dans 0
   dans
   0
 ```
@@ -279,18 +282,18 @@ $ catala typecheck
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:172.21-172.25:
+├─➤ doc/syntax/syntax_fr.catala_fr:175.21-175.25:
 │     │
-│ 172 │ champ d'application Chp1:
+│ 175 │ champ d'application Chp1:
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 ┌─[ERROR]─ 3/3 ─
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:175.21-175.25:
+├─➤ doc/syntax/syntax_fr.catala_fr:178.21-178.25:
 │     │
-│ 175 │ champ d'application Chp1
+│ 178 │ champ d'application Chp1
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 #return code 123#
