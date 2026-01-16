@@ -1,16 +1,15 @@
-source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT LIDENT YEAR
+source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT UIDENT YEAR
 ##
-## Ends in an error in state: 806.
+## Ends in an error in state: 35.
 ##
-## code_item -> DECLARATION ENUM UIDENT COLON rev_list_with_attr(enum_decl_line) . [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
-## rev_list_with_attr(enum_decl_line) -> rev_list_with_attr(enum_decl_line) . attribute [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
-## rev_list_with_attr(enum_decl_line) -> rev_list_with_attr(enum_decl_line) . enum_decl_line [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ALT ]
+## quident -> UIDENT . DOT quident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH STATE SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OUTPUT OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LIDENT LESSER_EQUAL LESSER LABEL IS INTERNAL INPUT IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DOCSTRING DIV DEPENDS DEFINITION DEFINED_AS DECLARATION DATE DATA CONTEXT CONTENT CONTAINS CONSEQUENCE CONDITION COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
+## quident -> UIDENT . [ XOR WITH_V WITH WE_HAVE TO THEN SUCH STATE SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OUTPUT OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LIDENT LESSER_EQUAL LESSER LABEL IS INTERNAL INPUT IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DOCSTRING DIV DEPENDS DEFINITION DEFINED_AS DECLARATION DATE DATA CONTEXT CONTENT CONTAINS CONSEQUENCE CONDITION COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION ENUM UIDENT COLON rev_list_with_attr(enum_decl_line)
+## UIDENT
 ##
 
-expected another enum case, or a new declaration or scope use
+expected a type
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT YEAR
 ##
@@ -971,22 +970,6 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM YEAR
 
 the 'sum' operator must be followed by the type to be summed.
 
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT YEAR
-##
-## Ends in an error in state: 35.
-##
-## quident -> UIDENT . DOT quident [ XOR WITH_V WITH WE_HAVE TO THEN SUCH STATE SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OUTPUT OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LIDENT LESSER_EQUAL LESSER LABEL IS INTERNAL INPUT IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DOCSTRING DIV DEPENDS DEFINITION DEFINED_AS DECLARATION DATE DATA CONTEXT CONTENT CONTAINS CONSEQUENCE CONDITION COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
-## quident -> UIDENT . [ XOR WITH_V WITH WE_HAVE TO THEN SUCH STATE SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OUTPUT OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LIDENT LESSER_EQUAL LESSER LABEL IS INTERNAL INPUT IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DOCSTRING DIV DEPENDS DEFINITION DEFINED_AS DECLARATION DATE DATA CONTEXT CONTENT CONTAINS CONSEQUENCE CONDITION COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## UIDENT
-##
-
-expected one of
-- a dot specifying the path to the given structure or enumeration ('Path.To.variable')
-- a dependency specification ('depends on ...')
-- the body of the declaration ('equals ...')
-
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DOT YEAR
 ##
 ## Ends in an error in state: 36.
@@ -998,18 +981,6 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DOT YEAR
 ##
 
 expected the structure or enumeration type of the definition under the given module.
-
-source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM LIDENT YEAR
-##
-## Ends in an error in state: 40.
-##
-## noattr_expression -> SUM primitive_typ . OF list(attribute) noattr_expression [ XOR WITH_V WITH WE_HAVE TO THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR_IF_LIST_EMPTY OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS IN GREATER_EQUAL GREATER EXCEPTION EQUAL END_CODE ELSE DOT DOCSTRING DIV DEFINITION DECLARATION DATE CONTAINS CONSEQUENCE COMMA COLON BUT_REPLACE ATTR_START ASSERTION AND ALT ]
-##
-## The known suffix of the stack is as follows:
-## SUM primitive_typ
-##
-
-expected 'of' then the list on which to operate
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF YEAR
 ##
@@ -2146,35 +2117,6 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT YEAR
 
 expected either 'condition', or 'content' followed by the expected variable type
 
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YEAR
-##
-## Ends in an error in state: 760.
-##
-## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-## scope_decl_item -> CONTEXT lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-## scope_decl_item -> CONTEXT lident CONTENT . typ_data list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## CONTEXT lident CONTENT
-##
-
-expected a type
-
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT LIDENT YEAR
-##
-## Ends in an error in state: 761.
-##
-## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-## scope_decl_item -> CONTEXT lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-## scope_decl_item -> CONTEXT lident CONTENT typ_data . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DECLARATION CONTEXT ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## CONTEXT lident CONTENT typ_data
-##
-
-expected either 'state' definitions for the variable, or the next declaration
-for the scope
-
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
 ## Ends in an error in state: 762.
@@ -2397,21 +2339,6 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 
 expected a type
 
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT LIDENT YEAR
-##
-## Ends in an error in state: 817.
-##
-## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
-## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
-## code_item -> DECLARATION lident CONTENT typ_data . option(opt_def) [ SCOPE END_CODE DOCSTRING DECLARATION ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data
-##
-
-expected 'equals <expression>', optionally preceded by 'depends on <var> content
-<type>'
-
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
 ## Ends in an error in state: 818.
@@ -2508,19 +2435,6 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT
 ##
 
 expected a type
-
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT LIDENT YEAR
-##
-## Ends in an error in state: 606.
-##
-## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
-## separated_nonempty_list(COMMA,var_content) -> list(attribute) lident CONTENT list(attribute) typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DOCSTRING DEFINED_AS DECLARATION DATA CONTEXT CONDITION ATTR_START ]
-##
-## The known suffix of the stack is as follows:
-## list(attribute) lident CONTENT list(attribute) typ_data
-##
-
-expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT COMMA YEAR
 ##

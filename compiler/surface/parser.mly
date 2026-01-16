@@ -199,10 +199,14 @@ let list_with_attr(x) ==
 
 let primitive_typ :=
 | DATE ; { Date }
-| name = LIDENT ; {
-  match Localisation.lex_primitive_type name with
+| name = addpos(LIDENT) ; {
+  match Localisation.lex_primitive_type (fst name) with
   | Some ty -> ty
-  | None -> External name
+  | None ->
+    Message.delayed_error ()
+      ~kind:Parsing
+      ~pos:(snd name) "Unknown built-in type";
+    Integer
 }
 | c = quident ; { let path, uid = c in Named (path, uid) }
 | WILDCARD; { Var None }

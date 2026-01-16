@@ -569,9 +569,6 @@ let rec process_base_typ
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Position -> TLit TPos, typ_pos
-    | Surface.Ast.External name ->
-      (* External types will be supported at some point *)
-      Message.error ~pos:typ_pos "Unrecognised type name '@{<red>%s@}'" name
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       let path = List.rev rev_path in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
