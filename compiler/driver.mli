@@ -138,7 +138,7 @@ module Plugin : sig
   val register_attribute :
     plugin:string ->
     path:string list ->
-    contexts:Desugared.Name_resolution.attribute_context list ->
+    contexts:(Desugared.Name_resolution.attribute_context -> bool) ->
     (pos:Catala_utils.Pos.t ->
     Shared_ast.attr_value ->
     Catala_utils.Pos.attr option) ->

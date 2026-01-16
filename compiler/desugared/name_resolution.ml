@@ -118,7 +118,7 @@ type attribute_context =
 let attribute_parsers :
     (string
     * string list
-    * attribute_context list
+    * (attribute_context -> bool)
     * (pos:Pos.t -> attr_value -> Pos.attr option))
     list
     ref =
@@ -144,9 +144,7 @@ let handle_extra_attributes context plugin path value pos =
         plugin;
       None
     | handlers -> (
-      match
-        List.find_opt (fun (_, _, ctx, _) -> List.mem context ctx) handlers
-      with
+      match List.find_opt (fun (_, _, ctx, _) -> ctx context) handlers with
       | None ->
         Message.warning ~pos
           "Attribute @{<magenta>#[%s.%s]@} is not allowed in this context"
