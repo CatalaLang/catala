@@ -184,6 +184,7 @@ module type Qualified = sig
   val base : t -> string
   val hash : strip:Module.t option -> t -> Hash.t
   val format_shortpath : Format.formatter -> t -> unit
+  val canonical_str : Module.t option -> t -> string
 end
 
 module Gen_qualified (S : Style) () : Qualified = struct
@@ -204,4 +205,12 @@ module Gen_qualified (S : Style) () : Qualified = struct
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)
   let base t = Mark.remove (get_info t)
+
+  let canonical_str cur_modname t =
+    let modl =
+      match Path.last_member (path t) with None -> cur_modname | some -> some
+    in
+    match modl with
+    | Some m -> Format.sprintf "%s.%s" (Module.to_string m) (base t)
+    | None -> base t
 end

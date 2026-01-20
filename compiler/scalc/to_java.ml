@@ -160,18 +160,14 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
     pp_print_string ppf "divide"
   | And -> pp_print_string ppf "and"
   | Or -> pp_print_string ppf "or"
-  | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-  | Eq_dur_dur ->
+  | Eq ->
+    (* FIXME: position arg and errors *)
     pp_print_string ppf "equalsTo"
   | Xor -> pp_print_string ppf "xor"
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
-    pp_print_string ppf "lessThan"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
-    pp_print_string ppf "lessEqThan"
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
-    pp_print_string ppf "greaterThan"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
-    pp_print_string ppf "greaterEqThan"
+  | Lt -> pp_print_string ppf "lessThan"
+  | Lte -> pp_print_string ppf "lessEqThan"
+  | Gt -> pp_print_string ppf "greaterThan"
+  | Gte -> pp_print_string ppf "greaterEqThan"
   | Map -> pp_print_string ppf "map"
   | Map2 -> pp_print_string ppf "map2"
   | Reduce -> pp_print_string ppf "reduce"

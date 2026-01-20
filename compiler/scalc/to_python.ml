@@ -81,21 +81,12 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
   | Xor -> Format.pp_print_string fmt "!="
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat ->
+  | Lt ->
+    (* FIXME: position argument and errors *)
     Format.pp_print_string fmt "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat ->
-    Format.pp_print_string fmt "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat ->
-    Format.pp_print_string fmt ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat ->
-    Format.pp_print_string fmt ">="
-  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat ->
-    Format.pp_print_string fmt "=="
-  | Lt_dur_dur -> Format.pp_print_string fmt "lt_duration"
-  | Lte_dur_dur -> Format.pp_print_string fmt "le_duration"
-  | Gt_dur_dur -> Format.pp_print_string fmt "gt_duration"
-  | Gte_dur_dur -> Format.pp_print_string fmt "ge_duration"
-  | Eq_dur_dur -> Format.pp_print_string fmt "eq_duration"
+  | Lte -> Format.pp_print_string fmt "<="
+  | Gt -> Format.pp_print_string fmt ">"
+  | Gte -> Format.pp_print_string fmt ">="
   | Map -> Format.pp_print_string fmt "list_map"
   | Map2 -> Format.pp_print_string fmt "list_map2"
   | Reduce -> Format.pp_print_string fmt "list_reduce"

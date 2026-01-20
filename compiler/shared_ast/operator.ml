@@ -85,35 +85,9 @@ let name : type a. a t -> string = function
   | Div_mon_rat -> "o_div_mon_rat"
   | Div_dur_dur -> "o_div_dur_dur"
   | Lt -> "o_lt"
-  | Lt_int_int -> "o_lt_int_int"
-  | Lt_rat_rat -> "o_lt_rat_rat"
-  | Lt_mon_mon -> "o_lt_mon_mon"
-  | Lt_dur_dur -> "o_lt_dur_dur"
-  | Lt_dat_dat -> "o_lt_dat_dat"
   | Lte -> "o_lte"
-  | Lte_int_int -> "o_lte_int_int"
-  | Lte_rat_rat -> "o_lte_rat_rat"
-  | Lte_mon_mon -> "o_lte_mon_mon"
-  | Lte_dur_dur -> "o_lte_dur_dur"
-  | Lte_dat_dat -> "o_lte_dat_dat"
   | Gt -> "o_gt"
-  | Gt_int_int -> "o_gt_int_int"
-  | Gt_rat_rat -> "o_gt_rat_rat"
-  | Gt_mon_mon -> "o_gt_mon_mon"
-  | Gt_dur_dur -> "o_gt_dur_dur"
-  | Gt_dat_dat -> "o_gt_dat_dat"
   | Gte -> "o_gte"
-  | Gte_int_int -> "o_gte_int_int"
-  | Gte_rat_rat -> "o_gte_rat_rat"
-  | Gte_mon_mon -> "o_gte_mon_mon"
-  | Gte_dur_dur -> "o_gte_dur_dur"
-  | Gte_dat_dat -> "o_gte_dat_dat"
-  | Eq_boo_boo -> "o_eq_boo_boo"
-  | Eq_int_int -> "o_eq_int_int"
-  | Eq_rat_rat -> "o_eq_rat_rat"
-  | Eq_mon_mon -> "o_eq_mon_mon"
-  | Eq_dur_dur -> "o_eq_dur_dur"
-  | Eq_dat_dat -> "o_eq_dat_dat"
   | Fold -> "o_fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "o_toclosureenv"
@@ -208,35 +182,9 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Div_mon_rat, Div_mon_rat
   | Div_dur_dur, Div_dur_dur
   | Lt, Lt
-  | Lt_int_int, Lt_int_int
-  | Lt_rat_rat, Lt_rat_rat
-  | Lt_mon_mon, Lt_mon_mon
-  | Lt_dat_dat, Lt_dat_dat
-  | Lt_dur_dur, Lt_dur_dur
   | Lte, Lte
-  | Lte_int_int, Lte_int_int
-  | Lte_rat_rat, Lte_rat_rat
-  | Lte_mon_mon, Lte_mon_mon
-  | Lte_dat_dat, Lte_dat_dat
-  | Lte_dur_dur, Lte_dur_dur
   | Gt, Gt
-  | Gt_int_int, Gt_int_int
-  | Gt_rat_rat, Gt_rat_rat
-  | Gt_mon_mon, Gt_mon_mon
-  | Gt_dat_dat, Gt_dat_dat
-  | Gt_dur_dur, Gt_dur_dur
   | Gte, Gte
-  | Gte_int_int, Gte_int_int
-  | Gte_rat_rat, Gte_rat_rat
-  | Gte_mon_mon, Gte_mon_mon
-  | Gte_dat_dat, Gte_dat_dat
-  | Gte_dur_dur, Gte_dur_dur
-  | Eq_boo_boo, Eq_boo_boo
-  | Eq_int_int, Eq_int_int
-  | Eq_rat_rat, Eq_rat_rat
-  | Eq_mon_mon, Eq_mon_mon
-  | Eq_dat_dat, Eq_dat_dat
-  | Eq_dur_dur, Eq_dur_dur
   | Fold, Fold
   | HandleExceptions, HandleExceptions
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
@@ -296,35 +244,9 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Div_mon_rat, _ -> -1 | _, Div_mon_rat -> 1
   | Div_dur_dur, _ -> -1 | _, Div_dur_dur -> 1
   | Lt, _ -> -1 | _, Lt -> 1
-  | Lt_int_int, _ -> -1 | _, Lt_int_int -> 1
-  | Lt_rat_rat, _ -> -1 | _, Lt_rat_rat -> 1
-  | Lt_mon_mon, _ -> -1 | _, Lt_mon_mon -> 1
-  | Lt_dat_dat, _ -> -1 | _, Lt_dat_dat -> 1
-  | Lt_dur_dur, _ -> -1 | _, Lt_dur_dur -> 1
   | Lte, _ -> -1 | _, Lte -> 1
-  | Lte_int_int, _ -> -1 | _, Lte_int_int -> 1
-  | Lte_rat_rat, _ -> -1 | _, Lte_rat_rat -> 1
-  | Lte_mon_mon, _ -> -1 | _, Lte_mon_mon -> 1
-  | Lte_dat_dat, _ -> -1 | _, Lte_dat_dat -> 1
-  | Lte_dur_dur, _ -> -1 | _, Lte_dur_dur -> 1
   | Gt, _ -> -1 | _, Gt -> 1
-  | Gt_int_int, _ -> -1 | _, Gt_int_int -> 1
-  | Gt_rat_rat, _ -> -1 | _, Gt_rat_rat -> 1
-  | Gt_mon_mon, _ -> -1 | _, Gt_mon_mon -> 1
-  | Gt_dat_dat, _ -> -1 | _, Gt_dat_dat -> 1
-  | Gt_dur_dur, _ -> -1 | _, Gt_dur_dur -> 1
   | Gte, _ -> -1 | _, Gte -> 1
-  | Gte_int_int, _ -> -1 | _, Gte_int_int -> 1
-  | Gte_rat_rat, _ -> -1 | _, Gte_rat_rat -> 1
-  | Gte_mon_mon, _ -> -1 | _, Gte_mon_mon -> 1
-  | Gte_dat_dat, _ -> -1 | _, Gte_dat_dat -> 1
-  | Gte_dur_dur, _ -> -1 | _, Gte_dur_dur -> 1
-  | Eq_boo_boo, _ -> -1 | _, Eq_boo_boo -> 1
-  | Eq_int_int, _ -> -1 | _, Eq_int_int -> 1
-  | Eq_rat_rat, _ -> -1 | _, Eq_rat_rat -> 1
-  | Eq_mon_mon, _ -> -1 | _, Eq_mon_mon -> 1
-  | Eq_dat_dat, _ -> -1 | _, Eq_dat_dat -> 1
-  | Eq_dur_dur, _ -> -1 | _, Eq_dur_dur -> 1
   | HandleExceptions, _ -> -1 | _, HandleExceptions -> 1
   | FromClosureEnv, _ -> -1 | _, FromClosureEnv -> 1
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
@@ -345,13 +267,12 @@ let kind_dispatch : type a.
      ?(resolved = fun _ -> assert false) op ->
   match op with
   | ((Not | And | Or | Xor), _) as op -> monomorphic op
-  | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold
-      | HandleExceptions | FromClosureEnv | ToClosureEnv ),
+  | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold | Lt
+      | Lte | Gt | Gte | HandleExceptions | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     polymorphic op
-  | ( ( Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt
-      | Lte | Gt | Gte ),
-      _ ) as op ->
+  | ((Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div), _) as
+    op ->
     overloaded op
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon
       | ToRat_int | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat
@@ -359,12 +280,7 @@ let kind_dispatch : type a.
       | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
       | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
       | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
-      | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
-      | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
-      | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
-      | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int
-      | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
+      | Div_mon_int | Div_mon_rat | Div_dur_dur ),
       _ ) as op ->
     resolved op
 
@@ -379,20 +295,15 @@ type 'a no_overloads =
 
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
-  | ( ( Not | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Map
-      | Map2 | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat
-      | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon | ToRat_int | ToRat_mon
-      | ToMoney_rat | ToMoney_int | Round_rat | Round_mon | Add_int_int
-      | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
-      | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _ | Sub_dur_dur
-      | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int
-      | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-      | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
-      | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
-      | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
-      | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-      | Gte_dur_dur | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-      | Eq_dat_dat | Eq_dur_dur | FromClosureEnv | ToClosureEnv ),
+  | ( ( Not | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Lt | Gt
+      | Lte | Gte | Map | Map2 | Concat | Filter | Reduce | Fold | Minus_int
+      | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon | ToRat_int
+      | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat | Round_mon
+      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
+      | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
+      | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat
+      | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
+      | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv ),
       _ ) as op ->
     op
 
@@ -456,32 +367,6 @@ let resolved_type ((op : resolved t), pos) =
     | Div_mon_int -> [TMoney; TInt], TMoney
     | Div_mon_rat -> [TMoney; TRat], TMoney
     | Div_dur_dur -> [TDuration; TDuration], TRat
-    | Lt_int_int -> [TInt; TInt], TBool
-    | Lt_rat_rat -> [TRat; TRat], TBool
-    | Lt_mon_mon -> [TMoney; TMoney], TBool
-    | Lt_dat_dat -> [TDate; TDate], TBool
-    | Lt_dur_dur -> [TDuration; TDuration], TBool
-    | Lte_int_int -> [TInt; TInt], TBool
-    | Lte_rat_rat -> [TRat; TRat], TBool
-    | Lte_mon_mon -> [TMoney; TMoney], TBool
-    | Lte_dat_dat -> [TDate; TDate], TBool
-    | Lte_dur_dur -> [TDuration; TDuration], TBool
-    | Gt_int_int -> [TInt; TInt], TBool
-    | Gt_rat_rat -> [TRat; TRat], TBool
-    | Gt_mon_mon -> [TMoney; TMoney], TBool
-    | Gt_dat_dat -> [TDate; TDate], TBool
-    | Gt_dur_dur -> [TDuration; TDuration], TBool
-    | Gte_int_int -> [TInt; TInt], TBool
-    | Gte_rat_rat -> [TRat; TRat], TBool
-    | Gte_mon_mon -> [TMoney; TMoney], TBool
-    | Gte_dat_dat -> [TDate; TDate], TBool
-    | Gte_dur_dur -> [TDuration; TDuration], TBool
-    | Eq_boo_boo -> [TBool; TBool], TBool
-    | Eq_int_int -> [TInt; TInt], TBool
-    | Eq_rat_rat -> [TRat; TRat], TBool
-    | Eq_mon_mon -> [TMoney; TMoney], TBool
-    | Eq_dat_dat -> [TDate; TDate], TBool
-    | Eq_dur_dur -> [TDuration; TDuration], TBool
   in
   TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
 
@@ -526,29 +411,7 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
   | Div, [TMoney; TInt] -> Div_mon_int, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
   | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
-  | Lt, [TInt; TInt] -> Lt_int_int, `Straight
-  | Lt, [TRat; TRat] -> Lt_rat_rat, `Straight
-  | Lt, [TMoney; TMoney] -> Lt_mon_mon, `Straight
-  | Lt, [TDuration; TDuration] -> Lt_dur_dur, `Straight
-  | Lt, [TDate; TDate] -> Lt_dat_dat, `Straight
-  | Lte, [TInt; TInt] -> Lte_int_int, `Straight
-  | Lte, [TRat; TRat] -> Lte_rat_rat, `Straight
-  | Lte, [TMoney; TMoney] -> Lte_mon_mon, `Straight
-  | Lte, [TDuration; TDuration] -> Lte_dur_dur, `Straight
-  | Lte, [TDate; TDate] -> Lte_dat_dat, `Straight
-  | Gt, [TInt; TInt] -> Gt_int_int, `Straight
-  | Gt, [TRat; TRat] -> Gt_rat_rat, `Straight
-  | Gt, [TMoney; TMoney] -> Gt_mon_mon, `Straight
-  | Gt, [TDuration; TDuration] -> Gt_dur_dur, `Straight
-  | Gt, [TDate; TDate] -> Gt_dat_dat, `Straight
-  | Gte, [TInt; TInt] -> Gte_int_int, `Straight
-  | Gte, [TRat; TRat] -> Gte_rat_rat, `Straight
-  | Gte, [TMoney; TMoney] -> Gte_mon_mon, `Straight
-  | Gte, [TDuration; TDuration] -> Gte_dur_dur, `Straight
-  | Gte, [TDate; TDate] -> Gte_dat_dat, `Straight
-  | ( ( Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt
-      | Lte | Gt | Gte ),
-      _ ) ->
+  | (Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div), _ ->
     raise Not_found
 
 let resolve_overload ((op, pos) : overloaded t Mark.pos) (operands : typ list) :
@@ -605,9 +468,8 @@ let overload_type (op : overloaded t Mark.pos) (operands : typ list) : typ =
 
 let is_pure : type a. a t -> bool = function
   | Map2 | Add_dat_dur _ | Add | Sub_dat_dur _ | Sub | Div_int_int | Div_rat_rat
-  | Div_mon_int | Div_mon_rat | Div_mon_mon | Div_dur_dur | Div | Lte_dur_dur
-  | Lte | Gte_dur_dur | Gte | Gt_dur_dur | Gt | Lt_dur_dur | Lt | Eq_dur_dur
-  | Eq ->
+  | Div_mon_int | Div_mon_rat | Div_mon_mon | Div_dur_dur | Div | Eq | Lte | Gte
+  | Gt | Lt ->
     (* basically, operators that take a position in the backends, and their
        overloaded counterparts: those are the ones that can raise *)
     false
@@ -618,10 +480,6 @@ let is_pure : type a. a t -> bool = function
   | Round_mon | And | Or | Xor | Map | Concat | Filter | Add_int_int
   | Add_rat_rat | Add_mon_mon | Add_dur_dur | Sub_int_int | Sub_rat_rat
   | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat
-  | Mult_mon_int | Mult_mon_rat | Mult_dur_int | Lt_int_int | Lt_rat_rat
-  | Lt_mon_mon | Lt_dat_dat | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-  | Lte_dat_dat | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Eq_boo_boo
-  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Reduce | Fold
+  | Mult_mon_int | Mult_mon_rat | Mult_dur_int | Reduce | Fold
   | HandleExceptions ->
     true

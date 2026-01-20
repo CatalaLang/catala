@@ -24,3 +24,17 @@ $ catala test-scope S --input {"x":1,"y":true}
 │ r = 4
 └─
 ```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true,"z":1} --lcalc
+┌─[RESULT]─ S ─
+│ r = 2
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S --input {"x":1,"y":true} --lcalc
+┌─[RESULT]─ S ─
+│ r = 4
+└─
+```

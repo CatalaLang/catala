@@ -521,14 +521,10 @@ let rec translate_op :
     app Arithmetic.mk_mul
   | (Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon), _ ->
     app2 Arithmetic.mk_div
-  | (Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur), _ ->
-    app2 Arithmetic.mk_lt
-  | (Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur), _ ->
-    app2 Arithmetic.mk_le
-  | (Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur), _ ->
-    app2 Arithmetic.mk_gt
-  | (Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur), _ ->
-    app2 Arithmetic.mk_ge
+  | Lt, _ -> app2 Arithmetic.mk_lt
+  | Lte, _ -> app2 Arithmetic.mk_le
+  | Gt, _ -> app2 Arithmetic.mk_gt
+  | Gte, _ -> app2 Arithmetic.mk_ge
   | Eq, _ -> app2 Boolean.mk_eq
   | Map, _ ->
     failwith "[Z3 encoding] application of binary operator Map not supported"

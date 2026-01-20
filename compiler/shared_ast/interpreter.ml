@@ -33,43 +33,7 @@ let is_empty_error : type a. (a, 'm) gexpr -> bool =
 
 (** {1 Evaluation} *)
 
-let rec format_runtime_value lang ppf = function
-  | Runtime.Unit -> Print.UserFacing.unit lang ppf ()
-  | Runtime.Bool b -> Print.UserFacing.bool lang ppf b
-  | Runtime.Money m -> Print.UserFacing.money lang ppf m
-  | Runtime.Integer i -> Print.UserFacing.integer lang ppf i
-  | Runtime.Decimal d -> Print.UserFacing.decimal lang ppf d
-  | Runtime.Date t -> Print.UserFacing.date lang ppf t
-  | Runtime.Duration dt -> Print.UserFacing.duration lang ppf dt
-  | Runtime.Enum (name, (constr, v)) ->
-    Format.fprintf ppf "@[<hov 2>%s.%s@ (%a)@]" name constr
-      (format_runtime_value lang)
-      v
-  | Runtime.Struct (name, fields) ->
-    Format.fprintf ppf "@[<hv 2>%s {@ %a@;<1 -2>}@]" name
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (fld, v) ->
-           Format.fprintf ppf "@[<hov 2>-- %s:@ %a@]" fld
-             (format_runtime_value lang)
-             v))
-      fields
-  | Runtime.Array elts ->
-    Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-         (format_runtime_value lang))
-      (Array.to_list elts)
-  | Runtime.Tuple elts ->
-    Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         (format_runtime_value lang))
-      (Array.to_list elts)
-  | Runtime.Position (file, sl, sc, el, ec) ->
-    let p = Pos.from_info file sl sc el ec in
-    Format.pp_print_string ppf (Pos.to_string_shorter p)
-  | Runtime.Unembeddable -> Format.pp_print_string ppf "<object>"
-
-let print_log ppf lang level entry =
+let print_log ppf _lang level entry =
   let pp_infos =
     Format.(
       pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ".@,") pp_print_string)
@@ -97,7 +61,7 @@ let print_log ppf lang level entry =
            log_io_output = io.Runtime.io_output;
          })
       " %a: @{<green>%s@}" pp_infos infos
-      (Message.unformat (fun ppf -> format_runtime_value lang ppf value));
+      (Message.unformat (fun ppf -> Runtime.Value.format ppf value));
     level
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
@@ -105,84 +69,20 @@ let print_log ppf lang level entry =
       "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
-let rec value_to_runtime_embedded : type d.
-    ((d, _) interpr_kind, 'm) naked_gexpr -> Runtime.runtime_value = function
-  | ELit LUnit -> Runtime.Unit
-  | ELit (LBool b) -> Runtime.Bool b
-  | ELit (LMoney m) -> Runtime.Money m
-  | ELit (LInt i) -> Runtime.Integer i
-  | ELit (LRat r) -> Runtime.Decimal r
-  | ELit (LDate d) -> Runtime.Date d
-  | ELit (LDuration dt) -> Runtime.Duration dt
-  | EInj { name; cons; e } ->
-    Runtime.Enum
-      ( EnumName.to_string name,
-        ( EnumConstructor.to_string cons,
-          value_to_runtime_embedded (Mark.remove e) ) )
-  | EStruct { name; fields } ->
-    Runtime.Struct
-      ( StructName.to_string name,
-        List.map
-          (fun (f, e) ->
-            StructField.to_string f, value_to_runtime_embedded (Mark.remove e))
-          (StructField.Map.bindings fields) )
-  | EArray el ->
-    Runtime.Array
-      (Array.of_list
-         (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
-  | ETuple el ->
-    Runtime.Tuple
-      (Array.of_list
-         (List.map (fun e -> value_to_runtime_embedded (Mark.remove e)) el))
-  | EEmpty -> Runtime.Enum ("Optional", ("Absent", Unit))
-  | _ -> Runtime.Unembeddable
+(* let enum_rtype ctx name =
+ *   let constrs = EnumName.Map.find name ctx.ctx_enums in
+ *   Runtime.Enum {
+ *     name = EnumName.to_string name;
+ *     constr = fun e ->
+ *   EnumConstructor.Map.find *)
 
-(* Todo: this should be handled early when resolving overloads. Here we have
-   proper structural equality, but the OCaml backend for example uses the
-   builtin equality function instead of this. *)
-let handle_eq pos evaluate_operator m lang e1 e2 =
-  let eq_eval = evaluate_operator (Eq, pos) m lang in
-  let open Runtime.Oper in
-  match e1, e2 with
-  | ELit LUnit, ELit LUnit -> true
-  | ELit (LBool b1), ELit (LBool b2) -> o_eq_boo_boo b1 b2
-  | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
-  | ELit (LRat x1), ELit (LRat x2) -> o_eq_rat_rat x1 x2
-  | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
-  | ELit (LDuration x1), ELit (LDuration x2) ->
-    o_eq_dur_dur (Expr.pos_to_runtime (Expr.mark_pos m)) x1 x2
-  | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
-  | EArray es1, EArray es2 | ETuple es1, ETuple es2 -> (
-    try
-      List.for_all2
-        (fun e1 e2 ->
-          match Mark.remove (eq_eval [e1; e2]) with
-          | ELit (LBool b) -> b
-          | _ -> assert false
-          (* should not happen *))
-        es1 es2
-    with Invalid_argument _ -> false)
-  | EStruct { fields = es1; name = s1 }, EStruct { fields = es2; name = s2 } ->
-    StructName.equal s1 s2
-    && StructField.Map.equal
-         (fun e1 e2 ->
-           match Mark.remove (eq_eval [e1; e2]) with
-           | ELit (LBool b) -> b
-           | _ -> assert false
-           (* should not happen *))
-         es1 es2
-  | ( EInj { e = e1; cons = i1; name = en1 },
-      EInj { e = e2; cons = i2; name = en2 } ) -> (
-    try
-      EnumName.equal en1 en2
-      && EnumConstructor.equal i1 i2
-      &&
-      match Mark.remove (eq_eval [e1; e2]) with
-      | ELit (LBool b) -> b
-      | _ -> assert false
-      (* should not happen *)
-    with Invalid_argument _ -> false)
-  | _, _ -> false (* comparing anything else return false *)
+let handle_eq ctx pos e1 e2 =
+  Runtime.Value.equal (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
+    (Expr.embed_value ctx e2)
+
+let handle_compare ctx pos e1 e2 =
+  Runtime.Value.compare (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
+    (Expr.embed_value ctx e2)
 
 (* This evaluation of functional application is used by operators in order to
    make them compatible with execution after closure-conversion: the case where
@@ -218,7 +118,8 @@ let eval_application evaluate_expr f args =
       "Trying to apply non-function passed as operator argument"
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-let rec evaluate_operator
+let evaluate_operator
+    ctx
     evaluate_expr
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
@@ -258,7 +159,7 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [(e, _)] when Global.options.trace <> None -> (
+  | Log (entry, infos), [(e, m)] when Global.options.trace <> None -> (
     let rtinfos = List.map Uid.MarkedString.to_string infos in
     match entry with
     | BeginCall -> Runtime.log_begin_call rtinfos e
@@ -270,9 +171,13 @@ let rec evaluate_operator
       | _ -> ());
       e
     | VarDef def ->
-      Runtime.log_variable_definition rtinfos
-        { Runtime.io_input = def.log_io_input; io_output = def.log_io_output }
-        value_to_runtime_embedded e)
+      Mark.remove
+      @@ Runtime.log_variable_definition rtinfos
+           {
+             Runtime.io_input = def.log_io_input;
+             io_output = def.log_io_output;
+           }
+           (Expr.embed_value ctx) (e, m))
   | Log _, [(e', _)] -> e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
@@ -280,8 +185,11 @@ let rec evaluate_operator
        effectively no-ops. *)
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
-  | Eq, [(e1, _); (e2, _)] ->
-    ELit (LBool (handle_eq opos (evaluate_operator evaluate_expr) m lang e1 e2))
+  | Eq, [e1; e2] -> ELit (LBool (handle_eq ctx opos e1 e2))
+  | Lt, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 < 0))
+  | Lte, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 <= 0))
+  | Gt, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 > 0))
+  | Gte, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 >= 0))
   | Map, [f; (EArray es, _)] ->
     EArray (List.map (fun e' -> eval_application evaluate_expr f [e']) es)
   | Map2, [f; (EArray es1, _); (EArray es2, _)] -> (
@@ -386,58 +294,6 @@ let rec evaluate_operator
     ELit (LMoney (o_div_mon_rat (div_pos ()) x y))
   | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LRat (o_div_dur_dur (div_pos ()) x y))
-  | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LBool (o_lt_int_int x y))
-  | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LBool (o_lt_rat_rat x y))
-  | Lt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LBool (o_lt_mon_mon x y))
-  | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-    ELit (LBool (o_lt_dat_dat x y))
-  | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_lt_dur_dur (rpos ()) x y))
-  | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LBool (o_lte_int_int x y))
-  | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LBool (o_lte_rat_rat x y))
-  | Lte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LBool (o_lte_mon_mon x y))
-  | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-    ELit (LBool (o_lte_dat_dat x y))
-  | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_lte_dur_dur (rpos ()) x y))
-  | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LBool (o_gt_int_int x y))
-  | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LBool (o_gt_rat_rat x y))
-  | Gt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LBool (o_gt_mon_mon x y))
-  | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-    ELit (LBool (o_gt_dat_dat x y))
-  | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_gt_dur_dur (rpos ()) x y))
-  | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LBool (o_gte_int_int x y))
-  | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LBool (o_gte_rat_rat x y))
-  | Gte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LBool (o_gte_mon_mon x y))
-  | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-    ELit (LBool (o_gte_dat_dat x y))
-  | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_gte_dur_dur (rpos ()) x y))
-  | Eq_boo_boo, [(ELit (LBool x), _); (ELit (LBool y), _)] ->
-    ELit (LBool (o_eq_boo_boo x y))
-  | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-    ELit (LBool (o_eq_int_int x y))
-  | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-    ELit (LBool (o_eq_rat_rat x y))
-  | Eq_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-    ELit (LBool (o_eq_mon_mon x y))
-  | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-    ELit (LBool (o_eq_dat_dat x y))
-  | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-    ELit (LBool (o_eq_dur_dur (rpos ()) x y))
   | HandleExceptions, [(EArray exps, _)] -> (
     (* Shallow conversion to runtime option, so that we can call
        [handle_exceptions] *)
@@ -473,12 +329,8 @@ let rec evaluate_operator
       | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
       | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
       | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
-      | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
-      | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
-      | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
-      | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo | Eq_int_int
-      | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleExceptions ),
+      | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt | Lte | Gt | Gte
+      | HandleExceptions ),
       _ ) ->
     err ()
 
@@ -548,7 +400,7 @@ let rec runtime_to_val : type d.
             | TLit TUnit, _ -> skip
             | _ -> if skip = 0 then raise (Found (cons, ty)) else skip - 1)
           cons_map
-          (Obj.tag o - Obj.first_non_constant_constructor_tag)
+          (tag - Obj.first_non_constant_constructor_tag)
       with
       | _ -> assert false
       | exception Found (cons, ty) ->
@@ -832,7 +684,7 @@ let rec evaluate_expr : type d.
         e1)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
-    evaluate_operator (evaluate_expr ctx lang) op m lang args
+    evaluate_operator ctx (evaluate_expr ctx lang) op m lang args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
@@ -1037,14 +889,7 @@ and partially_evaluate_expr_for_assertion_failure_message : type d.
       {
         args = [e1; e2];
         tys;
-        op =
-          ( ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-            | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-            | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-            | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-            | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-            | Eq_dur_dur | Eq_dat_dat ),
-            _ ) as op;
+        op = ((And | Or | Xor | Eq | Lt | Lte | Gt | Gte), _) as op;
       } ->
     ( EAppOp
         {

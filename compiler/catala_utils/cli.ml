@@ -547,14 +547,6 @@ module Flags = struct
            coverage information gathered during the run. Be careful to always \
            use it in conjunction with $(b,--whole-program)."
 
-  let expand_ops =
-    value
-    & flag
-    & info ["expand-ops"]
-        ~doc:
-          "In LCalc, expand equality operators to only rely on comparisons of \
-           literals. "
-
   let dead_value_assignment =
     value
     & flag

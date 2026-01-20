@@ -44,10 +44,6 @@ type code_location = {
   law_headings : string list;
 }
 
-module Optional : sig
-  type 'a t = Absent | Present of 'a
-end
-
 (** This type characterizes the three levels of visibility for a given scope
     variable with regards to the scope's input and possible redefinitions inside
     the scope. *)
@@ -95,31 +91,70 @@ exception Empty
 
 (** {1 Value Embedding} *)
 
-type runtime_value =
-  | Unit
-  | Bool of bool
-  | Money of money
-  | Integer of integer
-  | Decimal of decimal
-  | Date of date
-  | Duration of duration
-  | Enum of string * (string * runtime_value)
-  | Struct of string * (string * runtime_value) list
-  | Array of runtime_value Array.t
-  | Tuple of runtime_value Array.t
-  | Position of (string * int * int * int * int)
-  | Unembeddable
+(** {2 Runtime type encoding} *)
 
-val unembeddable : 'a -> runtime_value
-val embed_unit : unit -> runtime_value
-val embed_bool : bool -> runtime_value
-val embed_money : money -> runtime_value
-val embed_integer : integer -> runtime_value
-val embed_decimal : decimal -> runtime_value
-val embed_date : date -> runtime_value
-val embed_duration : duration -> runtime_value
-val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
-val format_value : Format.formatter -> runtime_value -> unit
+module Value: sig
+  (** 'a ty provides runtime information about the structure of values of OCaml type 'a *)
+  type _ ty =
+    | Unit : unit ty
+    | Bool : bool ty
+    | Integer : integer ty
+    | Money : money ty
+    | Decimal : decimal ty
+    | Date : date ty
+    | Duration : duration ty
+    | Position : code_location ty
+    | Array: ('a -> t) -> 'a array ty
+    | Tuple: ('a -> t list) -> 'a ty
+    | Struct : {
+        name: string;
+        fields: 'a -> (string * t) list;
+        (* list order must be consistent with the representation *)
+      } -> 'a ty
+    | Enum : {
+        name: string;
+        constr: 'a -> int * string * t option;
+        (* destr: string * t  option -> 'a; ? *)
+      } -> 'a ty
+    | External : {
+        name: string;
+        equal: code_location -> 'a -> t -> bool;
+        compare: code_location -> 'a -> t -> int;
+        to_json : ('a -> string) option;
+        to_string : 'a -> string;
+      } -> 'a ty
+    | Function : 'a ty
+    (* | Function : (('args -> 'ret) -> 'args -> t ) -> ('args -> 'ret) ty (\* ?? *\) *)
+
+  (** [Runtime.Value.t] is an embedded runtime value that comes with type information, allowing for introspection *)
+  and t = V: 'a ty * 'a -> t
+
+  val embed: 'a ty -> 'a -> t
+
+  val equal: code_location -> t -> t -> bool
+  val compare: code_location -> t -> t -> int
+  val format: Format.formatter -> t -> unit
+end
+
+(** Polymorphic, structural equality using runtime type information *)
+val equal: 'a Value.ty -> code_location -> 'a -> 'a -> bool
+
+(** Polymorphic, structural comparison using runtime type information *)
+val compare: 'a Value.ty -> code_location -> 'a -> 'a -> int
+
+(* val unembed: runvalue -> 'a runtype * 'a *)
+
+(** {1 Catala types utils} *)
+
+module type CatalaType = sig
+  type t
+  val rtype: t Value.ty
+end
+
+module Optional : sig
+  type 'a t = Absent | Present of 'a
+  val rtype: 'a Value.ty -> 'a t Value.ty
+end
 
 (** {1 Logging} *)
 
@@ -154,7 +189,7 @@ type information = string list
 type raw_event =
   | BeginCall of information  (** Subscope or function call. *)
   | EndCall of information  (** End of a subscope or a function call. *)
-  | VariableDefinition of information * io_log * runtime_value
+  | VariableDefinition of information * io_log * Value.t
       (** Definition of a variable or a function argument. *)
   | DecisionTaken of code_location  (** Source code position of an event. *)
 
@@ -213,7 +248,7 @@ and var_def = {
   pos : code_location option;
   name : information;
   io : io_log;
-  value : runtime_value;
+  value : Value.t;
   fun_calls : fun_call list option;
 }
 
@@ -244,7 +279,7 @@ val log_begin_call : string list -> 'a -> 'a
 val log_end_call : string list -> 'a -> 'a
 
 val log_variable_definition :
-  string list -> io_log -> ('a -> runtime_value) -> 'a -> 'a
+  string list -> io_log -> ('a -> Value.t) -> 'a -> 'a
 
 val log_decision_taken : code_location -> bool -> bool
 
@@ -254,7 +289,7 @@ val log_decision_taken : code_location -> bool -> bool
 module Json : sig
   (* val io_input: io_input -> string *)
   val io_log : io_log -> string
-  val runtime_value : runtime_value -> string
+  val runtime_value : Value.t -> string
 
   (* val information: information -> string *)
   val event : event -> string
@@ -378,7 +413,11 @@ module Oper : sig
   val o_and : bool -> bool -> bool
   val o_or : bool -> bool -> bool
   val o_xor : bool -> bool -> bool
-  val o_eq : 'a -> 'a -> bool
+  val o_eq : 'a Value.ty -> code_location -> 'a -> 'a -> bool
+  val o_lt : 'a Value.ty -> code_location -> 'a -> 'a -> bool
+  val o_lte : 'a Value.ty -> code_location -> 'a -> 'a -> bool
+  val o_gt : 'a Value.ty -> code_location -> 'a -> 'a -> bool
+  val o_gte : 'a Value.ty -> code_location -> 'a -> 'a -> bool
   val o_map : ('a -> 'b) -> 'a array -> 'b array
 
   val o_map2 :
@@ -410,32 +449,6 @@ module Oper : sig
   val o_div_mon_int : code_location -> money -> integer -> money
   val o_div_mon_rat : code_location -> money -> decimal -> money
   val o_div_dur_dur : code_location -> duration -> duration -> decimal
-  val o_lt_int_int : integer -> integer -> bool
-  val o_lt_rat_rat : decimal -> decimal -> bool
-  val o_lt_mon_mon : money -> money -> bool
-  val o_lt_dur_dur : code_location -> duration -> duration -> bool
-  val o_lt_dat_dat : date -> date -> bool
-  val o_lte_int_int : integer -> integer -> bool
-  val o_lte_rat_rat : decimal -> decimal -> bool
-  val o_lte_mon_mon : money -> money -> bool
-  val o_lte_dur_dur : code_location -> duration -> duration -> bool
-  val o_lte_dat_dat : date -> date -> bool
-  val o_gt_int_int : integer -> integer -> bool
-  val o_gt_rat_rat : decimal -> decimal -> bool
-  val o_gt_mon_mon : money -> money -> bool
-  val o_gt_dur_dur : code_location -> duration -> duration -> bool
-  val o_gt_dat_dat : date -> date -> bool
-  val o_gte_int_int : integer -> integer -> bool
-  val o_gte_rat_rat : decimal -> decimal -> bool
-  val o_gte_mon_mon : money -> money -> bool
-  val o_gte_dur_dur : code_location -> duration -> duration -> bool
-  val o_gte_dat_dat : date -> date -> bool
-  val o_eq_boo_boo : bool -> bool -> bool
-  val o_eq_int_int : integer -> integer -> bool
-  val o_eq_rat_rat : decimal -> decimal -> bool
-  val o_eq_mon_mon : money -> money -> bool
-  val o_eq_dur_dur : code_location -> duration -> duration -> bool
-  val o_eq_dat_dat : date -> date -> bool
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
   val o_toclosureenv : 'a -> Obj.t
   val o_fromclosureenv : Obj.t -> 'a

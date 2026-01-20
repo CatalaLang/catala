@@ -16,8 +16,8 @@ declaration find_in_list
 $ catala typecheck
 ┌─[ERROR]─
 │
-│  Equality cannot be resolved at this point: the type of the operands is not
-│  fully known.
+│  Comparison cannot be resolved at this point: the type of the operands is
+│  not fully known.
 │
 ├─➤ tests/typing/bad/poly_eq.catala_en:11.12-11.24:
 │    │

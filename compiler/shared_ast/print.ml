@@ -278,35 +278,9 @@ let operator_to_string : type a. a Op.t -> string =
   | Div_mon_rat -> "/$."
   | Div_dur_dur -> "/^"
   | Lt -> "<"
-  | Lt_int_int -> "<!"
-  | Lt_rat_rat -> "<."
-  | Lt_mon_mon -> "<$"
-  | Lt_dur_dur -> "<^"
-  | Lt_dat_dat -> "<@"
   | Lte -> "<="
-  | Lte_int_int -> "<=!"
-  | Lte_rat_rat -> "<=."
-  | Lte_mon_mon -> "<=$"
-  | Lte_dur_dur -> "<=^"
-  | Lte_dat_dat -> "<=@"
   | Gt -> ">"
-  | Gt_int_int -> ">!"
-  | Gt_rat_rat -> ">."
-  | Gt_mon_mon -> ">$"
-  | Gt_dur_dur -> ">^"
-  | Gt_dat_dat -> ">@"
   | Gte -> ">="
-  | Gte_int_int -> ">=!"
-  | Gte_rat_rat -> ">=."
-  | Gte_mon_mon -> ">=$"
-  | Gte_dur_dur -> ">=^"
-  | Gte_dat_dat -> ">=@"
-  | Eq_boo_boo -> "=="
-  | Eq_int_int -> "=!"
-  | Eq_rat_rat -> "=."
-  | Eq_mon_mon -> "=$"
-  | Eq_dur_dur -> "=^"
-  | Eq_dat_dat -> "=@"
   | Fold -> "fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
@@ -326,9 +300,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | And -> "&&"
   | Or -> "||"
   | Xor -> "xor"
-  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat
-  | Eq ->
-    "="
+  | Eq -> "="
   | Map -> "map"
   | Map2 -> "map2"
   | Reduce -> "reduce"
@@ -346,12 +318,10 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur | Div ->
     "/"
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt -> "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat | Lte ->
-    "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt -> ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat | Gte ->
-    ">="
+  | Lt -> "<"
+  | Lte -> "<="
+  | Gt -> ">"
+  | Gte -> ">="
   | Fold -> "fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
@@ -406,19 +376,11 @@ module Precedence = struct
       | And -> Op And
       | Or -> Op Or
       | Xor -> Op Xor
-      | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
-      | Eq_dat_dat ->
-        Op Comp
-      | Lt | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
-        Op Comp
-      | Lte | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
-      | Lte_dur_dur ->
-        Op Comp
-      | Gt | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
-        Op Comp
-      | Gte | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-      | Gte_dur_dur ->
-        Op Comp
+      | Eq -> Op Comp
+      | Lt -> Op Comp
+      | Lte -> Op Comp
+      | Gt -> Op Comp
+      | Gte -> Op Comp
       | Add | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
       | Add_dur_dur ->
         Op Add

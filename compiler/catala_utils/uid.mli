@@ -129,6 +129,11 @@ module type Qualified = sig
   val format_shortpath : Format.formatter -> t -> unit
   (** Like [format], but prints only the last path member (if any) instead of
       the full path *)
+
+  val canonical_str : Module.t option -> t -> string
+  (** [canonical_str current_module t] returns a canonical path to [t], that is,
+      the basename of [t] qualified with the last module in its path, or with
+      the current module if implicit and that is defined. *)
 end
 
 (** Same as [Gen] but also registers path information *)
