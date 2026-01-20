@@ -3,25 +3,25 @@
 > Module Mod_def
 
 ```catala-metadata
-declaration enumeration Enum1:
+declaration enumeration Mod_def:
   -- Yes
   -- No
   -- Maybe
 
 declaration structure Str1:
-  data fld1 content Enum1
+  data fld1 content Mod_def
   data fld2 content integer
 
 #[test] declaration scope S:
   output sr content money
-  output e1 content Enum1
+  output e1 content Mod_def
 
 declaration half content decimal
   depends on x content integer
   equals x / Date.get_year of |0002-01-01|
 
-declaration maybe content Enum1
-  depends on x content Enum1
+declaration maybe content Mod_def
+  depends on x content Mod_def
 ```
 
 ```catala
@@ -30,8 +30,8 @@ scope S:
   definition e1 equals Maybe
 
 
-declaration maybe content Enum1
-  depends on x content Enum1
+declaration maybe content Mod_def
+  depends on x content Mod_def
   equals Maybe
 ```
 
@@ -112,14 +112,14 @@ let () =
   | Error h -> failwith "Hash mismatch for module List_en, it may need recompiling"
 module List_en = List_en
 
-module Enum1 = struct type t = Yes | No | Maybe end
+module Mod_def = struct type t = Yes | No | Maybe end
 
 module S = struct
-  type t = {sr: money; e1: Enum1.t}
+  type t = {sr: money; e1: Mod_def.t}
 end
 
 module Str1 = struct
-  type t = {fld1: Enum1.t; fld2: integer}
+  type t = {fld1: Mod_def.t; fld2: integer}
 end
 
 module S_in = struct
@@ -143,10 +143,10 @@ let s : S_in.t -> S.t = fun _ ->
                            end_line=16; end_column=12;
                            law_headings=["Test modules + inclusions 1"]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
-  let e1: Enum1.t =
+  let e1: Mod_def.t =
     match
       (Optional.Present
-         ((Enum1.Maybe),
+         ((Mod_def.Maybe),
            ({filename="tests/modules/good/mod_def.catala_en";
              start_line=30; start_column=24; end_line=30; end_column=29;
              law_headings=["Test modules + inclusions 1"]})))
@@ -169,8 +169,8 @@ let half : integer -> decimal =
       ((Date_en.get_year) (date_of_numbers (2) (1) (1)))
 
 (* Toplevel def maybe *)
-let maybe : Enum1.t -> Enum1.t =
-  fun (_: Enum1.t) -> Enum1.Maybe
+let maybe : Mod_def.t -> Mod_def.t =
+  fun (_: Mod_def.t) -> Mod_def.Maybe
 
 let () =
   Catala_runtime.register_module "Mod_def"

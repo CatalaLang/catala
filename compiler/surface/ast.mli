@@ -40,7 +40,6 @@ type primitive_typ =
   | Duration
   | Date
   | Position
-  | External of lident
   | Named of path * uident Mark.pos
   | Var of lident Mark.pos option
 

@@ -538,8 +538,8 @@ let rec process_base_typ
     ~rev_path
     ~vars
     (ctxt : context)
-    ((typ, typ_pos) : Surface.Ast.base_typ Mark.pos) : typ =
-  let typ_pos = translate_pos Type typ_pos in
+    ((typ, typ_pos0) : Surface.Ast.base_typ Mark.pos) : typ =
+  let typ_pos = translate_pos Type typ_pos0 in
   match typ with
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
@@ -569,9 +569,6 @@ let rec process_base_typ
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Position -> TLit TPos, typ_pos
-    | Surface.Ast.External name ->
-      (* External types will be supported at some point *)
-      Message.error ~pos:typ_pos "Unrecognised type name '@{<red>%s@}'" name
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       let path = List.rev rev_path in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
@@ -1028,6 +1025,12 @@ let typedef_info = function
   | TAbstract t -> AbstractType.get_info t
   | TScope (s, _) -> ScopeName.get_info s
 
+let typedef_path = function
+  | TStruct t -> StructName.path t
+  | TEnum t -> EnumName.path t
+  | TAbstract t -> AbstractType.path t
+  | TScope (s, _) -> ScopeName.path s
+
 (** Process the names of all declaration items *)
 let process_name_item
     (ctxt : context)
@@ -1056,7 +1059,8 @@ let process_name_item
     (* Checks if the name is already used *)
     Option.iter
       (fun use ->
-        raise_already_defined_error (typedef_info use) name pos "scope")
+        if typedef_path use = [] then
+          raise_already_defined_error (typedef_info use) name pos "scope")
       (Ident.Map.find_opt name ctxt.local.typedefs);
     let scope_uid = ScopeName.fresh path (name, pos) in
     let in_struct_name = StructName.fresh path (name ^ "_in", pos) in
@@ -1092,7 +1096,8 @@ let process_name_item
     let pos = translate_pos StructDecl pos in
     Option.iter
       (fun use ->
-        raise_already_defined_error (typedef_info use) name pos "struct")
+        if typedef_path use = [] then
+          raise_already_defined_error (typedef_info use) name pos "struct")
       (Ident.Map.find_opt name ctxt.local.typedefs);
     let s_uid = StructName.fresh path sdecl.struct_decl_name in
     let typedefs =
@@ -1106,7 +1111,8 @@ let process_name_item
     let pos = translate_pos EnumDecl pos in
     Option.iter
       (fun use ->
-        raise_already_defined_error (typedef_info use) name pos "enum")
+        if typedef_path use = [] then
+          raise_already_defined_error (typedef_info use) name pos "enum")
       (Ident.Map.find_opt name ctxt.local.typedefs);
     let e_uid = EnumName.fresh path (name, pos) in
     let typedefs =
@@ -1120,7 +1126,9 @@ let process_name_item
     let pos = translate_pos AbstractTypeDecl pos in
     Option.iter
       (fun use ->
-        raise_already_defined_error (typedef_info use) name pos "abstract type")
+        if typedef_path use = [] then
+          raise_already_defined_error (typedef_info use) name pos
+            "abstract type")
       (Ident.Map.find_opt name ctxt.local.typedefs);
     let t_uid = AbstractType.fresh path (name, pos) in
     let typedefs = Ident.Map.add name (TAbstract t_uid) ctxt.local.typedefs in
@@ -1483,6 +1491,28 @@ let form_context (surface, mod_uses) surface_modules : context =
           in
           let revpath = m :: revpath in
           let ctxt = process_modules ctxt revpath mod_uses in
+          let submodules_root_types =
+            (* This detects modules Foo defining a type Foo, to expose that type
+               directly. *)
+            Ident.Map.filter_map
+              (fun id modl ->
+                let mctx = ModuleName.Map.find modl ctxt.modules in
+                match Ident.Map.find_opt id mctx.typedefs with
+                | None | Some (TScope _) -> None
+                | Some tdef ->
+                  let defname, _ = typedef_info tdef in
+                  (* The feature is disabled if the module is aliased, except
+                     for the stdlib, for which we actually select the type with
+                     the name of the alias. This allows the implicit `using
+                     Period_en as Period` to expose type `Period_en.Period` as
+                     `Period`. *)
+                  if
+                    defname = ModuleName.to_string modl
+                    || module_content.Surface.Ast.module_is_stdlib
+                  then Some tdef
+                  else None)
+              mod_uses
+          in
           let ctxt =
             {
               ctxt with
@@ -1493,6 +1523,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                   current_revpath = revpath;
                   is_external =
                     module_content.Surface.Ast.module_modname.module_external;
+                  typedefs = submodules_root_types;
                 };
             }
           in
@@ -1530,6 +1561,18 @@ let form_context (surface, mod_uses) surface_modules : context =
   let ctxt = process_modules empty_ctxt [] mod_uses in
   let ctxt =
     { ctxt with local = { empty_module_ctxt with used_modules = mod_uses } }
+  in
+  let submodules_root_types =
+    Ident.Map.filter_map
+      (fun id modl ->
+        let mctx = ModuleName.Map.find modl ctxt.modules in
+        match Ident.Map.find_opt id mctx.typedefs with
+        | None | Some (TScope _) -> None
+        | some -> some)
+      mod_uses
+  in
+  let ctxt =
+    { ctxt with local = { ctxt.local with typedefs = submodules_root_types } }
   in
   let ctxt =
     List.fold_left

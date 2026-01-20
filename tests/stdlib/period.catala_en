@@ -1,18 +1,18 @@
 ```catala
 declaration mk_p
-  content Period.Period
+  content Period
   depends on b content date, e content date
   equals
-    Period.Period { -- begin: b -- end: e }
+    Period { -- begin: b -- end: e }
 
 #[test]
 declaration scope Tunit:
-  output p_one_day content Period.Period
+  output p_one_day content Period
   output p_bad content Period.Period
-  output p_succ_one_day content Period.Period
-  output p_in_succ_one_day content Period.Period
-  output p_from_month_and_year content Period.Period
-  output p_from_year content Period.Period
+  output p_succ_one_day content Period
+  output p_in_succ_one_day content Period
+  output p_from_month_and_year content Period
+  output p_from_year content Period
 
 scope Tunit:
   definition p_one_day equals mk_p of (|2020-01-01|, |2020-01-01|)
@@ -62,49 +62,49 @@ scope Tunit:
   )
 
   definition p_from_month_and_year equals Period.of_month_and_year of Date.Month.May, 1968
-  assertion p_from_month_and_year = Period.Period { -- begin: |1968-05-01| -- end: |1968-05-31| }
+  assertion p_from_month_and_year = Period { -- begin: |1968-05-01| -- end: |1968-05-31| }
 
   definition p_from_year equals Period.of_year of 2002
-  assertion p_from_year = Period.Period { -- begin: |2002-01-01| -- end: |2002-12-31| }
+  assertion p_from_year = Period { -- begin: |2002-01-01| -- end: |2002-12-31| }
 ```
 
 ```catala
 #[test]
 declaration scope Tsort:
-  output o1 content list of (Period.Period, integer)
-  output o2 content list of (Period.Period, integer)
-  output o3 content list of (Period.Period, integer)
-  output o4 content list of (Period.Period, money)
-  output o5 content list of (Period.Period, decimal)
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
 
 scope Tsort:
   definition o1 equals
     Period.sort_by_date of []
   definition o2 equals
-    Period.sort_by_date of [ (Period.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1) ]
+    Period.sort_by_date of [ (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1) ]
   definition o3 equals
     Period.sort_by_date of
       [
-        (Period.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
-        (Period.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
       ]
   definition o4 equals
     Period.sort_by_date of
       [
-        (Period.Period { -- begin: |2020-12-01| -- end: |2020-01-10| }, $7);
-        (Period.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, $2);
-        (Period.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, $1);
-        (Period.Period { -- begin: |2020-04-01| -- end: |1999-01-01| }, $3);
-        (Period.Period { -- begin: |2020-06-01| -- end: |2020-01-10| }, $4);
-        (Period.Period { -- begin: |2020-11-01| -- end: |2020-01-10| }, $5);
-        (Period.Period { -- begin: |2020-11-02| -- end: |2020-01-10| }, $6)
+        (Period { -- begin: |2020-12-01| -- end: |2020-01-10| }, $7);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, $2);
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, $1);
+        (Period { -- begin: |2020-04-01| -- end: |1999-01-01| }, $3);
+        (Period { -- begin: |2020-06-01| -- end: |2020-01-10| }, $4);
+        (Period { -- begin: |2020-11-01| -- end: |2020-01-10| }, $5);
+        (Period { -- begin: |2020-11-02| -- end: |2020-01-10| }, $6)
       ]
   definition o5 equals
     Period.sort_by_date of
       [
-        (Period.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
-        (Period.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 3.0);
-        (Period.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 3.0);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
         (Period.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0)
       ]
 ```
