@@ -91,19 +91,32 @@ let () =
 module Decimal_en = Decimal_en
 
 module Stdlib__1 = struct
-  type t = {when__1: date}
+  type t = { when__1: date; }
+  let rtype = Value.Struct {
+    name = "Stdlib__1";
+    fields = fun t -> [ "when__1", Value.embed (Value.Date) t.when__1; ]
+  }
 end
 
 module Test = struct
-  type t = {val__1: date}
+  type t = { val__1: date; }
+  let rtype = Value.Struct {
+    name = "Test";
+    fields = fun t -> [ "val__1", Value.embed (Value.Date) t.val__1; ]
+  }
 end
 
 module Stdlib_in = struct
-  type t = {val_in: integer}
+  type t = { val_in: integer; }
+  let rtype = Value.Struct {
+    name = "Stdlib_in";
+    fields = fun t -> [ "val_in", Value.embed (Value.Integer) t.val_in; ]
+  }
 end
 
 module Test_in = struct
   type t = unit
+  let rtype = Value.Struct { name = "Test_in"; fields = fun t -> [ ] }
 end
 
 
@@ -116,55 +129,58 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
          ((o_add_dat_dur AbortOnRound
              {filename="tests/name_resolution/good/keywords.catala_en";
               start_line=11; start_column=38; end_line=11; end_column=39;
-              law_headings=[]} (date_of_numbers (1970) (1) (1))
-             (o_mult_dur_int (duration_of_numbers (0) (0) (1)) val__1)),
-           ({filename="tests/name_resolution/good/keywords.catala_en";
-             start_line=11; start_column=26; end_line=11; end_column=52;
-             law_headings=[]})))
+              law_headings=[]} (date_of_numbers 1970 1 1)
+             (o_mult_dur_int (duration_of_numbers 0 0 1) val__1)),
+          {filename="tests/name_resolution/good/keywords.catala_en";
+           start_line=11; start_column=26; end_line=11; end_column=52;
+           law_headings=[]}))
     with
     | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                           start_line=5; start_column=10;
-                           end_line=5; end_column=14; law_headings=[]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+      (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
+                         start_line=5; start_column=10;
+                         end_line=5; end_column=14; law_headings=[]}], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   {Stdlib__1.when__1 = when__1}
 
 (* Scope Test *)
 let test : Test_in.t -> Test.t = fun _ ->
   let a: Stdlib__1.t =
-    (let result : Stdlib__1.t =
-       (stdlib
-          ({Stdlib_in.val_in =
-              (match
-                 (Optional.Present
-                    ((integer_of_string "99"),
-                      ({filename="tests/name_resolution/good/keywords.catala_en";
-                        start_line=18; start_column=27;
-                        end_line=18; end_column=29; law_headings=[]})))
-               with
-               | Optional.Absent -> (raise
-                   (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                                      start_line=18; start_column=14;
-                                      end_line=18; end_column=19;
-                                      law_headings=[]}], None)))
-               | Optional.Present arg -> (let x, _ = arg in x))}))
+    let result : Stdlib__1.t =
+      (stdlib
+         {Stdlib_in.val_in =
+            (match
+               (Optional.Present
+                  ((integer_of_int 99),
+                   {filename="tests/name_resolution/good/keywords.catala_en";
+                    start_line=18; start_column=27;
+                    end_line=18; end_column=29; law_headings=[]}))
+             with
+             | Optional.Absent -> (raise
+               (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
+                                  start_line=18; start_column=14;
+                                  end_line=18; end_column=19;
+                                  law_headings=[]}], None)))
+             | Optional.Present arg -> (let x, _ = arg in x))})
     in
-    (let result__1 : Stdlib__1.t =
-       ({Stdlib__1.when__1 = (result.Stdlib__1.when__1)})
+    let result__1 : Stdlib__1.t =
+      {Stdlib__1.when__1 = (result.Stdlib__1.when__1)}
     in
-    ( if true then result__1 else result__1))) in
+    if true then result__1 else result__1
+  in
   let val__1: date =
     match
       (Optional.Present
          ((a.Stdlib__1.when__1),
-           ({filename="tests/name_resolution/good/keywords.catala_en";
-             start_line=19; start_column=25; end_line=19; end_column=31;
-             law_headings=[]})))
+          {filename="tests/name_resolution/good/keywords.catala_en";
+           start_line=19; start_column=25; end_line=19; end_column=31;
+           law_headings=[]}))
     with
     | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                           start_line=15; start_column=10;
-                           end_line=15; end_column=13; law_headings=[]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+      (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
+                         start_line=15; start_column=10;
+                         end_line=15; end_column=13; law_headings=[]}], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   {Test.val__1 = val__1}
 ```

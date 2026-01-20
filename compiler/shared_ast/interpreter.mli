@@ -21,6 +21,7 @@ open Catala_utils
 open Definitions
 
 val evaluate_operator :
+  decl_ctx ->
   ((((_, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
   'm mark ->

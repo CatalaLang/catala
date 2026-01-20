@@ -61,7 +61,6 @@ module Flags : sig
   val closure_conversion : bool Term.t
   val keep_special_ops : bool Term.t
   val monomorphize_types : bool Term.t
-  val expand_ops : bool Term.t
   val code_coverage : bool Term.t
   val dead_value_assignment : bool Term.t
   val no_struct_literals : bool Term.t
