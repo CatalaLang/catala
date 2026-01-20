@@ -119,7 +119,7 @@ let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
     | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                            start_line=5; start_column=10;
-                           end_line=5; end_column=14; law_headings=[]}])))
+                           end_line=5; end_column=14; law_headings=[]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   {Stdlib__1.when__1 = when__1}
 
@@ -140,7 +140,7 @@ let test : Test_in.t -> Test.t = fun _ ->
                    (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                                       start_line=18; start_column=14;
                                       end_line=18; end_column=19;
-                                      law_headings=[]}])))
+                                      law_headings=[]}], None)))
                | Optional.Present arg -> (let x, _ = arg in x))}))
     in
     (let result__1 : Stdlib__1.t =
@@ -158,7 +158,7 @@ let test : Test_in.t -> Test.t = fun _ ->
     | Optional.Absent -> (raise
         (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
                            start_line=15; start_column=10;
-                           end_line=15; end_column=13; law_headings=[]}])))
+                           end_line=15; end_column=13; law_headings=[]}], None)))
     | Optional.Present arg -> (let x, _ = arg in x) in
   {Test.val__1 = val__1}
 ```

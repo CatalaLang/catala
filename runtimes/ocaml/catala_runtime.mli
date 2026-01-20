@@ -90,7 +90,7 @@ val error_to_string : error -> string
 val error_message : error -> string
 (** Returns a short explanation message about the error *)
 
-exception Error of error * code_location list
+exception Error of error * code_location list * string option
 exception Empty
 
 (** {1 Value Embedding} *)

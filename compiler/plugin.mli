@@ -38,7 +38,7 @@ val register_subcommands : Cmdliner.Cmd.info -> unit Cmdliner.Cmd.t list -> unit
 val register_attribute :
   plugin:string ->
   path:string list ->
-  contexts:Desugared.Name_resolution.attribute_context list ->
+  contexts:(Desugared.Name_resolution.attribute_context -> bool) ->
   (pos:Catala_utils.Pos.t ->
   Shared_ast.attr_value ->
   Catala_utils.Pos.attr option) ->

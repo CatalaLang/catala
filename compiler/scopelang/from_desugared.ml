@@ -208,8 +208,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
           Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
   | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
     | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EFatalError _
-    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ | EPos _ | EBad ) as e
-    ->
+    | EIfThenElse _ | EArray _ | EEmpty | EErrorOnEmpty _ | EPos _ | EAssert _
+    | EBad ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)
@@ -736,9 +736,15 @@ let translate_rule
       D.AssertionName.Map.find a_name scope.scope_assertions
     in
     (* we unbox here because assertions do not have free variables (at this
-       point Bindlib variables are only for function parameters)*)
+       point Bindlib variables are only for function parameters) *)
     let assertion_expr = translate_expr ctx (Expr.unbox assertion_expr) in
-    [Ast.Assertion (Expr.unbox assertion_expr)]
+    [
+      Ast.Assertion
+        {
+          e = Expr.unbox assertion_expr;
+          pos = Mark.get (D.AssertionName.get_info a_name);
+        };
+    ]
 
 let translate_scope_interface ctx scope =
   let get_svar scope_def =

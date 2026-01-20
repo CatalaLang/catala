@@ -190,6 +190,7 @@ and naked_expression =
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
   | TupleAccess of expression * int Mark.pos
+  | Assert of expression * expression * Pos.t
 
 type exception_to =
   | NotAnException
@@ -220,15 +221,10 @@ type definition = {
 
 type variation_typ = Increasing | Decreasing
 
-type assertion = {
-  assertion_condition : expression option;
-  assertion_content : expression;
-}
-
 type scope_use_item =
   | Rule of rule
   | Definition of definition
-  | Assertion of assertion
+  | Assertion of expression
   | DateRounding of variation_typ Mark.pos
 
 type scope_use = {

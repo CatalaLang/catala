@@ -120,14 +120,15 @@ type attribute_context =
   | ScopeDef
   | FieldDecl
   | ConstructorDecl
-  | Expression
+  | Expression of Surface.Ast.expression
   | Type
   | FunctionArgument
+  | Assertion
 
 val register_attribute :
   plugin:string ->
   path:string list ->
-  contexts:attribute_context list ->
+  contexts:(attribute_context -> bool) ->
   (pos:Pos.t -> Shared_ast.attr_value -> Pos.attr option) ->
   unit
 (** Registers a new callback for the translation of the [#[plugin.path]]

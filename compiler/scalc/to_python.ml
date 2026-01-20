@@ -385,9 +385,16 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     Format.fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
   | SFatalError { pos_expr; error } ->
-    Format.fprintf fmt "@[<hov 4>raise %s(%a)@]"
+    Format.fprintf fmt "@[<hov 4>raise %s(%a, %s)@]"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
+      (match
+         Pos.get_attr (Mark.get s) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> "None"
+      | Some m -> String.quote m)
   | SIfThenElse { if_expr; then_block; else_block } ->
     let rec pr_else = function
       | [(SIfThenElse { if_expr; then_block; else_block }, _)] ->
@@ -461,8 +468,15 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
   | SAssert { pos_expr; expr = e1 } ->
-    Format.fprintf fmt "@[<hv 4>if not (%a):@ raise AssertionFailed(%a)@]"
+    Format.fprintf fmt "@[<hv 4>if not (%a):@ raise AssertionFailed(%a, %s)@]"
       (format_expression ctx) e1 (format_expression ctx) pos_expr
+      (match
+         Pos.get_attr (Mark.get s) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> "None"
+      | Some m -> String.quote m)
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =

@@ -34,18 +34,20 @@ __thread const catala_code_position catala_empty_position =
   { NULL, 0, 0, 0, 0 };
 
 __thread struct catala_error catala_error_raised =
-  { NULL, 0, 0 };
+  { NULL, 0, 0, NULL };
 
 __thread jmp_buf catala_error_jump_buffer;
 __thread int has_jump_buffer = 0;
 
 void catala_error(catala_error_code code,
                   const catala_code_position * pos,
-                  const int npos)
+                  const int npos,
+                  const char * note)
 {
   catala_error_raised.code = code;
   catala_error_raised.position = pos;
   catala_error_raised.nb_positions = npos;
+  catala_error_raised.note = note;
   catala_persistent_malloc_mode_on = 0;
   if (has_jump_buffer)
     longjmp(catala_error_jump_buffer, 1);
@@ -443,7 +445,7 @@ CATALA_DATE o_add_dat_dur (dc_date_rounding mode,
 {
   dc_date *ret = catala_malloc(sizeof(dc_date));
   if (dc_add_dates(ret, mode, x1, x2) != dc_ok)
-    catala_error(catala_ambiguous_date_rounding, pos, 1);
+    catala_error(catala_ambiguous_date_rounding, pos, 1, NULL);
   return ret;
 }
 
@@ -490,7 +492,7 @@ CATALA_DATE o_sub_dat_dur (dc_date_rounding mode,
   dc_date *ret = catala_malloc(sizeof(dc_date));
   dc_neg_period(&dur, x2);
   if (dc_add_dates(ret, mode, x1, &dur) != dc_ok)
-    catala_error(catala_ambiguous_date_rounding, pos, 1);
+    catala_error(catala_ambiguous_date_rounding, pos, 1, NULL);
   return ret;
 }
 
@@ -544,7 +546,7 @@ CATALA_DEC o_div_int_int (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpz_sgn(x2) == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   mpz_set(mpq_numref(ret), x1);
   mpz_set(mpq_denref(ret), x2);
   mpq_canonicalize(ret);
@@ -557,7 +559,7 @@ CATALA_DEC o_div_rat_rat (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpq_sgn(x2) == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   mpq_div(ret, x1, x2);
   return ret;
 }
@@ -568,7 +570,7 @@ CATALA_DEC o_div_mon_mon (const catala_code_position* pos,
 {
   CATALA_NEW_MPQ(ret);
   if (mpz_sgn(x2) == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   mpz_set(mpq_numref(ret), x1);
   mpz_set(mpq_denref(ret), x2);
   mpq_canonicalize(ret);
@@ -581,7 +583,7 @@ CATALA_MONEY o_div_mon_int (const catala_code_position* pos,
 {
   CATALA_NEW_MPZ(ret);
   if (mpz_sgn(x2) == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   round_div(ret, x1, x2);
   return ret;
 }
@@ -592,7 +594,7 @@ CATALA_MONEY o_div_mon_rat (const catala_code_position* pos,
 {
   CATALA_NEW_MPZ(ret);
   if (mpq_sgn(x2) == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   mpz_mul(ret, x1, mpq_denref(x2));
   round_div(ret, ret, mpq_numref(x2));
   return ret;
@@ -606,9 +608,9 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   CATALA_NEW_MPQ(ret);
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1);
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
   if (days2 == 0)
-    catala_error(catala_division_by_zero, pos, 1);
+    catala_error(catala_division_by_zero, pos, 1, NULL);
   mpz_set_si(mpq_numref(ret), days1);
   mpz_set_si(mpq_denref(ret), days2);
   mpq_canonicalize(ret);
@@ -650,7 +652,7 @@ CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
   else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0)
     return CATALA_NEW_BOOL(d1 == d2);
   else
-    catala_error(catala_uncomparable_durations, pos, 1);
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
   abort();
 }
 
@@ -686,7 +688,7 @@ int compare_periods (const catala_code_position* pos,
   } else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0) {
     return d1 < d2 ? -1 : (d1 > d2);
   } else {
-    catala_error(catala_uncomparable_durations, pos, 1);
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
   }
   abort();
 }
@@ -828,7 +830,7 @@ const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
     (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
   catala_array* ret = catala_malloc(sizeof(catala_array));
   if (x->size != y->size)
-    catala_error(catala_not_same_length, pos, 1);
+    catala_error(catala_not_same_length, pos, 1, NULL);
   ret->size = x->size;
   ret->elements = catala_malloc(ret->size * sizeof(void*));
   for (i=0; i < x->size; i++)
@@ -882,7 +884,7 @@ const CATALA_EXN(_) handle_exceptions
     for (k = j, count = 1; k < size; k++)
       if (excs[k]->code == catala_option_some)
         pos[count++] = *(catala_code_position *)((CATALA_TUPLE(_))(excs[k]->payload))[1].content;
-    catala_error(catala_conflict, pos, count);
+    catala_error(catala_conflict, pos, count, NULL);
   }
   return excs[i];
 }
@@ -950,16 +952,22 @@ void* catala_do(void* (*f)(void))
       error_kind = "Out of memory";
       break;
     }
-    fprintf(stderr, "\033[1;31m[ERROR]\033[m %s\n", error_kind);
+    /* Prints in the same format as the OCaml runtime. The messages differ though. */
+    fprintf(stderr, "\033[1;31m[ERROR]\033[m ");
     for (i = 0; i < catala_error_raised.nb_positions; i++) {
       if (pos[i].filename)
-        fprintf(stderr, "        in file %s:%d.%d-%d.%d\n",
-             pos[i].filename,
-             pos[i].start_line,
-             pos[i].start_column,
-             pos[i].end_line,
-             pos[i].end_column);
+        fprintf(stderr, "%s %s:%d.%d-%d.%d",
+                i == 0 ? "At" : ",",
+                pos[i].filename,
+                pos[i].start_line,
+                pos[i].start_column,
+                pos[i].end_line,
+                pos[i].end_column);
     }
+    fprintf(stderr, "%s%s", i > 0 ? ": " : "", error_kind);
+    if (catala_error_raised.note)
+      fprintf(stderr, ". %s", catala_error_raised.note);
+    fprintf(stderr, "\n");
     return NULL;
   }
   has_jump_buffer = 1;

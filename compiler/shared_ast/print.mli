@@ -52,6 +52,7 @@ val log_entry : Format.formatter -> log_entry -> unit
 val runtime_error : Format.formatter -> Catala_runtime.error -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
+val attr : Format.formatter -> Pos.attr -> unit
 val attrs : Format.formatter -> Pos.t -> unit
 
 val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit

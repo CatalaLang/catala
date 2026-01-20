@@ -51,7 +51,7 @@ type 'm rule =
       typ : typ;
       e : 'm expr;
     }
-  | Assertion of 'm expr
+  | Assertion of { e : 'm expr; pos : Pos.t }
 
 type scope_var_ty = {
   svar_in_ty : typ;
@@ -83,10 +83,10 @@ let type_rule decl_ctx env = function
   | SubScopeVarDefinition ({ typ; e; _ } as def) ->
     let e = Typing.expr decl_ctx ~env ~typ e in
     SubScopeVarDefinition { def with e = Expr.unbox e }
-  | Assertion e ->
+  | Assertion { e; pos } ->
     let typ = Mark.add (Expr.pos e) (TLit TBool) in
     let e = Typing.expr decl_ctx ~env ~typ e in
-    Assertion (Expr.unbox e)
+    Assertion { e = Expr.unbox e; pos }
 
 let type_program (type m) (prg : m program) : typed program =
   (* Caution: this environment building code is very similar to that in

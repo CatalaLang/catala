@@ -199,16 +199,18 @@ match expr with pattern
 -- anything : ...
 ```, [Pattern matching],
 ```catala-en-code
-impossible
+#[error.message = "err"] impossible
 ```, [Unreachable code],
+```catala-en-code
+if ... then ... else ...
+```, [Conditional],
 ```catala-en-code
 #[debug.print = "message"] expr
 ```, [Debug annotation],
 ```catala-en-code
 expr with pattern Case1
-expr with pattern Case1 content x
-     and x >= 2
-```, [Pattern test\  and optional binding],
+          content x and x >= 2
+```, [Pattern test\ (optional: var. binding)],
 ```catala-en-code
 struc1 but replace { -- fld2: 8% }
 ```, [Field replacement],
@@ -224,11 +226,11 @@ output of Scope1 with
   { -- fld1: 9 -- fld2: 15% }
 ```, [Direct scope call],
 ```catala-en-code
-if ... then ... else ...
-```, [Conditional],
-```catala-en-code
 var1 state before
-```, [Variable state access]
+```, [Variable state access],
+```catala-en-code
+assertion x > 0 in ...
+```, [Local assertion]
 )
 
 #let scope = cheat-sheet.syntax-doc([Scope definition],
@@ -269,8 +271,8 @@ definition var1 state before
   equals ...
 ```, [State definition],
 ```catala-en-code
-assertion ...
-```, [Assertion],
+assertion var1 > 0
+```, [Scope-level assertion],
 ```catala-en-code
 date round down·up
 ```, [Date rounding mode]

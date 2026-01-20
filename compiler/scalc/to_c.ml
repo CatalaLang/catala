@@ -526,10 +526,17 @@ let rec format_statement
       (format_expression ctx env)
       e
   | SFatalError { pos_expr; error } ->
-    Format.fprintf fmt "@,@[<hov 2>catala_error(catala_%s,@ %a,@ 1);@]"
+    Format.fprintf fmt "@,@[<hov 2>catala_error(catala_%s,@ %a,@ 1,@ %s);@]"
       (String.to_snake_case (Runtime.error_to_string error))
       (format_expression ctx env)
       pos_expr
+      (match
+         Pos.get_attr (Mark.get s) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> "NULL"
+      | Some m -> String.quote m)
   | SIfThenElse _ ->
     Format.fprintf fmt "@,@[<hv 2>%a@]" (format_ite ctx env) [s]
   | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
@@ -568,12 +575,19 @@ let rec format_statement
     Format.fprintf fmt
       "@,\
        @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
-       @[<hov 2>catala_error(catala_assertion_failed,@ %a,@ 1);@]@;\
+       @[<hov 2>catala_error(catala_assertion_failed,@ %a,@ 1,@ %s);@]@;\
        <1 -2>}@]"
       (format_expression ctx env)
       expr
       (format_expression ctx env)
       pos_expr
+      (match
+         Pos.get_attr (Mark.get s) (function
+           | ErrorMessage m -> Some m
+           | _ -> None)
+       with
+      | None -> "NULL"
+      | Some m -> String.quote m)
   | _ -> .
 
 and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :

@@ -53,11 +53,13 @@ struct catala_error
   const catala_code_position * position;
   int nb_positions;
   catala_error_code code;
+  const char * note; /* Can be NULL */
 };
 
 void catala_error(catala_error_code code,
                   const catala_code_position * pos,
-                  const int nb_pos);
+                  const int nb_pos,
+                  const char * note);
 
 /* --- Memory allocations --- */
 

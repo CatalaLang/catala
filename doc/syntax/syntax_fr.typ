@@ -155,7 +155,7 @@ déclaration énumération Énum1:
   -- Cas2
 ```, [Déclaration d'énumération],
 ```catala-fr-code
-## Documetation de Chp1
+## Documentation de Chp1
 ```, [Texte de documentation],
 ```catala-fr-code
 #[test]
@@ -206,16 +206,18 @@ selon expr sous forme
 -- n'importe quel : ...
 ```, [Filtrage par motif],
 ```catala-fr-code
-impossible
+#[error.message = "err"] impossible
 ```, [Calcul inaccessible],
+```catala-fr-code
+si ... alors ... sinon ...
+```, [Branchement],
 ```catala-fr-code
 #[debug.print = "message"] expr
 ```, [Annot. de débug],
 ```catala-fr-code
 expr sous forme Cas1
-expr sous forme Cas1 contenu x
-     et x >= 2
-```, [Test de filtrage avec variable optionnelle],
+          contenu x et x >= 2
+```, [Test de filtrage\ (optionnel: test contenu)],
 ```catala-fr-code
 struc1 mais en remplaçant
   { -- chp2: 8% }
@@ -232,11 +234,11 @@ résultat de Chp1
   avec { -- chp1: 9 -- chp2: 15% }
 ```, [Appel direct de champ d'application],
 ```catala-fr-code
-si ... alors ... sinon ...
-```, [Branchement],
-```catala-fr-code
 var1 état avant
-```, [Accès à un état]
+```, [Accès à un état],
+```catala-fr-code
+assertion x > 0 dans ...
+```, [Assertion locale]
 )
 
 #let scope = cheat-sheet.syntax-doc([Définition de champ d'application],
@@ -277,8 +279,8 @@ définition var1 état avant
   égal à ...
 ```, [Définition d'états],
 ```catala-fr-code
-assertion ...
-```, [Assertion],
+assertion var1 > 0
+```, [Assertion de champ],
 ```catala-fr-code
 date arrondi inf·supérieur
 ```, [Mode arrondi dates]

@@ -570,7 +570,7 @@ let equal_lit (l1 : lit) (l2 : lit) =
   | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
   | LDuration d1, LDuration d2 -> (
     try o_eq_dur_dur (pos_to_runtime Pos.void) d1 d2
-    with Catala_runtime.(Error (UncomparableDurations, _)) -> false)
+    with Catala_runtime.(Error (UncomparableDurations, _, _)) -> false)
   | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _), _ ->
     false
 
