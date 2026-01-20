@@ -1498,7 +1498,7 @@ let form_context (surface, mod_uses) surface_modules : context =
               (fun id modl ->
                 let mctx = ModuleName.Map.find modl ctxt.modules in
                 match Ident.Map.find_opt id mctx.typedefs with
-                | None -> None
+                | None | Some (TScope _) -> None
                 | Some tdef ->
                   let defname, _ = typedef_info tdef in
                   (* The feature is disabled if the module is aliased, except
@@ -1566,7 +1566,9 @@ let form_context (surface, mod_uses) surface_modules : context =
     Ident.Map.filter_map
       (fun id modl ->
         let mctx = ModuleName.Map.find modl ctxt.modules in
-        Ident.Map.find_opt id mctx.typedefs)
+        match Ident.Map.find_opt id mctx.typedefs with
+        | None | Some (TScope _) -> None
+        | some -> some)
       mod_uses
   in
   let ctxt =
