@@ -133,6 +133,7 @@ let backend_src_extensions =
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
+    Clerk_rules.Jsoo, ["ml"; "mli"];
   ]
 
 let backend_obj_extensions =
@@ -142,6 +143,7 @@ let backend_obj_extensions =
     Clerk_rules.Python, [];
     Clerk_rules.Java, ["class"];
     Clerk_rules.Tests, [];
+    Clerk_rules.Jsoo, [];
   ]
 
 let backend_extensions =
@@ -163,6 +165,7 @@ let backend_subdir_list =
     Clerk_rules.Java, "java";
     Clerk_rules.OCaml, "ocaml";
     Clerk_rules.Tests, "";
+    Clerk_rules.Jsoo, "jsoo";
   ]
 
 let subdir_backend_list =
@@ -176,7 +179,7 @@ let rule_subdir rule =
 let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
   match backend with
-  | `OCaml ->
+  | `Jsoo | `OCaml ->
     get_var var_bindings Var.ocamlopt_exe
     @ List.map (expand_vars var_bindings)
         (Lazy.force Clerk_poll.ocaml_link_flags)
@@ -336,6 +339,7 @@ let rules_backend = function
   | Clerk_rules.Python -> `Python
   | Clerk_rules.Java -> `Java
   | Clerk_rules.Tests -> `Interpret
+  | Clerk_rules.Jsoo -> `Jsoo
 
 let string_of_backend = function
   | `OCaml -> "ocaml"
@@ -343,6 +347,7 @@ let string_of_backend = function
   | `Python -> "python"
   | `Java -> "java"
   | `Interpret -> "interpret"
+  | `Jsoo -> "jsoo"
 
 let make_target ~build_dir ~backend item =
   let open File in
@@ -355,7 +360,7 @@ let make_target ~build_dir ~backend item =
     | `Interpret_module -> (
       (dir / "ocaml" / base)
       -.- match Sys.backend_type with Sys.Native -> "cmxs" | _ -> "cmo")
-    | `OCaml -> (dir / "ocaml" / base) -.- "cmx"
+    | `OCaml | `Jsoo -> (dir / "ocaml" / base) -.- "cmx"
     | `C -> (dir / "c" / base) -.- "o"
     | `Python -> (dir / "python" / base) -.- "py"
     | `Java -> (dir / "java" / base) -.- "class"
@@ -883,7 +888,7 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 let run_artifact config ~backend ~var_bindings ?scope src =
   let open File in
   match backend with
-  | `OCaml ->
+  | `OCaml | `Jsoo ->
     let cmd = (src -.- "exe") :: Option.to_list scope in
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
@@ -922,7 +927,7 @@ let run_artifact config ~backend ~var_bindings ?scope src =
 let enable_backend =
   let open Clerk_rules in
   function
-  | `Interpret | `OCaml -> OCaml
+  | `Interpret | `OCaml | `Jsoo -> OCaml
   | `C -> C
   | `Python -> Python
   | `Java -> Java
@@ -967,7 +972,7 @@ let build_test_deps
     let backend =
       match backend with
       | `Interpret -> `Interpret_module
-      | (`OCaml | `C | `Python | `Java) as bk -> bk
+      | (`OCaml | `C | `Python | `Java | `Jsoo) as bk -> bk
     in
     List.fold_left
       (fun acc (it, t) ->
@@ -1004,7 +1009,7 @@ let run_tests
     scope_input
     (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
-  match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
+  match (backend : [ `Interpret | `C | `OCaml | `Python | `Java | `Jsoo ]) with
   | `Interpret ->
     let () =
       match scope_input, test_targets with
@@ -1031,7 +1036,7 @@ let run_tests
     let cmd = exec @ [cmd; target] @ catala_flags in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     run_command cmd
-  | (`C | `OCaml | `Python | `Java) as backend -> (
+  | (`C | `OCaml | `Python | `Java | `Jsoo) as backend -> (
     let link_cmd =
       linking_command ~build_dir ~backend ~var_bindings link_deps
     in
@@ -1197,7 +1202,7 @@ let run_clerk_test
     config
     quiet
     (clerk_targets_or_files_or_folders : string list)
-    (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
+    (backend : [ `Interpret | `OCaml | `C | `Python | `Java | `Jsoo ])
     (reset_test_outputs : bool)
     verbosity
     (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])

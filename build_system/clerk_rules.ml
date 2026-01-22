@@ -22,15 +22,16 @@ module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
-type backend = OCaml | Python | C | Java | Tests (* | JS *)
+type backend = OCaml | Python | C | Java | Tests | Jsoo
 
-let all_backends = [OCaml; Python; C; Java; Tests]
+let all_backends = [OCaml; Python; C; Java; Tests; Jsoo]
 
 let backend_from_config = function
   | Clerk_config.OCaml -> OCaml
   | Clerk_config.Python -> Python
   | Clerk_config.C -> C
   | Clerk_config.Java -> Java
+  | Clerk_config.Jsoo -> Jsoo
   | _ -> invalid_arg __FUNCTION__
 
 (** Ninja variable names *)
@@ -58,6 +59,7 @@ module Var = struct
   let catala_flags_c = make "CATALA_FLAGS_C"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
   let catala_flags_java = make "CATALA_FLAGS_JAVA"
+  let catala_flags_jsoo = make "CATALA_FLAGS_JSOO"
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
@@ -71,6 +73,8 @@ module Var = struct
   let javac_flags = make "JAVAC_FLAGS"
   let jar = make "jar"
   let java = make "JAVA"
+  let js_of_ocaml_exe = make "JS_OF_OCAML_EXE"
+  let js_of_ocaml_flags = make "JS_OF_OCAML_FLAGS"
   let all_vars = all_vars_ref.contents
 
   (* Definition spreading different rules *)
@@ -151,6 +155,16 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
           | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
         test_flags
   in
+  let catala_flags_jsoo =
+    (if autotest then ["--autotest"] else [])
+    @
+    if use_default_flags then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
+  in
   let def var value =
     let value =
       match List.assoc_opt (Var.name var) options.variables with
@@ -188,7 +202,7 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
             (fun f -> "--catala-opts=" ^ f)
             (catala_flags @ if code_coverage then ["--whole-program"] else [])));
   ]
-  @ (if List.mem OCaml enabled_backends then
+  @ (if List.mem OCaml enabled_backends || List.mem Jsoo enabled_backends then
        [
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
@@ -214,28 +228,35 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.javac_flags (lazy ["-implicit:none"]);
        ]
      else [])
+  @ (if List.mem C enabled_backends then
+       [
+         def Var.catala_flags_c (lazy catala_flags_c);
+         def Var.cc_exe (lazy ["cc"]);
+         def Var.c_flags
+           (lazy
+             [
+               "-std=c89";
+               "-pedantic";
+               "-Wall";
+               "-Wno-unused-function";
+               "-Wno-unused-variable";
+               "-Wno-unused-but-set-variable";
+               "-Werror";
+               "-fPIC";
+               "-g";
+             ]);
+         def Var.c_include
+           (lazy
+             (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
+             @ includes ~backend:"c" ()));
+       ]
+     else [])
   @
-  if List.mem C enabled_backends then
+  if List.mem Jsoo enabled_backends then
     [
-      def Var.catala_flags_c (lazy catala_flags_c);
-      def Var.cc_exe (lazy ["cc"]);
-      def Var.c_flags
-        (lazy
-          [
-            "-std=c89";
-            "-pedantic";
-            "-Wall";
-            "-Wno-unused-function";
-            "-Wno-unused-variable";
-            "-Wno-unused-but-set-variable";
-            "-Werror";
-            "-fPIC";
-            "-g";
-          ]);
-      def Var.c_include
-        (lazy
-          (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ includes ~backend:"c" ()));
+      def Var.catala_flags_jsoo (lazy catala_flags_jsoo);
+      def Var.js_of_ocaml_exe (lazy ["js_of_ocaml"]);
+      def Var.js_of_ocaml_flags (lazy []);
     ]
   else []
 
@@ -276,6 +297,14 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
+  (if List.mem Jsoo enabled_backends then [
+      Nj.rule "catala-jsoo"
+        ~command:[!catala_exe; "jsoo"; !catala_flags; !catala_flags_jsoo;
+                  "-o"; !output; "--"; !input]
+        ~description:["<catala>"; "jsoo"; "⇒"; !output];
+    ]
+   else []
+  ) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
       ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
@@ -348,16 +377,24 @@ let gen_build_statements
            ])
          include_dirs
   in
-  let target ?backend ext =
+  let target ?suffix ?backend ext =
     let ext =
       match ext.[0] with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
       | _ -> ext
     in
+    let suffix =
+      match suffix with
+      | None | Some "" -> ""
+      | Some s -> (
+        match s.[0] with
+        | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "_" ^ s
+        | _ -> s)
+    in
     let bdir =
       match backend with
-      | None -> fun f -> f ^ ext
-      | Some b -> fun f -> (b / f) ^ ext
+      | None -> fun f -> f ^ suffix ^ ext
+      | Some b -> fun f -> (b / f) ^ suffix ^ ext
     in
     !Var.tdir / bdir !Var.dst
   in
@@ -409,8 +446,8 @@ let gen_build_statements
       else []
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
-  let extern_src backend ext missing =
-    let f = src -.- ext in
+  let extern_src ?suffix backend ext missing =
+    let f = file_with_extension ?suffix src ext in
     match check_file f with
     | Some f -> f, missing
     | None -> (
@@ -433,7 +470,7 @@ let gen_build_statements
            File.format)
         missing backend src
   in
-  let ocaml, c, python, java =
+  let ocaml, c, python, java, jsoo =
     if item.extrnal then
       let ocaml =
         if not (List.mem OCaml enabled_backends) then Seq.empty
@@ -485,7 +522,22 @@ let gen_build_statements
                 ~outputs:[target ~backend:"java" "java"];
             ]
       in
-      ocaml, c, python, java
+      let jsoo =
+        (* todo: not sure *)
+        if not (List.mem Jsoo enabled_backends) then Seq.empty
+        else
+          let ml, missing = extern_src ~suffix:"_jsoo" "jsoo" "ml" [] in
+          let mli, missing = extern_src ~suffix:"_jsoo" "jsoo" "mli" missing in
+          check_missing "jsoo" missing;
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
+                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"];
+              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
+                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
+            ]
+      in
+      ocaml, c, python, java, jsoo
     else
       let inputs = [catala_src] in
       let implicit_in =
@@ -516,7 +568,10 @@ let gen_build_statements
              ~outputs:[target ~backend:"python" "py"]),
         Seq.return
           (Nj.build "catala-java" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"java" "java"]) )
+             ~outputs:[target ~backend:"java" "java"]),
+        Seq.return
+          (Nj.build "catala-jsoo" ?vars ~inputs ~implicit_in
+             ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]) )
   in
   let ocamlopt =
     let obj =
@@ -655,12 +710,19 @@ let gen_build_statements
                ~inputs:[modfile ~backend:"python" ".py" modname];
            ]
          else [])
+      @ (if List.mem Java enabled_backends then
+           [
+             Nj.build "phony"
+               ~outputs:[modname ^ "@java-module"]
+               ~inputs:[modfile ~backend:"java" ".class" modname];
+           ]
+         else [])
       @
-      if List.mem Java enabled_backends then
+      if List.mem Jsoo enabled_backends then
         [
           Nj.build "phony"
-            ~outputs:[modname ^ "@java-module"]
-            ~inputs:[modfile ~backend:"java" ".class" modname];
+            ~outputs:[modname ^ "@jsoo-module"]
+            ~inputs:[module_target modname];
         ]
       else []
     | _ -> []
@@ -687,7 +749,8 @@ let gen_build_statements
     @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
     @ (if List.mem Python enabled_backends then [python] else [])
     @ (if List.mem Java enabled_backends then [java; Seq.return javac] else [])
-    @ if List.mem Tests enabled_backends then [List.to_seq tests] else []
+    @ (if List.mem Tests enabled_backends then [List.to_seq tests] else [])
+    @ if List.mem Jsoo enabled_backends then [jsoo] else []
   in
   Seq.concat (List.to_seq statements_list)
 
