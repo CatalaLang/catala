@@ -30,8 +30,9 @@ depends: [
   "ocamlfind" {!= "1.9.5"}
   "dune" {>= "3.13"}
   "cppo" {>= "1"}
-  "menhir" {>= "20200211"}
-  "menhirLib" {>= "20200211"}
+  "menhir" {>= "20200211" & < "20260112"}
+  # See https://github.com/CatalaLang/catala/issues/939 for the upper bound
+  "menhirLib" {>= "20200211" & < "20260112"}
   "ocolor" {>= "1.3.0"}
   "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
