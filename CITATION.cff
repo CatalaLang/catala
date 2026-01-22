@@ -66,5 +66,5 @@ abstract: >-
   faithful-by-construction algorithms from
   legislative texts.
 license: Apache-2.0
-version: 1.0.0
-date-released: "2025-11-05"
+version: 1.0.1
+date-released: "2026-02-05"
