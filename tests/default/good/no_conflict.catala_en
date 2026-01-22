@@ -25,22 +25,6 @@ scope B:
 
 ```catala-test-cli
 $ catala test-scope B
-┌─[WARNING]─
-│
-│  Multiple conflicting definitions:
-│  these have the same conditions and will always trigger a conflict at runtime.
-│
-├─➤ tests/default/good/no_conflict.catala_en:5.10-5.11:
-│   │
-│ 5 │   output r content integer
-│   │          ‾
-├─ Article
-│
-├─➤ tests/default/good/no_conflict.catala_en:5.10-5.11:
-│   │
-│ 5 │   output r content integer
-│   │          ‾
-└─ Article
 ┌─[RESULT]─ B ─
 │ r = 3
 └─

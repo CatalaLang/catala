@@ -149,7 +149,7 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
     let format = Expr.format
   end) in
   (* Detect identical outcomes, and implicitely add a hierarchy so that a
-     conflict is'nt triggered *)
+     conflict isn't triggered *)
   let cons_map =
     List.fold_left
       (fun map -> function
@@ -185,7 +185,7 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
         let just =
           match ex with
           | EDefault { cons = EDefault _, _; _ }, _ -> None
-          | EDefault { just; _ }, _ -> Some just
+          | EDefault { just; excepts = []; _ }, _ -> Some just
           | EPureDefault (_, m), _ -> Some (ELit (LBool true), m)
           | _ -> None
         in
