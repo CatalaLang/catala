@@ -108,4 +108,10 @@ declaration round_to_decimal
     nth_decimal content integer
   equals
     D.round_to_decimal of d, nth_decimal
+
+## Sums the elements of a list of Decimal
+declaration sum
+  content decimal
+  depends on l content list of decimal
+  equals combine all x among l in total initially 0.0 with total + x
 ```

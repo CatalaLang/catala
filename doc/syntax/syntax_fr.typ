@@ -315,9 +315,6 @@ transforme chaque (x, y)
 lst1 ++ lst2
 ```, [Réunion],
 ```catala-fr-code
-somme entier de lst
-```, [Agrégation],
-```catala-fr-code
 nombre de lst
 ```, [Comptage],
 ```catala-fr-code

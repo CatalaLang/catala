@@ -103,6 +103,13 @@ declaration round_to_decimal
     nth_decimal content integer
   equals
     M.round_to_decimal of m, nth_decimal
+
+## Sums the elements of a list of money
+declaration sum
+  content money
+  depends on l content list of money
+  equals combine all x among l in total initially $0 with total + x
+
 ```
 
 ## Financial operations
@@ -127,4 +134,5 @@ declaration in_default
     reference content money
   equals
     max of ($0, reference - m)
+
 ```

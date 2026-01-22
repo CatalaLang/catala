@@ -63,6 +63,7 @@
   val lex_builtin: string -> Ast.builtin_expression option
   val lex_primitive_type: string -> Ast.primitive_typ option
   val lex_builtin_constr: string -> Ast.builtin_constr option
+  val sum_string: string
 end>
 
 (* The token is returned for every line of law text, make them right-associative
@@ -237,6 +238,12 @@ let lident :=
         "Reserved builtin name"
   | None ->
       (i, get_pos $sloc)
+}
+| SUM ; {
+  (* TEMPORARY: this is for backwards-compat with the deprecated
+     "sum integer of..." syntax.
+     When that is removed, the SUM keyword will go *)
+  (Localisation.sum_string, get_pos $sloc)
 }
 
 let scope_var == separated_nonempty_list(DOT, addpos(LIDENT))

@@ -1,0 +1,24 @@
+# Durations
+
+> Module Duration_en
+
+## Helper functions
+
+Comparisons on durations can fail (e.g. there is no good answer to `30 day < 1
+month`). This is why the common `min`, `max` etc. functions are not provided for
+this module.
+
+```catala-metadata
+## Returns the argument if it is positive, 0 otherwise.
+declaration positive
+  content duration
+  depends on d content duration
+  equals
+    if d > 0 day then d else 0 day
+
+## Sums the elements of a list of Decimal
+declaration sum
+  content duration
+  depends on l content list of duration
+  equals combine all x among l in total initially 0 day with total + x
+```

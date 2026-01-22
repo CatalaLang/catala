@@ -104,6 +104,14 @@ déclaration arrondi_à_la_décimale
     nième_décimale contenu entier
   égal à
     M.round_to_decimal de a, nième_décimale
+
+## Calcule la somme des éléments d'une liste d'argent
+déclaration somme
+  contenu argent
+  dépend de l contenu liste de argent
+  égal à
+    combine tout x parmi l dans total initialement 0€ avec total + x
+
 ```
 
 ## Opérations financières

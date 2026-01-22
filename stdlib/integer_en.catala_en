@@ -48,4 +48,10 @@ declaration positive
   depends on n content integer
   equals
     floor of n, 0
+
+## Sums the elements of a list of Decimal
+declaration sum
+  content integer
+  depends on l content list of integer
+  equals combine all x among l in total initially 0 with total + x
 ```

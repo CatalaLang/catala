@@ -13,8 +13,12 @@ scope S:
     assertion (map each i among [1; 2; 3] such that i > 2 to (i + 2) ) = [5]
 
 # Sum
+    # Old, deprecated syntax
     assertion sum integer of [1; 2; 3] = 6
     assertion sum integer of (map each i among [1; 2; 3] to (i + 2)) = 12
+    # New syntax
+    assertion Integer.sum of [1; 2; 3] = 6
+    assertion Integer.sum of (map each i among [1; 2; 3] to (i + 2)) = 12
 
 # Count
     assertion number of [1; 2; 3] = 3
@@ -63,6 +67,8 @@ let scope S (x: integer|internal|output) =
             (λ () → 0)
             map (λ (i: integer) → i + 2) [1; 2; 3])
          = 12;
+  assert (Integer_en.sum [1; 2; 3]) = 6;
+  assert (Integer_en.sum map (λ (i: integer) → i + 2) [1; 2; 3]) = 12;
   assert (length [1; 2; 3]) = 3;
   assert (length filter (λ (i: integer) → i >= 2) [1; 2; 3]) = 2;
   assert (reduce

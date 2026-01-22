@@ -169,4 +169,7 @@ module type LocalisedLexer = sig
     Sedlexing.lexbuf ->
     (string * line_token) option
   (** Low-level lexer intended for dependency extraction *)
+
+  val sum_string : string
+  (** Temporary hack while the "sum" keyword is being deprecated *)
 end

@@ -1005,3 +1005,5 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
      | eof -> None
      | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
      | _ -> assert false)
+
+let sum_string = MS_SUM
