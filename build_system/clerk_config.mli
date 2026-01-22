@@ -17,7 +17,7 @@
 open Catala_utils
 
 type backend = ..
-type backend += C | OCaml | Java | Python
+type backend += C | OCaml | Java | Python | Jsoo
 
 val register_backend : name:string -> backend -> unit
 
