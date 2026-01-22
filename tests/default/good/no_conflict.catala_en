@@ -1,0 +1,31 @@
+## Article
+
+```catala
+declaration scope B:
+  output r content integer
+
+scope B:
+  label e1
+  definition r
+  equals
+    1
+
+  label e2 exception e1
+  definition r
+  under condition 0 < 0
+  consequence equals
+    2
+
+  label e3 exception e1
+  definition r
+  under condition 0 >= 0
+  consequence equals
+    3
+```
+
+```catala-test-cli
+$ catala test-scope B
+┌─[RESULT]─ B ─
+│ r = 3
+└─
+```
