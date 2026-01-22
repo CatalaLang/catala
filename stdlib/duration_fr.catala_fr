@@ -1,0 +1,25 @@
+# Durées
+
+> Module Duration_fr
+
+## Fonctions utilitaires
+
+La comparaison de deux durées est susceptible d'échouer (par exemple, il n'y a
+pas de bonne réponse à `30 jour < 1 mois`). Pour cette raison, les opérations
+habituelles `min`, `max`, etc. ne sont pas proposées dans ce module.
+
+```catala-metadata
+## Renvoie l'argument s'il est positif, 0 sinon.
+déclaration positif
+  contenu durée
+  dépend de d contenu durée
+  égal à
+    si d > 0 jour alors d sinon 0 jour
+
+## Calcule la somme des éléments d'une liste de durées
+déclaration somme
+  contenu durée
+  dépend de l contenu liste de durée
+  égal à
+    combine tout x parmi l dans total initialement 0 jour avec total + x
+```

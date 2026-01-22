@@ -49,4 +49,11 @@ déclaration positif
   dépend de variable contenu entier
   égal à
     plancher de variable, 0
+
+## Calcule la somme des éléments d'une liste de décimaux
+déclaration somme
+  contenu entier
+  dépend de l contenu liste de entier
+  égal à
+    combine tout x parmi l dans total initialement 0 avec total + x
 ```

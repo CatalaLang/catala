@@ -306,9 +306,6 @@ map each (x, y) among (lst1, lst2)
 lst1 ++ lst2
 ```, [Merge],
 ```catala-en-code
-sum integer of lst
-```, [Aggregation],
-```catala-en-code
 number of lst
 ```, [Count],
 ```catala-en-code

@@ -101,4 +101,7 @@ module type LocalisedLexer = sig
   (** Low-level lexer intended for dependency extraction. The whole line
       (including ["\n"] is always returned together with the token. [None] for
       EOF. The call updates the passed context reference as expected *)
+
+  val sum_string : string
+  (** Temporary hack while the "sum" keyword is being deprecated *)
 end

@@ -110,4 +110,11 @@ déclaration arrondi_à_la_décimale
     nième_décimale contenu entier
   égal à
     D.round_to_decimal de d, nième_décimale
+
+## Calcule la somme des éléments d'une liste de décimaux
+déclaration somme
+  contenu décimal
+  dépend de l contenu liste de décimal
+  égal à
+    combine tout x parmi l dans total initialement 0,0 avec total + x
 ```
