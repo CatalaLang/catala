@@ -2,7 +2,7 @@
 
 #let render_title(title, subtitle) = {
     place(top+left, image("logo.svg", width: 30pt))
-    place(top+right)[v1.0.1 pre · Révision \#1 · ⓒ #datetime.today().year()]
+    place(top+right)[v1.1.0 · Révision \#1 · ⓒ #datetime.today().year()]
     box(height:30pt, width:100%, align(horizon+center,{
         upper(text(size:15pt, title))
         h(30pt)
