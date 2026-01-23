@@ -44,6 +44,8 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Parsing "libcatala/stdlib_en.catala_en"
 [DEBUG] Parsing "libcatala/date_en.catala_en"
 [DEBUG] Parsing "libcatala/date_internal.catala_en"
+[DEBUG] Parsing "libcatala/list_en.catala_en"
+[DEBUG] Parsing "libcatala/list_internal.catala_en"
 [DEBUG] Parsing "libcatala/duration_en.catala_en"
 [DEBUG] Parsing "libcatala/monthyear_en.catala_en"
 [DEBUG] Parsing "libcatala/period_en.catala_en"
@@ -53,8 +55,6 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Parsing "libcatala/integer_en.catala_en"
 [DEBUG] Parsing "libcatala/decimal_en.catala_en"
 [DEBUG] Parsing "libcatala/decimal_internal.catala_en"
-[DEBUG] Parsing "libcatala/list_en.catala_en"
-[DEBUG] Parsing "libcatala/list_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...
@@ -65,9 +65,9 @@ $ catala interpret -s RentComputation --debug
 [DEBUG] Typechecking...
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
-[DEBUG] Loading shared modules... Date_internal Date_en Duration_en
-  MonthYear_en Period_internal Period_en Money_internal Money_en Integer_en
-  Decimal_internal Decimal_en List_internal List_en Stdlib_en
+[DEBUG] Loading shared modules... Date_internal List_internal List_en Date_en
+  Duration_en MonthYear_en Period_internal Period_en Money_internal Money_en
+  Integer_en Decimal_internal Decimal_en Stdlib_en
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─ RentComputation ─
@@ -95,6 +95,8 @@ $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] Parsing "libcatala/stdlib_en.catala_en"
 [DEBUG] Parsing "libcatala/date_en.catala_en"
 [DEBUG] Parsing "libcatala/date_internal.catala_en"
+[DEBUG] Parsing "libcatala/list_en.catala_en"
+[DEBUG] Parsing "libcatala/list_internal.catala_en"
 [DEBUG] Parsing "libcatala/duration_en.catala_en"
 [DEBUG] Parsing "libcatala/monthyear_en.catala_en"
 [DEBUG] Parsing "libcatala/period_en.catala_en"
@@ -104,8 +106,6 @@ $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] Parsing "libcatala/integer_en.catala_en"
 [DEBUG] Parsing "libcatala/decimal_en.catala_en"
 [DEBUG] Parsing "libcatala/decimal_internal.catala_en"
-[DEBUG] Parsing "libcatala/list_en.catala_en"
-[DEBUG] Parsing "libcatala/list_internal.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...
@@ -120,9 +120,9 @@ $ catala Interpret --lcalc -s RentComputation --optimize --debug
 [DEBUG] = LCALC =
 [DEBUG] Optimizing lambda calculus...
 [DEBUG] Retyping lambda calculus...
-[DEBUG] Loading shared modules... Date_internal Date_en Duration_en
-  MonthYear_en Period_internal Period_en Money_internal Money_en Integer_en
-  Decimal_internal Decimal_en List_internal List_en Stdlib_en
+[DEBUG] Loading shared modules... Date_internal List_internal List_en Date_en
+  Duration_en MonthYear_en Period_internal Period_en Money_internal Money_en
+  Integer_en Decimal_internal Decimal_en Stdlib_en
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 ┌─[RESULT]─ RentComputation ─

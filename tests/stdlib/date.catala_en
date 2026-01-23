@@ -68,4 +68,10 @@ scope Tunit:
     Date.is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-06-15| = false
     and Date.is_young_enough_rounding_up of |2000-06-01|, 24 year, |2024-05-15| = true
     and Date.is_young_enough_rounding_up of |2000-01-31|, 1 month, |2000-02-29| = true
+
+  # day of week
+  assertion
+    Date.day_of_week of |2025-12-31| = Wednesday
+    and Date.day_of_week of |2026-01-01| = Thursday
+    and Date.day_of_week of |1930-09-11| = Thursday
 ```
