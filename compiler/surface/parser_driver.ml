@@ -66,9 +66,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
 
   (** Returns the state number from the Menhir environment *)
   let state (env : 'semantic_value I.env) : int =
-    match Lazy.force (I.stack env) with
-    | MenhirLib.General.Nil -> 0
-    | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
+    match I.top env with None -> 0 | Some (Element (s, _, _, _)) -> I.number s
 
   let register_parsing_error
       (lexbuf : lexbuf)
