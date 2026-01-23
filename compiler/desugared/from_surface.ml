@@ -539,13 +539,20 @@ let rec translate_expr
       "Access to intermediate states is only allowed for variables of the \
        current scope."
   | Ident (path, name, None) -> (
-    let _, ctxt = Name_resolution.module_ctx ctxt path in
+    let ml, ctxt = Name_resolution.module_ctx ctxt path in
     match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
-    | Some v ->
+    | Some topdef ->
+      let path : Uid.Path.t =
+        List.map2
+          (fun (_, pos) mname ->
+            ModuleName.map_info (fun (name, _) -> name, pos) mname)
+          path ml
+      in
+      let v = TopdefName.map_info (fun _ -> path, name) topdef in
       Expr.elocation
         (ToplevelVar
            {
-             name = v, Mark.get (TopdefName.get_info v);
+             name = v, Mark.get (TopdefName.get_info topdef);
              is_external = ctxt.local.is_external;
            })
         emark
