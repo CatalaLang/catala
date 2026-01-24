@@ -193,7 +193,7 @@ unstable and lacks some of its features.
 ## Pierre Catala
 
 The language is named after Pierre Catala, a professor of law who
-pionneered the French legaltech by creating a computer database of law cases,
+pioneered the French legaltech by creating a computer database of law cases,
 Juris-Data. The research group that he led in the late 1960s, the
 Centre d’études et de traitement de l’information juridique (CETIJ),
 has also influenced the creation by state conselor Lucien Mehl of the
