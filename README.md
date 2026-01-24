@@ -6,7 +6,8 @@
   <p align="center">
    <a href="https://book.catala-lang.org/"><strong>Explore the docs »</strong></a>
    <br/>
-   <a href="https://book.catala-lang.org/1-0-getting_started.html">Getting started</a>
+   <a href="https://book.catala-lang.org/en/1-0-getting_started.html">Getting
+  started</a>
    •
    <a href="https://github.com/CatalaLang/catala/issues">Report Bug</a>
    •
@@ -20,7 +21,7 @@
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
-[Catala tutorial](https://book.catala-lang.org/2-0-tutorial.html).
+[Catala tutorial](https://book.catala-lang.org/en/2-0-tutorial.html).
 You can join the Catala community on [Zulip][chat-link]!
 
 </div>
