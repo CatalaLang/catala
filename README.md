@@ -6,7 +6,8 @@
   <p align="center">
    <a href="https://book.catala-lang.org/"><strong>Explore the docs »</strong></a>
    <br/>
-   <a href="https://book.catala-lang.org/1-0-getting_started.html">Getting started</a>
+   <a href="https://book.catala-lang.org/en/1-0-getting_started.html">Getting
+  started</a>
    •
    <a href="https://github.com/CatalaLang/catala/issues">Report Bug</a>
    •
@@ -20,7 +21,7 @@
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
-[Catala tutorial](https://book.catala-lang.org/2-0-tutorial.html).
+[Catala tutorial](https://book.catala-lang.org/en/2-0-tutorial.html).
 You can join the Catala community on [Zulip][chat-link]!
 
 </div>
@@ -192,7 +193,7 @@ unstable and lacks some of its features.
 ## Pierre Catala
 
 The language is named after Pierre Catala, a professor of law who
-pionneered the French legaltech by creating a computer database of law cases,
+pioneered the French legaltech by creating a computer database of law cases,
 Juris-Data. The research group that he led in the late 1960s, the
 Centre d’études et de traitement de l’information juridique (CETIJ),
 has also influenced the creation by state conselor Lucien Mehl of the
