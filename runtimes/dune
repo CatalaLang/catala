@@ -21,8 +21,10 @@
 (install
  (package catala-js)
  (files
-  (jsoo/runtime_jsoo.ml as runtime/jsoo/runtime_jsoo.ml)
-  (jsoo/runtime_jsoo.mli as runtime/jsoo/runtime_jsoo.mli))
+  (jsoo/dates_calc_jsoo.ml as runtime/jsoo/dates_calc_jsoo.ml)
+  (jsoo/dates_calc_jsoo.mli as runtime/jsoo/dates_calc_jsoo.mli)
+  (jsoo/catala_runtime_jsoo.ml as runtime/jsoo/catala_runtime_jsoo.ml)
+  (jsoo/catala_runtime_jsoo.mli as runtime/jsoo/catala_runtime_jsoo.mli))
  (section lib))
 
 ; Python runtime
