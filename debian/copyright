@@ -20,6 +20,11 @@ Files: deps/ocolor-*/*
 Copyright: 2019-2023, Marc Chevalier
 License: MIT
 
+Files: deps/data-encoding-*/*
+Copyright:  2018, Dynamic Ledger Solutions Inc. <contact@tezos.com>
+            2018-2021, Nomadic Labs <contact@nomadic-labs.com>
+License: MIT
+
 Files: deps/ubase-*/*
 Copyright: 2019-2023, Vu Ngog San
 License: LGPL-3.0-or-later
