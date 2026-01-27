@@ -19,6 +19,8 @@ Build-depends:
   libalcotest-ocaml-dev,
   libzarith-ocaml-dev,
   libuucp-ocaml-dev,
+  libhex-ocaml-dev,
+  liburi-ocaml-dev,
 #test-depends
   ocaml-qtest,
   libounit-ocaml-dev,
