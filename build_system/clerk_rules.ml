@@ -202,7 +202,7 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
             (fun f -> "--catala-opts=" ^ f)
             (catala_flags @ if code_coverage then ["--whole-program"] else [])));
   ]
-  @ (if List.mem OCaml enabled_backends || List.mem Jsoo enabled_backends then
+  @ (if List.mem OCaml enabled_backends then
        [
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
@@ -399,9 +399,9 @@ let gen_build_statements
     !Var.tdir / bdir !Var.dst
   in
   let modules = List.rev_map Mark.remove item.used_modules in
-  let modfile ?(backend = "ocaml") ext modname =
+  let modfile ?(suffix = "") ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
-    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
+    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ suffix ^ ext
     | None -> modname ^ "@" ^ backend ^ "-module"
   in
   let module_target x = modfile "@ocaml-module" x in
@@ -527,14 +527,11 @@ let gen_build_statements
         if not (List.mem Jsoo enabled_backends) then Seq.empty
         else
           let ml, missing = extern_src ~suffix:"_jsoo" "jsoo" "ml" [] in
-          let mli, missing = extern_src ~suffix:"_jsoo" "jsoo" "mli" missing in
           check_missing "jsoo" missing;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
                 ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"];
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
-                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
             ]
       in
       ocaml, c, python, java, jsoo
@@ -571,7 +568,8 @@ let gen_build_statements
              ~outputs:[target ~backend:"java" "java"]),
         Seq.return
           (Nj.build "catala-jsoo" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]) )
+             ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]
+             ~implicit_out:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"]) )
   in
   let ocamlopt =
     let obj =
@@ -722,7 +720,7 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~outputs:[modname ^ "@jsoo-module"]
-            ~inputs:[module_target modname];
+            ~inputs:[modfile ~suffix:"_jsoo" ~backend:"jsoo" ".ml" modname];
         ]
       else []
     | _ -> []
@@ -979,48 +977,79 @@ let runtime_build_statements ~config enabled_backends =
            ~outputs:[python_base -.- "py"];
        ]
      else [])
+  @ (if List.mem Java enabled_backends then
+       let java_base = stdbase / "java" in
+       let java_src = Var.(!runtime) / "java" in
+       let java_orig_prefix = Lazy.force runtime_orig / "java" in
+       let java_files =
+         File.scan_tree
+           (fun f ->
+             let base = File.basename f in
+             if
+               Filename.check_suffix base ".java"
+               && base = String.capitalize_ascii base
+             then Some (File.remove_prefix java_orig_prefix f)
+             else None)
+           java_orig_prefix
+         |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+         |> Seq.map (File.remove_prefix java_src)
+         |> List.of_seq
+       in
+       let java_list_file =
+         let base =
+           config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
+         in
+         File.with_out_channel (base / "java.files") (fun oc ->
+             List.iter
+               (fun s -> output_string oc ((base / s) ^ "\n"))
+               java_files);
+         java_base / "java.files"
+       in
+       Nj.build "phony"
+         ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
+         ~outputs:["@runtime-java-src"]
+       :: Nj.build "phony"
+            ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+            ~outputs:["@runtime-java"]
+       :: Nj.build "java-class" ~inputs:[]
+            ~implicit_in:
+              (java_list_file :: List.map (fun f -> java_base / f) java_files)
+            ~outputs:
+              (List.map (fun f -> (java_base / f) -.- "class") java_files)
+            ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+       :: List.map
+            (fun f ->
+              Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+            java_files
+     else [])
   @
-  if List.mem Java enabled_backends then
-    let java_base = stdbase / "java" in
-    let java_src = Var.(!runtime) / "java" in
-    let java_orig_prefix = Lazy.force runtime_orig / "java" in
-    let java_files =
-      File.scan_tree
-        (fun f ->
-          let base = File.basename f in
-          if
-            Filename.check_suffix base ".java"
-            && base = String.capitalize_ascii base
-          then Some (File.remove_prefix java_orig_prefix f)
-          else None)
-        java_orig_prefix
-      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
-      |> Seq.map (File.remove_prefix java_src)
-      |> List.of_seq
-    in
-    let java_list_file =
-      let base =
-        config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
-      in
-      File.with_out_channel (base / "java.files") (fun oc ->
-          List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
-      java_base / "java.files"
-    in
-    Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@runtime-java-src"]
-    :: Nj.build "phony"
-         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@runtime-java"]
-    :: Nj.build "java-class" ~inputs:[]
-         ~implicit_in:
-           (java_list_file :: List.map (fun f -> java_base / f) java_files)
-         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
-    :: List.map
-         (fun f ->
-           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
-         java_files
+  if List.mem Jsoo enabled_backends then
+    let jsoo_src = Var.(!runtime) / "jsoo" in
+    let dates_base = stdbase / "jsoo" / "dates_calc" in
+    let runtime_base = stdbase / "jsoo" / "catala_runtime" in
+    [
+      Nj.build "phony"
+        ~inputs:
+          [
+            file_with_extension ~suffix:"_jsoo" dates_base "ml";
+            file_with_extension ~suffix:"_jsoo" dates_base "mli";
+            file_with_extension ~suffix:"_jsoo" runtime_base "ml";
+            file_with_extension ~suffix:"_jsoo" runtime_base "mli";
+          ]
+        ~outputs:["@runtime-jsoo-src"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "catala_runtime_jsoo.mli"]
+        ~outputs:[file_with_extension ~suffix:"_jsoo" runtime_base "mli"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "catala_runtime_jsoo.ml"]
+        ~outputs:[file_with_extension ~suffix:"_jsoo" runtime_base "ml"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "dates_calc_jsoo.mli"]
+        ~outputs:[file_with_extension ~suffix:"_jsoo" dates_base "mli"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "dates_calc_jsoo.ml"]
+        ~outputs:[file_with_extension ~suffix:"_jsoo" dates_base "ml"];
+    ]
   else []
 
 let output_ninja_file_header pp ~config ~enabled_backends ~var_bindings =

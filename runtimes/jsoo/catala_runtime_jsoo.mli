@@ -18,6 +18,7 @@
     wrapper around the {!module: Runtime}. *)
 
 open Js_of_ocaml
+open Catala_runtime
 
 type unit_jsoo = unit
 
@@ -62,20 +63,51 @@ type decimal_jsoo = decimal_ct Js.t
 val decimal_to_jsoo : decimal -> decimal_jsoo
 val decimal_of_jsoo : decimal_jsoo -> decimal
 
-type date_jsoo = Js.date Js.t
+type date_jsoo = Dates_calc_jsoo.date_jsoo
 
 val date_to_jsoo : date -> date_jsoo
 val date_of_jsoo : date_jsoo -> date
 
-type error_jsoo = Js.js_string Js.t
+type date_rounding_jsoo = Dates_calc_jsoo.date_rounding_jsoo
 
-val error_to_jsoo : error -> error_jsoo
-val error_of_jsoo : error_jsoo -> error
+val date_rounding_to_jsoo : date_rounding -> date_rounding_jsoo
+val date_rounding_of_jsoo : date_rounding_jsoo -> date_rounding
 
-(** {1 Log events} *)
+type duration_jsoo = Dates_calc_jsoo.period_jsoo
 
-(** Information about the position of the log inside the Catala source file. *)
-class type code_location = object
+val duration_to_jsoo : duration -> duration_jsoo
+val duration_of_jsoo : duration_jsoo -> duration
+
+module Optional : sig
+  type 'a t = 'a Catala_runtime.Optional.t = Absent | Present of 'a
+
+  class type ['a] ct = object
+    method _Absent : unit_jsoo Js.optdef Js.prop
+    method _Present : 'a Js.optdef Js.prop
+  end
+
+  type 'a jsoo = 'a ct Js.t
+
+  val to_jsoo : ('a -> 'a_jsoo) -> 'a t -> 'a_jsoo jsoo
+  val of_jsoo : ('a_jsoo -> 'a) -> 'a_jsoo jsoo -> 'a t
+end
+
+type io_input_jsoo = Js.js_string Js.t
+
+val io_input_to_jsoo : io_input -> io_input_jsoo
+val io_input_of_jsoo : io_input_jsoo -> io_input
+
+class type io_log_ct = object
+  method io_input_ : io_input_jsoo Js.prop
+  method io_output_ : bool Js.t Js.prop
+end
+
+type io_log_jsoo = io_log_ct Js.t
+
+val io_log_to_jsoo : io_log -> io_log_jsoo
+val io_log_of_jsoo : io_log_jsoo -> io_log
+
+class type code_location_ct = object
   method fileName : Js.js_string Js.t Js.prop
   method startLine : int Js.prop
   method endLine : int Js.prop
@@ -83,6 +115,16 @@ class type code_location = object
   method endColumn : int Js.prop
   method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
 end
+
+type code_location_jsoo = code_location_ct Js.t
+
+val code_location_to_jsoo : code_location -> code_location_jsoo
+val code_location_of_jsoo : code_location_jsoo -> code_location
+
+type error_jsoo = Js.js_string Js.t
+
+val error_to_jsoo : error -> error_jsoo
+val error_of_jsoo : error_jsoo -> error
 
 (** Wrapper for the {!type: Runtime.raw_event} -- directly collected during the
     program execution.*)
@@ -111,7 +153,7 @@ class type raw_event = object
         letter [Subscope_name] or, the [input] (resp. [output]) string -- which
         corresponds to the input (resp. the output) of a function. *)
 
-  method sourcePosition : code_location Js.t Js.optdef Js.prop
+  method sourcePosition : code_location_jsoo Js.optdef Js.prop
 
   method loggedIOJson : Js.js_string Js.t Js.prop
   (** Serialzed [Runtime.io_log] corresponding to a `VariableDefinition` raw
@@ -137,32 +179,6 @@ end
 
 val event_manager : event_manager Js.t
 (** JS object usable to retrieve and reset log events. *)
-
-(** {1 Duration} *)
-
-(** Simple JSOO wrapper around {!type: Runtime.duration}.*)
-class type duration = object
-  method years : int Js.readonly_prop
-  method months : int Js.readonly_prop
-  method days : int Js.readonly_prop
-end
-
-val duration_of_js : duration Js.t -> Catala_runtime.duration
-val duration_to_js : Catala_runtime.duration -> duration Js.t
-
-(** {1 Date conversion} *)
-
-(** Date values are encoded to a string in the
-    {{:https://www.iso.org/iso-8601-date-and-time-format.html} ISO8601 format}:
-    'YYYY-MM-DD'. *)
-
-val date_of_js : Js.js_string Js.t -> Catala_runtime.date
-val date_to_js : Catala_runtime.date -> Js.js_string Js.t
-
-(** {1 Error management} *)
-
-val position_of_js : code_location Js.t -> Catala_runtime.code_location
-val position_to_js : Catala_runtime.code_location -> code_location Js.t
 
 val execute_or_throw_error : (unit -> 'a) -> 'a
 (** [execute_or_throw_error f] calls [f ()] and propagates the

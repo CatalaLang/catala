@@ -222,7 +222,7 @@ let extension filename =
   in
   String.remove_prefix ~prefix:"." full_extension
 
-let file_with_extension ?suffix file ext =
+let file_with_extension ?(suffix = "") file ext =
   (* file_ext may be empty, "<ext>" when non-md, "md" if only ".md" is present
      and "<ext>.md" if a double-extension is present *)
   let file_ext = extension file in
@@ -232,15 +232,14 @@ let file_with_extension ?suffix file ext =
     else
       (* Remove the extension and the dot *)
       let f = String.(sub file 0 (length file - length file_ext - 1)) in
-      Option.fold ~none:f ~some:(fun suf -> f ^ suf) suffix
+      f ^ suffix
   else if file_ext = "" then
     (* File has no extension, append the new one *)
-    file ^ "." ^ ext
+    file ^ suffix ^ "." ^ ext
   else
     (* Remove the existing extension (minus the dot) and append the new one *)
     let f = String.(sub file 0 (length file - length file_ext - 1)) in
-    let f = Option.fold ~none:f ~some:(fun suf -> f ^ suf) suffix in
-    f ^ "." ^ ext
+    f ^ suffix ^ "." ^ ext
 
 let ( -.- ) file ext = file_with_extension file ext
 let remove_extension filename = filename -.- ""

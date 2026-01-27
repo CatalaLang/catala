@@ -15,12 +15,12 @@
    the License. *)
 
 open Js_of_ocaml
-module R_ocaml = Catala_runtime
+open Catala_runtime
 
 type unit_jsoo = unit
 
 let unit_to_jsoo = Fun.id
-let unit_od_jsoo = Fun.id
+let unit_of_jsoo = Fun.id
 
 type bool_jsoo = bool Js.t
 
@@ -59,8 +59,8 @@ type decimal_jsoo = decimal_ct Js.t
 
 let decimal_to_jsoo q =
   object%js
-    val n = bigInt (Js.string (Z.to_string (Q.num q)))
-    val d = bigInt (Js.string (Z.to_string (Q.den q)))
+    val mutable n = bigInt (Js.string (Z.to_string (Q.num q)))
+    val mutable d = bigInt (Js.string (Z.to_string (Q.den q)))
   end
 
 let decimal_of_jsoo js =
@@ -68,22 +68,90 @@ let decimal_of_jsoo js =
     (Z.of_string (Js.to_string js##.n##toString))
     (Z.of_string (Js.to_string js##.d##toString))
 
-type date_jsoo = Js.date Js.t
+type date_jsoo = Dates_calc_jsoo.date_jsoo
 
-let date_to_jsoo d =
-  let cs = Js.Unsafe.global##._Date in
-  new%js cs (Js.string (Format.asprintf "%a" Dates_calc.format_date d))
+let date_to_jsoo = Dates_calc_jsoo.date_to_jsoo
+let date_of_jsoo = Dates_calc_jsoo.date_of_jsoo
 
-let date_of_jsoo js =
-  let s = Js.to_string js##toISOString in
-  Dates_calc.date_of_string (String.sub s 0 10)
+type date_rounding_jsoo = Dates_calc_jsoo.date_rounding_jsoo
 
-type error_jsoo = Js.js_string Js.t
+let date_rounding_to_jsoo = Dates_calc_jsoo.date_rounding_to_jsoo
+let date_rounding_of_jsoo = Dates_calc_jsoo.date_rounding_of_jsoo
 
-let error_to_jsoo e = Js.string (R_ocaml.error_to_string e)
-let error_of_jsoo js = R_ocaml.error_of_string (Js.to_string js)
+type duration_jsoo = Dates_calc_jsoo.period_jsoo
 
-class type code_location = object
+let duration_to_jsoo = Dates_calc_jsoo.period_to_jsoo
+let duration_of_jsoo = Dates_calc_jsoo.period_of_jsoo
+
+module Optional = struct
+  include Optional
+
+  class type ['a] ct = object
+    method _Absent : unit_jsoo Js.optdef Js.prop
+    method _Present : 'a Js.optdef Js.prop
+  end
+
+  type 'a jsoo = 'a ct Js.t
+
+  let to_jsoo a_to_jsoo x =
+    match x with
+    | Absent ->
+      object%js
+        val mutable _Absent = Js.def ()
+        val mutable _Present = Js.undefined
+      end
+    | Present a ->
+      object%js
+        val mutable _Absent = Js.undefined
+        val mutable _Present = Js.def (a_to_jsoo a)
+      end
+
+  let of_jsoo a_of_jsoo js =
+    match
+      Js.Optdef.to_option js##._Absent, Js.Optdef.to_option js##._Present
+    with
+    | Some _, _ -> Absent
+    | _, Some a -> Present (a_of_jsoo a)
+    | _ -> invalid_arg "unknown case"
+end
+
+type io_input_jsoo = Js.js_string Js.t
+
+let io_input_to_jsoo x =
+  Js.string
+  @@
+  match x with
+  | NoInput -> "NoInput"
+  | OnlyInput -> "OnlyInput"
+  | Reentrant -> "Reentrant"
+
+let io_input_of_jsoo js =
+  match Js.to_string js with
+  | "NoInput" -> NoInput
+  | "OnlyInput" -> OnlyInput
+  | "Reentrant" -> Reentrant
+  | s -> invalid_arg (Format.sprintf "unknown case in enum: %S" s)
+
+class type io_log_ct = object
+  method io_input_ : io_input_jsoo Js.prop
+  method io_output_ : bool Js.t Js.prop
+end
+
+type io_log_jsoo = io_log_ct Js.t
+
+let io_log_to_jsoo x =
+  object%js
+    val mutable io_input_ = io_input_to_jsoo x.io_input
+    val mutable io_output_ = Js.bool x.io_output
+  end
+
+let io_log_of_jsoo js =
+  {
+    io_input = io_input_of_jsoo js##.io_input_;
+    io_output = Js.to_bool js##.io_output_;
+  }
+
+class type code_location_ct = object
   method fileName : Js.js_string Js.t Js.prop
   method startLine : int Js.prop
   method endLine : int Js.prop
@@ -92,54 +160,23 @@ class type code_location = object
   method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
 end
 
-class type raw_event = object
-  method eventType : Js.js_string Js.t Js.prop
-  method information : Js.js_string Js.t Js.js_array Js.t Js.prop
-  method sourcePosition : code_location Js.t Js.optdef Js.prop
-  method loggedIOJson : Js.js_string Js.t Js.prop
-  method loggedValueJson : Js.js_string Js.t Js.prop
-end
+type code_location_jsoo = code_location_ct Js.t
 
-class type event = object
-  method data : Js.js_string Js.t Js.prop
-end
-
-class type duration = object
-  method years : int Js.readonly_prop
-  method months : int Js.readonly_prop
-  method days : int Js.readonly_prop
-end
-
-let duration_of_js d = R_ocaml.duration_of_numbers d##.years d##.months d##.days
-
-let duration_to_js d =
-  let years, months, days = R_ocaml.duration_to_years_months_days d in
+let code_location_to_jsoo (pos : code_location) : code_location_jsoo =
   object%js
-    val years = years
-    val months = months
-    val days = days
+    val mutable fileName = Js.string pos.filename
+    val mutable startLine = pos.start_line
+    val mutable endLine = pos.end_line
+    val mutable startColumn = pos.start_column
+    val mutable endColumn = pos.end_column
+
+    val mutable lawHeadings =
+      Array.of_list pos.law_headings |> Array.map Js.string |> Js.array
   end
 
-let date_of_js d =
-  let d = Js.to_string d in
-  let d =
-    if String.contains d 'T' then d |> String.split_on_char 'T' |> List.hd
-    else d
-  in
-  let fail () = failwith "date_of_js: invalid date" in
-  match String.split_on_char '-' d with
-  | [year; month; day] -> (
-    try
-      R_ocaml.date_of_numbers (int_of_string year) (int_of_string month)
-        (int_of_string day)
-    with Failure _ -> fail ())
-  | _ -> fail ()
-
-let date_to_js d = Js.string @@ R_ocaml.date_to_string d
-
-let position_of_js (jpos : code_location Js.t) : R_ocaml.code_location =
+let code_location_of_jsoo (jpos : code_location_jsoo) : code_location =
   {
-    R_ocaml.filename = Js.to_string jpos##.fileName;
+    filename = Js.to_string jpos##.fileName;
     start_line = jpos##.startLine;
     start_column = jpos##.startColumn;
     end_line = jpos##.endLine;
@@ -148,17 +185,22 @@ let position_of_js (jpos : code_location Js.t) : R_ocaml.code_location =
       Js.to_array jpos##.lawHeadings |> Array.map Js.to_string |> Array.to_list;
   }
 
-let position_to_js (pos : R_ocaml.code_location) : code_location Js.t =
-  object%js
-    val mutable fileName = Js.string pos.R_ocaml.filename
-    val mutable startLine = pos.R_ocaml.start_line
-    val mutable endLine = pos.R_ocaml.end_line
-    val mutable startColumn = pos.R_ocaml.start_column
-    val mutable endColumn = pos.R_ocaml.end_column
+type error_jsoo = Js.js_string Js.t
 
-    val mutable lawHeadings =
-      Array.of_list pos.law_headings |> Array.map Js.string |> Js.array
-  end
+let error_to_jsoo e = Js.string (error_to_string e)
+let error_of_jsoo js = error_of_string (Js.to_string js)
+
+class type raw_event = object
+  method eventType : Js.js_string Js.t Js.prop
+  method information : Js.js_string Js.t Js.js_array Js.t Js.prop
+  method sourcePosition : code_location_jsoo Js.optdef Js.prop
+  method loggedIOJson : Js.js_string Js.t Js.prop
+  method loggedValueJson : Js.js_string Js.t Js.prop
+end
+
+class type event = object
+  method data : Js.js_string Js.t Js.prop
+end
 
 class type event_manager = object
   method resetLog : unit Js.meth
@@ -168,26 +210,25 @@ end
 
 let event_manager : event_manager Js.t =
   object%js (_self)
-    method resetLog = R_ocaml.reset_log ()
+    method resetLog = reset_log ()
 
     method retrieveEvents =
-      R_ocaml.retrieve_log ()
-      |> R_ocaml.EventParser.parse_raw_events
+      retrieve_log ()
+      |> EventParser.parse_raw_events
       |> List.map (fun event ->
           object%js
-            val mutable data = event |> R_ocaml.Json.event |> Js.string
+            val mutable data = event |> Json.event |> Js.string
           end)
       |> Array.of_list
       |> Js.array
 
     method retrieveRawEvents =
       let evt_to_js evt =
-        (* FIXME: ideally this could be just a Json.parse (R_ocaml.Json.event
-           foo) ? *)
+        (* FIXME: ideally this could be just a Json.parse (Json.event foo) ? *)
         object%js
           val mutable eventType =
             (match evt with
-              | R_ocaml.BeginCall _ -> "Begin call"
+              | BeginCall _ -> "Begin call"
               | EndCall _ -> "End call"
               | VariableDefinition _ -> "Variable definition"
               | DecisionTaken _ -> "Decision taken")
@@ -204,17 +245,15 @@ let event_manager : event_manager Js.t =
 
           val mutable loggedIOJson =
             match evt with
-            | VariableDefinition (_, io, _) ->
-              io |> R_ocaml.Json.io_log |> Js.string
+            | VariableDefinition (_, io, _) -> io |> Json.io_log |> Js.string
             | EndCall _ | BeginCall _ | DecisionTaken _ ->
               "unavailable" |> Js.string
 
           val mutable loggedValueJson =
             (match evt with
               | VariableDefinition (_, _, v) -> v
-              | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                R_ocaml.unembeddable ())
-            |> R_ocaml.Json.runtime_value
+              | EndCall _ | BeginCall _ | DecisionTaken _ -> unembeddable ())
+            |> Json.runtime_value
             |> Js.string
 
           val mutable sourcePosition =
@@ -236,12 +275,12 @@ let event_manager : event_manager Js.t =
             | _ -> Js.undefined
         end
       in
-      R_ocaml.retrieve_log () |> List.map evt_to_js |> Array.of_list |> Js.array
+      retrieve_log () |> List.map evt_to_js |> Array.of_list |> Js.array
   end
 
 let execute_or_throw_error f =
   try f ()
-  with R_ocaml.Error _ as exc ->
+  with Error _ as exc ->
     let msg = Js.string (Printexc.to_string exc) in
     Js.Js_error.raise_
       (Js.Js_error.of_error

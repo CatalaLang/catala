@@ -1,0 +1,8 @@
+(library
+ (name runtime_jsoo)
+ (public_name catala.runtime_jsoo)
+ (modules catala_runtime_jsoo dates_calc_jsoo)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (wrapped false)
+ (libraries catala.runtime_ocaml js_of_ocaml zarith_stubs_js))

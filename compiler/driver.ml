@@ -1235,18 +1235,7 @@ module Commands = struct
     @@ fun output_file fmt ->
     let hashf = Hash.finalise ~monomorphize_types:false in
     Lcalc.To_jsoo_interface.format_program output_file fmt prg ~hashf
-      type_ordering;
-    Format.pp_print_flush fmt ();
-    let filename =
-      match output_file with
-      | Some "-" -> None
-      | Some f -> Some f
-      | None ->
-        let src = Global.input_src_file options.Global.input_src in
-        let f = File.file_with_extension ~suffix:"_jsoo" src "ml" in
-        Some f
-    in
-    Option.iter Ocamlformat.format filename
+      type_ordering
 
   let jsoo_cmd =
     Cmd.v
