@@ -22,13 +22,17 @@ let write filename contents =
   File.with_out_channel filename @@ fun oc -> output_string oc contents
 
 let format input_name =
-  let source = File.contents input_name in
-  match
-    Translation_unit.parse_and_format Syntax.Use_file conf ~input_name ~source
-  with
-  | Ok formatted -> write input_name formatted
-  | Error e ->
-    let content =
-      Message.Content.of_message (fun fmt -> Translation_unit.Error.print fmt e)
-    in
-    raise (Message.CompilerError content)
+  match Syntax.of_fname input_name with
+  | None ->
+    failwith
+      (Format.sprintf "file %S cannot be formatted by ocamlformat" input_name)
+  | Some kind -> (
+    let source = File.contents input_name in
+    match Translation_unit.parse_and_format kind conf ~input_name ~source with
+    | Ok formatted -> write input_name formatted
+    | Error e ->
+      let content =
+        Message.Content.of_message (fun fmt ->
+            Translation_unit.Error.print fmt e)
+      in
+      raise (Message.CompilerError content))

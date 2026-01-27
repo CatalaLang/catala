@@ -36,6 +36,19 @@ let format_enum_cons_name fmt v =
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
 
+let format_to_module_name fmt s =
+  let p, i =
+    match s with
+    | `Sname s -> StructName.path s, StructName.get_info s
+    | `Ename s -> EnumName.path s, EnumName.get_info s
+    | `Aname s -> AbstractType.path s, AbstractType.get_info s
+  in
+  Format.fprintf fmt "%a%a"
+    (Format.pp_print_list
+       ~pp_sep:(fun _ () -> ())
+       (fun ppf m -> Format.fprintf ppf "%a_jsoo." Uid.Module.format m))
+    p Uid.MarkedString.format i
+
 let format_typ (fmt : Format.formatter) (typ : typ) : unit =
   let rec aux bctx fmt typ =
     let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
@@ -46,15 +59,14 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
     | TLit l -> Format.fprintf fmt "%a_jsoo" Print.tlit l
     | TTuple [] -> Format.fprintf fmt "unit"
     | TTuple _ -> Format.fprintf fmt "Js.Unsafe.any Js.js_array Js.t"
-    | TStruct s ->
-      Format.fprintf fmt "%a.jsoo" To_ocaml.format_to_module_name (`Sname s)
+    | TStruct s -> Format.fprintf fmt "%a.jsoo" format_to_module_name (`Sname s)
     | TOption t ->
-      Format.fprintf fmt "@[<hov 2>(%a)@] Js.optdef" format_typ_with_parens t
+      Format.fprintf fmt "@[<hov 2>(%a)@] Optional.jsoo" format_typ_with_parens
+        t
     | TDefault t -> aux bctx fmt t
-    | TEnum e ->
-      Format.fprintf fmt "%a.jsoo" To_ocaml.format_to_module_name (`Ename e)
+    | TEnum e -> Format.fprintf fmt "%a.jsoo" format_to_module_name (`Ename e)
     | TAbstract e ->
-      Format.fprintf fmt "%a.jsoo" To_ocaml.format_to_module_name (`Aname e)
+      Format.fprintf fmt "%a.jsoo" format_to_module_name (`Aname e)
     | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a@]"
         (Format.pp_print_list
@@ -72,67 +84,14 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
       in
       Format.fprintf fmt "'%s" name
     | TForAll tb ->
-      (* We suppose here that there aren't multiple parallel binders in the same
-         type: in that case two variables could be named the same *)
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
-    | TClosureEnv -> Format.fprintf fmt "Obj.t(*closure env*)"
+    | TClosureEnv -> Format.fprintf fmt "Js.Unsafe.any"
     | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
 
-let rec format_typ_of (fmt : Format.formatter) (typ : typ) : unit =
-  let rec aux bctx fmt typ =
-    match Mark.remove typ with
-    | TLit l -> Format.fprintf fmt "%a_of_jsoo" Print.tlit l
-    | TTuple [] -> Format.fprintf fmt "unit_of_jsoo"
-    | TTuple l ->
-      let i = ref (-1) in
-      Format.fprintf fmt
-        "@[<hov 2>(fun js ->@,let a = Js.to_array js in@,(%a))@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt t ->
-             incr i;
-             Format.fprintf fmt
-               "(@[<hov>let v = Js.Optdef.to_option (Js.array_get %d) in@,\
-                match v with@,\
-                | None -> invalid_arg \"no value in tuple position %d\"@,\n\
-               \                | Some v -> %a v@])"
-               !i !i (aux bctx) t))
-        l
-    | TStruct s ->
-      Format.fprintf fmt "%a.of_jsoo" To_ocaml.format_to_module_name (`Sname s)
-    | TOption t ->
-      Format.fprintf fmt "Option.map %a (Js.Optdef.to_option js)" (aux bctx) t
-    | TDefault t -> aux bctx fmt t
-    | TEnum e ->
-      Format.fprintf fmt "%a.of_jsoo" To_ocaml.format_to_module_name (`Ename e)
-    | TAbstract e ->
-      Format.fprintf fmt "%a.of_jsoo" To_ocaml.format_to_module_name (`Aname e)
-    | TArrow (t1, t2) ->
-      let ip, ie = ref (-1), ref (-1) in
-      Format.fprintf fmt "(fun f -> (fun %a -> %a (f %a)))"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-           (fun fmt _t ->
-             incr ip;
-             Format.fprintf fmt "_x%d" !ip))
-        t1 (aux bctx) t2
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-           (fun fmt t ->
-             incr ie;
-             Format.fprintf fmt "(%a _x%d)" format_typ_to t !ie))
-        t1
-    | TArray t1 ->
-      Format.fprintf fmt "(fun js -> Array.map %a (Js.to_array js))" (aux bctx)
-        t1
-    | TVar _ | TForAll _ | TClosureEnv | TError -> assert false
-  in
-  aux Bindlib.empty_ctxt fmt typ
-
-and format_typ_to (fmt : Format.formatter) (typ : typ) : unit =
+let rec format_typ_to (fmt : Format.formatter) (typ : typ) : unit =
   let rec aux bctx fmt typ =
     match Mark.remove typ with
     | TLit l -> Format.fprintf fmt "%a_to_jsoo" Print.tlit l
@@ -153,15 +112,14 @@ and format_typ_to (fmt : Format.formatter) (typ : typ) : unit =
              Format.fprintf fmt "Js.Unsafe.inject (%a _t%d)" (aux bctx) t !ie))
         l
     | TStruct s ->
-      Format.fprintf fmt "%a.to_jsoo" To_ocaml.format_to_module_name (`Sname s)
+      Format.fprintf fmt "%a.to_jsoo" format_to_module_name (`Sname s)
     | TOption t ->
-      Format.fprintf fmt "(function None -> Js.undefined | Some x -> %a x)"
-        (aux bctx) t
+      Format.fprintf fmt "(fun x -> Optional.to_jsoo %a x)" (aux bctx) t
     | TDefault t -> aux bctx fmt t
     | TEnum e ->
-      Format.fprintf fmt "%a.to_jsoo" To_ocaml.format_to_module_name (`Ename e)
+      Format.fprintf fmt "%a.to_jsoo" format_to_module_name (`Ename e)
     | TAbstract e ->
-      Format.fprintf fmt "%a.to_jsoo" To_ocaml.format_to_module_name (`Aname e)
+      Format.fprintf fmt "%a.to_jsoo" format_to_module_name (`Aname e)
     | TArrow (t1, t2) ->
       let ip, ie = ref (-1), ref (-1) in
       Format.fprintf fmt "(fun f -> (fun %a -> %a (f %a)))"
@@ -177,9 +135,75 @@ and format_typ_to (fmt : Format.formatter) (typ : typ) : unit =
              incr ie;
              Format.fprintf fmt "(%a _x%d)" format_typ_of t !ie))
         t1
-    | TArray t1 ->
-      Format.fprintf fmt "(fun a -> Js.array (Array.map %a a))" (aux bctx) t1
-    | TVar _ | TForAll _ | TClosureEnv | TError -> assert false
+    | TArray t1 -> (
+      match Mark.remove t1 with
+      | TVar _ | TClosureEnv -> Format.fprintf fmt "Js.array"
+      | _ ->
+        Format.fprintf fmt "(fun a -> Js.array (Array.map %a a))" (aux bctx) t1)
+    | TVar _ -> Format.fprintf fmt "Fun.id"
+    | TForAll tb ->
+      let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
+      aux bctx fmt typ
+    | TClosureEnv -> Format.fprintf fmt "Unsafe.inject"
+    | TError -> assert false
+  in
+  aux Bindlib.empty_ctxt fmt typ
+
+and format_typ_of (fmt : Format.formatter) (typ : typ) : unit =
+  let rec aux bctx fmt typ =
+    match Mark.remove typ with
+    | TLit l -> Format.fprintf fmt "%a_of_jsoo" Print.tlit l
+    | TTuple [] -> Format.fprintf fmt "unit_of_jsoo"
+    | TTuple l ->
+      let i = ref (-1) in
+      Format.fprintf fmt "@[<hov 2>(fun js ->@,(%a))@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun fmt t ->
+             incr i;
+             Format.fprintf fmt
+               "(@[<hov>let v = Js.Optdef.to_option (Js.array_get js %d) in@;\
+                <1 0>match v with@;\
+                <1 0>| None -> invalid_arg \"no value in tuple position %d\"@;\
+                <1 0>| Some v -> %a (Js.Unsafe.coerce v)@])"
+               !i !i (aux bctx) t))
+        l
+    | TStruct s ->
+      Format.fprintf fmt "%a.of_jsoo" format_to_module_name (`Sname s)
+    | TOption t ->
+      Format.fprintf fmt "(fun x -> Optional.of_jsoo %a x)" (aux bctx) t
+    | TDefault t -> aux bctx fmt t
+    | TEnum e ->
+      Format.fprintf fmt "%a.of_jsoo" format_to_module_name (`Ename e)
+    | TAbstract e ->
+      Format.fprintf fmt "%a.of_jsoo" format_to_module_name (`Aname e)
+    | TArrow (t1, t2) ->
+      let ip, ie = ref (-1), ref (-1) in
+      Format.fprintf fmt "(fun f -> (fun %a -> %a (f %a)))"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+           (fun fmt _t ->
+             incr ip;
+             Format.fprintf fmt "_x%d" !ip))
+        t1 (aux bctx) t2
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+           (fun fmt t ->
+             incr ie;
+             Format.fprintf fmt "(%a _x%d)" format_typ_to t !ie))
+        t1
+    | TArray t1 -> (
+      match Mark.remove t1 with
+      | TVar _ | TClosureEnv -> Format.fprintf fmt "Js.to_array"
+      | _ ->
+        Format.fprintf fmt "(fun js -> Array.map %a (Js.to_array js))"
+          (aux bctx) t1)
+    | TVar _ -> Format.fprintf fmt "Fun.id"
+    | TForAll tb ->
+      let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
+      aux bctx fmt typ
+    | TClosureEnv -> Format.fprintf fmt "Unsafe.coerce"
+    | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
 
@@ -332,9 +356,9 @@ let format_ctx
           "@[<hv 2>module %a = struct@ @[<hv 2>include %a@,\
            type jsoo = Js.js_string Js.t@,\
            @[<hv 2>let to_jsoo x = Js.string (match x with %a%a%a)@]@,\
-           @[<hv 2>let of_jsoo js = match Js.to_string js with \
-           %a%a%a%a%a@[<hov> s -> invalid_arg (Format.sprintf \"unknown case \
-           in enum: %%S\" s)@]@]@;\
+           @[<hv 2>let of_jsoo js = match Js.to_string js with %a%a%a@,\
+           @ |@[<hov> s -> invalid_arg (Format.sprintf \"unknown case in enum: \
+           %%S\" s)@]@]@;\
            <1 -2>end@]@,\
            @,"
           To_ocaml.format_to_module_name (`Ename enum_name)
@@ -353,7 +377,7 @@ let format_ctx
                Format.fprintf fmt "@[<hov 2>\"%a\" -> %a@]"
                  To_ocaml.format_enum_cons_name enum_cons
                  To_ocaml.format_enum_cons_name enum_cons))
-          variants Format.pp_print_if_newline () Format.pp_print_string "| ")
+          variants)
       else (
         Format.fprintf ppi
           "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a%a%a@]@,\
@@ -393,7 +417,8 @@ let format_ctx
            type jsoo = jsoo_ct Js.t@,\
            @[<hv 2>let to_jsoo x = match x with %a%a%a@]@,\
            @[<hv 2>let of_jsoo js = match %a with@;\
-           %a%a%a%a%a@[<hov> _ -> invalid_arg \"unknown case\"@]@]@;\
+           %a%a%a@,\
+           @ |@[<hov> _ -> invalid_arg \"unknown case\"@]@]@;\
            <1 -2>end@]@,\
            @,"
           To_ocaml.format_to_module_name (`Ename enum_name)
@@ -456,7 +481,7 @@ let format_ctx
                    if not b then
                      Format.fprintf fmt "@ (%a _c)" format_typ_of enum_cons_type)
                  no_content))
-          variants Format.pp_print_if_newline () Format.pp_print_string "| ")
+          variants)
   in
   let is_in_type_ordering s =
     List.exists
@@ -499,10 +524,37 @@ let format_code_items
           if vis = Public then (
             Format.fprintf ppi "@,@[<hov 2>val %a_jsoo : %a@]@,"
               To_ocaml.format_var var format_typ typ;
-            Format.fprintf ppml
-              "@,@[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ %a %a@]@,"
-              To_ocaml.format_var var format_typ typ format_typ_to typ
-              To_ocaml.format_var var;
+            let rec aux bctx typ =
+              match Mark.remove typ with
+              | TArrow (lt, te) | TDefault (TArrow (lt, te), _) ->
+                let ip, ie = ref (-1), ref (-1) in
+                Format.fprintf ppml
+                  "@,\
+                   @[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ fun %a -> %a (%a \
+                   %a)@]@,"
+                  To_ocaml.format_var var format_typ typ
+                  (Format.pp_print_list
+                     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+                     (fun fmt _t ->
+                       incr ip;
+                       Format.fprintf fmt "_x%d" !ip))
+                  lt format_typ_to te To_ocaml.format_var var
+                  (Format.pp_print_list
+                     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+                     (fun fmt t ->
+                       incr ie;
+                       Format.fprintf fmt "(%a _x%d)" format_typ_of t !ie))
+                  lt
+              | TForAll tb ->
+                let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
+                aux bctx typ
+              | _ ->
+                Format.fprintf ppml
+                  "@,@[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ %a %a@]@,"
+                  To_ocaml.format_var var format_typ typ format_typ_to typ
+                  To_ocaml.format_var var
+            in
+            aux Bindlib.empty_ctxt typ;
             `top (Format.asprintf "%a" To_ocaml.format_var var) :: acc)
           else acc
         | ScopeDef (_name, body) ->
@@ -512,23 +564,20 @@ let format_code_items
             in
             Format.fprintf ppi
               "@,@[<hv 2>val %a_jsoo :@ @[<hv>%a.jsoo ->@ %a.jsoo@]@]@,"
-              To_ocaml.format_var var To_ocaml.format_to_module_name
-              (`Sname body.scope_body_input_struct)
-              To_ocaml.format_to_module_name
+              To_ocaml.format_var var format_to_module_name
+              (`Sname body.scope_body_input_struct) format_to_module_name
               (`Sname body.scope_body_output_struct);
             Format.fprintf ppml
               "@,\
                @[<hv 2>@[<hov 2>let %a_jsoo :@ %a.jsoo -> %a.jsoo =@ fun %a \
                ->@]@ %a.to_jsoo (%a (%a.of_jsoo %a))@]@,"
-              To_ocaml.format_var var To_ocaml.format_to_module_name
-              (`Sname body.scope_body_input_struct)
-              To_ocaml.format_to_module_name
+              To_ocaml.format_var var format_to_module_name
+              (`Sname body.scope_body_input_struct) format_to_module_name
               (`Sname body.scope_body_output_struct) To_ocaml.format_var
-              scope_input_var To_ocaml.format_to_module_name
+              scope_input_var format_to_module_name
               (`Sname body.scope_body_output_struct) To_ocaml.format_var var
-              To_ocaml.format_to_module_name
-              (`Sname body.scope_body_input_struct) To_ocaml.format_var
-              scope_input_var;
+              format_to_module_name (`Sname body.scope_body_input_struct)
+              To_ocaml.format_var scope_input_var;
             `scope (Format.asprintf "%a" To_ocaml.format_var var) :: acc)
           else acc)
   in
@@ -561,7 +610,7 @@ let format_program
     (type_ordering : TypeIdent.t list) : unit =
   ignore hashf;
   File.with_secondary_out_channel ~output_file ~ext:"mli"
-  @@ fun _intf_file ppi ->
+  @@ fun intf_file ppi ->
   let modname =
     match p.module_name, output_file with
     | Some (n, _), _ -> Some (ModuleName.to_string n)
@@ -571,10 +620,18 @@ let format_program
     | _ -> None
   in
   pp [ppml; ppi]
-    "@[<v>open Js_of_ocaml@,%aopen Catala_runtime@,open Catala_runtime_jsoo@,@,"
+    "@[<v>open Js_of_ocaml@,\
+     open Catala_runtime@,\
+     open Catala_runtime_jsoo@,\
+     %a@,\
+     @,"
     (fun fmt o -> Option.iter (Format.fprintf fmt "open %s@,") o)
     modname;
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items ppml ppi p.code_items in
   export_code_items ppml modname exports;
-  pp [ppml; ppi] "@]"
+  pp [ppml; ppi] "@]";
+  Format.pp_print_flush ppml ();
+  Format.pp_print_flush ppi ();
+  Option.iter Ocamlformat.format output_file;
+  Option.iter Ocamlformat.format intf_file
