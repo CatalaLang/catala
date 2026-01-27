@@ -59,7 +59,7 @@ jobs:
         with:
           path: debian-package/*
       - name: Update nightly release
-        uses: pyTooling/Actions/releaser@main
+        uses: pyTooling/Actions/releaser@r4
         with:
           tag: nightly
           rm: true
