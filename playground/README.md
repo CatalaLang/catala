@@ -44,8 +44,14 @@ Parameters are passed as hash fragments (e.g., `index.html#codeUrl=...&checkpoin
 
 `learn.html` provides a side-by-side view with the Catala book:
 
+**English (default)**:
 ```
 learn.html?chapter=2-1-basic-blocks
+```
+
+**French**:
+```
+learn.html?bookBase=https://book.catala-lang.org/fr&chapter=2-1-basic-blocks
 ```
 
 Query parameters:
