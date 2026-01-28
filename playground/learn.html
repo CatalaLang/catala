@@ -251,6 +251,9 @@
 
     // Phase 2: Listen for postMessage from book iframe (not yet implemented in book)
     window.addEventListener('message', (event) => {
+      // Security: only accept messages from book domain
+      if (event.origin !== 'https://book.catala-lang.org') return;
+
       if (event.data && event.data.type === 'catala-book-navigation') {
         const { chapter } = event.data;
         if (chapter && CHECKPOINTS[lang]?.[chapter]) {
