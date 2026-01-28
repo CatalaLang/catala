@@ -112,6 +112,12 @@ jobs:
       - name: Validate Python runtime
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
+      - name: Test web interpreter (jsoo)
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala
+          opam exec -- dune build compiler/catala_web_interpreter.bc.js
+          node compiler/test_web_interpreter.js
       - name: Test Summary
         uses: test-summary/action@v2
         with:
