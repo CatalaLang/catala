@@ -274,3 +274,8 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// Reload when hash changes (enables exercise switching from learn.html)
+window.addEventListener('hashchange', () => {
+  location.reload();
+});

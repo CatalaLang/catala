@@ -23,6 +23,17 @@ h1 {
   gap: 20px;
 }
 
+@media (min-width: 901px) {
+  .solution-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .output-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
 @media (max-width: 900px) {
   .editor-container { grid-template-columns: 1fr; }
 }
@@ -193,7 +204,6 @@ select {
 
 /* Solution accordion */
 .solution-section {
-  grid-column: 1 / -1;
   margin-top: 10px;
 }
 

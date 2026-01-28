@@ -18,6 +18,36 @@
       border: none;
       border-right: 3px solid #2b3040;
     }
+    #playground-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #exercise-selector {
+      background: #2b3040;
+      padding: 8px 12px;
+      border-bottom: 1px solid #3d4455;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #abb2bf;
+      font-size: 13px;
+    }
+    #exercise-selector label {
+      font-weight: 500;
+    }
+    #exercise-selector select {
+      background: #3d4455;
+      color: #abb2bf;
+      border: 1px solid #4d5566;
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #exercise-selector select:hover {
+      background: #4d5566;
+    }
     #playground {
       flex: 1;
       border: none;
@@ -31,20 +61,48 @@
 </head>
 <body>
   <iframe id="book" sandbox="allow-scripts allow-same-origin"></iframe>
-  <iframe id="playground" src="index.html"></iframe>
+  <div id="playground-container">
+    <div id="exercise-selector">
+      <label for="chapter-select">Exercise:</label>
+      <select id="chapter-select">
+        <option value="">-- Select an exercise --</option>
+      </select>
+    </div>
+    <iframe id="playground" src="index.html"></iframe>
+  </div>
 
   <script>
-    // Test URLs (with start skeleton + end solution):
-    // English: http://localhost:8080/learn.html?chapter=2-3-list-scopes
-    // French:  http://localhost:8080/learn.html?bookBase=https://book.catala-lang.org/fr&chapter=2-2-conditionals-exceptions
+    // Simple mental model:
+    //   - Each exercise auto-saves your work to localStorage (separate slot per exercise)
+    //   - Switching exercises resumes your work if you were there before
+    //   - Use "Reset" button to get a fresh start on current exercise
+    //   - To debug: open console and run: clearAllExercises()
+    //
+    // Phase 2 upgrade path: book pages can postMessage to auto-sync exercises
 
     // i18n strings for learn.html
     const LEARN_STRINGS = {
       en: {
-        loadError: 'Could not load book chapter. It may not allow embedding.'
+        loadError: 'Could not load book chapter. It may not allow embedding.',
+        selectExercise: '-- Select an exercise --',
+        exerciseNames: {
+          '2-1-basic-blocks': '2.1 - Basic Blocks',
+          '2-2-conditionals-exceptions': '2.2 - Conditionals & Exceptions',
+          '2-3-list-scopes': '2.3 - Lists & Scopes',
+          '2-4-states-dynamic': '2.4 - States & Dynamic',
+          '2-1-1-exercise': 'Exercise 2.1.1'
+        }
       },
       fr: {
-        loadError: 'Impossible de charger le chapitre. L\'intégration est peut-être désactivée.'
+        loadError: 'Impossible de charger le chapitre. L\'intégration est peut-être désactivée.',
+        selectExercise: '-- Sélectionner un exercice --',
+        exerciseNames: {
+          '2-1-basic-blocks': '2.1 - Blocs de base',
+          '2-2-conditionals-exceptions': '2.2 - Conditions & Exceptions',
+          '2-3-list-scopes': '2.3 - Listes & Scopes',
+          '2-4-states-dynamic': '2.4 - États & Dynamique',
+          '2-1-1-exercise': 'Exercice 2.1.1'
+        }
       }
     };
 
@@ -101,32 +159,109 @@
     const CHECKPOINT_BASE = 'https://raw.githubusercontent.com/CatalaLang/catala-book/main/examples';
 
     const params = new URLSearchParams(location.search);
-    const chapter = params.get('chapter') || '2-1-basic-blocks';
+    const initialChapter = params.get('chapter') || '2-1-basic-blocks';
     const bookBase = params.get('bookBase') || 'https://book.catala-lang.org/en';
 
     const bookFrame = document.getElementById('book');
     const playgroundFrame = document.getElementById('playground');
-
-    // Load book chapter
-    bookFrame.src = `${bookBase}/${chapter}.html`;
+    const chapterSelect = document.getElementById('chapter-select');
 
     // Detect language from bookBase
     const lang = bookBase.includes('/fr') ? 'fr' : 'en';
 
-    // Build playground URL with checkpoint info
-    const checkpoint = CHECKPOINTS[lang]?.[chapter];
-    const hashParams = new URLSearchParams();
-    hashParams.set('lang', lang);
-    if (checkpoint) {
-      hashParams.set('checkpointId', `${lang}-${chapter}`);
-      if (checkpoint.start) {
-        hashParams.set('codeUrl', `${CHECKPOINT_BASE}/${checkpoint.start}`);
+    // Load book chapter
+    bookFrame.src = `${bookBase}/${initialChapter}.html`;
+
+    /**
+     * Load an exercise into the playground
+     * Can be called manually or via postMessage (Phase 2)
+     *
+     * Mental model:
+     * - Each exercise auto-saves to localStorage as you work (scoped by checkpointId)
+     * - Loading an exercise: restores your saved work OR loads fresh checkpoint if no save exists
+     * - Use the Reset button in playground to clear your work and start fresh
+     *
+     * @param {string} chapterId - The chapter/exercise to load
+     */
+    function loadExercise(chapterId) {
+      const checkpoint = CHECKPOINTS[lang]?.[chapterId];
+      const hashParams = new URLSearchParams();
+      hashParams.set('lang', lang);
+
+      if (checkpoint) {
+        hashParams.set('checkpointId', `${lang}-${chapterId}`);
+        if (checkpoint.start) {
+          hashParams.set('codeUrl', `${CHECKPOINT_BASE}/${checkpoint.start}`);
+        }
+        if (checkpoint.end) {
+          hashParams.set('solutionUrl', `${CHECKPOINT_BASE}/${checkpoint.end}`);
+        }
       }
-      if (checkpoint.end) {
-        hashParams.set('solutionUrl', `${CHECKPOINT_BASE}/${checkpoint.end}`);
-      }
+
+      // Simply update the iframe's hash - playground listens for hashchange and reloads itself
+      playgroundFrame.src = `index.html#${hashParams.toString()}`;
+
+      // Update dropdown selection
+      chapterSelect.value = chapterId;
+
+      // Update URL without reload
+      const newParams = new URLSearchParams(location.search);
+      newParams.set('chapter', chapterId);
+      history.replaceState(null, '', `?${newParams.toString()}`);
     }
-    playgroundFrame.src = `index.html#${hashParams.toString()}`;
+
+    /**
+     * Debug utility: Clear all exercise save slots from localStorage
+     * Usage: In browser console: window.clearAllExercises()
+     */
+    window.clearAllExercises = function() {
+      const keys = Object.keys(localStorage);
+      const exerciseKeys = keys.filter(k => k.startsWith('catala-learn-'));
+      exerciseKeys.forEach(k => localStorage.removeItem(k));
+      console.log(`Cleared ${exerciseKeys.length} exercise save slots:`, exerciseKeys);
+      return exerciseKeys;
+    };
+
+    // Populate exercise dropdown
+    function populateExerciseSelector() {
+      chapterSelect.innerHTML = `<option value="">${tLearn('selectExercise')}</option>`;
+
+      const chapters = CHECKPOINTS[lang];
+      const exerciseNames = LEARN_STRINGS[lang].exerciseNames;
+
+      for (const [chapterId, config] of Object.entries(chapters)) {
+        const option = document.createElement('option');
+        option.value = chapterId;
+        option.textContent = exerciseNames[chapterId] || chapterId;
+        chapterSelect.appendChild(option);
+      }
+
+      // Set initial selection
+      chapterSelect.value = initialChapter;
+    }
+
+    // Handle exercise selection
+    chapterSelect.addEventListener('change', (e) => {
+      const selected = e.target.value;
+      if (selected) {
+        // Load exercise (will resume saved work if it exists, or load fresh checkpoint)
+        loadExercise(selected, false);
+      }
+    });
+
+    // Phase 2: Listen for postMessage from book iframe (not yet implemented in book)
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'catala-book-navigation') {
+        const { chapter } = event.data;
+        if (chapter && CHECKPOINTS[lang]?.[chapter]) {
+          loadExercise(chapter);
+        }
+      }
+    });
+
+    // Initialize
+    populateExerciseSelector();
+    loadExercise(initialChapter);
 
     // Handle iframe load errors
     bookFrame.onerror = () => {
