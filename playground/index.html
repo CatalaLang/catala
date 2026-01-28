@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catala Playground</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <span class="loading" id="loading">Running...</span>
+    </div>
+
+    <div class="editor-container">
+      <div class="panel">
+        <div class="panel-header">
+          <span>Catala Code</span>
+          <span class="panel-header-buttons">
+            <button id="resetBtn" style="display: none;">↺ Reset</button>
+          </span>
+        </div>
+        <div class="file-tabs" id="fileTabs"></div>
+        <div id="editor-container"></div>
+      </div>
+
+      <div id="solutionSection" class="solution-section" style="display: none;">
+        <button id="solutionToggle" class="solution-toggle">Show solution</button>
+        <div id="solutionContainer" class="solution-container" style="display: none;">
+          <div id="solution-editor"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>Output</span>
+          <button id="clearBtn" style="padding: 5px 10px; font-size: 12px; background: #718096; color: white; border: none; border-radius: 4px; cursor: pointer;">Clear</button>
+        </div>
+        <div id="output"></div>
+      </div>
+    </div>
+
+    <div id="status">Loading Catala interpreter...</div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

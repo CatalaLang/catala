@@ -118,6 +118,19 @@ jobs:
           cd /home/ocaml/catala
           opam exec -- dune build compiler/catala_web_interpreter.bc.js
           node compiler/test_web_interpreter.js
+      - name: Lint playground JavaScript
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala/playground
+          npm install
+          npm run lint
+      - name: Integration test playground
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala/playground
+          cp ../_build/default/compiler/catala_web_interpreter.bc.js catala_web_interpreter.js
+          npx playwright install chromium --with-deps
+          node scripts/integration-test.cjs
       - name: Test Summary
         uses: test-summary/action@v2
         with:

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catala Tutorial</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: #161923;
+    }
+    #book {
+      flex: 1;
+      border: none;
+      border-right: 3px solid #2b3040;
+    }
+    #playground {
+      flex: 1;
+      border: none;
+    }
+    #error {
+      padding: 2rem;
+      color: #e06c75;
+      background: #161923;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="book" sandbox="allow-scripts allow-same-origin"></iframe>
+  <iframe id="playground" src="index.html"></iframe>
+
+  <script>
+    // Test URLs (with start skeleton + end solution):
+    // English: http://localhost:8080/learn.html?chapter=2-3-list-scopes
+    // French:  http://localhost:8080/learn.html?bookBase=https://book.catala-lang.org/fr&chapter=2-2-conditionals-exceptions
+
+    // i18n strings for learn.html
+    const LEARN_STRINGS = {
+      en: {
+        loadError: 'Could not load book chapter. It may not allow embedding.'
+      },
+      fr: {
+        loadError: 'Impossible de charger le chapitre. L\'intégration est peut-être désactivée.'
+      }
+    };
+
+    function tLearn(key) {
+      return LEARN_STRINGS[lang]?.[key] || LEARN_STRINGS.en[key] || key;
+    }
+
+    // Configuration: map chapter slugs to checkpoint files per language
+    // start: template to begin with (omit for empty editor)
+    // end: solution file
+    const CHECKPOINTS = {
+      en: {
+        '2-1-basic-blocks': {
+          end: 'tutorial_end_2_1.catala_en'
+        },
+        '2-2-conditionals-exceptions': {
+          start: 'tutorial_end_2_1.catala_en',
+          end: 'tutorial_end_2_2.catala_en'
+        },
+        '2-3-list-scopes': {
+          start: 'tutorial_end_2_2.catala_en',
+          end: 'tutorial_end_2_3.catala_en'
+        },
+        '2-4-states-dynamic': {
+          start: 'tutorial_end_2_3.catala_en',
+          end: 'tutorial_end_2_4.catala_en'
+        },
+        '2-1-1-exercise': {
+          end: 'exercise-2-1-1.catala_en'
+        },
+      },
+      fr: {
+        '2-1-basic-blocks': {
+          end: 'tutoriel_fin_2_1.catala_fr'
+        },
+        '2-2-conditionals-exceptions': {
+          start: 'tutoriel_fin_2_1.catala_fr',
+          end: 'tutoriel_fin_2_2.catala_fr'
+        },
+        '2-3-list-scopes': {
+          start: 'tutoriel_fin_2_2.catala_fr',
+          end: 'tutoriel_fin_2_3.catala_fr'
+        },
+        '2-4-states-dynamic': {
+          start: 'tutoriel_fin_2_3.catala_fr',
+          end: 'tutoriel_fin_2_4.catala_fr'
+        },
+        '2-1-1-exercise': {
+          end: 'exercice-2-1-1.catala_fr'
+        },
+      }
+    };
+
+    const CHECKPOINT_BASE = 'https://raw.githubusercontent.com/CatalaLang/catala-book/main/examples';
+
+    const params = new URLSearchParams(location.search);
+    const chapter = params.get('chapter') || '2-1-basic-blocks';
+    const bookBase = params.get('bookBase') || 'https://book.catala-lang.org/en';
+
+    const bookFrame = document.getElementById('book');
+    const playgroundFrame = document.getElementById('playground');
+
+    // Load book chapter
+    bookFrame.src = `${bookBase}/${chapter}.html`;
+
+    // Detect language from bookBase
+    const lang = bookBase.includes('/fr') ? 'fr' : 'en';
+
+    // Build playground URL with checkpoint info
+    const checkpoint = CHECKPOINTS[lang]?.[chapter];
+    const hashParams = new URLSearchParams();
+    hashParams.set('lang', lang);
+    if (checkpoint) {
+      hashParams.set('checkpointId', `${lang}-${chapter}`);
+      if (checkpoint.start) {
+        hashParams.set('codeUrl', `${CHECKPOINT_BASE}/${checkpoint.start}`);
+      }
+      if (checkpoint.end) {
+        hashParams.set('solutionUrl', `${CHECKPOINT_BASE}/${checkpoint.end}`);
+      }
+    }
+    playgroundFrame.src = `index.html#${hashParams.toString()}`;
+
+    // Handle iframe load errors
+    bookFrame.onerror = () => {
+      bookFrame.remove();
+      const err = document.createElement('div');
+      err.id = 'error';
+      err.textContent = tLearn('loadError');
+      document.body.prepend(err);
+    };
+  </script>
+</body>
+</html>
