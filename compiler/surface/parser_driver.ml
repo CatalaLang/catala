@@ -21,6 +21,143 @@
 open Sedlexing
 open Catala_utils
 
+let token_to_string = function
+  | Tokens.YEAR -> "YEAR"
+  | XOR -> "XOR"
+  | WITH_V -> "WITH_V"
+  | WITH -> "WITH"
+  | WILDCARD -> "WILDCARD"
+  | WE_HAVE -> "WE_HAVE"
+  | UNDER_CONDITION -> "UNDER_CONDITION"
+  | UIDENT _ -> "UIDENT _"
+  | TYPE -> "TYPE"
+  | TRUE -> "TRUE"
+  | TO -> "TO"
+  | THEN -> "THEN"
+  | THAT -> "THAT"
+  | SUM -> "SUM"
+  | SUCH -> "SUCH"
+  | STRUCT -> "STRUCT"
+  | STRING _ -> "STRING _"
+  | STATE -> "STATE"
+  | SEMICOLON -> "SEMICOLON"
+  | SCOPE -> "SCOPE"
+  | RULE -> "RULE"
+  | RPAREN -> "RPAREN"
+  | RBRACKET -> "RBRACKET"
+  | RBRACE -> "RBRACE"
+  | PLUSPLUS -> "PLUSPLUS"
+  | PLUS _ -> "PLUS _"
+  | PERCENT -> "PERCENT"
+  | OUTPUT -> "OUTPUT"
+  | OR_IF_LIST_EMPTY -> "OR_IF_LIST_EMPTY"
+  | OR -> "OR"
+  | OPTION -> "OPTION"
+  | OF -> "OF"
+  | NOT_EQUAL -> "NOT_EQUAL"
+  | NOT -> "NOT"
+  | MULT _ -> "MULT _"
+  | MONTH -> "MONTH"
+  | MONEY_AMOUNT _ -> "MONEY_AMOUNT _"
+  | MODULE_USE -> "MODULE_USE"
+  | MODULE_DEF -> "MODULE_DEF"
+  | MODULE_ALIAS -> "MODULE_ALIAS"
+  | MINUS _ -> "MINUS _"
+  | MINIMUM -> "MINIMUM"
+  | MAXIMUM -> "MAXIMUM"
+  | MATCH -> "MATCH"
+  | MAP_EACH -> "MAP_EACH"
+  | LPAREN -> "LPAREN"
+  | LIST -> "LIST"
+  | LIDENT _ -> "LIDENT _"
+  | LET -> "LET"
+  | LESSER_EQUAL _ -> "LESSER_EQUAL _"
+  | LESSER _ -> "LESSER _"
+  | LBRACKET -> "LBRACKET"
+  | LBRACE -> "LBRACE"
+  | LAW_TEXT _ -> "LAW_TEXT _"
+  | LAW_INCLUDE -> "LAW_INCLUDE"
+  | LAW_HEADING _ -> "LAW_HEADING _"
+  | LABEL -> "LABEL"
+  | IS -> "IS"
+  | INT_LITERAL _ -> "INT_LITERAL _"
+  | INTERNAL -> "INTERNAL"
+  | INPUT -> "INPUT"
+  | INITIALLY -> "INITIALLY"
+  | INCREASING -> "INCREASING"
+  | IN -> "IN"
+  | IF -> "IF"
+  | GREATER_EQUAL _ -> "GREATER_EQUAL _"
+  | GREATER _ -> "GREATER _"
+  | FOR -> "FOR"
+  | FILLED -> "FILLED"
+  | FALSE -> "FALSE"
+  | EXTERNAL -> "EXTERNAL"
+  | EXISTS -> "EXISTS"
+  | EXCEPTION -> "EXCEPTION"
+  | EQUAL -> "EQUAL"
+  | EOF -> "EOF"
+  | ENUM -> "ENUM"
+  | END_DIRECTIVE -> "END_DIRECTIVE"
+  | END_CODE _ -> "END_CODE _"
+  | ELSE -> "ELSE"
+  | DOT -> "DOT"
+  | DOCSTRING _ -> "DOCSTRING _"
+  | DIV _ -> "DIV _"
+  | DIRECTIVE_ARG _ -> "DIRECTIVE_ARG _"
+  | DEPENDS -> "DEPENDS"
+  | DEFINITION -> "DEFINITION"
+  | DEFINED_AS -> "DEFINED_AS"
+  | DECREASING -> "DECREASING"
+  | DECLARATION -> "DECLARATION"
+  | DECIMAL_LITERAL _ -> "DECIMAL_LITERAL _"
+  | DAY -> "DAY"
+  | DATE_LITERAL _ -> "DATE_LITERAL _"
+  | DATE -> "DATE"
+  | DATA -> "DATA"
+  | CONTEXT -> "CONTEXT"
+  | CONTENT -> "CONTENT"
+  | CONTAINS -> "CONTAINS"
+  | CONSEQUENCE -> "CONSEQUENCE"
+  | CONDITION -> "CONDITION"
+  | COMMA -> "COMMA"
+  | COMBINE -> "COMBINE"
+  | COLON -> "COLON"
+  | BUT_REPLACE -> "BUT_REPLACE"
+  | BEGIN_METADATA -> "BEGIN_METADATA"
+  | BEGIN_DIRECTIVE -> "BEGIN_DIRECTIVE"
+  | BEGIN_CODE -> "BEGIN_CODE"
+  | AT_PAGE _ -> "AT_PAGE _"
+  | ATTR_START -> "ATTR_START"
+  | ASSERTION -> "ASSERTION"
+  | AND -> "AND"
+  | AMONG -> "AMONG"
+  | ALT -> "ALT"
+  | ALL -> "ALL"
+
+(* type scope = { *)
+(*   open_token_p : Tokens.token -> bool; *)
+(*   end_token_p : Tokens.token -> bool; *)
+(* } *)
+
+(* let toplevel_scope = *)
+(*   let open Tokens in *)
+(*   let open_token_p = function *)
+(*     | BEGIN_CODE | BEGIN_METADATA -> true *)
+(*     | _ -> false *)
+(*   in *)
+(*   let end_token_p = function END_CODE _ -> true | t -> open_token_p t in *)
+(*   { open_token_p; end_token_p } *)
+
+(* let scopelevel_scope = *)
+(*   let open Tokens in *)
+(*   let open_token_p = function *)
+(*     | DECLARATION | BEGIN_METADATA -> true *)
+(*     | _ -> false *)
+(*   in *)
+(*   let end_token_p = function END_CODE _ -> true | t -> open_token_p t in *)
+(*   { open_token_p; end_token_p } *)
+
 (** After parsing, heading structure is completely flat because of the
     [source_file_item] rule. We need to tree-i-fy the flat structure, by looking
     at the precedence of the law headings. *)
@@ -163,6 +300,20 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       max_size;
     }
 
+  let skip_just_until
+      p
+      (buff : (token * Lexing.position * Lexing.position) ring_buffer) =
+    (* FIXME but oh well.. *)
+    let rec loop b =
+      let new_b, (tok, _, _) = next b in
+      if p tok then (
+        Format.eprintf "%s@." __LOC__;
+        (* prev buffer *) Some b)
+      else if tok = Tokens.EOF then None
+      else loop new_b
+    in
+    loop buff
+
   let progress ?(max_step = 10) lexer_buffer env checkpoint : int =
     let rec loop nth_step lexer_buffer env checkpoint =
       if nth_step >= max_step then nth_step
@@ -214,6 +365,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (lexbuf : lexbuf)
       (last_input_needed : 'semantic_value I.env option)
       (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
+    let before_def = ref None in
     let rec loop
         (lexer_buffer :
           (Tokens.token * Lexing.position * Lexing.position) ring_buffer)
@@ -223,35 +375,68 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
       match checkpoint with
       | I.InputNeeded env ->
-        let new_lexer_buffer, token = next lexer_buffer in
+        Format.eprintf "%s@." __LOC__;
+        let new_lexer_buffer, ((tok, p, p') as token) = next lexer_buffer in
+        Format.eprintf "%s@." (Pos.to_string_shorter (Pos.from_lpos (p, p')));
+        (match tok with
+        | Tokens.DEFINITION ->
+          before_def := Some (new_lexer_buffer, checkpoint, last_input_needed)
+        | _ -> ());
         let checkpoint = I.offer checkpoint token in
         loop new_lexer_buffer token_list lexbuf (Some env) checkpoint
-      | I.Shifting _ | I.AboutToReduce _ ->
+      | I.AboutToReduce _ ->
+        Format.eprintf "%s@." __LOC__;
+        let checkpoint = I.resume checkpoint in
+        loop lexer_buffer token_list lexbuf last_input_needed checkpoint
+      | I.Shifting _ ->
+        Format.eprintf "%s@." __LOC__;
         let checkpoint = I.resume checkpoint in
         loop lexer_buffer token_list lexbuf last_input_needed checkpoint
       | I.HandlingError (env : 'semantic_value I.env) -> (
-        let similar_candidate_tokens, sorted_acceptable_tokens =
-          sorted_candidate_tokens lexbuf token_list env
-        in
-        register_parsing_error lexbuf env sorted_acceptable_tokens
-          similar_candidate_tokens;
-        let best_effort_checkpoint =
-          recover_parsing_error lexer_buffer env
-            (List.map snd sorted_acceptable_tokens)
-        in
-        match best_effort_checkpoint with
-        | None ->
-          (* No reasonable solution, aborting *)
-          (* Let's reset the lexer buffer in order to not trigger the unclosed
+        Format.eprintf "%s@." __LOC__;
+        match !before_def with
+        | Some (prev_buff, prev_cp, prev_last_input_needed) -> (
+          Format.eprintf "%s@." __LOC__;
+          let p = function
+            | Tokens.DEFINITION | Tokens.END_CODE _ -> true
+            | _ -> false
+          in
+          match skip_just_until p prev_buff with
+          | None ->
+            ignore (Lexer_common.flush_acc ());
+            Lexer_common.context := Law;
+            []
+          | Some skipped_buf ->
+            before_def := None;
+            loop skipped_buf token_list lexbuf prev_last_input_needed prev_cp)
+        | None -> (
+          let similar_candidate_tokens, sorted_acceptable_tokens =
+            sorted_candidate_tokens lexbuf token_list env
+          in
+          register_parsing_error lexbuf env sorted_acceptable_tokens
+            similar_candidate_tokens;
+          let best_effort_checkpoint =
+            recover_parsing_error lexer_buffer env
+              (List.map snd sorted_acceptable_tokens)
+          in
+          match best_effort_checkpoint with
+          | None ->
+            (* No reasonable solution, aborting *)
+            (* Let's reset the lexer buffer in order to not trigger the unclosed
              block finalizer: we have at least one error to report *)
-          ignore (Lexer_common.flush_acc ());
-          Lexer_common.context := Law;
-          []
-        | Some best_effort_checkpoint ->
-          loop lexer_buffer token_list lexbuf last_input_needed
-            best_effort_checkpoint)
-      | I.Accepted v -> v
-      | I.Rejected -> []
+            ignore (Lexer_common.flush_acc ());
+            Lexer_common.context := Law;
+            []
+          | Some best_effort_checkpoint ->
+            Format.eprintf "%s@." __LOC__;
+            loop lexer_buffer token_list lexbuf last_input_needed
+              best_effort_checkpoint))
+      | I.Accepted v ->
+        Format.eprintf "%s@." __LOC__;
+        v
+      | I.Rejected ->
+        Format.eprintf "%s@." __LOC__;
+        []
     in
     loop lexer_buffer token_list lexbuf last_input_needed checkpoint
 
@@ -264,7 +449,16 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (lexbuf : lexbuf) : Ast.source_file =
     let lexer_buffer :
         (Tokens.token * Lexing.position * Lexing.position) ring_buffer =
-      let feed = with_tokenizer lexer' lexbuf in
+      let feed =
+        let f = with_tokenizer lexer' lexbuf in
+        fun () ->
+          let ((tok, _, _) as x) :
+              Tokens.token * Lexing.position * Lexing.position =
+            f ()
+          in
+          Format.eprintf "%s@\n" (token_to_string tok);
+          x
+      in
       create feed Lexing.(Tokens.EOF, dummy_pos, dummy_pos)
     in
     try
