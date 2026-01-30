@@ -48,18 +48,12 @@ export function runScope(scopeName) {
     // Get project language from first file's extension
     const lang = getProjectLanguage();
 
-    // Register all OTHER files as modules (not the current file)
-    // The current file is passed directly to interpret() with its actual filename
-    window.clearFiles();
-    Object.keys(files).forEach(filename => {
-      if (filename !== currentFile) {
-        window.registerFile(filename, files[filename]);
-      }
+    const result = window.interpret({
+      files: files,
+      scope: scopeName,
+      language: lang,
+      main: currentFile
     });
-
-    // Run the current file as main, passing its actual filename
-    // This allows the file to declare "> Module Name" matching its filename
-    const result = window.interpret(files[currentFile], scopeName, lang, false, currentFile);
     return result;
   } catch (e) {
     return {

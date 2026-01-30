@@ -26,43 +26,31 @@ export interface InterpretResult {
 }
 
 /**
+ * Options for the interpret function
+ */
+export interface InterpretOptions {
+  /** All source files as { filename: contents } - first file is main by default */
+  files: Record<string, string>;
+  /** Name of the scope to execute */
+  scope: string;
+  /** Language code ("en", "fr", "pl") - defaults to "en" */
+  language?: string;
+  /** Override which file is the main entry point */
+  main?: string;
+  /** Enable tracing (not typically used in web) */
+  trace?: boolean;
+}
+
+/**
  * Catala interpreter functions exported to JavaScript via JSOO
  */
 export interface CatalaInterpreter {
   /**
-   * Register a module file in the virtual filesystem
-   * @param filename - Name of the file (e.g., "helpers.catala_en")
-   * @param contents - Content of the file
-   */
-  registerFile(filename: string, contents: string): boolean;
-
-  /**
-   * Clear all registered user module files
-   */
-  clearFiles(): boolean;
-
-  /**
-   * List all registered user module files
-   * @returns Array of filenames
-   */
-  listFiles(): string[];
-
-  /**
    * Interpret Catala source code and execute a scope
-   * @param contents - Source code to interpret
-   * @param scope - Name of the scope to execute
-   * @param language - Language code ("en", "fr", "pl")
-   * @param trace - Whether to enable tracing (not typically used in web)
-   * @param filename - Filename for error messages and module resolution (empty string = "-inline-")
+   * @param options - Interpretation options
    * @returns Result object with success status and output or error
    */
-  interpret(
-    contents: string,
-    scope: string,
-    language: string,
-    trace: boolean,
-    filename: string
-  ): InterpretResult;
+  interpret(options: InterpretOptions): InterpretResult;
 }
 
 declare global {
@@ -70,9 +58,6 @@ declare global {
 
   // Also available on globalThis
   var interpret: CatalaInterpreter['interpret'];
-  var registerFile: CatalaInterpreter['registerFile'];
-  var clearFiles: CatalaInterpreter['clearFiles'];
-  var listFiles: CatalaInterpreter['listFiles'];
 }
 
 export {};

@@ -77,7 +77,11 @@ switch (command) {
     }
     lang = detectLanguage(file);
     const content = fs.readFileSync(file, 'utf8');
-    const result = exports.interpret(content, scope, lang, false);
+    const result = exports.interpret({
+      files: { [path.basename(file)]: content },
+      scope: scope,
+      language: lang
+    });
     if (result.success) {
       console.log(formatOutput(scope, result.output));
     } else {
@@ -121,7 +125,11 @@ switch (command) {
 
     let hasError = false;
     for (const s of scopes) {
-      const result = exports.interpret(content, s, lang, false);
+      const result = exports.interpret({
+        files: { [path.basename(file)]: content },
+        scope: s,
+        language: lang
+      });
       if (result.success) {
         console.log(formatOutput(s, result.output));
       } else {
@@ -152,7 +160,11 @@ switch (command) {
       console.log('┌─[RESULT]─\n│ Typechecking successful!\n└─');
     } else {
       // Try interpreting first scope to check for type errors
-      const result = exports.interpret(content, scopes[0], lang, false);
+      const result = exports.interpret({
+        files: { [path.basename(file)]: content },
+        scope: scopes[0],
+        language: lang
+      });
       if (result.success || !result.error.includes('typecheck')) {
         console.log('┌─[RESULT]─\n│ Typechecking successful!\n└─');
       } else {
