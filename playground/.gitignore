@@ -1,0 +1,5 @@
+# Built interpreter (26MB, should be built from source)
+catala_web_interpreter.js
+
+# Node modules
+node_modules/

@@ -182,6 +182,12 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
+  let get_positions (content : t) : (Pos.t * message option) list =
+    List.filter_map
+      (function
+        | Position { pos; pos_message } -> Some (pos, pos_message) | _ -> None)
+      content
+
   let basic_msg ?header ppf target content =
     let pp_header ppf = Option.iter (Format.fprintf ppf " %s: ") header in
     Format.pp_open_vbox ppf 0;

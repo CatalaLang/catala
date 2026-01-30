@@ -42,6 +42,9 @@ depends: [
   "uucp" {>= "10"}
   "ubase" {>= "0.05"}
   "zarith" {>= "1.12"}
+  "zarith_stubs_js" {>= "v0.17.0"}
+  "js_of_ocaml" {>= "6.0"}
+  "js_of_ocaml-ppx" {>= "6.0"}
   "yojson" {>= "2.1.0" & < "3"}
    # Not a strict upper bound for catala, but other tools (adgen) have it and we
    # don't want them to need a catala recompile

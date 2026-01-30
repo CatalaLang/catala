@@ -9,6 +9,8 @@ result
 compiler/**/.merlin
 legifrance_oauth*
 *.html
+!playground/*.html
+playground/dist/
 .vscode/
 .ninja_*
 node_modules/
