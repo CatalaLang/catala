@@ -222,7 +222,7 @@ let extension filename =
   in
   String.remove_prefix ~prefix:"." full_extension
 
-let file_with_extension ?(suffix = "") file ext =
+let with_extension ?(suffix = "") file ext =
   (* file_ext may be empty, "<ext>" when non-md, "md" if only ".md" is present
      and "<ext>.md" if a double-extension is present *)
   let file_ext = extension file in
@@ -241,7 +241,7 @@ let file_with_extension ?(suffix = "") file ext =
     let f = String.(sub file 0 (length file - length file_ext - 1)) in
     f ^ suffix ^ "." ^ ext
 
-let ( -.- ) file ext = file_with_extension file ext
+let ( -.- ) file ext = with_extension file ext
 let remove_extension filename = filename -.- ""
 
 let get_main_out_channel ~source_file ~output_file ?ext ?suffix () =
@@ -250,7 +250,7 @@ let get_main_out_channel ~source_file ~output_file ?ext ?suffix () =
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
     let src = Global.input_src_file source_file in
-    let f = file_with_extension ?suffix src ext in
+    let f = with_extension ?suffix src ext in
     Some f, with_out_channel f
 
 let get_main_out_formatter ~source_file ~output_file ?ext ?suffix () =

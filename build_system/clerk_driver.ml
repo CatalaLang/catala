@@ -375,7 +375,7 @@ let make_target ~build_dir ~backend item =
     | `C -> (dir / "c" / base) -.- "o"
     | `Python -> (dir / "python" / base) -.- "py"
     | `Java -> (dir / "java" / base) -.- "class"
-    | `Jsoo -> file_with_extension ~suffix:"_jsoo" (dir / "ocaml" / base) ".ml"
+    | `Jsoo -> File.with_extension ~suffix:"_jsoo" (dir / "ocaml" / base) ".ml"
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
@@ -507,7 +507,7 @@ let build_clerk_target
               List.map
                 (fun ext ->
                   ( (module_item, target, bk),
-                    file_with_extension ?suffix base ext ))
+                    File.with_extension ?suffix base ext ))
                 extensions)
             all_modules_deps)
         enabled_backends
@@ -531,7 +531,7 @@ let build_clerk_target
               else List.assoc backend backend_src_extensions
             in
             let suffix = List.assoc backend backend_suffix in
-            List.map File.(fun ext -> file_with_extension ?suffix tf ext) exts
+            List.map (fun ext -> File.with_extension ?suffix tf ext) exts
           in
           targets @ acc)
         (backend_runtime_targets
@@ -579,13 +579,13 @@ let build_clerk_target
         List.iter
           (fun ext ->
             let runtime_src =
-              file_with_extension ?suffix
+              File.with_extension ?suffix
                 (local_runtime_dir bk / "catala_runtime")
                 ext
             in
             if File.exists runtime_src then copy_in ~dir ~src:runtime_src;
             let dates_calc_src =
-              file_with_extension ?suffix
+              File.with_extension ?suffix
                 (local_runtime_dir bk / "dates_calc")
                 ext
             in

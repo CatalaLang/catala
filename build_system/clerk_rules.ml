@@ -447,7 +447,7 @@ let gen_build_statements
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
   let extern_src ?suffix backend ext missing =
-    let f = file_with_extension ?suffix src ext in
+    let f = File.with_extension ?suffix src ext in
     match check_file f with
     | Some f -> f, missing
     | None -> (
@@ -1031,24 +1031,24 @@ let runtime_build_statements ~config enabled_backends =
       Nj.build "phony"
         ~inputs:
           [
-            file_with_extension ~suffix:"_jsoo" dates_base "ml";
-            file_with_extension ~suffix:"_jsoo" dates_base "mli";
-            file_with_extension ~suffix:"_jsoo" runtime_base "ml";
-            file_with_extension ~suffix:"_jsoo" runtime_base "mli";
+            File.with_extension ~suffix:"_jsoo" dates_base "ml";
+            File.with_extension ~suffix:"_jsoo" dates_base "mli";
+            File.with_extension ~suffix:"_jsoo" runtime_base "ml";
+            File.with_extension ~suffix:"_jsoo" runtime_base "mli";
           ]
         ~outputs:["@runtime-jsoo-src"];
       Nj.build "copy"
         ~inputs:[jsoo_src / "catala_runtime_jsoo.mli"]
-        ~outputs:[file_with_extension ~suffix:"_jsoo" runtime_base "mli"];
+        ~outputs:[File.with_extension ~suffix:"_jsoo" runtime_base "mli"];
       Nj.build "copy"
         ~inputs:[jsoo_src / "catala_runtime_jsoo.ml"]
-        ~outputs:[file_with_extension ~suffix:"_jsoo" runtime_base "ml"];
+        ~outputs:[File.with_extension ~suffix:"_jsoo" runtime_base "ml"];
       Nj.build "copy"
         ~inputs:[jsoo_src / "dates_calc_jsoo.mli"]
-        ~outputs:[file_with_extension ~suffix:"_jsoo" dates_base "mli"];
+        ~outputs:[File.with_extension ~suffix:"_jsoo" dates_base "mli"];
       Nj.build "copy"
         ~inputs:[jsoo_src / "dates_calc_jsoo.ml"]
-        ~outputs:[file_with_extension ~suffix:"_jsoo" dates_base "ml"];
+        ~outputs:[File.with_extension ~suffix:"_jsoo" dates_base "ml"];
     ]
   else []
 

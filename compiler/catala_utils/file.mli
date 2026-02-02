@@ -199,7 +199,7 @@ val find_in_parents : ?cwd:t -> (t -> bool) -> (t * t) option
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)
 
-val file_with_extension : ?suffix:string -> t -> string -> t
+val with_extension : ?suffix:string -> t -> string -> t
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
