@@ -1,6 +1,6 @@
 open Js_of_ocaml
 open Catala_runtime_jsoo
-open Stdlib_internals.Date_internal
+open Date_internal
 
 let of_ymd_jsoo pos y m d =
   date_to_jsoo
