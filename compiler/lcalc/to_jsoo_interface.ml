@@ -461,7 +461,7 @@ let format_ctx
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
              (fun fmt (enum_cons, _) ->
-               Format.fprintf fmt "@[<hov 2>Optdef.to_option (js##.%a)@]"
+               Format.fprintf fmt "@[<hov 2>Js.Optdef.to_option (js##.%a)@]"
                  format_enum_cons_name enum_cons))
           variants Format.pp_print_if_newline () Format.pp_print_string "| "
           (Format.pp_print_list
