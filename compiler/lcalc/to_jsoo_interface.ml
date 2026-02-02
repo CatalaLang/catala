@@ -620,7 +620,9 @@ let format_program
     | _ -> None
   in
   pp [ppml; ppi]
-    "@[<v>open Js_of_ocaml@,\
+    "@[<v>[%@%@%@ocaml.warning \"-4-26-27-32-33-34-37-41-42-69\"]@,\
+     @,\
+     open Js_of_ocaml@,\
      open Catala_runtime@,\
      open Catala_runtime_jsoo@,\
      %a@,\
