@@ -1,6 +1,6 @@
 open Js_of_ocaml
 open Catala_runtime_jsoo
-open Stdlib_internals.List_internal
+open List_internal
 
 let sequence_jsoo start stop =
   Js.array

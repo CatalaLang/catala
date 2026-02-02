@@ -1,6 +1,6 @@
 open Js_of_ocaml
 open Catala_runtime_jsoo
-open Stdlib_internals.Period_internal
+open Period_internal
 
 let sort_jsoo a =
   let a =

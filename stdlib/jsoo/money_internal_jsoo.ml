@@ -1,5 +1,5 @@
 open Catala_runtime_jsoo
-open Stdlib_internals.Money_internal
+open Money_internal
 
 let round_to_decimal_jsoo m n =
   money_to_jsoo (round_to_decimal (money_of_jsoo m) (integer_of_jsoo n))
