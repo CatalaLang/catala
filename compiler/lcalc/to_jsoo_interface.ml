@@ -23,7 +23,8 @@ let method_name = function
   | "" -> invalid_arg "empty method name"
   | s ->
     let s = if String.contains s '_' then s ^ "_" else s in
-    if Char.Ascii.is_upper (String.get s 0) then "_" ^ s else s
+    let code = Char.code (String.get s 0) in
+    if code >= 65 && code <= 90 then "_" ^ s else s
 
 let format_struct_field_name fmt n =
   let s = Format.asprintf "%a" To_ocaml.format_struct_field_name n in
