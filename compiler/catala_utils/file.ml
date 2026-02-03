@@ -429,10 +429,10 @@ let get_command t =
       "where.exe", [t_exe]
     else "/bin/sh", ["-c"; "command -v " ^ Filename.quote t]
   in
-  String.trim
-  @@ process_out
-       ~check_exit:(function 0 -> () | _ -> raise Not_found)
-       cmd args
+  process_out ~check_exit:(function 0 -> () | _ -> raise Not_found) cmd args
+  |> String.split_on_char '\n'
+  |> List.hd (* Multiple results can be returned on win32 *)
+  |> String.trim
 
 let check_exec t =
   try
