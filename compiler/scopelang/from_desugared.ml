@@ -96,15 +96,18 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
   | EDStructAmend { name_opt = Some name; e; fields } ->
     let str_fields = StructName.Map.find name ctx.decl_ctx.ctx_structs in
     let fields =
-      Ident.Map.fold
+      MarkedIdent.Map.fold
         (fun id e ->
           match
             StructName.Map.find name
-              (Ident.Map.find id ctx.decl_ctx.ctx_struct_fields)
+              (Ident.Map.find (MarkedIdent.to_string id)
+                 ctx.decl_ctx.ctx_struct_fields)
           with
-          | field -> StructField.Map.add field (translate_expr ctx e)
+          | field ->
+            let field = StructField.map_info (fun _ -> id) field in
+            StructField.Map.add field (translate_expr ctx e)
           | exception (Ident.Map.Not_found _ | StructName.Map.Not_found _) ->
-            Message.error ~pos:(Expr.pos e)
+            Message.error ~main_pos:(Mark.get id) ~pos:(Mark.get id)
               ~fmt_pos:
                 [
                   ( (fun ppf ->
@@ -112,8 +115,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                         StructName.format name),
                     Mark.get (StructName.get_info name) );
                 ]
-              "Field %a@ does@ not@ belong@ to@ structure@ %a" Ident.format id
-              StructName.format name)
+              "Field %a@ does@ not@ belong@ to@ structure@ %a"
+              MarkedIdent.format id StructName.format name)
         fields StructField.Map.empty
     in
     if StructField.Map.cardinal fields = StructField.Map.cardinal str_fields

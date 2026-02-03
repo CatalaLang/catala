@@ -33,10 +33,16 @@ module type Info = sig
   (** Hashing disregards position *)
 end
 
-module MarkedString : Info with type info = string Mark.pos
 (** The only kind of information carried in Catala identifiers is the original
     string of the identifier annotated with the position where it is declared or
     used. *)
+module MarkedString : sig
+  include Info with type info = string Mark.pos
+
+  type t = info
+
+  module Map : Map.S with type key = t
+end
 
 (** Identifiers have abstract types, but are comparable so they can be used as
     keys in maps or sets. Their underlying information can be retrieved at any

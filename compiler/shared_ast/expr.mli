@@ -134,13 +134,13 @@ val estruct :
 val edstructamend :
   name_opt:StructName.t option ->
   e:('a, 'm) boxed_gexpr ->
-  fields:('a, 'm) boxed_gexpr Ident.Map.t ->
+  fields:('a, 'm) boxed_gexpr MarkedIdent.Map.t ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val edstructaccess :
   name_opt:StructName.t option ->
-  field:Ident.t ->
+  field:MarkedIdent.t ->
   e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
