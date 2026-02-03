@@ -72,7 +72,12 @@ let ocaml_libdir : File.t Lazy.t =
     | Some d -> d
     | None -> (
       match try_cmd "ocamlc" ["-where"] with
-      | Some d -> d
+      | Some d ->
+        (* Detect a relocated opam switch (libdir = PFX/lib) *)
+        let upper = File.dirname d in
+        if File.(basename upper = "lib" && exists (upper / "findlib.conf")) then
+          upper
+        else d (* A system switch: libdir = PFX/lib/ocaml *)
       | None -> (
         match File.(check_directory (exec_dir /../ "lib")) with
         | Some d -> d
