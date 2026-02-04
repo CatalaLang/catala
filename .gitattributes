@@ -3,5 +3,5 @@
 *.md linguist-documentation
 *.hints linguist-generated
 
-**/package-lock.json linguist-generated
-**/yarn.lock linguist-generated
+**/package-lock.json linguist-generated -diff
+**/yarn.lock linguist-generated -diff
