@@ -38,30 +38,27 @@ let ( / ) a b =
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
 
-(* Rely on recursive calls to dirname/basename, because that correctly supports
-   Windows paths (splitting on path_sep isn't reliable there) *)
 let path_to_list path =
-  let rec split acc p =
-    let d = Filename.dirname p in
-    if d <> p then
-      match Filename.basename p with
-      | "" | "." -> split acc d
-      | base -> split (base :: acc) d
-    else if d = Filename.current_dir_name then acc
-    else if String.ends_with ~suffix:Filename.dir_sep d then
-      String.sub d 0 (String.length d - 1) :: acc
-    else d :: acc
+  let p = String.split_on_char dir_sep_char path in
+  let drive, p =
+    if not Sys.win32 then None, p
+    else
+      match p with
+      | drive :: p when String.length drive >= 2 && drive.[1] = ':' ->
+        ( Some (String.sub drive 0 2),
+          String.sub drive 2 (String.length drive - 2) :: p )
+      | _ -> None, p
   in
-  split [] path
+  match p with
+  | [] | [""] | ["."] -> drive, []
+  | p1 :: p ->
+    drive, p1 :: List.filter (function "" | "." -> false | _ -> true) p
 
 let list_to_path = function
-  | [] -> Filename.current_dir_name
-  | p1 :: p ->
-    List.fold_left
-      (fun left right ->
-        if left = "" then Filename.dir_sep ^ right
-        else Filename.concat left right)
-      p1 p
+  | None, [] -> Filename.current_dir_name
+  | Some drive, [] -> drive
+  | drive, [""] -> Option.value drive ~default:"" ^ Filename.dir_sep
+  | drive, p1 :: p -> Option.value drive ~default:"" ^ List.fold_left ( / ) p1 p
 
 (* - Removes redundant "." segments. - Folds ".." segments when possible and
    preserves extra leading "..". - Preserves whether [p] is absolute or relative
@@ -69,13 +66,7 @@ let list_to_path = function
    separator and root syntax (e.g. ["C:\\"] on Windows). - Does not resolve
    symlinks or case; purely lexical. *)
 let clean_path p =
-  let leading, p =
-    (* Windows drive letters *)
-    match path_to_list p with
-    | drive :: path when not (Filename.is_relative p) ->
-      drive ^ Filename.dir_sep, path
-    | path -> "", path
-  in
+  let drive, p = path_to_list p in
   let nup, p =
     List.fold_right
       (fun d (nup, acc) ->
@@ -85,10 +76,16 @@ let clean_path p =
       p (0, [])
   in
   let p = List.init nup (fun _ -> Filename.parent_dir_name) @ p in
-  leading ^ list_to_path p
+  list_to_path (drive, p)
 
 let make_absolute p =
-  clean_path @@ if Filename.is_relative p then Sys.getcwd () / p else p
+  clean_path
+  @@
+  if Filename.is_relative p then Sys.getcwd () / p
+  else if Sys.win32 && String.starts_with ~prefix:Filename.dir_sep p then
+    (* Absolute, but without drive letter *)
+    String.sub (Sys.getcwd ()) 0 2 ^ p
+  else p
 
 let remove_prefix prefix f0 =
   let prefix = make_absolute prefix in
@@ -126,24 +123,37 @@ let rec ensure_dir dir =
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
 
+let compat_drives d1 d2 =
+  match d1, d2 with
+  | Some l1, Some l2 -> String.lowercase_ascii l1 = String.lowercase_ascii l2
+  | _ -> true
+
 let common_prefix f1 f2 =
   let rec aux p1 p2 =
     match p1, p2 with
     | d1 :: p1, d2 :: p2 when d1 = d2 -> d1 :: aux p1 p2
     | _ -> []
   in
-  "" :: aux (path_to_list (make_absolute f1)) (path_to_list (make_absolute f2))
-  |> list_to_path
+  let drive1, f1 = path_to_list (make_absolute f1) in
+  let drive2, f2 = path_to_list (make_absolute f2) in
+  if not (compat_drives drive1 drive2) then ""
+  else
+    match aux f1 f2 with
+    | [""] -> "" (* this is the fs root *)
+    | pfx -> list_to_path (drive1, pfx)
 
 let make_relative_to ~dir:dir0 f0 =
   let dir = make_absolute dir0 in
   let f = make_absolute f0 in
   let prefix = common_prefix dir f in
-  let dir = remove_prefix prefix dir in
-  let f = remove_prefix prefix f in
-  list_to_path (List.map (fun _ -> Filename.parent_dir_name) (path_to_list dir))
-  / f
-  |> clean_path
+  if prefix = "" then f0
+  else
+    let dir = remove_prefix prefix dir in
+    let f = remove_prefix prefix f in
+    let ddrive, dlist = path_to_list dir in
+    list_to_path (ddrive, List.map (fun _ -> Filename.parent_dir_name) dlist)
+    / f
+    |> clean_path
 
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   clean_path
@@ -169,18 +179,22 @@ let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
           | dir1 :: acc when dir1 = dir -> aux acc rbase p
           | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
     in
-    let rbase = List.rev (path_to_list from_dir) in
-    list_to_path (aux (path_to_list f) rbase (path_to_list to_dir))
+    let _, frompath = path_to_list from_dir in
+    let todrive, topath = path_to_list to_dir in
+    let fdrive, fpath = path_to_list f in
+    if compat_drives todrive fdrive then
+      list_to_path (todrive, aux fpath (List.rev frompath) topath)
+    else make_absolute f
 
 let find_in_parents ?cwd predicate =
   let cwd = match cwd with None -> Sys.getcwd () | Some cwd -> cwd in
-  let home = try Sys.getenv "HOME" with Not_found -> "" in
+  let home = Sys.getenv_opt "HOME" in
   let rec lookup dir rel =
     match predicate dir with
     | true -> Some dir, rel
     | exception (Unix.Unix_error _ | Sys_error _) ->
       None, Filename.current_dir_name
-    | false when dir = home -> None, Filename.current_dir_name
+    | false when Some dir = home -> None, Filename.current_dir_name
     | false ->
       let parent = Filename.dirname dir in
       if parent = dir then None, Filename.current_dir_name
@@ -539,7 +553,7 @@ module Tree = struct
         | Some (_, D sub) -> aux sub path
         | Some (_, F) | None -> raise Not_found)
     in
-    aux t (path_to_list path)
+    aux t (snd (path_to_list path))
 
   let lookup t path =
     try

@@ -166,13 +166,19 @@ val common_prefix : t -> t -> t
 (** Returns the longuest common prefix of two paths, which are first made
     absolute *)
 
+val make_absolute : t -> t
+(** If the given file name is relative, resolve it relative to CWD and clean it
+    up. Also handles Windows drive letters (e.g. turns `\foo\bar` into
+    `C:\foo\bar`) *)
+
 val remove_prefix : t -> t -> t
 (** [remove_prefix prefix f] removes the [prefix] path from the beginning of [f]
     ; if [f] doesn't start with [prefix], it is returned unchanged. If [f] is
     equal to [prefix], [.] is returned. *)
 
 val make_relative_to : dir:t -> t -> t
-(** Makes [f] relative to [dir], using as many [../] as necessary *)
+(** Makes [f] relative to [dir], using as many [../] as necessary. If there is
+    no common prefix, returns [f] unchanged *)
 
 val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
 (** If [to_dir] is a path to a given directory and [f] a path to a file as seen
@@ -205,9 +211,11 @@ val ( -.- ) : t -> string -> t
 val remove_extension : t -> string
 (** [remove_extension filename] is equivalent to [filename -.- ""] *)
 
-val path_to_list : t -> string list
-(** Empty elements or current-directory (".") are skipped in the resulting list
-*)
+val path_to_list : t -> string option * string list
+(** Returns a pair of drive letter (e.g. "c:", for windows) and a list of path
+    elements. The returned path starts with an empty string for absolute
+    directories ; empty elements or current-directory (".") are otherwise
+    skipped in the resulting list; *)
 
 val equal : t -> t -> bool
 (** Case-insensitive string comparison (no file resolution whatsoever) *)
