@@ -52,6 +52,7 @@ depends: [
   "js_of_ocaml-ppx" { >= "6.0.0" }
   "zarith_stubs_js" { >= "v0.16.1" }
   "odoc" {with-doc}
+  "ocamlformat-lib" { = "0.28.1" }
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
   "obelisk" {?cataladevmode & cataladevmode}
   "conf-ninja" {post}
