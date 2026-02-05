@@ -26,6 +26,10 @@ let method_name = function
     let code = Char.code (String.get s 0) in
     if code >= 65 && code <= 90 then "_" ^ s else s
 
+let format_method_var fmt v =
+  let s = Format.asprintf "%a" To_ocaml.format_var v in
+  Format.fprintf fmt "%s" (method_name s)
+
 let format_struct_field_name fmt n =
   let s = Format.asprintf "%a" To_ocaml.format_struct_field_name n in
   Format.fprintf fmt "%s" (method_name s)
@@ -76,14 +80,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
         (t1 @ [t2])
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
-    | TVar v ->
-      let name = Bindlib.name_of v in
-      let name =
-        if String.starts_with ~prefix:"'" name then
-          "a" ^ String.sub name 1 (String.length name - 1)
-        else "t" ^ name
-      in
-      Format.fprintf fmt "'%s" name
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.any"
     | TForAll tb ->
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
@@ -141,11 +138,11 @@ let rec format_typ_to (fmt : Format.formatter) (typ : typ) : unit =
       | TVar _ | TClosureEnv -> Format.fprintf fmt "Js.array"
       | _ ->
         Format.fprintf fmt "(fun a -> Js.array (Array.map %a a))" (aux bctx) t1)
-    | TVar _ -> Format.fprintf fmt "Fun.id"
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.inject"
     | TForAll tb ->
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
-    | TClosureEnv -> Format.fprintf fmt "Unsafe.inject"
+    | TClosureEnv -> Format.fprintf fmt "Js.Unsafe.inject"
     | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
@@ -199,11 +196,11 @@ and format_typ_of (fmt : Format.formatter) (typ : typ) : unit =
       | _ ->
         Format.fprintf fmt "(fun js -> Array.map %a (Js.to_array js))"
           (aux bctx) t1)
-    | TVar _ -> Format.fprintf fmt "Fun.id"
+    | TVar _ -> Format.fprintf fmt "Js.Unsafe.coerce"
     | TForAll tb ->
       let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
       aux bctx fmt typ
-    | TClosureEnv -> Format.fprintf fmt "Unsafe.coerce"
+    | TClosureEnv -> Format.fprintf fmt "Js.Unsafe.coerce"
     | TError -> assert false
   in
   aux Bindlib.empty_ctxt fmt typ
@@ -545,7 +542,8 @@ let format_code_items
                      (fun fmt t ->
                        incr ie;
                        Format.fprintf fmt "(%a _x%d)" format_typ_of t !ie))
-                  lt
+                  lt;
+                `meth (var, lt, te)
               | TForAll tb ->
                 let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
                 aux bctx typ
@@ -553,10 +551,10 @@ let format_code_items
                 Format.fprintf ppml
                   "@,@[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ %a %a@]@,"
                   To_ocaml.format_var var format_typ typ format_typ_to typ
-                  To_ocaml.format_var var
+                  To_ocaml.format_var var;
+                `value (var, typ)
             in
-            aux Bindlib.empty_ctxt typ;
-            `top (Format.asprintf "%a" To_ocaml.format_var var) :: acc)
+            aux Bindlib.empty_ctxt typ :: acc)
           else acc
         | ScopeDef (_name, body) ->
           if body.scope_body_visibility = Public then (
@@ -579,29 +577,76 @@ let format_code_items
               (`Sname body.scope_body_output_struct) To_ocaml.format_var var
               format_to_module_name (`Sname body.scope_body_input_struct)
               To_ocaml.format_var scope_input_var;
-            `scope (Format.asprintf "%a" To_ocaml.format_var var) :: acc)
+            `scope
+              (var, body.scope_body_input_struct, body.scope_body_output_struct)
+            :: acc)
           else acc)
   in
   pp [ppml; ppi] "@]";
-  acc
+  List.rev acc
 
 let export_code_items ppml modname exports =
-  Format.fprintf ppml "@[<hv 2>let () = %a (object%%js@;<1 0>%a@;<1 -2>end)@]"
+  Format.fprintf ppml
+    "@[<hv 2>class type default_ct = object@;\
+     <1 0>%a@;\
+     <1 -2>end@]@,\
+     @,\
+     type default = default_ct Js.t@,\
+     @,\
+     @[<hv 2>let default : default = object%%js@;\
+     <1 0>%a@;\
+     <1 -2>end@]@,\
+     @,\
+     let () = %a default"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+       (fun fmt e ->
+         match e with
+         | `value (v, t) ->
+           Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.prop@]"
+             format_method_var v format_typ t
+         | `meth (v, lt, te) ->
+           Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.meth@]"
+             format_method_var v format_typ
+             (Mark.ghost (TArrow (lt, te)))
+         | `scope (v, i, o) ->
+           Format.fprintf fmt
+             "@[<hov 2>method %a :@ %a.jsoo -> %a.jsoo Js.meth@]"
+             format_method_var v format_to_module_name (`Sname i)
+             format_to_module_name (`Sname o)))
+    exports
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+       (fun fmt e ->
+         match e with
+         | `value (v, _) ->
+           Format.fprintf fmt "@[<hov 2>val mutable %a =@ %a_jsoo@]"
+             format_method_var v To_ocaml.format_var v
+         | `meth (v, lt, _) ->
+           let ip, ie = ref (-1), ref (-1) in
+           Format.fprintf fmt "@[<hov 2>method %a %a =@ %a_jsoo %a@]"
+             format_method_var v
+             (Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+                (fun fmt _ ->
+                  incr ip;
+                  Format.fprintf fmt "x%d" !ip))
+             lt To_ocaml.format_var v
+             (Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+                (fun fmt _ ->
+                  incr ie;
+                  Format.fprintf fmt "x%d" !ie))
+             lt
+         | `scope (v, _, _) ->
+           Format.fprintf fmt "@[<hov 2>method %a x =@ %a_jsoo x@]"
+             format_method_var v To_ocaml.format_var v))
+    exports
     (fun fmt m ->
       match m with
       | None -> Format.fprintf fmt "Js.export_all"
       | Some m -> Format.fprintf fmt "Js.export \"%s\"" m)
     modname
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-       (fun fmt e ->
-         match e with
-         | `top v ->
-           Format.fprintf fmt "@[<hov 2>val %s =@ %s_jsoo@]" (method_name v) v
-         | `scope f ->
-           Format.fprintf fmt "@[<hov 2>method %s x =@ %s_jsoo x@]"
-             (method_name f) f))
-    exports
 
 let format_program
     output_file
