@@ -27,46 +27,54 @@ type bool_jsoo = bool Js.t
 let bool_to_jsoo = Js.bool
 let bool_of_jsoo = Js.to_bool
 
-class type bigInt = object
-  method toLocalString : Js.js_string Js.t -> Js.js_string Js.t Js.meth
+type integer_jsoo = Js.Unsafe.any
 
-  method toLocalString_withopt :
-    Js.js_string Js.t -> Js.Unsafe.any -> Js.js_string Js.t Js.meth
+let int53_limit = Z.shift_left Z.one 53
 
-  method toString : Js.js_string Js.t Js.meth
-  method toString_base : int -> Js.js_string Js.t Js.meth
-  method valueOf : bigInt Js.t Js.meth
-end
+let integer_to_jsoo z =
+  let c = Z.compare (Z.abs z) int53_limit in
+  if c > 0 then Js.Unsafe.inject (Js.string (Z.to_string z))
+  else Js.Unsafe.inject (Z.to_int z)
 
-class type decimal_ct = object
-  method n : bigInt Js.t Js.readonly_prop
-  method d : bigInt Js.t Js.readonly_prop
-end
+let integer_of_jsoo js =
+  match Js.to_string (Js.typeof js) with
+  | "string" -> Z.of_string (Js.to_string (Js.Unsafe.coerce js))
+  | "number" -> Z.of_float (Js.float_of_number (Js.Unsafe.coerce js))
+  | "bigint" -> Z.of_string (Js.to_string (Js.Unsafe.coerce js)##toString)
+  | s -> failwith (Format.sprintf "%S cannot be converted to integer" s)
 
-let bigInt (x : 'a Js.t) : bigInt Js.t = Js.Unsafe.global##_BigInt x
-
-type money_jsoo = bigInt Js.t
-
-let money_to_jsoo z = bigInt (Js.string (Z.to_string z))
-let money_of_jsoo js = Z.of_string (Js.to_string js##toString)
-
-type integer_jsoo = bigInt Js.t
-
-let integer_to_jsoo z = bigInt (Js.string (Z.to_string z))
-let integer_of_jsoo js = Z.of_string (Js.to_string js##toString)
-
-type decimal_jsoo = decimal_ct Js.t
+type decimal_jsoo = Js.Unsafe.any
 
 let decimal_to_jsoo q =
-  object%js
-    val n = bigInt (Js.string (Z.to_string (Q.num q)))
-    val d = bigInt (Js.string (Z.to_string (Q.den q)))
-  end
+  let s = Q.to_string q in
+  if String.contains s '/' then Js.Unsafe.inject (Js.string s)
+  else Js.Unsafe.inject (Js.number_of_float (Float.of_string s))
 
 let decimal_of_jsoo js =
-  Q.make
-    (Z.of_string (Js.to_string js##.n##toString))
-    (Z.of_string (Js.to_string js##.d##toString))
+  match Js.to_string (Js.typeof js) with
+  | "string" -> Q.of_string (Js.to_string (Js.Unsafe.coerce js))
+  | "number" -> Q.of_float (Js.float_of_number (Js.Unsafe.coerce js))
+  | "bigint" -> Q.of_string (Js.to_string (Js.Unsafe.coerce js)##toString)
+  | s -> failwith (Format.sprintf "%S cannot be converted to decimal" s)
+
+type money_jsoo = Js.Unsafe.any
+
+let money_to_jsoo z =
+  Js.Unsafe.coerce (Js.number_of_float (Z.to_float z /. 100.))
+
+let money_of_jsoo js =
+  match Js.to_string (Js.typeof js) with
+  | "string" ->
+    Q.(
+      to_bigint
+        (mul (of_string (Js.to_string (Js.Unsafe.coerce js))) (of_int 100)))
+  | "number" -> Z.of_float (Js.float_of_number (Js.Unsafe.coerce js) *. 100.)
+  | "bigint" ->
+    Z.(
+      mul
+        (of_string (Js.to_string (Js.Unsafe.coerce js)##toString))
+        (of_int 100))
+  | s -> failwith (Format.sprintf "%S cannot be converted to money" s)
 
 type date_jsoo = Dates_calc_jsoo.date_jsoo
 
