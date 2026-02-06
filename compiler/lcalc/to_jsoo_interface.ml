@@ -253,7 +253,7 @@ let format_ctx
       else
         (Format.fprintf ppi
            "@[<v 2>module %a : sig@,\
-            @[<hv 2>type t = {@,\
+            @[<hv 2>type t = %a.t = {@,\
             %a@;\
             <0-2>}@]@;\
             @[<hv 2>class type jsoo_ct = object@;\
@@ -264,6 +264,7 @@ let format_ctx
             val of_jsoo : jsoo -> t@;\
             <1 -2>end@]@,\
             @,"
+           To_ocaml.format_to_module_name (`Sname struct_name)
            To_ocaml.format_to_module_name (`Sname struct_name)
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
@@ -330,12 +331,13 @@ let format_ctx
       in
       if string_enum then (
         Format.fprintf ppi
-          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a%a%a@]@,\
+          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a.t =@ %a%a%a@]@,\
            type jsoo = Js.js_string Js.t@,\
            val to_jsoo : t -> jsoo@,\
            val of_jsoo : jsoo -> t@;\
            <1 -2>end@]@,\
            @,"
+          To_ocaml.format_to_module_name (`Ename enum_name)
           To_ocaml.format_to_module_name (`Ename enum_name)
           Format.pp_print_if_newline () Format.pp_print_string "| "
           (Format.pp_print_list
@@ -378,7 +380,7 @@ let format_ctx
           variants)
       else (
         Format.fprintf ppi
-          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a%a%a@]@,\
+          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a.t =@ %a%a%a@]@,\
            @[<hv 2>class type jsoo_ct = object@;\
            <1 0>%a@;\
            <1 -2>end@]@,\
@@ -387,6 +389,7 @@ let format_ctx
            val of_jsoo : jsoo -> t@;\
            <1 -2>end@]@,\
            @,"
+          To_ocaml.format_to_module_name (`Ename enum_name)
           To_ocaml.format_to_module_name (`Ename enum_name)
           Format.pp_print_if_newline () Format.pp_print_string "| "
           (Format.pp_print_list
@@ -398,7 +401,7 @@ let format_ctx
                    To_ocaml.format_enum_cons_name enum_cons
                | _ ->
                  Format.fprintf fmt "@[<hov 2>%a of@ %a@]"
-                   To_ocaml.format_enum_cons_name enum_cons format_typ
+                   To_ocaml.format_enum_cons_name enum_cons To_ocaml.format_typ
                    enum_cons_type))
           variants
           (Format.pp_print_list
@@ -585,19 +588,14 @@ let format_code_items
   pp [ppml; ppi] "@]";
   List.rev acc
 
-let export_code_items ppml modname exports =
-  Format.fprintf ppml
+let export_code_items ppml ppi modname exports =
+  pp [ppml; ppi]
     "@[<hv 2>class type default_ct = object@;\
      <1 0>%a@;\
      <1 -2>end@]@,\
      @,\
      type default = default_ct Js.t@,\
-     @,\
-     @[<hv 2>let default : default = object%%js@;\
-     <1 0>%a@;\
-     <1 -2>end@]@,\
-     @,\
-     let () = %a default"
+     @,"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
        (fun fmt e ->
@@ -614,7 +612,14 @@ let export_code_items ppml modname exports =
              "@[<hov 2>method %a :@ %a.jsoo -> %a.jsoo Js.meth@]"
              format_method_var v format_to_module_name (`Sname i)
              format_to_module_name (`Sname o)))
-    exports
+    exports;
+
+  Format.fprintf ppml
+    "@[<hv 2>let default : default = object%%js@;\
+     <1 0>%a@;\
+     <1 -2>end@]@,\
+     @,\
+     let () = %a default"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
        (fun fmt e ->
@@ -646,7 +651,8 @@ let export_code_items ppml modname exports =
       match m with
       | None -> Format.fprintf fmt "Js.export_all"
       | Some m -> Format.fprintf fmt "Js.export \"%s\"" m)
-    modname
+    modname;
+  Format.fprintf ppi "val default : default@,"
 
 let format_program
     output_file
@@ -677,7 +683,7 @@ let format_program
     modname;
   format_ctx type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items ppml ppi p.code_items in
-  export_code_items ppml modname exports;
+  export_code_items ppml ppi modname exports;
   pp [ppml; ppi] "@]";
   Format.pp_print_flush ppml ();
   Format.pp_print_flush ppi ();

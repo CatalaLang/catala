@@ -523,15 +523,17 @@ let gen_build_statements
             ]
       in
       let jsoo =
-        (* todo: not sure *)
         if not (List.mem Jsoo enabled_backends) then Seq.empty
         else
           let ml, missing = extern_src ~suffix:"_jsoo" "jsoo" "ml" [] in
+          let mli, missing = extern_src ~suffix:"_jsoo" "jsoo" "mli" missing in
           check_missing "jsoo" missing;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
                 ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"];
+              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
+                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
             ]
       in
       ocaml, c, python, java, jsoo

@@ -133,7 +133,7 @@ let backend_src_extensions =
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
-    Clerk_rules.Jsoo, ["ml"];
+    Clerk_rules.Jsoo, ["ml"; "mli"];
   ]
 
 let backend_obj_extensions =
@@ -391,7 +391,8 @@ let backend_runtime_targets ?(only_source = false) enabled_backends =
   @ (if List.mem Clerk_rules.Java enabled_backends then [src "@runtime-java"]
      else [])
   @
-  if List.mem Clerk_rules.Jsoo enabled_backends then [src "@runtime-jsoo"]
+  if List.mem Clerk_rules.Jsoo enabled_backends then
+    if only_source then ["@runtime-jsoo-src"] else []
   else []
 
 open Cmdliner
