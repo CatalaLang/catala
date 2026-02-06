@@ -428,7 +428,7 @@ let build_clerk_target
   in
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-      ~ninja_flags ~quiet ~autotest:false
+      ~ninja_flags ~quiet ~autotest:false ~module_targets:target.tmodules
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -535,6 +535,11 @@ let build_clerk_target
           | _ -> (bk, file) :: acc)
         [] all_target_files
     in
+    let all_targets =
+      if List.mem Clerk_rules.Jsoo enabled_backends then
+        "@javascript-file" :: all_targets
+      else all_targets
+    in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
     install_targets, all_modules_deps
   in
@@ -634,7 +639,7 @@ let build_direct_targets
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
-        ~ninja_flags ~autotest
+        ~ninja_flags ~autotest ~module_targets:direct_targets
       @@ fun nin_ppf items var_bindings ->
       let link_deps = Scan.linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -665,6 +670,7 @@ let build_direct_targets
                 | "exe", "c" -> t, `C
                 | "exe", "python" -> t, `Python
                 | "jar", _ -> ensure_target_dir "java" t, `Java
+                | "exe", "jsoo" -> ensure_target_dir "jsoo" t, `Jsoo
                 | "exe", ("ocaml" | _) -> ensure_target_dir "ocaml" t, `OCaml
                 | _ -> assert false
               in

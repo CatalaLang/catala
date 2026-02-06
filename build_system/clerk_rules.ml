@@ -280,18 +280,24 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
     (* We're trying to make jsoo backend work without OCaml backend, we redefine
        some variable that were maybe already defined if the OCaml backend was
        also activated.*)
-    [
-      def Var.ocamlc_exe (lazy ["ocamlc"]);
-      def Var.jsoo_include
-        (lazy
-          (Lazy.force Poll.jsoo_include_flags
-          @ Lazy.force Poll.ocaml_include_flags
-          @ includes ~backend:"jsoo" ()));
-      def Var.catala_flags_jsoo (lazy catala_flags_jsoo);
-      def Var.js_of_ocaml_exe (lazy ["js_of_ocaml"]);
-      def Var.js_of_ocaml_flags (lazy ["--no-sourcemap"]);
-      def Var.ppx_jsoo (lazy (Lazy.force Poll.ppx_jsoo_exec));
-    ]
+    (if not (List.mem OCaml enabled_backends) then
+       [
+         def Var.ocamlc_exe (lazy ["ocamlc"]);
+         def Var.ocaml_flags (lazy ocaml_common_flags);
+       ]
+     else [])
+    @ [
+        def Var.ocamlc_exe (lazy ["ocamlc"]);
+        def Var.jsoo_include
+          (lazy
+            (Lazy.force Poll.jsoo_include_flags
+            @ Lazy.force Poll.ocaml_include_flags
+            @ includes ~backend:"jsoo" ()));
+        def Var.catala_flags_jsoo (lazy catala_flags_jsoo);
+        def Var.js_of_ocaml_exe (lazy ["js_of_ocaml"]);
+        def Var.js_of_ocaml_flags (lazy ["--no-sourcemap"]);
+        def Var.ppx_jsoo (lazy (Lazy.force Poll.ppx_jsoo_exec));
+      ]
   else []
 
 let[@ocamlformat "disable"] static_base_rules enabled_backends =
@@ -325,25 +331,32 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
           !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
         ]
         ~description:["<ocaml>"; "⇒"; !output];
-
       Nj.rule "ocaml-module"
         ~command:
           [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
-  (if List.mem Jsoo enabled_backends then
-        let runtime_include =
-          File.(Var.(!builddir) / Scan.libcatala / "jsoo")
-        in
-         [
-      Nj.rule "catala-ocaml"
+  (if List.mem Jsoo enabled_backends then 
+         let runtime_include =
+           File.(Var.(!builddir) / Scan.libcatala / "jsoo")
+         in
+         (if not (List.mem OCaml enabled_backends) then
+      [Nj.rule "catala-ocaml"
         ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
                   "-o"; !output; "--"; !input]
-        ~description:["<catala>"; "ocaml"; "⇒"; !output];
+        ~description:["<catala>"; "ocaml"; "⇒"; !output]]
+        else
+          []) @
+         [
       Nj.rule "jsoo-bytobject"
         ~command:[
           !ocamlc_exe; "-c"; !ocaml_flags; !jsoo_include; "-I"; runtime_include; !includes; !ppx; !input
+        ]
+        ~description:["<ocaml>"; "⇒"; !output];
+      Nj.rule "jsoo-exe"
+        ~command:[
+          !ocamlc_exe; !ocaml_flags; !jsoo_include; "-I"; runtime_include; !includes; !ppx; !input; "-o"; !output;
         ]
         ~description:["<ocaml>"; "⇒"; !output];
       Nj.rule "catala-jsoo"
@@ -354,6 +367,10 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~command:[!catala_exe; "binding-jsoo"; !catala_flags; !catala_flags_jsoo;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "jsoo"; "⇒"; !output];
+      Nj.rule "js_of_ocaml"
+        ~command:[!js_of_ocaml_exe; !jsoo_command; !js_of_ocaml_flags;
+                  "-o"; !output; "--"; !input]
+        ~description:["<js_of_ocaml>"; "jsoo"; "⇒"; !output];
     ]
    else []
   ) @
@@ -1319,6 +1336,126 @@ let output_ninja_file_item_statements
   in
   print_and_get_items (Seq.once item_tree)
 
+let get_stdlib_module file_name =
+  match Scan.get_lang file_name with
+  | Some lg ->
+    let lg = if Global.has_localised_stdlib lg then lg else Global.En in
+    Some ("Stdlib_" ^ Cli.language_code lg)
+  | None -> None
+
+let target_uniq_fileame ~dir ~module_targets ext =
+  File.((dir / String.concat "_" module_targets) ^ "." ^ ext)
+
+let make_binary_for_jsoo ~externls ~stdlib_tree ~project_tree module_targets =
+  let open File in
+  let pos_targets = List.map Mark.ghost module_targets in
+  let project_items = Clerk_scan.linking_tree project_tree pos_targets in
+  let stdlib_opt =
+    match project_items with
+    | [] -> None
+    | (_, _, item) :: _ -> get_stdlib_module item.Scan.file_name
+  in
+  let stdlib_module = Option.value ~default:"Stdlib_en" stdlib_opt in
+  (* Retrieve the topological order for compiling the stdlib *)
+  let stdlib_items =
+    Clerk_scan.linking_tree stdlib_tree [Mark.ghost stdlib_module]
+  in
+  (* Get the name of the module (each element of the stdlib should have a module
+     name) so the filter doesn't really apply *)
+  let stdlib_modules =
+    List.filter_map
+      (fun (_, _, item) ->
+        Option.map
+          (fun module_name -> Scan.libcatala, [], Mark.remove module_name)
+          item.Scan.module_def)
+      stdlib_items
+  in
+  (* Get the name of the modules, be careful maybe some file are missed *)
+  let project_modules =
+    List.filter_map
+      (fun (dir, sub_dirs, item) ->
+        Option.map
+          (fun name -> dir, sub_dirs, Mark.remove name)
+          item.Scan.module_def)
+      project_items
+  in
+  let modfile ?(suffix = "") ~ext (dir, sub_dirs, modname) =
+    let dir = Var.(!builddir) / dir in
+    (List.fold_left ( / ) dir sub_dirs / "jsoo" / String.to_id modname)
+    ^ suffix
+    ^ ext
+  in
+  (* Retrieve the compiled files needed for compiling the project to bytes, the
+     order is important *)
+  let _opam_dir = Lazy.force Clerk_poll.ocaml_libdir in
+  let zarith = _opam_dir / "zarith" / "zarith.cma" in
+  let js_of_ocaml_runtime =
+    _opam_dir / "js_of_ocaml-compiler" / "runtime" / "jsoo_runtime.cma"
+  in
+  let js_of_ocaml = _opam_dir / "js_of_ocaml" / "js_of_ocaml.cma" in
+  let dates_calc =
+    File.(Var.(!builddir) / Scan.libcatala / "jsoo" / "dates_calc.cmo")
+  in
+  let catala_runtime =
+    File.(Var.(!builddir) / Scan.libcatala / "jsoo" / "catala_runtime.cmo")
+  in
+  let dates_calc_jsoo =
+    File.(Var.(!builddir) / Scan.libcatala / "jsoo" / "dates_calc_jsoo.cmo")
+  in
+  let catala_runtime_jsoo =
+    File.(Var.(!builddir) / Scan.libcatala / "jsoo" / "catala_runtime_jsoo.cmo")
+  in
+  (* Retrieving the cmo for the stdlib *)
+  let stdlib_cmo = List.map (modfile ~ext:".cmo") stdlib_modules in
+  let stdlib_jsoo_cmo =
+    List.filter_map
+      (fun (dir, sub_dir, modname) ->
+        (* Internal files are written as external librairies in catala and only
+           expose english function. I think it's not necessary to expose those
+           function because you could write your catala project in french for
+           example *)
+        if List.mem modname externls then None
+        else
+          let cmo_file =
+            modfile ~suffix:"_jsoo" ~ext:".cmo" (dir, sub_dir, modname)
+          in
+          Some cmo_file)
+      stdlib_modules
+  in
+  let project_cmo = List.map (modfile ~ext:".cmo") project_modules in
+  let project_jsoo_cmo =
+    List.filter_map
+      (fun (dir, sub_dirs, modname) ->
+        if List.mem modname externls then None
+        else Some (modfile ~suffix:"_jsoo" ~ext:".cmo" (dir, sub_dirs, modname)))
+      project_modules
+  in
+  let big_integer = _opam_dir / "zarith_stubs_js" / "biginteger.js" in
+  let runtime_js = _opam_dir / "zarith_stubs_js" / "runtime.js" in
+  let jsoo_file = target_uniq_fileame ~dir:Var.(!tdir) ~module_targets "exe" in
+  let catala_js = target_uniq_fileame ~dir:Var.(!tdir) ~module_targets "js" in
+  [
+    Nj.Comment "\n- OCaml compilation binary for JSOO - #\n";
+    Nj.comment "";
+    Nj.comment "";
+    Nj.build "jsoo-exe"
+      ~inputs:
+        (zarith
+        :: js_of_ocaml_runtime
+        :: js_of_ocaml
+        :: dates_calc
+        :: catala_runtime
+        :: dates_calc_jsoo
+        :: catala_runtime_jsoo
+        :: (stdlib_cmo @ stdlib_jsoo_cmo @ project_cmo @ project_jsoo_cmo))
+      ~outputs:[jsoo_file];
+    Nj.build "js_of_ocaml"
+      ~inputs:[big_integer; runtime_js; jsoo_file]
+      ~outputs:[catala_js];
+    Nj.build "phony" ~inputs:[catala_js] ~outputs:["@javascript-file"];
+    Nj.comment "";
+  ]
+
 let output_ninja_file
     nin_ppf
     ~externls
@@ -1327,7 +1464,8 @@ let output_ninja_file
     ~autotest
     ~var_bindings
     stdlib_tree
-    project_tree =
+    project_tree
+    module_targets =
   let pp nj =
     Nj.format_def nin_ppf nj;
     Format.pp_print_cut nin_ppf ()
@@ -1348,6 +1486,9 @@ let output_ninja_file
     pp
       (Nj.build "phony" ~outputs:["test"]
          ~inputs:[File.(Var.(!builddir / ".@test"))]);
+  if List.mem Jsoo enabled_backends && List.length module_targets > 0 then
+    List.iter pp
+      (make_binary_for_jsoo ~externls ~stdlib_tree ~project_tree module_targets);
   Seq.Nil
 
 (** {1 Driver} *)
@@ -1476,6 +1617,7 @@ let run_ninja
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
+    ?(module_targets = [])
     callback =
   let enabled_backends =
     if autotest then OCaml :: enabled_backends else enabled_backends
@@ -1489,6 +1631,10 @@ let run_ninja
       let stdlib_tree =
         Scan.tree stdlib_dir |> Seq.map (fun (f, fl, items) -> f, fl, items)
       in
+      (* TODO: Problem if you forgot to include a dir in the clerk.toml, the
+         scan tree sees the catala_file (because it scans ".") but the option in
+         ninja's command are missing include to that dir. Rules are generated
+         for those files but are failing. *)
       let item_tree =
         Scan.tree "."
         |> Seq.filter_map (fun (f, fl, items) ->
@@ -1498,14 +1644,9 @@ let run_ninja
                 List.map
                   (fun it ->
                     let used_modules =
-                      match Scan.get_lang it.Scan.file_name with
-                      | Some lg ->
-                        let lg =
-                          if Global.has_localised_stdlib lg then lg
-                          else Global.En
-                        in
-                        ( "Stdlib_" ^ Cli.language_code lg,
-                          Pos.from_info f 0 0 0 0 )
+                      match get_stdlib_module it.Scan.file_name with
+                      | Some stdlib ->
+                        (stdlib, Pos.from_info f 0 0 0 0)
                         :: it.Scan.used_modules
                       | None -> it.Scan.used_modules
                     in
@@ -1557,7 +1698,7 @@ let run_ninja
       in
       let items =
         output_ninja_file nin_ppf ~externls ~config ~enabled_backends ~autotest
-          ~var_bindings stdlib_tree item_tree
+          ~var_bindings stdlib_tree item_tree module_targets
       in
       let ret = callback nin_ppf (List.of_seq items) var_bindings in
       Format.pp_print_newline nin_ppf ();
