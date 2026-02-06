@@ -71,6 +71,19 @@ let error_to_string = function
   | IndivisibleDurations -> "IndivisibleDurations"
   | Impossible -> "Impossible"
 
+let error_of_string = function
+  | "AssertionFailed" -> AssertionFailed
+  | "NoValue" -> NoValue
+  | "Conflict" -> Conflict
+  | "DivisionByZero" -> DivisionByZero
+  | "ListEmpty" -> ListEmpty
+  | "NotSameLength" -> NotSameLength
+  | "InvalidDate" -> InvalidDate
+  | "UncomparableDurations" -> UncomparableDurations
+  | "AmbiguousDateRounding" -> AmbiguousDateRounding
+  | "IndivisibleDurations" -> IndivisibleDurations
+  | "Impossible" | _ -> Impossible
+
 let error_message = function
   | AssertionFailed -> "an assertion doesn't hold"
   | NoValue -> "no applicable rule to define this variable in this situation"

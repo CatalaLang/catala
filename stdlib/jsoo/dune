@@ -1,0 +1,8 @@
+(library
+ (name stdlib_internals_jsoo)
+ (public_name catala.stdlib_internals_jsoo)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries stdlib_internals catala.runtime_jsoo)
+ (flags
+  (:standard -open Stdlib_internals)))

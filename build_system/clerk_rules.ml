@@ -22,15 +22,16 @@ module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
-type backend = OCaml | Python | C | Java | Tests (* | JS *)
+type backend = OCaml | Python | C | Java | Tests | Jsoo
 
-let all_backends = [OCaml; Python; C; Java; Tests]
+let all_backends = [OCaml; Python; C; Java; Tests; Jsoo]
 
 let backend_from_config = function
   | Clerk_config.OCaml -> OCaml
   | Clerk_config.Python -> Python
   | Clerk_config.C -> C
   | Clerk_config.Java -> Java
+  | Clerk_config.Jsoo -> Jsoo
   | _ -> invalid_arg __FUNCTION__
 
 (** Ninja variable names *)
@@ -58,6 +59,7 @@ module Var = struct
   let catala_flags_c = make "CATALA_FLAGS_C"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
   let catala_flags_java = make "CATALA_FLAGS_JAVA"
+  let catala_flags_jsoo = make "CATALA_FLAGS_JSOO"
   let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
@@ -71,6 +73,8 @@ module Var = struct
   let javac_flags = make "JAVAC_FLAGS"
   let jar = make "jar"
   let java = make "JAVA"
+  let js_of_ocaml_exe = make "JS_OF_OCAML_EXE"
+  let js_of_ocaml_flags = make "JS_OF_OCAML_FLAGS"
   let all_vars = all_vars_ref.contents
 
   (* Definition spreading different rules *)
@@ -151,6 +155,16 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
           | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
         test_flags
   in
+  let catala_flags_jsoo =
+    (if autotest then ["--autotest"] else [])
+    @
+    if use_default_flags then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+        test_flags
+  in
   let def var value =
     let value =
       match List.assoc_opt (Var.name var) options.variables with
@@ -214,28 +228,35 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.javac_flags (lazy ["-implicit:none"]);
        ]
      else [])
+  @ (if List.mem C enabled_backends then
+       [
+         def Var.catala_flags_c (lazy catala_flags_c);
+         def Var.cc_exe (lazy ["cc"]);
+         def Var.c_flags
+           (lazy
+             [
+               "-std=c89";
+               "-pedantic";
+               "-Wall";
+               "-Wno-unused-function";
+               "-Wno-unused-variable";
+               "-Wno-unused-but-set-variable";
+               "-Werror";
+               "-fPIC";
+               "-g";
+             ]);
+         def Var.c_include
+           (lazy
+             (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
+             @ includes ~backend:"c" ()));
+       ]
+     else [])
   @
-  if List.mem C enabled_backends then
+  if List.mem Jsoo enabled_backends then
     [
-      def Var.catala_flags_c (lazy catala_flags_c);
-      def Var.cc_exe (lazy ["cc"]);
-      def Var.c_flags
-        (lazy
-          [
-            "-std=c89";
-            "-pedantic";
-            "-Wall";
-            "-Wno-unused-function";
-            "-Wno-unused-variable";
-            "-Wno-unused-but-set-variable";
-            "-Werror";
-            "-fPIC";
-            "-g";
-          ]);
-      def Var.c_include
-        (lazy
-          (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ includes ~backend:"c" ()));
+      def Var.catala_flags_jsoo (lazy catala_flags_jsoo);
+      def Var.js_of_ocaml_exe (lazy ["js_of_ocaml"]);
+      def Var.js_of_ocaml_flags (lazy []);
     ]
   else []
 
@@ -276,6 +297,14 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ] else []) @
+  (if List.mem Jsoo enabled_backends then [
+      Nj.rule "catala-jsoo"
+        ~command:[!catala_exe; "jsoo"; !catala_flags; !catala_flags_jsoo;
+                  "-o"; !output; "--"; !input]
+        ~description:["<catala>"; "jsoo"; "⇒"; !output];
+    ]
+   else []
+  ) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
       ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
@@ -348,23 +377,31 @@ let gen_build_statements
            ])
          include_dirs
   in
-  let target ?backend ext =
+  let target ?suffix ?backend ext =
     let ext =
       match ext.[0] with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
       | _ -> ext
     in
+    let suffix =
+      match suffix with
+      | None | Some "" -> ""
+      | Some s -> (
+        match s.[0] with
+        | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "_" ^ s
+        | _ -> s)
+    in
     let bdir =
       match backend with
-      | None -> fun f -> f ^ ext
-      | Some b -> fun f -> (b / f) ^ ext
+      | None -> fun f -> f ^ suffix ^ ext
+      | Some b -> fun f -> (b / f) ^ suffix ^ ext
     in
     !Var.tdir / bdir !Var.dst
   in
   let modules = List.rev_map Mark.remove item.used_modules in
-  let modfile ?(backend = "ocaml") ext modname =
+  let modfile ?(suffix = "") ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
-    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
+    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ suffix ^ ext
     | None -> modname ^ "@" ^ backend ^ "-module"
   in
   let module_target x = modfile "@ocaml-module" x in
@@ -409,8 +446,8 @@ let gen_build_statements
       else []
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
-  let extern_src backend ext missing =
-    let f = src -.- ext in
+  let extern_src ?suffix backend ext missing =
+    let f = File.with_extension ?suffix src ext in
     match check_file f with
     | Some f -> f, missing
     | None -> (
@@ -433,7 +470,7 @@ let gen_build_statements
            File.format)
         missing backend src
   in
-  let ocaml, c, python, java =
+  let ocaml, c, python, java, jsoo =
     if item.extrnal then
       let ocaml =
         if not (List.mem OCaml enabled_backends) then Seq.empty
@@ -485,7 +522,21 @@ let gen_build_statements
                 ~outputs:[target ~backend:"java" "java"];
             ]
       in
-      ocaml, c, python, java
+      let jsoo =
+        if not (List.mem Jsoo enabled_backends) then Seq.empty
+        else
+          let ml, missing = extern_src ~suffix:"_jsoo" "jsoo" "ml" [] in
+          let mli, missing = extern_src ~suffix:"_jsoo" "jsoo" "mli" missing in
+          check_missing "jsoo" missing;
+          List.to_seq
+            [
+              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
+                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"];
+              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
+                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
+            ]
+      in
+      ocaml, c, python, java, jsoo
     else
       let inputs = [catala_src] in
       let implicit_in =
@@ -516,7 +567,11 @@ let gen_build_statements
              ~outputs:[target ~backend:"python" "py"]),
         Seq.return
           (Nj.build "catala-java" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"java" "java"]) )
+             ~outputs:[target ~backend:"java" "java"]),
+        Seq.return
+          (Nj.build "catala-jsoo" ?vars ~inputs ~implicit_in
+             ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]
+             ~implicit_out:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"]) )
   in
   let ocamlopt =
     let obj =
@@ -655,12 +710,19 @@ let gen_build_statements
                ~inputs:[modfile ~backend:"python" ".py" modname];
            ]
          else [])
+      @ (if List.mem Java enabled_backends then
+           [
+             Nj.build "phony"
+               ~outputs:[modname ^ "@java-module"]
+               ~inputs:[modfile ~backend:"java" ".class" modname];
+           ]
+         else [])
       @
-      if List.mem Java enabled_backends then
+      if List.mem Jsoo enabled_backends then
         [
           Nj.build "phony"
-            ~outputs:[modname ^ "@java-module"]
-            ~inputs:[modfile ~backend:"java" ".class" modname];
+            ~outputs:[modname ^ "@jsoo-module"]
+            ~inputs:[modfile ~suffix:"_jsoo" ~backend:"jsoo" ".ml" modname];
         ]
       else []
     | _ -> []
@@ -687,7 +749,8 @@ let gen_build_statements
     @ (if List.mem C enabled_backends then [c; List.to_seq cc] else [])
     @ (if List.mem Python enabled_backends then [python] else [])
     @ (if List.mem Java enabled_backends then [java; Seq.return javac] else [])
-    @ if List.mem Tests enabled_backends then [List.to_seq tests] else []
+    @ (if List.mem Tests enabled_backends then [List.to_seq tests] else [])
+    @ if List.mem Jsoo enabled_backends then [jsoo] else []
   in
   Seq.concat (List.to_seq statements_list)
 
@@ -916,48 +979,79 @@ let runtime_build_statements ~config enabled_backends =
            ~outputs:[python_base -.- "py"];
        ]
      else [])
+  @ (if List.mem Java enabled_backends then
+       let java_base = stdbase / "java" in
+       let java_src = Var.(!runtime) / "java" in
+       let java_orig_prefix = Lazy.force runtime_orig / "java" in
+       let java_files =
+         File.scan_tree
+           (fun f ->
+             let base = File.basename f in
+             if
+               Filename.check_suffix base ".java"
+               && base = String.capitalize_ascii base
+             then Some (File.remove_prefix java_orig_prefix f)
+             else None)
+           java_orig_prefix
+         |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+         |> Seq.map (File.remove_prefix java_src)
+         |> List.of_seq
+       in
+       let java_list_file =
+         let base =
+           config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
+         in
+         File.with_out_channel (base / "java.files") (fun oc ->
+             List.iter
+               (fun s -> output_string oc ((base / s) ^ "\n"))
+               java_files);
+         java_base / "java.files"
+       in
+       Nj.build "phony"
+         ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
+         ~outputs:["@runtime-java-src"]
+       :: Nj.build "phony"
+            ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+            ~outputs:["@runtime-java"]
+       :: Nj.build "java-class" ~inputs:[]
+            ~implicit_in:
+              (java_list_file :: List.map (fun f -> java_base / f) java_files)
+            ~outputs:
+              (List.map (fun f -> (java_base / f) -.- "class") java_files)
+            ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+       :: List.map
+            (fun f ->
+              Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+            java_files
+     else [])
   @
-  if List.mem Java enabled_backends then
-    let java_base = stdbase / "java" in
-    let java_src = Var.(!runtime) / "java" in
-    let java_orig_prefix = Lazy.force runtime_orig / "java" in
-    let java_files =
-      File.scan_tree
-        (fun f ->
-          let base = File.basename f in
-          if
-            Filename.check_suffix base ".java"
-            && base = String.capitalize_ascii base
-          then Some (File.remove_prefix java_orig_prefix f)
-          else None)
-        java_orig_prefix
-      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
-      |> Seq.map (File.remove_prefix java_src)
-      |> List.of_seq
-    in
-    let java_list_file =
-      let base =
-        config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
-      in
-      File.with_out_channel (base / "java.files") (fun oc ->
-          List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
-      java_base / "java.files"
-    in
-    Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@runtime-java-src"]
-    :: Nj.build "phony"
-         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@runtime-java"]
-    :: Nj.build "java-class" ~inputs:[]
-         ~implicit_in:
-           (java_list_file :: List.map (fun f -> java_base / f) java_files)
-         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
-    :: List.map
-         (fun f ->
-           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
-         java_files
+  if List.mem Jsoo enabled_backends then
+    let jsoo_src = Var.(!runtime) / "jsoo" in
+    let dates_base = stdbase / "jsoo" / "dates_calc" in
+    let runtime_base = stdbase / "jsoo" / "catala_runtime" in
+    [
+      Nj.build "phony"
+        ~inputs:
+          [
+            File.with_extension ~suffix:"_jsoo" dates_base "ml";
+            File.with_extension ~suffix:"_jsoo" dates_base "mli";
+            File.with_extension ~suffix:"_jsoo" runtime_base "ml";
+            File.with_extension ~suffix:"_jsoo" runtime_base "mli";
+          ]
+        ~outputs:["@runtime-jsoo-src"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "catala_runtime_jsoo.mli"]
+        ~outputs:[File.with_extension ~suffix:"_jsoo" runtime_base "mli"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "catala_runtime_jsoo.ml"]
+        ~outputs:[File.with_extension ~suffix:"_jsoo" runtime_base "ml"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "dates_calc_jsoo.mli"]
+        ~outputs:[File.with_extension ~suffix:"_jsoo" dates_base "mli"];
+      Nj.build "copy"
+        ~inputs:[jsoo_src / "dates_calc_jsoo.ml"]
+        ~outputs:[File.with_extension ~suffix:"_jsoo" dates_base "ml"];
+    ]
   else []
 
 let output_ninja_file_header pp ~config ~enabled_backends ~var_bindings =

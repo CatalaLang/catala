@@ -102,6 +102,7 @@ module Commands : sig
     Global.options ->
     Global.raw_file option ->
     ?ext:string ->
+    ?suffix:string ->
     (string option -> Format.formatter -> 'a) ->
     'a
 

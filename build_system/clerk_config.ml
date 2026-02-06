@@ -18,7 +18,7 @@ open Catala_utils
 open Otoml
 
 type backend = ..
-type backend += C | OCaml | Java | Python
+type backend += C | OCaml | Java | Python | Jsoo
 
 let registered_backends = ref []
 
@@ -29,7 +29,8 @@ let () =
   register_backend ~name:"c" C;
   register_backend ~name:"ocaml" OCaml;
   register_backend ~name:"java" Java;
-  register_backend ~name:"python" Python
+  register_backend ~name:"python" Python;
+  register_backend ~name:"jsoo" Jsoo
 
 let registered_backends () = !registered_backends
 

@@ -47,6 +47,7 @@ val get_main_out_channel :
   source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
+  ?suffix:string ->
   unit ->
   t option * ((out_channel -> 'a) -> 'a)
 (** [get_output ~source_file ~output_file ?ext ()] returns the inferred filename
@@ -57,6 +58,7 @@ val get_main_out_formatter :
   source_file:t Global.input_src ->
   output_file:t option ->
   ?ext:string ->
+  ?suffix:string ->
   unit ->
   t option * ((Format.formatter -> 'a) -> 'a)
 (** [get_output_format ~source_file ~output_file ?ext ()] returns the inferred
@@ -196,6 +198,8 @@ val find_in_parents : ?cwd:t -> (t -> bool) -> (t * t) option
 
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)
+
+val with_extension : ?suffix:string -> t -> string -> t
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it

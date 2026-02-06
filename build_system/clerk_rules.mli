@@ -17,7 +17,7 @@
 
 open Catala_utils
 
-type backend = OCaml | Python | C | Java | Tests
+type backend = OCaml | Python | C | Java | Tests | Jsoo
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend

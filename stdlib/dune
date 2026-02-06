@@ -5,6 +5,8 @@
   (glob_files_rec
    (ocaml/* with_prefix runtime/ocaml))
   (glob_files_rec
+   (jsoo/* with_prefix runtime/jsoo))
+  (glob_files_rec
    (c/* with_prefix runtime/c))
   (glob_files_rec
    (java/* with_prefix runtime/java))

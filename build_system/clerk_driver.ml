@@ -133,6 +133,7 @@ let backend_src_extensions =
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"];
     Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
+    Clerk_rules.Jsoo, ["ml"; "mli"];
   ]
 
 let backend_obj_extensions =
@@ -142,6 +143,7 @@ let backend_obj_extensions =
     Clerk_rules.Python, [];
     Clerk_rules.Java, ["class"];
     Clerk_rules.Tests, [];
+    Clerk_rules.Jsoo, [];
   ]
 
 let backend_extensions =
@@ -163,6 +165,7 @@ let backend_subdir_list =
     Clerk_rules.Java, "java";
     Clerk_rules.OCaml, "ocaml";
     Clerk_rules.Tests, "";
+    Clerk_rules.Jsoo, "jsoo";
   ]
 
 let subdir_backend_list =
@@ -172,6 +175,16 @@ let backend_subdir bk = List.assoc bk backend_subdir_list
 
 let rule_subdir rule =
   backend_subdir (Clerk_rules.backend_from_config rule.Config.backend)
+
+let backend_suffix =
+  [
+    Clerk_rules.C, None;
+    Clerk_rules.Python, None;
+    Clerk_rules.Java, None;
+    Clerk_rules.OCaml, None;
+    Clerk_rules.Tests, None;
+    Clerk_rules.Jsoo, Some "_jsoo";
+  ]
 
 let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
@@ -195,6 +208,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         "-o";
         target -.- "exe";
       ]
+  | `Jsoo -> []
   | `C ->
     get_var var_bindings Var.cc_exe
     @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
@@ -336,6 +350,7 @@ let rules_backend = function
   | Clerk_rules.Python -> `Python
   | Clerk_rules.Java -> `Java
   | Clerk_rules.Tests -> `Interpret
+  | Clerk_rules.Jsoo -> `Jsoo
 
 let string_of_backend = function
   | `OCaml -> "ocaml"
@@ -343,6 +358,7 @@ let string_of_backend = function
   | `Python -> "python"
   | `Java -> "java"
   | `Interpret -> "interpret"
+  | `Jsoo -> "jsoo"
 
 let make_target ~build_dir ~backend item =
   let open File in
@@ -359,6 +375,7 @@ let make_target ~build_dir ~backend item =
     | `C -> (dir / "c" / base) -.- "o"
     | `Python -> (dir / "python" / base) -.- "py"
     | `Java -> (dir / "java" / base) -.- "class"
+    | `Jsoo -> File.with_extension ~suffix:"_jsoo" (dir / "ocaml" / base) ".ml"
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
@@ -371,8 +388,11 @@ let backend_runtime_targets ?(only_source = false) enabled_backends =
   @ (if List.mem Clerk_rules.C enabled_backends then [src "@runtime-c"] else [])
   @ (if List.mem Clerk_rules.Python enabled_backends then ["@runtime-python"]
      else [])
+  @ (if List.mem Clerk_rules.Java enabled_backends then [src "@runtime-java"]
+     else [])
   @
-  if List.mem Clerk_rules.Java enabled_backends then [src "@runtime-java"]
+  if List.mem Clerk_rules.Jsoo enabled_backends then
+    if only_source then ["@runtime-jsoo-src"] else []
   else []
 
 open Cmdliner
@@ -484,8 +504,11 @@ let build_clerk_target
                 if target.include_objects then List.assoc bk backend_extensions
                 else List.assoc bk backend_src_extensions
               in
+              let suffix = List.assoc bk backend_suffix in
               List.map
-                (fun ext -> (module_item, target, bk), base -.- ext)
+                (fun ext ->
+                  ( (module_item, target, bk),
+                    File.with_extension ?suffix base ext ))
                 extensions)
             all_modules_deps)
         enabled_backends
@@ -508,7 +531,8 @@ let build_clerk_target
                 List.assoc backend backend_extensions
               else List.assoc backend backend_src_extensions
             in
-            List.map File.(fun ext -> tf -.- ext) exts
+            let suffix = List.assoc backend backend_suffix in
+            List.map (fun ext -> File.with_extension ?suffix tf ext) exts
           in
           targets @ acc)
         (backend_runtime_targets
@@ -552,10 +576,21 @@ let build_clerk_target
           ["catala"; "org"]
       | Clerk_rules.Tests -> assert false
       | bk ->
+        let suffix = List.assoc bk backend_suffix in
         List.iter
           (fun ext ->
-            let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
-            if File.exists src then copy_in ~dir ~src)
+            let runtime_src =
+              File.with_extension ?suffix
+                (local_runtime_dir bk / "catala_runtime")
+                ext
+            in
+            if File.exists runtime_src then copy_in ~dir ~src:runtime_src;
+            let dates_calc_src =
+              File.with_extension ?suffix
+                (local_runtime_dir bk / "dates_calc")
+                ext
+            in
+            if File.exists dates_calc_src then copy_in ~dir ~src:dates_calc_src)
           extensions);
   if target.Config.include_sources then
     all_modules_deps
@@ -883,7 +918,7 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 let run_artifact config ~backend ~var_bindings ?scope src =
   let open File in
   match backend with
-  | `OCaml ->
+  | `OCaml | `Jsoo ->
     let cmd = (src -.- "exe") :: Option.to_list scope in
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
@@ -926,6 +961,7 @@ let enable_backend =
   | `C -> C
   | `Python -> Python
   | `Java -> Java
+  | `Jsoo -> Jsoo
 
 let build_test_deps
     ~config
@@ -967,7 +1003,7 @@ let build_test_deps
     let backend =
       match backend with
       | `Interpret -> `Interpret_module
-      | (`OCaml | `C | `Python | `Java) as bk -> bk
+      | (`OCaml | `C | `Python | `Java | `Jsoo) as bk -> bk
     in
     List.fold_left
       (fun acc (it, t) ->
@@ -1004,7 +1040,7 @@ let run_tests
     scope_input
     (test_targets, link_deps, var_bindings) =
   let build_dir = config.Cli.options.global.build_dir in
-  match (backend : [ `Interpret | `C | `OCaml | `Python | `Java ]) with
+  match (backend : [ `Interpret | `C | `OCaml | `Python | `Java | `Jsoo ]) with
   | `Interpret ->
     let () =
       match scope_input, test_targets with
@@ -1031,7 +1067,7 @@ let run_tests
     let cmd = exec @ [cmd; target] @ catala_flags in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     run_command cmd
-  | (`C | `OCaml | `Python | `Java) as backend -> (
+  | (`C | `OCaml | `Python | `Java | `Jsoo) as backend -> (
     let link_cmd =
       linking_command ~build_dir ~backend ~var_bindings link_deps
     in
@@ -1197,7 +1233,7 @@ let run_clerk_test
     config
     quiet
     (clerk_targets_or_files_or_folders : string list)
-    (backend : [ `Interpret | `OCaml | `C | `Python | `Java ])
+    (backend : [ `Interpret | `OCaml | `C | `Python | `Java | `Jsoo ])
     (reset_test_outputs : bool)
     verbosity
     (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])

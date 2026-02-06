@@ -222,7 +222,7 @@ let extension filename =
   in
   String.remove_prefix ~prefix:"." full_extension
 
-let ( -.- ) file ext =
+let with_extension ?(suffix = "") file ext =
   (* file_ext may be empty, "<ext>" when non-md, "md" if only ".md" is present
      and "<ext>.md" if a double-extension is present *)
   let file_ext = extension file in
@@ -231,27 +231,32 @@ let ( -.- ) file ext =
     if file_ext = "" then (* Nothing to do *) file
     else
       (* Remove the extension and the dot *)
-      String.(sub file 0 (length file - length file_ext - 1))
+      let f = String.(sub file 0 (length file - length file_ext - 1)) in
+      f ^ suffix
   else if file_ext = "" then
     (* File has no extension, append the new one *)
-    file ^ "." ^ ext
+    file ^ suffix ^ "." ^ ext
   else
     (* Remove the existing extension (minus the dot) and append the new one *)
-    String.(sub file 0 (length file - length file_ext)) ^ ext
+    let f = String.(sub file 0 (length file - length file_ext - 1)) in
+    f ^ suffix ^ "." ^ ext
 
+let ( -.- ) file ext = with_extension file ext
 let remove_extension filename = filename -.- ""
 
-let get_main_out_channel ~source_file ~output_file ?ext () =
+let get_main_out_channel ~source_file ~output_file ?ext ?suffix () =
   match output_file, ext with
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
     let src = Global.input_src_file source_file in
-    let f = src -.- ext in
+    let f = with_extension ?suffix src ext in
     Some f, with_out_channel f
 
-let get_main_out_formatter ~source_file ~output_file ?ext () =
-  let f, with_ = get_main_out_channel ~source_file ~output_file ?ext () in
+let get_main_out_formatter ~source_file ~output_file ?ext ?suffix () =
+  let f, with_ =
+    get_main_out_channel ~source_file ~output_file ?ext ?suffix ()
+  in
   let nocolor = match output_file with Some "-" | None -> false | _ -> true in
   f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel ~nocolor oc fmt)
 
