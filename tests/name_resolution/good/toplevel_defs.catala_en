@@ -429,11 +429,11 @@ def s(s_in:SIn):
 # Automatic Catala tests
 if __name__ == "__main__":
   s2_test = (s2(S2In()))
-  print("\x1b[32m[RESULT]\x1b[m Scope S2 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.")
   s3_test = (s3(S3In()))
-  print("\x1b[32m[RESULT]\x1b[m Scope S3 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.")
   s4_test = (s4(S4In()))
-  print("\x1b[32m[RESULT]\x1b[m Scope S4 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.")
   s_test = (s(SIn()))
-  print("\x1b[32m[RESULT]\x1b[m Scope S executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.")
 ```

@@ -83,12 +83,13 @@ let set_display_flags
   disp_flags.coverage <- coverage
 
 let write_to f file =
-  File.with_out_channel f (fun oc -> Marshal.to_channel oc (file : file) [])
+  File.with_out_channel ~bin:true f (fun oc ->
+      Marshal.to_channel oc (file : file) [])
 
-let read_from f = File.with_in_channel f Marshal.from_channel
+let read_from f = File.with_in_channel ~bin:true f Marshal.from_channel
 
 let read_many f =
-  File.with_in_channel f
+  File.with_in_channel ~bin:true f
   @@ fun ic ->
   let rec results () =
     match Marshal.from_channel ic with
@@ -257,7 +258,7 @@ let diff_command =
 let print_diff ppf p1 p2 =
   let get_str (pstart, pend) =
     assert (pstart.Lexing.pos_fname = pend.Lexing.pos_fname);
-    File.with_in_channel pstart.Lexing.pos_fname
+    File.with_in_channel ~bin:false pstart.Lexing.pos_fname
     @@ fun ic ->
     seek_in ic pstart.Lexing.pos_cnum;
     really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)

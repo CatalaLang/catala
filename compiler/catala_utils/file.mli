@@ -18,13 +18,17 @@ type t = string
 
 (** Utility functions used for file manipulation. *)
 
-val with_out_channel : t -> (out_channel -> 'a) -> 'a
+val with_out_channel : ?bin:bool -> t -> (out_channel -> 'a) -> 'a
 (** Runs the given function with the provided file opened, ensuring it is
-    properly closed afterwards. May raise just as [open_out]. *)
+    properly closed afterwards. May raise just as [open_out]. [bin] is true by
+    default and only for Windows. When set to [false], when writing "\n" it will
+    be translated to "\r\n". *)
 
-val with_in_channel : t -> (in_channel -> 'a) -> 'a
+val with_in_channel : ?bin:bool -> t -> (in_channel -> 'a) -> 'a
 (** Runs the given function with the provided file opened, ensuring it is
-    properly closed afterwards. May raise just as [open_in]. *)
+    properly closed afterwards. May raise just as [open_in]. [bin] is true by
+    default and only for Windows. When set to [false], "\r\n" ends of lines are
+    translated to "\n" upon read. *)
 
 (** {2 Formatter wrappers} *)
 

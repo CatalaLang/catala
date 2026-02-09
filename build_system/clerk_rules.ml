@@ -246,7 +246,8 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
     Nj.rule "copy"
       ~command:
         (if Sys.win32 then
-           ["cmd"; "/c"; "copy /by >nul"; !input; !output]
+           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+           (* The "+nul" forces the timestamp of the new file to be updated *)
          else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
@@ -313,7 +314,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       Nj.rule "dir-tests"
         ~command:
         (if Sys.win32 then
-          ["cmd"; "/c"; "copy /by >nul"; !cat_files ; !output]
+          ["cmd"; "/c"; "copy /by >nul"; !cat_files ; "+nul"; !output]
         else
           ["cat"; !input; ">"; !output]
         )
@@ -944,7 +945,7 @@ let runtime_build_statements ~config enabled_backends =
       let base =
         config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
       in
-      File.with_out_channel (base / "java.files") (fun oc ->
+      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
       java_base / "java.files"
     in

@@ -25,7 +25,7 @@ let pos0 pos_fname =
 let with_output file_opt f =
   match file_opt with
   | Some file ->
-    File.with_out_channel file @@ fun oc -> f { oc; pos = pos0 file }
+    File.with_out_channel ~bin:false file @@ fun oc -> f { oc; pos = pos0 file }
   | None -> f { oc = stdout; pos = pos0 "<stdout>" }
 
 let out_line output_buf str =
@@ -59,10 +59,12 @@ let sanitize =
            ])
   in
   let re_endline = Re.(compile @@ seq [rep (set "\r\n"); eol]) in
+  let re_backslash = Re.(compile (char '\\')) in
   fun str ->
     str
     |> Re.replace_string re_endtest ~by:"\\```"
     |> Re.replace_string re_modhash ~by:"\"CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX\""
+    |> Re.replace_string re_backslash ~by:"/"
     |> Re.replace_string re_endline ~by:"\n"
 
 let catala_test_command test_flags catala_exe catala_opts args out =

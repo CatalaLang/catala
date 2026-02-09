@@ -204,13 +204,13 @@ let find_in_parents ?cwd predicate =
   | Some dir, rel -> Some (dir, rel)
   | None, _ -> None
 
-let with_out_channel filename f =
+let with_out_channel ?(bin = true) filename f =
   ensure_dir (Filename.dirname filename);
-  let oc = open_out_bin filename in
+  let oc = (if bin then open_out_bin else open_out) filename in
   finally (fun () -> close_out oc) (fun () -> f oc)
 
-let with_in_channel filename f =
-  let oc = open_in_bin filename in
+let with_in_channel ?(bin = true) filename f =
+  let oc = (if bin then open_in_bin else open_in) filename in
   finally (fun () -> close_in oc) (fun () -> f oc)
 
 let with_formatter_of_out_channel ?nocolor oc f =
@@ -218,7 +218,7 @@ let with_formatter_of_out_channel ?nocolor oc f =
   finally (fun () -> Format.pp_print_flush fmt ()) @@ fun () -> f fmt
 
 let with_formatter_of_file filename f =
-  with_out_channel filename (fun oc ->
+  with_out_channel ~bin:false filename (fun oc ->
       with_formatter_of_out_channel ~nocolor:true oc f)
 
 let with_formatter_of_opt_file filename_opt f =
@@ -258,11 +258,11 @@ let remove_extension filename = filename -.- ""
 let get_main_out_channel ~source_file ~output_file ?ext () =
   match output_file, ext with
   | Some "-", _ | None, None -> None, fun f -> f stdout
-  | Some f, _ -> Some f, with_out_channel f
+  | Some f, _ -> Some f, with_out_channel ~bin:false f
   | None, Some ext ->
     let src = Global.input_src_file source_file in
     let f = src -.- ext in
-    Some f, with_out_channel f
+    Some f, with_out_channel ~bin:false f
 
 let get_main_out_formatter ~source_file ~output_file ?ext () =
   let f, with_ = get_main_out_channel ~source_file ~output_file ?ext () in
