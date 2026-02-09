@@ -313,7 +313,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       Nj.rule "dir-tests"
         ~command:
         (if Sys.win32 then
-          ["cmd"; "/c"; "copy /by"; !cat_files ; !output]
+          ["cmd"; "/c"; "copy /by >nul"; !cat_files ; !output]
         else
           ["cat"; !input; ">"; !output]
         )

@@ -392,7 +392,17 @@ let () =
     in
     let count =
       if not Unix.(isatty stdin) then from_env ()
-      else if Sys.win32 then default
+      else if Sys.win32 then
+        try
+          process_out "mode" ["con"]
+          |> String.split_on_char '\n'
+          |> List.map String.trim
+          |> List.find (String.starts_with ~prefix:"Col")
+          |> String.split_on_char ' '
+          |> List.rev
+          |> List.hd
+          |> int_of_string
+        with Failure _ | Not_found | Invalid_argument _ -> from_env ()
       else
         try
           (* terminfo *)

@@ -130,6 +130,10 @@ val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
 
+val get_command : t -> t
+(** Resolves a command in [PATH]
+    @raise Not_found *)
+
 val check_exec : t -> t
 (** Resolves a command:
     - if [t] is a plain name, resolve in PATH

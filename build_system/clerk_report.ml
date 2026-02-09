@@ -98,8 +98,7 @@ let read_many f =
   results ()
 
 let has_command cmd =
-  let check_cmd = Printf.sprintf "type %s >/dev/null 2>&1" cmd in
-  Sys.command check_cmd = 0
+  match File.get_command cmd with _ -> true | exception Not_found -> false
 
 type 'a diff = Eq of 'a | Subs of 'a * 'a | Del of 'a | Add of 'a
 
