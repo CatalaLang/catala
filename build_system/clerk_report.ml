@@ -260,7 +260,12 @@ let print_diff ppf p1 p2 =
     assert (pstart.Lexing.pos_fname = pend.Lexing.pos_fname);
     File.with_in_channel ~bin:false pstart.Lexing.pos_fname
     @@ fun ic ->
-    seek_in ic pstart.Lexing.pos_cnum;
+    let pos_char pos =
+      if Sys.win32 then pos.Lexing.pos_lnum - 1 + pos.Lexing.pos_cnum
+      (* Account for "\r\n" *)
+        else pos.Lexing.pos_cnum
+    in
+    seek_in ic (pos_char pstart);
     really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
   in
   match Lazy.force diff_command with

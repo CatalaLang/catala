@@ -394,7 +394,7 @@ let () =
       if not Unix.(isatty stdin) then from_env ()
       else if Sys.win32 then
         try
-          process_out "mode" ["con"]
+          process_out "cmd" ["/c"; "mode con"] (* Mais oui, vraiment *)
           |> String.split_on_char '\n'
           |> List.map String.trim
           |> List.find (String.starts_with ~prefix:"Col")
