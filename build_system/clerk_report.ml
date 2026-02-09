@@ -164,75 +164,94 @@ let colordiff_str s1 s2 =
   pr_left, pr_right
 
 let diff_command =
-  let has_gnu_diff () =
-    File.process_out ~check_exit:ignore "diff" ["--version"]
-    |> Re.(execp (compile (str "GNU")))
-  in
   lazy begin match disp_flags.diff_command with
-  | None when Message.has_color stdout && has_gnu_diff () ->
-    let width = Message.terminal_columns () - 5 in
-    ( ["diff"; "-y"; "-t"; "-W"; string_of_int (Message.terminal_columns () - 5)],
-      fun ppf s ->
-        let mid = (width - 1) / 2 in
-        Format.fprintf ppf "@{<blue;ul>%*sReference%*s│%*sResult%*s@}@,"
-          ((mid - 9) / 2)
-          ""
-          (mid - 9 - ((mid - 9) / 2))
-          ""
-          ((width - mid - 7) / 2)
-          ""
-          (width - mid - 7 - ((width - mid - 7) / 2))
-          "";
-        s
-        |> String.trim_end
-        |> String.split_on_char '\n'
-        |> Format.pp_print_list
-             (fun ppf li ->
-               let rec find_cut col index =
-                 if index >= String.length li then None
-                 else if col = mid then Some index
-                 else
-                   let c = String.get_utf_8_uchar li index in
-                   find_cut (col + 1) (index + Uchar.utf_decode_length c)
-               in
-               match find_cut 0 0 with
-               | None ->
-                 if li = "" then Format.fprintf ppf "%*s@{<blue>│@}" mid ""
-                 else Format.pp_print_string ppf li
-               | Some i -> (
-                 let l, c, r =
-                   ( String.sub li 0 i,
-                     li.[i],
-                     String.sub li (i + 1) (String.length li - i - 1) )
-                 in
-                 match c with
-                 | ' ' -> Format.fprintf ppf "%s@{<blue>│@}%s" l r
-                 | '>' ->
-                   if String.for_all (( = ) ' ') l then
-                     Format.fprintf ppf "%*s@{<red>-@}@{<blue>│@}@{<red>%s@}"
-                       (mid - 1) "" r
-                   else Format.fprintf ppf "%s@{<blue>│@}@{<red>%s@}" l r
-                 | '<' -> Format.fprintf ppf "%s@{<blue>│@}@{<red>-@}" l
-                 | '|' ->
-                   let ppleft, ppright = colordiff_str l r in
-                   Format.fprintf ppf "%a@{<blue>│@}%a" ppleft () ppright ()
-                 | _ -> Format.pp_print_string ppf li))
-             ppf )
-  | Some cmd_opt | (None as cmd_opt) ->
+  | None ->
+    let open Testo_diff.Make (struct
+      include String
+
+      let pp _ = assert false
+      let show _ = assert false
+    end) in
+    let stringdiff ppf s1 s2 =
+      let width = Message.terminal_columns () - 5 in
+      let mid = (width - 1) / 2 in
+      Format.fprintf ppf "@{<blue;ul>%*sReference%*s│%*sResult%*s@}@,"
+        ((mid - 9) / 2)
+        ""
+        (mid - 9 - ((mid - 9) / 2))
+        ""
+        ((width - mid - 7) / 2)
+        ""
+        (width - mid - 7 - ((width - mid - 7) / 2))
+        "";
+      let cut s = String.sub s 0 (min mid (String.length s)) in
+      let pad s =
+        let s = cut s in
+        Printf.sprintf "%s%*s" s (mid - String.width s) ""
+      in
+      let rec print_diff = function
+        | [] -> ()
+        | Equal a :: diff ->
+          Array.iter
+            (fun l -> Format.fprintf ppf "%s@{<blue>│@}%s@," (pad l) (cut l))
+            a;
+          print_diff diff
+        | Deleted l :: Added r :: diff | Added r :: Deleted l :: diff ->
+          let n_changed_lines = min (Array.length l) (Array.length r) in
+          for i = 0 to min (Array.length l) (Array.length r) - 1 do
+            let ppleft, ppright = colordiff_str (pad l.(i)) (cut r.(i)) in
+            Format.fprintf ppf "%a@{<blue>╳@}%a@," ppleft () ppright ()
+          done;
+          for i = n_changed_lines to Array.length l - 1 do
+            Format.fprintf ppf "%s@{<blue>╳@}@{<red>-@}@," (pad l.(i))
+          done;
+          for i = n_changed_lines to Array.length r - 1 do
+            Format.fprintf ppf "%*s@{<red>-@}@{<blue>╳@}@{<red>%s@}@," (mid - 1)
+              ""
+              (cut r.(i))
+          done;
+          print_diff diff
+        | Deleted l :: diff ->
+          Array.iter
+            (fun l -> Format.fprintf ppf "%s@{<blue>╳@}@{<red>-@}@," (pad l))
+            l;
+          print_diff diff
+        | Added r :: diff ->
+          Array.iter
+            (fun r ->
+              Format.fprintf ppf "%*s@{<red>-@}@{<blue>╳@}@{<red>%s@}@,"
+                (mid - 1) "" (cut r))
+            r;
+          print_diff diff
+      in
+      let to_array s =
+        String.split_on_char '\n' s
+        |> List.to_seq
+        |> Seq.map String.trim_end
+        |> Array.of_seq
+      in
+      print_diff @@ get_diff (to_array s1) (to_array s2)
+    in
+    `Stringdiff stringdiff
+  | Some cmd_opt ->
     let command =
       match cmd_opt with
-      | Some str -> String.split_on_char ' ' str
+      | Some str -> (
+        match String.split_on_char ' ' str with
+        | cmd :: args -> cmd, args
+        | [] -> assert false)
       | None ->
         if Message.has_color stdout && has_command "patdiff" then
-          ["patdiff"; "-alt-old"; "Reference"; "-alt-new"; "Result"]
-        else ["diff"; "-u"; "-L"; "Reference"; "-L"; "Result"]
+          "patdiff", ["-alt-old"; "Reference"; "-alt-new"; "Result"]
+        else "diff", ["-u"; "-L"; "Reference"; "-L"; "Result"]
     in
-    ( command,
-      fun ppf s ->
-        s
-        |> String.trim_end
-        |> String.split_on_char '\n'
-        |> Format.pp_print_list Format.pp_print_string ppf )
+    `Command
+      ( command,
+        fun ppf s ->
+          s
+          |> String.trim_end
+          |> String.split_on_char '\n'
+          |> Format.pp_print_list Format.pp_print_string ppf )
   end
 
 let print_diff ppf p1 p2 =
@@ -243,13 +262,13 @@ let print_diff ppf p1 p2 =
     seek_in ic pstart.Lexing.pos_cnum;
     really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
   in
-  File.with_temp_file "clerk-diff" "a" ~contents:(get_str p1)
-  @@ fun f1 ->
-  File.with_temp_file "clerk_diff" "b" ~contents:(get_str p2)
-  @@ fun f2 ->
   match Lazy.force diff_command with
-  | [], _ -> assert false
-  | cmd :: args, printer ->
+  | `Stringdiff f -> f ppf (get_str p1) (get_str p2)
+  | `Command ((cmd, args), printer) ->
+    File.with_temp_file "clerk-diff" "a" ~contents:(get_str p1)
+    @@ fun f1 ->
+    File.with_temp_file "clerk_diff" "b" ~contents:(get_str p2)
+    @@ fun f2 ->
     File.process_out ~check_exit:(fun _ -> ()) cmd (args @ [f1; f2])
     |> printer ppf
 
