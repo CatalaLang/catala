@@ -245,7 +245,7 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
     Nj.rule "copy"
       ~command:
         (if Sys.win32 then
-           ["cmd"; "/c"; "copy"; "/Y"; !input; !output]
+           ["cmd"; "/c"; "copy /by >nul"; !input; !output]
          else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
