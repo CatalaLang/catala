@@ -85,6 +85,7 @@ module Var = struct
   let src = make "src"
   let dst = make "dst"
   let class_path = make "class_path"
+  let cat_files = make "cat_files" (* Useful on Windows only *)
 
   (* let scope = make "scope" *)
   let test_id = make "test-id"
@@ -312,9 +313,9 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       Nj.rule "dir-tests"
         ~command:
         (if Sys.win32 then
-          ["cmd"; "/c"; "type"; "nul" ; !input; ">"; !output; ";"]
+          ["cmd"; "/c"; "copy /by"; !cat_files ; !output]
         else
-          ["cat"; !input; ">"; !output; ";"]
+          ["cat"; !input; ">"; !output]
         )
         ~description:["<test>"; !test_id];
      ]
@@ -763,7 +764,11 @@ let dir_test_rules dir subdirs enabled_backends items =
         Nj.build "dir-tests"
           ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
           ~inputs
-          ~vars:[Var.test_id, [dir]];
+          ~vars:
+            ((Var.test_id, [dir])
+            ::
+            (if Sys.win32 then [Var.cat_files, [String.concat "+" inputs]]
+             else []));
       ]
   else Seq.empty
 
