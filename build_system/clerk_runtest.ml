@@ -58,14 +58,15 @@ let sanitize =
              char '"';
            ])
   in
-  let re_endline = Re.(compile @@ seq [rep (set "\r\n"); eol]) in
+  let re_endline = Re.(compile @@ seq [rep (set "\r\n")]) in
   let re_backslash = Re.(compile (repn (char '\\') 1 (Some 2))) in
   fun str ->
     str
     |> Re.replace_string re_endtest ~by:"\\```"
     |> Re.replace_string re_modhash ~by:"\"CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX\""
     |> Re.replace_string re_backslash ~by:"/"
-    |> Re.replace_string re_endline ~by:"\n"
+    |> Re.replace_string re_endline ~by:""
+    |> fun s -> s ^ "\n"
 
 let catala_test_command test_flags catala_exe catala_opts args out =
   let catala_exe =

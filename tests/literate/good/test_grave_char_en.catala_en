@@ -79,7 +79,7 @@ This is a block of law text containing `. This allows to:
 let () = print_endline "Hello world!"
 /end{verbatim}
 
-/begin{Verbatim}[commandchars=///{/},numbers=left,firstnumber=19,stepnumber=1,label={/hspace*{/fill}/texttt{test/_grave/_char/_en.catala/_en}}]
+/begin{Verbatim}[commandchars=//{/},numbers=left,firstnumber=19,stepnumber=1,label={/hspace*{/fill}/texttt{test/_grave/_char/_en.catala/_en}}]
 /```catala
 /PY{n+nv}{test}/PY{o}{]} /PY{k+kr}{declaration} /PY{k+kr}{scope} /PY{n+nc}{A}/PY{o}{:}
   /PY{k+kd}{context}/PY{+w}{ }/PY{k+kd}{output}/PY{+w}{ }/PY{n+nv}{literate/PYZus{}parsing/PYZus{}is/PYZus{}ok} /PY{k+kr}{content} /PY{k+kt}{boolean}

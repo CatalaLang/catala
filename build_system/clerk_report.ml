@@ -176,15 +176,6 @@ let diff_command =
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in
       let mid = (width - 1) / 2 in
-      Format.fprintf ppf "@{<blue;ul>%*sReference%*s│%*sResult%*s@}@,"
-        ((mid - 9) / 2)
-        ""
-        (mid - 9 - ((mid - 9) / 2))
-        ""
-        ((width - mid - 7) / 2)
-        ""
-        (width - mid - 7 - ((width - mid - 7) / 2))
-        "";
       let cut s = String.sub s 0 (min mid (String.length s)) in
       let pad s =
         let s = cut s in
@@ -231,7 +222,22 @@ let diff_command =
         |> Seq.map String.trim_end
         |> Array.of_seq
       in
-      print_diff @@ get_diff (to_array s1) (to_array s2)
+      match get_diff (to_array s1) (to_array s2) with
+      | [Equal _] ->
+        Format.fprintf ppf "@[<hov>@{<red>%a@}@]" Format.pp_print_text
+          "Test failed, but no file differences were found. Maybe check \
+           whitespace, or try running with `--diff` ?"
+      | diff ->
+        Format.fprintf ppf "@{<blue;ul>%*sReference%*s│%*sResult%*s@}@,"
+          ((mid - 9) / 2)
+          ""
+          (mid - 9 - ((mid - 9) / 2))
+          ""
+          ((width - mid - 7) / 2)
+          ""
+          (width - mid - 7 - ((width - mid - 7) / 2))
+          "";
+        print_diff diff
     in
     `Stringdiff stringdiff
   | Some cmd_opt ->
