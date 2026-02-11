@@ -1185,6 +1185,34 @@ let run_ninja
                     { it with Scan.used_modules })
                   items
               in
+              let _cleanup =
+                match
+                  File.(check_directory (config.options.global.build_dir / f))
+                with
+                | None -> ()
+                | Some dir ->
+                  let current =
+                    List.fold_left
+                      File.(
+                        fun set it -> Set.add (basename it.Scan.file_name) set)
+                      File.Set.empty items
+                  in
+                  let in_build =
+                    Sys.readdir dir
+                    |> Array.to_seq
+                    |> Seq.filter (fun f -> Scan.get_lang f <> None)
+                    |> File.Set.of_seq
+                  in
+                  let leftover = File.Set.diff in_build current in
+                  if not (File.Set.is_empty leftover) then (
+                    Message.debug
+                      "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
+                      File.format dir
+                      (Format.pp_print_list ~pp_sep:Format.pp_print_space
+                         File.format)
+                      (File.Set.elements leftover);
+                    File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover)
+              in
               Some (f, fl, items))
       in
       let items =
