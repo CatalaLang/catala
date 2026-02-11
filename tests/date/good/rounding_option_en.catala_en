@@ -9,6 +9,7 @@ declaration scope CheckAgeIsLessThan:
 scope CheckAgeIsLessThan:
   definition r equals bday + age <= today
   date round up
+  assertion |2018-05-31| - 1 month = |2018-05-01|
 
 #[test] declaration scope Test:
   output r content boolean
