@@ -209,8 +209,8 @@ unit-tests: .FORCE
 	dune build @for-tests @runtest
 
 web-interpreter-tests: .FORCE
-	dune build compiler/catala_web_interpreter.bc.js
-	node compiler/test_web_interpreter.js
+	dune build compiler/web/catala_web_interpreter.bc.js
+	node compiler/web/test_web_interpreter.js
 
 BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
 
@@ -342,6 +342,8 @@ alltest: dependencies-python
 	dune build @update-parser-messages @install @runtest && \
 	$(test_title) "Local testsuite" && \
 	$(MAKE) testsuite && \
+	$(test_title) "Web interpreter tests" && \
+	$(MAKE) web-interpreter-tests && \
 	$(test_title) "Running catala-examples" && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(PY_VENV_ACTIVATE) $(MAKE) -C catala-examples.tmp \

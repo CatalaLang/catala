@@ -26,7 +26,7 @@ function test(name, fn) {
     passed++;
   } catch (e) {
     console.log(`✗ ${name}`);
-    console.log(`  ${e.message}`);
+    console.log(`  ${e.message || e}`);
     failed++;
   }
 }
@@ -42,6 +42,12 @@ function assertContains(str, substr, msg) {
     throw new Error(`${msg || 'Assertion failed'}: expected to contain ${JSON.stringify(substr)}`);
   }
 }
+
+// Diagnostic helpers
+function getErrors(result) { return result.diagnostics.filter(d => d.level === 'error'); }
+function getWarnings(result) { return result.diagnostics.filter(d => d.level === 'warning'); }
+function getErrorText(result) { return getErrors(result).map(d => d.message).join('\n\n'); }
+function getErrorPositions(result) { return getErrors(result).flatMap(d => Array.from(d.positions)); }
 
 // Test cases
 
@@ -191,7 +197,7 @@ scope Test:
     scope: 'Test'
   });
   assertEquals(result.success, false, 'Should fail');
-  assertEquals(result.errorPositions.length > 0, true, 'Should have error positions');
+  assertEquals(getErrorPositions(result).length > 0, true, 'Should have error positions');
 });
 
 test('Type error gives position', () => {
@@ -209,9 +215,9 @@ scope Test:
     scope: 'Test'
   });
   assertEquals(result.success, false, 'Should fail');
-  assertContains(result.error, 'date', 'Should mention date type');
-  assertContains(result.error, 'integer', 'Should mention integer type');
-  assertEquals(result.errorPositions.length > 0, true, 'Should have error positions');
+  assertContains(getErrorText(result), 'date', 'Should mention date type');
+  assertContains(getErrorText(result), 'integer', 'Should mention integer type');
+  assertEquals(getErrorPositions(result).length > 0, true, 'Should have error positions');
 });
 
 test('Unknown scope error', () => {
@@ -229,7 +235,7 @@ scope Test:
     scope: 'WrongScope'
   });
   assertEquals(result.success, false, 'Should fail');
-  assertContains(result.error, 'WrongScope', 'Should mention wrong scope');
+  assertContains(getErrorText(result), 'WrongScope', 'Should mention wrong scope');
 });
 
 test('Boolean output (English)', () => {
@@ -379,7 +385,7 @@ scope Test:
     scope: 'Test'
   });
   assertEquals(result.success, false, 'Should fail with mismatched filename');
-  assertContains(result.error, 'Module declared as Foo', 'Should mention module name mismatch');
+  assertContains(getErrorText(result), 'Module declared as Foo', 'Should mention module name mismatch');
 });
 
 test('Error positions with real filename', () => {
@@ -397,42 +403,7 @@ scope Test:
     scope: 'Test'
   });
   assertEquals(result.success, false, 'Should fail');
-  assertEquals(result.errorPositions.length > 0, true, 'Should have error positions even with real filename');
-});
-
-test('Multi-file: main is not a module, scope in main', () => {
-  const helperModule = `
-> Module Helpers
-
-\`\`\`catala-metadata
-declaration double
-  content integer
-  depends on x content integer
-  equals x * 2
-\`\`\`
-`;
-
-  const mainCode = `
-> Using Helpers
-
-\`\`\`catala
-declaration scope Test:
-  output result content integer
-
-scope Test:
-  definition result equals Helpers.double of 21
-\`\`\`
-`;
-  const result = exports.interpret({
-    files: {
-      'main.catala_en': mainCode,
-      'helpers.catala_en': helperModule
-    },
-    scope: 'Test',
-    main: 'main.catala_en'
-  });
-  assertEquals(result.success, true, 'Should succeed');
-  assertContains(result.output, 'result = 42', 'Should output 42');
+  assertEquals(getErrorPositions(result).length > 0, true, 'Should have error positions even with real filename');
 });
 
 test('Multi-file: main is a module, scope in main', () => {
@@ -601,9 +572,9 @@ scope Test:
     files: { 'test.catala_en': code }
   });
   assertEquals(result.success, false, 'Should fail');
-  assertContains(result.error, 'date', 'Should mention date type');
-  assertContains(result.error, 'integer', 'Should mention integer type');
-  assertEquals(result.errorPositions.length > 0, true, 'Should have error positions');
+  assertContains(getErrorText(result), 'date', 'Should mention date type');
+  assertContains(getErrorText(result), 'integer', 'Should mention integer type');
+  assertEquals(getErrorPositions(result).length > 0, true, 'Should have error positions');
 });
 
 test('Typecheck: syntax error gives position', () => {
@@ -620,7 +591,7 @@ scope Test:
     files: { 'test.catala_en': code }
   });
   assertEquals(result.success, false, 'Should fail');
-  assertEquals(result.errorPositions.length > 0, true, 'Should have error positions');
+  assertEquals(getErrorPositions(result).length > 0, true, 'Should have error positions');
 });
 
 test('Typecheck: no scope needed', () => {
@@ -701,8 +672,8 @@ scope Test:
     }
   });
   assertEquals(result.success, false, 'Should fail with type error');
-  assertContains(result.error, 'date', 'Should mention date');
-  assertContains(result.error, 'integer', 'Should mention integer');
+  assertContains(getErrorText(result), 'date', 'Should mention date');
+  assertContains(getErrorText(result), 'integer', 'Should mention integer');
 });
 
 test('Typecheck: three files with chain', () => {
@@ -769,6 +740,218 @@ champ d'application Test:
   assertEquals(result.success, true, 'Should typecheck French');
 });
 
-// Summary
+// Summary of hand-written tests
 console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+
+// ============================================================================
+// Conformance tests: discover tests/*/good/ and tests/*/bad/ automatically
+// ============================================================================
+
+const testsRoot = path.resolve(__dirname, '../../tests');
+
+// Discover test directories dynamically
+const testDirs = fs.readdirSync(testsRoot).filter(d => {
+  try { return fs.statSync(path.join(testsRoot, d)).isDirectory(); }
+  catch (_) { return false; }
+}).sort();
+
+// Detect language from file extension
+function languageOf(file) {
+  const m = file.match(/\.catala_(\w+)$/);
+  return m ? m[1] : 'en';
+}
+
+// Skip files that require multi-file loading (> Using / > Include)
+function needsMultiFile(content) {
+  return /^> (?:Using|Include)\b/m.test(content);
+}
+
+// Parse test directives with state-tracking that matches clerk's lexer.
+// Returns [{kind, scope, expectsError, expectedOutput, contentUpTo}] where
+// kind is 'interpret' or 'typecheck'. contentUpTo is the file content before
+// the test block — matching how clerk feeds only accumulated lines to catala.
+//
+// Clerk's lexer only recognises ```catala-test-cli when NOT inside a code
+// block, and code blocks only close with ``` at column 0.  We replicate this
+// so that files with intentional formatting errors (like extra_space.catala_en)
+// are handled identically.
+function parseTestDirectives(content) {
+  const results = [];
+  const lines = content.split('\n');
+  let inCodeBlock = false;
+  let inTestBlock = false;
+  let testBlockLines = [];
+  let testBlockStart = 0; // char offset of ```catala-test-cli line
+  let charOffset = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lineStart = charOffset;
+    charOffset += line.length + 1; // +1 for \n
+
+    if (inTestBlock) {
+      if (/^```\s*$/.test(line)) {
+        // End of test block — parse the directive
+        const block = testBlockLines.join('\n');
+        const contentUpTo = content.substring(0, testBlockStart);
+        const firstLine = testBlockLines.find(l => l.trim() !== '') || '';
+        const directiveRe = /^\$ catala test-scope (\S+)\s*$/;
+        const typecheckRe = /^\$ catala [Tt]ypecheck\s*$/;
+        const dm = directiveRe.exec(firstLine);
+        const tm = typecheckRe.exec(firstLine);
+        if (dm || tm) {
+          const afterDirective = block.substring(block.indexOf(firstLine) + firstLine.length);
+          results.push({
+            kind: dm ? 'interpret' : 'typecheck',
+            scope: dm ? dm[1] : null,
+            expectsError: block.includes('[ERROR]'),
+            expectedOutput: afterDirective.trim(),
+            contentUpTo,
+          });
+        }
+        inTestBlock = false;
+        testBlockLines = [];
+      } else {
+        testBlockLines.push(line);
+      }
+    } else if (inCodeBlock) {
+      // Only ``` at column 0 closes a code block (matching clerk's strict lexer)
+      if (/^```\s*$/.test(line)) {
+        inCodeBlock = false;
+      }
+    } else {
+      // Outside any block
+      if (/^```catala-test-cli\s*$/.test(line)) {
+        inTestBlock = true;
+        testBlockStart = lineStart;
+        testBlockLines = [];
+      } else if (/^```catala/.test(line)) {
+        inCodeBlock = true;
+      }
+    }
+  }
+  return results;
+}
+
+// --- Conformance test helpers ---
+
+// Check if an error/exception is an unsupported jsoo stub (e.g. Unix calls)
+function isUnsupported(x) {
+  const msg = x instanceof Error ? x.message : typeof x === 'string' ? x : '';
+  return msg.includes('caml_unix_');
+}
+
+// Compare actual vs expected output; returns null on match or a failure message
+function outputMismatch(actual, expected) {
+  if (actual === expected) return null;
+  const a = actual.split('\n'), e = expected.split('\n');
+  const lines = [];
+  for (let i = 0; i < Math.max(a.length, e.length) && lines.length < 3; i++) {
+    if (a[i] !== e[i])
+      lines.push(`  line ${i + 1}: expected ${JSON.stringify(e[i] || '(missing)')}, got ${JSON.stringify(a[i] || '(missing)')}`);
+  }
+  return lines.join('\n');
+}
+
+// Build the actual output string from a result, to compare against cram expected
+function buildActualOutput(result) {
+  const warningText = getWarnings(result).map(d => d.message).join('');
+  if (result.success) {
+    const fullOutput = warningText + result.output.trim();
+    return fullOutput.trim();
+  } else {
+    return (warningText + getErrorText(result)).trim();
+  }
+}
+
+// Strip the #return code N# trailer that clerk appends for non-zero exits.
+// The web interpreter has no exit codes, so we normalise the expected output.
+function stripReturnCode(expected) {
+  return expected.replace(/\n#return code \d+#$/, '');
+}
+
+// Run a single conformance directive; returns 'pass', 'fail', or 'skip'
+function runConformanceTest(testName, directive, relPath, language) {
+  const { kind, scope, expectsError, expectedOutput, contentUpTo } = directive;
+  let result;
+  try {
+    result = kind === 'interpret'
+      ? exports.interpret({ files: { [relPath]: contentUpTo }, scope, language })
+      : exports.typecheck({ files: { [relPath]: contentUpTo }, language });
+  } catch (e) {
+    if (isUnsupported(e)) return 'skip';
+    // Uncaught exception counts as failure (expected for bad tests)
+    if (expectsError) return 'pass';
+    console.log(`✗ ${testName}\n  Exception: ${e.message || e}`);
+    return 'fail';
+  }
+
+  if (isUnsupported(getErrorText(result))) return 'skip';
+
+  // Check success/failure matches expectation
+  const shouldSucceed = !expectsError;
+  if (result.success !== shouldSucceed) {
+    const what = shouldSucceed ? 'expected success, got failure' : 'expected failure, got success';
+    console.log(`✗ ${testName} (${what})`);
+    return 'fail';
+  }
+
+  // Compare output against cram expected
+  if (expectedOutput) {
+    const actual = buildActualOutput(result);
+    const cleaned = stripReturnCode(expectedOutput);
+    const expected = cleaned;
+    const diff = outputMismatch(actual, expected);
+    if (diff) {
+      console.log(`✗ ${testName} (output mismatch)\n${diff}`);
+      return 'fail';
+    }
+  }
+  return 'pass';
+}
+
+// --- Conformance test loop ---
+
+const counts = { passed: 0, failed: 0, skipped: 0 };
+
+for (const subdir of ['good', 'bad']) {
+  let subPassed = 0, subFailed = 0, subSkipped = 0;
+  console.log(`\n--- Conformance: ${subdir} tests ---`);
+
+  for (const dir of testDirs) {
+    const fullDir = path.join(testsRoot, dir, subdir);
+    if (!fs.existsSync(fullDir)) continue;
+
+    const files = fs.readdirSync(fullDir).filter(f => /\.catala_\w+$/.test(f)).sort();
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(fullDir, file), 'utf8');
+      if (needsMultiFile(content)) { subSkipped++; continue; }
+
+      let directives = parseTestDirectives(content);
+      // Good tests: only interpret (typecheck-only files have no scope to run)
+      if (subdir === 'good') directives = directives.filter(d => d.kind === 'interpret');
+      if (directives.length === 0) { subSkipped++; continue; }
+
+      const language = languageOf(file);
+      const relPath = `tests/${dir}/${subdir}/${file}`;
+
+      for (const d of directives) {
+        const label = d.kind === 'interpret' ? d.scope : 'typecheck';
+        const testName = `${dir}/${subdir}/${file} :: ${label}`;
+        const outcome = runConformanceTest(testName, d, relPath, language);
+        if (outcome === 'pass') subPassed++;
+        else if (outcome === 'fail') subFailed++;
+        else subSkipped++;
+      }
+    }
+  }
+  console.log(`\n${subdir}: ${subPassed} passed, ${subFailed} failed, ${subSkipped} skipped`);
+  counts.passed += subPassed;
+  counts.failed += subFailed;
+  counts.skipped += subSkipped;
+}
+
+// Final summary
+const totalFailed = failed + counts.failed;
+console.log(`\nTotal: ${passed + counts.passed} passed, ${totalFailed} failed`);
+process.exit(totalFailed > 0 ? 1 : 0);

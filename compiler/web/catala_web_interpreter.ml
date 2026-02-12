@@ -20,45 +20,53 @@ open Driver
 open Js_of_ocaml
 module File = Catala_utils.File
 
-let stdlib_path = "/static/stdlib"
+let stdlib_path = "/static"
 
-let results_to_string language results =
-  Format.asprintf "@[<v>%a@]"
-    (Format.pp_print_list (fun ppf ((var, _), result) ->
+let format_results ppf scope language results =
+  Message.results ~ppf ~title:scope
+    (List.map
+       (fun ((var, _), result) ppf ->
          Format.fprintf ppf "@[<hov 2>%s =@ %a@]" var
            (Shared_ast.Print.UserFacing.value language)
-           result))
-    results
+           result)
+       results)
 
-let error_to_string content =
-  Message.Content.emit ~ppf:Format.str_formatter content Message.Error;
-  Format.flush_str_formatter ()
+(* Terminal width: JS-configurable, avoids Unix.pipe calls from tput in jsoo *)
+let terminal_width = ref 80
+let () = Message.set_terminal_width_function (fun () -> !terminal_width)
 
-(* Extract error positions from content as JS objects *)
-let extract_positions content =
+(* Notification capture infrastructure *)
+let notifications_acc : Message.lsp_error list ref = ref []
+
+let () =
+  Message.register_lsp_error_notifier (fun err ->
+      notifications_acc := err :: !notifications_acc)
+
+(* Convert a position to a JS object *)
+let js_pos pos =
+  object%js
+    val startLine = Pos.get_start_line pos
+    val startColumn = Pos.get_start_column pos
+    val endLine = Pos.get_end_line pos
+    val endColumn = Pos.get_end_column pos
+    val message = Js.string ""
+  end
+
+(* Build a diagnostic JS object from an lsp_error *)
+let diagnostic_of_lsp_error level_str (err : Message.lsp_error) =
+  let message_str = Format.asprintf "%t" err.message in
   let positions =
-    List.filter_map
-      (fun (pos, pos_message) ->
-        let file = Pos.get_file pos in
-        (* Include positions from user's code, exclude stdlib *)
-        if not (String.starts_with ~prefix:stdlib_path file) then
-          let msg =
-            match pos_message with
-            | Some fmt -> Format.asprintf "%t" fmt
-            | None -> ""
-          in
-          Some
-            (object%js
-               val startLine = Pos.get_start_line pos
-               val startColumn = Pos.get_start_column pos
-               val endLine = Pos.get_end_line pos
-               val endColumn = Pos.get_end_column pos
-               val message = Js.string msg
-            end)
-        else None)
-      (Message.Content.get_positions content)
+    match err.pos with
+    | Some pos
+      when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
+      [| js_pos pos |]
+    | _ -> [||]
   in
-  Js.array (Array.of_list positions)
+  object%js
+    val level = Js.string level_str
+    val message = Js.string message_str
+    val positions = Js.array positions
+  end
 
 (* User modules path in virtual filesystem *)
 let user_modules_path = "/static/user"
@@ -122,43 +130,71 @@ let cleanup_files module_files =
       try Sys.remove path with Sys_error _ -> ())
     module_files
 
-(* Helper to handle errors and return JS result object *)
+(* Drain and return error notifications, keeping only warnings in the acc *)
+let drain_error_notifications () =
+  let all = List.rev !notifications_acc in
+  let errors =
+    List.filter (fun (e : Message.lsp_error) -> e.kind <> Message.Warning) all
+  in
+  notifications_acc :=
+    List.filter (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all;
+  errors
+
+(* Extract JS position objects from a list of lsp_errors, filtering stdlib *)
+let positions_of_notifications notifs =
+  List.filter_map
+    (fun (e : Message.lsp_error) ->
+      match e.pos with
+      | Some pos
+        when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
+        Some (js_pos pos)
+      | _ -> None)
+    notifs
+
+(* Handle errors and return a list of error diagnostics *)
 let handle_error exn =
+  let error_notifs = drain_error_notifications () in
+  let positions = positions_of_notifications error_notifs in
   match exn with
   | Message.CompilerError content ->
-    let error_text = error_to_string content in
-    let positions = extract_positions content in
-    object%js
-      val success = Js._false
-      val output = Js.string ""
-      val error = Js.string error_text
-      val errorPositions = positions
-    end
+    Message.Content.emit ~ppf:Format.str_formatter content Message.Error;
+    let message_str = Format.flush_str_formatter () in
+    [
+      object%js
+        val level = Js.string "error"
+        val message = Js.string message_str
+        val positions = Js.array (Array.of_list positions)
+      end;
+    ]
   | Message.CompilerErrors contents_with_bt ->
-    let all_contents = List.map fst contents_with_bt in
-    let error_text =
-      String.concat "\n\n" (List.map error_to_string all_contents)
-    in
-    let positions =
-      Js.array
-        (Array.of_list
-           (List.concat_map
-              (fun c -> Array.to_list (Js.to_array (extract_positions c)))
-              all_contents))
-    in
-    object%js
-      val success = Js._false
-      val output = Js.string ""
-      val error = Js.string error_text
-      val errorPositions = positions
-    end
+    Message.Content.emit_n ~ppf:Format.str_formatter contents_with_bt
+      Message.Error;
+    let message_str = Format.flush_str_formatter () in
+    [
+      object%js
+        val level = Js.string "error"
+        val message = Js.string message_str
+        val positions = Js.array (Array.of_list positions)
+      end;
+    ]
   | e ->
-    object%js
-      val success = Js._false
-      val output = Js.string ""
-      val error = Js.string (Printexc.to_string e)
-      val errorPositions = Js.array [||]
-    end
+    [
+      object%js
+        val level = Js.string "error"
+        val message = Js.string (Printexc.to_string e)
+        val positions = Js.array [||]
+      end;
+    ]
+
+(* Drain accumulated warnings and return as diagnostic objects *)
+let drain_warnings () =
+  let all = List.rev !notifications_acc in
+  let warnings =
+    List.filter (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
+  in
+  notifications_acc :=
+    List.filter (fun (e : Message.lsp_error) -> e.kind <> Message.Warning) all;
+  List.map (diagnostic_of_lsp_error "warning") warnings
 
 let () =
   Js.export_all
@@ -171,6 +207,7 @@ let () =
            Global.enforce_options
              ~input_src:(Contents (main_contents, main_filename))
              ~language:(Some language) ~debug:false ~color:Never ~trace:None
+             ~disable_warnings:false
              ~path_rewrite:(fun f -> (f :> File.t))
              ~whole_program:true ()
          in
@@ -197,13 +234,25 @@ let () =
                 detection *)
              let _ = Dcalc.From_scopelang.translate_program prg in
              Message.report_delayed_errors_if_any ();
+             let warning_diags = drain_warnings () in
+             Message.results ~ppf:Format.str_formatter
+               [(fun ppf -> Format.fprintf ppf "Typechecking successful!")];
+             let output = Format.flush_str_formatter () in
              object%js
                val success = Js._true
-               val output = Js.string "Typechecking successful!"
-               val error = Js.string ""
-               val errorPositions = Js.array [||]
+               val output = Js.string output
+               val diagnostics = Js.array (Array.of_list warning_diags)
              end
-           with exn -> handle_error exn
+           with exn ->
+             let warning_diags = drain_warnings () in
+             let error_diags = handle_error exn in
+             object%js
+               val success = Js._false
+               val output = Js.string ""
+
+               val diagnostics =
+                 Js.array (Array.of_list (warning_diags @ error_diags))
+             end
          in
          cleanup_files module_files;
          result
@@ -225,6 +274,7 @@ let () =
            Global.enforce_options
              ~input_src:(Contents (main_contents, main_filename))
              ~language:(Some language) ~debug:false ~color:Never
+             ~disable_warnings:false
              ~trace:(if trace then Some (lazy Format.std_formatter) else None)
              ~path_rewrite:(fun f -> (f :> File.t))
              ~whole_program:true ()
@@ -245,15 +295,37 @@ let () =
                Shared_ast.Interpreter.interpret_program_dcalc prg
                  (Commands.get_scope_uid prg.decl_ctx scope)
              in
-             let formatted = results_to_string language results in
+             (match results with
+             | [] ->
+               Message.results ~ppf:Format.str_formatter
+                 [(fun ppf -> Format.fprintf ppf "Computation successful!")]
+             | _ ->
+               let results =
+                 List.sort
+                   (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
+                   results
+               in
+               format_results Format.str_formatter scope language results);
+             let formatted = Format.flush_str_formatter () in
+             let warning_diags = drain_warnings () in
              object%js
                val success = Js._true
                val output = Js.string formatted
-               val error = Js.string ""
-               val errorPositions = Js.array [||]
+               val diagnostics = Js.array (Array.of_list warning_diags)
              end
-           with exn -> handle_error exn
+           with exn ->
+             let warning_diags = drain_warnings () in
+             let error_diags = handle_error exn in
+             object%js
+               val success = Js._false
+               val output = Js.string ""
+
+               val diagnostics =
+                 Js.array (Array.of_list (warning_diags @ error_diags))
+             end
          in
          cleanup_files module_files;
          result
+
+       method setTerminalWidth (w : int) = terminal_width := w
     end)

@@ -182,12 +182,6 @@ module Content = struct
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_text ppf s)]
 
-  let get_positions (content : t) : (Pos.t * message option) list =
-    List.filter_map
-      (function
-        | Position { pos; pos_message } -> Some (pos, pos_message) | _ -> None)
-      content
-
   let basic_msg ?header ppf target content =
     let pp_header ppf = Option.iter (Format.fprintf ppf " %s: ") header in
     Format.pp_open_vbox ppf 0;
@@ -373,7 +367,7 @@ module Content = struct
     Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
 
   let emit_raw ?ppf ?header (content : t) (target : level) : unit =
-    let ppf = Option.value ~default:(get_ppf target) ppf in
+    let ppf = match ppf with Some ppf -> ppf | None -> get_ppf target in
     match Global.options.message_format with
     | Global.Human -> (
       match target with
@@ -391,7 +385,7 @@ module Content = struct
       emit_raw ?ppf content target;
       if Global.options.debug then Printexc.print_raw_backtrace stderr bt
     | contents ->
-      let ppf = Option.value ~default:(get_ppf target) ppf in
+      let ppf = match ppf with Some ppf -> ppf | None -> get_ppf target in
       let len = List.length contents in
       List.iteri
         (fun i (c, bt) ->
@@ -512,8 +506,8 @@ let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 
-let results ?title r =
-  emit_raw ?header:title (List.flatten (List.map of_result r)) Result
+let results ?ppf ?title r =
+  emit_raw ?ppf ?header:title (List.flatten (List.map of_result r)) Result
 
 let join_pos ~main_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
