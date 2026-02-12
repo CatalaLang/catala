@@ -20,8 +20,7 @@ open Driver
 open Js_of_ocaml
 module File = Catala_utils.File
 
-(* Register embedded stdlib files in jsoo's /static/ virtual filesystem *)
-let () = Stdlib_embedded.register_stdlib ()
+let stdlib_path = "/static/stdlib"
 
 let results_to_string language results =
   Format.asprintf "@[<v>%a@]"
@@ -42,8 +41,7 @@ let extract_positions content =
       (fun (pos, pos_message) ->
         let file = Pos.get_file pos in
         (* Include positions from user's code, exclude stdlib *)
-        if not (String.starts_with ~prefix:Stdlib_embedded.stdlib_path file)
-        then
+        if not (String.starts_with ~prefix:stdlib_path file) then
           let msg =
             match pos_message with
             | Some fmt -> Format.asprintf "%t" fmt
@@ -185,7 +183,7 @@ let () =
              (* Parse and get scopelang representation *)
              let prg =
                Passes.scopelang options ~allow_external:true ~includes
-                 ~stdlib:(Some (Global.raw_file Stdlib_embedded.stdlib_path))
+                 ~stdlib:(Some (Global.raw_file stdlib_path))
              in
              (* Check type cycles *)
              let _type_ordering =
@@ -239,7 +237,7 @@ let () =
              in
              let prg, _type_order =
                Passes.dcalc options ~includes
-                 ~stdlib:(Some (Global.raw_file Stdlib_embedded.stdlib_path))
+                 ~stdlib:(Some (Global.raw_file stdlib_path))
                  ~optimize:false ~check_invariants:false ~autotest:false
                  ~typed:Shared_ast.Expr.typed
              in
