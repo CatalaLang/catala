@@ -18,30 +18,22 @@
 open Catala_utils
 open Driver
 open Js_of_ocaml
+module File = Catala_utils.File
 
 (* Register embedded stdlib files in jsoo's /static/ virtual filesystem *)
 let () = Stdlib_embedded.register_stdlib ()
 
-(* Format interpretation results as human-readable text *)
-let format_results language results =
-  let buf = Buffer.create 256 in
-  let ppf = Format.formatter_of_buffer buf in
-  List.iter
-    (fun ((var, _), result) ->
-      Format.fprintf ppf "@[<hov 2>%s =@ %a@]@\n" var
-        (Shared_ast.Print.UserFacing.value language)
-        result)
-    results;
-  Format.pp_print_flush ppf ();
-  Buffer.contents buf
+let results_to_string language results =
+  Format.asprintf "@[<v>%a@]"
+    (Format.pp_print_list (fun ppf ((var, _), result) ->
+         Format.fprintf ppf "@[<hov 2>%s =@ %a@]" var
+           (Shared_ast.Print.UserFacing.value language)
+           result))
+    results
 
-(* Format error content as human-readable text *)
-let format_error content =
-  let buf = Buffer.create 256 in
-  let ppf = Format.formatter_of_buffer buf in
-  Message.Content.emit ~ppf content Message.Error;
-  Format.pp_print_flush ppf ();
-  Buffer.contents buf
+let error_to_string content =
+  Message.Content.emit ~ppf:Format.str_formatter content Message.Error;
+  Format.flush_str_formatter ()
 
 (* Extract error positions from content as JS objects *)
 let extract_positions content =
@@ -54,12 +46,7 @@ let extract_positions content =
         then
           let msg =
             match pos_message with
-            | Some fmt ->
-              let buf = Buffer.create 64 in
-              let ppf = Format.formatter_of_buffer buf in
-              fmt ppf;
-              Format.pp_print_flush ppf ();
-              Buffer.contents buf
+            | Some fmt -> Format.asprintf "%t" fmt
             | None -> ""
           in
           Some
@@ -141,7 +128,7 @@ let cleanup_files module_files =
 let handle_error exn =
   match exn with
   | Message.CompilerError content ->
-    let error_text = format_error content in
+    let error_text = error_to_string content in
     let positions = extract_positions content in
     object%js
       val success = Js._false
@@ -152,7 +139,7 @@ let handle_error exn =
   | Message.CompilerErrors contents_with_bt ->
     let all_contents = List.map fst contents_with_bt in
     let error_text =
-      String.concat "\n\n" (List.map format_error all_contents)
+      String.concat "\n\n" (List.map error_to_string all_contents)
     in
     let positions =
       Js.array
@@ -186,7 +173,7 @@ let () =
            Global.enforce_options
              ~input_src:(Contents (main_contents, main_filename))
              ~language:(Some language) ~debug:false ~color:Never ~trace:None
-             ~path_rewrite:(fun f -> (f :> Global.file))
+             ~path_rewrite:(fun f -> (f :> File.t))
              ~whole_program:true ()
          in
          let result =
@@ -241,7 +228,7 @@ let () =
              ~input_src:(Contents (main_contents, main_filename))
              ~language:(Some language) ~debug:false ~color:Never
              ~trace:(if trace then Some (lazy Format.std_formatter) else None)
-             ~path_rewrite:(fun f -> (f :> Global.file))
+             ~path_rewrite:(fun f -> (f :> File.t))
              ~whole_program:true ()
          in
          let result =
@@ -260,7 +247,7 @@ let () =
                Shared_ast.Interpreter.interpret_program_dcalc prg
                  (Commands.get_scope_uid prg.decl_ctx scope)
              in
-             let formatted = format_results language results in
+             let formatted = results_to_string language results in
              object%js
                val success = Js._true
                val output = Js.string formatted
