@@ -740,6 +740,81 @@ champ d'application Test:
   assertEquals(result.success, true, 'Should typecheck French');
 });
 
+// --- Warning and drain tests ---
+
+const warningCode = `
+\`\`\`catala
+declaration scope A:
+  output w content integer
+
+scope A:
+  definition w equals 3
+
+scope A:
+  definition w equals 3
+\`\`\`
+`;
+
+const cleanCode = `
+\`\`\`catala
+declaration scope B:
+  output x content integer
+
+scope B:
+  definition x equals 1
+\`\`\`
+`;
+
+test('Warnings returned on successful interpret', () => {
+  const result = exports.interpret({
+    files: { 'test.catala_en': warningCode },
+    scope: 'A'
+  });
+  assertEquals(result.success, true, 'Should succeed');
+  assertContains(result.output, 'w = 3', 'Should have result');
+  assertEquals(getWarnings(result).length > 0, true, 'Should have warnings');
+  assertContains(getWarnings(result)[0].message, 'identical justifications',
+    'Warning should mention duplicate definitions');
+});
+
+test('Warnings returned on successful typecheck', () => {
+  const result = exports.typecheck({
+    files: { 'test.catala_en': warningCode }
+  });
+  assertEquals(result.success, true, 'Should succeed');
+  assertEquals(getWarnings(result).length > 0, true, 'Should have warnings');
+  assertContains(getWarnings(result)[0].message, 'identical justifications',
+    'Warning should mention duplicate definitions');
+});
+
+test('Warnings do not leak between interpret calls', () => {
+  // First call triggers a warning
+  const r1 = exports.interpret({
+    files: { 'test.catala_en': warningCode },
+    scope: 'A'
+  });
+  assertEquals(getWarnings(r1).length > 0, true, 'First call should warn');
+
+  // Second call with clean code should have no warnings
+  const r2 = exports.interpret({
+    files: { 'test.catala_en': cleanCode },
+    scope: 'B'
+  });
+  assertEquals(getWarnings(r2).length, 0, 'Second call should have no warnings');
+});
+
+test('Warnings do not leak between typecheck calls', () => {
+  const r1 = exports.typecheck({
+    files: { 'test.catala_en': warningCode }
+  });
+  assertEquals(getWarnings(r1).length > 0, true, 'First call should warn');
+
+  const r2 = exports.typecheck({
+    files: { 'test.catala_en': cleanCode }
+  });
+  assertEquals(getWarnings(r2).length, 0, 'Second call should have no warnings');
+});
+
 // Summary of hand-written tests
 console.log(`\n${passed} passed, ${failed} failed`);
 

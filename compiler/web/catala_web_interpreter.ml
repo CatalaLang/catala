@@ -130,15 +130,18 @@ let cleanup_files module_files =
       try Sys.remove path with Sys_error _ -> ())
     module_files
 
-(* Drain and return error notifications, keeping only warnings in the acc *)
-let drain_error_notifications () =
+(* Drain all accumulated notifications, emptying the accumulator. Returns
+   (warning_diags, error_notifs) where warning_diags are already converted to JS
+   diagnostic objects and error_notifs are raw lsp_errors. *)
+let drain_all () =
   let all = List.rev !notifications_acc in
-  let errors =
-    List.filter (fun (e : Message.lsp_error) -> e.kind <> Message.Warning) all
+  notifications_acc := [];
+  let warnings, errors =
+    List.partition (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
   in
-  notifications_acc :=
-    List.filter (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all;
-  errors
+  let warning_diags = List.map (diagnostic_of_lsp_error "warning") warnings in
+  let error_notifs = errors in
+  warning_diags, error_notifs
 
 (* Extract JS position objects from a list of lsp_errors, filtering stdlib *)
 let positions_of_notifications notifs =
@@ -151,9 +154,9 @@ let positions_of_notifications notifs =
       | _ -> None)
     notifs
 
-(* Handle errors and return a list of error diagnostics *)
-let handle_error exn =
-  let error_notifs = drain_error_notifications () in
+(* Format an exception into a list of error diagnostic JS objects. Does not
+   touch the notification accumulator. *)
+let error_diagnostics error_notifs exn =
   let positions = positions_of_notifications error_notifs in
   match exn with
   | Message.CompilerError content ->
@@ -185,16 +188,6 @@ let handle_error exn =
         val positions = Js.array [||]
       end;
     ]
-
-(* Drain accumulated warnings and return as diagnostic objects *)
-let drain_warnings () =
-  let all = List.rev !notifications_acc in
-  let warnings =
-    List.filter (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
-  in
-  notifications_acc :=
-    List.filter (fun (e : Message.lsp_error) -> e.kind <> Message.Warning) all;
-  List.map (diagnostic_of_lsp_error "warning") warnings
 
 let () =
   Js.export_all
@@ -234,7 +227,7 @@ let () =
                 detection *)
              let _ = Dcalc.From_scopelang.translate_program prg in
              Message.report_delayed_errors_if_any ();
-             let warning_diags = drain_warnings () in
+             let warning_diags, _error_notifs = drain_all () in
              Message.results ~ppf:Format.str_formatter
                [(fun ppf -> Format.fprintf ppf "Typechecking successful!")];
              let output = Format.flush_str_formatter () in
@@ -244,8 +237,8 @@ let () =
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags = drain_warnings () in
-             let error_diags = handle_error exn in
+             let warning_diags, error_notifs = drain_all () in
+             let error_diags = error_diagnostics error_notifs exn in
              object%js
                val success = Js._false
                val output = Js.string ""
@@ -307,15 +300,15 @@ let () =
                in
                format_results Format.str_formatter scope language results);
              let formatted = Format.flush_str_formatter () in
-             let warning_diags = drain_warnings () in
+             let warning_diags, _error_notifs = drain_all () in
              object%js
                val success = Js._true
                val output = Js.string formatted
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags = drain_warnings () in
-             let error_diags = handle_error exn in
+             let warning_diags, error_notifs = drain_all () in
+             let error_diags = error_diagnostics error_notifs exn in
              object%js
                val success = Js._false
                val output = Js.string ""
