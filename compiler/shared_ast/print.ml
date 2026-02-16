@@ -719,11 +719,11 @@ module ExprGen (C : EXPR_PARAM) = struct
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
-          "." punctuation "\"" Ident.format field punctuation "\""
+          "." punctuation "\"" MarkedIdent.format field punctuation "\""
       | EDStructAmend { e; fields; _ } ->
         Format.fprintf fmt "@[<hv 2>@[<hov>%a %a@ with@]@ %a@;<1 -2>%a@]"
           punctuation "{" (lhs exprc) e
-          (Ident.Map.format_bindings ~pp_sep:Format.pp_print_space
+          (MarkedIdent.Map.format_bindings ~pp_sep:Format.pp_print_space
              (fun fmt pp_field_name field_expr ->
                Format.fprintf fmt "@[<hv 2>%t %a@ %a%a@]" pp_field_name
                  punctuation "=" (lhs exprc) field_expr punctuation ";"))
@@ -1217,8 +1217,8 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   let pf = fprintf in
   let pp_sep fmt () = pf fmt ",@ " in
   let ppl fmt l = pf fmt "@[<hov 2>[ %a ]@]" (pp_print_list ~pp_sep s_expr) l in
-  let pp_ident fmt (sf, e) =
-    pf fmt "@[<hov 1>%a: %a@]" Ident.format sf s_expr e
+  let pp_marked_id fmt (sf, e) =
+    pf fmt "@[<hov 1>%a: %a@]" MarkedIdent.format sf s_expr e
   in
   let pp_field fmt (sf, e) =
     pf fmt "@[<hov 1>%a: %a@]" StructField.format sf s_expr e
@@ -1282,14 +1282,14 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
       (pp_print_list ~pp_sep pp_arg)
       args
   | EDStructAmend { name_opt; e; fields } ->
-    let fields = Ident.Map.bindings fields in
+    let fields = MarkedIdent.Map.bindings fields in
     pf fmt "@[<hov 1>DStructAmend<%a>(%a, @[<hov 1>{ %a }@])@]"
       (pp_opt StructName.format) name_opt s_expr e
-      (pp_print_list ~pp_sep pp_ident)
+      (pp_print_list ~pp_sep pp_marked_id)
       fields
   | EDStructAccess { name_opt; e; field } ->
-    pf fmt "@[<hov 1>DStructAccess<%a>(%s, %a)@]" (pp_opt StructName.format)
-      name_opt field s_expr e
+    pf fmt "@[<hov 1>DStructAccess<%a>(%a, %a)@]" (pp_opt StructName.format)
+      name_opt MarkedIdent.format field s_expr e
   | EStructAccess { name; e; field } ->
     pf fmt "@[<hov 1>StructAccess<%a>(%a, %a)@]" StructName.format name
       StructField.format field s_expr e

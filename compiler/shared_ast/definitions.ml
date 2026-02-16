@@ -91,6 +91,7 @@ module LabelName =
 (** Used for unresolved structs/maps in desugared *)
 
 module Ident = String
+module MarkedIdent = Uid.MarkedString
 
 (** Only used by desugared/scopelang *)
 
@@ -606,13 +607,13 @@ and ('a, 'b, 'm) base_gexpr =
   | EDStructAmend : {
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
-      fields : ('a, 'm) gexpr Ident.Map.t;
+      fields : ('a, 'm) gexpr MarkedIdent.Map.t;
     }
       -> ('a, < syntacticNames : yes ; .. >, 'm) base_gexpr
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
-      field : Ident.t;
+      field : MarkedIdent.t;
     }
       -> ('a, < syntacticNames : yes ; .. >, 'm) base_gexpr
       (** [desugared] has ambiguous struct fields *)

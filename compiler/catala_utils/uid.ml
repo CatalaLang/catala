@@ -83,13 +83,19 @@ end
 (* - Raw idents - *)
 
 module MarkedString = struct
-  type info = string Mark.pos
+  module M = struct
+    type info = string Mark.pos
+    type t = info
 
-  let to_string (s, _) = s
-  let format fmt i = String.format fmt (to_string i)
-  let equal = Mark.equal String.equal
-  let compare = Mark.compare String.compare
-  let hash = Mark.hash String.hash
+    let to_string (s, _) = s
+    let format fmt i = String.format fmt (to_string i)
+    let equal = Mark.equal String.equal
+    let compare = Mark.compare String.compare
+    let hash = Mark.hash String.hash
+  end
+
+  include M
+  module Map = Map.Make (M)
 end
 
 module Gen (S : Style) () = Make (MarkedString) (S) ()
