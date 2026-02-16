@@ -287,13 +287,12 @@ jobs:
   windows-build:
     name: Build Catala on Windows
     runs-on: windows-latest
-    needs: ['build']
-    # Only triggers on the `master` branch
-    if: ${{ github.event_name != 'pull_request_target' && github.ref == 'refs/heads/master' }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_FETCH_REF }}
 
       - name: Install opam and Ninja via winget
         run: |
@@ -310,18 +309,14 @@ jobs:
       - name: Initialize opam (non-interactive) and create switch
         run: |
           opam init -y --bare --disable-sandboxing
-          opam switch create 5.3.0
-          opam switch 5.3.0
-          opam --version
 
       - name: Build and install Catala through opam
         run: |
-          opam update
-          opam install . -y
+          opam switch create . --packages=ocaml.5.3.0
 
       - name: Run built-in tests
         run: |
-          opam exec -- dune test
+          opam exec -- make test
 
       - name: Clone catala-examples
         run: |
@@ -333,5 +328,5 @@ jobs:
       - name: Run clerk test in catala-examples
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
-          opam exec -- clerk test
+          opam exec --switch=(get-location -stack) -- clerk test
           Pop-Location
