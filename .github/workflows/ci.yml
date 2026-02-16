@@ -288,6 +288,9 @@ jobs:
     name: Build Catala on Windows
     runs-on: windows-latest
 
+    env:
+      OPAMCONFIRMLEVEL: unsafe-yes
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
