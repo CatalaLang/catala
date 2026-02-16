@@ -58,45 +58,45 @@ $ catala test-scope A
 ```catala-test-cli
 $ catala latex
 
-\textbf{This defines the catala module \texttt{Test\_grave\_char\_en}}
+/textbf{This defines the catala module /texttt{Test/_grave/_char/_en}}
 
-\subsection{Law text should be able to contain backquote chars
-\texttt{\textasciigrave{}}.}
+/subsection{Law text should be able to contain backquote chars
+/texttt{/textasciigrave{}}.}
 
 This is a block of law text containing `. This allows to:
 
-\begin{itemize}
-\item
-  use \texttt{Markdown} code block inside \texttt{Catala} files,
-\item
-  \emph{escape} special characters such as \texttt{\#} or
-  \texttt{\textgreater{}},
-\item
+/begin{itemize}
+/item
+  use /texttt{Markdown} code block inside /texttt{Catala} files,
+/item
+  /emph{escape} special characters such as /texttt{/#} or
+  /texttt{/textgreater{}},
+/item
   use Fenced Code Blocks:
-\end{itemize}
+/end{itemize}
 
-\begin{verbatim}
+/begin{verbatim}
 let () = print_endline "Hello world!"
-\end{verbatim}
+/end{verbatim}
 
-\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=19,stepnumber=1,label={\hspace*{\fill}\texttt{test\_grave\_char\_en.catala\_en}}]
-\```catala
-\PY{n+nv}{test}\PY{o}{]} \PY{k+kr}{declaration} \PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
-  \PY{k+kd}{context}\PY{+w}{ }\PY{k+kd}{output}\PY{+w}{ }\PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{content} \PY{k+kt}{boolean}
+/begin{Verbatim}[commandchars=//{/},numbers=left,firstnumber=19,stepnumber=1,label={/hspace*{/fill}/texttt{test/_grave/_char/_en.catala/_en}}]
+/```catala
+/PY{n+nv}{test}/PY{o}{]} /PY{k+kr}{declaration} /PY{k+kr}{scope} /PY{n+nc}{A}/PY{o}{:}
+  /PY{k+kd}{context}/PY{+w}{ }/PY{k+kd}{output}/PY{+w}{ }/PY{n+nv}{literate/PYZus{}parsing/PYZus{}is/PYZus{}ok} /PY{k+kr}{content} /PY{k+kt}{boolean}
 
-\PY{k+kr}{scope} \PY{n+nc}{A}\PY{o}{:}
-  \PY{k+kr}{definition} \PY{n+nv}{literate\PYZus{}parsing\PYZus{}is\PYZus{}ok} \PY{k+kr}{equals} \PY{k+kc}{true}
-\```
-\end{Verbatim}
+/PY{k+kr}{scope} /PY{n+nc}{A}/PY{o}{:}
+  /PY{k+kr}{definition} /PY{n+nv}{literate/PYZus{}parsing/PYZus{}is/PYZus{}ok} /PY{k+kr}{equals} /PY{k+kc}{true}
+/```
+/end{Verbatim}
 
 
-Even after \texttt{Catala} code block:
+Even after /texttt{Catala} code block:
 
-\begin{verbatim}
+/begin{verbatim}
 int main(void) { return 0; }
-\end{verbatim}
+/end{verbatim}
 
-\begin{verbatim}
+/begin{verbatim}
 $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ All invariant checks passed
@@ -104,19 +104,19 @@ $ catala Typecheck --check-invariants
 ┌─[RESULT]─
 │ Typechecking successful!
 └─
-\end{verbatim}
+/end{verbatim}
 
-\begin{verbatim}
+/begin{verbatim}
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
-\end{verbatim}
+/end{verbatim}
 
-\begin{verbatim}
+/begin{verbatim}
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ literate_parsing_is_ok = true
 └─
-\end{verbatim}
+/end{verbatim}
 ```

@@ -129,6 +129,6 @@ def b(b_in:BIn):
 # Automatic Catala tests
 if __name__ == "__main__":
   b_test = (b(BIn()))
-  print("\x1b[32m[RESULT]\x1b[m Scope B executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope B executed successfully.")
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

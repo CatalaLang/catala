@@ -85,6 +85,7 @@ module Var = struct
   let src = make "src"
   let dst = make "dst"
   let class_path = make "class_path"
+  let cat_files = make "cat_files" (* Useful on Windows only *)
 
   (* let scope = make "scope" *)
   let test_id = make "test-id"
@@ -245,7 +246,8 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
     Nj.rule "copy"
       ~command:
         (if Sys.win32 then
-           ["cmd"; "/c"; "copy"; "/Y"; !input; !output]
+           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+           (* The "+nul" forces the timestamp of the new file to be updated *)
          else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
@@ -312,9 +314,9 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       Nj.rule "dir-tests"
         ~command:
         (if Sys.win32 then
-          ["cmd"; "/c"; "type"; "nul" ; !input; ">"; !output; ";"]
+          ["cmd"; "/c"; "copy /by >nul"; !cat_files; !output]
         else
-          ["cat"; !input; ">"; !output; ";"]
+          ["cat"; !input; ">"; !output]
         )
         ~description:["<test>"; !test_id];
      ]
@@ -763,7 +765,12 @@ let dir_test_rules dir subdirs enabled_backends items =
         Nj.build "dir-tests"
           ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
           ~inputs
-          ~vars:[Var.test_id, [dir]];
+          ~vars:
+            ((Var.test_id, [dir])
+            ::
+            (if Sys.win32 then
+               [Var.cat_files, [String.concat "+" ("nul" :: inputs)]]
+             else []));
       ]
   else Seq.empty
 
@@ -939,7 +946,7 @@ let runtime_build_statements ~config enabled_backends =
       let base =
         config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
       in
-      File.with_out_channel (base / "java.files") (fun oc ->
+      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
       java_base / "java.files"
     in

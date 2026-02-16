@@ -169,7 +169,7 @@ type S2 = { x: integer; }
 
 type Str = {
   #[field.lbl = "psst"] fld: #[typ] integer;
-  fld2: #[attributes.can = "be multi-   \"line\"\nas well"] (integer, date);
+  fld2: #[attributes.can = "be multi-   /"line/"/nas well"] (integer, date);
 }
 
 
