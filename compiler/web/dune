@@ -1,0 +1,34 @@
+; Generate stdlib_fs.js using js_of_ocaml build-fs
+
+(rule
+ (target stdlib_fs.js)
+ (deps
+  (glob_files ../../stdlib/*.catala_*))
+ (action
+  (run js_of_ocaml build-fs -o %{target} %{deps})))
+
+(executable
+ (name catala_web_interpreter)
+ (modes byte js)
+ (modules catala_web_interpreter)
+ (link_flags
+  (:standard -linkall))
+ (js_of_ocaml
+  (flags
+   (:standard --effects=cps))
+  (javascript_files stdlib_fs.js))
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries
+  catala.driver
+  js_of_ocaml
+  catala.runtime_ocaml
+  catala.runtime_jsoo
+  catala.stdlib_internals
+  zarith_stubs_js))
+
+(install
+ (section bin)
+ (package catala)
+ (files
+  (catala_web_interpreter.bc.js as catala_web_interpreter.js)))

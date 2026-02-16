@@ -135,7 +135,9 @@ val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
 val error : ?kind:lsp_error_kind -> ('a, 'exn) emitter
-val results : ?title:string -> Content.message list -> unit
+
+val results :
+  ?ppf:Format.formatter -> ?title:string -> Content.message list -> unit
 
 (** Multiple errors *)
 

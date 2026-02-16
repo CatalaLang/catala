@@ -112,6 +112,12 @@ jobs:
       - name: Validate Python runtime
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
+      - name: Test web interpreter (jsoo)
+        if: ${{ always() }}
+        run: |
+          cd /home/ocaml/catala
+          opam exec -- dune build compiler/web/catala_web_interpreter.bc.js
+          node compiler/web/test_web_interpreter.js
       - name: Test Summary
         uses: test-summary/action@v2
         with:
@@ -164,6 +170,10 @@ jobs:
         with:
           paths: "/home/ocaml/catala-examples/report.junit.xml"
         if: ${{ always() }}
+      - name: Build web interpreter
+        run: |
+          cd ~/catala
+          opam exec -- dune build compiler/web/catala_web_interpreter.bc.js
       - name: Gather all artifacts
         run: |
           cd
@@ -171,6 +181,7 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
+          cp catala/_build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
