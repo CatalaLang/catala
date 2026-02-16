@@ -331,8 +331,6 @@ jobs:
           git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
 
       - name: Run clerk test in catala-examples
-        continue-on-error: true # This fails because of an incompatibility
-                                # of Windows Ninja. FIXME
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
           opam exec -- clerk test
