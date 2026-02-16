@@ -31,7 +31,9 @@ let finally f k =
     r
 
 let original_cwd = Sys.getcwd ()
-let dir_sep_char = Filename.dir_sep.[0]
+
+let dir_sep_re =
+  if Sys.win32 then Re.(compile (set "/\\")) else Re.(compile (char '/'))
 
 let ( / ) a b =
   if a = Filename.current_dir_name then b
@@ -39,7 +41,7 @@ let ( / ) a b =
   else Filename.concat a b
 
 let path_to_list path =
-  let p = String.split_on_char dir_sep_char path in
+  let p = Re.split_delim dir_sep_re path in
   let drive, p =
     if not Sys.win32 then None, p
     else
@@ -92,7 +94,7 @@ let remove_prefix prefix f0 =
   let f = make_absolute f0 in
   let suf = String.remove_prefix ~prefix f in
   if suf = "" then Filename.current_dir_name
-  else if suf <> f && suf.[0] = dir_sep_char then
+  else if suf <> f && Re.execp ~len:1 dir_sep_re suf then
     String.sub suf 1 (String.length suf - 1)
   else f0
 
@@ -459,9 +461,7 @@ let get_command t =
   |> String.trim
 
 let check_exec t =
-  try
-    if String.contains t dir_sep_char then Unix.realpath t else get_command t
-  with
+  try if Re.execp dir_sep_re t then Unix.realpath t else get_command t with
   | Unix.Unix_error _ | Sys_error _ ->
     Message.error
       "Could not find the @{<yellow>%s@} program, please fix your installation."
