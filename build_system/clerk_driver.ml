@@ -953,7 +953,18 @@ let build_test_deps
         in
         let items = List.filter filter items in
         if items = [] then
-          Message.error "No source file or module matching %a found" format file;
+          Message.error
+            "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
+            format file (fun ppf ->
+              if
+                Sys.file_exists file
+                && (not is_dir)
+                && Scan.get_lang file = None
+              then
+                Format.fprintf ppf
+                  "@,\
+                   @[<hov>@{<bold>Hint:@} the specified file exists but \
+                   doesn't have a recognised extension@]");
         items)
       files_or_folders
   in

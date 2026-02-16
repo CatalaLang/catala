@@ -68,5 +68,9 @@ val run_ninja :
     instructions. A callback can be supplied to retrieve the source items, and
     optionally add entries to the ninja file.
 
+    As a side-effect, while scanning, on directories that contain sources, any
+    catala files that are no longer present in the source tree are removed from
+    the corresponding build dir.
+
     By default, all backends are enabled, the env is not cleaned of CATALA_*
     variables *)

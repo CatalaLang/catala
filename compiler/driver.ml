@@ -101,9 +101,13 @@ let load_modules
     | ms ->
       Message.error
         ~extra_pos:(err_req_pos (mpos :: req_chain))
-        "Required module @{<blue>%s@} matches multiple files:@;<1 2>%a" mname
+        "@[<hv 2>@[<hov>Required module @{<blue>%s@}@ matches@ multiple@ \
+         files:@]@ %a@]@,\
+         @[<hov>@{<bold>Hint:@} %a@ '@{<cyan>clerk clean@}'@ and@ retry@]"
+        mname
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
-        ms
+        ms Format.pp_print_text
+        "This might be a leftover from a renamed file, you may want to run"
   in
   let load_file ~is_stdlib f =
     let default_module_name =
