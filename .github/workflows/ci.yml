@@ -236,7 +236,7 @@ jobs:
       - name: Test web interpreter
         run: |
           cd /home/ocaml/catala
-          node compiler/web/test_web_interpreter.js
+          node --max-old-space-size=8192 compiler/web/test_web_interpreter.js
       - name: Prepare artifact
         run: |
           mkdir -p /home/ocaml/artifacts

@@ -210,7 +210,7 @@ unit-tests: .FORCE
 
 web-interpreter-tests: .FORCE
 	dune build compiler/web/catala_web_interpreter.bc.js
-	node compiler/web/test_web_interpreter.js
+	node --max-old-space-size=8192 compiler/web/test_web_interpreter.js
 
 BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
 
