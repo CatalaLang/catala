@@ -1,0 +1,31 @@
+## Test
+
+```catala
+declaration scope A:
+  output x content boolean
+
+scope A:
+  definition x under condition
+    let y equals true in
+    y 
+  consequence equals true
+```
+
+
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala-test-cli
+$ catala Proof --disable-counterexamples
+┌─[RESULT]─
+│ No errors found during the proof mode run.
+└─
+```

@@ -1,4 +1,4 @@
-DEPS = bindlib ninja_utils ocolor otoml ubase testo-diff
+DEPS = bindlib ninja_utils ocolor otoml ubase json-data-encoding testo-diff
 
 deps: deps-list
 	for url in $(shell cat $<); do \

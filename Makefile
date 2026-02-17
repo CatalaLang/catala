@@ -212,9 +212,7 @@ web-interpreter-tests: .FORCE
 	dune build compiler/web/catala_web_interpreter.bc.js
 	node compiler/web/test_web_interpreter.js
 
-BACKEND_TEST_DIRS = arithmetic array bool date dec default enum exception func io money monomorphisation name_resolution parsing scope struct tuples typing variable_state
-
-BACKEND_TESTS = $(wildcard $(BACKEND_TEST_DIRS:%=tests/%/good/*.catala_*))
+BACKEND_TESTS = $(wildcard tests/*/good/*.catala_*)
 
 backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 	@echo ">> RUNNING BACKEND TESTS FOR $* <<"
@@ -231,6 +229,9 @@ backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
 	$(CLERK_TEST) tests doc
+
+test-all: test
+	$(CLERK_TEST) tests-extra
 
 tests: test
 
@@ -249,13 +250,13 @@ testsuite-base: .FORCE
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: unit-tests backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
-	$(CLERK_TEST) doc
+testsuite: unit-tests backend-tests
+	$(CLERK_TEST) tests-extra doc
 	$(MAKE) testsuite-base
 
 #> reset-tests				: Update the expected test results from current run
 reset-tests: .FORCE $(CLERK_BIN)
-	$(CLERK_TEST) tests doc --reset
+	$(CLERK_TEST) tests tests-extra doc --reset
 
 %.c.exe: %.catala_en $(CLERK_BIN) .FORCE
 	$(CLERK_BIN) build _build/$@

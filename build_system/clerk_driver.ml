@@ -1567,7 +1567,7 @@ let list_vars_cmd =
   in
   let doc =
     "List pre-defined build variables that can be overriden using the \
-     $(i,--var) flag, or in the [variables] section of $(b,clerk.toml)."
+     $(i,--vars) flag, or in the [variables] section of $(b,clerk.toml)."
   in
   Cmd.v (Cmd.info ~doc "list-vars") Term.(const run $ Cli.init_term ())
 
