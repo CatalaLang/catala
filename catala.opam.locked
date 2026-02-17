@@ -19,7 +19,7 @@ depends: [
   "dune" {= "3.20.2"}
   "menhir" {= "20250912"}
   "menhirLib" {= "20250912"}
-  "ninja_utils" {= "0.9.0"}
+  "ninja_utils" {= "1.0.0"}
   "ocaml" {= "5.3.0"}
   "ocamlfind" {= "1.9.8"}
   "ocamlgraph" {= "2.0.0"}
@@ -67,7 +67,4 @@ authors: [
   "Emile Rolley"
 ]
 build-env: CATALA_VERSION = "%{version}%"
-pin-depends: [
-  "ninja_utils.0.9.0" "git+https://github.com/CatalaLang/ninja_utils"
-]
 tags: "catala"
