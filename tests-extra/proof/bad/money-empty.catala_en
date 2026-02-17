@@ -19,7 +19,7 @@ $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [A.y] This variable might return an empty error:
-─➤ tests/proof/bad/money-empty.catala_en:8.10-8.11:
+─➤ tests-extra/proof/bad/money-empty.catala_en:8.10-8.11:
   │
 8 │   output y content boolean
   │          ‾

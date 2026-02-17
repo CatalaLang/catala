@@ -26,7 +26,7 @@ $ catala Proof --disable-counterexamples
 │  The constructor "C" of enumeration "T" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests/proof/bad/enums-nonbool-empty.catala_en:5.7-5.8:
+├─➤ tests-extra/proof/bad/enums-nonbool-empty.catala_en:5.7-5.8:
 │   │
 │ 5 │    -- C content boolean
 │   │       ‾
@@ -34,7 +34,7 @@ $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [A.x] This variable might return an empty error:
-─➤ tests/proof/bad/enums-nonbool-empty.catala_en:13.10-13.11:
+─➤ tests-extra/proof/bad/enums-nonbool-empty.catala_en:13.10-13.11:
    │
 13 │   output x content integer
    │          ‾

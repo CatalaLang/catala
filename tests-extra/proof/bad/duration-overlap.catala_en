@@ -16,7 +16,7 @@ $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [A.y] At least two exceptions overlap for this variable:
-─➤ tests/proof/bad/duration-overlap.catala_en:6.10-6.11:
+─➤ tests-extra/proof/bad/duration-overlap.catala_en:6.10-6.11:
   │
 6 │   output y content boolean
   │          ‾

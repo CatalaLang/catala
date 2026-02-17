@@ -19,7 +19,7 @@ $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [A.y] This variable might return an empty error:
-─➤ tests/proof/bad/no_vars-empty.catala_en:7.10-7.11:
+─➤ tests-extra/proof/bad/no_vars-empty.catala_en:7.10-7.11:
   │
 7 │   output y content integer
   │          ‾

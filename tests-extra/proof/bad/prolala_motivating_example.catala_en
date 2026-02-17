@@ -129,7 +129,7 @@ $ catala Proof --disable-counterexamples
 │  context.
 │
 │ Incriminated subscope:
-├─➤ tests/proof/bad/prolala_motivating_example.catala_en:56.3-56.14:
+├─➤ tests-extra/proof/bad/prolala_motivating_example.catala_en:56.3-56.14:
 │    │
 │ 56 │   eligibility scope Eligibility
 │    │   ‾‾‾‾‾‾‾‾‾‾‾
@@ -137,7 +137,7 @@ $ catala Proof --disable-counterexamples
 │  └─ Amount
 │
 │ Incriminated variable:
-├─➤ tests/proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
+├─➤ tests-extra/proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
 │   │
 │ 9 │   internal is_student content boolean
 │   │            ‾‾‾‾‾‾‾‾‾‾
@@ -145,7 +145,7 @@ $ catala Proof --disable-counterexamples
 │  └─ Eligibility
 │
 │ Incriminated subscope variable definition:
-├─➤ tests/proof/bad/prolala_motivating_example.catala_en:64.3-64.36:
+├─➤ tests-extra/proof/bad/prolala_motivating_example.catala_en:64.3-64.36:
 │    │
 │ 64 │   definition eligibility.is_student equals is_student
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

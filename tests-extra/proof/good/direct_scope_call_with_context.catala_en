@@ -1,9 +1,9 @@
 ```catala
-#[test] declaration scope SubFoo:
+declaration scope SubFoo:
   context x content integer
   output y content integer
 
-#[test] declaration scope Foo:
+declaration scope Foo:
   output z content integer
 
 scope SubFoo:

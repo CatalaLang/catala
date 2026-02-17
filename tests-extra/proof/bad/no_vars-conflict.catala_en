@@ -20,7 +20,7 @@ $ catala Proof --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [A.y] At least two exceptions overlap for this variable:
-─➤ tests/proof/bad/no_vars-conflict.catala_en:8.10-8.11:
+─➤ tests-extra/proof/bad/no_vars-conflict.catala_en:8.10-8.11:
   │
 8 │   output y content integer
   │          ‾

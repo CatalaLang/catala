@@ -9,7 +9,7 @@ declaration enumeration S:
     -- A content integer
     -- B content T
 
-#[test] declaration scope A:
+declaration scope A:
   output x content integer
   internal y content S
 
@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 │  The constructor "C" of enumeration "T" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests/proof/good/enums-arith.catala_en:5.7-5.8:
+├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-5.8:
 │   │
 │ 5 │    -- C content boolean
 │   │       ‾
@@ -48,7 +48,7 @@ $ catala Proof --disable-counterexamples
 │  The constructor "C" of enumeration "T" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests/proof/good/enums-arith.catala_en:5.7-5.8:
+├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-5.8:
 │   │
 │ 5 │    -- C content boolean
 │   │       ‾
