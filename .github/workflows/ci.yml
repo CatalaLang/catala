@@ -349,7 +349,8 @@ jobs:
 
       - name: Run built-in tests
         run: |
-          opam exec -- make test
+          opam exec -- dune exec -- clerk test tests doc
+          opam exec -- dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
 
       - name: Clone catala-examples
         run: |
@@ -361,5 +362,5 @@ jobs:
       - name: Run clerk test in catala-examples
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
-          opam exec --switch=(get-location -stack) -- clerk test
+          opam exec --switch (get-location -stack) -- clerk test
           Pop-Location
