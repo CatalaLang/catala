@@ -112,7 +112,7 @@ let catala_test_env () =
         || String.starts_with ~prefix:"CATALA_" s))
   |> Seq.cons "CATALA_OUT=-"
   |> Seq.cons "CATALA_COLOR=never"
-  |> Seq.cons "CATALA_PLUGINS="
+  |> Seq.cons "CATALA_PLUGINS=-"
   |> Array.of_seq
 
 let run_catala_test filename cmd program expected out_line =
