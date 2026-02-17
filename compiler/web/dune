@@ -15,7 +15,7 @@
   (:standard -linkall))
  (js_of_ocaml
   (flags
-   (:standard --effects=cps))
+   (:standard --effects=disabled))
   (javascript_files stdlib_fs.js))
  (preprocess
   (pps js_of_ocaml-ppx))
