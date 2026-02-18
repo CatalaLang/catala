@@ -453,7 +453,7 @@ let rec translate_expr
       match Ident.Map.find_opt x scope_vars with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
-           desambiguate. In general, only the last state can be referenced.
+           desambiguate. In general, the last state is referenced by default.
            Except if defining a state of the same variable, then it references
            the previous state in the chain. *)
         let x_sig = ScopeVar.Map.find uid ctxt.var_typs in

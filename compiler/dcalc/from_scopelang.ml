@@ -69,6 +69,7 @@ let pos_mark_mk (type a m) (e : (a, m) gexpr) :
 
 let merge_defaults
     ~(is_func : bool)
+    ~(is_output : bool)
     (caller : (dcalc, 'm) boxed_gexpr)
     (callee : (dcalc, 'm) boxed_gexpr) : (dcalc, 'm) boxed_gexpr =
   (* the merging of the two defaults, from the reentrant caller and the callee,
@@ -116,9 +117,13 @@ let merge_defaults
         Expr.elit (LBool true)
           (Expr.with_ty m (Mark.add (Expr.mark_pos m) (TLit TBool)))
       in
-      let cons = Expr.make_puredefault callee in
-      Expr.make_erroronempty
-        (Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons))
+      if not is_output then (* non-output context var: assume allow_empty *)
+        Expr.edefault ~excepts:[caller] ~just:ltrue ~cons:callee
+          (Mark.get callee)
+      else (* otherwise, wrap in an erroronempty *)
+        let cons = Expr.make_puredefault callee in
+        Expr.make_erroronempty
+          (Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons))
     in
     body
 
@@ -608,7 +613,9 @@ let translate_rule
       match Mark.remove io.io_input with
       | OnlyInput -> assert false
       (* scopelang should not contain any definitions of input only variables *)
-      | Reentrant -> merge_defaults ~is_func a_expr new_e
+      | Reentrant ->
+        merge_defaults ~is_func ~is_output:(Mark.remove io.io_output) a_expr
+          new_e
       | NoInput -> new_e
     in
     let merged_expr =
