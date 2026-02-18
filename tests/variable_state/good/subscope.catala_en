@@ -50,9 +50,11 @@ let scope A
     (foo#baz: integer|internal)
     (foo#fizz: integer|internal|output)
   =
-  let foo#bar : integer = reentrant or by default error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
-  let foo#baz : integer = error_empty ⟨ ⟨true ⊢ ⟨foo#bar + 1⟩⟩ | false ⊢ ∅ ⟩;
-  let foo#fizz : integer = error_empty ⟨ ⟨true ⊢ ⟨foo#baz + 1⟩⟩ | false ⊢ ∅ ⟩
+  let foo#bar : ⟨integer⟩ = reentrant or by default ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo#baz : ⟨integer⟩ =
+    ⟨ ⟨true ⊢ ⟨(error_empty foo#bar) + 1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo#fizz : integer =
+    error_empty ⟨ ⟨true ⊢ ⟨(error_empty foo#baz) + 1⟩⟩ | false ⊢ ∅ ⟩
 ```
 
 ```catala-test-cli
