@@ -1,4 +1,5 @@
 (install
+ (package catala)
  (files
   (glob_files
    (*.catala_* with_prefix runtime))

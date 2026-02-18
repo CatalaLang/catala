@@ -65,7 +65,7 @@
    (run
     sh
     -c
-    "for page in '' $(%{bin:clerk} 2>/dev/null --__complete --__complete= | awk \"/^item$/ { getline; if (!/^--/) print }\" | sort || %{bin:clerk} 2>&1 | sed -n \"s/\\(^\\|'\\)[^']*\\('\\|$\\)/ /gp;q\"); do\n        echo '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
+    "for page in '' $(A=$(%{bin:clerk} 2>/dev/null --__complete --__complete=); if [ $? -eq 0 ]; then echo \"$A\" | awk \"/^item$/ { getline; if (!/^--/) print }\" | sort; else %{bin:clerk} 2>&1 | sed -n \"s/\\(^\\|'\\)[^']*\\('\\|$\\)/ /gp;q\"; fi); do\necho '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
 
 (install
  (section man)

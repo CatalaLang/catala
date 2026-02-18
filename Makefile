@@ -99,16 +99,23 @@ doc:
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
 prepare-install:
-	dune build @install --promote-install-files
+	dune build catala.install --promote-install-files
 
 install: prepare-install
 	case x$$($(OPAM) --version) in \
-	  x2.1.5|x2.1.6) $(OPAM) install . --working-dir;; \
-	  *) $(OPAM) install . --working-dir --assume-built;; \
+	  x2.1.5|x2.1.6) $(OPAM) install ./catala.opam --working-dir;; \
+	  *) $(OPAM) install ./catala.opam --working-dir --assume-built;; \
 	esac
 # `dune install` would work, but does a dirty install to the opam prefix without
 # registering with opam.
 # --assume-built is broken in 2.1.5 and 2.1.6
+
+install-js:
+	dune build catala-js.install --promote-install-files
+	case x$$($(OPAM) --version) in \
+	  x2.1.5|x2.1.6) $(OPAM) install ./catala-js.opam --working-dir;; \
+	  *) $(OPAM) install ./catala-js.opam --working-dir --assume-built;; \
+	esac
 
 inst: prepare-install
 	@opam custom-install \

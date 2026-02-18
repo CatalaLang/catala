@@ -1,8 +1,4 @@
 opam-version: "2.0"
-# Warning: this file must not be pushed as-is to the opam repository:
-# it uses a custom 'cataladevmode' variable and not the new --with-dev-setup flag
-# (for both reasons of compatibility with older opam, and support in the 'depexts' section)
-
 version: "1.1.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
@@ -42,9 +38,6 @@ depends: [
   "uucp" {>= "10"}
   "ubase" {>= "0.05"}
   "zarith" {>= "1.12"}
-  "zarith_stubs_js" {>= "v0.17.0"}
-  "js_of_ocaml" {>= "6.0"}
-  "js_of_ocaml-ppx" {>= "6.0"}
   "yojson" {>= "2.1.0" & < "3"}
    # Not a strict upper bound for catala, but other tools (adgen) have it and we
    # don't want them to need a catala recompile

@@ -1,6 +1,7 @@
 (library
  (name runtime_jsoo)
- (public_name catala.runtime_jsoo)
+ (modes byte)
+ (public_name catala-js.runtime)
  (wrapped false)
  (preprocess
   (pps js_of_ocaml-ppx))
