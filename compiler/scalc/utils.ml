@@ -129,6 +129,20 @@ let rec find_block pred = function
     | some -> some)
   | _ :: r -> find_block pred r
 
+let rec has_block_in_all_branches pred = function
+  | [] -> false
+  | stmt :: _ when pred stmt -> true
+  | (SIfThenElse { then_block; else_block; _ }, _) :: r ->
+    has_block_in_all_branches pred r
+    || has_block_in_all_branches pred then_block
+       && has_block_in_all_branches pred else_block
+  | (SSwitch { switch_cases; _ }, _) :: r ->
+    has_block_in_all_branches pred r
+    || List.for_all
+         (has_block_in_all_branches pred)
+         (List.map (fun c -> c.case_block) switch_cases)
+  | _ :: r -> has_block_in_all_branches pred r
+
 let rec filter_map_block pred = function
   | [] -> []
   | ((SIfThenElse { then_block; else_block; _ }, _) as stmt) :: r ->

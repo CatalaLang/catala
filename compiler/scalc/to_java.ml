@@ -573,10 +573,9 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
         (enum_cstr, { case_block; payload_var_name; payload_var_typ }) =
       let format_break ppf =
         let has_return =
-          Utils.find_block
+          Utils.has_block_in_all_branches
             (function SReturn _, _ | SFatalError _, _ -> true | _ -> false)
             case_block
-          |> Option.is_some
         in
         if not has_return then (
           pp_print_space ppf ();
