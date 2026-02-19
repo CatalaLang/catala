@@ -42,6 +42,9 @@ let terminal_columns, set_terminal_width_function =
   let get_cols = ref (fun () -> 80) in
   (fun () -> !get_cols ()), fun f -> get_cols := f
 
+let pp_to_string ~ansi f =
+  if not ansi then Format.asprintf "%t" f else Ocolor_format.asprintf "%t" f
+
 let has_color_raw ~(tty : bool Lazy.t) =
   match Global.options.color with
   | Global.Never -> false

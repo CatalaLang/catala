@@ -52,9 +52,17 @@ let js_pos pos =
     val message = Js.string ""
   end
 
+(* Parse the outputFormat option: "plain" (default) or "ansi" *)
+let get_ansi js_options =
+  match
+    Js.Optdef.to_option (Js.Unsafe.get js_options (Js.string "outputFormat"))
+  with
+  | Some fmt -> Js.to_string fmt = "ansi"
+  | None -> false
+
 (* Build a diagnostic JS object from an lsp_error *)
-let diagnostic_of_lsp_error level_str (err : Message.lsp_error) =
-  let message_str = Format.asprintf "%t" err.message in
+let diagnostic_of_lsp_error ~ansi level_str (err : Message.lsp_error) =
+  let message_str = Message.pp_to_string ~ansi err.message in
   let positions =
     match err.pos with
     | Some pos
@@ -133,13 +141,15 @@ let cleanup_files module_files =
 (* Drain all accumulated notifications, emptying the accumulator. Returns
    (warning_diags, error_notifs) where warning_diags are already converted to JS
    diagnostic objects and error_notifs are raw lsp_errors. *)
-let drain_all () =
+let drain_all ~ansi () =
   let all = List.rev !notifications_acc in
   notifications_acc := [];
   let warnings, errors =
     List.partition (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
   in
-  let warning_diags = List.map (diagnostic_of_lsp_error "warning") warnings in
+  let warning_diags =
+    List.map (diagnostic_of_lsp_error ~ansi "warning") warnings
+  in
   let error_notifs = errors in
   warning_diags, error_notifs
 
@@ -156,38 +166,29 @@ let positions_of_notifications notifs =
 
 (* Format an exception into a list of error diagnostic JS objects. Does not
    touch the notification accumulator. *)
-let error_diagnostics error_notifs exn =
+let error_diagnostics ~ansi error_notifs exn =
   let positions = positions_of_notifications error_notifs in
+  let make_err_obj message_str =
+    object%js
+      val level = Js.string "error"
+      val message = Js.string message_str
+      val positions = Js.array (Array.of_list positions)
+    end
+  in
   match exn with
   | Message.CompilerError content ->
-    Message.Content.emit ~ppf:Format.str_formatter content Message.Error;
-    let message_str = Format.flush_str_formatter () in
-    [
-      object%js
-        val level = Js.string "error"
-        val message = Js.string message_str
-        val positions = Js.array (Array.of_list positions)
-      end;
-    ]
+    let message_str =
+      Message.pp_to_string ~ansi (fun ppf ->
+          Message.Content.emit ~ppf content Message.Error)
+    in
+    [make_err_obj message_str]
   | Message.CompilerErrors contents_with_bt ->
-    Message.Content.emit_n ~ppf:Format.str_formatter contents_with_bt
-      Message.Error;
-    let message_str = Format.flush_str_formatter () in
-    [
-      object%js
-        val level = Js.string "error"
-        val message = Js.string message_str
-        val positions = Js.array (Array.of_list positions)
-      end;
-    ]
-  | e ->
-    [
-      object%js
-        val level = Js.string "error"
-        val message = Js.string (Printexc.to_string e)
-        val positions = Js.array [||]
-      end;
-    ]
+    let message_str =
+      Message.pp_to_string ~ansi (fun ppf ->
+          Message.Content.emit_n ~ppf contents_with_bt Message.Error)
+    in
+    [make_err_obj message_str]
+  | e -> [make_err_obj (Printexc.to_string e)]
 
 let () =
   Js.export_all
@@ -196,6 +197,7 @@ let () =
          let language, main_filename, main_contents, module_files =
            setup_files js_options
          in
+         let ansi = get_ansi js_options in
          let options =
            Global.enforce_options
              ~input_src:(Contents (main_contents, main_filename))
@@ -227,7 +229,7 @@ let () =
                 detection *)
              let _ = Dcalc.From_scopelang.translate_program prg in
              Message.report_delayed_errors_if_any ();
-             let warning_diags, _error_notifs = drain_all () in
+             let warning_diags, _error_notifs = drain_all ~ansi () in
              Message.results ~ppf:Format.str_formatter
                [(fun ppf -> Format.fprintf ppf "Typechecking successful!")];
              let output = Format.flush_str_formatter () in
@@ -237,8 +239,8 @@ let () =
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags, error_notifs = drain_all () in
-             let error_diags = error_diagnostics error_notifs exn in
+             let warning_diags, error_notifs = drain_all ~ansi () in
+             let error_diags = error_diagnostics ~ansi error_notifs exn in
              object%js
                val success = Js._false
                val output = Js.string ""
@@ -254,6 +256,7 @@ let () =
          let language, main_filename, main_contents, module_files =
            setup_files js_options
          in
+         let ansi = get_ansi js_options in
          let scope =
            Js.Unsafe.get js_options (Js.string "scope") |> Js.to_string
          in
@@ -288,27 +291,32 @@ let () =
                Shared_ast.Interpreter.interpret_program_dcalc prg
                  (Commands.get_scope_uid prg.decl_ctx scope)
              in
-             (match results with
-             | [] ->
-               Message.results ~ppf:Format.str_formatter
-                 [(fun ppf -> Format.fprintf ppf "Computation successful!")]
-             | _ ->
-               let results =
-                 List.sort
-                   (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-                   results
-               in
-               format_results Format.str_formatter scope language results);
-             let formatted = Format.flush_str_formatter () in
-             let warning_diags, _error_notifs = drain_all () in
+             let formatted =
+               Message.pp_to_string ~ansi (fun ppf ->
+                   match results with
+                   | [] ->
+                     Message.results ~ppf
+                       [
+                         (fun ppf ->
+                           Format.fprintf ppf "Computation successful!");
+                       ]
+                   | _ ->
+                     let results =
+                       List.sort
+                         (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
+                         results
+                     in
+                     format_results ppf scope language results)
+             in
+             let warning_diags, _error_notifs = drain_all ~ansi () in
              object%js
                val success = Js._true
                val output = Js.string formatted
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags, error_notifs = drain_all () in
-             let error_diags = error_diagnostics error_notifs exn in
+             let warning_diags, error_notifs = drain_all ~ansi () in
+             let error_diags = error_diagnostics ~ansi error_notifs exn in
              object%js
                val success = Js._false
                val output = Js.string ""
