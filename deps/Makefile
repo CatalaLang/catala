@@ -4,7 +4,7 @@ deps: deps-list
 	for url in $(shell cat $<); do \
 	  curl -L $$url | tar xv$$(if [ x$${url##*.} = "xtbz" ]; then echo "j"; else echo "z"; fi); \
 	done
-	echo '(lang dune 3.13)' > $(wildcard testo-*/dune-project)
+	echo '(lang dune 3.13)' > $$(echo testo-*/dune-project)
 
 deps-list:
 	for pkg in $(DEPS); do \
