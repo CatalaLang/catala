@@ -37,7 +37,7 @@ depends: [
   "bindlib" {>= "6.0"}
   "cmdliner" {>= "1.1.0"}
   "ocamlgraph" {>= "1.8.8"}
-  "re" {>= "1.12"}
+  "re" {>= "1.11"}
   "sedlex" {>= "3.2"}
   "uucp" {>= "10"}
   "ubase" {>= "0.05"}

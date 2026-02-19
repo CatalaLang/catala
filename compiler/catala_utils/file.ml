@@ -40,8 +40,22 @@ let ( / ) a b =
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
 
+(* From Re, but not available before 1.12 -- remove once we update the dependency *)
+let re_split_delim ?pos ?len re s =
+  let seq = Re.Seq.split_full ?pos ?len re s in
+  let rec filter ~delim seq () =
+    match seq () with
+    | Seq.Nil -> if delim then Seq.Cons ("", fun () -> Seq.Nil) else Seq.Nil
+    | Seq.Cons (`Delim _, tl) ->
+      if delim
+      then Seq.Cons ("", fun () -> filter ~delim:true tl ())
+      else filter ~delim:true tl ()
+    | Seq.Cons (`Text s, tl) -> Seq.Cons (s, filter ~delim:false tl)
+  in
+  filter ~delim:true seq |> List.of_seq
+
 let path_to_list path =
-  let p = Re.split_delim dir_sep_re path in
+  let p = re_split_delim dir_sep_re path in
   let drive, p =
     if not Sys.win32 then None, p
     else
