@@ -341,11 +341,11 @@ jobs:
 
       - name: Initialize opam (non-interactive) and create switch
         run: |
-          opam init -y --bare --disable-sandboxing
+          opam init --disable-sandboxing -c ocaml.5.3.0
 
       - name: Build and install Catala through opam
         run: |
-          opam switch create . --packages=ocaml.5.3.0
+          opam install ./catala.opam
 
       - name: Run built-in tests
         run: |
@@ -362,5 +362,5 @@ jobs:
       - name: Run clerk test in catala-examples
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
-          opam exec --switch (get-location -stack) -- clerk test
+          opam exec -- clerk test
           Pop-Location
