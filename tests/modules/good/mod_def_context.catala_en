@@ -99,13 +99,42 @@ scope TestSubDefault:
 ```
 
 ```catala-test-cli
-$ catala test-scope TestSubDefault
-┌─[RESULT]─ TestSubDefault ─
-│ ci = 0
-│ cm = $0.00
-│ x11 = 12.0
-│ x12 = 6.0
-└─
+$ catala dcalc -s TestSubDefault
+let scope TestSubDefault
+  (TestSubDefault_in: TestSubDefault_in)
+  : TestSubDefault
+  =
+  let set sub : S =
+    let result : S =
+      S
+        { S_in
+          ci_in = ∅;
+          cm_in = ∅;
+          cfun1_in = λ (x: integer) → ∅;
+          cfun2_in =
+            λ (x: integer) →
+            error_empty ⟨ ⟨true ⊢ ⟨quarter x⟩⟩ | false ⊢ ∅ ⟩;
+        }
+    in
+    let result1 : S =
+      { S
+        ci = result.ci;
+        cm = result.cm;
+        cfun1 = λ (param0: integer) → result.cfun1 param0;
+        cfun2 = λ (param0: integer) → result.cfun2 param0;
+      }
+    in
+    if true then result1 else result1
+  in
+  let set x12 : decimal =
+    error_empty ⟨ ⟨true ⊢ ⟨sub.cfun2 24⟩⟩ | false ⊢ ∅ ⟩
+  in
+  let set x11 : decimal =
+    error_empty ⟨ ⟨true ⊢ ⟨sub.cfun1 24⟩⟩ | false ⊢ ∅ ⟩
+  in
+  let set cm : money = error_empty ⟨ ⟨true ⊢ ⟨sub.cm⟩⟩ | false ⊢ ∅ ⟩ in
+  let set ci : integer = error_empty ⟨ ⟨true ⊢ ⟨sub.ci⟩⟩ | false ⊢ ∅ ⟩ in
+  return { TestSubDefault ci = ci; cm = cm; x11 = x11; x12 = x12; }
 ```
 
 ```catala
