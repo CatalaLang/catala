@@ -27,7 +27,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-cli
-$ catala Proof -s Foo
+$ catala proof --plugin-dir _build/default/compiler/plugins/ -s Foo
 ┌─[RESULT]─
 │ No errors found during the proof mode run.
 └─

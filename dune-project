@@ -19,3 +19,6 @@
 
 (package
  (name catala-js))
+
+(package
+ (name catala-proof))

@@ -21,13 +21,17 @@ OPAM = opam --cli=2.1
 
 dependencies-ocaml:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala.opam --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala.opam --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-proof.opam --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-proof.opam --with-doc --with-test --update-invariant --deps-only
+
+dependencies-js:
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-js.opam --with-doc --with-test --deps-only
 
 PY_VENV_DIR = _python_venv
 

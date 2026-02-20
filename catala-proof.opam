@@ -1,12 +1,10 @@
 opam-version: "2.0"
 version: "1.1.0"
 synopsis:
-  "Catala additional tools for javascript"
+  "Catala proof backend plugin"
 description: """
-This package contains javascript-related Catala utilities:
-- a js_of_ocaml version of the Catala interpreter that can be embedded in a web playground
-- a wrapper for the ocaml runtime compiled with jsoo
-- two plugins to generate javascript wrappers and json schemas to simplify usage of a jsoo-compiled catala program
+This package provides a plugin for Catala that provides a Z3 encoding
+of programs and can prove some properties on them
 """
 maintainer: "contact@catala-lang.org"
 authors: [
@@ -26,14 +24,15 @@ homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "catala" {= _:version}
-  "zarith_stubs_js" {>= "v0.17.0"}
-  "js_of_ocaml" {>= "6.0"}
-  "js_of_ocaml-ppx" {>= "6.0"}
+  "z3" {>= "4.8.11"}
 ]
 build: [
   "dune" "build" "-p" name "-j" jobs "@install"
     "@runtest" {with-test}
     "@doc" {with-doc}
+]
+run-test: [
+  "dune" "exec" "--" "clerk" "test" "tests-extra/proof/"
 ]
 build-env: [ CATALA_VERSION = "%{version}%" ]
 dev-repo: "git+https://github.com/CatalaLang/catala"

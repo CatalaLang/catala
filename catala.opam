@@ -59,16 +59,14 @@ depends: [
   "conf-python-3-dev" {post & ?cataladevmode & cataladevmode}
   "conf-openjdk" {post & ?cataladevmode & cataladevmode}
   "conf-pandoc" {post & ?cataladevmode & cataladevmode}
-  "z3" {post & ?catalaz3mode & catalaz3mode}
-]
-depopts: ["z3"]
-conflicts: [
-  "z3" {< "4.8.11"}
 ]
 build: [
   "dune" "build" "-p" name "-j" jobs "@install"
     "@runtest" {with-test}
     "@doc" {with-doc}
+]
+run-test: [
+  "dune" "exec" "--" "clerk" "test" "tests/"
 ]
 build-env: [ CATALA_VERSION = "%{version}%" ]
 depexts: [
