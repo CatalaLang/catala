@@ -4,7 +4,7 @@ Should fail since y has two definitions when x = 0
 
 ```catala
 declaration scope A:
-  internal x content integer
+  output x content integer
   output y content integer
 
 scope A:

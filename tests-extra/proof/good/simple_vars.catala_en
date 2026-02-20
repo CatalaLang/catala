@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope A:
-  internal x content integer
-  internal y content boolean
+  output x content integer
+  output y content boolean
   output z content integer
 
 scope A:

@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  internal x content date
+  output x content date
   output y content boolean
 
 scope A:

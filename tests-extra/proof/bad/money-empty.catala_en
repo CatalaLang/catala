@@ -4,7 +4,7 @@ The case x < $1000 is not handled
 
 ```catala
 declaration scope A:
-  internal x content money
+  output x content money
   output y content boolean
 
 scope A:

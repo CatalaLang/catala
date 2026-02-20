@@ -13,7 +13,7 @@ declaration enumeration S:
 
 declaration scope A:
   output x content integer
-  internal y content S
+  output y content S
 
 scope A:
   definition y equals B content (D content 1)

@@ -3,7 +3,7 @@
 
 ```catala
 declaration scope A:
-  internal x content integer
+  output x content integer
   output y content integer
 
 scope A:

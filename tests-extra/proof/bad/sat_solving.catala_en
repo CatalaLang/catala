@@ -3,15 +3,15 @@
 
 ```catala
 declaration scope A:
-  internal x1 content boolean
-  internal x2 content boolean
-  internal x3 content boolean
-  internal x4 content boolean
-  internal x5 content boolean
-  internal x6 content boolean
-  internal x7 content boolean
-  internal x8 content boolean
-  internal x9 content boolean
+  output x1 content boolean
+  output x2 content boolean
+  output x3 content boolean
+  output x4 content boolean
+  output x5 content boolean
+  output x6 content boolean
+  output x7 content boolean
+  output x8 content boolean
+  output x9 content boolean
   output x10 content boolean
 
 scope A:
