@@ -9,15 +9,11 @@
 
 (executable
  (name catala_web_interpreter)
- (public_name catala_web_interpreter.js)
- (package catala-js)
- (modes byte js)
+ (modes js)
  (modules catala_web_interpreter)
- ;; (link_flags
- ;;  (:standard -linkall))
+ (link_flags
+  (:standard -linkall))
  (js_of_ocaml
-  (flags
-   (:standard --linkall --target-env=browser))
   (javascript_files stdlib_fs.js))
  (preprocess
   (pps js_of_ocaml-ppx))
@@ -27,3 +23,18 @@
   catala.runtime_ocaml
   catala.stdlib_internals
   zarith_stubs_js))
+
+(rule
+ (alias runtest-js)
+ (package catala-js)
+ (deps
+  catala_web_interpreter.bc.js
+  (source_tree ../../tests))
+ (action
+  (run node %{dep:test_web_interpreter.js})))
+
+(install
+ (files
+  (catala_web_interpreter.bc.js as catala_web_interpreter.js))
+ (section share)
+ (package catala-js))

@@ -132,6 +132,18 @@ inst: prepare-install
 runtimes:
 	dune build runtimes/
 
+##########################################
+# Plugins and extra packages
+##########################################
+
+#> js					: Build the JS runtime and interpreter
+js:
+	dune build catala-js.install
+
+#> js					: Build the Proof plugin
+proof:
+	dune build catala-proof.install
+
 #> plugins					: Builds the compiler backend plugins
 plugins: runtimes
 	dune build compiler/plugins/
@@ -220,8 +232,7 @@ unit-tests: .FORCE
 	dune build @for-tests @runtest
 
 web-interpreter-tests: .FORCE
-	dune build compiler/web/catala_web_interpreter.bc.js
-	node compiler/web/test_web_interpreter.js
+	dune build @runtest-js
 
 BACKEND_TESTS = $(wildcard tests/*/good/*.catala_*)
 
