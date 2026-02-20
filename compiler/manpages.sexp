@@ -12,7 +12,6 @@
 (rule (alias man) (action (with-stdout-to catala-lcalc.1 (run %{bin:catala} lcalc --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-makefile.1 (run %{bin:catala} makefile --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-ocaml.1 (run %{bin:catala} ocaml --help=groff))))
-(rule (alias man) (action (with-stdout-to catala-proof.1 (run %{bin:catala} proof --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-pygmentize.1 (run %{bin:catala} pygmentize --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-python.1 (run %{bin:catala} python --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-scalc.1 (run %{bin:catala} scalc --help=groff))))

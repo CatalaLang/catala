@@ -1,0 +1,39 @@
+opam-version: "2.0"
+version: "1.1.0"
+synopsis:
+  "Catala additional tools for javascript"
+description: """
+This package contains javascript-related Catala utilities:
+- a js_of_ocaml version of the Catala interpreter that can be embedded in a web playground
+- a wrapper for the ocaml runtime compiled with jsoo
+- two plugins to generate javascript wrappers and json schemas to simplify usage of a jsoo-compiled catala program
+"""
+maintainer: "contact@catala-lang.org"
+authors: [
+  "Vincent Botbol"
+  "Nicolas Chataing"
+  "Alain Delaët-Tixeuil"
+  "Louis Gesbert"
+  "Aymeric Fromherz"
+  "Denis Merigoux"
+  "Raphaël Monat"
+  "Romain Primet"
+  "Emile Rolley"
+]
+license: "Apache-2.0"
+tags: [ "catala" "javascript" ]
+homepage: "https://github.com/CatalaLang/catala"
+bug-reports: "https://github.com/CatalaLang/catala/issues"
+depends: [
+  "catala" {= _:version}
+  "zarith_stubs_js" {>= "v0.17.0"}
+  "js_of_ocaml" {>= "6.0"}
+  "js_of_ocaml-ppx" {>= "6.0"}
+]
+build: [
+  "dune" "build" "-p" name "-j" jobs "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+]
+build-env: [ CATALA_VERSION = "%{version}%" ]
+dev-repo: "git+https://github.com/CatalaLang/catala"

@@ -1,43 +1,3 @@
-(library
- (name python)
- (public_name catala.plugins.python)
- (synopsis
-  "Demonstration Catala plugin that reproduces the behaviour of the built-in python backend")
- (modules python)
- (libraries catala.driver))
-
-(library
- (name api_web)
- (public_name catala.plugins.api_web)
- (synopsis "Catala plugin for interaction with a web interface")
- (modules api_web)
- (libraries catala.driver))
-
-(library
- (name json_schema)
- (public_name catala.plugins.json_schema)
- (synopsis "Catala plugin generating JSON schemas useful to build web-forms")
- (modules json_schema)
- (libraries catala.driver))
-
-(library
- (name lazy_interpreter)
- (public_name catala.plugins.lazy-interpreter)
- (synopsis
-  "Catala plugin that implements a different, experimental interpreter, featuring lazy and partial evaluation")
- (modules lazy_interp)
- (flags (-linkall))
- (libraries shared_ast catala.driver ocamlgraph))
-
-(library
- (name explain)
- (public_name catala.plugins.explain)
- (synopsis
-  "Experiments for the explanation of computations: generates a graph of the formulas that are used for a given execution of a scope")
- (modules explain)
- (flags (-linkall))
- (libraries shared_ast catala.driver ocamlgraph))
-
 (alias
  (name plugins)
  (deps
@@ -46,3 +6,72 @@
 (documentation
  (package catala)
  (mld_files plugins))
+
+;; Base plugins
+
+(executable
+ (name python)
+ (modules python)
+ (modes plugin)
+ (libraries catala.driver))
+
+(executable
+ (name lazy_interp)
+ (modules lazy_interp)
+ (modes plugin)
+ (flags (-linkall))
+ (libraries shared_ast catala.driver ocamlgraph))
+
+(executable
+ (name explain)
+ (modules explain)
+ (modes plugin)
+ (flags (-linkall))
+ (libraries shared_ast catala.driver ocamlgraph))
+
+(install
+ (files
+  python.cmxs
+  (lazy_interp.cmxs as lazy_interpreter.cmxs)
+  explain.cmxs)
+ (package catala)
+ (section
+  (site
+   (catala plugins))))
+
+;; JS plugins
+
+(executable
+ (name api_web)
+ (modules api_web)
+ (modes plugin)
+ (libraries catala.driver))
+
+(executable
+ (name json_schema)
+ (modules json_schema)
+ (modes plugin)
+ (libraries catala.driver))
+
+(install
+ (files api_web.cmxs json_schema.cmxs)
+ (package catala-js)
+ (section
+  (site
+   (catala plugins))))
+
+;; Proof plugin
+
+(executable
+ (name proof)
+ (modules proof)
+ (modes plugin)
+ (libraries verification catala.driver)
+ (embed_in_plugin_libraries z3 verification))
+
+(install
+ (files proof.cmxs)
+ (package catala-proof)
+ (section
+  (site
+   (catala plugins))))

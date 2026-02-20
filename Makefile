@@ -21,13 +21,17 @@ OPAM = opam --cli=2.1
 
 dependencies-ocaml:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala.opam --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala.opam --with-doc --with-test --update-invariant --deps-only
 
 dependencies-ocaml-with-z3:
 	$(OPAM) pin . --no-action
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
-	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-proof.opam --with-doc --with-test --update-invariant --depext-only
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-proof.opam --with-doc --with-test --update-invariant --deps-only
+
+dependencies-js:
+	$(OPAM) pin . --no-action
+	OPAMVAR_cataladevmode=1 $(OPAM) install ./catala-js.opam --with-doc --with-test --deps-only
 
 PY_VENV_DIR = _python_venv
 
@@ -99,16 +103,23 @@ doc:
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
 prepare-install:
-	dune build @install --promote-install-files
+	dune build catala.install --promote-install-files
 
 install: prepare-install
 	case x$$($(OPAM) --version) in \
-	  x2.1.5|x2.1.6) $(OPAM) install . --working-dir;; \
-	  *) $(OPAM) install . --working-dir --assume-built;; \
+	  x2.1.5|x2.1.6) $(OPAM) install ./catala.opam --working-dir;; \
+	  *) $(OPAM) install ./catala.opam --working-dir --assume-built;; \
 	esac
 # `dune install` would work, but does a dirty install to the opam prefix without
 # registering with opam.
 # --assume-built is broken in 2.1.5 and 2.1.6
+
+install-js:
+	dune build catala-js.install --promote-install-files
+	case x$$($(OPAM) --version) in \
+	  x2.1.5|x2.1.6) $(OPAM) install ./catala-js.opam --working-dir;; \
+	  *) $(OPAM) install ./catala-js.opam --working-dir --assume-built;; \
+	esac
 
 inst: prepare-install
 	@opam custom-install \
@@ -120,6 +131,18 @@ inst: prepare-install
 #> runtimes				: Builds the OCaml and js_of_ocaml runtimes
 runtimes:
 	dune build runtimes/
+
+##########################################
+# Plugins and extra packages
+##########################################
+
+#> js					: Build the JS runtime and interpreter
+js:
+	dune build catala-js.install
+
+#> js					: Build the Proof plugin
+proof:
+	dune build catala-proof.install
 
 #> plugins					: Builds the compiler backend plugins
 plugins: runtimes
@@ -209,8 +232,7 @@ unit-tests: .FORCE
 	dune build @for-tests @runtest
 
 web-interpreter-tests: .FORCE
-	dune build compiler/web/catala_web_interpreter.bc.js
-	node compiler/web/test_web_interpreter.js
+	dune build @runtest-js
 
 BACKEND_TESTS = $(wildcard tests/*/good/*.catala_*)
 

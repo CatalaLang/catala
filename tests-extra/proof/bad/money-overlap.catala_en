@@ -16,7 +16,7 @@ scope A:
 ```
 
 ```catala-test-cli
-$ catala Proof --disable-counterexamples 
+$ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterexamples 
 ┌─[WARNING]─
 │
 │  [A.y] At least two exceptions overlap for this variable:

@@ -1,18 +1,8 @@
 (library
  (name verification)
- (public_name catala.verification)
- (libraries
-  bindlib
-  catala_utils
-  dcalc
-  catala.runtime_ocaml
-  dates_calc
-  (select
-   z3backend.ml
-   from
-   (z3 -> z3backend.real.ml)
-   (-> z3backend.dummy.ml))))
+ (public_name catala-proof.verification)
+ (libraries catala.driver z3))
 
 (documentation
- (package catala)
+ (package catala-proof)
  (mld_files verification))

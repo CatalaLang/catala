@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           # The default context would fetch the default source (ie master on
-          # 'pull_request_target' to master >:( ) ; we have already have fetched
+          # 'pull_request_target' to master >:( ) ; we have already fetched
           # anyway so use the current dir
           context: .
           target: dev-build-context
@@ -101,14 +101,20 @@ jobs:
       - name: Check promoted files
         run: |
           cd /home/ocaml/catala && opam exec -- make check-promoted && git diff --exit-code
-      - name: Run tests
+      - name: Run base tests
         if: ${{ always() }}
-        run: cd /home/ocaml/catala && opam exec -- make testsuite
+        run: cd /home/ocaml/catala && opam exec -- make unit-tests backend-tests testsuite-base
+      - name: Run extra tests
+        if: ${{ always() }}
+        run: cd /home/ocaml/catala && dune exec -- clerk test tests-extra doc
       - name: Generate test report
         if: ${{ always() }}
         run: |
           cd /home/ocaml/catala
-          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+          dune exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Test web interpreter
+        run: |
+          cd /home/ocaml/catala && dune build @runtest-js
       - name: Validate Python runtime
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
@@ -171,6 +177,7 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
+          mv catala/_build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -205,47 +212,6 @@ jobs:
           npm install
           opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
           opam exec -- dune runtest
-
-  web-interpreter:
-    name: Build and test web interpreter (jsoo)
-    # Temporary job: builds the jsoo web interpreter in a z3-free environment,
-    # because z3's OCaml bindings pull in threads which breaks js_of_ocaml.
-    # Remove once verification is a plugin (https://github.com/CatalaLang/catala/issues/965)
-    needs: build
-    runs-on: self-hosted
-    container:
-      image: ${{ needs.build.outputs.image }}
-      options: --user root
-      env:
-        DUNE_PROFILE: release
-        OPAMSWITCH: /home/ocaml/catala
-    steps:
-      - name: Fix home
-        run: |
-          HOME=/home/ocaml
-          sudo sh -c "echo HOME=$HOME >> ${GITHUB_ENV}"
-      - name: Remove z3 to avoid threads dependency in jsoo
-        run: |
-          cd /home/ocaml/catala
-          opam remove z3 -y
-          opam exec -- dune clean
-      - name: Build web interpreter
-        run: |
-          cd /home/ocaml/catala
-          opam exec -- dune build compiler/web/catala_web_interpreter.bc.js
-      - name: Test web interpreter
-        run: |
-          cd /home/ocaml/catala
-          node compiler/web/test_web_interpreter.js
-      - name: Prepare artifact
-        run: |
-          mkdir -p /home/ocaml/artifacts
-          cp /home/ocaml/catala/_build/default/compiler/web/catala_web_interpreter.bc.js /home/ocaml/artifacts/catala_web_interpreter.js
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Web interpreter
-          path: /home/ocaml/artifacts/catala_web_interpreter.js
 
   # binaries:
   #   name: Build static binaries
