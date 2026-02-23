@@ -106,15 +106,15 @@ jobs:
         run: cd /home/ocaml/catala && opam exec -- make unit-tests backend-tests testsuite-base
       - name: Run extra tests
         if: ${{ always() }}
-        run: cd /home/ocaml/catala && dune exec -- clerk test tests-extra doc
+        run: cd /home/ocaml/catala && opam exec -- dune exec -- clerk test tests-extra doc
       - name: Generate test report
         if: ${{ always() }}
         run: |
           cd /home/ocaml/catala
-          dune exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+          opam exec -- dune exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
       - name: Test web interpreter
         run: |
-          cd /home/ocaml/catala && dune build @runtest-js
+          cd /home/ocaml/catala && opam exec -- dune build @runtest-js
       - name: Validate Python runtime
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
