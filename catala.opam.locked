@@ -33,9 +33,6 @@ depends: [
   "yojson" {= "2.1.0"}
   "zarith" {= "1.12"}
 ]
-conflicts: [
-  "z3" {< "4.8.11"}
-]
 build: [
   "dune"
   "build"

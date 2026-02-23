@@ -6,10 +6,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Load the interpreter
-const interpreterPath = path.join(__dirname, '../../_build/default/compiler/web/catala_web_interpreter.bc.js');
+const interpreterPath = path.join(__dirname, 'catala_web_interpreter.bc.js');
 if (!fs.existsSync(interpreterPath)) {
   console.error('ERROR: Interpreter not found at', interpreterPath);
-  console.error('Run: dune build compiler/web/catala_web_interpreter.bc.js');
+  console.error('Run: dune build @runtest-js');
   process.exit(1);
 }
 
@@ -85,7 +85,7 @@ scope Test:
     files: { 'test.catala_en': code },
     scope: 'Test'
   });
-  assertEquals(result.success, true, 'Should succeed');
+  assertEquals(result.success, true, 'Should succeed' + result);
   assertContains(result.output, '2024-06-15', 'Should contain date');
   assertContains(result.output, '2,024', 'Should contain year');
 });

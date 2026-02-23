@@ -15,7 +15,7 @@ scope A:
 ```
 
 ```catala-test-cli
-$ catala Proof --disable-counterexamples 
+$ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterexamples 
 ┌─[WARNING]─
 │
 │  The constructor "C2" of enumeration "E" is never used;

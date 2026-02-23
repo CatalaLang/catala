@@ -23,7 +23,7 @@ scope Foo:
 ```
 
 ```catala-test-cli
-$ catala Proof --disable-counterexamples
+$ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterexamples
 ┌─[WARNING]─
 │
 │  [Foo.x] This variable might return an empty error:

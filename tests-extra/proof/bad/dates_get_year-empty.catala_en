@@ -14,7 +14,7 @@ scope A:
 ```
 
 ```catala-test-cli
-$ catala Proof --disable-counterexamples 
+$ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterexamples 
 ┌─[ERROR]─
 │
 │  There cannot be a definition for a scope variable tagged as input.
