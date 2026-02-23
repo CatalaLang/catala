@@ -130,7 +130,8 @@ install-proof:
 
 install-all:
 	dune build catala.install catala-js.install catala-proof.install --promote-install-files
-	$(OPAM) install ./*.opam --working-dir --assume-built
+	$(OPAM) install ./catala.opam --working-dir --assume-built
+	$(OPAM) install ./catala-js.opam ./catala-proof.opam --working-dir --assume-built
 
 inst: prepare-install
 	@opam custom-install \
