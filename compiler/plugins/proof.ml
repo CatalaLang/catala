@@ -46,7 +46,7 @@ let proof_cmd =
   $ Flags.disable_counterexamples
 
 let () =
-  Driver.Plugin.register "proof-plugin" proof_cmd
+  Driver.Plugin.register "proof" proof_cmd
     ~doc:
       "This plugin provides formal verification of properties of Catala \
        programs, based on an encoding into the Z3 smt-solver"

@@ -59,4 +59,4 @@ ARG CATALA_VERSION
 RUN opam exec -- make build
 
 # Install to prefix
-RUN opam exec -- make install && opam clean
+RUN opam exec -- make install-all && opam clean

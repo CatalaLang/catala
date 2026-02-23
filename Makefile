@@ -121,6 +121,17 @@ install-js:
 	  *) $(OPAM) install ./catala-js.opam --working-dir --assume-built;; \
 	esac
 
+install-proof:
+	dune build catala-proof.install --promote-install-files
+	case x$$($(OPAM) --version) in \
+	  x2.1.5|x2.1.6) $(OPAM) install ./catala-proof.opam --working-dir;; \
+	  *) $(OPAM) install ./catala-proof.opam --working-dir --assume-built;; \
+	esac
+
+install-all:
+	dune build @install
+	$(OPAM) install ./*.opam --working-dir --assume-built
+
 inst: prepare-install
 	@opam custom-install \
 	  catala.$$(_build/install/default/bin/catala --version) \
