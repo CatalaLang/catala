@@ -129,7 +129,7 @@ install-proof:
 	esac
 
 install-all:
-	dune build @install
+	dune build catala.install catala-js.install catala-proof.install --promote-install-files
 	$(OPAM) install ./*.opam --working-dir --assume-built
 
 inst: prepare-install
