@@ -240,7 +240,7 @@ jobs:
   pages:
     name: Publish static content to github-pages
     # Doesn't really depend on tests, but we don't want to publish if they fail
-    needs: [examples, tests, web-interpreter] # FIXME: add binaries
+    needs: [examples, tests] # FIXME: add binaries
     # Only triggers on the `master` branch
     if: ${{ github.event_name != 'pull_request_target' && github.ref == 'refs/heads/master' }}
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
