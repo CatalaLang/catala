@@ -153,42 +153,38 @@ let drain_all ~ansi () =
   let error_notifs = errors in
   warning_diags, error_notifs
 
-(* Extract JS position objects from a list of lsp_errors, filtering stdlib *)
-let positions_of_notifications notifs =
-  List.filter_map
-    (fun (e : Message.lsp_error) ->
-      match e.pos with
-      | Some pos
-        when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
-        Some (js_pos pos)
-      | _ -> None)
-    notifs
-
 (* Format an exception into a list of error diagnostic JS objects. Does not
-   touch the notification accumulator. *)
+   touch the notification accumulator.
+
+   Each CompilerError/CompilerErrors fires the lsp_error notifier once per
+   individual error before raising, so [error_notifs] has one entry per distinct
+   error with its own message and primary position. Map them to separate
+   diagnostics so that editor hover bubbles show only one error's message rather
+   than a merged wall of text at every highlighted position.
+
+   The fallback path (empty notifs or unknown exception type) produces a single
+   diagnostic with the formatted exception text and no editor position. *)
 let error_diagnostics ~ansi error_notifs exn =
-  let positions = positions_of_notifications error_notifs in
-  let make_err_obj message_str =
-    object%js
-      val level = Js.string "error"
-      val message = Js.string message_str
-      val positions = Js.array (Array.of_list positions)
-    end
-  in
-  match exn with
-  | Message.CompilerError content ->
+  match error_notifs with
+  | _ :: _ -> List.map (diagnostic_of_lsp_error ~ansi "error") error_notifs
+  | [] ->
     let message_str =
-      Message.pp_to_string ~ansi (fun ppf ->
-          Message.Content.emit ~ppf content Message.Error)
+      match exn with
+      | Message.CompilerError content ->
+        Message.pp_to_string ~ansi (fun ppf ->
+            Message.Content.emit ~ppf content Message.Error)
+      | Message.CompilerErrors contents_with_bt ->
+        Message.pp_to_string ~ansi (fun ppf ->
+            Message.Content.emit_n ~ppf contents_with_bt Message.Error)
+      | e -> Printexc.to_string e
     in
-    [make_err_obj message_str]
-  | Message.CompilerErrors contents_with_bt ->
-    let message_str =
-      Message.pp_to_string ~ansi (fun ppf ->
-          Message.Content.emit_n ~ppf contents_with_bt Message.Error)
-    in
-    [make_err_obj message_str]
-  | e -> [make_err_obj (Printexc.to_string e)]
+    [
+      object%js
+        val level = Js.string "error"
+        val message = Js.string message_str
+        val positions = Js.array [||]
+      end;
+    ]
 
 let () =
   Js.export_all
