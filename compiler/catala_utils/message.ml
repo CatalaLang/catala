@@ -597,9 +597,16 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
       x)
 
 let wrap_to_delayed_error ?(kind = Generic) x f =
+  ignore kind;
   try f ()
   with CompilerError m ->
-    register_content_as_delayed_error ~kind m;
+    (* [CompilerError] is only raised by [Message.error], which already fired
+       the hook before raising. Don't call [register_content_as_delayed_error]
+       here as that would fire the hook a second time for the same error. *)
+    let bt = Printexc.get_raw_backtrace () in
+    if Global.options.stop_on_error then
+      Printexc.raise_with_backtrace (CompilerError m) bt;
+    global_errors.rev_delayed_errors <- (m, bt) :: global_errors.rev_delayed_errors;
     x
 
 let report_delayed_errors_if_any () =
