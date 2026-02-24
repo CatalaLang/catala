@@ -6,7 +6,7 @@ declaration enumeration E:
   -- C2
 
 declaration scope A:
-  internal x content E
+  output x content E
   output y content integer
 
 scope A:

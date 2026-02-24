@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  internal x content integer depends on y content boolean
+  output x content integer depends on y content boolean
   output z content integer
 
 scope A:

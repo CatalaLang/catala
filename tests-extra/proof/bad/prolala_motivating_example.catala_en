@@ -6,8 +6,8 @@ Demo: https://asciinema.org/a/461790
 
 ```catala-metadata
 declaration scope Eligibility:
-  internal is_student content boolean
-  internal is_professor content boolean
+  output is_student content boolean
+  output is_professor content boolean
   output is_eligible content boolean
   output is_eligible_correct condition
 
@@ -54,9 +54,9 @@ scope Eligibility:
 ```catala-metadata
 declaration scope Amount:
   eligibility scope Eligibility
-  internal is_student content boolean
-  internal is_professor content boolean
-  internal number_of_advisors content integer
+  output is_student content boolean
+  output is_professor content boolean
+  output number_of_advisors content integer
   output amount content integer
   output correct_amount content integer
 
@@ -137,10 +137,10 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 │  └─ Amount
 │
 │ Incriminated variable:
-├─➤ tests-extra/proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
+├─➤ tests-extra/proof/bad/prolala_motivating_example.catala_en:9.10-9.20:
 │   │
-│ 9 │   internal is_student content boolean
-│   │            ‾‾‾‾‾‾‾‾‾‾
+│ 9 │   output is_student content boolean
+│   │          ‾‾‾‾‾‾‾‾‾‾
 ├─ ProLaLa 2022 Super Cash Bonus
 │  └─ Eligibility
 │

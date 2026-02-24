@@ -77,12 +77,12 @@ typedef struct Baz_in {
 const Baz* baz (const Baz_in* baz_in)
 {
   const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a = baz_in->a_in;
-  const Bar* a__1;
-  const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a__2;
+  const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a__1;
   CATALA_DEC b;
   const CATALA_OPTION(CATALA_TUPLE(CATALA_DEC;CATALA_POSITION)) b__1;
   const CATALA_OPTION(CATALA_TUPLE(CATALA_DEC;CATALA_POSITION)) b__2;
   CATALA_BOOL b__3;
+  const Bar* b__4;
   const CATALA_ARRAY(CATALA_DEC) c;
   CATALA_ARRAY(CATALA_DEC) const c__3 = catala_malloc(sizeof(catala_array));
   static const catala_code_position pos[1] =
@@ -94,47 +94,29 @@ const Baz* baz (const Baz_in* baz_in)
   Baz* const baz__1 = catala_malloc(sizeof(Baz));
   if (a->code == catala_option_some) {
     const CATALA_TUPLE(Bar*;CATALA_POSITION) x = a->payload;
-    a__2 = catala_some(x);
+    a__1 = catala_some(x);
   } else {
-    const Bar* a__4;
-    Bar* const a__7 = catala_malloc(sizeof(Bar));
+    Bar* const a__3 = catala_malloc(sizeof(Bar));
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 17, 23, 17, 25}};
-    CATALA_TUPLE(Bar*;CATALA_POSITION) const a__6 =
+    CATALA_TUPLE(Bar*;CATALA_POSITION) const a__2 =
       catala_malloc(2 * sizeof(tuple_element*));
-    const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a__5;
-    static const catala_code_position pos__1[1] =
-      {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-    CATALA_TUPLE(Bar*;CATALA_POSITION) const a__3 =
-      catala_malloc(2 * sizeof(tuple_element*));
-    a__7->code = Bar__NO;
-    a__7->payload.Bar__NO = CATALA_UNITVAL;
-    a__6[0].content = a__7;
-    a__6[1].content = pos;
-    a__5 = catala_some(a__6);
-    if (a__5->code == catala_option_some) {
-      const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__5->payload;
-      a__4 = ((Bar*)(arg[0].content));
-    } else {
-      static const catala_code_position pos__1[1] =
-        {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
-      catala_error(catala_no_value, pos__1, 1, NULL);
-      abort();
-    }
-    a__3[0].content = a__4;
-    a__3[1].content = pos__1;
-    a__2 = catala_some(a__3);
+    a__3->code = Bar__NO;
+    a__3->payload.Bar__NO = CATALA_UNITVAL;
+    a__2[0].content = a__3;
+    a__2[1].content = pos;
+    a__1 = catala_some(a__2);
   }
-  if (a__2->code == catala_option_some) {
-    const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__2->payload;
-    a__1 = ((Bar*)(arg[0].content));
+  if (a__1->code == catala_option_some) {
+    const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__1->payload;
+    b__4 = ((Bar*)(arg[0].content));
   } else {
     static const catala_code_position pos[1] =
-      {{"tests/backends/simple.catala_en", 12, 11, 12, 12}};
+      {{"tests/backends/simple.catala_en", 25, 5, 25, 6}};
     catala_error(catala_no_value, pos, 1, NULL);
     abort();
   }
-  switch (a__1->code) {
+  switch (b__4->code) {
     case Bar__NO: {
       b__3 = CATALA_TRUE;
       break;
@@ -149,11 +131,11 @@ const Baz* baz (const Baz_in* baz_in)
   if (b__3 == CATALA_TRUE) {
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 26, 22, 26, 26}};
-    CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__4 =
+    CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__5 =
       catala_malloc(2 * sizeof(tuple_element*));
-    b__4[0].content = catala_new_dec_str("42");
-    b__4[1].content = pos;
-    b__2 = catala_some(b__4);
+    b__5[0].content = catala_new_dec_str("42");
+    b__5[1].content = pos;
+    b__2 = catala_some(b__5);
   } else {
     b__2 = CATALA_NONE;
   }
@@ -161,33 +143,43 @@ const Baz* baz (const Baz_in* baz_in)
     const CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) x = b__2->payload;
     b__1 = catala_some(x);
   } else {
-    CATALA_DEC b__5;
+    CATALA_DEC b__6;
+    const Bar* b__7;
     static const catala_code_position pos[1] =
       {{"tests/backends/simple.catala_en", 20, 5, 22, 59}};
-    CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__4 =
+    CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__5 =
       catala_malloc(2 * sizeof(tuple_element*));
-    switch (a__1->code) {
+    if (a__1->code == catala_option_some) {
+      const CATALA_TUPLE(Bar*;CATALA_POSITION) arg = a__1->payload;
+      b__7 = ((Bar*)(arg[0].content));
+    } else {
+      static const catala_code_position pos[1] =
+        {{"tests/backends/simple.catala_en", 20, 11, 20, 12}};
+      catala_error(catala_no_value, pos, 1, NULL);
+      abort();
+    }
+    switch (b__7->code) {
       case Bar__NO: {
-        b__5 = catala_new_dec_str("0");
+        b__6 = catala_new_dec_str("0");
         break;
       }
       case Bar__YES: {
-        const Foo* foo = a__1->payload.Bar__YES;
-        CATALA_DEC b__6;
+        const Foo* foo = b__7->payload.Bar__YES;
+        CATALA_DEC b__8;
         if (foo->x == CATALA_TRUE) {
-          b__6 = catala_new_dec_str("1");
+          b__8 = catala_new_dec_str("1");
         } else {
-          b__6 = catala_new_dec_str("0");
+          b__8 = catala_new_dec_str("0");
         }
-        b__5 = o_add_rat_rat(foo->y, b__6);
+        b__6 = o_add_rat_rat(foo->y, b__8);
         break;
       }
       default:
         abort();
     }
-    b__4[0].content = b__5;
-    b__4[1].content = pos;
-    b__1 = catala_some(b__4);
+    b__5[0].content = b__6;
+    b__5[1].content = pos;
+    b__1 = catala_some(b__5);
   }
   if (b__1->code == catala_option_some) {
     const CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) arg = b__1->payload;

@@ -1285,11 +1285,16 @@ module Commands = struct
       includes
       stdlib
       (output : Global.raw_file option)
-      optimize
+      _optimize
       check_invariants
       autotest
       closure_conversion =
     let options = fix_trace options in
+    let optimize =
+      (* javac has a limit on bytecode statement per method, without
+         optimizations we easily reach it. We mitigate by enforcing them. *)
+      true
+    in
     let prg, _type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false

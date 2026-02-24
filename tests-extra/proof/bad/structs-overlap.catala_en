@@ -11,7 +11,7 @@ declaration structure S:
 
 declaration scope A:
   output x content integer
-  internal y content S
+  output y content S
 
 scope A:
   definition y equals S { -- a : 0 -- b : T { -- c : false -- d: 0}}

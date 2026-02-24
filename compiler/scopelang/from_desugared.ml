@@ -22,9 +22,19 @@ module D = Desugared.Ast
 
 (** {1 Expression translation}*)
 
+type scope_var_info = {
+  v : ScopeVar.t;
+  allow_empty : bool;
+      (** Internal variables and states, as well as non-output reentrant
+          variables, are allowed to be empty. This changes their type from [t]
+          to [TDefault t], and they are wrapped with an [ErrorOnEmpty] check at
+          the use sites. This avoids runtime errors when an internal variable is
+          undefined but never used. *)
+}
+
 type target_scope_vars =
-  | WholeVar of ScopeVar.t
-  | States of (StateName.t * ScopeVar.t) list
+  | WholeVar of scope_var_info
+  | States of (StateName.t * scope_var_info) list
 
 type ctx = {
   decl_ctx : decl_ctx;
@@ -68,30 +78,27 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
     in
     let tys = untag_implicit_args tys in
     Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) pos tys m
-  | ELocation (DesugaredScopeVar { name; state = None }) ->
-    Expr.elocation
-      (ScopelangScopeVar
-         {
-           name =
-             (match
-                ScopeVar.Map.find (Mark.remove name) ctx.scope_var_mapping
-              with
-             | WholeVar new_s_var -> Mark.copy name new_s_var
-             | States _ -> failwith "should not happen");
-         })
-      m
-  | ELocation (DesugaredScopeVar { name; state = Some state }) ->
-    Expr.elocation
-      (ScopelangScopeVar
-         {
-           name =
-             (match
-                ScopeVar.Map.find (Mark.remove name) ctx.scope_var_mapping
-              with
-             | WholeVar _ -> failwith "should not happen"
-             | States states -> Mark.copy name (List.assoc state states));
-         })
-      m
+  | ELocation (DesugaredScopeVar { name; state = None }) -> (
+    match ScopeVar.Map.find (Mark.remove name) ctx.scope_var_mapping with
+    | WholeVar new_s_var ->
+      let e =
+        Expr.elocation
+          (ScopelangScopeVar { name = Mark.copy name new_s_var.v })
+          m
+      in
+      if new_s_var.allow_empty then Expr.make_erroronempty e else e
+    | States _ -> assert false)
+  | ELocation (DesugaredScopeVar { name; state = Some state }) -> (
+    match ScopeVar.Map.find (Mark.remove name) ctx.scope_var_mapping with
+    | WholeVar _ -> assert false
+    | States states ->
+      let st = List.assoc state states in
+      let e =
+        Expr.elocation (ScopelangScopeVar { name = Mark.copy name st.v }) m
+      in
+      Message.debug ">> %a#%a => allow_empty %b" ScopeVar.format
+        (Mark.remove name) StateName.format state st.allow_empty;
+      if st.allow_empty then Expr.make_erroronempty e else e)
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
   | EDStructAmend { name_opt = Some name; e; fields } ->
     let str_fields = StructName.Map.find name ctx.decl_ctx.ctx_structs in
@@ -175,7 +182,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                | Some _ -> Expr.epuredefault e' m
                | None -> e'
              in
-             ScopeVar.Map.add v' (p, e') args')
+             ScopeVar.Map.add v'.v (p, e') args')
            args ScopeVar.Map.empty)
       m
   | EApp { f; tys; args } ->
@@ -396,13 +403,10 @@ let def_map_to_tree
     expression in the scope language. The [~toplevel] parameter is used to know
     when to place the toplevel binding in the case of functions. *)
 let rec rule_tree_to_expr
-    ~(toplevel : bool)
-    ~(is_reentrant_var : bool)
-    ~(subscope : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
     (params : D.expr Var.t list option)
-    (tree : rule_tree) : untyped Ast.expr boxed =
+    (tree : rule_tree) : ctx * untyped Ast.expr boxed =
   let emark = Expr.no_attrs (Untyped { pos = def_pos }) in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
@@ -473,42 +477,22 @@ let rec rule_tree_to_expr
       ~just:(Expr.elit (LBool false) emark)
       ~cons:(Expr.eempty emark) emark
   in
-  let exceptions =
-    List.map
-      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ~subscope ctx def_pos
-         params)
-      exceptions
+  let excepts =
+    List.map (fun e -> snd (rule_tree_to_expr ctx def_pos params e)) exceptions
   in
-  let default =
-    if exceptions = [] then default_containing_base_cases
-    else
-      Expr.edefault ~excepts:exceptions
+  if excepts = [] then ctx, default_containing_base_cases
+  else
+    ( ctx,
+      Expr.edefault ~excepts
         ~just:(Expr.elit (LBool true) emark)
-        ~cons:
-          (* if toplevel then Expr.eerroronempty default_containing_base_cases emark
-           * else *)
-          default_containing_base_cases emark
-  in
-  let default =
-    if toplevel && not (subscope && is_reentrant_var) then
-      Expr.eerroronempty default emark
-    else default
-  in
-  match params, (List.hd base_rules).D.rule_parameter with
-  | None, None -> default
-  | Some new_params, Some (ls, _) ->
-    let _, tys = List.split ls in
-    if toplevel then
-      (* When we're creating a function from multiple defaults, we must check
-         that the result returned by the function is not empty, unless we're
-         dealing with a context variable which is reentrant (either in the
-         caller or callee). In this case the ErrorOnEmpty will be added later in
-         the scopelang->dcalc translation. *)
-      Expr.make_ghost_abs
-        (new_params |> List.map (fun x -> Var.Map.find x ctx.var_mapping))
-        default tys def_pos
-    else default
-  | _ -> (* should not happen *) assert false
+        ~cons:default_containing_base_cases emark )
+
+(* Internal variables or non-output context variables that are not functions are
+   allowed to be empty and have a [TDefault] type *)
+let allow_empty scope_def =
+  (not (Mark.remove scope_def.D.scope_def_io.io_output))
+  && Mark.remove scope_def.scope_def_io.io_input <> OnlyInput
+  && scope_def.scope_def_parameters = None
 
 (** {1 AST translation} *)
 
@@ -522,11 +506,12 @@ let translate_def
     (def : D.rule RuleName.Map.t)
     (params : (Uid.MarkedString.info * typ) list Mark.pos option)
     (typ : typ)
-    (io : D.io)
+    (scope_def : D.scope_def)
     (exc_graph : Desugared.Dependency.ExceptionsDependencies.t) :
     untyped Ast.expr boxed =
   (* Here, we have to transform this list of rules into a default tree. *)
   let top_list = def_map_to_tree def exc_graph in
+  let io = scope_def.scope_def_io in
   let is_input =
     match Mark.remove io.D.io_input with OnlyInput -> true | _ -> false
   in
@@ -577,14 +562,8 @@ let translate_def
         empty tys (Expr.mark_pos m)
     | _ -> empty
   else
-    rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant
-      ~subscope:is_subscope_var ctx
-      (D.ScopeDef.get_position def_info)
-      (Option.map
-         (fun (ps, _) ->
-           (List.map (fun (lbl, _) -> Var.make (Mark.remove lbl))) ps)
-         params)
-      (match top_list, top_value with
+    let tree =
+      match top_list, top_value with
       | [], None ->
         (* In this case, there are no rules to define the expression and no
            default value so we put an empty rule. *)
@@ -598,7 +577,38 @@ let translate_def
            exceptions to the default value *)
         Node (top_list, [top_value])
       | [top_tree], None -> top_tree
-      | _, None -> Node (top_list, [D.empty_rule (Mark.get typ) params]))
+      | _, None -> Node (top_list, [D.empty_rule (Mark.get typ) params])
+    in
+    let params =
+      Option.map
+        (fun (ps, _) ->
+          (List.map (fun (lbl, _) -> Var.make (Mark.remove lbl))) ps)
+        params
+    in
+    let def_pos = D.ScopeDef.get_position def_info in
+    let ctx, body = rule_tree_to_expr ctx def_pos params tree in
+    let default =
+      if allow_empty scope_def || (is_subscope_var && is_reentrant) then body
+      else Expr.make_erroronempty body
+    in
+    let base_rule =
+      match tree with
+      | Leaf (r :: _) | Node (_, r :: _) -> r
+      | _ -> assert false
+    in
+    match params, base_rule.D.rule_parameter with
+    | None, None -> default
+    | Some new_params, Some (ls, _) ->
+      let _, tys = List.split ls in
+      (* When we're creating a function from multiple defaults, we must check
+         that the result returned by the function is not empty, unless we're
+         dealing with a context variable which is reentrant (either in the
+         caller or callee). In this case the ErrorOnEmpty will be added later in
+         the scopelang->dcalc translation. *)
+      Expr.make_ghost_abs
+        (new_params |> List.map (fun x -> Var.Map.find x ctx.var_mapping))
+        default tys def_pos
+    | _ -> assert false
 
 let translate_rule
     ctx
@@ -631,8 +641,7 @@ let translate_rule
       | _ ->
         let scope_def_key = (var, decl_pos), D.ScopeDef.Var state in
         let expr_def =
-          translate_def ctx scope_def_key var_def var_params var_typ
-            scope_def.D.scope_def_io
+          translate_def ctx scope_def_key var_def var_params var_typ scope_def
             (D.ScopeDef.Map.find scope_def_key exc_graphs)
             ~is_cond ~is_subscope_var:false
         in
@@ -642,10 +651,14 @@ let translate_rule
           | States states, Some state -> List.assoc state states
           | _ -> assert false
         in
+        let var_typ =
+          if scope_var.allow_empty then TDefault var_typ, Mark.get var_typ
+          else var_typ
+        in
         [
           Ast.ScopeVarDefinition
             {
-              var = Mark.add all_def_pos scope_var;
+              var = Mark.add all_def_pos scope_var.v;
               typ = var_typ;
               io = scope_def.D.scope_def_io;
               e = Expr.unbox expr_def;
@@ -689,7 +702,7 @@ let translate_rule
                   (String.concat "."
                      [
                        Mark.remove (ScopeVar.get_info (Mark.remove v));
-                       ScopeVar.to_string var_within_origin_scope;
+                       ScopeVar.to_string var_within_origin_scope.v;
                      ])
               in
               let typ =
@@ -697,11 +710,11 @@ let translate_rule
               in
               let expr_def =
                 translate_def ctx def_key def scope_def.D.scope_def_parameters
-                  def_typ scope_def.D.scope_def_io
+                  def_typ scope_def
                   (D.ScopeDef.Map.find def_key exc_graphs)
                   ~is_cond ~is_subscope_var:true
               in
-              ScopeVar.Map.add var_within_origin_scope
+              ScopeVar.Map.add var_within_origin_scope.v
                 (def_var, pos, typ, expr_def)
                 acc)
           scope.scope_defs ScopeVar.Map.empty
@@ -725,7 +738,7 @@ let translate_rule
       let subscope_def =
         Ast.ScopeVarDefinition
           {
-            var = Mark.add all_def_pos subscope_var_dcalc;
+            var = Mark.add all_def_pos subscope_var_dcalc.v;
             typ =
               ( TStruct scope_info.out_struct_name,
                 Mark.get (ScopeVar.get_info var) );
@@ -750,16 +763,17 @@ let translate_rule
     ]
 
 let translate_scope_interface ctx scope =
-  let get_svar scope_def =
+  let get_svar ?(subscope = false) scope_def =
     let svar_in_ty =
       Scope.input_type scope_def.D.scope_def_typ
         scope_def.D.scope_def_io.io_input
     in
-    {
-      Ast.svar_in_ty;
-      svar_out_ty = scope_def.D.scope_def_typ;
-      svar_io = scope_def.scope_def_io;
-    }
+    let svar_out_ty =
+      if (not subscope) && allow_empty scope_def then
+        TDefault scope_def.D.scope_def_typ, Mark.get scope_def.D.scope_def_typ
+      else scope_def.D.scope_def_typ
+    in
+    { Ast.svar_in_ty; svar_out_ty; svar_io = scope_def.scope_def_io }
   in
   let scope_sig =
     (* Add the definitions of standard scope vars *)
@@ -774,7 +788,7 @@ let translate_scope_interface ctx scope =
           in
           ScopeVar.Map.add
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
-            | WholeVar v -> v
+            | WholeVar v -> v.v
             | States _ -> assert false)
             (get_svar scope_def) acc
         | States states ->
@@ -791,7 +805,7 @@ let translate_scope_interface ctx scope =
               ScopeVar.Map.add
                 (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> assert false
-                | States states' -> List.assoc state states')
+                | States states' -> (List.assoc state states').v)
                 (get_svar scope_def) acc)
             acc states)
       scope.scope_vars ScopeVar.Map.empty
@@ -808,9 +822,10 @@ let translate_scope_interface ctx scope =
         in
         ScopeVar.Map.add
           (match ScopeVar.Map.find var ctx.scope_var_mapping with
-          | WholeVar v -> v
+          | WholeVar v -> v.v
           | States _ -> assert false)
-          (get_svar scope_def) acc)
+          (get_svar ~subscope:true scope_def)
+          acc)
       scope.D.scope_sub_scopes scope_sig
   in
   let pos = Mark.get (ScopeName.get_info scope.scope_uid) in
@@ -873,49 +888,51 @@ let translate_program
             ScopeVar.Map.fold
               (fun scope_var (states : D.var_or_states) ctx ->
                 let var_name, var_pos = ScopeVar.get_info scope_var in
+                let scope_def state =
+                  D.ScopeDef.Map.find
+                    ((scope_var, Pos.void), Var state)
+                    scdef.D.scope_defs
+                in
                 let new_var =
                   match states with
-                  | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
+                  | D.WholeVar ->
+                    WholeVar
+                      {
+                        v = ScopeVar.fresh (var_name, var_pos);
+                        allow_empty = allow_empty (scope_def None);
+                      }
                   | States states ->
                     let var_prefix = var_name ^ "#" in
                     let state_var state =
-                      ScopeVar.fresh
-                        (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
+                      {
+                        v =
+                          ScopeVar.fresh
+                            (Mark.map (( ^ ) var_prefix)
+                               (StateName.get_info state));
+                        allow_empty = allow_empty (scope_def (Some state));
+                      }
                     in
                     States
                       (List.map (fun state -> state, state_var state) states)
                 in
-                let reentrant =
-                  let state =
-                    match states with
-                    | D.WholeVar -> None
-                    | States (s :: _) -> Some s
-                    | States [] -> assert false
+                let reentrant_vars =
+                  let first_state =
+                    match states with States (s :: _) -> Some s | _ -> None
                   in
-                  match
-                    D.ScopeDef.Map.find_opt
-                      ((scope_var, Pos.void), Var state)
-                      scdef.D.scope_defs
-                  with
-                  | Some
-                      {
-                        scope_def_io =
-                          { io_input = Catala_runtime.Reentrant, _; _ };
-                        scope_def_typ;
-                        _;
-                      } ->
-                    Some scope_def_typ
-                  | _ -> None
+                  let def = scope_def first_state in
+                  if
+                    Mark.remove def.scope_def_io.io_input
+                    = Catala_runtime.Reentrant
+                  then
+                    ScopeVar.Map.add scope_var def.scope_def_typ
+                      ctx.reentrant_vars
+                  else ctx.reentrant_vars
                 in
                 {
                   ctx with
                   scope_var_mapping =
                     ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
-                  reentrant_vars =
-                    Option.fold reentrant
-                      ~some:(fun ty ->
-                        ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
-                      ~none:ctx.reentrant_vars;
+                  reentrant_vars;
                 })
               scdef.D.scope_vars ctx
           in
@@ -927,7 +944,13 @@ let translate_program
               (fun var _ ctx ->
                 let var_name, var_pos = ScopeVar.get_info var in
                 let scope_var_mapping =
-                  let new_var = WholeVar (ScopeVar.fresh (var_name, var_pos)) in
+                  let new_var =
+                    WholeVar
+                      {
+                        v = ScopeVar.fresh (var_name, var_pos);
+                        allow_empty = false;
+                      }
+                  in
                   ScopeVar.Map.add var new_var ctx.scope_var_mapping
                 in
                 { ctx with scope_var_mapping })
@@ -955,7 +978,7 @@ let translate_program
                   | WholeVar v -> v
                   | States l -> snd (List.hd (List.rev l))
                 in
-                ScopeVar.Map.add var' fld out_map)
+                ScopeVar.Map.add var'.v fld out_map)
               out_str.out_struct_fields ScopeVar.Map.empty
           in
           { out_str with out_struct_fields })
