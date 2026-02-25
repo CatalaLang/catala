@@ -23,6 +23,152 @@ open Sedlexing
 open Ast
 open Tokens
 
+type pattern = token list -> bool
+type scope = { start_pat : pattern; stop_token : (token -> bool) option }
+
+let source_scope =
+  {
+    start_pat = (fun _ -> false);
+    stop_token = Some (function EOF -> true | _ -> false);
+  }
+
+let code_block_scope =
+  {
+    start_pat =
+      (function (BEGIN_CODE | BEGIN_METADATA) :: _ -> true | _ -> false);
+    stop_token = Some (function END_CODE _ -> true | _ -> false);
+  }
+
+let scope_decl_scope =
+  {
+    start_pat = (function DECLARATION :: SCOPE :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let struct_decl_scope =
+  {
+    start_pat =
+      (function
+      | DECLARATION :: STRUCT :: UIDENT _ :: COLON :: _ -> true
+      | _ -> false);
+    stop_token = None;
+  }
+
+let enum_decl_scope =
+  {
+    start_pat =
+      (function
+      | DECLARATION :: ENUM :: UIDENT _ :: COLON :: _ -> true
+      | _ -> false);
+    stop_token = None;
+  }
+
+let topdef_scope =
+  {
+    start_pat = (function DECLARATION :: LIDENT _ :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let scope_def_scope =
+  {
+    start_pat =
+      (function
+      | SCOPE :: UIDENT _ :: UNDER_CONDITION :: _
+      | SCOPE :: UIDENT _ :: COMMA :: _ ->
+        true
+      | _ -> false);
+    stop_token = None;
+  }
+
+let scope_decl_item_scope =
+  {
+    start_pat =
+      (function
+      | (INPUT | CONTEXT | INTERNAL | OUTPUT) :: _ -> true
+      | _ -> false);
+    stop_token = None;
+  }
+
+let subscope_decl_item_scope =
+  {
+    start_pat =
+      (function
+      (* with & w/o output attribute versions *)
+      | OUTPUT :: LIDENT _ :: SCOPE :: _ | LIDENT _ :: SCOPE :: UIDENT _ :: _ ->
+        true
+      | _ -> false);
+    stop_token = None;
+  }
+
+let label_var_def_scope =
+  {
+    start_pat = (function LABEL :: LIDENT _ :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let except_var_def_scope =
+  {
+    start_pat = (function EXCEPTION :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let var_def_scope =
+  {
+    start_pat = (function DEFINITION :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let rule_def_scope =
+  {
+    start_pat = (function RULE :: _ -> true | _ -> false);
+    stop_token = Some (function FILLED -> true | _ -> false);
+  }
+
+let assert_scope =
+  {
+    start_pat = (function ASSERTION :: _ -> true | _ -> false);
+    stop_token = None;
+  }
+
+let let_in_scope =
+  {
+    start_pat = (function LET :: _ -> true | _ -> false);
+    stop_token = Some (function IN -> true | _ -> false);
+  }
+
+let assert_in_scope =
+  {
+    start_pat = (function ASSERTION :: _ -> true | _ -> false);
+    stop_token = Some (function IN -> true | _ -> false);
+  }
+
+let assoc =
+  [
+    source_scope, [code_block_scope];
+    ( code_block_scope,
+      [
+        scope_decl_scope;
+        struct_decl_scope;
+        enum_decl_scope;
+        topdef_scope;
+        scope_def_scope;
+      ] );
+    scope_decl_scope, [scope_decl_item_scope; subscope_decl_item_scope];
+    ( scope_def_scope,
+      [
+        label_var_def_scope;
+        except_var_def_scope;
+        var_def_scope;
+        rule_def_scope;
+        assert_scope;
+      ] );
+    label_var_def_scope, [except_var_def_scope; var_def_scope; rule_def_scope];
+    except_var_def_scope, [var_def_scope; rule_def_scope];
+    rule_def_scope, [let_in_scope; assert_in_scope];
+    var_def_scope, [let_in_scope; assert_in_scope];
+    topdef_scope, [let_in_scope; assert_in_scope];
+  ]
+
 type parsing_error
 
 type parsing_result =
@@ -273,7 +419,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
               Tokens.token * Lexing.position * Lexing.position =
             f ()
           in
-          (* Format.eprintf "%s@\n" (Parser_utils.token_to_string tok); *)
+          Format.eprintf "%s@\n" (Parser_utils.token_to_string tok);
           x
       in
       create feed
