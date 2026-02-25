@@ -18,17 +18,14 @@ $ catala test-scope S
 │ my =
 │   MonthYear.Tunit {
 │     -- my1:
-│       MonthYear.MonthYear_en.MonthYear {
+│       MonthYear_en.MonthYear {
 │         -- year_number: 2 000
 │         -- month_name: January
 │       }
 │     -- my2:
-│       MonthYear.MonthYear_en.MonthYear {
-│         -- year_number: 2 010
-│         -- month_name: June
-│       }
+│       MonthYear_en.MonthYear { -- year_number: 2 010 -- month_name: June }
 │     -- my3:
-│       MonthYear.MonthYear_en.MonthYear {
+│       MonthYear_en.MonthYear {
 │         -- year_number: 2 020
 │         -- month_name: December
 │       }

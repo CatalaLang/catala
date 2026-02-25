@@ -570,21 +570,23 @@ let rec process_base_typ
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Position -> TLit TPos, typ_pos
     | Surface.Ast.Named ([], (ident, _pos)) -> (
-      let path = List.rev rev_path in
+      let fix_path = function
+        | [], x -> List.rev rev_path, x
+        | id ->
+          id (* implicitely open modules lead to already qualified types *)
+      in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
       | Some (TStruct s_uid) ->
-        let s_uid = StructName.map_info (fun (_, x) -> path, x) s_uid in
+        let s_uid = StructName.map_info fix_path s_uid in
         TStruct s_uid, typ_pos
       | Some (TEnum e_uid) ->
-        let e_uid = EnumName.map_info (fun (_, x) -> path, x) e_uid in
+        let e_uid = EnumName.map_info fix_path e_uid in
         TEnum e_uid, typ_pos
       | Some (TAbstract t_uid) ->
-        let t_uid = AbstractType.map_info (fun (_, x) -> path, x) t_uid in
+        let t_uid = AbstractType.map_info fix_path t_uid in
         TAbstract t_uid, typ_pos
       | Some (TScope (_, scope_str)) ->
-        let s_uid =
-          StructName.map_info (fun (_, x) -> path, x) scope_str.out_struct_name
-        in
+        let s_uid = StructName.map_info fix_path scope_str.out_struct_name in
         TStruct s_uid, typ_pos
       | None ->
         Message.error ~pos:typ_pos
