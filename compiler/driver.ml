@@ -1598,12 +1598,13 @@ let main () =
             Message.debug "Could not read plugin directory %s" d)
       plugins_dirs;
     Dynlink.allow_only
-      (List.filter (( <> ) "Driver__Plugin") (Dynlink.all_units ()));
+      (List.filter
+         (function
+           | "Driver__Plugin" | "Catala_utils__Global" -> false | _ -> true)
+         (Dynlink.all_units ()));
     (* From here on, no plugin registration is allowed. However, the interpreter
-       may yet use Dynlink to load external modules. - TODO: This used to allow
-       only "Runtime_ocaml__Runtime", but forbidding external Catala modules to
-       use the OCaml Stdlib was a bit much. We should examine how to re-add some
-       more filtering here without being too restrictive. *)
+       may still use Dynlink to load external modules ; we prevent access to
+       Catala internal mutable state. *)
     Plugin.list ()
   in
   let command = catala_t plugins in
