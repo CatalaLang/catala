@@ -571,9 +571,10 @@ let rec process_base_typ
     | Surface.Ast.Position -> TLit TPos, typ_pos
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       let fix_path = function
-        | [], x -> List.rev rev_path, x
-        | id ->
-          id (* implicitely open modules lead to already qualified types *)
+        (* We only keep the last member of paths for types here: it makes for
+           more readable errors, and is enough for unambiguous qualification *)
+        | [], x -> (match rev_path with m :: _ -> [m] | [] -> []), x
+        | path, x -> [List.hd (List.rev path)], x
       in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
       | Some (TStruct s_uid) ->

@@ -166,7 +166,9 @@ module QualifiedMarkedString = struct
 
   let hash (p, i) =
     let open Hash.Op in
-    Hash.list Module.hash p % MarkedString.hash i
+    match List.rev p with
+    | [] -> MarkedString.hash i
+    | m :: _ -> Module.hash m % MarkedString.hash i
 
   let format_shortpath ppf (p, i) =
     Path.format ppf (Option.to_list (Path.last_member p));
