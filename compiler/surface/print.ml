@@ -36,3 +36,32 @@ let format_primitive_typ (fmt : Format.formatter) (t : primitive_typ) : unit =
   | Var (Some id) ->
     Format.fprintf fmt "anything@ of@ type@ ";
     Format.pp_print_string fmt (Mark.remove id)
+
+let pp_code_item fmt : Ast.code_item -> unit =
+  let open Format in
+  function
+  | ScopeUse _ -> fprintf fmt "ScopeUse"
+  | ScopeDecl { scope_decl_context; _ } ->
+    fprintf fmt "ScopeDecl: %d" (List.length scope_decl_context)
+  | StructDecl _ -> fprintf fmt "StructDecl"
+  | EnumDecl _ -> fprintf fmt "EnumDecl"
+  | AbstractTypeDecl _ -> fprintf fmt "AbstractTypeDecl"
+  | Topdef _ -> fprintf fmt "Topdef"
+
+let format_law_structure fmt : Ast.law_structure -> unit =
+  let open Format in
+  function
+  | LawInclude _ -> fprintf fmt "LawInclude"
+  | ModuleDef _ -> fprintf fmt "ModuleDef"
+  | ModuleUse _ -> fprintf fmt "ModuleUse"
+  | LawHeading _ -> fprintf fmt "LawHeading"
+  | LawText _ -> fprintf fmt "LawText"
+  | CodeBlock (code_block, _, _) ->
+    fprintf fmt "@[<v 2>CodeBlock:@ %a@]"
+      (pp_print_list ~pp_sep:pp_print_cut pp_code_item)
+      (List.map Mark.remove code_block)
+
+let format_source_file fmt law_structures =
+  Format.fprintf fmt "@[<v>%a@]"
+    (Format.pp_print_list format_law_structure)
+    law_structures

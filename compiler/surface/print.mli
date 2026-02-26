@@ -15,3 +15,4 @@
    the License. *)
 
 val format_primitive_typ : Format.formatter -> Ast.primitive_typ -> unit
+val format_source_file : Format.formatter -> Ast.source_file -> unit

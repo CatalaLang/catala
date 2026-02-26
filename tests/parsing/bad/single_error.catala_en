@@ -1,11 +1,15 @@
 ## Single parsing error
 
 ```catala
-declaration scope A:
-  output i contents decimal
-
 scope A:
-  definition i equals 1 / 0
+  definition i equals let x equals 3 in 1 / 0
+
+declaration scope A:
+  input x content integer
+  output i contents decimal
+  aze aze aze
+  output i content decimal
+  output g content decimal
 ```
 
 ```catala-test-cli

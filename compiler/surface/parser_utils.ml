@@ -74,7 +74,7 @@ let token_to_string =
   | MAP_EACH -> "MAP_EACH"
   | LPAREN -> "LPAREN"
   | LIST -> "LIST"
-  | LIDENT _ -> "LIDENT _"
+  | LIDENT s -> Format.sprintf "LIDENT(%s)" s
   | LET -> "LET"
   | LESSER_EQUAL op -> Format.sprintf "LESSER_EQUAL(%s)" (op_to_string op)
   | LESSER op -> Format.sprintf "LESSER(%s)" (op_to_string op)
@@ -104,7 +104,7 @@ let token_to_string =
   | EOF -> "EOF"
   | ENUM -> "ENUM"
   | END_DIRECTIVE -> "END_DIRECTIVE"
-  | END_CODE s -> Format.sprintf "END_CODE(%s)" s
+  | END_CODE _ -> Format.sprintf "END_CODE(...)"
   | ELSE -> "ELSE"
   | DOT -> "DOT"
   | DOCSTRING _ -> "DOCSTRING"
