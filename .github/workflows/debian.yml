@@ -24,7 +24,7 @@ jobs:
       - name: Install devscripts etc
         run: |
           apt-get -yq update
-          apt-get -yq install --no-install-recommends git curl devscripts build-essential equivs
+          apt-get -yq install --no-install-recommends gh git curl devscripts build-essential equivs
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -54,17 +54,8 @@ jobs:
         with:
           name: Debian package
           path: debian-package/*
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          path: debian-package/*
       - name: Update nightly release
-        uses: pyTooling/Actions/releaser@r4
-        with:
-          tag: nightly
-          rm: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: debian-package/*
-      - name: Cleanup
-        if: ${{ always() }}
-        run: rm -rf "$(dirname ${GITHUB_WORKSPACE})/*" ~/.cache/dune
+        run: gh release upload nightly debian-package/* --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
