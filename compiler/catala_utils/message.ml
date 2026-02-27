@@ -566,18 +566,26 @@ type delayed_errors = {
 
 let global_errors = { rev_delayed_errors = [] }
 
-let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
+let register_content_as_delayed_error
+    ?(should_notify = true)
+    ?(kind = Generic)
+    ?main_pos
+    m =
   let register_error =
     match !global_error_hook with
     | Some f ->
-      let message ppf = Content.emit ~ppf m Error in
-      let pos =
-        match main_pos with
-        | Some p -> p
-        | None ->
-          List.find_map (function Position pos -> Some pos.pos | _ -> None) m
-      in
-      f { kind; message; pos; suggestion = None }
+      if not should_notify then true
+      else
+        let message ppf = Content.emit ~ppf m Error in
+        let pos =
+          match main_pos with
+          | Some p -> p
+          | None ->
+            List.find_map
+              (function Position pos -> Some pos.pos | _ -> None)
+              m
+        in
+        f { kind; message; pos; suggestion = None }
     | None -> true
   in
   if register_error then (
@@ -599,7 +607,7 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
 let wrap_to_delayed_error ?(kind = Generic) x f =
   try f ()
   with CompilerError m ->
-    register_content_as_delayed_error ~kind m;
+    register_content_as_delayed_error ~should_notify:false ~kind m;
     x
 
 let report_delayed_errors_if_any () =
