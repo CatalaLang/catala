@@ -162,15 +162,41 @@ let rec format_typ
   | TForAll _ | TError -> assert false
   | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
 
+let rec format_rtyp ppf ty =
+  match Mark.remove ty with
+  | TLit TUnit -> Format.pp_print_string ppf "catala_type_unit()"
+  | TLit TBool -> Format.pp_print_string ppf "catala_type_bool()"
+  | TLit TInt -> Format.pp_print_string ppf "catala_type_integer()"
+  | TLit TMoney -> Format.pp_print_string ppf "catala_type_money()"
+  | TLit TRat -> Format.pp_print_string ppf "catala_type_decimal()"
+  | TLit TDate -> Format.pp_print_string ppf "catala_type_date()"
+  | TLit TDuration -> Format.pp_print_string ppf "catala_type_duration()"
+  | TLit TPos -> Format.pp_print_string ppf "catala_type_position()"
+  | TArray ty -> Format.fprintf ppf "catala_type_array(%a)" format_rtyp ty
+  | TTuple tl ->
+    Format.fprintf ppf "@[<hov 2>catala_type_tuple(%d,@ %a)@]" (List.length tl)
+      (Format.pp_print_list format_rtyp ~pp_sep:(fun ppf () ->
+           Format.fprintf ppf ",@ "))
+      tl
+  | TStruct name ->
+    Format.fprintf ppf "catala_type__%s()" (StructName.base name)
+  | TEnum name -> Format.fprintf ppf "catala_type__%s()" (EnumName.base name)
+  | TOption ty -> Format.fprintf ppf "catala_type_optional(%a)" format_rtyp ty
+  (* | TAbstract name ->
+   *   Format.fprintf ppf "%a.rtype" format_to_module_name (`Aname name)
+   * | TArrow _ -> Format.fprintf ppf "Value.Function"
+   * | TError | TDefault _ | TVar _ | TForAll _ | TClosureEnv ->
+   *   Message.error "Cannot compute comparison on type %a" Print.typ ty *)
+  | _ -> assert false
+
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     unit =
-  let format_struct_decl fmt (struct_name, struct_fields) =
+  let format_struct_decl ppfs (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     if fields = [] then
-      Format.fprintf fmt "@,@[<v 2>typedef void %s;@]"
-        (StructName.base struct_name)
+      pp ppfs "@,@[<v 2>typedef void %s;@]" (StructName.base struct_name)
     else
-      Format.fprintf fmt "@,@[<v 2>typedef struct %s {@ %a@;<1 -2>}@] %s;"
+      pp ppfs "@,@[<v 2>typedef struct %s {@ %a@;<1 -2>}@] %s;"
         (StructName.base struct_name)
         (Format.pp_print_list ~pp_sep:Format.pp_print_space
            (fun fmt (struct_field, struct_field_type) ->
@@ -180,19 +206,41 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
                     StructField.format fmt struct_field))
                struct_field_type))
         fields
-        (StructName.base struct_name)
+        (StructName.base struct_name);
+    let size = List.length fields in
+    pp ppfs "@,const catala_type catala_type__%s()"
+      (StructName.base struct_name);
+    pp (List.tl ppfs) ";";
+    Format.fprintf ppc "@,@[<v 2>{@,";
+    Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
+    if size > 0 then
+      Format.fprintf ppc "static struct catala_label_type fields[%d];@," size;
+    Format.fprintf ppc
+      "if (ty.kind != UNINITIALIZED) return ty;@,\
+       ty.kind = STRUCT;@,\
+       ty.contents.tstruct.name = \"%s\";@,\
+       ty.contents.tstruct.size = %d;@,"
+      (StructName.base struct_name)
+      size;
+    if size > 0 then Format.fprintf ppc "ty.contents.tstruct.fields = fields;";
+    List.iteri
+      (fun i (name, ty) ->
+        Format.fprintf ppc "@,fields[%d].name = \"%a\";" i StructField.format
+          name;
+        Format.fprintf ppc "@,fields[%d].ty = %a;" i format_rtyp ty)
+      fields;
+    Format.fprintf ppc "@,return ty;@;<1 -2>}@]"
   in
-  let format_enum_decl fmt (enum_name, enum_cons) =
-    if EnumConstructor.Map.is_empty enum_cons then
-      failwith "no constructors in the enum"
-    else
-      Format.fprintf fmt "@,@[<v 2>enum %s__code {@,%a@;<0 -2>}@];@,"
-        (EnumName.base enum_name)
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt (enum_cons, _) -> EnumConstructor.format fmt enum_cons))
-        (EnumConstructor.Map.bindings enum_cons);
-    Format.fprintf fmt
+  let format_enum_decl ppfs (enum_name, enum_cons) =
+    let cases = EnumConstructor.Map.bindings enum_cons in
+    if cases = [] then failwith "no constructors in the enum";
+    pp ppfs "@,@[<v 2>enum %s__code {@,%a@;<0 -2>}@];@,"
+      (EnumName.base enum_name)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (enum_cons, _) -> EnumConstructor.format fmt enum_cons))
+      cases;
+    pp ppfs
       "@,\
        @[<v 2>typedef struct %s {@ enum %s__code code;@ @[<v 2>union {@ %a@]@,\
        } payload;@]@,\
@@ -206,8 +254,27 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
                   Format.pp_print_space fmt ();
                   EnumConstructor.format fmt enum_cons))
              typ))
-      (EnumConstructor.Map.bindings enum_cons)
-      (EnumName.base enum_name)
+      cases (EnumName.base enum_name);
+    let size = List.length cases in
+    pp ppfs "@,const catala_type catala_type__%s()" (EnumName.base enum_name);
+    pp (List.tl ppfs) ";";
+    Format.fprintf ppc "@,@[<v 2>{@,";
+    Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
+    Format.fprintf ppc "static struct catala_label_type cases[%d];@," size;
+    Format.fprintf ppc
+      "if (ty.kind != UNINITIALIZED) return ty;@,\
+       ty.kind = ENUM;@,\
+       ty.contents.tenum.name = \"%s\";@,\
+       ty.contents.tenum.size = %d;@,"
+      (EnumName.base enum_name) size;
+    if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
+    List.iteri
+      (fun i (name, ty) ->
+        Format.fprintf ppc "@,cases[%d].name = \"%a\";" i EnumConstructor.format
+          name;
+        Format.fprintf ppc "@,cases[%d].ty = %a;" i format_rtyp ty)
+      cases;
+    Format.fprintf ppc "@,return ty;@;<1 -2>}@]"
   in
   let scope_structs =
     List.fold_left
@@ -227,32 +294,50 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       in
       match struct_or_enum with
       | TypeIdent.Struct s ->
-        if StructName.path s = [] then
+        if StructName.path s = [] then (
           let def = StructName.Map.find s ctx.ctx_structs in
-          pp ppfs "@,%a" format_struct_decl (s, def)
+          pp ppfs "@,";
+          format_struct_decl ppfs (s, def))
       | TypeIdent.Enum e ->
-        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
+        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then (
           let def = EnumName.Map.find e ctx.ctx_enums in
-          pp ppfs "@,%a" format_enum_decl (e, def)
+          pp ppfs "@,";
+          format_enum_decl ppfs (e, def))
       | TypeIdent.Abstract t ->
         if AbstractType.path t = [] then
           pp ppfs "@,@[<v 2>typedef %s;@]" (AbstractType.base t))
     (type_ordering @ scope_structs)
+
+(* Be safe and assume 32bit integers for literal constants *)
+let in_bounds i =
+  let min_int = Z.of_int (-0x80000000) in
+  let max_int = Z.of_int 0x7fffffff in
+  Z.leq min_int i && Z.leq i max_int
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool true -> Format.pp_print_string fmt "CATALA_TRUE"
   | LBool false -> Format.pp_print_string fmt "CATALA_FALSE"
   | LInt i ->
-    Format.fprintf fmt "catala_new_int_str(\"%s\")"
-      (Runtime.integer_to_string i)
+    if in_bounds i then
+      Format.fprintf fmt "catala_new_int(%s)" (Runtime.integer_to_string i)
+    else
+      Format.fprintf fmt "catala_new_int_str(\"%s\")"
+        (Runtime.integer_to_string i)
   | LUnit -> Format.pp_print_string fmt "CATALA_UNITVAL"
   | LRat q ->
-    Format.fprintf fmt "catala_new_dec_str(\"%s\")" (Q.to_string q)
-    (* TODO: expose function from [Runtime] *)
+    if in_bounds (Q.num q) && in_bounds (Q.den q) then
+      Format.fprintf fmt "catala_new_frac(%s, %s)"
+        (Z.to_string (Q.num q))
+        (Z.to_string (Q.den q))
+    else Format.fprintf fmt "catala_new_dec_str(\"%s\")" (Q.to_string q)
   | LMoney e ->
-    Format.fprintf fmt "catala_new_money_str(\"%s\")"
-      (Runtime.integer_to_string (Runtime.money_to_cents e))
+    if in_bounds e then
+      Format.fprintf fmt "catala_new_money(%s)"
+        (Runtime.integer_to_string (Runtime.money_to_cents e))
+    else
+      Format.fprintf fmt "catala_new_money_str(\"%s\")"
+        (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
     let y, m, d = Runtime.date_to_years_months_days d in
     Format.fprintf fmt "catala_new_date(%d,%d,%d)" y m d
@@ -352,11 +437,14 @@ let rec format_expression
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_expression)
       args
-  | EAppOp { op = Eq, _; args = [x1; x2]; _ } ->
-    (* The Eq operator must have been expanded: this should only concern
-       constant constructor equality checks *)
-    Format.fprintf fmt "catala_new_bool(@[<hov 0>(%a)->code == (%a)->code)@]"
-      format_expression x1 format_expression x2
+  | EAppOp
+      { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args; tys = [_pos; ty; _] }
+    ->
+    Format.fprintf fmt "%a(@[<hov 0>%a,@ %a)@]" format_op op format_rtyp ty
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_expression)
+      args
   | EAppOp { op = ((And | Or) as op), _; args; _ } ->
     Format.fprintf fmt "catala_new_bool(@[<hov 0>%a)@]"
       (Format.pp_print_list
@@ -433,18 +521,26 @@ let rec format_statement
   | SLocalDef { name = v, _; expr = EArray elts, _; _ } ->
     (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
-    Format.fprintf fmt "@,@[<hov 2>%a->size =@ %d;@]" VarName.format v size;
-    if size > 0 then
-      Format.fprintf fmt
-        "@,@[<hov 2>%a->elements = catala_malloc(%d * sizeof(void*));@]"
-        VarName.format v size;
-    List.iteri
-      (fun i arg ->
-        Format.fprintf fmt "@,@[<hov 2>%a->elements[%d] =@ %a;@]" VarName.format
-          v i
-          (format_expression ctx env)
-          arg)
-      elts
+    if size <= 16 then
+      (* The C standard allows up to 127 arguments, but let's not be g*)
+      Format.fprintf fmt "@,@[<hv 2>catala_set_array(%a, %d%a);@]"
+        VarName.format v size
+        (Format.pp_print_list
+           ~pp_sep:(fun _ () -> ())
+           (fun ppf -> Format.fprintf ppf ",@ %a" (format_expression ctx env)))
+        elts
+    else (
+      if size > 0 then
+        Format.fprintf fmt
+          "@,@[<hov 2>%a->elements = catala_malloc(%d * sizeof(void*));@]"
+          VarName.format v size;
+      List.iteri
+        (fun i arg ->
+          Format.fprintf fmt "@,@[<hov 2>%a->elements[%d] =@ %a;@]"
+            VarName.format v i
+            (format_expression ctx env)
+            arg)
+        elts)
   | SLocalDef { name = v, _; expr = EStruct { fields; _ }, _; _ } ->
     StructField.Map.iter
       (fun field expr ->
