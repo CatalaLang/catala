@@ -740,6 +740,61 @@ champ d'application Test:
   assertEquals(result.success, true, 'Should typecheck French');
 });
 
+// --- Multiple-error diagnostic tests ---
+// When a program has N distinct type errors, the API should return N separate
+// Diagnostic objects (each with its own message and one primary position),
+// not one combined diagnostic carrying N positions and a merged message.
+
+test('Multiple type errors: one diagnostic per error', () => {
+  // Two incompatible type assignments in the same scope trigger two delayed
+  // type errors, accumulated and raised as CompilerErrors.
+  const code = `
+\`\`\`catala
+declaration scope Test:
+  output x content integer
+  output y content boolean
+
+scope Test:
+  definition x equals |2024-01-01|
+  definition y equals 42
+\`\`\`
+`;
+  const result = exports.typecheck({
+    files: { 'test.catala_en': code },
+    outputFormat: 'ansi'
+  });
+  assertEquals(result.success, false, 'Should fail');
+  const errors = getErrors(result);
+  assertEquals(errors.length, 2, 'Should have one diagnostic per type error, not a combined one');
+  assertEquals(Array.from(errors[0].positions).length, 1, 'First error should have exactly one position');
+  assertEquals(Array.from(errors[1].positions).length, 1, 'Second error should have exactly one position');
+  // Messages should be distinct (not a repetition of the same wall of text)
+  const msg0 = errors[0].message.replace(/\x1b\[[0-9;]*m/g, '');
+  const msg1 = errors[1].message.replace(/\x1b\[[0-9;]*m/g, '');
+  assertEquals(msg0 === msg1, false, 'Error messages should differ');
+});
+
+test('Wrapped error produces exactly one diagnostic (double-notification bug)', () => {
+  // Operator priority ambiguity is caught by wrap_to_delayed_error ~kind:Parsing.
+  // Message.error fires the hook before raising; wrap_to_delayed_error then
+  // calls register_content_as_delayed_error which fires it a second time.
+  // Without the fix, the same logical error appears twice in notifications_acc
+  // and produces two identical diagnostics.
+  const code = `
+\`\`\`catala
+declaration scope S:
+  output o content boolean
+
+scope S:
+  definition o equals true and false or true
+\`\`\`
+`;
+  const result = exports.typecheck({ files: { 'test.catala_en': code } });
+  assertEquals(result.success, false, 'Should fail');
+  const errors = getErrors(result);
+  assertEquals(errors.length, 1, 'One logical error should produce exactly one diagnostic, not two');
+});
+
 // --- Warning and drain tests ---
 
 const warningCode = `
@@ -935,7 +990,19 @@ function buildActualOutput(result) {
     const fullOutput = warningText + result.output.trim();
     return fullOutput.trim();
   } else {
-    return (warningText + getErrorText(result)).trim();
+    const errors = getErrors(result);
+    const N = errors.length;
+    let errorText;
+    if (N <= 1) {
+      errorText = errors.map(d => d.message).join('');
+    } else {
+      // Reconstruct emit_n format: inject N/K counter into each block's header
+      // and join with '' since fancy_msg ends each block with '\n' already.
+      errorText = errors.map((d, i) =>
+        d.message.replace('┌─[ERROR]─', `┌─[ERROR]─ ${i + 1}/${N} ─`)
+      ).join('');
+    }
+    return (warningText + errorText).trim();
   }
 }
 
