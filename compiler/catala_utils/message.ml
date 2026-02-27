@@ -607,6 +607,8 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
 let wrap_to_delayed_error ?(kind = Generic) x f =
   try f ()
   with CompilerError m ->
+    (* We assume that wrapped errors have already gone through the notification
+       hook, hence we disable the notification to prevent duplication. *)
     register_content_as_delayed_error ~should_notify:false ~kind m;
     x
 
