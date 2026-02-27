@@ -990,7 +990,19 @@ function buildActualOutput(result) {
     const fullOutput = warningText + result.output.trim();
     return fullOutput.trim();
   } else {
-    return (warningText + getErrorText(result)).trim();
+    const errors = getErrors(result);
+    const N = errors.length;
+    let errorText;
+    if (N <= 1) {
+      errorText = errors.map(d => d.message).join('');
+    } else {
+      // Reconstruct emit_n format: inject N/K counter into each block's header
+      // and join with '' since fancy_msg ends each block with '\n' already.
+      errorText = errors.map((d, i) =>
+        d.message.replace('┌─[ERROR]─', `┌─[ERROR]─ ${i + 1}/${N} ─`)
+      ).join('');
+    }
+    return (warningText + errorText).trim();
   }
 }
 
