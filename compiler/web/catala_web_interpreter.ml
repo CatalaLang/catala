@@ -151,10 +151,12 @@ let drain_all ~ansi () =
 
 (* Extract the primary non-stdlib position from a Content.t, if any. *)
 let pos_of_content content =
-  match Message.Content.primary_pos content with
-  | Some pos when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
-    Some (js_pos pos)
-  | _ -> None
+  List.find_map
+    (fun pos ->
+      if not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos))
+      then Some (js_pos pos)
+      else None)
+    (Message.Content.positions content)
 
 (* Format a single Content.t into an error diagnostic JS object. *)
 let make_error_diag ~ansi content =

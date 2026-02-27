@@ -399,8 +399,8 @@ module Content = struct
 
   let emit ?ppf (content : t) (target : level) = emit_raw ?ppf content target
 
-  let primary_pos content =
-    List.find_map (function Position { pos; _ } -> Some pos | _ -> None) content
+  let positions content =
+    List.filter_map (function Position { pos; _ } -> Some pos | _ -> None) content
 end
 
 open Content

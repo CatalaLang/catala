@@ -54,8 +54,8 @@ module Content : sig
 
   (** {2 Content queries}*)
 
-  val primary_pos : t -> Pos.t option
-  (** Returns the first source position recorded in the content, if any. *)
+  val positions : t -> Pos.t list
+  (** Returns all source positions recorded in the content, in order. *)
 
   (** {2 Content emission}*)
 
