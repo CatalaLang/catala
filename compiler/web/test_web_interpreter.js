@@ -774,6 +774,27 @@ scope Test:
   assertEquals(msg0 === msg1, false, 'Error messages should differ');
 });
 
+test('Wrapped error produces exactly one diagnostic (double-notification bug)', () => {
+  // Operator priority ambiguity is caught by wrap_to_delayed_error ~kind:Parsing.
+  // Message.error fires the hook before raising; wrap_to_delayed_error then
+  // calls register_content_as_delayed_error which fires it a second time.
+  // Without the fix, the same logical error appears twice in notifications_acc
+  // and produces two identical diagnostics.
+  const code = `
+\`\`\`catala
+declaration scope S:
+  output o content boolean
+
+scope S:
+  definition o equals true and false or true
+\`\`\`
+`;
+  const result = exports.typecheck({ files: { 'test.catala_en': code } });
+  assertEquals(result.success, false, 'Should fail');
+  const errors = getErrors(result);
+  assertEquals(errors.length, 1, 'One logical error should produce exactly one diagnostic, not two');
+});
+
 // --- Warning and drain tests ---
 
 const warningCode = `
