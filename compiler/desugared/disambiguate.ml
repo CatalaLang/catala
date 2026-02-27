@@ -54,7 +54,7 @@ let scope ctx env scope =
              though *)
           RuleName.Map.filter_map
             (fun _ x ->
-              Message.wrap_to_delayed_error ~kind:Typing None
+              Message.wrap_to_delayed_error None
               @@ fun () -> Some (rule ctx env x))
             def.scope_def_rules
         in
@@ -64,7 +64,7 @@ let scope ctx env scope =
   let scope_assertions =
     AssertionName.Map.filter_map
       (fun _ x ->
-        Message.wrap_to_delayed_error ~kind:Typing None
+        Message.wrap_to_delayed_error None
         @@ fun () -> Some (expr ctx env x))
       scope.scope_assertions
   in

@@ -453,7 +453,7 @@ let resolve_overload_ret_type
     e
     (op : Operator.overloaded operator Mark.pos)
     tys : typ =
-  Message.wrap_to_delayed_error ~kind:Typing (Type.error (Expr.pos e))
+  Message.wrap_to_delayed_error (Type.error (Expr.pos e))
   @@ fun () ->
   let op_ty = Operator.overload_type op tys in
   Type.arrow_return op_ty
@@ -501,7 +501,7 @@ and typecheck_expr_top_down : type a m.
   in
   match Mark.remove e with
   | ELocation loc ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let ty_opt =
       match loc with
@@ -517,7 +517,7 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.elocation loc (mark_with_tau_and_unify ty)
   | EStruct { name; fields } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let mark = mark_with_tau_and_unify (TStruct name, pos_e) in
     let str_ast = StructName.Map.find name ctx.ctx_structs in
@@ -560,7 +560,7 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.estruct ~name ~fields mark
   | EDStructAmend { name_opt = _; e; fields } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let e = typecheck_expr_top_down ctx env tau e in
     let name =
@@ -583,7 +583,7 @@ and typecheck_expr_top_down : type a m.
        and duplicate the checks here. *)
     Expr.edstructamend ~name_opt:(Some name) ~e ~fields context_mark
   | EDStructAccess { e = e_struct; name_opt; field } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let t_struct =
       match name_opt with
@@ -712,7 +712,7 @@ and typecheck_expr_top_down : type a m.
       let mark = mark_with_tau_and_unify fld_ty in
       Expr.estructaccess ~name ~e:e_struct' ~field mark
   | EStructAccess { e = e_struct; name; field } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let fld_ty =
       let str =
@@ -828,7 +828,7 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | EExternal { name } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let ty =
       let not_found pr x =
@@ -860,7 +860,7 @@ and typecheck_expr_top_down : type a m.
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
     Expr.etuple es' mark
   | ETupleAccess { e = e1; index; size } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let out_of_bounds size =
       Message.error ~pos:pos_e "Tuple access out of bounds (%d/%d)" index size
@@ -893,7 +893,7 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.etupleaccess ~e:e1' ~index ~size mark
   | EAbs { binder; pos; tys = t_args } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     (* Polymorphism is only allowed, explicitely, on toplevel definitions : if
        it happens here, the corresponding type variables will already have been
@@ -931,7 +931,7 @@ and typecheck_expr_top_down : type a m.
     let tys = List.map2 (get_ty env) args t_args in
     Expr.eapp ~f:e1' ~args:args' ~tys context_mark
   | EApp { f = e1; args; tys } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     (* Non-letin application: the arguments may need to be detuplified ; the
        type of the function should be checked for implicit arguments *)
@@ -981,7 +981,7 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.eapp ~f:e1 ~args:args' ~tys (mark_with_tau_and_unify t_ret)
   | EAppOp { op; tys = t_args; args } ->
-    Message.wrap_to_delayed_error ~kind:Typing (error_expr ())
+    Message.wrap_to_delayed_error (error_expr ())
     @@ fun () ->
     let t_func = TArrow (t_args, tau), pos_e in
     let args =

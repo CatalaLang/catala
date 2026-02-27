@@ -1172,7 +1172,7 @@ let process_code_block
     (block : Surface.Ast.code_block) : context =
   List.fold_left
     (fun ctxt decl ->
-      Message.wrap_to_delayed_error ~kind:Parsing ctxt
+      Message.wrap_to_delayed_error ctxt
       @@ fun () -> process_item ctxt (decl, visibility))
     ctxt block
 
@@ -1186,7 +1186,7 @@ let rec process_law_structure
   | Surface.Ast.LawHeading (_, children) ->
     List.fold_left
       (fun ctxt child ->
-        Message.wrap_to_delayed_error ~kind:Parsing ctxt
+        Message.wrap_to_delayed_error ctxt
         @@ fun () -> process_law_structure process_item ctxt child)
       ctxt children
   | Surface.Ast.CodeBlock (block, _, is_meta) ->

@@ -596,8 +596,7 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
       register_content_as_delayed_error ~kind ~main_pos m;
       x)
 
-let wrap_to_delayed_error ?(kind = Generic) x f =
-  ignore kind;
+let wrap_to_delayed_error x f =
   try f ()
   with CompilerError m ->
     (* [CompilerError] is only raised by [Message.error], which already fired

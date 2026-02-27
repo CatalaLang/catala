@@ -24,7 +24,7 @@ module Runtime = Catala_runtime
 let fold_left_catch_errors f init l =
   List.fold_left
     (fun acc e ->
-      Message.wrap_to_delayed_error ~kind:Parsing acc @@ fun () -> f acc e)
+      Message.wrap_to_delayed_error acc @@ fun () -> f acc e)
     init l
 
 (** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
@@ -310,7 +310,7 @@ let rec translate_expr
     (expr : S.expression) : Ast.expr boxed =
   let pos = Name_resolution.(translate_pos (Expression expr) (Mark.get expr)) in
   let emark = Untyped { pos } in
-  Message.wrap_to_delayed_error (Expr.ebad emark) ~kind:Parsing
+  Message.wrap_to_delayed_error (Expr.ebad emark)
   @@ fun () ->
   let scope_vars =
     match scope with
