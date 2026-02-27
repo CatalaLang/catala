@@ -740,6 +740,37 @@ champ d'application Test:
   assertEquals(result.success, true, 'Should typecheck French');
 });
 
+// --- Multiple-error diagnostic tests ---
+
+test('Multiple type errors: one diagnostic per error, not a merged wall of text', () => {
+  // Two incompatible type assignments trigger two delayed type errors,
+  // accumulated and raised as CompilerErrors.  The API should return two
+  // separate Diagnostic objects rather than one combined one.
+  const code = `
+\`\`\`catala
+declaration scope Test:
+  output x content integer
+  output y content boolean
+
+scope Test:
+  definition x equals |2024-01-01|
+  definition y equals 42
+\`\`\`
+`;
+  const result = exports.typecheck({
+    files: { 'test.catala_en': code },
+    outputFormat: 'ansi'
+  });
+  assertEquals(result.success, false, 'Should fail');
+  const errors = getErrors(result);
+  assertEquals(errors.length, 2, 'Should have one diagnostic per type error, not a combined one');
+  assertEquals(Array.from(errors[0].positions).length, 1, 'First error should have one position');
+  assertEquals(Array.from(errors[1].positions).length, 1, 'Second error should have one position');
+  const msg0 = errors[0].message.replace(/\x1b\[[0-9;]*m/g, '');
+  const msg1 = errors[1].message.replace(/\x1b\[[0-9;]*m/g, '');
+  assertEquals(msg0 === msg1, false, 'Error messages should differ');
+});
+
 // --- Warning and drain tests ---
 
 const warningCode = `
@@ -935,7 +966,18 @@ function buildActualOutput(result) {
     const fullOutput = warningText + result.output.trim();
     return fullOutput.trim();
   } else {
-    return (warningText + getErrorText(result)).trim();
+    const errors = getErrors(result);
+    const N = errors.length;
+    let errorText;
+    if (N <= 1) {
+      errorText = errors.map(d => d.message).join('');
+    } else {
+      // Reconstruct the N/K counter that emit_n injects into each block header
+      errorText = errors.map((d, i) =>
+        d.message.replace('┌─[ERROR]─', `┌─[ERROR]─ ${i + 1}/${N} ─`)
+      ).join('');
+    }
+    return (warningText + errorText).trim();
   }
 }
 

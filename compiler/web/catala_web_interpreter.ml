@@ -139,56 +139,53 @@ let cleanup_files module_files =
     module_files
 
 (* Drain all accumulated notifications, emptying the accumulator. Returns
-   (warning_diags, error_notifs) where warning_diags are already converted to JS
-   diagnostic objects and error_notifs are raw lsp_errors. *)
+   warning diagnostics only; error notifications are discarded since
+   error_diagnostics derives its output directly from the exception. *)
 let drain_all ~ansi () =
   let all = List.rev !notifications_acc in
   notifications_acc := [];
-  let warnings, errors =
-    List.partition (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
+  let warnings =
+    List.filter (fun (e : Message.lsp_error) -> e.kind = Message.Warning) all
   in
-  let warning_diags =
-    List.map (diagnostic_of_lsp_error ~ansi "warning") warnings
-  in
-  let error_notifs = errors in
-  warning_diags, error_notifs
+  List.map (diagnostic_of_lsp_error ~ansi "warning") warnings
 
-(* Extract JS position objects from a list of lsp_errors, filtering stdlib *)
-let positions_of_notifications notifs =
-  List.filter_map
-    (fun (e : Message.lsp_error) ->
-      match e.pos with
-      | Some pos
-        when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
-        Some (js_pos pos)
-      | _ -> None)
-    notifs
+(* Extract the primary non-stdlib position from a Content.t, if any. *)
+let pos_of_content content =
+  match Message.Content.primary_pos content with
+  | Some pos when not (String.starts_with ~prefix:stdlib_path (Pos.get_file pos)) ->
+    Some (js_pos pos)
+  | _ -> None
 
-(* Format an exception into a list of error diagnostic JS objects. Does not
-   touch the notification accumulator. *)
-let error_diagnostics ~ansi error_notifs exn =
-  let positions = positions_of_notifications error_notifs in
-  let make_err_obj message_str =
-    object%js
-      val level = Js.string "error"
-      val message = Js.string message_str
-      val positions = Js.array (Array.of_list positions)
-    end
+(* Format a single Content.t into an error diagnostic JS object. *)
+let make_error_diag ~ansi content =
+  let message_str =
+    Message.pp_to_string ~ansi (fun ppf ->
+        Message.Content.emit ~ppf content Message.Error)
   in
+  let positions =
+    match pos_of_content content with Some p -> [| p |] | None -> [||]
+  in
+  object%js
+    val level = Js.string "error"
+    val message = Js.string message_str
+    val positions = Js.array positions
+  end
+
+(* Format an exception into a list of error diagnostic JS objects, one per
+   logical error. Does not touch the notification accumulator. *)
+let error_diagnostics ~ansi exn =
   match exn with
-  | Message.CompilerError content ->
-    let message_str =
-      Message.pp_to_string ~ansi (fun ppf ->
-          Message.Content.emit ~ppf content Message.Error)
-    in
-    [make_err_obj message_str]
+  | Message.CompilerError content -> [make_error_diag ~ansi content]
   | Message.CompilerErrors contents_with_bt ->
-    let message_str =
-      Message.pp_to_string ~ansi (fun ppf ->
-          Message.Content.emit_n ~ppf contents_with_bt Message.Error)
-    in
-    [make_err_obj message_str]
-  | e -> [make_err_obj (Printexc.to_string e)]
+    List.map (fun (content, _) -> make_error_diag ~ansi content) contents_with_bt
+  | e ->
+    [
+      object%js
+        val level = Js.string "error"
+        val message = Js.string (Printexc.to_string e)
+        val positions = Js.array [||]
+      end;
+    ]
 
 let () =
   Js.export_all
@@ -229,7 +226,7 @@ let () =
                 detection *)
              let _ = Dcalc.From_scopelang.translate_program prg in
              Message.report_delayed_errors_if_any ();
-             let warning_diags, _error_notifs = drain_all ~ansi () in
+             let warning_diags = drain_all ~ansi () in
              Message.results ~ppf:Format.str_formatter
                [(fun ppf -> Format.fprintf ppf "Typechecking successful!")];
              let output = Format.flush_str_formatter () in
@@ -239,8 +236,8 @@ let () =
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags, error_notifs = drain_all ~ansi () in
-             let error_diags = error_diagnostics ~ansi error_notifs exn in
+             let warning_diags = drain_all ~ansi () in
+             let error_diags = error_diagnostics ~ansi exn in
              object%js
                val success = Js._false
                val output = Js.string ""
@@ -308,15 +305,15 @@ let () =
                      in
                      format_results ppf scope language results)
              in
-             let warning_diags, _error_notifs = drain_all ~ansi () in
+             let warning_diags = drain_all ~ansi () in
              object%js
                val success = Js._true
                val output = Js.string formatted
                val diagnostics = Js.array (Array.of_list warning_diags)
              end
            with exn ->
-             let warning_diags, error_notifs = drain_all ~ansi () in
-             let error_diags = error_diagnostics ~ansi error_notifs exn in
+             let warning_diags = drain_all ~ansi () in
+             let error_diags = error_diagnostics ~ansi exn in
              object%js
                val success = Js._false
                val output = Js.string ""

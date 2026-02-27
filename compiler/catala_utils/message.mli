@@ -52,6 +52,11 @@ module Content : sig
   val add_suggestion : t -> string list -> t
   val add_position : t -> ?message:message -> Pos.t -> t
 
+  (** {2 Content queries}*)
+
+  val primary_pos : t -> Pos.t option
+  (** Returns the first source position recorded in the content, if any. *)
+
   (** {2 Content emission}*)
 
   val emit_n :
