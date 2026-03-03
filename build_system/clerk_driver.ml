@@ -1110,8 +1110,16 @@ let typecheck_cmd =
       Clerk_rules.run_ninja ~code_coverage:false ~config
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
         ~quiet (fun nin_ppf items var_bindings ->
-          Nj.format_def nin_ppf
-            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+          let target_items = retrieve_target_items items files_or_folders in
+          let ninja_targets =
+            List.filter_map
+              (fun it ->
+                Option.map
+                  (fun mdef -> Mark.remove mdef ^ "@src")
+                  it.Scan.module_def)
+              target_items
+          in
+          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
           items, var_bindings)
     in
     let catala_flags = get_var var_bindings Var.catala_flags in
