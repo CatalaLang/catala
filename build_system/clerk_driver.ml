@@ -927,6 +927,35 @@ let enable_backend =
   | `Python -> Python
   | `Java -> Java
 
+let retrieve_target_items ?(test_only = true) items files_or_folders =
+  let open File in
+  List.concat_map
+    (fun file ->
+      let is_dir = try Sys.is_directory file with Sys_error _ -> false in
+      let filter item =
+        if is_dir then
+          String.starts_with ~prefix:(file / "") item.Scan.file_name
+          && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
+        else
+          Option.map Mark.remove item.Scan.module_def
+          = Some (File.basename file)
+          || item.Scan.file_name = file
+          || File.remove_extension item.Scan.file_name = file
+      in
+      let items = List.filter filter items in
+      if items = [] then
+        Message.error
+          "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
+          format file (fun ppf ->
+            if Sys.file_exists file && (not is_dir) && Scan.get_lang file = None
+            then
+              Format.fprintf ppf
+                "@,\
+                 @[<hov>@{<bold>Hint:@} the specified file exists but doesn't \
+                 have a recognised extension@]");
+      items)
+    files_or_folders
+
 let build_test_deps
     ~config
     ~backend
@@ -935,39 +964,8 @@ let build_test_deps
     nin_ppf
     items
     var_bindings =
-  let open File in
   let build_dir = config.Cli.options.global.build_dir in
-  let target_items =
-    List.concat_map
-      (fun file ->
-        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
-        let filter item =
-          if is_dir then
-            String.starts_with ~prefix:(file / "") item.Scan.file_name
-            && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
-          else
-            Option.map Mark.remove item.Scan.module_def
-            = Some (File.basename file)
-            || item.Scan.file_name = file
-            || File.remove_extension item.Scan.file_name = file
-        in
-        let items = List.filter filter items in
-        if items = [] then
-          Message.error
-            "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
-            format file (fun ppf ->
-              if
-                Sys.file_exists file
-                && (not is_dir)
-                && Scan.get_lang file = None
-              then
-                Format.fprintf ppf
-                  "@,\
-                   @[<hov>@{<bold>Hint:@} the specified file exists but \
-                   doesn't have a recognised extension@]");
-        items)
-      files_or_folders
-  in
+  let target_items = retrieve_target_items ~test_only items files_or_folders in
   if target_items = [] then Message.error "Nothing to run";
   let base_targets =
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
