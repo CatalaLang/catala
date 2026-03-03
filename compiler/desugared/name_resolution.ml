@@ -1500,6 +1500,9 @@ let form_context (surface, mod_uses) surface_modules : context =
             Ident.Map.filter_map
               (fun id modl ->
                 let mctx = ModuleName.Map.find modl ctxt.modules in
+                let module_content, _mod_uses =
+                  ModuleName.Map.find modl surface_modules
+                in
                 match Ident.Map.find_opt id mctx.typedefs with
                 | None | Some (TScope _) -> None
                 | Some tdef ->
@@ -1568,10 +1571,19 @@ let form_context (surface, mod_uses) surface_modules : context =
   let submodules_root_types =
     Ident.Map.filter_map
       (fun id modl ->
+        let module_content, _mod_uses =
+          ModuleName.Map.find modl surface_modules
+        in
         let mctx = ModuleName.Map.find modl ctxt.modules in
         match Ident.Map.find_opt id mctx.typedefs with
         | None | Some (TScope _) -> None
-        | some -> some)
+        | Some tdef ->
+          let defname, _ = typedef_info tdef in
+          if
+            defname = ModuleName.to_string modl
+            || module_content.Surface.Ast.module_is_stdlib
+          then Some tdef
+          else None (* some *))
       mod_uses
   in
   let ctxt =
