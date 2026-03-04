@@ -164,14 +164,14 @@ let rec format_typ
 
 let rec format_rtyp ppf ty =
   match Mark.remove ty with
-  | TLit TUnit -> Format.pp_print_string ppf "catala_type_unit()"
-  | TLit TBool -> Format.pp_print_string ppf "catala_type_bool()"
-  | TLit TInt -> Format.pp_print_string ppf "catala_type_integer()"
-  | TLit TMoney -> Format.pp_print_string ppf "catala_type_money()"
-  | TLit TRat -> Format.pp_print_string ppf "catala_type_decimal()"
-  | TLit TDate -> Format.pp_print_string ppf "catala_type_date()"
-  | TLit TDuration -> Format.pp_print_string ppf "catala_type_duration()"
-  | TLit TPos -> Format.pp_print_string ppf "catala_type_position()"
+  | TLit TUnit -> Format.pp_print_string ppf "catala_type_unit"
+  | TLit TBool -> Format.pp_print_string ppf "catala_type_bool"
+  | TLit TInt -> Format.pp_print_string ppf "catala_type_integer"
+  | TLit TMoney -> Format.pp_print_string ppf "catala_type_money"
+  | TLit TRat -> Format.pp_print_string ppf "catala_type_decimal"
+  | TLit TDate -> Format.pp_print_string ppf "catala_type_date"
+  | TLit TDuration -> Format.pp_print_string ppf "catala_type_duration"
+  | TLit TPos -> Format.pp_print_string ppf "catala_type_position"
   | TArray ty -> Format.fprintf ppf "catala_type_array(%a)" format_rtyp ty
   | TTuple tl ->
     Format.fprintf ppf "@[<hov 2>catala_type_tuple(%d,@ %a)@]" (List.length tl)
@@ -215,21 +215,35 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
     if size > 0 then
       Format.fprintf ppc "static struct catala_label_type fields[%d];@," size;
-    Format.fprintf ppc
-      "if (ty.kind != UNINITIALIZED) return ty;@,\
-       ty.kind = STRUCT;@,\
-       ty.contents.tstruct.name = \"%s\";@,\
-       ty.contents.tstruct.size = %d;@,"
-      (StructName.base struct_name)
-      size;
-    if size > 0 then Format.fprintf ppc "ty.contents.tstruct.fields = fields;";
-    List.iteri
-      (fun i (name, ty) ->
-        Format.fprintf ppc "@,fields[%d].name = \"%a\";" i StructField.format
-          name;
-        Format.fprintf ppc "@,fields[%d].ty = %a;" i format_rtyp ty)
-      fields;
-    Format.fprintf ppc "@,return ty;@;<1 -2>}@]"
+    Format.fprintf ppc "if (ty.kind != UNINITIALIZED) return ty;@,";
+    if size <= 16 then (
+      (* More readable version using the runtime function. Could be limited by
+         the max number of arguments accepted (at least 127 by the standard) *)
+      Format.fprintf ppc "@[<hv 2>return catala_type_struct(&ty, %s, \"%s\", %d"
+        (if size > 0 then "fields" else "NULL")
+        (StructName.base struct_name)
+        size;
+      List.iter
+        (fun (name, ty) ->
+          Format.fprintf ppc ",@,\"%a\", %a" StructField.format name format_rtyp
+            ty)
+        fields;
+      Format.fprintf ppc ");@]@;<1 -2>}@]")
+    else (
+      (* Manual array init for unlimited number of fields *)
+      Format.fprintf ppc
+        "ty.contents.tstruct.name = \"%s\";@,ty.contents.tstruct.size = %d;"
+        (StructName.base struct_name)
+        size;
+      if size > 0 then
+        Format.fprintf ppc "@,ty.contents.tstruct.fields = fields;";
+      List.iteri
+        (fun i (name, ty) ->
+          Format.fprintf ppc "@,fields[%d].name = \"%a\";" i StructField.format
+            name;
+          Format.fprintf ppc "@,fields[%d].ty = %a;" i format_rtyp ty)
+        fields;
+      Format.fprintf ppc "@,ty.kind = STRUCT;@,return ty;@;<1 -2>}@]")
   in
   let format_enum_decl ppfs (enum_name, enum_cons) =
     let cases = EnumConstructor.Map.bindings enum_cons in
@@ -261,20 +275,32 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     Format.fprintf ppc "@,@[<v 2>{@,";
     Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
     Format.fprintf ppc "static struct catala_label_type cases[%d];@," size;
-    Format.fprintf ppc
-      "if (ty.kind != UNINITIALIZED) return ty;@,\
-       ty.kind = ENUM;@,\
-       ty.contents.tenum.name = \"%s\";@,\
-       ty.contents.tenum.size = %d;@,"
-      (EnumName.base enum_name) size;
-    if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
-    List.iteri
-      (fun i (name, ty) ->
-        Format.fprintf ppc "@,cases[%d].name = \"%a\";" i EnumConstructor.format
-          name;
-        Format.fprintf ppc "@,cases[%d].ty = %a;" i format_rtyp ty)
-      cases;
-    Format.fprintf ppc "@,return ty;@;<1 -2>}@]"
+    Format.fprintf ppc "if (ty.kind != UNINITIALIZED) return ty;@,";
+    if size <= 16 then (
+      (* More readable version using the runtime function. Could be limited by
+         the max number of arguments accepted (at least 127 by the standard) *)
+      Format.fprintf ppc
+        "@[<hv 2>return catala_type_enum(&ty, cases, \"%s\", %d"
+        (EnumName.base enum_name) size;
+      List.iter
+        (fun (name, ty) ->
+          Format.fprintf ppc ",@,\"%a\", %a" EnumConstructor.format name
+            format_rtyp ty)
+        cases;
+      Format.fprintf ppc ");@]@;<1 -2>}@]")
+    else (
+      (* Manual array init for unlimited number of cases *)
+      Format.fprintf ppc
+        "ty.contents.tenum.name = \"%s\";@,ty.contents.tenum.size = %d;@,"
+        (EnumName.base enum_name) size;
+      if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
+      List.iteri
+        (fun i (name, ty) ->
+          Format.fprintf ppc "@,cases[%d].name = \"%a\";" i
+            EnumConstructor.format name;
+          Format.fprintf ppc "@,cases[%d].ty = %a;" i format_rtyp ty)
+        cases;
+      Format.fprintf ppc "@,ty.kind = ENUM;@,return ty;@;<1 -2>}@]")
   in
   let scope_structs =
     List.fold_left

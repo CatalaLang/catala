@@ -477,46 +477,15 @@ const char* catala_tojson (const catala_value* val) {
 
 /*   - base embedded types -    */
 
-const catala_type catala_type_unit() {
-  static catala_type ret;
-  ret.kind = UNIT;
-  return ret;
-}
-const catala_type catala_type_bool() {
-  static catala_type ret;
-  ret.kind = BOOL;
-  return ret;
-}
-const catala_type catala_type_integer() {
-  static catala_type ret;
-  ret.kind = INTEGER;
-  return ret;
-}
-const catala_type catala_type_decimal() {
-  static catala_type ret;
-  ret.kind = DECIMAL;
-  return ret;
-}
-const catala_type catala_type_money() {
-  static catala_type ret;
-  ret.kind = MONEY;
-  return ret;
-}
-const catala_type catala_type_date() {
-  static catala_type ret;
-  ret.kind = DATE;
-  return ret;
-}
-const catala_type catala_type_duration() {
-  static catala_type ret;
-  ret.kind = DURATION;
-  return ret;
-}
-const catala_type catala_type_position() {
-  static catala_type ret;
-  ret.kind = POSITION;
-  return ret;
-}
+const catala_type catala_type_unit = {UNIT};
+const catala_type catala_type_bool = {BOOL};
+const catala_type catala_type_integer = {INTEGER};
+const catala_type catala_type_decimal = {DECIMAL};
+const catala_type catala_type_money = {MONEY};
+const catala_type catala_type_date = {DATE};
+const catala_type catala_type_duration = {DURATION};
+const catala_type catala_type_position = {POSITION};
+
 const catala_type catala_type_array(const catala_type ty) {
   catala_type ret;
   ret.kind = ARRAY;
@@ -540,28 +509,45 @@ const catala_type catala_type_tuple(int size, ...) {
   va_end(args);
   return ret;
 }
-const catala_type catala_type_struct(const char* name, const int size, struct catala_label_type* fields) {
+const catala_type catala_type_struct
+  (catala_type* ret,
+   struct catala_label_type * fields,
+   const char* name,
+   int size, ...)
+{
   int i;
   va_list args;
-  catala_type ret;
-  ret.kind = STRUCT;
-  ret.contents.tstruct.name = name;
-  ret.contents.tstruct.size = size;
-  ret.contents.tstruct.fields = fields;
-  /*   catala_malloc(size * sizeof(struct catala_label_type));
-   * va_start (args, size);
-   * for (i = 0; i < size; i++)
-   *   ret.contents.tstruct.fields[i] = va_arg(args, catala_type);
-   * va_end(args); */
-  return ret;
+  ret->contents.tstruct.name = name;
+  ret->contents.tstruct.size = size;
+  ret->contents.tstruct.fields = fields;
+  va_start (args, size);
+  for (i = 0; i < size; i++) {
+    fields[i].name = va_arg(args, char*);
+    fields[i].ty = va_arg(args, catala_type);
+  }
+  va_end(args);
+  ret->kind = STRUCT;
+  return *ret;
 }
-const catala_type catala_type_enum(const char* name, const int size, struct catala_label_type* cases) {
-  catala_type ret;
-  ret.kind = ENUM;
-  ret.contents.tenum.name = name;
-  ret.contents.tenum.size = size;
-  ret.contents.tenum.cases = cases;
-  return ret;
+const catala_type catala_type_enum
+  (catala_type* ret,
+   struct catala_label_type * cases,
+   const char* name,
+   int size, ...)
+{
+  int i;
+  va_list args;
+  ret->contents.tenum.name = name;
+  ret->contents.tenum.size = size;
+  ret->contents.tenum.cases = cases;
+  va_start (args, size);
+  for (i = 0; i < size; i++) {
+    cases[i].name = va_arg(args, char*);
+    cases[i].ty = va_arg(args, catala_type);
+  }
+  va_end(args);
+  ret->kind = ENUM;
+  return *ret;
 }
 const catala_type catala_type_undef = { UNINITIALIZED };
 const catala_type catala_type_optional(const catala_type ty) {
