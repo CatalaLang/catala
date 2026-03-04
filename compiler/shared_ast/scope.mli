@@ -48,6 +48,7 @@ val map_exprs :
     of the program. *)
 
 val map_exports :
+  ?kind:(code_export_kind -> code_export_kind) ->
   (('a1, 'm1) gexpr -> ('a2, 'm2) gexpr boxed) ->
   ('a1, 'm1) gexpr code_export list ->
   ('a2, 'm2) gexpr code_export list Bindlib.box

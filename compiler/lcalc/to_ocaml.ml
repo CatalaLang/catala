@@ -820,10 +820,12 @@ let commands = if commands = [] then test_scopes else commands
          @[<v 2>Format.printf \"@@[<v>\\x1b[32m[RESULT]\\x1b[m Scope %a \
          executed successfully.@@,\
          %%a@@]@@.\"@,\
-         Value.format (Value.embed %a.rtype result)@]@]@]@,\
+         Catala_runtime.Value.format (Catala_runtime.Value.embed %a.rtype \
+         result)@]@]@]@,\
          )@,"
         (ScopeName.to_string scope)
-        (format_expr p.decl_ctx) e ScopeName.format scope ScopeName.format scope)
+        (format_expr p.decl_ctx) e ScopeName.format scope StructName.format
+        (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name)
     tests;
   Format.pp_close_box fmt ()
 

@@ -786,7 +786,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
               in
               ( ctxt,
                 rev_tdefs,
-                (scope, RevBlock.rebuild (block +> exec)) :: rev_tests )
+                (scope, var, RevBlock.rebuild (block +> exec)) :: rev_tests )
           in
           unlet ctxt rev_tdefs e
         | _ -> ctxt, rev_tdefs, rev_tests)

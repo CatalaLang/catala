@@ -383,7 +383,7 @@ int catala_compare_positions(const catala_code_position* x1,
 
 /* generic pattern for the encoding of catala enums */
 struct catala_enum {
-  unsigned int code; /* this is actually an enum; from what I could read,
+  unsigned int code; /* this is actually a C enum; from what I could read,
                         casting to unsigned int is a reasonable assumption, but
                         there is still a possibility it breaks on exotic
                         compilers. (Even if smaller, the struct should pad it
@@ -427,12 +427,10 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
     for (i = 0; i < x1.t.contents.ttuple.size; i++) {
       const catala_type * t1 = x1.t.contents.ttuple.elements[i];
       const catala_type * t2 = x2.t.contents.ttuple.elements[i];
-      catala_type xt1 = *t1;
-      catala_type xt2 = *t2;
       if (!catala_equal_values
           (pos,
-           embed(xt1, a1[i].content),
-           embed(xt2, a2[i].content)))
+           embed(*t1, a1[i].content),
+           embed(*t2, a2[i].content)))
         return 0;
     }
     return 1;
@@ -519,11 +517,9 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
     for (i = 0; i < x1.t.contents.ttuple.size; i++) {
       const catala_type * t1 = x1.t.contents.ttuple.elements[i];
       const catala_type * t2 = x2.t.contents.ttuple.elements[i];
-      catala_type xt1 = *t1;
-      catala_type xt2 = *t2;
       cmp = catala_compare_values (pos,
-          embed(xt1, a1[i].content),
-          embed(xt2, a2[i].content));
+          embed(*t1, a1[i].content),
+          embed(*t2, a2[i].content));
       if (cmp) return cmp;
     }
     return 0;
@@ -571,11 +567,120 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
   }
 }
 
-const char* catala_tostring (const catala_value* val) {
-  const char* ret = "todo";
-  return ret;
+void stdflush() {
+  puts("");
+  fflush(stdout);
 }
-const char* catala_tojson (const catala_value* val) {
+void stdprintf(const char * fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  gmp_vprintf(fmt, args);
+  va_end(args);
+}
+const struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
+
+void catala_print (struct catala_buf buf, const catala_value x) {
+  int i;
+  switch (x.t.kind) {
+  case UNINITIALIZED:
+    buf.printf("???"); return;
+  case UNIT:
+    buf.printf("()"); return;
+  case BOOL:
+    buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
+  case INTEGER:
+    buf.printf("%Zd", x.v); return;
+  case MONEY: {
+    mpz_t units, cents;
+    mpz_init(units), mpz_init(cents);
+    mpz_tdiv_qr(units, cents, x.v, zconst_100);
+    mpz_abs(cents, cents);
+    buf.printf("%Zd.%02Zd€", units, cents);
+    return;
+  }
+  case DECIMAL: {
+    /* Note: this may do rounding, check the OCaml code for proper printing */
+    mpf_t f;
+    mpf_init(f);
+    mpf_set_q(f, x.v);
+    buf.printf("%01.10Ff", f);
+    return;
+  }
+  case DATE:
+    buf.printf("|%04d-%02d-%02d|", dc_date_year(x.v), dc_date_month(x.v), dc_date_day(x.v));
+    return;
+  case DURATION:
+    buf.printf("[%d years, %d months, %d days]", dc_period_years(x.v), dc_period_months(x.v), dc_period_days(x.v));
+    return;
+  case POSITION: {
+    CATALA_POSITION pos = x.v;
+    buf.printf("%s:%d.%d-%d.%d",
+               pos->filename,
+               pos->start_line,
+               pos->start_column,
+               pos->end_line,
+               pos->end_column);
+    return;
+  }
+  case ARRAY: {
+    const catala_array * a = x.v;
+    buf.printf("[");
+    buf.indent += 2;
+    for (i = 0; i < a->size; i++) {
+      buf.printf("\n% *s", buf.indent, "");
+      catala_print(buf, embed(*x.t.contents.tarray, a->elements[i]));
+      buf.printf(";");
+    }
+    buf.indent -= 2;
+    if (i == 0) buf.printf("]");
+    else buf.printf("\n% *s]", buf.indent, "");
+    return;
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a = x.v;
+    buf.printf("(");
+    buf.indent += 1;
+    for (i = 0; i < x.t.contents.ttuple.size; i++) {
+      const catala_type * t = x.t.contents.ttuple.elements[i];
+      if (i > 0) buf.printf(", ");
+      catala_print(buf, embed(*t, a[i].content));
+    }
+    buf.indent -= 1;
+    buf.printf(")");
+    return;
+  }
+  case STRUCT: {
+    const void* const* a = x.v;
+    buf.printf("%s {", x.t.contents.tstruct.name);
+    buf.indent += 2;
+    for (i = 0; i < x.t.contents.tstruct.size; i++) {
+      buf.printf("\n% *s-- %s: ", buf.indent, "", x.t.contents.tstruct.fields[i].name);
+      catala_print(buf, embed(x.t.contents.tstruct.fields[i].ty, a[i]));
+    }
+    buf.indent -= 2;
+    if (i == 0) buf.printf("}");
+    else buf.printf("\n% *s}", buf.indent, "");
+    return;
+  }
+  case ENUM: {
+    const struct catala_enum * e = x.v;
+    const struct catala_label_type t = x.t.contents.tenum.cases[e->code];
+    buf.printf("%s", t.name);
+    if (t.ty.kind != UNIT) {
+      buf.printf(" content ");
+      buf.indent +=2;
+      catala_print(buf, embed(t.ty, e->payload));
+      buf.indent -=2;
+    }
+    return;
+  }
+  case EXTERNAL:
+    x.t.contents.texternal.print(buf, x.v); return;
+  case FUNCTION:
+    buf.printf("<function>"); return;
+  }
+}
+const char* catala_tojson (const catala_value val) {
   const char* ret = "\"todo\"";
   return ret;
 }
@@ -590,6 +695,7 @@ const catala_type catala_type_money = {MONEY};
 const catala_type catala_type_date = {DATE};
 const catala_type catala_type_duration = {DURATION};
 const catala_type catala_type_position = {POSITION};
+const catala_type catala_type_function = {FUNCTION};
 
 const catala_type catala_type_array(const catala_type ty) {
   catala_type ret;
@@ -662,7 +768,7 @@ const catala_type catala_type_optional(const catala_type ty) {
   ret.contents.tenum.size = 2;
   ret.contents.tenum.cases = catala_malloc(2*sizeof(struct catala_label_type));
   ret.contents.tenum.cases[0].name = "Absent";
-  ret.contents.tenum.cases[0].ty = catala_type_undef;
+  ret.contents.tenum.cases[0].ty = catala_type_unit;
   ret.contents.tenum.cases[1].name = "Present";
   ret.contents.tenum.cases[1].ty = ty;
   return ret;

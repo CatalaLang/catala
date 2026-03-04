@@ -451,18 +451,17 @@ module Value = struct
     | V (Integer, x) -> Format.fprintf ppf "%s" (Z.to_string x)
     | V (Decimal, x) ->
       Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
-    | V (Date, x) -> Format.fprintf ppf "%s" (date_to_string x)
+    | V (Date, x) -> Format.fprintf ppf "|%s|" (date_to_string x)
     | V (Duration, x) -> Format.fprintf ppf "%s" (duration_to_string x)
     | V (Enum en, v) -> (
       match en.constr v with
       | _, name, None -> Format.fprintf ppf "%s" name
       | _, name, Some v -> Format.fprintf ppf "%s(%a)" name format v)
     | V (Struct str, v) ->
-      Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]" str.name
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+      Format.fprintf ppf "@[<hv 2>%s {@ %a@;<1 -2>}@]" str.name
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
            (fun fmt (name, value) ->
-             Format.fprintf fmt "%s: %a" name format value))
+             Format.fprintf fmt "-- %s: %a" name format value))
         (str.fields v)
     | V (Array t, v) ->
       Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
@@ -479,7 +478,7 @@ module Value = struct
     | V (Position, pos) ->
       Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
-    | V (Function, _) -> Format.fprintf ppf "fun"
+    | V (Function, _) -> Format.fprintf ppf "<function>"
     | V (External ex, v) -> Format.pp_print_string ppf (ex.to_string v)
 end
 

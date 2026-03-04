@@ -629,14 +629,14 @@ let format_tests ctx ppf (p : Ast.program) =
   else
     let () =
       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
-             ScopeName.format ppf s))
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
+           (fun ppf (s, _, _) -> ScopeName.format ppf s))
         tests
     in
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
     List.iter
-      (fun (name, block) ->
+      (fun (name, _var, block) ->
         Format.pp_print_cut ppf ();
         (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
          *   name; *)
