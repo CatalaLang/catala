@@ -365,6 +365,22 @@ int catala_equal_positions(const catala_code_position* x1,
           && x1->end_column == x2->end_column);
 }
 
+#define COMPARE(X, Y) ((X) == (Y) ? 0 : (X) > (Y) ? 1 : -1)
+
+int catala_compare_positions(const catala_code_position* x1,
+                             const catala_code_position* x2) {
+  int cmp = strcmp(x1->filename, x2->filename);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->start_line, x2->start_line);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->end_line, x2->end_line);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->start_column, x2->start_column);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->end_column, x2->end_column);
+  return cmp;
+}
+
 /* generic pattern for the encoding of catala enums */
 struct catala_enum {
   unsigned int code; /* this is actually an enum; from what I could read,
@@ -379,7 +395,7 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
 int catala_equal (const catala_type ty, const catala_code_position* pos, const void* x1, const void* x2) {
   switch (ty.kind) {
   case UNIT: return 1;
-  case BOOL: return (*(CATALA_BOOL)x1 == *(CATALA_BOOL)x2);
+  case BOOL: return (!*(CATALA_BOOL)x1 == !*(CATALA_BOOL)x2);
   case INTEGER: return (mpz_cmp(x1, x2) == 0);
   case DECIMAL: return (mpq_equal(x1, x2));
   case MONEY: return (mpz_cmp(x1, x2) == 0);
@@ -397,7 +413,7 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
     const CATALA_ARRAY() a1 = x1.v;
     const CATALA_ARRAY() a2 = x2.v;
     if (a1->size != a2->size) return 0;
-    for (i = 0; i < ((CATALA_ARRAY())x1.v)->size; i++)
+    for (i = 0; i < a1->size; i++)
       if (!catala_equal_values (pos,
                                 embed(*x1.t.contents.tarray, a1->elements[i]),
                                 embed(*x2.t.contents.tarray, a2->elements[i])))
@@ -463,9 +479,98 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
   }
 }
 
-int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x, const void* y) {
-  return 0;
+int catala_compare_values (const catala_code_position* pos, const catala_value x1, const catala_value x2);
+int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x1, const void* x2) {
+  switch (ty.kind) {
+  case UNIT: return 0;
+  case BOOL:
+    return *(CATALA_BOOL)x1 ? (*(CATALA_BOOL)x2 ?  0 : 1) :
+                              (*(CATALA_BOOL)x2 ? -1 : 0);
+  case INTEGER: return (mpz_cmp(x1, x2));
+  case DECIMAL: return (mpq_cmp(x1, x2));
+  case MONEY: return (mpz_cmp(x1, x2));
+  case DATE: return (dc_compare_dates(x1, x2));
+  case DURATION: return catala_compare_durations(pos, x1, x2);
+  case POSITION: return catala_compare_positions(x1, x2);
+  default: return catala_compare_values(pos, embed(ty,x1), embed(ty,x2));
+  }
 }
+#define MIN(X,Y) ((X) <= (Y) ? (X) : (Y))
+int catala_compare_values (const catala_code_position* pos, const catala_value x1, const catala_value x2) {
+  int i;
+  if (x1.t.kind != x2.t.kind) return (x1.t.kind - x2.t.kind);
+  switch (x1.t.kind) {
+  case ARRAY: {
+    const CATALA_ARRAY() a1 = x1.v;
+    const CATALA_ARRAY() a2 = x2.v;
+    for (i = 0; i < MIN(a1->size, a2->size); i++) {
+      int cmp = catala_compare_values(pos,
+          embed(*x1.t.contents.tarray, a1->elements[i]),
+          embed(*x2.t.contents.tarray, a2->elements[i]));
+      if (cmp) return cmp;
+    }
+    return COMPARE(a1->size, a2->size);
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a1 = x1.v;
+    const CATALA_TUPLE() a2 = x2.v;
+    int cmp = COMPARE(x1.t.contents.ttuple.size, x2.t.contents.ttuple.size);
+    if (cmp) return cmp;
+    for (i = 0; i < x1.t.contents.ttuple.size; i++) {
+      const catala_type * t1 = x1.t.contents.ttuple.elements[i];
+      const catala_type * t2 = x2.t.contents.ttuple.elements[i];
+      catala_type xt1 = *t1;
+      catala_type xt2 = *t2;
+      cmp = catala_compare_values (pos,
+          embed(xt1, a1[i].content),
+          embed(xt2, a2[i].content));
+      if (cmp) return cmp;
+    }
+    return 0;
+  }
+  case STRUCT: {
+    /* Our struct contain only Catala values which are pointers.
+       So we assume that a struct can be cast to an array of pointers. */
+    const void* const* v1 = x1.v;
+    const void* const* v2 = x2.v;
+    int cmp = strcmp(x1.t.contents.tstruct.name, x2.t.contents.tstruct.name);
+    if (cmp) return cmp;
+    cmp = COMPARE(x1.t.contents.tstruct.size, x2.t.contents.tstruct.size);
+    if (cmp) return cmp;
+    for (i = 0; i < x1.t.contents.tstruct.size; i++) {
+      cmp = catala_compare_values (pos,
+          embed(x1.t.contents.tstruct.fields[i].ty, v1[i]),
+          embed(x2.t.contents.tstruct.fields[i].ty, v2[i]));
+      if (cmp) return cmp;
+    }
+    return 0;
+  }
+  case ENUM: {
+    const struct catala_enum * e1 = x1.v;
+    const struct catala_enum * e2 = x2.v;
+    int cmp = strcmp(x1.t.contents.tenum.name, x2.t.contents.tenum.name);
+    if (cmp) return cmp;
+    cmp = COMPARE(e1->code, e2->code);
+    if (cmp) return cmp;
+    return (catala_compare_values
+            (pos,
+             embed(x1.t.contents.tenum.cases[e1->code].ty, e1->payload),
+             embed(x2.t.contents.tenum.cases[e2->code].ty, e2->payload)));
+  }
+  case EXTERNAL: {
+    int cmp = strcmp(x1.t.contents.texternal.name, x2.t.contents.texternal.name);
+    if (cmp) return cmp;
+    return x1.t.contents.texternal.compare(pos, x1.v, x2.v);
+  }
+  case FUNCTION: {
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    abort();
+  }
+  default:
+    return catala_compare(x1.t, pos, x1.v, x2.v);
+  }
+}
+
 const char* catala_tostring (const catala_value* val) {
   const char* ret = "todo";
   return ret;
