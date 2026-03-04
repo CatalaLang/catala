@@ -246,18 +246,24 @@ const char* catala_tojson (const catala_value* val);
 
 /*   - base embedded types -    */
 
-const catala_type catala_type_unit();
-const catala_type catala_type_bool();
-const catala_type catala_type_integer();
-const catala_type catala_type_decimal();
-const catala_type catala_type_money();
-const catala_type catala_type_date();
-const catala_type catala_type_duration();
-const catala_type catala_type_position();
+extern const catala_type catala_type_unit;
+extern const catala_type catala_type_bool;
+extern const catala_type catala_type_integer;
+extern const catala_type catala_type_decimal;
+extern const catala_type catala_type_money;
+extern const catala_type catala_type_date;
+extern const catala_type catala_type_duration;
+extern const catala_type catala_type_position;
 const catala_type catala_type_array(const catala_type);
 const catala_type catala_type_tuple(int size, ...);
-const catala_type catala_type_struct(const char* name, const int size, struct catala_label_type[]);
-const catala_type catala_type_enum(const char* name, const int size, struct catala_label_type[]);
+const catala_type catala_type_struct(catala_type* ret,
+                                     struct catala_label_type *const fields,
+                                     const char* name,
+                                     int size, ...);
+const catala_type catala_type_enum(catala_type* ret,
+                                   struct catala_label_type *const cases,
+                                   const char* name,
+                                   int size, ...);
 const catala_type catala_type_optional(const catala_type);
 
 /* --- Operators --- */
