@@ -162,6 +162,10 @@ let rec format_typ
   | TForAll _ | TError -> assert false
   | TClosureEnv -> Format.fprintf fmt "%sCLOSURE_ENV%t" sconst element_name
 
+let is_closure_typ = function
+  | TTuple [tf; (TClosureEnv, _)], _ -> Type.is_arrow tf
+  | _ -> false
+
 let rec format_rtyp ppf ty =
   match Mark.remove ty with
   | TLit TUnit -> Format.pp_print_string ppf "catala_type_unit"
@@ -173,6 +177,7 @@ let rec format_rtyp ppf ty =
   | TLit TDuration -> Format.pp_print_string ppf "catala_type_duration"
   | TLit TPos -> Format.pp_print_string ppf "catala_type_position"
   | TArray ty -> Format.fprintf ppf "catala_type_array(%a)" format_rtyp ty
+  | TTuple _ when is_closure_typ ty -> Format.fprintf ppf "catala_type_function"
   | TTuple tl ->
     Format.fprintf ppf "@[<hov 2>catala_type_tuple(%d,@ %a)@]" (List.length tl)
       (Format.pp_print_list format_rtyp ~pp_sep:(fun ppf () ->
@@ -182,12 +187,12 @@ let rec format_rtyp ppf ty =
     Format.fprintf ppf "catala_type__%s()" (StructName.base name)
   | TEnum name -> Format.fprintf ppf "catala_type__%s()" (EnumName.base name)
   | TOption ty -> Format.fprintf ppf "catala_type_optional(%a)" format_rtyp ty
-  (* | TAbstract name ->
-   *   Format.fprintf ppf "%a.rtype" format_to_module_name (`Aname name)
-   * | TArrow _ -> Format.fprintf ppf "Value.Function"
-   * | TError | TDefault _ | TVar _ | TForAll _ | TClosureEnv ->
-   *   Message.error "Cannot compute comparison on type %a" Print.typ ty *)
-  | _ -> assert false
+  | TAbstract name ->
+    Format.fprintf ppf "catala_type__%s" (AbstractType.base name)
+  | TArrow _ -> Format.fprintf ppf "catala_type_function"
+  | TError | TDefault _ | TVar _ | TForAll _ ->
+    Message.error "Cannot compute comparison on type %a" Print.typ ty
+  | TClosureEnv -> assert false (* Should only appear in closure types *)
 
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     unit =
@@ -221,7 +226,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
          the max number of arguments accepted (at least 127 by the standard) *)
       Format.fprintf ppc "@[<hv 2>return catala_type_struct(&ty, %s, \"%s\", %d"
         (if size > 0 then "fields" else "NULL")
-        (StructName.base struct_name)
+        (StructName.canonical_str None struct_name)
         size;
       List.iter
         (fun (name, ty) ->
@@ -233,7 +238,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       (* Manual array init for unlimited number of fields *)
       Format.fprintf ppc
         "ty.contents.tstruct.name = \"%s\";@,ty.contents.tstruct.size = %d;"
-        (StructName.base struct_name)
+        (StructName.canonical_str None struct_name)
         size;
       if size > 0 then
         Format.fprintf ppc "@,ty.contents.tstruct.fields = fields;";
@@ -281,7 +286,8 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
          the max number of arguments accepted (at least 127 by the standard) *)
       Format.fprintf ppc
         "@[<hv 2>return catala_type_enum(&ty, cases, \"%s\", %d"
-        (EnumName.base enum_name) size;
+        (EnumName.canonical_str None enum_name)
+        size;
       List.iter
         (fun (name, ty) ->
           Format.fprintf ppc ",@,\"%a\", %a" EnumConstructor.format name
@@ -292,7 +298,8 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       (* Manual array init for unlimited number of cases *)
       Format.fprintf ppc
         "ty.contents.tenum.name = \"%s\";@,ty.contents.tenum.size = %d;@,"
-        (EnumName.base enum_name) size;
+        (EnumName.canonical_str None enum_name)
+        size;
       if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
       List.iteri
         (fun i (name, ty) ->
@@ -501,10 +508,6 @@ let rec format_expression
   | EExternal { name; _ } ->
     (* The name has already been properly qualified in [Renaming] *)
     Format.fprintf fmt "%s()" (Mark.remove name)
-
-let is_closure_typ = function
-  | TTuple [tf; (TClosureEnv, _)], _ -> Type.is_arrow tf
-  | _ -> false
 
 let rec format_statement
     (ctx : ctx)
@@ -938,21 +941,31 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
    else
      let () =
        Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
-              ScopeName.format ppf s))
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space
+            (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
      List.iter
-       (fun (name, block) ->
+       (fun (name, var, block) ->
          Format.fprintf fmt "@,@[<v 2>{ /* Test for scope %a */"
            ScopeName.format name;
          format_block ctx env fmt block;
          Format.fprintf fmt
            "@,\
-            printf(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
-            successfully.\\n\");@;\
+            fprintf(stderr,\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
+            successfully.\\n\");"
+           ScopeName.format name;
+         let ty =
+           ( TStruct
+               (ScopeName.Map.find name ctx.decl_ctx.ctx_scopes).out_struct_name,
+             Pos.void )
+         in
+         Format.fprintf fmt
+           "@,\
+            catala_format(catala_stdbuf, embed(%a, %a));@,\
+            catala_stdbuf.flush();@;\
             <1 -2>}@]"
-           ScopeName.format name)
+           format_rtyp ty VarName.format var)
        tests);
   Format.fprintf fmt "@,return (void*)1;@;<1 -2>}@]@,";
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";

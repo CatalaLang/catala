@@ -294,7 +294,12 @@ let code_items ctx fty (items : 'e code_item_list) =
     | Last exports ->
       ( Bindlib.box_apply
           (fun e -> Last e)
-          (Scope.map_exports (expr ctx) exports),
+          (Scope.map_exports
+             ~kind:(function
+               | KScope s -> KScope (scope_name ctx s)
+               | KTopdef d -> KTopdef (topdef_name ctx d)
+               | KTest s -> KTest (scope_name ctx s))
+             (expr ctx) exports),
         ctx )
     | Cons (ScopeDef (name, body), next_bind) ->
       let scope_body =

@@ -820,11 +820,11 @@ let format_tests ctx ppf (closures, tests) =
    else
      let () =
        Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
-              ScopeName.format ppf s))
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space
+            (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
-     let format_test ppf (scope_name, block) =
+     let format_test ppf (scope_name, _var, block) =
        fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
        fprintf ppf
          "%a@\n\

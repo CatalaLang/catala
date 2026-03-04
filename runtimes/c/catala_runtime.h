@@ -175,6 +175,16 @@ CATALA_TUPLE(_) catala_new_tuple(const int size, ...);
 
 /*   - type definitions - */
 
+/* For printing */
+struct catala_buf {
+  /* Format is expected to understand gmp specifiers
+     (https://gmplib.org/manual/Formatted-Output-Strings) */
+  void (*printf)(const char * format, ...);
+  int indent;
+  void (*flush)(void);
+};
+extern const struct catala_buf catala_stdbuf;
+
 enum catala_type_kind {
   UNINITIALIZED,
   UNIT,
@@ -211,8 +221,8 @@ struct catala_texternal {
   const char* name;
   int (*equal)(const catala_code_position*, const void*, const void*);
   int (*compare)(const catala_code_position*, const void*, const void*);
-  char* (*to_json)(const void*); /* can be NULL */
-  char* (*to_string)(const void*);
+  void (*to_json)(struct catala_buf, const void*); /* can be NULL */
+  void (*print)(struct catala_buf, const void*);
 };
 
 typedef struct catala_type {
@@ -241,8 +251,9 @@ typedef struct catala_value {
 catala_value embed (catala_type t, const void* v);
 int catala_equal (const catala_type ty, const catala_code_position* pos, const void* x, const void* y);
 int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x, const void* y);
-const char* catala_tostring (const catala_value* val);
-const char* catala_tojson (const catala_value* val);
+
+void catala_print (struct catala_buf, const catala_value val);
+const char* catala_tojson (const catala_value val);
 
 /*   - base embedded types -    */
 
@@ -254,6 +265,7 @@ extern const catala_type catala_type_money;
 extern const catala_type catala_type_date;
 extern const catala_type catala_type_duration;
 extern const catala_type catala_type_position;
+extern const catala_type catala_type_function;
 const catala_type catala_type_array(const catala_type);
 const catala_type catala_type_tuple(int size, ...);
 const catala_type catala_type_struct(catala_type* ret,
