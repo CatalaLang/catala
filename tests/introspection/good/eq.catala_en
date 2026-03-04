@@ -41,6 +41,8 @@ $ catala test-scope TBase
 └─
 ```
 
+## Polymorphic types (lists and options)
+
 ```catala-metadata
 #[test]
 declaration scope TPoly:
@@ -77,6 +79,8 @@ $ catala test-scope TPoly
 └─
 ```
 
+## Tuple types
+
 ```catala-metadata
 #[test]
 declaration scope TTuple:
@@ -111,6 +115,8 @@ $ catala test-scope TTuple
 │ y = [false; false; false; false]
 └─
 ```
+
+## Struct types
 
 ```catala-metadata
 declaration structure S:
@@ -148,6 +154,8 @@ $ catala test-scope TStruct
 │ y = [false; false; false; false]
 └─
 ```
+
+## Enum types
 
 ```catala-metadata
 declaration enumeration E:
