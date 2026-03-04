@@ -813,15 +813,17 @@ let commands = if commands = [] then test_scopes else commands
   Format.fprintf fmt "open %s@,@," modname;
   List.iter
     (fun (scope, e) ->
-      (* Note: this only checks that execution doesn't raise errors or assert
-         failures. Adding a printer for the results could be an idea... *)
       Format.fprintf fmt
-        "let () = if Stdlib.List.mem %S commands then (@,\
-        \  @[<hv>@[<hov 2>let _ =@ @[<hv>%a@]@]@ in@ Stdlib.print_endline \
-         \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\"@]@,\
+        "@[<v 2>let () = if Stdlib.List.mem %S commands then (@ @[<hv>@[<hov \
+         2>let result =@ @[<hv>%a@]@]@,\
+         in@,\
+         @[<v 2>Format.printf \"@@[<v>\\x1b[32m[RESULT]\\x1b[m Scope %a \
+         executed successfully.@@,\
+         %%a@@]@@.\"@,\
+         Value.format (Value.embed %a.rtype result)@]@]@]@,\
          )@,"
         (ScopeName.to_string scope)
-        (format_expr p.decl_ctx) e ScopeName.format scope)
+        (format_expr p.decl_ctx) e ScopeName.format scope ScopeName.format scope)
     tests;
   Format.pp_close_box fmt ()
 
