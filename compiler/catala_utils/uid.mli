@@ -51,7 +51,9 @@ module type Id = sig
   type t
   type info
 
-  val fresh : info -> t
+  val fresh : ?from:t -> info -> t
+  (** if [from] is set, the new [t] will set its original info from it *)
+
   val get_info : t -> info
   val map_info : (info -> info) -> t -> t
   val compare : t -> t -> int
@@ -67,6 +69,11 @@ module type Id = sig
       given run of catala, this is a raw hash of the identifier string.
       Therefore, it may collide within a given program, but remains meaninful
       across separate compilations. *)
+
+  val original_info : t -> info
+  (** Retrieve the original id info, unaffected by renamings, etc. *)
+
+  val format_original : Format.formatter -> t -> unit
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t
@@ -114,13 +121,16 @@ end
 module type Qualified = sig
   include Id with type info = Path.t * MarkedString.info
 
-  val fresh : Path.t -> MarkedString.info -> t
+  val fresh : ?from:t -> Path.t -> MarkedString.info -> t
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
+  val original_info : t -> MarkedString.info
 
   val base : t -> string
   (** Returns only the base ident name, while [to_string] includes the path
       prefix *)
+
+  val original_base : t -> string
 
   val hash : strip:Module.t option -> t -> Hash.t
   (** [strip] strips any path up to that module from the start of the path
@@ -132,8 +142,8 @@ module type Qualified = sig
 
   val canonical_str : Module.t option -> t -> string
   (** [canonical_str current_module t] returns a canonical path to [t], that is,
-      the basename of [t] qualified with the last module in its path, or with
-      the current module if implicit and that is defined. *)
+      the original basename of [t] qualified with the last module in its path,
+      or with the current module if implicit and that is defined. *)
 end
 
 (** Same as [Gen] but also registers path information *)
