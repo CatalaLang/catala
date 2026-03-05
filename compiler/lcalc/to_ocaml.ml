@@ -824,7 +824,8 @@ let commands = if commands = [] then test_scopes else commands
          result)@]@]@]@,\
          )@,"
         (ScopeName.to_string scope)
-        (format_expr p.decl_ctx) e ScopeName.format scope StructName.format
+        (format_expr p.decl_ctx) e ScopeName.format_original scope
+        StructName.format
         (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name)
     tests;
   Format.pp_close_box fmt ()
@@ -854,8 +855,8 @@ let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Catala_runtime.register_module \"%a\"" ModuleName.format
-    modname;
+  Format.fprintf fmt "Catala_runtime.register_module \"%a\""
+    ModuleName.format_original modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
@@ -863,14 +864,14 @@ let format_module_registration ctx fmt exports modname hash is_external =
     ~pp_sep:(fun fmt () ->
       Format.pp_print_char fmt ';';
       Format.pp_print_cut fmt ())
-    (fun fmt (name, e) ->
+    (fun fmt ((name, _pos), e) ->
       Format.fprintf fmt "@[<hov 2>%S,@ Stdlib.Obj.repr %a@]" name
         (format_expr ctx) e)
     fmt
     (List.filter_map
        (function
-         | KScope n, e -> Some (ScopeName.to_string n, e)
-         | KTopdef n, e -> Some (TopdefName.to_string n, e)
+         | KScope n, e -> Some (ScopeName.original_info n, e)
+         | KTopdef n, e -> Some (TopdefName.original_info n, e)
          | KTest _, _ -> None)
        exports);
   Format.pp_close_box fmt ();

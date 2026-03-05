@@ -439,14 +439,14 @@ let process_type_ident
     let str, pos = StructName.get_info name in
     let str = add_prefix str in
     let id, ctx = new_id ctx (tctx.f_struct str) in
-    let new_name = StructName.fresh path (id, pos) in
+    let new_name = StructName.fresh ~from:name path (id, pos) in
     let ctx1, fields_map, ctx_fields =
       StructField.Map.fold
         (fun name ty (ctx, fields_map, ctx_fields) ->
           let str, pos = StructField.get_info name in
           let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_field str) in
-          let new_name = StructField.fresh (id, pos) in
+          let new_name = StructField.fresh ~from:name (id, pos) in
           ( ctx,
             StructField.Map.add name new_name fields_map,
             StructField.Map.add new_name ty ctx_fields ))
@@ -500,7 +500,7 @@ let process_type_ident
     let str = add_prefix str in
     let path_ctx, ctx = get_path_ctx decl_ctx tctx ctx0 path in
     let id, ctx = new_id ctx (tctx.f_enum str) in
-    let new_name = EnumName.fresh path (id, pos) in
+    let new_name = EnumName.fresh ~from:ename path (id, pos) in
     let ctx1, constrs_map, ctx_constrs =
       EnumConstructor.Map.fold
         (fun name ty (ctx, constrs_map, ctx_constrs) ->
@@ -511,7 +511,7 @@ let process_type_ident
           in
           let str = add_prefix str in
           let id, ctx = new_id ctx (tctx.f_constr str) in
-          let new_name = EnumConstructor.fresh (id, pos) in
+          let new_name = EnumConstructor.fresh ~from:name (id, pos) in
           ( ctx,
             EnumConstructor.Map.add name new_name constrs_map,
             EnumConstructor.Map.add new_name ty ctx_constrs ))
@@ -541,7 +541,7 @@ let process_type_ident
     let str = add_prefix str in
     let path_ctx, ctx = get_path_ctx decl_ctx tctx ctx0 path in
     let id, ctx = new_id ctx (tctx.f_abstract_type str) in
-    let new_name = AbstractType.fresh path (id, pos) in
+    let new_name = AbstractType.fresh ~from:tname path (id, pos) in
     {
       tctx with
       path_ctx = PathMap.add path ctx path_ctx;
@@ -644,7 +644,7 @@ let program
             with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
           in
           let id, ctx = new_id ctx (f_var str) in
-          let new_name = ScopeName.fresh path (id, pos) in
+          let new_name = ScopeName.fresh ~from:name path (id, pos) in
           ( PathMap.add path ctx path_ctx,
             ScopeName.Map.add name new_name scopes_map ))
       p.decl_ctx.ctx_scopes
@@ -672,7 +672,7 @@ let program
             with PathMap.Not_found _ -> PathMap.add path ctx path_ctx, ctx
           in
           let id, ctx = new_id ctx (f_var str) in
-          let new_name = TopdefName.fresh path (id, pos) in
+          let new_name = TopdefName.fresh ~from:name path (id, pos) in
           ( PathMap.add path ctx path_ctx,
             TopdefName.Map.add name new_name topdefs_map,
             TopdefName.Map.add new_name (typ, visibility) ctx_topdefs ))

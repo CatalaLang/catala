@@ -21,7 +21,7 @@ module D = Dcalc.Ast
 module L = Lcalc.Ast
 open Ast
 
-type ctx = { decl_ctx : decl_ctx }
+type ctx = { decl_ctx : decl_ctx; module_name : ModuleName.t option }
 type env = { global_vars : VarName.Set.t; local_vars : VarName.Set.t }
 
 let c_keywords =
@@ -194,8 +194,7 @@ let rec format_rtyp ppf ty =
     Message.error "Cannot compute comparison on type %a" Print.typ ty
   | TClosureEnv -> assert false (* Should only appear in closure types *)
 
-let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
-    unit =
+let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
   let format_struct_decl ppfs (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     if fields = [] then
@@ -206,7 +205,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
         (Format.pp_print_list ~pp_sep:Format.pp_print_space
            (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov>%a;@]"
-               (format_typ ~const:true ctx (fun fmt ->
+               (format_typ ~const:true ctx.decl_ctx (fun fmt ->
                     Format.pp_print_space fmt ();
                     StructField.format fmt struct_field))
                struct_field_type))
@@ -226,26 +225,26 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
          the max number of arguments accepted (at least 127 by the standard) *)
       Format.fprintf ppc "@[<hv 2>return catala_type_struct(&ty, %s, \"%s\", %d"
         (if size > 0 then "fields" else "NULL")
-        (StructName.canonical_str None struct_name)
+        (StructName.canonical_str ctx.module_name struct_name)
         size;
       List.iter
         (fun (name, ty) ->
-          Format.fprintf ppc ",@,\"%a\", %a" StructField.format name format_rtyp
-            ty)
+          Format.fprintf ppc ",@,\"%a\", %a" StructField.format_original name
+            format_rtyp ty)
         fields;
       Format.fprintf ppc ");@]@;<1 -2>}@]")
     else (
       (* Manual array init for unlimited number of fields *)
       Format.fprintf ppc
         "ty.contents.tstruct.name = \"%s\";@,ty.contents.tstruct.size = %d;"
-        (StructName.canonical_str None struct_name)
+        (StructName.canonical_str ctx.module_name struct_name)
         size;
       if size > 0 then
         Format.fprintf ppc "@,ty.contents.tstruct.fields = fields;";
       List.iteri
         (fun i (name, ty) ->
-          Format.fprintf ppc "@,fields[%d].name = \"%a\";" i StructField.format
-            name;
+          Format.fprintf ppc "@,fields[%d].name = \"%a\";" i
+            StructField.format_original name;
           Format.fprintf ppc "@,fields[%d].ty = %a;" i format_rtyp ty)
         fields;
       Format.fprintf ppc "@,ty.kind = STRUCT;@,return ty;@;<1 -2>}@]")
@@ -269,7 +268,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (enum_cons, typ) ->
            Format.fprintf fmt "@[<hov 2>%a;@]"
-             (format_typ ~const:true ctx (fun fmt ->
+             (format_typ ~const:true ctx.decl_ctx (fun fmt ->
                   Format.pp_print_space fmt ();
                   EnumConstructor.format fmt enum_cons))
              typ))
@@ -286,19 +285,19 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
          the max number of arguments accepted (at least 127 by the standard) *)
       Format.fprintf ppc
         "@[<hv 2>return catala_type_enum(&ty, cases, \"%s\", %d"
-        (EnumName.canonical_str None enum_name)
+        (EnumName.canonical_str ctx.module_name enum_name)
         size;
       List.iter
         (fun (name, ty) ->
-          Format.fprintf ppc ",@,\"%a\", %a" EnumConstructor.format name
-            format_rtyp ty)
+          Format.fprintf ppc ",@,\"%a\", %a" EnumConstructor.format_original
+            name format_rtyp ty)
         cases;
       Format.fprintf ppc ");@]@;<1 -2>}@]")
     else (
       (* Manual array init for unlimited number of cases *)
       Format.fprintf ppc
         "ty.contents.tenum.name = \"%s\";@,ty.contents.tenum.size = %d;@,"
-        (EnumName.canonical_str None enum_name)
+        (EnumName.canonical_str ctx.module_name enum_name)
         size;
       if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
       List.iteri
@@ -313,7 +312,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
     List.fold_left
       (fun acc -> function
         | TypeIdent.Struct s -> StructName.Map.remove s acc | _ -> acc)
-      ctx.ctx_structs type_ordering
+      ctx.decl_ctx.ctx_structs type_ordering
     |> StructName.Map.keys
     |> List.map (fun s -> TypeIdent.Struct s)
   in
@@ -322,18 +321,19 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : decl_ctx) :
       let ppfs =
         ppc
         ::
-        (if TypeIdent.Set.mem struct_or_enum ctx.ctx_public_types then [pph]
+        (if TypeIdent.Set.mem struct_or_enum ctx.decl_ctx.ctx_public_types then
+           [pph]
          else [])
       in
       match struct_or_enum with
       | TypeIdent.Struct s ->
         if StructName.path s = [] then (
-          let def = StructName.Map.find s ctx.ctx_structs in
+          let def = StructName.Map.find s ctx.decl_ctx.ctx_structs in
           pp ppfs "@,";
           format_struct_decl ppfs (s, def))
       | TypeIdent.Enum e ->
         if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then (
-          let def = EnumName.Map.find e ctx.ctx_enums in
+          let def = EnumName.Map.find e ctx.decl_ctx.ctx_enums in
           pp ppfs "@,";
           format_enum_decl ppfs (e, def))
       | TypeIdent.Abstract t ->
@@ -559,6 +559,7 @@ let rec format_statement
            (fun ppf -> Format.fprintf ppf ",@ %a" (format_expression ctx env)))
         elts
     else (
+      Format.fprintf fmt "@,@[<hov 2>%a->size =@ %d;@]" VarName.format v size;
       if size > 0 then
         Format.fprintf fmt
           "@,@[<hov 2>%a->elements = catala_malloc(%d * sizeof(void*));@]"
@@ -954,7 +955,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
            "@,\
             fprintf(stderr,\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
             successfully.\\n\");"
-           ScopeName.format name;
+           ScopeName.format_original name;
          let ty =
            ( TStruct
                (ScopeName.Map.find name ctx.decl_ctx.ctx_scopes).out_struct_name,
@@ -962,7 +963,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
          in
          Format.fprintf fmt
            "@,\
-            catala_format(catala_stdbuf, embed(%a, %a));@,\
+            catala_print(catala_stdbuf, embed(%a, %a));@,\
             catala_stdbuf.flush();@;\
             <1 -2>}@]"
            format_rtyp ty VarName.format var)
@@ -1026,9 +1027,11 @@ let format_program
     (Option.map File.(fun f -> basename f -.- "h") output_file);
 
   (* TODO: check the module hash ? *)
-  format_ctx type_ordering ~ppc ~pph p.ctx.decl_ctx;
+  let ctx =
+    { decl_ctx = p.ctx.decl_ctx; module_name = Option.map fst p.module_name }
+  in
+  format_ctx type_ordering ~ppc ~pph ctx;
   ppall "@,";
-  let ctx = { decl_ctx = p.ctx.decl_ctx } in
   let env =
     { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
   in
