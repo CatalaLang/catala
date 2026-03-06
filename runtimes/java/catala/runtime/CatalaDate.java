@@ -5,7 +5,7 @@ import catala.dates_calc.Date;
 import catala.dates_calc.Date.Rounding;
 import catala.runtime.exception.CatalaError;
 
-public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
+public final class CatalaDate extends CatalaValue<CatalaDate> {
 
     public final Date date;
 
@@ -14,19 +14,27 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
     }
 
     public static CatalaDate of(int year, int month, int day) {
-        return new CatalaDate(Date.of(year, month, day));
+        try {
+            return new CatalaDate(Date.of(year, month, day));
+        } catch (IllegalArgumentException e) {
+            throw CatalaError.error(CatalaError.Error.InvalidDate);
+        }
     }
 
     /**
-     * Parses a date in the format '|2024-03-12|'
+     * Parses a date in the format '|YYYY-MM-DD|'
      */
     public static final CatalaDate parse(CharSequence catalaDateLiteral) {
         if (catalaDateLiteral.length() != 12
                 || catalaDateLiteral.charAt(0) != '|'
                 || catalaDateLiteral.charAt(11) != '|') {
-            throw new IllegalArgumentException("Expected Catala date literal");
+            throw CatalaError.error(CatalaError.Error.InvalidDate);
         }
-        return new CatalaDate(Date.fromString(catalaDateLiteral.subSequence(1, 11).toString()));
+        try {
+            return new CatalaDate(Date.fromString(catalaDateLiteral.subSequence(1, 11).toString()));
+        } catch (IllegalArgumentException e) {
+            throw CatalaError.error(CatalaError.Error.InvalidDate);
+        }
     }
 
     public final CatalaInteger getYear() {
@@ -49,36 +57,11 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         return new CatalaDate(this.date.lastDayOfMonth());
     }
 
-    @Override
-    public int compareTo(CatalaDate t) {
-        return this.date.compareTo(t.date);
-    }
-
-    public CatalaBool lessThan(CatalaDate other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
-    }
-
-    public CatalaBool lessEqThan(CatalaDate other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
-    }
-
-    public CatalaBool greaterThan(CatalaDate other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
-    }
-
-    public CatalaBool greaterEqThan(CatalaDate other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
-    }
-
-    public CatalaBool equalsTo(CatalaDate other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
-    }
-
     public CatalaDate addDurationAbortOnRound(CatalaPosition pos, CatalaDuration dur) {
         try {
             return new CatalaDate(this.date.add(dur.period));
         } catch (AmbiguousComputationException e) {
-            throw new CatalaError(CatalaError.Error.AmbiguousDateRounding, pos);
+            throw CatalaError.error(CatalaError.Error.AmbiguousDateRounding, pos);
         }
     }
 
@@ -94,7 +77,7 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
         try {
             return new CatalaDate(this.date.add(dur.period.negate()));
         } catch (AmbiguousComputationException e) {
-            throw new CatalaError(CatalaError.Error.AmbiguousDateRounding, pos);
+            throw CatalaError.error(CatalaError.Error.AmbiguousDateRounding, pos);
         }
     }
 
@@ -111,12 +94,13 @@ public final class CatalaDate implements CatalaValue, Comparable<CatalaDate> {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue v) {
-        if (v instanceof CatalaDate catalaDate) {
-            return CatalaBool.fromBoolean(this.compareTo(catalaDate) == 0);
-        } else {
-            return CatalaBool.FALSE;
-        }
+    public int compareTo(CatalaPosition p, CatalaDate o) {
+        return this.date.compareTo(o.date);
+    }
+
+    @Override
+    public CatalaBool equalsTo(CatalaPosition p, CatalaDate o) {
+        return CatalaBool.fromBoolean(this.date.equals(o.date));
     }
 
     @Override
