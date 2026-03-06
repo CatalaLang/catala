@@ -222,7 +222,8 @@ end
 (* Toplevel def closure_assert *)
 let closure_assert : Obj.t(*closure env*) -> integer -> integer =
   fun (env: Obj.t(*closure env*)) (x: integer) ->
-    let _ : unit = (o_fromclosureenv env) in 
+    let _ : unit = (o_fromclosureenv env) in
+    
     o_add_int_int x (integer_of_int 1)
 
 (* Scope Assert *)
@@ -236,9 +237,10 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
                   let assert__3 :
                     Obj.t(*closure env*) -> integer -> integer =
                     closure_assert
-                  in (assert__3, (o_toclosureenv ()))
-                  ([|(integer_of_int 0)|]))
-             in false,
+                  in
+                  (assert__3, (o_toclosureenv ())) ([|(integer_of_int 0)|]))
+             in
+             false,
              {filename="tests/name_resolution/good/conflicts.catala_en";
               start_line=23; start_column=3; end_line=23; end_column=59;
               law_headings=[]}))
