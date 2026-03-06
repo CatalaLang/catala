@@ -643,8 +643,9 @@ let format_tests ctx ppf (p : Ast.program) =
         format_block ctx ppf block;
         Format.fprintf ppf
           "@,\
-           print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\")"
-          ScopeName.format name)
+           print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \
+           file=sys.stderr)"
+          ScopeName.format_original name)
       tests;
     Format.fprintf ppf "@]@,"
 

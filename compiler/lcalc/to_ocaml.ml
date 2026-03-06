@@ -817,9 +817,9 @@ let commands = if commands = [] then test_scopes else commands
         "@[<v 2>let () = if Stdlib.List.mem %S commands then (@ @[<hv>@[<hov \
          2>let result =@ @[<hv>%a@]@]@,\
          in@,\
-         @[<v 2>Format.printf \"@@[<v>\\x1b[32m[RESULT]\\x1b[m Scope %a \
-         executed successfully.@@,\
-         %%a@@]@@.\"@,\
+         @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
+         successfully.@@.\";@]@,\
+         @[<v 2>Format.printf \"@@[<v>%%a@@]@@.\"@,\
          Catala_runtime.Value.format (Catala_runtime.Value.embed %a.rtype \
          result)@]@]@]@,\
          )@,"
