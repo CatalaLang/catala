@@ -1,6 +1,8 @@
 package catala.runtime;
 
-public final class CatalaTuple implements CatalaValue {
+import catala.runtime.exception.CatalaError;
+
+public final class CatalaTuple extends CatalaValue<CatalaTuple> {
 
     public final CatalaValue[] values;
 
@@ -18,22 +20,33 @@ public final class CatalaTuple implements CatalaValue {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue v) {
-        if (v instanceof CatalaTuple catalaArray) {
-            CatalaTuple va  = catalaArray;
-            if (this.values.length != va.values.length) {
-                return CatalaBool.FALSE;
-            } else {
-                for (int i = 0; i < this.values.length; i++) {
-                    if (!(this.values[i].equalsTo(va.values[i]).asBoolean())) {
-                        return CatalaBool.FALSE;
-                    }
-                }
-                return CatalaBool.TRUE;
-            }
-        } else {
+    public CatalaBool equalsTo(CatalaPosition p, CatalaTuple v) {
+        if (this.values.length != v.values.length) {
             return CatalaBool.FALSE;
+        } else {
+            for (int i = 0; i < this.values.length; i++) {
+                if (!(this.values[i].equalsTo(v.values[i]).asBoolean())) {
+                    return CatalaBool.FALSE;
+                }
+            }
+            return CatalaBool.TRUE;
         }
+    }
+
+    @Override
+    public int compareTo(CatalaPosition p, CatalaTuple o) {
+        if (this.values.length != o.values.length) {
+            throw CatalaError.error(CatalaError.Error.UncomparableValues, p);
+        }
+        int cmp = 0;
+        for (int i = 0; i < this.values.length; i++) {
+            cmp = this.values[i].compareTo(p, o.values[i]);
+            if (cmp == 0) {
+                continue;
+            }
+            return cmp;
+        }
+        return cmp;
     }
 
     @Override

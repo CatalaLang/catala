@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import catala.runtime.exception.CatalaError;
 
-public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
+public final class CatalaArray<T extends CatalaValue> extends CatalaValue<CatalaArray<T>> {
 
     private final T[] values;
 
@@ -39,7 +39,7 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     public <U extends CatalaValue, R extends CatalaValue> CatalaArray<R> map2(
             CatalaPosition pos, CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
         if (this.values.length != other.values.length) {
-            throw new CatalaError(CatalaError.Error.NotSameLength, pos);
+            throw CatalaError.error(CatalaError.Error.NotSameLength, pos);
         }
         int length = this.values.length;
         R[] tuples = (R[]) new CatalaValue[length];
@@ -84,7 +84,7 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue v) {
+    public CatalaBool equalsTo(CatalaPosition p, CatalaArray<T> v) {
         if (v instanceof CatalaArray<?> catalaArray
                 && catalaArray.getClass().isAssignableFrom(this.getClass())) {
             if (catalaArray.values.length != this.values.length) {
@@ -104,6 +104,29 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
 
     @Override
     public String toString() {
-        return Arrays.toString(values);
+        StringBuilder b = new StringBuilder();
+        b.append("[ ");
+        for (int i = 0; i < values.length; i++) {
+            b.append(values[i].toString());
+            if (i < values.length - 1) {
+                b.append("; ");
+            }
+        }
+        b.append(" ]");
+        return b.toString();
+    }
+
+    @Override
+    public int compareTo(CatalaPosition p, CatalaArray<T> o) {
+        CatalaValue[] l = this.asArray();
+        CatalaValue[] r = o.asArray();
+        for (int i = 0; i < Integer.min(l.length, r.length); i++) {
+            int cmp = l[i].compareTo(p, r[i]);
+            if (cmp == 0) {
+                continue;
+            }
+            return cmp;
+        }
+        return Integer.compare(l.length, r.length);
     }
 }

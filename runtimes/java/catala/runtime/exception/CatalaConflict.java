@@ -25,7 +25,7 @@ public class CatalaConflict {
                 List<CatalaPosition> lpos
                         = active_exns.stream().map(p_opt -> (p_opt.get()).get(1, CatalaPosition.class))
                                 .toList();
-                throw new CatalaError(CatalaError.Error.Conflict, lpos);
+                throw CatalaError.error(CatalaError.Error.Conflict, lpos);
         }
     }
 }

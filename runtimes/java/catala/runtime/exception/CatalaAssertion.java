@@ -7,13 +7,13 @@ public class CatalaAssertion {
 
     public static void check(CatalaPosition pos, CatalaBool b) {
         if (!b.asBoolean()) {
-            throw new CatalaError(CatalaError.Error.AssertionFailed, pos);
+            throw CatalaError.error(CatalaError.Error.AssertionFailed, pos);
         }
     }
 
     public static void check(CatalaPosition pos, CatalaBool b, String note) {
         if (!b.asBoolean()) {
-            throw new CatalaError(CatalaError.Error.AssertionFailed, pos, note);
+            throw CatalaError.error(CatalaError.Error.AssertionFailed, pos, note);
         }
     }
 }

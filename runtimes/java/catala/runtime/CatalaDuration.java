@@ -3,7 +3,7 @@ package catala.runtime;
 import catala.dates_calc.Period;
 import catala.runtime.exception.CatalaError;
 
-public final class CatalaDuration implements CatalaValue {
+public final class CatalaDuration extends CatalaValue<CatalaDuration> {
 
     Period period;
 
@@ -56,51 +56,24 @@ public final class CatalaDuration implements CatalaValue {
 
     }
 
-    // No override
-    public int compareTo(CatalaPosition pos, CatalaDuration t) {
-        if (this.getMonths() == 0 && t.getMonths() == 0 && this.getYears() == 0 && t.getYears() == 0) {
-            return ((Integer) (this.getDays())).compareTo(t.getDays());
+    @Override
+    public int compareTo(CatalaPosition p, CatalaDuration o) {
+        if (this.getMonths() == 0 && o.getMonths() == 0 && this.getYears() == 0 && o.getYears() == 0) {
+            return ((Integer) (this.getDays())).compareTo(o.getDays());
+        } else if (this.getDays() == 0 && o.getDays() == 0) {
+            return ((Integer) (this.getYears() * 12 + this.getMonths()))
+                    .compareTo(o.getYears() * 12 + o.getMonths());
+        } else {
+            throw CatalaError.error(CatalaError.Error.UncomparableDurations, p);
         }
-        else if (this.getDays() == 0 && t.getDays() == 0) {
-            return ((Integer)(this.getYears() * 12 + this.getMonths()))
-                   .compareTo(t.getYears() * 12 + t.getMonths());
-        }
-        else {
-            throw new CatalaError(CatalaError.Error.UncomparableDurations, pos);
-        }
-    }
-
-    public CatalaBool lessThan(CatalaPosition pos, CatalaDuration other) {
-        return CatalaBool.fromBoolean(this.compareTo(pos, other) < 0);
-    }
-
-    public CatalaBool lessEqThan(CatalaPosition pos, CatalaDuration other) {
-        return CatalaBool.fromBoolean(this.compareTo(pos, other) <= 0);
-    }
-
-    public CatalaBool greaterThan(CatalaPosition pos, CatalaDuration other) {
-        return CatalaBool.fromBoolean(this.compareTo(pos, other) > 0);
-    }
-
-    public CatalaBool greaterEqThan(CatalaPosition pos, CatalaDuration other) {
-        return CatalaBool.fromBoolean(this.compareTo(pos, other) >= 0);
-    }
-
-    public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
-        return (CatalaBool.fromBoolean
-                (this.getYears() == other.getYears() &&
-                 this.getMonths() == other.getMonths() &&
-                 this.getDays() == other.getDays() ||
-                 this.compareTo(pos, other) == 0));
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue v) {
-        if (v instanceof CatalaDuration catalaDuration) {
-            return CatalaBool.fromBoolean(this.period.equals(catalaDuration.period));
-        } else {
-            return CatalaBool.FALSE;
-        }
+    public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
+        return (CatalaBool.fromBoolean(this.getYears() == other.getYears()
+                && this.getMonths() == other.getMonths()
+                && this.getDays() == other.getDays()
+                || this.compareTo(pos, other) == 0));
     }
 
     @Override

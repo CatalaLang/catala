@@ -18,7 +18,8 @@ public class CatalaError extends RuntimeException {
         UncomparableDurations,
         AmbiguousDateRounding,
         IndivisibleDurations,
-        Impossible;
+        Impossible,
+        UncomparableValues;
 
         @Override
         public String toString() {
@@ -45,22 +46,60 @@ public class CatalaError extends RuntimeException {
                     return "dividing durations that are not in days";
                 case Impossible:
                     return "\"impossible\" computation reached";
+                case UncomparableValues:
+                    return "comparing values of different types";
             }
             return "";
         }
     }
 
-    public CatalaError(Error err, CatalaPosition pos, String note) {
-        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString() + ". " + note);
+    private CatalaError(Error err) {
+        super("\n\033[1;31m[ERROR]\033[m" + err.toString());
     }
 
-    public CatalaError(Error err, CatalaPosition pos) {
+    public static CatalaError error(Error err) {
+        return new CatalaError(err);
+    }
+
+    private CatalaError(Error err, String note) {
+        super("\n\033[1;31m[ERROR]\033[m " + err.toString() + ". " + note);
+    }
+
+    public static CatalaError error(Error err, String note) {
+        return new CatalaError(err, note);
+    }
+
+    private CatalaError(Error err, CatalaPosition pos) {
         super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString());
     }
 
-    public CatalaError(Error err, List<CatalaPosition> lpos) {
+    public static CatalaError error(Error err, CatalaPosition pos) {
+        if (pos == null || pos == CatalaPosition.empty) {
+            return new CatalaError(err);
+        } else {
+            return new CatalaError(err, pos);
+        }
+    }
+
+    private CatalaError(Error err, CatalaPosition pos, String note) {
+        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString() + ". " + note);
+    }
+
+    public static CatalaError error(Error err, CatalaPosition pos, String note) {
+        if (pos == null || pos == CatalaPosition.empty) {
+            return new CatalaError(err, note);
+        } else {
+            return new CatalaError(err, pos, note);
+        }
+    }
+
+    private CatalaError(Error err, List<CatalaPosition> lpos) {
         super("\n\033[1;31m[ERROR]\033[m At " + lpos.stream()
                 .map(CatalaPosition::toString)
                 .collect(Collectors.joining(", ")) + ": " + err.toString());
+    }
+
+    public static CatalaError error(Error err, List<CatalaPosition> lpos) {
+        return new CatalaError(err, lpos);
     }
 }
