@@ -176,7 +176,7 @@ let diff_command =
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in
       let mid = (width - 1) / 2 in
-      let cut s = String.sub s 0 (min mid (String.length s)) in
+      let cut s = String.cut_at_width s mid in
       let pad s =
         let s = cut s in
         Printf.sprintf "%s%*s" s (mid - String.width s) ""
