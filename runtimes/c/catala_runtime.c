@@ -680,9 +680,98 @@ void catala_print (struct catala_buf buf, const catala_value x) {
     buf.printf("<function>"); return;
   }
 }
-const char* catala_tojson (const catala_value val) {
-  const char* ret = "\"todo\"";
-  return ret;
+void catala_tojson (struct catala_buf buf, const catala_value x) {
+  int i;
+  switch (x.t.kind) {
+  case UNINITIALIZED:
+    buf.printf("\"???\""); return;
+  case UNIT:
+    buf.printf("{}"); return;
+  case BOOL:
+    buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
+  case INTEGER:
+    buf.printf("\"%Zd\"", x.v); return;
+  case MONEY: {
+    mpz_t units, cents;
+    mpz_init(units), mpz_init(cents);
+    mpz_tdiv_qr(units, cents, x.v, zconst_100);
+    mpz_abs(cents, cents);
+    buf.printf("\"%Zd.%02Zd\"", units, cents);
+    return;
+  }
+  case DECIMAL: {
+    buf.printf("\"%Qd\"", x.v);
+    return;
+  }
+  case DATE:
+    buf.printf("\"%04d-%02d-%02d\"", dc_date_year(x.v), dc_date_month(x.v), dc_date_day(x.v));
+    return;
+  case DURATION:
+    buf.printf("{\"years\":%d,\"months\":%d,\"days\":%d}]", dc_period_years(x.v), dc_period_months(x.v), dc_period_days(x.v));
+    return;
+  case POSITION: {
+    CATALA_POSITION pos = x.v;
+    buf.printf("\"%s:%d.%d-%d.%d\"",
+               pos->filename,
+               pos->start_line,
+               pos->start_column,
+               pos->end_line,
+               pos->end_column);
+    return;
+  }
+  case ARRAY: {
+    const catala_array * a = x.v;
+    buf.printf("[");
+    for (i = 0; i < a->size; i++) {
+      if (i > 0) buf.printf(",");
+      catala_tojson(buf, embed(*x.t.contents.tarray, a->elements[i]));
+    }
+    buf.printf("]");
+    return;
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a = x.v;
+    buf.printf("[");
+    for (i = 0; i < x.t.contents.ttuple.size; i++) {
+      const catala_type * t = x.t.contents.ttuple.elements[i];
+      if (i > 0) buf.printf(",");
+      catala_tojson(buf, embed(*t, a[i].content));
+    }
+    buf.printf("]");
+    return;
+  }
+  case STRUCT: {
+    const void* const* a = x.v;
+    buf.printf("{");
+    for (i = 0; i < x.t.contents.tstruct.size; i++) {
+      if (i > 0) buf.printf(",");
+      buf.printf("\"%s\":", x.t.contents.tstruct.fields[i].name);
+      catala_tojson(buf, embed(x.t.contents.tstruct.fields[i].ty, a[i]));
+    }
+    buf.printf("}");
+    return;
+  }
+  case ENUM: {
+    const struct catala_enum * e = x.v;
+    const struct catala_label_type t = x.t.contents.tenum.cases[e->code];
+    if (t.ty.kind == UNIT)
+      buf.printf("\"%s\"", t.name);
+    else {
+      buf.printf("{\"%s\":", t.name);
+      catala_tojson(buf, embed(t.ty, e->payload));
+      buf.printf("}", t.name);
+    }
+    return;
+  }
+  case EXTERNAL:
+    if (x.t.contents.texternal.to_json)
+      x.t.contents.texternal.to_json(buf, x.v);
+    else
+      buf.printf("\"<external:%s>\"", x.t.contents.texternal.name);
+    return;
+  case FUNCTION:
+    buf.printf("\"<function>\""); return;
+  }
 }
 
 /*   - base embedded types -    */

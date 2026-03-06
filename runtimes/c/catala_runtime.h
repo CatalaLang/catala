@@ -253,7 +253,7 @@ int catala_equal (const catala_type ty, const catala_code_position* pos, const v
 int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x, const void* y);
 
 void catala_print (struct catala_buf, const catala_value val);
-const char* catala_tojson (const catala_value val);
+void catala_tojson (struct catala_buf, const catala_value val);
 
 /*   - base embedded types -    */
 
