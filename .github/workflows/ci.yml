@@ -325,7 +325,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $dst = "$env:USERPROFILE\catala-examples"
           if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
-          git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 $dst -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 $dst
 
       - name: Run clerk test in catala-examples
         run: |
