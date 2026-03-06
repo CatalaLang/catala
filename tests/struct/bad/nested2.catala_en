@@ -10,7 +10,7 @@ declaration enumeration E:
   -- Case2 content S
 
 declaration scope A:
-  output x content E
+  context output x content E
 ```
 
 ```catala-test-cli
