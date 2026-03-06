@@ -243,234 +243,130 @@ class SIn:
 
 
 def s(s_in:SIn):
-    pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=31, end_line=117, end_column=32, law_headings=[]))
-    pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=23, end_line=117, end_column=41, law_headings=[]))
-    o__2 = (Option((==(pos, E(E_Code.UUUUUUU, Unit()), E(E_Code.XXXXXXXX, Unit())), pos__1)))
+    pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=23, end_line=117, end_column=41, law_headings=[]))
+    o__2 = (Option(((E(E_Code.UUUUUUU, Unit()) == E(E_Code.XXXXXXXX, Unit())), pos)))
     if o__2.value is not None:
         o__1 = (Option(o__2.value))
     else:
-        pos__2 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
-        o__1 = (Option((False, pos__2)))
+        pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
+        o__1 = (Option((False, pos__1)))
     if o__1.value is not None:
         o = (o__1.value[0])
     else:
-        pos__2 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
-        raise NoValue(pos__2, None)
-    pos__2 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[]))
-    if not (not o): raise AssertionFailed(pos__2, None)
+        pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
+        raise NoValue(pos__1, None)
+    pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[]))
+    if not (not o): raise AssertionFailed(pos__1, None)
     return S(o = o)
 
 def f(x:Integer):
-    pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=58, start_column=8, end_line=58, end_column=9, law_headings=[]))
-    if ==(pos, x, Integer(1)):
+    if (x == Integer(1)):
         f__1 = (E(E_Code.AAAAAAAA, Unit()))
+    elif (x == Integer(2)):
+        f__1 = (E(E_Code.BBBBBBB, Unit()))
+    elif (x == Integer(3)):
+        f__1 = (E(E_Code.CCCCCCC, Unit()))
+    elif (x == Integer(4)):
+        f__1 = (E(E_Code.DDDDDDD, Unit()))
+    elif (x == Integer(5)):
+        f__1 = (E(E_Code.EEEEEEE, Unit()))
+    elif (x == Integer(6)):
+        f__1 = (E(E_Code.FFFFFFF, Unit()))
+    elif (x == Integer(7)):
+        f__1 = (E(E_Code.GGGGGGG, Unit()))
+    elif (x == Integer(8)):
+        f__1 = (E(E_Code.HHHHHHH, Unit()))
+    elif (x == Integer(9)):
+        f__1 = (E(E_Code.IIIIIII, Unit()))
+    elif (x == Integer(10)):
+        f__1 = (E(E_Code.JJJJJJJ, Unit()))
+    elif (x == Integer(11)):
+        f__1 = (E(E_Code.KKKKKKK, Unit()))
+    elif (x == Integer(12)):
+        f__1 = (E(E_Code.LLLLLLL, Unit()))
+    elif (x == Integer(13)):
+        f__1 = (E(E_Code.MMMMMMM, Unit()))
+    elif (x == Integer(14)):
+        f__1 = (E(E_Code.NNNNNNN, Unit()))
+    elif (x == Integer(15)):
+        f__1 = (E(E_Code.OOOOOOO, Unit()))
+    elif (x == Integer(16)):
+        f__1 = (E(E_Code.PPPPPPP, Unit()))
+    elif (x == Integer(17)):
+        f__1 = (E(E_Code.QQQQQQQ, Unit()))
+    elif (x == Integer(18)):
+        f__1 = (E(E_Code.RRRRRRR, Unit()))
+    elif (x == Integer(19)):
+        f__1 = (E(E_Code.SSSSSSS, Unit()))
+    elif (x == Integer(20)):
+        f__1 = (E(E_Code.TTTTTTT, Unit()))
+    elif (x == Integer(21)):
+        f__1 = (E(E_Code.UUUUUUU, Unit()))
+    elif (x == Integer(22)):
+        f__1 = (E(E_Code.VVVVVVV, Unit()))
+    elif (x == Integer(23)):
+        f__1 = (E(E_Code.WWWWWWW, Unit()))
+    elif (x == Integer(24)):
+        f__1 = (E(E_Code.XXXXXXX, Unit()))
+    elif (x == Integer(25)):
+        f__1 = (E(E_Code.YYYYYYY, Unit()))
+    elif (x == Integer(26)):
+        f__1 = (E(E_Code.ZZZZZZZ, Unit()))
+    elif (x == Integer(27)):
+        f__1 = (E(E_Code.AAAAAAAA, Unit()))
+    elif (x == Integer(28)):
+        f__1 = (E(E_Code.BBBBBBBB, Unit()))
+    elif (x == Integer(29)):
+        f__1 = (E(E_Code.CCCCCCCC, Unit()))
+    elif (x == Integer(30)):
+        f__1 = (E(E_Code.DDDDDDDD, Unit()))
+    elif (x == Integer(31)):
+        f__1 = (E(E_Code.EEEEEEEE, Unit()))
+    elif (x == Integer(32)):
+        f__1 = (E(E_Code.FFFFFFFF, Unit()))
+    elif (x == Integer(33)):
+        f__1 = (E(E_Code.GGGGGGGG, Unit()))
+    elif (x == Integer(34)):
+        f__1 = (E(E_Code.HHHHHHHH, Unit()))
+    elif (x == Integer(35)):
+        f__1 = (E(E_Code.IIIIIIII, Unit()))
+    elif (x == Integer(36)):
+        f__1 = (E(E_Code.JJJJJJJJ, Unit()))
+    elif (x == Integer(37)):
+        f__1 = (E(E_Code.KKKKKKKK, Unit()))
+    elif (x == Integer(38)):
+        f__1 = (E(E_Code.LLLLLLLL, Unit()))
+    elif (x == Integer(39)):
+        f__1 = (E(E_Code.MMMMMMMM, Unit()))
+    elif (x == Integer(40)):
+        f__1 = (E(E_Code.NNNNNNNN, Unit()))
+    elif (x == Integer(41)):
+        f__1 = (E(E_Code.OOOOOOOO, Unit()))
+    elif (x == Integer(42)):
+        f__1 = (E(E_Code.PPPPPPPP, Unit()))
+    elif (x == Integer(43)):
+        f__1 = (E(E_Code.QQQQQQQQ, Unit()))
+    elif (x == Integer(44)):
+        f__1 = (E(E_Code.RRRRRRRR, Unit()))
+    elif (x == Integer(45)):
+        f__1 = (E(E_Code.SSSSSSSS, Unit()))
+    elif (x == Integer(46)):
+        f__1 = (E(E_Code.TTTTTTTT, Unit()))
+    elif (x == Integer(47)):
+        f__1 = (E(E_Code.UUUUUUUU, Unit()))
+    elif (x == Integer(48)):
+        f__1 = (E(E_Code.VVVVVVVV, Unit()))
+    elif (x == Integer(49)):
+        f__1 = (E(E_Code.WWWWWWWW, Unit()))
+    elif (x == Integer(50)):
+        f__1 = (E(E_Code.XXXXXXXX, Unit()))
+    elif (x == Integer(51)):
+        f__1 = (E(E_Code.YYYYYYYY, Unit()))
+    elif (x == Integer(52)):
+        f__1 = (E(E_Code.ZZZZZZZZ, Unit()))
     else:
-        pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=59, start_column=13, end_line=59, end_column=14, law_headings=[]))
-        if ==(pos__1, x, Integer(2)):
-            f__1 = (E(E_Code.BBBBBBB, Unit()))
-        else:
-            pos__2 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=60, start_column=13, end_line=60, end_column=14, law_headings=[]))
-            if ==(pos__2, x, Integer(3)):
-                f__1 = (E(E_Code.CCCCCCC, Unit()))
-            else:
-                pos__3 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=61, start_column=13, end_line=61, end_column=14, law_headings=[]))
-                if ==(pos__3, x, Integer(4)):
-                    f__1 = (E(E_Code.DDDDDDD, Unit()))
-                else:
-                    pos__4 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=62, start_column=13, end_line=62, end_column=14, law_headings=[]))
-                    if ==(pos__4, x, Integer(5)):
-                        f__1 = (E(E_Code.EEEEEEE, Unit()))
-                    else:
-                        pos__5 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=63, start_column=13, end_line=63, end_column=14, law_headings=[]))
-                        if ==(pos__5, x, Integer(6)):
-                            f__1 = (E(E_Code.FFFFFFF, Unit()))
-                        else:
-                            pos__6 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=64, start_column=13, end_line=64, end_column=14, law_headings=[]))
-                            if ==(pos__6, x, Integer(7)):
-                                f__1 = (E(E_Code.GGGGGGG, Unit()))
-                            else:
-                                pos__7 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=65, start_column=13, end_line=65, end_column=14, law_headings=[]))
-                                if ==(pos__7, x, Integer(8)):
-                                    f__1 = (E(E_Code.HHHHHHH, Unit()))
-                                else:
-                                    pos__8 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=66, start_column=13, end_line=66, end_column=14, law_headings=[]))
-                                    if ==(pos__8, x, Integer(9)):
-                                        f__1 = (E(E_Code.IIIIIII, Unit()))
-                                    else:
-                                        pos__9 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=67, start_column=13, end_line=67, end_column=14, law_headings=[]))
-                                        if ==(pos__9, x, Integer(10)):
-                                            f__1 = (E(E_Code.JJJJJJJ, Unit()))
-                                        else:
-                                            pos__10 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=68, start_column=13, end_line=68, end_column=14, law_headings=[]))
-                                            if ==(pos__10, x, Integer(11)):
-                                                f__1 = (E(E_Code.KKKKKKK, Unit()))
-                                            else:
-                                                pos__11 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=69, start_column=13, end_line=69, end_column=14, law_headings=[]))
-                                                if ==(pos__11, x, Integer(12)):
-                                                    f__1 = (E(E_Code.LLLLLLL, Unit()))
-                                                else:
-                                                    pos__12 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=70, start_column=13, end_line=70, end_column=14, law_headings=[]))
-                                                    if ==(pos__12, x, Integer(13)):
-                                                        f__1 = (E(E_Code.MMMMMMM, Unit()))
-                                                    else:
-                                                        pos__13 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=71, start_column=13, end_line=71, end_column=14, law_headings=[]))
-                                                        if ==(pos__13, x, Integer(14)):
-                                                            f__1 = (E(E_Code.NNNNNNN, Unit()))
-                                                        else:
-                                                            pos__14 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=72, start_column=13, end_line=72, end_column=14, law_headings=[]))
-                                                            if ==(pos__14, x, Integer(15)):
-                                                                f__1 = (E(E_Code.OOOOOOO, Unit()))
-                                                            else:
-                                                                pos__15 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=73, start_column=13, end_line=73, end_column=14, law_headings=[]))
-                                                                if ==(pos__15, x, Integer(16)):
-                                                                    f__1 = (E(E_Code.PPPPPPP, Unit()))
-                                                                else:
-                                                                    pos__16 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=74, start_column=13, end_line=74, end_column=14, law_headings=[]))
-                                                                    if ==(pos__16, x, Integer(17)):
-                                                                        f__1 = (E(E_Code.QQQQQQQ, Unit()))
-                                                                    else:
-                                                                        pos__17 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=75, start_column=13, end_line=75, end_column=14, law_headings=[]))
-                                                                        if ==(pos__17, x, Integer(18)):
-                                                                            f__1 = (E(E_Code.RRRRRRR, Unit()))
-                                                                        else:
-                                                                            pos__18 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=76, start_column=13, end_line=76, end_column=14, law_headings=[]))
-                                                                            if ==(pos__18, x, Integer(19)):
-                                                                                f__1 = (E(E_Code.SSSSSSS, Unit()))
-                                                                            else:
-                                                                                pos__19 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=77, start_column=13, end_line=77, end_column=14, law_headings=[]))
-                                                                                if ==(pos__19, x, Integer(20)):
-                                                                                    f__1 = (E(E_Code.TTTTTTT, Unit()))
-                                                                                else:
-                                                                                    pos__20 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=78, start_column=13, end_line=78, end_column=14, law_headings=[]))
-                                                                                    if ==(pos__20, x, Integer(21)):
-                                                                                        f__1 = (E(E_Code.UUUUUUU, Unit()))
-                                                                                    else:
-                                                                                        pos__21 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=79, start_column=13, end_line=79, end_column=14, law_headings=[]))
-                                                                                        if ==(pos__21, x, Integer(22)):
-                                                                                            f__1 = (E(E_Code.VVVVVVV, Unit()))
-                                                                                        else:
-                                                                                            pos__22 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=80, start_column=13, end_line=80, end_column=14, law_headings=[]))
-                                                                                            if ==(pos__22, x, Integer(23)):
-                                                                                                f__1 = (E(E_Code.WWWWWWW, Unit()))
-                                                                                            else:
-                                                                                                pos__23 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=81, start_column=13, end_line=81, end_column=14, law_headings=[]))
-                                                                                                if ==(pos__23, x, Integer(24)):
-                                                                                                    f__1 = (E(E_Code.XXXXXXX, Unit()))
-                                                                                                else:
-                                                                                                    pos__24 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=82, start_column=13, end_line=82, end_column=14, law_headings=[]))
-                                                                                                    if ==(pos__24, x, Integer(25)):
-                                                                                                        f__1 = (E(E_Code.YYYYYYY, Unit()))
-                                                                                                    else:
-                                                                                                        pos__25 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=83, start_column=13, end_line=83, end_column=14, law_headings=[]))
-                                                                                                        if ==(pos__25, x, Integer(26)):
-                                                                                                            f__1 = (E(E_Code.ZZZZZZZ, Unit()))
-                                                                                                        else:
-                                                                                                            pos__26 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=84, start_column=13, end_line=84, end_column=14, law_headings=[]))
-                                                                                                            if ==(pos__26, x, Integer(27)):
-                                                                                                                f__1 = (E(E_Code.AAAAAAAA, Unit()))
-                                                                                                            else:
-                                                                                                                pos__27 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=85, start_column=13, end_line=85, end_column=14, law_headings=[]))
-                                                                                                                if ==(pos__27, x, Integer(28)):
-                                                                                                                    f__1 = (E(E_Code.BBBBBBBB, Unit()))
-                                                                                                                else:
-                                                                                                                    pos__28 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=86, start_column=13, end_line=86, end_column=14, law_headings=[]))
-                                                                                                                    if ==(pos__28, x, Integer(29)):
-                                                                                                                        f__1 = (E(E_Code.CCCCCCCC, Unit()))
-                                                                                                                    else:
-                                                                                                                        pos__29 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=87, start_column=13, end_line=87, end_column=14, law_headings=[]))
-                                                                                                                        if ==(pos__29, x, Integer(30)):
-                                                                                                                            f__1 = (E(E_Code.DDDDDDDD, Unit()))
-                                                                                                                        else:
-                                                                                                                            pos__30 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=88, start_column=13, end_line=88, end_column=14, law_headings=[]))
-                                                                                                                            if ==(pos__30, x, Integer(31)):
-                                                                                                                                f__1 = (E(E_Code.EEEEEEEE, Unit()))
-                                                                                                                            else:
-                                                                                                                                pos__31 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=89, start_column=13, end_line=89, end_column=14, law_headings=[]))
-                                                                                                                                if ==(pos__31, x, Integer(32)):
-                                                                                                                                    f__1 = (E(E_Code.FFFFFFFF, Unit()))
-                                                                                                                                else:
-                                                                                                                                    pos__32 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=90, start_column=13, end_line=90, end_column=14, law_headings=[]))
-                                                                                                                                    if ==(pos__32, x, Integer(33)):
-                                                                                                                                        f__1 = (E(E_Code.GGGGGGGG, Unit()))
-                                                                                                                                    else:
-                                                                                                                                        pos__33 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=91, start_column=13, end_line=91, end_column=14, law_headings=[]))
-                                                                                                                                        if ==(pos__33, x, Integer(34)):
-                                                                                                                                            f__1 = (E(E_Code.HHHHHHHH, Unit()))
-                                                                                                                                        else:
-                                                                                                                                            pos__34 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=92, start_column=13, end_line=92, end_column=14, law_headings=[]))
-                                                                                                                                            if ==(pos__34, x, Integer(35)):
-                                                                                                                                                f__1 = (E(E_Code.IIIIIIII, Unit()))
-                                                                                                                                            else:
-                                                                                                                                                pos__35 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=93, start_column=13, end_line=93, end_column=14, law_headings=[]))
-                                                                                                                                                if ==(pos__35, x, Integer(36)):
-                                                                                                                                                    f__1 = (E(E_Code.JJJJJJJJ, Unit()))
-                                                                                                                                                else:
-                                                                                                                                                    pos__36 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=94, start_column=13, end_line=94, end_column=14, law_headings=[]))
-                                                                                                                                                    if ==(pos__36, x, Integer(37)):
-                                                                                                                                                        f__1 = (E(E_Code.KKKKKKKK, Unit()))
-                                                                                                                                                    else:
-                                                                                                                                                        pos__37 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=95, start_column=13, end_line=95, end_column=14, law_headings=[]))
-                                                                                                                                                        if ==(pos__37, x, Integer(38)):
-                                                                                                                                                            f__1 = (E(E_Code.LLLLLLLL, Unit()))
-                                                                                                                                                        else:
-                                                                                                                                                            pos__38 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=96, start_column=13, end_line=96, end_column=14, law_headings=[]))
-                                                                                                                                                            if ==(pos__38, x, Integer(39)):
-                                                                                                                                                                f__1 = (E(E_Code.MMMMMMMM, Unit()))
-                                                                                                                                                            else:
-                                                                                                                                                                pos__39 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=97, start_column=13, end_line=97, end_column=14, law_headings=[]))
-                                                                                                                                                                if ==(pos__39, x, Integer(40)):
-                                                                                                                                                                    f__1 = (E(E_Code.NNNNNNNN, Unit()))
-                                                                                                                                                                else:
-                                                                                                                                                                    pos__40 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=98, start_column=13, end_line=98, end_column=14, law_headings=[]))
-                                                                                                                                                                    if ==(pos__40, x, Integer(41)):
-                                                                                                                                                                        f__1 = (E(E_Code.OOOOOOOO, Unit()))
-                                                                                                                                                                    else:
-                                                                                                                                                                        pos__41 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=99, start_column=13, end_line=99, end_column=14, law_headings=[]))
-                                                                                                                                                                        if ==(pos__41, x, Integer(42)):
-                                                                                                                                                                            f__1 = (E(E_Code.PPPPPPPP, Unit()))
-                                                                                                                                                                        else:
-                                                                                                                                                                            pos__42 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=100, start_column=13, end_line=100, end_column=14, law_headings=[]))
-                                                                                                                                                                            if ==(pos__42, x, Integer(43)):
-                                                                                                                                                                                f__1 = (E(E_Code.QQQQQQQQ, Unit()))
-                                                                                                                                                                            else:
-                                                                                                                                                                                pos__43 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=101, start_column=13, end_line=101, end_column=14, law_headings=[]))
-                                                                                                                                                                                if ==(pos__43, x, Integer(44)):
-                                                                                                                                                                                    f__1 = (E(E_Code.RRRRRRRR, Unit()))
-                                                                                                                                                                                else:
-                                                                                                                                                                                    pos__44 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=102, start_column=13, end_line=102, end_column=14, law_headings=[]))
-                                                                                                                                                                                    if ==(pos__44, x, Integer(45)):
-                                                                                                                                                                                        f__1 = (E(E_Code.SSSSSSSS, Unit()))
-                                                                                                                                                                                    else:
-                                                                                                                                                                                        pos__45 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=103, start_column=13, end_line=103, end_column=14, law_headings=[]))
-                                                                                                                                                                                        if ==(pos__45, x, Integer(46)):
-                                                                                                                                                                                            f__1 = (E(E_Code.TTTTTTTT, Unit()))
-                                                                                                                                                                                        else:
-                                                                                                                                                                                            pos__46 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=104, start_column=13, end_line=104, end_column=14, law_headings=[]))
-                                                                                                                                                                                            if ==(pos__46, x, Integer(47)):
-                                                                                                                                                                                                f__1 = (E(E_Code.UUUUUUUU, Unit()))
-                                                                                                                                                                                            else:
-                                                                                                                                                                                                pos__47 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=105, start_column=13, end_line=105, end_column=14, law_headings=[]))
-                                                                                                                                                                                                if ==(pos__47, x, Integer(48)):
-                                                                                                                                                                                                    f__1 = (E(E_Code.VVVVVVVV, Unit()))
-                                                                                                                                                                                                else:
-                                                                                                                                                                                                    pos__48 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=106, start_column=13, end_line=106, end_column=14, law_headings=[]))
-                                                                                                                                                                                                    if ==(pos__48, x, Integer(49)):
-                                                                                                                                                                                                        f__1 = (E(E_Code.WWWWWWWW, Unit()))
-                                                                                                                                                                                                    else:
-                                                                                                                                                                                                        pos__49 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=107, start_column=13, end_line=107, end_column=14, law_headings=[]))
-                                                                                                                                                                                                        if ==(pos__49, x, Integer(50)):
-                                                                                                                                                                                                            f__1 = (E(E_Code.XXXXXXXX, Unit()))
-                                                                                                                                                                                                        else:
-                                                                                                                                                                                                            pos__50 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=108, start_column=13, end_line=108, end_column=14, law_headings=[]))
-                                                                                                                                                                                                            if ==(pos__50, x, Integer(51)):
-                                                                                                                                                                                                                f__1 = (E(E_Code.YYYYYYYY, Unit()))
-                                                                                                                                                                                                            else:
-                                                                                                                                                                                                                pos__51 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=109, start_column=13, end_line=109, end_column=14, law_headings=[]))
-                                                                                                                                                                                                                if ==(pos__51, x, Integer(52)):
-                                                                                                                                                                                                                    f__1 = (E(E_Code.ZZZZZZZZ, Unit()))
-                                                                                                                                                                                                                else:
-                                                                                                                                                                                                                    pos__52 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=110, start_column=8, end_line=110, end_column=18, law_headings=[]))
-                                                                                                                                                                                                                    raise Impossible(pos__52, None)
+        pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=110, start_column=8, end_line=110, end_column=18, law_headings=[]))
+        raise Impossible(pos, None)
     return f__1
 
 # Automatic Catala tests

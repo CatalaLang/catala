@@ -17,16 +17,6 @@ declaration scope A:
 $ catala test-scope A
 ┌─[WARNING]─
 │
-│  In scope "A", the variable "x" is declared but never defined;
-│  did you forget something?
-│
-├─➤ tests/struct/bad/nested2.catala_en:13.10-13.11:
-│    │
-│ 13 │   output x content E
-│    │          ‾
-└─ Article
-┌─[WARNING]─
-│
 │  The structure "S" is never used; maybe it's unnecessary?
 │
 ├─➤ tests/struct/bad/nested2.catala_en:4.23-4.24:

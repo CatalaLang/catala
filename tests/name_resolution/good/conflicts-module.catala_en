@@ -75,7 +75,7 @@ module Decimal_en = Decimal_en
 module Closure_scoppe = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe";
+    name = "Conflicts-module.Closure_sc/195/184ppe";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -91,7 +91,7 @@ end
 module Closure_scoppe_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe_in";
+    name = "Conflicts-module.Closure_sc/195/184ppe_in";
     fields = fun t -> [ ]
   }
 end
@@ -222,7 +222,7 @@ module Decimal_en = Decimal_en
 module Closure_scoppe = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe";
+    name = "Conflicts-module.Closure_sc/195/184ppe";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -238,7 +238,7 @@ end
 module Closure_scoppe_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe_in";
+    name = "Conflicts-module.Closure_sc/195/184ppe_in";
     fields = fun t -> [ ]
   }
 end

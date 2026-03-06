@@ -51,11 +51,29 @@ typedef struct Foo {
   CATALA_BOOL x;
   CATALA_DEC y;
 } Foo;
+const catala_type catala_type__Foo()
+{
+  static catala_type ty = {UNINITIALIZED};
+  static struct catala_label_type fields[2];
+  if (ty.kind != UNINITIALIZED) return ty;
+  return catala_type_struct(&ty, fields, "Foo", 2,
+    "x", catala_type_bool,
+    "y", catala_type_decimal);
+}
 
 typedef struct Baz {
   CATALA_DEC b;
   const CATALA_ARRAY(CATALA_DEC) c;
 } Baz;
+const catala_type catala_type__Baz()
+{
+  static catala_type ty = {UNINITIALIZED};
+  static struct catala_label_type fields[2];
+  if (ty.kind != UNINITIALIZED) return ty;
+  return catala_type_struct(&ty, fields, "Baz", 2,
+    "b", catala_type_decimal,
+    "c", catala_type_array(catala_type_decimal));
+}
 
 enum Bar__code {
   Bar__NO,
@@ -69,10 +87,28 @@ typedef struct Bar {
     const Foo* Bar__YES;
   } payload;
 } Bar;
+const catala_type catala_type__Bar()
+{
+  static catala_type ty = {UNINITIALIZED};
+  static struct catala_label_type cases[2];
+  if (ty.kind != UNINITIALIZED) return ty;
+  return catala_type_enum(&ty, cases, "Bar", 2,
+    "No", catala_type_unit,
+    "Yes", catala_type__Foo());
+}
 
 typedef struct Baz_in {
   const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a_in;
 } Baz_in;
+const catala_type catala_type__Baz_in()
+{
+  static catala_type ty = {UNINITIALIZED};
+  static struct catala_label_type fields[1];
+  if (ty.kind != UNINITIALIZED) return ty;
+  return catala_type_struct(&ty, fields, "Baz_in", 1,
+    "a_in", catala_type_optional(catala_type_tuple(2, catala_type__Bar(),
+                                   catala_type_position)));
+}
 
 const Baz* baz (const Baz_in* baz_in)
 {
@@ -133,7 +169,7 @@ const Baz* baz (const Baz_in* baz_in)
       {{"tests/backends/simple.catala_en", 26, 22, 26, 26}};
     CATALA_TUPLE(CATALA_DEC;CATALA_POSITION) const b__5 =
       catala_malloc(2 * sizeof(tuple_element*));
-    b__5[0].content = catala_new_dec_str("42");
+    b__5[0].content = catala_new_frac(42, 1);
     b__5[1].content = pos;
     b__2 = catala_some(b__5);
   } else {
@@ -160,16 +196,16 @@ const Baz* baz (const Baz_in* baz_in)
     }
     switch (b__7->code) {
       case Bar__NO: {
-        b__6 = catala_new_dec_str("0");
+        b__6 = catala_new_frac(0, 1);
         break;
       }
       case Bar__YES: {
         const Foo* foo = b__7->payload.Bar__YES;
         CATALA_DEC b__8;
         if (foo->x == CATALA_TRUE) {
-          b__8 = catala_new_dec_str("1");
+          b__8 = catala_new_frac(1, 1);
         } else {
-          b__8 = catala_new_dec_str("0");
+          b__8 = catala_new_frac(0, 1);
         }
         b__6 = o_add_rat_rat(foo->y, b__8);
         break;
@@ -190,10 +226,7 @@ const Baz* baz (const Baz_in* baz_in)
     catala_error(catala_no_value, pos, 1, NULL);
     abort();
   }
-  c__3->size = 2;
-  c__3->elements = catala_malloc(2 * sizeof(void*));
-  c__3->elements[0] = b;
-  c__3->elements[1] = b;
+  catala_set_array(c__3, 2, b, b);
   c__2[0].content = c__3;
   c__2[1].content = pos;
   c__1 = catala_some(c__2);
