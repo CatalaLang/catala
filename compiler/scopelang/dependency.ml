@@ -216,7 +216,8 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
         let rec cut_after acc = function
           | [] -> acc
           | v :: vs ->
-            if List.mem v succ then v :: acc else cut_after (v :: acc) vs
+            if List.exists (SVertex.equal v) succ then v :: acc
+            else cut_after (v :: acc) vs
         in
         cut_after [] cycle
       else
@@ -351,7 +352,9 @@ let check_type_cycles
               in
               let succs = TDependencies.succ_e g v in
               let _, edge_pos, succ =
-                List.find (fun (_, _, succ) -> List.mem succ scc) succs
+                List.find
+                  (fun (_, _, succ) -> List.exists (TypeIdent.equal succ) scc)
+                  succs
               in
               let succ_str = Format.asprintf "%a" TypeIdent.format succ in
               [

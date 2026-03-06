@@ -62,7 +62,6 @@ module Passes : sig
     closure_conversion:bool ->
     keep_special_ops:bool ->
     monomorphize_types:bool ->
-    expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->
     Shared_ast.typed Lcalc.Ast.program
     * Shared_ast.TypeIdent.t list
@@ -81,7 +80,6 @@ module Passes : sig
     no_struct_literals:bool ->
     keep_module_names:bool ->
     monomorphize_types:bool ->
-    expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->
     Scalc.Ast.program
     * Shared_ast.TypeIdent.t list

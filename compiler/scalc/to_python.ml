@@ -81,21 +81,12 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
   | Xor -> Format.pp_print_string fmt "!="
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat ->
+  | Lt ->
+    (* FIXME: position argument and errors *)
     Format.pp_print_string fmt "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat ->
-    Format.pp_print_string fmt "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat ->
-    Format.pp_print_string fmt ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat ->
-    Format.pp_print_string fmt ">="
-  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat ->
-    Format.pp_print_string fmt "=="
-  | Lt_dur_dur -> Format.pp_print_string fmt "lt_duration"
-  | Lte_dur_dur -> Format.pp_print_string fmt "le_duration"
-  | Gt_dur_dur -> Format.pp_print_string fmt "gt_duration"
-  | Gte_dur_dur -> Format.pp_print_string fmt "ge_duration"
-  | Eq_dur_dur -> Format.pp_print_string fmt "eq_duration"
+  | Lte -> Format.pp_print_string fmt "<="
+  | Gt -> Format.pp_print_string fmt ">"
+  | Gte -> Format.pp_print_string fmt ">="
   | Map -> Format.pp_print_string fmt "list_map"
   | Map2 -> Format.pp_print_string fmt "list_map2"
   | Reduce -> Format.pp_print_string fmt "list_reduce"
@@ -638,22 +629,23 @@ let format_tests ctx ppf (p : Ast.program) =
   else
     let () =
       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
-             ScopeName.format ppf s))
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
+           (fun ppf (s, _, _) -> ScopeName.format ppf s))
         tests
     in
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
     List.iter
-      (fun (name, block) ->
+      (fun (name, _var, block) ->
         Format.pp_print_cut ppf ();
         (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
          *   name; *)
         format_block ctx ppf block;
         Format.fprintf ppf
           "@,\
-           print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\")"
-          ScopeName.format name)
+           print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \
+           file=sys.stderr)"
+          ScopeName.format_original name)
       tests;
     Format.fprintf ppf "@]@,"
 

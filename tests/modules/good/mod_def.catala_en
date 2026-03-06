@@ -118,18 +118,45 @@ let () =
   | Error h -> failwith "Hash mismatch for module Decimal_en, it may need recompiling"
 module Decimal_en = Decimal_en
 
-module Mod_def = struct type t = Yes | No | Maybe end
+module Mod_def = struct
+  type t =
+    | Yes
+    | No
+    | Maybe
+  let rtype = Value.Enum {
+    name = "Mod_def.Mod_def";
+    constr = function
+      | Yes -> 0, "Yes", None
+      | No -> 1, "No", None
+      | Maybe -> 2, "Maybe", None
+  }
+end
 
 module S = struct
-  type t = {sr: money; e1: Mod_def.t}
+  type t = { sr: money; e1: Mod_def.t; }
+  let rtype = Value.Struct {
+    name = "Mod_def.S";
+    fields = fun t -> [
+      "sr", Value.embed (Value.Money) t.sr;
+      "e1", Value.embed (Mod_def.rtype) t.e1;
+    ]
+  }
 end
 
 module Str1 = struct
-  type t = {fld1: Mod_def.t; fld2: integer}
+  type t = { fld1: Mod_def.t; fld2: integer; }
+  let rtype = Value.Struct {
+    name = "Mod_def.Str1";
+    fields = fun t -> [
+      "fld1", Value.embed (Mod_def.rtype) t.fld1;
+      "fld2", Value.embed (Value.Integer) t.fld2;
+    ]
+  }
 end
 
 module S_in = struct
   type t = unit
+  let rtype = Value.Struct { name = "Mod_def.S_in"; fields = fun t -> [ ] }
 end
 
 
@@ -138,31 +165,33 @@ let s : S_in.t -> S.t = fun _ ->
   let sr: money =
     match
       (Optional.Present
-         ((money_of_cents_string "100000"),
-           ({filename="tests/modules/good/mod_def.catala_en";
-             start_line=29; start_column=24; end_line=29; end_column=30;
-             law_headings=["Test modules + inclusions 1"]})))
+         ((integer_of_int 100000),
+          {filename="tests/modules/good/mod_def.catala_en";
+           start_line=29; start_column=24; end_line=29; end_column=30;
+           law_headings=["Test modules + inclusions 1"]}))
     with
     | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                           start_line=16; start_column=10;
-                           end_line=16; end_column=12;
-                           law_headings=["Test modules + inclusions 1"]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+      (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
+                         start_line=16; start_column=10;
+                         end_line=16; end_column=12;
+                         law_headings=["Test modules + inclusions 1"]}], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   let e1: Mod_def.t =
     match
       (Optional.Present
-         ((Mod_def.Maybe),
-           ({filename="tests/modules/good/mod_def.catala_en";
-             start_line=30; start_column=24; end_line=30; end_column=29;
-             law_headings=["Test modules + inclusions 1"]})))
+         (Mod_def.Maybe,
+          {filename="tests/modules/good/mod_def.catala_en";
+           start_line=30; start_column=24; end_line=30; end_column=29;
+           law_headings=["Test modules + inclusions 1"]}))
     with
     | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                           start_line=17; start_column=10;
-                           end_line=17; end_column=12;
-                           law_headings=["Test modules + inclusions 1"]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+      (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
+                         start_line=17; start_column=10;
+                         end_line=17; end_column=12;
+                         law_headings=["Test modules + inclusions 1"]}], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   {S.sr = sr; S.e1 = e1}
 
 (* Toplevel def half *)
@@ -172,7 +201,7 @@ let half : integer -> decimal =
       {filename="tests/modules/good/mod_def.catala_en";
        start_line=21; start_column=14; end_line=21; end_column=43;
        law_headings=["Test modules + inclusions 1"]} x
-      ((Date_en.get_year) (date_of_numbers (2) (1) (1)))
+      ((Date_en.get_year) (date_of_numbers 2 1 1))
 
 (* Toplevel def maybe *)
 let maybe : Mod_def.t -> Mod_def.t =

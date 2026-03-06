@@ -42,7 +42,7 @@ val format_program :
   File.t option ->
   Format.formatter ->
   hashf:(Hash.t -> Hash.full) ->
-  'm Ast.program ->
+  typed Ast.program ->
   TypeIdent.t list ->
   unit
 (** Usage [format_program get_fmt p type_dependencies_ordering]. Either one of

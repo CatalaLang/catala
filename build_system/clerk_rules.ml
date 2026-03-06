@@ -1036,6 +1036,7 @@ let cleaned_up_env () =
   let passthrough_vars =
     ["CATALA_BIN="; "CATALA_INCLUDE="; "CATALA_TEST_FLAGS="]
   in
+  let ignore_vars = ["CATALA_DEVELOPER="] in
   Unix.environment ()
   |> Array.to_seq
   |> Seq.filter (fun s ->
@@ -1044,7 +1045,12 @@ let cleaned_up_env () =
            (fun prefix -> String.starts_with ~prefix s)
            passthrough_vars
       ||
-      (Message.warning "Ignoring environment variable %s" s;
+      (if
+         not
+           (List.exists
+              (fun prefix -> String.starts_with ~prefix s)
+              ignore_vars)
+       then Message.debug "Ignoring environment variable %s" s;
        false))
   |> Array.of_seq
 

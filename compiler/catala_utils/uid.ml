@@ -28,7 +28,7 @@ module type Id = sig
   type t
   type info
 
-  val fresh : info -> t
+  val fresh : ?from:t -> info -> t
   val get_info : t -> info
   val map_info : (info -> info) -> t -> t
   val compare : t -> t -> int
@@ -37,6 +37,8 @@ module type Id = sig
   val to_string : t -> string
   val id : t -> int
   val hash : t -> Hash.t
+  val original_info : t -> info
+  val format_original : Format.formatter -> t -> unit
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t
@@ -48,7 +50,7 @@ end
 
 module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
   module Ordering = struct
-    type t = { id : int; info : X.info }
+    type t = { id : int; info : X.info; orig_info : X.info option }
 
     let compare (x : t) (y : t) : int = Int.compare x.id y.id
     let equal x y = Int.equal x.id y.id
@@ -56,6 +58,12 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
     let format ppf t =
       Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag S.style);
       X.format ppf t.info;
+      (* Format.pp_print_int ppf t.id; (* uncomment for precise uid debug *) *)
+      Format.pp_close_stag ppf ()
+
+    let format_original ppf t =
+      Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag S.style);
+      X.format ppf (Option.value ~default:t.info t.orig_info);
       (* Format.pp_print_int ppf t.id; (* uncomment for precise uid debug *) *)
       Format.pp_close_stag ppf ()
   end
@@ -66,12 +74,22 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
 
   let counter = ref 0
 
-  let fresh (info : X.info) : t =
+  let original_info t =
+    match t.orig_info with Some info -> info | None -> t.info
+
+  let fresh ?(from : t option) (info : X.info) : t =
     incr counter;
-    { id = !counter; info }
+    { id = !counter; info; orig_info = Option.map original_info from }
 
   let get_info (uid : t) : X.info = uid.info
-  let map_info f { id; info } = { id; info = f info }
+
+  let map_info f t =
+    {
+      id = t.id;
+      info = f t.info;
+      orig_info = Some (Option.value ~default:t.info t.orig_info);
+    }
+
   let id (x : t) : int = x.id
   let to_string t = X.to_string t.info
   let hash t = X.hash t.info
@@ -178,18 +196,21 @@ end
 module type Qualified = sig
   include Id with type info = Path.t * MarkedString.info
 
-  val fresh : Path.t -> MarkedString.info -> t
+  val fresh : ?from:t -> Path.t -> MarkedString.info -> t
   val path : t -> Path.t
   val get_info : t -> MarkedString.info
+  val original_info : t -> MarkedString.info
   val base : t -> string
+  val original_base : t -> string
   val hash : strip:Module.t option -> t -> Hash.t
   val format_shortpath : Format.formatter -> t -> unit
+  val canonical_str : Module.t option -> t -> string
 end
 
 module Gen_qualified (S : Style) () : Qualified = struct
   include Make (QualifiedMarkedString) (S) ()
 
-  let fresh path t = fresh (path, t)
+  let fresh ?from path t = fresh ?from (path, t)
 
   let hash ~strip t =
     let p, i = get_info t in
@@ -203,5 +224,15 @@ module Gen_qualified (S : Style) () : Qualified = struct
 
   let path t = fst (get_info t)
   let get_info t = snd (get_info t)
+  let original_info t = snd (original_info t)
   let base t = Mark.remove (get_info t)
+  let original_base t = Mark.remove (original_info t)
+
+  let canonical_str cur_modname t =
+    let modl =
+      match Path.last_member (path t) with None -> cur_modname | some -> some
+    in
+    match modl with
+    | Some m -> Format.sprintf "%s.%s" (Module.to_string m) (original_base t)
+    | None -> base t
 end

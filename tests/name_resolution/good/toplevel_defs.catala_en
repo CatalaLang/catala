@@ -136,7 +136,11 @@ let glob5_init =
 
 let glob5 = glob5_init ()
 
-let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
+let glob2_init =
+  init pos : SourcePosition = <toplevel_defs:15.20-22>;
+  return A {"y": >= pos glob1 30., "z": 123. * 17.}
+
+let glob2 = glob2_init ()
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
@@ -377,7 +381,11 @@ def glob5_init():
 
 glob5 = (glob5_init())
 
-glob2 = (A(y = (glob1 >= decimal_of_string("30")), z = (decimal_of_string("123") * decimal_of_string("17"))))
+def glob2_init():
+    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=15, start_column=20, end_line=15, end_column=22, law_headings=["Test basic toplevel values defs"]))
+    return A(y = >=(pos, glob1, decimal_of_string("30")), z = (decimal_of_string("123") * decimal_of_string("17")))
+
+glob2 = (glob2_init())
 
 def s2(s2_in:S2In):
     pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=24, end_line=53, end_column=44, law_headings=["Test toplevel function defs"]))
@@ -429,11 +437,11 @@ def s(s_in:SIn):
 # Automatic Catala tests
 if __name__ == "__main__":
   s2_test = (s2(S2In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.", file=sys.stderr)
   s3_test = (s3(S3In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.", file=sys.stderr)
   s4_test = (s4(S4In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.", file=sys.stderr)
   s_test = (s(SIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=sys.stderr)
 ```

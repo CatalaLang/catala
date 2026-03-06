@@ -161,26 +161,10 @@ let neg_op = function
     Some Op.Eq
     (* Alright, we are cheating here since the type is wider, but the
        transformation preserves the semantics *)
-  | Op.Lt_int_int -> Some Op.Gte_int_int
-  | Op.Lt_rat_rat -> Some Op.Gte_rat_rat
-  | Op.Lt_mon_mon -> Some Op.Gte_mon_mon
-  | Op.Lt_dat_dat -> Some Op.Gte_dat_dat
-  | Op.Lt_dur_dur -> Some Op.Gte_dur_dur
-  | Op.Lte_int_int -> Some Op.Gt_int_int
-  | Op.Lte_rat_rat -> Some Op.Gt_rat_rat
-  | Op.Lte_mon_mon -> Some Op.Gt_mon_mon
-  | Op.Lte_dat_dat -> Some Op.Gt_dat_dat
-  | Op.Lte_dur_dur -> Some Op.Gt_dur_dur
-  | Op.Gt_int_int -> Some Op.Lte_int_int
-  | Op.Gt_rat_rat -> Some Op.Lte_rat_rat
-  | Op.Gt_mon_mon -> Some Op.Lte_mon_mon
-  | Op.Gt_dat_dat -> Some Op.Lte_dat_dat
-  | Op.Gt_dur_dur -> Some Op.Lte_dur_dur
-  | Op.Gte_int_int -> Some Op.Lt_int_int
-  | Op.Gte_rat_rat -> Some Op.Lt_rat_rat
-  | Op.Gte_mon_mon -> Some Op.Lt_mon_mon
-  | Op.Gte_dat_dat -> Some Op.Lt_dat_dat
-  | Op.Gte_dur_dur -> Some Op.Lt_dur_dur
+  | Op.Lt -> Some Op.Gte
+  | Op.Lte -> Some Op.Gt
+  | Op.Gt -> Some Op.Lte
+  | Op.Gte -> Some Op.Lt
   | _ -> None
 
 let rec bool_negation pos e =
@@ -229,15 +213,12 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     lazy_eval ctx env { value_level with eval_default } e
   in
   let is_zero env e =
-    let zero = Runtime.integer_of_int 0 in
     let e, _env = eval_to_value env e in
     let condition =
       match Mark.remove e with
-      | ELit (LInt i) -> Runtime.o_eq_int_int zero i
-      | ELit (LRat r) ->
-        Runtime.o_eq_rat_rat (Runtime.decimal_of_integer zero) r
-      | ELit (LMoney m) ->
-        Runtime.o_eq_mon_mon (Runtime.money_of_cents_integer zero) m
+      | ELit (LInt i) -> Z.equal i Z.zero
+      | ELit (LRat r) -> Q.equal r Q.zero
+      | ELit (LMoney m) -> Z.equal m Z.zero
       | ELit (LDuration dt) ->
         Runtime.duration_to_years_months_days dt = (0, 0, 0)
       | _ -> false
@@ -245,13 +226,12 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
     if condition then Some (e, env) else None
   in
   let is_one env e =
-    let one = Runtime.integer_of_int 1 in
     let e, env = eval_to_value env e in
     let condition =
       match Mark.remove e with
-      | ELit (LInt i) -> Runtime.o_eq_int_int one i
-      | ELit (LRat r) -> Runtime.o_eq_rat_rat (Runtime.decimal_of_integer one) r
-      | ELit (LMoney m) -> Runtime.o_eq_mon_mon (Runtime.money_of_units_int 1) m
+      | ELit (LInt i) -> Z.equal i Z.one
+      | ELit (LRat r) -> Q.equal r Q.one
+      | ELit (LMoney m) -> Z.equal m Z.one
       | ELit (LDuration dt) ->
         Runtime.duration_to_years_months_days dt = (0, 0, 1)
       | _ -> false
@@ -293,7 +273,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             let pos = Expr.mark_pos m in
             ( EAppOp
                 {
-                  op = Op.Eq_int_int, opos;
+                  op = Op.Eq, opos;
                   tys = [TLit TInt, pos; TLit TInt, pos];
                   args =
                     [
@@ -399,7 +379,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               e
             in
             let e =
-              Interpreter.evaluate_operator eval (op, opos) m Global.En
+              Interpreter.evaluate_operator ctx eval (op, opos) m Global.En
                 (* Default language to English but this should not raise any
                    error messages so we don't care. *)
                 args
@@ -1249,9 +1229,7 @@ let expr_to_dot_label0 : type a.
         let open Op in
         let str =
           match o with
-          | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
-          | Eq_dat_dat | Eq ->
-            "＝"
+          | Eq -> "＝"
           | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
           | ToRat_int | ToRat_mon | ToRat -> ""
           | ToMoney_rat | ToMoney_int | ToMoney | ToInt | ToInt_rat | ToInt_mon
@@ -1269,18 +1247,10 @@ let expr_to_dot_label0 : type a.
           | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
           | Div_dur_dur | Div ->
             "÷"
-          | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt
-            ->
-            "<"
-          | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat
-          | Lte ->
-            "≤"
-          | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt
-            ->
-            ">"
-          | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat
-          | Gte ->
-            "≥"
+          | Lt -> "<"
+          | Lte -> "≤"
+          | Gt -> ">"
+          | Gte -> "≥"
           | Concat -> "++"
           | Not -> xlang () ~en:"not" ~fr:"non"
           | Length -> xlang () ~en:"length" ~fr:"nombre"
@@ -1305,8 +1275,7 @@ let expr_to_dot_label0 : type a.
       let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
        fun ppf e ->
         let percent_printer ppf = function
-          | ELit (LRat r), m
-            when Runtime.(o_lt_rat_rat r (Runtime.decimal_of_float 1.)) ->
+          | ELit (LRat r), m when Q.gt Q.zero r && Q.lt r Q.one ->
             Format.fprintf ppf "%a%%" aux_value
               ( ELit
                   (LRat

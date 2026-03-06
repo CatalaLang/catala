@@ -71,6 +71,10 @@ val width : string -> int
     font). Useful for alignment. This takes unicode (except composite chars) and
     tabs into account, but not escape sequences. *)
 
+val cut_at_width : string -> int -> string
+(** Returns a string prefix of [s] that can fit into [width] screen columns.
+    Same limitations as [width]. *)
+
 val quote : string -> string
 (** [quote s] returns the string [s] prefixed and suffixed by '"'. The following
     special characters '\\', '"', '\t' and '\n' present in [s] are also escaped

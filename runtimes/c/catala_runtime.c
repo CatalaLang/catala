@@ -22,6 +22,7 @@
 #include <gmp.h>
 #include <string.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include <dates_calc.h>
 #include "catala_runtime.h"
@@ -188,6 +189,16 @@ CATALA_INT catala_new_int_str(const char* val)
   return ret;
 }
 
+CATALA_DEC catala_new_frac (const signed long int num,
+                            const unsigned long int den)
+{
+  CATALA_NEW_MPQ(ret);
+  mpz_set_si(mpq_numref(ret), num);
+  mpz_set_ui(mpq_denref(ret), den);
+  mpq_canonicalize(ret);
+  return ret;
+}
+
 CATALA_DEC catala_new_dec (const signed long int units,
                     const unsigned long int decimals)
 {
@@ -252,6 +263,606 @@ CATALA_DURATION catala_new_duration(const long int years,
   dc_make_period(ret, years, months, days);
   return ret;
 }
+
+void catala_set_array(catala_array* ret, const int size, ...)
+{
+  int i;
+  va_list args;
+  ret->size = size;
+  if (size > 0)
+    ret->elements = catala_malloc(size * sizeof(void*));
+  va_start (args, size);
+  for (i = 0; i < size; i++)
+    ret->elements[i] = va_arg(args, void*);
+  va_end(args);
+  return;
+}
+
+CATALA_ARRAY(X) catala_new_array(const int size, ...)
+{
+  int i;
+  va_list args;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = size;
+  if (size > 0)
+    ret->elements = catala_malloc(size * sizeof(void*));
+  va_start (args, size);
+  for (i = 0; i < size; i++)
+    ret->elements[i] = va_arg(args, void*);
+  va_end(args);
+  return ret;
+}
+
+CATALA_TUPLE(_) catala_new_tuple(const int size, ...)
+{
+  int i;
+  va_list args;
+  tuple_element* ret =
+    catala_malloc(size * sizeof(tuple_element));
+  va_start (args, size);
+  for (i = 0; i < size; i++)
+    ret[i].content = va_arg(args, void*);
+  va_end(args);
+  return ret;
+}
+
+/* --- Value embedding --- */
+
+catala_value embed (const catala_type t, const void* v) {
+  catala_value ret;
+  ret.t = t;
+  ret.v = v;
+  return ret;
+}
+
+int catala_equal_durations(const catala_code_position* pos,
+                           CATALA_DURATION x1, CATALA_DURATION x2) {
+  long int y1 = dc_period_years(x1);
+  long int m1 = dc_period_months(x1);
+  long int d1 = dc_period_days(x1);
+  long int y2 = dc_period_years(x2);
+  long int m2 = dc_period_months(x2);
+  long int d2 = dc_period_days(x2);
+  if (y1 == y2 && m1 == m2 && d1 == d2)
+    return 1;
+  else if (d1 == 0 && d2 == 0)
+    return (y1 * 12 + m1 == y2 * 12 + m2);
+  else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0)
+    return (d1 == d2);
+  else {
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    abort();
+  }
+}
+
+/* TODO: backport as dc_compare_periods to dates_calc ? */
+int catala_compare_durations(const catala_code_position* pos,
+                             CATALA_DURATION x1, CATALA_DURATION x2) {
+  long int y1 = dc_period_years(x1);
+  long int m1 = dc_period_months(x1);
+  long int d1 = dc_period_days(x1);
+  long int y2 = dc_period_years(x2);
+  long int m2 = dc_period_months(x2);
+  long int d2 = dc_period_days(x2);
+  if (d1 == 0 && d2 == 0) {
+    m1 = 12 * y1 + m1;
+    m2 = 12 * y2 + m2;
+    return m1 < m2 ? -1 : (m1 > m2);
+  } else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0) {
+    return d1 < d2 ? -1 : (d1 > d2);
+  } else {
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+  }
+  abort();
+}
+
+int catala_equal_positions(const catala_code_position* x1,
+                           const catala_code_position* x2) {
+  return (strcmp(x1->filename, x2->filename) == 0
+          && x1->start_line == x2->start_line
+          && x1->end_line == x2->end_line
+          && x1->start_column == x2->start_column
+          && x1->end_column == x2->end_column);
+}
+
+#define COMPARE(X, Y) ((X) == (Y) ? 0 : (X) > (Y) ? 1 : -1)
+
+int catala_compare_positions(const catala_code_position* x1,
+                             const catala_code_position* x2) {
+  int cmp = strcmp(x1->filename, x2->filename);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->start_line, x2->start_line);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->end_line, x2->end_line);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->start_column, x2->start_column);
+  if (cmp) return cmp;
+  cmp = COMPARE(x1->end_column, x2->end_column);
+  return cmp;
+}
+
+/* generic pattern for the encoding of catala enums */
+struct catala_enum {
+  unsigned int code; /* this is actually a C enum; from what I could read,
+                        casting to unsigned int is a reasonable assumption, but
+                        there is still a possibility it breaks on exotic
+                        compilers. (Even if smaller, the struct should pad it
+                        for alignemnt so it mays till work) */
+  void* payload;
+};
+
+int catala_equal_values (const catala_code_position* pos, const catala_value x1, const catala_value x2);
+int catala_equal (const catala_type ty, const catala_code_position* pos, const void* x1, const void* x2) {
+  switch (ty.kind) {
+  case UNIT: return 1;
+  case BOOL: return (!*(CATALA_BOOL)x1 == !*(CATALA_BOOL)x2);
+  case INTEGER: return (mpz_cmp(x1, x2) == 0);
+  case DECIMAL: return (mpq_equal(x1, x2));
+  case MONEY: return (mpz_cmp(x1, x2) == 0);
+  case DATE: return (dc_compare_dates(x1, x2) == 0);
+  case DURATION: return catala_equal_durations(pos, x1, x2);
+  case POSITION: return catala_equal_positions(x1, x2);
+  default: return catala_equal_values(pos, embed(ty,x1), embed(ty,x2));
+  }
+}
+int catala_equal_values (const catala_code_position* pos, const catala_value x1, const catala_value x2) {
+  int i;
+  if (x1.t.kind != x2.t.kind) return 0;
+  switch (x1.t.kind) {
+  case ARRAY: {
+    const CATALA_ARRAY() a1 = x1.v;
+    const CATALA_ARRAY() a2 = x2.v;
+    if (a1->size != a2->size) return 0;
+    for (i = 0; i < a1->size; i++)
+      if (!catala_equal_values (pos,
+                                embed(*x1.t.contents.tarray, a1->elements[i]),
+                                embed(*x2.t.contents.tarray, a2->elements[i])))
+        return 0;
+    return 1;
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a1 = x1.v;
+    const CATALA_TUPLE() a2 = x2.v;
+    if (x1.t.contents.ttuple.size != x2.t.contents.ttuple.size) return 0; /* Typing error */
+    for (i = 0; i < x1.t.contents.ttuple.size; i++) {
+      const catala_type * t1 = x1.t.contents.ttuple.elements[i];
+      const catala_type * t2 = x2.t.contents.ttuple.elements[i];
+      if (!catala_equal_values
+          (pos,
+           embed(*t1, a1[i].content),
+           embed(*t2, a2[i].content)))
+        return 0;
+    }
+    return 1;
+  }
+  case STRUCT: {
+    /* Our struct contain only Catala values which are pointers.
+       So we assume that a struct can be cast to an array of pointers. */
+    const void* const* v1 = x1.v;
+    const void* const* v2 = x2.v;
+    if (strcmp(x1.t.contents.tstruct.name, x2.t.contents.tstruct.name)
+        || x1.t.contents.tstruct.size != x2.t.contents.tstruct.size)
+      return 0; /* Typing error */
+    for (i = 0; i < x1.t.contents.tstruct.size; i++) {
+      if (!catala_equal_values
+          (pos,
+           embed(x1.t.contents.tstruct.fields[i].ty, v1[i]),
+           embed(x2.t.contents.tstruct.fields[i].ty, v2[i])))
+        return 0;
+    }
+    return 1;
+  }
+  case ENUM: {
+    const struct catala_enum * e1 = x1.v;
+    const struct catala_enum * e2 = x2.v;
+    if (strcmp(x1.t.contents.tenum.name, x2.t.contents.tenum.name))
+      return 0; /* Typing error */
+    return (e1->code == e2->code &&
+            catala_equal_values
+            (pos,
+             embed(x1.t.contents.tenum.cases[e1->code].ty, e1->payload),
+             embed(x2.t.contents.tenum.cases[e2->code].ty, e2->payload)));
+  }
+  case EXTERNAL: {
+    if (strcmp(x1.t.contents.texternal.name, x2.t.contents.texternal.name))
+      return 0;
+    return x1.t.contents.texternal.equal(pos, x1.v, x2.v);
+  }
+  case FUNCTION: {
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    abort();
+  }
+  default:
+    return catala_equal(x1.t, pos, x1.v, x2.v);
+  }
+}
+
+int catala_compare_values (const catala_code_position* pos, const catala_value x1, const catala_value x2);
+int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x1, const void* x2) {
+  switch (ty.kind) {
+  case UNIT: return 0;
+  case BOOL:
+    return *(CATALA_BOOL)x1 ? (*(CATALA_BOOL)x2 ?  0 : 1) :
+                              (*(CATALA_BOOL)x2 ? -1 : 0);
+  case INTEGER: return (mpz_cmp(x1, x2));
+  case DECIMAL: return (mpq_cmp(x1, x2));
+  case MONEY: return (mpz_cmp(x1, x2));
+  case DATE: return (dc_compare_dates(x1, x2));
+  case DURATION: return catala_compare_durations(pos, x1, x2);
+  case POSITION: return catala_compare_positions(x1, x2);
+  default: return catala_compare_values(pos, embed(ty,x1), embed(ty,x2));
+  }
+}
+#define MIN(X,Y) ((X) <= (Y) ? (X) : (Y))
+int catala_compare_values (const catala_code_position* pos, const catala_value x1, const catala_value x2) {
+  int i;
+  if (x1.t.kind != x2.t.kind) return (x1.t.kind - x2.t.kind);
+  switch (x1.t.kind) {
+  case ARRAY: {
+    const CATALA_ARRAY() a1 = x1.v;
+    const CATALA_ARRAY() a2 = x2.v;
+    for (i = 0; i < MIN(a1->size, a2->size); i++) {
+      int cmp = catala_compare_values(pos,
+          embed(*x1.t.contents.tarray, a1->elements[i]),
+          embed(*x2.t.contents.tarray, a2->elements[i]));
+      if (cmp) return cmp;
+    }
+    return COMPARE(a1->size, a2->size);
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a1 = x1.v;
+    const CATALA_TUPLE() a2 = x2.v;
+    int cmp = COMPARE(x1.t.contents.ttuple.size, x2.t.contents.ttuple.size);
+    if (cmp) return cmp;
+    for (i = 0; i < x1.t.contents.ttuple.size; i++) {
+      const catala_type * t1 = x1.t.contents.ttuple.elements[i];
+      const catala_type * t2 = x2.t.contents.ttuple.elements[i];
+      cmp = catala_compare_values (pos,
+          embed(*t1, a1[i].content),
+          embed(*t2, a2[i].content));
+      if (cmp) return cmp;
+    }
+    return 0;
+  }
+  case STRUCT: {
+    /* Our struct contain only Catala values which are pointers.
+       So we assume that a struct can be cast to an array of pointers. */
+    const void* const* v1 = x1.v;
+    const void* const* v2 = x2.v;
+    int cmp = strcmp(x1.t.contents.tstruct.name, x2.t.contents.tstruct.name);
+    if (cmp) return cmp;
+    cmp = COMPARE(x1.t.contents.tstruct.size, x2.t.contents.tstruct.size);
+    if (cmp) return cmp;
+    for (i = 0; i < x1.t.contents.tstruct.size; i++) {
+      cmp = catala_compare_values (pos,
+          embed(x1.t.contents.tstruct.fields[i].ty, v1[i]),
+          embed(x2.t.contents.tstruct.fields[i].ty, v2[i]));
+      if (cmp) return cmp;
+    }
+    return 0;
+  }
+  case ENUM: {
+    const struct catala_enum * e1 = x1.v;
+    const struct catala_enum * e2 = x2.v;
+    int cmp = strcmp(x1.t.contents.tenum.name, x2.t.contents.tenum.name);
+    if (cmp) return cmp;
+    cmp = COMPARE(e1->code, e2->code);
+    if (cmp) return cmp;
+    return (catala_compare_values
+            (pos,
+             embed(x1.t.contents.tenum.cases[e1->code].ty, e1->payload),
+             embed(x2.t.contents.tenum.cases[e2->code].ty, e2->payload)));
+  }
+  case EXTERNAL: {
+    int cmp = strcmp(x1.t.contents.texternal.name, x2.t.contents.texternal.name);
+    if (cmp) return cmp;
+    return x1.t.contents.texternal.compare(pos, x1.v, x2.v);
+  }
+  case FUNCTION: {
+    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    abort();
+  }
+  default:
+    return catala_compare(x1.t, pos, x1.v, x2.v);
+  }
+}
+
+void stdflush() {
+  puts("");
+  fflush(stdout);
+}
+void stdprintf(const char * fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  gmp_vprintf(fmt, args);
+  va_end(args);
+}
+const struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
+
+void catala_print (struct catala_buf buf, const catala_value x) {
+  int i;
+  switch (x.t.kind) {
+  case UNINITIALIZED:
+    buf.printf("???"); return;
+  case UNIT:
+    buf.printf("()"); return;
+  case BOOL:
+    buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
+  case INTEGER:
+    buf.printf("%Zd", x.v); return;
+  case MONEY: {
+    mpz_t units, cents;
+    mpz_init(units), mpz_init(cents);
+    mpz_tdiv_qr(units, cents, x.v, zconst_100);
+    mpz_abs(cents, cents);
+    buf.printf("%Zd.%02Zd€", units, cents);
+    return;
+  }
+  case DECIMAL: {
+    /* Note: this may do rounding, check the OCaml code for proper printing */
+    mpf_t f;
+    mpf_init(f);
+    mpf_set_q(f, x.v);
+    buf.printf("%01.10Ff", f);
+    return;
+  }
+  case DATE:
+    buf.printf("|%04d-%02d-%02d|", dc_date_year(x.v), dc_date_month(x.v), dc_date_day(x.v));
+    return;
+  case DURATION:
+    buf.printf("[%d years, %d months, %d days]", dc_period_years(x.v), dc_period_months(x.v), dc_period_days(x.v));
+    return;
+  case POSITION: {
+    CATALA_POSITION pos = x.v;
+    buf.printf("%s:%d.%d-%d.%d",
+               pos->filename,
+               pos->start_line,
+               pos->start_column,
+               pos->end_line,
+               pos->end_column);
+    return;
+  }
+  case ARRAY: {
+    const catala_array * a = x.v;
+    buf.printf("[");
+    buf.indent += 2;
+    for (i = 0; i < a->size; i++) {
+      buf.printf("\n% *s", buf.indent, "");
+      catala_print(buf, embed(*x.t.contents.tarray, a->elements[i]));
+      buf.printf(";");
+    }
+    buf.indent -= 2;
+    if (i == 0) buf.printf("]");
+    else buf.printf("\n% *s]", buf.indent, "");
+    return;
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a = x.v;
+    buf.printf("(");
+    buf.indent += 1;
+    for (i = 0; i < x.t.contents.ttuple.size; i++) {
+      const catala_type * t = x.t.contents.ttuple.elements[i];
+      if (i > 0) buf.printf(", ");
+      catala_print(buf, embed(*t, a[i].content));
+    }
+    buf.indent -= 1;
+    buf.printf(")");
+    return;
+  }
+  case STRUCT: {
+    const void* const* a = x.v;
+    buf.printf("%s {", x.t.contents.tstruct.name);
+    buf.indent += 2;
+    for (i = 0; i < x.t.contents.tstruct.size; i++) {
+      buf.printf("\n% *s-- %s: ", buf.indent, "", x.t.contents.tstruct.fields[i].name);
+      catala_print(buf, embed(x.t.contents.tstruct.fields[i].ty, a[i]));
+    }
+    buf.indent -= 2;
+    if (i == 0) buf.printf("}");
+    else buf.printf("\n% *s}", buf.indent, "");
+    return;
+  }
+  case ENUM: {
+    const struct catala_enum * e = x.v;
+    const struct catala_label_type t = x.t.contents.tenum.cases[e->code];
+    buf.printf("%s", t.name);
+    if (t.ty.kind != UNIT) {
+      buf.printf(" content ");
+      buf.indent +=2;
+      catala_print(buf, embed(t.ty, e->payload));
+      buf.indent -=2;
+    }
+    return;
+  }
+  case EXTERNAL:
+    x.t.contents.texternal.print(buf, x.v); return;
+  case FUNCTION:
+    buf.printf("<function>"); return;
+  }
+}
+void catala_tojson (struct catala_buf buf, const catala_value x) {
+  int i;
+  switch (x.t.kind) {
+  case UNINITIALIZED:
+    buf.printf("\"???\""); return;
+  case UNIT:
+    buf.printf("{}"); return;
+  case BOOL:
+    buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
+  case INTEGER:
+    buf.printf("\"%Zd\"", x.v); return;
+  case MONEY: {
+    mpz_t units, cents;
+    mpz_init(units), mpz_init(cents);
+    mpz_tdiv_qr(units, cents, x.v, zconst_100);
+    mpz_abs(cents, cents);
+    buf.printf("\"%Zd.%02Zd\"", units, cents);
+    return;
+  }
+  case DECIMAL: {
+    buf.printf("\"%Qd\"", x.v);
+    return;
+  }
+  case DATE:
+    buf.printf("\"%04d-%02d-%02d\"", dc_date_year(x.v), dc_date_month(x.v), dc_date_day(x.v));
+    return;
+  case DURATION:
+    buf.printf("{\"years\":%d,\"months\":%d,\"days\":%d}]", dc_period_years(x.v), dc_period_months(x.v), dc_period_days(x.v));
+    return;
+  case POSITION: {
+    CATALA_POSITION pos = x.v;
+    buf.printf("\"%s:%d.%d-%d.%d\"",
+               pos->filename,
+               pos->start_line,
+               pos->start_column,
+               pos->end_line,
+               pos->end_column);
+    return;
+  }
+  case ARRAY: {
+    const catala_array * a = x.v;
+    buf.printf("[");
+    for (i = 0; i < a->size; i++) {
+      if (i > 0) buf.printf(",");
+      catala_tojson(buf, embed(*x.t.contents.tarray, a->elements[i]));
+    }
+    buf.printf("]");
+    return;
+  }
+  case TUPLE: {
+    const CATALA_TUPLE() a = x.v;
+    buf.printf("[");
+    for (i = 0; i < x.t.contents.ttuple.size; i++) {
+      const catala_type * t = x.t.contents.ttuple.elements[i];
+      if (i > 0) buf.printf(",");
+      catala_tojson(buf, embed(*t, a[i].content));
+    }
+    buf.printf("]");
+    return;
+  }
+  case STRUCT: {
+    const void* const* a = x.v;
+    buf.printf("{");
+    for (i = 0; i < x.t.contents.tstruct.size; i++) {
+      if (i > 0) buf.printf(",");
+      buf.printf("\"%s\":", x.t.contents.tstruct.fields[i].name);
+      catala_tojson(buf, embed(x.t.contents.tstruct.fields[i].ty, a[i]));
+    }
+    buf.printf("}");
+    return;
+  }
+  case ENUM: {
+    const struct catala_enum * e = x.v;
+    const struct catala_label_type t = x.t.contents.tenum.cases[e->code];
+    if (t.ty.kind == UNIT)
+      buf.printf("\"%s\"", t.name);
+    else {
+      buf.printf("{\"%s\":", t.name);
+      catala_tojson(buf, embed(t.ty, e->payload));
+      buf.printf("}", t.name);
+    }
+    return;
+  }
+  case EXTERNAL:
+    if (x.t.contents.texternal.to_json)
+      x.t.contents.texternal.to_json(buf, x.v);
+    else
+      buf.printf("\"<external:%s>\"", x.t.contents.texternal.name);
+    return;
+  case FUNCTION:
+    buf.printf("\"<function>\""); return;
+  }
+}
+
+/*   - base embedded types -    */
+
+const catala_type catala_type_unit = {UNIT};
+const catala_type catala_type_bool = {BOOL};
+const catala_type catala_type_integer = {INTEGER};
+const catala_type catala_type_decimal = {DECIMAL};
+const catala_type catala_type_money = {MONEY};
+const catala_type catala_type_date = {DATE};
+const catala_type catala_type_duration = {DURATION};
+const catala_type catala_type_position = {POSITION};
+const catala_type catala_type_function = {FUNCTION};
+
+const catala_type catala_type_array(const catala_type ty) {
+  catala_type ret;
+  ret.kind = ARRAY;
+  ret.contents.tarray = catala_malloc(sizeof(catala_type));
+  *ret.contents.tarray = ty;
+  return ret;
+}
+const catala_type catala_type_tuple(int size, ...) {
+  int i;
+  va_list args;
+  catala_type ret;
+  ret.kind = TUPLE;
+  ret.contents.ttuple.size = size;
+  ret.contents.ttuple.elements = catala_malloc(size * sizeof(void*));
+  va_start (args, size);
+  for (i = 0; i < size; i++) {
+    catala_type * ty = catala_malloc(sizeof (catala_type));
+    *ty = va_arg(args, catala_type);
+    ret.contents.ttuple.elements[i] = ty;
+  }
+  va_end(args);
+  return ret;
+}
+const catala_type catala_type_struct
+  (catala_type* ret,
+   struct catala_label_type * fields,
+   const char* name,
+   int size, ...)
+{
+  int i;
+  va_list args;
+  ret->contents.tstruct.name = name;
+  ret->contents.tstruct.size = size;
+  ret->contents.tstruct.fields = fields;
+  va_start (args, size);
+  for (i = 0; i < size; i++) {
+    fields[i].name = va_arg(args, char*);
+    fields[i].ty = va_arg(args, catala_type);
+  }
+  va_end(args);
+  ret->kind = STRUCT;
+  return *ret;
+}
+const catala_type catala_type_enum
+  (catala_type* ret,
+   struct catala_label_type * cases,
+   const char* name,
+   int size, ...)
+{
+  int i;
+  va_list args;
+  ret->contents.tenum.name = name;
+  ret->contents.tenum.size = size;
+  ret->contents.tenum.cases = cases;
+  va_start (args, size);
+  for (i = 0; i < size; i++) {
+    cases[i].name = va_arg(args, char*);
+    cases[i].ty = va_arg(args, catala_type);
+  }
+  va_end(args);
+  ret->kind = ENUM;
+  return *ret;
+}
+const catala_type catala_type_undef = { UNINITIALIZED };
+const catala_type catala_type_optional(const catala_type ty) {
+  catala_type ret;
+  ret.kind = ENUM;
+  ret.contents.tenum.name = "Optional";
+  ret.contents.tenum.size = 2;
+  ret.contents.tenum.cases = catala_malloc(2*sizeof(struct catala_label_type));
+  ret.contents.tenum.cases[0].name = "Absent";
+  ret.contents.tenum.cases[0].ty = catala_type_unit;
+  ret.contents.tenum.cases[1].name = "Present";
+  ret.contents.tenum.cases[1].ty = ty;
+  return ret;
+}
+
 
 /* --- Operators --- */
 
@@ -617,148 +1228,29 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   return ret;
 }
 
-CATALA_BOOL o_eq_boo_boo (CATALA_BOOL x1, CATALA_BOOL x2) {
-  return CATALA_NEW_BOOL(*x1 == *x2);
+CATALA_BOOL o_eq(const catala_type ty, const catala_code_position* pos,
+                 const void* x1, const void* x2) {
+  return CATALA_NEW_BOOL(catala_equal(ty, pos, x1, x2));
 }
 
-CATALA_BOOL o_eq_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) == 0);
+CATALA_BOOL o_lt (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2) {
+  return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) < 0);
 }
 
-CATALA_BOOL o_eq_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return CATALA_NEW_BOOL(mpq_equal(x1, x2));
+CATALA_BOOL o_lte (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2) {
+  return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) <= 0);
 }
 
-CATALA_BOOL o_eq_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) == 0);
+CATALA_BOOL o_gt (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2) {
+  return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) > 0);
 }
 
-CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) == 0);
-}
-
-CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int y1 = dc_period_years(x1);
-  long int m1 = dc_period_months(x1);
-  long int d1 = dc_period_days(x1);
-  long int y2 = dc_period_years(x2);
-  long int m2 = dc_period_months(x2);
-  long int d2 = dc_period_days(x2);
-  if (y1 == y2 && m1 == m2 && d1 == d2)
-    return CATALA_TRUE;
-  else if (d1 == 0 && d2 == 0)
-    return CATALA_NEW_BOOL(y1 * 12 + m1 == y2 * 12 + m2);
-  else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0)
-    return CATALA_NEW_BOOL(d1 == d2);
-  else
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
-  abort();
-}
-
-CATALA_BOOL o_lt_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) < 0);
-}
-
-CATALA_BOOL o_lt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) < 0);
-}
-
-CATALA_BOOL o_lt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) < 0);
-}
-
-CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) < 0);
-}
-
-/* TODO: backport as dc_compare_periods to dates_calc ? */
-int compare_periods (const catala_code_position* pos,
-                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  long int y1 = dc_period_years(x1);
-  long int m1 = dc_period_months(x1);
-  long int d1 = dc_period_days(x1);
-  long int y2 = dc_period_years(x2);
-  long int m2 = dc_period_months(x2);
-  long int d2 = dc_period_days(x2);
-  if (d1 == 0 && d2 == 0) {
-    m1 = 12 * y1 + m1;
-    m2 = 12 * y2 + m2;
-    return m1 < m2 ? -1 : (m1 > m2);
-  } else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0) {
-    return d1 < d2 ? -1 : (d1 > d2);
-  } else {
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
-  }
-  abort();
-}
-
-CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2) {
-  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) < 0);
-}
-
-CATALA_BOOL o_lte_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) <= 0);
-}
-
-CATALA_BOOL o_lte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) <= 0);
-}
-
-CATALA_BOOL o_lte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) <= 0);
-}
-
-CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) <= 0);
-}
-
-CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
-                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) <= 0);
-}
-
-CATALA_BOOL o_gt_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) > 0);
-}
-
-CATALA_BOOL o_gt_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) > 0);
-}
-
-CATALA_BOOL o_gt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) > 0);
-}
-
-CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) > 0);
-}
-
-CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2) {
-  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) > 0);
-}
-
-CATALA_BOOL o_gte_int_int (CATALA_INT x1, CATALA_INT x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) >= 0);
-}
-
-CATALA_BOOL o_gte_rat_rat (CATALA_DEC x1, CATALA_DEC x2) {
-  return CATALA_NEW_BOOL(mpq_cmp(x1, x2) >= 0);
-}
-
-CATALA_BOOL o_gte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2) {
-  return CATALA_NEW_BOOL(mpz_cmp(x1, x2) >= 0);
-}
-
-CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2) {
-  return CATALA_NEW_BOOL(dc_compare_dates(x1, x2) >= 0);
-}
-
-CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
-                           CATALA_DURATION x1, CATALA_DURATION x2) {
-  return CATALA_NEW_BOOL(compare_periods(pos, x1, x2) >= 0);
+CATALA_BOOL o_gte (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2) {
+  return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) >= 0);
 }
 
 const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)

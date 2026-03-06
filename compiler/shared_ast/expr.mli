@@ -554,3 +554,7 @@ module Box : sig
       It raises an internal error if it not the case, printing all free
       variables. *)
 end
+
+val embed_value : decl_ctx -> ('a, 'm) gexpr -> Catala_runtime.Value.t
+(** Create a runtime-compatible typed value embedding from an expression that
+    encodes a value. (NOTE TODO: functions not implemented yet!) *)

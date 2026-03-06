@@ -97,11 +97,22 @@ let () =
 module Decimal_en = Decimal_en
 
 module S = struct
-  type t = {a: bool}
+  type t = { a: bool; }
+  let rtype = Value.Struct {
+    name = "Let_in2.S";
+    fields = fun t -> [ "a", Value.embed (Value.Bool) t.a; ]
+  }
 end
 
 module S_in = struct
-  type t = {a_in: ((bool * code_location)) Optional.t}
+  type t = { a_in: ((bool * code_location)) Optional.t; }
+  let rtype = Value.Struct {
+    name = "Let_in2.S_in";
+    fields = fun t -> [
+      "a_in", Value.embed (Optional.rtype (Value.Tuple(fun (x0, x1) ->
+      [Value.embed (Value.Bool) x0; Value.embed (Value.Position) x1]))) t.a_in;
+    ]
+  }
 end
 
 
@@ -110,35 +121,35 @@ let s : S_in.t -> S.t = fun s_in ->
   let a: ((bool * code_location)) Optional.t = s_in.S_in.a_in in
   let a__1: bool =
     match
-      (match a
-       with
+      (match a with
        | Optional.Absent ->
-           (Optional.Present
-              ((match
-                  (Optional.Present
-                     ((let a__2 : bool = false in
-                       (let a__3 : bool = (a__2 || true) in a__3)),
-                       ({filename="tests/name_resolution/good/let_in2.catala_en";
-                         start_line=11; start_column=5;
-                         end_line=13; end_column=6; law_headings=["Article"]})))
-                with
-                | Optional.Absent -> (raise
-                    (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                                       start_line=7; start_column=18;
-                                       end_line=7; end_column=19;
-                                       law_headings=["Article"]}], None)))
-                | Optional.Present arg -> (let x, _ = arg in x)),
-                ({filename="tests/name_resolution/good/let_in2.catala_en";
-                  start_line=7; start_column=18; end_line=7; end_column=19;
-                  law_headings=["Article"]})))
+         (Optional.Present
+            ((match
+                (Optional.Present
+                   (let a__2 : bool = false in
+                    let a__3 : bool = (a__2 || true) in
+                    a__3,
+                    {filename="tests/name_resolution/good/let_in2.catala_en";
+                     start_line=11; start_column=5;
+                     end_line=13; end_column=6; law_headings=["Article"]}))
+              with
+              | Optional.Absent -> (raise
+                (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
+                                   start_line=7; start_column=18;
+                                   end_line=7; end_column=19;
+                                   law_headings=["Article"]}], None)))
+              | Optional.Present arg -> (let x, _ = arg in x)),
+             {filename="tests/name_resolution/good/let_in2.catala_en";
+              start_line=7; start_column=18; end_line=7; end_column=19;
+              law_headings=["Article"]}))
        | Optional.Present x -> (Optional.Present x))
     with
     | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                           start_line=7; start_column=18;
-                           end_line=7; end_column=19;
-                           law_headings=["Article"]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+      (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
+                         start_line=7; start_column=18;
+                         end_line=7; end_column=19; law_headings=["Article"]}], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   {S.a = a__1}
 
 let () =
