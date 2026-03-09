@@ -1,17 +1,11 @@
-/* This is a template file following the expected interface and declarations to
- * implement the corresponding Catala module.
- *
- * You should replace all `Error.Impossible` place-holders with your
- * implementation and rename it to remove the ".template" suffix. */
-
 import catala.runtime.*;
-import catala.runtime.exception.*;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class Dictionnary_ext {
 
     public static class Dictionnary
-        implements CatalaValue {
+        extends CatalaValue<Dictionnary> {
         TreeMap<CatalaInteger,CatalaMoney> map;
 
         public Dictionnary() {
@@ -19,14 +13,17 @@ public class Dictionnary_ext {
         }
 
         @Override
-        public CatalaBool equalsTo(CatalaValue other) {
-          if (other instanceof Dictionnary v) {
-              return CatalaBool.TRUE; // TODO
-          } else { return CatalaBool.FALSE; }
+        public CatalaBool equalsTo(CatalaPosition p, Dictionnary other) {
+           return CatalaBool.fromBoolean(this.map.equals(other.map));
         }
         @Override
         public String toString() {
             return "MAP"; // TODO
+        }
+
+        @Override
+        public int compareTo(CatalaPosition p, Dictionnary o) {
+            return 0; // TODO
         }
     }
 
