@@ -5,6 +5,8 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import catala.runtime.exception.CatalaError;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public final class CatalaMoney extends CatalaValue<CatalaMoney> {
 
@@ -116,6 +118,12 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     @Override
     public String toString() {
         BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
-        return String.format("$%d.%02d", (Object[]) unitsAndCents);
+        if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
+            NumberFormat nf = NumberFormat.getInstance(Locale.ENGLISH);
+            return String.format("$%s.%02d", nf.format(unitsAndCents[0]), unitsAndCents[1]);
+        } else {
+            NumberFormat nf = NumberFormat.getInstance(Locale.FRENCH);
+            return String.format("%s,%02d€", nf.format(unitsAndCents[0]), unitsAndCents[1]);
+        }
     }
 }

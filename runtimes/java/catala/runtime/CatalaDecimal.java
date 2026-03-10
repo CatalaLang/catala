@@ -7,6 +7,9 @@ import java.math.RoundingMode;
 import org.apache.commons.numbers.fraction.BigFraction;
 
 import catala.runtime.exception.CatalaError;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 // We probably want to keep this class as-is
 // and not derive it from BigFraction as BigFraction is not part of
@@ -136,6 +139,16 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
 
     @Override
     public String toString() {
-        return this.bigDecimalValue(10, RoundingMode.HALF_UP).toPlainString();
+        NumberFormat nf;
+        BigDecimal f = this.bigDecimalValue(10, RoundingMode.HALF_UP);
+        if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
+            nf = NumberFormat.getInstance(Locale.ENGLISH);
+        } else {
+            nf = NumberFormat.getInstance(Locale.FRENCH);
+        }
+        DecimalFormat x = (DecimalFormat) nf;
+        x.setParseBigDecimal(true);
+        x.setMaximumFractionDigits(20);
+        return x.format(f);
     }
 }

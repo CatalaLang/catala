@@ -16,7 +16,7 @@ declaration positive
   equals
     if d > 0 day then d else 0 day
 
-## Sums the elements of a list of Decimal
+## Sums the elements of a list of duration
 declaration sum
   content duration
   depends on l content list of duration
