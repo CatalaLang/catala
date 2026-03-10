@@ -1,9 +1,11 @@
 ```catala
 #[test] declaration scope A:
-  output w content integer
+  output w content decimal
+  output m content money
 
 scope A:
-  definition w equals 1 + 2 + 3
+  definition w equals 12312.1231231231
+  definition m equals $12345678
 ```
 
 

@@ -766,7 +766,12 @@ let format_scope_out_struct_constructor
         format_visibility vis format_scope scope_name (format_struct_params ctx)
         fields format_struct_constructor_body fields
     in
-    fprintf ppf "@[<hov 4>%astatic class %aOut {@\n%a@\n%a@]@\n}@\n@\n"
+    fprintf ppf
+      "@[<hov 4>%astatic class %aOut extends CatalaStruct {@\n\
+       %a@\n\
+       %a@]@\n\
+       }@\n\
+       @\n"
       format_visibility vis format_scope scope_name
       (pp_print_list ~pp_sep:pp_print_space (format_output_parameter ~vis ctx))
       (StructField.Map.bindings fields)
@@ -782,52 +787,6 @@ let format_scope_out_struct_constructor
     fprintf ppf "@[<hov 4>%a%a (%aOut result) {@\n%a@]@\n}" format_visibility
       vis format_scope scope_name format_scope scope_name
       format_scope_out_constructor_body fields
-
-let format_fields_equality ppf (fields : string list) =
-  let format_field_equality ppf field =
-    fprintf ppf "this.%s.equalsTo(p, o.%s)" field field
-  in
-  let rec pp_conjunction ppf = function
-    | [] -> fprintf ppf "CatalaBool.TRUE"
-    | [h] -> format_field_equality ppf h
-    | h :: t ->
-      fprintf ppf "%a.and@;<0 -1>(%a)" format_field_equality h pp_conjunction t
-  in
-  fprintf ppf "return @[<hov 4>%a;@]" pp_conjunction fields
-
-let format_fields_comparison ppf (fields : string list) =
-  let format_field_comparison ppf field =
-    fprintf ppf "if ((cmp = this.%s.compareTo(p, o.%s)) != 0) return cmp;@\n"
-      field field
-  in
-  if fields = [] then fprintf ppf "return 0;"
-  else begin
-    fprintf ppf "int cmp;@\n";
-    fprintf ppf "@[<v>%a@]"
-      (pp_print_list ~pp_sep:(fun _ () -> ()) format_field_comparison)
-      fields;
-    fprintf ppf "return 0;"
-  end
-
-let format_struct_to_string ppf fields =
-  fprintf ppf
-    "%@Override@\n@[<v 4>public String toString() {@\nreturn %a;@]@\n}"
-    (fun ppf -> function
-      | [] -> fprintf ppf "\"\""
-      | fields ->
-        (pp_print_list
-           ~pp_sep:(fun ppf () -> fprintf ppf " + \", \"@ + ")
-           (fun ppf field_s ->
-             fprintf ppf "\"%s = \" + this.%s.toString()" field_s field_s))
-          ppf fields)
-    fields
-
-let format_enum_to_string ppf =
-  fprintf ppf
-    "%@Override@\n\
-     @[<v 4>public String toString() {@\n\
-     return this.kind.toString() + \" \" + this.contents.toString();@]@\n\
-     }"
 
 let format_tests ctx ppf (closures, tests) =
   assert (closures = []);
@@ -848,14 +807,19 @@ let format_tests ctx ppf (closures, tests) =
             (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
-     let format_test ppf (scope_name, _var, block) =
+     let format_test ppf (scope_name, var, block) =
+       pp_open_vbox ppf 2;
        fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
+         (match Global.options.language with Some Fr -> "FR" | _ -> "EN");
        fprintf ppf
          "%a@\n\
           System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-          successfully.\"); }"
+          successfully.\");@\n\
+          System.out.println(%s); }"
          (format_block ~toplevel:true ctx)
-         block ScopeName.format scope_name
+         block ScopeName.format_original scope_name (VarName.to_string var);
+       pp_close_box ppf ()
      in
      pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
   fprintf ppf "@]@\n}"
@@ -881,29 +845,18 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     | None -> []
     | Some out_fields -> StructField.Map.bindings out_fields
   in
-  let fields_l = List.map fst out_fields |> List.map StructField.to_string in
-  let format_fields_equality ppf = format_fields_equality ppf fields_l in
-  let format_fields_comparison ppf = format_fields_comparison ppf fields_l in
   fprintf ppf
-    "@[<v 4>@[<hov 4>public static class %a@ extends CatalaValue<%a> {@]@\n\
+    "@[<v 4>@[<hov 4>public static class %a@ extends CatalaStruct {@]@\n\
      @,\
      %a@ %t@\n\
      @,\
-     %t@\n\
-     @,\
-     %t@\n\
-     @,\
-     %a@]@\n\
+     %t@]@\n\
      }"
-    format_scope sbody.scope_body_name format_scope sbody.scope_body_name
+    format_scope sbody.scope_body_name
     (format_scope_output_parameters ctx sbody)
     out_fields
     (format_constructor ctx sbody)
     pp_out_struct
-    (format_comparisons
-       (ScopeName.to_string sbody.scope_body_name)
-       format_fields_equality format_fields_comparison)
-    format_struct_to_string fields_l
 
 let gather_externals ctx =
   let external_global_funcs, external_global_vars =
@@ -999,27 +952,16 @@ let format_structs ctx ppf =
         (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
         fields_l
     in
-    let fields_l = List.map fst fields_l |> List.map StructField.to_string in
-    let format_fields_equality ppf = format_fields_equality ppf fields_l in
-    let format_fields_comparison ppf = format_fields_comparison ppf fields_l in
     fprintf ppf
-      "@[<v 4>public static class %a@ extends CatalaValue<%a> {@\n\
-       @,\
-       %t@\n\
-       @,\
-       %a@\n\
+      "@[<v 4>public static class %a@ extends CatalaStruct {@\n\
        @,\
        %t@\n\
        @,\
        %a@]@\n\
        }"
-      format_struct sname format_struct sname format_params
+      format_struct sname format_params
       (format_struct_constructor ctx ~vis:Public)
       (sname, fields)
-      (format_comparisons
-         (StructName.to_string sname)
-         format_fields_equality format_fields_comparison)
-      format_struct_to_string fields_l
   in
   let structs_to_generate =
     StructName.Map.filter
@@ -1095,33 +1037,8 @@ let format_enums ctx ppf =
              match Mark.remove typ with TLit TUnit -> false | _ -> true)
            (EnumConstructor.Map.bindings cstrs))
     in
-    let format_fields_equality ppf =
-      fprintf ppf
-        "@[<v 4>if (this.kind == o.kind) {@,\
-         return @[<v 4>this.getContentsAs(this.kind, \
-         CatalaValue.class).equalsTo(p, @\n\
-         o.getContentsAs(o.kind,CatalaValue.class));@]@;\
-         <1 -4>} else {@,\
-         return CatalaBool.FALSE;@;\
-         <1 -4>}@]"
-    in
-    let format_fields_comparison ppf =
-      (* TODO *)
-      fprintf ppf
-        "@[<v 4>if (this.kind == o.kind) {@,\
-         return @[<v 4>this.getContentsAs(this.kind, \
-         CatalaValue.class).compareTo(p, @\n\
-         o.getContentsAs(o.kind,CatalaValue.class));@]@;\
-         <1 -4>} else {@,\
-         return this.kind.compareTo(o.kind);@;\
-         <1 -4>}@]"
-    in
     fprintf ppf
-      "@[<v 4>public static class %a@ extends CatalaValue<%a> {@\n\
-       @,\
-       %t@\n\
-       @,\
-       %t@\n\
+      "@[<v 4>public static class %a@ extends CatalaEnum {@\n\
        @,\
        %t@\n\
        @,\
@@ -1131,11 +1048,8 @@ let format_enums ctx ppf =
        @,\
        %t@]@\n\
        }"
-      format_enum ename format_enum ename format_enum_kind format_enum_params
-      format_enum_constrs format_enum_accessors
-      (format_comparisons (EnumName.to_string ename) format_fields_equality
-         format_fields_comparison)
-      format_enum_to_string
+      format_enum ename format_enum_kind format_enum_params format_enum_constrs
+      format_enum_accessors
   in
   let enums_to_generate =
     EnumName.Map.filter

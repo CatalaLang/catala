@@ -1287,6 +1287,13 @@ module Commands = struct
         ~renaming:(Some Scalc.To_java.renaming)
     in
     Message.debug "Compiling program into Java...";
+    let () =
+      match options.Global.input_src with
+      | FileName (file : File.t) | Contents (_, (file : File.t)) ->
+        let language = Some (Cli.file_lang file) in
+        ignore @@ Global.enforce_options ~language ()
+      | _ -> ()
+    in
     get_output_format options output
       ~ext:(if Global.options.gen_external then "template.java" else "java")
     @@ fun output_file ppf ->

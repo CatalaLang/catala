@@ -105,14 +105,16 @@ public final class CatalaArray<T extends CatalaValue> extends CatalaValue<Catala
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append("[ ");
+        b.append("[\n");
+        StringBuilder newb = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
-            b.append(values[i].toString());
+            newb.append(values[i].toString());
             if (i < values.length - 1) {
-                b.append("; ");
+                newb.append("; ");
             }
         }
-        b.append(" ]");
+        // indent adds a newline for some reason, thus, we do not add one.
+        b.append(newb.toString().indent(2)).append("]");
         return b.toString();
     }
 

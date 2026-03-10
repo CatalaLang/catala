@@ -44,15 +44,6 @@ public final class CatalaBool extends CatalaValue<CatalaBool> {
     }
 
     @Override
-    public String toString() {
-        if (this.value) {
-            return "true";
-        } else {
-            return "false";
-        }
-    }
-
-    @Override
     public int compareTo(CatalaPosition p, CatalaBool o) {
         if (this.equals(o)) {
             return 0;
@@ -61,6 +52,23 @@ public final class CatalaBool extends CatalaValue<CatalaBool> {
             return 1;
         } else {
             return -1;
+        }
+    }
+
+    @Override
+    public String toString() {
+        if (this.value) {
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                return "vrai";
+            } else {
+                return "true";
+            }
+        } else {
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                return "faux";
+            } else {
+                return "false";
+            }
         }
     }
 }
