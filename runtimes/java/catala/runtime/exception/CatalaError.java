@@ -27,36 +27,36 @@ public class CatalaError extends RuntimeException {
         public String toString() {
             switch (this) {
                 case AssertionFailed:
-                    return "an assertion doesn't hold";
+                    return "Assertion failure";
                 case NoValue:
-                    return "no applicable rule to define this variable in this situation";
+                    return "No applicable rule to define this variable in this situation";
                 case Conflict:
-                    return "conflict between multiple valid consequences for assigning the same variable";
+                    return "Conflict between multiple valid consequences for assigning the same variable";
                 case DivisionByZero:
-                    return "a value is being used as denominator in a division and it computed to zero";
+                    return "A value is being used as denominator in a division and it computed to zero";
                 case ListEmpty:
-                    return "the list was empty";
+                    return "The list was empty";
                 case NotSameLength:
-                    return "traversing multiple lists of different lengths";
+                    return "Traversing multiple lists of different lengths";
                 case InvalidDate:
-                    return "the provided numbers do not correspond to a valid date";
+                    return "The provided numbers do not correspond to a valid date";
                 case UncomparableDurations:
-                    return "ambiguous comparison between durations in different units (e.g. months vs. days)";
+                    return "Ambiguous comparison between durations in different units (e.g. months vs. days)";
                 case AmbiguousDateRounding:
-                    return "ambiguous date computation, and rounding mode was not specified";
+                    return "Ambiguous date computation, and rounding mode was not specified";
                 case IndivisibleDurations:
-                    return "dividing durations that are not in days";
+                    return "Dividing durations that are not in days";
                 case Impossible:
                     return "\"impossible\" computation reached";
                 case UncomparableValues:
-                    return "comparing values of different types";
+                    return "Comparing values of different types";
             }
             return "";
         }
     }
-
+ 
     private CatalaError(Error err) {
-        super("\n\033[1;31m[ERROR]\033[m" + err.toString());
+        super(err.toString());
     }
 
     public static CatalaError error(Error err) {
@@ -64,7 +64,7 @@ public class CatalaError extends RuntimeException {
     }
 
     private CatalaError(Error err, String note) {
-        super("\n\033[1;31m[ERROR]\033[m " + err.toString() + ". " + note);
+        super(err.toString() + ". " + note);
     }
 
     public static CatalaError error(Error err, String note) {
@@ -72,7 +72,7 @@ public class CatalaError extends RuntimeException {
     }
 
     private CatalaError(Error err, CatalaPosition pos) {
-        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString());
+        super("at " + pos.toString() + ": " + err.toString());
     }
 
     public static CatalaError error(Error err, CatalaPosition pos) {
@@ -84,7 +84,7 @@ public class CatalaError extends RuntimeException {
     }
 
     private CatalaError(Error err, CatalaPosition pos, String note) {
-        super("\n\033[1;31m[ERROR]\033[m At " + pos.toString() + ": " + err.toString() + ". " + note);
+        super("at " + pos.toString() + ": " + err.toString() + ". " + note);
     }
 
     public static CatalaError error(Error err, CatalaPosition pos, String note) {
@@ -96,7 +96,7 @@ public class CatalaError extends RuntimeException {
     }
 
     private CatalaError(Error err, List<CatalaPosition> lpos) {
-        super("\n\033[1;31m[ERROR]\033[m At " + lpos.stream()
+        super("at " + lpos.stream()
                 .map(CatalaPosition::toString)
                 .collect(Collectors.joining(", ")) + ": " + err.toString());
     }

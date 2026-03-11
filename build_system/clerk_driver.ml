@@ -879,7 +879,7 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
   | `Verbose -> Clerk_report.set_display_flags ~files:`All ~tests:`All ());
   Clerk_report.set_display_flags ?fix_path ~diff_command ~coverage ()
 
-let run_artifact config ~backend ~var_bindings ?scope src =
+let run_artifact config ~backend ~var_bindings ?scope ~test src =
   let open File in
   match backend with
   | `OCaml ->
@@ -913,7 +913,9 @@ let run_artifact config ~backend ~var_bindings ?scope src =
   | `Java ->
     let target_main = File.remove_extension (Filename.basename src) in
     let cmd =
-      get_var var_bindings Var.java @ ["-cp"; src -.- "jar"; target_main]
+      get_var var_bindings Var.java
+      @ ["-cp"; src -.- "jar"; target_main]
+      @ if test then ["--test"] else []
     in
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd
@@ -1003,8 +1005,9 @@ let build_test_deps
   Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
   base_targets, link_deps, var_bindings
 
-let run_tests
+let run_targets
     ?(whole_program = false)
+    ~test
     config
     backend
     cmd
@@ -1048,7 +1051,7 @@ let run_tests
     let cmd = link_cmd item target in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     match run_command cmd with
-    | 0 -> run_artifact config ~backend ~var_bindings ?scope target
+    | 0 -> run_artifact ~test config ~backend ~var_bindings ?scope target
     | n -> n)
 
 let run_cmd =
@@ -1077,7 +1080,9 @@ let run_cmd =
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
-    else run_tests ~whole_program config backend cmd scope scope_input tests
+    else
+      run_targets ~test:false ~whole_program config backend cmd scope
+        scope_input tests
   in
   let doc =
     "Runs the Catala interpreter on the given files, after building their \
@@ -1327,7 +1332,7 @@ let run_clerk_test
     Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
       ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
-    |> run_tests config backend "" None None
+    |> run_targets ~test:true config backend "" None None
   else
     let targets, missing =
       let fs =

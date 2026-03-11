@@ -810,15 +810,19 @@ let format_tests ctx ppf (closures, tests) =
      let format_test ppf (scope_name, var, block) =
        pp_open_vbox ppf 2;
        fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
+       pp_open_vbox ppf 2;
+       fprintf ppf "try {@\n";
        fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
          (match Global.options.language with Some Fr -> "FR" | _ -> "EN");
-       fprintf ppf
-         "%a@\n\
-          System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-          successfully.\");@\n\
-          System.out.println(%s); }"
+       fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
          (format_block ~toplevel:true ctx)
          block ScopeName.format_original scope_name (VarName.to_string var);
+       pp_close_box ppf ();
+       fprintf ppf
+         "@\n\
+          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", \
+          e); } }"
+         ScopeName.format_original scope_name;
        pp_close_box ppf ()
      in
      pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
