@@ -853,7 +853,7 @@ let format_program
   Fun.protect ~finally:(fun () -> ppall "@.")
   @@ fun () ->
   ppall "@[<v>";
-  if Global.options.gen_external then
+  if !Global.gen_external then
     ppall
       "/* This is a template file following the expected interface and \
        declarations to\n\
@@ -901,7 +901,7 @@ let format_program
   pp [pph] "@,#endif /* __%s_H__ */" module_id;
   if snd p.tests <> [] then format_main ctx env ppmain p;
   ppall "@]";
-  if Global.options.gen_external then
+  if !Global.gen_external then
     let files = List.filter_map Fun.id [output_file; h_file] in
     if files <> [] then
       Message.result "Generated template external implementations:@ %a"

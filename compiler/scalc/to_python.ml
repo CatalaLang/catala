@@ -668,7 +668,7 @@ let format_program
   Format.pp_set_geometry fmt ~max_indent:999_990 ~margin:1_000_000;
   Format.pp_open_vbox fmt 0;
   let header =
-    (if Global.options.gen_external then
+    (if !Global.gen_external then
        [
          "# This is a template file following the expected interface and \
           declarations to";
@@ -700,7 +700,7 @@ let format_program
   Format.pp_print_list (format_code_item p.ctx) fmt p.code_items;
   if snd p.tests <> [] then format_tests p.ctx fmt p;
   Format.pp_print_flush fmt ();
-  if Global.options.gen_external then
+  if !Global.gen_external then
     output_file
     |> Option.iter
          (Message.result "Generated template external implementations:@ %a"

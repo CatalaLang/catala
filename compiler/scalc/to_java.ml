@@ -1267,7 +1267,7 @@ let format_program ctx ppf { code_items; tests; _ } =
 let format_program ~class_name output_file ppf (p : Ast.program) : unit =
   Format.pp_open_vbox ppf 0;
   let header =
-    (if Global.options.gen_external then
+    (if !Global.gen_external then
        [
          "/* This is a template file following the expected interface and \
           declarations to";
@@ -1289,7 +1289,7 @@ let format_program ~class_name output_file ppf (p : Ast.program) : unit =
   pp_print_newline ppf ();
   fprintf ppf "@[<v 4>public class %s {%a@ @]@\n}@\n" class_name
     (format_program ctx) p;
-  if Global.options.gen_external then
+  if !Global.gen_external then
     output_file
     |> Option.iter
          (Message.result "Generated template external implementations:@ %a"

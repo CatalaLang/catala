@@ -137,8 +137,7 @@ let renaming =
     ~reserved:ocaml_keywords
       (* TODO: add catala runtime built-ins as reserved as well ? *)
     ~skip_constant_binders:true
-    ~constant_binder_name:
-      (if Global.options.gen_external then None else Some "_")
+    ~constant_binder_name:(if !Global.gen_external then None else Some "_")
     ~namespaced_fields:true ~namespaced_constrs:true ~prefix_module:false
     ~modnames_conflict:false
 
@@ -855,7 +854,7 @@ let format_module_registration ctx fmt exports modname hash is_external =
 
 let header () =
   let comment =
-    if Global.options.gen_external then
+    if !Global.gen_external then
       "(* This is a template file following the expected interface and \
        declarations to\n\
       \ * implement the corresponding Catala module.\n\
@@ -881,7 +880,7 @@ let format_program
   @@ fun intf_file ppi ->
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
-  if not Global.options.gen_external then
+  if not !Global.gen_external then
     check_and_reexport_used_modules ppml ppi ~hashf
       (List.map
          (fun (m, intf) -> m, intf.intf_id)
@@ -899,7 +898,7 @@ let format_program
           (Option.value ~default:"-" output_file)
           fmt exports);
   pp [ppml; ppi] "@]";
-  if Global.options.gen_external then
+  if !Global.gen_external then
     let files = List.filter_map Fun.id [output_file; intf_file] in
     if files <> [] then
       Message.result "Generated template external implementations:@ %a"

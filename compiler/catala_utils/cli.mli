@@ -68,6 +68,7 @@ module Flags : sig
   val include_dirs : raw_file list Term.t
   val stdlib_dir : raw_file option Term.t
   val disable_counterexamples : bool Term.t
+  val gen_external : bool Term.t
 
   val extra_files : file list Term.t
   (** for the 'latex' command *)

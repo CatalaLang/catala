@@ -1918,7 +1918,7 @@ let init_scope_defs
 (** Main function of this module *)
 let translate_program
     (ctxt : Name_resolution.context)
-    ?(allow_external = Global.options.gen_external)
+    ?(allow_external = !Global.gen_external)
     (modules_contents : Surface.Ast.module_content ModuleName.Map.t)
     (surface : S.program) : Ast.program =
   let get_scope s_uid =
@@ -2134,7 +2134,7 @@ let translate_program
     }
   in
   let desugared =
-    match Global.options.gen_external, ctxt.local.is_external with
+    match !Global.gen_external, ctxt.local.is_external with
     | true, false -> (
       match desugared.program_module_name with
       | None ->

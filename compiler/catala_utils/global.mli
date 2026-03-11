@@ -65,7 +65,6 @@ type options = private {
   mutable no_fail_on_assert : bool;
   mutable whole_program : bool;
   mutable bin_dir : string;
-  mutable gen_external : bool;
   mutable no_stdlib : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
@@ -75,6 +74,11 @@ val options : options
 (** A global definition to the global options is provided for convenience, e.g.
     choosing the proper output in formatting functions. Prefer the use of the
     options returned by the command-line parsing whenever possible. *)
+
+val gen_external : bool ref
+(** Whether to generate external module template files. This is set per-command
+    (only relevant for backend commands like ocaml, python, c, java), not as a
+    global option. *)
 
 val enforce_options :
   ?input_src:file input_src ->
@@ -93,8 +97,8 @@ val enforce_options :
   ?no_fail_on_assert:bool ->
   ?whole_program:bool ->
   ?bin_dir:string ->
-  ?gen_external:bool ->
   ?no_stdlib:bool ->
+  ?gen_external:bool ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this
