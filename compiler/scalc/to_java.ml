@@ -215,8 +215,8 @@ let rec format_typ ?(wildcard = false) ?(diamond = true) ctx ppf (typ : typ) =
     else fprintf ppf "CatalaArray"
   | TDefault typ -> (format_typ ctx) ppf typ
   | TVar _ ->
-    if wildcard then fprintf ppf "? extends CatalaValue"
-    else fprintf ppf "CatalaValue"
+    if wildcard then fprintf ppf "? extends CatalaValue<?>"
+    else fprintf ppf "CatalaValue<?>"
   | TForAll _ -> assert false
   | TClosureEnv -> assert false
   | TError -> assert false
@@ -846,7 +846,7 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     | Some out_fields -> StructField.Map.bindings out_fields
   in
   fprintf ppf
-    "@[<v 4>@[<hov 4>public static class %a@ extends CatalaStruct {@]@\n\
+    "@[<v 4>@[<hov 4>public static class %a extends CatalaStruct {@]@\n\
      @,\
      %a@ %t@\n\
      @,\
@@ -953,12 +953,7 @@ let format_structs ctx ppf =
         fields_l
     in
     fprintf ppf
-      "@[<v 4>public static class %a@ extends CatalaStruct {@\n\
-       @,\
-       %t@\n\
-       @,\
-       %a@]@\n\
-       }"
+      "@[<v 4>public static class %a extends CatalaStruct {@\n@,%t@\n@,%a@]@\n}"
       format_struct sname format_params
       (format_struct_constructor ctx ~vis:Public)
       (sname, fields)
@@ -984,7 +979,7 @@ let format_enums ctx ppf =
     in
     let format_enum_params ppf =
       fprintf ppf
-        "private final CatalaValue contents;@\npublic final Kind kind;"
+        "private final CatalaValue<?> contents;@\npublic final Kind kind;"
     in
     let format_enum_constrs ppf =
       let format_enum_make ppf (cstr, typ) =
@@ -1002,7 +997,7 @@ let format_enums ctx ppf =
           (if is_unit then "CatalaUnit.INSTANCE" else "v")
       in
       fprintf ppf
-        "@[<v 4>private %a(Kind k, CatalaValue contents) {@ this.kind = k;@ \
+        "@[<v 4>private %a(Kind k, CatalaValue<?> contents) {@ this.kind = k;@ \
          this.contents = contents;@;\
          <1 -4>}@]%a"
         format_enum ename
@@ -1012,8 +1007,7 @@ let format_enums ctx ppf =
     let format_enum_accessors ppf =
       let format_default_accessor ppf =
         fprintf ppf
-          "@@SuppressWarnings(\"unchecked\")@,\
-           @[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
+          "@[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
            2>if (this.kind != k) {@ throw new \
            IllegalArgumentException(\"Invalid enum contents access: expected \
            \" + k + \", got \" + this.kind);@;\
@@ -1038,7 +1032,8 @@ let format_enums ctx ppf =
            (EnumConstructor.Map.bindings cstrs))
     in
     fprintf ppf
-      "@[<v 4>public static class %a@ extends CatalaEnum {@\n\
+      "@@SuppressWarnings(\"unchecked\")@,\
+       @[<v 4>public static class %a extends CatalaEnum {@\n\
        @,\
        %t@\n\
        @,\
@@ -1064,7 +1059,7 @@ let format_abstract_types ctx ppf =
   let format_abs ppf name =
     Message.debug ">> %a" AbstractType.format name;
     fprintf ppf
-      "@[<v 4>public static class %a@ extends CatalaValue<%a> {@ %t@ %t@]@\n}"
+      "@[<v 4>public static class %a extends CatalaValue<%a> {@\n@ %t@ %t@]@\n}"
       (format_qualified (module AbstractType))
       name
       (format_qualified (module AbstractType))

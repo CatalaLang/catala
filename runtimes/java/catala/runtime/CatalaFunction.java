@@ -3,7 +3,7 @@ package catala.runtime;
 import catala.runtime.exception.CatalaError;
 import java.util.function.Function;
 
-public interface CatalaFunction<Tin extends CatalaValue, Tout extends CatalaValue>
+public interface CatalaFunction<Tin extends CatalaValue<?>, Tout extends CatalaValue<?>>
         extends Function<Tin, Tout> {
 
     default public CatalaBool equalsTo(Object o) {

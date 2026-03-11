@@ -1,6 +1,8 @@
 package catala.runtime;
 
-public abstract class CatalaValue<T extends CatalaValue> implements Comparable<T> {
+import catala.runtime.exception.CatalaError;
+
+public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparable<T> {
 
     public abstract CatalaBool equalsTo(CatalaPosition p, T v);
 
@@ -8,7 +10,7 @@ public abstract class CatalaValue<T extends CatalaValue> implements Comparable<T
     public abstract String toString();
 
     @SuppressWarnings("unchecked")
-    public static <U extends CatalaValue> U cast(CatalaValue v) {
+    public static <U extends CatalaValue<?>> U cast(CatalaValue<?> v) {
         return (U) v;
     }
 
@@ -19,10 +21,20 @@ public abstract class CatalaValue<T extends CatalaValue> implements Comparable<T
         return compareTo(CatalaPosition.empty, o);
     }
 
+    @SuppressWarnings("unchecked")
+    public int compareTo(CatalaPosition p, Object o) {
+        if (this.getClass().equals(o.getClass())) {
+            return this.compareTo(p, (T) o);
+        } else {
+            throw CatalaError.error(CatalaError.Error.UncomparableValues, p);
+        }
+    }
+
     public CatalaBool equalsTo(T v) {
         return this.equalsTo(CatalaPosition.empty, v);
     }
 
+    @SuppressWarnings("unchecked")
     public CatalaBool equalsTo(CatalaPosition p, Object o) {
         if (this.getClass().equals(o.getClass())) {
             return this.equalsTo(p, (T) o);
@@ -32,6 +44,7 @@ public abstract class CatalaValue<T extends CatalaValue> implements Comparable<T
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (this.getClass().equals(o.getClass())) {
             return this.equalsTo(CatalaPosition.empty, (T) o).asBoolean();

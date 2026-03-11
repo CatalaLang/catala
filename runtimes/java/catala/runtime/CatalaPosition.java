@@ -37,24 +37,23 @@ public final class CatalaPosition
 
     @Override
     public int compareTo(CatalaPosition p, CatalaPosition o) {
-        CatalaPosition op = (CatalaPosition) o;
-        int cmp = this.filename.compareTo(op.filename);
+        int cmp = this.filename.compareTo(o.filename);
         if (cmp != 0) {
             return cmp;
         }
-        cmp = Integer.compare(this.startLine, op.startLine);
+        cmp = Integer.compare(this.startLine, o.startLine);
         if (cmp != 0) {
             return cmp;
         }
-        cmp = Integer.compare(this.endLine, op.endLine);
+        cmp = Integer.compare(this.endLine, o.endLine);
         if (cmp != 0) {
             return cmp;
         }
-        cmp = Integer.compare(this.startColumn, op.startColumn);
+        cmp = Integer.compare(this.startColumn, o.startColumn);
         if (cmp != 0) {
             return cmp;
         }
-        return Integer.compare(this.endColumn, op.endColumn);
+        return Integer.compare(this.endColumn, o.endColumn);
     }
 
 }
