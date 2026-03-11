@@ -52,7 +52,7 @@ public class Dictionnary_ext {
             CatalaInteger key = CatalaValue.<CatalaInteger>cast
                (tup_arg_27.get(1));
             CatalaMoney v = dict.map.get(key);
-            if (v == null) return CatalaOption.NONE;
+            if (v == null) return CatalaOption.none();
             else return CatalaOption.some(v);
         };
     }

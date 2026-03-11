@@ -14,9 +14,9 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                CatalaValue v1 = (CatalaValue) (field.get(this));
-                CatalaValue v2 = (CatalaValue) (field.get(o));
-                if (!(v1.equalsTo(v2)).asBoolean()) {
+                CatalaValue<?> v1 = (CatalaValue) (field.get(this));
+                CatalaValue<?> v2 = (CatalaValue) (field.get(o));
+                if (!(v1.equalsTo(p, v2)).asBoolean()) {
                     return CatalaBool.FALSE;
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -36,9 +36,9 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                CatalaValue v1 = (CatalaValue) (field.get(this));
-                CatalaValue v2 = (CatalaValue) (field.get(o));
-                if ((cmp = v1.compareTo(v2)) != 0) {
+                CatalaValue<?> v1 = (CatalaValue) (field.get(this));
+                CatalaValue<?> v2 = (CatalaValue) (field.get(o));
+                if ((cmp = v1.compareTo(p, v2)) != 0) {
                     return cmp;
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -50,13 +50,16 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
 
     public String toString(String qualified_name) {
         Field[] fields = this.getClass().getDeclaredFields();
+        if (fields.length == 0) {
+            return qualified_name + " { }";
+        }
         StringBuilder b = new StringBuilder();
         b.append(qualified_name).append(" { \n");
         StringBuilder subb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
             f.setAccessible(true);
-            Class c = f.getType();
+            Class<?> c = f.getType();
             subb.append("-- ").append(f.getName()).append(": ");
             if (c.isInstance(CatalaFunction.class)) {
                 subb.append("<function>");

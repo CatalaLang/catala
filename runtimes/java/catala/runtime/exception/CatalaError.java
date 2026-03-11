@@ -7,6 +7,8 @@ import catala.runtime.CatalaPosition;
 
 public class CatalaError extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public enum Error {
         AssertionFailed,
         NoValue,

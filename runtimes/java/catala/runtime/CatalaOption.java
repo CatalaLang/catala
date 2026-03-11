@@ -1,18 +1,18 @@
 package catala.runtime;
 
-public final class CatalaOption<T extends CatalaValue> extends CatalaValue<CatalaOption<T>> {
+public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<CatalaOption<T>> {
 
     public final T value;
 
-    public static final CatalaOption NONE = new CatalaOption<>(null);
+    private static final CatalaOption<? extends CatalaValue<?>> NONE = new CatalaOption<>(null);
 
-    public static final <T extends CatalaValue> CatalaOption<T> none() {
+    public static final <U extends CatalaValue<?>> CatalaOption<U> none() {
         @SuppressWarnings("unchecked")
-        CatalaOption<T> t = (CatalaOption<T>) NONE;
+        CatalaOption<U> t = (CatalaOption<U>) NONE;
         return t;
     }
 
-    public static <T extends CatalaValue> CatalaOption<T> some(T value) {
+    public static <U extends CatalaValue<?>> CatalaOption<U> some(U value) {
         if (value == null) {
             throw new IllegalArgumentException("'CatalaOption.some' requires a non-null value");
         }
@@ -57,7 +57,7 @@ public final class CatalaOption<T extends CatalaValue> extends CatalaValue<Catal
         if (o.isNone()) {
             return 1;
         }
-        return this.get().compareTo(p, (T) o.get());
+        return this.get().compareTo(p, o.get());
     }
 
     @Override
