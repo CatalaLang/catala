@@ -12,20 +12,26 @@ public class CatalaGlobals {
     public static Language lang = Language.EN;
 
     public static void displayResult(String[] args, String scope, CatalaValue<?> result) {
-        Stream<String> args_s = Stream.of(args);
-        boolean is_test = args_s.anyMatch(s -> s.equals("--test"));
+        boolean is_test = Stream.of(args).anyMatch(s -> s.equals("--test"));
+        boolean json = Stream.of(args).anyMatch(s -> s.equals("--json"));
         System.out.println("\u001B[32m[RESULT]\u001B[0m Scope " + scope + " executed successfully.");
         if (!is_test) {
-            System.out.println(result);
+            if (json) {
+                System.out.println(result.toJSONString());
+            } else {
+                System.out.println(result.toString());
+            }
         }
     }
 
-    private static final String error_prefix = "\033[1;31m[ERROR]\033[m ";
+    private static final String ERR_PREFIX = "\033[1;31m[ERROR]\033[m ";
 
     public static void displayError(String scope, RuntimeException e) {
         if (e instanceof CatalaError ce) {
-            System.err.println(error_prefix + "While executing scope " + scope + " " + ce.getMessage()
-            );
+            System.err.println(ERR_PREFIX + "While executing scope " + scope + " " + ce.getMessage());
+            if (ce.kind == CatalaError.Error.GenericError) {
+                e.printStackTrace(System.err);
+            }
         } else {
             System.err.println("\033[1;31m[ERROR]\033[m Unexpected exception");
             throw e;

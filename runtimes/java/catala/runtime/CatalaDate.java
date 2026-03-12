@@ -105,7 +105,12 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
 
     @Override
     public String toString() {
-        return String.format("|%1$04d-%2$02d-%3$02d|", this.date.year,
+        return String.format("%1$04d-%2$02d-%3$02d", this.date.year,
                 this.date.month, this.date.day);
+    }
+
+    @Override
+    public String toJSONString() {
+        return  '"' + this.toString() + '"';
     }
 }

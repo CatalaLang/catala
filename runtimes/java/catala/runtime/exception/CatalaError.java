@@ -21,7 +21,8 @@ public class CatalaError extends RuntimeException {
         AmbiguousDateRounding,
         IndivisibleDurations,
         Impossible,
-        UncomparableValues;
+        UncomparableValues,
+        GenericError;
 
         @Override
         public String toString() {
@@ -50,13 +51,18 @@ public class CatalaError extends RuntimeException {
                     return "\"impossible\" computation reached";
                 case UncomparableValues:
                     return "Comparing values of different types";
+                case GenericError:
+                    return "Generic error";
             }
             return "";
         }
     }
- 
+
+    public Error kind;
+
     private CatalaError(Error err) {
         super(err.toString());
+        this.kind = err;
     }
 
     public static CatalaError error(Error err) {
@@ -65,6 +71,7 @@ public class CatalaError extends RuntimeException {
 
     private CatalaError(Error err, String note) {
         super(err.toString() + ". " + note);
+        this.kind = err;
     }
 
     public static CatalaError error(Error err, String note) {
@@ -73,6 +80,7 @@ public class CatalaError extends RuntimeException {
 
     private CatalaError(Error err, CatalaPosition pos) {
         super("at " + pos.toString() + ": " + err.toString());
+        this.kind = err;
     }
 
     public static CatalaError error(Error err, CatalaPosition pos) {
@@ -85,6 +93,7 @@ public class CatalaError extends RuntimeException {
 
     private CatalaError(Error err, CatalaPosition pos, String note) {
         super("at " + pos.toString() + ": " + err.toString() + ". " + note);
+        this.kind = err;
     }
 
     public static CatalaError error(Error err, CatalaPosition pos, String note) {
@@ -99,6 +108,7 @@ public class CatalaError extends RuntimeException {
         super("at " + lpos.stream()
                 .map(CatalaPosition::toString)
                 .collect(Collectors.joining(", ")) + ": " + err.toString());
+        this.kind = err;
     }
 
     public static CatalaError error(Error err, List<CatalaPosition> lpos) {

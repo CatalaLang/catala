@@ -151,4 +151,9 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         x.setMaximumFractionDigits(20);
         return x.format(f);
     }
+
+    @Override
+    public String toJSONString() {
+        return '"' + this.value.bigDecimalValue().toString() + '"';
+    }
 }

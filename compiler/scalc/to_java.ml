@@ -1063,7 +1063,9 @@ let format_abstract_types ctx ppf =
   let format_abs ppf name =
     Message.debug ">> %a" AbstractType.format name;
     fprintf ppf
-      "@[<v 4>public static class %a extends CatalaValue<%a> {@\n@ %t@ %t@]@\n}"
+      "@[<v 4>public static class %a extends CatalaValue<%a> {@\n\
+       @ %t@ @ %t@ @ %t@]@\n\
+       }"
       (format_qualified (module AbstractType))
       name
       (format_qualified (module AbstractType))
@@ -1084,6 +1086,15 @@ let format_abstract_types ctx ppf =
            @[<v 4>public String toString() {@\n\
            // TO IMPLEMENT@\n\
            return \"<%a>\";@]@\n\
+           }"
+          (format_qualified (module AbstractType))
+          name)
+      (fun ppf ->
+        Format.fprintf ppf
+          "%@Override@\n\
+           @[<v 4>public String toJSONString() {@\n\
+           // TO IMPLEMENT@\n\
+           return \"\\\"<%a>\\\"\";@]@\n\
            }"
           (format_qualified (module AbstractType))
           name)

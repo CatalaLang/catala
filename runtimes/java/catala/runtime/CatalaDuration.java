@@ -5,7 +5,7 @@ import catala.runtime.exception.CatalaError;
 
 public final class CatalaDuration extends CatalaValue<CatalaDuration> {
 
-    Period period;
+    public final Period period;
 
     public CatalaDuration(Period period) {
         this.period = period;
@@ -15,15 +15,21 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
         return new CatalaDuration(new Period(years, months, days));
     }
 
-    public final int getYears() {
+    public boolean isZero() {
+        return this.period.years == 0
+                && this.period.months == 0
+                && this.period.days == 0;
+    }
+
+    public final int years() {
         return this.period.years;
     }
 
-    public final int getMonths() {
+    public final int months() {
         return this.period.months;
     }
 
-    public final int getDays() {
+    public final int days() {
         return this.period.days;
     }
 
@@ -45,24 +51,24 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
     }
 
     public final CatalaDecimal divide(CatalaDuration other) {
-        if (this.getYears() != 0 || this.getMonths() != 0
-                || other.getYears() != 0 || other.getMonths() != 0) {
+        if (this.years() != 0 || this.months() != 0
+                || other.years() != 0 || other.months() != 0) {
             throw new IllegalArgumentException("Can only divide durations expressed in days");
         }
-        if (other.getDays() == 0) {
+        if (other.days() == 0) {
             throw new IllegalArgumentException("Duration: divide by zero");
         }
-        return new CatalaDecimal(this.getDays(), other.getDays());
+        return new CatalaDecimal(this.days(), other.days());
 
     }
 
     @Override
     public int compareTo(CatalaPosition p, CatalaDuration o) {
-        if (this.getMonths() == 0 && o.getMonths() == 0 && this.getYears() == 0 && o.getYears() == 0) {
-            return ((Integer) (this.getDays())).compareTo(o.getDays());
-        } else if (this.getDays() == 0 && o.getDays() == 0) {
-            return ((Integer) (this.getYears() * 12 + this.getMonths()))
-                    .compareTo(o.getYears() * 12 + o.getMonths());
+        if (this.months() == 0 && o.months() == 0 && this.years() == 0 && o.years() == 0) {
+            return ((Integer) (this.days())).compareTo(o.days());
+        } else if (this.days() == 0 && o.days() == 0) {
+            return ((Integer) (this.years() * 12 + this.months()))
+                    .compareTo(o.years() * 12 + o.months());
         } else {
             throw CatalaError.error(CatalaError.Error.UncomparableDurations, p);
         }
@@ -70,23 +76,73 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
 
     @Override
     public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
-        return (CatalaBool.fromBoolean(this.getYears() == other.getYears()
-                && this.getMonths() == other.getMonths()
-                && this.getDays() == other.getDays()
+        return (CatalaBool.fromBoolean(this.years() == other.years()
+                && this.months() == other.months()
+                && this.days() == other.days()
                 || this.compareTo(pos, other) == 0));
+    }
+
+    private static boolean appendDuration(StringBuilder b, String frlbl, String enlbl,
+            int value, boolean always, boolean hasPred) {
+        if (value > 0 || always) {
+            if (hasPred) {
+                b.append(", ");
+            }
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                b.append(value).append(" ").append(frlbl);
+            } else {
+                b.append(value).append(" ").append(enlbl);
+            }
+            if (value > 1) {
+                b.append("s");
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public String toString() {
-        int years = this.getYears();
-        if (years > 0) {
-            return "[" + years + (years == 1 ? " year]" : " years]");
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        boolean hasPred = false;
+        if (this.isZero()) {
+            appendDuration(b, "jour", "day", 0, true, hasPred);
+        } else {
+            hasPred = appendDuration(b, "an", "year", this.period.years, false, hasPred);
+            hasPred = appendDuration(b, "mois", "month", this.period.months, false, hasPred);
+            appendDuration(b, "jour", "day", this.period.days, false, hasPred);
         }
-        int months = this.getMonths();
-        if (months > 0) {
-            return "[" + months + (months == 1 ? " month]" : " months]");
+        return b.toString().trim() + ']';
+    }
+
+    @Override
+    public String toJSONString() {
+        if (this.isZero()) {
+            return "{}";
         }
-        int days = this.getDays();
-        return "[" + days + (days == 1 ? " day]" : " days]");
+        StringBuilder b = new StringBuilder();
+        b.append("{ ");
+        boolean pred = false;
+        if (this.period.years > 0) {
+            b.append("\"years\":").append(this.period.years);
+            pred = true;
+        }
+        if (this.period.months > 0) {
+            if (pred) {
+                b.append(", ");
+            }
+            pred = true;
+            b.append("\"months\":").append(this.period.months);
+        }
+        if (this.period.days > 0) {
+            if (pred) {
+                b.append(", ");
+            }
+            b.append("\"days\":").append(this.period.days);
+        }
+        b.append(" }");
+        return b.toString();
     }
 }

@@ -63,4 +63,9 @@ public final class CatalaTuple extends CatalaValue<CatalaTuple> {
         s.append(')');
         return s.toString();
     }
+
+    @Override
+    public String toJSONString() {
+        return new CatalaArray<>(this.values).toJSONString();
+    }
 }

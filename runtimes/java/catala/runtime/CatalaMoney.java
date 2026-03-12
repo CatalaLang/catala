@@ -126,4 +126,9 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
             return String.format("%s,%02d€", nf.format(unitsAndCents[0]), unitsAndCents[1]);
         }
     }
+
+    @Override
+    public String toJSONString() {
+        return '"' + this.value.toString() + '"';
+    }
 }

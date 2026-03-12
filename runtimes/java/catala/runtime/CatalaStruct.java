@@ -54,14 +54,14 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
             return qualified_name + " { }";
         }
         StringBuilder b = new StringBuilder();
-        b.append(qualified_name).append(" { \n");
+        b.append(qualified_name).append(" {\n");
         StringBuilder subb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
             f.setAccessible(true);
             Class<?> c = f.getType();
             subb.append("-- ").append(f.getName()).append(": ");
-            if (c.isInstance(CatalaFunction.class)) {
+            if (c.isAssignableFrom(CatalaFunction.class)) {
                 subb.append("<function>");
                 continue;
             }
@@ -72,7 +72,7 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
                     subb.append(f.get(this).toString());
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
-                throw new RuntimeException(e);
+                throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
             }
             if (i < fields.length - 1) {
                 subb.append('\n');
@@ -86,5 +86,56 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
     @Override
     public String toString() {
         return toString(this.getClass().getSimpleName());
+    }
+
+    @Override
+    public String toJSONString() {
+        Field[] fields = this.getClass().getDeclaredFields();
+        if (fields.length == 0) {
+            return "{ }";
+        }
+        StringBuilder b = new StringBuilder();
+        b.append('{');
+        if (fields.length > 1) {
+            b.append('\n');
+        } else {
+            b.append(' ');
+        }
+        StringBuilder subb = new StringBuilder();
+        for (int i = 0; i < fields.length; i++) {
+            Field f = fields[i];
+            try {
+                f.setAccessible(true);
+                Class<?> c = f.getType();
+                if (c.isAssignableFrom(CatalaFunction.class)) {
+                    throw CatalaError.error(CatalaError.Error.GenericError, "Cannot serialize functional value of field " + f.getName());
+                }
+                CatalaValue<?> v = (CatalaValue<?>) (f.get(this));
+                if (c.isAssignableFrom(CatalaOption.class)) {
+                    CatalaOption<?> o = (CatalaOption) f.get(this);
+                    if (o.isNone()) {
+                        // Print nothing if the field is an unset optional
+                        continue;
+                    } else {
+                        subb.append('"').append(f.getName()).append("\": ").append(o.get().toJSONString());
+                    }
+                } else {
+                    subb.append('"').append(f.getName()).append("\": ").append(v.toJSONString());
+                }
+                if (i < fields.length - 1) {
+                    subb.append(",\n");
+                }
+            } catch (IllegalAccessException | IllegalArgumentException | ClassCastException e) {
+                throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
+            }
+        }
+        if (fields.length > 1) {
+            // indent adds a newline for no intelligible reason: we do not add a new one.
+            b.append(subb.toString().indent(2)).append("}");
+        } else {
+            b.append(subb.toString()).append(" }");
+        }
+        return b.toString();
+
     }
 }
