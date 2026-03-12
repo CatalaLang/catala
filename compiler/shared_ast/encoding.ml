@@ -48,27 +48,30 @@ let try_option f =
   | _ -> None
 
 let int_encoding : Val.t encoding =
-  union
-    [
-      case int53
-        (function
-          | Val.V (Integer, z) -> try_option (fun () -> Z.to_int64 z)
-          | v ->
-            Message.error ~internal:true
-              "Unexpected runtime value %a instead of int while encoding to \
-               JSON"
-              Val.format v)
-        (fun i -> Val.V (Integer, Z.of_int64 i));
-      case string
-        (function
-          | Val.V (Integer, z) -> Some (Z.to_string z) | _ -> assert false)
-        (fun s ->
-          try Val.V (Integer, Z.of_string s)
-          with _ ->
-            raise (Json_encoding.Unexpected ("string", "numeric string")));
-    ]
+  def "integer" ~title:"Catala Integer"
+  @@ union
+       [
+         case int53
+           (function
+             | Val.V (Integer, z) -> try_option (fun () -> Z.to_int64 z)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of int while encoding to \
+                  JSON"
+                 Val.format v)
+           (fun i -> Val.V (Integer, Z.of_int64 i));
+         case string
+           (function
+             | Val.V (Integer, z) -> Some (Z.to_string z) | _ -> assert false)
+           (fun s ->
+             try Val.V (Integer, Z.of_string s)
+             with _ ->
+               raise (Json_encoding.Unexpected ("string", "numeric string")));
+       ]
 
 let money_encoding : Val.t encoding =
+  def "money" ~title:"Catala Money"
+  @@
   let z_100 = Z.of_int 100 in
   let q_100 = Q.of_int 100 in
   union
@@ -104,25 +107,26 @@ let money_encoding : Val.t encoding =
     ]
 
 let rat_encoding : Val.t encoding =
-  union
-    [
-      case float
-        (function
-          | Val.V (Decimal, d) -> try_option (fun () -> Q.to_float d)
-          | v ->
-            Message.error ~internal:true
-              "Unexpected runtime value %a instead of decimal while encoding \
-               to JSON"
-              Val.format v)
-        (fun f -> Val.V (Decimal, Q.of_float f));
-      case int53 (fun _ -> None) (fun f -> Val.V (Decimal, Q.of_int64 f));
-      case string
-        (function Val.V (Decimal, d) -> Some (Q.to_string d) | _ -> None)
-        (fun s ->
-          try Val.V (Decimal, Q.of_string s)
-          with _ ->
-            raise (Json_encoding.Unexpected ("string", "numeric string")));
-    ]
+  def "decimal" ~title:"Catala Decimal"
+  @@ union
+       [
+         case float
+           (function
+             | Val.V (Decimal, d) -> try_option (fun () -> Q.to_float d)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of decimal while \
+                  encoding to JSON"
+                 Val.format v)
+           (fun f -> Val.V (Decimal, Q.of_float f));
+         case int53 (fun _ -> None) (fun f -> Val.V (Decimal, Q.of_int64 f));
+         case string
+           (function Val.V (Decimal, d) -> Some (Q.to_string d) | _ -> None)
+           (fun s ->
+             try Val.V (Decimal, Q.of_string s)
+             with _ ->
+               raise (Json_encoding.Unexpected ("string", "numeric string")));
+       ]
 
 let date_encoding : Val.t encoding =
   let date_obj =
@@ -165,6 +169,8 @@ let date_encoding : Val.t encoding =
        ]
 
 let duration_encoding : Val.t encoding =
+  def "duration" ~title:"Catala duration"
+  @@
   let encoding =
     obj3 (dft "years" int 0) (dft "months" int 0) (dft "days" int 0)
     |> conv
@@ -178,18 +184,20 @@ let duration_encoding : Val.t encoding =
          (fun (years, months, days) ->
            Val.V (Duration, Dates_calc.make_period ~years ~months ~days))
   in
-  def "duration" ~title:"Catala duration" @@ encoding
+  encoding
 
 let position_encoding =
-  let p_encoding = obj2 (req "line" int32) (req "character" int) in
+  def "position" ~title:"Catala position"
+  @@
+  let p_encoding = obj2 (req "line" int32) (req "character" int32) in
   let range_encoding = obj2 (req "start" p_encoding) (req "end" p_encoding) in
   obj2 (req "file" string) (req "range" range_encoding)
   |> conv
        (function
          | Val.V (Position, pos) ->
            ( pos.filename,
-             ( (Int32.of_int pos.start_line, pos.start_column),
-               (Int32.of_int pos.end_line, pos.end_column) ) )
+             ( (Int32.of_int pos.start_line, Int32.of_int pos.start_column),
+               (Int32.of_int pos.end_line, Int32.of_int pos.end_column) ) )
          | v ->
            Message.error ~internal:true
              "Unexpected runtime value %a instead of position while encoding \
@@ -201,9 +209,9 @@ let position_encoding =
              {
                filename = file;
                start_line = Int32.to_int sl;
-               start_column = sc;
+               start_column = Int32.to_int sc;
                end_line = Int32.to_int el;
-               end_column = ec;
+               end_column = Int32.to_int ec;
                law_headings = [];
              } ))
 
