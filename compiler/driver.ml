@@ -1193,20 +1193,34 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion
-      _gen_external =
-    let options = if closure_conversion then fix_trace options else options in
+      gen_external =
+    if closure_conversion then ignore @@ fix_trace options;
+    let options = Global.enforce_options ~gen_external () in
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~expand_ops:true
         ~renaming:(Some Lcalc.To_ocaml.renaming)
     in
-    Message.debug "Compiling program to generate Js_of_ocaml interface...";
-    get_output_format options output ~ext:"ml" ~suffix:"_jsoo"
-    @@ fun output_file fmt ->
-    let hashf = Hash.finalise ~monomorphize_types:false in
-    Lcalc.To_jsoo_interface.format_program output_file fmt prg ~hashf
-      type_ordering
+    (* Gen external for jsoo backend generates a javascript file which is
+       completely different from it's original purpose to generate an
+       interface*)
+    if gen_external then
+      get_output_format options output ~ext:"js"
+      @@ fun _output_file fmt ->
+      let module_name =
+        match prg.module_name with
+        | None -> ""
+        | Some (name, _) -> ModuleName.to_string name
+      in
+      Lcalc.From_jsoo_interface.format_js_template fmt module_name prg
+    else (
+      Message.debug "Compiling program to generate Js_of_ocaml interface...";
+      get_output_format options output ~ext:"ml" ~suffix:"_jsoo"
+      @@ fun output_file fmt ->
+      let hashf = Hash.finalise ~monomorphize_types:false in
+      Lcalc.To_jsoo_interface.format_program output_file fmt prg ~hashf
+        type_ordering)
 
   let jsoo_cmd =
     Cmd.v
@@ -1235,7 +1249,8 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion =
-    let options = if closure_conversion then fix_trace options else options in
+    if closure_conversion then ignore @@ fix_trace options;
+    let options = Global.enforce_options ~gen_external:true () in
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
