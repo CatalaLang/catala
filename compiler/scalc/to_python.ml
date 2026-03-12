@@ -150,9 +150,10 @@ let python_keywords =
     "while";
     "with";
     "yield";
+    (* todo: reserved names should also include built-in types and everything
+       exposed by the runtime. *)
+    "Code";
   ]
-(* todo: reserved names should also include built-in types and everything
-   exposed by the runtime. *)
 
 let renaming =
   Renaming.program ()
@@ -255,7 +256,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          && EnumConstructor.equal cons Expr.some_constr ->
     Format.fprintf fmt "Option(%a)" (format_expression ctx) e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum ctx) enum_name
+    Format.fprintf fmt "%a(%a.Code.%a,@ %a)" (format_enum ctx) enum_name
       (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e
   | EArray es ->
@@ -286,6 +287,28 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
       (format_expression ctx) arg2
+  | EAppOp { op = (Eq | Lt | Lte | Gt | Gte), _ as op;
+             args = [_pos; arg1; arg2];
+             tys = [TLit TPos, _;
+                    TLit (TUnit | TBool | TInt | TMoney | TRat | TDate), _;
+                    TLit (TUnit | TBool | TInt | TMoney | TRat | TDate), _]
+           }
+    ->
+    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
+      (format_expression ctx) arg2
+  | EAppOp { op = (Eq | Lt | Lte | Gt | Gte), _ as op; args = [pos; a1; a2]; _ } ->
+    Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]"
+      (format_expression ctx) a1
+      (fun ppf -> function
+         | Operator.Eq, _ -> Format.pp_print_string ppf "__eq__"
+         | Lt, _ -> Format.pp_print_string ppf "__lt__"
+         | Lte, _ -> Format.pp_print_string ppf "_le___"
+         | Gt, _ -> Format.pp_print_string ppf "__gt__"
+         | Gte, _ -> Format.pp_print_string ppf "__ge__"
+         | _ -> assert false)
+      op
+      (format_expression ctx) a2
+      (format_expression ctx) pos
   | EApp
       {
         f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
@@ -441,7 +464,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<v 4>elif ")
          (fun fmt (case, cons_name) ->
-           Format.fprintf fmt "%a.code == %a_Code.%a:@," VarName.format
+           Format.fprintf fmt "%a.code == %a.Code.%a:@," VarName.format
              switch_var (format_enum ctx) e_name EnumConstructor.format
              cons_name;
            format_block ctx fmt
@@ -533,39 +556,17 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
-      failwith "no constructors in the enum"
-    else
-      Format.fprintf fmt
-        "@[<v 4>class %a_Code(Enum):@,\
-         %a@]@,\
-         @,\
-         class %a:@,\
-        \    def __init__(self, code: %a_Code, value: Any) -> None:@,\
-        \        self.code = code@,\
-        \        self.value = value@,\
-         @,\
-         @,\
-        \    def __eq__(self, other: object) -> bool:@,\
-        \        if isinstance(other, %a):@,\
-        \            return self.code == other.code and self.value == \
-         other.value@,\
-        \        else:@,\
-        \            return False@,\
-         @,\
-         @,\
-        \    def __ne__(self, other: object) -> bool:@,\
-        \        return not (self == other)@,\
-         @,\
-        \    def __str__(self) -> str:@,\
-        \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
-        EnumName.format enum_name
-        (Format.pp_print_list (fun fmt (i, enum_cons, _enum_cons_type) ->
-             Format.fprintf fmt "%a = %d" EnumConstructor.format enum_cons i))
-        (List.mapi
-           (fun i (x, y) -> i, x, y)
-           (EnumConstructor.Map.bindings enum_cons))
-        EnumName.format enum_name EnumName.format enum_name EnumName.format
-        enum_name
+      failwith "no constructors in the enum";
+    Format.fprintf fmt "@[<v 4>class %a(CatalaEnum):@,"
+      EnumName.format enum_name;
+    Format.fprintf fmt "@[<v 4>class Code(Enum):@,%a@]@,@,"
+      (Format.pp_print_list
+         (fun fmt (enum_cons, _enum_cons_type) ->
+            Format.fprintf fmt "%a = auto(), '%a'" EnumConstructor.format enum_cons EnumConstructor.format_original enum_cons))
+      (EnumConstructor.Map.bindings enum_cons);
+    Format.fprintf fmt "@[<v 4>def __init__(self, code: Code, payload: Any = None) -> None:@,";
+    Format.fprintf fmt "self.code = code@,";
+    Format.fprintf fmt "self.payload = payload@]@]@,"
   in
 
   let is_in_type_ordering s =
