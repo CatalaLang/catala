@@ -611,11 +611,31 @@ let gen_build_statements
         else
           (* catala-jsoo will build the interface to export in JS *)
           (* We will also need an file with *)
-          Seq.return
-            (Nj.build "catala-binding-jsoo" ~inputs:[catala_src]
-               ~implicit_in:[!Var.catala_exe]
-               ~outputs:[target ~backend:"jsoo" "ml"]
-               ~implicit_out:[target ~backend:"jsoo" "mli"])
+          let js, missing = extern_src "jsoo" "js" [] in
+          let missing_files =
+            if missing = [] then []
+            else
+              [
+                Nj.build "catala-jsoo" ~inputs:[catala_src]
+                  ~vars:
+                    [
+                      Var.(
+                        ( catala_flags_jsoo,
+                          [!catala_flags_jsoo; "--gen-external"] ));
+                    ]
+                  ~implicit_in:[!Var.catala_exe] ~outputs:[js];
+              ]
+          in
+          List.to_seq
+            (missing_files
+            @ [
+                Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[js]
+                  ~outputs:[target ~backend:"jsoo" "js"];
+                Nj.build "catala-binding-jsoo" ~inputs:[catala_src]
+                  ~implicit_in:[target ~backend:"jsoo" "js"; !Var.catala_exe]
+                  ~outputs:[target ~backend:"jsoo" "ml"]
+                  ~implicit_out:[target ~backend:"jsoo" "mli"];
+              ])
       in
       ocaml, c, python, java, jsoo
     else
