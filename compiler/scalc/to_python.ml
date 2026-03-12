@@ -306,7 +306,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (fun ppf -> function
         | Operator.Eq, _ -> Format.pp_print_string ppf "__eq__"
         | Lt, _ -> Format.pp_print_string ppf "__lt__"
-        | Lte, _ -> Format.pp_print_string ppf "_le___"
+        | Lte, _ -> Format.pp_print_string ppf "__le__"
         | Gt, _ -> Format.pp_print_string ppf "__gt__"
         | Gte, _ -> Format.pp_print_string ppf "__ge__"
         | _ -> assert false)
@@ -507,69 +507,77 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
     unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    Format.fprintf fmt
-      "class %a:@,\
-      \    def __init__(self, %a) -> None:@,\
-       %a@,\
-       @,\
-      \    def __eq__(self, other: object) -> bool:@,\
-      \        if isinstance(other, %a):@,\
-      \            return @[<hov>(%a)@]@,\
-      \        else:@,\
-      \            return False@,\
-       @,\
-      \    def __ne__(self, other: object) -> bool:@,\
-      \        return not (self == other)@,\
-       @,\
-      \    def __str__(self) -> str:@,\
-      \        @[<hov 4>return \"%a(%a)\".format(%a)@]"
-      StructName.format struct_name
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         (fun fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "%a: %a" StructField.format struct_field
-             (format_typ ctx) struct_field_type))
-      fields
-      (if StructField.Map.is_empty struct_fields then fun fmt _ ->
-         Format.fprintf fmt "        pass"
-       else
-         Format.pp_print_list (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "        self.%a = %a" StructField.format
-               struct_field StructField.format struct_field))
-      fields StructName.format struct_name
-      (if not (StructField.Map.is_empty struct_fields) then
-         Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-           (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "self.%a == other.%a" StructField.format
-               struct_field StructField.format struct_field)
-       else fun fmt _ -> Format.fprintf fmt "True")
-      fields StructName.format struct_name
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-         (fun fmt (struct_field, _) ->
-           Format.fprintf fmt "%a={}" StructField.format struct_field))
-      fields
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (struct_field, _) ->
-           Format.fprintf fmt "self.%a" StructField.format struct_field))
-      fields
+    Format.fprintf fmt "@[<v 4>class %a(CatalaStruct):@,name = '%a'@,"
+      StructName.format struct_name StructName.format_original struct_name;
+    Format.fprintf fmt "@[<v 4>fields = [";
+    List.iter
+      (fun (struct_field, struct_field_type) ->
+        Format.fprintf fmt "@,('%a', '%a'), # content @[<h>%a@]"
+          StructField.format struct_field StructField.format_original
+          struct_field (format_typ ctx) struct_field_type)
+      fields;
+    Format.fprintf fmt "@]@,]@]@,"
+    (*    Format.fprintf fmt "@[<v 4>def __init__(self, %a) -> None:@,"
+     *      (Format.pp_print_list
+     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+     *         (fun fmt (struct_field, struct_field_type) ->
+     *            Format.fprintf fmt "%a: %a" StructField.format struct_field
+     *              (format_typ ctx) struct_field_type))
+     *      fields;
+     *    if StructField.Map.is_empty struct_fields then
+     *      Format.fprintf fmt "pass"
+     *    else
+     *      Format.pp_print_list (fun fmt (struct_field, _) ->
+     *          Format.fprintf fmt "self.%a = %a" StructField.format
+     *            struct_field StructField.format struct_field)
+     *        fmt
+     *        fields;
+     *    Format.fprintf fmt "@]@,@,";
+     *    Format.fprintf fmt "\    def __eq__(self, other: object) -> bool:@,";
+     *    Format.fprintf fmt "\        if isinstance(other, %a):@,";
+     *    Format.fprintf fmt "\            return @[<hov>(%a)@]@,";
+     *    Format.fprintf fmt "\        else:@,";
+     *    Format.fprintf fmt "\            return False@,";
+     *    Format.fprintf fmt " @,";
+     *    Format.fprintf fmt "\    def __ne__(self, other: object) -> bool:@,";
+     *    Format.fprintf fmt "\        return not (self == other)@,";
+     *    Format.fprintf fmt " @,";
+     *    Format.fprintf fmt "\    def __str__(self) -> str:@,";
+     *    Format.fprintf fmt "\        @[<hov 4>return \"%a(%a)\".format(%a)@]";
+     * StructName.format struct_name
+     *      (if not (StructField.Map.is_empty struct_fields) then
+     *         Format.pp_print_list
+     *           ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
+     *           (fun fmt (struct_field, _) ->
+     *             Format.fprintf fmt "self.%a == other.%a" StructField.format
+     *               struct_field StructField.format struct_field)
+     *       else fun fmt _ -> Format.fprintf fmt "True")
+     *      fields StructName.format struct_name
+     *      (Format.pp_print_list
+     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+     *         (fun fmt (struct_field, _) ->
+     *           Format.fprintf fmt "%a={}" StructField.format struct_field))
+     *      fields
+     *      (Format.pp_print_list
+     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+     *         (fun fmt (struct_field, _) ->
+     *           Format.fprintf fmt "self.%a" StructField.format struct_field))
+     *      fields *)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum";
-    Format.fprintf fmt "@[<v 4>class %a(CatalaEnum):@," EnumName.format
-      enum_name;
-    Format.fprintf fmt "@[<v 4>class Code(Enum):@,%a@]@,@,"
-      (Format.pp_print_list (fun fmt (enum_cons, _enum_cons_type) ->
-           Format.fprintf fmt "%a = auto(), '%a'" EnumConstructor.format
-             enum_cons EnumConstructor.format_original enum_cons))
+    Format.fprintf fmt "@[<v 4>class %a(CatalaEnum):@,name = '%a'@,"
+      EnumName.format enum_name EnumName.format_original enum_name;
+    Format.fprintf fmt "@[<v 4>class Code(CatalaEnum.Code):@,%a@]"
+      (Format.pp_print_list (fun fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "%a = '%a'" EnumConstructor.format enum_cons
+             EnumConstructor.format_original enum_cons;
+           match enum_cons_type with
+           | TLit TUnit, _ -> ()
+           | ty -> Format.fprintf fmt " # content @[<h>%a@]" (format_typ ctx) ty))
       (EnumConstructor.Map.bindings enum_cons);
-    Format.fprintf fmt
-      "@[<v 4>def __init__(self, code: Code, payload: Any = None) -> None:@,";
-    Format.fprintf fmt "self.code = code@,";
-    Format.fprintf fmt "self.payload = payload@]@]@,"
+    Format.fprintf fmt "@]"
   in
 
   let is_in_type_ordering s =
@@ -640,7 +648,7 @@ let format_tests ctx ppf (p : Ast.program) =
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
     List.iter
-      (fun (name, _var, block) ->
+      (fun (name, var, block) ->
         Format.pp_print_cut ppf ();
         (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
          *   name; *)
@@ -648,8 +656,9 @@ let format_tests ctx ppf (p : Ast.program) =
         Format.fprintf ppf
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \
-           file=sys.stderr)"
-          ScopeName.format_original name)
+           file=stderr)"
+          ScopeName.format_original name;
+        Format.fprintf ppf "@,print(%a)" VarName.format var)
       tests;
     Format.fprintf ppf "@]@,"
 
@@ -680,6 +689,7 @@ let format_program
         "from catala_runtime import *";
         "from typing import Any, List, Callable, Tuple";
         "from enum import Enum";
+        "from sys import stderr";
         "";
       ]
   in
