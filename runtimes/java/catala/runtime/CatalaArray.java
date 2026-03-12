@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import catala.runtime.exception.CatalaError;
-import java.util.List;
 import java.lang.reflect.Array;
 
 public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<CatalaArray<T>> {
@@ -117,6 +116,20 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
     }
 
     @Override
+    public int compareTo(CatalaPosition p, CatalaArray<T> o) {
+        T[] l = this.asArray();
+        T[] r = o.asArray();
+        for (int i = 0; i < Integer.min(l.length, r.length); i++) {
+            int cmp = l[i].compareTo(p, r[i]);
+            if (cmp == 0) {
+                continue;
+            }
+            return cmp;
+        }
+        return Integer.compare(l.length, r.length);
+    }
+
+    @Override
     public String toString() {
         if (this.values.length == 0) {
             return "[ ]";
@@ -136,16 +149,16 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
     }
 
     @Override
-    public int compareTo(CatalaPosition p, CatalaArray<T> o) {
-        T[] l = this.asArray();
-        T[] r = o.asArray();
-        for (int i = 0; i < Integer.min(l.length, r.length); i++) {
-            int cmp = l[i].compareTo(p, r[i]);
-            if (cmp == 0) {
-                continue;
+    public String toJSONString() {
+        StringBuilder b = new StringBuilder();
+        b.append("[ ");
+        for (int i = 0; i < values.length; i++) {
+            b.append(values[i].toJSONString());
+            if (i < values.length - 1) {
+                b.append(", ");
             }
-            return cmp;
         }
-        return Integer.compare(l.length, r.length);
+        b.append(" ]");
+        return b.toString();
     }
 }

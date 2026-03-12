@@ -9,6 +9,8 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     @Override
     public abstract String toString();
 
+    public abstract String toJSONString();
+
     @SuppressWarnings("unchecked")
     public static <U extends CatalaValue<?>> U cast(CatalaValue<?> v) {
         return (U) v;

@@ -16,14 +16,20 @@ public class Dictionnary_ext {
         public CatalaBool equalsTo(CatalaPosition p, Dictionnary other) {
            return CatalaBool.fromBoolean(this.map.equals(other.map));
         }
+
+        @Override
+        public int compareTo(CatalaPosition p, Dictionnary o) {
+            return 0;
+        }
+
         @Override
         public String toString() {
             return "MAP"; // TODO
         }
 
         @Override
-        public int compareTo(CatalaPosition p, Dictionnary o) {
-            return 0; // TODO
+        public String toJSONString() {
+            return "\"<Dictionnary>\"";
         }
     }
 

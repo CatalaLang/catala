@@ -916,7 +916,8 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
     let cmd =
       get_var var_bindings Var.java
       @ ["-cp"; src -.- "jar"; target_main]
-      @ if test then ["--test"] else []
+      @ (if test then ["--test"] else [])
+      @ if Global.options.output_format = JSON then ["--json"] else []
     in
     Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
     run_command cmd

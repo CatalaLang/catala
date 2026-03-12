@@ -71,4 +71,9 @@ public final class CatalaBool extends CatalaValue<CatalaBool> {
             }
         }
     }
+
+    @Override
+    public String toJSONString() {
+        return this.toString();
+    }
 }

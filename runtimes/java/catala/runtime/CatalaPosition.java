@@ -22,14 +22,6 @@ public final class CatalaPosition
     public final static CatalaPosition empty = new CatalaPosition("", 0, 0, 0, 0, new String[]{});
 
     @Override
-    public String toString() {
-        if (this.equalsTo(empty).asBoolean()) {
-            return "";
-        }
-        return filename + ":" + startLine + "." + startColumn + "-" + endLine + "." + endColumn;
-    }
-
-    @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaPosition o) {
         return CatalaBool.fromBoolean(this.filename.equals(o.filename) && this.startLine == o.startLine
                 && this.startColumn == o.startColumn && this.endLine == o.endLine);
@@ -56,4 +48,25 @@ public final class CatalaPosition
         return Integer.compare(this.endColumn, o.endColumn);
     }
 
+    @Override
+    public String toString() {
+        if (this.equalsTo(empty).asBoolean()) {
+            return "";
+        }
+        return filename + ":" + startLine + "." + startColumn + "-" + endLine + "." + endColumn;
+    }
+
+    @Override
+    public String toJSONString() {
+        StringBuilder b = new StringBuilder();
+        java.util.function.BiConsumer<Integer, Integer> p_pos = (l, c) -> {
+            b.append("{ \"line\":").append(l).append(", ")
+                    .append("\"character\":").append(c).append(" }");
+        };
+        b.append("{ \"file\":\"").append(this.filename).append("\",\n  \"start\":");
+        p_pos.accept(this.startLine, this.startColumn);
+        b.append("\",\n  \"end\":");
+        p_pos.accept(this.startLine, this.startColumn);
+        return b.append(" }").toString();
+    }
 }

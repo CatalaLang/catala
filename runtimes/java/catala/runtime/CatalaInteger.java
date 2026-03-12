@@ -48,7 +48,6 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
         return new CatalaInteger(this.value.negate());
     }
 
-
     public CatalaInteger add(CatalaInteger i) {
         return new CatalaInteger(this.value.add(i.value));
     }
@@ -89,4 +88,8 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
         return this.value.toString();
     }
 
+    @Override
+    public String toJSONString() {
+        return '"' + this.value.toString() + '"';
+    }
 }

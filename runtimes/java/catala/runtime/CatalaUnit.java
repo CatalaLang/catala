@@ -21,4 +21,10 @@ public final class CatalaUnit extends CatalaValue<CatalaUnit> {
     public int compareTo(CatalaPosition p, CatalaUnit o) {
         return 0;
     }
+
+    @Override
+    public String toJSONString() {
+        // Should not happen
+        return "{}";
+    }
 }
