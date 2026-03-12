@@ -14,7 +14,7 @@ from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # ty
 import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload
 from functools import reduce
-from enum import Enum
+from enum import Enum, nonmember, auto
 import copy
 
 Alpha = TypeVar('Alpha')
@@ -130,6 +130,75 @@ class Impossible(CatalaError):
                          [source_position],
                          note)
 
+# =============================
+# Types and value introspection
+# =============================
+
+class Value:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
+        raise NotImplementedError()
+
+    def compare(self, other: object, pos: SourcePosition | None = None) -> Int:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        raise NotImplementedError()
+
+    def __ne__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return not(self.__eq__(other, pos))
+
+    def __lt__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) < 0
+
+    def __le__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) <= 0
+
+    def __gt__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) > 0
+
+    def __ge__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) >= 0
+
+class Array(Value):
+    ...
+
+class Tuple(Value):
+    ...
+
+class Struct(Value):
+    ... # name
+
+class CatalaEnum(Value):
+    __slots__ = ('name', 'code', 'payload')
+
+    class Code(Enum):
+        labels = nonmember({})
+
+        def __init__(self, code, label) -> None:
+            self.labels[code] = label
+
+        def __str__(self):
+            return f'{self.label[self.value]}'
+
+    def __eq__(self, other: object, pos: SourcePosition | None = None):
+        return isinstance(other, Enum) and self.name == other.name and self.code == other.code and self.payload.__eq__(other.payload, pos)
+
+    def compare(self, other: object, pos: SourcePosition | None = None):
+        if not isinstance(other, Enum):
+            return 1
+        if self.name < other.name: return -1
+        elif self.name > other.name: return 1
+        if self.code.value < other.code.value: return -1
+        elif self.code.value > other.code.value: return 1
+        else:
+            return self.payload.compare(other.payload, pos)
+
+class External(Value):
+    ... # name
+
+class Function(Value):
+    ...
+
 # ============
 # Type classes
 # ============
@@ -158,6 +227,8 @@ class Integer:
 
     def __truediv__(self, other: Integer) -> Decimal:
         return Decimal(self.value) / Decimal(other.value)
+
+
 
     def __neg__(self: Integer) -> Integer:
         return Integer(- self.value)
@@ -750,16 +821,16 @@ dead_value: Any = 0
 
 
 class LogEventCode(Enum):
-    VariableDefinition = 0
-    BeginCall = 1
-    EndCall = 2
-    DecisionTaken = 3
+    VariableDefinition = auto()
+    BeginCall = auto()
+    EndCall = auto()
+    DecisionTaken = auto()
 
 
 class InputIO(Enum):
-    NoInput = 0
-    OnlyInput = 1
-    Reentrant = 2
+    NoInput = auto()
+    OnlyInput = auto()
+    Reentrant = auto()
 
 
 class LogIO:
