@@ -1,0 +1,28 @@
+
+```catala
+#[test]
+déclaration champ d'application S:
+  résultat lundi contenu Date.Jour_de_la_semaine
+  résultat mardi contenu Date.Jour_de_la_semaine
+  résultat mercredi contenu Date.Jour_de_la_semaine
+  résultat samedi contenu Date.Jour_de_la_semaine
+  résultat dimanche contenu Date.Jour_de_la_semaine
+
+champ d'application S:
+  définition lundi égal à Date.jour_de_la_semaine de |2026-03-23|
+  définition mardi égal à Date.jour_de_la_semaine de |2026-03-24|
+  définition mercredi égal à Date.jour_de_la_semaine de |2026-03-25|
+  définition samedi égal à Date.jour_de_la_semaine de |2026-03-28|
+  définition dimanche égal à Date.jour_de_la_semaine de |2026-03-29|
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ dimanche = Dimanche
+│ lundi = Lundi
+│ mardi = Mardi
+│ mercredi = Mercredi
+│ samedi = Samedi
+└─
+```
