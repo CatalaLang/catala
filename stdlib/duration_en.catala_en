@@ -16,7 +16,10 @@ declaration positive
   equals
     if d > 0 day then d else 0 day
 
-## Sums the elements of a list of Decimal
+## Sums the elements of a list of durations. Returns 0 day for an empty list.
+## **Examples:**
+## - `Duration.sum of [1 day; 2 day; 3 day] = 6 day`
+## - `Duration.sum of [] = 0 day`
 declaration sum
   content duration
   depends on l content list of duration

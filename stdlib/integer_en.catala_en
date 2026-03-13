@@ -49,7 +49,10 @@ declaration positive
   equals
     floor of n, 0
 
-## Sums the elements of a list of Decimal
+## Sums the elements of a list of integers. Returns 0 for an empty list.
+## **Examples:**
+## - `Integer.sum of [1; 2; 3; 4] = 10`
+## - `Integer.sum of [] = 0`
 declaration sum
   content integer
   depends on l content list of integer

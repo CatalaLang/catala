@@ -50,7 +50,10 @@ déclaration positif
   égal à
     plancher de variable, 0
 
-## Calcule la somme des éléments d'une liste de décimaux
+## Calcule la somme des éléments d'une liste d'entiers. Renvoie 0 pour une liste vide.
+## **Exemples:**
+## - `Entier.somme de [1; 2; 3; 4] = 10`
+## - `Entier.somme de [] = 0`
 déclaration somme
   contenu entier
   dépend de l contenu liste de entier
