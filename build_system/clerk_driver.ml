@@ -1115,11 +1115,18 @@ let typecheck_cmd =
         ~quiet (fun nin_ppf items var_bindings ->
           let target_items = retrieve_target_items items files_or_folders in
           let ninja_targets =
-            List.filter_map
+            List.map
               (fun it ->
-                Option.map
-                  (fun mdef -> Mark.remove mdef ^ "@src")
-                  it.Scan.module_def)
+                match it.Scan.module_def with
+                | Some mdef ->
+                  let src = it.file_name in
+                  let dir = File.dirname src in
+                  if
+                    it.is_stdlib
+                    || List.mem dir config.options.global.include_dirs
+                  then Mark.remove mdef ^ "@src"
+                  else src
+                | None -> it.file_name)
               target_items
           in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
