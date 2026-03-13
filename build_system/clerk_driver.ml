@@ -571,7 +571,6 @@ let classify_targets config (targets : string list) : targets =
     List.find_opt (fun ct -> t = ct.Config.tname) config.Cli.options.targets
     |> function Some t -> Either.Left t | None -> Either.Right t
   in
-
   let clerk_targets, others = List.partition_map classify_target targets in
   { clerk_targets; others }
 
@@ -1101,11 +1100,15 @@ let run_cmd =
 
 let typecheck_cmd =
   let run
+      ~real_cwd
       config
       quiet
       (files_or_folders : File.t list)
       (ninja_flags : string list) =
-    let files_or_folders = List.map config.Cli.fix_path files_or_folders in
+    let files_or_folders =
+      List.map config.Cli.fix_path
+      @@ if files_or_folders = [] then [real_cwd] else files_or_folders
+    in
     let items, var_bindings =
       Clerk_rules.run_ninja ~code_coverage:false ~config
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
@@ -1155,10 +1158,11 @@ let typecheck_cmd =
     ret
   in
   let doc = "Runs the Catala type-checker on the given files." in
+  let real_cwd = Sys.getcwd () in
   Cmd.v
     (Cmd.info ~doc "typecheck")
     Term.(
-      const run
+      const (run ~real_cwd)
       $ Cli.init_term ()
       $ Cli.quiet
       $ Cli.files_or_folders
