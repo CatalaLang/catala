@@ -14,7 +14,7 @@ from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # ty
 import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload
 from functools import reduce
-from enum import Enum
+from enum import Enum, IntEnum, nonmember, auto
 import copy
 
 Alpha = TypeVar('Alpha')
@@ -130,6 +130,110 @@ class Impossible(CatalaError):
                          [source_position],
                          note)
 
+# =============================
+# Types and value introspection
+# =============================
+
+class Value:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
+        raise NotImplementedError()
+
+    def compare(self, other: object, pos: SourcePosition | None = None) -> Int:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        raise NotImplementedError()
+
+    def __ne__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return not(self.__eq__(other, pos))
+
+    def __lt__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) < 0
+
+    def __le__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) <= 0
+
+    def __gt__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) > 0
+
+    def __ge__(self, other: object, pos: SourcePosition | None = None) -> bool:
+        return self.compare(other, pos) >= 0
+
+class Array(Value):
+    ...
+
+class Tuple(Value):
+    ...
+
+class CatalaStruct(Value):
+    def __init__(self, **init_fields):
+        for (fld, label) in self.fields:
+            setattr(self, fld, init_fields[fld])
+            del init_fields[fld]
+        if init_fields != {}:
+            raise Exception(f'Extra field at initialisation of {type(self)}')
+
+    def __eq__(self, other: object, pos: SourcePosition | None = None):
+        if not isinstance(other, CatalaStruct) or not self.name == other.name:
+            return False
+        all([self[fld].__eq__(other[fld], pos) for fld in self.fields])
+
+    def compare(self, other: object, pos: SourcePosition | None = None):
+        if not isinstance(other, CatalaStruct): return 1
+        all([self[fld] == other[fld] for fld in self.fields])
+        if self.name < other.name: return -1
+        elif self.name > other.name: return 1
+        for (fld, label) in fields:
+            cmp = getattr(self, fld).compare(getattr(other, fld), pos)
+            if cmp != 0: return cmp
+        return 0
+
+    def __str__(self):
+        return (str(self.name) + ' {' + ''.join([f"\n-- {label}: {getattr(self, fld)}" for (fld, label) in self.fields]) + "\n}")
+
+class CatalaEnum(Value):
+    __slots__ = ('name', 'code', 'payload')
+
+    class Code(Enum):
+        def __new__(cls, label):
+            obj = object.__new__(cls)
+            obj._value_ = len(cls.__members__)
+            obj.label = label
+            return obj
+
+        def __str__(self):
+            return self.label
+
+    def __init__(self, code: Code, payload: Any = None) -> None:
+        self.code = code
+        self.payload = payload
+
+    def __eq__(self, other: object, pos: SourcePosition | None = None):
+        return isinstance(other, CatalaEnum) and self.name == other.name and self.code == other.code and self.payload.__eq__(other.payload, pos)
+
+    def compare(self, other: object, pos: SourcePosition | None = None):
+        if not isinstance(other, CatalaEnum):
+            if isinstance(other, CatalaStruct): return -1
+            else: return 1
+        if self.name < other.name: return -1
+        elif self.name > other.name: return 1
+        if self.code.value < other.code.value: return -1
+        elif self.code.value > other.code.value: return 1
+        else:
+            return self.payload.compare(other.payload, pos)
+
+    def __str__(self):
+        if self.payload is None:
+            return str(self.code)
+        else:
+            return f'{self.code} content {self.payload}'
+
+class External(Value):
+    ... # name
+
+class Function(Value):
+    ...
+
 # ============
 # Type classes
 # ============
@@ -159,6 +263,8 @@ class Integer:
     def __truediv__(self, other: Integer) -> Decimal:
         return Decimal(self.value) / Decimal(other.value)
 
+
+
     def __neg__(self: Integer) -> Integer:
         return Integer(- self.value)
 
@@ -180,7 +286,7 @@ class Integer:
         else:
             return True
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos = None) -> bool:
         if isinstance(other, Integer):
             return self.value == other.value
         else:
@@ -237,7 +343,7 @@ class Decimal:
         else:
             return True
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Decimal):
             return self.value == other.value
         else:
@@ -295,7 +401,7 @@ class Money:
         else:
             return True
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Money):
             return self.value == other.value
         else:
@@ -344,7 +450,7 @@ class Date:
         else:
             raise Exception("Substracting date and invalid obj")
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Date):
             return self.value == other.value
         else:
@@ -465,7 +571,7 @@ class Unit:
     def __init__(self) -> None:
         ...
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Unit):
             return True
         else:
@@ -491,9 +597,9 @@ class Option(Generic[Alpha]):
     def __init__(self, value: Alpha | None) -> None:
         self.value = value
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if isinstance(other, Option):
-            return self.value == other.value
+            return self.value.__eq__(other.value, pos)
         else:
             return False
 
@@ -750,16 +856,16 @@ dead_value: Any = 0
 
 
 class LogEventCode(Enum):
-    VariableDefinition = 0
-    BeginCall = 1
-    EndCall = 2
-    DecisionTaken = 3
+    VariableDefinition = auto()
+    BeginCall = auto()
+    EndCall = auto()
+    DecisionTaken = auto()
 
 
 class InputIO(Enum):
-    NoInput = 0
-    OnlyInput = 1
-    Reentrant = 2
+    NoInput = auto()
+    OnlyInput = auto()
+    Reentrant = auto()
 
 
 class LogIO:

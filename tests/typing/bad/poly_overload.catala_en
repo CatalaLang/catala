@@ -14,18 +14,13 @@ declaration foo content integer equals
 $ catala typecheck
 ┌─[ERROR]─ 1/2 ─
 │
-│  In this application of operator <=, the type of an operand is unknown
+│  Comparison cannot be resolved at this point: the type of the operands is
+│  not fully known.
 │
 ├─➤ tests/typing/bad/poly_overload.catala_en:6.13-6.19:
 │   │
 │ 6 │   equals if x <= y then x else y
 │   │             ‾‾‾‾‾‾
-│
-│ Undetermined type <any type> coming from expression:
-├─➤ tests/typing/bad/poly_overload.catala_en:3.13-3.16:
-│   │
-│ 3 │ declaration min content anything of type t
-│   │             ‾‾‾
 └─
 ┌─[ERROR]─ 2/2 ─
 │

@@ -7,25 +7,25 @@ import catala.runtime.CatalaArray;
 import catala.runtime.CatalaOption;
 import catala.runtime.CatalaPosition;
 import catala.runtime.CatalaTuple;
+import java.util.Optional;
 
 public class CatalaConflict {
 
     @SuppressWarnings("unchecked")
     public static CatalaOption<CatalaTuple> handleExceptions(CatalaArray<CatalaOption<CatalaTuple>> v) {
         List<CatalaOption<CatalaTuple>> active_exns
-                = (Stream.of(v.asArray())
-                        .filter(exn -> exn.isSome()).toList());
+                = List.of(v.asArray()).stream().filter(exn -> exn.isSome()).toList();
         int len = active_exns.size();
         switch (len) {
             case 0:
-                return CatalaOption.NONE;
+                return CatalaOption.none();
             case 1:
                 return active_exns.get(0);
             default:
                 List<CatalaPosition> lpos
                         = active_exns.stream().map(p_opt -> (p_opt.get()).get(1, CatalaPosition.class))
                                 .toList();
-                throw new CatalaError(CatalaError.Error.Conflict, lpos);
+                throw CatalaError.error(CatalaError.Error.Conflict, lpos);
         }
     }
 }

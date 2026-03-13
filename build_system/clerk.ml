@@ -15,4 +15,29 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-let () = Clerk_driver.main ()
+let dev_mode_env_varname = "CATALA_DEVELOPER"
+
+let is_dev =
+  Sys.argv.(0) = "clerk"
+  &&
+  match Sys.getenv_opt dev_mode_env_varname with
+  | None | Some ("" | "0" | "no" | "reentrant") -> false
+  | _ -> true
+
+let in_catala_src () =
+  let open Catala_utils.File in
+  match String.trim (process_out "git" ["rev-parse"; "--show-toplevel"]) with
+  | dir -> exists (dir / "catala.opam")
+  | exception Failure _ -> false
+
+let () =
+  if is_dev && in_catala_src () then (
+    let env = Unix.environment () in
+    Array.iteri
+      (fun i v ->
+        if String.starts_with ~prefix:(dev_mode_env_varname ^ "=") v then
+          env.(i) <- dev_mode_env_varname ^ "=reentrant")
+      env;
+    let dune = Catala_utils.File.check_exec "dune" in
+    Unix.execve dune (Array.append [| dune; "exec"; "--" |] Sys.argv) env)
+  else Clerk_driver.main ()

@@ -101,8 +101,8 @@ let op_can_raise op =
   let open Op in
   match Mark.remove op with
   | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Gte_dur_dur
-  | Gt_dur_dur | Lte_dur_dur | Lt_dur_dur | Eq_dur_dur | Map2 ->
+  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Eq | Lt | Lte
+  | Gt | Gte | Map2 ->
     true
   | _ -> false
 
@@ -786,7 +786,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
               in
               ( ctxt,
                 rev_tdefs,
-                (scope, RevBlock.rebuild (block +> exec)) :: rev_tests )
+                (scope, var, RevBlock.rebuild (block +> exec)) :: rev_tests )
           in
           unlet ctxt rev_tdefs e
         | _ -> ctxt, rev_tdefs, rev_tests)

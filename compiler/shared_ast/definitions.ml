@@ -214,7 +214,7 @@ type ('d, 'c) interpr_kind =
 
 (** {2 Types} *)
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration | TPos
+type typ_lit = TUnit | TBool | TInt | TMoney | TRat | TDate | TDuration | TPos
 
 type typ = naked_typ Mark.pos
 
@@ -370,6 +370,10 @@ module Op = struct
     | Xor : < monomorphic ; .. > t
     (* * polymorphic *)
     | Eq : < polymorphic ; .. > t
+    | Lt : < polymorphic ; .. > t
+    | Lte : < polymorphic ; .. > t
+    | Gt : < polymorphic ; .. > t
+    | Gte : < polymorphic ; .. > t
     | Map : < polymorphic ; .. > t
     | Map2 : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
@@ -401,39 +405,6 @@ module Op = struct
     | Div_mon_rat : < resolved ; .. > t
     | Div_mon_mon : < resolved ; .. > t
     | Div_dur_dur : < resolved ; .. > t
-    | Lt : < overloaded ; .. > t
-    | Lt_int_int : < resolved ; .. > t
-    | Lt_rat_rat : < resolved ; .. > t
-    | Lt_mon_mon : < resolved ; .. > t
-    | Lt_dat_dat : < resolved ; .. > t
-    | Lt_dur_dur : < resolved ; .. > t
-    | Lte : < overloaded ; .. > t
-    | Lte_int_int : < resolved ; .. > t
-    | Lte_rat_rat : < resolved ; .. > t
-    | Lte_mon_mon : < resolved ; .. > t
-    | Lte_dat_dat : < resolved ; .. > t
-    | Lte_dur_dur : < resolved ; .. > t
-    | Gt : < overloaded ; .. > t
-    | Gt_int_int : < resolved ; .. > t
-    | Gt_rat_rat : < resolved ; .. > t
-    | Gt_mon_mon : < resolved ; .. > t
-    | Gt_dat_dat : < resolved ; .. > t
-    | Gt_dur_dur : < resolved ; .. > t
-    | Gte : < overloaded ; .. > t
-    | Gte_int_int : < resolved ; .. > t
-    | Gte_rat_rat : < resolved ; .. > t
-    | Gte_mon_mon : < resolved ; .. > t
-    | Gte_dat_dat : < resolved ; .. > t
-    | Gte_dur_dur : < resolved ; .. > t
-    (* Todo: Eq is not an overload at the moment, but it should be one. The
-       trick is that it needs generation of specific code for arrays, every
-       struct and enum: operators [Eq_structs of StructName.t], etc. *)
-    | Eq_boo_boo : < resolved ; .. > t
-    | Eq_int_int : < resolved ; .. > t
-    | Eq_rat_rat : < resolved ; .. > t
-    | Eq_mon_mon : < resolved ; .. > t
-    | Eq_dur_dur : < resolved ; .. > t
-    | Eq_dat_dat : < resolved ; .. > t
     (* ternary *)
     (* * polymorphic *)
     | Reduce : < polymorphic ; .. > t

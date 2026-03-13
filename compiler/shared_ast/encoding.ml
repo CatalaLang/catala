@@ -17,112 +17,118 @@
 open Catala_utils
 open Definitions
 module Runtime = Catala_runtime
+module Val = Runtime.Value
 open Json_encoding
 
-let bool_encoding : Runtime.runtime_value encoding =
+let bool_encoding : Val.t encoding =
   conv
     (function
-      | Runtime.Bool b -> b
+      | Val.V (Bool, v) -> (v : bool)
       | v ->
         Message.error ~internal:true
           "Unexpected runtime value %a instead of bool while encoding to JSON"
-          Runtime.format_value v)
-    (fun b -> Runtime.Bool b)
+          Val.format v)
+    (fun v -> Val.V (Val.Bool, v))
     bool
 
-let unit_encoding : Runtime.runtime_value encoding =
+let unit_encoding : Val.t encoding =
   conv
     (function
-      | Runtime.Unit -> ()
+      | Val.V (Unit, ()) -> ()
       | v ->
         Message.error ~internal:true
           "Unexpected runtime value %a instead of unit while encoding to JSON"
-          Runtime.format_value v)
-    (fun () -> Runtime.Unit)
+          Val.format v)
+    (fun () -> Val.V (Unit, ()))
     empty
 
-let try_option f = try Some (f ()) with _ -> None
+let try_option f =
+  try Some (f ()) with
+  | (Sys.Break | Assert_failure _ | Match_failure _) as e -> raise e
+  | _ -> None
 
-let int_encoding : Runtime.runtime_value encoding =
-  union
-    [
-      case int53
-        (function
-          | Runtime.Integer z -> try_option (fun () -> Z.to_int64 z)
-          | v ->
-            Message.error ~internal:true
-              "Unexpected runtime value %a instead of int while encoding to \
-               JSON"
-              Runtime.format_value v)
-        (fun i -> Runtime.Integer (Z.of_int64 i));
-      case string
-        (function
-          | Runtime.Integer z -> Some (Z.to_string z) | _ -> assert false)
-        (fun s ->
-          try Runtime.Integer (Z.of_string s)
-          with _ ->
-            raise (Json_encoding.Unexpected ("string", "numeric string")));
-    ]
+let int_encoding : Val.t encoding =
+  def "integer" ~title:"Catala Integer"
+  @@ union
+       [
+         case int53
+           (function
+             | Val.V (Integer, z) -> try_option (fun () -> Z.to_int64 z)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of int while encoding to \
+                  JSON"
+                 Val.format v)
+           (fun i -> Val.V (Integer, Z.of_int64 i));
+         case string
+           (function
+             | Val.V (Integer, z) -> Some (Z.to_string z) | _ -> assert false)
+           (fun s ->
+             try Val.V (Integer, Z.of_string s)
+             with _ ->
+               raise (Json_encoding.Unexpected ("string", "numeric string")));
+       ]
 
-let money_encoding : Runtime.runtime_value encoding =
+let money_encoding : Val.t encoding =
+  def "money" ~title:"Catala Money"
+  @@
   let z_100 = Z.of_int 100 in
   let q_100 = Q.of_int 100 in
   union
     [
       case int53
         (function
-          | Runtime.Money z when Z.rem z z_100 = Z.zero ->
+          | Val.V (Money, z) when Z.rem z z_100 = Z.zero ->
             try_option (fun () -> Z.(div z z_100 |> to_int64))
-          | Runtime.Money _ -> None
+          | Val.V (Money, _) -> None
           | v ->
             Message.error ~internal:true
               "Unexpected runtime value %a instead of money while encoding to \
                JSON"
-              Runtime.format_value v)
-        (fun i -> Runtime.Money Z.(mul (of_int64 i) z_100));
+              Val.format v)
+        (fun i -> Val.V (Money, Z.(mul (of_int64 i) z_100)));
       case float
         (function
-          | Runtime.Money z -> try_option (fun () -> Z.to_float z /. 100.)
+          | Val.V (Money, z) -> try_option (fun () -> Z.to_float z /. 100.)
           | _ -> assert false)
-        (fun i ->
-          let z = Z.of_float (i *. 100.) in
-          Runtime.Money z);
+        (fun i -> Val.V (Money, Z.of_float (i *. 100.)));
       case string
         (function
-          | Runtime.Money z ->
+          | Val.V (Money, z) ->
             let z = Q.div (Q.of_bigint z) q_100 in
             Some (Q.to_string z)
           | _ -> assert false)
         (fun s ->
           try
             let q = Q.(of_string s |> mul q_100) in
-            Runtime.Money (Q.to_bigint q)
+            Val.V (Money, Q.to_bigint q)
           with _ ->
             raise (Json_encoding.Unexpected ("string", "numeric string")));
     ]
 
-let rat_encoding : Runtime.runtime_value encoding =
-  union
-    [
-      case float
-        (function
-          | Runtime.Decimal d -> try_option (fun () -> Q.to_float d)
-          | v ->
-            Message.error ~internal:true
-              "Unexpected runtime value %a instead of decimal while encoding \
-               to JSON"
-              Runtime.format_value v)
-        (fun f -> Runtime.Decimal (Q.of_float f));
-      case int53 (fun _ -> None) (fun f -> Runtime.Decimal (Q.of_int64 f));
-      case string
-        (function Runtime.Decimal d -> Some (Q.to_string d) | _ -> None)
-        (fun s ->
-          try Runtime.Decimal (Q.of_string s)
-          with _ ->
-            raise (Json_encoding.Unexpected ("string", "numeric string")));
-    ]
+let rat_encoding : Val.t encoding =
+  def "decimal" ~title:"Catala Decimal"
+  @@ union
+       [
+         case float
+           (function
+             | Val.V (Decimal, d) -> try_option (fun () -> Q.to_float d)
+             | v ->
+               Message.error ~internal:true
+                 "Unexpected runtime value %a instead of decimal while \
+                  encoding to JSON"
+                 Val.format v)
+           (fun f -> Val.V (Decimal, Q.of_float f));
+         case int53 (fun _ -> None) (fun f -> Val.V (Decimal, Q.of_int64 f));
+         case string
+           (function Val.V (Decimal, d) -> Some (Q.to_string d) | _ -> None)
+           (fun s ->
+             try Val.V (Decimal, Q.of_string s)
+             with _ ->
+               raise (Json_encoding.Unexpected ("string", "numeric string")));
+       ]
 
-let date_encoding : Runtime.runtime_value encoding =
+let date_encoding : Val.t encoding =
   let date_obj =
     obj3
       (req "year" (ranged_int ~minimum:0 ~maximum:9999 "years"))
@@ -138,74 +144,116 @@ let date_encoding : Runtime.runtime_value encoding =
               \"1970-01-31\""
            string
            (function
-             | Runtime.Date d ->
+             | Val.V (Date, d) ->
                Some (Format.asprintf "%a" Dates_calc.format_date d)
              | v ->
                Message.error ~internal:true
                  "Unexpected runtime value %a instead of date while encoding \
                   to JSON"
-                 Runtime.format_value v)
-           (fun s -> Runtime.Date (Dates_calc.date_of_string s));
+                 Val.format v)
+           (fun s -> Val.V (Date, Dates_calc.date_of_string s));
          case
            ~description:
              "Accepts date objects: {\"year\":<int>, \"month\":<int>, \
               \"day\":<int>}"
            date_obj
            (function
-             | Runtime.Date d -> Some (Dates_calc.date_to_ymd d)
+             | Val.V (Date, d) -> Some (Dates_calc.date_to_ymd d)
              | v ->
                Message.error ~internal:true
                  "Unexpected runtime value %a instead of date while encoding \
                   to JSON"
-                 Runtime.format_value v)
+                 Val.format v)
            (fun (year, month, day) ->
-             Runtime.Date (Dates_calc.make_date ~year ~month ~day));
+             Val.V (Date, Dates_calc.make_date ~year ~month ~day));
        ]
 
-let duration_encoding : Runtime.runtime_value encoding =
+let duration_encoding : Val.t encoding =
+  def "duration" ~title:"Catala duration"
+  @@
   let encoding =
     obj3 (dft "years" int 0) (dft "months" int 0) (dft "days" int 0)
     |> conv
          (function
-           | Runtime.Duration d -> Dates_calc.period_to_ymds d
+           | Val.V (Duration, d) -> Dates_calc.period_to_ymds d
            | v ->
              Message.error ~internal:true
                "Unexpected runtime value %a instead of duration while encoding \
                 to JSON"
-               Runtime.format_value v)
+               Val.format v)
          (fun (years, months, days) ->
-           Runtime.Duration (Dates_calc.make_period ~years ~months ~days))
+           Val.V (Duration, Dates_calc.make_period ~years ~months ~days))
   in
-  def "duration" ~title:"Catala duration" @@ encoding
+  encoding
 
 let position_encoding =
-  let p_encoding = obj2 (req "line" int32) (req "character" int) in
+  def "position" ~title:"Catala position"
+  @@
+  let p_encoding = obj2 (req "line" int32) (req "character" int32) in
   let range_encoding = obj2 (req "start" p_encoding) (req "end" p_encoding) in
   obj2 (req "file" string) (req "range" range_encoding)
   |> conv
        (function
-         | Runtime.Position (file, sl, sc, el, ec) ->
-           file, ((Int32.of_int sl, sc), (Int32.of_int el, ec))
+         | Val.V (Position, pos) ->
+           ( pos.filename,
+             ( (Int32.of_int pos.start_line, Int32.of_int pos.start_column),
+               (Int32.of_int pos.end_line, Int32.of_int pos.end_column) ) )
          | v ->
            Message.error ~internal:true
              "Unexpected runtime value %a instead of position while encoding \
               to JSON"
-             Runtime.format_value v)
+             Val.format v)
        (fun (file, ((sl, sc), (el, ec))) ->
-         Runtime.Position (file, Int32.to_int sl, sc, Int32.to_int el, ec))
+         Val.V
+           ( Position,
+             {
+               filename = file;
+               start_line = Int32.to_int sl;
+               start_column = Int32.to_int sc;
+               end_line = Int32.to_int el;
+               end_column = Int32.to_int ec;
+               law_headings = [];
+             } ))
 
-let make_constant s : Runtime.runtime_value encoding =
+let make_constant s : Val.t encoding =
   conv
     (function
-      | Runtime.Unit -> ()
+      | Val.V (Unit, ()) -> ()
       | v ->
         Message.error ~internal:true
           "Unexpected runtime value %a instead of unit while encoding to JSON"
-          Runtime.format_value v)
-    (fun () -> Unit)
+          Val.format v)
+    (fun () -> Val.V (Unit, ()))
     (constant s)
 
-let generate_lit_encoding (typ_lit : typ_lit) : Runtime.runtime_value encoding =
+(* let rec generate_encoder: type a. decl_ctx -> a Val.runtype -> Val.t encoding =
+ *   fun ctx rty ->
+ *   match rty with
+ *   | Bool -> bool_encoding
+ *   | Unit -> unit_encoding
+ *   | Integer -> int_encoding
+ *   | Decimal -> rat_encoding
+ *   | Date -> date_encoding
+ *   | Duration -> duration_encoding
+ *   | Money -> money_encoding
+ *   | Position -> position_encoding
+ *
+ *   | Array rty -> generate_array_encoder ctx rty *)
+
+(* | TTuple [typ; (TLit TPos, _)] -> generate_encoder ctx typ
+ * | TTuple tl -> generate_tuple_encoder ctx tl
+ * | TStruct sname -> generate_struct_encoder ctx sname
+ * | TEnum ename -> generate_enum_encoder ctx ename
+ * | TOption typ -> generate_option_encoder ctx typ
+ * | TArray typ -> generate_array_encoder ctx typ
+ * | TArrow _ -> Message.error "Cannot convert functional values from JSON"
+ * | TDefault _ -> Message.error "Cannot encode 'default' types"
+ * | TVar _ -> Message.error "Cannot encode 'variable' types"
+ * | TForAll _ -> Message.error "Cannot encode 'for-all' types"
+ * | TClosureEnv -> Message.error "Cannot encode 'closure-env' types"
+ * | TAbstract _ -> Message.error "Cannot encode 'abstract' types" *)
+
+let generate_lit_encoding (typ_lit : typ_lit) : Val.t encoding =
   match typ_lit with
   | TBool -> bool_encoding
   | TUnit -> unit_encoding
@@ -216,8 +264,7 @@ let generate_lit_encoding (typ_lit : typ_lit) : Runtime.runtime_value encoding =
   | TMoney -> money_encoding
   | TPos -> position_encoding
 
-let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
-    Runtime.runtime_value encoding =
+let rec generate_encoder (ctx : decl_ctx) (typ : typ) : Val.t encoding =
   match Mark.remove typ with
   | TError -> assert false
   | TLit tlit -> generate_lit_encoding tlit
@@ -234,60 +281,77 @@ let rec generate_encoder (ctx : decl_ctx) (typ : typ) :
   | TClosureEnv -> Message.error "Cannot encode 'closure-env' types"
   | TAbstract _ -> Message.error "Cannot encode 'abstract' types"
 
-and generate_array_encoder ctx typ : Runtime.runtime_value encoding =
-  let open Runtime in
+and generate_array_encoder (ctx : decl_ctx) typ : Val.t encoding =
+  let open Val in
   conv
     (function
-      | Array a -> a
+      | V (Array t, elts) -> Array.map t elts
       | v ->
         Message.error ~internal:true
           "Unexpected runtime value %a instead of array while encoding to JSON"
-          Runtime.format_value v)
-    (fun a -> Array a)
+          format v)
+    (fun a -> V (Array (fun v -> v), a))
     (array (generate_encoder ctx typ))
 
 and generate_option_encoder ctx typ =
-  let open Runtime in
+  let open Val in
   let proj_none = function
-    | Enum ("Optional", ("Absent", Unit)) -> Some Unit
+    | V (Enum { name = "Optional"; constr }, v) -> (
+      match constr v with _, _, None -> Some (V (Unit, ())) | _ -> None)
     | _ -> None
   in
-  let inj_none _ = Enum ("Optional", ("Absent", Unit)) in
+  let vtyp =
+    Enum
+      {
+        name = "Optional";
+        constr =
+          (function None -> 0, "Absent", None | Some x -> 1, "Present", Some x);
+      }
+  in
+  let inj_none _ = V (vtyp, None) in
   union
     [
       case unit_encoding proj_none inj_none;
       case (make_constant "Absent") proj_none inj_none;
       case
         (obj1 (req "Present" (generate_encoder ctx typ)))
-        (function Enum ("Optional", ("Present", x)) -> Some x | _ -> None)
-        (fun x -> Enum ("Optional", ("Present", x)));
+        (function
+          | V (Enum en, v) -> (
+            match en.constr v with _, _, Some x -> Some x | _ -> None)
+          | _ -> None)
+        (fun x -> V (vtyp, Some x));
     ]
 
 and generate_tuple_encoder ctx typl =
+  let open Val in
   assert (typl <> []);
   let first_tup_enc = tup1 (generate_encoder ctx (List.hd typl)) in
-  let add_tuple (acc : Runtime.runtime_value encoding) typ :
-      Runtime.runtime_value encoding =
+  let add_tuple (acc : t encoding) typ : t encoding =
     let bconv = merge_tups acc (tup1 (generate_encoder ctx typ)) in
     conv
       (function
-        | Runtime.Tuple [| x1; x2 |] -> x1, x2
-        | Runtime.Tuple arr ->
-          ( Runtime.Tuple (Array.sub arr 0 (Array.length arr - 1)),
-            arr.(Array.length arr - 1) )
+        | V (Tuple tf, elts) -> (
+          match tf elts with
+          | [x1; x2] -> x1, x2
+          | arr ->
+            let rarr = List.rev arr in
+            V (Tuple Fun.id, List.rev (List.tl rarr)), List.hd rarr)
         | v ->
           Message.error ~internal:true
             "Unexpected runtime value %a instead of tuple while encoding to \
              JSON"
-            Runtime.format_value v)
+            format v)
       (function
-        | Runtime.Tuple arr, rval -> Runtime.Tuple (Array.append arr [| rval |])
-        | v, rval -> (* First element reached *) Runtime.Tuple [| v; rval |])
+        | V (Tuple tf, arr), rval -> V (Tuple Fun.id, tf arr @ [rval])
+        | v, rval ->
+          (* First element reached *)
+          V (Tuple Fun.id, v :: [rval]))
       bconv
   in
   List.fold_left (fun e typ -> add_tuple e typ) first_tup_enc (List.tl typl)
 
 and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
+  let open Val in
   let struc = StructName.Map.find sname ctx.ctx_structs in
   let bdgs = StructField.Map.bindings struc in
   let is_input_scope_struct =
@@ -307,57 +371,79 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   let empty_struct_enc =
     conv
       (fun _ -> ())
-      (fun () -> Runtime.Struct (StructName.to_string sname, []))
+      (fun () ->
+        V
+          ( Struct { name = StructName.to_string sname; fields = (fun _ -> []) },
+            () ))
       empty
   in
-  let add_req_field (encoding : Runtime.runtime_value encoding) (sf, typ) :
-      Runtime.runtime_value encoding =
+  let add_req_field (encoding : t encoding) (sf, typ) : t encoding =
     let field_label, field_s = rename_field sf in
     let bconv =
       merge_objs encoding (obj1 (req field_label (generate_encoder ctx typ)))
     in
     conv
       (function
-        | Runtime.Struct (s, lvals) ->
-          let rval = List.assoc field_s lvals in
-          Runtime.Struct (s, List.remove_assoc field_s lvals), rval
+        | V (Struct enc, data) as v ->
+          let rval = List.assoc field_s (enc.fields data) in
+          v, rval
         | v ->
           Message.error ~internal:true
             "Unexpected runtime value %a instead of struct while encoding to \
              JSON"
-            Runtime.format_value v)
+            format v)
       (function
-        | Runtime.Struct (s, lvals), rval ->
-          Runtime.Struct (s, (field_s, rval) :: lvals)
+        | V (Struct enc, data), rval ->
+          V
+            ( Struct { enc with fields = Fun.id },
+              (field_s, rval) :: enc.fields data )
         | _ -> assert false)
       bconv
   in
-  let add_opt_field (encoding : Runtime.runtime_value encoding) (sf, typ) :
-      Runtime.runtime_value encoding =
+  let add_opt_field (encoding : t encoding) (sf, typ) : t encoding =
     let field_label, field_s = rename_field sf in
     let bconv =
       merge_objs encoding (obj1 (opt field_label (generate_encoder ctx typ)))
     in
     conv
       (function
-        | Runtime.Struct (s, lvals) ->
+        | V (Struct enc, data) as v ->
           let rval =
-            List.assoc_opt field_s lvals
+            List.assoc_opt field_s (enc.fields data)
             |> Option.map (function
-              | Runtime.Enum ("Optional", ("Present", rval)) -> Some rval
-              | Runtime.Enum ("Optional", ("Absent", Unit)) -> None
+              | V (Enum { name = "Optional"; constr }, data) ->
+                let _, _, x = constr data in
+                x
               | _ -> assert false)
             |> Option.join
           in
-          Runtime.Struct (s, List.remove_assoc field_s lvals), rval
+          v, rval
         | _ -> assert false)
       (function
-        | Runtime.Struct (s, lvals), None ->
-          Runtime.Struct
-            (s, (field_s, Enum ("Optional", ("Absent", Unit))) :: lvals)
-        | Runtime.Struct (s, lvals), Some rval ->
-          Runtime.Struct
-            (s, (field_s, Enum ("Optional", ("Present", rval))) :: lvals)
+        | V (Struct enc, data), None ->
+          V
+            ( Struct { enc with fields = Fun.id },
+              ( field_s,
+                V
+                  ( Enum
+                      {
+                        name = "Optional";
+                        constr = (fun _ -> 0, "Absent", None);
+                      },
+                    () ) )
+              :: enc.fields data )
+        | V (Struct enc, data), Some rval ->
+          V
+            ( Struct { enc with fields = Fun.id },
+              ( field_s,
+                V
+                  ( Enum
+                      {
+                        name = "Optional";
+                        constr = (fun _ -> 1, "Present", Some rval);
+                      },
+                    () ) )
+              :: enc.fields data )
         | _ -> assert false)
       bconv
   in
@@ -370,49 +456,53 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
        empty_struct_enc bdgs
 
 and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
+  let open Val in
   let enum = EnumName.Map.find ename ctx.ctx_enums in
   let bdgs = EnumConstructor.Map.bindings enum in
   let ename_s = EnumName.to_string ename in
-  let make_constructor_case (cstr, typ) : Runtime.runtime_value case =
+  let make_constructor_case idx (cstr, typ) : t case =
     let cstr_s = EnumConstructor.to_string cstr in
     match Mark.remove typ with
     | TLit TUnit ->
       case (constant cstr_s)
         (function
-          | Runtime.Enum (_ename, (cstr', _)) ->
-            if cstr_s = cstr' then Some () else None
+          | V (Enum enc, rval) ->
+            let _, cstr_s', _ = enc.constr rval in
+            if cstr_s = cstr_s' then Some () else None
           | v ->
             Message.error ~internal:true
-              "Unexpected runtime value %a instead of enum while encoding to \
+              "Unexpected runtime value %a instead of enum while encoding to  \
                JSON"
-              Runtime.format_value v)
-        (fun () -> Enum (ename_s, (cstr_s, Unit)))
+              format v)
+        (fun () ->
+          V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None)))
     | _ ->
       case
         (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
         (function
-          | Runtime.Enum (e_name_s', (cstr_s', v))
-            when e_name_s' = e_name_s' && cstr_s = cstr_s' ->
-            Some v
+          | V (Enum { name; constr }, rval) ->
+            let _, cstr_s', v = constr rval in
+            if name = ename_s && cstr_s = cstr_s' then v else None
           | _ -> None)
-        (fun v -> Enum (ename_s, (cstr_s, v)))
+        (fun v ->
+          V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, Some v)))
   in
   let enc =
     if List.for_all (fun (_, typ) -> Mark.remove typ = TLit TUnit) bdgs then
       (* This simplifies the JSON schema *)
       string_enum
-        (List.map
-           (fun (cstr, _) ->
-             ( EnumConstructor.to_string cstr,
-               Runtime.Enum (ename_s, (EnumConstructor.to_string cstr, Unit)) ))
+        (List.mapi
+           (fun idx (cstr, _) ->
+             let cstr_s = EnumConstructor.to_string cstr in
+             ( cstr_s,
+               V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None))
+             ))
            bdgs)
-    else List.map make_constructor_case bdgs |> union
+    else List.mapi make_constructor_case bdgs |> union
   in
   def (Format.asprintf "%a" EnumName.format_shortpath ename) enc
 
-let make_encoding (ctx : decl_ctx) (typ : typ) : Runtime.runtime_value encoding
-    =
-  generate_encoder ctx typ
+let make_encoding (ctx : decl_ctx) (typ : typ) = generate_encoder ctx typ
 
 let scope_input_encoding scope ctx typ =
   let scope_s = ScopeName.to_string scope in
@@ -444,39 +534,62 @@ let parse_json enc json =
       (fun fmt -> Json_encoding.print_error ~print_unknown fmt)
       e Json_schema.pp (Json_encoding.schema enc)
 
-let rec convert_to_dcalc
-    ctx
-    (mark : 'm mark)
-    (typ : typ)
-    (rval : Runtime.runtime_value) : (dcalc, 'm) boxed_gexpr =
+let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
+    (dcalc, 'm) boxed_gexpr =
+  let open Val in
   let mark = Expr.with_ty mark typ in
   let f = convert_to_dcalc ctx mark in
   match Mark.remove typ, rval with
-  | TLit TUnit, Unit -> Expr.elit LUnit mark
-  | TLit TBool, Bool b -> Expr.elit (LBool b) mark
-  | TLit TMoney, Money z -> Expr.elit (LMoney z) mark
-  | TLit TInt, Integer z -> Expr.elit (LInt z) mark
-  | TLit TRat, Decimal q -> Expr.elit (LRat q) mark
-  | TLit TDate, Date d -> Expr.elit (LDate d) mark
-  | TLit TDuration, Duration d -> Expr.elit (LDuration d) mark
-  | TLit TPos, Position (file, sl, sc, el, ec) ->
-    Expr.epos (Pos.from_info file sl sc el ec) mark
-  | TDefault _typ, Enum ("Optional", ("Absent", Unit)) -> Expr.eempty mark
-  | TDefault typ, Enum ("Optional", ("Present", rval)) ->
-    Expr.epuredefault (f typ rval) mark
-  | TOption _typ, Enum ("Optional", ("Absent", Unit)) ->
-    Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
-      ~e:(Expr.elit LUnit mark) mark
-  | TOption typ, Enum ("Optional", ("Present", rval)) ->
-    Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval) mark
-  | TEnum ename, Enum (_ename, (cstr, v)) ->
+  | TLit TUnit, V (Val.Unit, _) -> Expr.elit LUnit mark
+  | TLit TBool, V (Bool, b) -> Expr.elit (LBool b) mark
+  | TLit TMoney, V (Money, z) -> Expr.elit (LMoney z) mark
+  | TLit TInt, V (Integer, z) -> Expr.elit (LInt z) mark
+  | TLit TRat, V (Decimal, q) -> Expr.elit (LRat q) mark
+  | TLit TDate, V (Date, d) -> Expr.elit (LDate d) mark
+  | TLit TDuration, V (Duration, d) -> Expr.elit (LDuration d) mark
+  | ( TLit TPos,
+      V
+        ( Position,
+          {
+            filename;
+            start_line;
+            start_column;
+            end_line;
+            end_column;
+            law_headings;
+          } ) ) ->
+    Expr.epos
+      Pos.(
+        overwrite_law_info
+          (from_info filename start_line start_column end_line end_column)
+          law_headings)
+      mark
+  | TDefault typ, V (Enum { name = "Optional"; constr }, v) -> begin
+    match constr v with
+    | 0, "Absent", None -> Expr.eempty mark
+    | 1, "Present", Some rval -> Expr.epuredefault (f typ rval) mark
+    | _ -> assert false
+  end
+  | TOption typ, V (Enum { name = "Optional"; constr }, v) -> begin
+    match constr v with
+    | 0, "Absent", None ->
+      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+        ~e:(Expr.elit LUnit mark) mark
+    | 1, "Present", Some rval ->
+      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
+        mark
+    | _ -> assert false
+  end
+  | TEnum ename, V (Enum { name = _; constr }, v) ->
+    let _idx, cstr, v = constr v in
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
       |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
     in
-    Expr.einj ~name:ename ~cons ~e:(f typ_v v) mark
-  | TStruct sname, Struct (_sname, ls) ->
+    let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
+    Expr.einj ~name:ename ~cons ~e mark
+  | TStruct sname, V (Struct { name = _; fields }, v) ->
     let fields =
       let struc = StructName.Map.find sname ctx.ctx_structs in
       let struc_fields = StructField.Map.bindings struc in
@@ -487,50 +600,71 @@ let rec convert_to_dcalc
         (fun sfm (sf, v) ->
           let sf, typ = lookup_field sf in
           StructField.Map.add sf (f typ v) sfm)
-        StructField.Map.empty ls
+        StructField.Map.empty (fields v)
     in
     Expr.estruct ~name:sname ~fields mark
-  | TArray typ, Array a ->
-    Expr.earray (Array.to_list a |> List.map (f typ)) mark
-  | TTuple typl, Tuple a ->
-    Expr.etuple (Array.to_list a |> List.map2 (fun typ -> f typ) typl) mark
+  | TArray typ, V (Array fl, a) ->
+    Expr.earray (Array.map fl a |> Array.to_list |> List.map (f typ)) mark
+  | TTuple typl, V (Tuple fl, a) ->
+    Expr.etuple (fl a |> List.map2 (fun typ -> f typ) typl) mark
   | _t, r ->
     Message.error
-      "Cannot convert runtime_value to dcalc: expected value of type %a, got %a"
-      Print.typ typ Runtime.format_value r
+      "Cannot convert runtime value to dcalc: expected value of type %a, got %a"
+      Print.typ typ format r
 
-let rec convert_to_lcalc
-    ctx
-    (mark : 'm mark)
-    (typ : typ)
-    (rval : Runtime.runtime_value) : (lcalc, 'm) boxed_gexpr =
+let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
+    (lcalc, 'm) boxed_gexpr =
+  let open Val in
   let mark = Expr.with_ty mark typ in
   let f = convert_to_lcalc ctx mark in
   match Mark.remove typ, rval with
-  | TLit TPos, Position (file, sl, sc, el, ec) ->
-    Expr.epos (Pos.from_info file sl sc el ec) mark
-  | TLit TUnit, Unit -> Expr.elit LUnit mark
-  | TLit TBool, Bool b -> Expr.elit (LBool b) mark
-  | TLit TMoney, Money z -> Expr.elit (LMoney z) mark
-  | TLit TInt, Integer z -> Expr.elit (LInt z) mark
-  | TLit TRat, Decimal q -> Expr.elit (LRat q) mark
-  | TLit TDate, Date d -> Expr.elit (LDate d) mark
-  | TLit TDuration, Duration d -> Expr.elit (LDuration d) mark
+  | TLit TUnit, V (Val.Unit, _) -> Expr.elit LUnit mark
+  | TLit TBool, V (Bool, b) -> Expr.elit (LBool b) mark
+  | TLit TMoney, V (Money, z) -> Expr.elit (LMoney z) mark
+  | TLit TInt, V (Integer, z) -> Expr.elit (LInt z) mark
+  | TLit TRat, V (Decimal, q) -> Expr.elit (LRat q) mark
+  | TLit TDate, V (Date, d) -> Expr.elit (LDate d) mark
+  | TLit TDuration, V (Duration, d) -> Expr.elit (LDuration d) mark
+  | ( TLit TPos,
+      V
+        ( Position,
+          {
+            filename;
+            start_line;
+            start_column;
+            end_line;
+            end_column;
+            law_headings;
+          } ) ) ->
+    Expr.epos
+      Pos.(
+        overwrite_law_info
+          (from_info filename start_line start_column end_line end_column)
+          law_headings)
+      mark
   | TTuple [typ; (TLit TPos, _)], rval ->
     Expr.etuple [f typ rval; Expr.epos Pos.void mark] mark
-  | (TDefault _typ | TOption _typ), Enum ("Optional", ("Absent", Unit)) ->
-    Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
-      ~e:(Expr.elit LUnit mark) mark
-  | (TDefault typ | TOption typ), Enum ("Optional", ("Present", rval)) ->
-    Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval) mark
-  | TEnum ename, Enum (_ename, (cstr, v)) ->
+  | (TDefault typ | TOption typ), V (Enum { name = "Optional"; constr }, v) ->
+    begin
+    match constr v with
+    | 0, "Absent", None ->
+      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+        ~e:(Expr.elit LUnit mark) mark
+    | 1, "Present", Some rval ->
+      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
+        mark
+    | _ -> assert false
+  end
+  | TEnum ename, V (Enum { name = _; constr }, v) ->
+    let _idx, cstr, v = constr v in
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
       |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
     in
-    Expr.einj ~name:ename ~cons ~e:(f typ_v v) mark
-  | TStruct sname, Struct (_sname, ls) ->
+    let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
+    Expr.einj ~name:ename ~cons ~e mark
+  | TStruct sname, V (Struct { name = _; fields }, v) ->
     let fields =
       let struc = StructName.Map.find sname ctx.ctx_structs in
       let struc_fields = StructField.Map.bindings struc in
@@ -541,59 +675,16 @@ let rec convert_to_lcalc
         (fun sfm (sf, v) ->
           let sf, typ = lookup_field sf in
           StructField.Map.add sf (f typ v) sfm)
-        StructField.Map.empty ls
+        StructField.Map.empty (fields v)
     in
     Expr.estruct ~name:sname ~fields mark
-  | TArray typ, Array a ->
-    Expr.earray (Array.to_list a |> List.map (f typ)) mark
-  | TTuple typl, Tuple a ->
-    Expr.etuple (Array.to_list a |> List.map2 (fun typ -> f typ) typl) mark
+  | TArray typ, V (Array fl, a) ->
+    Expr.earray (Array.map fl a |> Array.to_list |> List.map (f typ)) mark
+  | TTuple typl, V (Tuple fl, a) ->
+    Expr.etuple (fl a |> List.map2 (fun typ -> f typ) typl) mark
   | _t, r ->
     Message.error
-      "Cannot convert runtime_value to lcalc: expected value of type %a, got %a"
-      Print.typ typ Runtime.format_value r
+      "Cannot convert runtime value to lcalc: expected value of type %a, got %a"
+      Print.typ typ format r
 
-let rec convert_from_gexpr : type a.
-    decl_ctx -> (a, 'm) gexpr -> Runtime.runtime_value =
- fun ctx e ->
-  let f = convert_from_gexpr ctx in
-  match Mark.remove e with
-  | ELit LUnit -> Unit
-  | ELit (LBool b) -> Bool b
-  | ELit (LMoney m) -> Money m
-  | ELit (LInt z) -> Integer z
-  | ELit (LRat q) -> Decimal q
-  | ELit (LDate d) -> Date d
-  | ELit (LDuration d) -> Duration d
-  | EEmpty -> Enum ("Optional", ("Absent", Unit))
-  | EPureDefault e -> Enum ("Optional", ("Present", f e))
-  | EInj { name; cons; e = _ }
-    when EnumName.equal Expr.option_enum name
-         && EnumConstructor.equal cons Expr.none_constr ->
-    Enum ("Optional", ("Absent", Unit))
-  | EInj { name; cons; e }
-    when EnumName.equal Expr.option_enum name
-         && EnumConstructor.equal cons Expr.some_constr ->
-    Enum ("Optional", ("Present", f e))
-  | EInj { name; cons; e } ->
-    Enum (EnumName.to_string name, (EnumConstructor.to_string cons, f e))
-  | EStruct { name; fields } ->
-    Struct
-      ( StructName.to_string name,
-        StructField.Map.bindings fields
-        |> List.map (fun (sf, e) -> StructField.to_string sf, f e) )
-  | EArray el -> Array (List.map f el |> Array.of_list)
-  | ETuple [e; (EPos _, _)] -> f e
-  | ETuple el -> Tuple (List.map f el |> Array.of_list)
-  | EPos p ->
-    Position
-      Pos.(
-        ( get_file p,
-          get_start_line p,
-          get_start_column p,
-          get_end_line p,
-          get_end_column p ))
-  | EAbs _ -> Message.error "Cannot convert functional values to JSON"
-  | _ ->
-    Message.error "Failed to convert expression to runtime_value: %a"
-      (Print.expr ()) e
+let convert_from_gexpr = Expr.embed_value

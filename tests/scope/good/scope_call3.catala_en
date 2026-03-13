@@ -62,7 +62,7 @@ $ catala Interpret -t -s HousingComputation --debug
   Duration_en MonthYear_en Period_internal Period_en Money_internal Money_en
   Integer_en Decimal_internal Decimal_en Stdlib_en
 [DEBUG] Starting interpretation...
-[LOG] ≔  HousingComputation.f: <object>
+[LOG] ≔  HousingComputation.f: <function>
 [LOG] ☛ Definition applied:
       ─➤ tests/scope/good/scope_call3.catala_en:8.14-8.20:
         │
@@ -77,15 +77,15 @@ $ catala Interpret -t -s HousingComputation --debug
           │              ‾
 [LOG]   →  RentComputation.direct
 [LOG]     ≔  RentComputation.direct.input: RentComputation_in {  }
-[LOG]     ≔  RentComputation.g: <object>
-[LOG]     ≔  RentComputation.f: <object>
+[LOG]     ≔  RentComputation.g: <function>
+[LOG]     ≔  RentComputation.f: <function>
 [LOG]     ☛ Definition applied:
           ─➤ tests/scope/good/scope_call3.catala_en:7.28-7.55:
             │
           7 │   definition f of x equals (output of RentComputation).f of x
             │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 [LOG]     ≔  RentComputation.direct.
-      output: RentComputation { -- f: <object> }
+      output: RentComputation { -- f: <function> }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1

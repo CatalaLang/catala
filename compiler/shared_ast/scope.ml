@@ -39,10 +39,11 @@ let map_exprs_in_lets :
           (f scope_let.scope_let_expr) ))
     scope_body_expr
 
-let map_exports f exports =
+let map_exports ?(kind = fun k -> k) f exports =
   Bindlib.box_list
     (List.map
-       (fun (k, e) -> Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift (f e)))
+       (fun (k, e) ->
+         Bindlib.box_apply (fun e -> kind k, e) (Expr.Box.lift (f e)))
        exports)
 
 let map_exprs ?(typ = Fun.id) ~f ~varf scopes =

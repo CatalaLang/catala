@@ -110,6 +110,17 @@ let width s =
   in
   aux 0 0
 
+let cut_at_width s width =
+  let len = length s in
+  let rec aux rem_cols i =
+    if i >= len || rem_cols < 1 || (get s i = '\t' && rem_cols < 8) then i
+    else
+      let clen = Uchar.utf_decode_length (get_utf_8_uchar s i) in
+      aux (rem_cols - 1) (i + clen)
+  in
+  let cut_len = aux width 0 in
+  if cut_len >= len then s else sub s 0 cut_len
+
 let quote s =
   let buf = Buffer.create ((2 * length s) + 2) in
   Buffer.add_char buf '"';
