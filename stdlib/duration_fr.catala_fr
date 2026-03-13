@@ -16,7 +16,10 @@ déclaration positif
   égal à
     si d > 0 jour alors d sinon 0 jour
 
-## Calcule la somme des éléments d'une liste de durées
+## Calcule la somme des éléments d'une liste de durées. Renvoie `0 jour` pour une liste vide.
+## **Exemples:**
+## - `Durée.somme de [1 jour; 2 jour; 3 jour] = 6 jour`
+## - `Durée.somme de [] = 0 jour`
 déclaration somme
   contenu durée
   dépend de l contenu liste de durée

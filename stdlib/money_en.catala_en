@@ -104,7 +104,10 @@ declaration round_to_decimal
   equals
     M.round_to_decimal of m, nth_decimal
 
-## Sums the elements of a list of money
+## Sums the elements of a list of money amounts. Returns `$0` for an empty list.
+## **Examples:**
+## - `Money.sum of [$10; $25; $5] = $40`
+## - `Money.sum of [] = $0`
 declaration sum
   content money
   depends on l content list of money
