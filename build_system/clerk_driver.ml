@@ -490,23 +490,32 @@ let build_clerk_target
     let all_targets =
       List.fold_left
         (fun acc ((item, tg, backend), _) ->
-          let targets =
-            let f =
-              File.(
-                Scan.target_file_name item -.- extension item.Scan.file_name)
+          match backend with
+          | Clerk_rules.Jsoo when item.Scan.extrnal ->
+            (* When an item is external in Jsoo it's either an internal file for
+               the stdlib that we don't export, either it's a project file and
+               we don't want to generate a jsoo interface for that file (as
+               there is no ocaml file to link the interface) *)
+            acc
+          | _ ->
+            let targets =
+              let f =
+                File.(
+                  Scan.target_file_name item -.- extension item.Scan.file_name)
+              in
+              let tf =
+                File.(
+                  build_dir / dirname f / backend_subdir backend / basename f)
+              in
+              let exts =
+                if tg.Config.include_objects then
+                  List.assoc backend backend_extensions
+                else List.assoc backend backend_src_extensions
+              in
+              let suffix = List.assoc backend backend_suffix in
+              List.map (fun ext -> File.with_extension ?suffix tf ext) exts
             in
-            let tf =
-              File.(build_dir / dirname f / backend_subdir backend / basename f)
-            in
-            let exts =
-              if tg.Config.include_objects then
-                List.assoc backend backend_extensions
-              else List.assoc backend backend_src_extensions
-            in
-            let suffix = List.assoc backend backend_suffix in
-            List.map (fun ext -> File.with_extension ?suffix tf ext) exts
-          in
-          targets @ acc)
+            targets @ acc)
         (backend_runtime_targets
            ~only_source:(not target.Config.include_objects)
            enabled_backends)
@@ -514,7 +523,17 @@ let build_clerk_target
       |> List.rev
     in
     let install_targets =
-      List.map (fun ((_item, _target, bk), file) -> bk, file) all_target_files
+      List.fold_left
+        (fun acc ((item, _target, bk), file) ->
+          match bk with
+          | Clerk_rules.Jsoo when item.Scan.extrnal ->
+            (* When an item is external in Jsoo it's either an internal file for
+               the stdlib that we don't export, either it's a project file and
+               we don't want to generate a jsoo interface for that file (as
+               there is no ocaml file to link the interface) *)
+            acc
+          | _ -> (bk, file) :: acc)
+        [] all_target_files
     in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
     install_targets, all_modules_deps

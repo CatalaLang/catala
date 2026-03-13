@@ -337,6 +337,10 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
           File.(Var.(!builddir) / Scan.libcatala / "jsoo")
         in
          [
+      Nj.rule "catala-ocaml"
+        ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
+                  "-o"; !output; "--"; !input]
+        ~description:["<catala>"; "ocaml"; "⇒"; !output];
       Nj.rule "jsoo-bytobject"
         ~command:[
           !ocamlc_exe; "-c"; !ocaml_flags; !jsoo_include; "-I"; runtime_include; !includes; !ppx; !input
@@ -344,6 +348,10 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
         ~description:["<ocaml>"; "⇒"; !output];
       Nj.rule "catala-jsoo"
         ~command:[!catala_exe; "jsoo"; !catala_flags; !catala_flags_jsoo;
+                  "-o"; !output; "--"; !input]
+        ~description:["<catala>"; "jsoo"; "⇒"; !output];
+      Nj.rule "catala-binding-jsoo"
+        ~command:[!catala_exe; "binding-jsoo"; !catala_flags; !catala_flags_jsoo;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; "jsoo"; "⇒"; !output];
     ]
@@ -568,17 +576,26 @@ let gen_build_statements
       in
       let jsoo =
         if not (List.mem Jsoo enabled_backends) then Seq.empty
-        else
-          let ml, missing = extern_src ~suffix:"_jsoo" "jsoo" "ml" [] in
-          let mli, missing = extern_src ~suffix:"_jsoo" "jsoo" "mli" missing in
-          check_missing "jsoo" missing;
+        else if is_stdlib then (
+          (* For an external from the stdlib, implementation are in OCaml *)
+          let ml, missing = extern_src "ocaml" "ml" [] in
+          let mli, missing = extern_src "ocaml" "mli" missing in
+          check_missing "ocaml" missing;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
-                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"];
+                ~outputs:[target ~backend:"jsoo" "ml"];
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
-                ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
-            ]
+                ~outputs:[target ~backend:"jsoo" "mli"];
+            ])
+        else
+          (* catala-jsoo will build the interface to export in JS *)
+          (* We will also need an file with *)
+          Seq.return
+            (Nj.build "catala-binding-jsoo" ~inputs:[catala_src]
+               ~implicit_in:[!Var.catala_exe]
+               ~outputs:[target ~backend:"jsoo" "ml"]
+               ~implicit_out:[target ~backend:"jsoo" "mli"])
       in
       ocaml, c, python, java, jsoo
     else
@@ -612,17 +629,24 @@ let gen_build_statements
         Seq.return
           (Nj.build "catala-java" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"java" "java"]),
-        Seq.return
-          (Nj.build "catala-jsoo" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]
-             ~implicit_out:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"]) )
+        List.to_seq
+          [
+            Nj.build "catala-ocaml" ?vars ~inputs ~implicit_in
+              ~outputs:[target ~backend:"jsoo" "ml"]
+              ~implicit_out:[target ~backend:"jsoo" "mli"];
+            Nj.build "catala-jsoo" ?vars ~inputs ~implicit_in
+              ~outputs:[target ~suffix:"_jsoo" ~backend:"jsoo" "ml"]
+              ~implicit_out:[target ~suffix:"_jsoo" ~backend:"jsoo" "mli"];
+          ] )
   in
   let ocamlopt =
     let obj =
       [
         Nj.build "ocaml-bytobject"
           ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
-          ~implicit_in:(List.map module_target modules @ ["@runtime-cmi-ocaml"])
+          ~implicit_in:
+            (List.map (modfile ".cmo") modules
+            @ ["@runtime-cmi-ocaml"; Var.(!catala_exe)])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
           ~vars:[Var.includes, include_flags "ocaml"];
         Nj.build "ocaml-natobject"
@@ -742,7 +766,7 @@ let gen_build_statements
            ]
          else [])
       @
-      if List.mem Jsoo enabled_backends then
+      if List.mem Jsoo enabled_backends && not item.extrnal then
         [
           Nj.build "phony"
             ~outputs:[modname ^ "@jsoo-module"]
