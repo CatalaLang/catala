@@ -83,6 +83,8 @@ module Var = struct
   let ocamlopt_exe = make "OCAMLOPT_EXE"
   let ocaml_flags = make "OCAML_FLAGS"
   let ocaml_include = make "OCAML_INCLUDE"
+  let jsoo_include = make "JSOO_INCLUDE"
+  let ppx_jsoo = make "PPX_JSOO"
   let runtime = make "CATALA_RUNTIME"
   let cc_exe = make "CC"
   let c_flags = make "CFLAGS"
@@ -93,6 +95,7 @@ module Var = struct
   let jar = make "jar"
   let java = make "JAVA"
   let js_of_ocaml_exe = make "JS_OF_OCAML_EXE"
+  let jsoo_command = make "JSOO_COMMAND"
   let js_of_ocaml_flags = make "JS_OF_OCAML_FLAGS"
   let all_vars = all_vars_ref.contents
 
@@ -100,6 +103,7 @@ module Var = struct
 
   let tdir = make "tdir"
   let includes = make "includes"
+  let ppx = make "ppx"
 
   (* Rule vars, Used in specific rules *)
 
@@ -273,10 +277,20 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
      else [])
   @
   if List.mem Jsoo enabled_backends then
+    (* We're trying to make jsoo backend work without OCaml backend, we redefine
+       some variable that were maybe already defined if the OCaml backend was
+       also activated.*)
     [
+      def Var.ocamlc_exe (lazy ["ocamlc"]);
+      def Var.jsoo_include
+        (lazy
+          (Lazy.force Poll.jsoo_include_flags
+          @ Lazy.force Poll.ocaml_include_flags
+          @ includes ~backend:"jsoo" ()));
       def Var.catala_flags_jsoo (lazy catala_flags_jsoo);
       def Var.js_of_ocaml_exe (lazy ["js_of_ocaml"]);
-      def Var.js_of_ocaml_flags (lazy []);
+      def Var.js_of_ocaml_flags (lazy ["--no-sourcemap"]);
+      def Var.ppx_jsoo (lazy (Lazy.force Poll.ppx_jsoo_exec));
     ]
   else []
 

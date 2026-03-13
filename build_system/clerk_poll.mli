@@ -29,6 +29,8 @@ val catala_exe : File.t Lazy.t
 val ocaml_libdir : File.t Lazy.t
 (** Locates the main [lib] directory containing the OCaml libs *)
 
+val ppx_jsoo_exec : string list Lazy.t
+val jsoo_include_flags : string list Lazy.t
 val ocaml_include_flags : string list Lazy.t
 val ocaml_link_flags : string list Lazy.t
 

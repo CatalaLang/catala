@@ -144,6 +144,50 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
      let includes, libs = List.split includes_libs in
      List.concat includes, libs)
 
+(* Using this flag in ocaml command will use the js_of_ocaml ppx on ocaml
+   files *)
+let ppx_jsoo_exec : string list Lazy.t =
+  lazy
+    (let lib = "js_of_ocaml-ppx" in
+     match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
+     | None ->
+       Message.error
+         "Required OCaml library not found at %a.@ Try `opam install %s'"
+         File.format
+         File.(Lazy.force ocaml_libdir / lib)
+         lib
+     | Some lib ->
+       let ppx =
+         let open File in
+         let exec = lib / "ppx.exe" in
+         Format.sprintf "'%s -as-ppx'" exec
+       in
+       ["-ppx"; ppx])
+
+(* Using this flag in ocaml command will include js_of_ocaml *)
+let jsoo_include_and_lib_flags : (string list * string list) Lazy.t =
+  lazy
+    (let link_libs = ["js_of_ocaml"] in
+     let includes_libs =
+       List.map
+         (fun lib ->
+           match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
+           | None ->
+             Message.error
+               "Required OCaml library not found at %a.@ Try `opam install %s'"
+               File.format
+               File.(Lazy.force ocaml_libdir / lib)
+               lib
+           | Some d ->
+             ["-I"; d], String.map (function '-' -> '_' | c -> c) lib ^ ".cma")
+         link_libs
+     in
+     let includes, libs = List.split includes_libs in
+     List.concat includes, libs)
+
+let jsoo_include_flags : string list Lazy.t =
+  lazy (fst (Lazy.force jsoo_include_and_lib_flags))
+
 let ocaml_include_flags : string list Lazy.t =
   lazy (fst (Lazy.force ocaml_include_and_lib_flags))
 
