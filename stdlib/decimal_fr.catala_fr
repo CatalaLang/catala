@@ -111,7 +111,7 @@ déclaration arrondi_à_la_décimale
   égal à
     D.round_to_decimal de d, nième_décimale
 
-## Calcule la somme des éléments d'une liste de décimaux. Renvoie 0,0 pour une liste vide.
+## Calcule la somme des éléments d'une liste de décimaux. Renvoie `0,0` pour une liste vide.
 ## **Exemples:**
 ## - `Décimal.somme de [1,5; 2,5; 0,5] = 4,5`
 ## - `Décimal.somme de [] = 0,0`

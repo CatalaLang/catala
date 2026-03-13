@@ -105,7 +105,7 @@ déclaration arrondi_à_la_décimale
   égal à
     M.round_to_decimal de a, nième_décimale
 
-## Calcule la somme des éléments d'une liste de montants d'argent. Renvoie 0€ pour une liste vide.
+## Calcule la somme des éléments d'une liste de montants d'argent. Renvoie `0€` pour une liste vide.
 ## **Exemples:**
 ## - `Argent.somme de [10€; 25€; 5€] = 40€`
 ## - `Argent.somme de [] = 0€`

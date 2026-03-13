@@ -109,7 +109,7 @@ declaration round_to_decimal
   equals
     D.round_to_decimal of d, nth_decimal
 
-## Sums the elements of a list of decimals. Returns 0.0 for an empty list.
+## Sums the elements of a list of decimals. Returns `0.0` for an empty list.
 ## **Examples:**
 ## - `Decimal.sum of [1.5; 2.5; 0.5] = 4.5`
 ## - `Decimal.sum of [] = 0.0`
