@@ -223,6 +223,7 @@ let format_struct_field_of
     format_struct_field_name (None, name)
 
 let format_ctx
+    ~(include_ : bool)
     (type_ordering : TypeIdent.t list)
     (ppml : Format.formatter)
     (ppi : Format.formatter)
@@ -240,20 +241,39 @@ let format_ctx
            <1 -2>end@]@,\
            @,"
           To_ocaml.format_to_module_name (`Sname struct_name);
+        Format.fprintf ppml "@[<v 2>module %a = struct@,"
+          To_ocaml.format_to_module_name (`Sname struct_name);
+        let () =
+          if include_ then
+            Format.fprintf ppml "include %a@," To_ocaml.format_to_module_name
+              (`Sname struct_name)
+          else Format.fprintf ppml "type t = unit@,"
+        in
         Format.fprintf ppml
-          "@[<v 2>module %a = struct@,\
-           include %a@,\
-           type jsoo = unit@,\
+          "type jsoo = unit@,\
            let to_jsoo = Fun.id@,\
            let of_jsoo = Fun.id@;\
            <1 -2>end@]@,\
-           @,"
-          To_ocaml.format_to_module_name (`Sname struct_name)
-          To_ocaml.format_to_module_name (`Sname struct_name))
+           @,")
       else
-        (Format.fprintf ppi
-           "@[<v 2>module %a : sig@,\
-            @[<hv 2>type t = %a.t = {@,\
+        (let type_printer =
+           Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+             (fun fmt (struct_field, struct_field_type) ->
+               Format.fprintf fmt "@[<hov 2>%a:@ %a@]"
+                 To_ocaml.format_struct_field_name (None, struct_field)
+                 To_ocaml.format_typ struct_field_type)
+         in
+         Format.fprintf ppi "@[<v 2>module %a : sig@,@[<hv 2>type "
+           To_ocaml.format_to_module_name (`Sname struct_name);
+         let () =
+           if include_ then
+             Format.fprintf ppi "t = %a.t = " To_ocaml.format_to_module_name
+               (`Sname struct_name)
+           else Format.fprintf ppi "t = "
+         in
+         Format.fprintf ppi
+           "{@,\
             %a@;\
             <0-2>}@]@;\
             @[<hv 2>class type jsoo_ct = object@;\
@@ -264,15 +284,7 @@ let format_ctx
             val of_jsoo : jsoo -> t@;\
             <1 -2>end@]@,\
             @,"
-           To_ocaml.format_to_module_name (`Sname struct_name)
-           To_ocaml.format_to_module_name (`Sname struct_name)
-           (Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-              (fun fmt (struct_field, struct_field_type) ->
-                Format.fprintf fmt "@[<hov 2>%a:@ %a@]"
-                  To_ocaml.format_struct_field_name (None, struct_field)
-                  To_ocaml.format_typ struct_field_type))
-           fields
+           type_printer fields
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
               (fun fmt (struct_field, struct_field_type) ->
@@ -280,10 +292,18 @@ let format_ctx
                   format_struct_field_name (None, struct_field)
                   format_struct_field_typ struct_field_type))
            fields;
+         Format.fprintf ppml "@[<v 2>module %a = struct@,"
+           To_ocaml.format_to_module_name (`Sname struct_name);
+         let () =
+           if include_ then
+             Format.fprintf ppml "include %a@," To_ocaml.format_to_module_name
+               (`Sname struct_name)
+           else
+             Format.fprintf ppml "@[<hv 2>type t = {@,%a@;<0-2>}@]@;"
+               type_printer fields
+         in
          Format.fprintf ppml
-           "@[<v 2>module %a = struct@,\
-            include %a@,\
-            @[<hv 2>class type jsoo_ct = object@;\
+           "@[<hv 2>class type jsoo_ct = object@;\
             <1 0>%a@;\
             <1 -2>end@]@,\
             type jsoo = jsoo_ct Js.t@,\
@@ -295,8 +315,6 @@ let format_ctx
             <0 -2>}@]@;\
             <1 -2>end@]@,\
             @,"
-           To_ocaml.format_to_module_name (`Sname struct_name)
-           To_ocaml.format_to_module_name (`Sname struct_name)
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
               (fun fmt (struct_field, struct_field_type) ->
@@ -329,40 +347,58 @@ let format_ctx
           (fun _ -> (function TLit TUnit, _ -> true | _ -> false))
           enum_cons
       in
+      let enum_printer =
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
+          (fun fmt (enum_cons, enum_cons_type) ->
+            match enum_cons_type with
+            | TLit TUnit, _ ->
+              Format.fprintf fmt "@[<hov 2>%a@]" To_ocaml.format_enum_cons_name
+                enum_cons
+            | _ ->
+              Format.fprintf fmt "@[<hov 2>%a of@ %a@]"
+                To_ocaml.format_enum_cons_name enum_cons To_ocaml.format_typ
+                enum_cons_type)
+      in
+      let print_type_ppml () =
+        if include_ then
+          Format.fprintf ppml "include %a@," To_ocaml.format_to_module_name
+            (`Ename enum_name)
+        else
+          Format.fprintf ppml "@[<hv 2>type t = %a%a%a@]@,"
+            Format.pp_print_if_newline () Format.pp_print_string "| "
+            enum_printer variants
+      in
+      let print_type_ppi () =
+        if include_ then
+          Format.fprintf ppi "t =@ %a.t =@ " To_ocaml.format_to_module_name
+            (`Ename enum_name)
+        else Format.fprintf ppi "t =@ "
+      in
       if string_enum then (
+        Format.fprintf ppi "@[<hv 2>module %a : sig@ @[<hv 2>type "
+          To_ocaml.format_to_module_name (`Ename enum_name);
+        print_type_ppi ();
         Format.fprintf ppi
-          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a.t =@ %a%a%a@]@,\
+          "%a%a%a@]@,\
            type jsoo = Js.js_string Js.t@,\
            val to_jsoo : t -> jsoo@,\
            val of_jsoo : jsoo -> t@;\
            <1 -2>end@]@,\
            @,"
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          Format.pp_print_if_newline () Format.pp_print_string "| "
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
-             (fun fmt (enum_cons, enum_cons_type) ->
-               match enum_cons_type with
-               | TLit TUnit, _ ->
-                 Format.fprintf fmt "@[<hov 2>%a@]"
-                   To_ocaml.format_enum_cons_name enum_cons
-               | _ ->
-                 Format.fprintf fmt "@[<hov 2>%a of@ %a@]"
-                   To_ocaml.format_enum_cons_name enum_cons To_ocaml.format_typ
-                   enum_cons_type))
+          Format.pp_print_if_newline () Format.pp_print_string "| " enum_printer
           variants;
+        Format.fprintf ppml "@[<hv 2>module %a = struct@ @[<hv 2>"
+          To_ocaml.format_to_module_name (`Ename enum_name);
+        print_type_ppml ();
         Format.fprintf ppml
-          "@[<hv 2>module %a = struct@ @[<hv 2>include %a@,\
-           type jsoo = Js.js_string Js.t@,\
+          "type jsoo = Js.js_string Js.t@,\
            @[<hv 2>let to_jsoo x = Js.string (match x with %a%a%a)@]@,\
            @[<hv 2>let of_jsoo js = match Js.to_string js with %a%a%a@,\
            @ |@[<hov> s -> invalid_arg (Format.sprintf \"unknown case in enum: \
            %%S\" s)@]@]@;\
            <1 -2>end@]@,\
            @,"
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          To_ocaml.format_to_module_name (`Ename enum_name)
           Format.pp_print_if_newline () Format.pp_print_string "| "
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
@@ -379,8 +415,11 @@ let format_ctx
                  To_ocaml.format_enum_cons_name enum_cons))
           variants)
       else (
+        Format.fprintf ppi "@[<hv 2>module %a : sig@ @[<hv 2>type "
+          To_ocaml.format_to_module_name (`Ename enum_name);
+        print_type_ppi ();
         Format.fprintf ppi
-          "@[<hv 2>module %a : sig@ @[<hv 2>type t =@ %a.t =@ %a%a%a@]@,\
+          "%a%a%a@]@,\
            @[<hv 2>class type jsoo_ct = object@;\
            <1 0>%a@;\
            <1 -2>end@]@,\
@@ -389,20 +428,7 @@ let format_ctx
            val of_jsoo : jsoo -> t@;\
            <1 -2>end@]@,\
            @,"
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          Format.pp_print_if_newline () Format.pp_print_string "| "
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ | ")
-             (fun fmt (enum_cons, enum_cons_type) ->
-               match enum_cons_type with
-               | TLit TUnit, _ ->
-                 Format.fprintf fmt "@[<hov 2>%a@]"
-                   To_ocaml.format_enum_cons_name enum_cons
-               | _ ->
-                 Format.fprintf fmt "@[<hov 2>%a of@ %a@]"
-                   To_ocaml.format_enum_cons_name enum_cons To_ocaml.format_typ
-                   enum_cons_type))
+          Format.pp_print_if_newline () Format.pp_print_string "| " enum_printer
           variants
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
@@ -410,9 +436,11 @@ let format_ctx
                Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.optdef Js.prop@]"
                  format_enum_cons_name enum_cons format_typ enum_cons_type))
           variants;
+        Format.fprintf ppml "@[<hv 2>module %a = struct@ @[<hv 2>"
+          To_ocaml.format_to_module_name (`Ename enum_name);
+        print_type_ppml ();
         Format.fprintf ppml
-          "@[<hv 2>module %a = struct@ @[<hv 2>include %a@,\
-           @[<hv 2>class type jsoo_ct = object@;\
+          "@[<hv 2>class type jsoo_ct = object@;\
            <1 0>%a@;\
            <1 -2>end@]@,\
            type jsoo = jsoo_ct Js.t@,\
@@ -422,8 +450,6 @@ let format_ctx
            @ |@[<hov> _ -> invalid_arg \"unknown case\"@]@]@;\
            <1 -2>end@]@,\
            @,"
-          To_ocaml.format_to_module_name (`Ename enum_name)
-          To_ocaml.format_to_module_name (`Ename enum_name)
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
              (fun fmt (enum_cons, enum_cons_type) ->
@@ -685,7 +711,7 @@ let format_program
      @,"
     (fun fmt o -> Option.iter (Format.fprintf fmt "open %s@,") o)
     modname;
-  format_ctx type_ordering ppml ppi p.decl_ctx;
+  format_ctx ~include_:true type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items ppml ppi p.code_items in
   export_code_items ppml ppi modname exports;
   pp [ppml; ppi] "@]";

@@ -1223,6 +1223,50 @@ module Commands = struct
         $ Cli.Flags.autotest
         $ Cli.Flags.closure_conversion)
 
+  let binding_jsoo
+      options
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      closure_conversion =
+    let () = if closure_conversion then ignore @@ fix_trace options in
+    let options = Global.enforce_options ~gen_external:true () in
+    let prg, type_ordering, _ =
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
+        ~monomorphize_types:false ~expand_ops:true
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
+    in
+    (* The goal is to shadow the real implementation of the ml file. So we don't
+       append a suffix like _jsoo*)
+    Message.debug "Compiling program to generate Js_of_ocaml interface...";
+    get_output_format options output
+      ~ext:(if Global.options.gen_external then "template.ml" else "ml")
+    @@ fun output_file fmt ->
+    let hashf = Hash.finalise ~monomorphize_types:false in
+    Lcalc.From_jsoo_interface.format_program output_file fmt prg ~hashf
+      type_ordering
+
+  let binding_jsoo =
+    Cmd.v
+      (Cmd.info "binding-jsoo" ~man:Cli.man_base
+         ~doc:
+           "Generates a Js_of_ocaml interface to use Catala program in \
+            javascript.")
+      Term.(
+        const binding_jsoo
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion)
+
   let scalc
       options
       includes
@@ -1560,6 +1604,7 @@ module Commands = struct
       typecheck_cmd;
       ocaml_cmd;
       jsoo_cmd;
+      binding_jsoo;
       python_cmd;
       java_cmd;
       c_cmd;
