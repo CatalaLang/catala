@@ -16,7 +16,8 @@ from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 from . import List_en as list_en
 
-Dictionnary = dict
+class Dictionnary(dict, Value):
+    pass
 
 empty = {}
 

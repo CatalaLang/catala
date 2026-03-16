@@ -23,13 +23,13 @@ module L = Lcalc.Ast
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
-  | LBool true -> Format.pp_print_string fmt "True"
-  | LBool false -> Format.pp_print_string fmt "False"
+  | LBool true -> Format.pp_print_string fmt "Bool(True)"
+  | LBool false -> Format.pp_print_string fmt "Bool(False)"
   | LInt i -> Format.fprintf fmt "Integer(%s)" (Runtime.integer_to_string i)
   | LUnit -> Format.pp_print_string fmt "Unit()"
-  | LRat i -> Format.fprintf fmt "decimal_of_string(\"%s\")" (Q.to_string i)
+  | LRat i -> Format.fprintf fmt "Decimal('%s')" (Q.to_string i)
   | LMoney e ->
-    Format.fprintf fmt "Money(Integer(%s))"
+    Format.fprintf fmt "Money('%s')"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
     Format.fprintf fmt "Date((%d,%d,%d))"
@@ -47,7 +47,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
   | Not -> Format.pp_print_string fmt "not"
-  | Length -> Format.pp_print_string fmt "list_length"
+  | Length -> Format.pp_print_string fmt "length"
   | ToInt_rat -> Format.pp_print_string fmt "integer_of_decimal"
   | ToInt_mon -> Format.pp_print_string fmt "integer_of_money"
   | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
@@ -87,11 +87,11 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Lte -> Format.pp_print_string fmt "<="
   | Gt -> Format.pp_print_string fmt ">"
   | Gte -> Format.pp_print_string fmt ">="
-  | Map -> Format.pp_print_string fmt "list_map"
-  | Map2 -> Format.pp_print_string fmt "list_map2"
-  | Reduce -> Format.pp_print_string fmt "list_reduce"
-  | Filter -> Format.pp_print_string fmt "list_filter"
-  | Fold -> Format.pp_print_string fmt "list_fold_left"
+  | Map -> Format.pp_print_string fmt "map"
+  | Map2 -> Format.pp_print_string fmt "map2"
+  | Reduce -> Format.pp_print_string fmt "reduce"
+  | Filter -> Format.pp_print_string fmt "filter"
+  | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
@@ -235,7 +235,6 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
   | EVar v -> VarName.format fmt v
-  | EFunc f -> FuncName.format fmt f
   | EStruct { fields = es; name = s } ->
     Format.fprintf fmt "%a(%a)" (format_struct ctx) s
       (Format.pp_print_list
@@ -260,7 +259,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e
   | EArray es ->
-    Format.fprintf fmt "[%a]"
+    Format.fprintf fmt "Array([%a])"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
@@ -278,10 +277,26 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (Pos.get_law_info pos)
   | EAppOp
       {
-        op = ((HandleExceptions | Map | Filter), _) as op;
-        args = [arg1; arg2];
+        op = ((Length | Map | Map2 | Reduce | Filter | Fold), _) as op;
+        args;
         _;
       } ->
+    let base, args =
+      match Mark.remove op, args with
+      | Length, [l] -> l, []
+      | Map, [f; l] -> l, [f]
+      | Map2, [pos; f; l1; l2] -> l1, [pos; f; l2]
+      | Reduce, [f; dft; l] -> l, [f; dft]
+      | Filter, [f; l] -> l, [f]
+      | Fold, [f; init; l] -> l, [f; init]
+      | _ -> assert false
+    in
+    Format.fprintf fmt "%a.%a(%a)" (format_expression ctx) base format_op op
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ", ")
+         (format_expression ctx))
+      args
+  | EAppOp { op = (HandleExceptions, _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2]; _ } ->
@@ -358,12 +373,20 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
   | EAppOp { op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
+  | EApp { f = EFunc f, _; args; _ } ->
+    Format.fprintf fmt "%a(@[<hv 0>%a)@]" FuncName.format f
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
   | EApp { f; args; _ } ->
+    (* can this happen ? *)
     Format.fprintf fmt "%a(@[<hv 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
+  | EFunc f -> Format.fprintf fmt "Function(%a)" FuncName.format f
   | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hv 0>%a)@]" format_op op
       (Format.pp_print_list
@@ -371,7 +394,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (format_expression ctx))
       args
   | ETuple es ->
-    Format.fprintf fmt "(%a)"
+    Format.fprintf fmt "CatalaTuple(%a)"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
@@ -471,11 +494,11 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
              cons_name;
            format_block ctx fmt
              (Utils.subst_block case.payload_var_name
-                (* Not a real catala struct, but will print as <var>.value *)
+                (* Not a real catala struct, but will print as <var>.payload *)
                 ( EStructFieldAccess
                     {
                       e1 = EVar switch_var, pos;
-                      field = StructField.fresh ("value", pos);
+                      field = StructField.fresh ("payload", pos);
                       name = StructName.fresh [] ("Dummy", pos);
                     },
                   pos )
@@ -516,7 +539,7 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
           StructField.format struct_field StructField.format_original
           struct_field (format_typ ctx) struct_field_type)
       fields;
-    Format.fprintf fmt "@]@,]@]@,"
+    Format.fprintf fmt "@]@,]@]"
     (*    Format.fprintf fmt "@[<v 4>def __init__(self, %a) -> None:@,"
      *      (Format.pp_print_list
      *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")

@@ -6,14 +6,14 @@ from enum import Enum
 
 
 def prorata(amount:Money, weights:List[Money]):
-    total_weight = reduce(lambda x,y: x+y, weights)
-    result = [ amount * (w / total_weight) for w in weights ]
+    total_weight = reduce(lambda x,y: x+y, weights.value)
+    result = [ amount * (w / total_weight) for w in weights.value ]
     remain = amount - reduce(lambda x,y: x+y, result)
     result[-1] = result[-1] + remain
-    return result
+    return Array(result)
 
 def prorata2(amount:Money, weights:List[Money]):
-    rem_weight = reduce(lambda x,y: x+y, weights)
+    rem_weight = reduce(lambda x,y: x+y, weights.value)
     rem = amount
     result = []
     for w in weights:
@@ -21,4 +21,4 @@ def prorata2(amount:Money, weights:List[Money]):
         rem_weight = rem_weight - w
         rem = rem - a
         result.append(a)
-    return result
+    return Array(result)
