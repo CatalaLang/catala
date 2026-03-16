@@ -10,7 +10,9 @@ from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # type: ignore
+# from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, qdiv, f_div, t_div, sign  # type: ignore
+import math
+from fractions import Fraction
 import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload
 from functools import reduce
@@ -119,21 +121,25 @@ class Impossible(CatalaError):
 def compare(a: object, b: object):
     return (a > b) - (a < b)
 
+# Generic base class
 class Value:
-    def __init__(self, value) -> None:
-        self.value = value
+    # Defaults expected to be overriden
+    def __truediv__(self, other: object, pos: SourcePosition | None = None):
+        if other == 0: raise DivisionByZero(pos)
+        else: return super().__truediv__(other)
 
-    def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
-        return self.value == other.value
+    def __eq__(self, other: object, pos: SourcePosition | None = None):
+        return super().__eq__(other)
 
-    def compare(self, other: Value, pos: SourcePosition | None = None) -> bool:
+    def compare(self, other: object, pos: SourcePosition | None = None) -> int:
         if type(self) is not type(other):
             raise UndefinedComparison(pos)
-        return compare(self.value, other.value)
+        return super().__gt__(other) - super().__lt(other)
 
     def __str__(self, indent: int = 0) -> str:
-        return self.value.__str__()
+        return super().__str__()
 
+    # deduced methods
     def __ne__(self, other: object, pos: SourcePosition | None = None) -> bool:
         return not(self.__eq__(other, pos))
 
@@ -215,6 +221,20 @@ class CatalaTuple(Value):
     def __getitem__(self, index):
         return self.value[index]
 
+    def __eq__(self, other: object, pos: SourcePosition | None = None):
+        try:
+          zipped = zip(self.value, other.value, strict=True)
+        except ValueError: return False
+        return all([x.__eq__(y, pos) for x, y in zipped])
+
+    def compare(self, other: object, pos: SourcePosition | None = None) -> bool:
+        if type(self) is not type(other):
+            raise UndefinedComparison(pos)
+        for (x, y) in zip(self.value, other.value, strict=False):
+            cmp = x.compare (y, pos)
+            if cmp != 0: return cmp
+        return compare (len(self.value), len(other.value))
+
     def __str__(self, indent: int = 0) -> str:
         return "({})".format(', '.join([x.__str__(indent + 2) for x in self.value]))
 
@@ -245,7 +265,7 @@ class CatalaStruct(Value):
         if len(self.fields) == 0: return f'{self.name} {{}}'
         return "%s {%s\n%s}" % (
             self.name,
-            ''.join([f"\n{'':>{indent+2}}-- {label}: {getattr(self, fld).__str__()}" for (fld, label) in self.fields]),
+            ''.join([f"\n{'':>{indent+2}}-- {label}: {getattr(self, fld).__str__()}" for (fld, label) in self.fields]), # Should be (indent + 2)
             f"{'':>{indent}}"
         )
 
@@ -285,12 +305,11 @@ class CatalaEnum(Value):
         else:
             return f'{self.code} content {self.payload}'
 
-class External(Value):
-    ... # name
-
 class Function(Value):
-    def __call__(self, *args, **kwargs):
-        return self.value(*args, **kwargs)
+    __slots__ = ('value')
+
+    def __call__(self, *args):
+        return self.value(*args)
 
     def __eq__(self, other: object, pos: SourcePosition | None = None):
         raise UndefinedComparison(pos)
@@ -310,6 +329,12 @@ class Bool(Value):
 
     value: bool
 
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
+        return self.value == other.value
+
     def __bool__(self):
         return self.value
 
@@ -317,94 +342,62 @@ class Bool(Value):
         if self.value: return "true"
         else: return "false"
 
-class Integer(Value):
-    __slots__ = ( 'value' )
 
-    value: int
-
-    def __init__(self, value: Union[str, int, Decimal]) -> None:
-        if isinstance(value, Decimal):
-            self.value = t_div(
-                  value.value.numerator,
-                  value.value.denominator)
-        else:
-            self.value = mpz(value)
-
-    def __add__(self, other: Integer) -> Integer:
-        return Integer(self.value + other.value)
-
-    def __sub__(self, other: Integer) -> Integer:
-        return Integer(self.value - other.value)
-
-    def __mul__(self, other: Integer) -> Integer:
-        return Integer(self.value * other.value)
-
-    def __truediv__(self, other: Integer) -> Decimal:
-        return Decimal(self.value) / Decimal(other.value)
+class Integer(Value, int):
+    def __new__(cls, value: Union[str, int, Decimal]) -> Integer:
+        return super().__new__(cls, int(value))
 
     def __repr__(self) -> str:
-        return f"Integer({self.value.__repr__()})"
+        return f"Integer({int(self)})"
 
 
-class Decimal(Value):
-    __slots__ = ( 'value' )
-
-    value: mpq
-
-    def __init__(self, value: Union[str, int, float, Integer]) -> None:
-        if isinstance(value, Integer):
-            self.value = mpq(value.value)
+class Decimal(Value, Fraction):
+    def __new__(cls, value: object, *args) -> Decimal:
+        if isinstance(value, Money):
+            return super().__new__(cls, numerator=value, denominator=100)
         else:
-            self.value = mpq(value)
-
-    def __add__(self, other: Decimal) -> Decimal:
-        return Decimal(self.value + other.value)
-
-    def __sub__(self, other: Decimal) -> Decimal:
-        return Decimal(self.value - other.value)
-
-    def __mul__(self, other: Decimal) -> Decimal:
-        return Decimal(self.value * other.value)
-
-    def __truediv__(self, other: Decimal) -> Decimal:
-        return Decimal(self.value / other.value)
+            return super().__new__(cls, value, *args)
 
     def __str__(self, indent: int = 0) -> str:
-        return str(mpfr(self.value))
+        return "%.10f" % self
 
     def __repr__(self) -> str:
         return f"Decimal({self.value.__repr__()})"
 
 
-class Money(Value):
-    __slots__ = ( 'value' )
-
-    value: Integer
-
-    def __init__(self, value) -> None:
-        self.value = Integer(value)
-
-    def __add__(self, other: Money) -> Money:
-        return Money(self.value + other.value)
-
-    def __sub__(self, other: Money) -> Money:
-        return Money(self.value - other.value)
-
+class Money(Integer):
     def __mul__(self, other: Union [Integer, Decimal]) -> Money:
-        rat_result : Decimal = decimal_of_integer(self.value) * Decimal(other.value)
+        rat_result : Decimal = Decimal(self) * Decimal(other)
         return Money(round(rat_result))
 
-    def __truediv__(self, other: Union [Integer, Decimal, Money]) -> Union [Decimal, Money]:
+    @overload
+    def __truediv__(self, other: Money) -> Decimal: ...
+
+    @overload
+    def __truediv__(self, other: Union [Integer, Decimal]) -> Money: ...
+
+    def __truediv__(self,
+                    other: Union [Integer, Decimal, Money],
+                    pos: SourcePosition = None
+                    ) -> Union [Decimal, Money]:
+        if other == 0: raise DivisionByZero(pos)
         if isinstance(other, Money):
-            return self.value / other.value
+            return Decimal(self, other)
         else:
-            return self * (Decimal(1) / Decimal(other.value))
+            return self * (Decimal(1).__truediv__(Decimal(other)))
 
     def __str__(self, indent: int = 0) -> str:
-        return "%01.2f€" % (int(self.value.value) / 100)
+        return "%01.2f€" % (self / 100)
 
     def __repr__(self) -> str:
-        return f"Money({self.value.__repr__()})"
+        return f"Money({int(self)})"
+
+    def decimal(self) -> Decimal:
+        return Decimal(self, 100)
+
+    def __float__(self) -> float:
+        return float(self.decimal())
+
 
 class Date(Value):
     __slots__ = ( 'value' )
@@ -573,12 +566,12 @@ def gt_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
     return d1.__gt__(d2, pos)
 
 def round(q : Decimal) -> Integer:
-    sgn = sign(q.value)
-    qabs = abs(q.value)
+    qabs = abs(q)
     n = qabs.numerator
     d = qabs.denominator
     abs_round = (2 * n + d) // (2 * d)
-    return Integer(sgn * abs_round)
+    print (f'ROUND : {q} => {math.copysign(abs_round, q)} => {Integer(math.copysign(abs_round, q))}')
+    return Integer(math.copysign(abs_round, q))
 
 # -----
 # Money
@@ -597,19 +590,15 @@ def money_of_cents_integer(v: Integer) -> Money:
     return Money(v)
 
 
-def money_to_float(m: Money) -> float:
-    return float(mpfr(mpq(m.value.value, 100)))
-
-
 def money_to_string(m: Money) -> str:
-    return str(money_to_float(m))
+    return str(m)
 
 
 def money_to_cents(m: Money) -> Integer:
-    return m.value
+    return Integer(m)
 
 def money_round(m: Money) -> Money:
-    units : Decimal = Decimal(m.value) / Decimal(100)
+    units : Decimal = Decimal(m) / Decimal(100)
     return Money(round(units) * Integer(100))
 
 def money_of_decimal(d: Decimal) -> Money:
@@ -632,7 +621,7 @@ def decimal_of_string(d: str) -> Decimal:
 
 
 def decimal_to_float(d: Decimal) -> float:
-    return float(mpfr(d.value))
+    return float(d)
 
 
 def decimal_of_float(d: float) -> Decimal:
@@ -640,23 +629,23 @@ def decimal_of_float(d: float) -> Decimal:
 
 
 def integer_of_decimal(d: Decimal) -> Integer:
-    return Integer(d.value)
+    return Integer(d)
 
 def decimal_of_integer(d: Integer) -> Decimal:
-    return Decimal(d.value)
+    return Decimal(d)
 
 def decimal_to_string(precision: int, i: Decimal) -> str:
-    return "{1:.{0}}".format(precision, mpfr(i.value, precision * 10 // 2))
+    return "{1:.{0}}".format(precision, mpfr(i, precision * 10 // 2))
 
 
 def decimal_round(q: Decimal) -> Decimal:
     return Decimal(round(q))
 
 def decimal_of_money(m: Money) -> Decimal:
-    return Decimal(mpq(qdiv(m.value.value, 100)))
+    return Decimal(m)
 
 def integer_of_money(m: Money) -> Integer:
-    return round(decimal_of_money(m))
+    return round(Decimal(m))
 
 
 # --------
@@ -669,7 +658,7 @@ def integer_of_string(s: str) -> Integer:
 
 
 def integer_to_string(d: Integer) -> str:
-    return str(d.value)
+    return str(d)
 
 
 def integer_of_int(d: int) -> Integer:
@@ -677,7 +666,7 @@ def integer_of_int(d: int) -> Integer:
 
 
 def integer_to_int(d: Integer) -> int:
-    return int(d.value)
+    return int(d)
 
 
 def integer_exponentiation(i: Integer, e: int) -> Integer:
@@ -685,7 +674,7 @@ def integer_exponentiation(i: Integer, e: int) -> Integer:
 
 
 def integer_log2(i: Integer) -> int:
-    return int(log2(i.value))
+    return int(math.log2(i))
 
 # -----
 # Dates
