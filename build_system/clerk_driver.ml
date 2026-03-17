@@ -364,7 +364,9 @@ let backend_runtime_targets ?(only_source = false) enabled_backends =
      else [])
   @
   if List.mem Clerk_rules.Jsoo enabled_backends then
-    if only_source then ["@runtime-jsoo-src"] else []
+    (* Jsoo is a special backend, the ocaml file generated are technically not
+       the source, the real source is the javascript file generated at the end.
+       So in any cases, jsoo runtime include object *) ["@runtime-jsoo"]
   else []
 
 open Cmdliner
@@ -473,7 +475,8 @@ let build_clerk_target
                   / Scan.target_basename module_item
               in
               let extensions =
-                if target.include_objects then List.assoc bk backend_extensions
+                if target.include_objects || bk = Clerk_rules.Jsoo then
+                  List.assoc bk backend_extensions
                 else List.assoc bk backend_src_extensions
               in
               let suffix = List.assoc bk backend_suffix in
@@ -508,7 +511,7 @@ let build_clerk_target
                   build_dir / dirname f / backend_subdir backend / basename f)
               in
               let exts =
-                if tg.Config.include_objects then
+                if tg.Config.include_objects || backend = Clerk_rules.Jsoo then
                   List.assoc backend backend_extensions
                 else List.assoc backend backend_src_extensions
               in
@@ -556,7 +559,8 @@ let build_clerk_target
       let bk = Clerk_rules.backend_from_config bk in
       let dir = prefix_dir / backend_subdir bk in
       let extensions =
-        if target.include_objects then List.assoc bk backend_extensions
+        if target.include_objects || bk = Clerk_rules.Jsoo then
+          List.assoc bk backend_extensions
         else List.assoc bk backend_src_extensions
       in
       match bk with
