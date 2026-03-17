@@ -75,7 +75,13 @@ val scope_dependencies_to_json : ScopeDependencies.t -> Yojson.Safe.t
 module EdgeExceptions : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t list
 
 module ExceptionVertex : sig
-  type t = { rules : Pos.t RuleName.Map.t; label : LabelName.t }
+  type t = {
+    rules : (Pos.t * Ast.expr option) RuleName.Map.t;
+    label : LabelName.t;
+  }
+  (** [rules] maps each rule name to its position and, if it has an explicit
+      condition ([under condition ...]), the condition expression. [None] means
+      the rule is unconditional. *)
 end
 
 module ExceptionsDependencies :

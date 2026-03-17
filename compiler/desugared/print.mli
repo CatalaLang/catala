@@ -14,9 +14,27 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type exception_tree =
+  | Leaf of Dependency.ExceptionVertex.t
+  | Node of exception_tree list * Dependency.ExceptionVertex.t
+
 val exceptions_graph :
   Shared_ast.ScopeName.t ->
   Ast.ScopeDef.t ->
   Dependency.ExceptionsDependencies.t ->
   unit
 (** Prints the exception graph of a variable to the terminal *)
+
+val exceptions_graph_json :
+  Shared_ast.ScopeName.t ->
+  Ast.ScopeDef.t ->
+  Dependency.ExceptionsDependencies.t ->
+  unit
+(** Prints the exception graph of a variable as JSON to stdout *)
+
+val build_exception_tree :
+  Dependency.ExceptionsDependencies.t -> exception_tree list
+(** Builds the exception tree from the graph *)
+
+val exception_tree_to_json : exception_tree -> Yojson.Safe.t
+(** Serialises an exception tree node to a JSON value *)

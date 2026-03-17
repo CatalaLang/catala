@@ -21,47 +21,128 @@ type exception_tree =
   | Leaf of Dependency.ExceptionVertex.t
   | Node of exception_tree list * Dependency.ExceptionVertex.t
 
-open Format
+(* Returns the list of unique condition expressions for a vertex, deduplicated
+   by their pretty-printed text. Empty if all rules are unconditional. *)
+let conditions_of_vertex
+    (lang : Global.backend_lang)
+    (v : Dependency.ExceptionVertex.t) : Ast.expr list =
+  RuleName.Map.values v.Dependency.ExceptionVertex.rules
+  |> List.filter_map (fun (_, just_expr_opt) -> just_expr_opt)
+  |> List.sort_uniq (fun e1 e2 ->
+      String.compare
+        (Format.asprintf "%a" (Print.UserFacing.expr lang) e1)
+        (Format.asprintf "%a" (Print.UserFacing.expr lang) e2))
 
-(* Original credits for this printing code: Jean-Christophe Filiâtre *)
+(* Renders a condition expression to a list of lines, wrapping at [width]
+   columns. The stag functions from [fmt_outer] are forwarded so that color tags
+   in the expression printer produce the same ANSI sequences as the outer
+   formatter; this preserves syntax highlighting in the condition text. *)
+let render_condition_lines lang width fmt_outer e =
+  let buf = Buffer.create 80 in
+  let inner = Format.formatter_of_buffer buf in
+  Format.pp_set_formatter_stag_functions inner
+    (Format.pp_get_formatter_stag_functions fmt_outer ());
+  Format.pp_set_tags inner true;
+  Format.pp_set_margin inner (max 20 width);
+  Print.UserFacing.expr lang inner e;
+  Format.pp_print_flush inner ();
+  String.split_on_char '\n' (Buffer.contents buf)
+
+(* Prints the exception tree vertically (one node per line) so that long
+   condition labels don't break horizontal alignment. Each condition is printed
+   on its own indented line below the node label; multi-line conditions have the
+   tree's continuation prefix on every line so │ bars remain aligned. *)
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
-  let blue fmt n s =
-    Format.fprintf fmt "@{<blue>%a@}" (fun fmt -> Format.pp_print_as fmt n) s
-  in
-  let rec print_node pref prefsz (t : exception_tree) =
-    let label, sons =
+  let lang = Option.value Global.options.language ~default:Global.En in
+  let margin = Format.pp_get_margin fmt () in
+  let rec print_node prefix (t : exception_tree) =
+    let label, vertex, children =
       match t with
-      | Leaf l -> l.Dependency.ExceptionVertex.label, []
-      | Node (sons, l) -> l.Dependency.ExceptionVertex.label, sons
+      | Leaf l -> l.Dependency.ExceptionVertex.label, l, []
+      | Node (children, l) -> l.Dependency.ExceptionVertex.label, l, children
     in
     Format.fprintf fmt "\"%a\"" LabelName.format label;
-    let w = String.width (fst (LabelName.get_info label)) + 2 in
-    if sons != [] then
-      let pref', prefsz' = pref ^ String.make (w + 1) ' ', prefsz + w + 2 in
-      match sons with
-      | [t'] ->
-        blue fmt 3 "───";
-        print_node (pref' ^ " ") (prefsz' + 1) t'
-      | _ ->
-        blue fmt 1 "─";
-        print_sons pref' prefsz' "─┬──" sons
-  and print_sons pref prefsz start = function
-    | [] -> assert false
-    | [s] ->
-      blue fmt 4 " └──";
-      print_node (pref ^ " ") (prefsz + 1) s
-    | s :: sons ->
-      blue fmt 4 start;
-      print_node (pref ^ "| ") (prefsz + 2) s;
-      pp_print_cut fmt ();
-      blue fmt (prefsz + 2) (pref ^ " │");
-      pp_print_cut fmt ();
-      blue fmt prefsz pref;
-      print_sons pref prefsz " ├──" sons
+    (* For nodes with children, run a │ bar down through all condition lines to
+       visually connect the label to the child connectors below. For leaves, use
+       plain spaces. Continuation lines of multi-line conditions align under
+       [. *)
+    let has_children = children <> [] in
+    let cond_width = max 20 (margin - String.length prefix - 3) in
+    List.iter
+      (fun e ->
+        let lines = render_condition_lines lang cond_width fmt e in
+        Format.pp_print_cut fmt ();
+        if has_children then Format.fprintf fmt "@{<blue>%s│@} [" prefix
+        else (
+          Format.fprintf fmt "@{<blue>%s@}" prefix;
+          Format.pp_print_string fmt "  [");
+        (match lines with
+        | [] -> ()
+        | first :: rest ->
+          Format.pp_print_string fmt first;
+          List.iter
+            (fun line ->
+              Format.pp_print_cut fmt ();
+              if has_children then (
+                Format.fprintf fmt "@{<blue>%s│@}  " prefix;
+                Format.pp_print_string fmt line)
+              else (
+                Format.fprintf fmt "@{<blue>%s@}" prefix;
+                Format.pp_print_string fmt ("   " ^ line)))
+            rest);
+        Format.pp_print_string fmt "]")
+      (conditions_of_vertex lang vertex);
+    let last_idx = List.length children - 1 in
+    List.iteri
+      (fun i son ->
+        Format.pp_print_cut fmt ();
+        let connector = if i = last_idx then "└── " else "├── " in
+        let continuation = if i = last_idx then "    " else "│   " in
+        Format.fprintf fmt "@{<blue>%s%s@}" prefix connector;
+        print_node (prefix ^ continuation) son)
+      children
   in
   Format.pp_open_vbox fmt 0;
-  print_node "" 0 t;
+  print_node "" t;
   Format.pp_close_box fmt ()
+
+let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
+  `Assoc
+    [
+      "file", `String (Pos.get_file pos);
+      "start_line", `Int (Pos.get_start_line pos);
+      "start_column", `Int (Pos.get_start_column pos);
+      "end_line", `Int (Pos.get_end_line pos);
+      "end_column", `Int (Pos.get_end_column pos);
+    ]
+
+let rec exception_tree_to_json (t : exception_tree) : Yojson.Safe.t =
+  let vertex, children =
+    match t with Leaf l -> l, [] | Node (children, l) -> l, children
+  in
+  let label = vertex.Dependency.ExceptionVertex.label in
+  let rules =
+    RuleName.Map.bindings vertex.Dependency.ExceptionVertex.rules
+    |> List.map (fun (_rule_name, (rule_pos, just_expr_opt)) ->
+        let lang = Option.value Global.options.language ~default:Global.En in
+        `Assoc
+          (("pos", pos_to_json rule_pos)
+          ::
+          (match just_expr_opt with
+          | None -> []
+          | Some e ->
+            [
+              "condition_pos", pos_to_json (Expr.pos e);
+              ( "condition_text",
+                `String (Format.asprintf "%a" (Print.UserFacing.expr lang) e) );
+            ])))
+  in
+  `Assoc
+    [
+      "label", `String (fst (LabelName.get_info label));
+      "rules", `List rules;
+      "exceptions", `List (List.map exception_tree_to_json children);
+    ]
 
 let build_exception_tree exc_graph =
   let base_cases =
@@ -95,8 +176,13 @@ let exceptions_graph
       Message.result "Definitions with label@ \"%a\":" LabelName.format
         ex.Dependency.ExceptionVertex.label
         ~extra_pos:
-          (List.map
-             (fun p -> "", p)
+          (List.concat_map
+             (fun (rule_pos, just_expr_opt) ->
+               ("", rule_pos)
+               ::
+               (match just_expr_opt with
+               | None -> []
+               | Some e -> ["under condition:", Expr.pos e]))
              (RuleName.Map.values ex.Dependency.ExceptionVertex.rules)))
     g;
   let tree = build_exception_tree g in
@@ -105,3 +191,19 @@ let exceptions_graph
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
        (fun fmt tree -> format_exception_tree fmt tree))
     tree
+
+let exceptions_graph_json
+    (scope : ScopeName.t)
+    (var : Ast.ScopeDef.t)
+    (g : Dependency.ExceptionsDependencies.t) =
+  let tree = build_exception_tree g in
+  let json =
+    `Assoc
+      [
+        "scope", `String (fst (ScopeName.get_info scope));
+        "variable", `String (Format.asprintf "%a" Ast.ScopeDef.format var);
+        "trees", `List (List.map exception_tree_to_json tree);
+      ]
+  in
+  Yojson.Safe.to_channel stdout json;
+  print_newline ()
