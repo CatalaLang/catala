@@ -1,0 +1,104 @@
+# Test
+
+```catala
+déclaration structure Individu:
+  donnée revenu contenu argent
+
+déclaration champ d'application Test:
+  entrée individu contenu Individu
+  interne x contenu décimal
+
+champ d'application Test:
+  étiquette base
+  définition x
+  sous condition individu.revenu <= 100 000 €
+  conséquence égal à 0,0
+
+  étiquette haut_revenu exception base
+  définition x
+  sous condition individu.revenu > 100 000 €
+  conséquence égal à 0,1
+
+  étiquette très_haut_revenu exception haut_revenu
+  définition x
+  sous condition individu.revenu > 100 000 € et individu.revenu <= 200 000 €
+  conséquence égal à 0,2
+```
+
+```catala-test-cli
+$ catala Exceptions -s Test -v x
+┌─[WARNING]─
+│
+│  Unused variable: x does not contribute to computing any of scope Test
+│  outputs. Did you forget something?
+│
+├─➤ tests/exception/good/utf8_conditions.catala_fr:9.11-9.12:
+│   │
+│ 9 │   interne x contenu décimal
+│   │           ‾
+└─ Test
+┌─[RESULT]─
+│ Printing the tree of exceptions for the definitions of variable "x" of scope "Test".
+└─
+┌─[RESULT]─
+│ Definitions with label "base":
+│
+├─➤ tests/exception/good/utf8_conditions.catala_fr:12.3-13.15:
+│    │
+│ 12 │   étiquette base
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │   définition x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:14.18-14.46:
+│    │
+│ 14 │   sous condition individu.revenu <= 100 000 €
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ Definitions with label "haut_revenu":
+│
+├─➤ tests/exception/good/utf8_conditions.catala_fr:17.3-18.15:
+│    │
+│ 17 │   étiquette haut_revenu exception base
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 18 │   définition x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:19.18-19.45:
+│    │
+│ 19 │   sous condition individu.revenu > 100 000 €
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ Definitions with label "très_haut_revenu":
+│
+├─➤ tests/exception/good/utf8_conditions.catala_fr:22.3-23.15:
+│    │
+│ 22 │   étiquette très_haut_revenu exception haut_revenu
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 23 │   définition x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:24.18-24.77:
+│    │
+│ 24 │   sous condition individu.revenu > 100 000 € et individu.revenu <= 200 000 €
+│    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ The exception tree structure is as follows:
+│ 
+│ "base"
+│ │ [individu.revenu <= $100,000.00]
+│ └── "haut_revenu"
+│     │ [individu.revenu > $100,000.00]
+│     └── "très_haut_revenu"
+│           [individu.revenu > $100,000.00 && individu.revenu <= $200,000.00]
+└─
+```

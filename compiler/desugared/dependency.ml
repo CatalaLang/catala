@@ -248,7 +248,10 @@ let scope_dependencies_to_json = ScopeDependenciesJSON.graph_to_json
 (** {2 Graph declaration} *)
 
 module ExceptionVertex = struct
-  type t = { rules : Pos.t RuleName.Map.t; label : LabelName.t }
+  type t = {
+    rules : (Pos.t * Ast.expr option) RuleName.Map.t;
+    label : LabelName.t;
+  }
 
   let compare x y =
     RuleName.Map.compare
@@ -373,9 +376,17 @@ let build_exceptions_graph
                 (snd (RuleName.get_info rule.rule_id))
                 (Pos.get_law_info (Expr.pos rule.rule_just))
             in
+            (* Unconditional rules have a compiler-generated [true]
+               justification; treat them as having no condition. *)
+            let just_expr =
+              match Expr.unbox rule.rule_just with
+              | ELit (LBool true), _ -> None
+              | e -> Some e
+            in
             match rule_set with
-            | None -> Some (RuleName.Map.singleton rule_name pos)
-            | Some rule_set -> Some (RuleName.Map.add rule_name pos rule_set))
+            | None -> Some (RuleName.Map.singleton rule_name (pos, just_expr))
+            | Some rule_set ->
+              Some (RuleName.Map.add rule_name (pos, just_expr) rule_set))
           rule_sets)
       def LabelName.Map.empty
   in
