@@ -248,6 +248,23 @@ let scope =
 
 let scope_input = Catala_utils.Cli.Flags.scope_input
 
+let variable =
+  Arg.(
+    required
+    & opt (some string) None
+    & info ["v"; "variable"] ~docv:"VARIABLE"
+        ~doc:
+          "Select which variable of a given scope to focus on. Use \
+           $(i,foo.bar) to access state $(i,bar) of variable $(i,foo) or \
+           variable $(i,bar) of subscope $(i,foo).")
+
+let json =
+  Arg.(
+    value
+    & flag
+    & info ["json"]
+        ~doc:"Output the exception tree in JSON format instead of text.")
+
 let clerk_targets_or_files =
   Arg.(
     value

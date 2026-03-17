@@ -1678,6 +1678,43 @@ let json_schema_cmd =
       $ Cli.single_file
       $ Cli.scope)
 
+let exceptions_cmd =
+  let run config _ninja_flags _quiet file scope variable json =
+    (* The exceptions command only needs the desugaring pass — no compiled
+       artifacts required. Bypass ninja and call catala directly. *)
+    let file = config.Cli.fix_path file in
+    let var_bindings =
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~enabled_backends:[Clerk_rules.Tests] ~config
+    in
+    let catala_exe = get_var var_bindings Var.catala_exe in
+    let catala_flags = get_var var_bindings Var.catala_flags in
+    let cmd =
+      catala_exe
+      @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
+      @ (if json then ["--json"] else [])
+      @ catala_flags
+    in
+    Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    run_command cmd
+  in
+  let doc =
+    "Prints the exception tree for the definitions of a particular variable in \
+     a scope. Use $(b,-s) to select the scope, $(b,-v) to select the variable, \
+     and $(b,--json) for machine-readable output."
+  in
+  Cmd.v
+    (Cmd.info ~doc "exceptions")
+    Term.(
+      const run
+      $ Cli.init_term ()
+      $ Cli.ninja_flags
+      $ Cli.quiet
+      $ Cli.single_file
+      $ Cli.scope
+      $ Cli.variable
+      $ Cli.json)
+
 let main_cmd =
   Cmd.group Cli.info
     [
@@ -1693,6 +1730,7 @@ let main_cmd =
       raw_cmd;
       list_vars_cmd;
       json_schema_cmd;
+      exceptions_cmd;
     ]
 
 let main () =
