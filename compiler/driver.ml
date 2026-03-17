@@ -654,7 +654,7 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output
         $ Cli.Flags.extra_files)
 
-  let exceptions options includes stdlib ex_scope ex_variable =
+  let exceptions options includes stdlib ex_scope ex_variable json =
     let prg, ctxt = Passes.desugared options ~includes ~stdlib in
     Passes.debug_pass_name "scopelang";
     let exceptions_graphs =
@@ -662,10 +662,17 @@ module Commands = struct
     in
     let scope_uid = get_scope_uid prg.program_ctx ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
-    Desugared.Print.exceptions_graph scope_uid variable_uid
-      (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
+    let g = Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs in
+    if json then Desugared.Print.exceptions_graph_json scope_uid variable_uid g
+    else Desugared.Print.exceptions_graph scope_uid variable_uid g
 
   let exceptions_cmd =
+    let json =
+      Cmdliner.Arg.(
+        value
+        & flag
+        & info ["json"] ~doc:"Output the exception tree in JSON format.")
+    in
     Cmd.v
       (Cmd.info "exceptions" ~man:Cli.man_base
          ~doc:
@@ -673,14 +680,15 @@ module Commands = struct
             variable, for debugging purposes. Use the $(b,-s) option to select \
             the scope and the $(b,-v) option to select the variable. Use \
             foo.bar to access state bar of variable foo or variable bar of \
-            subscope foo.")
+            subscope foo. Use $(b,--json) for machine-readable JSON output.")
       Term.(
         const exceptions
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope
-        $ Cli.Flags.ex_variable)
+        $ Cli.Flags.ex_variable
+        $ json)
 
   let dependency_graph options includes stdlib =
     let prg_desugared, _ctxt = Passes.desugared options ~includes ~stdlib in

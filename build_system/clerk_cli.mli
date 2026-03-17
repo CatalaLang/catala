@@ -39,6 +39,8 @@ val reset_test_outputs : bool Term.t
 val scope : string Term.t
 val scope_opt : string option Term.t
 val scope_input : Yojson.Safe.t option Term.t
+val variable : string Term.t
+val json : bool Term.t
 val clerk_targets_or_files : string list Term.t
 val clerk_targets_or_files_or_folders : string list Term.t
 val report_verbosity : [> `Failures | `Short | `Summary | `Verbose ] Term.t
