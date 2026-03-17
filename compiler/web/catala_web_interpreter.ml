@@ -324,5 +324,76 @@ let () =
          cleanup_files module_files;
          result
 
+       method getExceptionGraph (js_options : 'a Js.t) =
+         let language, main_filename, main_contents, module_files =
+           setup_files js_options
+         in
+         let ansi = get_ansi js_options in
+         let scope =
+           Js.Unsafe.get js_options (Js.string "scope") |> Js.to_string
+         in
+         let variable =
+           Js.Unsafe.get js_options (Js.string "variable") |> Js.to_string
+         in
+         let options =
+           Global.enforce_options
+             ~input_src:(Contents (main_contents, main_filename))
+             ~language:(Some language) ~debug:false ~color:Never ~trace:None
+             ~disable_warnings:false
+             ~path_rewrite:(fun f -> (f :> File.t))
+             ~whole_program:true ()
+         in
+         let result =
+           try
+             let includes =
+               if module_files <> [] then [Global.raw_file user_modules_path]
+               else []
+             in
+             let prg, ctxt =
+               Passes.desugared options ~includes
+                 ~stdlib:(Some (Global.raw_file stdlib_path))
+             in
+             let exceptions_graphs =
+               Scopelang.From_desugared.build_exceptions_graph prg
+             in
+             let scope_uid = Commands.get_scope_uid prg.program_ctx scope in
+             let variable_uid =
+               Commands.get_variable_uid ctxt scope_uid variable
+             in
+             let g =
+               Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs
+             in
+             let tree = Desugared.Print.build_exception_tree g in
+             let json =
+               `Assoc
+                 [
+                   "scope", `String scope;
+                   "variable", `String variable;
+                   ( "trees",
+                     `List
+                       (List.map Desugared.Print.exception_tree_to_json tree) );
+                 ]
+             in
+             let json_str = Yojson.Safe.to_string json in
+             let warning_diags, _error_notifs = drain_all ~ansi () in
+             object%js
+               val success = Js._true
+               val output = Js.string json_str
+               val diagnostics = Js.array (Array.of_list warning_diags)
+             end
+           with exn ->
+             let warning_diags, error_notifs = drain_all ~ansi () in
+             let error_diags = error_diagnostics ~ansi error_notifs exn in
+             object%js
+               val success = Js._false
+               val output = Js.string ""
+
+               val diagnostics =
+                 Js.array (Array.of_list (warning_diags @ error_diags))
+             end
+         in
+         cleanup_files module_files;
+         result
+
        method setTerminalWidth (w : int) = terminal_width := w
     end)
