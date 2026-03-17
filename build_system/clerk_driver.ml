@@ -115,7 +115,7 @@ let backend_obj_extensions =
     Clerk_rules.Python, [];
     Clerk_rules.Java, ["class"];
     Clerk_rules.Tests, [];
-    Clerk_rules.Jsoo, [];
+    Clerk_rules.Jsoo, ["cmo"];
   ]
 
 let backend_extensions =
@@ -347,7 +347,7 @@ let make_target ~build_dir ~backend item =
     | `C -> (dir / "c" / base) -.- "o"
     | `Python -> (dir / "python" / base) -.- "py"
     | `Java -> (dir / "java" / base) -.- "class"
-    | `Jsoo -> File.with_extension ~suffix:"_jsoo" (dir / "ocaml" / base) ".ml"
+    | `Jsoo -> File.with_extension ~suffix:"_jsoo" (dir / "jsoo" / base) ".ml"
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
