@@ -501,6 +501,10 @@ let init
     | Global.Human -> catala_opts
     | JSON -> ["--output-format"; "json"] @ catala_opts
   in
+  (* The command line argument has priority over field in config *)
+  let catala_exe =
+    match catala_exe with None -> config.global.catala_exe | exe -> exe
+  in
   {
     options =
       {
