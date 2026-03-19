@@ -631,6 +631,7 @@ and ('a, 'b, 'm) base_gexpr =
       (** A function of the given type, as a runtime OCaml object. The specified
           types for arguments and result must be the Catala types corresponding
           to the runtime types of the function. *)
+  (* Other *)
   | EBad : ('a, < .. >, 't) base_gexpr
       (** An internal-only node used to progress through the passes to report
           multiple errors. It should not appear to the user. *)

@@ -30,6 +30,7 @@ type attr += Law_pos of string list
 
 val from_lpos : Lexing.position * Lexing.position -> t
 val from_info : string -> int -> int -> int -> int -> t
+val from_file : string -> t
 val overwrite_law_info : t -> string list -> t
 val get_law_info : t -> string list
 val get_start_line : t -> int
@@ -60,6 +61,7 @@ val join : t -> t -> t
     Void positions (filename = "") are ignored. Raises [Invalid_argument] if
     they don't belong to the same file. *)
 
+module Set : Set.S with type elt = t
 module Map : Map.S with type key = t
 
 (**{2 Formatters}*)

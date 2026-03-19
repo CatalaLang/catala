@@ -66,6 +66,14 @@ let is_dummy_var v = VarName.to_string v = "_"
 (* this is the marker of a variable that's not expected to be used TODO: mark
    and/or detect such variables in a better way *)
 
+let op_needs_pos (type a) (op : a Op.t) _ty =
+  match op with
+  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
+  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Eq | Lt
+  | Lte | Gt | Gte ->
+    true
+  | _ -> false
+
 let renaming =
   (* We reserve the `__` separator for use in this backend; it's stripped from
      idents coming from the user, separates modules from idents, and is also

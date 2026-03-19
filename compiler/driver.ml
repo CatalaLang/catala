@@ -53,7 +53,7 @@ let load_modules
     | None -> File.Tree.empty
   in
   let stdlib_use file =
-    let pos = Pos.from_info file 0 0 0 0 in
+    let pos = Pos.from_file file in
     let lang = Cli.file_lang file in
     {
       Surface.Ast.mod_use_name = stdlib_root_module lang, pos;
@@ -189,7 +189,7 @@ let load_modules
   in
   let (_files, module_map), root_uses =
     load_uses file ~is_stdlib:false
-      [Pos.from_info file 0 0 0 0]
+      [Pos.from_file file]
       (File.Map.empty, ModuleName.Map.empty)
       program.Surface.Ast.program_used_modules
   in
@@ -316,7 +316,8 @@ module Passes = struct
       ~closure_conversion
       ~keep_special_ops
       ~monomorphize_types
-      ~renaming :
+      ~renaming
+      ~lift_pos :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
@@ -366,6 +367,13 @@ module Passes = struct
       else prg, type_ordering
     in
     Message.report_delayed_errors_if_any ();
+    let prg =
+      match lift_pos with
+      | None -> prg
+      | Some op_needs_pos ->
+        Message.debug "Lifting inline code locations...";
+        Lcalc.Lift_positions.process_program ~op_needs_pos prg
+    in
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
@@ -395,11 +403,12 @@ module Passes = struct
       ~no_struct_literals
       ~keep_module_names
       ~monomorphize_types
-      ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
+      ~renaming
+      ~lift_pos : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~renaming
+        ~monomorphize_types ~renaming ~lift_pos
     in
     let renaming_context =
       match renaming_context with
@@ -999,7 +1008,7 @@ module Commands = struct
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~typed
-        ~monomorphize_types ~renaming:(Some Renaming.default)
+        ~monomorphize_types ~renaming:(Some Renaming.default) ~lift_pos:None
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -1058,7 +1067,7 @@ module Commands = struct
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~typed ~renaming:None
+        ~monomorphize_types ~typed ~renaming:None ~lift_pos:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
@@ -1144,6 +1153,7 @@ module Commands = struct
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
         ~monomorphize_types:false ~renaming:(Some Lcalc.To_ocaml.renaming)
+        ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     Message.debug "Compiling program into OCaml...";
     get_output_format options output
@@ -1186,7 +1196,7 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
-        ~renaming:(Some Renaming.default)
+        ~renaming:(Some Renaming.default) ~lift_pos:None
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -1242,6 +1252,7 @@ module Commands = struct
         ~dead_value_assignment:true ~no_struct_literals:false
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_python.renaming)
+        ~lift_pos:(Some Scalc.To_python.op_needs_pos)
     in
     Message.debug "Compiling program into Python...";
     get_output_format options output
@@ -1285,6 +1296,7 @@ module Commands = struct
         ~dead_value_assignment:true ~no_struct_literals:false
         ~keep_module_names:true ~monomorphize_types:false
         ~renaming:(Some Scalc.To_java.renaming)
+        ~lift_pos:(Some Scalc.To_java.op_needs_pos)
     in
     Message.debug "Compiling program into Java...";
     let () =
@@ -1332,6 +1344,7 @@ module Commands = struct
         ~dead_value_assignment:false ~no_struct_literals:true
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_c.renaming)
+        ~lift_pos:(Some Scalc.To_c.op_needs_pos)
     in
     Message.debug "Compiling program into C...";
     get_output_format options output

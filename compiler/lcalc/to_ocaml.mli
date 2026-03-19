@@ -17,6 +17,7 @@
 open Catala_utils
 open Shared_ast
 
+val op_needs_pos : 'a operator -> naked_typ -> bool
 val renaming : Renaming.t
 
 (** Formats a lambda calculus program into a valid OCaml program *)

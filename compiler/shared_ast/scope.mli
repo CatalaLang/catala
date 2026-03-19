@@ -57,6 +57,9 @@ val map_exports :
 
 val fold_exprs :
   f:('acc -> 'expr -> typ -> 'acc) -> init:'acc -> 'expr code_item_list -> 'acc
+(** Warning: at the moment, the type is not available for the `code_exports` at
+    the last element of the bound_list. The function [f] will be provided with a
+    fresh type var on those. *)
 
 (** {2 Conversions} *)
 

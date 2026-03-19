@@ -155,6 +155,17 @@ let python_keywords =
     "Code";
   ]
 
+let op_needs_pos (type a) (op : a Op.t) ty =
+  match op with
+  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
+  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+    true
+  | Op.Eq | Lt | Lte | Gt | Gte -> (
+    match ty with
+    | TLit (TUnit | TBool | TInt | TMoney | TRat | TDate) -> false
+    | _ -> true)
+  | _ -> false
+
 let renaming =
   Renaming.program ()
     ~reserved:python_keywords
@@ -300,19 +311,6 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2]; _ } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
-      (format_expression ctx) arg2
-  | EAppOp
-      {
-        op = ((Eq | Lt | Lte | Gt | Gte), _) as op;
-        args = [_pos; arg1; arg2];
-        tys =
-          [
-            (TLit TPos, _);
-            (TLit (TUnit | TBool | TInt | TMoney | TRat | TDate), _);
-            (TLit (TUnit | TBool | TInt | TMoney | TRat | TDate), _);
-          ];
-      } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
       (format_expression ctx) arg2
   | EAppOp

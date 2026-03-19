@@ -30,6 +30,12 @@ type ('e, 'elt, 'last) t = ('e, 'elt, 'last) bound_list =
   | Last of 'last
   | Cons of 'elt * ('e, ('e, 'elt, 'last) t) binder
 
+val cons :
+  'e Var.t ->
+  'elt Bindlib.box ->
+  ('e, 'elt, 'last) t Bindlib.box ->
+  ('e, 'elt, 'last) t Bindlib.box
+
 val to_seq : (((_, _) gexpr as 'e), 'elt, _) t -> ('e Var.t * 'elt) Seq.t
 (** Note that the boundlist terminator is ignored in the resulting sequence *)
 

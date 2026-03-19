@@ -109,6 +109,17 @@ let java_keywords =
 (* todo: reserved names should also include built-in types and everything
    exposed by the runtime. *)
 
+let op_needs_pos (type a) (op : a Op.t) ty =
+  match op with
+  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
+  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+    true
+  | Op.Eq | Lt | Lte | Gt | Gte -> (
+    match ty with
+    | TLit (TUnit | TBool | TInt | TMoney | TRat | TDate) -> false
+    | _ -> true)
+  | _ -> false
+
 let renaming =
   Renaming.program () ~reserved:java_keywords ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields:true ~namespaced_constrs:true

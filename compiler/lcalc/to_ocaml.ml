@@ -82,6 +82,23 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
          Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
     uids
 
+let op_needs_pos (type a) (op : a Op.t) ty =
+  match op with
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+    true
+  | Eq -> (
+    (* Z and Q support OCaml polymorphic equality *)
+    match ty with
+    | TLit (TUnit | TBool | TInt | TMoney | TRat | TDate) -> false
+    | _ -> true)
+  | Lt | Lte | Gt | Gte -> (
+    (* Z supports OCaml polymorphic comparison, but not Q *)
+    match ty with
+    | TLit (TUnit | TBool | TInt | TMoney | TDate) -> false
+    | _ -> true)
+  | _ -> false
+
 (* list taken from
    http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
 let ocaml_keywords =
@@ -505,34 +522,16 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         mclos )
     in
     format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
-  | EAppOp { op = Eq, _; args = [a1; a2]; _ }
-    when match Expr.ty a1 with
-         | TLit (TUnit | TBool | TInt | TMoney | TRat | TDate), _ -> true
-         | _ -> false ->
-    (* Z and Q support OCaml polymorphic equality *)
-    Format.fprintf fmt "@[<hov 2>%a@ = %a@]" format_with_parens a1
-      format_with_parens a2
-  | EAppOp { op = ((Eq | Lt | Lte | Gt | Gte) as op), _; args = [a1; a2]; _ }
-    when match Expr.ty a1 with
-         | TLit (TUnit | TBool | TInt | TMoney | TDate), _ -> true
-         | _ -> false ->
-    (* Z supports OCaml polymorphic comparison, but not Q *)
+  | EAppOp { op = ((Eq | Lt | Lte | Gt | Gte) as op), _; args = [a1; a2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %s %a@]" format_with_parens a1
       (Print.operator_to_string op)
       format_with_parens a2
-  | EAppOp { op = op, pos; args; _ } ->
+  | EAppOp { op = op, _; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%s@ %t%a@]" (Operator.name op)
       (fun ppf ->
         match op, args with
-        | (Eq | Lt | Lte | Gt | Gte), a1 :: _ ->
-          Format.fprintf ppf "(%a)@ %a@ " format_rtyp (Expr.ty a1) format_pos
-            pos
-        | (Map2 | Add_dat_dur _ | Sub_dat_dur _), _ ->
-          Format.fprintf ppf "%a@ " format_pos pos
-        | ( ( Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-            | Div_mon_rat | Div_dur_dur ),
-            _ :: a :: _ ) ->
-          Format.fprintf ppf "%a@ " format_pos (Expr.pos a)
+        | (Eq | Lt | Lte | Gt | Gte), ([_; a1; _] | a1 :: _) ->
+          Format.fprintf ppf "(%a)@ " format_rtyp (Expr.ty a1)
         | _ -> ())
       (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
       args

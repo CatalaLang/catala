@@ -27,14 +27,16 @@ let rec to_seq = function
       let v, next = Bindlib.unbind next_bind in
       Seq.Cons ((v, item), to_seq next)
 
+let cons var item list =
+  Bindlib.box_apply2
+    (fun item next -> Cons (item, next))
+    item
+    (Bindlib.bind_var var list)
+
 let rec of_list list ~last =
   match list with
   | [] -> Bindlib.box_apply (fun l -> Last l) last
-  | (var, item) :: list ->
-    Bindlib.box_apply2
-      (fun item next -> Cons (item, next))
-      item
-      (Bindlib.bind_var var (of_list list ~last))
+  | (var, item) :: list -> cons var item (of_list list ~last)
 
 let rec last = function
   | Last e -> e
