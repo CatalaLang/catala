@@ -527,7 +527,8 @@ let summary ~build_dir tests =
           else C24 { r24 = 255; g24 = m * 255 / n; b24 = 0 }
         in
         Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag (Fg color));
-        Format.fprintf ppf "%8d %%" (m * 100 / n);
+        if n > 0 then Format.fprintf ppf "%8d %%" (m * 100 / n)
+        else Format.fprintf ppf "%8s %%" "-";
         Format.pp_close_stag ppf ()
       in
       if files > 1 then
