@@ -1,0 +1,31 @@
+```catala
+#[test]
+declaration scope ConditionnalitéBCAE7:
+  internal pixels content list of (integer, money)
+  output est_arable condition
+  output est_arable2 condition
+
+scope ConditionnalitéBCAE7:
+  definition pixels equals [(12, $12); (13, $14)]
+
+  definition est_arable equals
+    exists (année_pixel, pixel) among pixels such that
+      année_pixel = 2025 and
+      pixel >= $10
+
+  definition est_arable2 equals
+    exists (année_pixel, pixel) among
+      (map each p among pixels to p.1, map each p among pixels to p.2)
+    such that
+      année_pixel = 2025 and
+      pixel >= $10
+```
+
+
+```catala-test-cli
+$ catala test-scope ConditionnalitéBCAE7
+┌─[RESULT]─ ConditionnalitéBCAE7 ─
+│ est_arable = false
+│ est_arable2 = false
+└─
+```

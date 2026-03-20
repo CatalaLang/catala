@@ -1053,22 +1053,48 @@ let rec translate_expr
     let init = Expr.elit (LBool init) emark in
     let params0, predicate = predicate in
     let params = List.map (fun n -> Mark.map Var.make n) params0 in
-    let local_vars =
-      List.fold_left2
-        (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-        local_vars params0 params
-    in
     let f =
       let acc_var = Var.make "acc" in
       let acc =
         Expr.make_var acc_var (Untyped { pos = Mark.get (List.hd params0) })
       in
-      let vs = Mark.ghost acc_var :: params in
+      let elt_var, predicate_body =
+        let local_vars =
+          List.fold_left2
+            (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
+            local_vars params0 params
+        in
+        let predicate_body = rec_helper ~local_vars predicate in
+        match params with
+        | [p] -> p, predicate_body
+        | pl ->
+          let size = List.length pl in
+          (* Multiple args remain a tuple argument since we add [acc] *)
+          let param_var =
+            Var.make (String.concat "_" (List.map Mark.remove params0))
+          in
+          let param_pos =
+            let allpos = List.map Mark.get params0 in
+            List.fold_left Pos.join (List.hd allpos) (List.tl allpos)
+          in
+          let param_expr = Expr.evar param_var (Untyped { pos }) in
+          ( (param_var, param_pos),
+            Expr.make_multiple_let_in pl
+              (List.map (fun _ -> Type.any pos) pl)
+              (List.mapi
+                 (fun index (_, pos) ->
+                   Expr.etupleaccess ~e:param_expr ~size ~index
+                     (Untyped { pos }))
+                 pl)
+              (rec_helper ~local_vars predicate)
+              opos )
+      in
+      let vs = [Mark.ghost acc_var; elt_var] in
       let vs_marks = List.map Mark.get vs in
       let mvars =
         Expr.bind
           (Array.of_list (List.map Mark.remove vs))
-          (translate_binop op pos acc (rec_helper ~local_vars predicate))
+          (translate_binop op pos acc predicate_body)
       in
       Expr.eabs mvars vs_marks [Type.any pos; Type.any pos] emark
     in
