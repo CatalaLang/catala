@@ -1,0 +1,11 @@
+> Module My_module
+
+```catala-metadata
+declaration scope Foo:
+  output x content integer
+```
+
+```catala
+scope Foo:
+  definition x equals 1
+```

@@ -1,0 +1,12 @@
+> Using My_module
+
+```catala-metadata
+#[test]
+declaration scope Bar:
+  output foo scope My_module.Foo
+```
+
+```catala
+scope Bar:
+  assertion foo.x = 1
+```
