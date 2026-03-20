@@ -1111,15 +1111,27 @@ let typecheck_cmd =
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
         ~quiet (fun nin_ppf items var_bindings ->
           let target_items = retrieve_target_items items files_or_folders in
+          let link_deps = linking_dependencies items in
           let ninja_targets =
-            List.filter_map
+            List.concat_map
               (fun it ->
-                Option.map
-                  (fun mdef -> Mark.remove mdef ^ "@src")
-                  it.Scan.module_def)
+                match it.Scan.module_def with
+                | Some mdef -> [Mark.remove mdef ^ "@src"]
+                | None ->
+                  (* Non-module files (e.g. test files starting with
+                     [> Using ...]) have no module_def; use their transitive
+                     module dependencies' @src targets instead. *)
+                  List.filter_map
+                    (fun dep ->
+                      Option.map
+                        (fun m -> Mark.remove m ^ "@src")
+                        dep.Scan.module_def)
+                    (link_deps it))
               target_items
+            |> List.sort_uniq String.compare
           in
-          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
+          if ninja_targets <> [] then
+            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
           items, var_bindings)
     in
     let catala_flags = get_var var_bindings Var.catala_flags in
