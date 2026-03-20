@@ -21,17 +21,11 @@ type exception_tree =
   | Leaf of Dependency.ExceptionVertex.t
   | Node of exception_tree list * Dependency.ExceptionVertex.t
 
-(* Returns the list of unique condition expressions for a vertex, deduplicated
-   by their pretty-printed text. Empty if all rules are unconditional. *)
-let conditions_of_vertex
-    (lang : Global.backend_lang)
-    (v : Dependency.ExceptionVertex.t) : Ast.expr list =
+(* Returns the condition expressions for a vertex. Empty if all rules are
+   unconditional. *)
+let conditions_of_vertex (v : Dependency.ExceptionVertex.t) : Ast.expr list =
   RuleName.Map.values v.Dependency.ExceptionVertex.rules
   |> List.filter_map (fun (_, just_expr_opt) -> just_expr_opt)
-  |> List.sort_uniq (fun e1 e2 ->
-      String.compare
-        (Format.asprintf "%a" (Print.UserFacing.expr lang) e1)
-        (Format.asprintf "%a" (Print.UserFacing.expr lang) e2))
 
 (* Renders a condition expression to a list of lines, wrapping at [width]
    columns. The stag functions from [fmt_outer] are forwarded so that color tags
@@ -91,7 +85,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
                 Format.pp_print_string fmt ("   " ^ line)))
             rest);
         Format.pp_print_string fmt "]")
-      (conditions_of_vertex lang vertex);
+      (conditions_of_vertex vertex);
     let last_idx = List.length children - 1 in
     List.iteri
       (fun i son ->
