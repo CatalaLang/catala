@@ -282,6 +282,8 @@ testsuite-base: .FORCE
 	  [ -z "$$F" ] || echo ">> RE-RUNNING TESTS WITH FLAGS: $$F" >&2; \
 	  $(CLERK_TEST) tests --test-flags="$$F" || exit 1; \
 	done
+	@echo >&2; echo ">> Running clerk integration tests" >&2
+	CLERK=$(abspath $(CLERK_BIN)) bash tests/typecheck/typecheck_test.sh
 
 #> testsuite				: Run interpreter tests over a selection of configurations
 testsuite: unit-tests backend-tests

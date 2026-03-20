@@ -9,5 +9,5 @@
 set -e
 cd "$(dirname "$0")"
 
-clerk start
-clerk typecheck my_test.catala_en
+${CLERK:-clerk} start
+${CLERK:-clerk} typecheck my_test.catala_en
