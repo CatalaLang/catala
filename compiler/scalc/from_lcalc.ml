@@ -95,17 +95,6 @@ let register_fresh_arg ~pos ctxt (x, _) =
   let _, ctxt = register_fresh_var ~pos ctxt x in
   ctxt
 
-(* These operators, since they can raise, have an added first argument giving
-   the position of the error if it happens, so they need special treatment *)
-let op_can_raise op =
-  let open Op in
-  match Mark.remove op with
-  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Eq | Lt | Lte
-  | Gt | Gte | Map2 ->
-    true
-  | _ -> false
-
 let lift_pos ctxt pos =
   let v, ctxt = fresh_var ~pos ctxt "pos" in
   ( (A.EVar v, pos),
@@ -227,18 +216,8 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         pos ),
       ctxt.ren_ctx )
   | EAppOp { op; args; tys } ->
-    let pos = Mark.get op in
     let stmts, args, ren_ctx = translate_expr_list ctxt args in
     let ctxt = { ctxt with ren_ctx } in
-    let stmts, args, tys, ctxt =
-      if op_can_raise op then
-        let epos, vposdef, ctxt = lift_pos ctxt pos in
-        ( RevBlock.append stmts vposdef,
-          epos :: args,
-          (TLit TPos, pos) :: tys,
-          ctxt )
-      else stmts, args, tys, ctxt
-    in
     (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     stmts, (A.EAppOp { op; args; tys }, Expr.pos expr), ctxt.ren_ctx
   | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
@@ -310,7 +289,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
         Expr.pos expr )
     in
     RevBlock.empty, (EExternal { modname; name }, Expr.pos expr), ctxt.ren_ctx
-  | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | EFatalError _ ->
+  | EAbs _ | EIfThenElse _ | EMatch _ | EFatalError_pos _ ->
     spill_expr ctxt expr
   | EBad ->
     Message.error ~internal:true ~pos:(Expr.pos expr) "%a" Format.pp_print_text
@@ -366,13 +345,9 @@ and translate_assignment
     | None -> ctxt
   in
   match Mark.remove block_expr with
-  | EAssert e ->
-    let e_stmts, expr, ren_ctx = translate_expr ctxt e in
-    let pos_expr, vposdef, ctxt = lift_pos { ctxt with ren_ctx } pos in
-    e_stmts +> vposdef +> (A.SAssert { pos_expr; expr }, pos), ctxt.ren_ctx
-  | EFatalError error ->
-    let pos_expr, vposdef, ctxt = lift_pos ctxt pos in
-    RevBlock.make [vposdef; SFatalError { pos_expr; error }, pos], ctxt.ren_ctx
+  | EFatalError_pos { error; pos_expr } ->
+    let e_stmts, pos_expr, _ren_ctx = translate_expr ctxt pos_expr in
+    e_stmts +> (SFatalError { pos_expr; error }, pos), ctxt.ren_ctx
   | EApp { f = EAbs { binder; _ }, binder_mark; args; tys } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in

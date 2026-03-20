@@ -424,7 +424,11 @@ let rec format_expression
       e
     (* Should always be handled at the root of a statement *)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EPosLit -> assert false (* Handled only as toplevel definitions *)
+  | EPosLit ->
+    let pos = Mark.get e in
+    Format.fprintf fmt "@[<hv 2>&{%S,@ %d, %d, %d, %d}@]" (Pos.get_file pos)
+      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+      (Pos.get_end_column pos)
   | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
     Format.fprintf fmt "((catala_closure *)%a)" format_expression arg
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
@@ -494,6 +498,8 @@ let rec format_expression
              (match op with And -> "&&" | Or -> "||" | _ -> assert false))
          (fun fmt e -> Format.fprintf fmt "*(%a)" format_expression e))
       args
+  | EAppOp { op = ArrayAccess index, _; args = [e]; _ } ->
+    Format.fprintf fmt "%a->elements[%d]" format_expression e index
   | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list
@@ -726,17 +732,33 @@ let rec format_statement
 
 and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     unit =
+  let format_else fmt = function
+    | [(SLocalDef { expr = ELit LUnit, _; _ }, _)]
+    | [(SReturn (ELit LUnit, _), _)] ->
+      ()
+    | else_block ->
+      Format.fprintf fmt " else %a" (format_ite ctx env) else_block
+  in
   match b with
   | [(SIfThenElse { if_expr = ELit (LBool true), _; then_block = b; _ }, _)]
   | [(SIfThenElse { if_expr = ELit (LBool false), _; else_block = b; _ }, _)] ->
     format_ite ctx env fmt b
+  | [
+   ( SIfThenElse
+       ({ if_expr = EAppOp { op = Not, _; args = [a]; _ }, _; _ } as ite),
+     _ );
+  ] ->
+    Format.fprintf fmt "@[<hov 4>if (CATALA_FALSE ==@ %a) {@]"
+      (format_expression ctx env)
+      a;
+    format_block ctx env fmt ite.then_block;
+    Format.fprintf fmt "@;<1 -2>}%a" format_else ite.else_block
   | [(SIfThenElse ite, _)] ->
-    Format.fprintf fmt "@[<hov 2>if (%a == CATALA_TRUE) {@]"
+    Format.fprintf fmt "@[<hov 4>if (CATALA_TRUE == @ %a) {@]"
       (format_expression ctx env)
       ite.if_expr;
     format_block ctx env fmt ite.then_block;
-    Format.fprintf fmt "@;<1 -2>} else ";
-    format_ite ctx env fmt ite.else_block
+    Format.fprintf fmt "@;<1 -2>}%a" format_else ite.else_block
   | [(SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ }, _)]
     when EnumName.equal e_name Expr.option_enum ->
     let cases =

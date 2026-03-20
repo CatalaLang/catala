@@ -126,6 +126,10 @@ let eabs_ghost binder tys mark =
 let eapp ~f ~args ~tys = Box.app1n f args @@ fun f args -> EApp { f; args; tys }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
 let efatalerror e1 = Box.app0 @@ EFatalError e1
+
+let efatalerror_pos ~error ~pos_expr =
+  Box.app1 pos_expr @@ fun pos_expr -> EFatalError_pos { error; pos_expr }
+
 let epos p = Box.app0 @@ EPos p
 
 let eappop ~op ~args ~tys =
@@ -357,6 +361,8 @@ let map
   | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EFatalError e1 -> efatalerror e1 m
+  | EFatalError_pos { error; pos_expr } ->
+    efatalerror_pos ~error ~pos_expr:(f pos_expr) m
   | EPos p -> epos p m
   | EDefault { excepts; just; cons } ->
     edefault ~excepts:(List.map f excepts) ~just:(f just) ~cons:(f cons) m
@@ -408,6 +414,7 @@ let shallow_fold
   | ETupleAccess { e; _ } -> acc |> f e
   | EInj { e; _ } -> acc |> f e
   | EAssert e -> acc |> f e
+  | EFatalError_pos { pos_expr; _ } -> acc |> f pos_expr
   | EDefault { excepts; just; cons } -> acc |> lfold excepts |> f just |> f cons
   | EPureDefault e -> acc |> f e
   | EErrorOnEmpty e -> acc |> f e
@@ -478,6 +485,9 @@ let map_gather
     let acc, e = f e in
     acc, eassert e m
   | EFatalError e -> acc, efatalerror e m
+  | EFatalError_pos { error; pos_expr } ->
+    let acc, pos_expr = f pos_expr in
+    acc, efatalerror_pos ~error ~pos_expr m
   | EPos p -> acc, epos p m
   | EDefault { excepts; just; cons } ->
     let acc1, excepts = lfoldmap excepts in
@@ -677,6 +687,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && Type.equal_list tys1 tys2
   | EAssert e1, EAssert e2 -> equal e1 e2
   | EFatalError e1, EFatalError e2 -> equal_error e1 e2
+  | ( EFatalError_pos { error = e1; pos_expr = pe1 },
+      EFatalError_pos { error = e2; pos_expr = pe2 } ) ->
+    equal_error e1 e2 && equal pe1 pe2
   | EPos p1, EPos p2 -> Pos.equal p1 p2
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
@@ -722,10 +735,11 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | EBad, EBad -> true
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
-      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EPos _
-      | EDefault _ | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _
-      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
-      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ | EBad ),
+      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _
+      | EFatalError_pos _ | EPos _ | EDefault _ | EPureDefault _ | EIfThenElse _
+      | EEmpty | EErrorOnEmpty _ | ELocation _ | EStruct _ | EDStructAmend _
+      | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _
+      | ECustom _ | EBad ),
       _ ) ->
     false
 
@@ -808,6 +822,10 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2
   | EFatalError e1, EFatalError e2 ->
     compare_error e1 e2
+  | EFatalError_pos { error = e1; pos_expr = pe1 },
+    EFatalError_pos { error = e2; pos_expr = pe2 } ->
+    compare_error e1 e2 @@< fun () ->
+    compare pe1 pe2
   | EPos p1, EPos p2 ->
     Pos.compare p1 p2
   | EDefault {excepts=exs1; just=just1; cons=cons1},
@@ -844,6 +862,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EFatalError _, _ -> -1 | _, EFatalError _ -> 1
+  | EFatalError_pos _, _ -> -1 | _, EFatalError_pos _ -> 1
   | EPos _, _ -> -1 | _, EPos _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
@@ -885,7 +904,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ETupleAccess { e; _ } -> size e + 1
   | EInj { e; _ } -> size e + 1
   | EAssert e -> size e + 1
-  | EFatalError _ -> 1
+  | EFatalError _ | EFatalError_pos _ -> 1
   | EPos _ -> 1
   | EErrorOnEmpty e -> size e + 1
   | EPureDefault e -> size e + 1

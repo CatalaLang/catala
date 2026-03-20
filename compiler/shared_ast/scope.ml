@@ -68,7 +68,7 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
   let last = map_exports f in
   BoundList.map ~f:fcode ~last scopes
 
-let fold_exprs ~f ~init scopes =
+let fold_exprs_full ~f ~init scopes =
   let f1 acc def _ =
     match def with
     | Topdef (_, typ, _vis, e) -> f acc e typ
@@ -80,8 +80,9 @@ let fold_exprs ~f ~init scopes =
       in
       f acc last (TStruct scope.scope_body_output_struct, Expr.pos last)
   in
-  let acc, last = BoundList.fold_left ~f:f1 ~init scopes in
-  List.fold_left (fun acc (_, e) -> f acc e (Type.fresh_var Pos.void)) acc last
+  BoundList.fold_left ~f:f1 ~init scopes
+
+let fold_exprs ~f ~init scopes = fst (fold_exprs_full ~f ~init scopes)
 
 let typ body =
   let pos = Mark.get (StructName.get_info body.scope_body_input_struct) in

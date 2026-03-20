@@ -411,6 +411,8 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
       [array texn] @-> texn
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
+    | ArrayAccess _ -> [array any] @-> any
+    | ConstructorCheck _ -> [any] @-> bt
   in
   Lazy.force ty
 
@@ -1061,7 +1063,12 @@ and typecheck_expr_top_down : type a m.
     let mark = mark_with_tau_and_unify (TLit TUnit, pos_e) in
     let e1' = typecheck_expr_top_down ctx env (TLit TBool, Expr.pos e1) e1 in
     Expr.eassert e1' mark
-  | EFatalError err -> Expr.efatalerror err context_mark
+  | EFatalError error -> Expr.efatalerror error context_mark
+  | EFatalError_pos { error; pos_expr } ->
+    let pos_expr =
+      typecheck_expr_top_down ctx env (TLit TPos, pos_e) pos_expr
+    in
+    Expr.efatalerror_pos ~error ~pos_expr context_mark
   | EPos p -> Expr.epos p (mark_with_tau_and_unify (TLit TPos, pos_e))
   | EEmpty ->
     Expr.eempty

@@ -48,27 +48,28 @@ let process_program
           (fun e acc -> Pos.Set.union acc (gather_pos e))
           e Pos.Set.empty
     in
-    Program.fold_exprs program
-      ~f:(fun acc e _ty -> Pos.Set.union acc (gather_pos e))
-      ~init:Pos.Set.empty
+    let positions, exports =
+      Program.fold_exprs_full program
+        ~f:(fun acc e _ty -> Pos.Set.union acc (gather_pos e))
+        ~init:Pos.Set.empty
+    in
+    List.fold_left
+      (fun acc (_, e) -> Pos.Set.union acc (gather_pos e))
+      positions exports
   in
   if Pos.Set.is_empty positions then program
   else
-    let pos_table_expr, pos_table_ty, pos_table_size =
-      (* This is encoded as a tuple rather than an array, so that we can use the
-         indexed ETupleAccess construct -- there is no such built-in on
-         arrays *)
+    let pos_table_expr, pos_table_ty =
       let m = Program.get_mark_witness program in
       let pos = Pos.void in
       let elts = Pos.Set.elements positions in
-      let ty = TTuple (List.map (fun pos -> TLit TPos, pos) elts), pos in
-      ( (ETuple (List.map (fun pos -> EPos pos, m) elts), Expr.with_ty ~pos m ty),
-        ty,
-        List.length elts )
+      let ty = TArray (TLit TPos, pos), pos in
+      ( (EArray (List.map (fun pos -> EPos pos, m) elts), Expr.with_ty ~pos m ty),
+        ty )
     in
     let pos_table_name = TopdefName.fresh [] ("loc_table", Pos.void) in
     let pos_table_topdef =
-      Topdef (pos_table_name, pos_table_ty, Private, pos_table_expr)
+      Topdef (pos_table_name, pos_table_ty, Public, pos_table_expr)
       |> Bindlib.box (* the def uses no variables *)
     in
     let pos_indexes =
@@ -79,9 +80,9 @@ let process_program
     let rec rewrite_pos_expr = function
       | EPos p, m ->
         let index = Pos.Map.find p pos_indexes in
-        Expr.etupleaccess ~index ~size:pos_table_size
-          ~e:(Expr.evar pos_table_var (Expr.with_ty m pos_table_ty))
-          m
+        Expr.eappop ~op:(Op.ArrayAccess index, p)
+          ~args:[Expr.evar pos_table_var (Expr.with_ty m pos_table_ty)]
+          ~tys:[pos_table_ty] m
       | e -> Expr.map ~f:rewrite_pos_expr ~op:Fun.id e
     in
     let code_items =
@@ -96,7 +97,7 @@ let process_program
         {
           program.decl_ctx with
           ctx_topdefs =
-            TopdefName.Map.add pos_table_name (pos_table_ty, Private)
+            TopdefName.Map.add pos_table_name (pos_table_ty, Public)
               program.decl_ctx.ctx_topdefs;
         };
     }

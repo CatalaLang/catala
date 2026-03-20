@@ -185,6 +185,11 @@ let evaluate_operator
        effectively no-ops. *)
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
+  | ArrayAccess n, [(EArray es, _)] -> Mark.remove (List.nth es n)
+  | ArrayAccess _, _ -> err ()
+  | ConstructorCheck (_, cstr), [(EInj { cons; _ }, _)] ->
+    ELit (LBool (EnumConstructor.equal cstr cons))
+  | ConstructorCheck _, _ -> err ()
   | Eq, [e1; e2] -> ELit (LBool (handle_eq ctx opos e1 e2))
   | Lt, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 < 0))
   | Lte, [e1; e2] -> ELit (LBool (handle_compare ctx opos e1 e2 <= 0))
@@ -336,10 +341,19 @@ let evaluate_operator
 
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
-let rec runtime_to_val : type d.
-    decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, yes) interpr_kind, 'm) gexpr =
+let rec runtime_to_val : type d r.
+    decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, r, yes) interpr_kind, 'm) gexpr
+    =
  fun ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
+  let cast :
+      type (* The OCaml typer can't know if we are retrieving dcalc or lcalc
+              terms, so we require this additional cast on e.g. default terms *)
+      a b a2 b2.
+      ((a, b, 'c) interpr_kind, 'm) gexpr ->
+      ((a2, b2, 'c) interpr_kind, 'm) gexpr =
+    Obj.magic
+  in
   match Mark.remove ty with
   | TLit TBool -> ELit (LBool (Obj.obj o)), m
   | TLit TUnit -> ELit LUnit, m
@@ -355,7 +369,7 @@ let rec runtime_to_val : type d.
         rpos.end_line rpos.end_column
     in
     let p = Pos.overwrite_law_info p rpos.law_headings in
-    EPos p, m
+    cast (EPos p, m)
   | TTuple ts ->
     ETuple (List.map2 (runtime_to_val ctx m) ts (Array.to_list (Obj.obj o))), m
   | TStruct name ->
@@ -433,13 +447,11 @@ let rec runtime_to_val : type d.
     EArray (List.map (runtime_to_val ctx m ty) (Array.to_list (Obj.obj o))), m
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
   | TDefault ty -> (
-    (* This case is only valid for ASTs including default terms; but the typer
-       isn't aware so we need some additional dark arts. *)
     match (Obj.obj o : 'a Runtime.Optional.t) with
-    | Runtime.Optional.Absent -> Obj.magic EEmpty, m
+    | Runtime.Optional.Absent -> cast (EEmpty, m)
     | Runtime.Optional.Present o -> (
       match runtime_to_val ctx m ty o with
-      | ETuple [(e, m); (EPos pos, _)], _ -> e, Expr.with_pos pos m
+      | ETuple [(e, m); (EPos pos, _)], _ -> cast (e, Expr.with_pos pos m)
       | _ -> assert false))
   | TForAll tb ->
     let _v, ty = Bindlib.unmbind tb in
@@ -451,13 +463,13 @@ let rec runtime_to_val : type d.
   | TAbstract _ -> ECustom { obj = o; targs = []; tret = ty }, m
   | TError -> assert false
 
-and val_to_runtime : type d.
+and val_to_runtime : type d r.
     (decl_ctx ->
-    ((d, _) interpr_kind, 'm) gexpr ->
-    ((d, _) interpr_kind, 'm) gexpr) ->
+    ((d, r, _) interpr_kind, 'm) gexpr ->
+    ((d, r, _) interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     typ ->
-    ((d, _) interpr_kind, 'm) gexpr ->
+    ((d, r, _) interpr_kind, 'm) gexpr ->
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
@@ -556,8 +568,14 @@ and val_to_runtime : type d.
       let e = eval_expr ctx e in
       let pos = Expr.pos e in
       let ty = TTuple [ty; TLit TPos, pos], pos in
+      let cast : type a b a2 b2.
+          ((a, b, 'c) interpr_kind, 'm) gexpr ->
+          ((a2, b2, 'c) interpr_kind, 'm) gexpr =
+        Obj.magic
+      in
       let with_pos =
-        ETuple [e; EPos pos, Expr.with_ty m (TLit TPos, pos)], Expr.with_ty m ty
+        ( ETuple [e; cast (EPos pos, Expr.with_ty m (TLit TPos, pos))],
+          Expr.with_ty m ty )
       in
       Obj.repr
         (Runtime.Optional.Present (val_to_runtime eval_expr ctx ty with_pos)))
@@ -579,12 +597,12 @@ and val_to_runtime : type d.
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
-let rec evaluate_expr : type d.
-    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
+let rec evaluate_expr : type d r.
+    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
-    ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ctx lang e ->
   let debug_print, e =
     Expr.take_attr e (function DebugPrint { label } -> Some label | _ -> None)
@@ -828,13 +846,13 @@ let rec evaluate_expr : type d.
       Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
-  | EFatalError err ->
+  | EFatalError error | EFatalError_pos { error; _ } ->
     let note =
       Pos.get_attr (Expr.mark_pos m) (function
         | ErrorMessage m -> Some m
         | _ -> None)
     in
-    raise (Runtime.Error (err, [Expr.pos_to_runtime pos], note))
+    raise (Runtime.Error (error, [Expr.pos_to_runtime pos], note))
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
     | EEmpty, _ ->
@@ -872,12 +890,12 @@ let rec evaluate_expr : type d.
        filtered."
   | _ -> .
 
-and partially_evaluate_expr_for_assertion_failure_message : type d.
-    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
+and partially_evaluate_expr_for_assertion_failure_message : type d r.
+    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
-    ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
@@ -918,12 +936,12 @@ and partially_evaluate_expr_for_assertion_failure_message : type d.
       Mark.get e )
   | _ -> evaluate_expr ?on_expr ctx lang e
 
-let evaluate_expr_trace : type d.
-    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
+let evaluate_expr_trace : type d r.
+    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
-    ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ctx lang e ->
   Runtime.reset_log ();
   Fun.protect
@@ -957,12 +975,12 @@ let evaluate_expr_trace : type d.
             (fun () -> output_trace ppf)
             ~finally:(fun () -> Format.pp_print_flush ppf ()))
 
-let evaluate_expr_safe : type d.
-    ?on_expr:(((d, yes) interpr_kind, 'm) gexpr -> unit) ->
+let evaluate_expr_safe : type d r.
+    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
     Global.backend_lang ->
-    ((d, yes) interpr_kind, 't) gexpr ->
-    ((d, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ctx lang e ->
   try
     let r = evaluate_expr_trace ?on_expr ctx lang e in
@@ -980,9 +998,9 @@ let evaluate_expr_safe : type d.
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
-  let rec f : type c d.
-      ((d, c) interpr_kind, 't) gexpr -> ((d, yes) interpr_kind, 't) gexpr boxed
-      = function
+  let rec f : type c r d.
+      ((d, r, c) interpr_kind, 't) gexpr ->
+      ((d, r, yes) interpr_kind, 't) gexpr boxed = function
     | (ECustom _, _) as e -> Expr.map ~f e
     | EAppOp { op; tys; args }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
@@ -991,17 +1009,20 @@ let addcustom e =
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ | EBad ),
+    | (EAssert _, _) as e -> Expr.map ~f e
+    | (EFatalError _, _) as e -> Expr.map ~f e
+    | (EFatalError_pos _, _) as e -> Expr.map ~f e
+    | ( ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ | EBad ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
   in
   let open struct
     external id :
-      (('d, 'c) interpr_kind, 't) gexpr -> (('d, yes) interpr_kind, 't) gexpr
-      = "%identity"
+      (('d, 'r, 'c) interpr_kind, 't) gexpr ->
+      (('d, 'r, yes) interpr_kind, 't) gexpr = "%identity"
   end in
   if false then Expr.unbox (f e)
     (* We keep the implementation as a typing proof, but bypass the AST
@@ -1010,9 +1031,9 @@ let addcustom e =
   else id e
 
 let delcustom e =
-  let rec f : type c d.
-      ((d, c) interpr_kind, 't) gexpr -> ((d, no) interpr_kind, 't) gexpr boxed
-      = function
+  let rec f : type c r d.
+      ((d, r, c) interpr_kind, 't) gexpr ->
+      ((d, r, no) interpr_kind, 't) gexpr boxed = function
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EAppOp { op; args; tys }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
@@ -1021,9 +1042,12 @@ let delcustom e =
     | (EEmpty, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (EPos _, _) as e -> Expr.map ~f e
-    | ( ( EAssert _ | EFatalError _ | ELit _ | EApp _ | EArray _ | EVar _
-        | EExternal _ | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _
-        | EInj _ | EStruct _ | EStructAccess _ | EMatch _ | EBad ),
+    | (EAssert _, _) as e -> Expr.map ~f e
+    | (EFatalError _, _) as e -> Expr.map ~f e
+    | (EFatalError_pos _, _) as e -> Expr.map ~f e
+    | ( ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ | EBad ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
@@ -1136,14 +1160,14 @@ let interpret_program_dcalc_with_coverage
     ?(stdlib : Global.raw_file option)
     (p : (dcalc, 'm) gexpr program)
     scope :
-    (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+    (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
     * Coverage.coverage_map =
   let reachable_map =
     (* Mark program positions as unreached *)
     Coverage.reachable_positions p
   in
   let coverage_map = ref Coverage.empty in
-  let on_expr (e : ((yes, yes) interpr_kind, 'm) gexpr) =
+  let on_expr (e : ((yes, no, yes) interpr_kind, 'm) gexpr) =
     match Mark.remove e with
     | EDefault _ ->
       ()

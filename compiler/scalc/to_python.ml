@@ -93,6 +93,8 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Filter -> Format.pp_print_string fmt "filter"
   | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
+  | ArrayAccess _ -> assert false
+  | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -313,6 +315,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
       (format_expression ctx) arg2
+  | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
+    Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
   | EAppOp
       { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args = [pos; a1; a2]; _ } ->
     Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]" (format_expression ctx) a1

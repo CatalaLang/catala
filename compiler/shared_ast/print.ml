@@ -285,6 +285,10 @@ let operator_to_string : type a. a Op.t -> string =
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
+  | ArrayAccess n -> Printf.sprintf "o_array_nth(%d)" n
+  | ConstructorCheck (e, c) ->
+    Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
+      (EnumConstructor.to_string c)
 
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
@@ -326,6 +330,9 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
+  | ArrayAccess n -> Printf.sprintf "nth(%d)" n
+  | ConstructorCheck (_, c) ->
+    Printf.sprintf "is_%s" (EnumConstructor.to_string c)
 
 let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
@@ -394,7 +401,7 @@ module Precedence = struct
       | Div_mon_mon | Div_dur_dur ->
         Op Div
       | HandleExceptions | Map | Map2 | Concat | Filter | Reduce | Fold
-      | ToClosureEnv | FromClosureEnv ->
+      | ToClosureEnv | FromClosureEnv | ArrayAccess _ | ConstructorCheck _ ->
         App)
     | EApp _ -> App
     | EArray _ -> Contained
@@ -413,6 +420,7 @@ module Precedence = struct
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EFatalError _ -> App
+    | EFatalError_pos _ -> App
     | EDefault _ -> Contained
     | EPureDefault _ -> Contained
     | EEmpty -> Contained
@@ -675,9 +683,12 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "assert" (rhs exprc) e'
-      | EFatalError err ->
+      | EFatalError error ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
-          (Catala_runtime.error_to_string err)
+          (Catala_runtime.error_to_string error)
+      | EFatalError_pos { error; _ } ->
+        Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
+          (Catala_runtime.error_to_string error)
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -1141,9 +1152,9 @@ module UserFacing = struct
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
-    | EDStructAccess _ | EBad ->
+    | EStructAccess _ | EAssert _ | EFatalError _ | EFatalError_pos _
+    | EDefault _ | EPureDefault _ | EErrorOnEmpty _ | ELocation _ | EScopeCall _
+    | EDStructAmend _ | EDStructAccess _ | EBad ->
       fallback ppf e
 
   let expr : type a.
@@ -1257,8 +1268,10 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
       StructField.format field s_expr e
   | EExternal { name } -> pf fmt "@[<hov 1>External<%a>@]" external_ref name
   | EAssert e -> pf fmt "@[<hov 1>Assert(%a)@]" s_expr e
-  | EFatalError err ->
-    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string err)
+  | EFatalError error ->
+    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
+  | EFatalError_pos { error; _ } ->
+    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
   | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
   | EDefault { excepts; just; cons } ->
     pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr

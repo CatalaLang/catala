@@ -92,6 +92,10 @@ let name : type a. a t -> string = function
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "o_toclosureenv"
   | FromClosureEnv -> "o_fromclosureenv"
+  | ArrayAccess n -> Printf.sprintf "o_array_nth(%d)" n
+  | ConstructorCheck (e, c) ->
+    Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
+      (EnumConstructor.to_string c)
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
@@ -188,6 +192,8 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Fold, Fold
   | HandleExceptions, HandleExceptions
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
+  | ArrayAccess n1, ArrayAccess n2 -> compare n1 n2
+  | ConstructorCheck (_, c1), ConstructorCheck (_, c2) -> EnumConstructor.compare c1 c2
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
@@ -250,6 +256,8 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | HandleExceptions, _ -> -1 | _, HandleExceptions -> 1
   | FromClosureEnv, _ -> -1 | _, FromClosureEnv -> 1
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
+  | ArrayAccess _, _ -> -1 | _, ArrayAccess _ -> 1
+  | ConstructorCheck _, _ -> -1 | _, ConstructorCheck _  -> 1
   | Fold, _  | _, Fold -> .
 
 let equal t1 t2 = compare t1 t2 = 0
@@ -268,7 +276,8 @@ let kind_dispatch : type a.
   match op with
   | ((Not | And | Or | Xor), _) as op -> monomorphic op
   | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold | Lt
-      | Lte | Gt | Gte | HandleExceptions | FromClosureEnv | ToClosureEnv ),
+      | Lte | Gt | Gte | HandleExceptions | FromClosureEnv | ToClosureEnv
+      | ArrayAccess _ | ConstructorCheck _ ),
       _ ) as op ->
     polymorphic op
   | ((Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div), _) as
@@ -303,7 +312,8 @@ let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
       | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
       | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat
       | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-      | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv ),
+      | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv
+      | ArrayAccess _ | ConstructorCheck _ ),
       _ ) as op ->
     op
 
@@ -474,12 +484,12 @@ let is_pure : type a. a t -> bool = function
        overloaded counterparts: those are the ones that can raise *)
     false
   | Log _ -> false
-  | Not | Length | ToClosureEnv | FromClosureEnv | Minus | Minus_int | Minus_rat
-  | Minus_mon | Minus_dur | ToInt | ToInt_mon | ToInt_rat | ToRat | ToRat_int
-  | ToRat_mon | ToMoney | ToMoney_rat | ToMoney_int | Round | Round_rat
-  | Round_mon | And | Or | Xor | Map | Concat | Filter | Add_int_int
-  | Add_rat_rat | Add_mon_mon | Add_dur_dur | Sub_int_int | Sub_rat_rat
-  | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat
-  | Mult_mon_int | Mult_mon_rat | Mult_dur_int | Reduce | Fold
-  | HandleExceptions ->
+  | Not | Length | ToClosureEnv | FromClosureEnv | ArrayAccess _
+  | ConstructorCheck _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
+  | ToInt | ToInt_mon | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
+  | ToMoney_rat | ToMoney_int | Round | Round_rat | Round_mon | And | Or | Xor
+  | Map | Concat | Filter | Add_int_int | Add_rat_rat | Add_mon_mon
+  | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+  | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_int
+  | Mult_mon_rat | Mult_dur_int | Reduce | Fold | HandleExceptions ->
     true

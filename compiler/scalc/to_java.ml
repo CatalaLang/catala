@@ -185,6 +185,8 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Filter -> pp_print_string ppf "filter"
   | Fold -> pp_print_string ppf "foldLeft"
   | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
+  | ArrayAccess _ -> failwith "TODO"
+  | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_visibility ppf = function

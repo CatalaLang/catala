@@ -59,16 +59,17 @@ dcalc/                       |   Convert scopes into functions
                              |   Automatic backend test generation
                              v
 lcalc/                       |   Compile the default terms
+  .                          |   Expansion of assertions
   .                          v
-  .              +----------------------+
+                 +----------------------+
                  |                      |
                  | Lambda calculus AST  |----+--> (interpret)
                  |                      |    |
                  +----------------------+    +--> OCaml
                              |
-                             |   Expansion of structural operators
                              |   (optional) closure conversion
                              |   (optional) monomorphisation
+                             |   Reification of positions
                              |   Collision-free renaming
                              v
 scalc/                       |   Turn expressions into statements

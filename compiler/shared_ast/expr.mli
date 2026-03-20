@@ -86,8 +86,20 @@ val eapp :
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
-val eassert : ('a, 'm) boxed_gexpr -> 'm mark -> ('a any, 'm) boxed_gexpr
-val efatalerror : Catala_runtime.error -> 'm mark -> (< .. >, 'm) boxed_gexpr
+val eassert :
+  ('a, 'm) boxed_gexpr ->
+  'm mark ->
+  ((< reifiedPos : no ; .. > as 'a), 'm) boxed_gexpr
+
+val efatalerror :
+  Catala_runtime.error -> 'm mark -> (< reifiedPos : no ; .. >, 'm) boxed_gexpr
+
+val efatalerror_pos :
+  error:Catala_runtime.error ->
+  pos_expr:('a, 'm) boxed_gexpr ->
+  'm mark ->
+  ((< reifiedPos : yes ; .. > as 'a), 'm) boxed_gexpr
+
 val epos : Pos.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val eappop :
@@ -391,7 +403,7 @@ val make_app :
 val make_puredefault :
   ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val make_pos : Pos.t -> 'm mark -> (< defaultTerms : no ; .. >, 'm) boxed_gexpr
+val make_pos : Pos.t -> 'm mark -> (< reifiedPos : yes ; .. >, 'm) boxed_gexpr
 (** [m] is used as type witness, but both position and type are overriden *)
 
 val make_erroronempty :

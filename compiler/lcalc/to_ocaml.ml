@@ -488,16 +488,17 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     let rec pr_else = function
       | EIfThenElse { cond; etrue; efalse }, _ ->
         Format.fprintf fmt
-          "@[<hv 2>else if@ @[<hov>%a@]@]@ @[<hv 2>then@ @[<hov>%a@]@]@ "
+          "@ @[<hv 2>else if@ @[<hov>%a@]@]@ @[<hv 2>then@ @[<hov>%a@]@]"
           format_expr cond format_with_parens etrue;
         pr_else efalse
+      | ELit LUnit, _ -> Format.fprintf fmt "@]"
       | efalse ->
-        Format.fprintf fmt "@[<hv 2>else@ @[<hov>%a@]@]@]" format_with_parens
+        Format.fprintf fmt "@ @[<hv 2>else@ @[<hov>%a@]@]@]" format_with_parens
           efalse
     in
     Format.fprintf fmt
-      "@[<hv>@[<hv 2>if@ @[<hov>%a@]@]@ @[<hv 2>then@ @[<hov>%a@]@]@ "
-      format_expr cond format_with_parens etrue;
+      "@[<hv>@[<hv 2>if@ @[<hov>%a@]@]@ @[<hv 2>then@ @[<hov>%a@]@]" format_expr
+      cond format_with_parens etrue;
     pr_else efalse
   | EAppOp { op = ((And | Or) as op), _; args = [e1; e2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %s@ %a@]" format_with_parens e1
@@ -522,6 +523,16 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         mclos )
     in
     format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
+  | EAppOp { op = ArrayAccess i, _; args = [a]; _ } ->
+    Format.fprintf fmt "%a.(%d)" format_with_parens a i
+  | EAppOp { op = ConstructorCheck (ename, c), _; args = [a]; _ } ->
+    Format.fprintf fmt "match %a with %a%s -> true | _ -> false"
+      format_with_parens a EnumConstructor.format c
+      (match
+         EnumConstructor.Map.find c (EnumName.Map.find ename ctx.ctx_enums)
+       with
+      | TLit TUnit, _ -> ""
+      | _ -> " _")
   | EAppOp { op = ((Eq | Lt | Lte | Gt | Gte) as op), _; args = [a1; a2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %s %a@]" format_with_parens a1
       (Print.operator_to_string op)
@@ -535,24 +546,9 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         | _ -> ())
       (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
       args
-  | EAssert e' ->
-    Format.fprintf fmt
-      "@[<hov 2>if not@ %a@;\
-       <1 -2>then@ @[<hov 2>raise@ (Error@ (%s,@ [%a],@ %t))@]@]"
-      format_with_parens e'
-      Runtime.(error_to_string AssertionFailed)
-      format_pos (Expr.pos e')
-      (fun ppf ->
-        match
-          Pos.get_attr (Expr.pos e) (function
-            | ErrorMessage m -> Some m
-            | _ -> None)
-        with
-        | None -> Format.pp_print_string ppf "None"
-        | Some m -> Format.fprintf ppf "Some %S" m)
-  | EFatalError er ->
-    Format.fprintf fmt "raise@ (Error (%a, [%a], %t))" Print.runtime_error er
-      format_pos (Expr.pos e) (fun ppf ->
+  | EFatalError_pos { error; pos_expr } ->
+    Format.fprintf fmt "raise@ (Error (%a, [%a], %t))" Print.runtime_error error
+      format_expr pos_expr (fun ppf ->
         match
           Pos.get_attr (Expr.pos e) (function
             | ErrorMessage m -> Some m

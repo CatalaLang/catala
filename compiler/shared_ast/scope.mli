@@ -55,11 +55,14 @@ val map_exports :
 (** Helper function to handle the [code_export list] terminator when manually
     mapping on [code_item_list] *)
 
+val fold_exprs_full :
+  f:('acc -> 'expr -> typ -> 'acc) ->
+  init:'acc ->
+  'expr code_item_list ->
+  'acc * 'expr code_export list
+
 val fold_exprs :
   f:('acc -> 'expr -> typ -> 'acc) -> init:'acc -> 'expr code_item_list -> 'acc
-(** Warning: at the moment, the type is not available for the `code_exports` at
-    the last element of the bound_list. The function [f] will be provided with a
-    fresh type var on those. *)
 
 (** {2 Conversions} *)
 

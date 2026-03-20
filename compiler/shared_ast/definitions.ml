@@ -144,6 +144,7 @@ type desugared =
   ; scopeVarSimpl : no
   ; explicitScopes : yes
   ; defaultTerms : yes
+  ; reifiedPos : no
   ; custom : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
    resolvedNames: no], and after name resolution has the opposite; but the
@@ -163,6 +164,7 @@ type scopelang =
   ; scopeVarSimpl : yes
   ; explicitScopes : yes
   ; defaultTerms : yes
+  ; reifiedPos : no
   ; custom : no >
 
 type dcalc =
@@ -175,6 +177,7 @@ type dcalc =
   ; scopeVarSimpl : no
   ; explicitScopes : no
   ; defaultTerms : yes
+  ; reifiedPos : no
   ; custom : no >
 
 type lcalc =
@@ -187,6 +190,7 @@ type lcalc =
   ; scopeVarSimpl : no
   ; explicitScopes : no
   ; defaultTerms : no
+  ; reifiedPos : yes
   ; custom : no >
 
 type 'a any = < .. > as 'a
@@ -204,11 +208,12 @@ type dcalc_lcalc_features =
   ; explicitScopes : no >
 (** Features that are common to Dcalc and Lcalc *)
 
-type 'd dcalc_lcalc = < dcalc_lcalc_features ; defaultTerms : 'd ; custom : no >
+type ('d, 'r) dcalc_lcalc =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; reifiedPos : 'r ; custom : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
-type ('d, 'c) interpr_kind =
-  < dcalc_lcalc_features ; defaultTerms : 'd ; custom : 'c >
+type ('d, 'r, 'c) interpr_kind =
+  < dcalc_lcalc_features ; defaultTerms : 'd ; reifiedPos : 'r ; custom : 'c >
 (** This type corresponds to the types handled by the interpreter: it regroups
     Dcalc and Lcalc ASTs and may have custom terms *)
 
@@ -345,6 +350,10 @@ module Op = struct
     | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
     | ToClosureEnv : < polymorphic ; .. > t
     | FromClosureEnv : < polymorphic ; .. > t
+    | ArrayAccess : int -> < polymorphic ; .. > t
+    | ConstructorCheck :
+        (EnumName.t * EnumConstructor.t)
+        -> < polymorphic ; .. > t
     (* * overloaded *)
     | Minus : < overloaded ; .. > t
     | Minus_int : < resolved ; .. > t
@@ -566,7 +575,7 @@ and ('a, 'b, 'm) base_gexpr =
       size : int;
     }
       -> ('a, < .. >, 'm) base_gexpr
-  | EAssert : ('a, 'm) gexpr -> ('a, < .. >, 'm) base_gexpr
+  | EAssert : ('a, 'm) gexpr -> ('a, < reifiedPos : no ; .. >, 'm) base_gexpr
   (* Early stages *)
   | ELocation : 'b glocation -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EScopeCall : {
@@ -600,12 +609,15 @@ and ('a, 'b, 'm) base_gexpr =
       name : external_ref Mark.pos;
     }
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
-  | EFatalError : Catala_runtime.error -> ('a, < .. >, 'm) base_gexpr
+  | EFatalError :
+      Catala_runtime.error
+      -> ('a, < reifiedPos : no ; .. >, 'm) base_gexpr
+  | EFatalError_pos : {
+      error : Catala_runtime.error;
+      pos_expr : ('a, 'm) gexpr;
+    }
+      -> ('a, < reifiedPos : yes ; .. >, 'm) base_gexpr
   | EPos : Pos.t -> ('a, < .. >, 'm) base_gexpr
-      (** Position literal, used along returned exceptions. Note that it's only
-          used in lcalc, so it could have [< defaultTerms: no; ..>], but since
-          the HandleExceptions operator isn't limited to that it would be
-          inconvenient *)
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 'm) gexpr list;
