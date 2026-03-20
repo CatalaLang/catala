@@ -85,6 +85,7 @@ module Var = struct
   let src = make "src"
   let dst = make "dst"
   let class_path = make "class_path"
+  let cat_files = make "cat_files" (* Useful on Windows only *)
 
   (* let scope = make "scope" *)
   let test_id = make "test-id"
@@ -245,7 +246,8 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
     Nj.rule "copy"
       ~command:
         (if Sys.win32 then
-           ["cmd"; "/c"; "copy"; "/Y"; !input; !output]
+           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+           (* The "+nul" forces the timestamp of the new file to be updated *)
          else
            ["cp"; "-f"; !input; !output])
       ~description:["<copy>"; !input];
@@ -312,9 +314,9 @@ let[@ocamlformat "disable"] static_base_rules enabled_backends =
       Nj.rule "dir-tests"
         ~command:
         (if Sys.win32 then
-          ["cmd"; "/c"; "type"; "nul" ; !input; ">"; !output; ";"]
+          ["cmd"; "/c"; "copy /by >nul"; !cat_files; !output]
         else
-          ["cat"; !input; ">"; !output; ";"]
+          ["cat"; !input; ">"; !output]
         )
         ~description:["<test>"; !test_id];
      ]
@@ -763,7 +765,12 @@ let dir_test_rules dir subdirs enabled_backends items =
         Nj.build "dir-tests"
           ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
           ~inputs
-          ~vars:[Var.test_id, [dir]];
+          ~vars:
+            ((Var.test_id, [dir])
+            ::
+            (if Sys.win32 then
+               [Var.cat_files, [String.concat "+" ("nul" :: inputs)]]
+             else []));
       ]
   else Seq.empty
 
@@ -939,7 +946,7 @@ let runtime_build_statements ~config enabled_backends =
       let base =
         config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
       in
-      File.with_out_channel (base / "java.files") (fun oc ->
+      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
       java_base / "java.files"
     in
@@ -1184,6 +1191,34 @@ let run_ninja
                     in
                     { it with Scan.used_modules })
                   items
+              in
+              let _cleanup =
+                match
+                  File.(check_directory (config.options.global.build_dir / f))
+                with
+                | None -> ()
+                | Some dir ->
+                  let current =
+                    List.fold_left
+                      File.(
+                        fun set it -> Set.add (basename it.Scan.file_name) set)
+                      File.Set.empty items
+                  in
+                  let in_build =
+                    Sys.readdir dir
+                    |> Array.to_seq
+                    |> Seq.filter (fun f -> Scan.get_lang f <> None)
+                    |> File.Set.of_seq
+                  in
+                  let leftover = File.Set.diff in_build current in
+                  if not (File.Set.is_empty leftover) then (
+                    Message.debug
+                      "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
+                      File.format dir
+                      (Format.pp_print_list ~pp_sep:Format.pp_print_space
+                         File.format)
+                      (File.Set.elements leftover);
+                    File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover)
               in
               Some (f, fl, items))
       in

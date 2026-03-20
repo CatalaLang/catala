@@ -94,6 +94,10 @@ val unformat : (Format.formatter -> unit) -> string
 (** Converts [f] to a string, discarding formatting and skipping newlines and
     indents *)
 
+val pp_to_string : ansi:bool -> (Format.formatter -> unit) -> string
+(** [pp_to_string ~ansi f] formats [f] to a string, with ANSI color codes if
+    [ansi] is [true], or plain text otherwise. *)
+
 val has_color : out_channel -> bool
 val set_terminal_width_function : (unit -> int) -> unit
 val terminal_columns : unit -> int
@@ -135,7 +139,9 @@ val debug : ('a, unit) emitter
 val result : ('a, unit) emitter
 val warning : ('a, unit) emitter
 val error : ?kind:lsp_error_kind -> ('a, 'exn) emitter
-val results : ?title:string -> Content.message list -> unit
+
+val results :
+  ?ppf:Format.formatter -> ?title:string -> Content.message list -> unit
 
 (** Multiple errors *)
 

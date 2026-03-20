@@ -56,9 +56,9 @@ module Box = struct
   let lift : ('a, 't) boxed_gexpr -> ('a, 't) gexpr B.box =
    fun em -> B.box_apply (fun e -> Mark.add (Mark.get em) e) (Mark.remove em)
 
-  module LiftIdentMap = Bindlib.Lift (Ident.Map)
+  module LiftMarkedIdent = Bindlib.Lift (MarkedIdent.Map)
 
-  let lift_identmap = LiftIdentMap.lift_box
+  let lift_marked_ident = LiftMarkedIdent.lift_box
 
   module LiftStruct = Bindlib.Lift (StructField.Map)
 
@@ -155,13 +155,16 @@ let estruct ~name ~(fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
 
-let edstructamend ~name_opt ~e ~(fields : ('a, 't) boxed_gexpr Ident.Map.t) mark
-    =
+let edstructamend
+    ~name_opt
+    ~e
+    ~(fields : ('a, 't) boxed_gexpr MarkedIdent.Map.t)
+    mark =
   Mark.add mark
   @@ Bindlib.box_apply2
        (fun e fields -> EDStructAmend { name_opt; e; fields })
        (Box.lift e)
-       (Box.lift_identmap (Ident.Map.map Box.lift fields))
+       (Box.lift_marked_ident (MarkedIdent.Map.map Box.lift fields))
 
 let edstructaccess ~name_opt ~field ~e =
   Box.app1 e @@ fun e -> EDStructAccess { name_opt; field; e }
@@ -365,7 +368,7 @@ let map
     let fields = StructField.Map.map f fields in
     estruct ~name ~fields m
   | EDStructAmend { name_opt; e; fields } ->
-    let fields = Ident.Map.map f fields in
+    let fields = MarkedIdent.Map.map f fields in
     edstructamend ~name_opt ~e:(f e) ~fields m
   | EDStructAccess { name_opt; field; e } ->
     edstructaccess ~name_opt ~field ~e:(f e) m
@@ -410,7 +413,7 @@ let shallow_fold
   | EErrorOnEmpty e -> acc |> f e
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
   | EDStructAmend { e; fields; _ } ->
-    acc |> f e |> Ident.Map.fold (fun _ -> f) fields
+    acc |> f e |> MarkedIdent.Map.fold (fun _ -> f) fields
   | EDStructAccess { e; _ } -> acc |> f e
   | EStructAccess { e; _ } -> acc |> f e
   | EMatch { e; cases; _ } ->
@@ -502,11 +505,12 @@ let map_gather
   | EDStructAmend { name_opt; e; fields } ->
     let acc, e = f e in
     let acc, fields =
-      Ident.Map.fold
+      MarkedIdent.Map.fold
         (fun cons e (acc, fields) ->
           let acc1, e = f e in
-          join acc acc1, Ident.Map.add cons e fields)
-        fields (acc, Ident.Map.empty)
+          join acc acc1, MarkedIdent.Map.add cons e fields)
+        fields
+        (acc, MarkedIdent.Map.empty)
     in
     acc, edstructamend ~name_opt ~e ~fields m
   | EDStructAccess { name_opt; field; e } ->
@@ -699,10 +703,12 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       EDStructAmend { name_opt = s2; e = e2; fields = fields2 } ) ->
     Option.equal StructName.equal s1 s2
     && equal e1 e2
-    && Ident.Map.equal equal fields1 fields2
+    && MarkedIdent.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
-    Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
+    Option.equal StructName.equal s1 s2
+    && MarkedIdent.equal f1 f2
+    && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
@@ -772,12 +778,12 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDStructAmend {name_opt=n1; e=e1; fields=field_map1},
     EDStructAmend {name_opt=n2; e=e2; fields=field_map2} ->
     compare e1 e2 @@< fun () ->
-    Ident.Map.compare compare field_map1 field_map2 @@< fun () ->
+    MarkedIdent.Map.compare compare field_map1 field_map2 @@< fun () ->
     Option.compare StructName.compare n1 n2
   | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
     EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
-    Ident.compare field_name1 field_name2 @@< fun () ->
+    MarkedIdent.compare field_name1 field_name2 @@< fun () ->
     Option.compare StructName.compare struct_name1 struct_name2
   | EStructAccess {e=e1; field=field_name1; name=struct_name1 },
     EStructAccess {e=e2; field=field_name2; name=struct_name2 } ->
@@ -907,7 +913,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EStruct { fields; _ } ->
     StructField.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
   | EDStructAmend { e; fields; _ } ->
-    1 + size e + Ident.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
+    1 + size e + MarkedIdent.Map.fold (fun _ e acc -> acc + 1 + size e) fields 0
   | EDStructAccess { e; _ } -> 1 + size e
   | EStructAccess { e; _ } -> 1 + size e
   | EMatch { e; cases; _ } ->

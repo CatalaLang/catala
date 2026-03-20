@@ -372,5 +372,5 @@ def f(x:Integer):
 # Automatic Catala tests
 if __name__ == "__main__":
   s_test = (s(SIn()))
-  print("\x1b[32m[RESULT]\x1b[m Scope S executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.")
 ```

@@ -18,13 +18,17 @@ type t = string
 
 (** Utility functions used for file manipulation. *)
 
-val with_out_channel : t -> (out_channel -> 'a) -> 'a
+val with_out_channel : ?bin:bool -> t -> (out_channel -> 'a) -> 'a
 (** Runs the given function with the provided file opened, ensuring it is
-    properly closed afterwards. May raise just as [open_out]. *)
+    properly closed afterwards. May raise just as [open_out]. [bin] is true by
+    default and only for Windows. When set to [false], when writing "\n" it will
+    be translated to "\r\n". *)
 
-val with_in_channel : t -> (in_channel -> 'a) -> 'a
+val with_in_channel : ?bin:bool -> t -> (in_channel -> 'a) -> 'a
 (** Runs the given function with the provided file opened, ensuring it is
-    properly closed afterwards. May raise just as [open_in]. *)
+    properly closed afterwards. May raise just as [open_in]. [bin] is true by
+    default and only for Windows. When set to [false], "\r\n" ends of lines are
+    translated to "\n" upon read. *)
 
 (** {2 Formatter wrappers} *)
 
@@ -130,6 +134,10 @@ val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
 
+val get_command : t -> t
+(** Resolves a command in [PATH]
+    @raise Not_found *)
+
 val check_exec : t -> t
 (** Resolves a command:
     - if [t] is a plain name, resolve in PATH
@@ -166,13 +174,19 @@ val common_prefix : t -> t -> t
 (** Returns the longuest common prefix of two paths, which are first made
     absolute *)
 
+val make_absolute : t -> t
+(** If the given file name is relative, resolve it relative to CWD and clean it
+    up. Also handles Windows drive letters (e.g. turns `\foo\bar` into
+    `C:\foo\bar`) *)
+
 val remove_prefix : t -> t -> t
 (** [remove_prefix prefix f] removes the [prefix] path from the beginning of [f]
     ; if [f] doesn't start with [prefix], it is returned unchanged. If [f] is
     equal to [prefix], [.] is returned. *)
 
 val make_relative_to : dir:t -> t -> t
-(** Makes [f] relative to [dir], using as many [../] as necessary *)
+(** Makes [f] relative to [dir], using as many [../] as necessary. If there is
+    no common prefix, returns [f] unchanged *)
 
 val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
 (** If [to_dir] is a path to a given directory and [f] a path to a file as seen
@@ -205,9 +219,11 @@ val ( -.- ) : t -> string -> t
 val remove_extension : t -> string
 (** [remove_extension filename] is equivalent to [filename -.- ""] *)
 
-val path_to_list : t -> string list
-(** Empty elements or current-directory (".") are skipped in the resulting list
-*)
+val path_to_list : t -> string option * string list
+(** Returns a pair of drive letter (e.g. "c:", for windows) and a list of path
+    elements. The returned path starts with an empty string for absolute
+    directories ; empty elements or current-directory (".") are otherwise
+    skipped in the resulting list; *)
 
 val equal : t -> t -> bool
 (** Case-insensitive string comparison (no file resolution whatsoever) *)

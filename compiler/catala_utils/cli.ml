@@ -202,7 +202,10 @@ module Flags = struct
              emitted as a JSON structured object."
 
     let plugins_dirs =
-      let doc = "Set the given directory to be searched for backend plugins." in
+      let doc =
+        "Set the given directory to be searched for backend plugins. Set to \
+         $(b,-) to disable plugins"
+      in
       let env = Cmd.Env.info "CATALA_PLUGINS" in
       let default =
         let ( / ) = Filename.concat in
@@ -219,7 +222,10 @@ module Flags = struct
             Filename.(dirname exec_dir) / "lib" / "catala" / "plugins";
           ]
       in
-      value & opt_all string default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
+      (value
+      & opt_all string default
+      & info ["plugin-dir"] ~docv:"DIR" ~env ~doc)
+      |> fun dirs -> Term.(const (function ["-"] -> [] | dirs -> dirs) $ dirs)
 
     let disable_warnings =
       value

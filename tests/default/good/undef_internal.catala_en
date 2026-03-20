@@ -1,0 +1,47 @@
+```catala-metadata
+declaration scope A:
+  input x content integer
+  internal y content integer
+  output z content integer
+
+scope A:
+  definition z equals x
+```
+
+
+```catala
+#[test]
+declaration scope Test:
+  output a scope A
+
+scope Test:
+  definition a.x equals 42
+```
+
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[WARNING]─
+│
+│  In scope "A", the variable "y" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/default/good/undef_internal.catala_en:4.12-4.13:
+│   │
+│ 4 │   internal y content integer
+│   │            ‾
+└─
+┌─[WARNING]─
+│
+│  Unused variable: y does not contribute to computing any of scope A
+│  outputs. Did you forget something?
+│
+├─➤ tests/default/good/undef_internal.catala_en:4.12-4.13:
+│   │
+│ 4 │   internal y content integer
+│   │            ‾
+└─
+┌─[RESULT]─ Test ─
+│ a = A { -- z: 42 }
+└─
+```

@@ -337,7 +337,10 @@ class Date:
         if isinstance(other, Date):
             return Duration(self.value - other.value)
         elif isinstance(other, Duration):
-            return Date(self.value + (-other.value))
+            try:
+                return Date(self.value.__add__(-other.value, round))
+            except dates.AmbiguousComputation:
+                raise AmbiguousDateRounding(pos)
         else:
             raise Exception("Substracting date and invalid obj")
 

@@ -404,6 +404,7 @@ let init
     build_dir
     target_dir
     include_dirs
+    vars_override
     color
     debug
     whole_program
@@ -487,6 +488,11 @@ let init
          not exist."
         bad_dir)
     bad_dirs;
+  let variables =
+    List.map
+      (fun (var, value) -> var, String.split_on_char ' ' value)
+      vars_override
+  in
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags
   in
@@ -499,6 +505,7 @@ let init
     options =
       {
         config with
+        variables;
         global =
           {
             config.global with
@@ -526,6 +533,7 @@ let init_term ?(allow_test_flags = false) () =
     $ build_dir
     $ target_dir
     $ include_dirs
+    $ vars_override
     $ color
     $ debug
     $ whole_program

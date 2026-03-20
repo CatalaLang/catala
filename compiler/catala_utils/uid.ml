@@ -83,13 +83,19 @@ end
 (* - Raw idents - *)
 
 module MarkedString = struct
-  type info = string Mark.pos
+  module M = struct
+    type info = string Mark.pos
+    type t = info
 
-  let to_string (s, _) = s
-  let format fmt i = String.format fmt (to_string i)
-  let equal = Mark.equal String.equal
-  let compare = Mark.compare String.compare
-  let hash = Mark.hash String.hash
+    let to_string (s, _) = s
+    let format fmt i = String.format fmt (to_string i)
+    let equal = Mark.equal String.equal
+    let compare = Mark.compare String.compare
+    let hash = Mark.hash String.hash
+  end
+
+  include M
+  module Map = Map.Make (M)
 end
 
 module Gen (S : Style) () = Make (MarkedString) (S) ()
@@ -160,7 +166,9 @@ module QualifiedMarkedString = struct
 
   let hash (p, i) =
     let open Hash.Op in
-    Hash.list Module.hash p % MarkedString.hash i
+    match List.rev p with
+    | [] -> MarkedString.hash i
+    | m :: _ -> Module.hash m % MarkedString.hash i
 
   let format_shortpath ppf (p, i) =
     Path.format ppf (Option.to_list (Path.last_member p));

@@ -242,6 +242,7 @@ déclaration est_assez_jeune_arrondi_supérieur
 
 
 ## Gestion des jours de la semaine et des jours fériés
+
 ```catala-metadata
 déclaration énumération Jour_de_la_semaine:
   -- Lundi
@@ -256,10 +257,15 @@ déclaration énumération Jour_de_la_semaine:
 ## Détermination du jour de la semaine d'une date donnée (algorithme de Sakamoto)
 
 ```catala-metadata
-déclaration jour_de_la_semaine contenu Jour_de_la_semaine
+## Renvoie le jour de la semaine correspondant à la `date_donnée`.
+## **Exemples:**
+## - `jour_de_la_semaine de |2025-12-31| = Mercredi`
+## - `jour_de_la_semaine de |2026-01-01| = Jeudi`
+déclaration jour_de_la_semaine
+  contenu Jour_de_la_semaine
   dépend de date_donnée contenu date
   égal à
-  soit weekdays égal à [Lundi; Mardi; Mercredi; Jeudi; Vendredi; Samedi; Dimanche] dans
+  soit weekdays égal à [Dimanche; Lundi; Mardi; Mercredi; Jeudi; Vendredi; Samedi] dans
   soit sakamoto_list égal à [0; 3; 2; 5; 0; 3; 5; 1; 4; 6; 2; 4] dans
   soit month_number égal à accès_mois de date_donnée dans
   soit year_number égal à

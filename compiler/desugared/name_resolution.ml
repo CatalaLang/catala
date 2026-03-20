@@ -570,21 +570,24 @@ let rec process_base_typ
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Position -> TLit TPos, typ_pos
     | Surface.Ast.Named ([], (ident, _pos)) -> (
-      let path = List.rev rev_path in
+      let fix_path = function
+        (* We only keep the last member of paths for types here: it makes for
+           more readable errors, and is enough for unambiguous qualification *)
+        | [], x -> (match rev_path with m :: _ -> [m] | [] -> []), x
+        | path, x -> [List.hd (List.rev path)], x
+      in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
       | Some (TStruct s_uid) ->
-        let s_uid = StructName.map_info (fun (_, x) -> path, x) s_uid in
+        let s_uid = StructName.map_info fix_path s_uid in
         TStruct s_uid, typ_pos
       | Some (TEnum e_uid) ->
-        let e_uid = EnumName.map_info (fun (_, x) -> path, x) e_uid in
+        let e_uid = EnumName.map_info fix_path e_uid in
         TEnum e_uid, typ_pos
       | Some (TAbstract t_uid) ->
-        let t_uid = AbstractType.map_info (fun (_, x) -> path, x) t_uid in
+        let t_uid = AbstractType.map_info fix_path t_uid in
         TAbstract t_uid, typ_pos
       | Some (TScope (_, scope_str)) ->
-        let s_uid =
-          StructName.map_info (fun (_, x) -> path, x) scope_str.out_struct_name
-        in
+        let s_uid = StructName.map_info fix_path scope_str.out_struct_name in
         TStruct s_uid, typ_pos
       | None ->
         Message.error ~pos:typ_pos
@@ -1497,6 +1500,9 @@ let form_context (surface, mod_uses) surface_modules : context =
             Ident.Map.filter_map
               (fun id modl ->
                 let mctx = ModuleName.Map.find modl ctxt.modules in
+                let module_content, _mod_uses =
+                  ModuleName.Map.find modl surface_modules
+                in
                 match Ident.Map.find_opt id mctx.typedefs with
                 | None | Some (TScope _) -> None
                 | Some tdef ->
@@ -1565,10 +1571,19 @@ let form_context (surface, mod_uses) surface_modules : context =
   let submodules_root_types =
     Ident.Map.filter_map
       (fun id modl ->
+        let module_content, _mod_uses =
+          ModuleName.Map.find modl surface_modules
+        in
         let mctx = ModuleName.Map.find modl ctxt.modules in
         match Ident.Map.find_opt id mctx.typedefs with
         | None | Some (TScope _) -> None
-        | some -> some)
+        | Some tdef ->
+          let defname, _ = typedef_info tdef in
+          if
+            defname = ModuleName.to_string modl
+            || module_content.Surface.Ast.module_is_stdlib
+          then Some tdef
+          else None (* some *))
       mod_uses
   in
   let ctxt =

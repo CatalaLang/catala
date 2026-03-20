@@ -453,7 +453,7 @@ let rec translate_expr
       match Ident.Map.find_opt x scope_vars with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
-           desambiguate. In general, only the last state can be referenced.
+           desambiguate. In general, the last state is referenced by default.
            Except if defining a state of the same variable, then it references
            the previous state in the chain. *)
         let x_sig = ScopeVar.Map.find uid ctxt.var_typs in
@@ -558,7 +558,7 @@ let rec translate_expr
         emark
     | None ->
       Name_resolution.raise_unknown_identifier "for an external variable" name)
-  | Dotted (e, ((path, x), _ppos)) ->
+  | Dotted (e, ((path, field), _ppos)) ->
     (* e.x is the struct field x access of expression e *)
     let e = rec_helper e in
     let rec get_str ctxt = function
@@ -567,8 +567,7 @@ let rec translate_expr
       | mod_id :: path ->
         get_str (Name_resolution.get_module_ctx ctxt mod_id) path
     in
-    Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path)
-      emark
+    Expr.edstructaccess ~e ~field ~name_opt:(get_str ctxt path) emark
   | FunCall ((Builtin b, pos), [arg]) when b <> S.Impossible ->
     let op, ty =
       match b with
@@ -653,12 +652,11 @@ let rec translate_expr
     let fields =
       fold_left_catch_errors
         (fun acc (field_id, field_expr) ->
-          if Ident.Map.mem (Mark.remove field_id) acc then
-            Message.error ~pos:(Mark.get field_expr)
-              "Duplicate redefinition of field@ %a." Ident.format
-              (Mark.remove field_id);
-          Ident.Map.add (Mark.remove field_id) (rec_helper field_expr) acc)
-        Ident.Map.empty fields
+          if MarkedIdent.Map.mem field_id acc then
+            Message.error ~pos:(Mark.get field_id)
+              "Duplicate redefinition of field@ %a." MarkedIdent.format field_id;
+          MarkedIdent.Map.add field_id (rec_helper field_expr) acc)
+        MarkedIdent.Map.empty fields
     in
     Expr.edstructamend ~fields ~e:(rec_helper e) ~name_opt:None emark
   | StructLit (((path, s_name), _), fields) ->

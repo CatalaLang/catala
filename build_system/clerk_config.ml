@@ -241,4 +241,4 @@ let read f =
 
 let write f config =
   let toml = Clerk_toml_encoding.encode config config_encoding in
-  File.with_out_channel f @@ fun oc -> Printer.to_channel oc toml
+  File.with_out_channel ~bin:false f @@ fun oc -> Printer.to_channel oc toml

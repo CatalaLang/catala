@@ -101,9 +101,13 @@ let load_modules
     | ms ->
       Message.error
         ~extra_pos:(err_req_pos (mpos :: req_chain))
-        "Required module @{<blue>%s@} matches multiple files:@;<1 2>%a" mname
+        "@[<hv 2>@[<hov>Required module @{<blue>%s@}@ matches@ multiple@ \
+         files:@]@ %a@]@,\
+         @[<hov>@{<bold>Hint:@} %a@ '@{<cyan>clerk clean@}'@ and@ retry@]"
+        mname
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
-        ms
+        ms Format.pp_print_text
+        "This might be a leftover from a renamed file, you may want to run"
   in
   let load_file ~is_stdlib f =
     let default_module_name =
@@ -858,41 +862,6 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest)
 
-  let proof
-      options
-      includes
-      stdlib
-      optimize
-      ex_scope_opt
-      check_invariants
-      disable_counterexamples =
-    let prg, _ =
-      Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
-        ~autotest:false ~typed:Expr.typed
-    in
-    Verification.Globals.setup ~optimize ~disable_counterexamples;
-    let vcs =
-      Verification.Conditions.generate_verification_conditions prg
-        (Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt)
-    in
-    Verification.Solver.solve_vc prg.decl_ctx vcs
-
-  let proof_cmd =
-    Cmd.v
-      (Cmd.info "proof" ~man:Cli.man_base
-         ~doc:
-           "Generates and proves verification conditions about the \
-            well-behaved execution of the Catala program.")
-      Term.(
-        const proof
-        $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.stdlib_dir
-        $ Cli.Flags.optimize
-        $ Cli.Flags.ex_scope_opt
-        $ Cli.Flags.check_invariants
-        $ Cli.Flags.disable_counterexamples)
-
   let print_interpretation_results
       options
       ?(quiet = false)
@@ -1316,11 +1285,16 @@ module Commands = struct
       includes
       stdlib
       (output : Global.raw_file option)
-      optimize
+      _optimize
       check_invariants
       autotest
       closure_conversion =
     let options = fix_trace options in
+    let optimize =
+      (* javac has a limit on bytecode statement per method, without
+         optimizations we easily reach it. We mitigate by enforcing them. *)
+      true
+    in
     let prg, _type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false
@@ -1542,7 +1516,6 @@ module Commands = struct
     [
       interpret_cmd;
       typecheck_cmd;
-      proof_cmd;
       ocaml_cmd;
       python_cmd;
       java_cmd;

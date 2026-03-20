@@ -927,6 +927,35 @@ let enable_backend =
   | `Python -> Python
   | `Java -> Java
 
+let retrieve_target_items ?(test_only = true) items files_or_folders =
+  let open File in
+  List.concat_map
+    (fun file ->
+      let is_dir = try Sys.is_directory file with Sys_error _ -> false in
+      let filter item =
+        if is_dir then
+          String.starts_with ~prefix:(file / "") item.Scan.file_name
+          && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
+        else
+          Option.map Mark.remove item.Scan.module_def
+          = Some (File.basename file)
+          || item.Scan.file_name = file
+          || File.remove_extension item.Scan.file_name = file
+      in
+      let items = List.filter filter items in
+      if items = [] then
+        Message.error
+          "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
+          format file (fun ppf ->
+            if Sys.file_exists file && (not is_dir) && Scan.get_lang file = None
+            then
+              Format.fprintf ppf
+                "@,\
+                 @[<hov>@{<bold>Hint:@} the specified file exists but doesn't \
+                 have a recognised extension@]");
+      items)
+    files_or_folders
+
 let build_test_deps
     ~config
     ~backend
@@ -935,28 +964,8 @@ let build_test_deps
     nin_ppf
     items
     var_bindings =
-  let open File in
   let build_dir = config.Cli.options.global.build_dir in
-  let target_items =
-    List.concat_map
-      (fun file ->
-        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
-        let filter item =
-          if is_dir then
-            String.starts_with ~prefix:(file / "") item.Scan.file_name
-            && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
-          else
-            Option.map Mark.remove item.Scan.module_def
-            = Some (File.basename file)
-            || item.Scan.file_name = file
-            || File.remove_extension item.Scan.file_name = file
-        in
-        let items = List.filter filter items in
-        if items = [] then
-          Message.error "No source file or module matching %a found" format file;
-        items)
-      files_or_folders
-  in
+  let target_items = retrieve_target_items ~test_only items files_or_folders in
   if target_items = [] then Message.error "Nothing to run";
   let base_targets =
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
@@ -1101,8 +1110,16 @@ let typecheck_cmd =
       Clerk_rules.run_ninja ~code_coverage:false ~config
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
         ~quiet (fun nin_ppf items var_bindings ->
-          Nj.format_def nin_ppf
-            (Nj.Default (Nj.Default.make ["Stdlib_fr@src"; "Stdlib_en@src"]));
+          let target_items = retrieve_target_items items files_or_folders in
+          let ninja_targets =
+            List.filter_map
+              (fun it ->
+                Option.map
+                  (fun mdef -> Mark.remove mdef ^ "@src")
+                  it.Scan.module_def)
+              target_items
+          in
+          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
           items, var_bindings)
     in
     let catala_flags = get_var var_bindings Var.catala_flags in
@@ -1556,7 +1573,7 @@ let list_vars_cmd =
   in
   let doc =
     "List pre-defined build variables that can be overriden using the \
-     $(i,--var) flag, or in the [variables] section of $(b,clerk.toml)."
+     $(i,--vars) flag, or in the [variables] section of $(b,clerk.toml)."
   in
   Cmd.v (Cmd.info ~doc "list-vars") Term.(const run $ Cli.init_term ())
 

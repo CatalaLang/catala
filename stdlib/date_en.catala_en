@@ -262,7 +262,12 @@ declaration enumeration Day_of_week:
 ## Find the Day of the week for a given date (Tomohiko Sakamoto Algorithm)
 
 ```catala-metadata
-declaration day_of_week content Day_of_week
+## Returns the day of the week corresponding to the `given_date`.
+## **Examples:**
+## - `day_of_week of |2025-12-31| = Wednesday`
+## - `day_of_week of |2026-01-01| = Thursday`
+declaration day_of_week
+  content Day_of_week
   depends on given_date content date
   equals
   let weekdays equals [Sunday; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday] in

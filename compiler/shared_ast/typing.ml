@@ -572,7 +572,9 @@ and typecheck_expr_top_down : type a m.
           "This expression has type %a, where a structure was expected"
           Type.format ty
     in
-    let fields = Ident.Map.map (typecheck_expr_bottom_up ctx env) fields in
+    let fields =
+      MarkedIdent.Map.map (typecheck_expr_bottom_up ctx env) fields
+    in
     (* Note: here we identify the structure name, and type the fields
        individually, but without enforcing any consistency constraint between
        the two. This is fine because this construction only appears in
@@ -598,21 +600,21 @@ and typecheck_expr_top_down : type a m.
         | TForAll _, _ | TVar _, _ -> None
         | ty ->
           Message.error ~pos:(Expr.pos e)
-            "This is not a structure, cannot access field @{<magenta>%s@}@ \
+            "This is not a structure, cannot access field @{<magenta>%a@}@ \
              (found type: %a)"
-            field Type.format ty
+            MarkedIdent.format field Type.format ty
       in
       let name, field =
         let candidate_structs =
-          try Ident.Map.find field ctx.ctx_struct_fields
+          try Ident.Map.find (MarkedIdent.to_string field) ctx.ctx_struct_fields
           with Ident.Map.Not_found _ -> (
             match name_opt with
             | None ->
               Message.error
                 ~pos:(Expr.mark_pos context_mark)
-                "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ any@ known@ \
+                "Field@ @{<magenta>%a@}@ does@ not@ belong@ to@ any@ known@ \
                  structure"
-                field StructName.format
+                MarkedIdent.format field MarkedIdent.format
             (* Since we were unable to disambiguate, we can't get any hints at
                this point (but explaining the situation in more detail would
                probably not be helpful) *)
@@ -636,21 +638,22 @@ and typecheck_expr_top_down : type a m.
                     [
                       ( (fun ppf ->
                           Format.fprintf ppf
-                            "@{<magenta>%s@} is used here as an output" field),
+                            "@{<magenta>%a@} is used here as an output"
+                            MarkedIdent.format field),
                         Expr.mark_pos context_mark );
                       ( (fun ppf ->
                           Format.fprintf ppf "Scope %a is declared here"
                             ScopeName.format scope_out),
                         Mark.get (StructName.get_info name) );
                     ]
-                  "Variable @{<magenta>%s@} is not a declared output of scope \
+                  "Variable @{<magenta>%a@} is not a declared output of scope \
                    %a."
-                  field ScopeName.format scope_out
+                  MarkedIdent.format field ScopeName.format scope_out
                   ~suggestion:
                     (Suggestions.sorted_candidates
                        (List.map StructField.to_string
                           (StructField.Map.keys str))
-                       field)
+                       (MarkedIdent.to_string field))
               | None ->
                 Message.error
                   ~extra_pos:
@@ -659,13 +662,13 @@ and typecheck_expr_top_down : type a m.
                       ( "Structure definition",
                         Mark.get (StructName.get_info name) );
                     ]
-                  "Field@ @{<yellow>\"%s\"@}@ does@ not@ belong@ to@ \
+                  "Field@ @{<yellow>\"%a\"@}@ does@ not@ belong@ to@ \
                    structure@ @{<yellow>\"%a\"@}."
-                  field StructName.format name
+                  MarkedIdent.format field StructName.format name
                   ~suggestion:
                     (Suggestions.sorted_candidates
                        (Ident.Map.keys ctx.ctx_struct_fields)
-                       field)))
+                       (MarkedIdent.to_string field))))
         in
         match name_opt with
         | None ->
@@ -674,26 +677,26 @@ and typecheck_expr_top_down : type a m.
           else
             Message.error
               ~pos:(Expr.mark_pos context_mark)
-              "@[<v>@[<hov>Ambiguous field access @{<cyan>%s@}:@ the@ parent@ \
+              "@[<v>@[<hov>Ambiguous field access @{<cyan>%a@}:@ the@ parent@ \
                structure@ could@ not@ be@ determined@ at@ this@ point.@ The@ \
                following@ structures@ have@ a@ field@ by@ this@ name:@]@,\
                @[<v>%a@]@,\
                @[<hov>@{<b>Hint@}: explicit the structure the field belongs to \
-               using@ x.@{<cyan>StructName@}.@{<magenta>%s@}@ (or@ \
-               x.@{<blue>ModuleName@}.@{<cyan>StructName@}.@{<magenta>%s@})@]@]"
-              field
+               using@ x.@{<cyan>StructName@}.@{<magenta>%a@}@ (or@ \
+               x.@{<blue>ModuleName@}.@{<cyan>StructName@}.@{<magenta>%a@})@]@]"
+              MarkedIdent.format field
               (Format.pp_print_list (fun fmt s_name ->
                    Format.fprintf fmt "- %a" StructName.format s_name))
               (StructName.Map.keys candidate_structs)
-              field field
+              MarkedIdent.format field MarkedIdent.format field
         | Some name -> (
           try name, StructName.Map.find name candidate_structs
           with StructName.Map.Not_found _ ->
             Message.error
               ~pos:(Expr.mark_pos context_mark)
-              "Field@ @{<magenta>%s@}@ does@ not@ belong@ to@ structure@ %a@ \
+              "Field@ @{<magenta>%a@}@ does@ not@ belong@ to@ structure@ %a@ \
                (however, structure@ %a@ defines@ it).@]"
-              field StructName.format name
+              MarkedIdent.format field StructName.format name
               (Format.pp_print_list
                  ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
                  StructName.format)

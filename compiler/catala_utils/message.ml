@@ -42,6 +42,9 @@ let terminal_columns, set_terminal_width_function =
   let get_cols = ref (fun () -> 80) in
   (fun () -> !get_cols ()), fun f -> get_cols := f
 
+let pp_to_string ~ansi f =
+  if not ansi then Format.asprintf "%t" f else Ocolor_format.asprintf "%t" f
+
 let has_color_raw ~(tty : bool Lazy.t) =
   match Global.options.color with
   | Global.Never -> false
@@ -367,7 +370,7 @@ module Content = struct
     Option.iter (fun msg -> Format.fprintf ppf "%s" (unformat msg)) msg
 
   let emit_raw ?ppf ?header (content : t) (target : level) : unit =
-    let ppf = Option.value ~default:(get_ppf target) ppf in
+    let ppf = match ppf with Some ppf -> ppf | None -> get_ppf target in
     match Global.options.message_format with
     | Global.Human -> (
       match target with
@@ -385,7 +388,7 @@ module Content = struct
       emit_raw ?ppf content target;
       if Global.options.debug then Printexc.print_raw_backtrace stderr bt
     | contents ->
-      let ppf = Option.value ~default:(get_ppf target) ppf in
+      let ppf = match ppf with Some ppf -> ppf | None -> get_ppf target in
       let len = List.length contents in
       List.iteri
         (fun i (c, bt) ->
@@ -506,8 +509,8 @@ let debug = make ~level:Debug ~cont:emit
 let log = make ~level:Log ~cont:emit
 let result = make ~level:Result ~cont:emit
 
-let results ?title r =
-  emit_raw ?header:title (List.flatten (List.map of_result r)) Result
+let results ?ppf ?title r =
+  emit_raw ?ppf ?header:title (List.flatten (List.map of_result r)) Result
 
 let join_pos ~main_pos ~pos ~fmt_pos ~extra_pos =
   (* Error positioning might be provided using multiple options. Thus, we look
@@ -563,18 +566,26 @@ type delayed_errors = {
 
 let global_errors = { rev_delayed_errors = [] }
 
-let register_content_as_delayed_error ?(kind = Generic) ?main_pos m =
+let register_content_as_delayed_error
+    ?(should_notify = true)
+    ?(kind = Generic)
+    ?main_pos
+    m =
   let register_error =
     match !global_error_hook with
     | Some f ->
-      let message ppf = Content.emit ~ppf m Error in
-      let pos =
-        match main_pos with
-        | Some p -> p
-        | None ->
-          List.find_map (function Position pos -> Some pos.pos | _ -> None) m
-      in
-      f { kind; message; pos; suggestion = None }
+      if not should_notify then true
+      else
+        let message ppf = Content.emit ~ppf m Error in
+        let pos =
+          match main_pos with
+          | Some p -> p
+          | None ->
+            List.find_map
+              (function Position pos -> Some pos.pos | _ -> None)
+              m
+        in
+        f { kind; message; pos; suggestion = None }
     | None -> true
   in
   if register_error then (
@@ -596,7 +607,9 @@ let delayed_error ?(kind = Generic) x : ('a, 'exn) emitter =
 let wrap_to_delayed_error ?(kind = Generic) x f =
   try f ()
   with CompilerError m ->
-    register_content_as_delayed_error ~kind m;
+    (* We assume that wrapped errors have already gone through the notification
+       hook, hence we disable the notification to prevent duplication. *)
+    register_content_as_delayed_error ~should_notify:false ~kind m;
     x
 
 let report_delayed_errors_if_any () =

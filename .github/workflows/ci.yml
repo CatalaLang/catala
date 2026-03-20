@@ -15,6 +15,8 @@ on:
 # test the target branch only!
 env:
   GIT_FETCH_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+  COLUMNS: "165"
+  # Ensures the side-by-side diff isn't truncated to less than 80 cols
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -54,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           # The default context would fetch the default source (ie master on
-          # 'pull_request_target' to master >:( ) ; we have already have fetched
+          # 'pull_request_target' to master >:( ) ; we have already fetched
           # anyway so use the current dir
           context: .
           target: dev-build-context
@@ -101,14 +103,20 @@ jobs:
       - name: Check promoted files
         run: |
           cd /home/ocaml/catala && opam exec -- make check-promoted && git diff --exit-code
-      - name: Run tests
+      - name: Run base tests
         if: ${{ always() }}
-        run: cd /home/ocaml/catala && opam exec -- make testsuite
+        run: cd /home/ocaml/catala && opam exec -- make unit-tests backend-tests testsuite-base
+      - name: Run extra tests
+        if: ${{ always() }}
+        run: cd /home/ocaml/catala && opam exec -- dune exec -- clerk test tests-extra doc
       - name: Generate test report
         if: ${{ always() }}
         run: |
           cd /home/ocaml/catala
-          opam exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+          opam exec -- dune exec -- clerk report --xml _build/*@test _build/test-*/*@test >report.junit.xml
+      - name: Test web interpreter
+        run: |
+          cd /home/ocaml/catala && opam exec -- dune build @runtest-js
       - name: Validate Python runtime
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make validate-py-runtime
@@ -171,6 +179,7 @@ jobs:
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
+          mv catala/_build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -276,13 +285,15 @@ jobs:
   windows-build:
     name: Build Catala on Windows
     runs-on: windows-latest
-    needs: ['build']
-    # Only triggers on the `master` branch
-    if: ${{ github.event_name != 'pull_request_target' && github.ref == 'refs/heads/master' }}
+
+    env:
+      OPAMCONFIRMLEVEL: unsafe-yes
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_FETCH_REF }}
 
       - name: Install opam and Ninja via winget
         run: |
@@ -298,30 +309,26 @@ jobs:
 
       - name: Initialize opam (non-interactive) and create switch
         run: |
-          opam init -y --bare --disable-sandboxing
-          opam switch create 5.3.0
-          opam switch 5.3.0
-          opam --version
+          opam init --disable-sandboxing -c ocaml.5.3.0
 
       - name: Build and install Catala through opam
         run: |
-          opam update
-          opam install . -y
+          opam install ./catala.opam
 
       - name: Run built-in tests
         run: |
-          opam exec -- dune test
+          opam exec -- dune exec -- clerk test tests doc
+          opam exec -- dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
 
       - name: Clone catala-examples
         run: |
           $ErrorActionPreference = 'Stop'
           $dst = "$env:USERPROFILE\catala-examples"
           if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
-          git clone https://github.com/CatalaLang/catala-examples --depth 1 -b master $dst
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 $dst -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 $dst
 
       - name: Run clerk test in catala-examples
-        continue-on-error: true # This fails because of an incompatibility
-                                # of Windows Ninja. FIXME
         run: |
           Push-Location "$env:USERPROFILE\catala-examples"
           opam exec -- clerk test
