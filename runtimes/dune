@@ -19,7 +19,7 @@
  (section lib))
 
 (install
- (package catala-js)
+ (package catala)
  (files
   (jsoo/dates_calc_jsoo.ml as runtime/jsoo/dates_calc_jsoo.ml)
   (jsoo/dates_calc_jsoo.mli as runtime/jsoo/dates_calc_jsoo.mli)
