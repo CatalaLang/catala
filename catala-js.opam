@@ -26,7 +26,7 @@ homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "catala" {= _:version}
-  "zarith_stubs_js" {>= "v0.17.0"}
+  "zarith_stubs_js" {>= "v0.16.1"}
   "js_of_ocaml" {>= "6.0"}
   "js_of_ocaml-ppx" {>= "6.0"}
 ]
