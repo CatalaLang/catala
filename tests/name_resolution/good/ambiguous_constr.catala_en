@@ -1,0 +1,19 @@
+> Using Mod_enum
+
+```catala-metadata
+#[test]
+declaration scope S:
+  output r content integer
+
+scope S:
+  definition r equals
+    match A with pattern
+    -- A : 3
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
