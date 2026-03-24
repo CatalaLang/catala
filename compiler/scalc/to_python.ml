@@ -28,11 +28,9 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   | LInt i -> Format.fprintf fmt "Integer(%s)" (Runtime.integer_to_string i)
   | LUnit -> Format.pp_print_string fmt "Unit()"
   | LRat i -> Format.fprintf fmt "Decimal('%s')" (Q.to_string i)
-  | LMoney e ->
-    Format.fprintf fmt "Money('%s')"
-      (Runtime.integer_to_string (Runtime.money_to_cents e))
+  | LMoney e -> Format.fprintf fmt "Money('%s')" (Runtime.money_to_string e)
   | LDate d ->
-    Format.fprintf fmt "Date((%d,%d,%d))"
+    Format.fprintf fmt "Date(%d,%d,%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
       (Runtime.integer_to_int (Runtime.month_number_of_date d))
       (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
@@ -48,14 +46,14 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   (* Todo: use the names from [Operator.name] *)
   | Not -> Format.pp_print_string fmt "not"
   | Length -> Format.pp_print_string fmt "length"
-  | ToInt_rat -> Format.pp_print_string fmt "integer_of_decimal"
-  | ToInt_mon -> Format.pp_print_string fmt "integer_of_money"
-  | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
-  | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
-  | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
-  | ToMoney_int -> Format.pp_print_string fmt "money_of_integer"
-  | Round_mon -> Format.pp_print_string fmt "money_round"
-  | Round_rat -> Format.pp_print_string fmt "decimal_round"
+  | ToInt_rat -> Format.pp_print_string fmt "Integer"
+  | ToInt_mon -> Format.pp_print_string fmt "Integer"
+  | ToRat_int -> Format.pp_print_string fmt "Decimal"
+  | ToRat_mon -> Format.pp_print_string fmt "Decimal"
+  | ToMoney_rat -> Format.pp_print_string fmt "Money"
+  | ToMoney_int -> Format.pp_print_string fmt "Money"
+  | Round_mon -> Format.pp_print_string fmt ".round()"
+  | Round_rat -> Format.pp_print_string fmt ".round()"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat ->
     Format.pp_print_string fmt "+"
   | Add_dat_dur rounding ->
@@ -76,7 +74,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt "*"
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur ->
-    Format.pp_print_string fmt "div"
+    Format.pp_print_string fmt ".__truediv__"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
@@ -373,6 +371,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         _;
       } ->
     Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
+  | EAppOp { op = ((Round_mon | Round_rat), _) as op; args = [arg1]; _ } ->
+    Format.fprintf fmt "(%a)%a" (format_expression ctx) arg1 format_op op
   | EAppOp { op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a(%a)" format_op op (format_expression ctx) arg1
   | EApp { f = EFunc f, _; args; _ } ->
@@ -389,6 +389,17 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (format_expression ctx))
       args
   | EFunc f -> Format.fprintf fmt "Function(%a)" FuncName.format f
+  | EAppOp
+      {
+        op =
+          ( ( Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
+            | Div_mon_rat | Div_dur_dur ),
+            _ ) as op;
+        args = [pos; arg1; arg2];
+        _;
+      } ->
+    Format.fprintf fmt "(%a)%a(%a, pos=%a)" (format_expression ctx) arg1
+      format_op op (format_expression ctx) arg2 (format_expression ctx) pos
   | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hv 0>%a)@]" format_op op
       (Format.pp_print_list
@@ -426,7 +437,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     Format.fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v)
       (format_expression ctx) e
   | SFatalError { pos_expr; error } ->
-    Format.fprintf fmt "@[<hov 4>raise %s(%a, %s)@]"
+    Format.fprintf fmt "@[<hov 4>raise %s(%a%s)@]"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
       (match
@@ -434,18 +445,21 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
            | ErrorMessage m -> Some m
            | _ -> None)
        with
-      | None -> "None"
-      | Some m -> String.quote m)
+      | None -> ""
+      | Some m -> ", " ^ String.quote m)
   | SIfThenElse { if_expr; then_block; else_block } ->
     let rec pr_else = function
       | [(SIfThenElse { if_expr; then_block; else_block }, _)] ->
-        Format.fprintf fmt "@[<v 4>elif @[<hov>%a@]:@ %a@]@,"
+        Format.fprintf fmt "@,@[<v 4>elif @[<hov>%a@]:@ %a@]"
           (format_expression ctx) if_expr (format_block ctx) then_block;
         pr_else else_block
+      | [(SLocalDef { expr = ELit LUnit, _; _ }, _)]
+      | [(SReturn (ELit LUnit, _), _)] ->
+        ()
       | else_block ->
-        Format.fprintf fmt "@[<v 4>else:@ %a@]" (format_block ctx) else_block
+        Format.fprintf fmt "@,@[<v 4>else:@ %a@]" (format_block ctx) else_block
     in
-    Format.fprintf fmt "@[<v 4>if @[<hov>%a@]:@ %a@]@," (format_expression ctx)
+    Format.fprintf fmt "@[<v 4>if @[<hov>%a@]:@ %a@]" (format_expression ctx)
       if_expr (format_block ctx) then_block;
     pr_else else_block
   | SSwitch

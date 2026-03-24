@@ -67,7 +67,7 @@ let process_program
       ( (EArray (List.map (fun pos -> EPos pos, m) elts), Expr.with_ty ~pos m ty),
         ty )
     in
-    let pos_table_name = TopdefName.fresh [] ("loc_table", Pos.void) in
+    let pos_table_name = TopdefName.fresh [] ("loc", Pos.void) in
     let pos_table_topdef =
       Topdef (pos_table_name, pos_table_ty, Public, pos_table_expr)
       |> Bindlib.box (* the def uses no variables *)
@@ -75,7 +75,7 @@ let process_program
     let pos_indexes =
       Seq.zip (Pos.Set.to_seq positions) (Seq.ints 0) |> Pos.Map.of_seq
     in
-    let pos_table_var = Var.make "pos" in
+    let pos_table_var = Var.make "loc" in
     (* Turns the position expressions into lookups in the position table *)
     let rec rewrite_pos_expr = function
       | EPos p, m ->

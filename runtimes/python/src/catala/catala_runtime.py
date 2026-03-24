@@ -129,89 +129,96 @@ class Value:
         else: return super().__truediv__(other)
 
     def __eq__(self, other: object, pos: SourcePosition | None = None):
+        print (f'EQ : {self} =? {other} => {super().__eq__(other)}')
         return super().__eq__(other)
 
     def compare(self, other: object, pos: SourcePosition | None = None) -> int:
         if type(self) is not type(other):
             raise UndefinedComparison(pos)
-        return super().__gt__(other) - super().__lt(other)
+        return super().__gt__(other) - super().__lt__(other)
 
     def __str__(self, indent: int = 0) -> str:
         return super().__str__()
 
+    # ensure typing of inherited common operators
+    def __add__(self, other):
+        return self.__class__(super().__add__(other))
+    def __sub__(self, other):
+        return self.__class__(super().__sub__(other))
+    def __mul__(self, other):
+        return self.__class__(super().__mul__(other))
+    def __truediv__(self, other, pos: SourcePosition | None = None):
+        return self.__class__(super().__truediv__(other))
+    def __neg__(self):
+        return self.__class__(super().__neg__())
+
     # deduced methods
     def __ne__(self, other: object, pos: SourcePosition | None = None) -> bool:
-        return not(self.__eq__(other, pos))
+        return Bool(not(self.__eq__(other, pos)))
 
     def __lt__(self, other: object, pos: SourcePosition | None = None) -> bool:
-        return self.compare(other, pos) < 0
+        return Bool(self.compare(other, pos) < 0)
 
     def __le__(self, other: object, pos: SourcePosition | None = None) -> bool:
-        return self.compare(other, pos) <= 0
+        return Bool(self.compare(other, pos) <= 0)
 
     def __gt__(self, other: object, pos: SourcePosition | None = None) -> bool:
-        return self.compare(other, pos) > 0
+        return Bool(self.compare(other, pos) > 0)
 
     def __ge__(self, other: object, pos: SourcePosition | None = None) -> bool:
-        return self.compare(other, pos) >= 0
+        return Bool(self.compare(other, pos) >= 0)
 
-class Array(Value):
-    def __getitem__(self, index):
-        return self.value[index]
-
-    def __iter__(self):
-        return iter(self.value)
-
-    def __all__(self):
-        return all(self.value)
+class Array(Value, list):
+    def __new__(cls, value: object, *args) -> Array:
+        return super().__new__(cls, list)
 
     def __str__(self, indent: int = 0) -> str:
-        if len(self.value) == 0:
+        if len(self) == 0:
             return '[]'
         else:
             return "[%s%s]" % (
                 ''.join([f"\n{'':>{indent + 2}}" + x.__str__(indent + 2) + ";"
-                         for x in self.value]),
+                         for x in self]),
                 f"\n{'':>{indent}}"
             )
 
-    def __eq__(self, other: object, pos: SourcePosition | None = None):
+    def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
         try:
-          zipped = zip(self.value, other.value, strict=True)
+          zipped = zip(self, other, strict=True)
         except ValueError: return False
-        return all([x.__eq__(y, pos) for x, y in zipped])
+        return Bool(all([x.__eq__(y, pos) for x, y in zipped]))
 
     def compare(self, other: object, pos: SourcePosition | None = None):
         if not isinstance(other, Array):
             raise UndefinedComparison(pos)
-        for (x, y) in zip(self.value, other.value, strict=False):
+        for (x, y) in zip(self, other, strict=False):
             cmp = x.compare (y, pos)
             if cmp != 0: return cmp
-        return compare (len(self.value), len(other.value))
+        return compare (len(self), len(other))
 
     def fold_left(self: List[Beta], f: Callable[[Alpha, Beta], Alpha], init: Alpha) -> Alpha:
-        return reduce(f, self.value, init)
+        return reduce(f, self, init)
 
     def filter(self: List[Alpha], f: Callable[[Alpha], bool]) -> List[Alpha]:
-        return [i for i in self.value if f(i)]
+        return Array([i for i in self if f(i)])
 
     def map(self: List[Alpha], f: Callable[[Alpha], Beta]) -> List[Beta]:
-        return Array([f(i) for i in self.value])
+        return Array([f(i) for i in self])
 
     def map2(self: List[Alpha], pos: SourcePosition, f: Callable[[Alpha, Beta], Gamma], l2: List[Beta]) -> List[Gamma]:
         try:
-          zipped = zip(self.value, l2.value, strict=True)
+          zipped = zip(self, l2, strict=True)
         except ValueError: raise NotSameLength(pos)
         return Array([f(i, j) for i, j in zipped])
 
     def reduce(self: List[Alpha], f: Callable[[Alpha, Alpha], Alpha], dft: Callable[[Unit], Alpha]) -> Alpha:
-        if len(self.value) == 0:
+        if len(self) == 0:
             return dft(Unit())
         else:
-            return reduce(f, self.value)
+            return reduce(f, self)
 
     def length(self: List[Alpha]) -> Integer:
-        return Integer(len(self.value))
+        return Integer(len(self))
 
 
 class CatalaTuple(Value):
@@ -333,10 +340,20 @@ class Bool(Value):
         self.value = value
 
     def __eq__(self, other: object, pos: SourcePosition | None = None) -> Bool:
+        print (f'{type(self)} = {self}..... {type(other)} = {other}')
         return self.value == other.value
 
     def __bool__(self):
         return self.value
+
+    def __and__(self, other):
+        return self.value and other.value
+
+    def __or__(self, other):
+        return self.value or other.value
+
+    def __sub__(self, other):
+        return self.value - other.value
 
     def __str__(self, indent: int = 0):
         if self.value: return "true"
@@ -344,8 +361,14 @@ class Bool(Value):
 
 
 class Integer(Value, int):
-    def __new__(cls, value: Union[str, int, Decimal]) -> Integer:
-        return super().__new__(cls, int(value))
+    def __new__(cls, value: Union[str, int, Decimal, Money]) -> Integer:
+        if isinstance(value, Money):
+            return super().__new__(cls, round(Decimal(value)))
+        else:
+            return super().__new__(cls, value)
+
+    def __truediv__(self, other: Integer, pos: SourcePosition | None = None) -> Decimal:
+        return Decimal(self) / Decimal(other)
 
     def __repr__(self) -> str:
         return f"Integer({int(self)})"
@@ -364,11 +387,26 @@ class Decimal(Value, Fraction):
     def __repr__(self) -> str:
         return f"Decimal({self.value.__repr__()})"
 
+    def round(self) -> Decimal:
+        return Decimal(round(self))
 
-class Money(Integer):
+class Money(Value, int):
+    def __new__(cls, value: object) -> Money:
+        if type(value) is int:
+            # Not a catala value, raw init from number of cents
+            return super().__new__(cls, value)
+        elif isinstance(value, Money):
+            return value
+        else:
+            # Otherwise, assume a number of units (= 100 cents)
+            ret = super().__new__(cls, round(100 * Decimal(value)))
+            print (f'NEW money from {type(value)}: {value} => {ret}')
+            return ret
+
     def __mul__(self, other: Union [Integer, Decimal]) -> Money:
         rat_result : Decimal = Decimal(self) * Decimal(other)
-        return Money(round(rat_result))
+        print (f'MUL {self} * {other} = {rat_result} => {Money(round(rat_result * 100))}')
+        return Money(rat_result)
 
     @overload
     def __truediv__(self, other: Money) -> Decimal: ...
@@ -387,7 +425,7 @@ class Money(Integer):
             return self * (Decimal(1).__truediv__(Decimal(other)))
 
     def __str__(self, indent: int = 0) -> str:
-        return "%01.2f€" % (self / 100)
+        return "%01.2f€" % Decimal(self)
 
     def __repr__(self) -> str:
         return f"Money({int(self)})"
@@ -398,16 +436,22 @@ class Money(Integer):
     def __float__(self) -> float:
         return float(self.decimal())
 
+    def round(self) -> money:
+        if isinstance(self, Money): print ('COIN')
+        print (f'MROUND: {self} => {Integer(self)} => {Money(Integer(self))}')
+        return Money(Integer(self))
 
 class Date(Value):
     __slots__ = ( 'value' )
 
     value: dates.Date
 
-    def __init__(self, value: Union [Tuple[int, int, int], dates.Date], pos: SourcePosition | None = None):
+    def __init__(self, value: Union [Tuple[int, int, int], dates.Date], *args, pos: SourcePosition | None = None):
         try:
             if isinstance(value, dates.Date):
                 self.value = value
+            elif isinstance(value, int):
+                self.value = (value, args[0], args[1])
             else:
                 self.value = dates.Date(year=value[0], month=value[1], day=value[2])
         except dates.InvalidDate: raise InvalidDate(pos)
@@ -415,6 +459,13 @@ class Date(Value):
     def __add__(self, other: Duration, round: dates.DateRounding = dates.DateRounding.AbortOnRound,  pos: SourcePosition | None = None) -> Date:
         try: return Date(self.value.__add__(other.value, round))
         except dates.AmbiguousComputation: raise AmbiguousDateRounding(pos)
+
+    def compare(self, other: object, pos: SourcePosition | None = None):
+        if not isinstance(other, Date):
+            raise UndefinedComparison(pos)
+        elif self.value < other.value: return -1
+        elif self.value > other.value: return 1
+        else: return 0
 
     @overload
     def __sub__(self, other: Date) -> Duration: ...
@@ -447,9 +498,13 @@ class Duration(Value):
 
     value: dates.Period
 
-    def __init__(self, value: Union [Tuple[int, int, int], dates.Period]):
+    def __init__(self, value: Union [Tuple[int, int, int], dates.Period, int], *args):
         if isinstance(value, dates.Period):
             self.value = value
+        elif isinstance(value, Duration):
+            self.value = value.value
+        elif isinstance(value, int):
+            self.value = dates.Period(years=value, months=args[0], days=args[1])
         else:
             self.value = dates.Period(years=value[0], months=value[1], days=value[2])
 
@@ -459,6 +514,9 @@ class Duration(Value):
     def __sub__(self: Duration, rhs: Duration) -> Duration:
         return Duration(self.value - rhs.value)
 
+    def __neg__(self: Duration) -> Duration:
+        return Duration(Duration(0, 0, 0) - self)
+
     def __truediv__(self, other: Duration, pos: SourcePosition | None = None) -> Decimal:
         if (self.value.years != 0 or other.value.years != 0 or
             self.value.months != 0 or other.value.months != 0):
@@ -467,7 +525,7 @@ class Duration(Value):
             return Decimal(self.value.days) / Decimal(other.value.days)
 
     def __mul__(self: Duration, rhs: Integer) -> Duration:
-        return Duration(self.value * rhs.value)
+        return Duration(self.value * rhs)
 
     def __eq__(self, other: object, pos: SourcePosition | None = None) -> bool:
         if not isinstance(other, Duration): return False
@@ -521,7 +579,7 @@ class Unit(Value):
     def __repr__(self) -> str:
         return "Unit()"
 
-class Option(Generic[Alpha], Value):
+class Option(Value, Generic[Alpha]):
     __slots__ = ( 'value' )
 
     value: Alpha | None
@@ -533,7 +591,7 @@ class Option(Generic[Alpha], Value):
         if isinstance(other, Option):
             return self.value.__eq__(other.value, pos)
         else:
-            return False
+            return Bool(False)
 
     def __str__(self, indent: int = 0) -> str:
         if self.value is None:
@@ -548,30 +606,13 @@ class Option(Generic[Alpha], Value):
 # Constructors and conversions
 # ============================
 
-
-def div(pos: SourcePosition, x, y):
-    try: return x / y
-    except ZeroDivisionError: raise DivisionByZero(pos)
-
-def eq_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
-    return d1.__eq__(d2, pos)
-
-def le_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
-    return d1.__le__(d2, pos)
-def lt_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
-    return d1.__lt__(d2, pos)
-def ge_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
-    return d1.__ge__(d2, pos)
-def gt_duration(pos: SourcePosition, d1: Duration, d2: Duration) -> bool:
-    return d1.__gt__(d2, pos)
-
-def round(q : Decimal) -> Integer:
+def round(q : Decimal) -> Decimal:
     qabs = abs(q)
     n = qabs.numerator
     d = qabs.denominator
     abs_round = (2 * n + d) // (2 * d)
     print (f'ROUND : {q} => {math.copysign(abs_round, q)} => {Integer(math.copysign(abs_round, q))}')
-    return Integer(math.copysign(abs_round, q))
+    return math.copysign(abs_round, q)
 
 # -----
 # Money
@@ -596,20 +637,6 @@ def money_to_string(m: Money) -> str:
 
 def money_to_cents(m: Money) -> Integer:
     return Integer(m)
-
-def money_round(m: Money) -> Money:
-    units : Decimal = Decimal(m) / Decimal(100)
-    return Money(round(units) * Integer(100))
-
-def money_of_decimal(d: Decimal) -> Money:
-    """
-    Warning: rounds to the nearest cent
-    """
-    return Money(round(d * Decimal(100)))
-
-def money_of_integer(i: Integer) -> Money:
-    return Money(i * Integer(100))
-
 
 # --------
 # Decimals
@@ -636,16 +663,6 @@ def decimal_of_integer(d: Integer) -> Decimal:
 
 def decimal_to_string(precision: int, i: Decimal) -> str:
     return "{1:.{0}}".format(precision, mpfr(i, precision * 10 // 2))
-
-
-def decimal_round(q: Decimal) -> Decimal:
-    return Decimal(round(q))
-
-def decimal_of_money(m: Money) -> Decimal:
-    return Decimal(m)
-
-def integer_of_money(m: Money) -> Integer:
-    return round(Decimal(m))
 
 
 # --------
