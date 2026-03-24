@@ -1,0 +1,7 @@
+> Module Mod_enum
+> Using Mod_sub_enum
+
+```catala-metadata
+declaration enumeration Mod_Enum:
+  -- A
+```
