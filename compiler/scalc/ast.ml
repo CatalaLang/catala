@@ -77,8 +77,6 @@ type stmt =
       switch_cases : switch_case list;
     }
   | SReturn of expr
-  | SAssert of { pos_expr : expr; expr : expr }
-      (** [pos_expr] here is the position reified into an expression *)
   | SSpecialOp of special_operator
 
 and special_operator = |

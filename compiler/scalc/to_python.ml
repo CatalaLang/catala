@@ -159,8 +159,8 @@ let python_keywords =
 
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
-  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
     true
   | Op.Eq | Lt | Lte | Gt | Gte -> (
     match ty with
@@ -508,16 +508,6 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
-  | SAssert { pos_expr; expr = e1 } ->
-    Format.fprintf fmt "@[<hv 4>if not (%a):@ raise AssertionFailed(%a, %s)@]"
-      (format_expression ctx) e1 (format_expression ctx) pos_expr
-      (match
-         Pos.get_attr (Mark.get s) (function
-           | ErrorMessage m -> Some m
-           | _ -> None)
-       with
-      | None -> "None"
-      | Some m -> String.quote m)
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =

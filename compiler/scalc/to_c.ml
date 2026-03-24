@@ -68,9 +68,9 @@ let is_dummy_var v = VarName.to_string v = "_"
 
 let op_needs_pos (type a) (op : a Op.t) _ty =
   match op with
-  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Eq | Lt
-  | Lte | Gt | Gte ->
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Eq | Lt | Lte | Gt
+  | Gte ->
     true
   | _ -> false
 
@@ -666,7 +666,8 @@ let rec format_statement
       (format_expression ctx env)
       e
   | SFatalError { pos_expr; error } ->
-    Format.fprintf fmt "@,@[<hov 2>catala_error(catala_%s,@ %a,@ 1,@ %s);@]"
+    Format.fprintf fmt
+      "@,@[<hov 2>catala_error(catala_%s,@ %a,@ 1,@ %s);@]@,abort();"
       (String.to_snake_case (Runtime.error_to_string error))
       (format_expression ctx env)
       pos_expr
@@ -711,23 +712,6 @@ let rec format_statement
       Format.pp_close_box fmt ()
   | SReturn e1 ->
     Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx env) e1
-  | SAssert { pos_expr; expr } ->
-    Format.fprintf fmt
-      "@,\
-       @[<v 2>@[<hov 2>if (%a != CATALA_TRUE) {@]@,\
-       @[<hov 2>catala_error(catala_assertion_failed,@ %a,@ 1,@ %s);@]@;\
-       <1 -2>}@]"
-      (format_expression ctx env)
-      expr
-      (format_expression ctx env)
-      pos_expr
-      (match
-         Pos.get_attr (Mark.get s) (function
-           | ErrorMessage m -> Some m
-           | _ -> None)
-       with
-      | None -> "NULL"
-      | Some m -> String.quote m)
   | _ -> .
 
 and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
@@ -754,7 +738,7 @@ and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     format_block ctx env fmt ite.then_block;
     Format.fprintf fmt "@;<1 -2>}%a" format_else ite.else_block
   | [(SIfThenElse ite, _)] ->
-    Format.fprintf fmt "@[<hov 4>if (CATALA_TRUE == @ %a) {@]"
+    Format.fprintf fmt "@[<hov 4>if (CATALA_TRUE ==@ %a) {@]"
       (format_expression ctx env)
       ite.if_expr;
     format_block ctx env fmt ite.then_block;

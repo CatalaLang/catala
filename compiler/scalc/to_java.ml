@@ -111,8 +111,8 @@ let java_keywords =
 
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
-  | HandleExceptions | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-  | Div_mon_rat | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
     true
   | Op.Eq | Lt | Lte | Gt | Gte -> (
     match ty with
@@ -618,19 +618,6 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
       pp_default_initializer
-  | SAssert { expr; pos_expr } ->
-    fprintf ppf "@[<hov 4>CatalaAssertion.check(%a, %a%s);@]"
-      (format_expression_with_paren ctx)
-      pos_expr
-      (format_expression_with_paren ctx)
-      expr
-      (match
-         Pos.get_attr (Mark.get stmt) (function
-           | ErrorMessage m -> Some m
-           | _ -> None)
-       with
-      | None -> ""
-      | Some m -> ", " ^ String.quote m)
   | SSpecialOp _ -> .
 
 and format_inner_func_def ctx ppf (name, func) =

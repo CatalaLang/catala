@@ -153,7 +153,7 @@ let simplified_match enum_name match_arg cases mark =
     (* Optimisation was aborted due a non-terminal or code duplication *)
     EMatch { e = match_arg; cases; name = enum_name }
 
-let rec optimize_expr : type a b c d.
+let rec optimize_expr : type a b c.
     (a, b, c, 'm) optimizations_ctx ->
     ((a, b) dcalc_lcalc, 'm) gexpr ->
     ((a, b) dcalc_lcalc, 'm) boxed_gexpr =
