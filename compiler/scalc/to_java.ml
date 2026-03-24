@@ -185,7 +185,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Filter -> pp_print_string ppf "filter"
   | Fold -> pp_print_string ppf "foldLeft"
   | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
-  | ArrayAccess _ -> failwith "TODO"
+  | ArrayAccess _ -> fprintf ppf "get"
   | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
@@ -427,6 +427,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         _;
       } ->
     fprintf ppf "%a.negate()" (format_expression_with_paren ctx) arg1
+  | EAppOp { op = (ArrayAccess n, _) as op; args = [arg1]; _ } ->
+    fprintf ppf "%a.%a(%d)"
+      (format_expression_with_paren ctx)
+      arg1 format_op op n
   | EAppOp { op; args = [arg1]; _ } ->
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args; _ }
@@ -540,6 +544,19 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
        with
       | None -> ""
       | Some m -> ", " ^ String.quote m)
+  | SIfThenElse
+      {
+        if_expr;
+        then_block;
+        else_block =
+          [
+            ( SLocalDef { expr = ELit LUnit, _; _ }, _
+            | SReturn (ELit LUnit, _), _ );
+          ];
+      } ->
+    fprintf ppf "@[<v 4>if (%a.asBoolean()) {@ %a@;<1 -4>}@]"
+      (format_expression_with_paren ctx)
+      if_expr (format_block ctx) then_block
   | SIfThenElse { if_expr; then_block; else_block } ->
     format_if ppf
       ~cond_format:(fun ppf ->
