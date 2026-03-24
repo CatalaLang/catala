@@ -1,3 +1,5 @@
+(vendored_dirs vendors)
+
 (library
  (name clerk_lib)
  (public_name catala.clerk_lib)
@@ -17,7 +19,8 @@
   re
   ocolor
   otoml
-  yojson)
+  yojson
+ )
  (modules
   clerk_report
   clerk_runtest
@@ -25,9 +28,34 @@
   clerk_coverage
   clerk_poll
   clerk_rules
-  clerk_driver)
+  clerk_driver
+ )
  (flags
-  (:standard -open Clerk_lib)))
+  (:standard -open Clerk_lib))
+)
+
+(executable
+ (package catala)
+ (name clerk_rpc_server)
+ (public_name clerk_serve)
+ (libraries
+   catala.driver
+   clerk_driver
+   resto-cohttp-server
+   resto-json
+ )
+ (modules
+   clerk_rpc_server
+ )
+ (flags
+  (:standard
+    -open Clerk_lib
+    -open Resto_cohttp_server
+    -open Lwt.Syntax
+    -open Catala_utils
+    -open Clerk_driver
+ ))
+)
 
 (rule
  (target custom_linking.sexp)
