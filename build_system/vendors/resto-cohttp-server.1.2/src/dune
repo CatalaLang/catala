@@ -1,0 +1,58 @@
+(library
+ (name resto)
+ (public_name resto)
+ (modules resto)
+ (libraries uri)
+ (wrapped false))
+
+(library
+ (name resto_cohttp)
+ (public_name resto-cohttp)
+ (libraries resto resto-directory cohttp-lwt)
+ (modules media_type cors))
+
+(library
+ (name resto_cohttp_server)
+ (public_name resto-cohttp-server)
+ (libraries resto resto-directory resto-acl resto-cohttp cohttp-lwt-unix
+   conduit-lwt-unix lwt)
+ (modules server)
+ (flags
+  (:standard -open Resto_cohttp -open Resto_acl)))
+
+(library
+ (name resto_acl)
+ (public_name resto-acl)
+ (libraries resto uri)
+ (modules acl))
+
+(library
+ (name resto_cohttp_client)
+ (public_name resto-cohttp-client)
+ (libraries resto resto-directory resto-cohttp uri lwt)
+ (modules client)
+ (flags
+  (:standard -open Resto_cohttp)))
+
+(library
+ (name resto_cohttp_self_serving_client)
+ (public_name resto-cohttp-self-serving-client)
+ (libraries resto resto-directory resto-acl resto-cohttp resto-cohttp-client
+   resto-cohttp-server uri lwt)
+ (modules self_serving_client)
+ (flags
+  (:standard -open Resto_cohttp -open Resto_cohttp_client -open Resto_acl)))
+
+(library
+ (name resto_directory)
+ (public_name resto-directory)
+ (modules resto_directory)
+ (libraries lwt resto)
+ (wrapped false))
+
+(library
+ (name resto_json)
+ (public_name resto-json)
+ (modules resto_json)
+ (libraries json-data-encoding json-data-encoding-bson resto)
+ (wrapped false))

@@ -1,0 +1,19 @@
+opam-version: "2.0"
+maintainer: "contact@nomadic-labs.com"
+authors: [ "Nomadic Labs" ]
+license: "MIT"
+homepage: "https://gitlab.com/nomadic-labs/resto"
+bug-reports: "https://gitlab.com/nomadic-labs/resto/issues"
+dev-repo: "git+https://gitlab.com/nomadic-labs/resto"
+synopsis: "Access Control Lists for Resto"
+
+build: [
+  [ "dune" "build" "-p" name "-j" jobs ]
+]
+
+depends: [
+  "ocaml" { >= "4.10" }
+  "dune" { >= "1.11" }
+  "uri" {>= "1.9.0" }
+  "resto" {= version }
+]

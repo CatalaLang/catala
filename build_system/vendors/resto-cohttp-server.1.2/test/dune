@@ -1,0 +1,89 @@
+(library
+ (name fixtures)
+ (modules directory services)
+ (libraries resto-directory resto-json lwt))
+
+(library
+ (name util)
+ (modules util)
+ (libraries alcotest alcotest-lwt lwt))
+
+(executable
+ (name acl_unit_test)
+ (modules acl_unit_test)
+ (libraries resto-acl)
+ (flags
+  (:standard -open Resto_acl)))
+
+(alias
+ (name runtest_acl_unit_test)
+ (action
+  (run %{exe:acl_unit_test.exe})))
+
+(executable
+ (name acl_integration_test)
+ (modules acl_integration_test)
+ (libraries lwt lwt.unix json-data-encoding ezjsonm cohttp cohttp-lwt
+   cohttp-lwt-unix resto-json resto resto-acl resto-cohttp-server
+   resto-cohttp-client))
+
+(alias
+ (name runtest_acl_integration_test)
+ (action
+  (run %{exe:acl_integration_test.exe})))
+
+(executable
+ (name chunked_output_integration_test)
+ (modules chunked_output_integration_test)
+ (libraries lwt lwt.unix json-data-encoding ezjsonm cohttp cohttp-lwt
+   cohttp-lwt-unix resto-json resto resto-acl resto-cohttp-server
+   resto-cohttp-client))
+
+(alias
+ (name runtest_chunked_output_integration_test)
+ (action
+  (run %{exe:chunked_output_integration_test.exe})))
+
+(executable
+ (name resto_test)
+ (modules resto_test)
+ (libraries fixtures util resto-directory resto-json json-data-encoding
+   json-data-encoding-bson lwt lwt.unix))
+
+(alias
+ (name runtest_resto)
+ (action
+  (run %{exe:resto_test.exe})))
+
+(executable
+ (name self_serving_client_test)
+ (modules self_serving_client_test)
+ (libraries resto-directory resto-json resto-cohttp-self-serving-client
+   resto-cohttp resto-cohttp-client resto-cohttp-server json-data-encoding
+   ezjsonm lwt lwt.unix))
+
+(alias
+ (name runtest_self_serving_client)
+ (action
+  (run %{exe:self_serving_client_test.exe})))
+
+(executable
+ (name directory_test)
+ (modules directory_test)
+ (libraries fixtures util resto-directory resto-json resto-cohttp lwt
+   alcotest alcotest-lwt fmt))
+
+(alias
+ (name runtest_directory)
+ (action
+  (run %{exe:directory_test.exe})))
+
+(alias
+ (name runtest)
+ (deps
+  (alias runtest_resto)
+  (alias runtest_acl_unit_test)
+  (alias runtest_acl_integration_test)
+  (alias runtest_self_serving_client)
+  (alias runtest_chunked_output_integration_test)
+  (alias runtest_directory)))

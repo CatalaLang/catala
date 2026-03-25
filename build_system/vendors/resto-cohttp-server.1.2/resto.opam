@@ -1,0 +1,29 @@
+opam-version: "2.0"
+maintainer: "contact@nomadic-labs.com"
+authors: [ "Nomadic Labs" "Ocamlpro" ]
+license: "MIT"
+homepage: "https://gitlab.com/nomadic-labs/resto"
+bug-reports: "https://gitlab.com/nomadic-labs/resto/issues"
+dev-repo: "git+https://gitlab.com/nomadic-labs/resto"
+synopsis: "A minimal OCaml library for type-safe HTTP/JSON RPCs"
+
+build: [
+  [ "dune" "build" "-p" name "-j" jobs ]
+]
+
+depends: [
+  "ocaml" { >= "4.10" }
+  "dune" { >= "1.11" }
+  "uri" {>= "1.9.0" }
+  "json-data-encoding" {>= "0.9.1" & < "1.0" & with-test }
+  "json-data-encoding-bson" {>= "0.9.1" & < "1.0" & with-test }
+  "ezjsonm" {with-test}
+  "lwt" {with-test}
+  "base-unix"{with-test}
+  "alcotest" { >= "1.5.0" & with-test}
+  "alcotest-lwt" { >= "1.5.0" & with-test}
+  "ocamlformat" { = "0.20.1" & with-doc } # not technically a doc dep; modify when with-dev becomes available
+  "odoc" { with-doc }
+]
+
+conflicts: [ "result" {< "1.5"} ]
