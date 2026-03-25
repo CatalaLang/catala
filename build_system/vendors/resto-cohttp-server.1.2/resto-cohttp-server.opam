@@ -17,7 +17,7 @@ depends: [
   "resto-directory" {= version }
   "resto-cohttp" {= version }
   "resto-acl" {= version }
-  "cohttp-lwt-unix" { >= "2.0.0" }
+  "cohttp-lwt-unix" { >= "6.0.0" }
   "conduit-lwt-unix" { >= "2.0.0" }
   "lwt" { >= "3.0.0" & < "6.0.0" }
 ]

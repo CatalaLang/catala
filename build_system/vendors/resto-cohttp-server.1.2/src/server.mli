@@ -228,7 +228,7 @@ module Make_selfserver (Encoding : Resto.ENCODING) (Log : LOGGING) : sig
       ('o -> (bytes * int * int) Seq.t) ->
       [< `OkChunk of 'o] ->
       Cohttp_lwt_unix.Response.t
-      * ('d Lwt_io.channel -> Lwt_io.output_channel -> unit Lwt.t)
+      * (Cohttp_lwt_unix.IO.ic -> Cohttp_lwt_unix.IO.oc -> unit Lwt.t)
 
     val handle_options :
       unit Directory.t ->

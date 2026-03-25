@@ -59,7 +59,7 @@ let rec wseq ic oc seq =
         (fun exc -> drain seq >>= fun () -> raise exc)
 
 let wseq ic oc seq =
-  Lwt.finalize (fun () -> wseq ic oc seq) (fun () -> Lwt_io.close ic)
+  Lwt.finalize (fun () -> wseq ic oc seq) (fun () -> Cohttp_lwt_unix.Private.Input_channel.close ic)
 
 module type LOGGING = sig
   val debug : ('a, Format.formatter, unit, unit) format4 -> 'a
@@ -297,7 +297,7 @@ module Make_selfserver (Encoding : Resto.ENCODING) (Log : LOGGING) = struct
       in
       let headers = Cors.add_headers headers cors origin_header in
       Lwt.return_ok
-        ( Response.make ~flush:true ~status:`OK ~headers (),
+        ( Response.make ~status:`OK ~headers (),
           Cohttp_lwt.Body.empty )
   end
 end

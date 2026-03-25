@@ -15,5 +15,5 @@ depends: [
   "ocaml" { >= "4.10" }
   "dune" { >= "1.11" }
   "resto-directory" {= version }
-  "cohttp-lwt" { >= "1.0.0" }
+  "cohttp-lwt" { >= "6.0.0" }
 ]

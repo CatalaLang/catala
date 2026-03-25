@@ -16,6 +16,6 @@ depends: [
   "dune" { >= "1.11" }
   "uri" {>= "1.9.0" }
   "resto-cohttp" {= version }
-  "cohttp-lwt" { >= "4.0.0" }
+  "cohttp-lwt" { >= "6.0.0" }
   "lwt" { >= "3.0.0" & < "6.0.0" }
 ]

@@ -17,6 +17,6 @@ depends: [
   "uri" {>= "1.9.0" }
   "resto-cohttp-client" {= version }
   "resto-cohttp-server" {= version }
-  "cohttp-lwt" { >= "1.0.0" }
+  "cohttp-lwt" { >= "6.0.0" }
   "lwt" { >= "3.0.0" & < "6.0.0" }
 ]
