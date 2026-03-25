@@ -48,10 +48,8 @@ type error =
   | DivisionByZero
   | ListEmpty
   | NotSameLength
-  | InvalidDate
-  | UncomparableDurations
-  | AmbiguousDateRounding
-  | IndivisibleDurations
+  | UncomparableValues
+  | DateError of string
   | Impossible
 
 let error_to_string = function
@@ -61,10 +59,8 @@ let error_to_string = function
   | DivisionByZero -> "DivisionByZero"
   | ListEmpty -> "ListEmpty"
   | NotSameLength -> "NotSameLength"
-  | InvalidDate -> "InvalidDate"
-  | UncomparableDurations -> "UncomparableDurations"
-  | AmbiguousDateRounding -> "AmbiguousDateRounding"
-  | IndivisibleDurations -> "IndivisibleDurations"
+  | UncomparableValues -> "UncomparableValues"
+  | DateError s -> Printf.sprintf "DateError(%S)" s
   | Impossible -> "Impossible"
 
 let error_message = function
@@ -77,13 +73,8 @@ let error_message = function
     "a value is being used as denominator in a division and it computed to zero"
   | ListEmpty -> "the list was empty"
   | NotSameLength -> "traversing multiple lists of different lengths"
-  | InvalidDate -> "the provided numbers do not correspond to a valid date"
-  | UncomparableDurations ->
-    "ambiguous comparison between durations in different units (e.g. months \
-     vs. days)"
-  | AmbiguousDateRounding ->
-    "ambiguous date computation, and rounding mode was not specified"
-  | IndivisibleDurations -> "dividing durations that are not in days"
+  | UncomparableValues -> "attempting to compare values with uncomparable types"
+  | DateError s -> s
   | Impossible -> "\"impossible\" computation reached"
 
 exception Error of error * code_location list * string option
@@ -253,7 +244,12 @@ let compare_periods pos p1 p2 =
   match y1, y2, m1, m2, d1, d2 with
   | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
   | 0, 0, 0, 0, d1, d2 -> Int.compare d1 d2
-  | _ -> error UncomparableDurations [pos]
+  | _ ->
+    error
+      (DateError
+         "ambiguous comparison between durations in different units (e.g. \
+          months vs. days)")
+      [pos]
 
 let equal_periods pos p1 p2 =
   Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
@@ -333,7 +329,7 @@ module Value = struct
       let n2, _, x2 = en2.constr v2 in
       n1 = n2 && Option.equal (equal pos) x1 x2
     | V (External ex, v), rv2 -> ex.equal pos v rv2
-    | V (Function, _), V (Function, _) -> failwith "Uncomparable"
+    | V (Function, _), V (Function, _) -> error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | ( V
           ( ( Unit | Bool | Integer | Money | Decimal | Date | Duration
@@ -402,7 +398,7 @@ module Value = struct
         | n -> n)
       | n -> n (* could be assert false if well-typed ? *))
     | V (External ext, v1), rv2 -> ext.compare pos v1 rv2
-    | V (Function, _), _ | _, V (Function, _) -> failwith "Uncomparable"
+    | V (Function, _), _ | _, V (Function, _) -> error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | V (Unit, _), _ -> -1
     | _, V (Unit, _) -> 1
@@ -1107,7 +1103,10 @@ module Oper = struct
 
   let o_add_dat_dur r pos da du =
     try Dates_calc.add_dates ~round:r da du
-    with Dates_calc.AmbiguousComputation -> error AmbiguousDateRounding [pos]
+    with Dates_calc.AmbiguousComputation ->
+      error
+        (DateError "ambiguous date computation with no rounding mode specified")
+        [pos]
 
   let o_add_dur_dur = Dates_calc.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
@@ -1153,7 +1152,8 @@ module Oper = struct
       try
         ( integer_of_int (Dates_calc.period_to_days d1),
           integer_of_int (Dates_calc.period_to_days d2) )
-      with Dates_calc.AmbiguousComputation -> error IndivisibleDurations [pos]
+      with Dates_calc.AmbiguousComputation ->
+        error (DateError "dividing durations that are not in days") [pos]
     in
     o_div_int_int pos i1 i2
 

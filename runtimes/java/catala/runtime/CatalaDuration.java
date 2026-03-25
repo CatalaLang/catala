@@ -70,7 +70,9 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
             return ((Integer) (this.years() * 12 + this.months()))
                     .compareTo(o.years() * 12 + o.months());
         } else {
-            throw CatalaError.error(CatalaError.Error.UncomparableDurations, p);
+            throw CatalaError.error
+                (CatalaError.Error.DateError, p,
+                 "ambiguous date computation with no rounding mode specified");
         }
     }
 

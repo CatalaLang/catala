@@ -31,10 +31,8 @@ typedef enum catala_error_code
   catala_division_by_zero,
   catala_list_empty,
   catala_not_same_length,
-  catala_invalid_date,
-  catala_uncomparable_durations,
-  catala_ambiguous_date_rounding,
-  catala_indivisible_durations,
+  catala_uncomparable_values,
+  catala_date_error,
   catala_impossible,
   catala_malloc_error
 } catala_error_code;

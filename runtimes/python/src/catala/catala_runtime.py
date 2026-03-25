@@ -96,20 +96,11 @@ class ListEmpty(CatalaError):
 class NotSameLength(CatalaError):
     message = "traversing multiple lists of different lengths"
 
-class InvalidDate(CatalaError):
-    message = "the provided numbers do not correspond to a valid date"
-
-class UndefinedComparison(CatalaError):
+class UncomparableValues(CatalaError):
     message = "comparison of values of these types is not supported"
 
-class UncomparableDurations(CatalaError):
-    message = "comparing durations in different units (e.g. months vs. days)"
-
-class AmbiguousDateRounding(CatalaError):
-    message = "ambiguous date computation, and rounding mode was not specified"
-
-class IndivisibleDurations(CatalaError):
-    message = "dividing durations that are not in days"
+class DateError(CatalaError):
+    message = "Date error"
 
 class Impossible(CatalaError):
     message = "\"impossible\" computation reached"
@@ -134,7 +125,7 @@ class Value:
 
     def compare(self, other: object, pos: SourcePosition | None = None) -> int:
         if type(self) is not type(other):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         return super().__gt__(other) - super().__lt__(other)
 
     def __str__(self, indent: int = 0) -> str:
@@ -190,7 +181,7 @@ class Array(Value, list):
 
     def compare(self, other: object, pos: SourcePosition | None = None):
         if not isinstance(other, Array):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         for (x, y) in zip(self, other, strict=False):
             cmp = x.compare (y, pos)
             if cmp != 0: return cmp
@@ -236,7 +227,7 @@ class CatalaTuple(Value):
 
     def compare(self, other: object, pos: SourcePosition | None = None) -> bool:
         if type(self) is not type(other):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         for (x, y) in zip(self.value, other.value, strict=False):
             cmp = x.compare (y, pos)
             if cmp != 0: return cmp
@@ -260,7 +251,7 @@ class CatalaStruct(Value):
 
     def compare(self, other: object, pos: SourcePosition | None = None):
         if not isinstance(other, CatalaStruct):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         if self.name < other.name: return -1
         elif self.name > other.name: return 1
         for (fld, label) in fields:
@@ -298,7 +289,7 @@ class CatalaEnum(Value):
 
     def compare(self, other: object, pos: SourcePosition | None = None):
         if not isinstance(other, CatalaEnum):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         if self.name < other.name: return -1
         elif self.name > other.name: return 1
         if self.code.value < other.code.value: return -1
@@ -319,10 +310,10 @@ class Function(Value):
         return self.value(*args)
 
     def __eq__(self, other: object, pos: SourcePosition | None = None):
-        raise UndefinedComparison(pos)
+        raise UncomparableValues(pos)
 
     def compare(self, other: object, pos: SourcePosition | None = None):
-        raise UndefinedComparison(pos)
+        raise UncomparableValues(pos)
 
     def __str__(self, indent: int = 0):
         return "<function>"
@@ -447,18 +438,20 @@ class Date(Value):
     value: dates.Date
 
     def __init__(self, value: Union [Tuple[int, int, int], dates.Date], *args, pos: SourcePosition | None = None):
-        try:
             if isinstance(value, dates.Date):
                 self.value = value
             elif isinstance(value, int):
                 self.value = (value, args[0], args[1])
             else:
+            try
                 self.value = dates.Date(year=value[0], month=value[1], day=value[2])
-        except dates.InvalidDate: raise InvalidDate(pos)
+            except dates.InvalidDate:
+                raise DateError(pos, "|%04d-%02d-%02d| is not a valid date" %
+                                (value[0], value[1], value[2]))
 
     def __add__(self, other: Duration, round: dates.DateRounding = dates.DateRounding.AbortOnRound,  pos: SourcePosition | None = None) -> Date:
         try: return Date(self.value.__add__(other.value, round))
-        except dates.AmbiguousComputation: raise AmbiguousDateRounding(pos)
+        except dates.AmbiguousComputation: raise DateError(pos, note = "ambiguous date computation with no rounding mode specified")
 
     def compare(self, other: object, pos: SourcePosition | None = None):
         if not isinstance(other, Date):
@@ -483,7 +476,7 @@ class Date(Value):
             try:
                 return Date(self.value.__add__(-other.value, round))
             except dates.AmbiguousComputation:
-                raise AmbiguousDateRounding(pos)
+                raise DateError(pos, note = "ambiguous date computation with no rounding mode specified")
         else:
             raise Exception("Substracting date and invalid obj")
 
@@ -520,7 +513,7 @@ class Duration(Value):
     def __truediv__(self, other: Duration, pos: SourcePosition | None = None) -> Decimal:
         if (self.value.years != 0 or other.value.years != 0 or
             self.value.months != 0 or other.value.months != 0):
-            raise IndivisibleDurations(pos)
+            raise DateError(pos, note="dividing durations that are not in days")
         else:
             return Decimal(self.value.days) / Decimal(other.value.days)
 
@@ -540,7 +533,7 @@ class Duration(Value):
 
     def compare(self, other: Duration, pos: SourcePosition | None = None) -> bool:
         if not isinstance(other, Duration):
-            raise UndefinedComparison(pos)
+            raise UncomparableValues(pos)
         if self.value.days == 0 and other.value.days == 0:
             return compare (self.value.years * 12 + self.value.months, other.value.years * 12 + other.value.months)
         elif self.value.years == 0 and other.value.years == 0 and self.value.months == 0 and other.value.months == 0:

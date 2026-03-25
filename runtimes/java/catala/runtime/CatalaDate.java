@@ -17,7 +17,9 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         try {
             return new CatalaDate(Date.of(year, month, day));
         } catch (IllegalArgumentException e) {
-            throw CatalaError.error(CatalaError.Error.InvalidDate);
+            throw CatalaError.error
+                (CatalaError.Error.DateError,
+                 String.format("|%04d-%02d-%02d| is not a valid date", year, month, day));
         }
     }
 
@@ -28,12 +30,16 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         if (catalaDateLiteral.length() != 12
                 || catalaDateLiteral.charAt(0) != '|'
                 || catalaDateLiteral.charAt(11) != '|') {
-            throw CatalaError.error(CatalaError.Error.InvalidDate);
+            throw (CatalaError.error
+                   (CatalaError.Error.DateError,
+                    String.format("'%s' is not a valid date", catalaDateLiteral)));
         }
         try {
             return new CatalaDate(Date.fromString(catalaDateLiteral.subSequence(1, 11).toString()));
         } catch (IllegalArgumentException e) {
-            throw CatalaError.error(CatalaError.Error.InvalidDate);
+            throw (CatalaError.error
+                   (CatalaError.Error.DateError,
+                    String.format("'%s' is not a valid date", catalaDateLiteral)));
         }
     }
 
@@ -61,7 +67,7 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         try {
             return new CatalaDate(this.date.add(dur.period));
         } catch (AmbiguousComputationException e) {
-            throw CatalaError.error(CatalaError.Error.AmbiguousDateRounding, pos);
+            throw CatalaError.error(CatalaError.Error.DateError, pos, "ambiguous date computation with no rounding mode specified");
         }
     }
 
@@ -77,7 +83,7 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         try {
             return new CatalaDate(this.date.add(dur.period.negate()));
         } catch (AmbiguousComputationException e) {
-            throw CatalaError.error(CatalaError.Error.AmbiguousDateRounding, pos);
+            throw CatalaError.error(CatalaError.Error.DateError, pos, "ambiguous date computation with no rounding mode specified");
         }
     }
 

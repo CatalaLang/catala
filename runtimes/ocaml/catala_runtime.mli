@@ -72,12 +72,8 @@ type error =
   | DivisionByZero  (** The denominator happened to be 0 here *)
   | ListEmpty  (** Element access on an empty list *)
   | NotSameLength  (** Traversing multiple lists of different lengths *)
-  | InvalidDate  (** Invalid year/month/day combination *)
-  | UncomparableDurations
-      (** Comparing durations in different units (e.g. months vs. days) *)
-  | AmbiguousDateRounding
-      (** ambiguous date computation, and rounding mode was not specified *)
-  | IndivisibleDurations  (** Dividing durations that are not in days *)
+  | UncomparableValues (** Equality check or comparison on functions *)
+  | DateError of string (** Errors related to date and duration computations *)
   | Impossible  (** The "impossible" keyword was reached *)
 
 val error_to_string : error -> string

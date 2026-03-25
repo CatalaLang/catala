@@ -330,7 +330,9 @@ int catala_equal_durations(const catala_code_position* pos,
   else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0)
     return (d1 == d2);
   else {
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    catala_error(catala_date_error, pos, 1,
+                 "ambiguous comparison between durations in different units "
+                 "(e.g. months vs. days)");
     abort();
   }
 }
@@ -351,7 +353,9 @@ int catala_compare_durations(const catala_code_position* pos,
   } else if (y1 == 0 && y2 == 0 && m1 == 0 && m2 == 0) {
     return d1 < d2 ? -1 : (d1 > d2);
   } else {
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    catala_error(catala_date_error, pos, 1,
+                 "ambiguous comparison between durations in different units "
+                 "(e.g. months vs. days)");
   }
   abort();
 }
@@ -469,7 +473,7 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
     return x1.t.contents.texternal.equal(pos, x1.v, x2.v);
   }
   case FUNCTION: {
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    catala_error(catala_uncomparable_values, pos, 1, NULL);
     abort();
   }
   default:
@@ -559,7 +563,7 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
     return x1.t.contents.texternal.compare(pos, x1.v, x2.v);
   }
   case FUNCTION: {
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    catala_error(catala_uncomparable_values, pos, 1, NULL);
     abort();
   }
   default:
@@ -1056,7 +1060,8 @@ CATALA_DATE o_add_dat_dur (dc_date_rounding mode,
 {
   dc_date *ret = catala_malloc(sizeof(dc_date));
   if (dc_add_dates(ret, mode, x1, x2) != dc_ok)
-    catala_error(catala_ambiguous_date_rounding, pos, 1, NULL);
+    catala_error(catala_date_error, pos, 1,
+                 "ambiguous date computation with no rounding mode specified");
   return ret;
 }
 
@@ -1103,7 +1108,8 @@ CATALA_DATE o_sub_dat_dur (dc_date_rounding mode,
   dc_date *ret = catala_malloc(sizeof(dc_date));
   dc_neg_period(&dur, x2);
   if (dc_add_dates(ret, mode, x1, &dur) != dc_ok)
-    catala_error(catala_ambiguous_date_rounding, pos, 1, NULL);
+    catala_error(catala_date_error, pos, 1,
+                 "ambiguous date computation with no rounding mode specified");
   return ret;
 }
 
@@ -1219,7 +1225,7 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
   CATALA_NEW_MPQ(ret);
   if (dc_period_to_days(&days1, x1) != dc_ok ||
       dc_period_to_days(&days2, x2) != dc_ok)
-    catala_error(catala_uncomparable_durations, pos, 1, NULL);
+    catala_error(catala_date_error, pos, 1, "dividing durations that are not in days");
   if (days2 == 0)
     catala_error(catala_division_by_zero, pos, 1, NULL);
   mpz_set_si(mpq_numref(ret), days1);
@@ -1425,17 +1431,11 @@ void* catala_do(void* (*f)(void))
     case catala_not_same_length:
       error_kind = "List lengths not matching";
       break;
-    case catala_invalid_date:
-      error_kind = "the provided numbers do not correspond to a valid date";
+    case catala_uncomparable_values:
+      error_kind = "Attempting to compare values with uncomparable types";
       break;
-    case catala_uncomparable_durations:
-      error_kind = "Comparison between incompatible durations";
-      break;
-    case catala_ambiguous_date_rounding:
-      error_kind = "Ambiguous date computation, and rounding mode was not specified";
-      break;
-    case catala_indivisible_durations:
-      error_kind = "Division of incompatible durations";
+    case catala_date_error:
+      error_kind = "Date computation error";
       break;
     case catala_impossible:
       error_kind = "\"impossible\" computation reached";

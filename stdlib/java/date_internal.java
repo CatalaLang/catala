@@ -20,7 +20,7 @@ public class Date_internal {
                                   dmonth.asBigInteger().intValue(),
                                   dday.asBigInteger().intValue());
             } catch (IllegalArgumentException e) {
-                throw CatalaError.error(CatalaError.Error.InvalidDate, pos);
+                throw CatalaError.error(CatalaError.Error.DateError, pos);
             }
         };
 
