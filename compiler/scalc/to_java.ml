@@ -1078,7 +1078,6 @@ let format_enums ctx ppf =
 
 let format_abstract_types ctx ppf =
   let format_abs ppf name =
-    Message.debug ">> %a" AbstractType.format name;
     fprintf ppf
       "@[<v 4>public static class %a extends CatalaValue<%a> {@\n\
        @ %t@ @ %t@ @ %t@]@\n\

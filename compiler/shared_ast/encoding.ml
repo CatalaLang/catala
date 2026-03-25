@@ -226,33 +226,6 @@ let make_constant s : Val.t encoding =
     (fun () -> Val.V (Unit, ()))
     (constant s)
 
-(* let rec generate_encoder: type a. decl_ctx -> a Val.runtype -> Val.t encoding =
- *   fun ctx rty ->
- *   match rty with
- *   | Bool -> bool_encoding
- *   | Unit -> unit_encoding
- *   | Integer -> int_encoding
- *   | Decimal -> rat_encoding
- *   | Date -> date_encoding
- *   | Duration -> duration_encoding
- *   | Money -> money_encoding
- *   | Position -> position_encoding
- *
- *   | Array rty -> generate_array_encoder ctx rty *)
-
-(* | TTuple [typ; (TLit TPos, _)] -> generate_encoder ctx typ
- * | TTuple tl -> generate_tuple_encoder ctx tl
- * | TStruct sname -> generate_struct_encoder ctx sname
- * | TEnum ename -> generate_enum_encoder ctx ename
- * | TOption typ -> generate_option_encoder ctx typ
- * | TArray typ -> generate_array_encoder ctx typ
- * | TArrow _ -> Message.error "Cannot convert functional values from JSON"
- * | TDefault _ -> Message.error "Cannot encode 'default' types"
- * | TVar _ -> Message.error "Cannot encode 'variable' types"
- * | TForAll _ -> Message.error "Cannot encode 'for-all' types"
- * | TClosureEnv -> Message.error "Cannot encode 'closure-env' types"
- * | TAbstract _ -> Message.error "Cannot encode 'abstract' types" *)
-
 let generate_lit_encoding (typ_lit : typ_lit) : Val.t encoding =
   match typ_lit with
   | TBool -> bool_encoding
