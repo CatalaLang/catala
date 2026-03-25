@@ -349,7 +349,7 @@ let format_ctx
                    To_ocaml.format_enum_cons_name enum_cons
                | _ ->
                  Format.fprintf fmt "@[<hov 2>%a of@ %a@]"
-                   To_ocaml.format_enum_cons_name enum_cons format_typ
+                   To_ocaml.format_enum_cons_name enum_cons To_ocaml.format_typ
                    enum_cons_type))
           variants;
         Format.fprintf ppml
@@ -513,6 +513,11 @@ let format_ctx
       | _ -> ())
     (type_ordering @ scope_structs)
 
+let format_var ppf var =
+  let string_var = Format.asprintf "%a" To_ocaml.format_var var in
+  let input_var = if string_var = "_" then "custom_jsoo_var" else string_var in
+  Format.fprintf ppf "%s" input_var
+
 let format_code_items
     (ppml : Format.formatter)
     (ppi : Format.formatter)
@@ -523,8 +528,8 @@ let format_code_items
         match item with
         | Topdef (_name, typ, vis, _e) ->
           if vis = Public then (
-            Format.fprintf ppi "@,@[<hov 2>val %a_jsoo : %a@]@,"
-              To_ocaml.format_var var format_typ typ;
+            Format.fprintf ppi "@,@[<hov 2>val %a_jsoo : %a@]@," format_var var
+              format_typ typ;
             let rec aux bctx typ =
               match Mark.remove typ with
               | TArrow (lt, te) | TDefault (TArrow (lt, te), _) ->
@@ -533,13 +538,13 @@ let format_code_items
                   "@,\
                    @[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ fun %a -> %a (%a \
                    %a)@]@,"
-                  To_ocaml.format_var var format_typ typ
+                  format_var var format_typ typ
                   (Format.pp_print_list
                      ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
                      (fun fmt _t ->
                        incr ip;
                        Format.fprintf fmt "_x%d" !ip))
-                  lt format_typ_to te To_ocaml.format_var var
+                  lt format_typ_to te format_var var
                   (Format.pp_print_list
                      ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
                      (fun fmt t ->
@@ -566,20 +571,19 @@ let format_code_items
             in
             Format.fprintf ppi
               "@,@[<hv 2>val %a_jsoo :@ @[<hv>%a.jsoo ->@ %a.jsoo@]@]@,"
-              To_ocaml.format_var var format_to_module_name
+              format_var var format_to_module_name
               (`Sname body.scope_body_input_struct) format_to_module_name
               (`Sname body.scope_body_output_struct);
             Format.fprintf ppml
               "@,\
                @[<hv 2>@[<hov 2>let %a_jsoo :@ %a.jsoo -> %a.jsoo =@ fun %a \
                ->@]@ %a.to_jsoo (%a (%a.of_jsoo %a))@]@,"
-              To_ocaml.format_var var format_to_module_name
+              format_var var format_to_module_name
               (`Sname body.scope_body_input_struct) format_to_module_name
-              (`Sname body.scope_body_output_struct) To_ocaml.format_var
-              scope_input_var format_to_module_name
-              (`Sname body.scope_body_output_struct) To_ocaml.format_var var
-              format_to_module_name (`Sname body.scope_body_input_struct)
-              To_ocaml.format_var scope_input_var;
+              (`Sname body.scope_body_output_struct) format_var scope_input_var
+              format_to_module_name (`Sname body.scope_body_output_struct)
+              To_ocaml.format_var var format_to_module_name
+              (`Sname body.scope_body_input_struct) format_var scope_input_var;
             `scope
               (var, body.scope_body_input_struct, body.scope_body_output_struct)
             :: acc)
