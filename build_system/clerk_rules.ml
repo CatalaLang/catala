@@ -22,6 +22,25 @@ module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
+(** Common OCaml compilation flags, factored out to avoid duplication in the
+    generated ninja file. *)
+let ocaml_common_flags =
+  [
+    "-opaque";
+    "-w";
+    "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
+    "-strict-sequence";
+    "-strict-formats";
+    "-short-paths";
+    "-keep-locs";
+    "-warn-error";
+    "-a+8";
+    "-w";
+    "-67";
+    "-bin-annot";
+    "-no-alias-deps";
+  ]
+
 type backend = OCaml | Python | C | Java | Tests | Jsoo
 
 let all_backends = [OCaml; Python; C; Java; Tests; Jsoo]
@@ -208,7 +227,7 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
          def Var.ocamlopt_exe (lazy ["ocamlopt"]);
-         def Var.ocaml_flags (lazy []);
+         def Var.ocaml_flags (lazy ocaml_common_flags);
          def Var.ocaml_include
            (lazy
              (Lazy.force Poll.ocaml_include_flags @ includes ~backend:"ocaml" ()));
@@ -582,27 +601,7 @@ let gen_build_statements
           ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
           ~implicit_in:(List.map module_target modules @ ["@runtime-cmi"])
           ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
-          ~vars:
-            [
-              Var.includes, include_flags "ocaml";
-              ( Var.ocaml_flags,
-                [
-                  Var.(!ocaml_flags);
-                  "-opaque";
-                  "-w";
-                  "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
-                  "-strict-sequence";
-                  "-strict-formats";
-                  "-short-paths";
-                  "-keep-locs";
-                  "-warn-error";
-                  "-a+8";
-                  "-w";
-                  "-67";
-                  "-bin-annot";
-                  "-no-alias-deps";
-                ] );
-            ];
+          ~vars:[Var.includes, include_flags "ocaml"];
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:"ocaml" "ml"]
           ~implicit_in:
