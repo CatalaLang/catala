@@ -95,18 +95,6 @@ let register_fresh_arg ~pos ctxt (x, _) =
   let _, ctxt = register_fresh_var ~pos ctxt x in
   ctxt
 
-let lift_pos ctxt pos =
-  let v, ctxt = fresh_var ~pos ctxt "pos" in
-  ( (A.EVar v, pos),
-    ( A.SLocalInit
-        {
-          name = v, pos;
-          typ = TStruct Expr.source_pos_struct, pos;
-          expr = A.EPosLit, pos;
-        },
-      pos ),
-    ctxt )
-
 let rec translate_expr_list ctxt args =
   let stmts, args, ren_ctx =
     List.fold_left
@@ -274,8 +262,9 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       ren_ctx )
   | ELit l -> RevBlock.empty, (A.ELit l, Expr.pos expr), ctxt.ren_ctx
   | EPos p ->
-    let epos, vposdef, ctxt = lift_pos ctxt p in
-    RevBlock.empty +> vposdef, epos, ctxt.ren_ctx
+    RevBlock.empty, (A.EPosLit, p), ctxt.ren_ctx
+    (* let epos, vposdef, ctxt = lift_pos ctxt p in
+     * RevBlock.empty +> vposdef, epos, ctxt.ren_ctx *)
   | EExternal { name } ->
     let path, name =
       match Mark.remove name with
@@ -655,6 +644,18 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
               };
             visibility;
           }
+        :: rev_items )
+    | Topdef
+        (name, ((TArray (TLit TPos, _), _) as typ), visibility, (EArray locs, _))
+      ->
+      (* The position table has custom printing, to ensure it doesn't require
+         runtime initialisation. There should be no spilling here *)
+      let pos = Mark.get (TopdefName.get_info name) in
+      let _stmts, locs, _ren_ctx = translate_expr_list ctxt locs in
+      assert (_stmts = RevBlock.empty);
+      let var_id, ctxt = register_fresh_var ctxt var ~pos in
+      ( ctxt,
+        A.SVar { var = var_id; expr = A.EArray locs, pos; typ; visibility }
         :: rev_items )
     | Topdef (name, topdef_ty, visibility, expr) ->
       (* Toplevel constant def *)

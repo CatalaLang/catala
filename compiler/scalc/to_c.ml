@@ -17,12 +17,15 @@
 open Catala_utils
 open Shared_ast
 module Runtime = Catala_runtime
-module D = Dcalc.Ast
-module L = Lcalc.Ast
 open Ast
 
 type ctx = { decl_ctx : decl_ctx; module_name : ModuleName.t option }
-type env = { global_vars : VarName.Set.t; local_vars : VarName.Set.t }
+
+type env = {
+  locs : VarName.t option;
+  global_vars : VarName.Set.t;
+  local_vars : VarName.Set.t;
+}
 
 let c_keywords =
   [
@@ -425,8 +428,10 @@ let rec format_expression
     (* Should always be handled at the root of a statement *)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EPosLit ->
+    (* Note: this is not an expression, but an initialisation string. It should
+       only appear in the global [loc] table *)
     let pos = Mark.get e in
-    Format.fprintf fmt "@[<hv 2>&{%S,@ %d, %d, %d, %d}@]" (Pos.get_file pos)
+    Format.fprintf fmt "@[<hv 2>{%S,@ %d, %d, %d, %d}@]" (Pos.get_file pos)
       (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
       (Pos.get_end_column pos)
   | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
@@ -498,6 +503,9 @@ let rec format_expression
              (match op with And -> "&&" | Or -> "||" | _ -> assert false))
          (fun fmt e -> Format.fprintf fmt "*(%a)" format_expression e))
       args
+  | EAppOp { op = ArrayAccess index, _; args = [(EVar v, _)]; _ }
+    when Option.equal VarName.equal env.locs (Some v) ->
+    Format.fprintf fmt "%a[%d]" VarName.format v index
   | EAppOp { op = ArrayAccess index, _; args = [e]; _ } ->
     Format.fprintf fmt "%a->elements[%d]" format_expression e index
   | EAppOp { op; args; _ } ->
@@ -546,13 +554,19 @@ let rec format_statement
            Format.pp_print_space fmt ();
            VarName.format fmt v))
       typ
-  | SLocalInit { name = v, _; expr = EPosLit, pos; _ } ->
+  | SLocalDef
+      { name = v, _; expr = EArray locs, _; typ = TArray (TLit TPos, _), _ } ->
+    let len = List.length locs in
+    (* Nicer printing for the locations table *)
     Format.fprintf fmt
-      "@,\
-       @[<hov 2>static const catala_code_position %a[1] =@ {{%S,@ %d, %d, %d, \
-       %d}};@]"
-      VarName.format v (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+      "@,@[<hv 2>static const catala_code_position locs[][1] = {";
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ',')
+      (fun ppf -> Format.fprintf ppf "@ {%a}" (format_expression ctx env))
+      fmt locs;
+    Format.fprintf fmt
+      "@;<1 -2>};@]@,%a->size = %d;@,%a->elements = (const void **)locs;"
+      VarName.format v len VarName.format v
   | SLocalDecl { name = v, _; typ = ty } ->
     if is_dummy_var v then ()
     else
@@ -872,6 +886,29 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     List.iter (format_statement ctx env fmt) remaining
 
 let format_code_item ctx ~ppc ~pph env = function
+  | SVar
+      {
+        var;
+        expr = EArray locs, _;
+        typ = TArray (TLit TPos, _), _;
+        visibility = _;
+      } ->
+    (* Special case to print the locations table in a simpler way *)
+    pp [pph] "@,@[<h>extern const catala_code_position %a[][1];@]@,"
+      VarName.format var;
+    pp [ppc] "@,@[<v 2>@[<h>const catala_code_position %a" VarName.format var;
+    pp [ppc] "[][1] = {@]";
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ',')
+      (fun ppf loc ->
+        Format.fprintf ppf "@,{%a}" (format_expression ctx env) loc)
+      ppc locs;
+    pp [ppc] "@;<1 -2>};@]@,";
+    {
+      env with
+      locs = Some var;
+      global_vars = VarName.Set.add var env.global_vars;
+    }
   | SVar { var; expr; typ; visibility } ->
     (* Global variables are turned into inline functions without parameters that
        perform lazy evaluation: {[ inline foo_type foo() { static foo_type foo =
@@ -1047,7 +1084,11 @@ let format_program
   format_ctx type_ordering ~ppc ~pph ctx;
   ppall "@,";
   let env =
-    { global_vars = VarName.Set.empty; local_vars = VarName.Set.empty }
+    {
+      locs = None;
+      global_vars = VarName.Set.empty;
+      local_vars = VarName.Set.empty;
+    }
   in
   let env = List.fold_left (format_code_item ctx ~ppc ~pph) env p.code_items in
   pp [pph] "@,#endif /* __%s_H__ */" module_id;

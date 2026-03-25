@@ -1196,7 +1196,8 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
-        ~renaming:(Some Renaming.default) ~lift_pos:None
+        ~renaming:(Some Renaming.default)
+        ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     get_output_format options output
     @@ fun _ fmt ->
