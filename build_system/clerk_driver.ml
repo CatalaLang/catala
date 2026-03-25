@@ -1099,80 +1099,125 @@ let run_cmd =
       $ Cli.whole_program)
 
 let typecheck_cmd =
+  let retrieve_typecheck_items items files_or_folders =
+    let files_or_folders = List.sort_uniq String.compare files_or_folders in
+    let open File in
+    let invalid_files =
+      List.filter (fun f -> not (File.exists f)) files_or_folders
+    in
+    if invalid_files <> [] then
+      Message.error "@[<h>No source file or directory matching@ %a@ found.@]"
+        Format.(
+          pp_print_list
+            ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")
+            (fun fmt f -> fprintf fmt "@{<yellow>%s@}" f))
+        invalid_files;
+    let included_files =
+      List.fold_left
+        (fun m { Scan.file_name; included_files; _ } ->
+          if included_files <> [] then
+            List.fold_left
+              (fun m inc_f -> String.Map.add (Mark.remove inc_f) file_name m)
+              m included_files
+          else m)
+        String.Map.empty items
+    in
+    List.concat_map
+      (fun file ->
+        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
+        let filter item =
+          let is_included = String.Map.mem item.Scan.file_name included_files in
+          if is_dir then
+            let is_prefix =
+              String.starts_with ~prefix:(file / "") item.Scan.file_name
+            in
+            (* Silently skip included file *)
+            (not is_included) && is_prefix
+          else
+            let valid =
+              Option.map Mark.remove item.Scan.module_def
+              = Some (File.basename file)
+              || item.Scan.file_name = file
+              || File.remove_extension item.Scan.file_name = file
+            in
+            if valid && is_included then (
+              (* Warn valid included file *)
+              Message.warning
+                "Skipping file @{<yellow>%s@} included in @{<cyan>%s@}"
+                item.Scan.file_name
+                (String.Map.find item.Scan.file_name included_files);
+              false)
+            else valid
+        in
+        List.filter filter items)
+      files_or_folders
+  in
   let run
-      ~real_cwd
       config
-      quiet
       (files_or_folders : File.t list)
+      quiet
       (ninja_flags : string list) =
     let files_or_folders =
       List.map config.Cli.fix_path
-      @@ if files_or_folders = [] then [real_cwd] else files_or_folders
+      @@ if files_or_folders = [] then [File.original_cwd] else files_or_folders
     in
-    let items, var_bindings =
+    let exception Nothing_to_do in
+    match
       Clerk_rules.run_ninja ~code_coverage:false ~config
         ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
         ~quiet (fun nin_ppf items var_bindings ->
-          let target_items = retrieve_target_items items files_or_folders in
-          let ninja_targets =
-            List.map
-              (fun it ->
-                match it.Scan.module_def with
-                | Some mdef ->
-                  let src = it.file_name in
-                  let dir = File.dirname src in
-                  if
-                    it.is_stdlib
-                    || List.mem dir config.options.global.include_dirs
-                  then Mark.remove mdef ^ "@src"
-                  else src
-                | None -> it.file_name)
-              target_items
-          in
-          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
-          items, var_bindings)
-    in
-    let catala_flags = get_var var_bindings Var.catala_flags in
-    let exec = get_var var_bindings Var.catala_exe in
-    let files =
-      List.filter_map
-        (fun it ->
-          if
-            Filename.is_relative it.Scan.file_name
-            && (files_or_folders = []
-               || List.exists
-                    (fun f ->
-                      it.Scan.file_name = f
-                      || String.starts_with
-                           ~prefix:File.(f / "")
-                           it.Scan.file_name)
-                    files_or_folders)
-          then Some it.Scan.file_name
-          else None)
-        items
-    in
-    if files = [] then Message.error "No matching files found";
-    let ret =
-      List.map
-        (fun f ->
-          let cmd = exec @ ["typecheck"; "--quiet"] @ catala_flags @ [f] in
-          Message.debug "Running command: '%s'..." (String.concat " " cmd);
-          run_command cmd)
-        files
-    in
-    let ret = List.fold_left max 0 ret in
-    if ret = 0 then Message.result "Typechecking successful!";
-    ret
+          let target_items = retrieve_typecheck_items items files_or_folders in
+          if target_items = [] then
+            (* Prevents [run_ninja] to fail miserably with an obscure error *)
+            raise Nothing_to_do
+          else
+            let ninja_targets =
+              List.map
+                (fun it ->
+                  match it.Scan.module_def with
+                  | Some mdef ->
+                    let src = it.file_name in
+                    let dir = File.dirname src in
+                    if
+                      it.is_stdlib
+                      || List.mem dir config.options.global.include_dirs
+                    then Mark.remove mdef ^ "@src"
+                    else src
+                  | None -> it.file_name)
+                target_items
+            in
+            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
+            target_items, var_bindings)
+    with
+    | exception Nothing_to_do -> Message.error "Nothing to typecheck."
+    | target_items, var_bindings ->
+      let catala_flags = get_var var_bindings Var.catala_flags in
+      let exec = get_var var_bindings Var.catala_exe in
+      let ret =
+        List.map
+          (fun it ->
+            let cmd =
+              exec
+              @ ["typecheck"; "--quiet"]
+              @ catala_flags
+              @ [it.Scan.file_name]
+            in
+            Message.debug "Running command: '%s'..." (String.concat " " cmd);
+            run_command cmd)
+          target_items
+      in
+      let ret = List.fold_left max 0 ret in
+      if ret = 0 then Message.result "Typechecking successful!";
+      ret
   in
   let doc = "Runs the Catala type-checker on the given files." in
-  let real_cwd = Sys.getcwd () in
   Cmd.v
     (Cmd.info ~doc "typecheck")
     Term.(
-      const (run ~real_cwd)
+      const run
       $ Cli.init_term ()
-      $ Cli.quiet
       $ Cli.files_or_folders
+      $ Cli.quiet
       $ Cli.ninja_flags)
 
 let clean_cmd =
