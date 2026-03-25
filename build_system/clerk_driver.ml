@@ -550,9 +550,15 @@ let build_clerk_target
   let prefix_dir = target_dir / target.tname in
   List.iter
     (fun (bk, src) ->
-      let dir = prefix_dir / backend_subdir bk in
-      ensure_dir dir;
-      copy_in ~dir ~src)
+      match bk with
+      | Clerk_rules.Jsoo ->
+        (* Js of ocaml interface is not useful for the user, what matters is the
+           javascript file *)
+        ()
+      | _ ->
+        let dir = prefix_dir / backend_subdir bk in
+        ensure_dir dir;
+        copy_in ~dir ~src)
     install_targets;
   target.Config.backends
   |> List.iter (fun bk ->
@@ -574,6 +580,19 @@ let build_clerk_target
               ~src:(local_runtime_dir bk / subdir)
               ~dst:(dir / subdir))
           ["catala"; "org"]
+      | Clerk_rules.Jsoo ->
+        Message.warning
+          "The javascript file has been generated using an OCaml library, if \
+           you want to see those file you can dive in the multiple \
+           @{<bold>jsoo@} directories in @{<cyan>%s@}"
+          build_dir;
+        let dir = prefix_dir / "js" in
+        ensure_dir dir;
+        let src =
+          Clerk_rules.target_uniq_fileame ~dir:build_dir
+            ~module_targets:target.tmodules "js"
+        in
+        copy_in ~dir ~src
       | Clerk_rules.Tests -> assert false
       | bk ->
         let suffix = List.assoc bk backend_suffix in
