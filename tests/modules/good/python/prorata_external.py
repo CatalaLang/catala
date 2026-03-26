@@ -5,15 +5,15 @@ from typing import Any, List, Callable, Tuple
 from enum import Enum
 
 
-def prorata(amount:Money, weights:List[Money]):
-    total_weight = reduce(lambda x,y: x+y, weights.value)
-    result = [ amount * (w / total_weight) for w in weights.value ]
+def prorata(amount:Money, weights:Array[Money]):
+    total_weight = reduce(lambda x,y: x+y, weights)
+    result = [ amount * (w / total_weight) for w in weights ]
     remain = amount - reduce(lambda x,y: x+y, result)
     result[-1] = result[-1] + remain
     return Array(result)
 
-def prorata2(amount:Money, weights:List[Money]):
-    rem_weight = reduce(lambda x,y: x+y, weights.value)
+def prorata2(amount:Money, weights:Array[Money]):
+    rem_weight = reduce(lambda x,y: x+y, weights)
     rem = amount
     result = []
     for w in weights:

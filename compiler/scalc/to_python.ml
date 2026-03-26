@@ -44,7 +44,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
-  | Not -> Format.pp_print_string fmt "not"
+  | Not -> Format.pp_print_string fmt ".not_()"
   | Length -> Format.pp_print_string fmt "length"
   | ToInt_rat -> Format.pp_print_string fmt "Integer"
   | ToInt_mon -> Format.pp_print_string fmt "Integer"
@@ -270,7 +270,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e
   | EArray es ->
-    Format.fprintf fmt "Array([%a])"
+    Format.fprintf fmt "Array([@[<v>%a@]])"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
@@ -311,8 +311,35 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
   | EAppOp { op; args = [arg1; arg2]; _ } ->
-    Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op op
-      (format_expression ctx) arg2
+    let args =
+      match Mark.remove op with
+      | And | Or ->
+        (* right-associative *)
+        let rec aux = function
+          | EAppOp { op = op1; args = [arg2; arg3]; _ }, _
+            when Mark.equal Operator.equal op op1 ->
+            arg2 :: aux arg3
+          | a -> [a]
+        in
+        arg1 :: aux arg2
+      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Sub_int_int
+      | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult_int_int
+      | Mult_rat_rat | Div_rat_rat ->
+        (* left-associative *)
+        let rec aux = function
+          | EAppOp { op = op1; args = [arg2; arg3]; _ }, _
+            when Mark.equal Operator.equal op op1 ->
+            arg2 :: aux arg3
+          | a -> [a]
+        in
+        aux arg1 @ [arg2]
+      | _ -> [arg1; arg2]
+    in
+    Format.fprintf fmt "(@[<hov>%a@])"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf " %a@ " format_op op)
+         (format_expression ctx))
+      args
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
   | EAppOp
@@ -363,7 +390,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
-    Format.fprintf fmt "%a %a" format_op op (format_expression ctx) arg1
+    Format.fprintf fmt "%a%a" (format_expression ctx) arg1 format_op op
   | EAppOp
       {
         op = ((Minus_int | Minus_rat | Minus_mon | Minus_dur), _) as op;
@@ -422,14 +449,15 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     =
   match Mark.remove s with
   | SInnerFuncDef { name; func = { func_params; func_body; _ } } ->
-    Format.fprintf fmt "@[<v 4>def %a(@[<hov>%a@]):@ %a@]" VarName.format
-      (Mark.remove name)
+    Format.fprintf fmt "@[<v 4>def _%a(@[<hov>%a@]):@ %a@]@,%a = Function(_%a)"
+      VarName.format (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a:%a" VarName.format (Mark.remove var)
              (format_typ ctx) typ))
-      func_params (format_block ctx) func_body
+      func_params (format_block ctx) func_body VarName.format (Mark.remove name)
+      VarName.format (Mark.remove name)
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
@@ -536,16 +564,23 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
     unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    Format.fprintf fmt "@[<v 4>class %a(CatalaStruct):@,name = '%a'@,"
-      StructName.format struct_name StructName.format_original struct_name;
-    Format.fprintf fmt "@[<v 4>fields = [";
+    Format.fprintf fmt "@[<v 4>class %a(CatalaStruct):" StructName.format
+      struct_name;
+    Format.fprintf fmt "@,__slots__ = (@[<hov>%a@])"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         (fun ppf (fld, _ty) ->
+           Format.fprintf ppf "'%a'" StructField.format fld))
+      fields;
+    Format.fprintf fmt "@,name = '%a'" StructName.format_original struct_name;
+    Format.fprintf fmt "@,@[<v 4>fields = {";
     List.iter
       (fun (struct_field, struct_field_type) ->
-        Format.fprintf fmt "@,('%a', '%a'), # content @[<h>%a@]"
+        Format.fprintf fmt "@,'%a': '%a', # content @[<h>%a@]"
           StructField.format struct_field StructField.format_original
           struct_field (format_typ ctx) struct_field_type)
       fields;
-    Format.fprintf fmt "@]@,]@]"
+    Format.fprintf fmt "@]@,}@]"
     (*    Format.fprintf fmt "@[<v 4>def __init__(self, %a) -> None:@,"
      *      (Format.pp_print_list
      *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")

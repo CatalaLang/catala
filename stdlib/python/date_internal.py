@@ -8,12 +8,12 @@ from enum import Enum
 # are still based on the Python date module and not on Dates_calc
 
 def of_ymd(pos:SourcePosition, dyear:Integer, dmonth:Integer, dday:Integer):
-    return Date((dyear.value, dmonth.value, dday.value), pos)
+    return Date((dyear, dmonth, dday), pos)
 
 def to_ymd(d:Date):
-    return (Integer(d.value.year),
-            Integer(d.value.month),
-            Integer(d.value.day))
+    return CatalaTuple(Integer(d.value.year),
+                       Integer(d.value.month),
+                       Integer(d.value.day))
 
 def last_day_of_month(d:Date):
     return Date(d.value.last_day_of_month())
