@@ -54,6 +54,7 @@ let wrap_latex
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[normalem]{ulem}
 \usepackage{amssymb}
 \usepackage{babel}
 \usepackage{fontspec}
