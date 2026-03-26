@@ -1451,6 +1451,9 @@ let make_binary_for_jsoo ~externls ~stdlib_tree ~project_tree module_targets =
       project_modules
   in
   let big_integer = _opam_dir / "zarith_stubs_js" / "biginteger.js" in
+  let big_integer_input =
+    if File.exists big_integer then [big_integer] else []
+  in
   let runtime_js = _opam_dir / "zarith_stubs_js" / "runtime.js" in
   let jsoo_file = target_uniq_fileame ~dir:Var.(!tdir) ~module_targets "exe" in
   let catala_js = target_uniq_fileame ~dir:Var.(!tdir) ~module_targets "js" in
@@ -1470,7 +1473,7 @@ let make_binary_for_jsoo ~externls ~stdlib_tree ~project_tree module_targets =
         :: (stdlib_cmo @ stdlib_jsoo_cmo @ project_cmo @ project_jsoo_cmo))
       ~outputs:[jsoo_file];
     Nj.build "js_of_ocaml"
-      ~inputs:[big_integer; runtime_js; jsoo_file]
+      ~inputs:(runtime_js :: jsoo_file :: big_integer_input)
       ~outputs:[catala_js];
     Nj.build "phony" ~inputs:[catala_js] ~outputs:["@javascript-file"];
     Nj.comment "";
