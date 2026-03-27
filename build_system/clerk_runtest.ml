@@ -15,6 +15,7 @@
    the License. *)
 
 open Catala_utils
+open Clerk_utils
 open Shared_ast
 
 type output_buf = { oc : out_channel; mutable pos : Lexing.position }

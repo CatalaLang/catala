@@ -1,0 +1,4 @@
+(library
+ (name clerk_lib)
+ (public_name catala.clerk_lib)
+ (libraries testo-diff catala.catala_utils catala.surface otoml))

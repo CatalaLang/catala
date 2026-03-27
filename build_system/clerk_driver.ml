@@ -18,7 +18,7 @@
 open Catala_utils
 module Nj = Ninja_utils
 module Cli = Clerk_cli
-module Scan = Clerk_scan
+module Scan = Clerk_utils.Clerk_scan
 module Var = Clerk_utils.Var
 module Config = Clerk_config
 
