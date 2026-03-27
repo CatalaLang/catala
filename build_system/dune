@@ -12,6 +12,7 @@
   catala.catala_utils
   catala.surface
   catala.clerk_lib
+  clerk_utils
   ninja_utils
   cmdliner
   re

@@ -15,37 +15,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
+open Clerk_utils
 
 type backend = OCaml | Python | C | Java | Tests
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend
-
-module Var : sig
-  type t = Ninja_utils.Var.t
-
-  val catala_exe : t
-  val catala_flags : t
-  val make : String.Map.key -> t
-  val catala_flags_ocaml : t
-  val catala_flags_c : t
-  val catala_flags_python : t
-  val catala_flags_java : t
-  val ocamlc_exe : t
-  val ocamlopt_exe : t
-  val ocaml_flags : t
-  val ocaml_include : t
-  val runtime : t
-  val cc_exe : t
-  val c_flags : t
-  val c_include : t
-  val python : t
-  val javac : t
-  val jar : t
-  val java : t
-  val all_vars : t String.Map.t
-end
 
 val base_bindings :
   code_coverage:bool ->

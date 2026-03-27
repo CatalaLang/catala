@@ -1,0 +1,4 @@
+(library
+ (name clerk_utils)
+ (public_name catala.clerk_utils)
+ (libraries ninja_utils catala.catala_utils catala.surface otoml))

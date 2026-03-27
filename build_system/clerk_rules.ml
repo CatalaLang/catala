@@ -16,6 +16,7 @@
    the License. *)
 
 open Catala_utils
+open Clerk_utils
 module Nj = Ninja_utils
 module Scan = Clerk_scan
 module Poll = Clerk_poll
@@ -32,65 +33,6 @@ let backend_from_config = function
   | Clerk_config.C -> C
   | Clerk_config.Java -> Java
   | _ -> invalid_arg __FUNCTION__
-
-(** Ninja variable names *)
-module Var = struct
-  include Nj.Var
-
-  (** Global vars: always defined, at toplevel *)
-
-  let ninja_required_version = make "ninja_required_version"
-  let builddir = make "builddir"
-  let clerk_exe = make "CLERK_EXE"
-  let clerk_flags = make "CLERK_FLAGS"
-  let catala_exe = make "CATALA_EXE"
-  let catala_flags = make "CATALA_FLAGS"
-
-  let make, all_vars_ref =
-    let all_vars_ref = ref String.Map.empty in
-    ( (fun s ->
-        let v = make s in
-        all_vars_ref := String.Map.add s v !all_vars_ref;
-        v),
-      all_vars_ref )
-
-  let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
-  let catala_flags_c = make "CATALA_FLAGS_C"
-  let catala_flags_python = make "CATALA_FLAGS_PYTHON"
-  let catala_flags_java = make "CATALA_FLAGS_JAVA"
-  let ocamlc_exe = make "OCAMLC_EXE"
-  let ocamlopt_exe = make "OCAMLOPT_EXE"
-  let ocaml_flags = make "OCAML_FLAGS"
-  let ocaml_include = make "OCAML_INCLUDE"
-  let runtime = make "CATALA_RUNTIME"
-  let cc_exe = make "CC"
-  let c_flags = make "CFLAGS"
-  let c_include = make "C_INCLUDE_FLAGS"
-  let python = make "PYTHON"
-  let javac = make "JAVAC"
-  let javac_flags = make "JAVAC_FLAGS"
-  let jar = make "jar"
-  let java = make "JAVA"
-  let all_vars = all_vars_ref.contents
-
-  (* Definition spreading different rules *)
-
-  let tdir = make "tdir"
-  let includes = make "includes"
-
-  (* Rule vars, Used in specific rules *)
-
-  let input = make "in"
-  let output = make "out"
-  let src = make "src"
-  let dst = make "dst"
-  let class_path = make "class_path"
-  let cat_files = make "cat_files" (* Useful on Windows only *)
-
-  (* let scope = make "scope" *)
-  let test_id = make "test-id"
-  let ( ! ) = Nj.Var.v
-end
 
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
