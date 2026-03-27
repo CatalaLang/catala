@@ -18,7 +18,6 @@
 open Catala_utils
 open Clerk_utils
 module Nj = Ninja_utils
-module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
@@ -138,7 +137,8 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.ocaml_flags (lazy []);
          def Var.ocaml_include
            (lazy
-             (Lazy.force Poll.ocaml_include_flags @ includes ~backend:"ocaml" ()));
+             (Lazy.force Clerk_poll.ocaml_include_flags
+             @ includes ~backend:"ocaml" ()));
        ]
      else [])
   @ (if List.mem Python enabled_backends then
