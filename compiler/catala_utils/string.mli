@@ -79,3 +79,11 @@ val quote : string -> string
 (** [quote s] returns the string [s] prefixed and suffixed by '"'. The following
     special characters '\\', '"', '\t' and '\n' present in [s] are also escaped
     by prefixing a '\\' character. *)
+
+val re_split_delim : ?pos:int -> ?len:int -> Re.re -> t -> t list
+(** [split_delim re s] splits s into chunks separated by re. It yields the
+    chunks themselves, not the separator. Occurences of the separator at the
+    beginning or the end of the string will produce empty chunks.
+
+    Note: from Re, but not available before 1.12 -- remove once we update the
+    dependency *)
