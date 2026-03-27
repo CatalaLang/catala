@@ -441,7 +441,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       let s = Utf8.lexeme lexbuf in
       let re_sep = Re.(compile @@ seq [alt [bos; seq [opt (char '\r'); char '\n']];
                                        str "##"; opt (char ' ')]) in
-      let s = Re.split re_sep s |> List.tl |> String.concat "\n" in
+      let s = String.re_split_delim re_sep s |> String.concat "\n" in
       L.update_acc lexbuf;
       DOCSTRING s
   | '#', eol ->
