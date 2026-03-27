@@ -41,28 +41,9 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let default_flags = Backend_common.Flags.default ~code_coverage ~config in
   default_flags
   @ (if List.mem OCaml enabled_backends then
-       let catala_flags_ocaml =
-         (if autotest then ["--autotest"] else [])
-         @
-         if use_default_flags then ["-O"]
-         else
-           List.filter
-             (function
-               | "-O" | "--optimize" | "--closure-conversion" -> true
-               | _ -> false)
-             test_flags
-       in
-       [
-         def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
-         def Var.ocamlc_exe (lazy ["ocamlc"]);
-         def Var.ocamlopt_exe (lazy ["ocamlopt"]);
-         def Var.ocaml_flags (lazy []);
-         def Var.ocaml_include
-           (lazy
-             (Lazy.force Clerk_poll.ocaml_include_flags
-             @ Backend_common.Flags.includes ~backend:"ocaml"
-                 options.global.include_dirs));
-       ]
+       Clerk_backends.Ocaml.Flags.default ~variables:options.variables ~autotest
+         ~use_default_flags ~test_flags
+         ~include_dirs:options.global.include_dirs
      else [])
   @ (if List.mem Python enabled_backends then
        let catala_flags_python =

@@ -15,6 +15,23 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Clerk_utils
+open Catala_utils
+
+module Flags : sig
+  val ocaml_link : string list Lazy.t
+  val ocaml_include : string list Lazy.t
+
+  val default :
+    variables:(string * string list) list ->
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    include_dirs:string list ->
+    (Var.t * string list) list
+end
+
 module Backend : sig
   val static_base_rules : Ninja_utils.def list
+  val runtime_dir : File.t Lazy.t
 end

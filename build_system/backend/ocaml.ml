@@ -17,7 +17,63 @@
 
 open Clerk_utils
 open Catala_utils
-module Flags = struct end
+
+module Flags = struct
+  let ocaml_include_and_lib : (string list * string list) Lazy.t =
+    lazy
+      (let link_libs = ["zarith"] in
+       let includes_libs =
+         List.map
+           (fun lib ->
+             match
+               File.(check_directory (Lazy.force Poll.ocaml_libdir / lib))
+             with
+             | None ->
+               Message.error
+                 "Required OCaml library not found at %a.@ Try `opam install \
+                  %s'"
+                 File.format
+                 File.(Lazy.force Poll.ocaml_libdir / lib)
+                 lib
+             | Some d ->
+               ( ["-I"; d],
+                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
+           link_libs
+       in
+       let includes, libs = List.split includes_libs in
+       List.concat includes, libs)
+
+  let ocaml_link : string list Lazy.t =
+    lazy (snd (Lazy.force ocaml_include_and_lib))
+
+  let ocaml_include : string list Lazy.t =
+    lazy (fst (Lazy.force ocaml_include_and_lib))
+
+  let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
+      =
+    let open Common.Flags in
+    let catala_flags_ocaml =
+      (if autotest then ["--autotest"] else [])
+      @
+      if use_default_flags then ["-O"]
+      else
+        List.filter
+          (function
+            | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
+          test_flags
+    in
+    let def = def ~variables in
+    [
+      def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
+      def Var.ocamlc_exe (lazy ["ocamlc"]);
+      def Var.ocamlopt_exe (lazy ["ocamlopt"]);
+      def Var.ocaml_flags (lazy []);
+      def Var.ocaml_include
+        (lazy
+          (Lazy.force ocaml_include
+          @ Common.Flags.includes ~backend:"ocaml" include_dirs));
+    ]
+end
 
 module Backend = struct
   module Nj = Ninja_utils
@@ -48,4 +104,7 @@ module Backend = struct
            "-o"; !output]
         ~description:["<ocaml>"; "⇒"; !output];
     ]
+
+  let runtime_dir : File.t Lazy.t =
+    lazy File.(Lazy.force Poll.runtime_dir / "ocaml")
 end
