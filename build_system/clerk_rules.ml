@@ -140,32 +140,7 @@ let[@ocamlformat "disable"] static_base_rules ~tests enabled_backends =
   let open Var in
   Backend_common.Ninja.static_base_rules @
   (if List.mem OCaml enabled_backends then
-         let runtime_include =
-           File.(Var.(!builddir) / Scan.libcatala / "ocaml")
-         in
-         [
-      Nj.rule "catala-ocaml"
-        ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; "ocaml"; "⇒"; !output];
-      Nj.rule "ocaml-bytobject"
-        ~command:[
-          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
-        ]
-        ~description:["<ocaml>"; "⇒"; !output];
-
-      Nj.rule "ocaml-natobject"
-        ~command:[
-          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
-        ]
-        ~description:["<ocaml>"; "⇒"; !output];
-
-      Nj.rule "ocaml-module"
-        ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
-           "-o"; !output]
-        ~description:["<ocaml>"; "⇒"; !output];
-    ] else []) @
+       Clerk_backends.Ocaml.Backend.static_base_rules else []) @
   (if List.mem C enabled_backends then [
     Nj.rule "catala-c"
       ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
