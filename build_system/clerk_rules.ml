@@ -18,7 +18,6 @@
 open Catala_utils
 open Clerk_utils
 module Nj = Ninja_utils
-module Scan = Clerk_scan
 module Poll = Clerk_poll
 
 (**{1 Building rules}*)
