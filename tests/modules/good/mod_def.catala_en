@@ -160,36 +160,34 @@ module S_in = struct
 end
 
 
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/modules/good/mod_def.catala_en";
+     start_line=16; start_column=10; end_line=16; end_column=12;
+     law_headings=["Test modules + inclusions 1"]};
+    {filename="tests/modules/good/mod_def.catala_en";
+     start_line=17; start_column=10; end_line=17; end_column=12;
+     law_headings=["Test modules + inclusions 1"]};
+    {filename="tests/modules/good/mod_def.catala_en";
+     start_line=21; start_column=10; end_line=21; end_column=43;
+     law_headings=["Test modules + inclusions 1"]};
+    {filename="tests/modules/good/mod_def.catala_en";
+     start_line=29; start_column=24; end_line=29; end_column=30;
+     law_headings=["Test modules + inclusions 1"]};
+    {filename="tests/modules/good/mod_def.catala_en";
+     start_line=30; start_column=24; end_line=30; end_column=29;
+     law_headings=["Test modules + inclusions 1"]}|]
+
 (* Scope S *)
 let s : S_in.t -> S.t = fun _ ->
   let sr: money =
-    match
-      (Optional.Present
-         ((integer_of_int 100000),
-          {filename="tests/modules/good/mod_def.catala_en";
-           start_line=29; start_column=24; end_line=29; end_column=30;
-           law_headings=["Test modules + inclusions 1"]}))
-    with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                         start_line=16; start_column=10;
-                         end_line=16; end_column=12;
-                         law_headings=["Test modules + inclusions 1"]}], None)))
+    match (Optional.Present ((integer_of_int 100000), (loc.(3)))) with
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   let e1: Mod_def.t =
-    match
-      (Optional.Present
-         (Mod_def.Maybe,
-          {filename="tests/modules/good/mod_def.catala_en";
-           start_line=30; start_column=24; end_line=30; end_column=29;
-           law_headings=["Test modules + inclusions 1"]}))
-    with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/modules/good/mod_def.catala_en";
-                         start_line=17; start_column=10;
-                         end_line=17; end_column=12;
-                         law_headings=["Test modules + inclusions 1"]}], None)))
+    match (Optional.Present (Mod_def.Maybe, (loc.(4)))) with
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(1)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   {S.sr = sr; S.e1 = e1}
@@ -197,11 +195,7 @@ let s : S_in.t -> S.t = fun _ ->
 (* Toplevel def half *)
 let half : integer -> decimal =
   fun (x: integer) ->
-    o_div_int_int
-      {filename="tests/modules/good/mod_def.catala_en";
-       start_line=21; start_column=14; end_line=21; end_column=43;
-       law_headings=["Test modules + inclusions 1"]} x
-      ((Date_en.get_year) (date_of_numbers 2 1 1))
+    o_div_int_int (loc.(2)) x ((Date_en.get_year) (date_of_numbers 2 1 1))
 
 (* Toplevel def maybe *)
 let maybe : Mod_def.t -> Mod_def.t =

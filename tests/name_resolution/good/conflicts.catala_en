@@ -219,6 +219,15 @@ module Assert_in = struct
 end
 
 
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/conflicts.catala_en";
+     start_line=19; start_column=10; end_line=19; end_column=16;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/conflicts.catala_en";
+     start_line=23; start_column=3; end_line=23; end_column=59;
+     law_headings=[]}|]
+
 (* Toplevel def closure_assert *)
 let closure_assert : Obj.t(*closure env*) -> integer -> integer =
   fun (env: Obj.t(*closure env*)) (x: integer) ->
@@ -240,23 +249,12 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
                   in
                   (assert__3, (o_toclosureenv ())) ([|(integer_of_int 0)|]))
              in
-             false,
-             {filename="tests/name_resolution/good/conflicts.catala_en";
-              start_line=23; start_column=3; end_line=23; end_column=59;
-              law_headings=[]}))
+             false, (loc.(1))))
        with
-       | Optional.Absent ->
-         (Optional.Present
-            (false,
-             {filename="tests/name_resolution/good/conflicts.catala_en";
-              start_line=19; start_column=10; end_line=19; end_column=16;
-              law_headings=[]}))
+       | Optional.Absent -> (Optional.Present (false, (loc.(0))))
        | Optional.Present x -> (Optional.Present x))
     with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/name_resolution/good/conflicts.catala_en";
-                         start_line=19; start_column=10;
-                         end_line=19; end_column=16; law_headings=[]}], None)))
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   {Assert.assert__1 = assert__2}

@@ -12,7 +12,7 @@ scope S:
 $ catala test-scope S
 ┌─[ERROR]─
 │
-│  During evaluation: the provided numbers do not correspond to a valid date.
+│  During evaluation: |0031-02-2023| is not a valid date.
 │
 ├─➤ tests/date/bad/lib_exn.catala_en:7.23-7.45:
 │   │

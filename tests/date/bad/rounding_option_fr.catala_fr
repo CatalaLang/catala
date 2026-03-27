@@ -14,7 +14,7 @@ champ d'application Test:
 $ catala test-scope Test
 ┌─[ERROR]─
 │
-│  During evaluation: ambiguous date computation, and rounding mode was not
+│  During evaluation: ambiguous date computation with no rounding mode
 │  specified.
 │
 ├─➤ tests/date/bad/rounding_option_fr.catala_fr:10.36-10.37:

@@ -252,6 +252,15 @@ module Closure_scoppe__1_in = struct
 end
 
 
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/conflicts-module.catala_en";
+     start_line=5; start_column=10; end_line=5; end_column=16;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/conflicts-module.catala_en";
+     start_line=145; start_column=15; end_line=145; end_column=24;
+     law_headings=[]}|]
+
 (* Toplevel def closure_scoppe *)
 let closure_scoppe__2 : Obj.t(*closure env*) -> bool -> integer -> bool =
   fun (_: Obj.t(*closure env*)) (acc: bool) (x: integer) ->
@@ -263,20 +272,8 @@ let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
     if
       o_fold (closure_scoppe__2 (o_toclosureenv ())) true
         ([|(integer_of_int 5); (integer_of_int 6); (integer_of_int 7)|])
-    then
-      (let x, _ =
-         (true,
-          {filename="tests/name_resolution/good/conflicts-module.catala_en";
-           start_line=145; start_column=15; end_line=145; end_column=24;
-           law_headings=[]})
-       in x)
-    else
-      (let x, _ =
-         (false,
-          {filename="tests/name_resolution/good/conflicts-module.catala_en";
-           start_line=5; start_column=10; end_line=5; end_column=16;
-           law_headings=[]})
-       in x)
+    then (let x, _ = (true, (loc.(1))) in x)
+    else (let x, _ = (false, (loc.(0))) in x)
   in
   {Closure_scoppe.scoppe = scoppe}
 

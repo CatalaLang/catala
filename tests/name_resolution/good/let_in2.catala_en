@@ -116,6 +116,15 @@ module S_in = struct
 end
 
 
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/let_in2.catala_en";
+     start_line=7; start_column=18; end_line=7; end_column=19;
+     law_headings=["Article"]};
+    {filename="tests/name_resolution/good/let_in2.catala_en";
+     start_line=11; start_column=5; end_line=13; end_column=6;
+     law_headings=["Article"]}|]
+
 (* Scope S *)
 let s : S_in.t -> S.t = fun s_in ->
   let a: ((bool * code_location)) Optional.t = s_in.S_in.a_in in
@@ -128,26 +137,13 @@ let s : S_in.t -> S.t = fun s_in ->
                 (Optional.Present
                    (let a__2 : bool = false in
                     let a__3 : bool = (a__2 || true) in
-                    a__3,
-                    {filename="tests/name_resolution/good/let_in2.catala_en";
-                     start_line=11; start_column=5;
-                     end_line=13; end_column=6; law_headings=["Article"]}))
+                    a__3, (loc.(1))))
               with
-              | Optional.Absent -> (raise
-                (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                                   start_line=7; start_column=18;
-                                   end_line=7; end_column=19;
-                                   law_headings=["Article"]}], None)))
-              | Optional.Present arg -> (let x, _ = arg in x)),
-             {filename="tests/name_resolution/good/let_in2.catala_en";
-              start_line=7; start_column=18; end_line=7; end_column=19;
-              law_headings=["Article"]}))
+              | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
+              | Optional.Present arg -> (let x, _ = arg in x)), (loc.(0))))
        | Optional.Present x -> (Optional.Present x))
     with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/name_resolution/good/let_in2.catala_en";
-                         start_line=7; start_column=18;
-                         end_line=7; end_column=19; law_headings=["Article"]}], None)))
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   {S.a = a__1}

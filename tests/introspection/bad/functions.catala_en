@@ -14,9 +14,13 @@ scope S1:
 $ catala test-scope S1
 ┌─[ERROR]─
 │
-│  Uncomparable <-- TODO add proper error message
+│  During evaluation: attempting to compare values with uncomparable types.
 │
-└─
+├─➤ tests/introspection/bad/functions.catala_en:10.25-10.26:
+│    │
+│ 10 │   definition o equals f = f
+│    │                         ‾
+└─ Testing comparison of functions and related error messages
 #return code 123#
 ```
 
@@ -38,9 +42,13 @@ scope S2:
 $ catala test-scope S2
 ┌─[ERROR]─
 │
-│  Uncomparable <-- TODO add proper error message
+│  During evaluation: attempting to compare values with uncomparable types.
 │
-└─
+├─➤ tests/introspection/bad/functions.catala_en:38.27-38.28:
+│    │
+│ 38 │   definition o equals foo < foo
+│    │                           ‾
+└─ Testing comparison of functions and related error messages
 #return code 123#
 ```
 
@@ -76,8 +84,12 @@ $ catala test-scope S3a
 $ catala test-scope S3b
 ┌─[ERROR]─
 │
-│  Uncomparable <-- TODO add proper error message
+│  During evaluation: attempting to compare values with uncomparable types.
 │
-└─
+├─➤ tests/introspection/bad/functions.catala_en:73.50-73.52:
+│    │
+│ 73 │   definition o equals F content St { -- f: foo } >= F content St { -- f: foo }
+│    │                                                  ‾‾
+└─ Testing comparison of functions and related error messages
 #return code 123#
 ```

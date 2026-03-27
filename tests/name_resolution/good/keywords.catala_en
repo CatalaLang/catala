@@ -120,25 +120,37 @@ module Test_in = struct
 end
 
 
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=5; start_column=10; end_line=5; end_column=14;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=11; start_column=26; end_line=11; end_column=52;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=15; start_column=10; end_line=15; end_column=13;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=18; start_column=14; end_line=18; end_column=19;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=18; start_column=27; end_line=18; end_column=29;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/keywords.catala_en";
+     start_line=19; start_column=25; end_line=19; end_column=31;
+     law_headings=[]}|]
+
 (* Scope Stdlib *)
 let stdlib : Stdlib_in.t -> Stdlib__1.t = fun stdlib_in ->
   let val__1: integer = stdlib_in.Stdlib_in.val_in in
   let when__1: date =
     match
       (Optional.Present
-         ((o_add_dat_dur AbortOnRound
-             {filename="tests/name_resolution/good/keywords.catala_en";
-              start_line=11; start_column=38; end_line=11; end_column=39;
-              law_headings=[]} (date_of_numbers 1970 1 1)
-             (o_mult_dur_int (duration_of_numbers 0 0 1) val__1)),
-          {filename="tests/name_resolution/good/keywords.catala_en";
-           start_line=11; start_column=26; end_line=11; end_column=52;
-           law_headings=[]}))
+         ((o_add_dat_dur AbortOnRound (loc.(1)) (date_of_numbers 1970 1 1)
+             (o_mult_dur_int (duration_of_numbers 0 0 1) val__1)), (loc.(1))))
     with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                         start_line=5; start_column=10;
-                         end_line=5; end_column=14; law_headings=[]}], None)))
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   {Stdlib__1.when__1 = when__1}
@@ -149,18 +161,8 @@ let test : Test_in.t -> Test.t = fun _ ->
     let result : Stdlib__1.t =
       (stdlib
          {Stdlib_in.val_in =
-            (match
-               (Optional.Present
-                  ((integer_of_int 99),
-                   {filename="tests/name_resolution/good/keywords.catala_en";
-                    start_line=18; start_column=27;
-                    end_line=18; end_column=29; law_headings=[]}))
-             with
-             | Optional.Absent -> (raise
-               (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                                  start_line=18; start_column=14;
-                                  end_line=18; end_column=19;
-                                  law_headings=[]}], None)))
+            (match (Optional.Present ((integer_of_int 99), (loc.(4)))) with
+             | Optional.Absent -> (raise (Error (NoValue, [loc.(3)], None)))
              | Optional.Present arg -> (let x, _ = arg in x))})
     in
     let result__1 : Stdlib__1.t =
@@ -169,17 +171,8 @@ let test : Test_in.t -> Test.t = fun _ ->
     if true then result__1 else result__1
   in
   let val__1: date =
-    match
-      (Optional.Present
-         ((a.Stdlib__1.when__1),
-          {filename="tests/name_resolution/good/keywords.catala_en";
-           start_line=19; start_column=25; end_line=19; end_column=31;
-           law_headings=[]}))
-    with
-    | Optional.Absent -> (raise
-      (Error (NoValue, [{filename="tests/name_resolution/good/keywords.catala_en";
-                         start_line=15; start_column=10;
-                         end_line=15; end_column=13; law_headings=[]}], None)))
+    match (Optional.Present ((a.Stdlib__1.when__1), (loc.(5)))) with
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(2)], None)))
     | Optional.Present arg -> (let x, _ = arg in x)
   in
   {Test.val__1 = val__1}
