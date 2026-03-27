@@ -30,6 +30,7 @@ val base_bindings :
   (Var.t * string list) list
 
 val run_ninja :
+  ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?enabled_backends:backend list ->
   quiet:bool ->
