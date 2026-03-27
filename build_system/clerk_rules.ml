@@ -17,6 +17,7 @@
 
 open Catala_utils
 open Clerk_utils
+module Backend_common = Clerk_backends.Common
 module Nj = Ninja_utils
 
 (**{1 Building rules}*)
@@ -34,102 +35,23 @@ let backend_from_config = function
 
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
-  let includes ?backend () =
-    List.fold_right
-      (fun dir flags ->
-        if Filename.is_relative dir then
-          "-I"
-          :: File.(
-               Var.(!builddir)
-               / match backend with Some b -> dir / b | None -> dir)
-          :: flags
-        else "-I" :: dir :: flags)
-      options.global.include_dirs []
-  in
-  let catala_flags =
-    ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-    :: ("--directory=" ^ Var.(!builddir))
-    :: options.global.catala_opts
-  in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
-  let catala_flags_ocaml =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_c =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function "-O" | "--optimize" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_python =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_java =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let def var value =
-    let value =
-      match List.assoc_opt (Var.name var) options.variables with
-      | Some vl -> vl
-      | None -> Lazy.force value
-    in
-    var, value
-  in
-  [
-    def Var.ninja_required_version (lazy ["1.7"]);
-    (* use of implicit outputs *)
-    def Var.builddir (lazy [options.global.build_dir]);
-    def Var.runtime (lazy [Lazy.force Poll.runtime_dir]);
-    def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
-    def Var.catala_exe
-      (lazy
-        [
-          (match options.global.catala_exe with
-          | Some e -> File.check_exec e
-          | None -> Lazy.force Poll.catala_exe);
-        ]);
-    def Var.catala_flags
-      (lazy
-        (catala_flags
-        @ (if Message.has_color stderr then ["--color=always"] else [])
-        @ includes ()));
-    def Var.clerk_flags
-      (lazy
-        ("-e"
-         :: Var.(!catala_exe)
-         :: ("--test-flags=" ^ String.concat "," test_flags)
-         :: includes ()
-        @ (if code_coverage then ["--code-coverage"] else [])
-        @ List.map
-            (fun f -> "--catala-opts=" ^ f)
-            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
-  ]
+  let def = Backend_common.Flags.def ~variables:options.variables in
+  let default_flags = Backend_common.Flags.default ~code_coverage ~config in
+  default_flags
   @ (if List.mem OCaml enabled_backends then
+       let catala_flags_ocaml =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
@@ -138,16 +60,39 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.ocaml_include
            (lazy
              (Lazy.force Clerk_poll.ocaml_include_flags
-             @ includes ~backend:"ocaml" ()));
+             @ Backend_common.Flags.includes ~backend:"ocaml"
+                 options.global.include_dirs));
        ]
      else [])
   @ (if List.mem Python enabled_backends then
+       let catala_flags_python =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_python (lazy catala_flags_python);
          def Var.python (lazy ["python3"]);
        ]
      else [])
   @ (if List.mem Java enabled_backends then
+       let catala_flags_java =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_java (lazy catala_flags_java);
          def Var.java (lazy ["java"]);
@@ -158,6 +103,15 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
      else [])
   @
   if List.mem C enabled_backends then
+    let catala_flags_c =
+      (if autotest then ["--autotest"] else [])
+      @
+      if use_default_flags then ["-O"]
+      else
+        List.filter
+          (function "-O" | "--optimize" -> true | _ -> false)
+          test_flags
+    in
     [
       def Var.catala_flags_c (lazy catala_flags_c);
       def Var.cc_exe (lazy ["cc"]);
@@ -177,7 +131,8 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
       def Var.c_include
         (lazy
           (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ includes ~backend:"c" ()));
+          @ Backend_common.Flags.includes ~backend:"c"
+              options.global.include_dirs));
     ]
   else []
 

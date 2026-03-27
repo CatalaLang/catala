@@ -6,6 +6,7 @@
   catala.catala_utils
   catala.surface
   catala.clerk_lib
+  catala.clerk_backends
   clerk_utils
   ninja_utils
   cmdliner
