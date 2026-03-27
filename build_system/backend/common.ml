@@ -82,3 +82,19 @@ module Flags = struct
           ));
     ]
 end
+
+module Ninja = struct
+  module Nj = Ninja_utils
+
+  let static_base_rules =
+    let open Var in
+    [
+      Nj.rule "copy"
+        ~command:
+          (if Sys.win32 then
+             ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+             (* The "+nul" forces the timestamp of the new file to be updated *)
+           else ["cp"; "-f"; !input; !output])
+        ~description:["<copy>"; !input];
+    ]
+end

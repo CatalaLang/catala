@@ -138,16 +138,8 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
 
 let[@ocamlformat "disable"] static_base_rules enabled_backends =
   let open Var in
-  [
-    Nj.rule "copy"
-      ~command:
-        (if Sys.win32 then
-           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
-           (* The "+nul" forces the timestamp of the new file to be updated *)
-         else
-           ["cp"; "-f"; !input; !output])
-      ~description:["<copy>"; !input];
-  ] @ (if List.mem OCaml enabled_backends then
+  Backend_common.Ninja.static_base_rules @
+  (if List.mem OCaml enabled_backends then
          let runtime_include =
            File.(Var.(!builddir) / Scan.libcatala / "ocaml")
          in
