@@ -203,8 +203,8 @@ let maybe : Mod_def.t -> Mod_def.t =
 
 let () =
   Catala_runtime.register_module "Mod_def"
-    [ "S", Stdlib.Obj.repr s;
-      "half", Stdlib.Obj.repr half;
-      "maybe", Stdlib.Obj.repr maybe ]
+    [ "S", Stdlib.Obj.repr (s);
+      "half", Stdlib.Obj.repr (half);
+      "maybe", Stdlib.Obj.repr (maybe) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

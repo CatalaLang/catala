@@ -247,7 +247,8 @@ let rec format_rtyp ppf ty =
   | TAbstract name ->
     Format.fprintf ppf "%a.rtype" format_to_module_name (`Aname name)
   | TArrow _ -> Format.fprintf ppf "Value.Function"
-  | TError | TDefault _ | TVar _ | TForAll _ | TClosureEnv ->
+  | TClosureEnv -> Format.fprintf ppf "Value.Function"
+  | TError | TDefault _ | TVar _ | TForAll _ ->
     Message.error "Cannot compute comparison on type %a" Print.typ ty
 
 let format_embedding (ppf : Format.formatter) (ty : typ) : unit =
@@ -860,7 +861,7 @@ let format_module_registration ctx fmt exports modname hash is_external =
       Format.pp_print_char fmt ';';
       Format.pp_print_cut fmt ())
     (fun fmt ((name, _pos), e) ->
-      Format.fprintf fmt "@[<hov 2>%S,@ Stdlib.Obj.repr %a@]" name
+      Format.fprintf fmt "@[<hov 2>%S,@ Stdlib.Obj.repr (%a)@]" name
         (format_expr ctx) e)
     fmt
     (List.filter_map

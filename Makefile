@@ -276,7 +276,7 @@ TEST_FLAGS_LIST = ""\
 --whole-program
 
 # Does not include running dune (to avoid duplication when run among bigger rules)
-testsuite-base: .FORCE
+testsuite-base: .FORCE $(CLERK_BIN) $(CATALA_BIN)
 	@for F in $(TEST_FLAGS_LIST); do \
 	  echo >&2; \
 	  [ -z "$$F" ] || echo ">> RE-RUNNING TESTS WITH FLAGS: $$F" >&2; \

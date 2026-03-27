@@ -597,6 +597,99 @@ and val_to_runtime : type d r.
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
+let rec handle_assert : type d r.
+    eval_expr:
+      (((d, r, yes) interpr_kind, 't) gexpr ->
+      ((d, r, yes) interpr_kind, 't) gexpr) ->
+    lang:Global.backend_lang ->
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    't mark ->
+    Pos.t ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
+ fun ~eval_expr ~lang pred m pos ->
+  match Mark.remove (eval_expr pred) with
+  | ELit (LBool true) -> ELit LUnit, m
+  | ELit (LBool false) ->
+    let msg ppf =
+      match
+        Pos.get_attr (Expr.mark_pos m) (function
+          | ErrorMessage m -> Some m
+          | _ -> None)
+      with
+      | Some note ->
+        Format.fprintf ppf "@[<hv 4>Assertion failed:@ @[<hov>%a@].@]"
+          Format.pp_print_text note
+      | None -> Format.fprintf ppf "Assertion failed."
+    in
+    let partially_evaluated_assertion_failure_expr =
+      partially_evaluate_expr_for_assertion_failure_message ~eval_expr
+        (Expr.skip_wrappers pred)
+    in
+    (match Mark.remove partially_evaluated_assertion_failure_expr with
+    | ELit (LBool false) ->
+      if Global.options.no_fail_on_assert then Message.warning ~pos "%t" msg
+      else Message.delayed_error ~kind:AssertFailure () ~pos "%t" msg
+    | _ ->
+      if Global.options.no_fail_on_assert then
+        Message.warning ~pos
+          "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
+          (Print.UserFacing.expr lang)
+          partially_evaluated_assertion_failure_expr
+      else
+        Message.delayed_error ~kind:AssertFailure () ~pos
+          "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
+          (Print.UserFacing.expr lang)
+          partially_evaluated_assertion_failure_expr);
+    Mark.add m (ELit LUnit)
+  | _ ->
+    Message.error ~pos:(Expr.pos pred) "%a" Format.pp_print_text
+      "Expected a boolean literal for the result of this assertion (should not \
+       happen if the term was well-typed)"
+
+and partially_evaluate_expr_for_assertion_failure_message : type d r.
+    eval_expr:
+      (((d, r, yes) interpr_kind, 't) gexpr ->
+      ((d, r, yes) interpr_kind, 't) gexpr) ->
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
+ fun ~eval_expr e ->
+  (* Here we want to print an expression that explains why an assertion has
+     failed. Since assertions have type [bool] and are usually constructed with
+     comparisons and logical operators, we leave those unevaluated at the top of
+     the AST while evaluating everything below. This makes for a good error
+     message. *)
+  match Mark.remove e with
+  | EAppOp
+      {
+        args = [e1; e2];
+        tys;
+        op = ((And | Or | Xor | Eq | Lt | Lte | Gt | Gte), _) as op;
+      } ->
+    ( EAppOp
+        {
+          op;
+          tys;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1;
+              partially_evaluate_expr_for_assertion_failure_message ~eval_expr
+                e2;
+            ];
+        },
+      Mark.get e )
+  | EAppOp { args = [e1]; tys; op = (Not, _) as op } ->
+    ( EAppOp
+        {
+          op;
+          tys;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1;
+            ];
+        },
+      Mark.get e )
+  | _ -> eval_expr e
+
 let rec evaluate_expr : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     decl_ctx ->
@@ -794,6 +887,17 @@ let rec evaluate_expr : type d r.
       Message.error ~pos:(Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
+  | EIfThenElse
+      {
+        cond = EAppOp { op = Not, _; args = [pred]; _ }, _;
+        efalse = ELit LUnit, _;
+        etrue =
+          EFatalError_pos { error = AssertionFailed; pos_expr = EPos pos, _ }, _;
+      } ->
+    (* For lcalc's already compiled assertions *)
+    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
+  | EAssert pred ->
+    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
     match Mark.remove cond with
@@ -806,46 +910,6 @@ let rec evaluate_expr : type d r.
   | EArray es ->
     let es = List.map (evaluate_expr ctx lang) es in
     Mark.add m (EArray es)
-  | EAssert e' -> (
-    let e = evaluate_expr ctx lang e' in
-    match Mark.remove e with
-    | ELit (LBool true) -> Mark.add m (ELit LUnit)
-    | ELit (LBool false) ->
-      let msg ppf =
-        match
-          Pos.get_attr (Expr.mark_pos m) (function
-            | ErrorMessage m -> Some m
-            | _ -> None)
-        with
-        | Some note ->
-          Format.fprintf ppf "@[<hv 4>Assertion failed:@ @[<hov>%a@].@]"
-            Format.pp_print_text note
-        | None -> Format.fprintf ppf "Assertion failed."
-      in
-      let partially_evaluated_assertion_failure_expr =
-        partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx lang
-          (Expr.skip_wrappers e')
-      in
-      (match Mark.remove partially_evaluated_assertion_failure_expr with
-      | ELit (LBool false) ->
-        if Global.options.no_fail_on_assert then Message.warning ~pos "%t" msg
-        else Message.delayed_error ~kind:AssertFailure () ~pos "%t" msg
-      | _ ->
-        if Global.options.no_fail_on_assert then
-          Message.warning ~pos
-            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
-            (Print.UserFacing.expr lang)
-            partially_evaluated_assertion_failure_expr
-        else
-          Message.delayed_error ~kind:AssertFailure () ~pos
-            "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
-            (Print.UserFacing.expr lang)
-            partially_evaluated_assertion_failure_expr);
-      Mark.add m (ELit LUnit)
-    | _ ->
-      Message.error ~pos:(Expr.pos e') "%a" Format.pp_print_text
-        "Expected a boolean literal for the result of this assertion (should \
-         not happen if the term was well-typed)")
   | EFatalError error | EFatalError_pos { error; _ } ->
     let note =
       Pos.get_attr (Expr.mark_pos m) (function
@@ -889,52 +953,6 @@ let rec evaluate_expr : type d r.
       "Attempting to evaluate a EBad node which should have been previously \
        filtered."
   | _ -> .
-
-and partially_evaluate_expr_for_assertion_failure_message : type d r.
-    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
-    decl_ctx ->
-    Global.backend_lang ->
-    ((d, r, yes) interpr_kind, 't) gexpr ->
-    ((d, r, yes) interpr_kind, 't) gexpr =
- fun ?on_expr ctx lang e ->
-  (* Here we want to print an expression that explains why an assertion has
-     failed. Since assertions have type [bool] and are usually constructed with
-     comparisons and logical operators, we leave those unevaluated at the top of
-     the AST while evaluating everything below. This makes for a good error
-     message. *)
-  match Mark.remove e with
-  | EAppOp
-      {
-        args = [e1; e2];
-        tys;
-        op = ((And | Or | Xor | Eq | Lt | Lte | Gt | Gte), _) as op;
-      } ->
-    ( EAppOp
-        {
-          op;
-          tys;
-          args =
-            [
-              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
-                lang e1;
-              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
-                lang e2;
-            ];
-        },
-      Mark.get e )
-  | EAppOp { args = [e1]; tys; op = (Not, _) as op } ->
-    ( EAppOp
-        {
-          op;
-          tys;
-          args =
-            [
-              partially_evaluate_expr_for_assertion_failure_message ?on_expr ctx
-                lang e1;
-            ];
-        },
-      Mark.get e )
-  | _ -> evaluate_expr ?on_expr ctx lang e
 
 let evaluate_expr_trace : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->

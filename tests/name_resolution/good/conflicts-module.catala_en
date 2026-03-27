@@ -119,22 +119,22 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc/195/184ppe",
-        Stdlib.Obj.repr let closure_scoppe__2 :
-                          Obj.t(*closure env*) -> Closure_scoppe_in.t ->
-                            Closure_scoppe.t =
-                          (fun (_: Obj.t(*closure env*))
-                             (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                        in
-                        (closure_scoppe__2, (o_toclosureenv ()));
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                         in
+                         (closure_scoppe__2, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Stdlib.Obj.repr let closure_scoppe__2 :
-                          Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
-                            Closure_scoppe__1.t =
-                          (fun (_: Obj.t(*closure env*))
-                             (x0: Closure_scoppe__1_in.t) ->
-                             closure_scoppe__1 x0)
-                        in
-                        (closure_scoppe__2, (o_toclosureenv ())) ]
+        Stdlib.Obj.repr (let closure_scoppe__2 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                         in
+                         (closure_scoppe__2, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 
@@ -286,21 +286,21 @@ let closure_scoppe__1 : Closure_scoppe__1_in.t -> Closure_scoppe__1.t =
 let () =
   Catala_runtime.register_module "Conflicts-module"
     [ "Closure_sc/195/184ppe",
-        Stdlib.Obj.repr let closure_scoppe__3 :
-                          Obj.t(*closure env*) -> Closure_scoppe_in.t ->
-                            Closure_scoppe.t =
-                          (fun (_: Obj.t(*closure env*))
-                             (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                        in
-                        (closure_scoppe__3, (o_toclosureenv ()));
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe_in.t ->
+                             Closure_scoppe.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
+                         in
+                         (closure_scoppe__3, (o_toclosureenv ())));
       "Closure_scoppe__1",
-        Stdlib.Obj.repr let closure_scoppe__3 :
-                          Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
-                            Closure_scoppe__1.t =
-                          (fun (_: Obj.t(*closure env*))
-                             (x0: Closure_scoppe__1_in.t) ->
-                             closure_scoppe__1 x0)
-                        in
-                        (closure_scoppe__3, (o_toclosureenv ())) ]
+        Stdlib.Obj.repr (let closure_scoppe__3 :
+                           Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
+                             Closure_scoppe__1.t =
+                           (fun (_: Obj.t(*closure env*))
+                              (x0: Closure_scoppe__1_in.t) ->
+                              closure_scoppe__1 x0)
+                         in
+                         (closure_scoppe__3, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
