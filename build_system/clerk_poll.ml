@@ -25,38 +25,6 @@ open Clerk_utils
     This module is sensitive to the CWD at first use. Therefore it's expected
     that [chdir] has been run beforehand to the project root. *)
 
-let ocaml_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force Poll.runtime_dir / "ocaml")
-
-let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
-  lazy
-    (let link_libs = ["zarith"] in
-     let includes_libs =
-       List.map
-         (fun lib ->
-           match
-             File.(check_directory (Lazy.force Poll.ocaml_libdir / lib))
-           with
-           | None ->
-             Message.error
-               "Required OCaml library not found at %a.@ Try `opam install %s'"
-               File.format
-               File.(Lazy.force Poll.ocaml_libdir / lib)
-               lib
-           | Some d ->
-             ( ["-I"; d],
-               String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
-         link_libs
-     in
-     let includes, libs = List.split includes_libs in
-     List.concat includes, libs)
-
-let ocaml_include_flags : string list Lazy.t =
-  lazy (fst (Lazy.force ocaml_include_and_lib_flags))
-
-let ocaml_link_flags : string list Lazy.t =
-  lazy (snd (Lazy.force ocaml_include_and_lib_flags))
-
 let c_runtime_dir : File.t Lazy.t =
   lazy File.(Lazy.force Poll.runtime_dir / "c")
 

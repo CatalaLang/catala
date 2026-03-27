@@ -21,6 +21,7 @@ module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config
+module OCaml = Clerk_backends.Ocaml
 
 let lastdirname f = File.(basename (dirname f))
 
@@ -175,8 +176,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   match backend with
   | `OCaml ->
     get_var var_bindings Var.ocamlopt_exe
-    @ List.map (expand_vars var_bindings)
-        (Lazy.force Clerk_poll.ocaml_link_flags)
+    @ List.map (expand_vars var_bindings) (Lazy.force OCaml.Flags.ocaml_link)
     @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
     @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
     @ get_var var_bindings Var.ocaml_flags
