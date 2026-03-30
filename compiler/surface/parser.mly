@@ -42,7 +42,7 @@
 
   let move_attrs ~from =
     let moved_attrs, kept_attrs =
-      List.partition (function Shared_ast.Src _ -> true | _ -> false)
+      List.partition Shared_ast.(function Src _ | Doc _ -> true | _ -> false)
         (Pos.attrs from)
     in
     let set_attrs target =

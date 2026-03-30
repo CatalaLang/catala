@@ -176,7 +176,7 @@ let diff_command =
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in
       let mid = (width - 1) / 2 in
-      let cut s = String.sub s 0 (min mid (String.length s)) in
+      let cut s = String.cut_at_width s mid in
       let pad s =
         let s = cut s in
         Printf.sprintf "%s%*s" s (mid - String.width s) ""
@@ -527,7 +527,8 @@ let summary ~build_dir tests =
           else C24 { r24 = 255; g24 = m * 255 / n; b24 = 0 }
         in
         Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag (Fg color));
-        Format.fprintf ppf "%8d %%" (m * 100 / n);
+        if n > 0 then Format.fprintf ppf "%8d %%" (m * 100 / n)
+        else Format.fprintf ppf "%8s %%" "-";
         Format.pp_close_stag ppf ()
       in
       if files > 1 then
