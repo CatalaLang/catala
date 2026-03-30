@@ -175,6 +175,7 @@ let gen_build_statements
     ~is_stdlib
     (item : Scan.item) : Nj.ninja =
   let open File in
+  let open Ninja in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
   let dir = dirname src in
@@ -195,19 +196,6 @@ let gen_build_statements
            ])
          include_dirs
   in
-  let target ?backend ext =
-    let ext =
-      match ext.[0] with
-      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
-      | _ -> ext
-    in
-    let bdir =
-      match backend with
-      | None -> fun f -> f ^ ext
-      | Some b -> fun f -> (b / f) ^ ext
-    in
-    !Var.tdir / bdir !Var.dst
-  in
   let java_stdlib_target ?backend ext =
     let ext =
       match ext.[0] with
@@ -222,19 +210,16 @@ let gen_build_statements
     !Var.tdir / bdir !Var.dst
   in
   let modules = List.rev_map Mark.remove item.used_modules in
-  let modfile ?(backend = "ocaml") ext modname =
-    match List.assoc_opt modname same_dir_modules with
-    | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
-    | None -> modname ^ "@" ^ backend ^ "-module"
+  let module_target x =
+    modfile ~backend:"ocaml" same_dir_modules "@ocaml-module" x
   in
   let java_modfile ext modname =
     let backend = "java" in
     match List.assoc_opt modname same_dir_modules with
     | Some _ when is_stdlib ->
       (!Var.tdir / backend / "catala" / "stdlib" / String.to_id modname) ^ ext
-    | _ -> modfile ~backend ext modname
+    | _ -> modfile ~backend same_dir_modules ext modname
   in
-  let module_target x = modfile "@ocaml-module" x in
   let catala_src = !Var.tdir / !Var.src in
   let include_deps =
     Nj.build "copy"
@@ -261,7 +246,10 @@ let gen_build_statements
            Nj.build "phony"
              ~inputs:
                [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmxs"]
-             ~implicit_in:(List.map (modfile "@ocaml-module") modules)
+             ~implicit_in:
+               (List.map
+                  (modfile ~backend:"ocaml" same_dir_modules "@ocaml-module")
+                  modules)
              ~outputs:[target ~backend:"ocaml" "@ocaml-module"];
          ]
        else [])
@@ -270,44 +258,30 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~inputs:[target ~backend:"c" "h"]
-            ~implicit_in:(List.map (modfile ~backend:"c" "@c-module") modules)
+            ~implicit_in:
+              (List.map
+                 (modfile ~backend:"c" same_dir_modules "@c-module")
+                 modules)
             ~outputs:[target ~backend:"c" "@c-module"];
         ]
       else []
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
-  let extern_src backend ext missing =
-    let f = src -.- ext in
-    match check_file f with
-    | Some f -> f, missing
-    | None -> (
-      match File.check_file (dirname f / backend / basename f) with
-      | Some f -> f, missing
-      | None -> f, f :: missing)
-  in
-  let check_missing backend missing =
-    if missing <> [] then
-      Message.error
-        ~pos:(Mark.get (Option.get item.module_def))
-        "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ but@ the@ \
-         following@ files@ are@ missing:@ %a@]@,\
-         @,\
-         @[<hov 2>@{<bold>Hint:@} to generate a template, you can use:@ \
-         @{<magenta>catala %s --gen-external %s@}@]@]"
-        (Mark.remove (Option.get item.module_def))
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           File.format)
-        missing backend src
-  in
   let ocaml, c, python, java =
     if item.extrnal then
       let ocaml =
         if not (List.mem OCaml enabled_backends) then Seq.empty
         else
-          let ml, missing = extern_src "ocaml" "ml" [] in
-          let mli, missing = extern_src "ocaml" "mli" missing in
-          check_missing "ocaml" missing;
+          let ml, missing =
+            Ninja.extern_src ~backend:"ocaml" ~ext:"ml" ~missing:[]
+              ~filename:item.file_name
+          in
+          let mli, missing =
+            Ninja.extern_src ~backend:"ocaml" ~ext:"mli" ~missing
+              ~filename:item.file_name
+          in
+          Ninja.check_missing ~backend:"ocaml" ~missing
+            ~module_def:item.module_def ~filename:item.file_name;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
@@ -319,9 +293,16 @@ let gen_build_statements
       let c =
         if not (List.mem C enabled_backends) then Seq.empty
         else
-          let c, missing = extern_src "c" "c" [] in
-          let h, missing = extern_src "c" "h" missing in
-          check_missing "c" missing;
+          let c, missing =
+            Ninja.extern_src ~backend:"c" ~ext:"c" ~missing:[]
+              ~filename:item.file_name
+          in
+          let h, missing =
+            Ninja.extern_src ~backend:"c" ~ext:"h" ~missing
+              ~filename:item.file_name
+          in
+          Ninja.check_missing ~backend:"c" ~missing ~module_def:item.module_def
+            ~filename:item.file_name;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
@@ -333,8 +314,12 @@ let gen_build_statements
       let python =
         if not (List.mem Python enabled_backends) then Seq.empty
         else
-          let py, missing = extern_src "python" "py" [] in
-          check_missing "python" missing;
+          let py, missing =
+            Ninja.extern_src ~backend:"python" ~ext:"py" ~missing:[]
+              ~filename:item.file_name
+          in
+          Ninja.check_missing ~backend:"python" ~missing
+            ~module_def:item.module_def ~filename:item.file_name;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
@@ -344,8 +329,12 @@ let gen_build_statements
       let java =
         if not (List.mem Java enabled_backends) then Seq.empty
         else
-          let java, missing = extern_src "java" "java" [] in
-          check_missing "java" missing;
+          let java, missing =
+            Ninja.extern_src ~backend:"java" ~ext:"java" ~missing:[]
+              ~filename:item.file_name
+          in
+          Ninja.check_missing ~backend:"java" ~missing
+            ~module_def:item.module_def ~filename:item.file_name;
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[java]
@@ -460,7 +449,8 @@ let gen_build_statements
       ~implicit_in:
         (target ~backend:"c" "h"
         :: "@runtime-c"
-        :: List.map (modfile ~backend:"c" "@c-module") modules)
+        :: List.map (modfile ~backend:"c" same_dir_modules "@c-module") modules
+        )
       ~outputs:[target ~backend:"c" "o"]
       ~vars:[Var.includes, include_flags "c"]
     ::
@@ -471,7 +461,9 @@ let gen_build_statements
            ~implicit_in:
              (target ~backend:"c" "h"
              :: "@runtime-c"
-             :: List.map (modfile ~backend:"c" "@c-module") modules)
+             :: List.map
+                  (modfile ~backend:"c" same_dir_modules "@c-module")
+                  modules)
            ~outputs:[target ~backend:"c" "+main.o"]
            ~vars:[Var.includes, include_flags "c"];
        ]
@@ -527,14 +519,16 @@ let gen_build_statements
            [
              Nj.build "phony"
                ~outputs:[modname ^ "@c-module"]
-               ~inputs:[modfile ~backend:"c" "@c-module" modname];
+               ~inputs:
+                 [modfile ~backend:"c" same_dir_modules "@c-module" modname];
            ]
          else [])
       @ (if List.mem Python enabled_backends then
            [
              Nj.build "phony"
                ~outputs:[modname ^ "@python-module"]
-               ~inputs:[modfile ~backend:"python" ".py" modname];
+               ~inputs:
+                 [modfile ~backend:"python" same_dir_modules ".py" modname];
            ]
          else [])
       @
@@ -553,7 +547,10 @@ let gen_build_statements
       [
         Nj.build "tests" ~inputs:[catala_src]
           ~implicit_in:
-            (!Var.clerk_exe :: List.map (modfile "@ocaml-module") modules)
+            (!Var.clerk_exe
+            :: List.map
+                 (modfile ~backend:"ocaml" same_dir_modules "@ocaml-module")
+                 modules)
           ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
       ]
   in
