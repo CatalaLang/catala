@@ -21,6 +21,7 @@ open Clerk_lib
 module Flags : sig
   val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
   val includes : ?backend:string -> string list -> string list
+  val include_flags : backend:string -> string list -> string list
 
   val default :
     code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list

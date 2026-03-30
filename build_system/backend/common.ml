@@ -40,6 +40,19 @@ module Flags = struct
         else "-I" :: dir :: flags)
       include_dirs []
 
+  let include_flags ~backend include_dirs =
+    let open File in
+    "-I"
+    :: Var.(!tdir / backend)
+    :: List.concat_map
+         (fun d ->
+           [
+             "-I";
+             (if Filename.is_relative d then Var.(!builddir) / d else d)
+             / backend;
+           ])
+         include_dirs
+
   let default ~code_coverage ~config =
     let options = config.Clerk_cli.options in
     let open Clerk_config in

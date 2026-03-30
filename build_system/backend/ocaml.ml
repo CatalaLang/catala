@@ -76,10 +76,10 @@ module Flags = struct
 end
 
 module Backend = struct
+  open Var
   module Nj = Ninja_utils
 
   let[@ocamlformat "disable"] static_base_rules =
-    let open Var in
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / "ocaml") in
          [
       Nj.rule "catala-ocaml"
@@ -203,4 +203,83 @@ module Backend = struct
         ~implicit_in:[dates_base -.- "cmi"; ocaml_base -.- "cmi"]
         ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
     ]
+
+  let catala ?vars ~inputs ~implicit_in has_scope_tests =
+    let implicit_out =
+      if has_scope_tests then [Ninja.target ~backend:"ocaml" "+main.ml"] else []
+    in
+    Seq.return
+      (Nj.build "catala-ocaml" ?vars ~inputs ~implicit_in
+         ~outputs:[Ninja.target ~backend:"ocaml" "ml"]
+         ~implicit_out:(Ninja.target ~backend:"ocaml" "mli" :: implicit_out))
+
+  let module_target same_dir_modules =
+    Ninja.modfile ~backend:"ocaml" same_dir_modules "@ocaml-module"
+
+  let includes = Common.Flags.include_flags ~backend:"ocaml"
+
+  let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
+    let open Ninja in
+    let open Scan in
+    let modules = List.rev_map Mark.remove item.used_modules in
+    let implicit_modules = List.map (module_target same_dir_modules) modules in
+    let obj =
+      [
+        Nj.build "ocaml-bytobject"
+          ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
+          ~implicit_in:(implicit_modules @ ["@runtime-cmi"])
+          ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
+          ~vars:
+            [
+              Var.includes, includes include_dirs;
+              ( Var.ocaml_flags,
+                [
+                  Var.(!ocaml_flags);
+                  "-opaque";
+                  "-w";
+                  "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
+                  "-strict-sequence";
+                  "-strict-formats";
+                  "-short-paths";
+                  "-keep-locs";
+                  "-warn-error";
+                  "-a+8";
+                  "-w";
+                  "-67";
+                  "-bin-annot";
+                  "-no-alias-deps";
+                ] );
+            ];
+        Nj.build "ocaml-natobject"
+          ~inputs:[target ~backend:"ocaml" "ml"]
+          ~implicit_in:
+            ((target ~backend:"ocaml" "cmi" :: implicit_modules)
+            @ ["@runtime-cmi"])
+          ~outputs:(List.map (target ~backend:"ocaml") ["cmx"; "o"])
+          ~vars:[Var.includes, includes include_dirs];
+      ]
+    in
+    (match item.module_def with
+      | Some _ ->
+        obj
+        @ [
+            Nj.build "ocaml-module"
+              ~inputs:[target ~backend:"ocaml" "cmx"]
+              ~outputs:[target ~backend:"ocaml" "cmxs"];
+          ]
+      | None -> obj)
+    @
+    if has_scope_tests then
+      [
+        Nj.build "ocaml-natobject"
+          ~inputs:[target ~backend:"ocaml" "+main.ml"]
+          ~implicit_in:
+            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmx"]
+          ~outputs:
+            (List.map
+               (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
+               ["cmx"; "o"])
+          ~vars:[Var.includes, includes include_dirs @ ["-w"; "-24"]];
+      ]
+    else []
 end
