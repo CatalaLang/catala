@@ -288,6 +288,7 @@ jobs:
 
     env:
       OPAMCONFIRMLEVEL: unsafe-yes
+      OPAMSWITCH: ${{ github.workspace }}
 
     steps:
       - name: Checkout
