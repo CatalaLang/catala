@@ -144,12 +144,11 @@ let event_manager : event_manager Js.t =
               "unavailable" |> Js.string
 
           val mutable loggedValueJson =
-            (match evt with
-              | VariableDefinition (_, _, v) -> v
-              | EndCall _ | BeginCall _ | DecisionTaken _ ->
-                R_ocaml.unembeddable ())
-            |> R_ocaml.Json.runtime_value
-            |> Js.string
+            match evt with
+            | VariableDefinition (_, _, v) ->
+              v |> R_ocaml.Json.runtime_value |> Js.string
+            | EndCall _ | BeginCall _ | DecisionTaken _ ->
+              "<no value>" |> Js.string
 
           val mutable sourcePosition =
             match evt with

@@ -481,13 +481,6 @@ end
 let equal = Value.equal_values
 let compare = Value.compare_values
 
-(* let get_ty : type a. any_ty -> a ty =
- *   let open struct external cast : _ ty -> a ty = "%identity" end in
- *   function TAny t -> cast t
- * 
- * let unembed (type a) (V (t, v)): a ty * a =
- *   get_ty (TAny t), Obj.magic v *)
-
 (* Catala types utils *)
 
 module type CatalaType = sig
@@ -495,24 +488,6 @@ module type CatalaType = sig
 
   val rtype : t Value.ty
 end
-
-(* EX PROTO module Foo : CatalaType = struct type t = { foo: integer; bar: date
-   }
-
-   let rtype = Struct { name = "Foo"; fields = fun t -> [ "foo", embed
-   Integer.rtype t.foo; "bar", embed Date.rtype t.bar; ] } end
-
-   module Bar : CatalaType = struct type t = Foo of integer | Bar of date | Baz
-   of (bool * integer)
-
-   let rtype = Enum { name = "Bar"; constr = fun t -> match t with | Foo x -> 0,
-   "Foo", Some (embed Integer.rtype x) | Bar x -> 1, "Bar", Some (embed
-   Date.rtype x) | Baz x -> 2, "Baz", Some (embed (Tuple (fun (x1, x2) -> [embed
-   Bool.rtype x1; embed Integer.rtype x2])) x); } end *)
-
-(* module List : (T: CatalaType) -> CatalaType with type t = T.t array = struct
- *   type t = T.t array
- * end *)
 
 module Optional = struct
   type 'a t = Absent | Present of 'a

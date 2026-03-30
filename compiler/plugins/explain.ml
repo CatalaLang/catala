@@ -1260,10 +1260,18 @@ let expr_to_dot_label0 : type a.
           | Or -> xlang () ~en:"or" ~fr:"ou"
           | Xor -> xlang () ~en:"xor" ~fr:"ou bien"
           | Map -> xlang () ~en:"on_every" ~fr:"pour_chaque"
-          | Map2 -> xlang () ~en:"on_every_2" ~fr:"pour_chaque_2"
+          | Map2 -> xlang () ~en:"on_every_pair" ~fr:"pour_chaque_paire"
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
-          | Fold -> xlang () ~en:"fold" ~fr:"pliage"
+          | Fold -> xlang () ~en:"fold" ~fr:"combinaison"
+          | ArrayAccess n ->
+            xlang ()
+              ~en:(Printf.sprintf "element %d" n)
+              ~fr:(Printf.sprintf "%de element" n)
+          | ConstructorCheck (_, c) ->
+            xlang ()
+              ~en:(Format.asprintf "with_pattern %a" EnumConstructor.format c)
+              ~fr:(Format.asprintf "sous_forme %a" EnumConstructor.format c)
           | HandleExceptions -> ""
           | ToClosureEnv -> ""
           | FromClosureEnv -> ""

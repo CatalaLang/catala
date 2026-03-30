@@ -511,6 +511,7 @@ let run
     Driver.Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
       ~autotest:false ~closure_conversion ~keep_special_ops ~typed:Expr.typed
       ~monomorphize_types ~renaming:(Some Lcalc.To_ocaml.renaming)
+      ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
   in
   Driver.Commands.get_output_format options ~ext:"api_web.ml" output
     (fun jsoo_output_file fmt ->
