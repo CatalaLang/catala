@@ -23,6 +23,5 @@ open Catala_utils
     This module is sensitive to the CWD at first use. Therefore it's expected
     that [chdir] has been run beforehand to the project root. *)
 
-val c_runtime_dir : File.t Lazy.t
 val python_runtime_dir : File.t Lazy.t
 val java_runtime_dir : File.t Lazy.t

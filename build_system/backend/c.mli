@@ -15,18 +15,37 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 open Clerk_utils
+open Catala_utils
 
-(** {1 System analysis} *)
+module Flags : sig
+  val default :
+    variables:(string * string list) list ->
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    include_dirs:string list ->
+    (Var.t * string list) list
+end
 
-(** Some functions that poll the surrounding systems (think [./configure])
+module Backend : sig
+  val static_base_rules : Ninja_utils.def list
+  val runtime_build_statements : stdbase:string -> Ninja_utils.def list
+  val external_copy : Scan.item -> Ninja_utils.def Seq.t
 
-    This module is sensitive to the CWD at first use. Therefore it's expected
-    that [chdir] has been run beforehand to the project root. *)
+  val catala :
+    ?vars:(Var.t * Ninja_utils.Expr.t) list ->
+    inputs:Ninja_utils.Expr.t ->
+    implicit_in:Ninja_utils.Expr.t ->
+    bool ->
+    Ninja_utils.def Seq.t
 
-let python_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force Poll.runtime_dir / "python" / "src" / "catala")
+  val build_object :
+    include_dirs:string list ->
+    same_dir_modules:(string * string) list ->
+    item:Scan.item ->
+    bool ->
+    Ninja_utils.def list
 
-let java_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force Poll.runtime_dir / "java")
+  val runtime_dir : File.t Lazy.t
+end
