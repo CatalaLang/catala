@@ -46,21 +46,9 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          ~include_dirs:options.global.include_dirs
      else [])
   @ (if List.mem Python enabled_backends then
-       let catala_flags_python =
-         (if autotest then ["--autotest"] else [])
-         @
-         if use_default_flags then ["-O"]
-         else
-           List.filter
-             (function
-               | "-O" | "--optimize" | "--closure-conversion" -> true
-               | _ -> false)
-             test_flags
-       in
-       [
-         def Var.catala_flags_python (lazy catala_flags_python);
-         def Var.python (lazy ["python3"]);
-       ]
+       Clerk_backends.Python.Flags.default ~variables:options.variables
+         ~autotest ~use_default_flags ~test_flags
+         ~include_dirs:options.global.include_dirs
      else [])
   @ (if List.mem Java enabled_backends then
        let catala_flags_java =
@@ -227,18 +215,7 @@ let gen_build_statements
       in
       let python =
         if not (List.mem Python enabled_backends) then Seq.empty
-        else
-          let py, missing =
-            Ninja.extern_src ~backend:"python" ~ext:"py" ~missing:[]
-              ~filename:item.file_name
-          in
-          Ninja.check_missing ~backend:"python" ~missing
-            ~module_def:item.module_def ~filename:item.file_name;
-          List.to_seq
-            [
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
-                ~outputs:[target ~backend:"python" "py"];
-            ]
+        else Clerk_backends.Python.Backend.external_copy item
       in
       let java =
         if not (List.mem Java enabled_backends) then Seq.empty
@@ -498,24 +475,7 @@ let runtime_build_statements ~config enabled_backends =
        Clerk_backends.C.Backend.runtime_build_statements ~stdbase
      else [])
   @ (if List.mem Python enabled_backends then
-       let python_base = stdbase / "python" / "catala_runtime" in
-       let python_src = Var.(!runtime) / "python" / "src" / "catala" in
-       [
-         Nj.build "phony"
-           ~inputs:
-             [
-               python_base -.- "py";
-               python_base /../ "dates.py";
-               Var.(!catala_exe);
-             ]
-           ~outputs:["@runtime-python"];
-         Nj.build "copy"
-           ~inputs:[python_src / "dates.py"]
-           ~outputs:[python_base /../ "dates.py"];
-         Nj.build "copy"
-           ~inputs:[python_src / "catala_runtime.py"]
-           ~outputs:[python_base -.- "py"];
-       ]
+       Clerk_backends.Python.Backend.runtime_build_statements ~stdbase
      else [])
   @
   if List.mem Java enabled_backends then
