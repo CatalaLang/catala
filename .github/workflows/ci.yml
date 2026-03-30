@@ -310,6 +310,10 @@ jobs:
       - name: Initialize opam (non-interactive) and create switch
         run: |
           opam init --disable-sandboxing -c ocaml.5.3.0
+          # Pre-install conf-pkg-config so that mingw-w64-shims is not
+          # recompiled (to add pkgconf shims) during the parallel build of
+          # catala's dependencies, which would race on the GCC shim executable.
+          opam install conf-pkg-config
 
       - name: Build and install Catala through opam
         run: |
