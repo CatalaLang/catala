@@ -275,10 +275,10 @@ let rule_to_exception_graph (scope : D.scope) = function
                   :: ( "Incriminated variable:",
                        Mark.get (ScopeVar.get_info var_within_origin_scope) )
                   :: List.map
-                       (fun rule ->
+                       (fun (_rule, { D.rule_id; _ }) ->
                          ( "Incriminated subscope variable definition:",
-                           Mark.get (RuleName.get_info rule) ))
-                       (RuleName.Map.keys def))
+                           Mark.get (RuleName.get_info rule_id) ))
+                       (RuleName.Map.bindings def))
                 "%a" Format.pp_print_text
                 "Invalid assignment to a subscope variable that is not tagged \
                  as input or context."
@@ -313,10 +313,10 @@ let rule_to_exception_graph (scope : D.scope) = function
         ~extra_pos:
           (("Incriminated variable:", Mark.get (ScopeVar.get_info var))
           :: List.map
-               (fun rule ->
+               (fun (_rule, { D.rule_id; _ }) ->
                  ( "Incriminated variable definition:",
-                   Mark.get (RuleName.get_info rule) ))
-               (RuleName.Map.keys var_def))
+                   Mark.get (RuleName.get_info rule_id) ))
+               (RuleName.Map.bindings var_def))
         "%a" Format.pp_print_text
         "There cannot be a definition for a scope variable tagged as input."
     | OnlyInput -> D.ScopeDef.Map.empty

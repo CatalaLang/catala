@@ -1491,7 +1491,10 @@ let process_def
       {
         scope_def with
         scope_def_rules =
-          RuleName.Map.add rule_name
+          RuleName.Map.add
+            (RuleName.map_info
+               (fun (s, _) -> s, Mark.get def.definition_name)
+               rule_name)
             (process_default ctxt local_vars scope_uid
                (def_key, Mark.get def.definition_name)
                rule_name param_uids precond exception_situation label_situation
