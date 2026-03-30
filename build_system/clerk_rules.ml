@@ -84,37 +84,8 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
      else [])
   @
   if List.mem C enabled_backends then
-    let catala_flags_c =
-      (if autotest then ["--autotest"] else [])
-      @
-      if use_default_flags then ["-O"]
-      else
-        List.filter
-          (function "-O" | "--optimize" -> true | _ -> false)
-          test_flags
-    in
-    [
-      def Var.catala_flags_c (lazy catala_flags_c);
-      def Var.cc_exe (lazy ["cc"]);
-      def Var.c_flags
-        (lazy
-          [
-            "-std=c89";
-            "-pedantic";
-            "-Wall";
-            "-Wno-unused-function";
-            "-Wno-unused-variable";
-            "-Wno-unused-but-set-variable";
-            "-Werror";
-            "-fPIC";
-            "-g";
-          ]);
-      def Var.c_include
-        (lazy
-          (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ Backend_common.Flags.includes ~backend:"c"
-              options.global.include_dirs));
-    ]
+    Clerk_backends.C.Flags.default ~variables:options.variables ~autotest
+      ~use_default_flags ~test_flags ~include_dirs:options.global.include_dirs
   else []
 
 let[@ocamlformat "disable"] static_base_rules ~tests enabled_backends =
@@ -122,17 +93,9 @@ let[@ocamlformat "disable"] static_base_rules ~tests enabled_backends =
   Backend_common.Ninja.static_base_rules @
   (if List.mem OCaml enabled_backends then
        Clerk_backends.Ocaml.Backend.static_base_rules else []) @
-  (if List.mem C enabled_backends then [
-    Nj.rule "catala-c"
-      ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
-                "-o"; !output; "--"; !input]
-      ~description:["<catala>"; "c"; "⇒"; !output];
-
-    Nj.rule "c-object"
-      ~command:
-        [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
-      ~description:["<cc>"; "⇒"; !output];
-  ] else []) @
+  (if List.mem C enabled_backends then
+    Clerk_backends.C.Backend.static_base_rules
+   else []) @
   (if List.mem Python enabled_backends then [
       Nj.rule "catala-python"
         ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
@@ -184,17 +147,6 @@ let gen_build_statements
       Nj.binding Var.src [basename src];
       Nj.binding Var.dst [basename (Scan.target_file_name item)];
     ]
-  in
-  let include_flags backend =
-    "-I"
-    :: (!Var.tdir / backend)
-    :: List.concat_map
-         (fun d ->
-           [
-             "-I";
-             (if Filename.is_relative d then !Var.builddir / d else d) / backend;
-           ])
-         include_dirs
   in
   let java_stdlib_target ?backend ext =
     let ext =
@@ -275,24 +227,7 @@ let gen_build_statements
       in
       let c =
         if not (List.mem C enabled_backends) then Seq.empty
-        else
-          let c, missing =
-            Ninja.extern_src ~backend:"c" ~ext:"c" ~missing:[]
-              ~filename:item.file_name
-          in
-          let h, missing =
-            Ninja.extern_src ~backend:"c" ~ext:"h" ~missing
-              ~filename:item.file_name
-          in
-          Ninja.check_missing ~backend:"c" ~missing ~module_def:item.module_def
-            ~filename:item.file_name;
-          List.to_seq
-            [
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
-                ~outputs:[target ~backend:"c" "c"];
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[h]
-                ~outputs:[target ~backend:"c" "h"];
-            ]
+        else Clerk_backends.C.Backend.external_copy item
       in
       let python =
         if not (List.mem Python enabled_backends) then Seq.empty
@@ -337,9 +272,6 @@ let gen_build_statements
         !Var.catala_exe
         :: (if autotest then List.map module_target modules else [])
       in
-      let implicit_out backend ext =
-        if has_scope_tests then [target ~backend ("+main." ^ ext)] else []
-      in
       let vars =
         if is_stdlib then
           Some [Var.catala_flags, [Var.(!catala_flags); "--no-stdlib"]]
@@ -347,10 +279,8 @@ let gen_build_statements
       in
       ( Clerk_backends.Ocaml.Backend.catala ?vars ~inputs ~implicit_in
           has_scope_tests,
-        Seq.return
-          (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"c" "c"]
-             ~implicit_out:(target ~backend:"c" "h" :: implicit_out "c" "c")),
+        Clerk_backends.C.Backend.catala ?vars ~inputs ~implicit_in
+          has_scope_tests,
         Seq.return
           (Nj.build "catala-python" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"python" "py"]),
@@ -367,30 +297,8 @@ let gen_build_statements
       ~item has_scope_tests
   in
   let cc =
-    Nj.build "c-object"
-      ~inputs:[target ~backend:"c" "c"]
-      ~implicit_in:
-        (target ~backend:"c" "h"
-        :: "@runtime-c"
-        :: List.map (modfile ~backend:"c" same_dir_modules "@c-module") modules
-        )
-      ~outputs:[target ~backend:"c" "o"]
-      ~vars:[Var.includes, include_flags "c"]
-    ::
-    (if has_scope_tests then
-       [
-         Nj.build "c-object"
-           ~inputs:[target ~backend:"c" "+main.c"]
-           ~implicit_in:
-             (target ~backend:"c" "h"
-             :: "@runtime-c"
-             :: List.map
-                  (modfile ~backend:"c" same_dir_modules "@c-module")
-                  modules)
-           ~outputs:[target ~backend:"c" "+main.o"]
-           ~vars:[Var.includes, include_flags "c"];
-       ]
-     else [])
+    Clerk_backends.C.Backend.build_object ~include_dirs ~same_dir_modules ~item
+      has_scope_tests
   in
   let javac =
     let java_class_path =
@@ -592,49 +500,7 @@ let runtime_build_statements ~config enabled_backends =
      Clerk_backends.Ocaml.Backend.runtime_build_statements ~stdbase
    else [])
   @ (if List.mem C enabled_backends then
-       let c_base = stdbase / "c" / "catala_runtime" in
-       let c_src = Var.(!runtime) / "c" in
-       [
-         Nj.build "phony"
-           ~inputs:
-             [
-               c_base -.- "c";
-               c_base -.- "h";
-               (c_base /../ "dates_calc") -.- "c";
-               (c_base /../ "dates_calc") -.- "h";
-             ]
-           ~outputs:["@runtime-c-src"];
-         Nj.build "phony"
-           ~inputs:
-             [
-               c_base -.- "o";
-               c_base -.- "h";
-               (c_base /../ "dates_calc") -.- "o";
-               (c_base /../ "dates_calc") -.- "h";
-               Var.(!catala_exe);
-             ]
-           ~outputs:["@runtime-c"];
-         Nj.build "copy"
-           ~inputs:[c_src / "catala_runtime.h"]
-           ~outputs:[c_base -.- "h"];
-         Nj.build "copy"
-           ~inputs:[c_src / "catala_runtime.c"]
-           ~outputs:[c_base -.- "c"];
-         Nj.build "copy"
-           ~inputs:[c_src / "dates_calc.h"]
-           ~outputs:[(c_base /../ "dates_calc") -.- "h"];
-         Nj.build "copy"
-           ~inputs:[c_src / "dates_calc.c"]
-           ~outputs:[(c_base /../ "dates_calc") -.- "c"];
-         Nj.build "c-object"
-           ~inputs:[c_base -.- "c"]
-           ~implicit_in:[c_base -.- "h"]
-           ~outputs:[c_base -.- "o"];
-         Nj.build "c-object"
-           ~inputs:[(c_base /../ "dates_calc") -.- "c"]
-           ~implicit_in:[(c_base /../ "dates_calc") -.- "h"]
-           ~outputs:[(c_base /../ "dates_calc") -.- "o"];
-       ]
+       Clerk_backends.C.Backend.runtime_build_statements ~stdbase
      else [])
   @ (if List.mem Python enabled_backends then
        let python_base = stdbase / "python" / "catala_runtime" in
