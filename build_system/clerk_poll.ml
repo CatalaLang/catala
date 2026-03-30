@@ -25,8 +25,5 @@ open Clerk_utils
     This module is sensitive to the CWD at first use. Therefore it's expected
     that [chdir] has been run beforehand to the project root. *)
 
-let python_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force Poll.runtime_dir / "python" / "src" / "catala")
-
 let java_runtime_dir : File.t Lazy.t =
   lazy File.(Lazy.force Poll.runtime_dir / "java")

@@ -96,12 +96,8 @@ let[@ocamlformat "disable"] static_base_rules ~tests enabled_backends =
   (if List.mem C enabled_backends then
     Clerk_backends.C.Backend.static_base_rules
    else []) @
-  (if List.mem Python enabled_backends then [
-      Nj.rule "catala-python"
-        ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; "python"; "⇒"; !output];
-    ] else []) @
+  (if List.mem Python enabled_backends then
+    Clerk_backends.Python.Backend.static_base_rules else []) @
   (if List.mem Java enabled_backends then [
       Nj.rule "catala-java"
         ~command:[!catala_exe; "java"; !catala_flags; !catala_flags_java;
@@ -281,9 +277,8 @@ let gen_build_statements
           has_scope_tests,
         Clerk_backends.C.Backend.catala ?vars ~inputs ~implicit_in
           has_scope_tests,
-        Seq.return
-          (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"python" "py"]),
+        Clerk_backends.Python.Backend.catala ?vars ~inputs ~implicit_in
+          has_scope_tests,
         Seq.return
           (Nj.build "catala-java" ?vars ~inputs ~implicit_in
              ~outputs:
