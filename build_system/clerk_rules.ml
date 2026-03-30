@@ -271,24 +271,7 @@ let gen_build_statements
     if item.extrnal then
       let ocaml =
         if not (List.mem OCaml enabled_backends) then Seq.empty
-        else
-          let ml, missing =
-            Ninja.extern_src ~backend:"ocaml" ~ext:"ml" ~missing:[]
-              ~filename:item.file_name
-          in
-          let mli, missing =
-            Ninja.extern_src ~backend:"ocaml" ~ext:"mli" ~missing
-              ~filename:item.file_name
-          in
-          Ninja.check_missing ~backend:"ocaml" ~missing
-            ~module_def:item.module_def ~filename:item.file_name;
-          List.to_seq
-            [
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
-                ~outputs:[target ~backend:"ocaml" "ml"];
-              Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
-                ~outputs:[target ~backend:"ocaml" "mli"];
-            ]
+        else Clerk_backends.Ocaml.Backend.external_copy item
       in
       let c =
         if not (List.mem C enabled_backends) then Seq.empty
