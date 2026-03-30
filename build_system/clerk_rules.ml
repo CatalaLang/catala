@@ -345,11 +345,8 @@ let gen_build_statements
           Some [Var.catala_flags, [Var.(!catala_flags); "--no-stdlib"]]
         else None
       in
-      ( Seq.return
-          (Nj.build "catala-ocaml" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"ocaml" "ml"]
-             ~implicit_out:
-               (target ~backend:"ocaml" "mli" :: implicit_out "ocaml" "ml")),
+      ( Clerk_backends.Ocaml.Backend.catala ?vars ~inputs ~implicit_in
+          has_scope_tests,
         Seq.return
           (Nj.build "catala-c" ?vars ~inputs ~implicit_in
              ~outputs:[target ~backend:"c" "c"]
@@ -366,65 +363,8 @@ let gen_build_statements
                ]) )
   in
   let ocamlopt =
-    let obj =
-      [
-        Nj.build "ocaml-bytobject"
-          ~inputs:[target ~backend:"ocaml" "mli"; target ~backend:"ocaml" "ml"]
-          ~implicit_in:(List.map module_target modules @ ["@runtime-cmi"])
-          ~outputs:(List.map (target ~backend:"ocaml") ["cmi"; "cmo"])
-          ~vars:
-            [
-              Var.includes, include_flags "ocaml";
-              ( Var.ocaml_flags,
-                [
-                  Var.(!ocaml_flags);
-                  "-opaque";
-                  "-w";
-                  "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
-                  "-strict-sequence";
-                  "-strict-formats";
-                  "-short-paths";
-                  "-keep-locs";
-                  "-warn-error";
-                  "-a+8";
-                  "-w";
-                  "-67";
-                  "-bin-annot";
-                  "-no-alias-deps";
-                ] );
-            ];
-        Nj.build "ocaml-natobject"
-          ~inputs:[target ~backend:"ocaml" "ml"]
-          ~implicit_in:
-            ((target ~backend:"ocaml" "cmi" :: List.map module_target modules)
-            @ ["@runtime-cmi"])
-          ~outputs:(List.map (target ~backend:"ocaml") ["cmx"; "o"])
-          ~vars:[Var.includes, include_flags "ocaml"];
-      ]
-    in
-    (match item.module_def with
-      | Some _ ->
-        obj
-        @ [
-            Nj.build "ocaml-module"
-              ~inputs:[target ~backend:"ocaml" "cmx"]
-              ~outputs:[target ~backend:"ocaml" "cmxs"];
-          ]
-      | None -> obj)
-    @
-    if has_scope_tests then
-      [
-        Nj.build "ocaml-natobject"
-          ~inputs:[target ~backend:"ocaml" "+main.ml"]
-          ~implicit_in:
-            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmx"]
-          ~outputs:
-            (List.map
-               (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
-               ["cmx"; "o"])
-          ~vars:[Var.includes, include_flags "ocaml" @ ["-w"; "-24"]];
-      ]
-    else []
+    Clerk_backends.Ocaml.Backend.build_object ~include_dirs ~same_dir_modules
+      ~item has_scope_tests
   in
   let cc =
     Nj.build "c-object"
@@ -495,7 +435,11 @@ let gen_build_statements
          [
            Nj.build "phony"
              ~outputs:[modname ^ "@ocaml-module"]
-             ~inputs:[module_target modname];
+             ~inputs:
+               [
+                 modfile ~backend:"ocaml" same_dir_modules "@ocaml-module"
+                   modname;
+               ];
          ]
        else [])
       @ (if List.mem C enabled_backends then
