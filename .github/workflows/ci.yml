@@ -295,24 +295,17 @@ jobs:
         with:
           ref: ${{ env.GIT_FETCH_REF }}
 
-      - name: Install opam and Ninja via winget
-        run: |
-          winget install --id OCaml.opam --source winget --accept-package-agreements --accept-source-agreements --silent
-          winget install --id Ninja-build.Ninja --source winget --accept-package-agreements --accept-source-agreements --silent
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.3.0"
+          opam-local-packages: catala.opam
 
-      - name: Refresh PATH from registry
-        shell: pwsh
+      - name: Pre-install conf-pkg-config
         run: |
-          $machinePath = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-          $userPath = [System.Environment]::GetEnvironmentVariable("Path","User")
-          "$machinePath;$userPath" | Out-File -FilePath $env:GITHUB_PATH -Append
-
-      - name: Initialize opam (non-interactive) and create switch
-        run: |
-          opam init --disable-sandboxing -c ocaml.5.3.0
-          # Pre-install conf-pkg-config so that mingw-w64-shims is not
-          # recompiled (to add pkgconf shims) during the parallel build of
-          # catala's dependencies, which would race on the GCC shim executable.
+          # Avoids a race: without this, opam install recompiles mingw-w64-shims
+          # (to add pkgconf shims) while building catala's deps in parallel,
+          # racing on the GCC shim executable.
           opam install conf-pkg-config
 
       - name: Build and install Catala through opam
