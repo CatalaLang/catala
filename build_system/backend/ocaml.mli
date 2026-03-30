@@ -35,4 +35,5 @@ module Backend : sig
   val static_base_rules : Ninja_utils.def list
   val runtime_dir : File.t Lazy.t
   val runtime_build_statements : stdbase:string -> Ninja_utils.def list
+  val external_copy : Scan.item -> Ninja_utils.def Seq.t
 end

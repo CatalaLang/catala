@@ -108,6 +108,28 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "ocaml")
 
+  let external_copy item =
+    let open Var in
+    let open File in
+    let catala_src = !Var.tdir / !Var.src in
+    let ml, missing =
+      Ninja.extern_src ~filename:item.Scan.file_name ~backend:"ocaml" ~ext:"ml"
+        ~missing:[]
+    in
+    let mli, missing =
+      Ninja.extern_src ~filename:item.Scan.file_name ~backend:"ocaml" ~ext:"mli"
+        ~missing
+    in
+    Ninja.check_missing ~backend:"ocaml" ~module_def:item.Scan.module_def
+      ~missing ~filename:item.file_name;
+    List.to_seq
+      [
+        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[ml]
+          ~outputs:[Ninja.target ~backend:"ocaml" "ml"];
+        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
+          ~outputs:[Ninja.target ~backend:"ocaml" "mli"];
+      ]
+
   let runtime_build_statements ~stdbase =
     let open File in
     let ocaml_src = Var.(!runtime) / "ocaml" in
