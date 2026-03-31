@@ -56,20 +56,10 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Round_rat -> Format.pp_print_string fmt ".round()"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Concat ->
     Format.pp_print_string fmt "+"
-  | Add_dat_dur rounding ->
-    Format.fprintf fmt "add_date_duration(%s)"
-      (match rounding with
-      | RoundUp -> "dates.DateRounding.RoundUp"
-      | RoundDown -> "dates.DateRounding.RoundDown"
-      | AbortOnRound -> "dates.DateRounding.AbortOnRound")
+  | Add_dat_dur _ -> Format.fprintf fmt ".__add__"
+  | Sub_dat_dur _ -> Format.fprintf fmt ".__sub__"
   | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur ->
     Format.pp_print_string fmt "-"
-  | Sub_dat_dur rounding ->
-    Format.fprintf fmt "sub_date_duration(%s)"
-      (match rounding with
-      | RoundUp -> "dates.DateRounding.RoundUp"
-      | RoundDown -> "dates.DateRounding.RoundDown"
-      | AbortOnRound -> "dates.DateRounding.AbortOnRound")
   | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat | Mult_dur_int ->
     Format.pp_print_string fmt "*"
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
@@ -213,10 +203,10 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TLit TRat -> Format.fprintf fmt "Decimal"
   | TLit TDate -> Format.fprintf fmt "Date"
   | TLit TDuration -> Format.fprintf fmt "Duration"
-  | TLit TBool -> Format.fprintf fmt "bool"
+  | TLit TBool -> Format.fprintf fmt "Bool"
   | TLit TPos -> Format.fprintf fmt "SourcePosition"
   | TTuple ts ->
-    Format.fprintf fmt "Tuple[%a]"
+    Format.fprintf fmt "CatalaTuple[%a]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
@@ -227,7 +217,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
   | TEnum e -> format_enum ctx fmt e
   | TAbstract t -> format_qualified (module AbstractType) ctx fmt t
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "Callable[[%a], %a]"
+    Format.fprintf fmt "Function [[%a], %a]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_typ_with_parens)
@@ -340,6 +330,19 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " %a@ " format_op op)
          (format_expression ctx))
       args
+  | EAppOp
+      {
+        op = ((Add_dat_dur rounding | Sub_dat_dur rounding), _) as op;
+        args = [pos; t; dt];
+        _;
+      } ->
+    Format.fprintf fmt "%a%a(%a, %s, %a)" (format_expression ctx) t format_op op
+      (format_expression ctx) dt
+      (match rounding with
+      | RoundUp -> "dates.DateRounding.RoundUp"
+      | RoundDown -> "dates.DateRounding.RoundDown"
+      | AbortOnRound -> "dates.DateRounding.AbortOnRound")
+      (format_expression ctx) pos
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
   | EAppOp
@@ -572,6 +575,11 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
          (fun ppf (fld, _ty) ->
            Format.fprintf ppf "'%a'" StructField.format fld))
       fields;
+    List.iter
+      (fun (struct_field, struct_field_type) ->
+        Format.fprintf fmt "@,%a: %a" StructField.format struct_field
+          (format_typ ctx) struct_field_type)
+      fields;
     Format.fprintf fmt "@,name = '%a'" StructName.format_original struct_name;
     Format.fprintf fmt "@,@[<v 4>fields = {";
     List.iter
@@ -581,52 +589,6 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
           struct_field (format_typ ctx) struct_field_type)
       fields;
     Format.fprintf fmt "@]@,}@]"
-    (*    Format.fprintf fmt "@[<v 4>def __init__(self, %a) -> None:@,"
-     *      (Format.pp_print_list
-     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-     *         (fun fmt (struct_field, struct_field_type) ->
-     *            Format.fprintf fmt "%a: %a" StructField.format struct_field
-     *              (format_typ ctx) struct_field_type))
-     *      fields;
-     *    if StructField.Map.is_empty struct_fields then
-     *      Format.fprintf fmt "pass"
-     *    else
-     *      Format.pp_print_list (fun fmt (struct_field, _) ->
-     *          Format.fprintf fmt "self.%a = %a" StructField.format
-     *            struct_field StructField.format struct_field)
-     *        fmt
-     *        fields;
-     *    Format.fprintf fmt "@]@,@,";
-     *    Format.fprintf fmt "\    def __eq__(self, other: object) -> bool:@,";
-     *    Format.fprintf fmt "\        if isinstance(other, %a):@,";
-     *    Format.fprintf fmt "\            return @[<hov>(%a)@]@,";
-     *    Format.fprintf fmt "\        else:@,";
-     *    Format.fprintf fmt "\            return False@,";
-     *    Format.fprintf fmt " @,";
-     *    Format.fprintf fmt "\    def __ne__(self, other: object) -> bool:@,";
-     *    Format.fprintf fmt "\        return not (self == other)@,";
-     *    Format.fprintf fmt " @,";
-     *    Format.fprintf fmt "\    def __str__(self) -> str:@,";
-     *    Format.fprintf fmt "\        @[<hov 4>return \"%a(%a)\".format(%a)@]";
-     * StructName.format struct_name
-     *      (if not (StructField.Map.is_empty struct_fields) then
-     *         Format.pp_print_list
-     *           ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-     *           (fun fmt (struct_field, _) ->
-     *             Format.fprintf fmt "self.%a == other.%a" StructField.format
-     *               struct_field StructField.format struct_field)
-     *       else fun fmt _ -> Format.fprintf fmt "True")
-     *      fields StructName.format struct_name
-     *      (Format.pp_print_list
-     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-     *         (fun fmt (struct_field, _) ->
-     *           Format.fprintf fmt "%a={}" StructField.format struct_field))
-     *      fields
-     *      (Format.pp_print_list
-     *         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-     *         (fun fmt (struct_field, _) ->
-     *           Format.fprintf fmt "self.%a" StructField.format struct_field))
-     *      fields *)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
@@ -682,15 +644,15 @@ let format_code_item ctx fmt = function
       (format_expression ctx) expr
   | SFunc { var; func; visibility = _ }
   | SScope { scope_body_var = var; scope_body_func = func; _ } ->
-    let { Ast.func_params; Ast.func_body; _ } = func in
-    Format.fprintf fmt "@[<v 4>@[<hov 2>def %a(@,%a@;<0 -2>):@]@ %a@]@,"
+    Format.fprintf fmt "@[<v 4>@[<hov 2>def %a(@,%a@;<0 -2>) -> %a:@]@ %a@]@,"
       format_func_name var
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a:%a" VarName.format (Mark.remove var)
              (format_typ ctx) typ))
-      func_params (format_block ctx) func_body
+      func.func_params (format_typ ctx) func.func_return_typ (format_block ctx)
+      func.func_body
 
 let format_tests ctx ppf (p : Ast.program) =
   let closures, tests = p.tests in
