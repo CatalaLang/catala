@@ -95,6 +95,55 @@ module Backend = struct
             ];
       ]
 
+  let runtime_build_statements ~options ~stdbase =
+    let java_base = stdbase / "java" in
+    let java_src = Var.(!runtime) / "java" in
+    let runtime_orig =
+      match
+        List.assoc_opt
+          Var.(name runtime)
+          options.Clerk_lib.Clerk_config.variables
+      with
+      | Some r -> lazy (String.concat " " r)
+      | None -> Poll.runtime_dir
+    in
+    let java_orig_prefix = Lazy.force runtime_orig / "java" in
+    let java_files =
+      File.scan_tree
+        (fun f ->
+          let base = File.basename f in
+          if
+            Filename.check_suffix base ".java"
+            && base = String.capitalize_ascii base
+          then Some (File.remove_prefix java_orig_prefix f)
+          else None)
+        java_orig_prefix
+      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+      |> Seq.map (File.remove_prefix java_src)
+      |> List.of_seq
+    in
+    let java_list_file =
+      let base = options.global.build_dir / Scan.libcatala / "java" in
+      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
+          List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
+      java_base / "java.files"
+    in
+    Nj.build "phony"
+      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
+      ~outputs:["@runtime-java-src"]
+    :: Nj.build "phony"
+         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+         ~outputs:["@runtime-java"]
+    :: Nj.build "java-class" ~inputs:[]
+         ~implicit_in:
+           (java_list_file :: List.map (fun f -> java_base / f) java_files)
+         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
+         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+    :: List.map
+         (fun f ->
+           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+         java_files
+
   let catala ?vars ~is_stdlib ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-java" ?vars ~inputs ~implicit_in

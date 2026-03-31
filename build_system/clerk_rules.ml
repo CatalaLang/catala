@@ -384,14 +384,6 @@ let dir_test_rules dir subdirs items =
 let runtime_build_statements ~config enabled_backends =
   let open File in
   let stdbase = Var.(!builddir) / Scan.libcatala in
-  let runtime_orig =
-    (* content of the variable [Var.(!runtime)] *)
-    match
-      List.assoc_opt Var.(name runtime) config.Clerk_cli.options.variables
-    with
-    | Some r -> lazy (String.concat " " r)
-    | None -> Poll.runtime_dir
-  in
   let options = config.Clerk_lib.Clerk_cli.options in
   (if List.mem OCaml enabled_backends then
      Clerk_backends.Ocaml.Backend.runtime_build_statements ~options ~stdbase
@@ -404,46 +396,7 @@ let runtime_build_statements ~config enabled_backends =
      else [])
   @
   if List.mem Java enabled_backends then
-    let java_base = stdbase / "java" in
-    let java_src = Var.(!runtime) / "java" in
-    let java_orig_prefix = Lazy.force runtime_orig / "java" in
-    let java_files =
-      File.scan_tree
-        (fun f ->
-          let base = File.basename f in
-          if
-            Filename.check_suffix base ".java"
-            && base = String.capitalize_ascii base
-          then Some (File.remove_prefix java_orig_prefix f)
-          else None)
-        java_orig_prefix
-      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
-      |> Seq.map (File.remove_prefix java_src)
-      |> List.of_seq
-    in
-    let java_list_file =
-      let base =
-        config.Clerk_cli.options.global.build_dir / Scan.libcatala / "java"
-      in
-      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
-          List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
-      java_base / "java.files"
-    in
-    Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@runtime-java-src"]
-    :: Nj.build "phony"
-         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@runtime-java"]
-    :: Nj.build "java-class" ~inputs:[]
-         ~implicit_in:
-           (java_list_file :: List.map (fun f -> java_base / f) java_files)
-         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
-    :: List.map
-         (fun f ->
-           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
-         java_files
+    Clerk_backends.Java.Backend.runtime_build_statements ~options ~stdbase
   else []
 
 let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
