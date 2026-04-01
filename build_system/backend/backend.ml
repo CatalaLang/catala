@@ -54,5 +54,10 @@ module type S = sig
     bool ->
     Ninja_utils.def Seq.t
 
+  val expose_module :
+    same_dir_modules:(string * string) list ->
+    used_modules:string list ->
+    Ninja_utils.def list
+
   val runtime_dir : File.t Lazy.t
 end

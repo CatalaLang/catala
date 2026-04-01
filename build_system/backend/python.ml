@@ -97,6 +97,8 @@ module Backend = struct
       =
     Seq.empty
 
+  let expose_module ~same_dir_modules:_ ~used_modules:_ = []
+
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "python" / "src" / "catala")
 end

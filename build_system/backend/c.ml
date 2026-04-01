@@ -184,6 +184,14 @@ module Backend = struct
     in
     List.to_seq obj
 
+  let expose_module ~same_dir_modules ~used_modules =
+    [
+      Nj.build "phony"
+        ~inputs:[Ninja.target ~backend:"c" "h"]
+        ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
+        ~outputs:[Ninja.target ~backend:"c" "@c-module"];
+    ]
+
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "c")
 end
