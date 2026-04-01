@@ -376,12 +376,6 @@ class Bool(Value):
     def __bool__(self) -> bool:
         return self.value
 
-    def __and__(self, other) -> Bool:
-        return Bool(self.value and other.value)
-
-    def __or__(self, other) -> Bool:
-        return Bool(self.value or other.value)
-
     def not_(self) -> Bool:
         return Bool(not self.value)
 
@@ -403,7 +397,7 @@ class Integer(Value, int): #type:ignore[misc]
             return super().__new__(cls, value)
 
     def __truediv__(self, other: Integer, pos: SourcePosition | None = None) -> Decimal: #type:ignore[override]
-        return Decimal(self) / Decimal(other)
+        return Decimal(self).__truediv__(Decimal(other), pos)
 
     def __repr__(self) -> str:
         return f"Integer({int(self)})"
@@ -419,7 +413,7 @@ class Decimal(Value, Fraction): #type:ignore[misc]
             frac = Fraction(numerator=value, denominator=100)
         else:
             frac = Fraction(*[value, *args])
-        obj = object().__new__(cls)
+        obj = object.__new__(cls)
         object.__setattr__(obj, '_numerator', frac.numerator)
         object.__setattr__(obj, '_denominator', frac.denominator)
         return obj
@@ -570,7 +564,7 @@ class Duration(Value):
             self.value.months != 0 or other.value.months != 0):
             raise DateError(pos, note="dividing durations that are not in days")
         else:
-            return Decimal(self.value.days) / Decimal(other.value.days)
+            return Decimal(self.value.days).__truediv__(Decimal(other.value.days), pos)
 
     def __mul__(self: Duration, rhs: Integer) -> Duration:
         return Duration(self.value * rhs)
@@ -717,10 +711,12 @@ class InputIO(Enum):
 
 
 class LogIO(Value):
-    def __init__(self, input_io: InputIO, output_io: bool):
-        self.input_io = input_io
-        self.output_io = output_io
+    __slots__ = ( 'input_io', 'output_io' )
+    input_io: InputIO
+    output_io: bool
 
+    def __new__(cls, input_io: InputIO, output_io: bool):
+        return super().__new__(cls, input_io=input_io, output_io=output_io)
 
 class LogEvent:
     def __init__(self, code: LogEventCode, io: Option[LogIO], payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:

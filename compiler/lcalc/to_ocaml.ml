@@ -427,11 +427,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
           x format_typ tau format_with_parens arg)
       fmt xs_tau_arg;
     Format.pp_print_cut fmt ();
-    (* (match body with
-     *  | EApp { f = EAbs _, _; _ }, _ -> *)
     format_expr fmt body;
     Format.pp_close_box fmt ()
-    (* | _ -> format_with_parens fmt body) *)
   | EAbs { binder; pos = _; tys } ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in

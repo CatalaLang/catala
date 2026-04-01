@@ -16,6 +16,13 @@
 
 open Shared_ast
 
+(** This modules does the following:
+    - Insert the implicit position arguments of operators designated by
+      [op_needs_pos] as reified position expressions
+    - Lift all the reified positions from the program into a leading toplevel
+      definition that contains a big array of positions
+    - All uses of positions are replaced by array accesses within that. *)
+
 val process_program :
   op_needs_pos:(lcalc Operator.t -> naked_typ -> bool) ->
   typed Ast.program ->

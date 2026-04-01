@@ -218,14 +218,17 @@ from . import Decimal_en as decimal_en
 
 class A(CatalaStruct):
     __slots__ = ('y', 'z')
+    y: Bool
+    z: Decimal
     name = 'A'
     fields = {
-        'y': 'y', # content bool
+        'y': 'y', # content Bool
         'z': 'z', # content Decimal
     }
 
 class S2(CatalaStruct):
     __slots__ = ('a')
+    a: Decimal
     name = 'S2'
     fields = {
         'a': 'a', # content Decimal
@@ -233,6 +236,7 @@ class S2(CatalaStruct):
 
 class S3(CatalaStruct):
     __slots__ = ('a')
+    a: Decimal
     name = 'S3'
     fields = {
         'a': 'a', # content Decimal
@@ -240,6 +244,7 @@ class S3(CatalaStruct):
 
 class S4(CatalaStruct):
     __slots__ = ('a')
+    a: Decimal
     name = 'S4'
     fields = {
         'a': 'a', # content Decimal
@@ -247,6 +252,8 @@ class S4(CatalaStruct):
 
 class S(CatalaStruct):
     __slots__ = ('a', 'b')
+    a: Decimal
+    b: A
     name = 'S'
     fields = {
         'a': 'a', # content Decimal
@@ -291,13 +298,13 @@ loc = (Array([SourcePosition(filename="tests/name_resolution/good/toplevel_defs.
 
 glob1 = (Decimal('1103/25'))
 
-def glob3(x:Money):
+def glob3(x:Money) -> Decimal:
     return (Decimal(x) + Decimal('10'))
 
-def glob4(x:Money, y:Decimal):
+def glob4(x:Money, y:Decimal) -> Decimal:
     return ((Decimal(x) * y) + Decimal('10'))
 
-def glob5_init():
+def glob5_init() -> Decimal:
     x = ((Decimal(Integer(2)) * Decimal('3')))
     y = (Decimal('1000'))
     return (x * y)
@@ -306,7 +313,7 @@ glob5 = (glob5_init())
 
 glob2 = (A(y = (glob1 >= Decimal('30')), z = (Decimal('123') * Decimal('17'))))
 
-def s2(s2_in:S2In):
+def s2(s2_in:S2In) -> S2:
     a__1 = (Option(CatalaTuple((glob3(Money('44.00')) + Decimal('100')), loc[5])))
     if a__1.value is not None:
         a = (a__1.value[0])
@@ -314,7 +321,7 @@ def s2(s2_in:S2In):
         raise NoValue(loc[4])
     return S2(a = a)
 
-def s3(s3_in:S3In):
+def s3(s3_in:S3In) -> S3:
     a__1 = (Option(CatalaTuple((Decimal('50') + glob4(Money('44.00'), Decimal('55'))), loc[7])))
     if a__1.value is not None:
         a = (a__1.value[0])
@@ -322,7 +329,7 @@ def s3(s3_in:S3In):
         raise NoValue(loc[6])
     return S3(a = a)
 
-def s4(s4_in:S4In):
+def s4(s4_in:S4In) -> S4:
     a__1 = (Option(CatalaTuple((glob5 + Decimal('1')), loc[9])))
     if a__1.value is not None:
         a = (a__1.value[0])
@@ -330,7 +337,7 @@ def s4(s4_in:S4In):
         raise NoValue(loc[8])
     return S4(a = a)
 
-def s(s_in:SIn):
+def s(s_in:SIn) -> S:
     a__1 = (Option(CatalaTuple((glob1 * glob1), loc[2])))
     if a__1.value is not None:
         a = (a__1.value[0])

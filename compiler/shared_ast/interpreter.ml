@@ -69,13 +69,6 @@ let print_log ppf _lang level entry =
       "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
     level
 
-(* let enum_rtype ctx name =
- *   let constrs = EnumName.Map.find name ctx.ctx_enums in
- *   Runtime.Enum {
- *     name = EnumName.to_string name;
- *     constr = fun e ->
- *   EnumConstructor.Map.find *)
-
 let handle_eq ctx pos e1 e2 =
   Runtime.Value.equal (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
     (Expr.embed_value ctx e2)
@@ -346,14 +339,13 @@ let rec runtime_to_val : type d r.
     =
  fun ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
-  let cast :
-      type (* The OCaml typer can't know if we are retrieving dcalc or lcalc
-              terms, so we require this additional cast on e.g. default terms *)
-      a b a2 b2.
-      ((a, b, 'c) interpr_kind, 'm) gexpr ->
-      ((a2, b2, 'c) interpr_kind, 'm) gexpr =
-    Obj.magic
-  in
+  let open struct
+    (* The OCaml typer can't know if we are retrieving dcalc or lcalc terms, so
+       we require this additional cast on e.g. default terms *)
+    external cast :
+      (('d, 'r, 'c) interpr_kind, 't) gexpr ->
+      (('d2, 'r2, 'c) interpr_kind, 't) gexpr = "%identity"
+  end in
   match Mark.remove ty with
   | TLit TBool -> ELit (LBool (Obj.obj o)), m
   | TLit TUnit -> ELit LUnit, m

@@ -1112,21 +1112,6 @@ let detuplify_application args tys mkapp =
         arg (mkapp args) (pos arg))
   | args, _ -> mkapp args
 
-(* let type_to_runtime t = let module V = Catala_runtime.Value in let fail () =
-   invalid_arg "Type.to_runtime" in match Mark.remove t with | TLit TUnit ->
-   (function ELit LUnit, _ -> V.V (Unit, ()) | _ -> fail ()) | TLit TBool ->
-   (function ELit (LBool b), _ -> V.V (Bool, b) | _ -> fail ()) | TLit TInt ->
-   (function ELit LInt v, _ -> V.V (Integer, v) | _ -> fail ()) | TLit TMoney ->
-   (function ELit LMoney v, _ -> V.V (Money, v) | _ -> fail ()) | TLit TRat ->
-   (function ELit LRat v, _ -> V.V (Decimal, v) | _ -> fail ()) | TLit TDate ->
-   (function ELit LDate v, _ -> V.V (Date, v) | _ -> fail ()) | TLit TDuration
-   -> (function ELit LDuration v, _ -> V.V (Duration, v) | _ -> fail ()) | TLit
-   TPos -> (function EPos v, _ -> V.V (Position, pos_to_runtime v) | _ -> fail
-   ()) | TArray t -> (function EArray el, _ -> V.V V.V (Array value_to_runtime,
-   Array.of_list el) | TTuple _, ETuple el -> V.V (Tuple (List.map
-   value_to_runtime), el) | TStruct name, EStruct { fields; _ } -> V.V (Struct {
-   name = StructName.to_string name; fields = *)
-
 let rec embed_value : type a.
     decl_ctx -> (a, 'm) gexpr -> Catala_runtime.Value.t =
  fun ctx e ->

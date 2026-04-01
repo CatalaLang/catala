@@ -195,9 +195,10 @@ class E(CatalaEnum):
 
 class S(CatalaStruct):
     __slots__ = ('o')
+    o: Bool
     name = 'S'
     fields = {
-        'o': 'o', # content bool
+        'o': 'o', # content Bool
     }
 
 class SIn(CatalaStruct):
@@ -212,7 +213,7 @@ loc = (Array([SourcePosition(filename="tests/backends/python_enum.catala_en", st
               SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=23, end_line=117, end_column=41, law_headings=[]),
               SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[])]))
 
-def s(s_in:SIn):
+def s(s_in:SIn) -> S:
     o__2 = (Option(CatalaTuple(E(E.Code.UUUUUUU, Unit()).__eq__(E(E.Code.XXXXXXXX, Unit()), loc[2]), loc[2])))
     if o__2.value is not None:
         o__1 = (Option(o__2.value))
@@ -226,7 +227,7 @@ def s(s_in:SIn):
         raise AssertionFailed(loc[3])
     return S(o = o)
 
-def f(x:Integer):
+def f(x:Integer) -> E:
     if (x == Integer(1)):
         f__1 = (E(E.Code.AAAAAAAA, Unit()))
     elif (x == Integer(2)):

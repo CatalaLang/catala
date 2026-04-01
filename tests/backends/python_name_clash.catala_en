@@ -37,6 +37,7 @@ from . import Decimal_en as decimal_en
 
 class SomeName(CatalaStruct):
     __slots__ = ('o')
+    o: Integer
     name = 'SomeNâme'
     fields = {
         'o': 'o', # content Integer
@@ -44,6 +45,7 @@ class SomeName(CatalaStruct):
 
 class B(CatalaStruct):
     __slots__ = ('some_name')
+    some_name: SomeName
     name = 'B'
     fields = {
         'some_name': 'some_nâme', # content SomeName
@@ -57,6 +59,7 @@ class BIn(CatalaStruct):
 
 class SomeNameIn(CatalaStruct):
     __slots__ = ('i_in')
+    i_in: Integer
     name = 'SomeNâme_in'
     fields = {
         'i_in': 'i_in', # content Integer
@@ -68,7 +71,7 @@ loc = (Array([SourcePosition(filename="tests/backends/python_name_clash.catala_e
               SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=14, end_line=17, end_column=25, law_headings=[]),
               SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=33, end_line=17, end_column=34, law_headings=[])]))
 
-def some_name(some_name_in:SomeNameIn):
+def some_name(some_name_in:SomeNameIn) -> SomeName:
     i = (some_name_in.i_in)
     o__1 = (Option(CatalaTuple((i + Integer(1)), loc[1])))
     if o__1.value is not None:
@@ -77,7 +80,7 @@ def some_name(some_name_in:SomeNameIn):
         raise NoValue(loc[0])
     return SomeName(o = o)
 
-def b(b_in:BIn):
+def b(b_in:BIn) -> B:
     result__2 = (Option(CatalaTuple(Integer(1), loc[3])))
     if result__2.value is not None:
         result__1 = (result__2.value[0])

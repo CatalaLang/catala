@@ -579,7 +579,7 @@ let rec format_statement
     (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
     if size <= 16 then
-      (* The C standard allows up to 127 arguments, but let's not be g*)
+      (* The C standard allows up to 127 arguments, but let's not be greedy *)
       Format.fprintf fmt "@,@[<hv 2>catala_set_array(%a, %d%a);@]"
         VarName.format v size
         (Format.pp_print_list
