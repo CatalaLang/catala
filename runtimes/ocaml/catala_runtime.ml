@@ -341,8 +341,8 @@ module Value = struct
   and equal_values : type a. a ty -> code_location -> a -> a -> bool =
    fun ty pos x1 x2 ->
     match ty with
-    | Unit -> true
     | Bool -> Bool.equal x1 x2
+    | Unit -> true
     | Integer -> Z.equal x1 x2
     | Money -> Z.equal x1 x2
     | Decimal -> Q.equal x1 x2
