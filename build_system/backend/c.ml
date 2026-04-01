@@ -161,23 +161,28 @@ module Backend = struct
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (module_target same_dir_modules) modules in
-    Nj.build "c-object"
-      ~inputs:[Ninja.target ~backend:"c" "c"]
-      ~implicit_in:
-        (Ninja.target ~backend:"c" "h" :: "@runtime-c" :: implicit_modules)
-      ~outputs:[Ninja.target ~backend:"c" "o"]
-      ~vars:[Var.includes, includes include_dirs]
-    ::
-    (if has_scope_tests then
-       [
-         Nj.build "c-object"
-           ~inputs:[Ninja.target ~backend:"c" "+main.c"]
-           ~implicit_in:
-             (Ninja.target ~backend:"c" "h" :: "@runtime-c" :: implicit_modules)
-           ~outputs:[Ninja.target ~backend:"c" "+main.o"]
-           ~vars:[Var.includes, includes include_dirs];
-       ]
-     else [])
+    let obj =
+      Nj.build "c-object"
+        ~inputs:[Ninja.target ~backend:"c" "c"]
+        ~implicit_in:
+          (Ninja.target ~backend:"c" "h" :: "@runtime-c" :: implicit_modules)
+        ~outputs:[Ninja.target ~backend:"c" "o"]
+        ~vars:[Var.includes, includes include_dirs]
+      ::
+      (if has_scope_tests then
+         [
+           Nj.build "c-object"
+             ~inputs:[Ninja.target ~backend:"c" "+main.c"]
+             ~implicit_in:
+               (Ninja.target ~backend:"c" "h"
+               :: "@runtime-c"
+               :: implicit_modules)
+             ~outputs:[Ninja.target ~backend:"c" "+main.o"]
+             ~vars:[Var.includes, includes include_dirs];
+         ]
+       else [])
+    in
+    List.to_seq obj
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "c")

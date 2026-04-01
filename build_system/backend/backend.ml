@@ -52,7 +52,7 @@ module type S = sig
     same_dir_modules:(string * string) list ->
     item:Scan.item ->
     bool ->
-    Ninja_utils.def list
+    Ninja_utils.def Seq.t
 
   val runtime_dir : File.t Lazy.t
 end

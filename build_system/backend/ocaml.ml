@@ -262,27 +262,30 @@ module Backend = struct
           ~vars:[Var.includes, includes include_dirs];
       ]
     in
-    (match item.module_def with
-      | Some _ ->
-        obj
-        @ [
-            Nj.build "ocaml-module"
-              ~inputs:[target ~backend:"ocaml" "cmx"]
-              ~outputs:[target ~backend:"ocaml" "cmxs"];
-          ]
-      | None -> obj)
-    @
-    if has_scope_tests then
-      [
-        Nj.build "ocaml-natobject"
-          ~inputs:[target ~backend:"ocaml" "+main.ml"]
-          ~implicit_in:
-            [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmx"]
-          ~outputs:
-            (List.map
-               (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
-               ["cmx"; "o"])
-          ~vars:[Var.includes, includes include_dirs @ ["-w"; "-24"]];
-      ]
-    else []
+    let obj =
+      (match item.module_def with
+        | Some _ ->
+          obj
+          @ [
+              Nj.build "ocaml-module"
+                ~inputs:[target ~backend:"ocaml" "cmx"]
+                ~outputs:[target ~backend:"ocaml" "cmxs"];
+            ]
+        | None -> obj)
+      @
+      if has_scope_tests then
+        [
+          Nj.build "ocaml-natobject"
+            ~inputs:[target ~backend:"ocaml" "+main.ml"]
+            ~implicit_in:
+              [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmx"]
+            ~outputs:
+              (List.map
+                 (fun ext -> target ~backend:"ocaml" ("+main." ^ ext))
+                 ["cmx"; "o"])
+            ~vars:[Var.includes, includes include_dirs @ ["-w"; "-24"]];
+        ]
+      else []
+    in
+    List.to_seq obj
 end
