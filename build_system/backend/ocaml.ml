@@ -109,6 +109,8 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "ocaml")
 
+  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:"ocaml"
+
   let external_copy item =
     let open Var in
     let open File in

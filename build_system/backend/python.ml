@@ -70,6 +70,8 @@ module Backend = struct
           ~outputs:[Ninja.target ~backend:"python" "py"];
       ]
 
+  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:"python"
+
   let runtime_build_statements ~options:_ ~stdbase =
     let python_base = stdbase / "python" / "catala_runtime" in
     let python_src = Var.(!runtime) / "python" / "src" / "catala" in

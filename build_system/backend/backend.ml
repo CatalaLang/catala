@@ -29,6 +29,9 @@ module type S = sig
       (Var.t * string list) list
   end
 
+  val modfile :
+    is_stdlib:bool -> (string * string) list -> string -> string -> string
+
   val static_base_rules : Ninja_utils.def list
 
   val runtime_build_statements :
