@@ -87,6 +87,12 @@ let runtime_build_statements = function
   | Python -> Clerk_backends.Python.Backend.runtime_build_statements
   | Java -> Clerk_backends.Java.Backend.runtime_build_statements
 
+let expose_module = function
+  | OCaml -> Clerk_backends.Ocaml.Backend.expose_module
+  | C -> Clerk_backends.C.Backend.expose_module
+  | Python -> Clerk_backends.Python.Backend.expose_module
+  | Java -> Clerk_backends.Java.Backend.expose_module
+
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
   let test_flags = config.Clerk_cli.test_flags in
@@ -132,7 +138,6 @@ let gen_build_statements
     ~is_stdlib
     (item : Scan.item) : Nj.ninja =
   let open File in
-  let open Ninja in
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
   let dir = dirname src in
@@ -144,7 +149,7 @@ let gen_build_statements
   in
   let modules = List.rev_map Mark.remove item.used_modules in
   let module_target x =
-    modfile ~backend:"ocaml" same_dir_modules "@ocaml-module" x
+    Ninja.modfile ~backend:"ocaml" same_dir_modules "@ocaml-module" x
   in
   let catala_src = !Var.tdir / !Var.src in
   let include_deps =
@@ -167,30 +172,9 @@ let gen_build_statements
     match item.module_def with
     | None -> []
     | Some _ ->
-      (if List.mem OCaml enabled_backends then
-         [
-           Nj.build "phony"
-             ~inputs:
-               [target ~backend:"ocaml" "cmi"; target ~backend:"ocaml" "cmxs"]
-             ~implicit_in:
-               (List.map
-                  (modfile ~backend:"ocaml" same_dir_modules "@ocaml-module")
-                  modules)
-             ~outputs:[target ~backend:"ocaml" "@ocaml-module"];
-         ]
-       else [])
-      @
-      if List.mem C enabled_backends then
-        [
-          Nj.build "phony"
-            ~inputs:[target ~backend:"c" "h"]
-            ~implicit_in:
-              (List.map
-                 (modfile ~backend:"c" same_dir_modules "@c-module")
-                 modules)
-            ~outputs:[target ~backend:"c" "@c-module"];
-        ]
-      else []
+      List.concat_map
+        (expose_module ~same_dir_modules ~used_modules:modules)
+        enabled_backends
   in
   let has_scope_tests = Lazy.force item.has_scope_tests in
   let backend_sources =
@@ -258,7 +242,8 @@ let gen_build_statements
           ~implicit_in:
             (!Var.clerk_exe
             :: List.map
-                 (modfile ~backend:"ocaml" same_dir_modules "@ocaml-module")
+                 (Ninja.modfile ~backend:"ocaml" same_dir_modules
+                    "@ocaml-module")
                  modules)
           ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
       ]

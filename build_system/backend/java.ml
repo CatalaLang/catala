@@ -183,6 +183,8 @@ module Backend = struct
            ]
          ~vars:[Var.class_path, [java_class_path]])
 
+  let expose_module ~same_dir_modules:_ ~used_modules:_ = []
+
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "java")
 end
