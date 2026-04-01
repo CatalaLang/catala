@@ -17,10 +17,10 @@
 
 open Clerk_utils
 open Catala_utils
+open Var
+open File
 
 module Backend = struct
-  open Var
-  open File
   module Nj = Ninja_utils
 
   let stdlib_target ext =

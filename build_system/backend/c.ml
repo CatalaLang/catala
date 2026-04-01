@@ -150,6 +150,8 @@ module Backend = struct
          ~outputs:[Ninja.target ~backend:"c" "c"]
          ~implicit_out:(Ninja.target ~backend:"c" "h" :: implicit_out))
 
+  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:"c"
+
   let module_target same_dir_modules =
     Ninja.modfile ~backend:"c" same_dir_modules "@c-module"
 
