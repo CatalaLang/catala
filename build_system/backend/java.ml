@@ -168,21 +168,20 @@ module Backend = struct
     let module_target =
       modfile ~is_stdlib:item.is_stdlib same_dir_modules ".class"
     in
-    [
-      Nj.build "java-class"
-        ~inputs:
-          [
-            (if item.is_stdlib then stdlib_target "java"
-             else Ninja.target ~backend:"java" "java");
-          ]
-        ~implicit_in:("@runtime-java" :: List.map module_target modules)
-        ~outputs:
-          [
-            (if item.is_stdlib then stdlib_target "class"
-             else Ninja.target ~backend:"java" "class");
-          ]
-        ~vars:[Var.class_path, [java_class_path]];
-    ]
+    Seq.return
+      (Nj.build "java-class"
+         ~inputs:
+           [
+             (if item.is_stdlib then stdlib_target "java"
+              else Ninja.target ~backend:"java" "java");
+           ]
+         ~implicit_in:("@runtime-java" :: List.map module_target modules)
+         ~outputs:
+           [
+             (if item.is_stdlib then stdlib_target "class"
+              else Ninja.target ~backend:"java" "class");
+           ]
+         ~vars:[Var.class_path, [java_class_path]])
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / "java")
