@@ -85,7 +85,7 @@ module Backend = struct
         ~outputs:[python_base -.- "py"];
     ]
 
-  let catala ?vars ~inputs ~implicit_in _has_scope_tests =
+  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
          ~outputs:[Ninja.target ~backend:"python" "py"])

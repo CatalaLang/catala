@@ -204,7 +204,7 @@ module Backend = struct
         ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
     ]
 
-  let catala ?vars ~inputs ~implicit_in has_scope_tests =
+  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
       if has_scope_tests then [Ninja.target ~backend:"ocaml" "+main.ml"] else []
     in

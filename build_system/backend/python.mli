@@ -16,7 +16,6 @@
    the License. *)
 
 open Clerk_utils
-open Catala_utils
 
 module Flags : sig
   val default :
@@ -28,27 +27,4 @@ module Flags : sig
     (Var.t * string list) list
 end
 
-module Backend : sig
-  val static_base_rules : Ninja_utils.def list
-
-  val runtime_build_statements :
-    options:Clerk_lib.Clerk_config.t -> stdbase:string -> Ninja_utils.def list
-
-  val external_copy : Scan.item -> Ninja_utils.def Seq.t
-
-  val catala :
-    ?vars:(Var.t * Ninja_utils.Expr.t) list ->
-    inputs:Ninja_utils.Expr.t ->
-    implicit_in:Ninja_utils.Expr.t ->
-    bool ->
-    Ninja_utils.def Seq.t
-
-  val build_object :
-    include_dirs:string list ->
-    same_dir_modules:(string * string) list ->
-    item:Scan.item ->
-    bool ->
-    Ninja_utils.def list
-
-  val runtime_dir : File.t Lazy.t
-end
+module Backend : Backend.S

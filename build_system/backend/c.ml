@@ -137,7 +137,7 @@ module Backend = struct
         ~outputs:[(c_base /../ "dates_calc") -.- "o"];
     ]
 
-  let catala ?vars ~inputs ~implicit_in has_scope_tests =
+  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
       if has_scope_tests then [Ninja.target ~backend:"c" "+main.c"] else []
     in
