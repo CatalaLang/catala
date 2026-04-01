@@ -22,12 +22,9 @@ module Nj = Ninja_utils
 
 (**{1 Building rules}*)
 
-type backend = OCaml | Python | C | Java (* | JS *)
-type backend_module = (module Clerk_backends.Backend.S)
+type backend = (module Clerk_backends.Backend.S)
 
-let all_backends = [OCaml; Python; C; Java]
-
-let all_backends_module : backend_module list =
+let all_backends : backend list =
   [
     (module Clerk_backends.Ocaml.Backend);
     (module Clerk_backends.C.Backend);
@@ -35,17 +32,15 @@ let all_backends_module : backend_module list =
     (module Clerk_backends.Python.Backend);
   ]
 
-let backend_module_from_backend = function
-  | OCaml -> (module Clerk_backends.Ocaml.Backend : Clerk_backends.Backend.S)
-  | Python -> (module Clerk_backends.Python.Backend : Clerk_backends.Backend.S)
-  | C -> (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
-  | Java -> (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
-
 let backend_from_config = function
-  | Clerk_config.OCaml -> OCaml
-  | Clerk_config.Python -> Python
-  | Clerk_config.C -> C
-  | Clerk_config.Java -> Java
+  | Clerk_config.OCaml ->
+    (module Clerk_backends.Ocaml.Backend : Clerk_backends.Backend.S)
+  | Clerk_config.Python ->
+    (module Clerk_backends.Python.Backend : Clerk_backends.Backend.S)
+  | Clerk_config.C ->
+    (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
+  | Clerk_config.Java ->
+    (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
   | _ -> invalid_arg __FUNCTION__
 
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
@@ -509,7 +504,7 @@ let run_ninja
     ?(include_dir = true)
     ~config
     ?(tests = false)
-    ?(enabled_backends = all_backends_module)
+    ?(enabled_backends = all_backends)
     ~quiet
     ~code_coverage
     ~autotest
