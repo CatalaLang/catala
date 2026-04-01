@@ -18,47 +18,51 @@
 open Clerk_utils
 open Catala_utils
 
-module Flags = struct
-  let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
-    let open Common.Flags in
-    let catala_flags_c =
-      (if autotest then ["--autotest"] else [])
-      @
-      if use_default_flags then ["-O"]
-      else
-        List.filter
-          (function "-O" | "--optimize" -> true | _ -> false)
-          test_flags
-    in
-    let def = def ~variables in
-    [
-      def Var.catala_flags_c (lazy catala_flags_c);
-      def Var.cc_exe (lazy ["cc"]);
-      def Var.c_flags
-        (lazy
-          [
-            "-std=c89";
-            "-pedantic";
-            "-Wall";
-            "-Wno-unused-function";
-            "-Wno-unused-variable";
-            "-Wno-unused-but-set-variable";
-            "-Werror";
-            "-fPIC";
-            "-g";
-          ]);
-      def Var.c_include
-        (lazy
-          (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ Common.Flags.includes ~backend:"c" include_dirs));
-    ]
-end
-
 module Backend = struct
   open Var
   open File
   module Nj = Ninja_utils
+
+  module Flags = struct
+    let default
+        ~variables
+        ~autotest
+        ~use_default_flags
+        ~test_flags
+        ~include_dirs =
+      let open Common.Flags in
+      let catala_flags_c =
+        (if autotest then ["--autotest"] else [])
+        @
+        if use_default_flags then ["-O"]
+        else
+          List.filter
+            (function "-O" | "--optimize" -> true | _ -> false)
+            test_flags
+      in
+      let def = def ~variables in
+      [
+        def Var.catala_flags_c (lazy catala_flags_c);
+        def Var.cc_exe (lazy ["cc"]);
+        def Var.c_flags
+          (lazy
+            [
+              "-std=c89";
+              "-pedantic";
+              "-Wall";
+              "-Wno-unused-function";
+              "-Wno-unused-variable";
+              "-Wno-unused-but-set-variable";
+              "-Werror";
+              "-fPIC";
+              "-g";
+            ]);
+        def Var.c_include
+          (lazy
+            (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
+            @ Common.Flags.includes ~backend:"c" include_dirs));
+      ]
+  end
 
   let[@ocamlformat "disable"] static_base_rules =
   [

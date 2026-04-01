@@ -19,6 +19,16 @@ open Clerk_utils
 open Catala_utils
 
 module type S = sig
+  module Flags : sig
+    val default :
+      variables:(string * string list) list ->
+      autotest:bool ->
+      use_default_flags:bool ->
+      test_flags:string list ->
+      include_dirs:string list ->
+      (Var.t * string list) list
+  end
+
   val static_base_rules : Ninja_utils.def list
 
   val runtime_build_statements :
