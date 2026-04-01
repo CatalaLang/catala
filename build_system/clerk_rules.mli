@@ -17,27 +17,23 @@
 
 open Clerk_utils
 
-type backend = OCaml | Python | C | Java
-type backend_module = (module Clerk_backends.Backend.S)
+type backend = (module Clerk_backends.Backend.S)
 
 val all_backends : backend list
-val all_backends_module : backend_module list
 val backend_from_config : Clerk_config.backend -> backend
 
 val base_bindings :
   code_coverage:bool ->
   autotest:bool ->
-  enabled_backends:backend_module list ->
+  enabled_backends:backend list ->
   config:Clerk_cli.config ->
   (Var.t * string list) list
-
-val backend_module_from_backend : backend -> backend_module
 
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
-  ?enabled_backends:backend_module list ->
+  ?enabled_backends:backend list ->
   quiet:bool ->
   code_coverage:bool ->
   autotest:bool ->
