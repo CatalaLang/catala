@@ -199,12 +199,12 @@ let gen_build_statements
           Some [Var.catala_flags, [Var.(!catala_flags); "--no-stdlib"]]
         else None
       in
-      ( Clerk_backends.Ocaml.Backend.catala ?vars ~inputs ~implicit_in
+      ( Clerk_backends.Ocaml.Backend.catala ?vars ~is_stdlib ~inputs
+          ~implicit_in has_scope_tests,
+        Clerk_backends.C.Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in
           has_scope_tests,
-        Clerk_backends.C.Backend.catala ?vars ~inputs ~implicit_in
-          has_scope_tests,
-        Clerk_backends.Python.Backend.catala ?vars ~inputs ~implicit_in
-          has_scope_tests,
+        Clerk_backends.Python.Backend.catala ?vars ~is_stdlib ~inputs
+          ~implicit_in has_scope_tests,
         Clerk_backends.Java.Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in
           has_scope_tests )
   in
