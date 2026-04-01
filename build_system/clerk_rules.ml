@@ -40,24 +40,25 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let default_flags = Backend_common.Flags.default ~code_coverage ~config in
   default_flags
   @ (if List.mem OCaml enabled_backends then
-       Clerk_backends.Ocaml.Flags.default ~variables:options.variables ~autotest
-         ~use_default_flags ~test_flags
+       Clerk_backends.Ocaml.Backend.Flags.default ~variables:options.variables
+         ~autotest ~use_default_flags ~test_flags
          ~include_dirs:options.global.include_dirs
      else [])
   @ (if List.mem Python enabled_backends then
-       Clerk_backends.Python.Flags.default ~variables:options.variables
+       Clerk_backends.Python.Backend.Flags.default ~variables:options.variables
          ~autotest ~use_default_flags ~test_flags
          ~include_dirs:options.global.include_dirs
      else [])
   @ (if List.mem Java enabled_backends then
-       Clerk_backends.Java.Flags.default ~variables:options.variables ~autotest
-         ~use_default_flags ~test_flags
+       Clerk_backends.Java.Backend.Flags.default ~variables:options.variables
+         ~autotest ~use_default_flags ~test_flags
          ~include_dirs:options.global.include_dirs
      else [])
   @
   if List.mem C enabled_backends then
-    Clerk_backends.C.Flags.default ~variables:options.variables ~autotest
-      ~use_default_flags ~test_flags ~include_dirs:options.global.include_dirs
+    Clerk_backends.C.Backend.Flags.default ~variables:options.variables
+      ~autotest ~use_default_flags ~test_flags
+      ~include_dirs:options.global.include_dirs
   else []
 
 let[@ocamlformat "disable"] static_base_rules ~tests enabled_backends =

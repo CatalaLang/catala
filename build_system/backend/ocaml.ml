@@ -78,6 +78,7 @@ end
 module Backend = struct
   open Var
   module Nj = Ninja_utils
+  module Flags = Flags
 
   let[@ocamlformat "disable"] static_base_rules =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / "ocaml") in
