@@ -15,12 +15,37 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Clerk_utils
 open Catala_utils
 
-(** This module scans the system for the location of various required tools and
-    libraries, to be used as default values. (think [./configure])
+module Flags : sig
+  val default :
+    variables:(string * string list) list ->
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    include_dirs:string list ->
+    (Var.t * string list) list
+end
 
-    This module is sensitive to the CWD at first use. Therefore it's expected
-    that [chdir] has been run beforehand to the project root. *)
+module Backend : sig
+  val static_base_rules : Ninja_utils.def list
+  val external_copy : Scan.item -> Ninja_utils.def Seq.t
 
-val java_runtime_dir : File.t Lazy.t
+  val catala :
+    ?vars:(Var.t * Ninja_utils.Expr.t) list ->
+    is_stdlib:bool ->
+    inputs:Ninja_utils.Expr.t ->
+    implicit_in:Ninja_utils.Expr.t ->
+    bool ->
+    Ninja_utils.def Seq.t
+
+  val build_object :
+    include_dirs:string list ->
+    same_dir_modules:(string * string) list ->
+    item:Scan.item ->
+    bool ->
+    Ninja_utils.def list
+
+  val runtime_dir : File.t Lazy.t
+end
