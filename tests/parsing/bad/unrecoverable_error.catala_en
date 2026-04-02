@@ -11,6 +11,19 @@ scope A:
       x + acc
 ```
 
+*Some very important text*
+
+```catala
+declaration scope B:
+  output i content integer
+```
+
+*Some other important text*
+
+```catala
+some invalid catala code
+```
+
 ```catala-test-cli
 $ catala test-scope A
 ┌─[ERROR]─
