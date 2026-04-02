@@ -23,6 +23,9 @@ module Backend = struct
   open File
   module Nj = Ninja_utils
 
+  let name = "python"
+  let module_ext = ".py"
+
   module Flags = struct
     let default
         ~variables

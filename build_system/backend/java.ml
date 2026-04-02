@@ -23,6 +23,9 @@ open File
 module Backend = struct
   module Nj = Ninja_utils
 
+  let name = "java"
+  let module_ext = ".class"
+
   let stdlib_target ext =
     let ext =
       match ext.[0] with
