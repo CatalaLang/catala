@@ -278,39 +278,17 @@ let operator_to_string : type a. a Op.t -> string =
   | Div_mon_rat -> "/$."
   | Div_dur_dur -> "/^"
   | Lt -> "<"
-  | Lt_int_int -> "<!"
-  | Lt_rat_rat -> "<."
-  | Lt_mon_mon -> "<$"
-  | Lt_dur_dur -> "<^"
-  | Lt_dat_dat -> "<@"
   | Lte -> "<="
-  | Lte_int_int -> "<=!"
-  | Lte_rat_rat -> "<=."
-  | Lte_mon_mon -> "<=$"
-  | Lte_dur_dur -> "<=^"
-  | Lte_dat_dat -> "<=@"
   | Gt -> ">"
-  | Gt_int_int -> ">!"
-  | Gt_rat_rat -> ">."
-  | Gt_mon_mon -> ">$"
-  | Gt_dur_dur -> ">^"
-  | Gt_dat_dat -> ">@"
   | Gte -> ">="
-  | Gte_int_int -> ">=!"
-  | Gte_rat_rat -> ">=."
-  | Gte_mon_mon -> ">=$"
-  | Gte_dur_dur -> ">=^"
-  | Gte_dat_dat -> ">=@"
-  | Eq_boo_boo -> "=="
-  | Eq_int_int -> "=!"
-  | Eq_rat_rat -> "=."
-  | Eq_mon_mon -> "=$"
-  | Eq_dur_dur -> "=^"
-  | Eq_dat_dat -> "=@"
   | Fold -> "fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
+  | ArrayAccess n -> Printf.sprintf "o_array_nth(%d)" n
+  | ConstructorCheck (e, c) ->
+    Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
+      (EnumConstructor.to_string c)
 
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
@@ -326,9 +304,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | And -> "&&"
   | Or -> "||"
   | Xor -> "xor"
-  | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat
-  | Eq ->
-    "="
+  | Eq -> "="
   | Map -> "map"
   | Map2 -> "map2"
   | Reduce -> "reduce"
@@ -346,16 +322,17 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur | Div ->
     "/"
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt -> "<"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat | Lte ->
-    "<="
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt -> ">"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat | Gte ->
-    ">="
+  | Lt -> "<"
+  | Lte -> "<="
+  | Gt -> ">"
+  | Gte -> ">="
   | Fold -> "fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
   | FromClosureEnv -> "from_closure_env"
+  | ArrayAccess n -> Printf.sprintf "nth(%d)" n
+  | ConstructorCheck (_, c) ->
+    Printf.sprintf "is_%s" (EnumConstructor.to_string c)
 
 let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
@@ -406,19 +383,11 @@ module Precedence = struct
       | And -> Op And
       | Or -> Op Or
       | Xor -> Op Xor
-      | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur
-      | Eq_dat_dat ->
-        Op Comp
-      | Lt | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
-        Op Comp
-      | Lte | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
-      | Lte_dur_dur ->
-        Op Comp
-      | Gt | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
-        Op Comp
-      | Gte | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-      | Gte_dur_dur ->
-        Op Comp
+      | Eq -> Op Comp
+      | Lt -> Op Comp
+      | Lte -> Op Comp
+      | Gt -> Op Comp
+      | Gte -> Op Comp
       | Add | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
       | Add_dur_dur ->
         Op Add
@@ -432,7 +401,7 @@ module Precedence = struct
       | Div_mon_mon | Div_dur_dur ->
         Op Div
       | HandleExceptions | Map | Map2 | Concat | Filter | Reduce | Fold
-      | ToClosureEnv | FromClosureEnv ->
+      | ToClosureEnv | FromClosureEnv | ArrayAccess _ | ConstructorCheck _ ->
         App)
     | EApp _ -> App
     | EArray _ -> Contained
@@ -451,6 +420,7 @@ module Precedence = struct
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EFatalError _ -> App
+    | EFatalError_pos _ -> App
     | EDefault _ -> Contained
     | EPureDefault _ -> Contained
     | EEmpty -> Contained
@@ -713,9 +683,12 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "assert" (rhs exprc) e'
-      | EFatalError err ->
+      | EFatalError error ->
         Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
-          (Catala_runtime.error_to_string err)
+          (Catala_runtime.error_to_string error)
+      | EFatalError_pos { error; _ } ->
+        Format.fprintf fmt "@[<hov 2>%a@ @{<red>%s@}@]" keyword "error"
+          (Catala_runtime.error_to_string error)
       | ELocation loc -> location fmt loc
       | EDStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
@@ -1179,9 +1152,9 @@ module UserFacing = struct
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)
     | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EFatalError _ | EDefault _ | EPureDefault _
-    | EErrorOnEmpty _ | ELocation _ | EScopeCall _ | EDStructAmend _
-    | EDStructAccess _ | EBad ->
+    | EStructAccess _ | EAssert _ | EFatalError _ | EFatalError_pos _
+    | EDefault _ | EPureDefault _ | EErrorOnEmpty _ | ELocation _ | EScopeCall _
+    | EDStructAmend _ | EDStructAccess _ | EBad ->
       fallback ppf e
 
   let expr : type a.
@@ -1295,8 +1268,10 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
       StructField.format field s_expr e
   | EExternal { name } -> pf fmt "@[<hov 1>External<%a>@]" external_ref name
   | EAssert e -> pf fmt "@[<hov 1>Assert(%a)@]" s_expr e
-  | EFatalError err ->
-    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string err)
+  | EFatalError error ->
+    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
+  | EFatalError_pos { error; _ } ->
+    pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
   | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
   | EDefault { excepts; just; cons } ->
     pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr

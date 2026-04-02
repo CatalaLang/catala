@@ -1,6 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
+   and social benefits computation rules. Copyright (C) 2020-2026 Inria,
+   contributor: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
+   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -28,11 +29,6 @@ type date_rounding = Dates_calc.date_rounding =
   | AbortOnRound
 
 type duration = Dates_calc.period
-
-module Optional = struct
-  type 'a t = Absent | Present of 'a
-end
-
 type io_input = NoInput | OnlyInput | Reentrant
 type io_log = { io_input : io_input; io_output : bool }
 
@@ -52,10 +48,8 @@ type error =
   | DivisionByZero
   | ListEmpty
   | NotSameLength
-  | InvalidDate
-  | UncomparableDurations
-  | AmbiguousDateRounding
-  | IndivisibleDurations
+  | UncomparableValues
+  | DateError of string
   | Impossible
 
 let error_to_string = function
@@ -65,10 +59,8 @@ let error_to_string = function
   | DivisionByZero -> "DivisionByZero"
   | ListEmpty -> "ListEmpty"
   | NotSameLength -> "NotSameLength"
-  | InvalidDate -> "InvalidDate"
-  | UncomparableDurations -> "UncomparableDurations"
-  | AmbiguousDateRounding -> "AmbiguousDateRounding"
-  | IndivisibleDurations -> "IndivisibleDurations"
+  | UncomparableValues -> "UncomparableValues"
+  | DateError s -> Printf.sprintf "DateError(%S)" s
   | Impossible -> "Impossible"
 
 let error_message = function
@@ -81,13 +73,8 @@ let error_message = function
     "a value is being used as denominator in a division and it computed to zero"
   | ListEmpty -> "the list was empty"
   | NotSameLength -> "traversing multiple lists of different lengths"
-  | InvalidDate -> "the provided numbers do not correspond to a valid date"
-  | UncomparableDurations ->
-    "ambiguous comparison between durations in different units (e.g. months \
-     vs. days)"
-  | AmbiguousDateRounding ->
-    "ambiguous date computation, and rounding mode was not specified"
-  | IndivisibleDurations -> "dividing durations that are not in days"
+  | UncomparableValues -> "attempting to compare values with uncomparable types"
+  | DateError s -> s
   | Impossible -> "\"impossible\" computation reached"
 
 exception Error of error * code_location list * string option
@@ -250,37 +237,280 @@ let duration_to_string (d : duration) : string =
 let duration_to_years_months_days (d : duration) : int * int * int =
   Dates_calc.period_to_ymds d
 
-type runtime_value =
-  | Unit
-  | Bool of bool
-  | Money of money
-  | Integer of integer
-  | Decimal of decimal
-  | Date of date
-  | Duration of duration
-  | Enum of string * (string * runtime_value)
-  | Struct of string * (string * runtime_value) list
-  | Array of runtime_value array
-  | Tuple of runtime_value array
-  | Position of (string * int * int * int * int)
-  | Unembeddable
+(* Maybe should be integrated into dates_calc ? *)
+let compare_periods pos p1 p2 =
+  let y1, m1, d1 = Dates_calc.period_to_ymds p1 in
+  let y2, m2, d2 = Dates_calc.period_to_ymds p2 in
+  match y1, y2, m1, m2, d1, d2 with
+  | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
+  | 0, 0, 0, 0, d1, d2 -> Int.compare d1 d2
+  | _ ->
+    error
+      (DateError
+         "ambiguous comparison between durations in different units (e.g. \
+          months vs. days)")
+      [pos]
 
-let unembeddable _ = Unembeddable
-let embed_unit () = Unit
-let embed_bool x = Bool x
-let embed_money x = Money x
-let embed_integer x = Integer x
-let embed_decimal x = Decimal x
-let embed_date x = Date x
-let embed_duration x = Duration x
-let embed_array f x = Array (Array.map f x)
+let equal_periods pos p1 p2 =
+  Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
+  || compare_periods pos p1 p2 = 0
+
+(* -- Runtime types and embedding -- *)
+
+module Value = struct
+  type _ ty =
+    | Unit : unit ty
+    | Bool : bool ty
+    | Integer : integer ty
+    | Money : money ty
+    | Decimal : decimal ty
+    | Date : date ty
+    | Duration : duration ty
+    | Position : code_location ty
+    | Array : ('a -> t) -> 'a array ty
+    | Tuple : ('a -> t list) -> 'a ty
+    | Struct : {
+        name : string;
+        fields : 'a -> (string * t) list;
+            (* list order must be consistent with the representation *)
+      }
+        -> 'a ty
+    | Enum : {
+        name : string;
+        constr : 'a -> int * string * t option;
+            (* destr: string * t option -> 'a; ? *)
+      }
+        -> 'a ty
+    | External : {
+        name : string;
+        equal : code_location -> 'a -> t -> bool;
+        compare : code_location -> 'a -> t -> int;
+        to_json : ('a -> string) option;
+        to_string : 'a -> string;
+      }
+        -> 'a ty
+    | Function : 'a ty
+
+  and t = V : 'a ty * 'a -> t
+
+  let embed t v = V (t, v)
+
+  (* let unembed (type a) (V { t; v }): a ty * a =
+   *   Obj.magic t, Obj.magic v *)
+
+  let rec equal : code_location -> t -> t -> bool =
+   fun pos rv1 rv2 ->
+    match rv1, rv2 with
+    | V (Unit, ()), V (Unit, ()) -> true
+    | V (Bool, v1), V (Bool, v2) -> equal_values Bool pos v1 v2
+    | V (Integer, v1), V (Integer, v2) -> equal_values Integer pos v1 v2
+    | V (Money, v1), V (Money, v2) -> equal_values Money pos v1 v2
+    | V (Decimal, v1), V (Decimal, v2) -> equal_values Decimal pos v1 v2
+    | V (Date, v1), V (Date, v2) -> equal_values Date pos v1 v2
+    | V (Duration, v1), V (Duration, v2) -> equal_values Duration pos v1 v2
+    | V (Position, v1), V (Position, v2) -> equal_values Position pos v1 v2
+    | V (Array t1, v1), V (Array t2, v2) ->
+      Array.length v1 = Array.length v2
+      && Array.for_all2 (equal pos) (Array.map t1 v1) (Array.map t2 v2)
+    | V (Tuple t1, v1), V (Tuple t2, v2) ->
+      List.for_all2 (equal pos) (t1 v1) (t2 v2)
+    | V (Struct str1, v1), V (Struct str2, v2) ->
+      str1.name = str2.name
+      &&
+      (* could be an assert if well-typed ? *)
+      List.for_all2
+        (fun (fld1, rv1) (fld2, rv2) -> fld1 = fld2 && equal pos rv1 rv2)
+        (str1.fields v1) (str2.fields v2)
+    | V (Enum en1, v1), V (Enum en2, v2) ->
+      en1.name = en2.name
+      &&
+      (* could be an assert if well-typed ? *)
+      let n1, _, x1 = en1.constr v1 in
+      let n2, _, x2 = en2.constr v2 in
+      n1 = n2 && Option.equal (equal pos) x1 x2
+    | V (External ex, v), rv2 -> ex.equal pos v rv2
+    | V (Function, _), V (Function, _) -> error UncomparableValues [pos]
+    (* The follwing shouldn't happen on well-typed terms *)
+    | ( V
+          ( ( Unit | Bool | Integer | Money | Decimal | Date | Duration
+            | Position | Array _ | Tuple _ | Struct _ | Enum _ | Function ),
+            _ ),
+        _ ) ->
+      false
+
+  and equal_values : type a. a ty -> code_location -> a -> a -> bool =
+   fun ty pos x1 x2 ->
+    match ty with
+    | Bool -> Bool.equal x1 x2
+    | Unit -> true
+    | Integer -> Z.equal x1 x2
+    | Money -> Z.equal x1 x2
+    | Decimal -> Q.equal x1 x2
+    | Date -> Dates_calc.compare_dates x1 x2 = 0
+    | Duration -> equal_periods pos x1 x2
+    | Position -> x1 = x2
+    | t -> equal pos (V (t, x1)) (V (t, x2))
+
+  let rec compare : code_location -> t -> t -> int =
+   fun pos rv1 rv2 ->
+    let rec compare_lists l1 l2 =
+      match l1, l2 with
+      | x1 :: l1, x2 :: l2 -> (
+        match compare pos x1 x2 with 0 -> compare_lists l1 l2 | n -> n)
+      | [], [] -> 0
+      | [], _ -> -1
+      | _, [] -> 1
+    in
+    match rv1, rv2 with
+    | V (Unit, ()), V (Unit, ()) -> 0
+    | V (Bool, v1), V (Bool, v2) -> compare_values Bool pos v1 v2
+    | V (Integer, v1), V (Integer, v2) -> compare_values Integer pos v1 v2
+    | V (Money, v1), V (Money, v2) -> compare_values Money pos v1 v2
+    | V (Decimal, v1), V (Decimal, v2) -> compare_values Decimal pos v1 v2
+    | V (Date, v1), V (Date, v2) -> compare_values Date pos v1 v2
+    | V (Duration, v1), V (Duration, v2) -> compare_values Duration pos v1 v2
+    | V (Array t1, v1), V (Array t2, v2) ->
+      let rec aux i =
+        if i >= Array.length v1 then if i >= Array.length v2 then 0 else -1
+        else if i >= Array.length v2 then 1
+        else
+          match compare pos (t1 v1.(i)) (t2 v2.(i)) with
+          | 0 -> aux (i + 1)
+          | n -> n
+      in
+      aux 0
+    | V (Tuple to_list1, v1), V (Tuple to_list2, v2) ->
+      compare_lists (to_list1 v1) (to_list2 v2)
+    | V (Struct str1, v1), V (Struct str2, v2) -> (
+      match String.compare str1.name str2.name with
+      | 0 ->
+        compare_lists
+          (List.map snd (str1.fields v1))
+          (List.map snd (str2.fields v2))
+      | n -> n (* could be assert false if well-typed ? *))
+    | V (Enum en1, v1), V (Enum en2, v2) -> (
+      match String.compare en1.name en2.name with
+      | 0 -> (
+        let n1, _, x1 = en1.constr v1 in
+        let n2, _, x2 = en2.constr v2 in
+        match Stdlib.compare n1 n2 with
+        | 0 -> Option.compare (compare pos) x1 x2
+        | n -> n)
+      | n -> n (* could be assert false if well-typed ? *))
+    | V (External ext, v1), rv2 -> ext.compare pos v1 rv2
+    | V (Function, _), _ | _, V (Function, _) -> error UncomparableValues [pos]
+    (* The follwing shouldn't happen on well-typed terms *)
+    | V (Unit, _), _ -> -1
+    | _, V (Unit, _) -> 1
+    | V (Bool, _), _ -> -1
+    | _, V (Bool, _) -> 1
+    | V (Integer, _), _ -> -1
+    | _, V (Integer, _) -> 1
+    | V (Money, _), _ -> -1
+    | _, V (Money, _) -> 1
+    | V (Decimal, _), _ -> -1
+    | _, V (Decimal, _) -> 1
+    | V (Position, _), _ -> -1
+    | _, V (Position, _) -> 1
+    | V (Date, _), _ -> -1
+    | _, V (Date, _) -> 1
+    | V (Duration, _), _ -> -1
+    | _, V (Duration, _) -> 1
+    | V (Array _, _), _ -> -1
+    | _, V (Array _, _) -> 1
+    | V (Tuple _, _), _ -> -1
+    | _, V (Tuple _, _) -> 1
+    | V (Struct _, _), _ -> -1
+    | _, V (Struct _, _) -> 1
+    | V (Enum _, _), _ -> -1
+    | _, V (Enum _, _) -> .
+    | V (External _, _), _ -> .
+    | _, V (External _, _) -> .
+
+  and compare_values : type a. a ty -> code_location -> a -> a -> int =
+   fun ty pos x1 x2 ->
+    match ty with
+    | Unit -> 0
+    | Bool -> Bool.compare x1 x2
+    | Money -> Z.compare x1 x2
+    | Integer -> Z.compare x1 x2
+    | Decimal -> Q.compare x1 x2
+    | Date -> Dates_calc.compare_dates x1 x2
+    | Duration -> compare_periods pos x1 x2
+    | Position -> Stdlib.compare x1 x2
+    | t -> compare pos (V (t, x1)) (V (t, x2))
+
+  let rec format ppf = function
+    | V (Unit, ()) -> Format.fprintf ppf "()"
+    | V (Bool, x) -> Format.fprintf ppf "%b" x
+    | V (Money, x) -> Format.fprintf ppf "%s€" (money_to_string x)
+    | V (Integer, x) -> Format.fprintf ppf "%s" (Z.to_string x)
+    | V (Decimal, x) ->
+      Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
+    | V (Date, x) -> Format.fprintf ppf "|%s|" (date_to_string x)
+    | V (Duration, x) -> Format.fprintf ppf "%s" (duration_to_string x)
+    | V (Enum en, v) -> (
+      match en.constr v with
+      | _, name, None -> Format.fprintf ppf "%s" name
+      | _, name, Some v -> Format.fprintf ppf "%s(%a)" name format v)
+    | V (Struct str, v) ->
+      Format.fprintf ppf "@[<hv 2>%s {@ %a@;<1 -2>}@]" str.name
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space
+           (fun fmt (name, value) ->
+             Format.fprintf fmt "-- %s: %a" name format value))
+        (str.fields v)
+    | V (Array t, v) ->
+      Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
+        (Format.pp_print_seq
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           (fun ppf v -> format ppf (t v)))
+        (Array.to_seq v)
+    | V (Tuple destr, v) ->
+      Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+           format)
+        (destr v)
+    | V (Position, pos) ->
+      Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" pos.filename pos.start_line
+        pos.start_column pos.end_line pos.end_column
+    | V (Function, _) -> Format.fprintf ppf "<function>"
+    | V (External ex, v) -> Format.pp_print_string ppf (ex.to_string v)
+end
+
+let equal = Value.equal_values
+let compare = Value.compare_values
+
+(* Catala types utils *)
+
+module type CatalaType = sig
+  type t
+
+  val rtype : t Value.ty
+end
+
+module Optional = struct
+  type 'a t = Absent | Present of 'a
+
+  let rtype t =
+    Value.Enum
+      {
+        name = "Optional";
+        constr =
+          (function
+          | Absent -> 0, "Absent", None
+          | Present v -> 1, "Present", Some (Value.embed t v));
+      }
+end
+
+(* -- *)
 
 type information = string list
 
 type raw_event =
   | BeginCall of information
   | EndCall of information
-  | VariableDefinition of information * io_log * runtime_value
+  | VariableDefinition of information * io_log * Value.t
   | DecisionTaken of code_location
 
 type event =
@@ -296,7 +526,7 @@ and var_def = {
   pos : code_location option;
   name : information;
   io : io_log;
-  value : runtime_value;
+  value : Value.t;
   fun_calls : fun_call list option;
 }
 
@@ -308,13 +538,22 @@ and fun_call = {
 }
 
 module BufferedJson = struct
-  let rec list f buf = function
-    | [] -> ()
-    | [x] -> f buf x
-    | x :: r ->
+  let seq f buf sq =
+    match Seq.uncons sq with
+    | None -> ()
+    | Some (x, r) ->
       f buf x;
-      Buffer.add_char buf ',';
-      list f buf r
+      let rec aux sq =
+        match Seq.uncons sq with
+        | None -> ()
+        | Some (x, r) ->
+          Buffer.add_char buf ',';
+          f buf x;
+          aux r
+      in
+      aux r
+
+  let list f buf l = seq f buf (List.to_seq l)
 
   let quote buf str =
     Buffer.add_char buf '"';
@@ -352,34 +591,42 @@ module BufferedJson = struct
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
-    | Unit -> Buffer.add_string buf "{}"
-    | Bool b -> Buffer.add_string buf (string_of_bool b)
-    | Money m -> Buffer.add_string buf (money_to_string m)
-    | Integer i -> Buffer.add_string buf (integer_to_string i)
-    | Decimal d -> decimal buf d
-    | Date d -> quote buf (date_to_string d)
-    | Duration d -> quote buf (duration_to_string d)
-    | Enum (name, (constr, v)) ->
+    | Value.V (Unit, ()) -> Buffer.add_string buf "{}"
+    | V (Bool, b) -> Buffer.add_string buf (string_of_bool b)
+    | V (Money, m) -> Buffer.add_string buf (money_to_string m)
+    | V (Integer, i) -> Buffer.add_string buf (integer_to_string i)
+    | V (Decimal, d) -> decimal buf d
+    | V (Date, d) -> quote buf (date_to_string d)
+    | V (Duration, d) -> quote buf (duration_to_string d)
+    | V (Enum en, e) ->
+      let _, constr, value = en.constr e in
       Printf.bprintf buf
-        {|{"kind": "enum", "name": "%s", "constructor": "%s", "value": %a}|}
-        name constr runtime_value v
-    | Struct (name, elts) ->
+        {|{"kind": "enum", "name": "%s", "constructor": "%s"%a}|} en.name constr
+        (fun buf -> function
+          | None -> ()
+          | Some v -> Printf.bprintf buf {|, "value": %a|} runtime_value v)
+        value
+    | V (Struct str, s) ->
+      let fields = str.fields s in
       Printf.bprintf buf {|{"kind": "struct", "name": "%s", "fields": {%a}}|}
-        name
-        (list (fun buf (cstr, v) ->
-             Printf.bprintf buf {|"%s": %a|} cstr runtime_value v))
-        elts
-    | (Array elts | Tuple elts) as v ->
-      Printf.bprintf buf {|{"kind": %s, "value":[%a]}|}
-        (match v with
-        | Array _ -> "\"array\""
-        | Tuple _ -> "\"tuple\""
-        | _ -> assert false)
-        (list runtime_value) (Array.to_list elts)
-    | Position (file, sl, sc, el, ec) ->
+        str.name
+        (fun buf ->
+          List.iter (fun (name, v) ->
+              Printf.bprintf buf {|"%a": %a|} quote name runtime_value v))
+        fields
+    | V (Array t, a) ->
+      Printf.bprintf buf {|{"kind": "array", "value":[%a]}|}
+        (seq (fun buf v -> runtime_value buf (t v)))
+        (Stdlib.Array.to_seq a)
+    | V (Tuple destr, a) ->
+      Printf.bprintf buf {|{"kind": "tuple", "value":[%a]}|}
+        (list runtime_value) (destr a)
+    | V (Position, pos) ->
       Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
-        file sl sc el ec
-    | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
+        pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
+    | V (Function, _) -> Buffer.add_string buf {|"unembeddable"|}
+    | V (External _ex, _v) ->
+      Buffer.add_string buf {|"unembeddable"|} (* ex.to_json v ?? *)
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
 
@@ -478,46 +725,12 @@ let log_decision_taken pos x =
   if x then log_ref := DecisionTaken pos :: !log_ref;
   x
 
-let rec format_value ppf = function
-  | Unembeddable -> Format.fprintf ppf "fun"
-  | Unit -> Format.fprintf ppf "()"
-  | Bool x -> Format.fprintf ppf "%b" x
-  | Money x -> Format.fprintf ppf "%s€" (money_to_string x)
-  | Integer x -> Format.fprintf ppf "%s" (Z.to_string x)
-  | Decimal x ->
-    Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
-  | Date x -> Format.fprintf ppf "%s" (date_to_string x)
-  | Duration x -> Format.fprintf ppf "%s" (duration_to_string x)
-  | Enum (_, (name, Unit)) -> Format.fprintf ppf "%s" name
-  | Enum (_, (name, v)) -> Format.fprintf ppf "%s(%a)" name format_value v
-  | Struct (name, attrs) ->
-    Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]" name
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         (fun fmt (name, value) ->
-           Format.fprintf fmt "%s: %a" name format_value value))
-      attrs
-  | Array elts ->
-    Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-         format_value)
-      (elts |> Array.to_list)
-  | Tuple elts ->
-    Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-         format_value)
-      (elts |> Array.to_list)
-  | Position (file, sl, sc, el, ec) ->
-    Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" file sl sc el ec
-
 let rec pp_events ?(is_first_call = true) ppf events =
   let rec format_var_def ppf var =
     Format.fprintf ppf "@[<hov 2><var_def at %a>@ %s:@ %a@]" format_pos_opt
       var.pos
       (String.concat "." var.name)
-      format_value var.value
+      Value.format var.value
   and format_pos_opt ppf = function
     | None -> Format.fprintf ppf "no_pos"
     | Some pos ->
@@ -535,7 +748,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
         "@[<hov 2><var_def_with_fun>@ %s: %a@ computed from@ :@ @[<hv 2>[@ %a@;\
          <1 -2>]@] @]"
         (String.concat "." var_with_fun.name)
-        format_value var_with_fun.value
+        Value.format var_with_fun.value
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            (fun ppf fun_call -> format_event ppf (FunCall fun_call)))
@@ -814,19 +1027,6 @@ let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
          (function Optional.Present (_, pos) -> pos | _ -> assert false)
          res)
 
-(* TODO: add this compare built-in to dates_calc ? *)
-let compare_periods pos (p1 : duration) (p2 : duration) : int =
-  let y1, m1, d1 = Dates_calc.period_to_ymds p1 in
-  let y2, m2, d2 = Dates_calc.period_to_ymds p2 in
-  match y1, y2, m1, m2, d1, d2 with
-  | _, _, _, _, 0, 0 -> Int.compare ((12 * y1) + m1) ((12 * y2) + m2)
-  | 0, 0, 0, 0, d1, d2 -> Int.compare d1 d2
-  | _ -> error UncomparableDurations [pos]
-
-let equal_periods pos (p1 : duration) (p2 : duration) : bool =
-  Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
-  || compare_periods pos p1 p2 = 0
-
 module Oper = struct
   let o_not = Stdlib.not
   let o_length a = Z.of_int (Array.length a)
@@ -850,7 +1050,11 @@ module Oper = struct
   let o_and = ( && )
   let o_or = ( || )
   let o_xor : bool -> bool -> bool = ( <> )
-  let o_eq = ( = )
+  let o_eq t pos x1 x2 = equal t pos x1 x2
+  let o_lt t pos x1 x2 = compare t pos x1 x2 < 0
+  let o_lte t pos x1 x2 = compare t pos x1 x2 <= 0
+  let o_gt t pos x1 x2 = compare t pos x1 x2 > 0
+  let o_gte t pos x1 x2 = compare t pos x1 x2 >= 0
   let o_map = Array.map
 
   let o_map2 pos f a b =
@@ -874,7 +1078,10 @@ module Oper = struct
 
   let o_add_dat_dur r pos da du =
     try Dates_calc.add_dates ~round:r da du
-    with Dates_calc.AmbiguousComputation -> error AmbiguousDateRounding [pos]
+    with Dates_calc.AmbiguousComputation ->
+      error
+        (DateError "ambiguous date computation with no rounding mode specified")
+        [pos]
 
   let o_add_dur_dur = Dates_calc.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
@@ -920,36 +1127,11 @@ module Oper = struct
       try
         ( integer_of_int (Dates_calc.period_to_days d1),
           integer_of_int (Dates_calc.period_to_days d2) )
-      with Dates_calc.AmbiguousComputation -> error IndivisibleDurations [pos]
+      with Dates_calc.AmbiguousComputation ->
+        error (DateError "dividing durations that are not in days") [pos]
     in
     o_div_int_int pos i1 i2
 
-  let o_lt_int_int i1 i2 = Z.compare i1 i2 < 0
-  let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0
-  let o_lt_mon_mon m1 m2 = Z.compare m1 m2 < 0
-  let o_lt_dur_dur pos d1 d2 = compare_periods pos d1 d2 < 0
-  let o_lt_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 < 0
-  let o_lte_int_int i1 i2 = Z.compare i1 i2 <= 0
-  let o_lte_rat_rat i1 i2 = Q.compare i1 i2 <= 0
-  let o_lte_mon_mon m1 m2 = Z.compare m1 m2 <= 0
-  let o_lte_dur_dur pos d1 d2 = compare_periods pos d1 d2 <= 0
-  let o_lte_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 <= 0
-  let o_gt_int_int i1 i2 = Z.compare i1 i2 > 0
-  let o_gt_rat_rat i1 i2 = Q.compare i1 i2 > 0
-  let o_gt_mon_mon m1 m2 = Z.compare m1 m2 > 0
-  let o_gt_dur_dur pos d1 d2 = compare_periods pos d1 d2 > 0
-  let o_gt_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 > 0
-  let o_gte_int_int i1 i2 = Z.compare i1 i2 >= 0
-  let o_gte_rat_rat i1 i2 = Q.compare i1 i2 >= 0
-  let o_gte_mon_mon m1 m2 = Z.compare m1 m2 >= 0
-  let o_gte_dur_dur pos d1 d2 = compare_periods pos d1 d2 >= 0
-  let o_gte_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 >= 0
-  let o_eq_boo_boo b1 b2 = b1 = b2
-  let o_eq_int_int i1 i2 = Z.equal i1 i2
-  let o_eq_rat_rat i1 i2 = Q.equal i1 i2
-  let o_eq_mon_mon m1 m2 = Z.equal m1 m2
-  let o_eq_dur_dur pos d1 d2 = equal_periods pos d1 d2
-  let o_eq_dat_dat d1 d2 = Dates_calc.compare_dates d1 d2 = 0
   let o_fold = Array.fold_left
   let o_toclosureenv = Obj.repr
   let o_fromclosureenv = Obj.obj

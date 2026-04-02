@@ -126,6 +126,7 @@ $ catala python --disable-warnings
 from catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
+from sys import stderr
 from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
 from . import List_en as list_en
@@ -136,241 +137,208 @@ from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 
-class E_Code(Enum):
-    AAAAAAA = 0
-    BBBBBBB = 1
-    CCCCCCC = 2
-    DDDDDDD = 3
-    EEEEEEE = 4
-    FFFFFFF = 5
-    GGGGGGG = 6
-    HHHHHHH = 7
-    IIIIIII = 8
-    JJJJJJJ = 9
-    KKKKKKK = 10
-    LLLLLLL = 11
-    MMMMMMM = 12
-    NNNNNNN = 13
-    OOOOOOO = 14
-    PPPPPPP = 15
-    QQQQQQQ = 16
-    RRRRRRR = 17
-    SSSSSSS = 18
-    TTTTTTT = 19
-    UUUUUUU = 20
-    VVVVVVV = 21
-    WWWWWWW = 22
-    XXXXXXX = 23
-    YYYYYYY = 24
-    ZZZZZZZ = 25
-    AAAAAAAA = 26
-    BBBBBBBB = 27
-    CCCCCCCC = 28
-    DDDDDDDD = 29
-    EEEEEEEE = 30
-    FFFFFFFF = 31
-    GGGGGGGG = 32
-    HHHHHHHH = 33
-    IIIIIIII = 34
-    JJJJJJJJ = 35
-    KKKKKKKK = 36
-    LLLLLLLL = 37
-    MMMMMMMM = 38
-    NNNNNNNN = 39
-    OOOOOOOO = 40
-    PPPPPPPP = 41
-    QQQQQQQQ = 42
-    RRRRRRRR = 43
-    SSSSSSSS = 44
-    TTTTTTTT = 45
-    UUUUUUUU = 46
-    VVVVVVVV = 47
-    WWWWWWWW = 48
-    XXXXXXXX = 49
-    YYYYYYYY = 50
-    ZZZZZZZZ = 51
+class E(CatalaEnum):
+    name = 'E'
+    class Code(CatalaEnum.Code):
+        AAAAAAA = 'AAAAAAA'
+        BBBBBBB = 'BBBBBBB'
+        CCCCCCC = 'CCCCCCC'
+        DDDDDDD = 'DDDDDDD'
+        EEEEEEE = 'EEEEEEE'
+        FFFFFFF = 'FFFFFFF'
+        GGGGGGG = 'GGGGGGG'
+        HHHHHHH = 'HHHHHHH'
+        IIIIIII = 'IIIIIII'
+        JJJJJJJ = 'JJJJJJJ'
+        KKKKKKK = 'KKKKKKK'
+        LLLLLLL = 'LLLLLLL'
+        MMMMMMM = 'MMMMMMM'
+        NNNNNNN = 'NNNNNNN'
+        OOOOOOO = 'OOOOOOO'
+        PPPPPPP = 'PPPPPPP'
+        QQQQQQQ = 'QQQQQQQ'
+        RRRRRRR = 'RRRRRRR'
+        SSSSSSS = 'SSSSSSS'
+        TTTTTTT = 'TTTTTTT'
+        UUUUUUU = 'UUUUUUU'
+        VVVVVVV = 'VVVVVVV'
+        WWWWWWW = 'WWWWWWW'
+        XXXXXXX = 'XXXXXXX'
+        YYYYYYY = 'YYYYYYY'
+        ZZZZZZZ = 'ZZZZZZZ'
+        AAAAAAAA = 'AAAAAAAA'
+        BBBBBBBB = 'BBBBBBBB'
+        CCCCCCCC = 'CCCCCCCC'
+        DDDDDDDD = 'DDDDDDDD'
+        EEEEEEEE = 'EEEEEEEE'
+        FFFFFFFF = 'FFFFFFFF'
+        GGGGGGGG = 'GGGGGGGG'
+        HHHHHHHH = 'HHHHHHHH'
+        IIIIIIII = 'IIIIIIII'
+        JJJJJJJJ = 'JJJJJJJJ'
+        KKKKKKKK = 'KKKKKKKK'
+        LLLLLLLL = 'LLLLLLLL'
+        MMMMMMMM = 'MMMMMMMM'
+        NNNNNNNN = 'NNNNNNNN'
+        OOOOOOOO = 'OOOOOOOO'
+        PPPPPPPP = 'PPPPPPPP'
+        QQQQQQQQ = 'QQQQQQQQ'
+        RRRRRRRR = 'RRRRRRRR'
+        SSSSSSSS = 'SSSSSSSS'
+        TTTTTTTT = 'TTTTTTTT'
+        UUUUUUUU = 'UUUUUUUU'
+        VVVVVVVV = 'VVVVVVVV'
+        WWWWWWWW = 'WWWWWWWW'
+        XXXXXXXX = 'XXXXXXXX'
+        YYYYYYYY = 'YYYYYYYY'
+        ZZZZZZZZ = 'ZZZZZZZZ'
 
-class E:
-    def __init__(self, code: E_Code, value: Any) -> None:
-        self.code = code
-        self.value = value
+class S(CatalaStruct):
+    __slots__ = ('o')
+    o: Bool
+    name = 'S'
+    fields = {
+        'o': 'o', # content Bool
+    }
 
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, E):
-            return self.code == other.code and self.value == other.value
-        else:
-            return False
-
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "{}({})".format(self.code, self.value)
-
-class S:
-    def __init__(self, o: bool) -> None:
-        self.o = o
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S):
-            return (self.o == other.o)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S(o={})".format(self.o)
-
-class SIn:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SIn):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "SIn()".format()
+class SIn(CatalaStruct):
+    __slots__ = ()
+    name = 'S_in'
+    fields = {
+    }
 
 
-def s(s_in:SIn):
-    pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=23, end_line=117, end_column=41, law_headings=[]))
-    o__2 = (Option(((E(E_Code.UUUUUUU, Unit()) == E(E_Code.XXXXXXXX, Unit())), pos)))
+loc = (Array([SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=110, start_column=8, end_line=110, end_column=18, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=117, start_column=23, end_line=117, end_column=41, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[])]))
+
+def s(s_in:SIn) -> S:
+    o__2 = (Option(CatalaTuple(E(E.Code.UUUUUUU, Unit()).__eq__(E(E.Code.XXXXXXXX, Unit()), loc[2]), loc[2])))
     if o__2.value is not None:
         o__1 = (Option(o__2.value))
     else:
-        pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
-        o__1 = (Option((False, pos__1)))
+        o__1 = (Option(CatalaTuple(Bool(False), loc[1])))
     if o__1.value is not None:
         o = (o__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=114, start_column=10, end_line=114, end_column=11, law_headings=[]))
-        raise NoValue(pos__1, None)
-    pos__1 = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=118, start_column=3, end_line=118, end_column=18, law_headings=[]))
-    if not (not o): raise AssertionFailed(pos__1, None)
+        raise NoValue(loc[1])
+    if o.not_().not_():
+        raise AssertionFailed(loc[3])
     return S(o = o)
 
-def f(x:Integer):
+def f(x:Integer) -> E:
     if (x == Integer(1)):
-        f__1 = (E(E_Code.AAAAAAAA, Unit()))
+        f__1 = (E(E.Code.AAAAAAAA, Unit()))
     elif (x == Integer(2)):
-        f__1 = (E(E_Code.BBBBBBB, Unit()))
+        f__1 = (E(E.Code.BBBBBBB, Unit()))
     elif (x == Integer(3)):
-        f__1 = (E(E_Code.CCCCCCC, Unit()))
+        f__1 = (E(E.Code.CCCCCCC, Unit()))
     elif (x == Integer(4)):
-        f__1 = (E(E_Code.DDDDDDD, Unit()))
+        f__1 = (E(E.Code.DDDDDDD, Unit()))
     elif (x == Integer(5)):
-        f__1 = (E(E_Code.EEEEEEE, Unit()))
+        f__1 = (E(E.Code.EEEEEEE, Unit()))
     elif (x == Integer(6)):
-        f__1 = (E(E_Code.FFFFFFF, Unit()))
+        f__1 = (E(E.Code.FFFFFFF, Unit()))
     elif (x == Integer(7)):
-        f__1 = (E(E_Code.GGGGGGG, Unit()))
+        f__1 = (E(E.Code.GGGGGGG, Unit()))
     elif (x == Integer(8)):
-        f__1 = (E(E_Code.HHHHHHH, Unit()))
+        f__1 = (E(E.Code.HHHHHHH, Unit()))
     elif (x == Integer(9)):
-        f__1 = (E(E_Code.IIIIIII, Unit()))
+        f__1 = (E(E.Code.IIIIIII, Unit()))
     elif (x == Integer(10)):
-        f__1 = (E(E_Code.JJJJJJJ, Unit()))
+        f__1 = (E(E.Code.JJJJJJJ, Unit()))
     elif (x == Integer(11)):
-        f__1 = (E(E_Code.KKKKKKK, Unit()))
+        f__1 = (E(E.Code.KKKKKKK, Unit()))
     elif (x == Integer(12)):
-        f__1 = (E(E_Code.LLLLLLL, Unit()))
+        f__1 = (E(E.Code.LLLLLLL, Unit()))
     elif (x == Integer(13)):
-        f__1 = (E(E_Code.MMMMMMM, Unit()))
+        f__1 = (E(E.Code.MMMMMMM, Unit()))
     elif (x == Integer(14)):
-        f__1 = (E(E_Code.NNNNNNN, Unit()))
+        f__1 = (E(E.Code.NNNNNNN, Unit()))
     elif (x == Integer(15)):
-        f__1 = (E(E_Code.OOOOOOO, Unit()))
+        f__1 = (E(E.Code.OOOOOOO, Unit()))
     elif (x == Integer(16)):
-        f__1 = (E(E_Code.PPPPPPP, Unit()))
+        f__1 = (E(E.Code.PPPPPPP, Unit()))
     elif (x == Integer(17)):
-        f__1 = (E(E_Code.QQQQQQQ, Unit()))
+        f__1 = (E(E.Code.QQQQQQQ, Unit()))
     elif (x == Integer(18)):
-        f__1 = (E(E_Code.RRRRRRR, Unit()))
+        f__1 = (E(E.Code.RRRRRRR, Unit()))
     elif (x == Integer(19)):
-        f__1 = (E(E_Code.SSSSSSS, Unit()))
+        f__1 = (E(E.Code.SSSSSSS, Unit()))
     elif (x == Integer(20)):
-        f__1 = (E(E_Code.TTTTTTT, Unit()))
+        f__1 = (E(E.Code.TTTTTTT, Unit()))
     elif (x == Integer(21)):
-        f__1 = (E(E_Code.UUUUUUU, Unit()))
+        f__1 = (E(E.Code.UUUUUUU, Unit()))
     elif (x == Integer(22)):
-        f__1 = (E(E_Code.VVVVVVV, Unit()))
+        f__1 = (E(E.Code.VVVVVVV, Unit()))
     elif (x == Integer(23)):
-        f__1 = (E(E_Code.WWWWWWW, Unit()))
+        f__1 = (E(E.Code.WWWWWWW, Unit()))
     elif (x == Integer(24)):
-        f__1 = (E(E_Code.XXXXXXX, Unit()))
+        f__1 = (E(E.Code.XXXXXXX, Unit()))
     elif (x == Integer(25)):
-        f__1 = (E(E_Code.YYYYYYY, Unit()))
+        f__1 = (E(E.Code.YYYYYYY, Unit()))
     elif (x == Integer(26)):
-        f__1 = (E(E_Code.ZZZZZZZ, Unit()))
+        f__1 = (E(E.Code.ZZZZZZZ, Unit()))
     elif (x == Integer(27)):
-        f__1 = (E(E_Code.AAAAAAAA, Unit()))
+        f__1 = (E(E.Code.AAAAAAAA, Unit()))
     elif (x == Integer(28)):
-        f__1 = (E(E_Code.BBBBBBBB, Unit()))
+        f__1 = (E(E.Code.BBBBBBBB, Unit()))
     elif (x == Integer(29)):
-        f__1 = (E(E_Code.CCCCCCCC, Unit()))
+        f__1 = (E(E.Code.CCCCCCCC, Unit()))
     elif (x == Integer(30)):
-        f__1 = (E(E_Code.DDDDDDDD, Unit()))
+        f__1 = (E(E.Code.DDDDDDDD, Unit()))
     elif (x == Integer(31)):
-        f__1 = (E(E_Code.EEEEEEEE, Unit()))
+        f__1 = (E(E.Code.EEEEEEEE, Unit()))
     elif (x == Integer(32)):
-        f__1 = (E(E_Code.FFFFFFFF, Unit()))
+        f__1 = (E(E.Code.FFFFFFFF, Unit()))
     elif (x == Integer(33)):
-        f__1 = (E(E_Code.GGGGGGGG, Unit()))
+        f__1 = (E(E.Code.GGGGGGGG, Unit()))
     elif (x == Integer(34)):
-        f__1 = (E(E_Code.HHHHHHHH, Unit()))
+        f__1 = (E(E.Code.HHHHHHHH, Unit()))
     elif (x == Integer(35)):
-        f__1 = (E(E_Code.IIIIIIII, Unit()))
+        f__1 = (E(E.Code.IIIIIIII, Unit()))
     elif (x == Integer(36)):
-        f__1 = (E(E_Code.JJJJJJJJ, Unit()))
+        f__1 = (E(E.Code.JJJJJJJJ, Unit()))
     elif (x == Integer(37)):
-        f__1 = (E(E_Code.KKKKKKKK, Unit()))
+        f__1 = (E(E.Code.KKKKKKKK, Unit()))
     elif (x == Integer(38)):
-        f__1 = (E(E_Code.LLLLLLLL, Unit()))
+        f__1 = (E(E.Code.LLLLLLLL, Unit()))
     elif (x == Integer(39)):
-        f__1 = (E(E_Code.MMMMMMMM, Unit()))
+        f__1 = (E(E.Code.MMMMMMMM, Unit()))
     elif (x == Integer(40)):
-        f__1 = (E(E_Code.NNNNNNNN, Unit()))
+        f__1 = (E(E.Code.NNNNNNNN, Unit()))
     elif (x == Integer(41)):
-        f__1 = (E(E_Code.OOOOOOOO, Unit()))
+        f__1 = (E(E.Code.OOOOOOOO, Unit()))
     elif (x == Integer(42)):
-        f__1 = (E(E_Code.PPPPPPPP, Unit()))
+        f__1 = (E(E.Code.PPPPPPPP, Unit()))
     elif (x == Integer(43)):
-        f__1 = (E(E_Code.QQQQQQQQ, Unit()))
+        f__1 = (E(E.Code.QQQQQQQQ, Unit()))
     elif (x == Integer(44)):
-        f__1 = (E(E_Code.RRRRRRRR, Unit()))
+        f__1 = (E(E.Code.RRRRRRRR, Unit()))
     elif (x == Integer(45)):
-        f__1 = (E(E_Code.SSSSSSSS, Unit()))
+        f__1 = (E(E.Code.SSSSSSSS, Unit()))
     elif (x == Integer(46)):
-        f__1 = (E(E_Code.TTTTTTTT, Unit()))
+        f__1 = (E(E.Code.TTTTTTTT, Unit()))
     elif (x == Integer(47)):
-        f__1 = (E(E_Code.UUUUUUUU, Unit()))
+        f__1 = (E(E.Code.UUUUUUUU, Unit()))
     elif (x == Integer(48)):
-        f__1 = (E(E_Code.VVVVVVVV, Unit()))
+        f__1 = (E(E.Code.VVVVVVVV, Unit()))
     elif (x == Integer(49)):
-        f__1 = (E(E_Code.WWWWWWWW, Unit()))
+        f__1 = (E(E.Code.WWWWWWWW, Unit()))
     elif (x == Integer(50)):
-        f__1 = (E(E_Code.XXXXXXXX, Unit()))
+        f__1 = (E(E.Code.XXXXXXXX, Unit()))
     elif (x == Integer(51)):
-        f__1 = (E(E_Code.YYYYYYYY, Unit()))
+        f__1 = (E(E.Code.YYYYYYYY, Unit()))
     elif (x == Integer(52)):
-        f__1 = (E(E_Code.ZZZZZZZZ, Unit()))
+        f__1 = (E(E.Code.ZZZZZZZZ, Unit()))
     else:
-        pos = (SourcePosition(filename="tests/backends/python_enum.catala_en", start_line=110, start_column=8, end_line=110, end_column=18, law_headings=[]))
-        raise Impossible(pos, None)
+        raise Impossible(loc[0])
     return f__1
 
 # Automatic Catala tests
 if __name__ == "__main__":
   s_test = (s(SIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
+  print(s_test)
 ```

@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import catala.runtime.exception.CatalaError;
 
-public final class CatalaInteger implements CatalaValue, Comparable<CatalaInteger> {
+public final class CatalaInteger extends CatalaValue<CatalaInteger> {
 
     public final static CatalaInteger ZERO = new CatalaInteger(0);
     public final static CatalaInteger ONE = new CatalaInteger(1);
@@ -48,37 +48,6 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
         return new CatalaInteger(this.value.negate());
     }
 
-    /**
-     * @param other {@inheritDoc}
-     * @return {@inheritDoc}
-     */
-    @Override
-    public int compareTo(CatalaInteger other) {
-        return this.value.compareTo(other.value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        CatalaInteger other = (CatalaInteger) obj;
-        return this.value.equals(other.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return this.value.toString();
-    }
-
     public CatalaInteger add(CatalaInteger i) {
         return new CatalaInteger(this.value.add(i.value));
     }
@@ -94,38 +63,33 @@ public final class CatalaInteger implements CatalaValue, Comparable<CatalaIntege
     // TODO: add throws
     public CatalaDecimal divide(CatalaPosition pos, CatalaInteger denum) {
         if (denum.value.equals(BigInteger.ZERO)) {
-            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
+            throw CatalaError.error(CatalaError.Error.DivisionByZero, pos);
         }
         return new CatalaDecimal(this, denum);
     }
 
-    public CatalaBool lessThan(CatalaInteger other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
-    }
-
-    public CatalaBool lessEqThan(CatalaInteger other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
-    }
-
-    public CatalaBool greaterThan(CatalaInteger other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
-    }
-
-    public CatalaBool greaterEqThan(CatalaInteger other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
-    }
-
-    public CatalaBool equalsTo(CatalaInteger other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    @Override
+    public int compareTo(CatalaPosition p, CatalaInteger o) {
+        return this.value.compareTo(o.value);
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue other) {
-        if (other instanceof CatalaInteger catalaInteger) {
-            return this.equalsTo(catalaInteger);
-        } else {
-            return CatalaBool.FALSE;
-        }
+    public CatalaBool equalsTo(CatalaPosition p, CatalaInteger o) {
+        return CatalaBool.fromBoolean(this.value.equals(o.value));
     }
 
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return this.value.toString();
+    }
+
+    @Override
+    public String toJSONString() {
+        return '"' + this.value.toString() + '"';
+    }
 }

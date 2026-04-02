@@ -62,8 +62,9 @@ module Passes : sig
     closure_conversion:bool ->
     keep_special_ops:bool ->
     monomorphize_types:bool ->
-    expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->
+    lift_pos:
+      (Shared_ast.lcalc Shared_ast.Op.t -> Shared_ast.naked_typ -> bool) option ->
     Shared_ast.typed Lcalc.Ast.program
     * Shared_ast.TypeIdent.t list
     * Shared_ast.Renaming.context option
@@ -81,8 +82,9 @@ module Passes : sig
     no_struct_literals:bool ->
     keep_module_names:bool ->
     monomorphize_types:bool ->
-    expand_ops:bool ->
     renaming:Shared_ast.Renaming.t option ->
+    lift_pos:
+      (Shared_ast.lcalc Shared_ast.Op.t -> Shared_ast.naked_typ -> bool) option ->
     Scalc.Ast.program
     * Shared_ast.TypeIdent.t list
     * Shared_ast.Renaming.context

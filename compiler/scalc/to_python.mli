@@ -19,6 +19,7 @@
 open Catala_utils
 open Shared_ast
 
+val op_needs_pos : 'a operator -> naked_typ -> bool
 val renaming : Renaming.t
 
 val format_program :

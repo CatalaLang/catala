@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2024 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2026 Inria, contributor:
    Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,14 +14,16 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This transformation expands the equality operator, that is polymorphic and
-    needs code generation on the backends that don't natively support it ; note
-    that this is a place-holder, generating inline expansions, and is planned to
-    be replaced with a more serious implementation that generates specific
-    functions. In particular, currently, comparison of enums is quadratic in
-    size. *)
-
 open Shared_ast
 
-val expr : decl_ctx -> 'm Ast.expr -> 'm Ast.expr boxed
-val program : 'm Ast.program -> 'm Ast.program
+(** This modules does the following:
+    - Insert the implicit position arguments of operators designated by
+      [op_needs_pos] as reified position expressions
+    - Lift all the reified positions from the program into a leading toplevel
+      definition that contains a big array of positions
+    - All uses of positions are replaced by array accesses within that. *)
+
+val process_program :
+  op_needs_pos:(lcalc Operator.t -> naked_typ -> bool) ->
+  typed Ast.program ->
+  typed Ast.program

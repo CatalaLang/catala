@@ -186,27 +186,54 @@ let () =
 module Decimal_en = Decimal_en
 
 module Assert_in__1 = struct
-  type t = {assert__1: integer}
+  type t = { assert__1: integer; }
+  let rtype = Value.Struct {
+    name = "Assert_in__1";
+    fields = fun t -> [
+      "assert__1", Value.embed (Value.Integer) t.assert__1;
+    ]
+  }
 end
 
 module Assert__1 = struct
-  type t = {assert__1: integer}
+  type t = { assert__1: integer; }
+  let rtype = Value.Struct {
+    name = "Assert__1";
+    fields = fun t -> [
+      "assert__1", Value.embed (Value.Integer) t.assert__1;
+    ]
+  }
 end
 
 module Assert = struct
-  type t = {assert__1: bool}
+  type t = { assert__1: bool; }
+  let rtype = Value.Struct {
+    name = "Assert";
+    fields = fun t -> [ "assert__1", Value.embed (Value.Bool) t.assert__1; ]
+  }
 end
 
 module Assert_in = struct
   type t = unit
+  let rtype = Value.Struct { name = "Assert_in"; fields = fun t -> [ ] }
 end
 
+
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/conflicts.catala_en";
+     start_line=19; start_column=10; end_line=19; end_column=16;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/conflicts.catala_en";
+     start_line=23; start_column=3; end_line=23; end_column=59;
+     law_headings=[]}|]
 
 (* Toplevel def closure_assert *)
 let closure_assert : Obj.t(*closure env*) -> integer -> integer =
   fun (env: Obj.t(*closure env*)) (x: integer) ->
-    (let _ : unit = (o_fromclosureenv env) in
-    ((o_add_int_int x (integer_of_string "1"))))
+    let _ : unit = (o_fromclosureenv env) in
+    
+    o_add_int_int x (integer_of_int 1)
 
 (* Scope Assert *)
 let assert__1 : Assert_in.t -> Assert.t = fun _ ->
@@ -214,29 +241,22 @@ let assert__1 : Assert_in.t -> Assert.t = fun _ ->
     match
       (match
          (Optional.Present
-            ((let _ : integer array =
-                (o_map
-                   (let assert__3 :
-                      Obj.t(*closure env*) -> integer -> integer =
-                      closure_assert in (assert__3, (o_toclosureenv ())))
-                   ([|(integer_of_string "0")|])) in false),
-              ({filename="tests/name_resolution/good/conflicts.catala_en";
-                start_line=23; start_column=3; end_line=23; end_column=59;
-                law_headings=[]})))
+            (let _ : integer array =
+               (o_map
+                  let assert__3 :
+                    Obj.t(*closure env*) -> integer -> integer =
+                    closure_assert
+                  in
+                  (assert__3, (o_toclosureenv ())) ([|(integer_of_int 0)|]))
+             in
+             false, (loc.(1))))
        with
-       | Optional.Absent ->
-           (Optional.Present
-              (false,
-                ({filename="tests/name_resolution/good/conflicts.catala_en";
-                  start_line=19; start_column=10; end_line=19; end_column=16;
-                  law_headings=[]})))
+       | Optional.Absent -> (Optional.Present (false, (loc.(0))))
        | Optional.Present x -> (Optional.Present x))
     with
-    | Optional.Absent -> (raise
-        (Error (NoValue, [{filename="tests/name_resolution/good/conflicts.catala_en";
-                           start_line=19; start_column=10;
-                           end_line=19; end_column=16; law_headings=[]}], None)))
-    | Optional.Present arg -> (let x, _ = arg in x) in
+    | Optional.Absent -> (raise (Error (NoValue, [loc.(0)], None)))
+    | Optional.Present arg -> (let x, _ = arg in x)
+  in
   {Assert.assert__1 = assert__2}
 
 (* Toplevel def assert *)
@@ -245,8 +265,8 @@ let _ : integer -> integer =
 
 (* Toplevel def closure_assert *)
 let _ : (Assert_in__1.t * Assert__1.t) =
-  (({Assert_in__1.assert__1 = (integer_of_string "99")}),
-    ({Assert__1.assert__1 = (integer_of_string "199")}))
+  ({Assert_in__1.assert__1 = (integer_of_int 99)},
+   {Assert__1.assert__1 = (integer_of_int 199)})
 ```
 
 ```catala-test-cli

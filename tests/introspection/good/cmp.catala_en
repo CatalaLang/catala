@@ -1,0 +1,172 @@
+# Tests for the dynamic comparison operator
+
+## Base types
+
+```catala-metadata
+#[test]
+declaration scope TBase:
+  output x content list of boolean
+  output y content list of boolean
+
+scope TBase:
+  definition x equals [
+    false <= false;
+    12 <= 12;
+    12.00 <= 12.00;
+    $12.12 <= $12.12;
+    |2021-01-01| <= |2021-01-01|;
+    1 year + 3 month <= 1 year + 3 month;
+    false < true;
+    12 < 13;
+    12.00 < 121.00;
+    $12.12 < $12.13;
+    |2021-01-01| < |2021-01-02|;
+    1 year + 3 month < 1 year + 4 month
+  ]
+
+  assertion for all a among x we have a
+
+  definition y equals [
+    false > false;
+    12 > 12;
+    12.00 > 12.00;
+    $12.12 > $12.12;
+    |2021-01-01| > |2021-01-01|;
+    1 year + 3 month > 1 year + 3 month;
+    false >= true;
+    12 >= 13;
+    12.00 >= 121.00;
+    $12.12 >= $12.13;
+    |2021-01-01| >= |2021-01-02|;
+    1 year + 3 month >= 1 year + 4 month
+  ]
+
+  assertion for all a among y we have not a
+```
+
+```catala-test-cli
+$ catala test-scope TBase
+┌─[RESULT]─ TBase ─
+│ x =
+│   [true; true; true; true; true; true; true; true; true; true; true; true]
+│ y =
+│   [
+│     false; false; false; false; false; false; false; false; false; false;
+│     false; false
+│   ]
+└─
+```
+
+## Polymorphic types (lists and options)
+
+```catala-metadata
+#[test]
+declaration scope TPoly:
+  output x content list of boolean
+
+scope TPoly:
+  definition x equals [
+    Absent < Present content $12;
+    Present content $12 < Present content $13;
+    [] < [ 0 ];
+    [ 1; 2; 3; 0 ] < [ 1; 2; 3; 1 ];
+    [ 1; 2; 3; 0 ] < [ 1; 2; 3; 0; 1 ];
+    [ 1; 2; 3; 0 ] < [ 100; 2; 3; 0 ]
+  ]
+
+  assertion for all a among x we have a
+```
+
+
+```catala-test-cli
+$ catala test-scope TPoly
+┌─[RESULT]─ TPoly ─
+│ x = [true; true; true; true; true; true]
+└─
+```
+
+```catala-metadata
+#[test]
+declaration scope TTuple:
+  output x content list of boolean
+
+scope TTuple:
+  definition x equals [
+    (1, 2) >= (1, 2);
+    (1.12, 1.14, 14.0) >= (1.12, 1.13, 14.1);
+    (1, $2, 3.4, 366 day) >= (1, $2, 3.4, 365 day);
+    (1, (2, 3, 4), (6, 6), (7, (8, 9))) > (1, (2, 3, 4), (5, 6), (7, (8, 9)))
+  ]
+
+  assertion for all a among x we have a
+```
+
+```catala-test-cli
+$ catala test-scope TTuple
+┌─[RESULT]─ TTuple ─
+│ x = [true; true; true; true]
+└─
+```
+
+```catala-metadata
+declaration structure S:
+  data f1 content boolean
+  data f2 content decimal
+  data f3 content list of (money, duration)
+
+#[test]
+declaration scope TStruct:
+  output y content list of boolean
+
+scope TStruct:
+  definition y equals [
+    S { -- f1:true -- f2:1.111 --f3:[] } <= S { -- f1:false -- f2:1.111 --f3:[] };
+    S { -- f1:true -- f2:1.111 --f3:[] } > S { -- f1:true -- f2:1.1111 --f3:[] };
+    S { -- f1:true -- f2:1.111 --f3:[($1, 33 day)] } < S { -- f1:true -- f2:1.111 --f3:[] };
+    S { -- f1:false -- f2:1.0 --f3:[($0, 33 day); ($3, 66 day)] } >=
+      S { -- f1:false -- f2:1.0 --f3:[($1, 33 day); ($2, 67 day)] }
+  ]
+
+  assertion for all a among y we have not a
+```
+
+```catala-test-cli
+$ catala test-scope TStruct
+┌─[RESULT]─ TStruct ─
+│ y = [false; false; false; false]
+└─
+```
+
+```catala-metadata
+declaration enumeration E:
+  -- C0
+  -- C1 content boolean
+  -- C2 content decimal
+  -- C3 content list of (money, duration)
+  -- C4 content S
+
+#[test]
+declaration scope TEnum:
+  output x content list of boolean
+
+scope TEnum:
+  definition x equals [
+    C0 < C1 content false;
+    C1 content false < C2 content 12.12;
+    C1 content true > C1 content false;
+    C2 content 42.0 >= C2 content 0.0;
+    C3 content [] < C3 content [($1, 33 day)];
+    C3 content [($1, 32 day); ($2, 66 day)] < C3 content [($1, 33 day); ($2, 50 day)];
+    C4 content S { -- f1:true -- f2:1.111 --f3:[] } >
+      C4 content S { -- f1:true -- f2:1.11 --f3:[] }
+  ]
+
+  assertion for all a among x we have a
+```
+
+```catala-test-cli
+$ catala test-scope TEnum
+┌─[RESULT]─ TEnum ─
+│ x = [true; true; true; true; true; true; true]
+└─
+```

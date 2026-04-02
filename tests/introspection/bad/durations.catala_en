@@ -1,0 +1,68 @@
+# Testing bad comparisons of durations and related error messages
+
+```catala-metadata
+declaration structure St:
+  data a content integer
+  data b content optional of duration
+
+declaration enumeration E:
+  -- A
+  -- S content St
+
+declaration scope S1:
+  output o content boolean
+declaration scope S2:
+  output o content boolean
+declaration scope S3:
+  output o content boolean
+declaration scope S4:
+  output o content boolean
+
+scope S1:
+  definition o equals A > A
+scope S2:
+  definition o equals
+    S content St { -- a: 12 -- b: Absent } >=
+    S content St { -- a: 12 -- b: Absent }
+scope S3:
+  definition o equals
+    S content St { -- a: 12 -- b: Present content (3 year + 2 month) } >=
+    S content St { -- a: 12 -- b: Present content 3 year }
+scope S4:
+  definition o equals
+    S content St { -- a: 12 -- b: Present content (3 year + 2 month + 1 day) } >=
+    S content St { -- a: 12 -- b: Present content 3 year }
+```
+
+```catala-test-cli
+$ catala test-scope S1
+┌─[RESULT]─ S1 ─
+│ o = false
+└─
+```
+```catala-test-cli
+$ catala test-scope S2
+┌─[RESULT]─ S2 ─
+│ o = true
+└─
+```
+```catala-test-cli
+$ catala test-scope S3
+┌─[RESULT]─ S3 ─
+│ o = true
+└─
+```
+```catala-test-cli
+$ catala test-scope S4
+┌─[ERROR]─
+│
+│  During evaluation: ambiguous comparison between durations in different
+│  units (e.g. months vs. days).
+│
+├─➤ tests/introspection/bad/durations.catala_en:33.80-33.82:
+│    │
+│ 33 │     S content St { -- a: 12 -- b: Present content (3 year + 2 month + 1 day) } >=
+│    │                                                                                ‾‾
+└─ Testing bad comparisons of durations and related error messages
+#return code 123#
+```

@@ -62,6 +62,12 @@ val fold_left :
 
 val fold_exprs : f:('a -> 'expr -> typ -> 'a) -> init:'a -> 'expr program -> 'a
 
+val fold_exprs_full :
+  f:('a -> 'expr -> typ -> 'a) ->
+  init:'a ->
+  'expr program ->
+  'a * 'expr code_export list
+
 val fold_right :
   f:('expr code_item -> 'a -> 'a) -> init:'a -> 'expr program -> 'a
 

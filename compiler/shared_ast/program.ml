@@ -104,6 +104,7 @@ let map_exprs ?typ ~f ~varf { code_items; decl_ctx; lang; module_name } =
 let fold_left ~f ~init { code_items; _ } =
   fst @@ BoundList.fold_left ~f:(fun acc e _ -> f acc e) ~init code_items
 
+let fold_exprs_full ~f ~init prg = Scope.fold_exprs_full ~f ~init prg.code_items
 let fold_exprs ~f ~init prg = Scope.fold_exprs ~f ~init prg.code_items
 
 let fold_right ~f ~init { code_items; _ } =

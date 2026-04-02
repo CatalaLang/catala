@@ -21,7 +21,8 @@ open Catala_utils
 open Definitions
 
 val evaluate_operator :
-  ((((_, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
+  decl_ctx ->
+  ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
   'm mark ->
   Global.backend_lang ->
@@ -35,8 +36,8 @@ val evaluate_operator :
 val evaluate_expr :
   decl_ctx ->
   Global.backend_lang ->
-  (('a, _) interpr_kind, 'm) gexpr ->
-  (('a, yes) interpr_kind, 'm) gexpr
+  (('a, 'b, _) interpr_kind, 'm) gexpr ->
+  (('a, 'b, yes) interpr_kind, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus.
 *)
 
@@ -44,7 +45,7 @@ val interpret_program_dcalc :
   ?input:Yojson.Safe.t ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+  (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
@@ -54,7 +55,7 @@ val interpret_program_dcalc_with_coverage :
   ?stdlib:Global.raw_file ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * ((yes, yes) interpr_kind, 'm) gexpr) list
+  (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
   * Coverage.coverage_map
 (** Same as interpret_program_dcalc but also computes and returns the coverage
     map of the given program. If [stdlib] is provided, all positions that refers
@@ -64,18 +65,19 @@ val interpret_program_lcalc :
   ?input:Yojson.Safe.t ->
   (lcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * ((no, yes) interpr_kind, 'm) gexpr) list
+  (Uid.MarkedString.info * ((no, yes, yes) interpr_kind, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
 val addcustom :
-  (('a, 'b) interpr_kind, 't) gexpr -> (('a, yes) interpr_kind, 't) gexpr
+  (('a, 'b, 'c) interpr_kind, 't) gexpr ->
+  (('a, 'b, yes) interpr_kind, 't) gexpr
 (** Add custom terms to the AST type. *)
 
 val delcustom :
-  (('a, 'b) interpr_kind, 'm) gexpr -> (('a, no) interpr_kind, 'm) gexpr
+  (('a, 'b, 'c) interpr_kind, 'm) gexpr -> (('a, 'b, no) interpr_kind, 'm) gexpr
 (** Runtime check that the term contains no custom terms (raises
     [Invalid_argument] if that is the case *)
 

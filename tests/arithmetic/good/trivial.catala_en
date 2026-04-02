@@ -1,9 +1,11 @@
 ```catala
 #[test] declaration scope A:
-  output w content integer
+  output w content decimal
+  output m content money
 
 scope A:
-  definition w equals 1 + 2 + 3
+  definition w equals 12312.1231231231
+  definition m equals $12345678
 ```
 
 
@@ -21,6 +23,7 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
-│ w = 6
+│ m = $12,345,678.00
+│ w = 12,312.123,123,123,1
 └─
 ```

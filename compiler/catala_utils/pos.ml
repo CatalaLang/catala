@@ -107,6 +107,8 @@ let from_info
   in
   { code_pos = spos, epos; attr = [] }
 
+let from_file name : t = from_info name 0 0 0 0
+
 let overwrite_law_info (pos : t) (law_pos : string list) : t =
   {
     pos with
@@ -340,7 +342,7 @@ let void : t =
   in
   { code_pos = zero_pos, zero_pos; attr = [] }
 
-module Map = Map.Make (struct
+module Ord = struct
   type nonrec t = t
 
   let compare t1 t2 =
@@ -349,4 +351,7 @@ module Map = Map.Make (struct
     | n -> n
 
   let format ppf t = Format.pp_print_string ppf (to_string_short t)
-end)
+end
+
+module Set = Set.Make (Ord)
+module Map = Map.Make (Ord)

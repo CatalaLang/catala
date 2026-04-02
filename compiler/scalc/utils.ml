@@ -100,8 +100,6 @@ let rec subst_stmt v e stmt =
             sw.switch_cases;
       }
   | SReturn e1 -> SReturn (subst_expr v e e1)
-  | SAssert { pos_expr; expr } ->
-    SAssert { pos_expr = subst_expr v e pos_expr; expr = subst_expr v e expr }
   | _ -> .
 
 and subst_block v e block =

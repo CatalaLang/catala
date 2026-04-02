@@ -17,6 +17,7 @@
 open Catala_utils
 open Shared_ast
 
+val op_needs_pos : 'a operator -> naked_typ -> bool
 val renaming : Renaming.t
 
 (** Formats a lambda calculus program into a valid OCaml program *)
@@ -42,7 +43,7 @@ val format_program :
   File.t option ->
   Format.formatter ->
   hashf:(Hash.t -> Hash.full) ->
-  'm Ast.program ->
+  typed Ast.program ->
   TypeIdent.t list ->
   unit
 (** Usage [format_program get_fmt p type_dependencies_ordering]. Either one of

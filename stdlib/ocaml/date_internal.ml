@@ -6,7 +6,14 @@ let of_ymd : code_location -> integer -> integer -> integer -> date =
   try
     Dates_calc.make_date ~year:(Z.to_int y) ~month:(Z.to_int m)
       ~day:(Z.to_int d)
-  with Dates_calc.InvalidDate -> raise (Error (InvalidDate, [pos], None))
+  with Dates_calc.InvalidDate ->
+    raise
+      (Error
+         ( DateError
+             (Printf.sprintf "|%04d-%02d-%02d| is not a valid date" (Z.to_int y)
+                (Z.to_int m) (Z.to_int d)),
+           [pos],
+           None ))
 
 (* Toplevel def to_ymd *)
 let to_ymd : date -> integer * integer * integer =

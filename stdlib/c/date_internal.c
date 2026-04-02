@@ -9,6 +9,7 @@ CATALA_DATE DateInternal__of_ymd
      CATALA_INT dmonth,
      CATALA_INT dday)
 {
+  char * errbuf = NULL;
   if (mpz_fits_slong_p(dyear) && mpz_fits_ulong_p(dmonth) && mpz_fits_ulong_p(dday)) {
     dc_date *ret = catala_malloc(sizeof(dc_date));
     const long int y = mpz_get_si(dyear);
@@ -16,8 +17,10 @@ CATALA_DATE DateInternal__of_ymd
     const unsigned long int d = mpz_get_ui(dday);
     const int success = dc_make_date(ret, y, m, d);
     if (success) return ret;
+    errbuf = catala_malloc(42);
+    gmp_snprintf(errbuf, 42, "|%04ld-%02lu-%02lu| is not a valid date", y, m, d);
   }
-  catala_error(catala_invalid_date, pos, 1, NULL);
+  catala_error(catala_date_error, pos, 1, errbuf);
   abort();
 }
 

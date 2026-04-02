@@ -126,6 +126,10 @@ let eabs_ghost binder tys mark =
 let eapp ~f ~args ~tys = Box.app1n f args @@ fun f args -> EApp { f; args; tys }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
 let efatalerror e1 = Box.app0 @@ EFatalError e1
+
+let efatalerror_pos ~error ~pos_expr =
+  Box.app1 pos_expr @@ fun pos_expr -> EFatalError_pos { error; pos_expr }
+
 let epos p = Box.app0 @@ EPos p
 
 let eappop ~op ~args ~tys =
@@ -357,6 +361,8 @@ let map
   | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EFatalError e1 -> efatalerror e1 m
+  | EFatalError_pos { error; pos_expr } ->
+    efatalerror_pos ~error ~pos_expr:(f pos_expr) m
   | EPos p -> epos p m
   | EDefault { excepts; just; cons } ->
     edefault ~excepts:(List.map f excepts) ~just:(f just) ~cons:(f cons) m
@@ -408,6 +414,7 @@ let shallow_fold
   | ETupleAccess { e; _ } -> acc |> f e
   | EInj { e; _ } -> acc |> f e
   | EAssert e -> acc |> f e
+  | EFatalError_pos { pos_expr; _ } -> acc |> f pos_expr
   | EDefault { excepts; just; cons } -> acc |> lfold excepts |> f just |> f cons
   | EPureDefault e -> acc |> f e
   | EErrorOnEmpty e -> acc |> f e
@@ -478,6 +485,9 @@ let map_gather
     let acc, e = f e in
     acc, eassert e m
   | EFatalError e -> acc, efatalerror e m
+  | EFatalError_pos { error; pos_expr } ->
+    let acc, pos_expr = f pos_expr in
+    acc, efatalerror_pos ~error ~pos_expr m
   | EPos p -> acc, epos p m
   | EDefault { excepts; just; cons } ->
     let acc1, excepts = lfoldmap excepts in
@@ -564,33 +574,26 @@ let is_value (type a) (e : (a, _) gexpr) =
   | _ -> false
 
 let equal_lit (l1 : lit) (l2 : lit) =
-  let open Catala_runtime.Oper in
   match l1, l2 with
-  | LBool b1, LBool b2 -> not (o_xor b1 b2)
-  | LInt n1, LInt n2 -> o_eq_int_int n1 n2
-  | LRat r1, LRat r2 -> o_eq_rat_rat r1 r2
-  | LMoney m1, LMoney m2 -> o_eq_mon_mon m1 m2
+  | LBool b1, LBool b2 -> b1 = b2
+  | LInt n1, LInt n2 -> Z.equal n1 n2
+  | LRat r1, LRat r2 -> Q.equal r1 r2
+  | LMoney m1, LMoney m2 -> Z.equal m1 m2
   | LUnit, LUnit -> true
-  | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
-  | LDuration d1, LDuration d2 -> (
-    try o_eq_dur_dur (pos_to_runtime Pos.void) d1 d2
-    with Catala_runtime.(Error (UncomparableDurations, _, _)) -> false)
+  | LDate d1, LDate d2 -> Dates_calc.compare_dates d1 d2 = 0
+  | LDuration d1, LDuration d2 ->
+    Dates_calc.period_to_ymds d1 = Dates_calc.period_to_ymds d2
   | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _), _ ->
     false
 
 let compare_lit (l1 : lit) (l2 : lit) =
-  let open Catala_runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> Bool.compare b1 b2
-  | LInt n1, LInt n2 ->
-    if o_lt_int_int n1 n2 then -1 else if o_eq_int_int n1 n2 then 0 else 1
-  | LRat r1, LRat r2 ->
-    if o_lt_rat_rat r1 r2 then -1 else if o_eq_rat_rat r1 r2 then 0 else 1
-  | LMoney m1, LMoney m2 ->
-    if o_lt_mon_mon m1 m2 then -1 else if o_eq_mon_mon m1 m2 then 0 else 1
+  | LInt n1, LInt n2 -> Z.compare n1 n2
+  | LRat r1, LRat r2 -> Q.compare r1 r2
+  | LMoney m1, LMoney m2 -> Z.compare m1 m2
   | LUnit, LUnit -> 0
-  | LDate d1, LDate d2 ->
-    if o_lt_dat_dat d1 d2 then -1 else if o_eq_dat_dat d1 d2 then 0 else 1
+  | LDate d1, LDate d2 -> Dates_calc.compare_dates d1 d2
   | LDuration d1, LDuration d2 -> (
     (* Duration comparison in the runtime may fail, so rely on a basic
        lexicographic comparison instead *)
@@ -670,7 +673,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       ETupleAccess { e = e2; index = id2; size = s2 } ) ->
     s1 = s2 && equal e1 e2 && id1 = id2
   | EArray es1, EArray es2 -> equal_list es1 es2
-  | ELit l1, ELit l2 -> l1 = l2
+  | ELit l1, ELit l2 -> equal_lit l1 l2
   | ( EAbs { binder = b1; pos = _; tys = tys1 },
       EAbs { binder = b2; pos = _; tys = tys2 } ) ->
     Type.equal_list tys1 tys2 && Bindlib.eq_mbinder equal b1 b2
@@ -684,6 +687,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && Type.equal_list tys1 tys2
   | EAssert e1, EAssert e2 -> equal e1 e2
   | EFatalError e1, EFatalError e2 -> equal_error e1 e2
+  | ( EFatalError_pos { error = e1; pos_expr = pe1 },
+      EFatalError_pos { error = e2; pos_expr = pe2 } ) ->
+    equal_error e1 e2 && equal pe1 pe2
   | EPos p1, EPos p2 -> Pos.equal p1 p2
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
@@ -729,10 +735,11 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | EBad, EBad -> true
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
-      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _ | EPos _
-      | EDefault _ | EPureDefault _ | EIfThenElse _ | EEmpty | EErrorOnEmpty _
-      | ELocation _ | EStruct _ | EDStructAmend _ | EDStructAccess _
-      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ | ECustom _ | EBad ),
+      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EFatalError _
+      | EFatalError_pos _ | EPos _ | EDefault _ | EPureDefault _ | EIfThenElse _
+      | EEmpty | EErrorOnEmpty _ | ELocation _ | EStruct _ | EDStructAmend _
+      | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _
+      | ECustom _ | EBad ),
       _ ) ->
     false
 
@@ -815,6 +822,10 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2
   | EFatalError e1, EFatalError e2 ->
     compare_error e1 e2
+  | EFatalError_pos { error = e1; pos_expr = pe1 },
+    EFatalError_pos { error = e2; pos_expr = pe2 } ->
+    compare_error e1 e2 @@< fun () ->
+    compare pe1 pe2
   | EPos p1, EPos p2 ->
     Pos.compare p1 p2
   | EDefault {excepts=exs1; just=just1; cons=cons1},
@@ -851,6 +862,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EFatalError _, _ -> -1 | _, EFatalError _ -> 1
+  | EFatalError_pos _, _ -> -1 | _, EFatalError_pos _ -> 1
   | EPos _, _ -> -1 | _, EPos _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
@@ -892,7 +904,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | ETupleAccess { e; _ } -> size e + 1
   | EInj { e; _ } -> size e + 1
   | EAssert e -> size e + 1
-  | EFatalError _ -> 1
+  | EFatalError _ | EFatalError_pos _ -> 1
   | EPos _ -> 1
   | EErrorOnEmpty e -> size e + 1
   | EPureDefault e -> size e + 1
@@ -1099,3 +1111,66 @@ let detuplify_application args tys mkapp =
         (TTuple tys, pos arg)
         arg (mkapp args) (pos arg))
   | args, _ -> mkapp args
+
+let rec embed_value : type a.
+    decl_ctx -> (a, 'm) gexpr -> Catala_runtime.Value.t =
+ fun ctx e ->
+  let module V = Catala_runtime.Value in
+  match Mark.remove e with
+  | ELit LUnit -> V.V (Unit, ())
+  | ELit (LBool v) -> V.V (Bool, v)
+  | ELit (LInt v) -> V.V (Integer, v)
+  | ELit (LMoney v) -> V.V (Money, v)
+  | ELit (LRat v) -> V.V (Decimal, v)
+  | ELit (LDate v) -> V.V (Date, v)
+  | ELit (LDuration v) -> V.V (Duration, v)
+  | EPos v -> V.V (Position, pos_to_runtime v)
+  | EArray el -> V.V (Array (embed_value ctx), Array.of_list el)
+  | ETuple el -> V.V (Tuple (List.map (embed_value ctx)), el)
+  | EStruct { name; fields } ->
+    V.V
+      ( Struct
+          {
+            name = StructName.canonical_str None name;
+            fields =
+              List.map (fun (name, e) ->
+                  StructField.to_string name, embed_value ctx e);
+          },
+        StructField.Map.bindings fields )
+  | EInj { name; cons; e = payload } ->
+    let seq_find_index f s =
+      (* [Seq.find_index] in OCaml >= 5.01 only *)
+      let rec aux n s =
+        match Seq.uncons s with
+        | Some (x, s) -> if f x then Some n else aux (n + 1) s
+        | None -> None
+      in
+      aux 0 s
+    in
+    let constr_index =
+      Option.get
+        (seq_find_index
+           (fun (c, _) -> EnumConstructor.equal cons c)
+           (EnumConstructor.Map.to_seq (EnumName.Map.find name ctx.ctx_enums)))
+    in
+    V.V
+      ( Enum
+          {
+            name = EnumName.canonical_str None name;
+            constr =
+              (fun (index, cons, payload) ->
+                ( index,
+                  EnumConstructor.to_string cons,
+                  match payload with
+                  | ELit LUnit, _ -> None
+                  | e -> Some (embed_value ctx e) ));
+          },
+        (constr_index, cons, payload) )
+  | EAbs _ as lam ->
+    V.V (Function, lam)
+    (* Probably something very clever to do here by embedding the interpreter
+       itself *)
+  | ECustom { obj; _ } ->
+    V.V (Function, Obj.obj obj)
+    (* V.V (Function (fun f args -> embed_value ctx (f args)), Obj.obj obj) *)
+  | _ -> invalid_arg "embed_value"

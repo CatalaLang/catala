@@ -1,0 +1,95 @@
+# Testing comparison of functions and related error messages
+
+```catala-metadata
+declaration scope S1:
+  internal f content integer depends on x content money
+  output o content boolean
+
+scope S1:
+  definition f of x equals integer of x
+  definition o equals f = f
+```
+
+```catala-test-cli
+$ catala test-scope S1
+┌─[ERROR]─
+│
+│  During evaluation: attempting to compare values with uncomparable types.
+│
+├─➤ tests/introspection/bad/functions.catala_en:10.25-10.26:
+│    │
+│ 10 │   definition o equals f = f
+│    │                         ‾
+└─ Testing comparison of functions and related error messages
+#return code 123#
+```
+
+
+```catala-metadata
+declaration foo content money depends on
+    x content money
+  equals
+  x
+
+declaration scope S2:
+  output o content boolean
+
+scope S2:
+  definition o equals foo < foo
+```
+
+```catala-test-cli
+$ catala test-scope S2
+┌─[ERROR]─
+│
+│  During evaluation: attempting to compare values with uncomparable types.
+│
+├─➤ tests/introspection/bad/functions.catala_en:38.27-38.28:
+│    │
+│ 38 │   definition o equals foo < foo
+│    │                           ‾
+└─ Testing comparison of functions and related error messages
+#return code 123#
+```
+
+```catala-metadata
+declaration structure St:
+  data f content money depends on x content money
+
+declaration enumeration E:
+  -- A
+  -- F content St
+
+declaration scope S3a:
+  output o content boolean
+
+declaration scope S3b:
+  output o content boolean
+
+scope S3a:
+  definition o equals A = A
+
+scope S3b:
+  definition o equals F content St { -- f: foo } >= F content St { -- f: foo }
+```
+
+```catala-test-cli
+$ catala test-scope S3a
+┌─[RESULT]─ S3a ─
+│ o = true
+└─
+```
+
+```catala-test-cli
+$ catala test-scope S3b
+┌─[ERROR]─
+│
+│  During evaluation: attempting to compare values with uncomparable types.
+│
+├─➤ tests/introspection/bad/functions.catala_en:73.50-73.52:
+│    │
+│ 73 │   definition o equals F content St { -- f: foo } >= F content St { -- f: foo }
+│    │                                                  ‾‾
+└─ Testing comparison of functions and related error messages
+#return code 123#
+```

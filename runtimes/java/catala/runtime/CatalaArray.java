@@ -4,14 +4,23 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import catala.runtime.exception.CatalaError;
+import java.lang.reflect.Array;
 
-public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
+public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<CatalaArray<T>> {
 
     private final T[] values;
 
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public CatalaArray(T... values) {
-        this.values = (T[]) values;
+        this.values = Arrays.copyOf(values, values.length);
+    }
+
+    public CatalaArray(Stream<T> values) {
+        Object[] l = values.toList().toArray();
+        @SuppressWarnings("unchecked")
+        T[] arr = (T[]) Arrays.copyOf(l, l.length, CatalaValue[].class);
+        this.values = arr;
     }
 
     public T[] asArray() {
@@ -27,36 +36,40 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     public final T get(int index, Class<T> clazz) {
-        return (T) this.values[index];
+        return this.values[index];
+    }
+
+    public <R extends CatalaValue<?>> CatalaArray<R> map(CatalaFunction<T, R> func) {
+        return new CatalaArray<>(Stream.of(this.values).map(func));
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends CatalaValue> CatalaArray<R> map(CatalaFunction<T, R> func) {
-        return new CatalaArray<>(Stream.of(this.values).map(func).toArray(size -> (R[]) new CatalaValue[size]));
-    }
-
-    @SuppressWarnings("unchecked")
-    public <U extends CatalaValue, R extends CatalaValue> CatalaArray<R> map2(
+    public <U extends CatalaValue<?>, R extends CatalaValue<?>> CatalaArray<R> map2(
             CatalaPosition pos, CatalaFunction<CatalaTuple, R> func, CatalaArray<U> other) {
         if (this.values.length != other.values.length) {
-            throw new CatalaError(CatalaError.Error.NotSameLength, pos);
+            throw CatalaError.error(CatalaError.Error.NotSameLength, pos);
         }
         int length = this.values.length;
-        R[] tuples = (R[]) new CatalaValue[length];
-        for (int i = 0; i < length; i++) {
-            tuples[i] = func.apply(new CatalaTuple(this.values[i], other.values[i]));
+        if (this.values.length == 0) {
+            return new CatalaArray<>();
+        } else {
+            R first = func.apply(new CatalaTuple(this.values[0], other.values[0]));
+            R[] r = (R[]) Array.newInstance(first.getClass(), this.values.length);
+            r[0] = first;
+            for (int i = 1; i < length; i++) {
+                r[i] = func.apply(new CatalaTuple(this.values[i], other.values[i]));
+            }
+            return new CatalaArray<>(r);
         }
-        return new CatalaArray<>(tuples);
     }
 
-    @SuppressWarnings("unchecked")
     public CatalaArray<T> filter(CatalaFunction<T, CatalaBool> func) {
         return new CatalaArray<>(Stream.of(this.values).filter(
                 x -> func.apply(x) == CatalaBool.TRUE
-        ).toArray(size -> (T[]) new CatalaValue[size]));
+        ));
     }
 
-    public <U extends CatalaValue> U foldLeft(CatalaFunction<CatalaTuple, U> folder, U init) {
+    public <U extends CatalaValue<?>> U foldLeft(CatalaFunction<CatalaTuple, U> folder, U init) {
         U result = init;
         for (T element : this.values) {
             result = folder.apply(new CatalaTuple(result, element));
@@ -84,14 +97,14 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue v) {
-        if (v instanceof CatalaArray<?> catalaArray
-                && catalaArray.getClass().isAssignableFrom(this.getClass())) {
-            if (catalaArray.values.length != this.values.length) {
+    public CatalaBool equalsTo(CatalaPosition p, CatalaArray<T> v) {
+        if (v instanceof CatalaArray<T> other_array
+                && other_array.getClass().isAssignableFrom(this.getClass())) {
+            if (other_array.values.length != this.values.length) {
                 return CatalaBool.FALSE;
             } else {
                 for (int i = 0; i < this.values.length; i++) {
-                    if (!(this.values[i].equalsTo(catalaArray.values[i]).asBoolean())) {
+                    if (!(this.values[i].equalsTo(p, other_array.values[i]).asBoolean())) {
                         return CatalaBool.FALSE;
                     }
                 }
@@ -103,7 +116,49 @@ public final class CatalaArray<T extends CatalaValue> implements CatalaValue {
     }
 
     @Override
+    public int compareTo(CatalaPosition p, CatalaArray<T> o) {
+        T[] l = this.asArray();
+        T[] r = o.asArray();
+        for (int i = 0; i < Integer.min(l.length, r.length); i++) {
+            int cmp = l[i].compareTo(p, r[i]);
+            if (cmp == 0) {
+                continue;
+            }
+            return cmp;
+        }
+        return Integer.compare(l.length, r.length);
+    }
+
+    @Override
     public String toString() {
-        return Arrays.toString(values);
+        if (this.values.length == 0) {
+            return "[ ]";
+        }
+        StringBuilder b = new StringBuilder();
+        b.append("[\n");
+        StringBuilder newb = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            newb.append(values[i].toString());
+            if (i < values.length - 1) {
+                newb.append("; ");
+            }
+        }
+        // indent adds a newline for some reason, thus, we do not add one.
+        b.append(newb.toString().indent(2)).append("]");
+        return b.toString();
+    }
+
+    @Override
+    public String toJSONString() {
+        StringBuilder b = new StringBuilder();
+        b.append("[ ");
+        for (int i = 0; i < values.length; i++) {
+            b.append(values[i].toJSONString());
+            if (i < values.length - 1) {
+                b.append(", ");
+            }
+        }
+        b.append(" ]");
+        return b.toString();
     }
 }

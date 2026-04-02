@@ -121,6 +121,14 @@ module money_internal = Money_internal
 module integer_en = Integer_en
 module decimal_en = Decimal_en
 module decimal_internal = Decimal_internal
+let loc =
+  [<toplevel_defs:7.10-11>; <toplevel_defs:8.10-11>;
+    <toplevel_defs:15.14-27>; <toplevel_defs:18.24-37>;
+    <toplevel_defs:19.24-29>; <toplevel_defs:50.10-11>;
+    <toplevel_defs:53.24-44>; <toplevel_defs:71.10-11>;
+    <toplevel_defs:74.24-49>; <toplevel_defs:95.10-11>;
+    <toplevel_defs:98.24-35>]
+
 let glob1 = 44.12
 
 let glob3 (x: money) = return to_rat x + 10.
@@ -136,16 +144,14 @@ let glob5_init =
 
 let glob5 = glob5_init ()
 
-let glob2 = A {"y": glob1 >= 30., "z": 123. * 17.}
+let glob2 = A {"y": >= nth(2) loc glob1 30., "z": 123. * 17.}
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:53.24-44>;
   init a__1 : option (decimal, code_location) =
-    Present (glob3 ¤44.00 + 100., pos);
+    Present (glob3 ¤44.00 + 100., nth(6) loc);
   switch a__1:
   | Absent _ →
-    init pos__1 : SourcePosition = <toplevel_defs:50.10-11>;
     fatal NoValue
   | Present arg →
     a = arg."0";
@@ -153,12 +159,10 @@ let s2 (s2_in: #[test] S2_in) =
 
 let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:74.24-49>;
   init a__1 : option (decimal, code_location) =
-    Present (50. + glob4 ¤44.00 55., pos);
+    Present (50. + glob4 ¤44.00 55., nth(8) loc);
   switch a__1:
   | Absent _ →
-    init pos__1 : SourcePosition = <toplevel_defs:71.10-11>;
     fatal NoValue
   | Present arg →
     a = arg."0";
@@ -166,11 +170,10 @@ let s3 (s3_in: #[test] S3_in) =
 
 let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:98.24-35>;
-  init a__1 : option (decimal, code_location) = Present (glob5 + 1., pos);
+  init a__1 : option (decimal, code_location) =
+    Present (glob5 + 1., nth(10) loc);
   switch a__1:
   | Absent _ →
-    init pos__1 : SourcePosition = <toplevel_defs:95.10-11>;
     fatal NoValue
   | Present arg →
     a = arg."0";
@@ -178,20 +181,17 @@ let s4 (s4_in: #[test] S4_in) =
 
 let s (s_in: #[test] S_in) =
   decl a : decimal;
-  init pos : SourcePosition = <toplevel_defs:18.24-37>;
-  init a__1 : option (decimal, code_location) = Present (glob1 * glob1, pos);
+  init a__1 : option (decimal, code_location) =
+    Present (glob1 * glob1, nth(3) loc);
   switch a__1:
   | Absent _ →
-    init pos__1 : SourcePosition = <toplevel_defs:7.10-11>;
     fatal NoValue
   | Present arg →
     a = arg."0";
   decl b : A;
-  init pos__1 : SourcePosition = <toplevel_defs:19.24-29>;
-  init b__1 : option (A, code_location) = Present (glob2, pos__1);
+  init b__1 : option (A, code_location) = Present (glob2, nth(4) loc);
   switch b__1:
   | Absent _ →
-    init pos__2 : SourcePosition = <toplevel_defs:8.10-11>;
     fatal NoValue
   | Present arg →
     b = arg."0";
@@ -205,6 +205,7 @@ $ catala python
 from catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
+from sys import stderr
 from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
 from . import List_en as list_en
@@ -215,225 +216,152 @@ from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 
-class A:
-    def __init__(self, y: bool, z: Decimal) -> None:
-        self.y = y
-        self.z = z
+class A(CatalaStruct):
+    __slots__ = ('y', 'z')
+    y: Bool
+    z: Decimal
+    name = 'A'
+    fields = {
+        'y': 'y', # content Bool
+        'z': 'z', # content Decimal
+    }
 
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, A):
-            return (self.y == other.y and self.z == other.z)
-        else:
-            return False
+class S2(CatalaStruct):
+    __slots__ = ('a')
+    a: Decimal
+    name = 'S2'
+    fields = {
+        'a': 'a', # content Decimal
+    }
 
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
+class S3(CatalaStruct):
+    __slots__ = ('a')
+    a: Decimal
+    name = 'S3'
+    fields = {
+        'a': 'a', # content Decimal
+    }
 
-    def __str__(self) -> str:
-        return "A(y={},z={})".format(self.y, self.z)
+class S4(CatalaStruct):
+    __slots__ = ('a')
+    a: Decimal
+    name = 'S4'
+    fields = {
+        'a': 'a', # content Decimal
+    }
 
-class S2:
-    def __init__(self, a: Decimal) -> None:
-        self.a = a
+class S(CatalaStruct):
+    __slots__ = ('a', 'b')
+    a: Decimal
+    b: A
+    name = 'S'
+    fields = {
+        'a': 'a', # content Decimal
+        'b': 'b', # content A
+    }
 
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S2):
-            return (self.a == other.a)
-        else:
-            return False
+class SIn(CatalaStruct):
+    __slots__ = ()
+    name = 'S_in'
+    fields = {
+    }
 
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
+class S2In(CatalaStruct):
+    __slots__ = ()
+    name = 'S2_in'
+    fields = {
+    }
 
-    def __str__(self) -> str:
-        return "S2(a={})".format(self.a)
+class S3In(CatalaStruct):
+    __slots__ = ()
+    name = 'S3_in'
+    fields = {
+    }
 
-class S3:
-    def __init__(self, a: Decimal) -> None:
-        self.a = a
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S3):
-            return (self.a == other.a)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S3(a={})".format(self.a)
-
-class S4:
-    def __init__(self, a: Decimal) -> None:
-        self.a = a
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S4):
-            return (self.a == other.a)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S4(a={})".format(self.a)
-
-class S:
-    def __init__(self, a: Decimal, b: A) -> None:
-        self.a = a
-        self.b = b
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S):
-            return (self.a == other.a and self.b == other.b)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S(a={},b={})".format(self.a, self.b)
-
-class SIn:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SIn):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "SIn()".format()
-
-class S2In:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S2In):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S2In()".format()
-
-class S3In:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S3In):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S3In()".format()
-
-class S4In:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, S4In):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "S4In()".format()
+class S4In(CatalaStruct):
+    __slots__ = ()
+    name = 'S4_in'
+    fields = {
+    }
 
 
-glob1 = (decimal_of_string("1103/25"))
+loc = (Array([SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=["Test basic toplevel values defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=8, start_column=10, end_line=8, end_column=11, law_headings=["Test basic toplevel values defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=18, start_column=24, end_line=18, end_column=37, law_headings=["Test basic toplevel values defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=19, start_column=24, end_line=19, end_column=29, law_headings=["Test basic toplevel values defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=50, start_column=10, end_line=50, end_column=11, law_headings=["Test toplevel function defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=24, end_line=53, end_column=44, law_headings=["Test toplevel function defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=71, start_column=10, end_line=71, end_column=11, law_headings=["Test function def with two args"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=74, start_column=24, end_line=74, end_column=49, law_headings=["Test function def with two args"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=95, start_column=10, end_line=95, end_column=11, law_headings=["Test inline defs in toplevel defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=98, start_column=24, end_line=98, end_column=35, law_headings=["Test inline defs in toplevel defs"])]))
 
-def glob3(x:Money):
-    return (decimal_of_money(x) + decimal_of_string("10"))
+glob1 = (Decimal('1103/25'))
 
-def glob4(x:Money, y:Decimal):
-    return ((decimal_of_money(x) * y) + decimal_of_string("10"))
+def glob3(x:Money) -> Decimal:
+    return (Decimal(x) + Decimal('10'))
 
-def glob5_init():
-    x = ((decimal_of_integer(Integer(2)) * decimal_of_string("3")))
-    y = (decimal_of_string("1000"))
+def glob4(x:Money, y:Decimal) -> Decimal:
+    return ((Decimal(x) * y) + Decimal('10'))
+
+def glob5_init() -> Decimal:
+    x = ((Decimal(Integer(2)) * Decimal('3')))
+    y = (Decimal('1000'))
     return (x * y)
 
 glob5 = (glob5_init())
 
-glob2 = (A(y = (glob1 >= decimal_of_string("30")), z = (decimal_of_string("123") * decimal_of_string("17"))))
+glob2 = (A(y = (glob1 >= Decimal('30')), z = (Decimal('123') * Decimal('17'))))
 
-def s2(s2_in:S2In):
-    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=24, end_line=53, end_column=44, law_headings=["Test toplevel function defs"]))
-    a__1 = (Option(((glob3(Money(Integer(4400))) + decimal_of_string("100")), pos)))
+def s2(s2_in:S2In) -> S2:
+    a__1 = (Option(CatalaTuple((glob3(Money('44.00')) + Decimal('100')), loc[5])))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=50, start_column=10, end_line=50, end_column=11, law_headings=["Test toplevel function defs"]))
-        raise NoValue(pos__1, None)
+        raise NoValue(loc[4])
     return S2(a = a)
 
-def s3(s3_in:S3In):
-    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=74, start_column=24, end_line=74, end_column=49, law_headings=["Test function def with two args"]))
-    a__1 = (Option(((decimal_of_string("50") + glob4(Money(Integer(4400)), decimal_of_string("55"))), pos)))
+def s3(s3_in:S3In) -> S3:
+    a__1 = (Option(CatalaTuple((Decimal('50') + glob4(Money('44.00'), Decimal('55'))), loc[7])))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=71, start_column=10, end_line=71, end_column=11, law_headings=["Test function def with two args"]))
-        raise NoValue(pos__1, None)
+        raise NoValue(loc[6])
     return S3(a = a)
 
-def s4(s4_in:S4In):
-    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=98, start_column=24, end_line=98, end_column=35, law_headings=["Test inline defs in toplevel defs"]))
-    a__1 = (Option(((glob5 + decimal_of_string("1")), pos)))
+def s4(s4_in:S4In) -> S4:
+    a__1 = (Option(CatalaTuple((glob5 + Decimal('1')), loc[9])))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=95, start_column=10, end_line=95, end_column=11, law_headings=["Test inline defs in toplevel defs"]))
-        raise NoValue(pos__1, None)
+        raise NoValue(loc[8])
     return S4(a = a)
 
-def s(s_in:SIn):
-    pos = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=18, start_column=24, end_line=18, end_column=37, law_headings=["Test basic toplevel values defs"]))
-    a__1 = (Option(((glob1 * glob1), pos)))
+def s(s_in:SIn) -> S:
+    a__1 = (Option(CatalaTuple((glob1 * glob1), loc[2])))
     if a__1.value is not None:
         a = (a__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos__1, None)
-    pos__1 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=19, start_column=24, end_line=19, end_column=29, law_headings=["Test basic toplevel values defs"]))
-    b__1 = (Option((glob2, pos__1)))
+        raise NoValue(loc[0])
+    b__1 = (Option(CatalaTuple(glob2, loc[3])))
     if b__1.value is not None:
         b = (b__1.value[0])
     else:
-        pos__2 = (SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=8, start_column=10, end_line=8, end_column=11, law_headings=["Test basic toplevel values defs"]))
-        raise NoValue(pos__2, None)
+        raise NoValue(loc[1])
     return S(a = a, b = b)
 
 # Automatic Catala tests
 if __name__ == "__main__":
   s2_test = (s2(S2In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.", file=stderr)
+  print(s2_test)
   s3_test = (s3(S3In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.", file=stderr)
+  print(s3_test)
   s4_test = (s4(S4In()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.", file=stderr)
+  print(s4_test)
   s_test = (s(SIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
+  print(s_test)
 ```

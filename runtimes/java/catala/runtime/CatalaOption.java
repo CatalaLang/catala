@@ -1,18 +1,18 @@
 package catala.runtime;
 
-public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
+public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<CatalaOption<T>> {
 
     public final T value;
 
-    public static final CatalaOption NONE = new CatalaOption<>(null);
+    private static final CatalaOption<? extends CatalaValue<?>> NONE = new CatalaOption<>(null);
 
-    public static final <T extends CatalaValue> CatalaOption<T> none() {
+    public static final <U extends CatalaValue<?>> CatalaOption<U> none() {
         @SuppressWarnings("unchecked")
-        CatalaOption<T> t = (CatalaOption<T>) NONE;
+        CatalaOption<U> t = (CatalaOption<U>) NONE;
         return t;
     }
 
-    public static <T extends CatalaValue> CatalaOption<T> some(T value) {
+    public static <U extends CatalaValue<?>> CatalaOption<U> some(U value) {
         if (value == null) {
             throw new IllegalArgumentException("'CatalaOption.some' requires a non-null value");
         }
@@ -36,25 +36,51 @@ public final class CatalaOption<T extends CatalaValue> implements CatalaValue {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue other) {
-        if (other instanceof CatalaOption catalaOption) {
-            if (this == NONE)
-                return CatalaBool.fromBoolean(catalaOption == NONE);
-            else if (catalaOption == NONE)
-                return CatalaBool.FALSE;
-            else
-                return this.value.equalsTo(catalaOption.value);
-        } else {
+    public CatalaBool equalsTo(CatalaPosition p, CatalaOption<T> o) {
+        if (this == NONE) {
+            return CatalaBool.fromBoolean(o == NONE);
+        } else if (o == NONE) {
             return CatalaBool.FALSE;
+        } else {
+            return this.value.equalsTo(p, o.value);
         }
+    }
+
+    @Override
+    public int compareTo(CatalaPosition p, CatalaOption<T> o) {
+        if (this.isNone() && o.isNone()) {
+            return 0;
+        }
+        if (this.isNone()) {
+            return -1;
+        }
+        if (o.isNone()) {
+            return 1;
+        }
+        return this.get().compareTo(p, o.get());
     }
 
     @Override
     public String toString() {
         if (this.isNone()) {
-            return "None";
+            return "Absent";
         } else {
-            return "Some " + get().toString();
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                return "Présent contenu " + get().toString();
+            } else {
+                return "Present content " + get().toString();
+            }
+        }
+    }
+
+    @Override
+    public String toJSONString() {
+        // Warning: structures with optional fields should skip this function and
+        // print either nothing either directly the value skipping the enum repr
+        if (this.isNone()) {
+            return "Absent";
+        } else {
+            return String.format("{ \"Present\": %s }", get().toJSONString());
         }
     }
 }

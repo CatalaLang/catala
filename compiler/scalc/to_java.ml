@@ -109,6 +109,17 @@ let java_keywords =
 (* todo: reserved names should also include built-in types and everything
    exposed by the runtime. *)
 
+let op_needs_pos (type a) (op : a Op.t) ty =
+  match op with
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+    true
+  | Op.Eq | Lt | Lte | Gt | Gte -> (
+    match ty with
+    | TLit (TUnit | TBool | TInt | TMoney | TRat | TDate) -> false
+    | _ -> true)
+  | _ -> false
+
 let renaming =
   Renaming.program () ~reserved:java_keywords ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields:true ~namespaced_constrs:true
@@ -160,32 +171,30 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
     pp_print_string ppf "divide"
   | And -> pp_print_string ppf "and"
   | Or -> pp_print_string ppf "or"
-  | Eq | Eq_boo_boo | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-  | Eq_dur_dur ->
+  | Eq ->
+    (* FIXME: position arg and errors *)
     pp_print_string ppf "equalsTo"
   | Xor -> pp_print_string ppf "xor"
-  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
-    pp_print_string ppf "lessThan"
-  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur ->
-    pp_print_string ppf "lessEqThan"
-  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur ->
-    pp_print_string ppf "greaterThan"
-  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur ->
-    pp_print_string ppf "greaterEqThan"
+  | Lt -> pp_print_string ppf "lessThan"
+  | Lte -> pp_print_string ppf "lessEqThan"
+  | Gt -> pp_print_string ppf "greaterThan"
+  | Gte -> pp_print_string ppf "greaterEqThan"
   | Map -> pp_print_string ppf "map"
   | Map2 -> pp_print_string ppf "map2"
   | Reduce -> pp_print_string ppf "reduce"
   | Filter -> pp_print_string ppf "filter"
   | Fold -> pp_print_string ppf "foldLeft"
   | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
+  | ArrayAccess _ -> fprintf ppf "get"
+  | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_visibility ppf = function
   | Private -> () (* nothing => package visibility *)
   | Public -> fprintf ppf "public "
 
-let rec format_typ ?(wildcard = false) ctx ppf (typ : typ) =
-  let format_typ = format_typ ~wildcard in
+let rec format_typ ?(wildcard = false) ?(diamond = true) ctx ppf (typ : typ) =
+  let format_typ = format_typ ~wildcard ~diamond in
   let typ = Type.unquantify typ in
   match Mark.remove typ with
   | TLit TBool -> fprintf ppf "CatalaBool"
@@ -197,22 +206,30 @@ let rec format_typ ?(wildcard = false) ctx ppf (typ : typ) =
   | TLit TDuration -> fprintf ppf "CatalaDuration"
   | TLit TPos -> fprintf ppf "CatalaPosition"
   | TArrow ([ty], ret_ty) ->
-    fprintf ppf "CatalaFunction<%a,%a>" (format_typ ctx) ty (format_typ ctx)
-      ret_ty
+    if diamond then
+      fprintf ppf "CatalaFunction<%a,%a>" (format_typ ctx) ty (format_typ ctx)
+        ret_ty
+    else fprintf ppf "CatalaFunction"
   | TArrow (_args_ty, ret_ty) ->
-    fprintf ppf "CatalaFunction<CatalaTuple,%a>" (format_typ ctx) ret_ty
+    if diamond then
+      fprintf ppf "CatalaFunction<CatalaTuple,%a>" (format_typ ctx) ret_ty
+    else fprintf ppf "CatalaFunction"
   | TTuple _ -> fprintf ppf "CatalaTuple"
   | TStruct sname when sname == Expr.source_pos_struct ->
     pp_print_string ppf "CatalaPosition"
   | TStruct sname -> format_struct ppf sname
   | TEnum ename -> format_enum ppf ename
   | TAbstract aname -> format_qualified (module AbstractType) ppf aname
-  | TOption typ -> fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
-  | TArray typ -> fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
+  | TOption typ ->
+    if diamond then fprintf ppf "CatalaOption<%a>" (format_typ ctx) typ
+    else fprintf ppf "CatalaOption"
+  | TArray typ ->
+    if diamond then fprintf ppf "CatalaArray<%a>" (format_typ ctx) typ
+    else fprintf ppf "CatalaArray"
   | TDefault typ -> (format_typ ctx) ppf typ
   | TVar _ ->
-    if wildcard then fprintf ppf "? extends CatalaValue"
-    else fprintf ppf "CatalaValue"
+    if wildcard then fprintf ppf "? extends CatalaValue<?>"
+    else fprintf ppf "CatalaValue<?>"
   | TForAll _ -> assert false
   | TClosureEnv -> assert false
   | TError -> assert false
@@ -410,6 +427,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
         _;
       } ->
     fprintf ppf "%a.negate()" (format_expression_with_paren ctx) arg1
+  | EAppOp { op = (ArrayAccess n, _) as op; args = [arg1]; _ } ->
+    fprintf ppf "%a.%a(%d)"
+      (format_expression_with_paren ctx)
+      arg1 format_op op n
   | EAppOp { op; args = [arg1]; _ } ->
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args; _ }
@@ -513,7 +534,7 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
     fprintf ppf "@[<hov 4>%a %a =@ %a;@]" (format_typ ctx) typ VarName.format
       (Mark.remove name) (format_expression ctx) expr
   | SFatalError { pos_expr; error } ->
-    fprintf ppf "throw new CatalaError(CatalaError.Error.%s, %a%s);"
+    fprintf ppf "throw CatalaError.error(CatalaError.Error.%s, %a%s);"
       (Runtime.error_to_string error)
       (format_expression ctx) pos_expr
       (match
@@ -523,6 +544,19 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
        with
       | None -> ""
       | Some m -> ", " ^ String.quote m)
+  | SIfThenElse
+      {
+        if_expr;
+        then_block;
+        else_block =
+          [
+            ( SLocalDef { expr = ELit LUnit, _; _ }, _
+            | SReturn (ELit LUnit, _), _ );
+          ];
+      } ->
+    fprintf ppf "@[<v 4>if (%a.asBoolean()) {@ %a@;<1 -4>}@]"
+      (format_expression_with_paren ctx)
+      if_expr (format_block ctx) then_block
   | SIfThenElse { if_expr; then_block; else_block } ->
     format_if ppf
       ~cond_format:(fun ppf ->
@@ -601,19 +635,6 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
       pp_default_initializer
-  | SAssert { expr; pos_expr } ->
-    fprintf ppf "@[<hov 4>CatalaAssertion.check(%a, %a%s);@]"
-      (format_expression_with_paren ctx)
-      pos_expr
-      (format_expression_with_paren ctx)
-      expr
-      (match
-         Pos.get_attr (Mark.get stmt) (function
-           | ErrorMessage m -> Some m
-           | _ -> None)
-       with
-      | None -> ""
-      | Some m -> ", " ^ String.quote m)
   | SSpecialOp _ -> .
 
 and format_inner_func_def ctx ppf (name, func) =
@@ -722,15 +743,18 @@ let format_scope_output_parameters
        (format_output_parameter ~vis:sbody.scope_body_visibility ctx))
     fields
 
-let format_comparison class_name pp_fields_comparison ppf =
+let format_comparisons class_name pp_fields_equality pp_fields_comparison ppf =
   fprintf ppf
     "%@Override@\n\
-     @[<hov2>public CatalaBool equalsTo(CatalaValue other) {@\n\
-     @[<v 4>if (other instanceof %s v) {@\n\
+     @[<hov 2>public CatalaBool equalsTo(CatalaPosition p, %s o) {@\n\
      %t@]@\n\
-     } else { return CatalaBool.FALSE; }@]@\n\
+     }@\n\
+     @,\
+     %@Override@\n\
+     @[<hov 2>public int compareTo(CatalaPosition p, %s o) {@\n\
+     %t@]@\n\
      }"
-    class_name pp_fields_comparison
+    class_name pp_fields_equality class_name pp_fields_comparison
 
 let format_struct_constructor_body ppf fields =
   let fields = StructField.Map.bindings fields in
@@ -759,7 +783,12 @@ let format_scope_out_struct_constructor
         format_visibility vis format_scope scope_name (format_struct_params ctx)
         fields format_struct_constructor_body fields
     in
-    fprintf ppf "@[<hov 4>%astatic class %aOut {@\n%a@\n%a@]@\n}@\n@\n"
+    fprintf ppf
+      "@[<hov 4>%astatic class %aOut extends CatalaStruct {@\n\
+       %a@\n\
+       %a@]@\n\
+       }@\n\
+       @\n"
       format_visibility vis format_scope scope_name
       (pp_print_list ~pp_sep:pp_print_space (format_output_parameter ~vis ctx))
       (StructField.Map.bindings fields)
@@ -776,39 +805,6 @@ let format_scope_out_struct_constructor
       vis format_scope scope_name format_scope scope_name
       format_scope_out_constructor_body fields
 
-let format_fields_comparison ppf (fields : string list) =
-  let format_field_comparison ppf field =
-    fprintf ppf "this.%s.equalsTo(v.%s)" field field
-  in
-  let rec pp_conjunction ppf = function
-    | [] -> fprintf ppf "CatalaBool.TRUE"
-    | [h] -> format_field_comparison ppf h
-    | h :: t ->
-      fprintf ppf "%a.and@;<0 -1>(%a)" format_field_comparison h pp_conjunction
-        t
-  in
-  fprintf ppf "return @[<hov 4>%a;@]" pp_conjunction fields
-
-let format_struct_to_string ppf fields =
-  fprintf ppf
-    "%@Override@\n@[<v 4>public String toString() {@\nreturn %a;@]@\n}"
-    (fun ppf -> function
-      | [] -> fprintf ppf "\"\""
-      | fields ->
-        (pp_print_list
-           ~pp_sep:(fun ppf () -> fprintf ppf " + \", \"@ + ")
-           (fun ppf field_s ->
-             fprintf ppf "\"%s = \" + this.%s.toString()" field_s field_s))
-          ppf fields)
-    fields
-
-let format_enum_to_string ppf =
-  fprintf ppf
-    "%@Override@\n\
-     @[<v 4>public String toString() {@\n\
-     return this.kind.toString() + \" \" + this.contents.toString();@]@\n\
-     }"
-
 let format_tests ctx ppf (closures, tests) =
   assert (closures = []);
   pp_skip_line ppf ();
@@ -823,19 +819,28 @@ let format_tests ctx ppf (closures, tests) =
         inputs, and add the "
    else
      let () =
-       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]@."
-         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (s, _) ->
-              ScopeName.format ppf s))
+       Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]"
+         (Format.pp_print_list ~pp_sep:Format.pp_print_space
+            (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
-     let format_test ppf (scope_name, block) =
+     let format_test ppf (scope_name, var, block) =
+       pp_open_vbox ppf 2;
        fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
-       fprintf ppf
-         "%a@\n\
-          System.out.println(\"\\u001B[32m[RESULT]\\u001B[0m Scope %a executed \
-          successfully.\"); }"
+       pp_open_vbox ppf 2;
+       fprintf ppf "try {@\n";
+       fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
+         (match Global.options.language with Some Fr -> "FR" | _ -> "EN");
+       fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
          (format_block ~toplevel:true ctx)
-         block ScopeName.format scope_name
+         block ScopeName.format_original scope_name (VarName.to_string var);
+       pp_close_box ppf ();
+       fprintf ppf
+         "@\n\
+          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", \
+          e); } }"
+         ScopeName.format_original scope_name;
+       pp_close_box ppf ()
      in
      pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
   fprintf ppf "@]@\n}"
@@ -861,28 +866,18 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     | None -> []
     | Some out_fields -> StructField.Map.bindings out_fields
   in
-  let fields_l = List.map fst out_fields |> List.map StructField.to_string in
-  let format_fields_comparison ppf = format_fields_comparison ppf fields_l in
   fprintf ppf
-    "@[<v 4>@[<hov 4>public static class %a@ implements CatalaValue {@]\n\
+    "@[<v 4>@[<hov 4>public static class %a extends CatalaStruct {@]@\n\
      @,\
-     %a@ %t\n\
+     %a@ %t@\n\
      @,\
-     %t\n\
-     @,\
-     %t\n\
-     @,\
-     %a@]@\n\
+     %t@]@\n\
      }"
     format_scope sbody.scope_body_name
     (format_scope_output_parameters ctx sbody)
     out_fields
     (format_constructor ctx sbody)
     pp_out_struct
-    (format_comparison
-       (ScopeName.to_string sbody.scope_body_name)
-       format_fields_comparison)
-    format_struct_to_string fields_l
 
 let gather_externals ctx =
   let external_global_funcs, external_global_vars =
@@ -978,24 +973,11 @@ let format_structs ctx ppf =
         (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
         fields_l
     in
-    let fields_l = List.map fst fields_l |> List.map StructField.to_string in
-    let format_fields_comparison ppf = format_fields_comparison ppf fields_l in
     fprintf ppf
-      "@[<v 4>public static class %a@ implements CatalaValue {\n\
-       @,\
-       %t\n\
-       @,\
-       %a\n\
-       @,\
-       %t\n\
-       @,\
-       %a@]@\n\
-       }"
+      "@[<v 4>public static class %a extends CatalaStruct {@\n@,%t@\n@,%a@]@\n}"
       format_struct sname format_params
       (format_struct_constructor ctx ~vis:Public)
       (sname, fields)
-      (format_comparison (StructName.to_string sname) format_fields_comparison)
-      format_struct_to_string fields_l
   in
   let structs_to_generate =
     StructName.Map.filter
@@ -1018,7 +1000,7 @@ let format_enums ctx ppf =
     in
     let format_enum_params ppf =
       fprintf ppf
-        "private final CatalaValue contents;@\npublic final Kind kind;"
+        "private final CatalaValue<?> contents;@\npublic final Kind kind;"
     in
     let format_enum_constrs ppf =
       let format_enum_make ppf (cstr, typ) =
@@ -1036,7 +1018,7 @@ let format_enums ctx ppf =
           (if is_unit then "CatalaUnit.INSTANCE" else "v")
       in
       fprintf ppf
-        "@[<v 4>private %a(Kind k, CatalaValue contents) {@ this.kind = k;@ \
+        "@[<v 4>private %a(Kind k, CatalaValue<?> contents) {@ this.kind = k;@ \
          this.contents = contents;@;\
          <1 -4>}@]%a"
         format_enum ename
@@ -1046,8 +1028,7 @@ let format_enums ctx ppf =
     let format_enum_accessors ppf =
       let format_default_accessor ppf =
         fprintf ppf
-          "@@SuppressWarnings(\"unchecked\")@,\
-           @[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
+          "@[<v 4>public <T> T getContentsAs(Kind k, Class<T> clazz) {@ @[<v \
            2>if (this.kind != k) {@ throw new \
            IllegalArgumentException(\"Invalid enum contents access: expected \
            \" + k + \", got \" + this.kind);@;\
@@ -1060,7 +1041,9 @@ let format_enums ctx ppf =
            this.getContentsAs(Kind.%a, %a.class);@]@\n\
            }"
           (format_typ ctx) typ EnumConstructor.format cstr
-          EnumConstructor.format cstr (format_typ ctx) typ
+          EnumConstructor.format cstr
+          (format_typ ~diamond:false ctx)
+          typ
       in
       fprintf ppf "@[<v>%t%a@]" format_default_accessor
         (pp_print_list_padded ~pp_sep:pp_print_space format_enum_accessor)
@@ -1069,35 +1052,20 @@ let format_enums ctx ppf =
              match Mark.remove typ with TLit TUnit -> false | _ -> true)
            (EnumConstructor.Map.bindings cstrs))
     in
-    let format_fields_comparison ppf =
-      fprintf ppf
-        "@[<v 4>if (this.kind == v.kind) {@,\
-         return @[<v 4>this.getContentsAs(this.kind, \
-         CatalaValue.class).equalsTo(@\n\
-         v.getContentsAs(v.kind,CatalaValue.class));@]@;\
-         <1 -4>} else {@,\
-         return CatalaBool.FALSE;@;\
-         <1 -4>}@]"
-    in
     fprintf ppf
-      "@[<v 4>public static class %a@ implements CatalaValue {\n\
+      "@@SuppressWarnings(\"unchecked\")@,\
+       @[<v 4>public static class %a extends CatalaEnum {@\n\
        @,\
-       %t\n\
+       %t@\n\
        @,\
-       %t\n\
+       %t@\n\
        @,\
-       %t\n\
-       @,\
-       %t\n\
-       @,\
-       %t\n\
+       %t@\n\
        @,\
        %t@]@\n\
        }"
       format_enum ename format_enum_kind format_enum_params format_enum_constrs
       format_enum_accessors
-      (format_comparison (EnumName.to_string ename) format_fields_comparison)
-      format_enum_to_string
   in
   let enums_to_generate =
     EnumName.Map.filter
@@ -1110,19 +1078,42 @@ let format_enums ctx ppf =
 
 let format_abstract_types ctx ppf =
   let format_abs ppf name =
-    Message.debug ">> %a" AbstractType.format name;
     fprintf ppf
-      "@[<v 4>public static class %a@ implements CatalaValue {@ %t@ %t@]@\n}"
+      "@[<v 4>public static class %a extends CatalaValue<%a> {@\n\
+       @ %t@ @ %t@ @ %t@]@\n\
+       }"
       (format_qualified (module AbstractType))
       name
-      (format_comparison (AbstractType.to_string name) (fun ppf ->
-           Format.pp_print_string ppf "// TO IMPLEMENT"))
+      (format_qualified (module AbstractType))
+      name
+      (format_comparisons
+         (AbstractType.to_string name)
+         (fun ppf ->
+           Format.fprintf ppf
+             "// TO IMPLEMENT@\n\
+              throw CatalaError.error(CatalaError.Error.Impossible, p);")
+         (fun ppf ->
+           Format.fprintf ppf
+             "// TO IMPLEMENT@\n\
+              throw CatalaError.error(CatalaError.Error.Impossible, p);"))
       (fun ppf ->
         Format.fprintf ppf
           "%@Override@\n\
            @[<v 4>public String toString() {@\n\
-           // TO IMPLEMENT@]@\n\
-           }")
+           // TO IMPLEMENT@\n\
+           return \"<%a>\";@]@\n\
+           }"
+          (format_qualified (module AbstractType))
+          name)
+      (fun ppf ->
+        Format.fprintf ppf
+          "%@Override@\n\
+           @[<v 4>public String toJSONString() {@\n\
+           // TO IMPLEMENT@\n\
+           return \"\\\"<%a>\\\"\";@]@\n\
+           }"
+          (format_qualified (module AbstractType))
+          name)
   in
   ctx.decl_ctx.ctx_abstract_types
   |> AbstractType.Set.filter (fun tname -> AbstractType.path tname = [])

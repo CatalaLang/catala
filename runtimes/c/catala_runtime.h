@@ -31,10 +31,8 @@ typedef enum catala_error_code
   catala_division_by_zero,
   catala_list_empty,
   catala_not_same_length,
-  catala_invalid_date,
-  catala_uncomparable_durations,
-  catala_ambiguous_date_rounding,
-  catala_indivisible_durations,
+  catala_uncomparable_values,
+  catala_date_error,
   catala_impossible,
   catala_malloc_error
 } catala_error_code;
@@ -144,7 +142,10 @@ CATALA_INT catala_new_int(const signed long int val);
 CATALA_INT catala_new_int_str(const char* val);
 
 CATALA_DEC catala_new_dec (const signed long int units,
-                    const unsigned long int decimals);
+                           const unsigned long int decimals);
+
+CATALA_DEC catala_new_frac (const signed long int num,
+                            const unsigned long int den);
 
 /* Arg is a null-terminated string that must be in fraction form (eg 1234/100,
    not 12.34) */
@@ -162,6 +163,118 @@ CATALA_DATE catala_new_date(const signed long int year,
 CATALA_DURATION catala_new_duration(const long int years,
                                     const long int months,
                                     const long int days);
+
+CATALA_ARRAY(X) catala_new_array(const int size, ...);
+void catala_set_array(CATALA_ARRAY(X) ret, const int size, ...);
+
+CATALA_TUPLE(_) catala_new_tuple(const int size, ...);
+
+/* --- Value embedding --- */
+
+/*   - type definitions - */
+
+/* For printing */
+struct catala_buf {
+  /* Format is expected to understand gmp specifiers
+     (https://gmplib.org/manual/Formatted-Output-Strings) */
+  void (*printf)(const char * format, ...);
+  int indent;
+  void (*flush)(void);
+};
+extern const struct catala_buf catala_stdbuf;
+
+enum catala_type_kind {
+  UNINITIALIZED,
+  UNIT,
+  BOOL,
+  INTEGER,
+  MONEY,
+  DECIMAL,
+  DATE,
+  DURATION,
+  POSITION,
+  ARRAY,
+  TUPLE,
+  STRUCT,
+  ENUM,
+  EXTERNAL,
+  FUNCTION
+};
+
+struct catala_label_type;
+
+struct catala_tstruct {
+  const char* name;
+  int size;
+  struct catala_label_type * fields;
+};
+
+struct catala_tenum {
+  const char* name;
+  int size;
+  struct catala_label_type * cases;
+};
+
+struct catala_texternal {
+  const char* name;
+  int (*equal)(const catala_code_position*, const void*, const void*);
+  int (*compare)(const catala_code_position*, const void*, const void*);
+  void (*to_json)(struct catala_buf, const void*); /* can be NULL */
+  void (*print)(struct catala_buf, const void*);
+};
+
+typedef struct catala_type {
+  enum catala_type_kind kind;
+  union {
+    struct catala_type* tarray; /* element type */
+    catala_array /* of catala_type */ ttuple;
+    struct catala_tstruct tstruct;
+    struct catala_tenum tenum;
+    struct catala_texternal texternal;
+  } contents;
+} catala_type;
+
+struct catala_label_type {
+  const char* name;
+  struct catala_type ty;
+};
+
+typedef struct catala_value {
+  catala_type t;
+  const void* v;
+} catala_value;
+
+/*   - embedding operators -    */
+
+catala_value embed (catala_type t, const void* v);
+int catala_equal (const catala_type ty, const catala_code_position* pos, const void* x, const void* y);
+int catala_compare (const catala_type ty, const catala_code_position* pos, const void* x, const void* y);
+
+void catala_print (struct catala_buf, const catala_value val);
+void catala_tojson (struct catala_buf, const catala_value val);
+
+/*   - base embedded types -    */
+
+extern const catala_type catala_type_unit;
+extern const catala_type catala_type_bool;
+extern const catala_type catala_type_integer;
+extern const catala_type catala_type_decimal;
+extern const catala_type catala_type_money;
+extern const catala_type catala_type_date;
+extern const catala_type catala_type_duration;
+extern const catala_type catala_type_position;
+extern const catala_type catala_type_function;
+const catala_type catala_type_array(const catala_type);
+const catala_type catala_type_tuple(int size, ...);
+const catala_type catala_type_struct(catala_type* ret,
+                                     struct catala_label_type *const fields,
+                                     const char* name,
+                                     int size, ...);
+const catala_type catala_type_enum(catala_type* ret,
+                                   struct catala_label_type *const cases,
+                                   const char* name,
+                                   int size, ...);
+const catala_type catala_type_optional(const catala_type);
 
 /* --- Operators --- */
 
@@ -270,62 +383,20 @@ CATALA_DEC o_div_dur_dur (const catala_code_position* pos,
                           CATALA_DURATION x1,
                           CATALA_DURATION x2);
 
-CATALA_BOOL o_eq_boo_boo (CATALA_BOOL x1, CATALA_BOOL x2);
+CATALA_BOOL o_eq (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2);
 
-CATALA_BOOL o_eq_int_int (CATALA_INT x1, CATALA_INT x2);
+CATALA_BOOL o_lt (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2);
 
-CATALA_BOOL o_eq_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
+CATALA_BOOL o_lte (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2);
 
-CATALA_BOOL o_eq_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2);
+CATALA_BOOL o_gt (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2);
 
-CATALA_BOOL o_eq_dat_dat (CATALA_DATE x1, CATALA_DATE x2);
-
-CATALA_BOOL o_eq_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2);
-
-CATALA_BOOL o_lt_int_int (CATALA_INT x1, CATALA_INT x2);
-
-CATALA_BOOL o_lt_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
-
-CATALA_BOOL o_lt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2);
-
-CATALA_BOOL o_lt_dat_dat (CATALA_DATE x1, CATALA_DATE x2);
-
-CATALA_BOOL o_lt_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2);
-
-CATALA_BOOL o_lte_int_int (CATALA_INT x1, CATALA_INT x2);
-
-CATALA_BOOL o_lte_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
-
-CATALA_BOOL o_lte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2);
-
-CATALA_BOOL o_lte_dat_dat (CATALA_DATE x1, CATALA_DATE x2);
-
-CATALA_BOOL o_lte_dur_dur (const catala_code_position* pos,
-                           CATALA_DURATION x1, CATALA_DURATION x2);
-
-CATALA_BOOL o_gt_int_int (CATALA_INT x1, CATALA_INT x2);
-
-CATALA_BOOL o_gt_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
-
-CATALA_BOOL o_gt_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2);
-
-CATALA_BOOL o_gt_dat_dat (CATALA_DATE x1, CATALA_DATE x2);
-
-CATALA_BOOL o_gt_dur_dur (const catala_code_position* pos,
-                          CATALA_DURATION x1, CATALA_DURATION x2);
-
-CATALA_BOOL o_gte_int_int (CATALA_INT x1, CATALA_INT x2);
-
-CATALA_BOOL o_gte_rat_rat (CATALA_DEC x1, CATALA_DEC x2);
-
-CATALA_BOOL o_gte_mon_mon (CATALA_MONEY x1, CATALA_MONEY x2);
-
-CATALA_BOOL o_gte_dat_dat (CATALA_DATE x1, CATALA_DATE x2);
-
-CATALA_BOOL o_gte_dur_dur (const catala_code_position* pos,
-                           CATALA_DURATION x1, CATALA_DURATION x2);
+CATALA_BOOL o_gte (const catala_type ty, const catala_code_position* pos,
+                  const void* x1, const void* x2);
 
 const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x);
 

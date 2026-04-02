@@ -24,6 +24,7 @@ $ catala python
 from catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
+from sys import stderr
 from . import Stdlib_en as stdlib_en
 from . import Date_en as date_en
 from . import List_en as list_en
@@ -34,93 +35,60 @@ from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 
-class SomeName:
-    def __init__(self, o: Integer) -> None:
-        self.o = o
+class SomeName(CatalaStruct):
+    __slots__ = ('o')
+    o: Integer
+    name = 'SomeNâme'
+    fields = {
+        'o': 'o', # content Integer
+    }
 
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SomeName):
-            return (self.o == other.o)
-        else:
-            return False
+class B(CatalaStruct):
+    __slots__ = ('some_name')
+    some_name: SomeName
+    name = 'B'
+    fields = {
+        'some_name': 'some_nâme', # content SomeName
+    }
 
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
+class BIn(CatalaStruct):
+    __slots__ = ()
+    name = 'B_in'
+    fields = {
+    }
 
-    def __str__(self) -> str:
-        return "SomeName(o={})".format(self.o)
-
-class B:
-    def __init__(self, some_name: SomeName) -> None:
-        self.some_name = some_name
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, B):
-            return (self.some_name == other.some_name)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "B(some_name={})".format(self.some_name)
-
-class BIn:
-    def __init__(self, ) -> None:
-        pass
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, BIn):
-            return (True)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "BIn()".format()
-
-class SomeNameIn:
-    def __init__(self, i_in: Integer) -> None:
-        self.i_in = i_in
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SomeNameIn):
-            return (self.i_in == other.i_in)
-        else:
-            return False
-
-    def __ne__(self, other: object) -> bool:
-        return not (self == other)
-
-    def __str__(self) -> str:
-        return "SomeNameIn(i_in={})".format(self.i_in)
+class SomeNameIn(CatalaStruct):
+    __slots__ = ('i_in')
+    i_in: Integer
+    name = 'SomeNâme_in'
+    fields = {
+        'i_in': 'i_in', # content Integer
+    }
 
 
-def some_name(some_name_in:SomeNameIn):
+loc = (Array([SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=10, start_column=23, end_line=10, end_column=28, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=14, end_line=17, end_column=25, law_headings=[]),
+              SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=33, end_line=17, end_column=34, law_headings=[])]))
+
+def some_name(some_name_in:SomeNameIn) -> SomeName:
     i = (some_name_in.i_in)
-    pos = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=10, start_column=23, end_line=10, end_column=28, law_headings=[]))
-    o__1 = (Option(((i + Integer(1)), pos)))
+    o__1 = (Option(CatalaTuple((i + Integer(1)), loc[1])))
     if o__1.value is not None:
         o = (o__1.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=7, start_column=10, end_line=7, end_column=11, law_headings=[]))
-        raise NoValue(pos__1, None)
+        raise NoValue(loc[0])
     return SomeName(o = o)
 
-def b(b_in:BIn):
-    pos = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=33, end_line=17, end_column=34, law_headings=[]))
-    result__2 = (Option((Integer(1), pos)))
+def b(b_in:BIn) -> B:
+    result__2 = (Option(CatalaTuple(Integer(1), loc[3])))
     if result__2.value is not None:
         result__1 = (result__2.value[0])
     else:
-        pos__1 = (SourcePosition(filename="tests/backends/python_name_clash.catala_en", start_line=17, start_column=14, end_line=17, end_column=25, law_headings=[]))
-        raise NoValue(pos__1, None)
+        raise NoValue(loc[2])
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
-    if True:
+    if Bool(True):
         some_name__1 = (result__3)
     else:
         some_name__1 = (result__3)
@@ -129,6 +97,7 @@ def b(b_in:BIn):
 # Automatic Catala tests
 if __name__ == "__main__":
   b_test = (b(BIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope B executed successfully.")
+  print("/x1b[32m[RESULT]/x1b[m Scope B executed successfully.", file=stderr)
+  print(b_test)
 ```
 The above should *not* show `some_name = temp_some_name`, but instead `some_name_1 = ...`

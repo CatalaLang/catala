@@ -39,10 +39,11 @@ let map_exprs_in_lets :
           (f scope_let.scope_let_expr) ))
     scope_body_expr
 
-let map_exports f exports =
+let map_exports ?(kind = fun k -> k) f exports =
   Bindlib.box_list
     (List.map
-       (fun (k, e) -> Bindlib.box_apply (fun e -> k, e) (Expr.Box.lift (f e)))
+       (fun (k, e) ->
+         Bindlib.box_apply (fun e -> kind k, e) (Expr.Box.lift (f e)))
        exports)
 
 let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
@@ -67,8 +68,8 @@ let map_exprs ?(typ = Fun.id) ~f ~varf scopes =
   let last = map_exports f in
   BoundList.map ~f:fcode ~last scopes
 
-let fold_exprs ~f ~init scopes =
-  let f acc def _ =
+let fold_exprs_full ~f ~init scopes =
+  let f1 acc def _ =
     match def with
     | Topdef (_, typ, _vis, e) -> f acc e typ
     | ScopeDef (_, scope) ->
@@ -79,7 +80,9 @@ let fold_exprs ~f ~init scopes =
       in
       f acc last (TStruct scope.scope_body_output_struct, Expr.pos last)
   in
-  fst @@ BoundList.fold_left ~f ~init scopes
+  BoundList.fold_left ~f:f1 ~init scopes
+
+let fold_exprs ~f ~init scopes = fst (fold_exprs_full ~f ~init scopes)
 
 let typ body =
   let pos = Mark.get (StructName.get_info body.scope_body_input_struct) in

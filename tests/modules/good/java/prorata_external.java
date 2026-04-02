@@ -11,7 +11,7 @@ public class Prorata_external {
         public static final CatalaFunction<CatalaTuple, CatalaArray<CatalaMoney>> prorata
                 = x -> {
                     CatalaMoney amount = x.get(0, CatalaMoney.class);
-                    CatalaValue[] ws = x.get(1, CatalaArray.class).asArray();
+                    Object[] ws = x.get(1, CatalaArray.class).asArray();
                     CatalaMoney[] weights = Arrays.copyOf(ws, ws.length, CatalaMoney[].class);
                     CatalaMoney w_total = Arrays.stream(weights)
                             .reduce(CatalaMoney.ofCents(0), (acc, y) -> acc.add(y)
@@ -26,14 +26,14 @@ public class Prorata_external {
                         new_weights[i] = r;
                     }
                     new_weights[weights.length - 1] = new_weights[weights.length - 1].add(rem);
-                    return new CatalaArray(new_weights);
+                    return new CatalaArray<>(new_weights);
                 };
 
         @SuppressWarnings("unchecked")
         public static final CatalaFunction<CatalaTuple, CatalaArray<CatalaMoney>> prorata2
                 = x -> {
                     CatalaMoney amount = x.get(0, CatalaMoney.class);
-                    CatalaValue[] ws = x.get(1, CatalaArray.class).asArray();
+                    Object[] ws = x.get(1, CatalaArray.class).asArray();
                     CatalaMoney[] weights = Arrays.copyOf(ws, ws.length, CatalaMoney[].class);
                     CatalaMoney w_total = Arrays.stream(weights)
                             .reduce(CatalaMoney.ofCents(0), (acc, y) -> acc.add(y)
@@ -49,7 +49,7 @@ public class Prorata_external {
                         rem_weights = rem_weights.subtract(w);
                         new_weights[i] = r;
                     }
-                    return new CatalaArray(new_weights);
+                    return new CatalaArray<>(new_weights);
                 };
     }
 

@@ -53,7 +53,7 @@ let load_modules
     | None -> File.Tree.empty
   in
   let stdlib_use file =
-    let pos = Pos.from_info file 0 0 0 0 in
+    let pos = Pos.from_file file in
     let lang = Cli.file_lang file in
     {
       Surface.Ast.mod_use_name = stdlib_root_module lang, pos;
@@ -189,7 +189,7 @@ let load_modules
   in
   let (_files, module_map), root_uses =
     load_uses file ~is_stdlib:false
-      [Pos.from_info file 0 0 0 0]
+      [Pos.from_file file]
       (File.Map.empty, ModuleName.Map.empty)
       program.Surface.Ast.program_used_modules
   in
@@ -316,8 +316,8 @@ module Passes = struct
       ~closure_conversion
       ~keep_special_ops
       ~monomorphize_types
-      ~expand_ops
-      ~renaming :
+      ~renaming
+      ~lift_pos :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
     let prg, type_ordering =
       dcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
@@ -329,12 +329,6 @@ module Passes = struct
       | Untyped _ -> Lcalc.From_dcalc.translate_program prg
       | Typed _ -> Lcalc.From_dcalc.translate_program prg
       | Custom _ -> invalid_arg "Driver.Passes.lcalc"
-    in
-    let prg =
-      if expand_ops then (
-        Message.debug "Expanding polymorphic operators...";
-        Lcalc.Expand_op.program prg)
-      else prg
     in
     let prg =
       if optimize then begin
@@ -373,6 +367,13 @@ module Passes = struct
       else prg, type_ordering
     in
     Message.report_delayed_errors_if_any ();
+    let prg =
+      match lift_pos with
+      | None -> prg
+      | Some op_needs_pos ->
+        Message.debug "Lifting inline code locations...";
+        Lcalc.Lift_positions.process_program ~op_needs_pos prg
+    in
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
@@ -402,12 +403,12 @@ module Passes = struct
       ~no_struct_literals
       ~keep_module_names
       ~monomorphize_types
-      ~expand_ops
-      ~renaming : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
+      ~renaming
+      ~lift_pos : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~expand_ops ~renaming
+        ~monomorphize_types ~renaming ~lift_pos
     in
     let renaming_context =
       match renaming_context with
@@ -1002,13 +1003,12 @@ module Commands = struct
       closure_conversion
       keep_special_ops
       monomorphize_types
-      expand_ops
       ex_scopes =
     let options = if closure_conversion then fix_trace options else options in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~typed
-        ~monomorphize_types ~expand_ops ~renaming:(Some Renaming.default)
+        ~monomorphize_types ~renaming:(Some Renaming.default) ~lift_pos:None
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -1048,7 +1048,6 @@ module Commands = struct
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
-        $ Cli.Flags.expand_ops
         $ Cli.Flags.ex_scopes)
 
   let interpret_lcalc
@@ -1056,7 +1055,6 @@ module Commands = struct
       closure_conversion
       keep_special_ops
       monomorphize_types
-      expand_ops
       options
       includes
       stdlib
@@ -1069,7 +1067,7 @@ module Commands = struct
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~typed ~expand_ops ~renaming:None
+        ~monomorphize_types ~typed ~renaming:None ~lift_pos:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
@@ -1097,7 +1095,6 @@ module Commands = struct
         closure_conversion
         keep_special_ops
         monomorphize_types
-        expand_ops
         no_typing
         code_coverage =
       if not lcalc then
@@ -1114,10 +1111,10 @@ module Commands = struct
            @{<bold>--lcalc@} option"
       else if no_typing then
         interpret_lcalc Expr.untyped closure_conversion keep_special_ops
-          monomorphize_types expand_ops
+          monomorphize_types
       else
         interpret_lcalc Expr.typed closure_conversion keep_special_ops
-          monomorphize_types expand_ops
+          monomorphize_types
     in
     Cmd.v
       (Cmd.info "interpret" ~man:Cli.man_base
@@ -1131,7 +1128,6 @@ module Commands = struct
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.keep_special_ops
-        $ Cli.Flags.expand_ops
         $ Cli.Flags.no_typing
         $ Cli.Flags.code_coverage
         $ Cli.Flags.Global.options
@@ -1156,8 +1152,8 @@ module Commands = struct
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
-        ~monomorphize_types:false ~expand_ops:true
-        ~renaming:(Some Lcalc.To_ocaml.renaming)
+        ~monomorphize_types:false ~renaming:(Some Lcalc.To_ocaml.renaming)
+        ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     Message.debug "Compiling program into OCaml...";
     get_output_format options output
@@ -1194,14 +1190,14 @@ module Commands = struct
       dead_value_assignment
       no_struct_literals
       monomorphize_types
-      expand_ops
       ex_scope_opt =
     let options = if closure_conversion then fix_trace options else options in
     let prg, _, _ =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
-        ~expand_ops ~renaming:(Some Renaming.default)
+        ~renaming:(Some Renaming.default)
+        ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -1239,7 +1235,6 @@ module Commands = struct
         $ Cli.Flags.dead_value_assignment
         $ Cli.Flags.no_struct_literals
         $ Cli.Flags.monomorphize_types
-        $ Cli.Flags.expand_ops
         $ Cli.Flags.ex_scope_opt)
 
   let python
@@ -1256,8 +1251,9 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false
         ~dead_value_assignment:true ~no_struct_literals:false
-        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:false
+        ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_python.renaming)
+        ~lift_pos:(Some Scalc.To_python.op_needs_pos)
     in
     Message.debug "Compiling program into Python...";
     get_output_format options output
@@ -1299,10 +1295,18 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false
         ~dead_value_assignment:true ~no_struct_literals:false
-        ~keep_module_names:true ~monomorphize_types:false ~expand_ops:false
+        ~keep_module_names:true ~monomorphize_types:false
         ~renaming:(Some Scalc.To_java.renaming)
+        ~lift_pos:(Some Scalc.To_java.op_needs_pos)
     in
     Message.debug "Compiling program into Java...";
+    let () =
+      match options.Global.input_src with
+      | FileName (file : File.t) | Contents (_, (file : File.t)) ->
+        let language = Some (Cli.file_lang file) in
+        ignore @@ Global.enforce_options ~language ()
+      | _ -> ()
+    in
     get_output_format options output
       ~ext:(if Global.options.gen_external then "template.java" else "java")
     @@ fun output_file ppf ->
@@ -1339,8 +1343,9 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion:true ~keep_special_ops:false
         ~dead_value_assignment:false ~no_struct_literals:true
-        ~keep_module_names:false ~monomorphize_types:false ~expand_ops:true
+        ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_c.renaming)
+        ~lift_pos:(Some Scalc.To_c.op_needs_pos)
     in
     Message.debug "Compiling program into C...";
     get_output_format options output

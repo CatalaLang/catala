@@ -136,7 +136,9 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
           ( Expr.none_constr,
             let x = Var.make "_" in
             Expr.make_ghost_abs [x]
-              (Expr.efatalerror NoValue m)
+              (Expr.efatalerror_pos ~error:NoValue
+                 ~pos_expr:(Expr.make_pos (Expr.mark_pos m) m)
+                 m)
               [TLit TUnit, pos]
               pos );
           (* | None x -> raise NoValueProvided *)
@@ -162,10 +164,22 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       ~tys:(List.map translate_typ tys)
       ~args:(List.map translate_expr args)
       (translate_mark m)
+  | EFatalError error, m ->
+    Expr.efatalerror_pos ~error ~pos_expr:(Expr.make_pos (Expr.mark_pos m) m) m
+  | EAssert pred, m ->
+    let pos = Expr.mark_pos m in
+    let tbool = TLit TBool, pos in
+    Expr.eifthenelse
+      (Expr.eappop ~op:(Op.Not, pos)
+         ~args:[translate_expr pred]
+         ~tys:[tbool] (Expr.with_ty m tbool))
+      (Expr.efatalerror_pos ~error:AssertionFailed
+         ~pos_expr:(Expr.make_pos (Expr.mark_pos m) m)
+         m)
+      (Expr.elit LUnit m) m
   | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
-      | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
-      | EFatalError _ | EStruct _ | EStructAccess _ | EMatch _ | EPos _ | EBad
-        ),
+      | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+      | EStructAccess _ | EMatch _ | EPos _ | EBad ),
       _ ) as e ->
     Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .

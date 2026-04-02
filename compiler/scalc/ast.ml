@@ -77,8 +77,6 @@ type stmt =
       switch_cases : switch_case list;
     }
   | SReturn of expr
-  | SAssert of { pos_expr : expr; expr : expr }
-      (** [pos_expr] here is the position reified into an expression *)
   | SSpecialOp of special_operator
 
 and special_operator = |
@@ -113,7 +111,7 @@ type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }
 type program = {
   ctx : ctx;
   code_items : code_item list;
-  tests : code_item list * (ScopeName.t * block) list;
+  tests : code_item list * (ScopeName.t * VarName.t * block) list;
       (** The first element may contain lifted closures. It can be assumed to be
           empty when closure conversion is disabled. *)
   module_name : (ModuleName.t * module_intf_id) option;

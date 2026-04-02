@@ -5,8 +5,10 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import catala.runtime.exception.CatalaError;
+import java.text.NumberFormat;
+import java.util.Locale;
 
-public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
+public final class CatalaMoney extends CatalaValue<CatalaMoney> {
 
     // cents
     private final BigInteger value;
@@ -40,38 +42,6 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return new CatalaMoney(result);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        CatalaMoney other = (CatalaMoney) obj;
-        return this.value.equals(other.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value.hashCode();
-    }
-
-    /**
-     * @param other {@inheritDoc}
-     * @return {@inheritDoc}
-     */
-    @Override
-    public int compareTo(CatalaMoney other) {
-        return this.value.compareTo(other.value);
-    }
-
-    @Override
-    public String toString() {
-        BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
-        return String.format("$%d.%02d", (Object[]) unitsAndCents);
-    }
-
     public final CatalaMoney subtract(CatalaMoney other) {
         return new CatalaMoney(this.value.subtract(other.asCents()));
     }
@@ -102,7 +72,7 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
     // Div_mon_mon
     public final CatalaDecimal divide(CatalaPosition pos, CatalaMoney other) {
         if (other.value.equals(BigInteger.ZERO)) {
-            throw new CatalaError(CatalaError.Error.DivisionByZero, pos);
+            throw CatalaError.error(CatalaError.Error.DivisionByZero, pos);
         }
         return new CatalaDecimal(new CatalaInteger(this.value), new CatalaInteger(other.value));
     }
@@ -129,33 +99,36 @@ public final class CatalaMoney implements CatalaValue, Comparable<CatalaMoney> {
         return new CatalaMoney(BigInteger.valueOf(cents));
     }
 
-    public CatalaBool lessThan(CatalaMoney other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) < 0);
-    }
-
-    public CatalaBool lessEqThan(CatalaMoney other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) <= 0);
-    }
-
-    public CatalaBool greaterThan(CatalaMoney other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) > 0);
-    }
-
-    public CatalaBool greaterEqThan(CatalaMoney other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) >= 0);
-    }
-
-    public CatalaBool equalsTo(CatalaMoney other) {
-        return CatalaBool.fromBoolean(this.compareTo(other) == 0);
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue other) {
-        if (other instanceof CatalaMoney catalaMoney) {
-            return this.equalsTo(catalaMoney);
+    public int compareTo(CatalaPosition p, CatalaMoney o) {
+        return this.value.compareTo(o.value);
+    }
+
+    @Override
+    public CatalaBool equalsTo(CatalaPosition p, CatalaMoney o) {
+        return CatalaBool.fromBoolean(this.value.equals(o.value));
+
+    }
+
+    @Override
+    public String toString() {
+        BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
+        if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
+            NumberFormat nf = NumberFormat.getInstance(Locale.ENGLISH);
+            return String.format("$%s.%02d", nf.format(unitsAndCents[0]), unitsAndCents[1]);
         } else {
-            return CatalaBool.FALSE;
+            NumberFormat nf = NumberFormat.getInstance(Locale.FRENCH);
+            return String.format("%s,%02d€", nf.format(unitsAndCents[0]), unitsAndCents[1]);
         }
     }
 
+    @Override
+    public String toJSONString() {
+        return '"' + this.value.toString() + '"';
+    }
 }

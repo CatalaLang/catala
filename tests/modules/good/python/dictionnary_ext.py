@@ -16,17 +16,18 @@ from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 from . import List_en as list_en
 
-Dictionnary = dict
+class Dictionnary(Value, dict):
+    pass
 
-empty = {}
+empty = Dictionnary({})
 
 def store(dict:Dictionnary, key:Integer, value:Money):
     ret = dict.copy()
-    ret[key.value] = value
+    ret[key] = value
     return ret
 
 def find(dict:Dictionnary, key:Integer):
-    if key.value in dict:
-        return Option(dict[key.value])
+    if key in dict:
+        return Option(dict[key])
     else:
         return Option(None)

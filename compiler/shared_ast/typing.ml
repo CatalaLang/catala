@@ -392,6 +392,10 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     match Mark.remove op with
     | Fold -> [[any2; any] @-> any2; any2; array any] @-> any2
     | Eq -> [any; any] @-> bt
+    | Lt -> [any; any] @-> bt
+    | Lte -> [any; any] @-> bt
+    | Gt -> [any; any] @-> bt
+    | Gte -> [any; any] @-> bt
     | Map -> [[any] @-> any2; array any] @-> array any2
     | Map2 -> [[any; any2] @-> any3; array any; array any2] @-> array any3
     | Filter -> [[any] @-> bt; array any] @-> array any
@@ -407,6 +411,8 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
       [array texn] @-> texn
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
+    | ArrayAccess _ -> [array any] @-> any
+    | ConstructorCheck _ -> [any] @-> bt
   in
   Lazy.force ty
 
@@ -429,7 +435,7 @@ let polymorphic_op_return_type
   match Mark.remove op, targs with
   | Fold, [_; tau; _] -> tau
   | Reduce, [tf; _; _] -> return_type tf 2
-  | Eq, _ -> TLit TBool, pos
+  | (Eq | Lt | Lte | Gt | Gte), _ -> TLit TBool, pos
   | Map, [tf; _] -> TArray (return_type tf 1), pos
   | Map2, [tf; _; _] -> TArray (return_type tf 2), pos
   | (Filter | Concat), [_; tau] -> tau
@@ -1001,15 +1007,15 @@ and typecheck_expr_top_down : type a m.
                 (typecheck_expr_top_down ctx env)
                 (List.rev t_args) (List.rev args)
             in
-            (* Equality is actually not truly polymorphic, it needs expansion,
-               so add a check here for now *)
+            (* Eq and comparisons are not available on poly types at the
+               moment *)
             (match op, args with
-            | (Eq, _), a :: _ ->
+            | ((Eq | Lt | Lte | Gt | Gte), _), a :: _ ->
               if not (Type.fully_known (expr_ty env a)) then
                 Message.delayed_error () ~kind:Typing ~pos:(Mark.get op) "%a"
                   Format.pp_print_text
-                  "Equality cannot be resolved at this point: the type of the \
-                   operands is not fully known."
+                  "Comparison cannot be resolved at this point: the type of \
+                   the operands is not fully known."
             | _ -> ());
             args))
         ~overloaded:(fun op ->
@@ -1057,7 +1063,12 @@ and typecheck_expr_top_down : type a m.
     let mark = mark_with_tau_and_unify (TLit TUnit, pos_e) in
     let e1' = typecheck_expr_top_down ctx env (TLit TBool, Expr.pos e1) e1 in
     Expr.eassert e1' mark
-  | EFatalError err -> Expr.efatalerror err context_mark
+  | EFatalError error -> Expr.efatalerror error context_mark
+  | EFatalError_pos { error; pos_expr } ->
+    let pos_expr =
+      typecheck_expr_top_down ctx env (TLit TPos, pos_e) pos_expr
+    in
+    Expr.efatalerror_pos ~error ~pos_expr context_mark
   | EPos p -> Expr.epos p (mark_with_tau_and_unify (TLit TPos, pos_e))
   | EEmpty ->
     Expr.eempty

@@ -56,18 +56,7 @@ $ catala json-schema --scope T
         "oneOf": [
           {
             "type": "object",
-            "properties": {
-              "A": {
-                "oneOf": [
-                  {
-                    "type": "integer",
-                    "minimum": -9007199254740992.0,
-                    "maximum": 9007199254740992.0
-                  },
-                  { "type": "string" }
-                ]
-              }
-            },
+            "properties": { "A": { "$ref": "#/definitions/integer" } },
             "required": [ "A" ],
             "additionalProperties": false
           },
@@ -85,6 +74,17 @@ $ catala json-schema --scope T
         "properties": { "e": { "$ref": "#/definitions/F" } },
         "required": [ "e" ],
         "additionalProperties": false
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
       }
     }
   },

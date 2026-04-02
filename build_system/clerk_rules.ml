@@ -1190,8 +1190,7 @@ let run_ninja
                           if Global.has_localised_stdlib lg then lg
                           else Global.En
                         in
-                        ( "Stdlib_" ^ Cli.language_code lg,
-                          Pos.from_info f 0 0 0 0 )
+                        ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
                         :: it.Scan.used_modules
                       | None -> it.Scan.used_modules
                     in

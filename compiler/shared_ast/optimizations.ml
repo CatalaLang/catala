@@ -17,18 +17,18 @@
 open Catala_utils
 open Definitions
 
-type ('a, 'b, 'm) optimizations_ctx = { decl_ctx : decl_ctx }
+type ('a, 'b, 'c, 'm) optimizations_ctx = { decl_ctx : decl_ctx }
 
 let binder_vars_used_at_most_once
     (binder :
-      ( ('a dcalc_lcalc, 'a dcalc_lcalc, 'm) base_gexpr,
-        ('a dcalc_lcalc, 'm) gexpr )
+      ( (('a, 'b) dcalc_lcalc, ('a, 'b) dcalc_lcalc, 'm) base_gexpr,
+        (('a, 'b) dcalc_lcalc, 'm) gexpr )
       Bindlib.mbinder) : bool =
   (* fast path: variables not used at all *)
   (not (Array.exists Fun.id (Bindlib.mbinder_occurs binder)))
   ||
   let vars, body = Bindlib.unmbind binder in
-  let rec vars_count (e : ('a dcalc_lcalc, 'm) gexpr) : int array =
+  let rec vars_count (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) : int array =
     match e with
     | EVar v, _ ->
       Array.map (fun vi -> if Bindlib.eq_vars v vi then 1 else 0) vars
@@ -153,10 +153,10 @@ let simplified_match enum_name match_arg cases mark =
     (* Optimisation was aborted due a non-terminal or code duplication *)
     EMatch { e = match_arg; cases; name = enum_name }
 
-let rec optimize_expr : type a b.
-    (a, b, 'm) optimizations_ctx ->
-    (a dcalc_lcalc, 'm) gexpr ->
-    (a dcalc_lcalc, 'm) boxed_gexpr =
+let rec optimize_expr : type a b c.
+    (a, b, c, 'm) optimizations_ctx ->
+    ((a, b) dcalc_lcalc, 'm) gexpr ->
+    ((a, b) dcalc_lcalc, 'm) boxed_gexpr =
  fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
   let e = Expr.map ~f:(optimize_expr ctx) ~op:Fun.id e in
@@ -165,7 +165,7 @@ let rec optimize_expr : type a b.
      able to keep the inner position (see the division_by_zero test) *)
   (* Then reduce the parent node (this is applied through Box.apply, therefore
      delayed to unbinding time: no need to be concerned about reboxing) *)
-  let reduce (e : (a dcalc_lcalc, 'm) gexpr) =
+  let reduce (e : ((a, b) dcalc_lcalc, 'm) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
@@ -347,8 +347,10 @@ let rec optimize_expr : type a b.
 
 let optimize_expr :
     'm.
-    decl_ctx -> ('a dcalc_lcalc, 'm) gexpr -> ('a dcalc_lcalc, 'm) boxed_gexpr =
- fun (decl_ctx : decl_ctx) (e : ('a dcalc_lcalc, 'm) gexpr) ->
+    decl_ctx ->
+    (('a, 'b) dcalc_lcalc, 'm) gexpr ->
+    (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr =
+ fun (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) ->
   optimize_expr { decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =

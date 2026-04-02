@@ -73,19 +73,35 @@ let () =
 module Decimal_en = Decimal_en
 
 module Closure_scoppe = struct
-  type t = {scoppe: bool}
+  type t = { scoppe: bool; }
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_sc/195/184ppe";
+    fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
+  }
 end
 
 module Closure_scoppe__1 = struct
-  type t = {scoppe: bool}
+  type t = { scoppe: bool; }
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_scoppe__1";
+    fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
+  }
 end
 
 module Closure_scoppe_in = struct
   type t = unit
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_sc/195/184ppe_in";
+    fields = fun t -> [ ]
+  }
 end
 
 module Closure_scoppe__1_in = struct
   type t = unit
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_scoppe__1_in";
+    fields = fun t -> [ ]
+  }
 end
 
 
@@ -108,8 +124,8 @@ let () =
                              Closure_scoppe.t =
                            (fun (_: Obj.t(*closure env*))
                               (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                        in
-                        (closure_scoppe__2, (o_toclosureenv ())));
+                         in
+                         (closure_scoppe__2, (o_toclosureenv ())));
       "Closure_scoppe__1",
         Stdlib.Obj.repr (let closure_scoppe__2 :
                            Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
@@ -117,8 +133,8 @@ let () =
                            (fun (_: Obj.t(*closure env*))
                               (x0: Closure_scoppe__1_in.t) ->
                               closure_scoppe__1 x0)
-                        in
-                        (closure_scoppe__2, (o_toclosureenv ()))) ]
+                         in
+                         (closure_scoppe__2, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```
 
@@ -204,44 +220,61 @@ let () =
 module Decimal_en = Decimal_en
 
 module Closure_scoppe = struct
-  type t = {scoppe: bool}
+  type t = { scoppe: bool; }
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_sc/195/184ppe";
+    fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
+  }
 end
 
 module Closure_scoppe__1 = struct
-  type t = {scoppe: bool}
+  type t = { scoppe: bool; }
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_scoppe__1";
+    fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
+  }
 end
 
 module Closure_scoppe_in = struct
   type t = unit
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_sc/195/184ppe_in";
+    fields = fun t -> [ ]
+  }
 end
 
 module Closure_scoppe__1_in = struct
   type t = unit
+  let rtype = Value.Struct {
+    name = "Conflicts-module.Closure_scoppe__1_in";
+    fields = fun t -> [ ]
+  }
 end
 
+
+(* Toplevel def loc *)
+let loc : code_location array =
+  [|{filename="tests/name_resolution/good/conflicts-module.catala_en";
+     start_line=5; start_column=10; end_line=5; end_column=16;
+     law_headings=[]};
+    {filename="tests/name_resolution/good/conflicts-module.catala_en";
+     start_line=145; start_column=15; end_line=145; end_column=24;
+     law_headings=[]}|]
 
 (* Toplevel def closure_scoppe *)
 let closure_scoppe__2 : Obj.t(*closure env*) -> bool -> integer -> bool =
   fun (_: Obj.t(*closure env*)) (acc: bool) (x: integer) ->
-    acc && (o_gt_int_int x (integer_of_string "2"))
+    acc && (x > (integer_of_int 2))
 
 (* Scope Closure_scøppe *)
 let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool =
-     if
-      (o_fold (closure_scoppe__2 (o_toclosureenv ())) true
-         ([|(integer_of_string "5"); (integer_of_string "6");
-            (integer_of_string "7")|])) then
-      (let x, _
-        = (true,
-            ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=129; start_column=15; end_line=129; end_column=24;
-              law_headings=[]})) in x) else
-      (let x, _
-        = (false,
-            ({filename="tests/name_resolution/good/conflicts-module.catala_en";
-              start_line=5; start_column=10; end_line=5; end_column=16;
-              law_headings=[]})) in x) in
+    if
+      o_fold (closure_scoppe__2 (o_toclosureenv ())) true
+        ([|(integer_of_int 5); (integer_of_int 6); (integer_of_int 7)|])
+    then (let x, _ = (true, (loc.(1))) in x)
+    else (let x, _ = (false, (loc.(0))) in x)
+  in
   {Closure_scoppe.scoppe = scoppe}
 
 (* Scope Closure_scoppe__1 *)
@@ -258,8 +291,8 @@ let () =
                              Closure_scoppe.t =
                            (fun (_: Obj.t(*closure env*))
                               (x0: Closure_scoppe_in.t) -> closure_scoppe x0)
-                        in
-                        (closure_scoppe__3, (o_toclosureenv ())));
+                         in
+                         (closure_scoppe__3, (o_toclosureenv ())));
       "Closure_scoppe__1",
         Stdlib.Obj.repr (let closure_scoppe__3 :
                            Obj.t(*closure env*) -> Closure_scoppe__1_in.t ->
@@ -267,7 +300,7 @@ let () =
                            (fun (_: Obj.t(*closure env*))
                               (x0: Closure_scoppe__1_in.t) ->
                               closure_scoppe__1 x0)
-                        in
-                        (closure_scoppe__3, (o_toclosureenv ()))) ]
+                         in
+                         (closure_scoppe__3, (o_toclosureenv ()))) ]
     "CMX|XXXXXXXX|XXXXXXXX|XXXXXXXX"
 ```

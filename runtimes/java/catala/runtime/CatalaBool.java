@@ -1,6 +1,6 @@
 package catala.runtime;
 
-public final class CatalaBool implements CatalaValue {
+public final class CatalaBool extends CatalaValue<CatalaBool> {
 
     public static final CatalaBool TRUE = new CatalaBool(true);
     public static final CatalaBool FALSE = new CatalaBool(false);
@@ -39,21 +39,41 @@ public final class CatalaBool implements CatalaValue {
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue other) {
-        if (other instanceof CatalaBool catalaBool) {
-            return fromBoolean(this.value == catalaBool.value);
+    public CatalaBool equalsTo(CatalaPosition p, CatalaBool other) {
+        return fromBoolean(this.value == other.value);
+    }
+
+    @Override
+    public int compareTo(CatalaPosition p, CatalaBool o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        if (this.asBoolean()) {
+            return 1;
         } else {
-            return FALSE;
+            return -1;
         }
     }
 
     @Override
     public String toString() {
         if (this.value) {
-            return "true";
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                return "vrai";
+            } else {
+                return "true";
+            }
         } else {
-            return "false";
+            if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+                return "faux";
+            } else {
+                return "false";
+            }
         }
     }
 
+    @Override
+    public String toJSONString() {
+        return this.toString();
+    }
 }

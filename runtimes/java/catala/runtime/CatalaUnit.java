@@ -1,6 +1,6 @@
 package catala.runtime;
 
-public final class CatalaUnit implements CatalaValue {
+public final class CatalaUnit extends CatalaValue<CatalaUnit> {
 
     private CatalaUnit() {
     }
@@ -9,11 +9,22 @@ public final class CatalaUnit implements CatalaValue {
 
     @Override
     public final String toString() {
-        return "Unit";
+        return "unit";
     }
 
     @Override
-    public CatalaBool equalsTo(CatalaValue other) {
-        return CatalaBool.fromBoolean(other instanceof CatalaUnit);
+    public CatalaBool equalsTo(CatalaPosition p, CatalaUnit o) {
+        return CatalaBool.TRUE;
+    }
+
+    @Override
+    public int compareTo(CatalaPosition p, CatalaUnit o) {
+        return 0;
+    }
+
+    @Override
+    public String toJSONString() {
+        // Should not happen
+        return "{}";
     }
 }

@@ -66,16 +66,7 @@ $ catala json-schema --scope T
       "S": {
         "type": "object",
         "properties": {
-          "x": {
-            "oneOf": [
-              {
-                "type": "integer",
-                "minimum": -9007199254740992.0,
-                "maximum": 9007199254740992.0
-              },
-              { "type": "string" }
-            ]
-          },
+          "x": { "$ref": "#/definitions/integer" },
           "y": { "type": "boolean" }
         },
         "required": [ "y", "x" ],
@@ -98,6 +89,17 @@ $ catala json-schema --scope T
         },
         "required": [ "s", "e" ],
         "additionalProperties": false
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
       }
     }
   },
@@ -110,16 +112,7 @@ $ catala json-schema --scope T
       "S": {
         "type": "object",
         "properties": {
-          "x": {
-            "oneOf": [
-              {
-                "type": "integer",
-                "minimum": -9007199254740992.0,
-                "maximum": 9007199254740992.0
-              },
-              { "type": "string" }
-            ]
-          },
+          "x": { "$ref": "#/definitions/integer" },
           "y": { "type": "boolean" }
         },
         "required": [ "y", "x" ],
@@ -130,6 +123,17 @@ $ catala json-schema --scope T
         "properties": { "r": { "$ref": "#/definitions/S" } },
         "required": [ "r" ],
         "additionalProperties": false
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
       }
     }
   }
