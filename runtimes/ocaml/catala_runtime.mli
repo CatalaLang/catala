@@ -72,8 +72,8 @@ type error =
   | DivisionByZero  (** The denominator happened to be 0 here *)
   | ListEmpty  (** Element access on an empty list *)
   | NotSameLength  (** Traversing multiple lists of different lengths *)
-  | UncomparableValues (** Equality check or comparison on functions *)
-  | DateError of string (** Errors related to date and duration computations *)
+  | UncomparableValues  (** Equality check or comparison on functions *)
+  | DateError of string  (** Errors related to date and duration computations *)
   | Impossible  (** The "impossible" keyword was reached *)
 
 val error_to_string : error -> string
@@ -89,8 +89,9 @@ exception Empty
 
 (** {2 Runtime type encoding} *)
 
-module Value: sig
-  (** 'a ty provides runtime information about the structure of values of OCaml type 'a *)
+module Value : sig
+  (** 'a ty provides runtime information about the structure of values of OCaml
+      type 'a *)
   type _ ty =
     | Unit : unit ty
     | Bool : bool ty
@@ -100,43 +101,46 @@ module Value: sig
     | Date : date ty
     | Duration : duration ty
     | Position : code_location ty
-    | Array: ('a -> t) -> 'a array ty
-    | Tuple: ('a -> t list) -> 'a ty
+    | Array : ('a -> t) -> 'a array ty
+    | Tuple : ('a -> t list) -> 'a ty
     | Struct : {
-        name: string;
-        fields: 'a -> (string * t) list;
-        (* list order must be consistent with the representation *)
-      } -> 'a ty
+        name : string;
+        fields : 'a -> (string * t) list;
+            (* list order must be consistent with the representation *)
+      }
+        -> 'a ty
     | Enum : {
-        name: string;
-        constr: 'a -> int * string * t option;
-        (* destr: string * t  option -> 'a; ? *)
-      } -> 'a ty
+        name : string;
+        constr : 'a -> int * string * t option;
+            (* destr: string * t option -> 'a; ? *)
+      }
+        -> 'a ty
     | External : {
-        name: string;
-        equal: code_location -> 'a -> t -> bool;
-        compare: code_location -> 'a -> t -> int;
+        name : string;
+        equal : code_location -> 'a -> t -> bool;
+        compare : code_location -> 'a -> t -> int;
         to_json : ('a -> string) option;
         to_string : 'a -> string;
-      } -> 'a ty
+      }
+        -> 'a ty
     | Function : 'a ty
-    (* | Function : (('args -> 'ret) -> 'args -> t ) -> ('args -> 'ret) ty (\* ?? *\) *)
+  (* | Function : (('args -> 'ret) -> 'args -> t ) -> ('args -> 'ret) ty *)
 
-  (** [Runtime.Value.t] is an embedded runtime value that comes with type information, allowing for introspection *)
-  and t = V: 'a ty * 'a -> t
+  (** [Runtime.Value.t] is an embedded runtime value that comes with type
+      information, allowing for introspection *)
+  and t = V : 'a ty * 'a -> t
 
-  val embed: 'a ty -> 'a -> t
-
-  val equal: code_location -> t -> t -> bool
-  val compare: code_location -> t -> t -> int
-  val format: Format.formatter -> t -> unit
+  val embed : 'a ty -> 'a -> t
+  val equal : code_location -> t -> t -> bool
+  val compare : code_location -> t -> t -> int
+  val format : Format.formatter -> t -> unit
 end
 
+val equal : 'a Value.ty -> code_location -> 'a -> 'a -> bool
 (** Polymorphic, structural equality using runtime type information *)
-val equal: 'a Value.ty -> code_location -> 'a -> 'a -> bool
 
+val compare : 'a Value.ty -> code_location -> 'a -> 'a -> int
 (** Polymorphic, structural comparison using runtime type information *)
-val compare: 'a Value.ty -> code_location -> 'a -> 'a -> int
 
 (* val unembed: runvalue -> 'a runtype * 'a *)
 
@@ -144,12 +148,14 @@ val compare: 'a Value.ty -> code_location -> 'a -> 'a -> int
 
 module type CatalaType = sig
   type t
-  val rtype: t Value.ty
+
+  val rtype : t Value.ty
 end
 
 module Optional : sig
   type 'a t = Absent | Present of 'a
-  val rtype: 'a Value.ty -> 'a t Value.ty
+
+  val rtype : 'a Value.ty -> 'a t Value.ty
 end
 
 (** {1 Logging} *)
