@@ -1194,16 +1194,20 @@ let typecheck_cmd =
       let catala_flags = get_var var_bindings Var.catala_flags in
       let exec = get_var var_bindings Var.catala_exe in
       let ret =
-        List.map
+        List.filter_map
           (fun it ->
-            let cmd =
-              exec
-              @ ["typecheck"; "--quiet"]
-              @ catala_flags
-              @ [it.Scan.file_name]
-            in
-            Message.debug "Running command: '%s'..." (String.concat " " cmd);
-            run_command cmd)
+            if it.Scan.is_stdlib then None
+            else
+              Option.some
+              @@
+              let cmd =
+                exec
+                @ ["typecheck"; "--quiet"]
+                @ catala_flags
+                @ [it.Scan.file_name]
+              in
+              Message.debug "Running command: '%s'..." (String.concat " " cmd);
+              run_command cmd)
           target_items
       in
       let ret = List.fold_left max 0 ret in
