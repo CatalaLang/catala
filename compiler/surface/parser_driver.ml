@@ -204,7 +204,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       iterate (-1, dummy_cp) candidates_checkpoints
     in
     (* We do not consider paths where progress isn't significant *)
-    if best_progress < 2 then None else Some best_cp
+    if best_progress < 3 then None else Some best_cp
 
   (** Main parsing loop *)
   let loop
