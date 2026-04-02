@@ -468,14 +468,15 @@ let runtime_build_statements ~config enabled_backends =
     | Some r -> lazy (String.concat " " r)
     | None -> Poll.runtime_dir
   in
+  let options = config.Clerk_lib.Clerk_cli.options in
   (if List.mem OCaml enabled_backends then
-     Clerk_backends.Ocaml.Backend.runtime_build_statements ~stdbase
+     Clerk_backends.Ocaml.Backend.runtime_build_statements ~options ~stdbase
    else [])
   @ (if List.mem C enabled_backends then
-       Clerk_backends.C.Backend.runtime_build_statements ~stdbase
+       Clerk_backends.C.Backend.runtime_build_statements ~options ~stdbase
      else [])
   @ (if List.mem Python enabled_backends then
-       Clerk_backends.Python.Backend.runtime_build_statements ~stdbase
+       Clerk_backends.Python.Backend.runtime_build_statements ~options ~stdbase
      else [])
   @
   if List.mem Java enabled_backends then

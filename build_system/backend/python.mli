@@ -30,7 +30,10 @@ end
 
 module Backend : sig
   val static_base_rules : Ninja_utils.def list
-  val runtime_build_statements : stdbase:string -> Ninja_utils.def list
+
+  val runtime_build_statements :
+    options:Clerk_lib.Clerk_config.t -> stdbase:string -> Ninja_utils.def list
+
   val external_copy : Scan.item -> Ninja_utils.def Seq.t
 
   val catala :

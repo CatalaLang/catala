@@ -92,7 +92,7 @@ module Backend = struct
           ~outputs:[Ninja.target ~backend:"c" "h"];
       ]
 
-  let runtime_build_statements ~stdbase =
+  let runtime_build_statements ~options:_ ~stdbase =
     let c_base = stdbase / "c" / "catala_runtime" in
     let c_src = Var.(!runtime) / "c" in
     [
