@@ -130,7 +130,7 @@ module Backend = struct
           ~outputs:[Ninja.target ~backend:"ocaml" "mli"];
       ]
 
-  let runtime_build_statements ~stdbase =
+  let runtime_build_statements ~options:_ ~stdbase =
     let open File in
     let ocaml_src = Var.(!runtime) / "ocaml" in
     let dates_base = stdbase / "ocaml" / "dates_calc" in
