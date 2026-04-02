@@ -1112,7 +1112,7 @@ let typecheck_cmd =
       List.filter (fun f -> not (File.exists f)) files_or_folders
     in
     if invalid_files <> [] then
-      Message.error "@[<h>No source file or directory matching@ %a@ found.@]"
+      Message.error "@[<hov>No source file or directory matching@ %a@ found.@]"
         Format.(
           pp_print_list
             ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")

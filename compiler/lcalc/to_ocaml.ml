@@ -248,8 +248,11 @@ let rec format_rtyp ppf ty =
     Format.fprintf ppf "%a.rtype" format_to_module_name (`Aname name)
   | TArrow _ -> Format.fprintf ppf "Value.Function"
   | TClosureEnv -> Format.fprintf ppf "Value.Function"
-  | TError | TDefault _ | TVar _ | TForAll _ ->
-    Message.error "Cannot compute comparison on type %a" Print.typ ty
+  | TDefault ((_, pos) as ty) ->
+    format_rtyp ppf (TOption (TTuple [ty; TLit TPos, pos], pos), pos)
+  | TError | TVar _ | TForAll _ ->
+    Message.error ~internal:true "Cannot compute runtime info on type %a"
+      Print.typ ty
 
 let format_embedding (ppf : Format.formatter) (ty : typ) : unit =
   Format.fprintf ppf "Value.embed (%a)" format_rtyp ty
