@@ -105,6 +105,10 @@ let run_artifact ?scope src =
 module Backend = struct
   open Var
   module Nj = Ninja_utils
+
+  let name = "ocaml"
+  let module_ext = "@ocaml-module"
+
   module Flags = Flags
 
   let[@ocamlformat "disable"] static_base_rules =

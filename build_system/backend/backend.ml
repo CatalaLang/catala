@@ -19,6 +19,9 @@ open Clerk_utils
 open Catala_utils
 
 module type S = sig
+  val name : string
+  val module_ext : string
+
   module Flags : sig
     val default :
       variables:(string * string list) list ->

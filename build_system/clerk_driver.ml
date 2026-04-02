@@ -99,8 +99,9 @@ let backend_subdir_list =
     Clerk_rules.OCaml, "ocaml";
   ]
 
-let normalize_backends : Clerk_rules.backend list -> Clerk_rules.backend list =
-  List.sort_uniq Stdlib.compare
+let normalize_backends backends =
+  List.sort_uniq Stdlib.compare backends
+  |> List.map Clerk_rules.backend_module_from_backend
 
 let subdir_backend_list =
   List.map (fun (bk, dir) -> dir, bk) backend_subdir_list
@@ -272,10 +273,8 @@ let build_clerk_target
   let local_runtime_dir bk =
     File.(build_dir / Scan.libcatala / backend_subdir bk)
   in
-  let enabled_backends =
-    List.map Clerk_rules.backend_from_config target.backends
-    |> normalize_backends
-  in
+  let backends = List.map Clerk_rules.backend_from_config target.backends in
+  let enabled_backends = normalize_backends backends in
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
       ~ninja_flags ~quiet ~autotest:false
@@ -333,7 +332,7 @@ let build_clerk_target
                 (fun ext -> (module_item, target, bk), base -.- ext)
                 extensions)
             all_modules_deps)
-        enabled_backends
+        backends
       |> List.sort_uniq (fun ((_, _, _), l) ((_, _, _), r) ->
           String.compare l r)
     in
@@ -363,7 +362,7 @@ let build_clerk_target
           targets @ acc)
         (backend_runtime_targets
            ~only_source:(not target.Config.include_objects)
-           enabled_backends)
+           backends)
         all_target_files
       |> List.rev
     in
@@ -739,6 +738,13 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
   | `Python -> Clerk_backends.Python.run_artifact config ~var_bindings src
   | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test src
 
+let enable_backend_module backend : (module Clerk_backends.Backend.S) =
+  match backend with
+  | `Interpret | `OCaml -> (module Clerk_backends.Ocaml.Backend)
+  | `C -> (module Clerk_backends.C.Backend)
+  | `Python -> (module Clerk_backends.Python.Backend)
+  | `Java -> (module Clerk_backends.Ocaml.Backend)
+
 let enable_backend =
   let open Clerk_rules in
   function
@@ -894,7 +900,7 @@ let run_cmd =
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[enable_backend backend]
+      ~enabled_backends:[enable_backend_module backend]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
@@ -1155,8 +1161,8 @@ let run_clerk_test
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
-      ~ninja_flags ~autotest:true ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~tests:(backend = `Interpret)
+      ~config ~enabled_backends ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
@@ -1317,15 +1323,14 @@ let start_cmd =
       List.concat_map
         (fun target -> List.map Clerk_rules.backend_from_config target.backends)
         targets
-      |> List.sort_uniq compare
+      |> normalize_backends
     in
     let default =
       List.fold_left
-        (fun default_rules backend ->
-          let name = rules_backend backend |> string_of_backend in
-          let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" name in
-          let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" name in
-          let runtime_rule = Format.sprintf "@runtime-%s" name in
+        (fun default_rules (module B : Clerk_backends.Backend.S) ->
+          let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
+          let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
+          let runtime_rule = Format.sprintf "@runtime-%s" B.name in
           runtime_rule :: rule_stdlib_fr :: rule_stdlib_en :: default_rules)
         ["Stdlib_fr@src"; "Stdlib_en@src"]
         enabled_backends
@@ -1458,7 +1463,7 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-        ~enabled_backends:Clerk_rules.all_backends ~config
+        ~enabled_backends:Clerk_rules.all_backends_module ~config
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
@@ -1479,7 +1484,8 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config ninja_flags quiet file scope =
     let file = config.Cli.fix_path file in
-    Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
+    Clerk_rules.run_ninja ~config ~code_coverage:false
+      ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
     |> fun (items, _link_deps, var_bindings) ->

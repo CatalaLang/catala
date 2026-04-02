@@ -54,6 +54,9 @@ module Backend = struct
   open File
   module Nj = Ninja_utils
 
+  let name = "c"
+  let module_ext = "@c-module"
+
   module Flags = struct
     let default
         ~variables
