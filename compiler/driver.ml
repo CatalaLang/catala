@@ -30,12 +30,36 @@ let extensions =
     ".catala_pl.md", "pl";
   ]
 
+type module_loading =
+  allow_notmodules:bool ->
+  is_stdlib:bool ->
+  Global.options ->
+  string ->
+  Surface.Ast.module_content
+
+let load_module ~allow_notmodules ~is_stdlib options f =
+  let default_module_name =
+    if allow_notmodules then
+      (* This preserves the filename capitalisation, which corresponds to the
+         convention for files related to not-module compilation artifacts and is
+         used by [depends] below *)
+      Some (Filename.basename (File.remove_extension f))
+    else None
+  in
+  if options.Global.whole_program then
+    Surface.Parser_driver.load_interface_and_code ?default_module_name
+      ~is_stdlib (Global.FileName f)
+  else
+    Surface.Parser_driver.load_interface ?default_module_name ~is_stdlib
+      (Global.FileName f)
+
 let load_modules
     options
     includes
     ~stdlib
     ?(more_includes = [])
     ?(allow_notmodules = false)
+    ?(load_module : module_loading = load_module)
     program :
     ModuleName.t Ident.Map.t
     * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
@@ -109,22 +133,6 @@ let load_modules
         ms Format.pp_print_text
         "This might be a leftover from a renamed file, you may want to run"
   in
-  let load_file ~is_stdlib f =
-    let default_module_name =
-      if allow_notmodules then
-        (* This preserves the filename capitalisation, which corresponds to the
-           convention for files related to not-module compilation artifacts and
-           is used by [depends] below *)
-        Some (Filename.basename (File.remove_extension f))
-      else None
-    in
-    if options.Global.whole_program then
-      Surface.Parser_driver.load_interface_and_code ?default_module_name
-        ~is_stdlib (Global.FileName f)
-    else
-      Surface.Parser_driver.load_interface ?default_module_name ~is_stdlib
-        (Global.FileName f)
-  in
   let rec load_uses file ~is_stdlib req_chain acc uses :
       (ModuleName.t option File.Map.t
       * (Surface.Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t)
@@ -168,7 +176,7 @@ let load_modules
           (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
         "Circular module dependency"
     | None ->
-      let module_content = load_file ~is_stdlib f in
+      let module_content = load_module ~is_stdlib ~allow_notmodules options f in
       let modname =
         ModuleName.fresh module_content.Surface.Ast.module_modname.module_name
       in

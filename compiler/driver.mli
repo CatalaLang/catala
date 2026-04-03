@@ -147,12 +147,23 @@ module Plugin : sig
     unit
 end
 
+type module_loading =
+  allow_notmodules:bool ->
+  is_stdlib:bool ->
+  Global.options ->
+  string ->
+  Surface.Ast.module_content
+
+val load_module : module_loading
+(** Load a single module content *)
+
 val load_modules :
   Global.options ->
   Global.raw_file list ->
   stdlib:Global.raw_file option ->
   ?more_includes:string list ->
   ?allow_notmodules:bool ->
+  ?load_module:module_loading ->
   Surface.Ast.program ->
   Shared_ast.ModuleName.t Shared_ast.Ident.Map.t
   * (Surface.Ast.module_content
