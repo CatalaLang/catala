@@ -49,7 +49,7 @@ let render_condition_lines lang width fmt_outer e =
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
   let lang = Option.value Global.options.language ~default:Global.En in
   let margin = Format.pp_get_margin fmt () in
-  let rec print_node prefix (t : exception_tree) =
+  let rec print_node prefix prefix_width (t : exception_tree) =
     let label, vertex, children =
       match t with
       | Leaf l -> l.Dependency.ExceptionVertex.label, l, []
@@ -61,7 +61,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
        plain spaces. Continuation lines of multi-line conditions align under
        [. *)
     let has_children = children <> [] in
-    let cond_width = max 20 (margin - String.length prefix - 3) in
+    let cond_width = max 20 (margin - prefix_width - 3) in
     List.iter
       (fun e ->
         let lines = render_condition_lines lang cond_width fmt e in
@@ -93,11 +93,11 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
         let connector = if i = last_idx then "└── " else "├── " in
         let continuation = if i = last_idx then "    " else "│   " in
         Format.fprintf fmt "@{<blue>%s%s@}" prefix connector;
-        print_node (prefix ^ continuation) son)
+        print_node (prefix ^ continuation) (prefix_width + 4) son)
       children
   in
   Format.pp_open_vbox fmt 0;
-  print_node "" t;
+  print_node "" 0 t;
   Format.pp_close_box fmt ()
 
 let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
