@@ -580,13 +580,13 @@ let rec hoist_closures_expr : type m.
     let closure = Expr.make_abs vars new_body tys pos in
     ( { name = closure_var; ty; closure } :: collected_closures,
       Expr.make_var closure_var m )
+  | EExternal { name } -> [], Expr.box (EExternal { name }, m)
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
   | EArray _ | ELit _ | EFatalError_pos _ | EPos _ | EAppOp _ | EIfThenElse _
   | EVar _ | EBad ->
     Expr.map_gather ~acc:[] ~join:( @ )
       ~f:(hoist_closures_expr flags name_context)
       e
-  | EExternal { name } -> [], Expr.box (EExternal { name }, m)
   | _ -> .
 
 let hoist_closures_scope_let flags name_context scope_body_expr =

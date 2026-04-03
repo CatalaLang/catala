@@ -145,7 +145,7 @@ let backend =
              "java", `Java;
            ])
         `Interpret
-    & info ["backend"] ~docv:"BACKEND"
+    & info ["backend"; "b"] ~docv:"BACKEND"
         ~doc:
           "Run the program using the given backend. $(docv) must be one of \
            $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java).")

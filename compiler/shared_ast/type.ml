@@ -307,3 +307,15 @@ module Map = Map.Make (struct
   let compare = compare
   let format = format
 end)
+
+let lookup_external tid =
+  Catala_runtime.lookup_type
+    ( Uid.Module.to_string
+        (Option.get (Uid.Path.last_member (AbstractType.path tid))),
+      AbstractType.base tid )
+
+let lookup_external_handling tid =
+  let module E = (val lookup_external tid) in
+  match E.rtype with
+  | External m -> (m :> (module Catala_runtime.Value.External))
+  | _ -> assert false

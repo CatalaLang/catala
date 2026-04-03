@@ -81,6 +81,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Filter -> Format.pp_print_string fmt "filter"
   | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
+  | ValueFromJson (_ty, _str) -> Format.pp_print_string fmt "todo"
   | ArrayAccess _ -> assert false
   | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"

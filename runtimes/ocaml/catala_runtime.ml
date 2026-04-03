@@ -258,6 +258,20 @@ let equal_periods pos p1 p2 =
 (* -- Runtime types and embedding -- *)
 
 module Value = struct
+  type _ external_tag = ..
+
+  module type External = sig
+    type t
+    type _ external_tag += T : t external_tag
+
+    val name : string
+    val equal : code_location -> t -> t -> bool
+    val compare : code_location -> t -> t -> int
+    val print : t -> string
+    val to_json : t -> string
+    val from_json : string -> t
+  end
+
   type _ ty =
     | Unit : unit ty
     | Bool : bool ty
@@ -281,14 +295,7 @@ module Value = struct
             (* destr: string * t option -> 'a; ? *)
       }
         -> 'a ty
-    | External : {
-        name : string;
-        equal : code_location -> 'a -> t -> bool;
-        compare : code_location -> 'a -> t -> int;
-        to_json : ('a -> string) option;
-        to_string : 'a -> string;
-      }
-        -> 'a ty
+    | External : (module External with type t = 'a) -> 'a ty
     | Function : 'a ty
 
   and t = V : 'a ty * 'a -> t
@@ -328,12 +335,14 @@ module Value = struct
       let n1, _, x1 = en1.constr v1 in
       let n2, _, x2 = en2.constr v2 in
       n1 = n2 && Option.equal (equal pos) x1 x2
-    | V (External ex, v), rv2 -> ex.equal pos v rv2
+    | V (External (module E1), v1), V (External (module E2), v2) -> (
+      match E1.T with E2.T -> E1.equal pos v1 v2 | _ -> false)
     | V (Function, _), V (Function, _) -> error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | ( V
           ( ( Unit | Bool | Integer | Money | Decimal | Date | Duration
-            | Position | Array _ | Tuple _ | Struct _ | Enum _ | Function ),
+            | Position | Array _ | Tuple _ | Struct _ | Enum _ | External _
+            | Function ),
             _ ),
         _ ) ->
       false
@@ -397,7 +406,10 @@ module Value = struct
         | 0 -> Option.compare (compare pos) x1 x2
         | n -> n)
       | n -> n (* could be assert false if well-typed ? *))
-    | V (External ext, v1), rv2 -> ext.compare pos v1 rv2
+    | V (External (module E1), v1), V (External (module E2), v2) -> (
+      match E1.T with
+      | E2.T -> E1.compare pos v1 v2
+      | _ -> error UncomparableValues [pos])
     | V (Function, _), _ | _, V (Function, _) -> error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | V (Unit, _), _ -> -1
@@ -423,7 +435,7 @@ module Value = struct
     | V (Struct _, _), _ -> -1
     | _, V (Struct _, _) -> 1
     | V (Enum _, _), _ -> -1
-    | _, V (Enum _, _) -> .
+    | _, V (Enum _, _) -> 1
     | V (External _, _), _ -> .
     | _, V (External _, _) -> .
 
@@ -475,7 +487,11 @@ module Value = struct
       Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
     | V (Function, _) -> Format.fprintf ppf "<function>"
-    | V (External ex, v) -> Format.pp_print_string ppf (ex.to_string v)
+    | V (External (module E), v) -> Format.pp_print_string ppf (E.print v)
+
+  let from_json : type a. a ty -> string -> a = function
+    | External (module E) -> E.from_json
+    | _ -> failwith "todo"
 end
 
 let equal = Value.equal_values
@@ -501,6 +517,43 @@ module Optional = struct
           | Absent -> 0, "Absent", None
           | Present v -> 1, "Present", Some (Value.embed t v));
       }
+end
+
+module type ExternalTypeSpec = sig
+  type t
+  (** The embedded type *)
+
+  val name : string
+  (** Catala name of the type (capitalised) *)
+
+  val equal : code_location -> t -> t -> bool
+
+  val compare : code_location -> t -> t -> int
+  (** Standard [compare] function: must return -1, 0 or 1 depending on whether
+      the left-hand side is respectively smaller, equal or greater than the
+      right-hand side *)
+
+  (* val to_expr : t -> string (\** Must output a valid OCaml expression that
+     encodes the given value *\) *)
+
+  val print : t -> string
+  (** User-directed printing of the value *)
+
+  val to_json : t -> string
+  val from_json : string -> t
+end
+
+module ExternalType (Spec : ExternalTypeSpec) :
+  CatalaType with type t = Spec.t = struct
+  module E : Value.External with type t = Spec.t = struct
+    include Spec
+
+    type _ Value.external_tag += T : t Value.external_tag
+  end
+
+  type t = Spec.t
+
+  let rtype = Value.External (module E)
 end
 
 (* -- *)
@@ -625,8 +678,7 @@ module BufferedJson = struct
       Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
         pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
     | V (Function, _) -> Buffer.add_string buf {|"unembeddable"|}
-    | V (External _ex, _v) ->
-      Buffer.add_string buf {|"unembeddable"|} (* ex.to_json v ?? *)
+    | V (External (module E), v) -> Buffer.add_string buf (E.to_json v)
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
 
@@ -1142,11 +1194,15 @@ include Oper
 type hash = string
 
 let modules_table : (string, hash) Hashtbl.t = Hashtbl.create 13
-let values_table : (string list * string, Obj.t) Hashtbl.t = Hashtbl.create 13
+let values_table : (string * string, Obj.t) Hashtbl.t = Hashtbl.create 13
 
-let register_module modname values hash =
+let types_table : (string * string, (module CatalaType)) Hashtbl.t =
+  Hashtbl.create 13
+
+let register_module modname values ?(types = []) hash =
   Hashtbl.add modules_table modname hash;
-  List.iter (fun (id, v) -> Hashtbl.add values_table ([modname], id) v) values
+  List.iter (fun (id, v) -> Hashtbl.add values_table (modname, id) v) values;
+  List.iter (fun (id, e) -> Hashtbl.add types_table (modname, id) e) types
 
 let check_module m h =
   let h1 = Hashtbl.find modules_table m in
@@ -1155,8 +1211,9 @@ let check_module m h =
 let lookup_value qid =
   try Hashtbl.find values_table qid
   with Not_found ->
-    failwith
-      ("Could not resolve reference to "
-      ^ String.concat "." (fst qid)
-      ^ "."
-      ^ snd qid)
+    failwith ("Could not resolve reference to " ^ fst qid ^ "." ^ snd qid)
+
+let lookup_type qid =
+  try Hashtbl.find types_table qid
+  with Not_found ->
+    failwith ("Could not resolve reference to " ^ fst qid ^ "." ^ snd qid)

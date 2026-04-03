@@ -1,0 +1,26 @@
+> Using String
+
+
+```catala-metadata
+#[test]
+declaration scope S:
+  output foo content String
+  output bar content String
+  output foo_lt_bar content boolean
+  output foo_gt_bar content boolean
+  output answer content String
+  output answer_eq content boolean
+  output answer_order content boolean
+```
+
+
+```catala
+scope S:
+  definition foo equals String.foo
+  definition bar equals String.bar
+  definition foo_lt_bar equals String.foo < bar
+  definition foo_gt_bar equals foo > String.bar
+  definition answer equals String.of_int of 42
+  definition answer_eq equals answer = String.fortytwo
+  definition answer_order equals String.of_int of 19 < answer and answer < String.of_int of 72
+```

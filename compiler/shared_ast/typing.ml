@@ -1082,6 +1082,9 @@ and typecheck_expr_top_down : type a m.
     let mark = mark_with_tau_and_unify (TArray cell_type, pos_e) in
     let es' = List.map (typecheck_expr_top_down ctx env cell_type) es in
     Expr.earray es' mark
+  | ECustom { obj; targs = []; tret } ->
+    let mark = mark_with_tau_and_unify tret in
+    Expr.ecustom obj [] tret mark
   | ECustom { obj; targs; tret } ->
     let mark = mark_with_tau_and_unify (TArrow (targs, tret), Expr.pos e) in
     Expr.ecustom obj targs tret mark

@@ -1170,7 +1170,8 @@ let rec embed_value : type a.
     V.V (Function, lam)
     (* Probably something very clever to do here by embedding the interpreter
        itself *)
-  | ECustom { obj; _ } ->
-    V.V (Function, Obj.obj obj)
-    (* V.V (Function (fun f args -> embed_value ctx (f args)), Obj.obj obj) *)
+  | ECustom { obj; targs = []; tret = TAbstract tid, _ } ->
+    let module E = (val Type.lookup_external tid) in
+    V.V (E.rtype, Obj.obj obj)
+  | ECustom { obj; _ } -> V.V (Function, Obj.obj obj)
   | _ -> invalid_arg "embed_value"

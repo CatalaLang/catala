@@ -289,6 +289,7 @@ let operator_to_string : type a. a Op.t -> string =
   | ConstructorCheck (e, c) ->
     Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
       (EnumConstructor.to_string c)
+  | ValueFromJson (_ty, json) -> Printf.sprintf "json[%s]" json
 
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
@@ -333,6 +334,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | ArrayAccess n -> Printf.sprintf "nth(%d)" n
   | ConstructorCheck (_, c) ->
     Printf.sprintf "is_%s" (EnumConstructor.to_string c)
+  | ValueFromJson (_ty, json) -> Printf.sprintf "json[%s]" json
 
 let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
@@ -402,7 +404,8 @@ module Precedence = struct
         Op Div
       | HandleExceptions | Map | Map2 | Concat | Filter | Reduce | Fold
       | ToClosureEnv | FromClosureEnv | ArrayAccess _ | ConstructorCheck _ ->
-        App)
+        App
+      | ValueFromJson _ -> Contained)
     | EApp _ -> App
     | EArray _ -> Contained
     | EVar _ -> Contained
@@ -762,6 +765,15 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_close_box fmt ();
         punctuation fmt "}";
         Format.pp_close_box fmt ()
+      | ECustom { obj; targs = []; tret = TAbstract tid, _ } ->
+        let module E =
+          (val Catala_runtime.lookup_type
+                 ( Uid.Module.to_string
+                     (Option.get (Uid.Path.last_member (AbstractType.path tid))),
+                   AbstractType.base tid ))
+        in
+        Catala_runtime.Value.format fmt
+          (Catala_runtime.Value.V (E.rtype, Obj.obj obj))
       | ECustom _ -> Format.pp_print_string fmt "<obj>"
       | EBad -> Format.pp_print_string fmt "<bad>"
 
@@ -1148,6 +1160,7 @@ module UserFacing = struct
       Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
         (value ~fallback lang) e
     | EEmpty -> Format.pp_print_string ppf "ø"
+    | ECustom { targs = []; _ } -> expr () ppf e
     | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)

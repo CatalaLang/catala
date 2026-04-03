@@ -345,6 +345,7 @@ module Op = struct
     (* unary *)
     (* * monomorphic *)
     | Not : < monomorphic ; .. > t
+    | ValueFromJson : typ * string -> < monomorphic ; .. > t
     (* * polymorphic *)
     | Length : < polymorphic ; .. > t
     | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
@@ -641,9 +642,10 @@ and ('a, 'b, 'm) base_gexpr =
       tret : typ;
     }
       -> ('a, < custom : yes ; .. >, 't) base_gexpr
-      (** A function of the given type, as a runtime OCaml object. The specified
-          types for arguments and result must be the Catala types corresponding
-          to the runtime types of the function. *)
+      (** A value or function of the given type, as a runtime OCaml object. For
+          values, [targs] must be the empty list, and [tret] is the actual type.
+          The specified types for arguments and result must be the Catala types
+          corresponding to the runtime types . *)
   (* Other *)
   | EBad : ('a, < .. >, 't) base_gexpr
       (** An internal-only node used to progress through the passes to report

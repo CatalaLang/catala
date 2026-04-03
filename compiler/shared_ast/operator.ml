@@ -96,6 +96,7 @@ let name : type a. a t -> string = function
   | ConstructorCheck (e, c) ->
     Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
       (EnumConstructor.to_string c)
+  | ValueFromJson (_ty, str) -> Printf.sprintf "from_json(%s)" str
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
@@ -194,6 +195,10 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | ArrayAccess n1, ArrayAccess n2 -> compare n1 n2
   | ConstructorCheck (_, c1), ConstructorCheck (_, c2) -> EnumConstructor.compare c1 c2
+  | ValueFromJson (ty1, j1), ValueFromJson (ty2, j2) ->
+    (match Type.compare ty1 ty2 with
+     | 0 -> String.compare j1 j2
+     | n -> n)
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
@@ -258,6 +263,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
   | ArrayAccess _, _ -> -1 | _, ArrayAccess _ -> 1
   | ConstructorCheck _, _ -> -1 | _, ConstructorCheck _  -> 1
+  | ValueFromJson _, _ -> -1 | _, ValueFromJson _ -> 1
   | Fold, _  | _, Fold -> .
 
 let equal t1 t2 = compare t1 t2 = 0
@@ -274,7 +280,7 @@ let kind_dispatch : type a.
  fun ~polymorphic ~monomorphic ?(overloaded = fun _ -> assert false)
      ?(resolved = fun _ -> assert false) op ->
   match op with
-  | ((Not | And | Or | Xor), _) as op -> monomorphic op
+  | ((Not | And | Or | Xor | ValueFromJson _), _) as op -> monomorphic op
   | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold | Lt
       | Lte | Gt | Gte | HandleExceptions | FromClosureEnv | ToClosureEnv
       | ArrayAccess _ | ConstructorCheck _ ),
@@ -313,19 +319,20 @@ let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
       | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat
       | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
       | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv
-      | ArrayAccess _ | ConstructorCheck _ ),
+      | ArrayAccess _ | ConstructorCheck _ | ValueFromJson _ ),
       _ ) as op ->
     op
 
 let monomorphic_type ((op : monomorphic t), pos) =
   let args, ret =
     match op with
-    | Not -> [TBool], TBool
-    | And -> [TBool; TBool], TBool
-    | Or -> [TBool; TBool], TBool
-    | Xor -> [TBool; TBool], TBool
+    | Not -> [TBool], TLit TBool
+    | And -> [TBool; TBool], TLit TBool
+    | Or -> [TBool; TBool], TLit TBool
+    | Xor -> [TBool; TBool], TLit TBool
+    | ValueFromJson (ty, _) -> [TUnit], Mark.remove ty
   in
-  TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
+  TArrow (List.map (fun tau -> TLit tau, pos) args, (ret, pos)), pos
 
 (** Rules for overloads definitions:
 
@@ -491,5 +498,6 @@ let is_pure : type a. a t -> bool = function
   | Map | Concat | Filter | Add_int_int | Add_rat_rat | Add_mon_mon
   | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
   | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_int
-  | Mult_mon_rat | Mult_dur_int | Reduce | Fold | HandleExceptions ->
+  | Mult_mon_rat | Mult_dur_int | Reduce | Fold | HandleExceptions
+  | ValueFromJson _ ->
     true

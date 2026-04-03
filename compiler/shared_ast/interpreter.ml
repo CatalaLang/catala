@@ -111,7 +111,7 @@ let eval_application evaluate_expr f args =
       "Trying to apply non-function passed as operator argument"
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-let evaluate_operator
+let rec evaluate_operator
     ctx
     evaluate_expr
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
@@ -321,6 +321,12 @@ let evaluate_operator
           cons = Expr.some_constr;
           e = ETuple [e; EPos p, Expr.with_pos p m], m;
         })
+  | ValueFromJson (((TAbstract tid, _) as ty), str), [(ELit LUnit, _)] ->
+    let module E = (val Type.lookup_external tid) in
+    runtime_to_val ctx m ty
+      (Obj.repr (Catala_runtime.Value.from_json E.rtype str))
+    |> Mark.remove
+  | ValueFromJson _, _ -> failwith "todo"
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon
       | ToRat_int | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat
       | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
@@ -334,7 +340,7 @@ let evaluate_operator
 
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
-let rec runtime_to_val : type d r.
+and runtime_to_val : type d r.
     decl_ctx -> 'm mark -> typ -> Obj.t -> ((d, r, yes) interpr_kind, 'm) gexpr
     =
  fun ctx m ty o ->
@@ -735,8 +741,7 @@ let rec evaluate_expr : type d r.
           Print.external_ref name
     in
     let runtime_modname =
-      ( List.map ModuleName.to_string
-          (Option.to_list (Uid.Path.last_member path)),
+      ( ModuleName.to_string (Option.get (Uid.Path.last_member path)),
         match Mark.remove name with
         | External_value name -> TopdefName.base name
         | External_scope name -> ScopeName.base name )
@@ -928,7 +933,7 @@ let rec evaluate_expr : type d r.
       | _ ->
         Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed")
+           evaluation (should not happen if the term was well-typed)")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
       let poslist =
@@ -1044,6 +1049,15 @@ let delcustom e =
   let rec f : type c r d.
       ((d, r, c) interpr_kind, 't) gexpr ->
       ((d, r, no) interpr_kind, 't) gexpr boxed = function
+    | ECustom { obj; targs = []; tret = (TAbstract tid, _) as ty }, m ->
+      let module E = (val Type.lookup_external_handling tid) in
+      let json = E.to_json (Obj.obj obj) in
+      let pos = Expr.mark_pos m in
+      let tunit = TLit TUnit, pos in
+      Expr.eappop
+        ~op:(ValueFromJson (ty, json), pos)
+        ~args:[Expr.elit LUnit (Expr.with_ty m tunit)]
+        ~tys:[tunit] m
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EAppOp { op; args; tys }, m ->
       Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
