@@ -246,17 +246,8 @@ let scope =
     & info ["s"; "scope"] ~docv:"SCOPE"
         ~doc:"Select which scope of a given Catala file to run.")
 
+let variable = Catala_utils.Cli.Flags.ex_variable
 let scope_input = Catala_utils.Cli.Flags.scope_input
-
-let variable =
-  Arg.(
-    required
-    & opt (some string) None
-    & info ["v"; "variable"] ~docv:"VARIABLE"
-        ~doc:
-          "Select which variable of a given scope to focus on. Use \
-           $(i,foo.bar) to access state $(i,bar) of variable $(i,foo) or \
-           variable $(i,bar) of subscope $(i,foo).")
 
 let json =
   Arg.(
