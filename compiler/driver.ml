@@ -667,12 +667,6 @@ module Commands = struct
     else Desugared.Print.exceptions_graph scope_uid variable_uid g
 
   let exceptions_cmd =
-    let json =
-      Cmdliner.Arg.(
-        value
-        & flag
-        & info ["json"] ~doc:"Output the exception tree in JSON format.")
-    in
     Cmd.v
       (Cmd.info "exceptions" ~man:Cli.man_base
          ~doc:
@@ -688,7 +682,7 @@ module Commands = struct
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable
-        $ json)
+        $ Cli.Flags.json)
 
   let dependency_graph options includes stdlib =
     let prg_desugared, _ctxt = Passes.desugared options ~includes ~stdlib in
