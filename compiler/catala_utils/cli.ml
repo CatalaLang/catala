@@ -504,6 +504,11 @@ module Flags = struct
     & opt (some string) None
     & info ["v"; "variable"] ~docv:"VARIABLE" ~doc:"Variable to be focused on."
 
+  let json =
+    value
+    & flag
+    & info ["json"] ~doc:"Output the exception tree in JSON format."
+
   let output =
     value
     & opt (some raw_file) None
