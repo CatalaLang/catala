@@ -204,7 +204,18 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       iterate (-1, dummy_cp) candidates_checkpoints
     in
     (* We do not consider paths where progress isn't significant *)
-    if best_progress < 2 then None else Some best_cp
+    if best_progress < 3 then None else Some best_cp
+
+  let skip_until
+      p
+      (buff : (token * Lexing.position * Lexing.position) ring_buffer) =
+    let rec loop b =
+      let new_b, (tok, _, _) = next b in
+      if p tok then new_b
+      else if tok = Tokens.EOF then (* Give the buffer just before EOF *) b
+      else loop new_b
+    in
+    loop buff
 
   (** Main parsing loop *)
   let loop
@@ -220,15 +231,28 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         (token_list : (string * Tokens.token) list)
         (lexbuf : lexbuf)
         (last_input_needed : 'semantic_value I.env option)
+        (last_pre_code_block_checkpoint : 'semantic_value I.checkpoint option)
         (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
       match checkpoint with
       | I.InputNeeded env ->
         let new_lexer_buffer, token = next lexer_buffer in
+        let tok, _, _ = token in
+        (* Whenever we enter a code block, record the checkpoint *before*
+           entering it so that if everything goes south, we skip until exiting
+           the code block (or EOF) and continue from a valid context. *)
+        let last_pre_code_block_checkpoint =
+          match tok with
+          | BEGIN_CODE | BEGIN_METADATA -> Some checkpoint
+          | END_CODE _ -> None
+          | _ -> last_pre_code_block_checkpoint
+        in
         let checkpoint = I.offer checkpoint token in
-        loop new_lexer_buffer token_list lexbuf (Some env) checkpoint
+        loop new_lexer_buffer token_list lexbuf (Some env)
+          last_pre_code_block_checkpoint checkpoint
       | I.Shifting _ | I.AboutToReduce _ ->
         let checkpoint = I.resume checkpoint in
-        loop lexer_buffer token_list lexbuf last_input_needed checkpoint
+        loop lexer_buffer token_list lexbuf last_input_needed
+          last_pre_code_block_checkpoint checkpoint
       | I.HandlingError (env : 'semantic_value I.env) -> (
         let similar_candidate_tokens, sorted_acceptable_tokens =
           sorted_candidate_tokens lexbuf token_list env
@@ -239,21 +263,29 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
           recover_parsing_error lexer_buffer env
             (List.map snd sorted_acceptable_tokens)
         in
-        match best_effort_checkpoint with
-        | None ->
+        match best_effort_checkpoint, last_pre_code_block_checkpoint with
+        | None, Some cp ->
+          let new_lexer_buffer =
+            skip_until (function END_CODE _ -> true | _ -> false) lexer_buffer
+          in
+          Message.debug
+            "Failed to recover parsing inside a code block: skipping code block";
+          (* The lexer's context should be set back to Law. *)
+          loop new_lexer_buffer token_list lexbuf last_input_needed None cp
+        | None, None ->
           (* No reasonable solution, aborting *)
           (* Let's reset the lexer buffer in order to not trigger the unclosed
              block finalizer: we have at least one error to report *)
           ignore (Lexer_common.flush_acc ());
           Lexer_common.context := Law;
           []
-        | Some best_effort_checkpoint ->
+        | Some best_effort_checkpoint, _ ->
           loop lexer_buffer token_list lexbuf last_input_needed
-            best_effort_checkpoint)
+            last_pre_code_block_checkpoint best_effort_checkpoint)
       | I.Accepted v -> v
       | I.Rejected -> []
     in
-    loop lexer_buffer token_list lexbuf last_input_needed checkpoint
+    loop lexer_buffer token_list lexbuf last_input_needed None checkpoint
 
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type
       difference for [lexbuf]. *)
