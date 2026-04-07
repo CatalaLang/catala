@@ -81,7 +81,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Filter -> Format.pp_print_string fmt "filter"
   | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
-  | ValueFromJson (_ty, _str) -> Format.pp_print_string fmt "todo"
+  | ValueFromJson (_ty, str) -> Format.fprintf fmt ".from_json('%s')" str
   | ArrayAccess _ -> assert false
   | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
@@ -346,6 +346,9 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (format_expression ctx) pos
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
+  | EAppOp
+      { op = (ValueFromJson (ty, _), _) as op; args = [(ELit LUnit, _)]; _ } ->
+    Format.fprintf fmt "%a%a" (format_typ ctx) ty format_op op
   | EAppOp
       { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args = [pos; a1; a2]; _ } ->
     Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]" (format_expression ctx) a1
