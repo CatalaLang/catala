@@ -40,7 +40,7 @@ val scope : string Term.t
 val scope_opt : string option Term.t
 val scope_input : Yojson.Safe.t option Term.t
 val variable : string Term.t
-val json : bool Term.t
+val output_format : Global.format_enum Term.t
 val clerk_targets_or_files : string list Term.t
 val clerk_targets_or_files_or_folders : string list Term.t
 val report_verbosity : [> `Failures | `Short | `Summary | `Verbose ] Term.t
