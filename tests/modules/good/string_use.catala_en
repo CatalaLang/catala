@@ -24,3 +24,16 @@ scope S:
   definition answer_eq equals answer = String.fortytwo
   definition answer_order equals String.of_int of 19 < answer and answer < String.of_int of 72
 ```
+
+```catala-metadata
+#[test]
+declaration scope S2:
+  output foo content String
+  output bar content String
+
+scope S2:
+  definition foo equals #[json = "\"2243\""]external(String)
+  definition bar equals String.of_int of 2243
+  assertion foo = bar
+
+```

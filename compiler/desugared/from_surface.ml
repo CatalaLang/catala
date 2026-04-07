@@ -592,7 +592,9 @@ let rec translate_expr
         get_str (Name_resolution.get_module_ctx ctxt mod_id) path
     in
     Expr.edstructaccess ~e ~field ~name_opt:(get_str ctxt path) emark
-  | FunCall ((Builtin b, pos), [arg]) when b <> S.Impossible ->
+  | FunCall ((Builtin (S.Impossible | S.External _), pos), [_]) ->
+    Message.error ~pos "This built-in cannot be applied as a function"
+  | FunCall ((Builtin b, pos), [arg]) ->
     let op, ty =
       match b with
       | S.ToInteger -> Op.ToInt, Mark.remove (Type.any pos)
@@ -600,12 +602,26 @@ let rec translate_expr
       | S.ToMoney -> Op.ToMoney, Mark.remove (Type.any pos)
       | S.Round -> Op.Round, Mark.remove (Type.any pos)
       | S.Cardinal -> Op.Length, TArray (Type.any pos)
-      | S.Impossible -> assert false
+      | S.External _ | S.Impossible -> assert false
     in
     Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark
   | S.Builtin Impossible -> Expr.efatalerror Runtime.Impossible emark
+  | S.Builtin (External ty) -> (
+    match
+      Pos.get_attr pos @@ function JsonPayload s -> Some s | _ -> None
+    with
+    | None ->
+      Message.error
+        "The @{<cyan>external(typ)@} construct must be prefixed with a \
+         @{<magenta>#[json = \"contents\"]@} attribute"
+    | Some s ->
+      Expr.eappop
+        ~op:(ValueFromJson (Name_resolution.process_type ctxt ty, s), pos)
+        ~args:[Expr.elit LUnit emark]
+        ~tys:[TLit TUnit, pos]
+        emark)
   | S.Builtin _ ->
-    Message.error ~pos "Invalid use of built-in: needs one operand."
+    Message.error ~pos "Invalid use of built-in: needs one operand"
   | FunCall (f, args) ->
     let args = List.map rec_helper args in
     Expr.eapp ~f:(rec_helper f) ~args ~tys:[] emark

@@ -407,6 +407,10 @@ let naked_expression ==
   let pos = Pos.join p1 (Mark.get check) in
   Assert (check, next, pos)
 } %prec let_expr
+| pos = pos(EXTERNAL) ; LPAREN ; id = quident ; RPAREN ; {
+  let tpath, tid = id in
+  Builtin (External (Base (Data (Primitive (Named (tpath, tid)))), pos))
+}
 
 let opt_or_if_empty ==
 | OR_IF_LIST_EMPTY ; THEN ; default = expression ; <Some> %prec apply

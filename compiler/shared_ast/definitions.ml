@@ -438,6 +438,7 @@ type Pos.attr +=
   | Doc of string * Pos.t
   | ImplicitPosArg
   | ErrorMessage of string
+  | JsonPayload of string
 
 (** {2 Markings} *)
 
