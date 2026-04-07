@@ -27,7 +27,17 @@ let rec make_assertions ctx scope_name acc path ty e =
         let path =
           Expr.estructaccess ~name ~field ~e:path (Expr.with_ty m ty)
         in
-        make_assertions ctx scope_name acc path ty value)
+        let pos =
+          Pos.add_attr
+            (Mark.get (StructField.get_info field))
+            (ErrorMessage
+               (Printf.sprintf
+                  "Automatic test for %s: inconsistency between interpreter \
+                   and runtime detected"
+                  (StructField.to_string field)))
+        in
+        make_assertions ctx scope_name acc path ty
+          (Mark.map_mark (Expr.with_pos pos) value))
       fields acc
   | (_, m) as e ->
     if Type.has_arrow ctx ty then acc
