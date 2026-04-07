@@ -103,7 +103,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
 let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
   `Assoc
     [
-      "file", `String (Pos.get_file pos);
+      "filename", `String (Pos.get_file pos);
       "start_line", `Int (Pos.get_start_line pos);
       "start_column", `Int (Pos.get_start_column pos);
       "end_line", `Int (Pos.get_end_line pos);
