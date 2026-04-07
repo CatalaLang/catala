@@ -163,6 +163,9 @@ let backend_subdir_list =
     Clerk_rules.OCaml, "ocaml";
   ]
 
+let normalize_backends : Clerk_rules.backend list -> Clerk_rules.backend list =
+  List.sort_uniq Stdlib.compare
+
 let subdir_backend_list =
   List.map (fun (bk, dir) -> dir, bk) backend_subdir_list
 
@@ -436,7 +439,7 @@ let build_clerk_target
   in
   let enabled_backends =
     List.map Clerk_rules.backend_from_config target.backends
-    |> List.sort_uniq Stdlib.compare
+    |> normalize_backends
   in
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
@@ -610,14 +613,15 @@ let build_direct_targets
           else File.(build_dir / t))
         direct_targets
     in
+    let backends = if autotest then [Clerk_rules.OCaml] else [] in
     let enabled_backends =
       List.fold_left
         (fun acc t ->
           match File.extension t with
           | "" -> Clerk_rules.OCaml :: acc
           | _ -> target_backend config.options t :: acc)
-        [] direct_targets
-      |> List.sort_uniq Stdlib.compare
+        backends direct_targets
+      |> normalize_backends
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
@@ -1339,14 +1343,20 @@ let run_clerk_test
     @ List.map config.Cli.fix_path files_or_folders
     |> List.sort_uniq String.compare
   in
-  let enabled_backend = enable_backend backend in
+  let enabled_backends =
+    [
+      enable_backend backend
+      (* Clerk_rules.OCaml backend is required as autotest flag is true *);
+      Clerk_rules.OCaml;
+    ]
+    |> normalize_backends
+  in
   if backend <> `Interpret then
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~quiet ~code_coverage ~config
-      ~enabled_backends:[enabled_backend] ~ninja_flags ~autotest:true
-      ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+      ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
@@ -1369,9 +1379,9 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~code_coverage ~config ~tests:true
-        ~enabled_backends:[enabled_backend] ~ninja_flags ~autotest:false ~quiet
-        ~clean_up_env:true (fun nin_ppf _items _vars ->
+      Clerk_rules.run_ninja ~code_coverage ~config ~tests:true ~enabled_backends
+        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
+        (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
