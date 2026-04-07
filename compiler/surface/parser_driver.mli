@@ -50,6 +50,29 @@ val register_included_file_resolver :
     encounters an inclusion that correspond to the [filename] argument, it will
     dynamically replace it with the given [new_content]. *)
 
+type module_loading =
+  allow_notmodules:bool ->
+  is_stdlib:bool ->
+  Global.options ->
+  string ->
+  Ast.module_content
+
+val load_module : module_loading
+(** Load a single module content *)
+
+val load_modules :
+  Global.options ->
+  Global.raw_file list ->
+  stdlib:Global.raw_file option ->
+  ?more_includes:string list ->
+  ?allow_notmodules:bool ->
+  ?load_module:module_loading ->
+  Ast.program ->
+  Shared_ast.ModuleName.t Shared_ast.Ident.Map.t
+  * (Ast.module_content * Shared_ast.ModuleName.t Shared_ast.Ident.Map.t)
+    Shared_ast.ModuleName.Map.t
+(** Retrieve and load modules contents necessary to compile the given program *)
+
 val parse_top_level_file :
   ?resolve_included_file:(string -> string Global.input_src) ->
   File.t Global.input_src ->
