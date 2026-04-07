@@ -1679,7 +1679,7 @@ let json_schema_cmd =
       $ Cli.scope)
 
 let exceptions_cmd =
-  let run config file scope variable json =
+  let run config file scope variable output_format =
     (* The exceptions command only needs the desugaring pass — no compiled
        artifacts required. Bypass ninja and call catala directly. *)
     let file = config.Cli.fix_path file in
@@ -1692,7 +1692,7 @@ let exceptions_cmd =
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
-      @ (if json then ["--json"] else [])
+      @ (if output_format = Global.JSON then ["--json"] else [])
       @ catala_flags
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -1701,7 +1701,7 @@ let exceptions_cmd =
   let doc =
     "Prints the exception tree for the definitions of a particular variable in \
      a scope. Use $(b,-s) to select the scope, $(b,-v) to select the variable, \
-     and $(b,--json) for machine-readable output."
+     and $(b,--output-format=json) for machine-readable output."
   in
   Cmd.v
     (Cmd.info ~doc "exceptions")
@@ -1711,7 +1711,7 @@ let exceptions_cmd =
       $ Cli.single_file
       $ Cli.scope
       $ Cli.variable
-      $ Cli.json)
+      $ Cli.output_format)
 
 let main_cmd =
   Cmd.group Cli.info
