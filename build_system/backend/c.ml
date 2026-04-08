@@ -32,13 +32,8 @@ module Backend = struct
         ~include_dirs =
       let open Common.Flags in
       let catala_flags_c =
-        (if autotest then ["--autotest"] else [])
-        @
-        if use_default_flags then ["-O"]
-        else
-          List.filter
-            (function "-O" | "--optimize" -> true | _ -> false)
-            test_flags
+        Common.Flags.catala_backend_flags ~autotest ~use_default_flags
+          ~test_flags ~accepts_closure_conversion:false
       in
       let def = def ~variables in
       [

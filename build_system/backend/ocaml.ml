@@ -53,14 +53,8 @@ module Flags = struct
       =
     let open Common.Flags in
     let catala_flags_ocaml =
-      (if autotest then ["--autotest"] else [])
-      @
-      if use_default_flags then ["-O"]
-      else
-        List.filter
-          (function
-            | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-          test_flags
+      Common.Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
+        ~accepts_closure_conversion:true
     in
     let def = def ~variables in
     [

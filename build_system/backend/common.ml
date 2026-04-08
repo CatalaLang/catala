@@ -40,6 +40,22 @@ module Flags = struct
         else "-I" :: dir :: flags)
       include_dirs []
 
+  let catala_backend_flags
+      ~autotest
+      ~use_default_flags
+      ~test_flags
+      ~accepts_closure_conversion =
+    (if autotest then ["--autotest"] else [])
+    @
+    if use_default_flags then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" -> true
+          | "--closure-conversion" -> accepts_closure_conversion
+          | _ -> false)
+        test_flags
+
   let include_flags ~backend include_dirs =
     let open File in
     "-I"
