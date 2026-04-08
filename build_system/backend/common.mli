@@ -23,6 +23,13 @@ module Flags : sig
   val includes : ?backend:string -> string list -> string list
   val include_flags : backend:string -> string list -> string list
 
+  val catala_backend_flags :
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    accepts_closure_conversion:bool ->
+    string list
+
   val default :
     code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list
 end
