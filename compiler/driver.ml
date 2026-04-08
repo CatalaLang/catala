@@ -663,9 +663,17 @@ module Commands = struct
     let scope_uid = get_scope_uid prg.program_ctx ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
     let g = Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs in
+    let is_condition =
+      let scope =
+        Shared_ast.ScopeName.Map.find scope_uid prg.program_root.module_scopes
+      in
+      (Desugared.Ast.ScopeDef.Map.find variable_uid scope.scope_defs)
+        .scope_def_is_condition
+    in
     if output_format = Global.JSON then
-      Desugared.Print.exceptions_graph_json scope_uid variable_uid g
-    else Desugared.Print.exceptions_graph scope_uid variable_uid g
+      Desugared.Print.exceptions_graph_json ~is_condition scope_uid variable_uid
+        g
+    else Desugared.Print.exceptions_graph ~is_condition scope_uid variable_uid g
 
   let exceptions_cmd =
     Cmd.v

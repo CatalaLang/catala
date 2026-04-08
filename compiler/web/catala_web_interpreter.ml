@@ -363,15 +363,24 @@ let () =
              let g =
                Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs
              in
-             let tree = Desugared.Print.build_exception_tree g in
+             let is_condition =
+               let scope =
+                 Shared_ast.ScopeName.Map.find scope_uid
+                   prg.program_root.module_scopes
+               in
+               (Desugared.Ast.ScopeDef.Map.find variable_uid scope.scope_defs)
+                 .scope_def_is_condition
+             in
+             let trees = Desugared.Print.build_exception_tree g in
              let json =
                `Assoc
                  [
                    "scope", `String scope;
                    "variable", `String variable;
+                   "is_condition", `Bool is_condition;
                    ( "trees",
                      `List
-                       (List.map Desugared.Print.exception_tree_to_json tree) );
+                       (List.map Desugared.Print.exception_tree_to_json trees) );
                  ]
              in
              let json_str = Yojson.Safe.to_string json in

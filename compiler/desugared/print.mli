@@ -19,6 +19,7 @@ type exception_tree =
   | Node of exception_tree list * Dependency.ExceptionVertex.t
 
 val exceptions_graph :
+  is_condition:bool ->
   Shared_ast.ScopeName.t ->
   Ast.ScopeDef.t ->
   Dependency.ExceptionsDependencies.t ->
@@ -26,6 +27,7 @@ val exceptions_graph :
 (** Prints the exception graph of a variable to the terminal *)
 
 val exceptions_graph_json :
+  is_condition:bool ->
   Shared_ast.ScopeName.t ->
   Ast.ScopeDef.t ->
   Dependency.ExceptionsDependencies.t ->
