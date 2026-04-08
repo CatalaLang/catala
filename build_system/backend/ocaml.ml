@@ -108,6 +108,12 @@ module Backend = struct
 
   let name = "ocaml"
   let module_ext = "@ocaml-module"
+  let subdir = "ocaml"
+  let src_extensions = ["ml"; "mli"]
+  let obj_extensions = ["cmi"; "cmo"; "cmx"; "o"; "cmxs"]
+
+  let runtime_targets ~only_source =
+    [(if only_source then "@runtime-ocaml-src" else "@runtime-ocaml")]
 
   module Flags = Flags
 

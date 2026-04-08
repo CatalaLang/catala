@@ -21,6 +21,10 @@ open Catala_utils
 module type S = sig
   val name : string
   val module_ext : string
+  val subdir : string
+  val src_extensions : string list
+  val obj_extensions : string list
+  val runtime_targets : only_source:bool -> string list
 
   module Flags : sig
     val default :

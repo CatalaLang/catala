@@ -63,21 +63,24 @@ let linking_dependencies items =
     in
     rem_dups (traverse [] item)
 
-let backend_src_extensions =
+let all_backends_with_config :
+    (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
   [
-    Clerk_config.C, ["c"; "h"];
-    Clerk_config.OCaml, ["ml"; "mli"];
-    Clerk_config.Python, ["py"];
-    Clerk_config.Java, ["java"];
+    Clerk_config.OCaml, (module Clerk_backends.Ocaml.Backend);
+    Clerk_config.C, (module Clerk_backends.C.Backend);
+    Clerk_config.Python, (module Clerk_backends.Python.Backend);
+    Clerk_config.Java, (module Clerk_backends.Java.Backend);
   ]
 
+let backend_src_extensions =
+  List.map
+    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.src_extensions)
+    all_backends_with_config
+
 let backend_obj_extensions =
-  [
-    Clerk_config.C, ["o"];
-    Clerk_config.OCaml, ["cmi"; "cmo"; "cmx"; "o"; "cmxs"];
-    Clerk_config.Python, [];
-    Clerk_config.Java, ["class"];
-  ]
+  List.map
+    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.obj_extensions)
+    all_backends_with_config
 
 let backend_extensions =
   List.map
@@ -92,12 +95,9 @@ let extensions_backend =
           backend_extensions)
 
 let backend_subdir_list =
-  [
-    Clerk_config.C, "c";
-    Clerk_config.Python, "python";
-    Clerk_config.Java, "java";
-    Clerk_config.OCaml, "ocaml";
-  ]
+  List.map
+    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.subdir)
+    all_backends_with_config
 
 let normalize_backends backends =
   List.sort_uniq Stdlib.compare backends
@@ -221,15 +221,13 @@ let make_target ~build_dir ~backend item =
   build_dir / base
 
 let backend_runtime_targets ?(only_source = false) enabled_backends =
-  let src s = if only_source then s ^ "-src" else s in
-  (if List.mem Clerk_config.OCaml enabled_backends then [src "@runtime-ocaml"]
-   else [])
-  @ (if List.mem Clerk_config.C enabled_backends then [src "@runtime-c"] else [])
-  @ (if List.mem Clerk_config.Python enabled_backends then ["@runtime-python"]
-     else [])
-  @
-  if List.mem Clerk_config.Java enabled_backends then [src "@runtime-java"]
-  else []
+  List.concat_map
+    (fun bk ->
+      let (module B : Clerk_backends.Backend.S) =
+        Clerk_rules.backend_from_config bk
+      in
+      B.runtime_targets ~only_source)
+    enabled_backends
 
 open Cmdliner
 

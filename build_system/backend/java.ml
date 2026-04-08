@@ -107,6 +107,12 @@ module Backend = struct
 
   let name = "java"
   let module_ext = ".class"
+  let subdir = "java"
+  let src_extensions = ["java"]
+  let obj_extensions = ["class"]
+
+  let runtime_targets ~only_source =
+    [(if only_source then "@runtime-java-src" else "@runtime-java")]
 
   let stdlib_target ext =
     let ext =
