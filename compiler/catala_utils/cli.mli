@@ -56,7 +56,6 @@ module Flags : sig
   val ex_scope_opt : string option Term.t
   val ex_scopes : string list Term.t
   val ex_variable : string Term.t
-  val json : bool Term.t
   val output : raw_file option Term.t
   val optimize : bool Term.t
   val closure_conversion : bool Term.t
