@@ -25,6 +25,12 @@ module Backend = struct
 
   let name = "c"
   let module_ext = "@c-module"
+  let subdir = "c"
+  let src_extensions = ["c"; "h"]
+  let obj_extensions = ["o"]
+
+  let runtime_targets ~only_source =
+    [(if only_source then "@runtime-c-src" else "@runtime-c")]
 
   module Flags = struct
     let default

@@ -25,6 +25,10 @@ module Backend = struct
 
   let name = "python"
   let module_ext = ".py"
+  let subdir = "python"
+  let src_extensions = ["py"]
+  let obj_extensions = []
+  let runtime_targets ~only_source:_ = ["@runtime-python"]
 
   module Flags = struct
     let default
