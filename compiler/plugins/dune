@@ -48,6 +48,12 @@
  (libraries catala.driver))
 
 (executable
+ (name jsoo_interface)
+ (modules jsoo_interface)
+ (modes plugin)
+ (libraries catala.driver))
+
+(executable
  (name json_schema)
  (modules json_schema)
  (modes plugin)
