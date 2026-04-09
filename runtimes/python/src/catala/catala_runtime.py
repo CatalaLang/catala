@@ -62,8 +62,10 @@ class Value:
         return super().__hash__()
 
     @classmethod
-    def from_json(cls, str):
-        return cls(json.loads(str))
+    def from_json(cls, str, pos: SourcePosition | None = None):
+        try: return cls(json.loads(str))
+        except ValueError:
+            raise AssertionFailed(pos, "no implementation of from_json provided for this type");
 
     # ensure typing of inherited common operators
     def __add__(self, other):

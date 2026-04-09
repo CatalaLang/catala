@@ -343,6 +343,9 @@ let map
     let log_typ = Mark.remove (typ (Mark.add Pos.void vd.log_typ)) in
     let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
     eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
+  | EAppOp { op = Op.ValueFromJson (ty, str), pos; tys; args } ->
+    let op = fop (Op.ValueFromJson (typ ty, str), pos) in
+    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op; tys; args } ->
     eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m

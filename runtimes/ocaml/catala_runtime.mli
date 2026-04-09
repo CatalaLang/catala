@@ -101,7 +101,7 @@ module Value : sig
     val compare : code_location -> t -> t -> int
     val print : t -> string
     val to_json : t -> string
-    val from_json : string -> t
+    val from_json : code_location -> string -> t
   end
 
   (** 'a ty provides runtime information about the structure of values of OCaml
@@ -141,7 +141,7 @@ module Value : sig
   val equal : code_location -> t -> t -> bool
   val compare : code_location -> t -> t -> int
   val format : Format.formatter -> t -> unit
-  val from_json : 'a ty -> string -> 'a
+  val from_json : 'a ty -> code_location -> string -> 'a
 end
 
 val equal : 'a Value.ty -> code_location -> 'a -> 'a -> bool
@@ -186,7 +186,7 @@ module type ExternalTypeSpec = sig
   (** User-directed printing of the value *)
 
   val to_json : t -> string
-  val from_json : string -> t
+  val from_json : code_location -> string -> t
 end
 
 module ExternalType (Spec : ExternalTypeSpec) : CatalaType with type t = Spec.t

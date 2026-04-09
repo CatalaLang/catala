@@ -179,9 +179,12 @@ struct catala_buf {
      (https://gmplib.org/manual/Formatted-Output-Strings) */
   void (*printf)(const char * format, ...);
   int indent;
-  void (*flush)(void);
+  const void* (*flush)(void);
+  /* return NULL if printing is to a device, return the final result of the
+     printings if it is to an object */
 };
 extern const struct catala_buf catala_stdbuf;
+extern const struct catala_buf catala_strbuf;
 
 enum catala_type_kind {
   UNINITIALIZED,
@@ -219,8 +222,9 @@ struct catala_texternal {
   const char* name;
   int (*equal)(const catala_code_position*, const void*, const void*);
   int (*compare)(const catala_code_position*, const void*, const void*);
-  void (*to_json)(struct catala_buf, const void*); /* can be NULL */
   void (*print)(struct catala_buf, const void*);
+  void (*to_json)(struct catala_buf, const void*);
+  void* (*from_json)(const catala_code_position*, const char *);
 };
 
 typedef struct catala_type {
@@ -252,6 +256,7 @@ int catala_compare (const catala_type ty, const catala_code_position* pos, const
 
 void catala_print (struct catala_buf, const catala_value val);
 void catala_tojson (struct catala_buf, const catala_value val);
+void* catala_fromjson (const catala_type, const catala_code_position*, const char*);
 
 /*   - base embedded types -    */
 

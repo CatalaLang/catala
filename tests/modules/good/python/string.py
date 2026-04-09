@@ -18,15 +18,13 @@ from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 
-import json
-
 class String(Value, str):
     def __str__(self, indent: int = 0) -> str:
         return (f'"{super().__str__()}"')
 
-foo = String("foo")
+foo = String("foo\\")
 
-bar = String("bar")
+bar = String("bąr")
 
 fortytwo = String("42")
 

@@ -11,6 +11,8 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
 
     public abstract String toJSONString();
 
+    public abstract CatalaValue<T> fromJSONString(CatalaPosition p, String json);
+
     @SuppressWarnings("unchecked")
     public static <U extends CatalaValue<?>> U cast(CatalaValue<?> v) {
         return (U) v;

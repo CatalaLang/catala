@@ -103,6 +103,7 @@ let java_keywords =
     "native";
     "super";
     "while";
+    "String";
     (* Reserved for generation *)
     "Globals";
   ]

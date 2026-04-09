@@ -324,7 +324,10 @@ let rec evaluate_operator
   | ValueFromJson (((TAbstract tid, _) as ty), str), [(ELit LUnit, _)] ->
     let module E = (val Type.lookup_external tid) in
     runtime_to_val ctx m ty
-      (Obj.repr (Catala_runtime.Value.from_json E.rtype str))
+      (Obj.repr
+         (Catala_runtime.Value.from_json E.rtype
+            (Expr.pos_to_runtime (Expr.mark_pos m))
+            str))
     |> Mark.remove
   | ValueFromJson _, _ -> failwith "todo"
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon

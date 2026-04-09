@@ -269,7 +269,7 @@ module Value = struct
     val compare : code_location -> t -> t -> int
     val print : t -> string
     val to_json : t -> string
-    val from_json : string -> t
+    val from_json : code_location -> string -> t
   end
 
   type _ ty =
@@ -489,7 +489,7 @@ module Value = struct
     | V (Function, _) -> Format.fprintf ppf "<function>"
     | V (External (module E), v) -> Format.pp_print_string ppf (E.print v)
 
-  let from_json : type a. a ty -> string -> a = function
+  let from_json : type a. a ty -> code_location -> string -> a = function
     | External (module E) -> E.from_json
     | _ -> failwith "todo"
 end
@@ -540,7 +540,7 @@ module type ExternalTypeSpec = sig
   (** User-directed printing of the value *)
 
   val to_json : t -> string
-  val from_json : string -> t
+  val from_json : code_location -> string -> t
 end
 
 module ExternalType (Spec : ExternalTypeSpec) :

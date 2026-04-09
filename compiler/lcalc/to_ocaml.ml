@@ -85,7 +85,7 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | ValueFromJson _ ->
     true
   | Eq -> (
     (* Z and Q support OCaml polymorphic equality *)
@@ -529,8 +529,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
   | EAppOp { op = ArrayAccess i, _; args = [a]; _ } ->
     Format.fprintf fmt "%a.(%d)" format_with_parens a i
-  | EAppOp { op = ValueFromJson (ty, json), _; args = [(ELit LUnit, _)]; _ } ->
-    Format.fprintf fmt "Value.from_json %a %S" format_rtyp ty json
+  | EAppOp
+      {
+        op = ValueFromJson (ty, json), _;
+        args = [pos_expr; (ELit LUnit, _)];
+        _;
+      } ->
+    Format.fprintf fmt "Value.from_json %a %a %S" format_rtyp ty format_expr
+      pos_expr json
   | EAppOp { op = ConstructorCheck (ename, c), _; args = [a]; _ } ->
     Format.fprintf fmt "match %a with %a%s -> true | _ -> false"
       format_with_parens a EnumConstructor.format c

@@ -129,7 +129,10 @@ let quote s =
       | ('"' | '\\') as c ->
         Buffer.add_char buf '\\';
         Buffer.add_char buf c
+      | '\b' -> Buffer.add_string buf "\\b"
+      | '\x0c' -> Buffer.add_string buf "\\f"
       | '\n' -> Buffer.add_string buf "\\n"
+      | '\r' -> Buffer.add_string buf "\\r"
       | '\t' -> Buffer.add_string buf "\\t"
       | c -> Buffer.add_char buf c)
     s;

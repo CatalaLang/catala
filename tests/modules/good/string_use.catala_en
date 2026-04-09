@@ -28,12 +28,14 @@ scope S:
 ```catala-metadata
 #[test]
 declaration scope S2:
-  output foo content String
-  output bar content String
+  output n1 content String
+  output n2 content String
 
 scope S2:
-  definition foo equals #[json = "\"2243\""]external(String)
-  definition bar equals String.of_int of 2243
-  assertion foo = bar
+  definition n1 equals #[json = "\"2243\""]external(String)
+  definition n2 equals String.of_int of 2243
+  assertion n1 = n2
+  assertion String.foo = #[json = "\"foo\\\\\""]external(String)
+  assertion String.bar = #[json = "\"bąr\""]external(String)
 
 ```

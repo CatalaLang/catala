@@ -110,6 +110,7 @@ let attr ppf = function
   | Test -> Format.fprintf ppf "#[test]@ "
   | ErrorMessage s -> Format.fprintf ppf "#[error.message = %S]@ " s
   | ImplicitPosArg -> Format.fprintf ppf "#[implicit_position_argument]@ "
+  | JsonPayload s -> Format.fprintf ppf "#[json = %S]@ " s
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)

@@ -81,7 +81,8 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Filter -> Format.pp_print_string fmt "filter"
   | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
-  | ValueFromJson (_ty, str) -> Format.fprintf fmt ".from_json('%s')" str
+  | ValueFromJson (_ty, str) ->
+    Format.fprintf fmt ".from_json(%s" (String.quote str)
   | ArrayAccess _ -> assert false
   | ConstructorCheck _ -> failwith "TODO"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
@@ -149,7 +150,7 @@ let python_keywords =
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | ValueFromJson _ ->
     true
   | Op.Eq | Lt | Lte | Gt | Gte -> (
     match ty with
@@ -301,6 +302,14 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EAppOp { op = (HandleExceptions, _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op (format_expression ctx) arg1
       (format_expression ctx) arg2
+  | EAppOp
+      {
+        op = (ValueFromJson (ty, _), _) as op;
+        args = [pos_expr; (ELit LUnit, _)];
+        _;
+      } ->
+    Format.fprintf fmt "%a%a, %a)" (format_typ ctx) ty format_op op
+      (format_expression ctx) pos_expr
   | EAppOp { op; args = [arg1; arg2]; _ } ->
     let args =
       match Mark.remove op with
@@ -346,9 +355,6 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (format_expression ctx) pos
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
-  | EAppOp
-      { op = (ValueFromJson (ty, _), _) as op; args = [(ELit LUnit, _)]; _ } ->
-    Format.fprintf fmt "%a%a" (format_typ ctx) ty format_op op
   | EAppOp
       { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args = [pos; a1; a2]; _ } ->
     Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]" (format_expression ctx) a1
@@ -639,7 +645,9 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums)
       | TypeIdent.Abstract t ->
         if AbstractType.path t = [] then
-          Format.fprintf fmt "class %a:@,@," AbstractType.format t)
+          Format.fprintf fmt
+            "class %a(Value):@,pass # Define your external type here@,"
+            AbstractType.format t)
     (type_ordering @ scope_structs)
 
 let format_code_item ctx fmt = function
