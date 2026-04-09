@@ -33,7 +33,8 @@
  (files
   python.cmxs
   (lazy_interp.cmxs as lazy_interpreter.cmxs)
-  explain.cmxs)
+  explain.cmxs
+  jsoo_interface.cmxs)
  (package catala)
  (section
   (site
