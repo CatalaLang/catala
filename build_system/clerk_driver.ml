@@ -1679,7 +1679,7 @@ let json_schema_cmd =
       $ Cli.scope)
 
 let exceptions_cmd =
-  let run config file scope variable _output_format =
+  let run config file scope variable =
     (* The exceptions command only needs the desugaring pass — no compiled
        artifacts required. Bypass ninja and call catala directly. *)
     let file = config.Cli.fix_path file in
@@ -1705,12 +1705,7 @@ let exceptions_cmd =
   Cmd.v
     (Cmd.info ~doc "exceptions")
     Term.(
-      const run
-      $ Cli.init_term ()
-      $ Cli.single_file
-      $ Cli.scope
-      $ Cli.variable
-      $ Cli.output_format)
+      const run $ Cli.init_term () $ Cli.single_file $ Cli.scope $ Cli.variable)
 
 let main_cmd =
   Cmd.group Cli.info

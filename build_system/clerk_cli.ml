@@ -248,7 +248,6 @@ let scope =
 
 let variable = Catala_utils.Cli.Flags.ex_variable
 let scope_input = Catala_utils.Cli.Flags.scope_input
-let output_format = Catala_utils.Cli.Flags.output_format
 
 let clerk_targets_or_files =
   Arg.(
