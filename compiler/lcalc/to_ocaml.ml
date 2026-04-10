@@ -381,6 +381,9 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EInj { e = ELit LUnit, _; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@]" format_to_module_name (`Ename name)
       format_enum_cons_name cons
+  | EInj { e = (EApp { f = EAbs _, _; _ }, _) as e; cons; name } ->
+    Format.fprintf fmt "@[<hov 2>%a.%a@ (%a)@]" format_to_module_name
+      (`Ename name) format_enum_cons_name cons format_expr e
   | EInj { e; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
       (`Ename name) format_enum_cons_name cons format_with_parens e
