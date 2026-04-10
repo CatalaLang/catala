@@ -172,11 +172,8 @@ module Backend = struct
           ~outputs:[Ninja.target ~backend:name "mli"];
       ]
 
-  let runtime_build_statements ~options:_ ~stdbase =
+  let runtime_ocaml backend ~ocaml_src ~dates_base ~ocaml_base =
     let open File in
-    let ocaml_src = Var.(!runtime) / name in
-    let dates_base = stdbase / name / "dates_calc" in
-    let ocaml_base = stdbase / name / "catala_runtime" in
     let runtime_cmi, dates_cmi =
       (* This one is tricky: in order for the catala interpreter to be able to
          dynlink compiled Catala modules, we need to be sure that they have been
@@ -210,9 +207,8 @@ module Backend = struct
             dates_base -.- "cmi";
             ocaml_base -.- "mli";
             ocaml_base -.- "cmi";
-            Var.(!catala_exe);
           ]
-        ~outputs:["@runtime-cmi"];
+        ~outputs:["@runtime-cmi-" ^ backend];
       Nj.build "phony"
         ~inputs:
           [
@@ -221,11 +217,7 @@ module Backend = struct
             ocaml_base -.- "ml";
             ocaml_base -.- "mli";
           ]
-        ~outputs:["@runtime-" ^ name ^ "-src"];
-      Nj.build "phony"
-        ~inputs:[ocaml_base -.- "cmx"]
-        ~implicit_in:[dates_base -.- "cmi"]
-        ~outputs:["@runtime-" ^ name];
+        ~outputs:["@runtime-" ^ backend ^ "-src"];
       Nj.build "copy"
         ~inputs:[ocaml_src / "catala_runtime.mli"]
         ~outputs:[ocaml_base -.- "mli"];
@@ -240,11 +232,24 @@ module Backend = struct
       Nj.build "copy"
         ~inputs:[dates_cmi -.- "mli"]
         ~outputs:[dates_base -.- "mli"];
-      Nj.build "ocaml-natobject"
-        ~inputs:[dates_base -.- "ml"; ocaml_base -.- "ml"]
-        ~implicit_in:[dates_base -.- "cmi"; ocaml_base -.- "cmi"]
-        ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
     ]
+
+  let runtime_build_statements ~options:_ ~stdbase =
+    let open File in
+    let ocaml_src = Var.(!runtime) / name in
+    let dates_base = stdbase / name / "dates_calc" in
+    let ocaml_base = stdbase / name / "catala_runtime" in
+    runtime_ocaml name ~ocaml_src ~dates_base ~ocaml_base
+    @ [
+        Nj.build "phony"
+          ~inputs:[ocaml_base -.- "cmx"]
+          ~implicit_in:[dates_base -.- "cmi"]
+          ~outputs:["@runtime-" ^ name];
+        Nj.build "ocaml-natobject"
+          ~inputs:[dates_base -.- "ml"; ocaml_base -.- "ml"]
+          ~implicit_in:[dates_base -.- "cmi"; ocaml_base -.- "cmi"]
+          ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
+      ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
@@ -269,7 +274,7 @@ module Backend = struct
       [
         Nj.build "ocaml-bytobject"
           ~inputs:[target ~backend:name "mli"; target ~backend:name "ml"]
-          ~implicit_in:(implicit_modules @ ["@runtime-cmi"])
+          ~implicit_in:(implicit_modules @ ["@runtime-cmi-" ^ name])
           ~outputs:(List.map (target ~backend:name) ["cmi"; "cmo"])
           ~vars:
             [
@@ -295,7 +300,8 @@ module Backend = struct
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:name "ml"]
           ~implicit_in:
-            ((target ~backend:name "cmi" :: implicit_modules) @ ["@runtime-cmi"])
+            ((target ~backend:name "cmi" :: implicit_modules)
+            @ ["@runtime-cmi-" ^ name])
           ~outputs:(List.map (target ~backend:name) ["cmx"; "o"])
           ~vars:[Var.includes, includes include_dirs];
       ]
