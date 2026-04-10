@@ -1365,6 +1365,103 @@ module Commands = struct
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope)
 
+  let binding_jsoo
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      closure_conversion
+      options =
+    let () = ignore (Global.enforce_options ~gen_external:true ()) in
+    let prg, type_ordering, _ =
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
+        ~monomorphize_types:false ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
+    in
+    (* The goal is to shadow the real implementation of the ml file. So we don't
+     append a suffix like _jsoo*)
+    Message.debug "Compiling program to generate Js_of_ocaml interface...";
+    get_output_format options output ~ext:"ml"
+    @@ fun output_file fmt ->
+    let hashf = Hash.finalise ~monomorphize_types:false in
+    Lcalc.Binding_jsoo.format_program output_file fmt prg ~hashf type_ordering
+
+  let binding_jsoo_cmd =
+    let open Cmdliner in
+    Cmd.v
+      (Cmd.info "binding-jsoo" ~man:Cli.man_base
+         ~doc:
+           "Generates a Js_of_ocaml interface in ocaml to interact with Catala \
+            external program in javascript.")
+      Term.(
+        const binding_jsoo
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion
+        $ global_options)
+
+  let jsoo
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      closure_conversion
+      options =
+    let prg, type_ordering, _ =
+      Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~typed:Shared_ast.Expr.typed ~closure_conversion
+        ~keep_special_ops:true ~monomorphize_types:false
+        ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
+    in
+    (* Gen external for jsoo backend generates a javascript file which is
+     completely different from it's original purpose to generate an interface*)
+    if options.gen_external then
+      get_output_format options output ~ext:"js"
+      @@ fun _output_file fmt ->
+      let module_name =
+        match prg.module_name with
+        | None -> ""
+        | Some (name, _) -> ModuleName.to_string name
+      in
+      Lcalc.Js_interface.format_js_template fmt module_name prg
+    else (
+      Message.debug "Compiling program to generate Js_of_ocaml interface...";
+      get_output_format options output
+        ~ext:(if Global.options.gen_external then "template.ml" else "ml")
+        ~suffix:"_jsoo"
+      @@ fun output_file fmt ->
+      let hashf = Hash.finalise ~monomorphize_types:false in
+      Lcalc.To_jsoo_interface.format_program output_file fmt prg ~hashf
+        type_ordering)
+
+  let jsoo_cmd =
+    let open Cmdliner in
+    Cmd.v
+      (Cmd.info "jsoo" ~man:Cli.man_base
+         ~doc:
+           "Convert a Catala program into an OCaml program ready to be \
+            compiled with js_of_ocaml")
+      Term.(
+        const jsoo
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.autotest
+        $ Cli.Flags.closure_conversion
+        $ global_options)
+
   let commands =
     [
       interpret_cmd;
@@ -1385,6 +1482,8 @@ module Commands = struct
       depends_cmd;
       pygmentize_cmd;
       json_schema_cmd;
+      jsoo_cmd;
+      binding_jsoo_cmd;
     ]
 end
 
