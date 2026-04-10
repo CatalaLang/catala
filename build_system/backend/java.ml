@@ -157,7 +157,12 @@ module Backend = struct
               else Ninja.target ~backend:name "java");
            ])
 
-  let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
+  let build_object
+      ~externls:_
+      ~include_dirs
+      ~same_dir_modules
+      ~item
+      _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
     let java_class_path =
       String.concat ":"

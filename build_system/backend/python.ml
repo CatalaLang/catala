@@ -93,8 +93,12 @@ module Backend = struct
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
          ~outputs:[Ninja.target ~backend:name "py"])
 
-  let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
-      =
+  let build_object
+      ~externls:_
+      ~include_dirs:_
+      ~same_dir_modules:_
+      ~item:_
+      _has_scope_tests =
     Seq.empty
 
   let expose_module ~same_dir_modules:_ ~used_modules:_ = []

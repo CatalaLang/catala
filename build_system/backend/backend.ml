@@ -55,6 +55,7 @@ module type S = sig
     Ninja_utils.def Seq.t
 
   val build_object :
+    externls:string list ->
     include_dirs:string list ->
     same_dir_modules:(string * string) list ->
     item:Scan.item ->

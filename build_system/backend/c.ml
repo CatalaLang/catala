@@ -161,7 +161,12 @@ module Backend = struct
 
   let includes = Common.Flags.include_flags ~backend:name
 
-  let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
+  let build_object
+      ~externls:_
+      ~include_dirs
+      ~same_dir_modules
+      ~item
+      has_scope_tests =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (module_target same_dir_modules) modules in
