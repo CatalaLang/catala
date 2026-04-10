@@ -17,6 +17,34 @@
 
 open Clerk_utils
 
+val backend_name : string
+val catala_flags_ocaml : Var.t
+val ocamlc_exe : Var.t
+val ocamlopt_exe : Var.t
+val ocaml_flags : Var.t
+val ocaml_include_flag : Var.t
+
+val runtime_ocaml :
+  string ->
+  ocaml_src:string ->
+  dates_base:string ->
+  ocaml_base:string ->
+  Ninja_utils.def list
+
+module Flags : sig
+  val ocaml_include_and_lib : (string list * string list) lazy_t
+  val ocaml_link : string list lazy_t
+  val ocaml_include : string list lazy_t
+
+  val default :
+    variables:(string * string list) list ->
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    include_dirs:string list ->
+    (Var.t * string list) list
+end
+
 val linking_command :
   build_dir:string ->
   var_bindings:(Var.t * string list) list ->

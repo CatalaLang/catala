@@ -107,9 +107,70 @@ let run_artifact ~test ?scope src =
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line cmd
 
+module Nj = Ninja_utils
+
+let runtime_ocaml backend ~ocaml_src ~dates_base ~ocaml_base =
+  let open File in
+  let runtime_cmi, dates_cmi =
+    (* This one is tricky: in order for the catala interpreter to be able to
+         dynlink compiled Catala modules, we need to be sure that they have been
+         linked with a runtime abiding by the exact same cmi. Hence we need to
+         distribute the cmi with the runtime library, and to fetch it from
+         dune's _build when in the catala tree *)
+    if Lazy.force Poll.catala_source_tree_root = None then
+      ocaml_src / "catala_runtime.cmi", ocaml_src / "dates_calc.cmi"
+    else
+      ( Lazy.force Poll.runtime_dir
+        /../ "_build"
+        / "default"
+        / "runtimes"
+        / backend_name
+        / "catala_runtime.cmi",
+        Lazy.force Poll.runtime_dir
+        /../ "_build"
+        / "default"
+        / "runtimes"
+        / backend_name
+        / "dates_calc.cmi" )
+    (* This won't work if dune is not in its standard configuration and
+         "default" profile, but that won't affect anything outside of running
+         clerk from the catala source tree so it should be fine *)
+  in
+  [
+    Nj.build "phony"
+      ~inputs:
+        [
+          dates_base -.- "mli";
+          dates_base -.- "cmi";
+          ocaml_base -.- "mli";
+          ocaml_base -.- "cmi";
+        ]
+      ~outputs:["@runtime-cmi-" ^ backend];
+    Nj.build "phony"
+      ~inputs:
+        [
+          dates_base -.- "ml";
+          dates_base -.- "mli";
+          ocaml_base -.- "ml";
+          ocaml_base -.- "mli";
+        ]
+      ~outputs:["@runtime-" ^ backend ^ "-src"];
+    Nj.build "copy"
+      ~inputs:[ocaml_src / "catala_runtime.mli"]
+      ~outputs:[ocaml_base -.- "mli"];
+    Nj.build "copy" ~inputs:[runtime_cmi] ~outputs:[ocaml_base -.- "cmi"];
+    Nj.build "copy" ~inputs:[dates_cmi] ~outputs:[dates_base -.- "cmi"];
+    Nj.build "copy"
+      ~inputs:[ocaml_src / "catala_runtime.ml"]
+      ~outputs:[ocaml_base -.- "ml"];
+    Nj.build "copy" ~inputs:[dates_cmi -.- "ml"] ~outputs:[dates_base -.- "ml"];
+    Nj.build "copy"
+      ~inputs:[dates_cmi -.- "mli"]
+      ~outputs:[dates_base -.- "mli"];
+  ]
+
 module Backend = struct
   open Var
-  module Nj = Ninja_utils
   module Flags = Flags
 
   let name = backend_name
@@ -178,68 +239,6 @@ module Backend = struct
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[mli]
           ~outputs:[Ninja.target ~backend:name "mli"];
       ]
-
-  let runtime_ocaml backend ~ocaml_src ~dates_base ~ocaml_base =
-    let open File in
-    let runtime_cmi, dates_cmi =
-      (* This one is tricky: in order for the catala interpreter to be able to
-         dynlink compiled Catala modules, we need to be sure that they have been
-         linked with a runtime abiding by the exact same cmi. Hence we need to
-         distribute the cmi with the runtime library, and to fetch it from
-         dune's _build when in the catala tree *)
-      if Lazy.force Poll.catala_source_tree_root = None then
-        ocaml_src / "catala_runtime.cmi", ocaml_src / "dates_calc.cmi"
-      else
-        ( Lazy.force Poll.runtime_dir
-          /../ "_build"
-          / "default"
-          / "runtimes"
-          / name
-          / "catala_runtime.cmi",
-          Lazy.force Poll.runtime_dir
-          /../ "_build"
-          / "default"
-          / "runtimes"
-          / name
-          / "dates_calc.cmi" )
-      (* This won't work if dune is not in its standard configuration and
-         "default" profile, but that won't affect anything outside of running
-         clerk from the catala source tree so it should be fine *)
-    in
-    [
-      Nj.build "phony"
-        ~inputs:
-          [
-            dates_base -.- "mli";
-            dates_base -.- "cmi";
-            ocaml_base -.- "mli";
-            ocaml_base -.- "cmi";
-          ]
-        ~outputs:["@runtime-cmi-" ^ backend];
-      Nj.build "phony"
-        ~inputs:
-          [
-            dates_base -.- "ml";
-            dates_base -.- "mli";
-            ocaml_base -.- "ml";
-            ocaml_base -.- "mli";
-          ]
-        ~outputs:["@runtime-" ^ backend ^ "-src"];
-      Nj.build "copy"
-        ~inputs:[ocaml_src / "catala_runtime.mli"]
-        ~outputs:[ocaml_base -.- "mli"];
-      Nj.build "copy" ~inputs:[runtime_cmi] ~outputs:[ocaml_base -.- "cmi"];
-      Nj.build "copy" ~inputs:[dates_cmi] ~outputs:[dates_base -.- "cmi"];
-      Nj.build "copy"
-        ~inputs:[ocaml_src / "catala_runtime.ml"]
-        ~outputs:[ocaml_base -.- "ml"];
-      Nj.build "copy"
-        ~inputs:[dates_cmi -.- "ml"]
-        ~outputs:[dates_base -.- "ml"];
-      Nj.build "copy"
-        ~inputs:[dates_cmi -.- "mli"]
-        ~outputs:[dates_base -.- "mli"];
-    ]
 
   let runtime_build_statements ~options:_ ~stdbase =
     let open File in
