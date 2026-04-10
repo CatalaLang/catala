@@ -34,7 +34,8 @@
   python.cmxs
   (lazy_interp.cmxs as lazy_interpreter.cmxs)
   explain.cmxs
-  jsoo_interface.cmxs)
+  jsoo_interface.cmxs
+  binding_jsoo.cmxs)
  (package catala)
  (section
   (site
@@ -51,6 +52,12 @@
 (executable
  (name jsoo_interface)
  (modules jsoo_interface)
+ (modes plugin)
+ (libraries catala.driver))
+
+(executable
+ (name binding_jsoo)
+ (modules binding_jsoo)
  (modes plugin)
  (libraries catala.driver))
 
