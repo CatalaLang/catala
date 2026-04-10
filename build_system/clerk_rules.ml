@@ -357,7 +357,8 @@ let output_ninja_file
     ~autotest
     ~var_bindings
     stdlib_tree
-    project_tree =
+    project_tree
+    module_targets =
   let pp nj =
     Nj.format_def nin_ppf nj;
     Format.pp_print_cut nin_ppf ()
@@ -378,6 +379,13 @@ let output_ninja_file
     pp
       (Nj.build "phony" ~outputs:["test"]
          ~inputs:[File.(Var.(!builddir / ".@test"))]);
+  let extra_rules =
+    List.concat_map
+      (fun (module Backend : Clerk_backends.Backend.S) ->
+        Backend.extra_rules ~externls ~stdlib_tree ~project_tree module_targets)
+      enabled_backends
+  in
+  List.iter pp extra_rules;
   Seq.Nil
 
 (** {1 Driver} *)
@@ -514,6 +522,7 @@ let run_ninja
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
+    ?(module_targets = [])
     callback =
   let var_bindings =
     base_bindings ~code_coverage ~config ~enabled_backends ~autotest
@@ -592,7 +601,7 @@ let run_ninja
       in
       let items =
         output_ninja_file nin_ppf ~externls ~config ~tests ~enabled_backends
-          ~autotest ~var_bindings stdlib_tree item_tree
+          ~autotest ~var_bindings stdlib_tree item_tree module_targets
       in
       let ret = callback nin_ppf (List.of_seq items) var_bindings in
       Format.pp_print_newline nin_ppf ();
