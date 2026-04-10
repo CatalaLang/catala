@@ -31,7 +31,12 @@ val check_missing :
   filename:string ->
   unit
 
-val target : ?backend:string -> string -> string
+val target : ?suffix:string -> ?backend:string -> string -> string
 
 val modfile :
-  backend:string -> (string * string) list -> string -> string -> string
+  ?suffix:string ->
+  backend:string ->
+  (string * string) list ->
+  string ->
+  string ->
+  string
