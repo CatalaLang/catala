@@ -18,6 +18,13 @@
 module Backend : sig
   include Backend.S
 
+  val runtime_ocaml :
+    string ->
+    ocaml_src:string ->
+    dates_base:string ->
+    ocaml_base:string ->
+    Ninja_utils.def list
+
   module Flags : sig
     include module type of Flags
 
