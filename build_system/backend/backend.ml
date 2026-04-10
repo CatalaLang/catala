@@ -71,7 +71,7 @@ module type S = sig
       construction in clerk_rules (so that code is not duplicated in each
       backend) *)
 
-  val static_base_rules : Ninja_utils.def list
+  val static_base_rules : string list -> Ninja_utils.def list
   (** [static_base_rules] is a list of rules needed by the backend commonly used
       by any ninja command related to that backend, for example you could have a
       rule for catala command for the backend, a rule to compile a in your
