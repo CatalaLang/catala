@@ -93,7 +93,7 @@ module Backend = struct
       ~sub_dir:subdir
       ~include_objects:target.Clerk_lib.Clerk_config.include_objects
 
-  let[@ocamlformat "disable"] static_base_rules =
+  let[@ocamlformat "disable"] static_base_rules _ =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
          [
       Nj.rule "catala-ocaml"

@@ -44,7 +44,7 @@ module type S = sig
     string ->
     string
 
-  val static_base_rules : Ninja_utils.def list
+  val static_base_rules : string list -> Ninja_utils.def list
 
   val runtime_build_statements :
     options:Clerk_lib.Clerk_config.t -> stdbase:string -> Ninja_utils.def list

@@ -76,10 +76,15 @@ let static_base_rules ~tests enabled_backends =
       ]
     else []
   in
+  let backends =
+    List.map
+      (fun (module Backend : Clerk_backends.Backend.S) -> Backend.name)
+      enabled_backends
+  in
   let backend_static_rules =
     List.concat_map
       (fun (module Backend : Clerk_backends.Backend.S) ->
-        Backend.static_base_rules)
+        Backend.static_base_rules backends)
       enabled_backends
   in
   Backend_common.Ninja.static_base_rules @ backend_static_rules @ test_rules
