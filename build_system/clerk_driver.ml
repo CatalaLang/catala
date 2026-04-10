@@ -261,6 +261,7 @@ let build_clerk_target
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
       ~ninja_flags ~quiet ~default:([], []) ~autotest:false
+      ~module_targets:target.tmodules
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -353,7 +354,13 @@ let build_clerk_target
           if _item.Scan.is_stdlib then None else Some (bk, file))
         all_target_files
     in
-    Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
+    let extra_rules =
+      List.concat_map
+        (fun (module B : Clerk_backends.Backend.S) -> B.extra_default)
+        enabled_backends
+    in
+    Nj.format_def nin_ppf
+      (Nj.Default (Nj.Default.make (all_targets @ extra_rules)));
     install_targets, all_modules_deps
   in
   let open File in
@@ -413,7 +420,7 @@ let build_direct_targets
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
         ~default:([], [], [], fun _ -> assert false)
-        ~ninja_flags ~autotest
+        ~ninja_flags ~autotest ~module_targets:direct_targets
       @@ fun nin_ppf items var_bindings ->
       let link_deps = Scan.linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -541,7 +548,14 @@ let build_direct_targets
       let final_ninja_targets =
         List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
+      let extra_default_rules =
+        List.concat_map
+          (fun (module B : Clerk_backends.Backend.S) -> B.extra_default)
+          enabled_backends
+      in
+      Nj.format_def nin_ppf
+        (Nj.Default
+           (Nj.Default.make (final_ninja_targets @ extra_default_rules)));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in

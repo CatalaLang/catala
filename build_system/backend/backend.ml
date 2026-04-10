@@ -150,7 +150,6 @@ module type S = sig
       in the _opam directory that can be queried from Poll library. *)
 
   val extra_rules :
-    externls:string list ->
     stdlib_tree:(string * string list * Scan.item list) Seq.t ->
     project_tree:(string * string list * Scan.item list) Seq.t ->
     string list ->
@@ -159,7 +158,6 @@ module type S = sig
       specific for each backend and doesn't really have anything in common
       between each backend.
       [extra_rules ~externls ~stdlib_tree ~project_tree _modules]
-      - [externls] the list of externls module
       - [stdlib_tree] informations on all modules in the stdlib
       - [project_tree] informations on all modules in the current project
       - [_modules] all modules used by the current compilation *)
