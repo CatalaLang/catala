@@ -40,3 +40,5 @@ val modfile :
   string ->
   string ->
   string
+
+val get_stdlib_module : string -> string option

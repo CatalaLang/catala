@@ -99,34 +99,6 @@ and expand_vars =
         String.concat " " (get_var var_bindings (Var.make (Re.Group.get g 1))))
       s
 
-let linking_dependencies items =
-  let modules =
-    List.fold_left
-      (fun acc it ->
-        match it.Scan.module_def with
-        | Some m -> String.Map.add (Mark.remove m) it acc
-        | None -> acc)
-      String.Map.empty items
-  in
-  let rem_dups l =
-    let rec aux seen = function
-      | it :: r ->
-        if String.Set.mem it.Scan.file_name seen then aux seen r
-        else it :: aux (String.Set.add it.Scan.file_name seen) r
-      | [] -> []
-    in
-    aux String.Set.empty l
-  in
-  fun item ->
-    let rec traverse acc item =
-      List.fold_left
-        (fun acc m ->
-          let it = String.Map.find (Mark.remove m) modules in
-          traverse (it :: acc) it)
-        acc item.Scan.used_modules
-    in
-    rem_dups (traverse [] item)
-
 let all_backends_with_config :
     (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
   [
@@ -479,7 +451,7 @@ let build_clerk_target
           Suggestions.(best_candidates all_module_names module_name)
     in
     let module_items = List.map find_module_item target.tmodules in
-    let get_deps = linking_dependencies items in
+    let get_deps = Scan.linking_dependencies items in
     let all_modules_deps =
       module_items @ List.concat_map get_deps module_items
     in
@@ -637,7 +609,7 @@ let build_direct_targets
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
         ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
-      let link_deps = linking_dependencies items in
+      let link_deps = Scan.linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
       let ensure_target_dir dname t =
         if lastdirname t = dname then t else dirname t / dname / basename t
@@ -998,7 +970,7 @@ let build_test_deps
   let base_targets =
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
   in
-  let link_deps = linking_dependencies items in
+  let link_deps = Scan.linking_dependencies items in
   let runtime_targets = backend_runtime_targets [backend_to_config backend] in
   let ninja_targets =
     let backend =

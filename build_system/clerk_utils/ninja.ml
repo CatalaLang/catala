@@ -67,3 +67,10 @@ let modfile ?suffix ~backend same_dir_modules ext modname =
   | Some _ ->
     Var.(!tdir / backend / String.to_id modname) ^ handle_suffix suffix ^ ext
   | None -> modname ^ "@" ^ backend ^ "-module"
+
+let get_stdlib_module file_name =
+  match Scan.get_lang file_name with
+  | Some lg ->
+    let lg = if Global.has_localised_stdlib lg then lg else Global.En in
+    Some ("Stdlib_" ^ Cli.language_code lg)
+  | None -> None
