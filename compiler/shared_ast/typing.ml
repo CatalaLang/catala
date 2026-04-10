@@ -380,7 +380,6 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
   let any = lazy (Type.fresh_var pos) in
   let any2 = lazy (Type.fresh_var pos) in
   let any3 = lazy (Type.fresh_var pos) in
-  let ut = lazy (TLit TUnit, pos) in
   let bt = lazy (TLit TBool, pos) in
   let it = lazy (TLit TInt, pos) in
   let cet = lazy (TClosureEnv, pos) in
@@ -398,7 +397,9 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     | Map -> [[any] @-> any2; array any] @-> array any2
     | Map2 -> [[any; any2] @-> any3; array any; array any2] @-> array any3
     | Filter -> [[any] @-> bt; array any] @-> array any
-    | Reduce -> [[any; any] @-> any; [ut] @-> any; array any] @-> any
+    | Find -> [[any] @-> bt; array any] @-> option any
+    | Reduce -> [[any; any] @-> any; array any] @-> option any
+    | Sort _ -> [[any] @-> any2; array any] @-> array any
     | Concat -> [array any; array any] @-> array any
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
@@ -431,9 +432,14 @@ let polymorphic_op_return_type
     unify env e tf tfunc;
     get_ty env e tret
   in
+  let element_type tarr =
+    let telt = Type.any pos in
+    unify env e tarr (TArray telt, pos);
+    get_ty env e telt
+  in
   match Mark.remove op, targs with
   | Fold, [_; tau; _] -> tau
-  | Reduce, [tf; _; _] -> return_type tf 2
+  | Reduce, [tf; _] -> TOption (return_type tf 2), pos
   | (Eq | Lt | Lte | Gt | Gte), _ -> TLit TBool, pos
   | Map, [tf; _] -> TArray (return_type tf 1), pos
   | Map2, [tf; _; _] -> TArray (return_type tf 2), pos
@@ -444,7 +450,13 @@ let polymorphic_op_return_type
   | HandleExceptions, [_] -> Type.any pos
   | ToClosureEnv, _ -> TClosureEnv, pos
   | FromClosureEnv, _ -> Type.any pos
-  | op, targs ->
+  | ConstructorCheck _, _ -> TLit TBool, pos
+  | ArrayAccess _, [tarr] -> element_type tarr
+  | Find, [_; tarr] -> TOption (element_type tarr), pos
+  | Sort _, [_; t] -> t
+  | ( (( Fold | Reduce | Map | Map2 | Filter | Concat | Log _ | HandleExceptions
+       | ArrayAccess _ | Find | Sort _ ) as op),
+      targs ) ->
     Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
       (Print.operator ?debug:None)
       op

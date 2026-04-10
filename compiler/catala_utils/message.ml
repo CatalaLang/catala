@@ -234,7 +234,9 @@ module Content = struct
 
   let to_internal_error (content : t) : t =
     let internal_error_prefix ppf =
-      Format.fprintf ppf "Internal Error, please report to @{<blue>%a@}."
+      Format.fprintf ppf
+        "Oh no, you found a bug in the compiler!@ Please report to \
+         @{<blue>%a@}."
         (link ()) bug_report_url
     in
     prepend_message content internal_error_prefix

@@ -79,6 +79,9 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Map2 -> Format.pp_print_string fmt "map2"
   | Reduce -> Format.pp_print_string fmt "reduce"
   | Filter -> Format.pp_print_string fmt "filter"
+  | Find -> Format.pp_print_string fmt "find"
+  | Sort `Asc -> Format.pp_print_string fmt "sort_up"
+  | Sort `Desc -> Format.pp_print_string fmt "sort_down"
   | Fold -> Format.pp_print_string fmt "fold_left"
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | ValueFromJson (_ty, str) ->
@@ -646,7 +649,7 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
       | TypeIdent.Abstract t ->
         if AbstractType.path t = [] then
           Format.fprintf fmt
-            "class %a(Value):@,pass # Define your external type here@,"
+            "@[<v 4>class %a(Value):@,pass # Define your external type here@]@,"
             AbstractType.format t)
     (type_ordering @ scope_structs)
 

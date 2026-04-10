@@ -150,20 +150,14 @@ let scope S (S_in: S_in): S =
   in
   let set r4 : list of (money, decimal) =
     map (λ (x_y_z: (decimal, money, money)) →
-         let x : decimal = x_y_z.0 in
-         let y : money = x_y_z.1 in
-         let z : money = x_y_z.2 in
-         (y * x, y / z))
+         (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
       tlist
   in
   let set r5 : list of (money, decimal) =
     map2
       (λ (x: decimal) (y_z: (money, money)) →
        let x_y_z : (decimal, money, money) = (x, y_z.0, y_z.1) in
-       let x1 : decimal = x_y_z.0 in
-       let y : money = x_y_z.1 in
-       let z : money = x_y_z.2 in
-       (y * x1, y / z))
+       (x_y_z.1 * x_y_z.0, x_y_z.1 / x_y_z.2))
       lis1
       map2 (λ (y: money) (z: money) → (y, z)) lis2 lis3
   in
@@ -174,9 +168,7 @@ let scope S (S_in: S_in): S =
     map2
       (λ (xy: (decimal, money)) (z: money) →
        let xy_z : ((decimal, money), money) = (xy, z) in
-       let xy1 : (decimal, money) = xy_z.0 in
-       let z1 : money = xy_z.1 in
-       (xy1.1 * xy1.0, xy1.1 / z1))
+       (xy_z.0.1 * xy_z.0.0, xy_z.0.1 / xy_z.1))
       lis12
       lis3
   in

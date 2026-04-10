@@ -50,10 +50,10 @@ $ catala dcalc
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-24:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                 ‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
@@ -80,10 +80,10 @@ $ catala test-scope Test
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-24:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                 ‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

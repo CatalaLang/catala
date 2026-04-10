@@ -53,7 +53,7 @@ let translate_binop :
       ~args:[lhs; rhs]
       (Untyped { pos })
   in
-  let tany () = Mark.remove (Type.any op_pos) in
+  let tany () = Mark.remove (Type.fresh_var op_pos) in
   match op with
   | S.And -> op_expr And [TLit TBool; TLit TBool]
   | S.Or -> op_expr Or [TLit TBool; TLit TBool]
@@ -120,16 +120,133 @@ let translate_binop :
     op_expr Eq [a; a]
     (* This is a truly polymorphic operator, not an overload *)
   | S.Neq -> assert false (* desugared already *)
-  | S.Concat ->
+  | S.ListConcat ->
     let a = Type.any op_pos in
     op_expr Concat [TArray a; TArray a]
+  | S.ListMember ->
+    (* -> (find (λx. x == rhs) lhs) with pattern Some) *)
+    let ty_elt = Type.fresh_var pos in
+    let ty_lst = TArray ty_elt, pos in
+    let f =
+      let x = Var.make "x" in
+      let body =
+        Expr.eappop ~op:(Op.Eq, op_pos)
+          ~args:[rhs; Expr.evar x (Untyped { pos })]
+          ~tys:[ty_elt; ty_elt]
+          (Untyped { pos })
+      in
+      Expr.make_abs [x, pos] body [ty_elt] pos
+    in
+    let find_expr =
+      Expr.eappop ~op:(Op.Find, op_pos) ~args:[f; lhs]
+        ~tys:[TArrow ([ty_elt], (TLit TBool, op_pos)), pos; ty_lst]
+        (Untyped { pos })
+    in
+    Expr.eappop
+      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.some_constr), op_pos)
+      ~args:[find_expr]
+      ~tys:[TOption ty_elt, op_pos]
+      (Untyped { pos })
+  | S.ListExists ->
+    (* -> ((find lhs rhs) with pattern Some) *)
+    let ty_elt = Type.fresh_var op_pos in
+    let ty_lst = TArray ty_elt, op_pos in
+    let find_expr =
+      Expr.eappop ~op:(Op.Find, op_pos) ~args:[lhs; rhs]
+        ~tys:[TArrow ([ty_elt], (TLit TBool, op_pos)), pos; ty_lst]
+        (Untyped { pos })
+    in
+    Expr.eappop
+      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.some_constr), op_pos)
+      ~args:[find_expr]
+      ~tys:[TOption ty_elt, op_pos]
+      (Untyped { pos })
+  | S.ListFind ->
+    (* -> find lhs rhs *)
+    let ty_elt = Type.fresh_var op_pos in
+    op_expr Find [TArrow ([ty_elt], (TLit TBool, op_pos)); TArray ty_elt]
+  | S.ListForall ->
+    (* -> ((find (not lhs) rhs) with pattern None) *)
+    let ty_elt = Type.fresh_var op_pos in
+    let ty_lst = TArray ty_elt, op_pos in
+    let f =
+      let x = Var.make "x" in
+      let body =
+        Expr.eappop ~op:(Op.Not, op_pos)
+          ~args:[Expr.make_app lhs [Expr.evar x (Untyped { pos })] [ty_elt] pos]
+          ~tys:[TLit TBool, op_pos]
+          (Untyped { pos })
+      in
+      Expr.make_abs [x, op_pos] body [ty_elt] pos
+    in
+    let find_expr =
+      Expr.eappop ~op:(Op.Find, op_pos) ~args:[f; rhs]
+        ~tys:[TArrow ([ty_elt], (TLit TBool, pos)), pos; ty_lst]
+        (Untyped { pos })
+    in
+    Expr.eappop
+      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.none_constr), op_pos)
+      ~args:[find_expr]
+      ~tys:[TOption ty_elt, pos]
+      (Untyped { pos })
+  | S.ListMap ->
+    let ty_elt = Type.fresh_var op_pos in
+    let ty_relt = Type.fresh_var (Expr.pos lhs) in
+    op_expr Map [TArrow ([ty_elt], ty_relt); TArray ty_elt]
+  | S.ListFilter ->
+    let ty_elt = Type.fresh_var op_pos in
+    op_expr Filter [TArrow ([ty_elt], (TLit TBool, op_pos)); TArray ty_elt]
+  | S.ListMax | S.ListMin ->
+    (* -> match (reduce (fun x y -> if x > y then x else y) lhs) with | Some x
+       -> x | None -> rhs // impossible *)
+    let op = if op = S.ListMax then Op.Gt, op_pos else Op.Lt, op_pos in
+    let ty_elt = Type.fresh_var op_pos in
+    let ty_lst = TArray ty_elt, op_pos in
+    let m = Untyped { pos } in
+    let f =
+      let x = Var.make "x" in
+      let y = Var.make "y" in
+      Expr.make_abs
+        [x, op_pos; y, op_pos]
+        (Expr.eifthenelse
+           (Expr.eappop m ~op
+              ~args:[Expr.evar x m; Expr.evar y m]
+              ~tys:[ty_elt; ty_elt])
+           (Expr.evar x m) (Expr.evar y m) m)
+        [ty_elt; ty_elt] pos
+    in
+    let reduced =
+      Expr.eappop ~op:(Reduce, op_pos)
+        ~tys:[TArrow ([ty_elt; ty_elt], ty_elt), pos; ty_lst]
+        ~args:[f; lhs]
+        (Untyped { pos })
+    in
+    let default =
+      Expr.Box.app1 rhs
+        (function
+          | ETuple [], _ -> EFatalError Runtime.ListEmpty
+          | ETuple [(dft, _)], _ -> dft
+          | _ -> assert false)
+        m
+    in
+    Expr.ematch
+      (Untyped { pos })
+      ~name:Expr.option_enum ~e:reduced
+      ~cases:
+        (EnumConstructor.Map.of_list
+           [
+             Expr.none_constr, Expr.thunk_term default;
+             Expr.some_constr, Expr.fun_id (Untyped { pos });
+           ])
+  | S.ListSort order ->
+    let ty_elt = Type.fresh_var op_pos in
+    let ty_proj = Type.fresh_var op_pos in
+    op_expr (Sort order) [TArrow ([ty_elt], ty_proj); TArray ty_elt]
 
 let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
+  let m = Untyped { pos } in
   let op_expr op ty =
-    Expr.eappop ~op:(op, op_pos)
-      ~tys:[Mark.add op_pos ty]
-      ~args:[arg]
-      (Untyped { pos })
+    Expr.eappop ~op:(op, op_pos) ~tys:[Mark.add op_pos ty] ~args:[arg] m
   in
   match op with
   | S.Not -> op_expr Not (TLit TBool)
@@ -144,6 +261,181 @@ let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
         Message.error ~pos:op_pos
           "This operator doesn't exist, dates can't be negative."
       | S.KDuration -> TLit TDuration)
+  | S.ListSum pty ->
+    let default, ty =
+      let i0 = Runtime.integer_of_int 0 in
+      match pty with
+      | S.Integer, pos -> LInt i0, (TLit TInt, pos)
+      | S.Decimal, pos -> LRat (Runtime.decimal_of_integer i0), (TLit TRat, pos)
+      | S.Money, pos ->
+        LMoney (Runtime.money_of_cents_integer i0), (TLit TMoney, pos)
+      | S.Duration, pos ->
+        LDuration (Runtime.duration_of_numbers 0 0 0), (TLit TDuration, pos)
+      | t, pos ->
+        Message.error ~pos "It is impossible to sum values of type %a together."
+          SurfacePrint.format_primitive_typ t
+    in
+    let op_f =
+      (* fun x1 x2 -> op x1 x2 *)
+      (* we're not allowed pass the operator directly as argument, it must
+         appear inside an [EApp] *)
+      let v1, v2 = Var.make "sum1", Var.make "sum2" in
+      Expr.make_abs
+        [v1, pos; v2, pos]
+        (Expr.eappop m ~op:(Add, pos)
+           ~args:[Expr.make_var v1 m; Expr.make_var v2 m]
+           ~tys:[ty; ty])
+        [ty; ty] pos
+    in
+    let reduced =
+      Expr.eappop ~op:(Reduce, op_pos)
+        ~tys:[TArrow ([ty; ty], ty), pos; TArray ty, pos]
+        ~args:[op_f; arg] m
+    in
+    Expr.ematch m ~name:Expr.option_enum ~e:reduced
+      ~cases:
+        (EnumConstructor.Map.of_list
+           [
+             Expr.none_constr, Expr.thunk_term (Expr.elit default m);
+             Expr.some_constr, Expr.fun_id m;
+           ])
+
+let translate_ternop :
+    S.ternop Mark.pos ->
+    Pos.t ->
+    Ast.expr boxed ->
+    Ast.expr boxed ->
+    Ast.expr boxed ->
+    Ast.expr boxed =
+ fun (op, op_pos) pos arg1 arg2 arg3 ->
+  match op with
+  | S.ListFold ->
+    (* -> fold (uncurry arg1) arg2 arg3 *)
+    let tacc = Type.fresh_var op_pos in
+    let telt = Type.fresh_var op_pos in
+    (* The arg1 function is returned by the parser in curried form: λacc . λelt
+       . body. the subterms have been translated already, so acc is a single
+       argument or a tuple, and elt is a single list, possibly zipped. Just
+       uncurry it into a single EAbs of two arguments. *)
+    let fct =
+      Expr.Box.app1 arg1
+        (function
+          | EAbs { binder = outer; tys = tys1; pos = pos1 }, _ -> (
+            match Bindlib.unmbind outer with
+            | [| v_acc |], (EAbs { binder = inner; tys = tys2; pos = pos2 }, _)
+              -> (
+              match Bindlib.unmbind inner with
+              | [| v_elt |], body ->
+                let bnd =
+                  Bindlib.bind_mvar [| v_acc; v_elt |]
+                    (Expr.Box.lift (Expr.rebox body))
+                in
+                Expr.eabs bnd (pos1 @ pos2) (tys1 @ tys2) (Untyped { pos })
+                |> Expr.unbox
+                |> Mark.remove
+              | _ -> assert false)
+            | _ -> assert false)
+          | _ -> assert false)
+        (Untyped { pos })
+    in
+    Expr.eappop ~op:(Fold, op_pos)
+      ~tys:
+        [TArrow ([tacc; telt], tacc), op_pos; tacc; TArray telt, Mark.get telt]
+      ~args:[fct; arg2; arg3]
+      (Untyped { pos })
+  | S.ListArgMin | S.ListArgMax ->
+    (* {v x among l such that scale(x) is minimum v}
+       is transformed into
+       {v
+         let weights = map (fun x -> x, scale(x)) l in
+         let weighted_result =
+           reduce
+             (fun (x1,w1) (x2,w2) ->
+                if CMP w1 w2 then (x1, w1) else (x2, w2))
+             weights
+         in
+         match weighted_result with
+         | Some r -> r.0
+         | None -> default
+       v} *)
+    let cmp_op =
+      match op with S.ListArgMax -> Op.Gt, op_pos | _ -> Op.Lt, op_pos
+    in
+    let m = Untyped { pos } in
+    let scale = arg1 in
+    let coll = arg2 in
+    let default =
+      match Expr.unbox arg3 with
+      | ETuple [], _ -> Expr.box (EFatalError Runtime.ListEmpty, Mark.get arg2)
+      | ETuple [dft], _ -> Expr.rebox dft
+      | _ -> assert false
+    in
+    let telt = Type.fresh_var op_pos in
+    let tweight = Type.fresh_var op_pos in
+    let tweighted = TTuple [telt; tweight], op_pos in
+    let add_weight_f =
+      (* fun x -> (x, scale(x)) *)
+      match Expr.unbox scale with
+      | EAbs { binder; pos = [arg_pos]; tys = [arg_ty] }, mscale -> (
+        match Bindlib.unmbind binder with
+        | [| arg |], body ->
+          let body =
+            Expr.etuple
+              [Expr.evar arg (Untyped { pos = arg_pos }); Expr.rebox body]
+              mscale
+          in
+          Expr.eabs (Expr.bind [| arg |] body) [arg_pos] [arg_ty] mscale
+        | _ -> assert false (* Lambda always produces a unary function *))
+      | _ -> assert false
+    in
+    let reduce_f =
+      (* fun x1 x2 -> if cmp_op (x1.2) (x2.2) then x1 else x2 *)
+      let v1, v2 = Var.make "x1", Var.make "x2" in
+      let x1, x2 = Expr.make_var v1 m, Expr.make_var v2 m in
+      Expr.make_abs
+        [v1, pos; v2, pos]
+        (Expr.eifthenelse
+           (Expr.eappop ~op:cmp_op ~tys:[tweight; tweight]
+              ~args:
+                [
+                  Expr.etupleaccess ~e:x1 ~index:1 ~size:2 m;
+                  Expr.etupleaccess ~e:x2 ~index:1 ~size:2 m;
+                ]
+              m)
+           x1 x2 m)
+        [tweighted; tweighted] pos
+    in
+    let weighted_var = Var.make "weighted" in
+    let result_opt =
+      (* let weights = map add_weight_f coll in reduce reduce_f (fun () ->
+         default) weights *)
+      Expr.make_let_in (Mark.ghost weighted_var) (TArray tweighted, pos)
+        (Expr.eappop ~op:(Map, op_pos)
+           ~tys:[TArrow ([telt], tweighted), pos; TArray telt, pos]
+           ~args:[add_weight_f; coll] m)
+        (Expr.eappop ~op:(Reduce, op_pos)
+           ~tys:
+             [
+               TArrow ([tweighted; tweighted], tweighted), pos;
+               TArray tweighted, pos;
+             ]
+           ~args:[reduce_f; Expr.evar weighted_var m]
+           m)
+        pos
+    in
+    (* match result_opt with Some x -> x.1 | None -> default *)
+    Expr.ematch m ~name:Expr.option_enum ~e:result_opt
+      ~cases:
+        (EnumConstructor.Map.of_list
+           [
+             Expr.none_constr, Expr.thunk_term default;
+             ( Expr.some_constr,
+               let x = Var.make "result" in
+               Expr.make_abs
+                 [x, op_pos]
+                 (Expr.etupleaccess ~e:(Expr.evar x m) ~index:0 ~size:2 m)
+                 [tweighted] pos );
+           ])
 
 let raise_error_cons_not_found
     (ctxt : Name_resolution.context)
@@ -317,6 +609,29 @@ let translate_literal l pos =
            "There is an error in this date, it does not correspond to a \
             correct calendar day.")
 
+let nary_binder_to_tuple_function arg_ty pos binder argname pos_binder =
+  let arg_types = match arg_ty with TTuple tl, _ -> tl | t -> [t] in
+  let m = Untyped { pos } in
+  let v = Var.make argname in
+  let body =
+    Expr.detuplify_application
+      [Expr.evar v m]
+      arg_types
+      (fun args ->
+        let body =
+          let args = Bindlib.box_list (List.map Mark.remove args) in
+          Bindlib.box_apply2
+            (fun bnd args ->
+              Mark.remove (Bindlib.msubst bnd (Array.of_list args)))
+            binder args
+        in
+        body, m)
+  in
+  Expr.eabs
+    (Bindlib.bind_mvar [| v |] (Expr.Box.lift body))
+    [List.fold_left Pos.join Pos.void pos_binder]
+    [arg_ty] m
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -342,77 +657,6 @@ let rec translate_expr
     translate_expr scope inside_definition_of ctxt local_vars
       ?no_wildcard_warning e
   in
-  let rec detuplify_list opos names = function
-    (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
-       tuple is found instead we transpose it into a list of tuples *)
-    | S.Tuple ls, pos ->
-      let m = Untyped { pos } in
-      let ls = List.map (detuplify_list opos []) ls in
-      let rec zip names = function
-        | [] -> assert false
-        | [l] -> l
-        | l1 :: r ->
-          let name1, names =
-            match names with name1 :: names -> name1, names | [] -> "x", []
-          in
-          let rhs = zip names r in
-          let rtys, explode =
-            match List.length r with
-            | 1 -> Type.any pos, fun e -> [e]
-            | size ->
-              ( (TTuple (List.map (fun _ -> Type.any pos) r), pos),
-                fun e ->
-                  List.init size (fun index ->
-                      Expr.etupleaccess ~e ~size ~index m) )
-          in
-          let tys = [Type.any pos; rtys] in
-          let f_join =
-            let x1 = Var.make name1 in
-            let x2 =
-              Var.make
-                (match names with [] -> "zip" | _ -> String.concat "_" names)
-            in
-            Expr.make_ghost_abs [x1; x2]
-              (Expr.make_tuple (Expr.evar x1 m :: explode (Expr.evar x2 m)) m)
-              tys pos
-          in
-          Expr.eappop ~op:(Map2, opos) ~args:[f_join; l1; rhs]
-            ~tys:(Type.any pos :: List.map (fun ty -> TArray ty, pos) tys)
-            m
-      in
-      zip names ls
-    | e ->
-      (* If the input is not a tuple, we assume it's already a list *)
-      rec_helper e
-  in
-  let detuplify_fun fbody args =
-    let pos = Expr.pos fbody in
-    let f =
-      Expr.make_abs args fbody (List.map (fun _ -> Type.any pos) args) pos
-    in
-    (* Detuplification *)
-    match args with
-    | [_] -> f
-    | _ ->
-      let v =
-        Var.make
-          (String.concat "_"
-             (List.map (fun v -> Bindlib.name_of (Mark.remove v)) args))
-      in
-      let x =
-        let pos =
-          List.fold_left (fun pos v -> Pos.join pos (Mark.get v)) Pos.void args
-        in
-        Expr.evar v (Untyped { pos })
-      in
-      let tys = List.map (fun v -> Type.any (Mark.get v)) args in
-      Expr.make_abs
-        [Mark.add Pos.void v]
-        (Expr.detuplify_application [x] tys (fun args ->
-             Expr.make_app f args tys pos))
-        [Type.any pos]
-        pos
-  in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
   | Binop ((S.And, _), (TestMatchCase (e1_sub, pattern), pos_e1), e2) ->
@@ -435,6 +679,8 @@ let rec translate_expr
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark
+  | Ternop (op, e1, e2, e3) ->
+    translate_ternop op pos (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | Binop ((S.Neq, posn), e1, e2) ->
     (* Neq is just sugar *)
     rec_helper (Unop ((S.Not, posn), (Binop ((S.Eq, posn), e1, e2), posn)), pos)
@@ -591,7 +837,8 @@ let rec translate_expr
          <> None
          (* FIXME: Temporary syntax, an attribute can normally not be used to
             alter the syntax. The point is not to break syntax tools right away.
-            See also <name_resolution.ml:268>. *) ->
+            See also <name_resolution.ml:268>. *)
+    ->
     rec_helper
       ( S.Builtin
           (External (Base (Data (Primitive (Named (path, constructor)))), pos)),
@@ -846,320 +1093,82 @@ let rec translate_expr
   | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | TupleAccess (e, n) ->
     Expr.etupleaccess ~e:(rec_helper e) ~index:(Mark.remove n - 1) ~size:0 emark
-  | CollectionOp ((((S.Filter { f } | S.Map { f }), opos) as op), collection) ->
-    let param_names, predicate = f in
-    let collection =
-      detuplify_list opos (List.map Mark.remove param_names) collection
-    in
-    let params = List.map (fun n -> Mark.map Var.make n) param_names in
-    let local_vars =
-      List.fold_left2
-        (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-        local_vars param_names params
-    in
-    let f_pred = detuplify_fun (rec_helper ~local_vars predicate) params in
-    Expr.eappop
-      ~op:
-        (match op with
-        | S.Map _, pos -> Map, pos
-        | S.Filter _, pos -> Filter, pos
-        | _ -> assert false)
-      ~tys:[Type.any pos; Type.any pos]
-      ~args:[f_pred; collection] emark
-  | CollectionOp ((Fold { f; init }, opos), collection) ->
-    let acc_names, param_names, fct = f in
-    let collection =
-      detuplify_list opos (List.map Mark.remove param_names) collection
-    in
-    let accs = List.map (fun n -> Mark.map Var.make n) acc_names in
-    let params = List.map (fun n -> Mark.map Var.make n) param_names in
-    let init = rec_helper ~local_vars init in
-    let local_vars =
-      List.fold_left2
-        (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-        local_vars param_names params
-    in
-    let local_vars =
-      List.fold_left2
-        (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-        local_vars acc_names accs
-    in
-    let f_proc =
-      Expr.make_abs (accs @ params)
-        (rec_helper ~local_vars fct)
-        (List.map (fun _ -> Type.any pos) (accs @ params))
-        pos
-    in
-    let f_proc =
-      (* Detuplification for both acc and list elements *)
-      match List.length acc_names, List.length param_names with
-      | 1, 1 -> f_proc
-      | nb_accs, nb_args ->
-        let v_acc =
-          match accs with
-          | [v] -> Mark.remove v
-          | _ -> Var.make (String.concat "_" (List.map Mark.remove acc_names))
+  | ListZip (names, S.Tuple ls) ->
+    (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
+       tuple is found instead we transpose it into a list of tuples *)
+    let ls = List.map (fun (e, m) -> rec_helper (ListZip ([], e), m)) ls in
+    let m = Untyped { pos } in
+    let rec zip names = function
+      (* We only have map2, so this needs to be done (n-1) times to collate n
+         lists *)
+      | [] -> assert false
+      | [l] -> l
+      | l1 :: r ->
+        let name1, names =
+          match names with
+          | name1 :: names -> name1, names
+          | [] -> ("x", pos), []
         in
-        let v_param =
-          match params with
-          | [v] -> Mark.remove v
-          | _ -> Var.make (String.concat "_" (List.map Mark.remove param_names))
+        let rhs = zip names r in
+        let rtys, explode =
+          match List.length r with
+          | 1 -> Type.any pos, fun e -> [e]
+          | size ->
+            ( (TTuple (List.map (fun _ -> Type.any pos) r), pos),
+              fun e ->
+                List.init size (fun index ->
+                    Expr.etupleaccess ~e ~size ~index m) )
         in
-        let x_acc = Expr.evar v_acc emark in
-        let x_param = Expr.evar v_param emark in
-        let tys = List.init (nb_accs + nb_args) (fun _ -> Type.any pos) in
-        Expr.make_ghost_abs [v_acc; v_param]
-          (Expr.make_app f_proc
-             ((if nb_accs = 1 then [x_acc]
-               else
-                 List.mapi
-                   (fun index _ ->
-                     Expr.etupleaccess ~e:x_acc ~index ~size:nb_accs emark)
-                   accs)
-             @
-             if nb_args = 1 then [x_param]
-             else
-               List.mapi
-                 (fun index _ ->
-                   Expr.etupleaccess ~e:x_param ~index ~size:nb_args emark)
-                 params)
-             tys pos)
-          [Type.any pos; Type.any pos]
-          pos
-    in
-    Expr.eappop ~op:(Fold, opos)
-      ~tys:[Type.any pos; Type.any pos; Type.any pos]
-      ~args:[f_proc; init; collection] emark
-  | CollectionOp
-      ( (S.AggregateArgExtremum { max; default; f = param_names, scale }, opos),
-        collection ) ->
-    (* {v x among l such that scale(x) is minimum v} is transformed into {v let
-       weights = map (fun x -> x, scale(x)) l in let weighted_result = reduce
-       (fun (x1,w1) (x2,w2) -> if CMP w1 w2 then (x1, w1) else (x2, w2)) (fun ()
-       -> default) weights in weighted_result.0 v} *)
-    let collection =
-      detuplify_list opos (List.map Mark.remove param_names) collection
-    in
-    let params = List.map (fun n -> Mark.map Var.make n) param_names in
-    let local_vars =
-      List.fold_left2
-        (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-        local_vars param_names params
-    in
-    let cmp_op = if max then Op.Gt, opos else Op.Lt, opos in
-    let scale_body = rec_helper ~local_vars scale in
-    let f_scale = detuplify_fun scale_body params in
-    let add_weight_f =
-      (* fun x -> (x, pred(x)) *)
-      let v =
-        Var.make
-          (String.concat "_"
-             (List.map (fun v -> Bindlib.name_of (Mark.remove v)) params))
-      in
-      let vpos =
-        List.fold_left (fun pos v -> Pos.join pos (Mark.get v)) Pos.void params
-      in
-      let x = Expr.evar v (Untyped { pos = vpos }) in
-      Expr.make_abs
-        [v, vpos]
-        (Expr.make_tuple
-           [x; Expr.eapp ~f:f_scale ~args:[x] ~tys:[] emark]
-           emark)
-        [Type.any pos]
-        pos
-    in
-    let reduce_f =
-      (* fun x1 x2 -> if cmp_op (x1.2) (x2.2) then x1 else x2 *)
-      let v1, v2 = Var.make "x1", Var.make "x2" in
-      let x1, x2 = Expr.make_var v1 emark, Expr.make_var v2 emark in
-      Expr.make_ghost_abs [v1; v2]
-        (Expr.eifthenelse
-           (Expr.eappop ~op:cmp_op
-              ~tys:[Type.any pos; Type.any pos]
-              ~args:
-                [
-                  Expr.etupleaccess ~e:x1 ~index:1 ~size:2 emark;
-                  Expr.etupleaccess ~e:x2 ~index:1 ~size:2 emark;
-                ]
-              emark)
-           x1 x2 emark)
-        [Type.any pos; Type.any pos]
-        pos
-    in
-    let weights_var = Var.make "weights" in
-    let default =
-      match default with
-      | Some dft ->
-        Expr.make_app add_weight_f
-          [rec_helper dft]
-          [Type.any pos]
-          (Mark.get dft)
-      | None -> Expr.efatalerror Runtime.ListEmpty (Untyped { pos = opos })
-    in
-    let weighted_result =
-      (* let weights = map add_weight_f coll in reduce reduce_f (fun () ->
-         default) weights *)
-      Expr.make_let_in (Mark.ghost weights_var)
-        (TArray (TTuple [Type.any pos; Type.any pos], pos), pos)
-        (Expr.eappop ~op:(Map, opos)
-           ~tys:[Type.any pos; TArray (Type.any pos), pos]
-           ~args:[add_weight_f; collection] emark)
-        (Expr.eappop ~op:(Reduce, opos)
-           ~tys:[Type.any pos; Type.any pos; Type.any pos]
-           ~args:
-             [reduce_f; Expr.thunk_term default; Expr.evar weights_var emark]
-           emark)
-        pos
-    in
-    (* weights.1 *)
-    Expr.etupleaccess ~e:weighted_result ~index:0 ~size:2 emark
-  | CollectionOp
-      ((((Exists { predicate } | Forall { predicate }), opos) as op), collection)
-    ->
-    let collection =
-      detuplify_list opos (List.map Mark.remove (fst predicate)) collection
-    in
-    let init, op =
-      match op with
-      | Exists _, pos -> false, (S.Or, pos)
-      | Forall _, pos -> true, (S.And, pos)
-      | _ -> assert false
-    in
-    let init = Expr.elit (LBool init) emark in
-    let params0, predicate = predicate in
-    let params = List.map (fun n -> Mark.map Var.make n) params0 in
-    let f =
-      let acc_var = Var.make "acc" in
-      let acc =
-        Expr.make_var acc_var (Untyped { pos = Mark.get (List.hd params0) })
-      in
-      let elt_var, predicate_body =
-        let local_vars =
-          List.fold_left2
-            (fun vars n p -> Ident.Map.add (Mark.remove n) (Mark.remove p) vars)
-            local_vars params0 params
-        in
-        let predicate_body = rec_helper ~local_vars predicate in
-        match params with
-        | [p] -> p, predicate_body
-        | pl ->
-          let size = List.length pl in
-          (* Multiple args remain a tuple argument since we add [acc] *)
-          let param_var =
-            Var.make (String.concat "_" (List.map Mark.remove params0))
+        let tys = [Type.any pos; rtys] in
+        let f_join =
+          let x1, pos1 = Var.make (Mark.remove name1), Mark.get name1 in
+          let x2, pos2 =
+            match names with
+            | [] -> Var.make "zip", pos
+            | names ->
+              ( Var.make (String.concat "_" (List.map Mark.remove names)),
+                List.fold_left Pos.join Pos.void (List.map Mark.get names) )
           in
-          let param_pos =
-            let allpos = List.map Mark.get params0 in
-            List.fold_left Pos.join (List.hd allpos) (List.tl allpos)
-          in
-          let param_expr = Expr.evar param_var (Untyped { pos }) in
-          ( (param_var, param_pos),
-            Expr.make_multiple_let_in pl
-              (List.map (fun _ -> Type.any pos) pl)
-              (List.mapi
-                 (fun index (_, pos) ->
-                   Expr.etupleaccess ~e:param_expr ~size ~index
-                     (Untyped { pos }))
-                 pl)
-              (rec_helper ~local_vars predicate)
-              opos )
-      in
-      let vs = [Mark.ghost acc_var; elt_var] in
-      let vs_marks = List.map Mark.get vs in
-      let mvars =
-        Expr.bind
-          (Array.of_list (List.map Mark.remove vs))
-          (translate_binop op pos acc predicate_body)
-      in
-      Expr.eabs mvars vs_marks [Type.any pos; Type.any pos] emark
+          Expr.make_ghost_abs [x1; x2]
+            (Expr.make_tuple
+               (Expr.evar x1 (Untyped { pos = pos1 })
+               :: explode (Expr.evar x2 (Untyped { pos = pos2 })))
+               m)
+            tys pos
+        in
+        Expr.eappop ~op:(Map2, pos) ~args:[f_join; l1; rhs]
+          ~tys:(Type.any pos :: List.map (fun ty -> TArray ty, pos) tys)
+          m
     in
-    Expr.eappop ~op:(Fold, opos)
-      ~tys:[Type.any pos; Type.any pos; Type.any pos]
-      ~args:[f; init; collection] emark
-  | CollectionOp ((AggregateExtremum { max; default }, opos), collection) ->
-    let collection = rec_helper collection in
-    let default =
-      match default with
-      | Some dft -> rec_helper dft
-      | None -> Expr.efatalerror Runtime.ListEmpty (Untyped { pos = opos })
-    in
-    let op = if max then S.Gt KPoly else S.Lt KPoly in
-    let op_f =
-      (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
-      let vname = if max then "max" else "min" in
-      let v1, v2 = Var.make (vname ^ "1"), Var.make (vname ^ "2") in
-      let x1 = Expr.make_var v1 emark in
-      let x2 = Expr.make_var v2 emark in
-      Expr.make_ghost_abs [v1; v2]
-        (Expr.eifthenelse (translate_binop (op, pos) pos x1 x2) x1 x2 emark)
-        [Type.any pos; Type.any pos]
-        pos
-    in
-    Expr.eappop ~op:(Reduce, opos)
-      ~tys:[Type.any pos; Type.any pos; Type.any pos]
-      ~args:[op_f; Expr.thunk_term default; collection]
+    zip names ls
+  | ListZip (_, e) -> rec_helper (e, pos)
+  | Lambda ([(arg, arg_pos)], body) ->
+    let var = Var.make arg in
+    let body = rec_helper ~local_vars:(Ident.Map.add arg var local_vars) body in
+    Expr.eabs (Expr.bind [| var |] body) [arg_pos]
+      [Type.fresh_var arg_pos]
       emark
-  | CollectionOp ((AggregateSum { typ }, opos), collection) ->
-    let collection = rec_helper collection in
-    let default_lit =
-      let i0 = Runtime.integer_of_int 0 in
-      match typ with
-      | S.Integer -> LInt i0
-      | S.Decimal -> LRat (Runtime.decimal_of_integer i0)
-      | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
-      | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
-      | t ->
-        Message.error ~pos:opos
-          "It is impossible to sum values of type %a together."
-          SurfacePrint.format_primitive_typ t
+  | Lambda (ids, body) ->
+    (* This lambda construction is intended for arguments of operators. There
+       might be multiple arguments, but the expected result function always
+       takes a tuple *)
+    let nary_binder =
+      let vars = List.map (fun (v, _) -> Var.make v) ids in
+      let local_vars =
+        List.fold_left2
+          (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+          local_vars ids vars
+      in
+      let body = rec_helper ~local_vars body in
+      Expr.bind (Array.of_list vars) body
     in
-    let op_f =
-      (* fun x1 x2 -> op x1 x2 *)
-      (* we're not allowed pass the operator directly as argument, it must
-         appear inside an [EApp] *)
-      let v1, v2 = Var.make "sum1", Var.make "sum2" in
-      let x1 = Expr.make_var v1 emark in
-      let x2 = Expr.make_var v2 emark in
-      Expr.make_ghost_abs [v1; v2]
-        (translate_binop (S.Add KPoly, opos) pos x1 x2)
-        [Type.any pos; Type.any pos]
-        pos
-    in
-    Expr.eappop ~op:(Reduce, opos)
-      ~tys:[Type.any pos; Type.any pos; Type.any pos]
-      ~args:[op_f; Expr.thunk_term (Expr.elit default_lit emark); collection]
-      emark
-  | CollectionOp ((Member { element = member }, opos), collection) ->
-    let param_var = Var.make "collection_member" in
-    let param = Expr.make_var param_var emark in
-    let collection = detuplify_list opos ["collection_member"] collection in
-    let init = Expr.elit (LBool false) emark in
-    let acc_var = Var.make "acc" in
-    let acc = Expr.make_var acc_var emark in
-    let f_body =
-      let member = rec_helper member in
-      Expr.eappop ~op:(Or, opos)
-        ~tys:[TLit TBool, pos; TLit TBool, pos]
-        ~args:
-          [
-            Expr.eappop ~op:(Eq, opos)
-              ~tys:[Type.any pos; Type.any pos]
-              ~args:[member; param] emark;
-            acc;
-          ]
-        emark
-    in
-    let vars = [Mark.ghost acc_var; Mark.add opos param_var] in
-    let f =
-      Expr.eabs
-        (Expr.bind (Array.of_list (List.map Mark.remove vars)) f_body)
-        (List.map Mark.get vars)
-        [TLit TBool, pos; Type.any pos]
-        emark
-    in
-    Expr.eappop ~op:(Fold, opos)
-      ~tys:[Type.any pos; Type.any pos; Type.any pos]
-      ~args:[f; init; collection] emark
+    let varpos = List.map Mark.get ids in
+    let tys = List.map Type.fresh_var varpos in
+    nary_binder_to_tuple_function
+      (TTuple tys, List.fold_left Pos.join Pos.void varpos)
+      pos nary_binder
+      (String.concat "_" (List.map Mark.remove ids))
+      varpos
   | Assert (e1, e2, apos) ->
     Expr.make_let_in
       (Var.make "_", Mark.get e1)
@@ -1193,31 +1202,6 @@ and disambiguate_match_and_build_expression
       EnumConstructor.Map.find c_uid
         (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums))
     in
-    let nary_binder_to_tuple_function cell_type =
-      let payload_types =
-        match cell_type with TTuple tl, _ -> tl | t -> [t]
-      in
-      let m = Mark.get case_body in
-      let v = Var.make "payload" in
-      let body =
-        Expr.detuplify_application
-          [Expr.evar v m]
-          payload_types
-          (fun args ->
-            let body =
-              let args = Bindlib.box_list (List.map Mark.remove args) in
-              Bindlib.box_apply2
-                (fun bnd args ->
-                  Mark.remove (Bindlib.msubst bnd (Array.of_list args)))
-                e_binder args
-            in
-            body, m)
-      in
-      Expr.eabs
-        (Bindlib.bind_mvar [| v |] (Expr.Box.lift body))
-        [List.fold_left Pos.join Pos.void pos_binder]
-        [cell_type] m
-    in
     let arity = List.length pos_binder in
     match cell_type with
     | TTuple tl, _ when arity > 1 ->
@@ -1228,13 +1212,15 @@ and disambiguate_match_and_build_expression
           "This pattern has %d arguments, while %d are expected by \
            constructor@ %a."
           arity (List.length tl) EnumConstructor.format c_uid;
-      nary_binder_to_tuple_function cell_type
+      nary_binder_to_tuple_function cell_type (Expr.pos case_body) e_binder
+        "payload" pos_binder
     | TForAll _, _ when arity > 1 ->
       assert (Type.is_universal cell_type);
       (* Matching a polymorphic payload (ie we are in an option) to a n-ary function: we assume a n-uple and will let the typer validate it *)
       nary_binder_to_tuple_function
         ( TTuple (List.map Type.fresh_var pos_binder),
           List.fold_left Pos.join Pos.void pos_binder )
+        (Expr.pos case_body) e_binder "payload" pos_binder
     | t ->
       (* It's allowed to match the tuple into a single variable (TTuple but arity = 1). We will let the type-checker report the error in case of mismatch *)
       Expr.eabs e_binder pos_binder [t] (Mark.get case_body)

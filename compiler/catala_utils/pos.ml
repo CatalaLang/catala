@@ -151,6 +151,8 @@ let range_to_string { code_pos = s, e; _ } =
   let open Lexing in
   if s.pos_lnum = e.pos_lnum then
     if s.pos_cnum = s.pos_bol then Printf.sprintf "%d" s.pos_lnum
+    else if s.pos_cnum - s.pos_bol = e.pos_cnum - e.pos_bol then
+      Printf.sprintf "%d.%d" s.pos_lnum (e.pos_cnum - e.pos_bol + 1)
     else
       Printf.sprintf "%d.%d-%d" s.pos_lnum
         (s.pos_cnum - s.pos_bol + 1)

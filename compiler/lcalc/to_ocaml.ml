@@ -662,7 +662,7 @@ let format_ctx
         "@,include CatalaType with type t := t@;<1 -2>end@]@,@,")
   in
   let format_abstract_decl name =
-    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct@,type t"
+    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct"
       format_to_module_name (`Aname name);
     Format.fprintf ppml "@,type t = ..";
     Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
@@ -675,6 +675,7 @@ let format_ctx
     Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
       name;
     Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (to_string t)";
+    Format.fprintf ppml "@,let from_json pos t = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
       Format.fprintf ppi "@[<hv 2>module %a :@ Value.CatalaType@]@,@,"
