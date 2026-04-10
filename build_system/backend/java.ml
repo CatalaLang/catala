@@ -123,11 +123,12 @@ module Backend = struct
     let bdir f = (name / "catala" / "stdlib" / f) ^ ext in
     !Var.tdir / bdir !Var.dst
 
-  let modfile ~is_stdlib same_dir_modules ext modname =
+  let modfile ~is_stdlib ?(suffix = "") same_dir_modules ext modname =
     match List.assoc_opt modname same_dir_modules with
     | Some _ when is_stdlib ->
-      (!Var.tdir / name / "catala" / "stdlib" / String.to_id modname) ^ ext
-    | _ -> Ninja.modfile ~backend:name same_dir_modules ext modname
+      ((!Var.tdir / name / "catala" / "stdlib" / String.to_id modname) ^ suffix)
+      ^ ext
+    | _ -> Ninja.modfile ~backend:name ~suffix same_dir_modules ext modname
 
   module Flags = struct
     let default

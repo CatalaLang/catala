@@ -19,16 +19,22 @@ open Catala_utils
 open Var
 open File
 
-let target ?backend ext =
+let handle_suffix = function
+  | None | Some "" -> ""
+  | Some s -> (
+    match s.[0] with 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "_" ^ s | _ -> s)
+
+let target ?suffix ?backend ext =
   let ext =
     match ext.[0] with
     | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
     | _ -> ext
   in
+  let suffix = handle_suffix suffix in
   let bdir =
     match backend with
-    | None -> fun f -> f ^ ext
-    | Some b -> fun f -> (b / f) ^ ext
+    | None -> fun f -> f ^ suffix ^ ext
+    | Some b -> fun f -> (b / f) ^ suffix ^ ext
   in
   !Var.tdir / bdir !Var.dst
 
@@ -56,7 +62,8 @@ let check_missing ~backend ~module_def ~missing ~filename =
          File.format)
       missing backend filename
 
-let modfile ~backend same_dir_modules ext modname =
+let modfile ?suffix ~backend same_dir_modules ext modname =
   match List.assoc_opt modname same_dir_modules with
-  | Some _ -> Var.(!tdir / backend / String.to_id modname) ^ ext
+  | Some _ ->
+    Var.(!tdir / backend / String.to_id modname) ^ handle_suffix suffix ^ ext
   | None -> modname ^ "@" ^ backend ^ "-module"

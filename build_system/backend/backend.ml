@@ -52,7 +52,12 @@ module type S = sig
   end
 
   val modfile :
-    is_stdlib:bool -> (string * string) list -> string -> string -> string
+    is_stdlib:bool ->
+    ?suffix:string ->
+    (string * string) list ->
+    string ->
+    string ->
+    string
   (** [modfile ~is_stdlib same_dir_modules ext modname] is a function that
       return the name of the rule to generates a file in a backend. The
       - [same_dir_modules] is a flag that tells if the rules that makes a call
