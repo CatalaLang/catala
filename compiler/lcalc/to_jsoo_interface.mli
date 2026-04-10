@@ -26,3 +26,21 @@ val format_program :
   unit
 (** Usage [format_program get_fmt p type_dependencies_ordering]. Either one of
     these may be set *)
+
+val format_ctx :
+  include_:bool ->
+  TypeIdent.t list ->
+  Format.formatter ->
+  Format.formatter ->
+  decl_ctx ->
+  unit
+
+val format_typ_of : Format.formatter -> typ -> unit
+val format_typ_to : Format.formatter -> typ -> unit
+
+val format_to_module_name :
+  Format.formatter ->
+  [< `Aname of AbstractType.t | `Ename of EnumName.t | `Sname of StructName.t ] ->
+  unit
+
+val method_name : string -> string
