@@ -312,4 +312,9 @@ module Backend = struct
         ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
         ~outputs:[Ninja.target ~backend:name module_ext];
     ]
+
+  let extra_rules ~externls:_ ~stdlib_tree:_ ~project_tree:_ _module_targets =
+    []
+
+  let extra_default = []
 end

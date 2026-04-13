@@ -37,7 +37,12 @@ module type S = sig
   end
 
   val modfile :
-    is_stdlib:bool -> (string * string) list -> string -> string -> string
+    is_stdlib:bool ->
+    ?suffix:string ->
+    (string * string) list ->
+    string ->
+    string ->
+    string
 
   val static_base_rules : Ninja_utils.def list
 
@@ -68,4 +73,13 @@ module type S = sig
     Ninja_utils.def list
 
   val runtime_dir : File.t Lazy.t
+
+  val extra_rules :
+    externls:string list ->
+    stdlib_tree:(string * string list * Scan.item list) Seq.t ->
+    project_tree:(string * string list * Scan.item list) Seq.t ->
+    string list ->
+    Ninja_utils.def list
+
+  val extra_default : string list
 end
