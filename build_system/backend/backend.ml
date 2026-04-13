@@ -138,6 +138,13 @@ module type S = sig
       those backends have interface and implementation file this function
       returns a set of rules to handle those file. *)
 
+  val copy_to_target :
+    build_dir:string ->
+    prefix_dir:string ->
+    target:Clerk_lib.Clerk_config.target ->
+    install_targets:(Clerk_lib.Clerk_config.backend * string) list ->
+    unit
+
   val runtime_dir : File.t Lazy.t
   (** [runtime_dir] the path of the runtime for a backend, most of the time it's
       in the _opam directory that can be queried from Poll library. *)
