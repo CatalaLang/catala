@@ -515,7 +515,7 @@ module Commands = struct
       match String.index_opt variable '.' with
       | Some i ->
         ( String.sub variable 0 i,
-          Some (String.sub variable i (String.length variable - i)) )
+          Some (String.sub variable (i + 1) (String.length variable - i - 1)) )
       | None -> variable, None
     in
     match

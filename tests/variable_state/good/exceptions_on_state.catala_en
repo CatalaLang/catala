@@ -1,0 +1,61 @@
+## Test
+
+```catala
+declaration scope A:
+  output foo content integer
+    state bar
+    state baz
+
+scope A:
+  label base definition foo state bar equals 0
+
+  exception base definition foo state bar under condition true consequence equals 1
+
+  definition foo state baz equals foo + 1
+```
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ foo = 2
+└─
+```
+
+```catala-test-cli
+$ catala Exceptions -s A -v foo.bar
+┌─[RESULT]─
+│ Printing the tree of exceptions for the definitions of variable "foo@bar" of scope "A".
+└─
+┌─[RESULT]─
+│ Definitions with label "base":
+│
+├─➤ tests/variable_state/good/exceptions_on_state.catala_en:10.3-10.28:
+│    │
+│ 10 │   label base definition foo state bar equals 0
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ Definitions with label "exception_to_base":
+│
+├─➤ tests/variable_state/good/exceptions_on_state.catala_en:12.3-12.32:
+│    │
+│ 12 │   exception base definition foo state bar under condition true consequence equals 1
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ The exception tree structure is as follows:
+│ 
+│ "base"
+│ └── "exception_to_base"
+└─
+```
