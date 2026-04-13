@@ -112,6 +112,36 @@ module Flags = struct
     ]
 end
 
+let copy_to_target ~prefix_dir ~backend ~sub_dir ~install_targets =
+  let open File in
+  List.iter
+    (fun (bk, src) ->
+      (* Only copy the targets with the provided backend *)
+      if backend = bk then (
+        let dir = prefix_dir / sub_dir in
+        ensure_dir dir;
+        copy_in ~dir ~src))
+    install_targets
+
+let copy_runtime
+    ~prefix_dir
+    ~src_extensions
+    ~obj_extensions
+    ~build_dir
+    ~sub_dir
+    ~include_objects =
+  let open File in
+  let runtime_dir = build_dir / Scan.libcatala / sub_dir in
+  let extensions =
+    if include_objects then src_extensions @ obj_extensions else src_extensions
+  in
+  List.iter
+    (fun ext ->
+      let src = (runtime_dir / "catala_runtime") -.- ext in
+      let target_dir = prefix_dir / sub_dir in
+      if File.exists src then copy_in ~dir:target_dir ~src)
+    extensions
+
 module Ninja = struct
   module Nj = Ninja_utils
 
