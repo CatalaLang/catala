@@ -32,6 +32,13 @@ module Backend = struct
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    Common.copy_to_target ~prefix_dir ~sub_dir:subdir
+      ~backend:Clerk_lib.Clerk_config.C ~install_targets;
+    Common.copy_runtime ~prefix_dir ~build_dir ~src_extensions ~obj_extensions
+      ~sub_dir:subdir
+      ~include_objects:target.Clerk_lib.Clerk_config.include_objects
+
   module Flags = struct
     let default
         ~variables

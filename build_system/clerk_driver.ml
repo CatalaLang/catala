@@ -419,8 +419,8 @@ let build_clerk_target
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
-  let local_runtime_dir bk =
-    File.(build_dir / Scan.libcatala / backend_subdir bk)
+  let local_runtime_dir backend_sub_dir =
+    File.(build_dir / Scan.libcatala / backend_sub_dir)
   in
   let backends = target.backends in
   let enabled_backends = normalize_backends backends in
@@ -463,9 +463,7 @@ let build_clerk_target
               let open File in
               let base =
                 if module_item.Scan.is_stdlib then
-                  local_runtime_dir bk
-                  / "catala"
-                  / "stdlib"
+                  local_runtime_dir (backend_subdir bk)
                   / Scan.target_basename module_item
                 else
                   build_dir
@@ -526,36 +524,9 @@ let build_clerk_target
   in
   let open File in
   let prefix_dir = target_dir / target.tname in
-  List.iter
-    (fun (bk, src) ->
-      let dir = prefix_dir / backend_subdir bk in
-      ensure_dir dir;
-      copy_in ~dir ~src)
-    install_targets;
-  target.Config.backends
-  |> List.iter (fun bk ->
-      let dir = prefix_dir / backend_subdir bk in
-      let extensions =
-        if target.include_objects then List.assoc bk backend_extensions
-        else List.assoc bk backend_src_extensions
-      in
-      match bk with
-      | Clerk_config.Java ->
-        List.iter
-          (fun subdir ->
-            copy_dir ()
-              ~filter:(fun f ->
-                Filename.check_suffix f ".java"
-                || (target.include_objects && Filename.check_suffix f ".class"))
-              ~src:(local_runtime_dir bk / subdir)
-              ~dst:(dir / subdir))
-          ["catala"; "org"]
-      | bk ->
-        List.iter
-          (fun ext ->
-            let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
-            if File.exists src then copy_in ~dir ~src)
-          extensions);
+  enabled_backends
+  |> List.iter (fun (module B : Clerk_backends.Backend.S) ->
+      B.copy_to_target ~build_dir ~prefix_dir ~target ~install_targets);
   if target.Config.include_sources then
     all_modules_deps
     |> List.map (fun it -> it.Scan.file_name)

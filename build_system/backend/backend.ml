@@ -72,6 +72,13 @@ module type S = sig
     used_modules:string list ->
     Ninja_utils.def list
 
+  val copy_to_target :
+    build_dir:string ->
+    prefix_dir:string ->
+    target:Clerk_lib.Clerk_config.target ->
+    install_targets:(Clerk_lib.Clerk_config.backend * string) list ->
+    unit
+
   val runtime_dir : File.t Lazy.t
 
   val extra_rules :

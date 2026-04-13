@@ -86,6 +86,13 @@ module Backend = struct
       ]
   end
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    Common.copy_to_target ~prefix_dir ~sub_dir:subdir
+      ~backend:Clerk_lib.Clerk_config.OCaml ~install_targets;
+    Common.copy_runtime ~prefix_dir ~build_dir ~src_extensions ~obj_extensions
+      ~sub_dir:subdir
+      ~include_objects:target.Clerk_lib.Clerk_config.include_objects
+
   let[@ocamlformat "disable"] static_base_rules =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
          [

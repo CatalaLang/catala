@@ -49,6 +49,22 @@ module Backend = struct
       ^ ext
     | _ -> Ninja.modfile ~backend:name ?suffix same_dir_modules ext modname
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    let open File in
+    Common.copy_to_target ~prefix_dir ~backend:Clerk_lib.Clerk_config.Java
+      ~sub_dir:subdir ~install_targets;
+    let include_objects = target.Clerk_lib.Clerk_config.include_objects in
+    let runtime_dir = build_dir / Scan.libcatala / subdir in
+    let prefix_dir = prefix_dir / subdir in
+    List.iter
+      (fun java_dir ->
+        copy_dir ()
+          ~filter:(fun f ->
+            Filename.check_suffix f ".java"
+            || (include_objects && Filename.check_suffix f ".class"))
+          ~src:(runtime_dir / java_dir) ~dst:(prefix_dir / java_dir))
+      ["catala"; "org"]
+
   module Flags = struct
     let default
         ~variables
