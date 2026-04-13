@@ -58,10 +58,12 @@ module type S = sig
     string ->
     string ->
     string
-  (** [modfile ~is_stdlib same_dir_modules ext modname] is a function that
-      return the name of the rule to generates a file in a backend. The
-      - [same_dir_modules] is a flag that tells if the rules that makes a call
-        to modfile generates a file in the same directory than modname.
+  (** [modfile ~is_stdlib ~suffix same_dir_modules ext modname] is a function
+      that return the name of the rule to generates a file in a backend.
+      - [is_stdlib] a flag that tells if the module is from the stdlib
+      - [suffix] the suffix to append to the generated rule
+      - [same_dir_modules] is a list of the files that are in the same directory
+        than modname.
       - [ext] is the extension of the file.
       - [modname] is the module name exposed by this file.
 
@@ -139,4 +141,22 @@ module type S = sig
   val runtime_dir : File.t Lazy.t
   (** [runtime_dir] the path of the runtime for a backend, most of the time it's
       in the _opam directory that can be queried from Poll library. *)
+
+  val extra_rules :
+    externls:string list ->
+    stdlib_tree:(string * string list * Scan.item list) Seq.t ->
+    project_tree:(string * string list * Scan.item list) Seq.t ->
+    string list ->
+    Ninja_utils.def list
+  (** A set of rules that are defined by a backend, those rules should be
+      specific for each backend and doesn't really have anything in common
+      between each backend.
+      [extra_rules ~externls ~stdlib_tree ~project_tree _modules]
+      - [externls] the list of externls module
+      - [stdlib_tree] informations on all modules in the stdlib
+      - [project_tree] informations on all modules in the current project
+      - [_modules] all modules used by the current compilation *)
+
+  val extra_default : string list
+  (** A set of default rules that don't need any parameters to be built *)
 end
