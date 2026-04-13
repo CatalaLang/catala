@@ -32,10 +32,10 @@ declaration scope S2:
   output n2 content String
 
 scope S2:
-  definition n1 equals #[json = "\"2243\""]external(String)
+  definition n1 equals #[json = "\"2243\""] String
   definition n2 equals String.of_int of 2243
   assertion n1 = n2
-  assertion String.foo = #[json = "\"foo\\\\\""]external(String)
-  assertion String.bar = #[json = "\"bąr\""]external(String)
+  assertion String.foo = #[json = "\"foo\\\\\""] String
+  assertion String.bar = #[json = "\"bąr\""] String
 
 ```

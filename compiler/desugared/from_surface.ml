@@ -606,6 +606,16 @@ let rec translate_expr
     in
     Expr.eappop ~op:(op, pos) ~tys:[ty, pos] ~args:[rec_helper arg] emark
   | S.Builtin Impossible -> Expr.efatalerror Runtime.Impossible emark
+  | EnumInject ((CConstr (path, constructor), _), None)
+    when (Pos.get_attr pos @@ function JsonPayload _ -> Some () | _ -> None)
+         <> None
+         (* FIXME: Temporary syntax, an attribute can normally not be used to
+            alter the syntax. The point is not to break syntax tools right away.
+            See also <name_resolution.ml:268>. *) ->
+    rec_helper
+      ( S.Builtin
+          (External (Base (Data (Primitive (Named (path, constructor)))), pos)),
+        pos )
   | S.Builtin (External ty) -> (
     match
       Pos.get_attr pos @@ function JsonPayload s -> Some s | _ -> None

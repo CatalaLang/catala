@@ -264,6 +264,9 @@ let translate_attr ~context = function
         match context, v with
         | Expression (Builtin (External _), _), String (s, _) ->
           Some (JsonPayload s)
+        | Expression (EnumInject ((CConstr _, _), None), _), String (s, _) ->
+          (* FIXME: temporary syntax, see also <from_surface.ml:611> *)
+          Some (JsonPayload s)
         | _ ->
           Message.warning ~pos
             "Attribute @{<magenta>#[json]@} must be attached to the \
