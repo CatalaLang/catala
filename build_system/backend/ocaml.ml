@@ -24,7 +24,7 @@ let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
 let ocamlc_exe = Var.make "OCAMLC_EXE"
 let ocamlopt_exe = Var.make "OCAMLOPT_EXE"
 let ocaml_flags = Var.make "OCAML_FLAGS"
-let ocaml_include = Var.make "OCAML_INCLUDE"
+let ocaml_include_flag = Var.make "OCAML_INCLUDE"
 
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -54,25 +54,25 @@ module Flags = struct
   let ocaml_link : string list Lazy.t =
     lazy (snd (Lazy.force ocaml_include_and_lib))
 
-  let ocaml_include_value : string list Lazy.t =
+  let ocaml_include : string list Lazy.t =
     lazy (fst (Lazy.force ocaml_include_and_lib))
 
   let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
       =
     let open Common.Flags in
-    let catala_flags =
+    let catala_flags_ocaml_value =
       Common.Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
     let def = def ~variables in
     [
-      def catala_flags_ocaml (lazy catala_flags);
+      def catala_flags_ocaml (lazy catala_flags_ocaml_value);
       def ocamlc_exe (lazy ["ocamlc"]);
       def ocamlopt_exe (lazy ["ocamlopt"]);
       def ocaml_flags (lazy []);
-      def ocaml_include
+      def ocaml_include_flag
         (lazy
-          (Lazy.force ocaml_include_value
+          (Lazy.force ocaml_include
           @ Common.Flags.includes ~backend:backend_name include_dirs));
     ]
 end
@@ -84,7 +84,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ [build_dir / Scan.libcatala / backend_name / "dates_calc.cmx"]
   @ [build_dir / Scan.libcatala / backend_name / "catala_runtime.cmx"]
   @ Var.get_var var_bindings ocaml_flags
-  @ Var.get_var var_bindings ocaml_include
+  @ Var.get_var var_bindings ocaml_include_flag
   @ List.map
       (fun it ->
         let f = Scan.target_file_name it in
@@ -120,6 +120,13 @@ module Backend = struct
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    Common.copy_to_target ~prefix_dir ~sub_dir:name
+      ~backend:Clerk_lib.Clerk_config.OCaml ~install_targets;
+    Common.copy_runtime ~prefix_dir ~build_dir ~src_extensions ~obj_extensions
+      ~sub_dir:name
+      ~include_objects:target.Clerk_lib.Clerk_config.include_objects
+
   let[@ocamlformat "disable"] static_base_rules =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
          [
@@ -129,19 +136,19 @@ module Backend = struct
         ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "ocaml-bytobject"
         ~command:[
-          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
+          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include_flag; "-I"; runtime_include; !includes; !input
         ]
         ~description:["<" ^ name ^ ">"; "⇒"; !output];
 
       Nj.rule "ocaml-natobject"
         ~command:[
-          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !includes; !input
+          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include_flag; "-I"; runtime_include; !includes; !input
         ]
         ~description:["<" ^ name ^ ">"; "⇒"; !output];
 
       Nj.rule "ocaml-module"
         ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include; "-I"; runtime_include; !input;
+          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include_flag; "-I"; runtime_include; !input;
            "-o"; !output]
         ~description:["<" ^ name ^ ">"; "⇒"; !output];
     ]

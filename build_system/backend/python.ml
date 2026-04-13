@@ -76,6 +76,13 @@ module Backend = struct
   let obj_extensions = []
   let runtime_targets ~only_source:_ = ["@runtime-" ^ name]
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    Common.copy_to_target ~prefix_dir ~sub_dir:name
+      ~backend:Clerk_lib.Clerk_config.Python ~install_targets;
+    Common.copy_runtime ~prefix_dir ~build_dir ~src_extensions ~obj_extensions
+      ~sub_dir:name
+      ~include_objects:target.Clerk_lib.Clerk_config.include_objects
+
   module Flags = struct
     let default
         ~variables
