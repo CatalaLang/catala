@@ -106,6 +106,7 @@ let all_backends_with_config :
     Clerk_config.C, (module Clerk_backends.C.Backend);
     Clerk_config.Python, (module Clerk_backends.Python.Backend);
     Clerk_config.Java, (module Clerk_backends.Java.Backend);
+    Clerk_config.Jsoo, (module Clerk_backends.Jsoo.Backend);
   ]
 
 let backend_src_extensions =

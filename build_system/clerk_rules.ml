@@ -30,6 +30,7 @@ let all_backends : backend list =
     (module Clerk_backends.C.Backend);
     (module Clerk_backends.Java.Backend);
     (module Clerk_backends.Python.Backend);
+    (module Clerk_backends.Jsoo.Backend);
   ]
 
 let backend_from_config = function
@@ -41,6 +42,8 @@ let backend_from_config = function
     (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
   | Clerk_config.Java ->
     (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
+  | Clerk_config.Jsoo ->
+    (module Clerk_backends.Jsoo.Backend : Clerk_backends.Backend.S)
   | _ -> invalid_arg __FUNCTION__
 
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
