@@ -21,6 +21,7 @@ Build-depends:
   libuucp-ocaml-dev,
   libhex-ocaml-dev,
   liburi-ocaml-dev,
+  libppx-deriving-ocaml-dev,
 #test-depends
   ocaml-qtest,
   libounit-ocaml-dev,
