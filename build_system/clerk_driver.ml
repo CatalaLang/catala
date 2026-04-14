@@ -1188,9 +1188,8 @@ let typecheck_cmd =
     in
     let exception Nothing_to_do in
     match
-      Clerk_rules.run_ninja ~code_coverage:false ~config
-        ~enabled_backends:[Clerk_rules.Tests] ~autotest:false ~ninja_flags
-        ~quiet (fun nin_ppf items var_bindings ->
+      Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends:[]
+        ~autotest:false ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
           let target_items = retrieve_typecheck_items items files_or_folders in
           if target_items = [] then
             (* Prevents [run_ninja] to fail miserably with an obscure error *)
@@ -1345,16 +1344,14 @@ let run_clerk_test
     @ List.map config.Cli.fix_path files_or_folders
     |> List.sort_uniq String.compare
   in
-  let enabled_backends =
-    enable_backend backend
-    :: (if backend = `Interpret then [Clerk_rules.Tests] else [])
-  in
+  let enabled_backend = enable_backend backend in
   if backend <> `Interpret then
     let files_or_folders =
       match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
     in
-    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
-      ~ninja_flags ~autotest:true ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~config
+      ~enabled_backends:[enabled_backend] ~ninja_flags ~autotest:true
+      ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
@@ -1377,7 +1374,8 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
+      Clerk_rules.run_ninja ~code_coverage ~config
+        ~enabled_backends:[enabled_backend; Clerk_rules.Tests]
         ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
         (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
@@ -1716,7 +1714,7 @@ let exceptions_cmd =
     let file = config.Cli.fix_path file in
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-        ~enabled_backends:[Clerk_rules.Tests] ~config
+        ~enabled_backends:[] ~config
     in
     let catala_exe = get_var var_bindings Var.catala_exe in
     let catala_flags = get_var var_bindings Var.catala_flags in
