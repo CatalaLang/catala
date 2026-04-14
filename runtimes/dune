@@ -18,13 +18,17 @@
   (ocaml/dates_calc.cmi as runtime/ocaml/dates_calc.cmi))
  (section lib))
 
+; Jsoo runtime
+
 (install
  (package catala-js)
  (files
   (jsoo/dates_calc_jsoo.ml as runtime/jsoo/dates_calc_jsoo.ml)
   (jsoo/dates_calc_jsoo.mli as runtime/jsoo/dates_calc_jsoo.mli)
   (jsoo/catala_runtime_jsoo.ml as runtime/jsoo/catala_runtime_jsoo.ml)
-  (jsoo/catala_runtime_jsoo.mli as runtime/jsoo/catala_runtime_jsoo.mli))
+  (jsoo/catala_runtime_jsoo.mli as runtime/jsoo/catala_runtime_jsoo.mli)
+  (jsoo/catala_runtime_jsoo.cmi as runtime/jsoo/catala_runtime_jsoo.cmi)
+  (jsoo/dates_calc_jsoo.cmi as runtime/jsoo/dates_calc_jsoo.cmi))
  (section lib))
 
 ; Python runtime
