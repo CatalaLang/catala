@@ -19,7 +19,8 @@ public class CatalaError extends RuntimeException {
         UncomparableValues,
         DateError,
         Impossible,
-        GenericError;
+        GenericError,
+        NotImplemented;
 
         @Override
         public String toString() {
@@ -44,6 +45,8 @@ public class CatalaError extends RuntimeException {
                     return "\"impossible\" computation reached";
                 case GenericError:
                     return "Generic error";
+                case NotImplemented:
+                    return "Not implemented";
             }
             return "";
         }

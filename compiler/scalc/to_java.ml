@@ -127,6 +127,7 @@ let renaming =
     ~prefix_module:false ~modnames_conflict:true
     ~f_var:(String.to_camel_case ~capitalize:false)
     ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
+    ~f_abstract_type:String.to_camel_case
 
 let format_qualified
     (type id)
@@ -188,7 +189,9 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
   | ArrayAccess _ -> fprintf ppf "get"
   | ConstructorCheck _ -> failwith "TODO"
-  | ValueFromJson (_ty, _str) -> pp_print_string ppf "todo"
+  | ValueFromJson _ ->
+    (* Handled in format_expression call *)
+    Message.error ~internal:true "ValueFromJSON incorrectly reached"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_visibility ppf = function
@@ -392,6 +395,22 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
+  | EAppOp { op = ValueFromJson (ty, str), p; args = [_e]; _ } ->
+    let encoded_string =
+      (* Java needs utf-16, we quote the string then escape the non-latin1
+         characters *)
+      let buf = Buffer.create (String.length str) in
+      String.quote str
+      |> String.utf8_seq
+      |> Seq.iter (fun c ->
+          if Uchar.is_char c then Buffer.add_char buf (Uchar.to_char c)
+          else
+            Format.ksprintf (Buffer.add_string buf) "\\u%04x" (Uchar.to_int c));
+      Buffer.contents buf
+    in
+    fprintf ppf "%a.fromJSONString(%a ,%s)"
+      (format_typ ~wildcard:false ~diamond:false ctx)
+      ty (format_expression ctx) (EPosLit, p) encoded_string
   | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
     ->
     fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
@@ -1082,7 +1101,7 @@ let format_abstract_types ctx ppf =
   let format_abs ppf name =
     fprintf ppf
       "@[<v 4>public static class %a extends CatalaValue<%a> {@\n\
-       @ %t@ @ %t@ @ %t@]@\n\
+       @ %t@ @ %t@ @ %t@ @ %t@]@\n\
        }"
       (format_qualified (module AbstractType))
       name
@@ -1113,6 +1132,15 @@ let format_abstract_types ctx ppf =
            @[<v 4>public String toJSONString() {@\n\
            // TO IMPLEMENT@\n\
            return \"\\\"<%a>\\\"\";@]@\n\
+           }"
+          (format_qualified (module AbstractType))
+          name)
+      (fun ppf ->
+        Format.fprintf ppf
+          "@[<v 4>public static %a fromJSONString(CatalaPosition p, String \
+           json) {@\n\
+           // TO IMPLEMENT@\n\
+           throw CatalaError.error(CatalaError.Error.NotImplemented, p);@]@\n\
            }"
           (format_qualified (module AbstractType))
           name)
