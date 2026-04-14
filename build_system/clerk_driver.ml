@@ -132,7 +132,6 @@ let backend_src_extensions =
     Clerk_rules.OCaml, ["ml"; "mli"];
     Clerk_rules.Python, ["py"];
     Clerk_rules.Java, ["java"];
-    Clerk_rules.Tests, ["catala_en"; "catala_fr"; "catala_pl"];
   ]
 
 let backend_obj_extensions =
@@ -141,7 +140,6 @@ let backend_obj_extensions =
     Clerk_rules.OCaml, ["cmi"; "cmo"; "cmx"; "o"; "cmxs"];
     Clerk_rules.Python, [];
     Clerk_rules.Java, ["class"];
-    Clerk_rules.Tests, [];
   ]
 
 let backend_extensions =
@@ -162,7 +160,6 @@ let backend_subdir_list =
     Clerk_rules.Python, "python";
     Clerk_rules.Java, "java";
     Clerk_rules.OCaml, "ocaml";
-    Clerk_rules.Tests, "";
   ]
 
 let subdir_backend_list =
@@ -341,7 +338,6 @@ let rules_backend = function
   | Clerk_rules.C -> `C
   | Clerk_rules.Python -> `Python
   | Clerk_rules.Java -> `Java
-  | Clerk_rules.Tests -> `Interpret
 
 let string_of_backend = function
   | `OCaml -> "ocaml"
@@ -569,7 +565,6 @@ let build_clerk_target
               ~src:(local_runtime_dir bk / subdir)
               ~dst:(dir / subdir))
           ["catala"; "org"]
-      | Clerk_rules.Tests -> assert false
       | bk ->
         List.iter
           (fun ext ->
@@ -1374,10 +1369,9 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~code_coverage ~config
-        ~enabled_backends:[enabled_backend; Clerk_rules.Tests]
-        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
-        (fun nin_ppf _items _vars ->
+      Clerk_rules.run_ninja ~code_coverage ~config ~tests:true
+        ~enabled_backends:[enabled_backend] ~ninja_flags ~autotest:false ~quiet
+        ~clean_up_env:true (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));

@@ -17,7 +17,7 @@
 
 open Clerk_utils
 
-type backend = OCaml | Python | C | Java | Tests
+type backend = OCaml | Python | C | Java
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend
@@ -32,6 +32,7 @@ val base_bindings :
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
+  ?tests:bool ->
   ?enabled_backends:backend list ->
   quiet:bool ->
   code_coverage:bool ->
