@@ -15,7 +15,7 @@ BDIR = _build/install/default/bin
 MANDIR = debian/tmp/usr/man/man1
 
 override_dh_auto_build:
-	dune build $(NUMJOBS) -p catala
+	dune build $(NUMJOBS) -p catala,catala-js
 	install -Dt $(MANDIR) -m 644 _build/install/default/man/man1/*.1
 
 override_dh_auto_test:
