@@ -1,10 +1,9 @@
 package catala.runtime;
 
+import catala.runtime.exception.CatalaError;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-
-import catala.runtime.exception.CatalaError;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -15,6 +14,10 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
 
     private CatalaMoney(BigInteger valueCents) {
         this.value = valueCents;
+    }
+
+    private CatalaMoney(long valueCents) {
+        this.value = BigInteger.valueOf(valueCents);
     }
 
     public final BigInteger asCents() {
@@ -69,7 +72,6 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
         return new CatalaMoney(resBigDecimal.toBigIntegerExact());
     }
 
-    // Div_mon_mon
     public final CatalaDecimal divide(CatalaPosition pos, CatalaMoney other) {
         if (other.value.equals(BigInteger.ZERO)) {
             throw CatalaError.error(CatalaError.Error.DivisionByZero, pos);
@@ -77,12 +79,10 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
         return new CatalaDecimal(new CatalaInteger(this.value), new CatalaInteger(other.value));
     }
 
-    // Div_mon_int
     public final CatalaMoney divide(CatalaPosition pos, CatalaInteger other) {
         return this.divide(pos, new CatalaDecimal(other, new CatalaInteger(BigInteger.ONE)));
     }
 
-    // Div_mon_rat
     public final CatalaMoney divide(CatalaPosition pos, CatalaDecimal other) {
         return this.multiply(other.inverse(pos));
     }
@@ -96,7 +96,7 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     }
 
     public static final CatalaMoney ofCents(long cents) {
-        return new CatalaMoney(BigInteger.valueOf(cents));
+        return new CatalaMoney(cents);
     }
 
     @Override

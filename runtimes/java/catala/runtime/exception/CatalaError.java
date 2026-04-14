@@ -1,9 +1,8 @@
 package catala.runtime.exception;
 
+import catala.runtime.CatalaPosition;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import catala.runtime.CatalaPosition;
 
 public class CatalaError extends RuntimeException {
 
