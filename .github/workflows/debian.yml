@@ -55,7 +55,8 @@ jobs:
           name: Debian package
           path: debian-package/*
       - name: Update nightly release
-        run: gh release upload nightly debian-package/* --clobber
+        run: |
+          gh release delete nightly --cleanup-tag --yes || true
+          gh release create nightly debian-package/* --prerelease --title 'Latest nightly build' --notes 'Release builds re-generated with the latest development version each night. Expect the latest changes and fixes. Do not expect stability !'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
