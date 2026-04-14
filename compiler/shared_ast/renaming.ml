@@ -754,11 +754,17 @@ let program
           Abstract (AbstractType.Map.find s type_renaming_ctx.abstract_type_map))
       p.decl_ctx.ctx_public_types
   in
+  let ctx_abstract_types =
+    AbstractType.Map.fold
+      (fun _ -> AbstractType.Set.add)
+      type_renaming_ctx.abstract_type_map AbstractType.Set.empty
+  in
   let decl_ctx =
     {
       p.decl_ctx with
       ctx_enums = type_renaming_ctx.ctx_enums;
       ctx_structs = type_renaming_ctx.ctx_structs;
+      ctx_abstract_types;
       ctx_scopes;
       ctx_topdefs;
       ctx_public_types;
