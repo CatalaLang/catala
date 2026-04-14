@@ -579,11 +579,22 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       (format_expression_with_paren ctx)
       if_expr (format_block ctx) then_block
   | SIfThenElse { if_expr; then_block; else_block } ->
-    format_if ppf
-      ~cond_format:(fun ppf ->
-        fprintf ppf "%a.asBoolean()" (format_expression_with_paren ctx) if_expr)
-      ~cons_format:(fun ppf -> format_block ctx ppf then_block)
-      ~alt_format:(fun ppf -> format_block ctx ppf else_block)
+    let rec pr_else = function
+      | [(SIfThenElse { if_expr; then_block; else_block }, _)] ->
+        Format.fprintf ppf " else if (%a.asBoolean()) {@ %a@;<1 -4>}"
+          (format_expression ctx) if_expr (format_block ctx) then_block;
+
+        pr_else else_block
+      | [(SLocalDef { expr = ELit LUnit, _; _ }, _)]
+      | [(SReturn (ELit LUnit, _), _)] ->
+        ()
+      | else_block ->
+        Format.fprintf ppf " else {@ %a@;<1 -4>}" (format_block ctx) else_block
+    in
+    Format.fprintf ppf "@[<v 4>if (%a.asBoolean()) {@ %a@;<1 -4>}"
+      (format_expression ctx) if_expr (format_block ctx) then_block;
+    pr_else else_block;
+    pp_close_box ppf ()
   | SSwitch
       {
         switch_var;
