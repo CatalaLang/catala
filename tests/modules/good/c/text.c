@@ -19,24 +19,24 @@
 #include <Integer_en.h>
 #include <Decimal_en.h>
 
-typedef const char* String_String;
+typedef const char* Text_Text;
 
-int catala_type__String_String_equal(const catala_code_position* pos,
-                                     const String_String t1,
-                                     const String_String t2) {
+int catala_type__Text_Text_equal(const catala_code_position* pos,
+                                     const Text_Text t1,
+                                     const Text_Text t2) {
   if (strcmp(t1, t2) == 0) return 1;
   else return 0;
 }
-int catala_type__String_String_compare(const catala_code_position* pos,
-                                       const String_String t1,
-                                       const String_String t2) {
+int catala_type__Text_Text_compare(const catala_code_position* pos,
+                                       const Text_Text t1,
+                                       const Text_Text t2) {
   int c = strcmp(t1, t2);
   return c > 0 ? 1 : c < 0 ? -1 : 0;
 }
-void catala_type__String_String_print(struct catala_buf buf, const String_String t) {
+void catala_type__Text_Text_print(struct catala_buf buf, const Text_Text t) {
   buf.printf("\"%s\"", t);
 }
-void catala_type__String_String_to_json(struct catala_buf buf, const String_String t) {
+void catala_type__Text_Text_to_json(struct catala_buf buf, const Text_Text t) {
   int i = 0;
   buf.printf("\"");
   while (1) {
@@ -58,25 +58,25 @@ char read_hex_char(const catala_code_position* pos, char c) {
   if ('0' <= c && c <= '9') return c - '0';
   if ('a' <= c && c <= 'f') return 10 + c - 'a';
   if ('A' <= c && c <= 'F') return 10 + c - 'A';
-  catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+  catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
   abort();
 }
 
-const String_String catala_type__String_String_from_json(const catala_code_position* pos, const char * t) {
+const Text_Text catala_type__Text_Text_from_json(const catala_code_position* pos, const char * t) {
   int len = strlen(t);
   char* buf;
   int i, ofs;
   if (len < 2 || t[0] != '"' || t[len - 1] != '"')
-    catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+    catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
   buf = catala_malloc (strlen(t) - 2 + 1);
   for (i = 0, ofs = 1; ofs < len - 1; i++, ofs++) {
     switch (t[ofs]) {
     case '"':
-      catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+      catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
     case '\\':
       ofs++;
       if (ofs >= len - 1)
-        catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+        catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
       switch (t[ofs]) {
       case 'b': buf[i] = '\b'; break;
       case 'f': buf[i] = '\f'; break;
@@ -87,7 +87,7 @@ const String_String catala_type__String_String_from_json(const catala_code_posit
         buf[i] = t[ofs]; break;
       case 'u':
         if (ofs >= len - 5)
-          catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+          catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
         else {
           char w = read_hex_char(pos, t[++ofs]);
           char x = read_hex_char(pos, t[++ofs]);
@@ -108,7 +108,7 @@ const String_String catala_type__String_String_from_json(const catala_code_posit
         }
         break;
       default:
-        catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type string");
+        catala_error(catala_assertion_failed, pos, 1, "Invalid JSON input for type text");
       }
       break;
     default:
@@ -118,52 +118,51 @@ const String_String catala_type__String_String_from_json(const catala_code_posit
   buf[i] = '\0';
   return buf;
 }
-const catala_type catala_type__String_String()
+const catala_type catala_type__Text_Text()
 {
   static catala_type ty = {UNINITIALIZED};
   if (ty.kind != UNINITIALIZED) return ty;
-  ty.contents.texternal.name = "String_String";
+  ty.contents.texternal.name = "Text_Text";
   ty.contents.texternal.equal =
     (int (*)(const catala_code_position *, const void *, const void *))
-    &catala_type__String_String_equal;
+    &catala_type__Text_Text_equal;
   ty.contents.texternal.compare =
     (int (*)(const catala_code_position *, const void *, const void *))
-    &catala_type__String_String_compare;
+    &catala_type__Text_Text_compare;
   ty.contents.texternal.print =
     (void (*)(struct catala_buf, const void *))
-    &catala_type__String_String_print;
+    &catala_type__Text_Text_print;
   ty.contents.texternal.to_json =
     (void (*)(struct catala_buf, const void *))
-    &catala_type__String_String_to_json;
+    &catala_type__Text_Text_to_json;
   ty.contents.texternal.from_json =
     (void * (*)(const catala_code_position *, const char *))
-    &catala_type__String_String_from_json;
+    &catala_type__Text_Text_from_json;
   ty.kind = EXTERNAL;
   return ty;
 }
 
-const catala_code_position String__loc[][1] = {
-  {{"tests/modules/good/string.catala_en", 8, 13, 8, 16}},
-  {{"tests/modules/good/string.catala_en", 9, 13, 9, 16}},
-  {{"tests/modules/good/string.catala_en", 10, 13, 10, 21}},
-  {{"tests/modules/good/string.catala_en", 11, 13, 11, 19}}
+const catala_code_position Text__loc[][1] = {
+  {{"tests/modules/good/text.catala_en", 8, 13, 8, 16}},
+  {{"tests/modules/good/text.catala_en", 9, 13, 9, 16}},
+  {{"tests/modules/good/text.catala_en", 10, 13, 10, 21}},
+  {{"tests/modules/good/text.catala_en", 11, 13, 11, 19}}
 };
 
-const String_String String__foo () {
+const Text_Text Text__foo () {
   return "foo\\";
 }
 
-const String_String String__bar () {
+const Text_Text Text__bar () {
   return "bąr";
 }
 
-const String_String String__fortytwo () {
+const Text_Text Text__fortytwo () {
   return "42";
 }
 
-const String_String String__of_int (CATALA_INT x)
+const Text_Text Text__of_int (CATALA_INT x)
 {
   catala_print(catala_strbuf, embed(catala_type_integer, x));
   return catala_strbuf.flush();
 }
-

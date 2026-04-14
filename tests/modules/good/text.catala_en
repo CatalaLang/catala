@@ -1,0 +1,12 @@
+# Text types in Catala
+
+> Module Text external
+
+```catala-metadata
+declaration type Text: external
+
+declaration foo content Text
+declaration bar content Text
+declaration fortytwo content Text
+declaration of_int content Text depends on x content integer
+```

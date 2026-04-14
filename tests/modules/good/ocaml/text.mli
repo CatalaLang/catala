@@ -3,7 +3,7 @@
 open Catala_runtime
 
 
-module String : sig
+module Text : sig
   type t
   val rtype: t Value.ty
 end
@@ -13,12 +13,12 @@ end
 val loc : code_location array
 
 (** Toplevel definition foo *)
-val foo : String.t
+val foo : Text.t
 
 (** Toplevel definition bar *)
-val bar : String.t
+val bar : Text.t
 
-val fortytwo : String.t
+val fortytwo : Text.t
 
 (** Toplevel definition of_int *)
-val of_int : integer -> String.t
+val of_int : integer -> Text.t

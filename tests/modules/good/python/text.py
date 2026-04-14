@@ -18,15 +18,15 @@ from . import Money_en as money_en
 from . import Integer_en as integer_en
 from . import Decimal_en as decimal_en
 
-class String(Value, str):
+class Text(Value, str):
     def __str__(self, indent: int = 0) -> str:
         return (f'"{super().__str__()}"')
 
-foo = String("foo\\")
+foo = Text("foo\\")
 
-bar = String("bąr")
+bar = Text("bąr")
 
-fortytwo = String("42")
+fortytwo = Text("42")
 
-def of_int(x:Integer) -> String:
-    return String(x)
+def of_int(x:Integer) -> Text:
+    return Text(x)

@@ -4,8 +4,8 @@
  * You should replace all `catala_error(catala_impossible)` place-holders with
  * your implementation and rename it to remove the ".template" suffix. */
 
-#ifndef __STRING_H__
-#define __STRING_H__
+#ifndef __TEXT_H__
+#define __TEXT_H__
 
 #include <Stdlib_en.h>
 #include <Date_en.h>
@@ -16,16 +16,16 @@
 #include <Money_en.h>
 #include <Integer_en.h>
 #include <Decimal_en.h>
-typedef char* String_String;
+typedef char* Text_Text;
 
-const catala_type catala_type__String_String();
+const catala_type catala_type__Text_Text();
 
-const String_String* String__foo ();
+const Text_Text* Text__foo ();
 
-const String_String* String__bar ();
+const Text_Text* Text__bar ();
 
-const String_String* String__fortytwo ();
+const Text_Text* Text__fortytwo ();
 
-const String_String* String__of_int (CATALA_INT x);
+const Text_Text* Text__of_int (CATALA_INT x);
 
-#endif /* __STRING_H__ */
+#endif /* __TEXT_H__ */
