@@ -659,43 +659,41 @@ let gen_build_statements_dir
           same_dir_modules)
        (List.to_seq items)
 
-let dir_test_rules dir subdirs enabled_backends items =
+let dir_test_rules dir subdirs items =
   let open File in
-  if List.mem Tests enabled_backends then
-    let subdirs =
-      List.filter
-        (fun d ->
-          Lazy.force Poll.catala_source_tree_root = None
-          || not (String.starts_with d ~prefix:"stdlib"))
-        subdirs
-    in
-    let inputs =
-      List.rev_append
-        (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
-        (List.filter_map
-           (fun item ->
-             if
-               not
-                 (item.Scan.has_inline_tests
-                 || Lazy.force item.Scan.has_scope_tests)
-             then None
-             else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
-           items)
-    in
-    List.to_seq
-      [
-        Nj.Comment "";
-        Nj.build "dir-tests"
-          ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
-          ~inputs
-          ~vars:
-            ((Var.test_id, [dir])
-            ::
-            (if Sys.win32 then
-               [Var.cat_files, [String.concat "+" ("nul" :: inputs)]]
-             else []));
-      ]
-  else Seq.empty
+  let subdirs =
+    List.filter
+      (fun d ->
+        Lazy.force Poll.catala_source_tree_root = None
+        || not (String.starts_with d ~prefix:"stdlib"))
+      subdirs
+  in
+  let inputs =
+    List.rev_append
+      (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
+      (List.filter_map
+         (fun item ->
+           if
+             not
+               (item.Scan.has_inline_tests
+               || Lazy.force item.Scan.has_scope_tests)
+           then None
+           else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
+         items)
+  in
+  List.to_seq
+    [
+      Nj.Comment "";
+      Nj.build "dir-tests"
+        ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
+        ~inputs
+        ~vars:
+          ((Var.test_id, [dir])
+          ::
+          (if Sys.win32 then
+             [Var.cat_files, [String.concat "+" ("nul" :: inputs)]]
+           else []));
+    ]
 
 let runtime_build_statements ~config enabled_backends =
   let open File in
@@ -916,8 +914,8 @@ let output_ninja_file_item_statements
       @@ gen_build_statements_dir dir ~is_stdlib
            config.Clerk_cli.options.global.include_dirs enabled_backends
            autotest items;
-      if not is_stdlib then
-        Nj.format nin_ppf @@ dir_test_rules dir subdirs enabled_backends items;
+      if (not is_stdlib) && List.mem Tests enabled_backends then
+        Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
       Seq.append (List.to_seq items) (print_and_get_items seq) ()
     | Seq.Nil -> next ()
   in
