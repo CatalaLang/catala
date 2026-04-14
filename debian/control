@@ -22,6 +22,7 @@ Build-depends:
   libhex-ocaml-dev,
   liburi-ocaml-dev,
   libppx-deriving-ocaml-dev,
+  libzarith-stubs-js-ocaml-dev,
 #test-depends
   ocaml-qtest,
   libounit-ocaml-dev,
