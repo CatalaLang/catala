@@ -93,7 +93,9 @@ let noassert = true
 module Env = struct
   type t = Env of (expr, elt) Var.Map.t
   and elt = { base : expr * t; mutable reduced : expr * t }
-  and expr = (dcalc, annot custom) gexpr
+  and expr = ((yes, no, yes) interpr_kind, annot custom) gexpr
+  (* dcalc with Custom nodes *)
+
   and annot = { conditions : (expr * t) list }
 
   let find v (Env t) = Var.Map.find v t
@@ -508,6 +510,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
   | EFatalError err, _ ->
     error e0 "%a" Format.pp_print_text (Runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
+  | ECustom _, _ -> assert false (* todo *)
   | EBad, _ -> assert false
   | _ -> .
 
@@ -693,9 +696,12 @@ let program_to_graph
     (prg : (dcalc, 'm) gexpr program)
     (scope : ScopeName.t) : G.t * expr Var.Set.t * Env.t =
   let ctx = prg.decl_ctx in
-  let customize =
-    Expr.map_marks ~f:(fun m ->
+  let customize e =
+    (* Adds both custom terms for typing and explain custom annotations *)
+    Expr.map_marks
+      ~f:(fun m ->
         Custom { pos = Expr.mark_pos m; custom = { conditions = [] } })
+      (Interpreter.addcustom e)
   in
   let (all_env, scopes), _ =
     BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
@@ -1272,6 +1278,7 @@ let expr_to_dot_label0 : type a.
             xlang ()
               ~en:(Format.asprintf "with_pattern %a" EnumConstructor.format c)
               ~fr:(Format.asprintf "sous_forme %a" EnumConstructor.format c)
+          | ValueFromJson (ty, str) -> Format.asprintf "%a(%s)" Print.typ ty str
           | HandleExceptions -> ""
           | ToClosureEnv -> ""
           | FromClosureEnv -> ""
