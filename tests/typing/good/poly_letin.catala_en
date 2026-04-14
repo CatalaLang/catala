@@ -15,8 +15,8 @@ $ catala lcalc
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ money
+│     integer
+│  // money
 │
 │ While typechecking the following expression:
 ├─➤ tests/typing/good/poly_letin.catala_en:9.3-9.4:

@@ -15,8 +15,8 @@ $ catala test-scope Foo
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ bool
+│     integer
+│  // bool
 │
 │ While typechecking the following expression:
 ├─➤ tests/bool/bad/bad_assert.catala_en:9.13-9.14:

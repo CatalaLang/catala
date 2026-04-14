@@ -115,7 +115,7 @@ let unification_error env ~pos ?fmt_pos fmt ty1 ty2 =
         @{<blue>@<2>%s@} @[<hov>%a@]"
       ^^ fmt
       ^^ "@]")
-      "─➤" Type.format ty1 "─➤" Type.format ty2;
+      "  " Type.format ty1 "//" Type.format ty2;
     env.printed_errors :=
       List.fold_left
         (fun acc p -> Pos.Map.add p () acc)

@@ -34,8 +34,8 @@ $ catala dcalc
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ St
-│  ─➤ list of <any type>
+│     St
+│  // list of <any type>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
@@ -64,8 +64,8 @@ $ catala test-scope Test
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ St
-│  ─➤ list of <any type>
+│     St
+│  // list of <any type>
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:

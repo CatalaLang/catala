@@ -15,8 +15,8 @@ $ catala Typecheck
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ decimal
-│  ─➤ list of <any type>
+│     decimal
+│  // list of <any type>
 │
 │ This expression has type decimal:
 ├─➤ tests/typing/bad/err2.catala_en:10.39-10.42:

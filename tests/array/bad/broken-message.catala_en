@@ -36,8 +36,8 @@ $ catala Typecheck --check-invariants
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ money
-│  ─➤ list of money
+│     money
+│  // list of money
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/broken-message.catala_en:21.7-21.8:
