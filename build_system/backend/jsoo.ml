@@ -16,7 +16,7 @@
 
 open Catala_utils
 
-module Jsoo : Backend.S = struct
+module Backend = struct
   open Clerk_utils
   open Clerk_utils.Var
   open Clerk_lib
