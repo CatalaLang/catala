@@ -135,6 +135,8 @@ let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
       "start_column", `Int (Pos.get_start_column pos);
       "end_line", `Int (Pos.get_end_line pos);
       "end_column", `Int (Pos.get_end_column pos);
+      ( "law_heading",
+        `List (List.map (fun s -> `String s) (Pos.get_law_info pos)) );
     ]
 
 let rec exception_tree_to_json (t : exception_tree) : Yojson.Safe.t =
