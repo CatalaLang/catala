@@ -34,6 +34,32 @@ module Backend = struct
   let js_of_ocaml_flags = make "JS_OF_OCAML_FLAGS"
   let ppx_jsoo = make "PPX_JSOO"
   let jsoo_command = make "JSOO_COMMAND"
+  let runtime_jsoo = make "CATALA_RUNTIME_JSOO"
+
+  let runtime_jsoo_dir =
+    lazy
+      (let d =
+         match
+           File.check_directory
+             File.(
+               Catala_utils.Cli.exec_dir /../ "lib" / "catala-js" / "runtime")
+         with
+         | Some d -> File.clean_path d
+         | None ->
+           File.(
+             clean_path (Lazy.force Poll.ocaml_libdir / "catala-js" / "runtime"))
+       in
+       match File.check_directory d with
+       | Some dir ->
+         Message.debug "Catala runtime libraries found at @{<bold>%s@}." dir;
+         [dir]
+       | None ->
+         Message.error
+           "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
+            sure that either catala is correctly installed,@ or you are \
+            running from the root of a compiled source tree.@]"
+           d)
+
   let ppx = make "ppx"
   let runtime_targets ~only_source:_ = ["@runtime-jsoo"]
 
@@ -171,6 +197,7 @@ module Backend = struct
            ~test_flags ~include_dirs
        else [])
       @ [
+          def runtime_jsoo runtime_jsoo_dir;
           def jsoo_include
             (lazy
               (Lazy.force jsoo_include_flags
@@ -410,7 +437,7 @@ module Backend = struct
 
   let runtime_jsoo ~stdbase ~dates_ocaml_base ~runtime_ocaml_base =
     let open File in
-    let jsoo_src = Var.(!runtime) / "jsoo" in
+    let jsoo_src = Var.(!runtime_jsoo) / "jsoo" in
     let jsoo_base = stdbase / "jsoo" in
     let dates_jsoo_base = jsoo_base / "dates_calc_jsoo" in
     let runtime_jsoo_base = jsoo_base / "catala_runtime_jsoo" in

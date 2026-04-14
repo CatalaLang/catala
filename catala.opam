@@ -48,9 +48,6 @@ depends: [
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
   "testo-diff"
-  "js_of_ocaml" { >= "6.0.0" }
-  "js_of_ocaml-ppx" { >= "6.0.0" }
-  "zarith_stubs_js" { >= "v0.16.1" }
   "odoc" {with-doc}
   "ocamlformat-lib" { = "0.28.1" }
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
