@@ -1,10 +1,4 @@
 (library
- (name clerk_lib)
- (public_name catala.clerk_lib)
- (libraries testo-diff catala.catala_utils catala.surface otoml)
- (modules clerk_config clerk_scan clerk_toml_encoding))
-
-(library
  (name clerk_driver)
  (public_name catala.clerk_driver)
  (libraries
@@ -12,6 +6,8 @@
   catala.catala_utils
   catala.surface
   catala.clerk_lib
+  catala.clerk_backends
+  clerk_utils
   ninja_utils
   cmdliner
   re
@@ -21,7 +17,6 @@
  (modules
   clerk_report
   clerk_runtest
-  clerk_cli
   clerk_coverage
   clerk_poll
   clerk_rules

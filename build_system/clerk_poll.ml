@@ -16,6 +16,7 @@
    the License. *)
 
 open Catala_utils
+open Clerk_utils
 
 (** {1 System analysis} *)
 
@@ -24,104 +25,8 @@ open Catala_utils
     This module is sensitive to the CWD at first use. Therefore it's expected
     that [chdir] has been run beforehand to the project root. *)
 
-let root = lazy (Sys.getcwd ())
-
-(** Scans for a parent directory being the root of the Catala source repo *)
-let catala_source_tree_root : File.t option Lazy.t =
-  let isroot d =
-    File.(exists (d / "catala.opam") && exists (d / "dune-project"))
-  in
-  root
-  |> Lazy.map
-     @@ fun root ->
-     if isroot root then Some root
-     else
-       let deep_build_dir =
-         File.find_in_parents ~cwd:root (fun d ->
-             File.basename d = "_build" && isroot (File.parent d))
-       in
-       match deep_build_dir with
-       | Some (d, _) -> Some (File.parent d)
-       | None -> None
-
-let exec_dir : File.t = Catala_utils.Cli.exec_dir
-let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
-
-let catala_exe : File.t Lazy.t =
-  lazy
-    (let f = File.(exec_dir / "catala") in
-     if Sys.file_exists f then Unix.realpath f
-     else
-       match catala_source_tree_root with
-       | (lazy (Some root)) ->
-         Unix.realpath
-           File.(root / "_build" / "default" / "compiler" / "catala.exe")
-       | _ -> File.check_exec "catala")
-
-(** Locates the main [lib] directory containing the OCaml libs *)
-let ocaml_libdir : File.t Lazy.t =
-  let try_cmd cmd args =
-    try Some (String.trim (File.process_out cmd args)) with Failure _ -> None
-  in
-  lazy
-    (match
-       if Sys.getenv_opt "OPAM_SWITCH_PREFIX" <> None then
-         try_cmd "opam" ["var"; "lib"]
-       else None
-     with
-    | Some d -> d
-    | None -> (
-      match try_cmd "ocamlc" ["-where"] with
-      | Some d ->
-        (* Detect a relocated opam switch (libdir = PFX/lib) *)
-        let upper = File.dirname d in
-        if File.(basename upper = "lib" && exists (upper / "findlib.conf")) then
-          upper
-        else d (* A system switch: libdir = PFX/lib/ocaml *)
-      | None -> (
-        match File.(check_directory (exec_dir /../ "lib")) with
-        | Some d -> d
-        | None ->
-          Message.error
-            "Could not locate the OCaml library directory, make sure OCaml or \
-             opam is installed")))
-
-(** Locates the directory containing the OCaml runtime to link to *)
-let runtime_dir : File.t Lazy.t =
-  lazy
-    (let d =
-       match Lazy.force catala_source_tree_root with
-       | Some root ->
-         (* Relative dir when running from catala source *)
-         File.(clean_path @@ (root / "runtimes"))
-       | None -> (
-         match
-           File.check_directory
-             File.(exec_dir /../ "lib" / "catala" / "runtime")
-         with
-         | Some d -> File.clean_path d
-         | None ->
-           File.(clean_path (Lazy.force ocaml_libdir / "catala" / "runtime")))
-     in
-     match File.check_directory d with
-     | Some dir ->
-       Message.debug "Catala runtime libraries found at @{<bold>%s@}." dir;
-       dir
-     | None ->
-       Message.error
-         "@[<hov>Could not locate the Catala runtime library at %s.@ Make sure \
-          that either catala is correctly installed,@ or you are running from \
-          the root of a compiled source tree.@]"
-         d)
-
-let stdlib_dir =
-  lazy
-    (match Lazy.force catala_source_tree_root with
-    | Some root -> File.(clean_path @@ (root / "stdlib"))
-    | None -> Lazy.force runtime_dir)
-
 let ocaml_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force runtime_dir / "ocaml")
+  lazy File.(Lazy.force Poll.runtime_dir / "ocaml")
 
 let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
   lazy
@@ -129,12 +34,14 @@ let ocaml_include_and_lib_flags : (string list * string list) Lazy.t =
      let includes_libs =
        List.map
          (fun lib ->
-           match File.(check_directory (Lazy.force ocaml_libdir / lib)) with
+           match
+             File.(check_directory (Lazy.force Poll.ocaml_libdir / lib))
+           with
            | None ->
              Message.error
                "Required OCaml library not found at %a.@ Try `opam install %s'"
                File.format
-               File.(Lazy.force ocaml_libdir / lib)
+               File.(Lazy.force Poll.ocaml_libdir / lib)
                lib
            | Some d ->
              ( ["-I"; d],
@@ -150,10 +57,11 @@ let ocaml_include_flags : string list Lazy.t =
 let ocaml_link_flags : string list Lazy.t =
   lazy (snd (Lazy.force ocaml_include_and_lib_flags))
 
-let c_runtime_dir : File.t Lazy.t = lazy File.(Lazy.force runtime_dir / "c")
+let c_runtime_dir : File.t Lazy.t =
+  lazy File.(Lazy.force Poll.runtime_dir / "c")
 
 let python_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force runtime_dir / "python" / "src" / "catala")
+  lazy File.(Lazy.force Poll.runtime_dir / "python" / "src" / "catala")
 
 let java_runtime_dir : File.t Lazy.t =
-  lazy File.(Lazy.force runtime_dir / "java")
+  lazy File.(Lazy.force Poll.runtime_dir / "java")

@@ -15,17 +15,17 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
+open Clerk_utils
+open Clerk_lib
 
-(** This module scans the system for the location of various required tools and
-    libraries, to be used as default values. (think [./configure])
+module Flags : sig
+  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
+  val includes : ?backend:string -> string list -> string list
 
-    This module is sensitive to the CWD at first use. Therefore it's expected
-    that [chdir] has been run beforehand to the project root. *)
+  val default :
+    code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list
+end
 
-val ocaml_include_flags : string list Lazy.t
-val ocaml_link_flags : string list Lazy.t
-val ocaml_runtime_dir : File.t Lazy.t
-val c_runtime_dir : File.t Lazy.t
-val python_runtime_dir : File.t Lazy.t
-val java_runtime_dir : File.t Lazy.t
+module Ninja : sig
+  val static_base_rules : Ninja_utils.def list
+end

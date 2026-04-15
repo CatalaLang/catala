@@ -16,9 +16,9 @@
    the License. *)
 
 open Catala_utils
+open Clerk_utils
+module Backend_common = Clerk_backends.Common
 module Nj = Ninja_utils
-module Scan = Clerk_scan
-module Poll = Clerk_poll
 
 (**{1 Building rules}*)
 
@@ -33,163 +33,25 @@ let backend_from_config = function
   | Clerk_config.Java -> Java
   | _ -> invalid_arg __FUNCTION__
 
-(** Ninja variable names *)
-module Var = struct
-  include Nj.Var
-
-  (** Global vars: always defined, at toplevel *)
-
-  let ninja_required_version = make "ninja_required_version"
-  let builddir = make "builddir"
-  let clerk_exe = make "CLERK_EXE"
-  let clerk_flags = make "CLERK_FLAGS"
-  let catala_exe = make "CATALA_EXE"
-  let catala_flags = make "CATALA_FLAGS"
-
-  let make, all_vars_ref =
-    let all_vars_ref = ref String.Map.empty in
-    ( (fun s ->
-        let v = make s in
-        all_vars_ref := String.Map.add s v !all_vars_ref;
-        v),
-      all_vars_ref )
-
-  let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
-  let catala_flags_c = make "CATALA_FLAGS_C"
-  let catala_flags_python = make "CATALA_FLAGS_PYTHON"
-  let catala_flags_java = make "CATALA_FLAGS_JAVA"
-  let ocamlc_exe = make "OCAMLC_EXE"
-  let ocamlopt_exe = make "OCAMLOPT_EXE"
-  let ocaml_flags = make "OCAML_FLAGS"
-  let ocaml_include = make "OCAML_INCLUDE"
-  let runtime = make "CATALA_RUNTIME"
-  let cc_exe = make "CC"
-  let c_flags = make "CFLAGS"
-  let c_include = make "C_INCLUDE_FLAGS"
-  let python = make "PYTHON"
-  let javac = make "JAVAC"
-  let javac_flags = make "JAVAC_FLAGS"
-  let jar = make "jar"
-  let java = make "JAVA"
-  let all_vars = all_vars_ref.contents
-
-  (* Definition spreading different rules *)
-
-  let tdir = make "tdir"
-  let includes = make "includes"
-
-  (* Rule vars, Used in specific rules *)
-
-  let input = make "in"
-  let output = make "out"
-  let src = make "src"
-  let dst = make "dst"
-  let class_path = make "class_path"
-  let cat_files = make "cat_files" (* Useful on Windows only *)
-
-  (* let scope = make "scope" *)
-  let test_id = make "test-id"
-  let ( ! ) = Nj.Var.v
-end
-
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
-  let includes ?backend () =
-    List.fold_right
-      (fun dir flags ->
-        if Filename.is_relative dir then
-          "-I"
-          :: File.(
-               Var.(!builddir)
-               / match backend with Some b -> dir / b | None -> dir)
-          :: flags
-        else "-I" :: dir :: flags)
-      options.global.include_dirs []
-  in
-  let catala_flags =
-    ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-    :: ("--directory=" ^ Var.(!builddir))
-    :: options.global.catala_opts
-  in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
-  let catala_flags_ocaml =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_c =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function "-O" | "--optimize" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_python =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let catala_flags_java =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" | "--closure-conversion" -> true | _ -> false)
-        test_flags
-  in
-  let def var value =
-    let value =
-      match List.assoc_opt (Var.name var) options.variables with
-      | Some vl -> vl
-      | None -> Lazy.force value
-    in
-    var, value
-  in
-  [
-    def Var.ninja_required_version (lazy ["1.7"]);
-    (* use of implicit outputs *)
-    def Var.builddir (lazy [options.global.build_dir]);
-    def Var.runtime (lazy [Lazy.force Poll.runtime_dir]);
-    def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
-    def Var.catala_exe
-      (lazy
-        [
-          (match options.global.catala_exe with
-          | Some e -> File.check_exec e
-          | None -> Lazy.force Poll.catala_exe);
-        ]);
-    def Var.catala_flags
-      (lazy
-        (catala_flags
-        @ (if Message.has_color stderr then ["--color=always"] else [])
-        @ includes ()));
-    def Var.clerk_flags
-      (lazy
-        ("-e"
-         :: Var.(!catala_exe)
-         :: ("--test-flags=" ^ String.concat "," test_flags)
-         :: includes ()
-        @ (if code_coverage then ["--code-coverage"] else [])
-        @ List.map
-            (fun f -> "--catala-opts=" ^ f)
-            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
-  ]
+  let def = Backend_common.Flags.def ~variables:options.variables in
+  let default_flags = Backend_common.Flags.default ~code_coverage ~config in
+  default_flags
   @ (if List.mem OCaml enabled_backends then
+       let catala_flags_ocaml =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
          def Var.ocamlc_exe (lazy ["ocamlc"]);
@@ -197,16 +59,40 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
          def Var.ocaml_flags (lazy []);
          def Var.ocaml_include
            (lazy
-             (Lazy.force Poll.ocaml_include_flags @ includes ~backend:"ocaml" ()));
+             (Lazy.force Clerk_poll.ocaml_include_flags
+             @ Backend_common.Flags.includes ~backend:"ocaml"
+                 options.global.include_dirs));
        ]
      else [])
   @ (if List.mem Python enabled_backends then
+       let catala_flags_python =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_python (lazy catala_flags_python);
          def Var.python (lazy ["python3"]);
        ]
      else [])
   @ (if List.mem Java enabled_backends then
+       let catala_flags_java =
+         (if autotest then ["--autotest"] else [])
+         @
+         if use_default_flags then ["-O"]
+         else
+           List.filter
+             (function
+               | "-O" | "--optimize" | "--closure-conversion" -> true
+               | _ -> false)
+             test_flags
+       in
        [
          def Var.catala_flags_java (lazy catala_flags_java);
          def Var.java (lazy ["java"]);
@@ -217,6 +103,15 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
      else [])
   @
   if List.mem C enabled_backends then
+    let catala_flags_c =
+      (if autotest then ["--autotest"] else [])
+      @
+      if use_default_flags then ["-O"]
+      else
+        List.filter
+          (function "-O" | "--optimize" -> true | _ -> false)
+          test_flags
+    in
     [
       def Var.catala_flags_c (lazy catala_flags_c);
       def Var.cc_exe (lazy ["cc"]);
@@ -236,22 +131,15 @@ let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
       def Var.c_include
         (lazy
           (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-          @ includes ~backend:"c" ()));
+          @ Backend_common.Flags.includes ~backend:"c"
+              options.global.include_dirs));
     ]
   else []
 
 let[@ocamlformat "disable"] static_base_rules enabled_backends =
   let open Var in
-  [
-    Nj.rule "copy"
-      ~command:
-        (if Sys.win32 then
-           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
-           (* The "+nul" forces the timestamp of the new file to be updated *)
-         else
-           ["cp"; "-f"; !input; !output])
-      ~description:["<copy>"; !input];
-  ] @ (if List.mem OCaml enabled_backends then
+  Backend_common.Ninja.static_base_rules @
+  (if List.mem OCaml enabled_backends then
          let runtime_include =
            File.(Var.(!builddir) / Scan.libcatala / "ocaml")
          in

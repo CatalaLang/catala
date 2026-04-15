@@ -15,6 +15,7 @@
    the License. *)
 
 open Catala_utils
+open Clerk_utils
 open Shared_ast
 
 type output_buf = { oc : out_channel; mutable pos : Lexing.position }
@@ -335,7 +336,7 @@ let run_tests
     filename =
   let module L = Surface.Lexer_common in
   let lang =
-    match Clerk_scan.get_lang filename with
+    match Scan.get_lang filename with
     | Some l -> l
     | None ->
       Message.error "Can't infer catala dialect from file extension of %a"
@@ -408,7 +409,7 @@ let run_tests
       None, lines
     | Some ((str, _, _), lines) -> (
       push_line str;
-      match Clerk_scan.test_command_args str with
+      match Scan.test_command_args str with
       | None ->
         let t =
           broken_test
@@ -480,7 +481,7 @@ let run_tests
     process ~has_test_scopes:false ~includes:[] lines
   in
   let has_test_scopes =
-    has_test_scopes || List.exists (Clerk_scan.find_test_scope ~lang) includes
+    has_test_scopes || List.exists (Scan.find_test_scope ~lang) includes
   in
   let scopes_results =
     if has_test_scopes then
