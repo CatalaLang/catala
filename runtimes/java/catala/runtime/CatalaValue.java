@@ -11,6 +11,12 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
 
     public abstract String toJSONString();
 
+    /* static method cannot be overridden nor abstract: we must manually
+       shadow them in the sub-classes */
+    public static CatalaValue<?> fromJSONString(CatalaPosition p, String json) {
+        throw CatalaError.error(CatalaError.Error.NotImplemented, p);
+    }
+
     @SuppressWarnings("unchecked")
     public static <U extends CatalaValue<?>> U cast(CatalaValue<?> v) {
         return (U) v;

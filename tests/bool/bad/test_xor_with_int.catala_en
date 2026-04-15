@@ -13,8 +13,8 @@ $ catala Typecheck
 ┌─[ERROR]─ 1/2 ─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ bool
+│     integer
+│  // bool
 │
 │ This expression has type integer:
 ├─➤ tests/bool/bad/test_xor_with_int.catala_en:8.30-8.32:
@@ -32,8 +32,8 @@ $ catala Typecheck
 ┌─[ERROR]─ 2/2 ─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ bool
+│     integer
+│  // bool
 │
 │ This expression has type integer:
 ├─➤ tests/bool/bad/test_xor_with_int.catala_en:8.37-8.39:

@@ -17,6 +17,7 @@ from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, U
 from functools import reduce
 from enum import Enum, IntEnum, nonmember, auto
 import copy
+import json
 
 Alpha = TypeVar('Alpha', bound='Value')
 Beta = TypeVar('Beta', bound='Value')
@@ -59,6 +60,12 @@ class Value:
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    @classmethod
+    def from_json(cls, str, pos: SourcePosition | None = None):
+        try: return cls(json.loads(str))
+        except ValueError:
+            raise AssertionFailed(pos, "no implementation of from_json provided for this type");
 
     # ensure typing of inherited common operators
     def __add__(self, other):
@@ -398,6 +405,9 @@ class Integer(Value, int): #type:ignore[misc]
 
     def __truediv__(self, other: Integer, pos: SourcePosition | None = None) -> Decimal: #type:ignore[override]
         return Decimal(self).__truediv__(Decimal(other), pos)
+
+    def __str__(self, indent: int = 0) -> str:
+        return str(int(self))
 
     def __repr__(self) -> str:
         return f"Integer({int(self)})"

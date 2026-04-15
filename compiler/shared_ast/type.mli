@@ -95,3 +95,15 @@ val is_universal : t -> bool
 val fully_known : t -> bool
 (** true iff the type doesn't contain any unknowns (free variables or quantified
     types outside of arrows) *)
+
+val lookup_external :
+  Definitions.AbstractType.t -> (module Catala_runtime.CatalaType)
+(** Retrieves the runtime type definition of an external type. This assumes that
+    the module defining it has been dynloaded -- normally, this happens just
+    before interpretation. *)
+
+val lookup_external_handling :
+  Definitions.AbstractType.t -> (module Catala_runtime.Value.External)
+(** Retrieves the runtime module defining the handling functions for the given
+    external type. This assumes that the module defining it has been dynloaded
+    -- normally, this happens just before interpretation. *)

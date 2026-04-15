@@ -73,7 +73,7 @@ let op_needs_pos (type a) (op : a Op.t) _ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Eq | Lt | Lte | Gt
-  | Gte ->
+  | Gte | ValueFromJson _ ->
     true
   | _ -> false
 
@@ -199,7 +199,7 @@ let rec format_rtyp ppf ty =
   | TEnum name -> Format.fprintf ppf "catala_type__%s()" (EnumName.base name)
   | TOption ty -> Format.fprintf ppf "catala_type_optional(%a)" format_rtyp ty
   | TAbstract name ->
-    Format.fprintf ppf "catala_type__%s" (AbstractType.base name)
+    Format.fprintf ppf "catala_type__%s()" (AbstractType.base name)
   | TArrow _ -> Format.fprintf ppf "catala_type_function"
   | TError | TDefault _ | TVar _ | TForAll _ ->
     Message.error "Cannot compute comparison on type %a" Print.typ ty
@@ -327,6 +327,86 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
     |> StructName.Map.keys
     |> List.map (fun s -> TypeIdent.Struct s)
   in
+  let format_abstract_decl ppfs tid =
+    let id = AbstractType.base tid in
+    pp ppfs
+      "@[<v 2>typedef const void* %s; /* The type must be a pointer to const \
+       */@]@,"
+      id;
+    Format.fprintf ppc
+      "@,\
+       @[<v 2>int catala_type__%s_equal(@[<hv>const catala_code_position* \
+       pos,@ const %s t1,@ const %s t2@]) {@,\
+       /* ... */@;\
+       <1 -2>}@]"
+      id id id;
+    Format.fprintf ppc
+      "@,\
+       @[<v 2>int catala_type__%s_compare(@[<hv>const catala_code_position* \
+       pos,@ const %s t1,@ const %s t2@]) {@,\
+       /* ... */@;\
+       <1 -2>}@]"
+      id id id;
+    Format.fprintf ppc
+      "@,\
+       @[<v 2>void catala_type__%s_print(@[<hv>struct catala_buf buf,@ const \
+       %s t@]) {@,\
+       /* ... */@;\
+       <1 -2>}@]"
+      id id;
+    Format.fprintf ppc
+      "@,\
+       @[<v 2>void catala_type__%s_to_json(@[<hv>struct catala_buf buf,@ const \
+       %s t@]) {@,\
+       /* ... */@;\
+       <1 -2>}@]"
+      id id;
+    Format.fprintf ppc
+      "@,\
+       @[<v 2>const %s catala_type__%s_from_json(const char *) {@,\
+       /* ... */@;\
+       <1 -2>}@]"
+      id id;
+
+    pp ppfs "@,@,/* This should be left unchanged */";
+    pp ppfs "@,const catala_type catala_type__%s()" (AbstractType.base tid);
+    pp (List.tl ppfs) ";";
+    Format.fprintf ppc "@,@[<v 2>{";
+    Format.fprintf ppc "@,static catala_type ty = {UNINITIALIZED};";
+    Format.fprintf ppc "@,if (ty.kind != UNINITIALIZED) return ty;";
+    Format.fprintf ppc "@,@[<hv 2>ty.contents.texternal.name =@ %S;@]" id;
+    Format.fprintf ppc
+      "@,\
+       @[<hv 2>ty.contents.texternal.equal =@ (int (*)(const \
+       catala_code_position *, const void *, const void *))@,\
+       &catala_type__%s_equal;@]"
+      id;
+    Format.fprintf ppc
+      "@,\
+       @[<hv 2>ty.contents.texternal.compare =@ (int (*)(const \
+       catala_code_position *, const void *, const void *))@,\
+       &catala_type__%s_compare;@]"
+      id;
+    Format.fprintf ppc
+      "@,\
+       @[<hv 2>ty.contents.texternal.print =@ (void (*)(struct catala_buf, \
+       const void *))@,\
+       &catala_type__%s_print;@]"
+      id;
+    Format.fprintf ppc
+      "@,\
+       @[<hv 2>ty.contents.texternal.to_json =@ (void (*)(struct catala_buf, \
+       const void *))@,\
+       &catala_type__%s_to_json;@]"
+      id;
+    Format.fprintf ppc
+      "@,\
+       @[<hv 2>ty.contents.texternal.from_json =@ (void * (*)(const \
+       catala_code_position *, const char *))@,\
+       &catala_type__%s_from_json;@]"
+      id;
+    Format.fprintf ppc "@,ty.kind = EXTERNAL;@,return ty;@;<1 -2>}@]"
+  in
   List.iter
     (fun struct_or_enum ->
       let ppfs =
@@ -347,9 +427,10 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
           let def = EnumName.Map.find e ctx.decl_ctx.ctx_enums in
           pp ppfs "@,";
           format_enum_decl ppfs (e, def))
-      | TypeIdent.Abstract t ->
-        if AbstractType.path t = [] then
-          pp ppfs "@,@[<v 2>typedef %s;@]" (AbstractType.base t))
+      | TypeIdent.Abstract tid ->
+        if AbstractType.path tid = [] then (
+          pp ppfs "@,";
+          format_abstract_decl ppfs tid))
     (type_ordering @ scope_structs)
 
 (* Be safe and assume 32bit integers for literal constants *)
@@ -508,6 +589,14 @@ let rec format_expression
     Format.fprintf fmt "%a[%d]" VarName.format v index
   | EAppOp { op = ArrayAccess index, _; args = [e]; _ } ->
     Format.fprintf fmt "%a->elements[%d]" format_expression e index
+  | EAppOp
+      {
+        op = ValueFromJson (ty, json), _;
+        args = [pos_expr; (ELit LUnit, _)];
+        _;
+      } ->
+    Format.fprintf fmt "catala_fromjson(%a, %a, %s)" format_rtyp ty
+      format_expression pos_expr (String.quote json)
   | EAppOp { op; args; _ } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op op
       (Format.pp_print_list

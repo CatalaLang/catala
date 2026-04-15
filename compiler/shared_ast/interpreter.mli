@@ -22,7 +22,7 @@ open Definitions
 
 val evaluate_operator :
   decl_ctx ->
-  ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
+  ((((_, _, yes) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
   'm mark ->
   Global.backend_lang ->

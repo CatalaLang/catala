@@ -1,9 +1,8 @@
 package catala.runtime.exception;
 
+import catala.runtime.CatalaPosition;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import catala.runtime.CatalaPosition;
 
 public class CatalaError extends RuntimeException {
 
@@ -19,7 +18,8 @@ public class CatalaError extends RuntimeException {
         UncomparableValues,
         DateError,
         Impossible,
-        GenericError;
+        GenericError,
+        NotImplemented;
 
         @Override
         public String toString() {
@@ -44,6 +44,8 @@ public class CatalaError extends RuntimeException {
                     return "\"impossible\" computation reached";
                 case GenericError:
                     return "Generic error";
+                case NotImplemented:
+                    return "Not implemented";
             }
             return "";
         }

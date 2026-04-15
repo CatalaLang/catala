@@ -1,10 +1,10 @@
 package catala.runtime;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 import catala.runtime.exception.CatalaError;
 import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<CatalaArray<T>> {
 
@@ -94,6 +94,14 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
         T[] newArray = Arrays.copyOf(this.values, this.values.length + other.values.length);
         System.arraycopy(other.values, 0, newArray, this.values.length, other.values.length);
         return new CatalaArray<>(newArray);
+    }
+
+    public Stream<T> asStream() {
+        return Stream.of(this.values);
+    }
+
+    public List<T> asList() {
+        return this.asStream().toList();
     }
 
     @Override

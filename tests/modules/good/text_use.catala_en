@@ -1,0 +1,41 @@
+> Using Text
+
+
+```catala-metadata
+#[test]
+declaration scope S:
+  output foo content Text
+  output bar content Text
+  output foo_lt_bar content boolean
+  output foo_gt_bar content boolean
+  output answer content Text
+  output answer_eq content boolean
+  output answer_order content boolean
+```
+
+
+```catala
+scope S:
+  definition foo equals Text.foo
+  definition bar equals Text.bar
+  definition foo_lt_bar equals Text.foo < bar
+  definition foo_gt_bar equals foo > Text.bar
+  definition answer equals Text.of_int of 42
+  definition answer_eq equals answer = Text.fortytwo
+  definition answer_order equals Text.of_int of 19 < answer and answer < Text.of_int of 72
+```
+
+```catala-metadata
+#[test]
+declaration scope S2:
+  output n1 content Text
+  output n2 content Text
+
+scope S2:
+  definition n1 equals #[json = "\"2243\""]Text
+  definition n2 equals Text.of_int of 2243
+  assertion n1 = n2
+  assertion Text.foo = #[json = "\"foo\\\\\""]Text
+  assertion Text.bar = #[json = "\"bąr\""]Text
+
+```

@@ -1,15 +1,13 @@
 package catala.runtime;
 
+import catala.runtime.exception.CatalaError;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-
-import org.apache.commons.numbers.fraction.BigFraction;
-
-import catala.runtime.exception.CatalaError;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
+import org.apache.commons.numbers.fraction.BigFraction;
 
 // We probably want to keep this class as-is
 // and not derive it from BigFraction as BigFraction is not part of
@@ -30,6 +28,14 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
 
     public CatalaDecimal(CatalaInteger num, CatalaInteger den) {
         this.value = BigFraction.of(num.asBigInteger(), den.asBigInteger());
+    }
+
+    /**
+     * @throws IllegalArgumentException if the given {@code value} is NaN or
+     * infinite.
+     */
+    public CatalaDecimal(Double d) {
+        this.value = BigFraction.from(d);
     }
 
     public CatalaInteger asInteger() {
@@ -101,12 +107,18 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         return this.value.bigDecimalValue(scale, roundingMode);
     }
 
-    // ToRat_int
+    final BigDecimal bigDecimalValue() {
+        return this.value.bigDecimalValue();
+    }
+
+    final Double doubleValue() {
+        return this.value.bigDecimalValue().doubleValue();
+    }
+
     public static final CatalaDecimal ofInteger(CatalaInteger ci) {
         return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
     }
 
-    // ToRat_mon
     public static final CatalaDecimal ofMoney(CatalaMoney cm) {
         return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
     }
@@ -119,10 +131,15 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         return new CatalaDecimal(BigFraction.of(cm.asCents()));
     }
 
+    public static final CatalaDecimal ofDouble(Double d) {
+        return new CatalaDecimal(d);
+    }
+
     public final CatalaDecimal divide(CatalaDecimal other) {
         return new CatalaDecimal(this.value.divide(other.value));
     }
 
+    @Override
     public int compareTo(CatalaDecimal other) {
         return this.value.compareTo(other.value);
     }

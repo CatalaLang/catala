@@ -559,7 +559,8 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
   }
   case EXTERNAL: {
     int cmp = strcmp(x1.t.contents.texternal.name, x2.t.contents.texternal.name);
-    if (cmp) return cmp;
+    if (cmp > 0) return 1;
+    if (cmp < 0) return -1;
     return x1.t.contents.texternal.compare(pos, x1.v, x2.v);
   }
   case FUNCTION: {
@@ -571,9 +572,10 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
   }
 }
 
-void stdflush() {
+const void* stdflush() {
   puts("");
   fflush(stdout);
+  return NULL;
 }
 void stdprintf(const char * fmt, ...) {
   va_list args;
@@ -582,6 +584,35 @@ void stdprintf(const char * fmt, ...) {
   va_end(args);
 }
 const struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
+
+__thread char* strbuf = NULL;
+__thread int strbufsize = 0;
+const void* strflush() {
+  void* ret = strbuf;
+  if (ret == NULL) return ((const void*)"");
+  strbuf = NULL;
+  strbufsize = 0;
+  return ret;
+}
+void strprintf(const char * fmt, ...) {
+  va_list args;
+  char* str;
+  int size;
+  va_start(args, fmt);
+  size = gmp_vasprintf(&str, fmt, args);
+  va_end(args);
+  if (strbuf == NULL) {
+    strbuf = str;
+    strbufsize = size;
+  } else {
+    char* oldbuf = strbuf;
+    strbuf = catala_malloc(strbufsize + size + 1);
+    memcpy(strbuf, oldbuf, strbufsize);
+    memcpy(strbuf + strbufsize, str, size + 1 /* include \0 */);
+    strbufsize += size;
+  }
+}
+const struct catala_buf catala_strbuf = { &strprintf, 0, &strflush };
 
 void catala_print (struct catala_buf buf, const catala_value x) {
   int i;
@@ -776,6 +807,36 @@ void catala_tojson (struct catala_buf buf, const catala_value x) {
   case FUNCTION:
     buf.printf("\"<function>\""); return;
   }
+}
+
+void* catala_fromjson (const catala_type ty, const catala_code_position* pos, const char* bin) {
+  int i;
+  switch (ty.kind) {
+  case UNINITIALIZED:
+  case UNIT:
+  case BOOL:
+  case INTEGER:
+  case MONEY:
+  case DECIMAL:
+  case DATE:
+  case DURATION:
+  case POSITION:
+  case ARRAY:
+  case TUPLE:
+  case STRUCT:
+  case ENUM:
+    catala_error(catala_impossible, pos, 1, "todo (fromjson)");
+  case EXTERNAL:
+    if (ty.contents.texternal.from_json)
+      return ty.contents.texternal.from_json(pos, bin);
+    else {
+      catala_error(catala_impossible, pos, 1,
+                   "no implementation of from_json provided for this type");
+    }
+  case FUNCTION:
+    catala_error(catala_impossible, pos, 1, "Functions cannot be read from JSON");
+  }
+  abort();
 }
 
 /*   - base embedded types -    */

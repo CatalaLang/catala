@@ -25,8 +25,8 @@ $ catala Typecheck
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ decimal
+│     integer
+│  // decimal
 │
 │ This expression has type integer:
 ├─➤ tests/typing/bad/err3.catala_en:10.23-10.45:
@@ -60,8 +60,8 @@ $ catala ocaml
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ integer
-│  ─➤ decimal
+│     integer
+│  // decimal
 │
 │ This expression has type integer:
 ├─➤ tests/typing/bad/err3.catala_en:10.23-10.45:

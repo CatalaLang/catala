@@ -343,6 +343,9 @@ let map
     let log_typ = Mark.remove (typ (Mark.add Pos.void vd.log_typ)) in
     let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
     eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
+  | EAppOp { op = Op.ValueFromJson (ty, str), pos; tys; args } ->
+    let op = fop (Op.ValueFromJson (typ ty, str), pos) in
+    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op; tys; args } ->
     eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
@@ -1170,7 +1173,8 @@ let rec embed_value : type a.
     V.V (Function, lam)
     (* Probably something very clever to do here by embedding the interpreter
        itself *)
-  | ECustom { obj; _ } ->
-    V.V (Function, Obj.obj obj)
-    (* V.V (Function (fun f args -> embed_value ctx (f args)), Obj.obj obj) *)
+  | ECustom { obj; targs = []; tret = TAbstract tid, _ } ->
+    let module E = (val Type.lookup_external tid) in
+    V.V (E.rtype, Obj.obj obj)
+  | ECustom { obj; _ } -> V.V (Function, Obj.obj obj)
   | _ -> invalid_arg "embed_value"

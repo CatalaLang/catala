@@ -11,8 +11,8 @@ $ catala test-scope A
 ┌─[ERROR]─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ duration
-│  ─➤ date
+│     duration
+│  // date
 │
 │ While typechecking the following expression:
 ├─➤ tests/date/bad/substraction.catala_en:6.23-6.43:

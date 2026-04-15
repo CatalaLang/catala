@@ -76,9 +76,10 @@ val cut_at_width : string -> int -> string
     Same limitations as [width]. *)
 
 val quote : string -> string
-(** [quote s] returns the string [s] prefixed and suffixed by '"'. The following
-    special characters '\\', '"', '\t' and '\n' present in [s] are also escaped
-    by prefixing a '\\' character. *)
+(** [quote s] returns the string [s] prefixed and suffixed by '"'. The special
+    characters '\\', '"', '\t', '\n', '\r', '\b' and '\f' ('\x0c') present in
+    [s] are also escaped using '\\'. This is expected to be compatible with JSON
+    escaping. No utf-8 escaping takes place. *)
 
 val re_split_delim : ?pos:int -> ?len:int -> Re.re -> t -> t list
 (** [split_delim re s] splits s into chunks separated by re. It yields the

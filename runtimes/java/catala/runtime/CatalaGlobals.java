@@ -11,6 +11,11 @@ public class CatalaGlobals {
 
     public static Language lang = Language.EN;
 
+
+    public static CatalaValue<?> fromJSONString(CatalaPosition p, String json){
+        throw CatalaError.error(CatalaError.Error.NotImplemented, p);
+    }
+
     public static void displayResult(String[] args, String scope, CatalaValue<?> result) {
         boolean is_test = Stream.of(args).anyMatch(s -> s.equals("--test"));
         boolean json = Stream.of(args).anyMatch(s -> s.equals("--json"));

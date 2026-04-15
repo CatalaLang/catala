@@ -35,9 +35,11 @@ type laziness_level = {
 
 let value_level = { eval_struct = false; eval_op = true; eval_default = true }
 
+type 'm expr = ((yes, no, yes) interpr_kind, 'm) gexpr
+(* dcalc with Custom nodes *)
+
 module Env = struct
-  type 'm t =
-    | Env of ((dcalc, 'm) gexpr, ((dcalc, 'm) gexpr * 'm t) ref) Var.Map.t
+  type 'm t = Env of ('m expr, ('m expr * 'm t) ref) Var.Map.t
 
   let find v (Env t) = Var.Map.find v t
   let add v e e_env (Env t) = Env (Var.Map.add v (ref (e, e_env)) t)
@@ -58,11 +60,7 @@ module Env = struct
 end
 
 let rec lazy_eval :
-    decl_ctx ->
-    'm Env.t ->
-    laziness_level ->
-    (dcalc, 'm) gexpr ->
-    (dcalc, 'm) gexpr * 'm Env.t =
+    decl_ctx -> 'm Env.t -> laziness_level -> 'm expr -> 'm expr * 'm Env.t =
  fun ctx env llevel e0 ->
   let eval_to_value ?(eval_default = true) env e =
     lazy_eval ctx env { value_level with eval_default } e
@@ -223,25 +221,28 @@ let rec lazy_eval :
   | EFatalError err, m ->
     error e0 "%a" Format.pp_print_text (Catala_runtime.error_message err)
   | EExternal _, _ -> assert false (* todo *)
+  | ECustom _, _ -> assert false (* todo *)
   | EBad, _ -> assert false
   | _ -> .
 
-let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
+let interpret_program (prg : (dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * 'm Env.t =
   let ctx = prg.decl_ctx in
   let (all_env, scopes), _ =
     BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
+        let v = Var.translate v in
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body in
-          ( Env.add v (Expr.unbox e) env env,
+          let e = Interpreter.addcustom (Expr.unbox (Scope.to_expr ctx body)) in
+          ( Env.add v e env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
-        | Topdef (_, _, _, e) -> Env.add v e env env, scopes)
+        | Topdef (_, _, _, e) ->
+          Env.add v (Interpreter.addcustom e) env env, scopes)
   in
   let scope_v, scope_arg_struct = ScopeName.Map.find scope scopes in
   let { contents = e, env } = Env.find scope_v all_env in
-  let e = Expr.unbox (Expr.remove_logging_calls e) in
+  let e = Expr.unbox (Expr.remove_logging_calls (Interpreter.addcustom e)) in
   log "=====================";
   log "%a" (Print.expr ~debug:true ()) e;
   log "=====================";

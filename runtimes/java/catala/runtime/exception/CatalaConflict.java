@@ -1,13 +1,10 @@
 package catala.runtime.exception;
 
-import java.util.List;
-import java.util.stream.Stream;
-
 import catala.runtime.CatalaArray;
 import catala.runtime.CatalaOption;
 import catala.runtime.CatalaPosition;
 import catala.runtime.CatalaTuple;
-import java.util.Optional;
+import java.util.List;
 
 public class CatalaConflict {
 

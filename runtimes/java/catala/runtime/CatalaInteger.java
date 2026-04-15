@@ -1,8 +1,7 @@
 package catala.runtime;
 
-import java.math.BigInteger;
-
 import catala.runtime.exception.CatalaError;
+import java.math.BigInteger;
 
 public final class CatalaInteger extends CatalaValue<CatalaInteger> {
 
@@ -35,7 +34,6 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
         return CatalaMoney.ofCents(BigInteger.valueOf(100)).multiply(this);
     }
 
-    // ToInt_rat
     public static final CatalaInteger ofDecimal(CatalaDecimal dec) {
         return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));
     }
@@ -66,6 +64,38 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
             throw CatalaError.error(CatalaError.Error.DivisionByZero, pos);
         }
         return new CatalaDecimal(this, denum);
+    }
+
+    /**
+     * @return this {@code CatalaInteger} converted to a {@code long}.
+     */
+    public long longValue() {
+        return this.value.longValue();
+    }
+
+    /**
+     * @return this {@code CatalaInteger} converted to a {@code long}.
+     * @throws ArithmeticException if the value of {@code this} will not exactly
+     * fit in a {@code long}.
+     */
+    public long longValueExact() {
+        return this.value.longValueExact();
+    }
+
+    /**
+     * @return this {@code CatalaInteger} converted to an {@code int}.
+     */
+    public int intValue() {
+        return this.value.intValue();
+    }
+
+    /**
+     * @return this {@code CatalaInteger} converted to an {@code int}.
+     * @throws ArithmeticException if the value of {@code this} will not exactly
+     * fit in an {@code int}.
+     */
+    public int intValueExact() {
+        return this.value.intValueExact();
     }
 
     @Override

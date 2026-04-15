@@ -85,7 +85,7 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | ValueFromJson _ ->
     true
   | Eq -> (
     (* Z and Q support OCaml polymorphic equality *)
@@ -529,6 +529,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
   | EAppOp { op = ArrayAccess i, _; args = [a]; _ } ->
     Format.fprintf fmt "%a.(%d)" format_with_parens a i
+  | EAppOp
+      {
+        op = ValueFromJson (ty, json), _;
+        args = [pos_expr; (ELit LUnit, _)];
+        _;
+      } ->
+    Format.fprintf fmt "Value.from_json %a %a %S" format_rtyp ty format_expr
+      pos_expr json
   | EAppOp { op = ConstructorCheck (ename, c), _; args = [a]; _ } ->
     Format.fprintf fmt "match %a with %a%s -> true | _ -> false"
       format_with_parens a EnumConstructor.format c
@@ -606,8 +614,8 @@ let format_ctx
       Format.fprintf ppi "@[<v 2>module %a : sig@," format_to_module_name
         (`Sname struct_name);
       ppdef ppi;
-      Format.fprintf ppi "@,val rtype: t Value.ty";
-      Format.fprintf ppi "@;<1 -2>end@]@,@,")
+      Format.fprintf ppi
+        "@,include CatalaType with type t := t@;<1 -2>end@]@,@,")
   in
   let format_enum_decl (enum_name, enum_cons) =
     let ppdef ppf =
@@ -650,21 +658,27 @@ let format_ctx
       Format.fprintf ppi "@[<v 2>module %a : sig@," format_to_module_name
         (`Ename enum_name);
       ppdef ppi;
-      Format.fprintf ppi "@,val rtype: t Value.ty";
-      Format.fprintf ppi "@;<1 -2>end@]@,@,")
+      Format.fprintf ppi
+        "@,include CatalaType with type t := t@;<1 -2>end@]@,@,")
   in
   let format_abstract_decl name =
-    Format.fprintf ppml "@[<v 2>module %a = struct@,type t"
+    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct@,type t"
       format_to_module_name (`Aname name);
-    if Global.options.trace <> None then
-      Format.fprintf ppml "@,let embed (_: t) : runtime_value = Unembeddable";
-    Format.fprintf ppml "@;<1 -2>end@]@,@,";
-    if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then (
-      Format.fprintf ppi "@[<v 2>module %a : sig@,type t" format_to_module_name
-        (`Aname name);
-      if Global.options.trace <> None then
-        Format.fprintf ppi "@,val embed : t -> runtime_value@,";
-      Format.fprintf ppi "@;<1 -2>end@]@,@,")
+    Format.fprintf ppml "@,type t = ..";
+    Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
+    Format.fprintf ppml "@,let equal t1 t2 = t1 = t2";
+    Format.fprintf ppml "@,let compare t1 t2 = Stdlib.compare t1 t2";
+    Format.fprintf ppml
+      "@,\
+       let to_expr t = assert false (* This must output a valid OCaml \
+       expression that encodes t *)";
+    Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
+      name;
+    Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (to_string t)";
+    Format.fprintf ppml "@;<1 -2>end)@]@,@,";
+    if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
+      Format.fprintf ppi "@[<hv 2>module %a :@ Value.CatalaType@]@,@,"
+        format_to_module_name (`Aname name)
   in
   let is_in_type_ordering s =
     List.exists

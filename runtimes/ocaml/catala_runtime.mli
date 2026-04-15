@@ -90,6 +90,20 @@ exception Empty
 (** {2 Runtime type encoding} *)
 
 module Value : sig
+  type _ external_tag = ..
+
+  module type External = sig
+    type t
+    type _ external_tag += T : t external_tag
+
+    val name : string
+    val equal : code_location -> t -> t -> bool
+    val compare : code_location -> t -> t -> int
+    val print : t -> string
+    val to_json : t -> string
+    val from_json : code_location -> string -> t
+  end
+
   (** 'a ty provides runtime information about the structure of values of OCaml
       type 'a *)
   type _ ty =
@@ -115,14 +129,7 @@ module Value : sig
             (* destr: string * t option -> 'a; ? *)
       }
         -> 'a ty
-    | External : {
-        name : string;
-        equal : code_location -> 'a -> t -> bool;
-        compare : code_location -> 'a -> t -> int;
-        to_json : ('a -> string) option;
-        to_string : 'a -> string;
-      }
-        -> 'a ty
+    | External : (module External with type t = 'a) -> 'a ty
     | Function : 'a ty
   (* | Function : (('args -> 'ret) -> 'args -> t ) -> ('args -> 'ret) ty *)
 
@@ -134,6 +141,7 @@ module Value : sig
   val equal : code_location -> t -> t -> bool
   val compare : code_location -> t -> t -> int
   val format : Format.formatter -> t -> unit
+  val from_json : 'a ty -> code_location -> string -> 'a
 end
 
 val equal : 'a Value.ty -> code_location -> 'a -> 'a -> bool
@@ -157,6 +165,31 @@ module Optional : sig
 
   val rtype : 'a Value.ty -> 'a t Value.ty
 end
+
+(** This interface must be supplied to extend the Catala runtime with abstract
+    types *)
+module type ExternalTypeSpec = sig
+  type t
+  (** The embedded type *)
+
+  val name : string
+  (** Catala name of the type (capitalised) *)
+
+  val equal : code_location -> t -> t -> bool
+
+  val compare : code_location -> t -> t -> int
+  (** Standard [compare] function: must return -1, 0 or 1 depending on whether
+      the left-hand side is respectively smaller, equal or greater than the
+      right-hand side *)
+
+  val print : t -> string
+  (** User-directed printing of the value *)
+
+  val to_json : t -> string
+  val from_json : code_location -> string -> t
+end
+
+module ExternalType (Spec : ExternalTypeSpec) : CatalaType with type t = Spec.t
 
 (** {1 Logging} *)
 
@@ -462,7 +495,12 @@ include module type of Oper
 
 type hash = string
 
-val register_module : string -> (string * Obj.t) list -> hash -> unit
+val register_module :
+  string ->
+  (string * Obj.t) list ->
+  ?types:(string * (module CatalaType)) list ->
+  hash ->
+  unit
 (** Registers a module by the given name defining the given bindings. Required
     for evaluation to be able to access the given values. The last argument is
     expected to be a hash of the source file and the Catala version, and will in
@@ -474,4 +512,5 @@ val check_module : string -> hash -> (unit, hash) result
 
     Raises Not_found if the module does not exist at all *)
 
-val lookup_value : string list * string -> Obj.t
+val lookup_value : string * string -> Obj.t
+val lookup_type : string * string -> (module CatalaType)

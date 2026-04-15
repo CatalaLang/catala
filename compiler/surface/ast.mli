@@ -112,6 +112,7 @@ type builtin_expression =
   | ToDecimal
   | ToMoney
   | Round
+  | External of typ
 
 type literal_date = {
   literal_date_day : int;

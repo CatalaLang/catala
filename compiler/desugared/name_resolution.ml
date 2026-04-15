@@ -258,6 +258,25 @@ let translate_attr ~context = function
           "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
+    | "json" -> (
+      match ps with
+      | [] -> (
+        match context, v with
+        | Expression (Builtin (External _), _), String (s, _) ->
+          Some (JsonPayload s)
+        | Expression (EnumInject ((CConstr _, _), None), _), String (s, _) ->
+          (* FIXME: temporary syntax, see also <from_surface.ml:611> *)
+          Some (JsonPayload s)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[json]@} must be attached to the \
+             @{<cyan>external@} keyword and contain a string";
+          None)
+      | ps ->
+        Message.warning ~pos:ppos
+          "Unknown implicit_position_argument sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
     | "passthrough" ->
       (* This special case is used for internal testing: the rest of the
          attribute is kept as Src. See

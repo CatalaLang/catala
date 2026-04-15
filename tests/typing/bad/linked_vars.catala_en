@@ -55,8 +55,8 @@ $ catala typecheck
 ┌─[ERROR]─ 2/2 ─
 │
 │  Error during typechecking, incompatible types:
-│  ─➤ date
-│  ─➤ integer
+│     date
+│  // integer
 │
 │ While typechecking the following expression:
 ├─➤ tests/typing/bad/linked_vars.catala_en:26.3-26.23:
