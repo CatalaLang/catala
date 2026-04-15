@@ -582,7 +582,7 @@ module Backend = struct
   let expose_module ~same_dir_modules ~used_modules =
     [
       Nj.build "phony"
-        ~inputs:[Ninja.target ~backend:"jsoo" ~suffix:"jsoo" "mli"]
+        ~inputs:[Ninja.target ~backend:"jsoo" ~suffix:"jsoo" "cmi"]
         ~implicit_in:
           (List.map
              (Clerk_utils.Ninja.modfile ~suffix:"jsoo" ~backend:"jsoo"
